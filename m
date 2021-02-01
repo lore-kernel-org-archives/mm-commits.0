@@ -2,43 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36E24C433DB
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00676C433DB
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:55:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1088764DDB
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C75E64DAE
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:55:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229959AbhBAWrq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 1 Feb 2021 17:47:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33404 "EHLO mail.kernel.org"
+        id S229542AbhBAWzS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 1 Feb 2021 17:55:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34066 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229530AbhBAWrn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Feb 2021 17:47:43 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 177E264EBD;
-        Mon,  1 Feb 2021 22:46:33 +0000 (UTC)
+        id S229515AbhBAWzQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Feb 2021 17:55:16 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 49B6A64D9E;
+        Mon,  1 Feb 2021 22:54:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612219593;
-        bh=vJyZoMjhqPgXrzk2M2sOla+j/Qc/cZqO6d3k6apz/KA=;
+        s=korg; t=1612220075;
+        bh=Y9yBp9NjJRgr7wHvp+1y7iSklUMlSK6pWQwXkGp7ulI=;
         h=Date:From:To:Subject:From;
-        b=EH9xncJ8RirP8Rv4i26DkJ2Ef2SOTsHe8fpKTPlj7x10dRk0qbNH624+Q/GRH643h
-         /2eTDX3rbIA6r3dMZoBhnSAqQ+UfEns3lniuRAtrrMf/xb5vB0cjWN9vA2Wp9c/NZ8
-         OHPN4EISv42mBX4HdAA2jH1EVqOY2as5/0wEBG1k=
-Date:   Mon, 01 Feb 2021 14:46:32 -0800
+        b=IkqUDOPHkVeUftAlpFn3p/BTvoVq1rj05NFwJjcWVE8pc2qUY8hkuArSP6BBlrg3h
+         6K8O2HvLHzXC+PP07PSCVyEuk45SWoKqwUiKj+b2zM6fpwhyI6eDwLzvnxGeDLo3HG
+         zH0BGdh0+Gi3A2nna9NRUcyo3TLvBvJlp/RibBr8=
+Date:   Mon, 01 Feb 2021 14:54:34 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
-        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
-        dvyukov@google.com, elver@google.com, eugenis@google.com,
-        glider@google.com, kevin.brodsky@arm.com,
-        mm-commits@vger.kernel.org, pcc@google.com,
-        vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  + arm64-kasan-simplify-and-inline-mte-functions.patch
- added to -mm tree
-Message-ID: <20210201224632.2rjchxm8l%akpm@linux-foundation.org>
+To:     corbet@lwn.net, dave.hansen@intel.com, david@redhat.com,
+        geert+renesas@glider.be, gerald.schaefer@linux.ibm.com,
+        gregkh@linuxfoundation.org, idryomov@gmail.com,
+        mchehab+huawei@kernel.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, osalvador@suse.de, rafael@kernel.org,
+        trix@redhat.com, vaibhav@linux.ibm.com
+Subject:  +
+ drivers-base-memory-dont-store-phys_device-in-memory-blocks.patch added to
+ -mm tree
+Message-ID: <20210201225434.o_wog27yF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: kasan: simplify and inline MTE functions
+     Subject: drivers/base/memory: don't store phys_device in memory blocks
 has been added to the -mm tree.  Its filename is
-     arm64-kasan-simplify-and-inline-mte-functions.patch
+     drivers-base-memory-dont-store-phys_device-in-memory-blocks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kasan-simplify-and-inline-mte-functions.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/drivers-base-memory-dont-store-phys_device-in-memory-blocks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kasan-simplify-and-inline-mte-functions.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-memory-dont-store-phys_device-in-memory-blocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,293 +69,181 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: arm64: kasan: simplify and inline MTE functions
+From: David Hildenbrand <david@redhat.com>
+Subject: drivers/base/memory: don't store phys_device in memory blocks
 
-This change provides a simpler implementation of mte_get_mem_tag(),
-mte_get_random_tag(), and mte_set_mem_tag_range().
+No need to store the value for each and every memory block, as we can
+easily query the value at runtime.  Reshuffle the members to optimize the
+memory layout.  Also, let's clarify what the interface once was used for
+and why it's legacy nowadays.
 
-Simplifications include removing system_supports_mte() checks as these
-functions are onlye called from KASAN runtime that had already checked
-system_supports_mte().  Besides that, size and address alignment checks
-are removed from mte_set_mem_tag_range(), as KASAN now does those.
+"phys_device" was used on s390x in older versions of lsmem[2]/chmem[3],
+back when they were still part of s390x-tools.  They were later replaced
+by the variants in linux-utils.  For example, RHEL6 and RHEL7 contain
+lsmem/chmem from s390-utils.  RHEL8 switched to versions from util-linux
+on s390x [4].
 
-This change also moves these functions into the asm/mte-kasan.h header and
-implements mte_set_mem_tag_range() via inline assembly to avoid
-unnecessary functions calls.
+"phys_device" was added with sysfs support for memory hotplug in commit
+3947be1969a9 ("[PATCH] memory hotplug: sysfs and add/remove functions") in
+2005.  It always returned 0.
 
-Link: https://lkml.kernel.org/r/17d6bef698d193f5fe0d8baee0e232a351e23a32.1612208222.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Will Deacon <will.deacon@arm.com>
+s390x started returning something != 0 on some setups (if sclp.rzm is set
+by HW) in 2010 via commit 57b552ba0b2f ("memory hotplug/s390: set
+phys_device").
+
+For s390x, it allowed for identifying which memory block devices belong to
+the same storage increment (RZM).  Only if all memory block devices
+comprising a single storage increment were offline, the memory could
+actually be removed in the hypervisor.
+
+Since commit e5d709bb5fb7 ("s390/memory hotplug: provide
+memory_block_size_bytes() function") in 2013 a memory block device spans
+at least one storage increment - which is why the interface isn't really
+helpful/used anymore (except by old lsmem/chmem tools).
+
+There were once RFC patches to make use of "phys_device" in ACPI context;
+however, the underlying problem could be solved using different interfaces
+[1].
+
+[1] https://patchwork.kernel.org/patch/2163871/
+[2] https://github.com/ibm-s390-tools/s390-tools/blob/v2.1.0/zconf/lsmem
+[3] https://github.com/ibm-s390-tools/s390-tools/blob/v2.1.0/zconf/chmem
+[4] https://bugzilla.redhat.com/show_bug.cgi?id=1504134
+
+Link: https://lkml.kernel.org/r/20210201181347.13262-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Vaibhav Jain <vaibhav@linux.ibm.com>
+Cc: Tom Rix <trix@redhat.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/cache.h     |    1 
- arch/arm64/include/asm/kasan.h     |    1 
- arch/arm64/include/asm/mte-def.h   |    2 
- arch/arm64/include/asm/mte-kasan.h |   64 ++++++++++++++++++++++++---
- arch/arm64/include/asm/mte.h       |    2 
- arch/arm64/kernel/mte.c            |   46 -------------------
- arch/arm64/lib/mte.S               |   16 ------
- 7 files changed, 60 insertions(+), 72 deletions(-)
+ Documentation/ABI/testing/sysfs-devices-memory  |    5 +-
+ Documentation/admin-guide/mm/memory-hotplug.rst |    4 +-
+ drivers/base/memory.c                           |   25 +++++---------
+ include/linux/memory.h                          |    3 -
+ 4 files changed, 15 insertions(+), 22 deletions(-)
 
---- a/arch/arm64/include/asm/cache.h~arm64-kasan-simplify-and-inline-mte-functions
-+++ a/arch/arm64/include/asm/cache.h
-@@ -6,7 +6,6 @@
- #define __ASM_CACHE_H
+--- a/Documentation/ABI/testing/sysfs-devices-memory~drivers-base-memory-dont-store-phys_device-in-memory-blocks
++++ a/Documentation/ABI/testing/sysfs-devices-memory
+@@ -26,8 +26,9 @@ Date:		September 2008
+ Contact:	Badari Pulavarty <pbadari@us.ibm.com>
+ Description:
+ 		The file /sys/devices/system/memory/memoryX/phys_device
+-		is read-only and is designed to show the name of physical
+-		memory device.  Implementation is currently incomplete.
++		is read-only;  it is a legacy interface only ever used on s390x
++		to expose the covered storage increment.
++Users:		Legacy s390-tools lsmem/chmem
  
- #include <asm/cputype.h>
--#include <asm/mte-kasan.h>
+ What:		/sys/devices/system/memory/memoryX/phys_index
+ Date:		September 2008
+--- a/Documentation/admin-guide/mm/memory-hotplug.rst~drivers-base-memory-dont-store-phys_device-in-memory-blocks
++++ a/Documentation/admin-guide/mm/memory-hotplug.rst
+@@ -160,8 +160,8 @@ Under each memory block, you can see 5 f
  
- #define CTR_L1IP_SHIFT		14
- #define CTR_L1IP_MASK		3
---- a/arch/arm64/include/asm/kasan.h~arm64-kasan-simplify-and-inline-mte-functions
-+++ a/arch/arm64/include/asm/kasan.h
-@@ -6,6 +6,7 @@
+                     "online_movable", "online", "offline" command
+                     which will be performed on all sections in the block.
+-``phys_device``     read-only: designed to show the name of physical memory
+-                    device.  This is not well implemented now.
++``phys_device``	    read-only: legacy interface only ever used on s390x to
++		    expose the covered storage increment.
+ ``removable``       read-only: contains an integer value indicating
+                     whether the memory block is removable or not
+                     removable.  A value of 1 indicates that the memory
+--- a/drivers/base/memory.c~drivers-base-memory-dont-store-phys_device-in-memory-blocks
++++ a/drivers/base/memory.c
+@@ -290,20 +290,20 @@ static ssize_t state_store(struct device
+ }
  
- #include <linux/linkage.h>
- #include <asm/memory.h>
-+#include <asm/mte-kasan.h>
- #include <asm/pgtable-types.h>
- 
- #define arch_kasan_set_tag(addr, tag)	__tag_set(addr, tag)
---- a/arch/arm64/include/asm/mte-def.h~arm64-kasan-simplify-and-inline-mte-functions
-+++ a/arch/arm64/include/asm/mte-def.h
-@@ -11,4 +11,6 @@
- #define MTE_TAG_SIZE		4
- #define MTE_TAG_MASK		GENMASK((MTE_TAG_SHIFT + (MTE_TAG_SIZE - 1)), MTE_TAG_SHIFT)
- 
-+#define __MTE_PREAMBLE		ARM64_ASM_PREAMBLE ".arch_extension memtag\n"
-+
- #endif /* __ASM_MTE_DEF_H  */
---- a/arch/arm64/include/asm/mte.h~arm64-kasan-simplify-and-inline-mte-functions
-+++ a/arch/arm64/include/asm/mte.h
-@@ -8,8 +8,6 @@
- #include <asm/compiler.h>
- #include <asm/mte-def.h>
- 
--#define __MTE_PREAMBLE		ARM64_ASM_PREAMBLE ".arch_extension memtag\n"
--
- #ifndef __ASSEMBLY__
- 
- #include <linux/bitfield.h>
---- a/arch/arm64/include/asm/mte-kasan.h~arm64-kasan-simplify-and-inline-mte-functions
-+++ a/arch/arm64/include/asm/mte-kasan.h
-@@ -11,13 +11,16 @@
- 
- #include <linux/types.h>
- 
-+#ifdef CONFIG_ARM64_MTE
-+
  /*
-- * The functions below are meant to be used only for the
-- * KASAN_HW_TAGS interface defined in asm/memory.h.
-+ * These functions are meant to be only used from KASAN runtime through
-+ * the arch_*() interface defined in asm/memory.h.
-+ * These functions don't include system_supports_mte() checks,
-+ * as KASAN only calls them when MTE is supported and enabled.
+- * phys_device is a bad name for this.  What I really want
+- * is a way to differentiate between memory ranges that
+- * are part of physical devices that constitute
+- * a complete removable unit or fru.
+- * i.e. do these ranges belong to the same physical device,
+- * s.t. if I offline all of these sections I can then
+- * remove the physical device?
++ * Legacy interface that we cannot remove: s390x exposes the storage increment
++ * covered by a memory block, allowing for identifying which memory blocks
++ * comprise a storage increment. Since a memory block spans complete
++ * storage increments nowadays, this interface is basically unused. Other
++ * archs never exposed != 0.
   */
--#ifdef CONFIG_ARM64_MTE
- 
--static inline u8 mte_get_ptr_tag(void *ptr)
-+static __always_inline u8 mte_get_ptr_tag(void *ptr)
+ static ssize_t phys_device_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
  {
- 	/* Note: The format of KASAN tags is 0xF<x> */
- 	u8 tag = 0xF0 | (u8)(((u64)(ptr)) >> MTE_TAG_SHIFT);
-@@ -25,9 +28,54 @@ static inline u8 mte_get_ptr_tag(void *p
- 	return tag;
+ 	struct memory_block *mem = to_memory_block(dev);
++	unsigned long start_pfn = section_nr_to_pfn(mem->start_section_nr);
+ 
+-	return sysfs_emit(buf, "%d\n", mem->phys_device);
++	return sysfs_emit(buf, "%d\n",
++			  arch_get_memory_phys_device(start_pfn));
  }
  
--u8 mte_get_mem_tag(void *addr);
--u8 mte_get_random_tag(void);
--void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag);
-+/* Get allocation tag for the address. */
-+static __always_inline u8 mte_get_mem_tag(void *addr)
-+{
-+	asm(__MTE_PREAMBLE "ldg %0, [%0]"
-+		: "+r" (addr));
-+
-+	return mte_get_ptr_tag(addr);
-+}
-+
-+/* Generate a random tag. */
-+static __always_inline u8 mte_get_random_tag(void)
-+{
-+	void *addr;
-+
-+	asm(__MTE_PREAMBLE "irg %0, %0"
-+		: "+r" (addr));
-+
-+	return mte_get_ptr_tag(addr);
-+}
-+
-+/*
-+ * Assign allocation tags for a region of memory based on the pointer tag.
-+ * Note: The address must be non-NULL and MTE_GRANULE_SIZE aligned and
-+ * size must be non-zero and MTE_GRANULE_SIZE aligned.
-+ */
-+static __always_inline void mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
-+{
-+	u64 curr, end;
-+
-+	if (!size)
-+		return;
-+
-+	curr = (u64)__tag_set(addr, tag);
-+	end = curr + size;
-+
-+	do {
-+		/*
-+		 * 'asm volatile' is required to prevent the compiler to move
-+		 * the statement outside of the loop.
-+		 */
-+		asm volatile(__MTE_PREAMBLE "stg %0, [%0]"
-+			     :
-+			     : "r" (curr)
-+			     : "memory");
-+
-+		curr += MTE_GRANULE_SIZE;
-+	} while (curr != end);
-+}
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+@@ -488,11 +488,7 @@ static DEVICE_ATTR_WO(soft_offline_page)
+ static DEVICE_ATTR_WO(hard_offline_page);
+ #endif
  
- void mte_enable_kernel(void);
- void mte_init_tags(u64 max_tag);
-@@ -46,10 +94,12 @@ static inline u8 mte_get_mem_tag(void *a
- {
- 	return 0xFF;
- }
-+
- static inline u8 mte_get_random_tag(void)
- {
- 	return 0xFF;
- }
-+
- static inline void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
- {
- 	return addr;
---- a/arch/arm64/kernel/mte.c~arm64-kasan-simplify-and-inline-mte-functions
-+++ a/arch/arm64/kernel/mte.c
-@@ -19,7 +19,6 @@
- #include <asm/barrier.h>
- #include <asm/cpufeature.h>
- #include <asm/mte.h>
--#include <asm/mte-kasan.h>
- #include <asm/ptrace.h>
- #include <asm/sysreg.h>
- 
-@@ -88,51 +87,6 @@ int memcmp_pages(struct page *page1, str
- 	return ret;
- }
- 
--u8 mte_get_mem_tag(void *addr)
--{
--	if (!system_supports_mte())
--		return 0xFF;
--
--	asm(__MTE_PREAMBLE "ldg %0, [%0]"
--	    : "+r" (addr));
--
--	return mte_get_ptr_tag(addr);
--}
--
--u8 mte_get_random_tag(void)
--{
--	void *addr;
--
--	if (!system_supports_mte())
--		return 0xFF;
--
--	asm(__MTE_PREAMBLE "irg %0, %0"
--	    : "+r" (addr));
--
--	return mte_get_ptr_tag(addr);
--}
--
--void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
--{
--	void *ptr = addr;
--
--	if ((!system_supports_mte()) || (size == 0))
--		return addr;
--
--	/* Make sure that size is MTE granule aligned. */
--	WARN_ON(size & (MTE_GRANULE_SIZE - 1));
--
--	/* Make sure that the address is MTE granule aligned. */
--	WARN_ON((u64)addr & (MTE_GRANULE_SIZE - 1));
--
--	tag = 0xF0 | tag;
--	ptr = (void *)__tag_set(ptr, tag);
--
--	mte_assign_mem_tag_range(ptr, size);
--
--	return ptr;
--}
--
- void mte_init_tags(u64 max_tag)
- {
- 	static bool gcr_kernel_excl_initialized;
---- a/arch/arm64/lib/mte.S~arm64-kasan-simplify-and-inline-mte-functions
-+++ a/arch/arm64/lib/mte.S
-@@ -149,19 +149,3 @@ SYM_FUNC_START(mte_restore_page_tags)
- 
- 	ret
- SYM_FUNC_END(mte_restore_page_tags)
--
 -/*
-- * Assign allocation tags for a region of memory based on the pointer tag
-- *   x0 - source pointer
-- *   x1 - size
-- *
-- * Note: The address must be non-NULL and MTE_GRANULE_SIZE aligned and
-- * size must be non-zero and MTE_GRANULE_SIZE aligned.
+- * Note that phys_device is optional.  It is here to allow for
+- * differentiation between which *physical* devices each
+- * section belongs to...
 - */
--SYM_FUNC_START(mte_assign_mem_tag_range)
--1:	stg	x0, [x0]
--	add	x0, x0, #MTE_GRANULE_SIZE
--	subs	x1, x1, #MTE_GRANULE_SIZE
--	b.gt	1b
--	ret
--SYM_FUNC_END(mte_assign_mem_tag_range)
++/* See phys_device_show(). */
+ int __weak arch_get_memory_phys_device(unsigned long start_pfn)
+ {
+ 	return 0;
+@@ -574,7 +570,6 @@ int register_memory(struct memory_block
+ static int init_memory_block(unsigned long block_id, unsigned long state)
+ {
+ 	struct memory_block *mem;
+-	unsigned long start_pfn;
+ 	int ret = 0;
+ 
+ 	mem = find_memory_block_by_id(block_id);
+@@ -588,8 +583,6 @@ static int init_memory_block(unsigned lo
+ 
+ 	mem->start_section_nr = block_id * sections_per_block;
+ 	mem->state = state;
+-	start_pfn = section_nr_to_pfn(mem->start_section_nr);
+-	mem->phys_device = arch_get_memory_phys_device(start_pfn);
+ 	mem->nid = NUMA_NO_NODE;
+ 
+ 	ret = register_memory(mem);
+--- a/include/linux/memory.h~drivers-base-memory-dont-store-phys_device-in-memory-blocks
++++ a/include/linux/memory.h
+@@ -27,9 +27,8 @@ struct memory_block {
+ 	unsigned long start_section_nr;
+ 	unsigned long state;		/* serialized by the dev->lock */
+ 	int online_type;		/* for passing data to online routine */
+-	int phys_device;		/* to which fru does this belong? */
+-	struct device dev;
+ 	int nid;			/* NID for this memory block */
++	struct device dev;
+ };
+ 
+ int arch_get_memory_phys_device(unsigned long start_pfn);
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-kasan-prefix-global-functions-with-kasan_.patch
-kasan-clarify-hw_tags-impact-on-tbi.patch
-kasan-clean-up-comments-in-tests.patch
-kasan-add-macros-to-simplify-checking-test-constraints.patch
-kasan-add-match-all-tag-tests.patch
-kasan-arm64-allow-using-kunit-tests-with-hw_tags-mode.patch
-kasan-rename-config_test_kasan_module.patch
-kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
-kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
-kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
-kasan-move-_ret_ip_-to-inline-wrappers.patch
-kasan-fix-bug-detection-via-ksize-for-hw_tags-mode.patch
-kasan-add-proper-page-allocator-tests.patch
-kasan-add-a-test-for-kmem_cache_alloc-free_bulk.patch
-kasan-dont-run-tests-when-kasan-is-not-enabled.patch
-kasan-mm-dont-save-alloc-stacks-twice.patch
-kasan-mm-optimize-kmalloc-poisoning.patch
-kasan-optimize-large-kmalloc-poisoning.patch
-kasan-clean-up-setting-free-info-in-kasan_slab_free.patch
-kasan-unify-large-kfree-checks.patch
-kasan-rework-krealloc-tests.patch
-kasan-mm-remove-krealloc-side-effect.patch
-kasan-mm-optimize-krealloc-poisoning.patch
-kasan-ensure-poisoning-size-alignment.patch
-arm64-kasan-simplify-and-inline-mte-functions.patch
-kasan-always-inline-hw_tags-helper-functions.patch
-arm64-kasan-export-mte-symbols-for-kasan-tests.patch
+video-fbdev-acornfb-remove-free_unused_pages.patch
+mm-simplify-free_highmem_page-and-free_reserved_page.patch
+mm-cma-expose-all-pages-to-the-buddy-if-activation-of-an-area-fails.patch
+mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo.patch
+mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo-v2.patch
+mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource.patch
+drivers-base-memory-dont-store-phys_device-in-memory-blocks.patch
+documentation-sysfs-memory-clarify-some-memory-block-device-properties.patch
 
