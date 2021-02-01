@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB84DC433E0
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED974C43381
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0DFF64DDB
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BDD3A64EAA
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229999AbhBAWrq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229530AbhBAWrq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 1 Feb 2021 17:47:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33408 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33402 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229973AbhBAWrn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S229753AbhBAWrn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 1 Feb 2021 17:47:43 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0DBAA64ECC;
-        Mon,  1 Feb 2021 22:46:40 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0EB0164EB8;
+        Mon,  1 Feb 2021 22:46:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612219600;
-        bh=sqGZV9jJecrghB3NdpClZ7W72KWoIZLR818OeqUrzug=;
+        s=korg; t=1612219589;
+        bh=+9u+cICLyQumXWVZjlp36pHgLQy0TUNwjG2sjUp68m0=;
         h=Date:From:To:Subject:From;
-        b=hthQr66pw6dqQFuq2HCzy29SMPGzVEOgZZiskjyZskeKWtU/Zd4C/SXFzmeV2GMtS
-         BxH6LMWRrwx+73sLrhAJDxf6kEsMP/BIFp4LJ7pZrSD+RQJYayEDQadeXOtgVvtKlp
-         Nny56xnkkDJtKaUqCN06xK6sxFCMgZC6+y0cQQVg=
-Date:   Mon, 01 Feb 2021 14:46:39 -0800
+        b=inPUCuFISDGaRyJ9sy0nZLtDeiNcDoQ8L8niQbnnngAzQdDFtPco9bKplpltCFFrP
+         bZNwpYCpY0tE7gcGzPzByt5FwoYuCsebQX/++QFud3tCSzmwhmVZdgAGWqij4OxqBg
+         tAiqXZG8NzWzxyig2FtlmLtztruRBemaR+jvj63E=
+Date:   Mon, 01 Feb 2021 14:46:28 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  + arm64-kasan-export-mte-symbols-for-kasan-tests.patch
- added to -mm tree
-Message-ID: <20210201224639.hsTwVDV5H%akpm@linux-foundation.org>
+Subject:  + kasan-ensure-poisoning-size-alignment.patch added to
+ -mm tree
+Message-ID: <20210201224628.dww-qnA18%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: kasan: export MTE symbols for KASAN tests
+     Subject: kasan: ensure poisoning size alignment
 has been added to the -mm tree.  Its filename is
-     arm64-kasan-export-mte-symbols-for-kasan-tests.patch
+     kasan-ensure-poisoning-size-alignment.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kasan-export-mte-symbols-for-kasan-tests.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-ensure-poisoning-size-alignment.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kasan-export-mte-symbols-for-kasan-tests.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-ensure-poisoning-size-alignment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,14 +69,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: arm64: kasan: export MTE symbols for KASAN tests
+Subject: kasan: ensure poisoning size alignment
 
-Export mte_enable_kernel() and mte_set_report_once() to fix:
+A previous changes d99f6a10c161 ("kasan: don't round_up too much")
+attempted to simplify the code by adding a round_up(size) call into
+kasan_poison().  While this allows to have less round_up() calls around
+the code, this results in round_up() being called multiple times.
 
-ERROR: modpost: "mte_enable_kernel" [lib/test_kasan.ko] undefined!
-ERROR: modpost: "mte_set_report_once" [lib/test_kasan.ko] undefined!
+This patch removes round_up() of size from kasan_poison() and ensures that
+all callers round_up() the size explicitly.  This patch also adds
+WARN_ON() alignment checks for address and size to kasan_poison() and
+kasan_unpoison().
 
-Link: https://lkml.kernel.org/r/d128216d3b0aea0b4178e11978f5dd3e8dbeb590.1612208222.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/fee7c8c751dbf871e957935c347fcf7f1ca49beb.1612208222.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -92,20 +97,195 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/mte.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/kasan/common.c |    9 ++++++---
+ mm/kasan/kasan.h  |   31 +++++++++++++++++++++----------
+ mm/kasan/shadow.c |   37 ++++++++++++++++++++++---------------
+ 3 files changed, 49 insertions(+), 28 deletions(-)
 
---- a/arch/arm64/kernel/mte.c~arm64-kasan-export-mte-symbols-for-kasan-tests
-+++ a/arch/arm64/kernel/mte.c
-@@ -118,6 +118,8 @@ void mte_set_report_once(bool state)
- {
- 	WRITE_ONCE(report_fault_once, state);
- }
-+EXPORT_SYMBOL(mte_enable_kernel_sync);
-+EXPORT_SYMBOL(mte_set_report_once);
+--- a/mm/kasan/common.c~kasan-ensure-poisoning-size-alignment
++++ a/mm/kasan/common.c
+@@ -261,7 +261,8 @@ void __kasan_unpoison_object_data(struct
  
- bool mte_report_once(void)
+ void __kasan_poison_object_data(struct kmem_cache *cache, void *object)
  {
+-	kasan_poison(object, cache->object_size, KASAN_KMALLOC_REDZONE);
++	kasan_poison(object, round_up(cache->object_size, KASAN_GRANULE_SIZE),
++			KASAN_KMALLOC_REDZONE);
+ }
+ 
+ /*
+@@ -348,7 +349,8 @@ static bool ____kasan_slab_free(struct k
+ 		return true;
+ 	}
+ 
+-	kasan_poison(object, cache->object_size, KASAN_KMALLOC_FREE);
++	kasan_poison(object, round_up(cache->object_size, KASAN_GRANULE_SIZE),
++			KASAN_KMALLOC_FREE);
+ 
+ 	if ((IS_ENABLED(CONFIG_KASAN_GENERIC) && !quarantine))
+ 		return false;
+@@ -490,7 +492,8 @@ static void *____kasan_kmalloc(struct km
+ 	/* Poison the aligned part of the redzone. */
+ 	redzone_start = round_up((unsigned long)(object + size),
+ 				KASAN_GRANULE_SIZE);
+-	redzone_end = (unsigned long)object + cache->object_size;
++	redzone_end = round_up((unsigned long)(object + cache->object_size),
++				KASAN_GRANULE_SIZE);
+ 	kasan_poison((void *)redzone_start, redzone_end - redzone_start,
+ 			   KASAN_KMALLOC_REDZONE);
+ 
+--- a/mm/kasan/kasan.h~kasan-ensure-poisoning-size-alignment
++++ a/mm/kasan/kasan.h
+@@ -318,24 +318,35 @@ static inline u8 kasan_random_tag(void)
+ 
+ #ifdef CONFIG_KASAN_HW_TAGS
+ 
+-static inline void kasan_poison(const void *address, size_t size, u8 value)
++static inline void kasan_poison(const void *addr, size_t size, u8 value)
+ {
++	addr = kasan_reset_tag(addr);
++
+ 	/* Skip KFENCE memory if called explicitly outside of sl*b. */
+-	if (is_kfence_address(address))
++	if (is_kfence_address(addr))
++		return;
++
++	if (WARN_ON((u64)addr & KASAN_GRANULE_MASK))
++		return;
++	if (WARN_ON(size & KASAN_GRANULE_MASK))
+ 		return;
+ 
+-	hw_set_mem_tag_range(kasan_reset_tag(address),
+-			round_up(size, KASAN_GRANULE_SIZE), value);
++	hw_set_mem_tag_range((void *)addr, size, value);
+ }
+ 
+-static inline void kasan_unpoison(const void *address, size_t size)
++static inline void kasan_unpoison(const void *addr, size_t size)
+ {
++	u8 tag = get_tag(addr);
++
+ 	/* Skip KFENCE memory if called explicitly outside of sl*b. */
+-	if (is_kfence_address(address))
++	if (is_kfence_address(addr))
++		return;
++
++	if (WARN_ON((u64)addr & KASAN_GRANULE_MASK))
+ 		return;
++	size = round_up(size, KASAN_GRANULE_SIZE);
+ 
+-	hw_set_mem_tag_range(kasan_reset_tag(address),
+-			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
++	hw_set_mem_tag_range((void *)addr, size, tag);
+ }
+ 
+ static inline bool kasan_byte_accessible(const void *addr)
+@@ -352,7 +363,7 @@ static inline bool kasan_byte_accessible
+ /**
+  * kasan_poison - mark the memory range as unaccessible
+  * @addr - range start address, must be aligned to KASAN_GRANULE_SIZE
+- * @size - range size
++ * @size - range size, must be aligned to KASAN_GRANULE_SIZE
+  * @value - value that's written to metadata for the range
+  *
+  * The size gets aligned to KASAN_GRANULE_SIZE before marking the range.
+@@ -362,7 +373,7 @@ void kasan_poison(const void *addr, size
+ /**
+  * kasan_unpoison - mark the memory range as accessible
+  * @addr - range start address, must be aligned to KASAN_GRANULE_SIZE
+- * @size - range size
++ * @size - range size, can be unaligned
+  *
+  * For the tag-based modes, the @size gets aligned to KASAN_GRANULE_SIZE before
+  * marking the range.
+--- a/mm/kasan/shadow.c~kasan-ensure-poisoning-size-alignment
++++ a/mm/kasan/shadow.c
+@@ -69,7 +69,7 @@ void *memcpy(void *dest, const void *src
+ 	return __memcpy(dest, src, len);
+ }
+ 
+-void kasan_poison(const void *address, size_t size, u8 value)
++void kasan_poison(const void *addr, size_t size, u8 value)
+ {
+ 	void *shadow_start, *shadow_end;
+ 
+@@ -78,55 +78,62 @@ void kasan_poison(const void *address, s
+ 	 * some of the callers (e.g. kasan_poison_object_data) pass tagged
+ 	 * addresses to this function.
+ 	 */
+-	address = kasan_reset_tag(address);
++	addr = kasan_reset_tag(addr);
+ 
+ 	/* Skip KFENCE memory if called explicitly outside of sl*b. */
+-	if (is_kfence_address(address))
++	if (is_kfence_address(addr))
+ 		return;
+ 
+-	size = round_up(size, KASAN_GRANULE_SIZE);
+-	shadow_start = kasan_mem_to_shadow(address);
+-	shadow_end = kasan_mem_to_shadow(address + size);
++	if (WARN_ON((u64)addr & KASAN_GRANULE_MASK))
++		return;
++	if (WARN_ON(size & KASAN_GRANULE_MASK))
++		return;
++
++	shadow_start = kasan_mem_to_shadow(addr);
++	shadow_end = kasan_mem_to_shadow(addr + size);
+ 
+ 	__memset(shadow_start, value, shadow_end - shadow_start);
+ }
+ EXPORT_SYMBOL(kasan_poison);
+ 
+ #ifdef CONFIG_KASAN_GENERIC
+-void kasan_poison_last_granule(const void *address, size_t size)
++void kasan_poison_last_granule(const void *addr, size_t size)
+ {
+ 	if (size & KASAN_GRANULE_MASK) {
+-		u8 *shadow = (u8 *)kasan_mem_to_shadow(address + size);
++		u8 *shadow = (u8 *)kasan_mem_to_shadow(addr + size);
+ 		*shadow = size & KASAN_GRANULE_MASK;
+ 	}
+ }
+ #endif
+ 
+-void kasan_unpoison(const void *address, size_t size)
++void kasan_unpoison(const void *addr, size_t size)
+ {
+-	u8 tag = get_tag(address);
++	u8 tag = get_tag(addr);
+ 
+ 	/*
+ 	 * Perform shadow offset calculation based on untagged address, as
+ 	 * some of the callers (e.g. kasan_unpoison_object_data) pass tagged
+ 	 * addresses to this function.
+ 	 */
+-	address = kasan_reset_tag(address);
++	addr = kasan_reset_tag(addr);
+ 
+ 	/*
+ 	 * Skip KFENCE memory if called explicitly outside of sl*b. Also note
+ 	 * that calls to ksize(), where size is not a multiple of machine-word
+ 	 * size, would otherwise poison the invalid portion of the word.
+ 	 */
+-	if (is_kfence_address(address))
++	if (is_kfence_address(addr))
++		return;
++
++	if (WARN_ON((u64)addr & KASAN_GRANULE_MASK))
+ 		return;
+ 
+-	/* Unpoison round_up(size, KASAN_GRANULE_SIZE) bytes. */
+-	kasan_poison(address, size, tag);
++	/* Unpoison all granules that cover the object. */
++	kasan_poison(addr, round_up(size, KASAN_GRANULE_SIZE), tag);
+ 
+ 	/* Partially poison the last granule for the generic mode. */
+ 	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
+-		kasan_poison_last_granule(address, size);
++		kasan_poison_last_granule(addr, size);
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
