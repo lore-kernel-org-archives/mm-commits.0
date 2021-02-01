@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8243C43381
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:19:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97DE7C433E0
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:34:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AACC364EAA
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:19:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6983964ECC
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:34:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230304AbhBAXSl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 1 Feb 2021 18:18:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37298 "EHLO mail.kernel.org"
+        id S229527AbhBAXex (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 1 Feb 2021 18:34:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39766 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230288AbhBAXSd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Feb 2021 18:18:33 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D0C5764DAF;
-        Mon,  1 Feb 2021 23:17:52 +0000 (UTC)
+        id S229476AbhBAXev (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Feb 2021 18:34:51 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BAAB964ECB;
+        Mon,  1 Feb 2021 23:34:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612221473;
-        bh=F1Uhe9YeMoHiMMMELWs7M5MFw4tbSflNwbRLJTz550U=;
+        s=korg; t=1612222450;
+        bh=C9t9pQRiQjH6jM7fYnNe/MbhfXpQ1oXgVSDQDTewL2U=;
         h=Date:From:To:Subject:From;
-        b=FEoib3l7DFbeFgO+i3RgDpwS2o3CDxCcWRskXar0KETZ28Zts6/pXWu7LiijLXjzl
-         RgNETHbKCW7N7G96Y+8oUdc+pTLztcYPWOrHwe1HTTww7rzqDAZ22HG5J+IGsk/RQl
-         GvkA5u2873lJrGDGvOKuXX8LX+ja6vUzDaWmQBW0=
-Date:   Mon, 01 Feb 2021 15:17:52 -0800
+        b=T/oAgg5mIFvuceghOoFr/9yBQKEfqc22dHEYEQZQRDWfo4+ckJp20N/IZgZiEnByn
+         hw4MjG+2Irer5GN7wxLCo/7fWW2EyuTB6OD4Y5gAR44kjf4F7H3535KHVx/oiYvCKx
+         ZysVSSSygzbS9wyiUoFUh/J9bBrgCjEswX5jgX/8=
+Date:   Mon, 01 Feb 2021 15:34:10 -0800
 From:   akpm@linux-foundation.org
-To:     dan.carpenter@oracle.com, gechangwei@live.cn, ghe@suse.com,
-        jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
-Subject:  + ocfs2-fix-a-use-after-free-on-error.patch added to -mm
- tree
-Message-ID: <20210201231752.TXDswic5C%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org
+Subject:  +
+ mm-simplify-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch added to
+ -mm tree
+Message-ID: <20210201233410.ojKRF-FKL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix a use after free on error
+     Subject: mm/pgtable-generic.c: simplify the VM_BUG_ON condition in pmdp_huge_clear_flush()
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-a-use-after-free-on-error.patch
+     mm-simplify-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-a-use-after-free-on-error.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-a-use-after-free-on-error.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,53 +65,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: ocfs2: fix a use after free on error
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/pgtable-generic.c: simplify the VM_BUG_ON condition in pmdp_huge_clear_flush()
 
-The error handling in this function frees "reg" but it is still on the
-"o2hb_all_regions" list so it will lead to a use after free.  The fix for
-this is to only add it to the list after everything has succeeded.
+The condition (A && !C && !D) || !A is equivalent to !A || (A && !C && !D)
+and can be further simplified to !A || (!C && !D).
 
-Link: https://lkml.kernel.org/r/YBfzR7AbZZ4Pp6sq@mwanda
-Fixes: 1cf257f51191 ("ocfs2: fix memory leak")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20210201114319.34720-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/pgtable-generic.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-fix-a-use-after-free-on-error
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -2025,7 +2025,6 @@ static struct config_item *o2hb_heartbea
- 		}
- 		set_bit(reg->hr_region_num, o2hb_region_bitmap);
- 	}
--	list_add_tail(&reg->hr_all_item, &o2hb_all_regions);
- 	spin_unlock(&o2hb_live_lock);
- 
- 	config_item_init_type_name(&reg->hr_item, name, &o2hb_region_type);
-@@ -2053,6 +2052,10 @@ static struct config_item *o2hb_heartbea
- 
- 	o2hb_debug_region_init(reg, o2hb_debug_dir);
- 
-+	spin_lock(&o2hb_live_lock);
-+	list_add_tail(&reg->hr_all_item, &o2hb_all_regions);
-+	spin_unlock(&o2hb_live_lock);
-+
- 	return &reg->hr_item;
- 
- unregister_handler:
+--- a/mm/pgtable-generic.c~mm-simplify-the-vm_bug_on-condition-in-pmdp_huge_clear_flush
++++ a/mm/pgtable-generic.c
+@@ -135,8 +135,8 @@ pmd_t pmdp_huge_clear_flush(struct vm_ar
+ {
+ 	pmd_t pmd;
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+-	VM_BUG_ON((pmd_present(*pmdp) && !pmd_trans_huge(*pmdp) &&
+-			   !pmd_devmap(*pmdp)) || !pmd_present(*pmdp));
++	VM_BUG_ON(!pmd_present(*pmdp) || (!pmd_trans_huge(*pmdp) &&
++					  !pmd_devmap(*pmdp)));
+ 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
+ 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ 	return pmd;
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-ocfs2-fix-a-use-after-free-on-error.patch
+mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
+mm-page_owner-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
+mm-fix-potential-pte_unmap_unlock-pte-error.patch
+mm-simplify-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch
+mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
+mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
+mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
+mm-hugetlb-fix-use-after-free-when-subpool-max_hpages-accounting-is-not-enabled.patch
+mm-hugetlb-fix-some-comment-typos.patch
+mm-workingsetc-avoid-unnecessary-max_nodes-estimation-in-count_shadow_nodes.patch
+z3fold-remove-unused-attribute-for-release_z3fold_page.patch
+z3fold-simplify-the-zhdr-initialization-code-in-init_z3fold_page.patch
+mm-compaction-remove-duplicated-vm_bug_on_page-pagelocked.patch
+mm-mempolicy-use-helper-range_in_vma-in-queue_pages_test_walk.patch
+hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
+hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs.patch
+hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter.patch
+hugetlbfs-remove-meaningless-variable-avoid_reserve.patch
+hugetlbfs-make-hugepage-size-conversion-more-readable.patch
+hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch
+hugetlbfs-fix-some-comment-typos.patch
+mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
+mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
+mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
+mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
+mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
+mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
 
