@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DC0BC433DB
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:44:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86112C433DB
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:45:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D701264ECB
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:44:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4773260235
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:45:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229524AbhBAXoS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 1 Feb 2021 18:44:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40478 "EHLO mail.kernel.org"
+        id S229774AbhBAXpe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 1 Feb 2021 18:45:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40628 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230258AbhBAXoN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Feb 2021 18:44:13 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B942F60235;
-        Mon,  1 Feb 2021 23:43:32 +0000 (UTC)
+        id S229683AbhBAXpc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Feb 2021 18:45:32 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E73D764EC6;
+        Mon,  1 Feb 2021 23:44:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612223012;
-        bh=XTYUY6Fb9yp2JC9FNsjKVqgZrZ8X4uibpEtd7o5INY8=;
+        s=korg; t=1612223092;
+        bh=+LOoqVdm9q5EJXhcDjnGTicGK2cG/WMx4DU18xsTskI=;
         h=Date:From:To:Subject:From;
-        b=Mmjp6KPlZPrrzeYFt2JSbEiwAsuE0xh7ZZq8g0Tmk5h4ir3EZPWNGdGrU588G+TqX
-         i17B76xCEnIi31jvUKro04PAKzaUMvrH6Sggp3H0mzqnHQqwxjZkzLw0Uk+tJ4UlDN
-         joTH91vUl7D0+lFLPaLzVe0IfgJDCmSDKxz8amvQ=
-Date:   Mon, 01 Feb 2021 15:43:32 -0800
+        b=Cf7lb3Bnesv+jTxDVWqbFwRgxeCd0eagA6tnHvjE6PNdGT83+5AC+oXyliVbYxrPa
+         KzIgUUQsk2ABXtzIx2kZDpez9kpiC3HBS139kaAMRqGHKMBRC8DxSbTA1Qnj38LUMk
+         kGOoEh1gaZuAn/wn3jpTxg73LwDcv2iR/NzhEbu8=
+Date:   Mon, 01 Feb 2021 15:44:51 -0800
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org, osalvador@suse.de,
-        vbabka@suse.cz
-Subject:  +
- mm-workingset-clarify-eviction-order-and-distance-calculation.patch added
- to -mm tree
-Message-ID: <20210201234332.ExPVoH0wM%akpm@linux-foundation.org>
+To:     joe@perches.com, johan@kernel.org, masahiroy@kernel.org,
+        mm-commits@vger.kernel.org, ndesaulniers@gooogle.com,
+        ojeda@kernel.org
+Subject:  + init-clean-up-early_param_on_off-macro.patch added to
+ -mm tree
+Message-ID: <20210201234451.p3neEkCzM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: workingset: clarify eviction order and distance calculation
+     Subject: init: clean up early_param_on_off() macro
 has been added to the -mm tree.  Its filename is
-     mm-workingset-clarify-eviction-order-and-distance-calculation.patch
+     init-clean-up-early_param_on_off-macro.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-clarify-eviction-order-and-distance-calculation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/init-clean-up-early_param_on_off-macro.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-clarify-eviction-order-and-distance-calculation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/init-clean-up-early_param_on_off-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,56 +65,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm: workingset: clarify eviction order and distance calculation
+From: Masahiro Yamada <masahiroy@kernel.org>
+Subject: init: clean up early_param_on_off() macro
 
-The premise of the refault distance is that it can be seen as a deficit of
-the inactive list space, so that if the inactive list would have had (R -
-E) more slots, the page would not have been evicted but promoted to the
-active list instead.
+Use early_param() to define early_param_on_off().
 
-However, the way the code is ordered right now set us to be off by one, so
-the real number of slots would be (R - E) + 1.  I stumbled upon this when
-trying to understand the code and it puzzled me that the comments did not
-match what the code did.
-
-This it not an issue at all since evictions and refaults tend to happen in
-a number large enough that being off-by-one does not have any impact - and
-since the compiler and CPUs are free to rearrange the execution sequence
-anyway.
-
-But as Johannes says, it is better to re-arrange the code in the proper
-order since otherwise would be misleading to somebody who is actively
-reading and trying to understand the logic of the code - like it happened
-to me.
-
-Link: https://lkml.kernel.org/r/20210201060651.3781-1-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20210201041532.4025025-1-masahiroy@kernel.org
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+Reviewed-by: Johan Hovold <johan@kernel.org>
+Reviewed-by: Miguel Ojeda <ojeda@kernel.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Nick Desaulniers <ndesaulniers@gooogle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/init.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/workingset.c~mm-workingset-clarify-eviction-order-and-distance-calculation
-+++ a/mm/workingset.c
-@@ -263,10 +263,10 @@ void *workingset_eviction(struct page *p
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+--- a/include/linux/init.h~init-clean-up-early_param_on_off-macro
++++ a/include/linux/init.h
+@@ -277,14 +277,14 @@ struct obs_kernel_param {
+ 		var = 1;						\
+ 		return 0;						\
+ 	}								\
+-	__setup_param(str_on, parse_##var##_on, parse_##var##_on, 1);	\
++	early_param(str_on, parse_##var##_on);				\
+ 									\
+ 	static int __init parse_##var##_off(char *arg)			\
+ 	{								\
+ 		var = 0;						\
+ 		return 0;						\
+ 	}								\
+-	__setup_param(str_off, parse_##var##_off, parse_##var##_off, 1)
++	early_param(str_off, parse_##var##_off)
  
- 	lruvec = mem_cgroup_lruvec(target_memcg, pgdat);
--	workingset_age_nonresident(lruvec, thp_nr_pages(page));
- 	/* XXX: target_memcg can be NULL, go through lruvec */
- 	memcgid = mem_cgroup_id(lruvec_memcg(lruvec));
- 	eviction = atomic_long_read(&lruvec->nonresident_age);
-+	workingset_age_nonresident(lruvec, thp_nr_pages(page));
- 	return pack_shadow(memcgid, pgdat, eviction, PageWorkingset(page));
- }
- 
+ /* Relies on boot_command_line being set */
+ void __init parse_early_param(void);
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from masahiroy@kernel.org are
 
-mm-workingset-clarify-eviction-order-and-distance-calculation.patch
+init-versionc-remove-version_linux_version_code-symbol.patch
+init-clean-up-early_param_on_off-macro.patch
 
