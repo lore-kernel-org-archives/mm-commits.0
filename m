@@ -7,40 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B38DC4332D
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:01:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84EC2C43381
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:10:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23ABD64EC5
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:01:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6983964D92
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:10:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230197AbhBAXBY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 1 Feb 2021 18:01:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35430 "EHLO mail.kernel.org"
+        id S230088AbhBAXKn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 1 Feb 2021 18:10:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36102 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230191AbhBAXBN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Feb 2021 18:01:13 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5B77E64ED2;
-        Mon,  1 Feb 2021 23:00:22 +0000 (UTC)
+        id S229530AbhBAXKl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Feb 2021 18:10:41 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C930D64EAA;
+        Mon,  1 Feb 2021 23:10:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612220423;
-        bh=OZkSno9ffH17g6AqmiKImaA4fEoQbCedeLU7KOEBcGM=;
+        s=korg; t=1612221001;
+        bh=ZJSofq9ur+zGYjilvZu3fC1tquLRZHO/IbwlMhs2EAQ=;
         h=Date:From:To:Subject:From;
-        b=iDQXLPxwaOsg9q/K05h3dQKRUGxw9dHVMAwHEFrUNlasBpCryWs0DI3XILLGCc0Ra
-         qWvt2WTAqHXBAKBz/4f0W22ruu1XS3G+JOA48j8z9V4AMXwfNRg7LELEjDpUByHc+u
-         UsYz02uVm4EP/ucAuNbQt0O0wm03W/8+7erLdVrc=
-Date:   Mon, 01 Feb 2021 15:00:21 -0800
+        b=dN41MXwttjztlsh0IWcs1tZZgDOPXlGtAMlhclQe8r2ocJHNo2qm86EL48AAN68XC
+         huSr+Y+fyGvOVf1WqvfILFYmmfaG02/rmcU3tStNVi6RRJ3iY5OlJuEliMt5YbF3C4
+         dHJ63WTr4qnxME8eRnFICTeSjhzhH4SU9LaDwrMk=
+Date:   Mon, 01 Feb 2021 15:10:00 -0800
 From:   akpm@linux-foundation.org
-To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
-        ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
-        jhubbard@nvidia.com, jmorris@namei.org, mgorman@suse.de,
-        mhocko@kernel.org, mhocko@suse.com, mike.kravetz@oracle.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, osalvador@suse.de,
-        pasha.tatashin@soleen.com, peterz@infradead.org,
-        rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
-        tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
-Subject:  + selftests-vm-gup_test-fix-test-flag.patch added to -mm
- tree
-Message-ID: <20210201230021.1FIqAVGGN%akpm@linux-foundation.org>
+To:     georgi.djakov@linaro.org, minchan@kernel.org,
+        mm-commits@vger.kernel.org
+Subject:  +
+ mm-page_io-use-pr_alert_ratelimited-for-swap-read-write-errors.patch added
+ to -mm tree
+Message-ID: <20210201231000.5jreFo5JD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: gup_test: fix test flag
+     Subject: mm/page_io: use pr_alert_ratelimited for swap read/write errors
 has been added to the -mm tree.  Its filename is
-     selftests-vm-gup_test-fix-test-flag.patch
+     mm-page_io-use-pr_alert_ratelimited-for-swap-read-write-errors.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-gup_test-fix-test-flag.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_io-use-pr_alert_ratelimited-for-swap-read-write-errors.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-gup_test-fix-test-flag.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_io-use-pr_alert_ratelimited-for-swap-read-write-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,239 +65,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: selftests/vm: gup_test: fix test flag
+From: Georgi Djakov <georgi.djakov@linaro.org>
+Subject: mm/page_io: use pr_alert_ratelimited for swap read/write errors
 
-In gup_test both gup_flags and test_flags use the same flags field.  This
-is broken.
+If there are errors during swap read or write, they can easily fill the
+log buffer and remove any previous messages that might be useful for
+debugging, especially on systems that rely for logging only on the kernel
+ring-buffer.
 
-Further, in the actual gup_test.c all the passed gup_flags are erased and
-unconditionally replaced with FOLL_WRITE.
+For example, on a systems using zram as swap, we are more likely to see
+any page allocation errors preceding the swap write errors if the alerts
+are ratelimited.
 
-Which means that test_flags are ignored, and code like this always
-performs pin dump test:
-
-155  			if (gup->flags & GUP_TEST_FLAG_DUMP_PAGES_USE_PIN)
-156  				nr = pin_user_pages(addr, nr, gup->flags,
-157  						    pages + i, NULL);
-158  			else
-159  				nr = get_user_pages(addr, nr, gup->flags,
-160  						    pages + i, NULL);
-161  			break;
-
-Add a new test_flags field, to allow raw gup_flags to work.
-
-Add a new subcommand for DUMP_USER_PAGES_TEST to specify that pin test
-should be performed.
-
-Remove unconditional overwriting of gup_flags via FOLL_WRITE.  But,
-preserve the previous behaviour where FOLL_WRITE was the default flag, and
-add a new option "-W" to unset FOLL_WRITE.
-
-Rename flags with gup_flags.
-
-With the fix, dump works like this:
-
-root@virtme:/# gup_test  -c
----- page #0, starting from user virt addr: 0x7f8acb9e4000
-page:00000000d3d2ee27 refcount:2 mapcount:1 mapping:0000000000000000
-index:0x0 pfn:0x100bcf
-anon flags: 0x300000000080016(referenced|uptodate|lru|swapbacked)
-raw: 0300000000080016 ffffd0e204021608 ffffd0e208df2e88 ffff8ea04243ec61
-raw: 0000000000000000 0000000000000000 0000000200000000 0000000000000000
-page dumped because: gup_test: dump_pages() test
-DUMP_USER_PAGES_TEST: done
-
-root@virtme:/# gup_test  -c -p
----- page #0, starting from user virt addr: 0x7fd19701b000
-page:00000000baed3c7d refcount:1025 mapcount:1 mapping:0000000000000000
-index:0x0 pfn:0x108008
-anon flags: 0x300000000080014(uptodate|lru|swapbacked)
-raw: 0300000000080014 ffffd0e204200188 ffffd0e205e09088 ffff8ea04243ee71
-raw: 0000000000000000 0000000000000000 0000040100000000 0000000000000000
-page dumped because: gup_test: dump_pages() test
-DUMP_USER_PAGES_TEST: done
-
-Refcount shows the difference between pin vs no-pin case.
-Also change type of nr from int to long, as it counts number of pages.
-
-Link: https://lkml.kernel.org/r/20210201153827.444374-14-pasha.tatashin@soleen.com
-Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sasha Levin <sashal@kernel.org>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20210201142055.29068-1-georgi.djakov@linaro.org
+Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup_test.c                         |   23 ++++++++++-------------
- mm/gup_test.h                         |    3 ++-
- tools/testing/selftests/vm/gup_test.c |   15 +++++++++++----
- 3 files changed, 23 insertions(+), 18 deletions(-)
+ mm/page_io.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/gup_test.c~selftests-vm-gup_test-fix-test-flag
-+++ a/mm/gup_test.c
-@@ -94,7 +94,7 @@ static int __gup_test_ioctl(unsigned int
- {
- 	ktime_t start_time, end_time;
- 	unsigned long i, nr_pages, addr, next;
--	int nr;
-+	long nr;
- 	struct page **pages;
- 	int ret = 0;
- 	bool needs_mmap_lock =
-@@ -126,37 +126,34 @@ static int __gup_test_ioctl(unsigned int
- 			nr = (next - addr) / PAGE_SIZE;
- 		}
+--- a/mm/page_io.c~mm-page_io-use-pr_alert_ratelimited-for-swap-read-write-errors
++++ a/mm/page_io.c
+@@ -60,9 +60,9 @@ void end_swap_bio_write(struct bio *bio)
+ 		 * Also clear PG_reclaim to avoid rotate_reclaimable_page()
+ 		 */
+ 		set_page_dirty(page);
+-		pr_alert("Write-error on swap-device (%u:%u:%llu)\n",
+-			 MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
+-			 (unsigned long long)bio->bi_iter.bi_sector);
++		pr_alert_ratelimited("Write-error on swap-device (%u:%u:%llu)\n",
++				     MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
++				     (unsigned long long)bio->bi_iter.bi_sector);
+ 		ClearPageReclaim(page);
+ 	}
+ 	end_page_writeback(page);
+@@ -125,9 +125,9 @@ static void end_swap_bio_read(struct bio
+ 	if (bio->bi_status) {
+ 		SetPageError(page);
+ 		ClearPageUptodate(page);
+-		pr_alert("Read-error on swap-device (%u:%u:%llu)\n",
+-			 MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
+-			 (unsigned long long)bio->bi_iter.bi_sector);
++		pr_alert_ratelimited("Read-error on swap-device (%u:%u:%llu)\n",
++				     MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
++				     (unsigned long long)bio->bi_iter.bi_sector);
+ 		goto out;
+ 	}
  
--		/* Filter out most gup flags: only allow a tiny subset here: */
--		gup->flags &= FOLL_WRITE;
--
- 		switch (cmd) {
- 		case GUP_FAST_BENCHMARK:
--			nr = get_user_pages_fast(addr, nr, gup->flags,
-+			nr = get_user_pages_fast(addr, nr, gup->gup_flags,
- 						 pages + i);
- 			break;
- 		case GUP_BASIC_TEST:
--			nr = get_user_pages(addr, nr, gup->flags, pages + i,
-+			nr = get_user_pages(addr, nr, gup->gup_flags, pages + i,
- 					    NULL);
- 			break;
- 		case PIN_FAST_BENCHMARK:
--			nr = pin_user_pages_fast(addr, nr, gup->flags,
-+			nr = pin_user_pages_fast(addr, nr, gup->gup_flags,
- 						 pages + i);
- 			break;
- 		case PIN_BASIC_TEST:
--			nr = pin_user_pages(addr, nr, gup->flags, pages + i,
-+			nr = pin_user_pages(addr, nr, gup->gup_flags, pages + i,
- 					    NULL);
- 			break;
- 		case PIN_LONGTERM_BENCHMARK:
- 			nr = pin_user_pages(addr, nr,
--					    gup->flags | FOLL_LONGTERM,
-+					    gup->gup_flags | FOLL_LONGTERM,
- 					    pages + i, NULL);
- 			break;
- 		case DUMP_USER_PAGES_TEST:
--			if (gup->flags & GUP_TEST_FLAG_DUMP_PAGES_USE_PIN)
--				nr = pin_user_pages(addr, nr, gup->flags,
-+			if (gup->test_flags & GUP_TEST_FLAG_DUMP_PAGES_USE_PIN)
-+				nr = pin_user_pages(addr, nr, gup->gup_flags,
- 						    pages + i, NULL);
- 			else
--				nr = get_user_pages(addr, nr, gup->flags,
-+				nr = get_user_pages(addr, nr, gup->gup_flags,
- 						    pages + i, NULL);
- 			break;
- 		default:
-@@ -187,7 +184,7 @@ static int __gup_test_ioctl(unsigned int
- 
- 	start_time = ktime_get();
- 
--	put_back_pages(cmd, pages, nr_pages, gup->flags);
-+	put_back_pages(cmd, pages, nr_pages, gup->test_flags);
- 
- 	end_time = ktime_get();
- 	gup->put_delta_usec = ktime_us_delta(end_time, start_time);
---- a/mm/gup_test.h~selftests-vm-gup_test-fix-test-flag
-+++ a/mm/gup_test.h
-@@ -21,7 +21,8 @@ struct gup_test {
- 	__u64 addr;
- 	__u64 size;
- 	__u32 nr_pages_per_call;
--	__u32 flags;
-+	__u32 gup_flags;
-+	__u32 test_flags;
- 	/*
- 	 * Each non-zero entry is the number of the page (1-based: first page is
- 	 * page 1, so that zero entries mean "do nothing") from the .addr base.
---- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-gup_test-fix-test-flag
-+++ a/tools/testing/selftests/vm/gup_test.c
-@@ -37,13 +37,13 @@ int main(int argc, char **argv)
- {
- 	struct gup_test gup = { 0 };
- 	unsigned long size = 128 * MB;
--	int i, fd, filed, opt, nr_pages = 1, thp = -1, repeats = 1, write = 0;
-+	int i, fd, filed, opt, nr_pages = 1, thp = -1, repeats = 1, write = 1;
- 	unsigned long cmd = GUP_FAST_BENCHMARK;
- 	int flags = MAP_PRIVATE;
- 	char *file = "/dev/zero";
- 	char *p;
- 
--	while ((opt = getopt(argc, argv, "m:r:n:F:f:abctTLUuwSH")) != -1) {
-+	while ((opt = getopt(argc, argv, "m:r:n:F:f:abctTLUuwWSHp")) != -1) {
- 		switch (opt) {
- 		case 'a':
- 			cmd = PIN_FAST_BENCHMARK;
-@@ -65,9 +65,13 @@ int main(int argc, char **argv)
- 			 */
- 			gup.which_pages[0] = 1;
- 			break;
-+		case 'p':
-+			/* works only with DUMP_USER_PAGES_TEST */
-+			gup.test_flags |= GUP_TEST_FLAG_DUMP_PAGES_USE_PIN;
-+			break;
- 		case 'F':
- 			/* strtol, so you can pass flags in hex form */
--			gup.flags = strtol(optarg, 0, 0);
-+			gup.gup_flags = strtol(optarg, 0, 0);
- 			break;
- 		case 'm':
- 			size = atoi(optarg) * MB;
-@@ -93,6 +97,9 @@ int main(int argc, char **argv)
- 		case 'w':
- 			write = 1;
- 			break;
-+		case 'W':
-+			write = 0;
-+			break;
- 		case 'f':
- 			file = optarg;
- 			break;
-@@ -140,7 +147,7 @@ int main(int argc, char **argv)
- 
- 	gup.nr_pages_per_call = nr_pages;
- 	if (write)
--		gup.flags |= FOLL_WRITE;
-+		gup.gup_flags |= FOLL_WRITE;
- 
- 	fd = open("/sys/kernel/debug/gup_test", O_RDWR);
- 	if (fd == -1) {
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from georgi.djakov@linaro.org are
 
-mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
-mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch
-mm-gup-return-an-error-on-migration-failure.patch
-mm-gup-check-for-isolation-errors.patch
-mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin.patch
-mm-apply-per-task-gfp-constraints-in-fast-path.patch
-mm-honor-pf_memalloc_pin-for-all-movable-pages.patch
-mm-gup-do-not-migrate-zero-page.patch
-mm-gup-migrate-pinned-pages-out-of-movable-zone.patch
-memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning.patch
-mm-gup-change-index-type-to-long-as-it-counts-pages.patch
-mm-gup-longterm-pin-migration-cleanup.patch
-selftests-vm-gup_test-fix-test-flag.patch
-selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages.patch
+mm-page_io-use-pr_alert_ratelimited-for-swap-read-write-errors.patch
 
