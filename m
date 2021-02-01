@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 079F3C433DB
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:00:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86EF3C433DB
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:01:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BEEC764DDE
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:00:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4BEAD64D9E
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:01:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230136AbhBAXAd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 1 Feb 2021 18:00:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34836 "EHLO mail.kernel.org"
+        id S229530AbhBAXBK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 1 Feb 2021 18:01:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35302 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230154AbhBAXAc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Feb 2021 18:00:32 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5E12B64DDE;
-        Mon,  1 Feb 2021 22:59:50 +0000 (UTC)
+        id S229629AbhBAXBE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Feb 2021 18:01:04 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 404FE64EAA;
+        Mon,  1 Feb 2021 22:59:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612220391;
-        bh=3LKTVC4DD56TMY7c7BQle3aO4QQ1ULsB8DEnXIQZ3U4=;
+        s=korg; t=1612220396;
+        bh=SEQ8i8aUnZsTOCIIkqlTKGqwjfefqepa7loE/N+4zp0=;
         h=Date:From:To:Subject:From;
-        b=z07AIrfCu1SmTuTADZPLSkWxPLau1Cs03653fTGL9gaYthTG0WaHdKMj1pWqrPWM2
-         nhxbOXdJbG48NBHabnV1FVSdJS7kkqeqvzPzugtSRhvSsmKPxumW8iH/PHhYz7nn1a
-         +eFcSPF6RUusN3i6H6lSy+e1YcgL6n1MEwPHZnIg=
-Date:   Mon, 01 Feb 2021 14:59:49 -0800
+        b=irvYMYN+xWz5JRkvDhrvuxj3CAw2crmJGoPZ0/6leJt9ygAwfRkmHElWGw/6HyvSt
+         wOp0HIOatTRrFywBhqkMfOikOVzUpitlLVowfRb9S2bkTlRV+cBnJJWZqK6tZeSUUc
+         ARBgVqzwlF8WE2XX7HutvbTJNmTMqWo+1XD6GKT0=
+Date:   Mon, 01 Feb 2021 14:59:54 -0800
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -38,9 +38,9 @@ To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         pasha.tatashin@soleen.com, peterz@infradead.org,
         rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
         tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
-Subject:  +
- mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin.patch added to -mm tree
-Message-ID: <20210201225949.sksBwHwYJ%akpm@linux-foundation.org>
+Subject:  + mm-apply-per-task-gfp-constraints-in-fast-path.patch
+ added to -mm tree
+Message-ID: <20210201225954.dYB1j5ZKc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm cma: rename PF_MEMALLOC_NOCMA to PF_MEMALLOC_PIN
+     Subject: mm: apply per-task gfp constraints in fast path
 has been added to the -mm tree.  Its filename is
-     mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin.patch
+     mm-apply-per-task-gfp-constraints-in-fast-path.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-apply-per-task-gfp-constraints-in-fast-path.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-apply-per-task-gfp-constraints-in-fast-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,29 +71,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: mm cma: rename PF_MEMALLOC_NOCMA to PF_MEMALLOC_PIN
+Subject: mm: apply per-task gfp constraints in fast path
 
-PF_MEMALLOC_NOCMA is used ot guarantee that the allocator will not return
-pages that might belong to CMA region.  This is currently used for long
-term gup to make sure that such pins are not going to be done on any CMA
-pages.
+Function current_gfp_context() is called after fast path.  However, soon
+we will add more constraints which will also limit zones based on context.
+Move this call into fast path, and apply the correct constraints for all
+allocations.
 
-When PF_MEMALLOC_NOCMA has been introduced we haven't realized that it is
-focusing on CMA pages too much and that there is larger class of pages
-that need the same treatment.  MOVABLE zone cannot contain any long term
-pins as well so it makes sense to reuse and redefine this flag for that
-usecase as well.  Rename the flag to PF_MEMALLOC_PIN which defines an
-allocation context which can only get pages suitable for long-term pins.
+Also update .reclaim_idx based on value returned by current_gfp_context()
+because it soon will modify the allowed zones.
 
-Also re-name:
-memalloc_nocma_save()/memalloc_nocma_restore
-to
-memalloc_pin_save()/memalloc_pin_restore()
-and make the new functions common.
+Note:
+With this patch we will do one extra current->flags load during fast path,
+but we already load current->flags in fast-path:
 
-Link: https://lkml.kernel.org/r/20210201153827.444374-6-pasha.tatashin@soleen.com
+__alloc_pages_nodemask()
+ prepare_alloc_pages()
+  current_alloc_flags(gfp_mask, *alloc_flags);
+
+Later, when we add the zone constrain logic to current_gfp_context() we
+will be able to remove current->flags load from current_alloc_flags, and
+therefore return fast-path to the current performance level.
+
+Link: https://lkml.kernel.org/r/20210201153827.444374-7-pasha.tatashin@soleen.com
+Suggested-by: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -103,10 +105,10 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: James Morris <jmorris@namei.org>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -117,109 +119,40 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h    |    2 +-
- include/linux/sched/mm.h |   21 +++++----------------
- mm/gup.c                 |    4 ++--
- mm/hugetlb.c             |    4 ++--
- mm/page_alloc.c          |    4 ++--
- 5 files changed, 12 insertions(+), 23 deletions(-)
+ mm/page_alloc.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/include/linux/sched.h~mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin
-+++ a/include/linux/sched.h
-@@ -1568,7 +1568,7 @@ extern struct pid *cad_pid;
- #define PF_SWAPWRITE		0x00800000	/* Allowed to write to swap */
- #define PF_NO_SETAFFINITY	0x04000000	/* Userland is not allowed to meddle with cpus_mask */
- #define PF_MCE_EARLY		0x08000000      /* Early kill for mce process policy */
--#define PF_MEMALLOC_NOCMA	0x10000000	/* All allocation request will have _GFP_MOVABLE cleared */
-+#define PF_MEMALLOC_PIN		0x10000000	/* Allocation context constrained to zones which allow long term pinning. */
- #define PF_FREEZER_SKIP		0x40000000	/* Freezer should not count it as freezable */
- #define PF_SUSPEND_TASK		0x80000000      /* This thread called freeze_processes() and should not be frozen */
- 
---- a/include/linux/sched/mm.h~mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin
-+++ a/include/linux/sched/mm.h
-@@ -270,29 +270,18 @@ static inline void memalloc_noreclaim_re
- 	current->flags = (current->flags & ~PF_MEMALLOC) | flags;
- }
- 
--#ifdef CONFIG_CMA
--static inline unsigned int memalloc_nocma_save(void)
-+static inline unsigned int memalloc_pin_save(void)
- {
--	unsigned int flags = current->flags & PF_MEMALLOC_NOCMA;
-+	unsigned int flags = current->flags & PF_MEMALLOC_PIN;
- 
--	current->flags |= PF_MEMALLOC_NOCMA;
-+	current->flags |= PF_MEMALLOC_PIN;
- 	return flags;
- }
- 
--static inline void memalloc_nocma_restore(unsigned int flags)
-+static inline void memalloc_pin_restore(unsigned int flags)
- {
--	current->flags = (current->flags & ~PF_MEMALLOC_NOCMA) | flags;
-+	current->flags = (current->flags & ~PF_MEMALLOC_PIN) | flags;
- }
--#else
--static inline unsigned int memalloc_nocma_save(void)
--{
--	return 0;
--}
--
--static inline void memalloc_nocma_restore(unsigned int flags)
--{
--}
--#endif
- 
- #ifdef CONFIG_MEMCG
- DECLARE_PER_CPU(struct mem_cgroup *, int_active_memcg);
---- a/mm/gup.c~mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin
-+++ a/mm/gup.c
-@@ -1662,7 +1662,7 @@ static long __gup_longterm_locked(struct
- 	long rc;
- 
- 	if (gup_flags & FOLL_LONGTERM)
--		flags = memalloc_nocma_save();
-+		flags = memalloc_pin_save();
- 
- 	rc = __get_user_pages_locked(mm, start, nr_pages, pages, vmas, NULL,
- 				     gup_flags);
-@@ -1671,7 +1671,7 @@ static long __gup_longterm_locked(struct
- 		if (rc > 0)
- 			rc = check_and_migrate_cma_pages(mm, start, rc, pages,
- 							 vmas, gup_flags);
--		memalloc_nocma_restore(flags);
-+		memalloc_pin_restore(flags);
- 	}
- 	return rc;
- }
---- a/mm/hugetlb.c~mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin
-+++ a/mm/hugetlb.c
-@@ -1049,10 +1049,10 @@ static void enqueue_huge_page(struct hst
- static struct page *dequeue_huge_page_node_exact(struct hstate *h, int nid)
- {
- 	struct page *page;
--	bool nocma = !!(current->flags & PF_MEMALLOC_NOCMA);
-+	bool pin = !!(current->flags & PF_MEMALLOC_PIN);
- 
- 	list_for_each_entry(page, &h->hugepage_freelists[nid], lru) {
--		if (nocma && is_migrate_cma_page(page))
-+		if (pin && is_migrate_cma_page(page))
- 			continue;
- 
- 		if (PageHWPoison(page))
---- a/mm/page_alloc.c~mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin
+--- a/mm/page_alloc.c~mm-apply-per-task-gfp-constraints-in-fast-path
 +++ a/mm/page_alloc.c
-@@ -3813,8 +3813,8 @@ static inline unsigned int current_alloc
- #ifdef CONFIG_CMA
- 	unsigned int pflags = current->flags;
+@@ -4981,6 +4981,13 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	}
  
--	if (!(pflags & PF_MEMALLOC_NOCMA) &&
--			gfp_migratetype(gfp_mask) == MIGRATE_MOVABLE)
-+	if (!(pflags & PF_MEMALLOC_PIN) &&
-+	    gfp_migratetype(gfp_mask) == MIGRATE_MOVABLE)
- 		alloc_flags |= ALLOC_CMA;
+ 	gfp_mask &= gfp_allowed_mask;
++	/*
++	 * Apply scoped allocation constraints. This is mainly about GFP_NOFS
++	 * resp. GFP_NOIO which has to be inherited for all allocation requests
++	 * from a particular context which has been marked by
++	 * memalloc_no{fs,io}_{save,restore}.
++	 */
++	gfp_mask = current_gfp_context(gfp_mask);
+ 	alloc_mask = gfp_mask;
+ 	if (!prepare_alloc_pages(gfp_mask, order, preferred_nid, nodemask, &ac, &alloc_mask, &alloc_flags))
+ 		return NULL;
+@@ -4996,13 +5003,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	if (likely(page))
+ 		goto out;
  
- #endif
+-	/*
+-	 * Apply scoped allocation constraints. This is mainly about GFP_NOFS
+-	 * resp. GFP_NOIO which has to be inherited for all allocation requests
+-	 * from a particular context which has been marked by
+-	 * memalloc_no{fs,io}_{save,restore}.
+-	 */
+-	alloc_mask = current_gfp_context(gfp_mask);
++	alloc_mask = gfp_mask;
+ 	ac.spread_dirty_pages = false;
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
