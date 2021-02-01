@@ -7,41 +7,41 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8976BC433E0
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:55:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2505EC43381
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:00:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5852464D9E
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:55:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA6D964ED9
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:00:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229524AbhBAWzW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 1 Feb 2021 17:55:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34116 "EHLO mail.kernel.org"
+        id S230153AbhBAXAX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 1 Feb 2021 18:00:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34640 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229515AbhBAWzU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Feb 2021 17:55:20 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 027B864D79;
-        Mon,  1 Feb 2021 22:54:38 +0000 (UTC)
+        id S229927AbhBAXAQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Feb 2021 18:00:16 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4A7C364D9E;
+        Mon,  1 Feb 2021 22:59:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612220079;
-        bh=CNpyHA9Zi5hnuya+E4WK4FJ39JQZMXg7uwHZeDKwI0U=;
+        s=korg; t=1612220375;
+        bh=WaD4HdyS/lDoQRaNYH2jhd49b8VQvASVDaaHWxUPcYc=;
         h=Date:From:To:Subject:From;
-        b=2XGQ9HAJkXiKnzoq/0CwHpJSLaRpKfdn/bHwi/IVTDjHXosW8uJnMM75XIOXqhp9Z
-         PhzTuQN7bucW8SvmHxO/8yWyUOwpkwYoFh5qatpze8laXqrNPXNLeKIcueu4/tnJYZ
-         QoOzkBu10aeBk7iWdDI6BlaNuQZxttbz4KCLhcqQ=
-Date:   Mon, 01 Feb 2021 14:54:38 -0800
+        b=C4A4wSli2FaUIe2IjYPPWttvWTS7L/H/1pT0e5JI1dZPuka+2p6zGNZawQqwWgzIh
+         uwbS2jyC0f0VLLXoV/fLdzIoFkEWEHsJmYgZrI9SZmbuKgEoHBbgrn+/mca9CR9EHA
+         ArYLcTCgBkvJK822akG0OOYyi+WfmkmyKYu9gvTM=
+Date:   Mon, 01 Feb 2021 14:59:33 -0800
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, dave.hansen@intel.com, david@redhat.com,
-        geert+renesas@glider.be, gregkh@linuxfoundation.org,
-        idryomov@gmail.com, Jonathan.Cameron@huawei.com,
-        mchehab+huawei@kernel.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, osalvador@suse.de
+To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
+        ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
+        jhubbard@nvidia.com, jmorris@namei.org, mgorman@suse.de,
+        mhocko@kernel.org, mhocko@suse.com, mike.kravetz@oracle.com,
+        mingo@redhat.com, mm-commits@vger.kernel.org, osalvador@suse.de,
+        pasha.tatashin@soleen.com, peterz@infradead.org,
+        rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
+        tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
 Subject:  +
- =?US-ASCII?Q?documentation-sysfs-memory-clarify-some-memory-block-device-?=
- =?US-ASCII?Q?properties.patch?= added to -mm tree
-Message-ID: <20210201225438.X_anCQH-k%akpm@linux-foundation.org>
+ mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch added to -mm tree
+Message-ID: <20210201225933.RGVPgI0JZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation: sysfs/memory: clarify some memory block device properties
+     Subject: mm/gup: don't pin migrated cma pages in movable zone
 has been added to the -mm tree.  Its filename is
-     documentation-sysfs-memory-clarify-some-memory-block-device-properties.patch
+     mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/documentation-sysfs-memory-clarify-some-memory-block-device-properties.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/documentation-sysfs-memory-clarify-some-memory-block-device-properties.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,152 +70,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: Documentation: sysfs/memory: clarify some memory block device properties
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Subject: mm/gup: don't pin migrated cma pages in movable zone
 
-In commit 53cdc1cb29e8 ("drivers/base/memory.c: indicate all memory blocks
-as removable") we changed the output of the "removable" property of memory
-devices to return "1" if and only if the kernel supports memory offlining.
+Patch series "prohibit pinning pages in ZONE_MOVABLE", v9.
 
-Let's update documentation, stating that the interface is legacy.  Also
-update documentation of the "state" property and "valid_zones" properties.
+When page is pinned it cannot be moved and its physical address stays the
+same until pages is unpinned.
 
-Link: https://lkml.kernel.org/r/20210201181347.13262-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
+This is useful functionality to allows userland to implementation DMA
+access.  For example, it is used by vfio in vfio_pin_pages().
+
+However, this functionality breaks memory hotplug/hotremove assumptions
+that pages in ZONE_MOVABLE can always be migrated.
+
+This patch series fixes this issue by forcing new allocations during page
+pinning to omit ZONE_MOVABLE, and also to migrate any existing pages from
+ZONE_MOVABLE during pinning.
+
+It uses the same scheme logic that is currently used by CMA, and extends
+the functionality for all allocations.
+
+For more information read the discussion [1] about this problem.
+
+[1] https://lore.kernel.org/lkml/CA+CK2bBffHBxjmb9jmSKacm0fJMinyt3Nhk8Nx6iudcQSj80_w@mail.gmail.com
+
+
+This patch (of 14):
+
+In order not to fragment CMA the pinned pages are migrated.  However, they
+are migrated to ZONE_MOVABLE, which also should not have pinned pages.
+
+Remove __GFP_MOVABLE, so pages can be migrated to zones where pinning is
+allowed.
+
+Link: https://lkml.kernel.org/r/20210201153827.444374-1-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20210201153827.444374-2-pasha.tatashin@soleen.com
+Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-devices-memory  |   53 ++++++++------
- Documentation/admin-guide/mm/memory-hotplug.rst |   16 ++--
- 2 files changed, 41 insertions(+), 28 deletions(-)
+ mm/gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/ABI/testing/sysfs-devices-memory~documentation-sysfs-memory-clarify-some-memory-block-device-properties
-+++ a/Documentation/ABI/testing/sysfs-devices-memory
-@@ -13,13 +13,13 @@ What:		/sys/devices/system/memory/memory
- Date:		June 2008
- Contact:	Badari Pulavarty <pbadari@us.ibm.com>
- Description:
--		The file /sys/devices/system/memory/memoryX/removable
--		indicates whether this memory block is removable or not.
--		This is useful for a user-level agent to determine
--		identify removable sections of the memory before attempting
--		potentially expensive hot-remove memory operation
-+		The file /sys/devices/system/memory/memoryX/removable is a
-+		legacy interface used to indicated whether a memory block is
-+		likely to be offlineable or not.  Newer kernel versions return
-+		"1" if and only if the kernel supports memory offlining.
- Users:		hotplug memory remove tools
- 		http://www.ibm.com/developerworks/wikis/display/LinuxP/powerpc-utils
-+		lsmem/chmem part of util-linux
+--- a/mm/gup.c~mm-gup-dont-pin-migrated-cma-pages-in-movable-zone
++++ a/mm/gup.c
+@@ -1556,7 +1556,7 @@ static long check_and_migrate_cma_pages(
+ 	long ret = nr_pages;
+ 	struct migration_target_control mtc = {
+ 		.nid = NUMA_NO_NODE,
+-		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_NOWARN,
++		.gfp_mask = GFP_USER | __GFP_NOWARN,
+ 	};
  
- What:		/sys/devices/system/memory/memoryX/phys_device
- Date:		September 2008
-@@ -44,23 +44,25 @@ Date:		September 2008
- Contact:	Badari Pulavarty <pbadari@us.ibm.com>
- Description:
- 		The file /sys/devices/system/memory/memoryX/state
--		is read-write.  When read, its contents show the
--		online/offline state of the memory section.  When written,
--		root can toggle the the online/offline state of a removable
--		memory section (see removable file description above)
--		using the following commands::
-+		is read-write.  When read, it returns the online/offline
-+		state of the memory block.  When written, root can toggle
-+		the online/offline state of a memory block using the following
-+		commands::
- 
- 		  # echo online > /sys/devices/system/memory/memoryX/state
- 		  # echo offline > /sys/devices/system/memory/memoryX/state
- 
--		For example, if /sys/devices/system/memory/memory22/removable
--		contains a value of 1 and
--		/sys/devices/system/memory/memory22/state contains the
--		string "online" the following command can be executed by
--		by root to offline that section::
--
--		  # echo offline > /sys/devices/system/memory/memory22/state
--
-+		On newer kernel versions, advanced states can be specified
-+		when onlining to select a target zone: "online_movable"
-+		selects the movable zone.  "online_kernel" selects the
-+		applicable kernel zone (DMA, DMA32, or Normal).  However,
-+		after successfully setting one of the advanced states,
-+		reading the file will return "online"; the zone information
-+		can be obtained via "valid_zones" instead.
-+
-+		While onlining is unlikely to fail, there are no guarantees
-+		that offlining will succeed.  Offlining is more likely to
-+		succeed if "valid_zones" indicates "Movable".
- Users:		hotplug memory remove tools
- 		http://www.ibm.com/developerworks/wikis/display/LinuxP/powerpc-utils
- 
-@@ -70,8 +72,19 @@ Date:           July 2014
- Contact:	Zhang Zhen <zhenzhang.zhang@huawei.com>
- Description:
- 		The file /sys/devices/system/memory/memoryX/valid_zones	is
--		read-only and is designed to show which zone this memory
--		block can be onlined to.
-+		read-only.
-+
-+		For online memory blocks, it returns in which zone memory
-+		provided by a memory block is managed.  If multiple zones
-+		apply (not applicable for hotplugged memory), "None" is returned
-+		and the memory block cannot be offlined.
-+
-+		For offline memory blocks, it returns by which zone memory
-+		provided by a memory block can be managed when onlining.
-+		The first returned zone ("default") will be used when setting
-+		the state of an offline memory block to "online".  Only one of
-+		the kernel zones (DMA, DMA32, Normal) is applicable for a single
-+		memory block.
- 
- What:		/sys/devices/system/memoryX/nodeY
- Date:		October 2009
---- a/Documentation/admin-guide/mm/memory-hotplug.rst~documentation-sysfs-memory-clarify-some-memory-block-device-properties
-+++ a/Documentation/admin-guide/mm/memory-hotplug.rst
-@@ -162,14 +162,14 @@ Under each memory block, you can see 5 f
-                     which will be performed on all sections in the block.
- ``phys_device``	    read-only: legacy interface only ever used on s390x to
- 		    expose the covered storage increment.
--``removable``       read-only: contains an integer value indicating
--                    whether the memory block is removable or not
--                    removable.  A value of 1 indicates that the memory
--                    block is removable and a value of 0 indicates that
--                    it is not removable. A memory block is removable only if
--                    every section in the block is removable.
--``valid_zones``     read-only: designed to show which zones this memory block
--		    can be onlined to.
-+``removable``	    read-only: legacy interface that indicated whether a memory
-+		    block was likely to be offlineable or not.  Newer kernel
-+		    versions return "1" if and only if the kernel supports
-+		    memory offlining.
-+``valid_zones``     read-only: designed to show by which zone memory provided by
-+		    a memory block is managed, and to show by which zone memory
-+		    provided by an offline memory block could be managed when
-+		    onlining.
- 
- 		    The first column shows it`s default zone.
- 
+ check_again:
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-video-fbdev-acornfb-remove-free_unused_pages.patch
-mm-simplify-free_highmem_page-and-free_reserved_page.patch
-mm-cma-expose-all-pages-to-the-buddy-if-activation-of-an-area-fails.patch
-mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo.patch
-mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo-v2.patch
-mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource.patch
-drivers-base-memory-dont-store-phys_device-in-memory-blocks.patch
-documentation-sysfs-memory-clarify-some-memory-block-device-properties.patch
+mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
+mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch
+mm-gup-return-an-error-on-migration-failure.patch
+mm-gup-check-for-isolation-errors.patch
+mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin.patch
+mm-apply-per-task-gfp-constraints-in-fast-path.patch
+mm-honor-pf_memalloc_pin-for-all-movable-pages.patch
+mm-gup-do-not-migrate-zero-page.patch
+mm-gup-migrate-pinned-pages-out-of-movable-zone.patch
+memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning.patch
+mm-gup-change-index-type-to-long-as-it-counts-pages.patch
+mm-gup-longterm-pin-migration-cleanup.patch
+selftests-vm-gup_test-fix-test-flag.patch
+selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages.patch
 
