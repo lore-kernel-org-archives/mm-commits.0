@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 923F1C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4AF9C43381
 	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5FF9664D9C
+	by mail.kernel.org (Postfix) with ESMTP id C2BBE64EAA
 	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229593AbhBAWrG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 1 Feb 2021 17:47:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33262 "EHLO mail.kernel.org"
+        id S229884AbhBAWrH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 1 Feb 2021 17:47:07 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33260 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229884AbhBAWrC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S229753AbhBAWrC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 1 Feb 2021 17:47:02 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 020F8601FB;
-        Mon,  1 Feb 2021 22:46:19 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4917864D9C;
+        Mon,  1 Feb 2021 22:46:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612219580;
-        bh=00f+YJyqHhdJxXa0j+D7Mz3W9pMgiWNnl8nau3R3HNc=;
+        s=korg; t=1612219577;
+        bh=P1xM26RGTTWaI0a1gMnKqP4bq9dOKOqMVvfS/45O7/A=;
         h=Date:From:To:Subject:From;
-        b=V2E94o7LVRlWhA0HJrexYrFTc5q81gciC8ZOQGqOyEvGwhxTOKBL+Rpgr4PWWRe2y
-         ZUOVRba2pEBRmJlHwKzeY8OEd5b2YLUwJKsmMe7ISx+clu9bpDyhFOjlxPoxKS6Un8
-         7nbiIOBVvgadarwPmcNLZf/Nx+IfVRJTbaO8wbCo=
-Date:   Mon, 01 Feb 2021 14:46:19 -0800
+        b=r4c1u+pm9y3J4Y7jFDkxs2Ix7ybobgN7yhJNsfjbtnH5gw5GKZvAMzOJN7cb7r3WE
+         Ardky8AVLs7ngws4IUtMQFyi1PuWYCvSZvmbW7CqQ1kbQy2cAIu/wW/f5zHQhZtWFY
+         Eua4hOBtxEvRYc8hcUJ59/SzdcVlKB+to6GIBueo=
+Date:   Mon, 01 Feb 2021 14:46:16 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,8 +36,8 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  + kasan-rework-krealloc-tests.patch added to -mm tree
-Message-ID: <20210201224619.KmZN2PQEP%akpm@linux-foundation.org>
+Subject:  + kasan-unify-large-kfree-checks.patch added to -mm tree
+Message-ID: <20210201224616.IxplrGtST%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: rework krealloc tests
+     Subject: kasan: unify large kfree checks
 has been added to the -mm tree.  Its filename is
-     kasan-rework-krealloc-tests.patch
+     kasan-unify-large-kfree-checks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-rework-krealloc-tests.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-unify-large-kfree-checks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-rework-krealloc-tests.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-unify-large-kfree-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,15 +68,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: rework krealloc tests
+Subject: kasan: unify large kfree checks
 
-This patch reworks KASAN-KUnit tests for krealloc() to:
+Unify checks in kasan_kfree_large() and in kasan_slab_free_mempool() for
+large allocations as it's done for small kfree() allocations.
 
-1. Check both slab and page_alloc based krealloc() implementations.
-2. Allow at least one full granule to fit between old and new sizes for
-   each KASAN mode, and check accesses to that granule accordingly.
+With this change, kasan_slab_free_mempool() starts checking that the first
+byte of the memory that's being freed is accessible.
 
-Link: https://lkml.kernel.org/r/995edb531f4f976277d7da9ca8a78a96a2ea356e.1612208222.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/dbef8131b70766f8d798d24bb1ab9ae75dadea61.1612208222.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -92,140 +92,116 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   91 ++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 81 insertions(+), 10 deletions(-)
+ include/linux/kasan.h |   16 ++++++++--------
+ mm/kasan/common.c     |   36 ++++++++++++++++++++++++++----------
+ 2 files changed, 34 insertions(+), 18 deletions(-)
 
---- a/lib/test_kasan.c~kasan-rework-krealloc-tests
-+++ a/lib/test_kasan.c
-@@ -252,11 +252,14 @@ static void kmalloc_large_oob_right(stru
- 	kfree(ptr);
+--- a/include/linux/kasan.h~kasan-unify-large-kfree-checks
++++ a/include/linux/kasan.h
+@@ -200,6 +200,13 @@ static __always_inline bool kasan_slab_f
+ 	return false;
  }
  
--static void kmalloc_oob_krealloc_more(struct kunit *test)
-+static void krealloc_more_oob_helper(struct kunit *test,
-+					size_t size1, size_t size2)
++void __kasan_kfree_large(void *ptr, unsigned long ip);
++static __always_inline void kasan_kfree_large(void *ptr)
++{
++	if (kasan_enabled())
++		__kasan_kfree_large(ptr, _RET_IP_);
++}
++
+ void __kasan_slab_free_mempool(void *ptr, unsigned long ip);
+ static __always_inline void kasan_slab_free_mempool(void *ptr)
  {
- 	char *ptr1, *ptr2;
--	size_t size1 = 17;
--	size_t size2 = 19;
-+	size_t middle;
-+
-+	KUNIT_ASSERT_LT(test, size1, size2);
-+	middle = size1 + (size2 - size1) / 2;
- 
- 	ptr1 = kmalloc(size1, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
-@@ -264,15 +267,31 @@ static void kmalloc_oob_krealloc_more(st
- 	ptr2 = krealloc(ptr1, size2, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
- 
--	KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size2 + OOB_TAG_OFF] = 'x');
-+	/* All offsets up to size2 must be accessible. */
-+	ptr2[size1 - 1] = 'x';
-+	ptr2[size1] = 'x';
-+	ptr2[middle] = 'x';
-+	ptr2[size2 - 1] = 'x';
-+
-+	/* Generic mode is precise, so unaligned size2 must be inaccessible. */
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
-+		KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size2] = 'x');
-+
-+	/* For all modes first aligned offset after size2 must be inaccessible. */
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		ptr2[round_up(size2, KASAN_GRANULE_SIZE)] = 'x');
-+
- 	kfree(ptr2);
+@@ -247,13 +254,6 @@ static __always_inline void * __must_che
+ 	return (void *)object;
  }
  
--static void kmalloc_oob_krealloc_less(struct kunit *test)
-+static void krealloc_less_oob_helper(struct kunit *test,
-+					size_t size1, size_t size2)
+-void __kasan_kfree_large(void *ptr, unsigned long ip);
+-static __always_inline void kasan_kfree_large(void *ptr)
+-{
+-	if (kasan_enabled())
+-		__kasan_kfree_large(ptr, _RET_IP_);
+-}
+-
+ /*
+  * Unlike kasan_check_read/write(), kasan_check_byte() is performed even for
+  * the hardware tag-based mode that doesn't rely on compiler instrumentation.
+@@ -302,6 +302,7 @@ static inline bool kasan_slab_free(struc
  {
- 	char *ptr1, *ptr2;
--	size_t size1 = 17;
--	size_t size2 = 15;
-+	size_t middle;
-+
-+	KUNIT_ASSERT_LT(test, size2, size1);
-+	middle = size2 + (size1 - size2) / 2;
+ 	return false;
+ }
++static inline void kasan_kfree_large(void *ptr) {}
+ static inline void kasan_slab_free_mempool(void *ptr) {}
+ static inline void *kasan_slab_alloc(struct kmem_cache *s, void *object,
+ 				   gfp_t flags)
+@@ -322,7 +323,6 @@ static inline void *kasan_krealloc(const
+ {
+ 	return (void *)object;
+ }
+-static inline void kasan_kfree_large(void *ptr) {}
+ static inline bool kasan_check_byte(const void *address)
+ {
+ 	return true;
+--- a/mm/kasan/common.c~kasan-unify-large-kfree-checks
++++ a/mm/kasan/common.c
+@@ -364,6 +364,31 @@ bool __kasan_slab_free(struct kmem_cache
+ 	return ____kasan_slab_free(cache, object, ip, true);
+ }
  
- 	ptr1 = kmalloc(size1, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
-@@ -280,10 +299,60 @@ static void kmalloc_oob_krealloc_less(st
- 	ptr2 = krealloc(ptr1, size2, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
- 
--	KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size2 + OOB_TAG_OFF] = 'x');
-+	/* Must be accessible for all modes. */
-+	ptr2[size2 - 1] = 'x';
++static bool ____kasan_kfree_large(void *ptr, unsigned long ip)
++{
++	if (ptr != page_address(virt_to_head_page(ptr))) {
++		kasan_report_invalid_free(ptr, ip);
++		return true;
++	}
 +
-+	/* Generic mode is precise, so unaligned size2 must be inaccessible. */
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
-+		KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size2] = 'x');
-+
-+	/* For all modes first aligned offset after size2 must be inaccessible. */
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		ptr2[round_up(size2, KASAN_GRANULE_SIZE)] = 'x');
++	if (!kasan_byte_accessible(ptr)) {
++		kasan_report_invalid_free(ptr, ip);
++		return true;
++	}
 +
 +	/*
-+	 * For all modes both middle and size1 should land in separate granules
-+	 * and thus be inaccessible.
++	 * The object will be poisoned by kasan_free_pages() or
++	 * kasan_slab_free_mempool().
 +	 */
-+	KUNIT_EXPECT_LE(test, round_up(size2, KASAN_GRANULE_SIZE),
-+				round_down(middle, KASAN_GRANULE_SIZE));
-+	KUNIT_EXPECT_LE(test, round_up(middle, KASAN_GRANULE_SIZE),
-+				round_down(size1, KASAN_GRANULE_SIZE));
-+	KUNIT_EXPECT_KASAN_FAIL(test, ptr2[middle] = 'x');
-+	KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size1 - 1] = 'x');
-+	KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size1] = 'x');
 +
- 	kfree(ptr2);
++	return false;
++}
++
++void __kasan_kfree_large(void *ptr, unsigned long ip)
++{
++	____kasan_kfree_large(ptr, ip);
++}
++
+ void __kasan_slab_free_mempool(void *ptr, unsigned long ip)
+ {
+ 	struct page *page;
+@@ -377,10 +402,8 @@ void __kasan_slab_free_mempool(void *ptr
+ 	 * KMALLOC_MAX_SIZE, and kmalloc falls back onto page_alloc.
+ 	 */
+ 	if (unlikely(!PageSlab(page))) {
+-		if (ptr != page_address(page)) {
+-			kasan_report_invalid_free(ptr, ip);
++		if (____kasan_kfree_large(ptr, ip))
+ 			return;
+-		}
+ 		kasan_poison(ptr, page_size(page), KASAN_FREE_PAGE);
+ 	} else {
+ 		____kasan_slab_free(page->slab_cache, ptr, ip, false);
+@@ -539,13 +562,6 @@ void * __must_check __kasan_krealloc(con
+ 		return ____kasan_kmalloc(page->slab_cache, object, size, flags);
  }
  
-+static void krealloc_more_oob(struct kunit *test)
-+{
-+	krealloc_more_oob_helper(test, 201, 235);
-+}
-+
-+static void krealloc_less_oob(struct kunit *test)
-+{
-+	krealloc_less_oob_helper(test, 235, 201);
-+}
-+
-+static void krealloc_pagealloc_more_oob(struct kunit *test)
-+{
-+	/* page_alloc fallback in only implemented for SLUB. */
-+	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
-+
-+	krealloc_more_oob_helper(test, KMALLOC_MAX_CACHE_SIZE + 201,
-+					KMALLOC_MAX_CACHE_SIZE + 235);
-+}
-+
-+static void krealloc_pagealloc_less_oob(struct kunit *test)
-+{
-+	/* page_alloc fallback in only implemented for SLUB. */
-+	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
-+
-+	krealloc_less_oob_helper(test, KMALLOC_MAX_CACHE_SIZE + 235,
-+					KMALLOC_MAX_CACHE_SIZE + 201);
-+}
-+
- static void kmalloc_oob_16(struct kunit *test)
+-void __kasan_kfree_large(void *ptr, unsigned long ip)
+-{
+-	if (ptr != page_address(virt_to_head_page(ptr)))
+-		kasan_report_invalid_free(ptr, ip);
+-	/* The object will be poisoned by kasan_free_pages(). */
+-}
+-
+ bool __kasan_check_byte(const void *address, unsigned long ip)
  {
- 	struct {
-@@ -977,8 +1046,10 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(pagealloc_oob_right),
- 	KUNIT_CASE(pagealloc_uaf),
- 	KUNIT_CASE(kmalloc_large_oob_right),
--	KUNIT_CASE(kmalloc_oob_krealloc_more),
--	KUNIT_CASE(kmalloc_oob_krealloc_less),
-+	KUNIT_CASE(krealloc_more_oob),
-+	KUNIT_CASE(krealloc_less_oob),
-+	KUNIT_CASE(krealloc_pagealloc_more_oob),
-+	KUNIT_CASE(krealloc_pagealloc_less_oob),
- 	KUNIT_CASE(kmalloc_oob_16),
- 	KUNIT_CASE(kmalloc_uaf_16),
- 	KUNIT_CASE(kmalloc_oob_in_memset),
+ 	if (!kasan_byte_accessible(address)) {
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
