@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CF7EC433E9
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 19:38:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 381B5C433E9
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 19:40:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6B03064E08
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 19:38:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0EAB264F2C
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 19:40:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239946AbhBBTiL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 Feb 2021 14:38:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51812 "EHLO mail.kernel.org"
+        id S233576AbhBBTkR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 Feb 2021 14:40:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52318 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239935AbhBBTh4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Feb 2021 14:37:56 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C73EC64E08;
-        Tue,  2 Feb 2021 19:37:15 +0000 (UTC)
+        id S239943AbhBBTjq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Feb 2021 14:39:46 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DE99A64E56;
+        Tue,  2 Feb 2021 19:39:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612294636;
-        bh=jfFYBy3LkteF5epITb+tQidcf8IMOR/VLDqmXAQPwvM=;
+        s=korg; t=1612294745;
+        bh=TB6uEyGM1mH+2tnHa40hgblhW7yUUcxZtk7hmS994gY=;
         h=Date:From:To:Subject:From;
-        b=2hWJoW54egiSit034Ts3VL5WAxL5aXtXUkREeLJ0UGSncFzgxFNUD55ZDbtXM5V+g
-         IDTGg1lWXev2kVrGfHomWte7KJU/K9bdyGvWMCcudu0oDyRIshU+OAiWDulhUn/qd6
-         01fkAfmsiJUEaIdlkfokD4xrQYIyC+opsiTeRQEk=
-Date:   Tue, 02 Feb 2021 11:37:15 -0800
+        b=KwV2086QNgRnMbEBbJPrwifgAdR9n9RilFECSCmUGuZ2QwLR9jHOUWoQY2FaT+/hL
+         XGfLCM7N6Awzcjd56RKhlgFOUed0/7sBcySNXmHHzKhrfCB/hxlqSE33hxsqfJ3XX9
+         Px5GxqErKhpkAlGOmLLyLtM1SKJm9MmHgKCO5nIg=
+Date:   Tue, 02 Feb 2021 11:39:04 -0800
 From:   akpm@linux-foundation.org
-To:     minchan@kernel.org, mm-commits@vger.kernel.org,
-        sergey.senozhatsky@gmail.com, wu-yan@tcl.com
-Subject:  +
- zsmalloc-account-the-number-of-compacted-pages-correctly.patch added to -mm
- tree
-Message-ID: <20210202193715.EUtJpsW_m%akpm@linux-foundation.org>
+To:     dan.carpenter@oracle.com, gechangwei@live.cn, ghe@suse.com,
+        jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com,
+        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
+Subject:  [to-be-updated] ocfs2-fix-a-use-after-free-on-error.patch
+ removed from -mm tree
+Message-ID: <20210202193904.vjkmTgbmU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,157 +44,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: account the number of compacted pages correctly
-has been added to the -mm tree.  Its filename is
-     zsmalloc-account-the-number-of-compacted-pages-correctly.patch
+     Subject: ocfs2: fix a use after free on error
+has been removed from the -mm tree.  Its filename was
+     ocfs2-fix-a-use-after-free-on-error.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-account-the-number-of-compacted-pages-correctly.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-account-the-number-of-compacted-pages-correctly.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Rokudo Yan <wu-yan@tcl.com>
-Subject: zsmalloc: account the number of compacted pages correctly
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: ocfs2: fix a use after free on error
 
-There exists multiple path may do zram compaction concurrently.
-1. auto-compaction triggered during memory reclaim
-2. userspace utils write zram<id>/compaction node
+The error handling in this function frees "reg" but it is still on the
+"o2hb_all_regions" list so it will lead to a use after free.  The fix for
+this is to only add it to the list after everything has succeeded.
 
-So, multiple threads may call zs_shrinker_scan/zs_compact concurrently.
-But pages_compacted is a per zsmalloc pool variable and modification
-of the variable is not serialized(through under class->lock).
-There are two issues here:
-1. the pages_compacted may not equal to total number of pages
-freed(due to concurrently add).
-2. zs_shrinker_scan may not return the correct number of pages
-freed(issued by current shrinker).
-
-The fix is simple:
-1. account the number of pages freed in zs_compact locally.
-2. use actomic variable pages_compacted to accumulate total number.
-
-Link: https://lkml.kernel.org/r/20210202122235.26885-1-wu-yan@tcl.com
-Fixes: 860c707dca155a56 ("zsmalloc: account the number of compacted pages")
-Signed-off-by: Rokudo Yan <wu-yan@tcl.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Link: https://lkml.kernel.org/r/YBfzR7AbZZ4Pp6sq@mwanda
+Fixes: 1cf257f51191 ("ocfs2: fix memory leak")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    2 +-
- include/linux/zsmalloc.h      |    2 +-
- mm/zsmalloc.c                 |   17 +++++++++++------
- 3 files changed, 13 insertions(+), 8 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zsmalloc-account-the-number-of-compacted-pages-correctly
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1082,7 +1082,7 @@ static ssize_t mm_stat_show(struct devic
- 			zram->limit_pages << PAGE_SHIFT,
- 			max_used << PAGE_SHIFT,
- 			(u64)atomic64_read(&zram->stats.same_pages),
--			pool_stats.pages_compacted,
-+			atomic_long_read(&pool_stats.pages_compacted),
- 			(u64)atomic64_read(&zram->stats.huge_pages),
- 			(u64)atomic64_read(&zram->stats.huge_pages_since));
- 	up_read(&zram->init_lock);
---- a/include/linux/zsmalloc.h~zsmalloc-account-the-number-of-compacted-pages-correctly
-+++ a/include/linux/zsmalloc.h
-@@ -35,7 +35,7 @@ enum zs_mapmode {
- 
- struct zs_pool_stats {
- 	/* How many pages were migrated (freed) */
--	unsigned long pages_compacted;
-+	atomic_long_t pages_compacted;
- };
- 
- struct zs_pool;
---- a/mm/zsmalloc.c~zsmalloc-account-the-number-of-compacted-pages-correctly
-+++ a/mm/zsmalloc.c
-@@ -2212,11 +2212,13 @@ static unsigned long zs_can_compact(stru
- 	return obj_wasted * class->pages_per_zspage;
- }
- 
--static void __zs_compact(struct zs_pool *pool, struct size_class *class)
-+static unsigned long __zs_compact(struct zs_pool *pool,
-+				  struct size_class *class)
- {
- 	struct zs_compact_control cc;
- 	struct zspage *src_zspage;
- 	struct zspage *dst_zspage = NULL;
-+	unsigned long pages_freed = 0;
- 
- 	spin_lock(&class->lock);
- 	while ((src_zspage = isolate_zspage(class, true))) {
-@@ -2246,7 +2248,7 @@ static void __zs_compact(struct zs_pool
- 		putback_zspage(class, dst_zspage);
- 		if (putback_zspage(class, src_zspage) == ZS_EMPTY) {
- 			free_zspage(pool, class, src_zspage);
--			pool->stats.pages_compacted += class->pages_per_zspage;
-+			pages_freed += class->pages_per_zspage;
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-fix-a-use-after-free-on-error
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -2025,7 +2025,6 @@ static struct config_item *o2hb_heartbea
  		}
- 		spin_unlock(&class->lock);
- 		cond_resched();
-@@ -2257,12 +2259,15 @@ static void __zs_compact(struct zs_pool
- 		putback_zspage(class, src_zspage);
- 
- 	spin_unlock(&class->lock);
-+
-+	return pages_freed;
- }
- 
- unsigned long zs_compact(struct zs_pool *pool)
- {
- 	int i;
- 	struct size_class *class;
-+	unsigned long pages_freed = 0;
- 
- 	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
- 		class = pool->size_class[i];
-@@ -2270,10 +2275,11 @@ unsigned long zs_compact(struct zs_pool
- 			continue;
- 		if (class->index != i)
- 			continue;
--		__zs_compact(pool, class);
-+		pages_freed += __zs_compact(pool, class);
+ 		set_bit(reg->hr_region_num, o2hb_region_bitmap);
  	}
-+	atomic_long_add(pages_freed, &pool->stats.pages_compacted);
+-	list_add_tail(&reg->hr_all_item, &o2hb_all_regions);
+ 	spin_unlock(&o2hb_live_lock);
  
--	return pool->stats.pages_compacted;
-+	return pages_freed;
- }
- EXPORT_SYMBOL_GPL(zs_compact);
+ 	config_item_init_type_name(&reg->hr_item, name, &o2hb_region_type);
+@@ -2053,6 +2052,10 @@ static struct config_item *o2hb_heartbea
  
-@@ -2290,13 +2296,12 @@ static unsigned long zs_shrinker_scan(st
- 	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
- 			shrinker);
+ 	o2hb_debug_region_init(reg, o2hb_debug_dir);
  
--	pages_freed = pool->stats.pages_compacted;
- 	/*
- 	 * Compact classes and calculate compaction delta.
- 	 * Can run concurrently with a manually triggered
- 	 * (by user) compaction.
- 	 */
--	pages_freed = zs_compact(pool) - pages_freed;
-+	pages_freed = zs_compact(pool);
++	spin_lock(&o2hb_live_lock);
++	list_add_tail(&reg->hr_all_item, &o2hb_all_regions);
++	spin_unlock(&o2hb_live_lock);
++
+ 	return &reg->hr_item;
  
- 	return pages_freed ? pages_freed : SHRINK_STOP;
- }
+ unregister_handler:
 _
 
-Patches currently in -mm which might be from wu-yan@tcl.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-mm-compaction-move-high_pfn-to-the-for-loop-scope.patch
-zsmalloc-account-the-number-of-compacted-pages-correctly.patch
+ocfs2-fix-a-use-after-free-on-error-v2.patch
 
