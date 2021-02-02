@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8395C433DB
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 19:25:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 517B6C433E0
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 19:25:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD94864E46
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 19:25:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16A5B64E49
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 19:25:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239712AbhBBTZC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 Feb 2021 14:25:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47950 "EHLO mail.kernel.org"
+        id S233407AbhBBTZd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 Feb 2021 14:25:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48080 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238091AbhBBTWt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Feb 2021 14:22:49 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 73A5260295;
-        Tue,  2 Feb 2021 19:22:08 +0000 (UTC)
+        id S239287AbhBBTXK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Feb 2021 14:23:10 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B250464E46;
+        Tue,  2 Feb 2021 19:22:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612293728;
-        bh=rs9uwII8KyHK4Vkzu1J6iO7mDqwP1qE+rkY53pLfDnA=;
+        s=korg; t=1612293749;
+        bh=eCv+wToqhO8b4kaYY2i4cXouQdIyt21E83SDwsVl6CQ=;
         h=Date:From:To:Subject:From;
-        b=iK3fNfhRGBW4dc837w2dTDmWwJnUHDgnFqhGIPoQ5FoIeQKX8E0vVNbLAdmTDVT5o
-         iqI2ln7m11ZL5GuEzmFmrawKClKwmnWwuG+hYvlEdhiOiz8iiJhyZE3ZBSQZfuoRnz
-         Wxi4Q80vdAbaLbGac33FZTrFl4IReg5YK2/7/eoI=
-Date:   Tue, 02 Feb 2021 11:22:07 -0800
+        b=C3Vo5SdbwXF6EGTdHf9aO4MauE/6hpYEQ3TFuzvdfcP1QiPYhAkOiWL9yoPAwD2NM
+         X/b0YYBU+qKdbyei4FC0DwKNVflTmIanQys0/oN7a9P3uzcryvMR0JKlTyRwetGeuQ
+         Am0iircoOGlmF86RkAiBfcY3TpHuO/wCsjCSeR0w=
+Date:   Tue, 02 Feb 2021 11:22:29 -0800
 From:   akpm@linux-foundation.org
 To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org
-Subject:  + mm-vmstat-fix-nohz-wakeups-for-node-stat-changes.patch
- added to -mm tree
-Message-ID: <20210202192207.rcIq2jj78%akpm@linux-foundation.org>
+Subject:  +
+ mm-vmstat-add-some-comments-on-internal-storage-of-byte-items.patch added
+ to -mm tree
+Message-ID: <20210202192229.SO8s6n-RQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmstat: fix NOHZ wakeups for node stat changes
+     Subject: mm: vmstat: add some comments on internal storage of byte items
 has been added to the -mm tree.  Its filename is
-     mm-vmstat-fix-nohz-wakeups-for-node-stat-changes.patch
+     mm-vmstat-add-some-comments-on-internal-storage-of-byte-items.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-fix-nohz-wakeups-for-node-stat-changes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-add-some-comments-on-internal-storage-of-byte-items.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-fix-nohz-wakeups-for-node-stat-changes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-add-some-comments-on-internal-storage-of-byte-items.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,75 +65,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmstat: fix NOHZ wakeups for node stat changes
+Subject: mm: vmstat: add some comments on internal storage of byte items
 
-On NOHZ, the periodic vmstat flushers on each CPU can go to sleep and
-won't wake up until stat changes are detected in the per-cpu deltas of the
-zone vmstat counters.
+Byte-accounted items are used for slab object accounting at the cgroup
+level, because the objects in a slab page can belong to different cgroups.
+At the global level these items always change in multiples of whole slab
+pages.  The vmstat code exploits this and stores these items as pages
+internally, which allows for more compact per-cpu data.
 
-In commit 75ef71840539 ("mm, vmstat: add infrastructure for per-node
-vmstats") per-node counters were introduced, and subsequently most stats
-were moved from the zone to the node level.  However, the node counters
-weren't added to the NOHZ wakeup detection.
+This optimization isn't self-evident from the asserts and the division in
+the stat update functions.  Provide the reader with some context.
 
-In theory this can cause per-cpu errors to remain in the user-reported
-stats indefinitely.  In practice this only affects a handful of sub
-counters (file_mapped, dirty and writeback e.g.) because other page state
-changes at the node level likely involve a change at the zone level as
-well (alloc and free, lru ops).  Also, nobody has complained.
-
-Fix it up for completeness: wake up vmstat refreshing on node changes. 
-Also remove the BUILD_BUG_ONs that assert counter size; we haven't relied
-on it since we added sizeof() to the range calculation in commit
-13c9aaf7fa01 ("mm/vmstat.c: fix NUMA statistics updates").
-
-Link: https://lkml.kernel.org/r/20210202184342.118513-1-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20210202184411.118614-1-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/vmstat.h |    6 ++++++
+ mm/vmstat.c            |   12 ++++++++++++
+ 2 files changed, 18 insertions(+)
 
---- a/mm/vmstat.c~mm-vmstat-fix-nohz-wakeups-for-node-stat-changes
-+++ a/mm/vmstat.c
-@@ -1894,16 +1894,12 @@ static void vmstat_update(struct work_st
-  */
- static bool need_update(int cpu)
+--- a/include/linux/vmstat.h~mm-vmstat-add-some-comments-on-internal-storage-of-byte-items
++++ a/include/linux/vmstat.h
+@@ -313,6 +313,12 @@ static inline void __mod_node_page_state
+ 			enum node_stat_item item, int delta)
  {
-+	pg_data_t *last_pgdat = NULL;
- 	struct zone *zone;
- 
- 	for_each_populated_zone(zone) {
- 		struct per_cpu_pageset *p = per_cpu_ptr(zone->pageset, cpu);
--
--		BUILD_BUG_ON(sizeof(p->vm_stat_diff[0]) != 1);
--#ifdef CONFIG_NUMA
--		BUILD_BUG_ON(sizeof(p->vm_numa_stat_diff[0]) != 2);
--#endif
--
-+		struct per_cpu_nodestat *n;
- 		/*
- 		 * The fast way of checking if there are any vmstat diffs.
- 		 */
-@@ -1915,6 +1911,13 @@ static bool need_update(int cpu)
- 			       sizeof(p->vm_numa_stat_diff[0])))
- 			return true;
- #endif
-+		if (last_pgdat == zone->zone_pgdat)
-+			continue;
-+		last_pgdat = zone->zone_pgdat;
-+		n = per_cpu_ptr(zone->zone_pgdat->per_cpu_nodestats, cpu);
-+		if (memchr_inv(n->vm_node_stat_diff, 0, NR_VM_NODE_STAT_ITEMS *
-+			       sizeof(n->vm_node_stat_diff[0])))
-+		    return true;
+ 	if (vmstat_item_in_bytes(item)) {
++		/*
++		 * Only cgroups use subpage accounting right now; at
++		 * the global level, these items still change in
++		 * multiples of whole pages. Store them as pages
++		 * internally to keep the per-cpu counters compact.
++		 */
+ 		VM_WARN_ON_ONCE(delta & (PAGE_SIZE - 1));
+ 		delta >>= PAGE_SHIFT;
  	}
- 	return false;
- }
+--- a/mm/vmstat.c~mm-vmstat-add-some-comments-on-internal-storage-of-byte-items
++++ a/mm/vmstat.c
+@@ -342,6 +342,12 @@ void __mod_node_page_state(struct pglist
+ 	long t;
+ 
+ 	if (vmstat_item_in_bytes(item)) {
++		/*
++		 * Only cgroups use subpage accounting right now; at
++		 * the global level, these items still change in
++		 * multiples of whole pages. Store them as pages
++		 * internally to keep the per-cpu counters compact.
++		 */
+ 		VM_WARN_ON_ONCE(delta & (PAGE_SIZE - 1));
+ 		delta >>= PAGE_SHIFT;
+ 	}
+@@ -551,6 +557,12 @@ static inline void mod_node_state(struct
+ 	long o, n, t, z;
+ 
+ 	if (vmstat_item_in_bytes(item)) {
++		/*
++		 * Only cgroups use subpage accounting right now; at
++		 * the global level, these items still change in
++		 * multiples of whole pages. Store them as pages
++		 * internally to keep the per-cpu counters compact.
++		 */
+ 		VM_WARN_ON_ONCE(delta & (PAGE_SIZE - 1));
+ 		delta >>= PAGE_SHIFT;
+ 	}
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 revert-mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
 mm-vmstat-fix-nohz-wakeups-for-node-stat-changes.patch
+mm-vmstat-add-some-comments-on-internal-storage-of-byte-items.patch
 
