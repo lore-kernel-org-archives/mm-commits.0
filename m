@@ -2,108 +2,89 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 699C6C433E6
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 19:54:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C88AAC433DB
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 20:21:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1852564DC4
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 19:54:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6DB4C64E4A
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 20:21:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238470AbhBBTy1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 Feb 2021 14:54:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56804 "EHLO mail.kernel.org"
+        id S231755AbhBBUV1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 Feb 2021 15:21:27 -0500
+Received: from ozlabs.org ([203.11.71.1]:38571 "EHLO ozlabs.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240054AbhBBTxb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Feb 2021 14:53:31 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E8C3464DC4;
-        Tue,  2 Feb 2021 19:52:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612295570;
-        bh=pMF+XcixKIuJHTamPxZ5WfvxkyNvk0xDZCXmQIwJdjQ=;
-        h=Date:From:To:Subject:From;
-        b=W8AWxh6Y1KMrzHWGDoD8yl3SIfYHE3BIKq8QPzgoJLI1euL89dFwSVOen0VLkzQ7/
-         bAqSfFKAyhKQq8RFCSO7QFQ8wsyTJR8FK4RxAo7q55lDMEjH831t820UZV5QBYGVds
-         9P5BTMc/453WJFFMXVgzVCHArM2ayewYwuY92lVA=
-Date:   Tue, 02 Feb 2021 11:52:49 -0800
-From:   akpm@linux-foundation.org
-To:     abaci@linux.alibaba.com, gechangwei@live.cn, ghe@suse.com,
-        jiapeng.chong@linux.alibaba.com, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
-Subject:  + ocfs2-simplify-the-calculation-of-variables.patch added
- to -mm tree
-Message-ID: <20210202195249.tHy4s0YP0%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S231667AbhBBUTU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Feb 2021 15:19:20 -0500
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4DVbjn428tz9tl7;
+        Wed,  3 Feb 2021 07:18:37 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
+        s=201702; t=1612297118;
+        bh=F0rANMMup8JMag/Ig+6spA9HbFPdDxEelkhWk03Fq+c=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=Lx31BvkKmY4q5TLUvHF/mgLCjOnpeAcXjlykTXmZdNWb41fRPOZ1XptB1vjUIlbdb
+         rOz8qKN/WDTRRl3bwpOg/DHN5eX/cJkITwHUBgkwWS0OeysavtWPkF6LeoEX0igqcF
+         WLbne/ElYfIYRtO1c1gyJHcW5ZcTs9cYScLFXByL67DCUByZeYEgHA/RuJ1dNF07OB
+         fCs6e8eahEwsFBWiUeYyXMKGmvUxfkUf0T6kExCe0n6BFdgc2rvBj3WDQdIUNLZQeX
+         QUAJraGaRDC1MjCpywtUg7snpfHe1ySsr0UraWoVz8Dr1csjeO6T8/Fm//4Hl+2tgR
+         /tWqzmO/E6y/Q==
+Date:   Wed, 3 Feb 2021 07:18:36 +1100
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     akpm@linux-foundation.org
+Cc:     lkp@intel.com, mm-commits@vger.kernel.org,
+        pasha.tatashin@soleen.com
+Subject: Re: + mm-gup-do-not-migrate-zero-page-fix.patch added to -mm tree
+Message-ID: <20210203071836.1a6c21f9@canb.auug.org.au>
+In-Reply-To: <20210202193438.M1pjE6lYJ%akpm@linux-foundation.org>
+References: <20210202193438.M1pjE6lYJ%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="Sig_/OLhQGP6EVP4mt=OlvuQnOWe";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+--Sig_/OLhQGP6EVP4mt=OlvuQnOWe
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-The patch titled
-     Subject: ocfs2: Simplify the calculation of variables
-has been added to the -mm tree.  Its filename is
-     ocfs2-simplify-the-calculation-of-variables.patch
+Hi all,
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-simplify-the-calculation-of-variables.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-simplify-the-calculation-of-variables.patch
+On Tue, 02 Feb 2021 11:34:38 -0800 akpm@linux-foundation.org wrote:
+>
+> The patch titled
+>      Subject: mm-gup-do-not-migrate-zero-page-fix
+> has been added to the -mm tree.  Its filename is
+>      mm-gup-do-not-migrate-zero-page-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Added to linux-next today.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+--=20
+Cheers,
+Stephen Rothwell
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+--Sig_/OLhQGP6EVP4mt=OlvuQnOWe
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-------------------------------------------------------
-From: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-Subject: ocfs2: Simplify the calculation of variables
+-----BEGIN PGP SIGNATURE-----
 
-Fix the following coccicheck warnings:
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmAZs5wACgkQAVBC80lX
+0GxDJgf9EX9OGRouN6P+NF1gdUT6w3tVfXjfRaKh1Q4X3UwujWSNUy9DP2t+ARg5
+haLKtl1ZGeHKDYhEE9STcWu5toUsifk1GKIg9TBDT6lH83eoFzNmg6ZOOCHyVlfj
+O0GsMAdtGsfBfbaaW6STkD9VxQ1lc6wydq7rDOncXHF+WXLpE0d3I2XRBG5rD6f4
+/H1qgljCCCkYJR5/7xIJbhdFrP3SUJX70A58WQfochw4BcSrwtSY8ltQZORJR40c
+F50xR6CRjLy26vQ5BX7jcPiUPnj4xIuwcP9XGkUTw4e8AiFBCv+3+H85oDQQylgO
+58W8qUCWDmQPhh44hCD0u6YcmGLIdA==
+=SENW
+-----END PGP SIGNATURE-----
 
-./fs/ocfs2/refcounttree.c:981:16-18: WARNING !A || A && B is equivalent
-to !A || B.
-
-Link: https://lkml.kernel.org/r/1612235424-80367-1-git-send-email-jiapeng.chong@linux.alibaba.com
-Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/ocfs2/refcounttree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/fs/ocfs2/refcounttree.c~ocfs2-simplify-the-calculation-of-variables
-+++ a/fs/ocfs2/refcounttree.c
-@@ -978,7 +978,7 @@ static int ocfs2_get_refcount_cpos_end(s
- 		return 0;
- 	}
- 
--	if (!eb || (eb && !eb->h_next_leaf_blk)) {
-+	if (!eb || !eb->h_next_leaf_blk) {
- 		/*
- 		 * We are the last extent rec, so any high cpos should
- 		 * be stored in this leaf refcount block.
-_
-
-Patches currently in -mm which might be from jiapeng.chong@linux.alibaba.com are
-
-ocfs2-simplify-the-calculation-of-variables.patch
-
+--Sig_/OLhQGP6EVP4mt=OlvuQnOWe--
