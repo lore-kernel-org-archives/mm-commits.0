@@ -2,184 +2,137 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E57CC433DB
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 12:45:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8395C433DB
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 19:25:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 396C764F49
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 12:45:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD94864E46
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Feb 2021 19:25:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231734AbhBBMp2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 Feb 2021 07:45:28 -0500
-Received: from bgp198.corpemail.net ([222.73.254.198]:55068 "EHLO
-        bgp198.corpemail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231665AbhBBMoR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2021 07:44:17 -0500
-X-Greylist: delayed 934 seconds by postgrey-1.27 at vger.kernel.org; Tue, 02 Feb 2021 07:44:16 EST
-Received: from ([183.47.25.45])
-        by support.corp-email.com ((LNX1044)) with ASMTP (SSL) id WGZ00051;
-        Tue, 02 Feb 2021 20:22:51 +0800
-Received: from GCY-EXS-15.TCL.com (10.74.128.165) by GCY-EXS-08.TCL.com
- (10.74.128.158) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2106.2; Tue, 2 Feb 2021
- 20:22:47 +0800
-Received: from localhost.localdomain (172.16.34.11) by GCY-EXS-15.TCL.com
- (10.74.128.165) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2106.2; Tue, 2 Feb 2021
- 20:22:47 +0800
-From:   Rokudo Yan <wu-yan@tcl.com>
-To:     <akpm@linux-foundation.org>
-CC:     <wu-yan@tcl.com>, <linux-mm@kvack.org>,
-        <mm-commits@vger.kernel.org>, <minchan@kernel.org>,
-        <sergey.senozhatsky@gmail.com>, <torvalds@linux-foundation.org>
-Subject: [PATCH] zsmalloc: account the number of compacted pages correctly
-Date:   Tue, 2 Feb 2021 20:22:35 +0800
-Message-ID: <20210202122235.26885-1-wu-yan@tcl.com>
-X-Mailer: git-send-email 2.25.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [172.16.34.11]
-X-ClientProxiedBy: GCY-EXS-04.TCL.com (10.74.128.154) To GCY-EXS-15.TCL.com
- (10.74.128.165)
-tUid:   2021202202251edb66c8a4fbdf40525edca8eaca519c1
-X-Abuse-Reports-To: service@corp-email.com
-Abuse-Reports-To: service@corp-email.com
-X-Complaints-To: service@corp-email.com
-X-Report-Abuse-To: service@corp-email.com
+        id S239712AbhBBTZC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 Feb 2021 14:25:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47950 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S238091AbhBBTWt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Feb 2021 14:22:49 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 73A5260295;
+        Tue,  2 Feb 2021 19:22:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1612293728;
+        bh=rs9uwII8KyHK4Vkzu1J6iO7mDqwP1qE+rkY53pLfDnA=;
+        h=Date:From:To:Subject:From;
+        b=iK3fNfhRGBW4dc837w2dTDmWwJnUHDgnFqhGIPoQ5FoIeQKX8E0vVNbLAdmTDVT5o
+         iqI2ln7m11ZL5GuEzmFmrawKClKwmnWwuG+hYvlEdhiOiz8iiJhyZE3ZBSQZfuoRnz
+         Wxi4Q80vdAbaLbGac33FZTrFl4IReg5YK2/7/eoI=
+Date:   Tue, 02 Feb 2021 11:22:07 -0800
+From:   akpm@linux-foundation.org
+To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org
+Subject:  + mm-vmstat-fix-nohz-wakeups-for-node-stat-changes.patch
+ added to -mm tree
+Message-ID: <20210202192207.rcIq2jj78%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-There exists multiple path may do zram compaction concurrently.
-1. auto-compaction triggered during memory reclaim
-2. userspace utils write zram<id>/compaction node
 
-So, multiple threads may call zs_shrinker_scan/zs_compact concurrently.
-But pages_compacted is a per zsmalloc pool variable and modification
-of the variable is not serialized(through under class->lock).
-There are two issues here:
-1. the pages_compacted may not equal to total number of pages
-freed(due to concurrently add).
-2. zs_shrinker_scan may not return the correct number of pages
-freed(issued by current shrinker).
+The patch titled
+     Subject: mm: vmstat: fix NOHZ wakeups for node stat changes
+has been added to the -mm tree.  Its filename is
+     mm-vmstat-fix-nohz-wakeups-for-node-stat-changes.patch
 
-The fix is simple:
-1. account the number of pages freed in zs_compact locally.
-2. use actomic variable pages_compacted to accumulate total number.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-fix-nohz-wakeups-for-node-stat-changes.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-fix-nohz-wakeups-for-node-stat-changes.patch
 
-Fixes: 860c707dca155a56 ("zsmalloc: account the number of compacted pages")
-Signed-off-by: Rokudo Yan <wu-yan@tcl.com>
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmstat: fix NOHZ wakeups for node stat changes
+
+On NOHZ, the periodic vmstat flushers on each CPU can go to sleep and
+won't wake up until stat changes are detected in the per-cpu deltas of the
+zone vmstat counters.
+
+In commit 75ef71840539 ("mm, vmstat: add infrastructure for per-node
+vmstats") per-node counters were introduced, and subsequently most stats
+were moved from the zone to the node level.  However, the node counters
+weren't added to the NOHZ wakeup detection.
+
+In theory this can cause per-cpu errors to remain in the user-reported
+stats indefinitely.  In practice this only affects a handful of sub
+counters (file_mapped, dirty and writeback e.g.) because other page state
+changes at the node level likely involve a change at the zone level as
+well (alloc and free, lru ops).  Also, nobody has complained.
+
+Fix it up for completeness: wake up vmstat refreshing on node changes. 
+Also remove the BUILD_BUG_ONs that assert counter size; we haven't relied
+on it since we added sizeof() to the range calculation in commit
+13c9aaf7fa01 ("mm/vmstat.c: fix NUMA statistics updates").
+
+Link: https://lkml.kernel.org/r/20210202184342.118513-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- drivers/block/zram/zram_drv.c |  2 +-
- include/linux/zsmalloc.h      |  2 +-
- mm/zsmalloc.c                 | 17 +++++++++++------
- 3 files changed, 13 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
-index 1b697208d661..711168451e9e 100644
---- a/drivers/block/zram/zram_drv.c
-+++ b/drivers/block/zram/zram_drv.c
-@@ -1078,7 +1078,7 @@ static ssize_t mm_stat_show(struct device *dev,
- 			zram->limit_pages << PAGE_SHIFT,
- 			max_used << PAGE_SHIFT,
- 			(u64)atomic64_read(&zram->stats.same_pages),
--			pool_stats.pages_compacted,
-+			atomic_long_read(&pool_stats.pages_compacted),
- 			(u64)atomic64_read(&zram->stats.huge_pages));
- 	up_read(&zram->init_lock);
- 
-diff --git a/include/linux/zsmalloc.h b/include/linux/zsmalloc.h
-index 4807ca4d52e0..2a430e713ce5 100644
---- a/include/linux/zsmalloc.h
-+++ b/include/linux/zsmalloc.h
-@@ -35,7 +35,7 @@ enum zs_mapmode {
- 
- struct zs_pool_stats {
- 	/* How many pages were migrated (freed) */
--	unsigned long pages_compacted;
-+	atomic_long_t pages_compacted;
- };
- 
- struct zs_pool;
-diff --git a/mm/zsmalloc.c b/mm/zsmalloc.c
-index cdfaaadea8ff..7a0b79b0a689 100644
---- a/mm/zsmalloc.c
-+++ b/mm/zsmalloc.c
-@@ -2216,11 +2216,13 @@ static unsigned long zs_can_compact(struct size_class *class)
- 	return obj_wasted * class->pages_per_zspage;
- }
- 
--static void __zs_compact(struct zs_pool *pool, struct size_class *class)
-+static unsigned long __zs_compact(struct zs_pool *pool,
-+				  struct size_class *class)
+ mm/vmstat.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+--- a/mm/vmstat.c~mm-vmstat-fix-nohz-wakeups-for-node-stat-changes
++++ a/mm/vmstat.c
+@@ -1894,16 +1894,12 @@ static void vmstat_update(struct work_st
+  */
+ static bool need_update(int cpu)
  {
- 	struct zs_compact_control cc;
- 	struct zspage *src_zspage;
- 	struct zspage *dst_zspage = NULL;
-+	unsigned long pages_freed = 0;
++	pg_data_t *last_pgdat = NULL;
+ 	struct zone *zone;
  
- 	spin_lock(&class->lock);
- 	while ((src_zspage = isolate_zspage(class, true))) {
-@@ -2250,7 +2252,7 @@ static void __zs_compact(struct zs_pool *pool, struct size_class *class)
- 		putback_zspage(class, dst_zspage);
- 		if (putback_zspage(class, src_zspage) == ZS_EMPTY) {
- 			free_zspage(pool, class, src_zspage);
--			pool->stats.pages_compacted += class->pages_per_zspage;
-+			pages_freed += class->pages_per_zspage;
- 		}
- 		spin_unlock(&class->lock);
- 		cond_resched();
-@@ -2261,12 +2263,15 @@ static void __zs_compact(struct zs_pool *pool, struct size_class *class)
- 		putback_zspage(class, src_zspage);
- 
- 	spin_unlock(&class->lock);
-+
-+	return pages_freed;
- }
- 
- unsigned long zs_compact(struct zs_pool *pool)
- {
- 	int i;
- 	struct size_class *class;
-+	unsigned long pages_freed = 0;
- 
- 	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
- 		class = pool->size_class[i];
-@@ -2274,10 +2279,11 @@ unsigned long zs_compact(struct zs_pool *pool)
- 			continue;
- 		if (class->index != i)
- 			continue;
--		__zs_compact(pool, class);
-+		pages_freed += __zs_compact(pool, class);
+ 	for_each_populated_zone(zone) {
+ 		struct per_cpu_pageset *p = per_cpu_ptr(zone->pageset, cpu);
+-
+-		BUILD_BUG_ON(sizeof(p->vm_stat_diff[0]) != 1);
+-#ifdef CONFIG_NUMA
+-		BUILD_BUG_ON(sizeof(p->vm_numa_stat_diff[0]) != 2);
+-#endif
+-
++		struct per_cpu_nodestat *n;
+ 		/*
+ 		 * The fast way of checking if there are any vmstat diffs.
+ 		 */
+@@ -1915,6 +1911,13 @@ static bool need_update(int cpu)
+ 			       sizeof(p->vm_numa_stat_diff[0])))
+ 			return true;
+ #endif
++		if (last_pgdat == zone->zone_pgdat)
++			continue;
++		last_pgdat = zone->zone_pgdat;
++		n = per_cpu_ptr(zone->zone_pgdat->per_cpu_nodestats, cpu);
++		if (memchr_inv(n->vm_node_stat_diff, 0, NR_VM_NODE_STAT_ITEMS *
++			       sizeof(n->vm_node_stat_diff[0])))
++		    return true;
  	}
-+	atomic_long_add(pages_freed, &pool->stats.pages_compacted);
- 
--	return pool->stats.pages_compacted;
-+	return pages_freed;
+ 	return false;
  }
- EXPORT_SYMBOL_GPL(zs_compact);
- 
-@@ -2294,13 +2300,12 @@ static unsigned long zs_shrinker_scan(struct shrinker *shrinker,
- 	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
- 			shrinker);
- 
--	pages_freed = pool->stats.pages_compacted;
- 	/*
- 	 * Compact classes and calculate compaction delta.
- 	 * Can run concurrently with a manually triggered
- 	 * (by user) compaction.
- 	 */
--	pages_freed = zs_compact(pool) - pages_freed;
-+	pages_freed = zs_compact(pool);
- 
- 	return pages_freed ? pages_freed : SHRINK_STOP;
- }
--- 
-2.25.1
+_
+
+Patches currently in -mm which might be from hannes@cmpxchg.org are
+
+revert-mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
+mm-vmstat-fix-nohz-wakeups-for-node-stat-changes.patch
 
