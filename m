@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C93F4C433DB
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:25:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 421D8C433E0
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:27:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5586464F4D
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:25:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05E8664F4D
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:27:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233171AbhBDAZ2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Feb 2021 19:25:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34744 "EHLO mail.kernel.org"
+        id S233506AbhBDA1k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Feb 2021 19:27:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34910 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233084AbhBDAZ2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Feb 2021 19:25:28 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CD99964F4D;
-        Thu,  4 Feb 2021 00:24:46 +0000 (UTC)
+        id S233395AbhBDA1k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Feb 2021 19:27:40 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E692A64F4D;
+        Thu,  4 Feb 2021 00:26:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612398287;
-        bh=xhk1sJzHqIS6R57qNCkeWweuNg+56qjouzUDkDMVU2s=;
+        s=korg; t=1612398419;
+        bh=WhwTyxPrJXDoAPOMB1fu1GPsoSf+HC8L23ebGDU3xOo=;
         h=Date:From:To:Subject:From;
-        b=OTmSU/WEzQCepC7q2YNqb8MNJwqxNANdL3NehpH2PjGE/42mwJd1p35mrWgOO1fh8
-         qmUjQLLSTpwz0FdWyrSbBko0R6W5T3Fcgnclb7/AUJFooXONFIykO9RU+YszMJvAPx
-         9zuP/Ow4pIflRrqSw3123/8/uSplOIrQcPjHYtls=
-Date:   Wed, 03 Feb 2021 16:24:46 -0800
+        b=qE2ii5p++o2q7l7PEzEvuDWUCBCDc0ekpjjJYCTaMxT/ZEWujDhdbq2wDB1fcsdzu
+         cxBK4Z6GS1Ltg2Rt70jJVm9BqtFMhTyGSfC1jlrLDghj2WZYICFIBKFgIDo3zAsuzW
+         eEhVspNEXp0NozftRJVgiXiF+q9oOWfjujZmleM8=
+Date:   Wed, 03 Feb 2021 16:26:58 -0800
 From:   akpm@linux-foundation.org
-To:     gregkh@linuxfoundation.org, joaodias@google.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org, surenb@google.com
-Subject:  + mm-cma-support-sysfs.patch added to -mm tree
-Message-ID: <20210204002446.vi02-M4Z0%akpm@linux-foundation.org>
+To:     christophe.leroy@csgroup.eu, justin.he@arm.com,
+        maobibo@loongson.cn, mm-commits@vger.kernel.org,
+        tsbogend@alpha.franken.de
+Subject:  + mm-memoryc-remove-pte_sw_mkyoung.patch added to -mm
+ tree
+Message-ID: <20210204002658.zT72EcVWe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: support sysfs
+     Subject: mm/memory.c: remove pte_sw_mkyoung()
 has been added to the -mm tree.  Its filename is
-     mm-cma-support-sysfs.patch
+     mm-memoryc-remove-pte_sw_mkyoung.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-support-sysfs.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memoryc-remove-pte_sw_mkyoung.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-support-sysfs.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memoryc-remove-pte_sw_mkyoung.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,311 +65,106 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: cma: support sysfs
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: mm/memory.c: remove pte_sw_mkyoung()
 
-Since CMA is getting used more widely, it's more important to
-keep monitoring CMA statistics for system health since it's
-directly related to user experience.
+Commit 83d116c53058 ("mm: fix double page fault on arm64 if PTE_AF is
+cleared") introduced arch_faults_on_old_pte() helper to identify platforms
+that don't set page access bit in HW and require a page fault to set it.
 
-This patch introduces sysfs for the CMA and exposes stats below
-to keep monitor for telemetric in the system.
+Commit 44bf431b47b4 ("mm/memory.c: Add memory read privilege on page fault
+handling") added pte_sw_mkyoung() which is yet another way to manage
+platforms that don't set page access bit in HW and require a page fault to
+set it.
 
- * the number of CMA allocation attempts
- * the number of CMA allocation failures
- * the number of CMA page allocation attempts
- * the number of CMA page allocation failures
+Remove that pte_sw_mkyoung() helper and use the already existing
+arch_faults_on_old_pte() helper together with pte_mkyoung() instead.
 
-Link: https://lkml.kernel.org/r/20210203155001.4121868-1-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: John Dias <joaodias@google.com>
+Link: https://lkml.kernel.org/r/f302ef92c48d1f08a0459aaee1c568ca11213814.1612345700.git.christophe.leroy@csgroup.eu
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Bibo Mao <maobibo@loongson.cn>
+Cc: Jia He <justin.he@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-cma |   39 ++++
- include/linux/cma.h                           |    1 
- mm/Makefile                                   |    1 
- mm/cma.c                                      |    6 
- mm/cma.h                                      |   20 ++
- mm/cma_sysfs.c                                |  143 ++++++++++++++++
- 6 files changed, 209 insertions(+), 1 deletion(-)
+ arch/mips/include/asm/pgtable.h |    2 --
+ include/linux/pgtable.h         |   16 ----------------
+ mm/memory.c                     |    9 ++++++---
+ 3 files changed, 6 insertions(+), 21 deletions(-)
 
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-cma
-@@ -0,0 +1,39 @@
-+What:		/sys/kernel/mm/cma/
-+Date:		Feb 2021
-+Contact:	Minchan Kim <minchan@kernel.org>
-+Description:
-+		/sys/kernel/mm/cma/ contains a number of subdirectories by
-+		cma-heap name. The subdirectory contains a number of files
-+		to represent cma allocation statistics.
-+
-+		There are number of files under
-+				/sys/kernel/mm/cma/<cma-heap-name> directory
-+
-+			- cma_alloc_attempt
-+			- cma_alloc_fail
-+			- alloc_pages_attempt
-+			- alloc_pages_fail
-+
-+What:		/sys/kernel/mm/cma/<cma-heap-name>/cma_alloc_attempt
-+Date:		Feb 2021
-+Contact:	Minchan Kim <minchan@kernel.org>
-+Description:
-+		the number of cma_alloc API attempted
-+
-+What:		/sys/kernel/mm/cma/<cma-heap-name>/cma_alloc_fail
-+Date:		Feb 2021
-+Contact:	Minchan Kim <minchan@kernel.org>
-+Description:
-+		the number of CMA_alloc API failed
-+
-+What:		/sys/kernel/mm/cma/<cma-heap-name>/alloc_pages_attempt
-+Date:		Feb 2021
-+Contact:	Minchan Kim <minchan@kernel.org>
-+Description:
-+		the number of pages CMA API tried to allocate
-+
-+What:		/sys/kernel/mm/cma/<cma-heap-name>/alloc_pages_fail
-+Date:		Feb 2021
-+Contact:	Minchan Kim <minchan@kernel.org>
-+Description:
-+		the number of pages CMA API failed to allocate
---- a/include/linux/cma.h~mm-cma-support-sysfs
-+++ a/include/linux/cma.h
-@@ -49,4 +49,5 @@ extern struct page *cma_alloc(struct cma
- extern bool cma_release(struct cma *cma, const struct page *pages, unsigned int count);
- 
- extern int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data);
-+
- #endif
---- a/mm/cma.c~mm-cma-support-sysfs
-+++ a/mm/cma.c
-@@ -447,9 +447,10 @@ struct page *cma_alloc(struct cma *cma,
- 	offset = cma_bitmap_aligned_offset(cma, align);
- 	bitmap_maxno = cma_bitmap_maxno(cma);
- 	bitmap_count = cma_bitmap_pages_to_bits(cma, count);
-+	cma_sysfs_alloc_count(cma, count);
- 
- 	if (bitmap_count > bitmap_maxno)
--		return NULL;
-+		goto out;
- 
- 	for (;;) {
- 		mutex_lock(&cma->lock);
-@@ -504,6 +505,9 @@ struct page *cma_alloc(struct cma *cma,
- 			__func__, count, ret);
- 		cma_debug_show_areas(cma);
- 	}
-+out:
-+	if (!page)
-+		cma_sysfs_fail(cma, count);
- 
- 	pr_debug("%s(): returned %p\n", __func__, page);
- 	return page;
---- a/mm/cma.h~mm-cma-support-sysfs
-+++ a/mm/cma.h
-@@ -3,6 +3,16 @@
- #define __MM_CMA_H__
- 
- #include <linux/debugfs.h>
-+#include <linux/kobject.h>
-+
-+struct cma_stat {
-+	spinlock_t lock;
-+	unsigned long alloc_attempt;	/* the number of CMA allocation attempts */
-+	unsigned long alloc_fail;	/* the number of CMA allocation failures */
-+	unsigned long pages_attempt;	/* the number of CMA page allocation attempts */
-+	unsigned long pages_fail;	/* the number of CMA page allocation failures */
-+	struct kobject kobj;
-+};
- 
- struct cma {
- 	unsigned long   base_pfn;
-@@ -16,6 +26,9 @@ struct cma {
- 	struct debugfs_u32_array dfs_bitmap;
- #endif
- 	char name[CMA_MAX_NAME];
-+#ifdef CONFIG_SYSFS
-+	struct cma_stat	*stat;
-+#endif
- };
- 
- extern struct cma cma_areas[MAX_CMA_AREAS];
-@@ -26,4 +39,11 @@ static inline unsigned long cma_bitmap_m
- 	return cma->count >> cma->order_per_bit;
+--- a/arch/mips/include/asm/pgtable.h~mm-memoryc-remove-pte_sw_mkyoung
++++ a/arch/mips/include/asm/pgtable.h
+@@ -406,8 +406,6 @@ static inline pte_t pte_mkyoung(pte_t pt
+ 	return pte;
  }
  
-+#ifdef CONFIG_SYSFS
-+void cma_sysfs_alloc_count(struct cma *cma, size_t count);
-+void cma_sysfs_fail(struct cma *cma, size_t count);
-+#else
-+static void cma_sysfs_alloc_count(struct cma *cma, size_t count) {};
-+static void cma_sysfs_fail(struct cma *cma, size_t count) {};
-+#endif
+-#define pte_sw_mkyoung	pte_mkyoung
+-
+ #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+ static inline int pte_huge(pte_t pte)	{ return pte_val(pte) & _PAGE_HUGE; }
+ 
+--- a/include/linux/pgtable.h~mm-memoryc-remove-pte_sw_mkyoung
++++ a/include/linux/pgtable.h
+@@ -424,22 +424,6 @@ static inline void ptep_set_wrprotect(st
+ }
  #endif
---- /dev/null
-+++ a/mm/cma_sysfs.c
-@@ -0,0 +1,143 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * CMA SysFS Interface
-+ *
-+ * Copyright (c) 2021 Minchan Kim <minchan@kernel.org>
-+ */
-+
-+#include <linux/cma.h>
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+
-+#include "cma.h"
-+
-+void cma_sysfs_alloc_count(struct cma *cma, size_t count)
-+{
-+	spin_lock(&cma->stat->lock);
-+	cma->stat->alloc_attempt++;
-+	cma->stat->pages_attempt += count;
-+	spin_unlock(&cma->stat->lock);
-+}
-+
-+void cma_sysfs_fail(struct cma *cma, size_t count)
-+{
-+	spin_lock(&cma->stat->lock);
-+	cma->stat->alloc_fail++;
-+	cma->stat->pages_fail += count;
-+	spin_unlock(&cma->stat->lock);
-+}
-+
-+#define CMA_ATTR_RO(_name) \
-+	static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
-+
-+static struct kobject *cma_kobj;
-+
-+static ssize_t cma_alloc_attempt_show(struct kobject *kobj,
-+			struct kobj_attribute *attr, char *buf)
-+{
-+	unsigned long val;
-+	struct cma_stat *stat = container_of(kobj, struct cma_stat, kobj);
-+
-+	val = stat->alloc_attempt;
-+
-+	return sysfs_emit(buf, "%lu\n", val);
-+}
-+CMA_ATTR_RO(cma_alloc_attempt);
-+
-+static ssize_t cma_alloc_fail_show(struct kobject *kobj,
-+			struct kobj_attribute *attr, char *buf)
-+{
-+	unsigned long val;
-+	struct cma_stat *stat = container_of(kobj, struct cma_stat, kobj);
-+
-+	val = stat->alloc_fail;
-+
-+	return sysfs_emit(buf, "%lu\n", val);
-+}
-+CMA_ATTR_RO(cma_alloc_fail);
-+
-+static ssize_t alloc_pages_attempt_show(struct kobject *kobj,
-+			struct kobj_attribute *attr, char *buf)
-+{
-+	unsigned long val;
-+	struct cma_stat *stat = container_of(kobj, struct cma_stat, kobj);
-+
-+	val = stat->pages_attempt;
-+
-+	return sysfs_emit(buf, "%lu\n", val);
-+}
-+CMA_ATTR_RO(alloc_pages_attempt);
-+
-+static ssize_t alloc_pages_fail_show(struct kobject *kobj,
-+			struct kobj_attribute *attr, char *buf)
-+{
-+	unsigned long val;
-+	struct cma_stat *stat = container_of(kobj, struct cma_stat, kobj);
-+
-+	val = stat->pages_fail;
-+
-+	return sysfs_emit(buf, "%lu\n", val);
-+}
-+CMA_ATTR_RO(alloc_pages_fail);
-+
-+static void cma_kobj_release(struct kobject *kobj)
-+{
-+	struct cma_stat *stat = container_of(kobj, struct cma_stat, kobj);
-+
-+	kfree(stat);
-+}
-+
-+static struct attribute *cma_attrs[] = {
-+	&cma_alloc_attempt_attr.attr,
-+	&cma_alloc_fail_attr.attr,
-+	&alloc_pages_attempt_attr.attr,
-+	&alloc_pages_fail_attr.attr,
-+	NULL,
-+};
-+ATTRIBUTE_GROUPS(cma);
-+
-+static struct kobj_type cma_ktype = {
-+	.release = cma_kobj_release,
-+	.sysfs_ops = &kobj_sysfs_ops,
-+	.default_groups = cma_groups
-+};
-+
-+static int __init cma_sysfs_init(void)
-+{
-+	int i;
-+	struct cma *cma;
-+	struct cma_stat *stat;
-+
-+	cma_kobj = kobject_create_and_add("cma", mm_kobj);
-+	if (!cma_kobj) {
-+		pr_err("failed to create cma kobject\n");
-+		return -ENOMEM;
-+	}
-+
-+	for (i = 0; i < cma_area_count; i++) {
-+		cma = &cma_areas[i];
-+		stat = kzalloc(sizeof(*stat), GFP_KERNEL);
-+		if (!stat)
-+			goto out;
-+
-+		cma->stat = stat;
-+		spin_lock_init(&stat->lock);
-+		if (kobject_init_and_add(&stat->kobj, &cma_ktype,
-+					cma_kobj, "%s", cma->name)) {
-+			kobject_put(&stat->kobj);
-+			goto out;
-+		}
-+	}
-+
-+	return 0;
-+out:
-+	while (--i >= 0) {
-+		cma = &cma_areas[i];
-+		kobject_put(&cma->stat->kobj);
-+	}
-+
-+	kobject_put(cma_kobj);
-+
-+	return -ENOMEM;
-+}
-+subsys_initcall(cma_sysfs_init);
---- a/mm/Makefile~mm-cma-support-sysfs
-+++ a/mm/Makefile
-@@ -105,6 +105,7 @@ obj-$(CONFIG_ZSMALLOC)	+= zsmalloc.o
- obj-$(CONFIG_Z3FOLD)	+= z3fold.o
- obj-$(CONFIG_GENERIC_EARLY_IOREMAP) += early_ioremap.o
- obj-$(CONFIG_CMA)	+= cma.o
-+obj-$(CONFIG_SYSFS)     += cma_sysfs.o
- obj-$(CONFIG_MEMORY_BALLOON) += balloon_compaction.o
- obj-$(CONFIG_PAGE_EXTENSION) += page_ext.o
- obj-$(CONFIG_CMA_DEBUGFS) += cma_debug.o
+ 
+-/*
+- * On some architectures hardware does not set page access bit when accessing
+- * memory page, it is responsibilty of software setting this bit. It brings
+- * out extra page fault penalty to track page access bit. For optimization page
+- * access bit can be set during all page fault flow on these arches.
+- * To be differentiate with macro pte_mkyoung, this macro is used on platforms
+- * where software maintains page access bit.
+- */
+-#ifndef pte_sw_mkyoung
+-static inline pte_t pte_sw_mkyoung(pte_t pte)
+-{
+-	return pte;
+-}
+-#define pte_sw_mkyoung	pte_sw_mkyoung
+-#endif
+-
+ #ifndef pte_savedwrite
+ #define pte_savedwrite pte_write
+ #endif
+--- a/mm/memory.c~mm-memoryc-remove-pte_sw_mkyoung
++++ a/mm/memory.c
+@@ -2890,7 +2890,8 @@ static vm_fault_t wp_page_copy(struct vm
+ 		}
+ 		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
+ 		entry = mk_pte(new_page, vma->vm_page_prot);
+-		entry = pte_sw_mkyoung(entry);
++		if (arch_faults_on_old_pte())
++			entry = pte_mkyoung(entry);
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+ 
+ 		/*
+@@ -3548,7 +3549,8 @@ static vm_fault_t do_anonymous_page(stru
+ 	__SetPageUptodate(page);
+ 
+ 	entry = mk_pte(page, vma->vm_page_prot);
+-	entry = pte_sw_mkyoung(entry);
++	if (arch_faults_on_old_pte())
++		entry = pte_mkyoung(entry);
+ 	if (vma->vm_flags & VM_WRITE)
+ 		entry = pte_mkwrite(pte_mkdirty(entry));
+ 
+@@ -3824,7 +3826,8 @@ vm_fault_t alloc_set_pte(struct vm_fault
+ 
+ 	flush_icache_page(vma, page);
+ 	entry = mk_pte(page, vma->vm_page_prot);
+-	entry = pte_sw_mkyoung(entry);
++	if (arch_faults_on_old_pte())
++		entry = pte_mkyoung(entry);
+ 	if (write)
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+ 	/* copy-on-write page */
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
 
-mm-cma-support-sysfs.patch
+mm-memoryc-remove-pte_sw_mkyoung.patch
+mm-remove-arch_remap-and-mm-arch-hooksh.patch
 
