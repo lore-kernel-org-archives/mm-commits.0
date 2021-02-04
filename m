@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84D22C433E0
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:30:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8242FC433E0
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:30:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3693564F67
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:30:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 466C664F4D
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:30:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233530AbhBDAaT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Feb 2021 19:30:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35270 "EHLO mail.kernel.org"
+        id S234012AbhBDAay (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Feb 2021 19:30:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35490 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233391AbhBDAaS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Feb 2021 19:30:18 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AF9DB64DAF;
-        Thu,  4 Feb 2021 00:29:37 +0000 (UTC)
+        id S233165AbhBDAax (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Feb 2021 19:30:53 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C430364F4D;
+        Thu,  4 Feb 2021 00:30:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612398577;
-        bh=4F3xEbPdP815Xae3d8p4v0tfR/jSQEIrpFT3bGuWtjI=;
+        s=korg; t=1612398612;
+        bh=CLLpr/t9LaRlpaw9RHgMKYuVVuCWhE4V8IF69LZE9FY=;
         h=Date:From:To:Subject:From;
-        b=gnrgL6VyxLZZyFvttykj55UbcP054yRovZ5jNfYiVa51C4mdHhvTP887O3I9gfgY/
-         6UYNqo8rW9ALeGECKyL0yq1c7yMQeWpaV0KMETY1AT5570UccLtvH7Nrs2Jv1OHsVE
-         R8Jr9boPxCMN5dAQy9wGlJ1N1uM7FLJFDa+99/jw=
-Date:   Wed, 03 Feb 2021 16:29:37 -0800
+        b=UaudvnNyVlUP0ispzIglC3uNzBu1NOMS+pFrbyNHBPnnW4UzQ6Nf+ntFBviJyWWyt
+         j6qPmkaeoCcMbKSHYd1cOOCqBHTxJU5HSs24IqE1JtZQNrN6+xbAu2SoVrC96ENBQj
+         e0381yHWNJ4Yb+c9mXY2j1KddYWgqq+zur3NnddA=
+Date:   Wed, 03 Feb 2021 16:30:12 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
+To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
         mm-commits@vger.kernel.org
 Subject:  +
- mm-remove-unused-return-value-of-set_huge_zero_page.patch added to -mm tree
-Message-ID: <20210204002937.s5gDNhifX%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-pgtable-genericc-optimize-the-vm=5Fbug=5Fon-condition-in?=
+ =?US-ASCII?Q?-pmdp=5Fhuge=5Fclear=5Fflush.patch?= added to -mm tree
+Message-ID: <20210204003012.HIm2ksMcY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: remove unused return value of set_huge_zero_page()
+     Subject: mm/pgtable-generic.c: optimize the VM_BUG_ON condition in pmdp_huge_clear_flush()
 has been added to the -mm tree.  Its filename is
-     mm-remove-unused-return-value-of-set_huge_zero_page.patch
+     mm-pgtable-genericc-optimize-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-unused-return-value-of-set_huge_zero_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-pgtable-genericc-optimize-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-unused-return-value-of-set_huge_zero_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-pgtable-genericc-optimize-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,45 +68,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory.c: remove unused return value of set_huge_zero_page()
+Subject: mm/pgtable-generic.c: optimize the VM_BUG_ON condition in pmdp_huge_clear_flush()
 
-The return value of set_huge_zero_page() is always ignored.  So we should
-drop such return value.
+The developer will have trouble figuring out why the BUG actually
+triggered when there is a complex expression in the VM_BUG_ON.  Because we
+can only identify the condition triggered BUG via line number provided by
+VM_BUG_ON.  Optimize this by spliting such a complex expression into two
+simple conditions.
 
-Link: https://lkml.kernel.org/r/20210203084816.46307-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210203084137.25522-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/pgtable-generic.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-remove-unused-return-value-of-set_huge_zero_page
-+++ a/mm/huge_memory.c
-@@ -691,20 +691,19 @@ static inline gfp_t alloc_hugepage_direc
- }
- 
- /* Caller must hold page table lock. */
--static bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
-+static void set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
- 		struct vm_area_struct *vma, unsigned long haddr, pmd_t *pmd,
- 		struct page *zero_page)
+--- a/mm/pgtable-generic.c~mm-pgtable-genericc-optimize-the-vm_bug_on-condition-in-pmdp_huge_clear_flush
++++ a/mm/pgtable-generic.c
+@@ -135,8 +135,9 @@ pmd_t pmdp_huge_clear_flush(struct vm_ar
  {
- 	pmd_t entry;
- 	if (!pmd_none(*pmd))
--		return false;
-+		return;
- 	entry = mk_pmd(zero_page, vma->vm_page_prot);
- 	entry = pmd_mkhuge(entry);
- 	if (pgtable)
- 		pgtable_trans_huge_deposit(mm, pmd, pgtable);
- 	set_pmd_at(mm, haddr, pmd, entry);
- 	mm_inc_nr_ptes(mm);
--	return true;
- }
- 
- vm_fault_t do_huge_pmd_anonymous_page(struct vm_fault *vmf)
+ 	pmd_t pmd;
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+-	VM_BUG_ON(!pmd_present(*pmdp) || (!pmd_trans_huge(*pmdp) &&
+-					  !pmd_devmap(*pmdp)));
++	VM_BUG_ON(!pmd_present(*pmdp));
++	/* Below assumes pmd_present() is true */
++	VM_BUG_ON(!pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
+ 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
+ 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ 	return pmd;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -112,6 +107,7 @@ mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
 mm-page_owner-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
 mm-fix-potential-pte_unmap_unlock-pte-error.patch
 mm-simplify-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch
+mm-pgtable-genericc-optimize-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch
 mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
 mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
 mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
