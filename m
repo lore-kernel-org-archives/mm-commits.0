@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2DB1C43332
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E1F0C43331
 	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:58:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7610364F6C
+	by mail.kernel.org (Postfix) with ESMTP id 50D8064F6B
 	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:58:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234346AbhBDA6X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Feb 2021 19:58:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40442 "EHLO mail.kernel.org"
+        id S233789AbhBDA6C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Feb 2021 19:58:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40200 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234339AbhBDA6R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Feb 2021 19:58:17 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BBCB964F6B;
-        Thu,  4 Feb 2021 00:57:27 +0000 (UTC)
+        id S234333AbhBDA55 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Feb 2021 19:57:57 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2F39B64F65;
+        Thu,  4 Feb 2021 00:57:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612400248;
-        bh=ZEEgD5RBmQdiVNckBWT4QDbnCU6tZnGYW1j0DJDX1v0=;
+        s=korg; t=1612400237;
+        bh=dZmiD9BEmbyR/5w1mU21/FD23vRHz2izVhRjkpuXWFw=;
         h=Date:From:To:Subject:From;
-        b=h+1rT4vYhighj4Rp0nCg3Zof++Fd02a6zUn0HyguyHw6VeDR2WiB+/o26RIoqW7se
-         CxbF94F50LliqT62IxlWQff4fBcYOg5ih00rPOjNwJMRY1L/N4v8u6DYa4e5pWs1BF
-         xPXhlhhMTLcyt4KXf1arcw2XoSBEB2sasP5M5ak8=
-Date:   Wed, 03 Feb 2021 16:57:27 -0800
+        b=USZIU+uI7PJDRLWUNY4kdhEOljhyORkqon27sllXYLaxgLzNuoYDq99GwJOYTaWvO
+         KIrPJIrgsRuCFheSqY1/VuehegL2PnZPS4mht8+BiBhAAYTqFqdirZVgZSpA9xruqt
+         7t9VzenC1RdaalLXfDtPTrboK9tUzbW255b2f1kM=
+Date:   Wed, 03 Feb 2021 16:57:15 -0800
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -39,8 +39,8 @@ To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
         tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
 Subject:  [to-be-updated]
- mm-apply-per-task-gfp-constraints-in-fast-path.patch removed from -mm tree
-Message-ID: <20210204005727.EgNlEPbk6%akpm@linux-foundation.org>
+ mm-gup-return-an-error-on-migration-failure.patch removed from -mm tree
+Message-ID: <20210204005715.eOFlTmSpI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,52 +49,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: apply per-task gfp constraints in fast path
+     Subject: mm/gup: return an error on migration failure
 has been removed from the -mm tree.  Its filename was
-     mm-apply-per-task-gfp-constraints-in-fast-path.patch
+     mm-gup-return-an-error-on-migration-failure.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: mm: apply per-task gfp constraints in fast path
+Subject: mm/gup: return an error on migration failure
 
-Function current_gfp_context() is called after fast path.  However, soon
-we will add more constraints which will also limit zones based on context.
-Move this call into fast path, and apply the correct constraints for all
-allocations.
+When migration failure occurs, we still pin pages, which means that we may
+pin CMA movable pages which should never be the case.
 
-Also update .reclaim_idx based on value returned by current_gfp_context()
-because it soon will modify the allowed zones.
+Instead return an error without pinning pages when migration failure
+happens.
 
-Note:
-With this patch we will do one extra current->flags load during fast path,
-but we already load current->flags in fast-path:
+No need to retry migrating, because migrate_pages() already retries 10
+times.
 
-__alloc_pages_nodemask()
- prepare_alloc_pages()
-  current_alloc_flags(gfp_mask, *alloc_flags);
-
-Later, when we add the zone constrain logic to current_gfp_context() we
-will be able to remove current->flags load from current_alloc_flags, and
-therefore return fast-path to the current performance level.
-
-Link: https://lkml.kernel.org/r/20210201153827.444374-7-pasha.tatashin@soleen.com
-Suggested-by: Michal Hocko <mhocko@kernel.org>
+Link: https://lkml.kernel.org/r/20210201153827.444374-4-pasha.tatashin@soleen.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: James Morris <jmorris@namei.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -105,44 +94,59 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ mm/gup.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
---- a/mm/page_alloc.c~mm-apply-per-task-gfp-constraints-in-fast-path
-+++ a/mm/page_alloc.c
-@@ -4981,6 +4981,13 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	}
+--- a/mm/gup.c~mm-gup-return-an-error-on-migration-failure
++++ a/mm/gup.c
+@@ -1550,7 +1550,6 @@ static long check_and_migrate_cma_pages(
+ {
+ 	unsigned long i;
+ 	bool drain_allow = true;
+-	bool migrate_allow = true;
+ 	LIST_HEAD(cma_page_list);
+ 	long ret = nr_pages;
+ 	struct page *prev_head, *head;
+@@ -1601,17 +1600,15 @@ check_again:
+ 			for (i = 0; i < nr_pages; i++)
+ 				put_page(pages[i]);
  
- 	gfp_mask &= gfp_allowed_mask;
-+	/*
-+	 * Apply scoped allocation constraints. This is mainly about GFP_NOFS
-+	 * resp. GFP_NOIO which has to be inherited for all allocation requests
-+	 * from a particular context which has been marked by
-+	 * memalloc_no{fs,io}_{save,restore}.
-+	 */
-+	gfp_mask = current_gfp_context(gfp_mask);
- 	alloc_mask = gfp_mask;
- 	if (!prepare_alloc_pages(gfp_mask, order, preferred_nid, nodemask, &ac, &alloc_mask, &alloc_flags))
- 		return NULL;
-@@ -4996,13 +5003,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	if (likely(page))
- 		goto out;
+-		if (migrate_pages(&cma_page_list, alloc_migration_target, NULL,
+-			(unsigned long)&mtc, MIGRATE_SYNC, MR_CONTIG_RANGE)) {
+-			/*
+-			 * some of the pages failed migration. Do get_user_pages
+-			 * without migration.
+-			 */
+-			migrate_allow = false;
+-
++		ret = migrate_pages(&cma_page_list, alloc_migration_target,
++				    NULL, (unsigned long)&mtc, MIGRATE_SYNC,
++				    MR_CONTIG_RANGE);
++		if (ret) {
+ 			if (!list_empty(&cma_page_list))
+ 				putback_movable_pages(&cma_page_list);
++			return ret > 0 ? -ENOMEM : ret;
+ 		}
++
+ 		/*
+ 		 * We did migrate all the pages, Try to get the page references
+ 		 * again migrating any new CMA pages which we failed to isolate
+@@ -1621,7 +1618,7 @@ check_again:
+ 						   pages, vmas, NULL,
+ 						   gup_flags);
  
--	/*
--	 * Apply scoped allocation constraints. This is mainly about GFP_NOFS
--	 * resp. GFP_NOIO which has to be inherited for all allocation requests
--	 * from a particular context which has been marked by
--	 * memalloc_no{fs,io}_{save,restore}.
--	 */
--	alloc_mask = current_gfp_context(gfp_mask);
-+	alloc_mask = gfp_mask;
- 	ac.spread_dirty_pages = false;
- 
- 	/*
+-		if ((ret > 0) && migrate_allow) {
++		if (ret > 0) {
+ 			nr_pages = ret;
+ 			drain_allow = true;
+ 			goto check_again;
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
+mm-gup-check-for-isolation-errors.patch
+mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin.patch
+mm-apply-per-task-gfp-constraints-in-fast-path.patch
 mm-honor-pf_memalloc_pin-for-all-movable-pages.patch
 mm-gup-do-not-migrate-zero-page.patch
 mm-gup-do-not-migrate-zero-page-fix.patch
