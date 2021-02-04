@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 073D7C433E9
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:59:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 167F0C433E0
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:59:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9A8264DF8
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:59:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD09064F55
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:59:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234371AbhBDA6r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Feb 2021 19:58:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40442 "EHLO mail.kernel.org"
+        id S233875AbhBDA7F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Feb 2021 19:59:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40954 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234355AbhBDA6e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Feb 2021 19:58:34 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1979564F90;
-        Thu,  4 Feb 2021 00:58:00 +0000 (UTC)
+        id S234436AbhBDA67 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Feb 2021 19:58:59 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0BDE064F5D;
+        Thu,  4 Feb 2021 00:58:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612400281;
-        bh=UBVdexGS11NomSx8MJRmW+/BVVSKTw+moDmM/+4zHWo=;
+        s=korg; t=1612400285;
+        bh=wsm0hRsmD4CXCuT0LMpHDFDEmy6YFwluLcdkYcJYY9U=;
         h=Date:From:To:Subject:From;
-        b=xM7S7YctqMko5pphVTr93/nWmyLMsuPvxtre98ovL8+OMnMn722wKNc62NYnReRXP
-         OjTGWWV8Z3hZTsiFwYroUE0eOrixr0/lRe8yiLt/D//hYQusqKNeKq0kzKuoXm8aIU
-         E6x/pIJ42AWCR+UxRb7QYpJsOJgLhfmVo5DurnBo=
-Date:   Wed, 03 Feb 2021 16:57:59 -0800
+        b=BFbBthy4HRO/667iyoo+imJew1BDLb+us0FqOLxxlm2d7lD7+mRp+/9dR+4Yhkwu0
+         /SbjIqGD4HYOxxyadyVEyn6zxVCefxuhVVbbLmQHtHaRGRP9qTKXMWCSxhv+HnxUJH
+         PYOoptqZNdL9pbvAiV38fLf0vaycHYIyy17vLWV0=
+Date:   Wed, 03 Feb 2021 16:58:03 -0800
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -38,10 +38,13 @@ To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         pasha.tatashin@soleen.com, peterz@infradead.org,
         rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
         tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
-Subject:  [to-be-updated] selftests-vm-gup_test-fix-test-flag.patch
- removed from -mm tree
-Message-ID: <20210204005759.nkxadUuPO%akpm@linux-foundation.org>
+Subject:  [to-be-updated]
+ =?US-ASCII?Q?selftests-vm-gup=5Ftest-test-faulting-in-kernel-and-verify-?=
+ =?US-ASCII?Q?pinnable-pages.patch?= removed from -mm tree
+Message-ID: <20210204005803.bTukIGZNn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,70 +52,36 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: gup_test: fix test flag
+     Subject: selftests/vm: gup_test: test faulting in kernel, and verify pinnable pages
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-gup_test-fix-test-flag.patch
+     selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: selftests/vm: gup_test: fix test flag
+Subject: selftests/vm: gup_test: test faulting in kernel, and verify pinnable pages
 
-In gup_test both gup_flags and test_flags use the same flags field.  This
-is broken.
+When pages are pinned they can be faulted in userland and migrated, and
+they can be faulted right in kernel without migration.
 
-Further, in the actual gup_test.c all the passed gup_flags are erased and
-unconditionally replaced with FOLL_WRITE.
+In either case, the pinned pages must end-up being pinnable (not movable).
 
-Which means that test_flags are ignored, and code like this always
-performs pin dump test:
+Add a new test to gup_test to help verify that the gup/pup
+(get_user_pages() / pin_user_pages()) behavior with respect to pinnable
+and movable pages is reasonable and correct.  Specifically, provide a way
+to:
 
-155  			if (gup->flags & GUP_TEST_FLAG_DUMP_PAGES_USE_PIN)
-156  				nr = pin_user_pages(addr, nr, gup->flags,
-157  						    pages + i, NULL);
-158  			else
-159  				nr = get_user_pages(addr, nr, gup->flags,
-160  						    pages + i, NULL);
-161  			break;
+1) Verify that only "pinnable" pages are pinned.  This is checked
+   automatically for you.
 
-Add a new test_flags field, to allow raw gup_flags to work.
+2) Verify that gup/pup performance is reasonable.  This requires
+   comparing benchmarks between doing gup/pup on pages that have been
+   pre-faulted in from user space, vs.  doing gup/pup on pages that are
+   not faulted in until gup/pup time (via FOLL_TOUCH).  This decision is
+   controlled with the new -z command line option.
 
-Add a new subcommand for DUMP_USER_PAGES_TEST to specify that pin test
-should be performed.
-
-Remove unconditional overwriting of gup_flags via FOLL_WRITE.  But,
-preserve the previous behaviour where FOLL_WRITE was the default flag, and
-add a new option "-W" to unset FOLL_WRITE.
-
-Rename flags with gup_flags.
-
-With the fix, dump works like this:
-
-root@virtme:/# gup_test  -c
----- page #0, starting from user virt addr: 0x7f8acb9e4000
-page:00000000d3d2ee27 refcount:2 mapcount:1 mapping:0000000000000000
-index:0x0 pfn:0x100bcf
-anon flags: 0x300000000080016(referenced|uptodate|lru|swapbacked)
-raw: 0300000000080016 ffffd0e204021608 ffffd0e208df2e88 ffff8ea04243ec61
-raw: 0000000000000000 0000000000000000 0000000200000000 0000000000000000
-page dumped because: gup_test: dump_pages() test
-DUMP_USER_PAGES_TEST: done
-
-root@virtme:/# gup_test  -c -p
----- page #0, starting from user virt addr: 0x7fd19701b000
-page:00000000baed3c7d refcount:1025 mapcount:1 mapping:0000000000000000
-index:0x0 pfn:0x108008
-anon flags: 0x300000000080014(uptodate|lru|swapbacked)
-raw: 0300000000080014 ffffd0e204200188 ffffd0e205e09088 ffff8ea04243ee71
-raw: 0000000000000000 0000000000000000 0000040100000000 0000000000000000
-page dumped because: gup_test: dump_pages() test
-DUMP_USER_PAGES_TEST: done
-
-Refcount shows the difference between pin vs no-pin case.
-Also change type of nr from int to long, as it counts number of pages.
-
-Link: https://lkml.kernel.org/r/20210201153827.444374-14-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20210201153827.444374-15-pasha.tatashin@soleen.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -138,144 +107,83 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup_test.c                         |   23 ++++++++++-------------
- mm/gup_test.h                         |    3 ++-
- tools/testing/selftests/vm/gup_test.c |   15 +++++++++++----
- 3 files changed, 23 insertions(+), 18 deletions(-)
+ mm/gup_test.c                         |    6 ++++++
+ tools/testing/selftests/vm/gup_test.c |   23 +++++++++++++++++++----
+ 2 files changed, 25 insertions(+), 4 deletions(-)
 
---- a/mm/gup_test.c~selftests-vm-gup_test-fix-test-flag
+--- a/mm/gup_test.c~selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages
 +++ a/mm/gup_test.c
-@@ -94,7 +94,7 @@ static int __gup_test_ioctl(unsigned int
- {
- 	ktime_t start_time, end_time;
- 	unsigned long i, nr_pages, addr, next;
--	int nr;
-+	long nr;
- 	struct page **pages;
- 	int ret = 0;
- 	bool needs_mmap_lock =
-@@ -126,37 +126,34 @@ static int __gup_test_ioctl(unsigned int
- 			nr = (next - addr) / PAGE_SIZE;
+@@ -52,6 +52,12 @@ static void verify_dma_pinned(unsigned i
+ 
+ 				dump_page(page, "gup_test failure");
+ 				break;
++			} else if (cmd == PIN_LONGTERM_BENCHMARK &&
++				WARN(!is_pinnable_page(page),
++				     "pages[%lu] is NOT pinnable but pinned\n",
++				     i)) {
++				dump_page(page, "gup_test failure");
++				break;
+ 			}
  		}
- 
--		/* Filter out most gup flags: only allow a tiny subset here: */
--		gup->flags &= FOLL_WRITE;
--
- 		switch (cmd) {
- 		case GUP_FAST_BENCHMARK:
--			nr = get_user_pages_fast(addr, nr, gup->flags,
-+			nr = get_user_pages_fast(addr, nr, gup->gup_flags,
- 						 pages + i);
- 			break;
- 		case GUP_BASIC_TEST:
--			nr = get_user_pages(addr, nr, gup->flags, pages + i,
-+			nr = get_user_pages(addr, nr, gup->gup_flags, pages + i,
- 					    NULL);
- 			break;
- 		case PIN_FAST_BENCHMARK:
--			nr = pin_user_pages_fast(addr, nr, gup->flags,
-+			nr = pin_user_pages_fast(addr, nr, gup->gup_flags,
- 						 pages + i);
- 			break;
- 		case PIN_BASIC_TEST:
--			nr = pin_user_pages(addr, nr, gup->flags, pages + i,
-+			nr = pin_user_pages(addr, nr, gup->gup_flags, pages + i,
- 					    NULL);
- 			break;
- 		case PIN_LONGTERM_BENCHMARK:
- 			nr = pin_user_pages(addr, nr,
--					    gup->flags | FOLL_LONGTERM,
-+					    gup->gup_flags | FOLL_LONGTERM,
- 					    pages + i, NULL);
- 			break;
- 		case DUMP_USER_PAGES_TEST:
--			if (gup->flags & GUP_TEST_FLAG_DUMP_PAGES_USE_PIN)
--				nr = pin_user_pages(addr, nr, gup->flags,
-+			if (gup->test_flags & GUP_TEST_FLAG_DUMP_PAGES_USE_PIN)
-+				nr = pin_user_pages(addr, nr, gup->gup_flags,
- 						    pages + i, NULL);
- 			else
--				nr = get_user_pages(addr, nr, gup->flags,
-+				nr = get_user_pages(addr, nr, gup->gup_flags,
- 						    pages + i, NULL);
- 			break;
- 		default:
-@@ -187,7 +184,7 @@ static int __gup_test_ioctl(unsigned int
- 
- 	start_time = ktime_get();
- 
--	put_back_pages(cmd, pages, nr_pages, gup->flags);
-+	put_back_pages(cmd, pages, nr_pages, gup->test_flags);
- 
- 	end_time = ktime_get();
- 	gup->put_delta_usec = ktime_us_delta(end_time, start_time);
---- a/mm/gup_test.h~selftests-vm-gup_test-fix-test-flag
-+++ a/mm/gup_test.h
-@@ -21,7 +21,8 @@ struct gup_test {
- 	__u64 addr;
- 	__u64 size;
- 	__u32 nr_pages_per_call;
--	__u32 flags;
-+	__u32 gup_flags;
-+	__u32 test_flags;
- 	/*
- 	 * Each non-zero entry is the number of the page (1-based: first page is
- 	 * page 1, so that zero entries mean "do nothing") from the .addr base.
---- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-gup_test-fix-test-flag
+ 		break;
+--- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages
 +++ a/tools/testing/selftests/vm/gup_test.c
-@@ -37,13 +37,13 @@ int main(int argc, char **argv)
+@@ -13,6 +13,7 @@
+ 
+ /* Just the flags we need, copied from mm.h: */
+ #define FOLL_WRITE	0x01	/* check pte is writable */
++#define FOLL_TOUCH	0x02	/* mark page accessed */
+ 
+ static char *cmd_to_str(unsigned long cmd)
  {
- 	struct gup_test gup = { 0 };
+@@ -39,11 +40,11 @@ int main(int argc, char **argv)
  	unsigned long size = 128 * MB;
--	int i, fd, filed, opt, nr_pages = 1, thp = -1, repeats = 1, write = 0;
-+	int i, fd, filed, opt, nr_pages = 1, thp = -1, repeats = 1, write = 1;
+ 	int i, fd, filed, opt, nr_pages = 1, thp = -1, repeats = 1, write = 1;
  	unsigned long cmd = GUP_FAST_BENCHMARK;
- 	int flags = MAP_PRIVATE;
+-	int flags = MAP_PRIVATE;
++	int flags = MAP_PRIVATE, touch = 0;
  	char *file = "/dev/zero";
  	char *p;
  
--	while ((opt = getopt(argc, argv, "m:r:n:F:f:abctTLUuwSH")) != -1) {
-+	while ((opt = getopt(argc, argv, "m:r:n:F:f:abctTLUuwWSHp")) != -1) {
+-	while ((opt = getopt(argc, argv, "m:r:n:F:f:abctTLUuwWSHp")) != -1) {
++	while ((opt = getopt(argc, argv, "m:r:n:F:f:abctTLUuwWSHpz")) != -1) {
  		switch (opt) {
  		case 'a':
  			cmd = PIN_FAST_BENCHMARK;
-@@ -65,9 +65,13 @@ int main(int argc, char **argv)
- 			 */
- 			gup.which_pages[0] = 1;
+@@ -110,6 +111,10 @@ int main(int argc, char **argv)
+ 		case 'H':
+ 			flags |= (MAP_HUGETLB | MAP_ANONYMOUS);
  			break;
-+		case 'p':
-+			/* works only with DUMP_USER_PAGES_TEST */
-+			gup.test_flags |= GUP_TEST_FLAG_DUMP_PAGES_USE_PIN;
++		case 'z':
++			/* fault pages in gup, do not fault in userland */
++			touch = 1;
 +			break;
- 		case 'F':
- 			/* strtol, so you can pass flags in hex form */
--			gup.flags = strtol(optarg, 0, 0);
-+			gup.gup_flags = strtol(optarg, 0, 0);
- 			break;
- 		case 'm':
- 			size = atoi(optarg) * MB;
-@@ -93,6 +97,9 @@ int main(int argc, char **argv)
- 		case 'w':
- 			write = 1;
- 			break;
-+		case 'W':
-+			write = 0;
-+			break;
- 		case 'f':
- 			file = optarg;
- 			break;
-@@ -140,7 +147,7 @@ int main(int argc, char **argv)
+ 		default:
+ 			return -1;
+ 		}
+@@ -167,8 +172,18 @@ int main(int argc, char **argv)
+ 	else if (thp == 0)
+ 		madvise(p, size, MADV_NOHUGEPAGE);
  
- 	gup.nr_pages_per_call = nr_pages;
- 	if (write)
--		gup.flags |= FOLL_WRITE;
-+		gup.gup_flags |= FOLL_WRITE;
+-	for (; (unsigned long)p < gup.addr + size; p += PAGE_SIZE)
+-		p[0] = 0;
++	/*
++	 * FOLL_TOUCH, in gup_test, is used as an either/or case: either
++	 * fault pages in from the kernel via FOLL_TOUCH, or fault them
++	 * in here, from user space. This allows comparison of performance
++	 * between those two cases.
++	 */
++	if (touch) {
++		gup.gup_flags |= FOLL_TOUCH;
++	} else {
++		for (; (unsigned long)p < gup.addr + size; p += PAGE_SIZE)
++			p[0] = 0;
++	}
  
- 	fd = open("/sys/kernel/debug/gup_test", O_RDWR);
- 	if (fd == -1) {
+ 	/* Only report timing information on the *_BENCHMARK commands: */
+ 	if ((cmd == PIN_FAST_BENCHMARK) || (cmd == GUP_FAST_BENCHMARK) ||
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages.patch
 
