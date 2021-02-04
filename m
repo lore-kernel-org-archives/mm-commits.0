@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 079C7C4332D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3189BC43217
 	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:58:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2AA364F6B
+	by mail.kernel.org (Postfix) with ESMTP id E83C164F68
 	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:58:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234333AbhBDA6Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Feb 2021 19:58:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40446 "EHLO mail.kernel.org"
+        id S234342AbhBDA6Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Feb 2021 19:58:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40440 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234342AbhBDA6R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234328AbhBDA6R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 3 Feb 2021 19:58:17 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DBF1664F6C;
-        Thu,  4 Feb 2021 00:57:31 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DCD5264F68;
+        Thu,  4 Feb 2021 00:57:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612400253;
-        bh=W5cye/47s2QbW6GoH7Ya3quF+tBGXUNIfHCZR3+z9lM=;
+        s=korg; t=1612400241;
+        bh=zYKmYrP64oIoSVHQHnFqKf9ktvAMFwwUdIWJbp3+Hjg=;
         h=Date:From:To:Subject:From;
-        b=1rXLa46Y4froXlJzfQhA87j5rqbshX043xghRBfz32Gpm0Ph5ecqA4xG4CiVuNSsQ
-         fmTBclhfKjPrinff6Sar2a4MYetYMxJXUW7b9uneempqTfS/z5SLn4D+mXQMWlKJCw
-         OM0R+nBbiF8ubjz3gdMgNwwHDiMPA5gCQlneCb10=
-Date:   Wed, 03 Feb 2021 16:57:31 -0800
+        b=dXZtLjnJXzdMN5V411T2bAdkUaKXkwPsyzua+mdjoXsFQPGooKpRuK7UncfEOQLY+
+         KevXjcBA6GbC24UZah8CLXACfrt6qwAhMeATfPtGJEegHCzx/HyPqxImHVYLAgEl4q
+         juYqE3Mlv+CtifS6ZzlRHkOlOlfDSU9FoHqzduW0=
+Date:   Wed, 03 Feb 2021 16:57:19 -0800
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -38,9 +38,9 @@ To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         pasha.tatashin@soleen.com, peterz@infradead.org,
         rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
         tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
-Subject:  [to-be-updated]
- mm-honor-pf_memalloc_pin-for-all-movable-pages.patch removed from -mm tree
-Message-ID: <20210204005731.xdBP7B1k1%akpm@linux-foundation.org>
+Subject:  [to-be-updated] mm-gup-check-for-isolation-errors.patch
+ removed from -mm tree
+Message-ID: <20210204005719.3t8DZw_If%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,39 +49,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: honor PF_MEMALLOC_PIN for all movable pages
+     Subject: mm/gup: check for isolation errors
 has been removed from the -mm tree.  Its filename was
-     mm-honor-pf_memalloc_pin-for-all-movable-pages.patch
+     mm-gup-check-for-isolation-errors.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: mm: honor PF_MEMALLOC_PIN for all movable pages
+Subject: mm/gup: check for isolation errors
 
-PF_MEMALLOC_PIN is only honored for CMA pages, extend this flag to work
-for any allocations from ZONE_MOVABLE by removing __GFP_MOVABLE from
-gfp_mask when this flag is passed in the current context.
+It is still possible that we pin movable CMA pages if there are isolation
+errors and cma_page_list stays empty when we check again.
 
-Add is_pinnable_page() to return true if page is in a pinnable page.  A
-pinnable page is not in ZONE_MOVABLE and not of MIGRATE_CMA type.
+Check for isolation errors, and return success only when there are no
+isolation errors, and cma_page_list is empty after checking.
 
-Link: https://lkml.kernel.org/r/20210201153827.444374-8-pasha.tatashin@soleen.com
+Because isolation errors are transient, we retry indefinitely.
+
+Link: https://lkml.kernel.org/r/20210201153827.444374-5-pasha.tatashin@soleen.com
+Fixes: 9a4e9f3b2d73 ("mm: update get_user_pages_longterm to migrate pages allocated from CMA region")
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: James Morris <jmorris@namei.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -92,134 +94,118 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |   11 +++++++++++
- include/linux/sched/mm.h |    6 +++++-
- mm/hugetlb.c             |    2 +-
- mm/page_alloc.c          |   20 +++++++++-----------
- 4 files changed, 26 insertions(+), 13 deletions(-)
+ mm/gup.c |   60 ++++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 34 insertions(+), 26 deletions(-)
 
---- a/include/linux/mm.h~mm-honor-pf_memalloc_pin-for-all-movable-pages
-+++ a/include/linux/mm.h
-@@ -1116,6 +1116,17 @@ static inline bool is_zone_device_page(c
- }
- #endif
- 
-+static inline bool is_zone_movable_page(const struct page *page)
-+{
-+	return page_zonenum(page) == ZONE_MOVABLE;
-+}
-+
-+/* MIGRATE_CMA and ZONE_MOVABLE do not allow pin pages */
-+static inline bool is_pinnable_page(struct page *page)
-+{
-+	return !is_zone_movable_page(page) && !is_migrate_cma_page(page);
-+}
-+
- #ifdef CONFIG_DEV_PAGEMAP_OPS
- void free_devmap_managed_page(struct page *page);
- DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
---- a/include/linux/sched/mm.h~mm-honor-pf_memalloc_pin-for-all-movable-pages
-+++ a/include/linux/sched/mm.h
-@@ -150,12 +150,13 @@ static inline bool in_vfork(struct task_
-  * Applies per-task gfp context to the given allocation flags.
-  * PF_MEMALLOC_NOIO implies GFP_NOIO
-  * PF_MEMALLOC_NOFS implies GFP_NOFS
-+ * PF_MEMALLOC_PIN  implies !GFP_MOVABLE
-  */
- static inline gfp_t current_gfp_context(gfp_t flags)
+--- a/mm/gup.c~mm-gup-check-for-isolation-errors
++++ a/mm/gup.c
+@@ -1548,8 +1548,8 @@ static long check_and_migrate_cma_pages(
+ 					struct vm_area_struct **vmas,
+ 					unsigned int gup_flags)
  {
- 	unsigned int pflags = READ_ONCE(current->flags);
+-	unsigned long i;
+-	bool drain_allow = true;
++	unsigned long i, isolation_error_count;
++	bool drain_allow;
+ 	LIST_HEAD(cma_page_list);
+ 	long ret = nr_pages;
+ 	struct page *prev_head, *head;
+@@ -1560,6 +1560,8 @@ static long check_and_migrate_cma_pages(
  
--	if (unlikely(pflags & (PF_MEMALLOC_NOIO | PF_MEMALLOC_NOFS))) {
-+	if (unlikely(pflags & (PF_MEMALLOC_NOIO | PF_MEMALLOC_NOFS | PF_MEMALLOC_PIN))) {
- 		/*
- 		 * NOIO implies both NOIO and NOFS and it is a weaker context
- 		 * so always make sure it makes precedence
-@@ -164,6 +165,9 @@ static inline gfp_t current_gfp_context(
- 			flags &= ~(__GFP_IO | __GFP_FS);
- 		else if (pflags & PF_MEMALLOC_NOFS)
- 			flags &= ~__GFP_FS;
-+
-+		if (pflags & PF_MEMALLOC_PIN)
-+			flags &= ~__GFP_MOVABLE;
+ check_again:
+ 	prev_head = NULL;
++	isolation_error_count = 0;
++	drain_allow = true;
+ 	for (i = 0; i < nr_pages; i++) {
+ 		head = compound_head(pages[i]);
+ 		if (head == prev_head)
+@@ -1571,25 +1573,35 @@ check_again:
+ 		 * of the CMA zone if possible.
+ 		 */
+ 		if (is_migrate_cma_page(head)) {
+-			if (PageHuge(head))
+-				isolate_huge_page(head, &cma_page_list);
+-			else {
++			if (PageHuge(head)) {
++				if (!isolate_huge_page(head, &cma_page_list))
++					isolation_error_count++;
++			} else {
+ 				if (!PageLRU(head) && drain_allow) {
+ 					lru_add_drain_all();
+ 					drain_allow = false;
+ 				}
+ 
+-				if (!isolate_lru_page(head)) {
+-					list_add_tail(&head->lru, &cma_page_list);
+-					mod_node_page_state(page_pgdat(head),
+-							    NR_ISOLATED_ANON +
+-							    page_is_file_lru(head),
+-							    thp_nr_pages(head));
++				if (isolate_lru_page(head)) {
++					isolation_error_count++;
++					continue;
+ 				}
++				list_add_tail(&head->lru, &cma_page_list);
++				mod_node_page_state(page_pgdat(head),
++						    NR_ISOLATED_ANON +
++						    page_is_file_lru(head),
++						    thp_nr_pages(head));
+ 			}
+ 		}
  	}
- 	return flags;
- }
---- a/mm/hugetlb.c~mm-honor-pf_memalloc_pin-for-all-movable-pages
-+++ a/mm/hugetlb.c
-@@ -1052,7 +1052,7 @@ static struct page *dequeue_huge_page_no
- 	bool pin = !!(current->flags & PF_MEMALLOC_PIN);
  
- 	list_for_each_entry(page, &h->hugepage_freelists[nid], lru) {
--		if (pin && is_migrate_cma_page(page))
-+		if (pin && !is_pinnable_page(page))
- 			continue;
++	/*
++	 * If list is empty, and no isolation errors, means that all pages are
++	 * in the correct zone.
++	 */
++	if (list_empty(&cma_page_list) && !isolation_error_count)
++		return ret;
++
+ 	if (!list_empty(&cma_page_list)) {
+ 		/*
+ 		 * drop the above get_user_pages reference.
+@@ -1609,23 +1621,19 @@ check_again:
+ 			return ret > 0 ? -ENOMEM : ret;
+ 		}
  
- 		if (PageHWPoison(page))
---- a/mm/page_alloc.c~mm-honor-pf_memalloc_pin-for-all-movable-pages
-+++ a/mm/page_alloc.c
-@@ -3807,16 +3807,13 @@ alloc_flags_nofragment(struct zone *zone
- 	return alloc_flags;
- }
- 
--static inline unsigned int current_alloc_flags(gfp_t gfp_mask,
--					unsigned int alloc_flags)
-+/* Must be called after current_gfp_context() which can change gfp_mask */
-+static inline unsigned int gfp_to_alloc_flags_cma(gfp_t gfp_mask,
-+					      unsigned int alloc_flags)
- {
- #ifdef CONFIG_CMA
--	unsigned int pflags = current->flags;
+-		/*
+-		 * We did migrate all the pages, Try to get the page references
+-		 * again migrating any new CMA pages which we failed to isolate
+-		 * earlier.
+-		 */
+-		ret = __get_user_pages_locked(mm, start, nr_pages,
+-						   pages, vmas, NULL,
+-						   gup_flags);
 -
--	if (!(pflags & PF_MEMALLOC_PIN) &&
--	    gfp_migratetype(gfp_mask) == MIGRATE_MOVABLE)
-+	if (gfp_migratetype(gfp_mask) == MIGRATE_MOVABLE)
- 		alloc_flags |= ALLOC_CMA;
--
- #endif
- 	return alloc_flags;
+-		if (ret > 0) {
+-			nr_pages = ret;
+-			drain_allow = true;
+-			goto check_again;
+-		}
++		/* We unpinned pages before migration, pin them again */
++		ret = __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
++					      NULL, gup_flags);
++		if (ret <= 0)
++			return ret;
++		nr_pages = ret;
+ 	}
+ 
+-	return ret;
++	/*
++	 * check again because pages were unpinned, and we also might have
++	 * had isolation errors and need more pages to migrate.
++	 */
++	goto check_again;
  }
-@@ -4472,7 +4469,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 	} else if (unlikely(rt_task(current)) && !in_interrupt())
- 		alloc_flags |= ALLOC_HARDER;
- 
--	alloc_flags = current_alloc_flags(gfp_mask, alloc_flags);
-+	alloc_flags = gfp_to_alloc_flags_cma(gfp_mask, alloc_flags);
- 
- 	return alloc_flags;
- }
-@@ -4774,7 +4771,7 @@ retry:
- 
- 	reserve_flags = __gfp_pfmemalloc_flags(gfp_mask);
- 	if (reserve_flags)
--		alloc_flags = current_alloc_flags(gfp_mask, reserve_flags);
-+		alloc_flags = gfp_to_alloc_flags_cma(gfp_mask, reserve_flags);
- 
- 	/*
- 	 * Reset the nodemask and zonelist iterators if memory policies can be
-@@ -4943,7 +4940,7 @@ static inline bool prepare_alloc_pages(g
- 	if (should_fail_alloc_page(gfp_mask, order))
- 		return false;
- 
--	*alloc_flags = current_alloc_flags(gfp_mask, *alloc_flags);
-+	*alloc_flags = gfp_to_alloc_flags_cma(gfp_mask, *alloc_flags);
- 
- 	/* Dirty zone balancing only done in the fast path */
- 	ac->spread_dirty_pages = (gfp_mask & __GFP_WRITE);
-@@ -4985,7 +4982,8 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	 * Apply scoped allocation constraints. This is mainly about GFP_NOFS
- 	 * resp. GFP_NOIO which has to be inherited for all allocation requests
- 	 * from a particular context which has been marked by
--	 * memalloc_no{fs,io}_{save,restore}.
-+	 * memalloc_no{fs,io}_{save,restore}. And PF_MEMALLOC_PIN which ensures
-+	 * movable zones are not used during allocation.
- 	 */
- 	gfp_mask = current_gfp_context(gfp_mask);
- 	alloc_mask = gfp_mask;
+ #else
+ static long check_and_migrate_cma_pages(struct mm_struct *mm,
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
+mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin.patch
+mm-apply-per-task-gfp-constraints-in-fast-path.patch
+mm-honor-pf_memalloc_pin-for-all-movable-pages.patch
 mm-gup-do-not-migrate-zero-page.patch
 mm-gup-do-not-migrate-zero-page-fix.patch
 mm-gup-migrate-pinned-pages-out-of-movable-zone.patch
