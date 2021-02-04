@@ -7,35 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C157C433DB
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:34:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5F42C4332B
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:58:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EEAF264F5F
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:34:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 77C1264F68
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Feb 2021 00:58:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233258AbhBDAeS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Feb 2021 19:34:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35724 "EHLO mail.kernel.org"
+        id S233517AbhBDA5y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Feb 2021 19:57:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40156 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231817AbhBDAeR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Feb 2021 19:34:17 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C9A6764F5C;
-        Thu,  4 Feb 2021 00:33:36 +0000 (UTC)
+        id S234323AbhBDA5x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Feb 2021 19:57:53 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 22C6F64F55;
+        Thu,  4 Feb 2021 00:57:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612398817;
-        bh=mklPpOFVT+qUl2aV+gioXy/yT7quUyEGJqr5mDFcVsM=;
+        s=korg; t=1612400233;
+        bh=XA93OeWXwDfFTEcXeEU1eqNkawasayIzCYy6bGGMNoA=;
         h=Date:From:To:Subject:From;
-        b=2maX69Y/xLsmzJPrPe46t5xP7wUdEQF//t+imArScuzOCQFw7sFOTWlj073jl+WAX
-         VvKIbd0P085TYyTkqq6SMWQ/51wgEhO+lo6izFsb/4e//Cgs8rWD82131TkdMqOvm3
-         gH2A2L6txa30ekNr+omCavbxUaoCzZ7Lqt5G+7BM=
-Date:   Wed, 03 Feb 2021 16:33:36 -0800
+        b=OBhH7cUpHTAGxPAHxx4Vm/znsaGSmoHoUR9y/6Cl+vAU180b/ilQmnXENzoxBQ3jq
+         XzzikUbzpCSmeQNYm1q6SzDQ2WkgeM6gob3cY7a2cIKB8fMKXGMEnsogoKwFAXGFv4
+         bEWCby8mJwDSGnQ5CfgCk14qS7LwPSH1a6sTSvco=
+Date:   Wed, 03 Feb 2021 16:57:11 -0800
 From:   akpm@linux-foundation.org
-To:     mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        songmuchun@bytedance.com
-Subject:  +
- hugetlb-convert-page_huge_active-hpagemigratable-flag-fix.patch added to
- -mm tree
-Message-ID: <20210204003336.Ti1A_lM3U%akpm@linux-foundation.org>
+To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
+        ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
+        jhubbard@nvidia.com, jmorris@namei.org, mgorman@suse.de,
+        mhocko@kernel.org, mhocko@suse.com, mike.kravetz@oracle.com,
+        mingo@redhat.com, mm-commits@vger.kernel.org, osalvador@suse.de,
+        pasha.tatashin@soleen.com, peterz@infradead.org,
+        rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
+        tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
+Subject:  [to-be-updated]
+ mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch
+ removed from -mm tree
+Message-ID: <20210204005711.7Li8txE09%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,68 +50,124 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb-convert-page_huge_active-hpagemigratable-flag-fix
-has been added to the -mm tree.  Its filename is
-     hugetlb-convert-page_huge_active-hpagemigratable-flag-fix.patch
+     Subject: mm/gup: check every subpage of a compound page during isolation
+has been removed from the -mm tree.  Its filename was
+     mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-convert-page_huge_active-hpagemigratable-flag-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-convert-page_huge_active-hpagemigratable-flag-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: hugetlb-convert-page_huge_active-hpagemigratable-flag-fix
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Subject: mm/gup: check every subpage of a compound page during isolation
 
-remove set_page_huge_active() declaration from include/linux/hugetlb.h
+When pages are isolated in check_and_migrate_movable_pages() we skip
+compound number of pages at a time.  However, as Jason noted, it is not
+necessary correct that pages[i] corresponds to the pages that we skipped. 
+This is because it is possible that the addresses in this range had
+split_huge_pmd()/split_huge_pud(), and these functions do not update the
+compound page metadata.
 
-Link: https://lkml.kernel.org/r/CAMZfGtUda+KoAZscU0718TN61cSFwp4zy=y2oZ=+6Z2TAZZwng@mail.gmail.com
+The problem can be reproduced if something like this occurs:
+
+1. User faulted huge pages.
+2. split_huge_pmd() was called for some reason
+3. User has unmapped some sub-pages in the range
+4. User tries to longterm pin the addresses.
+
+The resulting pages[i] might end-up having pages which are not compound
+size page aligned.
+
+Link: https://lkml.kernel.org/r/20210201153827.444374-3-pasha.tatashin@soleen.com
+Fixes: aa712399c1e8 ("mm/gup: speed up check_and_migrate_cma_pages() on huge page")
+Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Reported-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 --
- 1 file changed, 2 deletions(-)
+ mm/gup.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
---- a/include/linux/hugetlb.h~hugetlb-convert-page_huge_active-hpagemigratable-flag-fix
-+++ a/include/linux/hugetlb.h
-@@ -843,8 +843,6 @@ static inline void huge_ptep_modify_prot
- }
- #endif
+--- a/mm/gup.c~mm-gup-check-every-subpage-of-a-compound-page-during-isolation
++++ a/mm/gup.c
+@@ -1549,26 +1549,23 @@ static long check_and_migrate_cma_pages(
+ 					unsigned int gup_flags)
+ {
+ 	unsigned long i;
+-	unsigned long step;
+ 	bool drain_allow = true;
+ 	bool migrate_allow = true;
+ 	LIST_HEAD(cma_page_list);
+ 	long ret = nr_pages;
++	struct page *prev_head, *head;
+ 	struct migration_target_control mtc = {
+ 		.nid = NUMA_NO_NODE,
+ 		.gfp_mask = GFP_USER | __GFP_NOWARN,
+ 	};
  
--void set_page_huge_active(struct page *page);
+ check_again:
+-	for (i = 0; i < nr_pages;) {
 -
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
+-		struct page *head = compound_head(pages[i]);
+-
+-		/*
+-		 * gup may start from a tail page. Advance step by the left
+-		 * part.
+-		 */
+-		step = compound_nr(head) - (pages[i] - head);
++	prev_head = NULL;
++	for (i = 0; i < nr_pages; i++) {
++		head = compound_head(pages[i]);
++		if (head == prev_head)
++			continue;
++		prev_head = head;
+ 		/*
+ 		 * If we get a page from the CMA zone, since we are going to
+ 		 * be pinning these entries, we might as well move them out
+@@ -1592,8 +1589,6 @@ check_again:
+ 				}
+ 			}
+ 		}
+-
+-		i += step;
+ 	}
  
+ 	if (!list_empty(&cma_page_list)) {
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page.patch
-mm-hugetlb-fix-a-race-between-freeing-and-dissolving-the-page.patch
-mm-hugetlb-fix-a-race-between-isolating-and-freeing-page.patch
-mm-hugetlb-remove-vm_bug_on_page-from-page_huge_active.patch
-mm-migrate-do-not-migrate-hugetlb-page-whose-refcount-is-one.patch
-mm-hugetlb-fix-missing-put_page-in-gather_surplus_pages.patch
-mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage.patch
-mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
-mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
-mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
-mm-memcontrol-make-the-slab-calculation-consistent.patch
-hugetlb-convert-page_huge_active-hpagemigratable-flag-fix.patch
+mm-gup-return-an-error-on-migration-failure.patch
+mm-gup-check-for-isolation-errors.patch
+mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin.patch
+mm-apply-per-task-gfp-constraints-in-fast-path.patch
+mm-honor-pf_memalloc_pin-for-all-movable-pages.patch
+mm-gup-do-not-migrate-zero-page.patch
+mm-gup-do-not-migrate-zero-page-fix.patch
+mm-gup-migrate-pinned-pages-out-of-movable-zone.patch
+memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning.patch
+mm-gup-change-index-type-to-long-as-it-counts-pages.patch
+mm-gup-longterm-pin-migration-cleanup.patch
+selftests-vm-gup_test-fix-test-flag.patch
+selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages.patch
 
