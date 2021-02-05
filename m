@@ -2,44 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B87ECC433E6
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:22:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 716BDC433DB
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:54:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8939C64D79
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:22:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3008064F91
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:54:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233184AbhBEVWf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Feb 2021 16:22:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45208 "EHLO mail.kernel.org"
+        id S232758AbhBEVx0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Feb 2021 16:53:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50520 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233571AbhBEVUb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Feb 2021 16:20:31 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 033EC64FCE;
-        Fri,  5 Feb 2021 21:18:50 +0000 (UTC)
+        id S232862AbhBEVw4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Feb 2021 16:52:56 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C34FC64F91;
+        Fri,  5 Feb 2021 21:52:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612559931;
-        bh=bHy+wVSug1ErvA7vX6TJCvDd8q4UFU9TnFikHJ812YE=;
+        s=korg; t=1612561934;
+        bh=jDEky/rjddP8cEfnomimDYuH16JXlCrm3LcukArjYQw=;
         h=Date:From:To:Subject:From;
-        b=WJmWbToil1LB6ztbicZ/1JhCXnYWrOrjlKb2S09ZIzkKjRur6H0/Z0S2bft5gJK5P
-         8ubJfZ2uYJUw0G/uEGjjWkLCEKZHtyubWq6Gj8ARwddanoLHwiM28LofdoswwmGZ/E
-         n1YTN8SlY9QRAHARVzTkakoCVyNLwi6ZS2mjWP0k=
-Date:   Fri, 05 Feb 2021 13:18:50 -0800
+        b=z3R9z7NdREHzEOc8rOjtrEl9lLCbL5TPyniMugyqolseH+79Y5htq5XvdGN52/7dE
+         1EGNG/0WLBfmACfydLgIZ+uj/AAybxZfEvOS3VT8t6ASNxxj5yiYyuqJ2VmNbtH+OA
+         mdLVdn6PQ/Pa29YTsCGH1Syg2m31iIvgNnBkHqQo=
+Date:   Fri, 05 Feb 2021 13:52:13 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
-        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
-        dvyukov@google.com, elver@google.com, eugenis@google.com,
-        glider@google.com, kevin.brodsky@arm.com,
-        mm-commits@vger.kernel.org, pcc@google.com,
-        vincenzo.frascino@arm.com, will.deacon@arm.com
+To:     jhubbard@nvidia.com, lkp@intel.com, mm-commits@vger.kernel.org,
+        rong.a.chen@intel.com
 Subject:  +
- kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch added to -mm
+ selftests-vm-rename-file-run_vmtests-to-run_vmtestssh.patch added to -mm
  tree
-Message-ID: <20210205211850.O9Q3I65tu%akpm@linux-foundation.org>
+Message-ID: <20210205215213.I_YNGJam1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: clarify that only first bug is reported in HW_TAGS
+     Subject: selftests/vm: rename file run_vmtests to run_vmtests.sh
 has been added to the -mm tree.  Its filename is
-     kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch
+     selftests-vm-rename-file-run_vmtests-to-run_vmtestssh.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-rename-file-run_vmtests-to-run_vmtestssh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-rename-file-run_vmtests-to-run_vmtestssh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,105 +65,737 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: clarify that only first bug is reported in HW_TAGS
+From: Rong Chen <rong.a.chen@intel.com>
+Subject: selftests/vm: rename file run_vmtests to run_vmtests.sh
 
-Hwardware tag-based KASAN only reports the first found bug. After that MTE
-tag checking gets disabled. Clarify this in comments and documentation.
+Commit c2aa8afc36fa has renamed run_vmtests in Makefile, but the file
+still uses the old name.
 
-Link: https://lkml.kernel.org/r/00383ba88a47c3f8342d12263c24bdf95527b07d.1612546384.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
+The kernel test robot reported the following issue:
+
+ # selftests: vm: run_vmtests.sh
+ # Warning: file run_vmtests.sh is missing!
+ not ok 1 selftests: vm: run_vmtests.sh
+
+Link: https://lkml.kernel.org/r/20210205085507.1479894-1-rong.a.chen@intel.com
+Fixes: c2aa8afc36fa (selftests/vm: rename run_vmtests --> run_vmtests.sh)
+Signed-off-by: Rong Chen <rong.a.chen@intel.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |    8 ++++++--
- mm/kasan/hw_tags.c                |    2 +-
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ tools/testing/selftests/vm/run_vmtests    |  349 --------------------
+ tools/testing/selftests/vm/run_vmtests.sh |  349 ++++++++++++++++++++
+ 2 files changed, 349 insertions(+), 349 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-clarify-that-only-first-bug-is-reported-in-hw_tags
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -155,7 +155,7 @@ Boot parameters
- ~~~~~~~~~~~~~~~
- 
- Hardware tag-based KASAN mode (see the section about various modes below) is
--intended for use in production as a security mitigation. Therefore it supports
-+intended for use in production as a security mitigation. Therefore, it supports
- boot parameters that allow to disable KASAN competely or otherwise control
- particular KASAN features.
- 
-@@ -166,7 +166,8 @@ particular KASAN features.
-   ``off``).
- 
- - ``kasan.fault=report`` or ``=panic`` controls whether to only print a KASAN
--  report or also panic the kernel (default: ``report``).
-+  report or also panic the kernel (default: ``report``). Note, that tag
-+  checking gets disabled after the first reported bug.
- 
- For developers
- ~~~~~~~~~~~~~~
-@@ -296,6 +297,9 @@ Note, that enabling CONFIG_KASAN_HW_TAGS
- enabled. Even when kasan.mode=off is provided, or when the hardware doesn't
- support MTE (but supports TBI).
- 
-+Hardware tag-based KASAN only reports the first found bug. After that MTE tag
-+checking gets disabled.
+--- a/tools/testing/selftests/vm/run_vmtests
++++ /dev/null
+@@ -1,349 +0,0 @@
+-#!/bin/bash
+-# SPDX-License-Identifier: GPL-2.0
+-#please run as root
+-
+-# Kselftest framework requirement - SKIP code is 4.
+-ksft_skip=4
+-
+-mnt=./huge
+-exitcode=0
+-
+-#get huge pagesize and freepages from /proc/meminfo
+-while read name size unit; do
+-	if [ "$name" = "HugePages_Free:" ]; then
+-		freepgs=$size
+-	fi
+-	if [ "$name" = "Hugepagesize:" ]; then
+-		hpgsize_KB=$size
+-	fi
+-done < /proc/meminfo
+-
+-# Simple hugetlbfs tests have a hardcoded minimum requirement of
+-# huge pages totaling 256MB (262144KB) in size.  The userfaultfd
+-# hugetlb test requires a minimum of 2 * nr_cpus huge pages.  Take
+-# both of these requirements into account and attempt to increase
+-# number of huge pages available.
+-nr_cpus=$(nproc)
+-hpgsize_MB=$((hpgsize_KB / 1024))
+-half_ufd_size_MB=$((((nr_cpus * hpgsize_MB + 127) / 128) * 128))
+-needmem_KB=$((half_ufd_size_MB * 2 * 1024))
+-
+-#set proper nr_hugepages
+-if [ -n "$freepgs" ] && [ -n "$hpgsize_KB" ]; then
+-	nr_hugepgs=`cat /proc/sys/vm/nr_hugepages`
+-	needpgs=$((needmem_KB / hpgsize_KB))
+-	tries=2
+-	while [ $tries -gt 0 ] && [ $freepgs -lt $needpgs ]; do
+-		lackpgs=$(( $needpgs - $freepgs ))
+-		echo 3 > /proc/sys/vm/drop_caches
+-		echo $(( $lackpgs + $nr_hugepgs )) > /proc/sys/vm/nr_hugepages
+-		if [ $? -ne 0 ]; then
+-			echo "Please run this test as root"
+-			exit $ksft_skip
+-		fi
+-		while read name size unit; do
+-			if [ "$name" = "HugePages_Free:" ]; then
+-				freepgs=$size
+-			fi
+-		done < /proc/meminfo
+-		tries=$((tries - 1))
+-	done
+-	if [ $freepgs -lt $needpgs ]; then
+-		printf "Not enough huge pages available (%d < %d)\n" \
+-		       $freepgs $needpgs
+-		exit 1
+-	fi
+-else
+-	echo "no hugetlbfs support in kernel?"
+-	exit 1
+-fi
+-
+-#filter 64bit architectures
+-ARCH64STR="arm64 ia64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sh64 sparc64 x86_64"
+-if [ -z $ARCH ]; then
+-  ARCH=`uname -m 2>/dev/null | sed -e 's/aarch64.*/arm64/'`
+-fi
+-VADDR64=0
+-echo "$ARCH64STR" | grep $ARCH && VADDR64=1
+-
+-mkdir $mnt
+-mount -t hugetlbfs none $mnt
+-
+-echo "---------------------"
+-echo "running hugepage-mmap"
+-echo "---------------------"
+-./hugepage-mmap
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-shmmax=`cat /proc/sys/kernel/shmmax`
+-shmall=`cat /proc/sys/kernel/shmall`
+-echo 268435456 > /proc/sys/kernel/shmmax
+-echo 4194304 > /proc/sys/kernel/shmall
+-echo "--------------------"
+-echo "running hugepage-shm"
+-echo "--------------------"
+-./hugepage-shm
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-echo $shmmax > /proc/sys/kernel/shmmax
+-echo $shmall > /proc/sys/kernel/shmall
+-
+-echo "-------------------"
+-echo "running map_hugetlb"
+-echo "-------------------"
+-./map_hugetlb
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "NOTE: The above hugetlb tests provide minimal coverage.  Use"
+-echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
+-echo "      hugetlb regression testing."
+-
+-echo "---------------------------"
+-echo "running map_fixed_noreplace"
+-echo "---------------------------"
+-./map_fixed_noreplace
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "------------------------------------------------------"
+-echo "running: gup_test -u # get_user_pages_fast() benchmark"
+-echo "------------------------------------------------------"
+-./gup_test -u
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "------------------------------------------------------"
+-echo "running: gup_test -a # pin_user_pages_fast() benchmark"
+-echo "------------------------------------------------------"
+-./gup_test -a
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "------------------------------------------------------------"
+-echo "# Dump pages 0, 19, and 4096, using pin_user_pages:"
+-echo "running: gup_test -ct -F 0x1 0 19 0x1000 # dump_page() test"
+-echo "------------------------------------------------------------"
+-./gup_test -ct -F 0x1 0 19 0x1000
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "-------------------"
+-echo "running userfaultfd"
+-echo "-------------------"
+-./userfaultfd anon 20 16
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "---------------------------"
+-echo "running userfaultfd_hugetlb"
+-echo "---------------------------"
+-# Test requires source and destination huge pages.  Size of source
+-# (half_ufd_size_MB) is passed as argument to test.
+-./userfaultfd hugetlb $half_ufd_size_MB 32 $mnt/ufd_test_file
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-rm -f $mnt/ufd_test_file
+-
+-echo "-------------------------"
+-echo "running userfaultfd_shmem"
+-echo "-------------------------"
+-./userfaultfd shmem 20 16
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-#cleanup
+-umount $mnt
+-rm -rf $mnt
+-echo $nr_hugepgs > /proc/sys/vm/nr_hugepages
+-
+-echo "-----------------------"
+-echo "running compaction_test"
+-echo "-----------------------"
+-./compaction_test
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "----------------------"
+-echo "running on-fault-limit"
+-echo "----------------------"
+-sudo -u nobody ./on-fault-limit
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "--------------------"
+-echo "running map_populate"
+-echo "--------------------"
+-./map_populate
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "-------------------------"
+-echo "running mlock-random-test"
+-echo "-------------------------"
+-./mlock-random-test
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "--------------------"
+-echo "running mlock2-tests"
+-echo "--------------------"
+-./mlock2-tests
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "-------------------"
+-echo "running mremap_test"
+-echo "-------------------"
+-./mremap_test
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "-----------------"
+-echo "running thuge-gen"
+-echo "-----------------"
+-./thuge-gen
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-if [ $VADDR64 -ne 0 ]; then
+-echo "-----------------------------"
+-echo "running virtual_address_range"
+-echo "-----------------------------"
+-./virtual_address_range
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "-----------------------------"
+-echo "running virtual address 128TB switch test"
+-echo "-----------------------------"
+-./va_128TBswitch
+-if [ $? -ne 0 ]; then
+-    echo "[FAIL]"
+-    exitcode=1
+-else
+-    echo "[PASS]"
+-fi
+-fi # VADDR64
+-
+-echo "------------------------------------"
+-echo "running vmalloc stability smoke test"
+-echo "------------------------------------"
+-./test_vmalloc.sh smoke
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "------------------------------------"
+-echo "running MREMAP_DONTUNMAP smoke test"
+-echo "------------------------------------"
+-./mremap_dontunmap
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "running HMM smoke test"
+-echo "------------------------------------"
+-./test_hmm.sh smoke
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	echo "[SKIP]"
+-	exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-exit $exitcode
+--- /dev/null
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -0,0 +1,349 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++#please run as root
 +
- What memory accesses are sanitised by KASAN?
- --------------------------------------------
- 
---- a/mm/kasan/hw_tags.c~kasan-clarify-that-only-first-bug-is-reported-in-hw_tags
-+++ a/mm/kasan/hw_tags.c
-@@ -48,7 +48,7 @@ EXPORT_SYMBOL(kasan_flag_enabled);
- /* Whether to collect alloc/free stack traces. */
- DEFINE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
- 
--/* Whether panic or disable tag checking on fault. */
-+/* Whether to panic or print a report and disable tag checking on fault. */
- bool kasan_flag_panic __ro_after_init;
- 
- /* kasan=off/on */
++# Kselftest framework requirement - SKIP code is 4.
++ksft_skip=4
++
++mnt=./huge
++exitcode=0
++
++#get huge pagesize and freepages from /proc/meminfo
++while read name size unit; do
++	if [ "$name" = "HugePages_Free:" ]; then
++		freepgs=$size
++	fi
++	if [ "$name" = "Hugepagesize:" ]; then
++		hpgsize_KB=$size
++	fi
++done < /proc/meminfo
++
++# Simple hugetlbfs tests have a hardcoded minimum requirement of
++# huge pages totaling 256MB (262144KB) in size.  The userfaultfd
++# hugetlb test requires a minimum of 2 * nr_cpus huge pages.  Take
++# both of these requirements into account and attempt to increase
++# number of huge pages available.
++nr_cpus=$(nproc)
++hpgsize_MB=$((hpgsize_KB / 1024))
++half_ufd_size_MB=$((((nr_cpus * hpgsize_MB + 127) / 128) * 128))
++needmem_KB=$((half_ufd_size_MB * 2 * 1024))
++
++#set proper nr_hugepages
++if [ -n "$freepgs" ] && [ -n "$hpgsize_KB" ]; then
++	nr_hugepgs=`cat /proc/sys/vm/nr_hugepages`
++	needpgs=$((needmem_KB / hpgsize_KB))
++	tries=2
++	while [ $tries -gt 0 ] && [ $freepgs -lt $needpgs ]; do
++		lackpgs=$(( $needpgs - $freepgs ))
++		echo 3 > /proc/sys/vm/drop_caches
++		echo $(( $lackpgs + $nr_hugepgs )) > /proc/sys/vm/nr_hugepages
++		if [ $? -ne 0 ]; then
++			echo "Please run this test as root"
++			exit $ksft_skip
++		fi
++		while read name size unit; do
++			if [ "$name" = "HugePages_Free:" ]; then
++				freepgs=$size
++			fi
++		done < /proc/meminfo
++		tries=$((tries - 1))
++	done
++	if [ $freepgs -lt $needpgs ]; then
++		printf "Not enough huge pages available (%d < %d)\n" \
++		       $freepgs $needpgs
++		exit 1
++	fi
++else
++	echo "no hugetlbfs support in kernel?"
++	exit 1
++fi
++
++#filter 64bit architectures
++ARCH64STR="arm64 ia64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sh64 sparc64 x86_64"
++if [ -z $ARCH ]; then
++  ARCH=`uname -m 2>/dev/null | sed -e 's/aarch64.*/arm64/'`
++fi
++VADDR64=0
++echo "$ARCH64STR" | grep $ARCH && VADDR64=1
++
++mkdir $mnt
++mount -t hugetlbfs none $mnt
++
++echo "---------------------"
++echo "running hugepage-mmap"
++echo "---------------------"
++./hugepage-mmap
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++shmmax=`cat /proc/sys/kernel/shmmax`
++shmall=`cat /proc/sys/kernel/shmall`
++echo 268435456 > /proc/sys/kernel/shmmax
++echo 4194304 > /proc/sys/kernel/shmall
++echo "--------------------"
++echo "running hugepage-shm"
++echo "--------------------"
++./hugepage-shm
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++echo $shmmax > /proc/sys/kernel/shmmax
++echo $shmall > /proc/sys/kernel/shmall
++
++echo "-------------------"
++echo "running map_hugetlb"
++echo "-------------------"
++./map_hugetlb
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "NOTE: The above hugetlb tests provide minimal coverage.  Use"
++echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
++echo "      hugetlb regression testing."
++
++echo "---------------------------"
++echo "running map_fixed_noreplace"
++echo "---------------------------"
++./map_fixed_noreplace
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "------------------------------------------------------"
++echo "running: gup_test -u # get_user_pages_fast() benchmark"
++echo "------------------------------------------------------"
++./gup_test -u
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "------------------------------------------------------"
++echo "running: gup_test -a # pin_user_pages_fast() benchmark"
++echo "------------------------------------------------------"
++./gup_test -a
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "------------------------------------------------------------"
++echo "# Dump pages 0, 19, and 4096, using pin_user_pages:"
++echo "running: gup_test -ct -F 0x1 0 19 0x1000 # dump_page() test"
++echo "------------------------------------------------------------"
++./gup_test -ct -F 0x1 0 19 0x1000
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "-------------------"
++echo "running userfaultfd"
++echo "-------------------"
++./userfaultfd anon 20 16
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "---------------------------"
++echo "running userfaultfd_hugetlb"
++echo "---------------------------"
++# Test requires source and destination huge pages.  Size of source
++# (half_ufd_size_MB) is passed as argument to test.
++./userfaultfd hugetlb $half_ufd_size_MB 32 $mnt/ufd_test_file
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++rm -f $mnt/ufd_test_file
++
++echo "-------------------------"
++echo "running userfaultfd_shmem"
++echo "-------------------------"
++./userfaultfd shmem 20 16
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++#cleanup
++umount $mnt
++rm -rf $mnt
++echo $nr_hugepgs > /proc/sys/vm/nr_hugepages
++
++echo "-----------------------"
++echo "running compaction_test"
++echo "-----------------------"
++./compaction_test
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "----------------------"
++echo "running on-fault-limit"
++echo "----------------------"
++sudo -u nobody ./on-fault-limit
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "--------------------"
++echo "running map_populate"
++echo "--------------------"
++./map_populate
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "-------------------------"
++echo "running mlock-random-test"
++echo "-------------------------"
++./mlock-random-test
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "--------------------"
++echo "running mlock2-tests"
++echo "--------------------"
++./mlock2-tests
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "-------------------"
++echo "running mremap_test"
++echo "-------------------"
++./mremap_test
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "-----------------"
++echo "running thuge-gen"
++echo "-----------------"
++./thuge-gen
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++if [ $VADDR64 -ne 0 ]; then
++echo "-----------------------------"
++echo "running virtual_address_range"
++echo "-----------------------------"
++./virtual_address_range
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "-----------------------------"
++echo "running virtual address 128TB switch test"
++echo "-----------------------------"
++./va_128TBswitch
++if [ $? -ne 0 ]; then
++    echo "[FAIL]"
++    exitcode=1
++else
++    echo "[PASS]"
++fi
++fi # VADDR64
++
++echo "------------------------------------"
++echo "running vmalloc stability smoke test"
++echo "------------------------------------"
++./test_vmalloc.sh smoke
++ret_val=$?
++
++if [ $ret_val -eq 0 ]; then
++	echo "[PASS]"
++elif [ $ret_val -eq $ksft_skip ]; then
++	 echo "[SKIP]"
++	 exitcode=$ksft_skip
++else
++	echo "[FAIL]"
++	exitcode=1
++fi
++
++echo "------------------------------------"
++echo "running MREMAP_DONTUNMAP smoke test"
++echo "------------------------------------"
++./mremap_dontunmap
++ret_val=$?
++
++if [ $ret_val -eq 0 ]; then
++	echo "[PASS]"
++elif [ $ret_val -eq $ksft_skip ]; then
++	 echo "[SKIP]"
++	 exitcode=$ksft_skip
++else
++	echo "[FAIL]"
++	exitcode=1
++fi
++
++echo "running HMM smoke test"
++echo "------------------------------------"
++./test_hmm.sh smoke
++ret_val=$?
++
++if [ $ret_val -eq 0 ]; then
++	echo "[PASS]"
++elif [ $ret_val -eq $ksft_skip ]; then
++	echo "[SKIP]"
++	exitcode=$ksft_skip
++else
++	echo "[FAIL]"
++	exitcode=1
++fi
++
++exit $exitcode
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from rong.a.chen@intel.com are
 
-kasan-prefix-global-functions-with-kasan_.patch
-kasan-clarify-hw_tags-impact-on-tbi.patch
-kasan-clean-up-comments-in-tests.patch
-kasan-add-macros-to-simplify-checking-test-constraints.patch
-kasan-add-match-all-tag-tests.patch
-kasan-arm64-allow-using-kunit-tests-with-hw_tags-mode.patch
-kasan-rename-config_test_kasan_module.patch
-kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
-kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
-kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
-kasan-move-_ret_ip_-to-inline-wrappers.patch
-kasan-fix-bug-detection-via-ksize-for-hw_tags-mode.patch
-kasan-add-proper-page-allocator-tests.patch
-kasan-add-a-test-for-kmem_cache_alloc-free_bulk.patch
-kasan-dont-run-tests-when-kasan-is-not-enabled.patch
-kfence-kasan-make-kfence-compatible-with-kasan-fix-2.patch
-kasan-mm-dont-save-alloc-stacks-twice.patch
-kasan-mm-optimize-kmalloc-poisoning.patch
-kasan-optimize-large-kmalloc-poisoning.patch
-kasan-clean-up-setting-free-info-in-kasan_slab_free.patch
-kasan-unify-large-kfree-checks.patch
-kasan-rework-krealloc-tests.patch
-kasan-mm-fail-krealloc-on-freed-objects.patch
-kasan-mm-optimize-krealloc-poisoning.patch
-kasan-ensure-poisoning-size-alignment.patch
-arm64-kasan-simplify-and-inline-mte-functions.patch
-kasan-inline-hw_tags-helper-functions.patch
-arm64-kasan-export-mte-symbols-for-kasan-tests.patch
-kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch
+selftests-vm-rename-file-run_vmtests-to-run_vmtestssh.patch
 
