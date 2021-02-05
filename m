@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DATE_IN_PAST_03_06,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 501FBC433DB
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:08:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BF0BC433DB
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:11:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1BE3D64FD6
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:08:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C698864F99
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:11:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231251AbhBFDHc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Feb 2021 22:07:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41362 "EHLO mail.kernel.org"
+        id S230035AbhBFDKm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Feb 2021 22:10:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42070 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231858AbhBFDCE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Feb 2021 22:02:04 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F314364FD8;
-        Fri,  5 Feb 2021 23:24:49 +0000 (UTC)
+        id S229492AbhBFDG4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Feb 2021 22:06:56 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C0E2F64DBA;
+        Fri,  5 Feb 2021 22:51:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612567490;
-        bh=K0bRW15VVCsLMfeggUTfJuUsP5VPaDg9/Fpo65oeZbY=;
+        s=korg; t=1612565514;
+        bh=K2vCmDQMvJNms/OGPdq/lY0iH6Ue9gGJGNA5AoyApwE=;
         h=Date:From:To:Subject:From;
-        b=V0JQ2/LiHrL4lG/04rX5sNdROmCd5M4k/RUxxUBvTi63DlQlwQ/JUZqoYPw5a1p/X
-         5K9LZrc1EdaKFmikb9jv38XoVYlCHADDsGgkzLLC2OcXcFzm0kHdDfQahKggHc3i8e
-         nn08KBxtU3NNq+zTxIPxcROT0RzPpCQg3qqe/Q9M=
-Date:   Fri, 05 Feb 2021 15:24:49 -0800
+        b=KWEIcIDZevZX0+SXZ/5Q5Y7T7kqidOuvCZDq78bqWvhfivK41TMlnhzUcc48slBMk
+         F48yoGSdidyfbIJ76Y89cbQM5c2jO7VSUZjoMdCWq9U76KsIeRBDdvWt1lLIcnM1eN
+         bnJkI1ycX1oIZ4qAO/Ur/ECLDh6AuQLz3fYwa7E0=
+Date:   Fri, 05 Feb 2021 14:51:53 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
+To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org
 Subject:  +
- mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch added to
- -mm tree
-Message-ID: <20210205232449.K0Pvi1_DN%akpm@linux-foundation.org>
+ mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
+ added to -mm tree
+Message-ID: <20210205225153.wCX_3E9tI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mlock: stop counting mlocked pages when none vma is found
+     Subject: mm/hugetlb: use helper function range_in_vma() in page_table_shareable()
 has been added to the -mm tree.  Its filename is
-     mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
+     mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,33 +66,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/mlock: stop counting mlocked pages when none vma is found
+Subject: mm/hugetlb: use helper function range_in_vma() in page_table_shareable()
 
-There will be no vma satisfies addr < vm_end when find_vma() returns NULL.
-Thus it's meaningless to traverse the vma list below because we can't
-find any vma to count mlocked pages.  Stop counting mlocked pages in this
-case to save some vma list traversal cycles.
+We could use helper function range_in_vma() to check whether the vma is in
+the desired range to simplify the code.
 
-Link: https://lkml.kernel.org/r/20210204110705.17586-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210204112949.43051-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    2 +-
+ mm/hugetlb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mlock.c~mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found
-+++ a/mm/mlock.c
-@@ -622,7 +622,7 @@ static unsigned long count_mm_mlocked_pa
+--- a/mm/hugetlb.c~mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable
++++ a/mm/hugetlb.c
+@@ -5296,7 +5296,7 @@ static unsigned long page_table_shareabl
+ 	 */
+ 	if (pmd_index(addr) != pmd_index(saddr) ||
+ 	    vm_flags != svm_flags ||
+-	    sbase < svma->vm_start || svma->vm_end < s_end)
++	    !range_in_vma(svma, sbase, s_end))
+ 		return 0;
  
- 	vma = find_vma(mm, start);
- 	if (vma == NULL)
--		vma = mm->mmap;
-+		return 0;
- 
- 	for (; vma ; vma = vma->vm_next) {
- 		if (start >= vma->vm_end)
+ 	return saddr;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -123,7 +122,6 @@ hugetlbfs-make-hugepage-size-conversion-more-readable.patch
 hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch
 hugetlbfs-fix-some-comment-typos.patch
 mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
 mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
 mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
 mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
