@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2EDFC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4AE7C43381
 	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 00:56:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BC2560C3F
+	by mail.kernel.org (Postfix) with ESMTP id BF21460C3F
 	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 00:56:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232280AbhBEA4A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 4 Feb 2021 19:56:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59644 "EHLO mail.kernel.org"
+        id S232283AbhBEA4G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 4 Feb 2021 19:56:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59680 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232277AbhBEA4A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Feb 2021 19:56:00 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3897E64FAF;
-        Fri,  5 Feb 2021 00:55:19 +0000 (UTC)
+        id S232279AbhBEA4G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Feb 2021 19:56:06 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E4C8464F9D;
+        Fri,  5 Feb 2021 00:55:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612486519;
-        bh=MJJVq9jOhVXkY5Fmzn/EyEAA8MkVWKXJr33BKF0vLOg=;
+        s=korg; t=1612486525;
+        bh=Cnoxav7JuNVDkkCl/ZuzL+iM4WLPGMEC1/jng2Bm4kw=;
         h=Date:From:To:Subject:From;
-        b=nfCJyVu/OUB+2KNkJiPWZdmkWzEs5t8jdaKUnkE6hHYAbN0j3LAh2FIpTKnUPkTxT
-         uIUjV99D78f76AvR2fX+BrrdzfXE9wKzevKQcuphLOmWZADULVStFdvwrZuIu81QM4
-         VvDUv+AGnPDOJfH8wigwZR1k/o5ihI7iEecOz4PQ=
-Date:   Thu, 04 Feb 2021 16:55:18 -0800
+        b=YcHEerhsBvEdvStotFVgw/EYqHE5PVD61VUHqZSxNgiNce9+gqKNbVBn0TwN4cmH6
+         ldZsLiP7us7jbeKFIkf5apQANDyMo1b7zN8rK22/O87Dho0F/YN64VDYIJZDpCvil2
+         Ir+sVTrXHrY7ENiuV9qN5I0mxMlPHJRoW3723D08=
+Date:   Thu, 04 Feb 2021 16:55:24 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
-        pliard@google.com
-Subject:  +
- squashfs-avoid-out-of-bounds-writes-in-decompressors.patch added to -mm
- tree
-Message-ID: <20210205005518.6FsRYL98e%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk
+Subject:  + squashfs-add-more-sanity-checks-in-inode-lookup.patch
+ added to -mm tree
+Message-ID: <20210205005524.HH_X8A72F%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: squashfs: avoid out of bounds writes in decompressors
+     Subject: squashfs: add more sanity checks in inode lookup
 has been added to the -mm tree.  Its filename is
-     squashfs-avoid-out-of-bounds-writes-in-decompressors.patch
+     squashfs-add-more-sanity-checks-in-inode-lookup.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/squashfs-avoid-out-of-bounds-writes-in-decompressors.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/squashfs-add-more-sanity-checks-in-inode-lookup.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/squashfs-avoid-out-of-bounds-writes-in-decompressors.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/squashfs-add-more-sanity-checks-in-inode-lookup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,84 +64,113 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: squashfs: avoid out of bounds writes in decompressors
+Subject: squashfs: add more sanity checks in inode lookup
 
-Patch series "Squashfs: fix BIO migration regression and add sanity checks".
+Sysbot has reported an "slab-out-of-bounds read" error which has been
+identified as being caused by a corrupted "ino_num" value read from the
+inode.  This could be because the metadata block is uncompressed, or
+because the "compression" bit has been corrupted (turning a compressed
+block into an uncompressed block).
 
-Patch [1/4] fixes a regression introduced by the "migrate from ll_rw_block
-usage to BIO" patch, which has produced a number of Sysbot/Syzkaller
-reports.
+This patch adds additional sanity checks to detect this, and the
+following corruption.
 
-Patches [2/4], [3/4], and [4/4] fix a number of filesystem corruption
-issues which have produced Sysbot reports in the id, inode and xattr
-lookup code.
+1. It checks against corruption of the inodes count.  This can either
+   lead to a larger table to be read, or a smaller than expected
+   table to be read.
 
-Each patch has been tested against the Sysbot reproducers using the given
-kernel configuration.  They have the appropriate "Reported-by:" lines
-added.
+   In the case of a too large inodes count, this would often have been
+   trapped by the existing sanity checks, but this patch introduces
+   a more exact check, which can identify too small values.
 
-Additionally, all of the reproducer filesystems are indirectly fixed by
-patch [4/4] due to the fact they all have xattr corruption which is now
-detected there.
+2. It checks the contents of the index table for corruption.
 
-Additional testing with other configurations and architectures (32bit, big
-endian), and normal filesystems has also been done to trap any inadvertent
-regressions caused by the additional sanity checks.
-
-
-This patch (of 4):
-
-This is a regression introduced by the patch "migrate from ll_rw_block
-usage to BIO".
-
-Sysbot/Syskaller has reported a number of "out of bounds writes" and
-"unable to handle kernel paging request in squashfs_decompress" errors
-which have been identified as a regression introduced by the above patch.
-
-Specifically, the patch removed the following sanity check
-
-if (length < 0 || length > output->length ||
-		(index + length) > msblk->bytes_used)
-
-This check did two things:
-
-1. It ensured any reads were not beyond the end of the filesystem
-
-2. It ensured that the "length" field read from the filesystem
-   was within the expected maximum length.  Without this any
-   corrupted values can over-run allocated buffers.
-
-Link: https://lkml.kernel.org/r/20210204130249.4495-1-phillip@squashfs.org.uk
-Link: https://lkml.kernel.org/r/20210204130249.4495-2-phillip@squashfs.org.uk
-Fixes: 93e72b3c612adc ("squashfs: migrate from ll_rw_block usage to BIO")
-Reported-by: syzbot+6fba78f99b9afd4b5634@syzkaller.appspotmail.com
+Link: https://lkml.kernel.org/r/20210204130249.4495-4-phillip@squashfs.org.uk
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: Philippe Liard <pliard@google.com>
+Reported-by: syzbot+04419e3ff19d2970ea28@syzkaller.appspotmail.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/block.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ fs/squashfs/export.c |   41 +++++++++++++++++++++++++++++++++--------
+ 1 file changed, 33 insertions(+), 8 deletions(-)
 
---- a/fs/squashfs/block.c~squashfs-avoid-out-of-bounds-writes-in-decompressors
-+++ a/fs/squashfs/block.c
-@@ -196,9 +196,15 @@ int squashfs_read_data(struct super_bloc
- 		length = SQUASHFS_COMPRESSED_SIZE(length);
- 		index += 2;
+--- a/fs/squashfs/export.c~squashfs-add-more-sanity-checks-in-inode-lookup
++++ a/fs/squashfs/export.c
+@@ -41,12 +41,17 @@ static long long squashfs_inode_lookup(s
+ 	struct squashfs_sb_info *msblk = sb->s_fs_info;
+ 	int blk = SQUASHFS_LOOKUP_BLOCK(ino_num - 1);
+ 	int offset = SQUASHFS_LOOKUP_BLOCK_OFFSET(ino_num - 1);
+-	u64 start = le64_to_cpu(msblk->inode_lookup_table[blk]);
++	u64 start;
+ 	__le64 ino;
+ 	int err;
  
--		TRACE("Block @ 0x%llx, %scompressed size %d\n", index,
-+		TRACE("Block @ 0x%llx, %scompressed size %d\n", index - 2,
- 		      compressed ? "" : "un", length);
- 	}
-+	if (length < 0 || length > output->length ||
-+			(index + length) > msblk->bytes_used) {
-+		res = -EIO;
-+		goto out;
+ 	TRACE("Entered squashfs_inode_lookup, inode_number = %d\n", ino_num);
+ 
++	if(ino_num == 0 || (ino_num - 1) >= msblk->inodes)
++		return -EINVAL;
++
++	start = le64_to_cpu(msblk->inode_lookup_table[blk]);
++
+ 	err = squashfs_read_metadata(sb, &ino, &start, &offset, sizeof(ino));
+ 	if (err < 0)
+ 		return err;
+@@ -111,7 +116,10 @@ __le64 *squashfs_read_inode_lookup_table
+ 		u64 lookup_table_start, u64 next_table, unsigned int inodes)
+ {
+ 	unsigned int length = SQUASHFS_LOOKUP_BLOCK_BYTES(inodes);
++	unsigned int indexes = SQUASHFS_LOOKUP_BLOCKS(inodes);
++	int n;
+ 	__le64 *table;
++	u64 start, end;
+ 
+ 	TRACE("In read_inode_lookup_table, length %d\n", length);
+ 
+@@ -121,20 +129,37 @@ __le64 *squashfs_read_inode_lookup_table
+ 	if (inodes == 0)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	/* length bytes should not extend into the next table - this check
+-	 * also traps instances where lookup_table_start is incorrectly larger
+-	 * than the next table start
++	/*
++	 * The computed size of the lookup table (length bytes) should exactly
++	 * match the table start and end points
+ 	 */
+-	if (lookup_table_start + length > next_table)
++	if (length != (next_table - lookup_table_start))
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	table = squashfs_read_table(sb, lookup_table_start, length);
++	if (IS_ERR(table))
++		return table;
+ 
+ 	/*
+-	 * table[0] points to the first inode lookup table metadata block,
+-	 * this should be less than lookup_table_start
++	 * table0], table[1], ... table[indexes - 1] store the locations
++	 * of the compressed inode lookup blocks.  Each entry should be
++	 * less than the next (i.e. table[0] < table[1]), and the difference
++	 * between them should be SQUASHFS_METADATA_SIZE or less.
++	 * table[indexes - 1] should  be less than lookup_table_start, and
++	 * again the difference should be SQUASHFS_METADATA_SIZE or less
+ 	 */
+-	if (!IS_ERR(table) && le64_to_cpu(table[0]) >= lookup_table_start) {
++	for (n = 0; n < (indexes - 1); n++) {
++		start = le64_to_cpu(table[n]);
++		end = le64_to_cpu(table[n + 1]);
++
++		if (start >= end || (end - start) > SQUASHFS_METADATA_SIZE) {
++			kfree(table);
++			return ERR_PTR(-EINVAL);
++		}
 +	}
 +
- 	if (next_index)
- 		*next_index = index + length;
- 
++	start = le64_to_cpu(table[indexes - 1]);
++	if (start >= lookup_table_start || (lookup_table_start - start) > SQUASHFS_METADATA_SIZE) {
+ 		kfree(table);
+ 		return ERR_PTR(-EINVAL);
+ 	}
 _
 
 Patches currently in -mm which might be from phillip@squashfs.org.uk are
