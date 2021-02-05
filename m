@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87B3AC433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 762AFC433DB
 	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:22:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 55BFC64FBA
+	by mail.kernel.org (Postfix) with ESMTP id 3676164D79
 	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:22:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233042AbhBEVW2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Feb 2021 16:22:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45206 "EHLO mail.kernel.org"
+        id S233120AbhBEVWZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Feb 2021 16:22:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45202 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233580AbhBEVUb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Feb 2021 16:20:31 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3695164FCC;
-        Fri,  5 Feb 2021 21:18:48 +0000 (UTC)
+        id S233537AbhBEVUa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Feb 2021 16:20:30 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 58EA164FCB;
+        Fri,  5 Feb 2021 21:18:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612559928;
-        bh=j/FGL6cuEfBWW92HLkgIJSc34/+REUjM0sg0gSBkJMA=;
+        s=korg; t=1612559921;
+        bh=tt2xvC8fr4lf883fvUVW+x9rvdqeaPtNtr3nzasTZMo=;
         h=Date:From:To:Subject:From;
-        b=AjX7ZsBbaS1OEQjIMhbLRihe83Rv/OnQFkjB1ZTi3wK9PJKO8HUCUFccyEGHcLATS
-         dHu+NxLmF6XNvuWME5C13RhBmOCk4Havb0APREz6GfWXs43sdF6rO4b7RFJWQvsBbz
-         w0+PtglbGvleTNZbeS1erqlLiXLN5OoLz1ZB4bbI=
-Date:   Fri, 05 Feb 2021 13:18:47 -0800
+        b=afFkWrJe9qN/D36ttYXNERtowONkGwYYoRLGOlDEALy09YFOfV/YaEULTK/oilMY7
+         9heQ5Asbi2meGJgXc970DJNL3FSxYCAlRWhGXEG0AEcUyttpwMsC7omo4f9RcaOL5/
+         qP4sRSE9Lbd+7Hylkv/PCK+eVm0XWBFRjHRPpqqQ=
+Date:   Fri, 05 Feb 2021 13:18:39 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  + arm64-kasan-export-mte-symbols-for-kasan-tests.patch
+Subject:  + arm64-kasan-simplify-and-inline-mte-functions.patch
  added to -mm tree
-Message-ID: <20210205211847.zzVXqXxXA%akpm@linux-foundation.org>
+Message-ID: <20210205211839.1ZOpckDUJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: kasan: export MTE symbols for KASAN tests
+     Subject: arm64: kasan: simplify and inline MTE functions
 has been added to the -mm tree.  Its filename is
-     arm64-kasan-export-mte-symbols-for-kasan-tests.patch
+     arm64-kasan-simplify-and-inline-mte-functions.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kasan-export-mte-symbols-for-kasan-tests.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kasan-simplify-and-inline-mte-functions.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kasan-export-mte-symbols-for-kasan-tests.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kasan-simplify-and-inline-mte-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,14 +69,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: arm64: kasan: export MTE symbols for KASAN tests
+Subject: arm64: kasan: simplify and inline MTE functions
 
-Export mte_enable_kernel() and mte_set_report_once() to fix:
+This change provides a simpler implementation of mte_get_mem_tag(),
+mte_get_random_tag(), and mte_set_mem_tag_range().
 
-ERROR: modpost: "mte_enable_kernel" [lib/test_kasan.ko] undefined!
-ERROR: modpost: "mte_set_report_once" [lib/test_kasan.ko] undefined!
+Simplifications include removing system_supports_mte() checks as these
+functions are onlye called from KASAN runtime that had already checked
+system_supports_mte().  Besides that, size and address alignment checks
+are removed from mte_set_mem_tag_range(), as KASAN now does those.
 
-Link: https://lkml.kernel.org/r/14da91876a25a6ae5b2096f7c06ebbc6deb3cf6b.1612546384.git.andreyknvl@google.com
+This change also moves these functions into the asm/mte-kasan.h header and
+implements mte_set_mem_tag_range() via inline assembly to avoid
+unnecessary functions calls.
+
+Link: https://lkml.kernel.org/r/a26121b294fdf76e369cb7a74351d1c03a908930.1612546384.git.andreyknvl@google.com
+Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -87,30 +96,238 @@ Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Peter Collingbourne <pcc@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/mte.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm64/include/asm/cache.h     |    1 
+ arch/arm64/include/asm/kasan.h     |    1 
+ arch/arm64/include/asm/mte-def.h   |    2 
+ arch/arm64/include/asm/mte-kasan.h |   65 +++++++++++++++++++++++----
+ arch/arm64/include/asm/mte.h       |    2 
+ arch/arm64/kernel/mte.c            |   46 -------------------
+ arch/arm64/lib/mte.S               |   16 ------
+ 7 files changed, 60 insertions(+), 73 deletions(-)
 
---- a/arch/arm64/kernel/mte.c~arm64-kasan-export-mte-symbols-for-kasan-tests
+--- a/arch/arm64/include/asm/cache.h~arm64-kasan-simplify-and-inline-mte-functions
++++ a/arch/arm64/include/asm/cache.h
+@@ -6,7 +6,6 @@
+ #define __ASM_CACHE_H
+ 
+ #include <asm/cputype.h>
+-#include <asm/mte-kasan.h>
+ 
+ #define CTR_L1IP_SHIFT		14
+ #define CTR_L1IP_MASK		3
+--- a/arch/arm64/include/asm/kasan.h~arm64-kasan-simplify-and-inline-mte-functions
++++ a/arch/arm64/include/asm/kasan.h
+@@ -6,6 +6,7 @@
+ 
+ #include <linux/linkage.h>
+ #include <asm/memory.h>
++#include <asm/mte-kasan.h>
+ #include <asm/pgtable-types.h>
+ 
+ #define arch_kasan_set_tag(addr, tag)	__tag_set(addr, tag)
+--- a/arch/arm64/include/asm/mte-def.h~arm64-kasan-simplify-and-inline-mte-functions
++++ a/arch/arm64/include/asm/mte-def.h
+@@ -11,4 +11,6 @@
+ #define MTE_TAG_SIZE		4
+ #define MTE_TAG_MASK		GENMASK((MTE_TAG_SHIFT + (MTE_TAG_SIZE - 1)), MTE_TAG_SHIFT)
+ 
++#define __MTE_PREAMBLE		ARM64_ASM_PREAMBLE ".arch_extension memtag\n"
++
+ #endif /* __ASM_MTE_DEF_H  */
+--- a/arch/arm64/include/asm/mte.h~arm64-kasan-simplify-and-inline-mte-functions
++++ a/arch/arm64/include/asm/mte.h
+@@ -8,8 +8,6 @@
+ #include <asm/compiler.h>
+ #include <asm/mte-def.h>
+ 
+-#define __MTE_PREAMBLE		ARM64_ASM_PREAMBLE ".arch_extension memtag\n"
+-
+ #ifndef __ASSEMBLY__
+ 
+ #include <linux/bitfield.h>
+--- a/arch/arm64/include/asm/mte-kasan.h~arm64-kasan-simplify-and-inline-mte-functions
++++ a/arch/arm64/include/asm/mte-kasan.h
+@@ -11,11 +11,14 @@
+ 
+ #include <linux/types.h>
+ 
++#ifdef CONFIG_ARM64_MTE
++
+ /*
+- * The functions below are meant to be used only for the
+- * KASAN_HW_TAGS interface defined in asm/memory.h.
++ * These functions are meant to be only used from KASAN runtime through
++ * the arch_*() interface defined in asm/memory.h.
++ * These functions don't include system_supports_mte() checks,
++ * as KASAN only calls them when MTE is supported and enabled.
+  */
+-#ifdef CONFIG_ARM64_MTE
+ 
+ static inline u8 mte_get_ptr_tag(void *ptr)
+ {
+@@ -25,9 +28,54 @@ static inline u8 mte_get_ptr_tag(void *p
+ 	return tag;
+ }
+ 
+-u8 mte_get_mem_tag(void *addr);
+-u8 mte_get_random_tag(void);
+-void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag);
++/* Get allocation tag for the address. */
++static inline u8 mte_get_mem_tag(void *addr)
++{
++	asm(__MTE_PREAMBLE "ldg %0, [%0]"
++		: "+r" (addr));
++
++	return mte_get_ptr_tag(addr);
++}
++
++/* Generate a random tag. */
++static inline u8 mte_get_random_tag(void)
++{
++	void *addr;
++
++	asm(__MTE_PREAMBLE "irg %0, %0"
++		: "+r" (addr));
++
++	return mte_get_ptr_tag(addr);
++}
++
++/*
++ * Assign allocation tags for a region of memory based on the pointer tag.
++ * Note: The address must be non-NULL and MTE_GRANULE_SIZE aligned and
++ * size must be non-zero and MTE_GRANULE_SIZE aligned.
++ */
++static inline void mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
++{
++	u64 curr, end;
++
++	if (!size)
++		return;
++
++	curr = (u64)__tag_set(addr, tag);
++	end = curr + size;
++
++	do {
++		/*
++		 * 'asm volatile' is required to prevent the compiler to move
++		 * the statement outside of the loop.
++		 */
++		asm volatile(__MTE_PREAMBLE "stg %0, [%0]"
++			     :
++			     : "r" (curr)
++			     : "memory");
++
++		curr += MTE_GRANULE_SIZE;
++	} while (curr != end);
++}
+ 
+ void mte_enable_kernel(void);
+ void mte_init_tags(u64 max_tag);
+@@ -46,13 +94,14 @@ static inline u8 mte_get_mem_tag(void *a
+ {
+ 	return 0xFF;
+ }
++
+ static inline u8 mte_get_random_tag(void)
+ {
+ 	return 0xFF;
+ }
+-static inline void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
++
++static inline void mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
+ {
+-	return addr;
+ }
+ 
+ static inline void mte_enable_kernel(void)
+--- a/arch/arm64/kernel/mte.c~arm64-kasan-simplify-and-inline-mte-functions
 +++ a/arch/arm64/kernel/mte.c
-@@ -113,11 +113,13 @@ void mte_enable_kernel(void)
- 	sysreg_clear_set(sctlr_el1, SCTLR_ELx_TCF_MASK, SCTLR_ELx_TCF_SYNC);
- 	isb();
- }
-+EXPORT_SYMBOL_GPL(mte_enable_kernel);
+@@ -19,7 +19,6 @@
+ #include <asm/barrier.h>
+ #include <asm/cpufeature.h>
+ #include <asm/mte.h>
+-#include <asm/mte-kasan.h>
+ #include <asm/ptrace.h>
+ #include <asm/sysreg.h>
  
- void mte_set_report_once(bool state)
- {
- 	WRITE_ONCE(report_fault_once, state);
+@@ -88,51 +87,6 @@ int memcmp_pages(struct page *page1, str
+ 	return ret;
  }
-+EXPORT_SYMBOL_GPL(mte_set_report_once);
  
- bool mte_report_once(void)
+-u8 mte_get_mem_tag(void *addr)
+-{
+-	if (!system_supports_mte())
+-		return 0xFF;
+-
+-	asm(__MTE_PREAMBLE "ldg %0, [%0]"
+-	    : "+r" (addr));
+-
+-	return mte_get_ptr_tag(addr);
+-}
+-
+-u8 mte_get_random_tag(void)
+-{
+-	void *addr;
+-
+-	if (!system_supports_mte())
+-		return 0xFF;
+-
+-	asm(__MTE_PREAMBLE "irg %0, %0"
+-	    : "+r" (addr));
+-
+-	return mte_get_ptr_tag(addr);
+-}
+-
+-void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
+-{
+-	void *ptr = addr;
+-
+-	if ((!system_supports_mte()) || (size == 0))
+-		return addr;
+-
+-	/* Make sure that size is MTE granule aligned. */
+-	WARN_ON(size & (MTE_GRANULE_SIZE - 1));
+-
+-	/* Make sure that the address is MTE granule aligned. */
+-	WARN_ON((u64)addr & (MTE_GRANULE_SIZE - 1));
+-
+-	tag = 0xF0 | tag;
+-	ptr = (void *)__tag_set(ptr, tag);
+-
+-	mte_assign_mem_tag_range(ptr, size);
+-
+-	return ptr;
+-}
+-
+ void mte_init_tags(u64 max_tag)
  {
+ 	static bool gcr_kernel_excl_initialized;
+--- a/arch/arm64/lib/mte.S~arm64-kasan-simplify-and-inline-mte-functions
++++ a/arch/arm64/lib/mte.S
+@@ -149,19 +149,3 @@ SYM_FUNC_START(mte_restore_page_tags)
+ 
+ 	ret
+ SYM_FUNC_END(mte_restore_page_tags)
+-
+-/*
+- * Assign allocation tags for a region of memory based on the pointer tag
+- *   x0 - source pointer
+- *   x1 - size
+- *
+- * Note: The address must be non-NULL and MTE_GRANULE_SIZE aligned and
+- * size must be non-zero and MTE_GRANULE_SIZE aligned.
+- */
+-SYM_FUNC_START(mte_assign_mem_tag_range)
+-1:	stg	x0, [x0]
+-	add	x0, x0, #MTE_GRANULE_SIZE
+-	subs	x1, x1, #MTE_GRANULE_SIZE
+-	b.gt	1b
+-	ret
+-SYM_FUNC_END(mte_assign_mem_tag_range)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
