@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D361DC43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B87ECC433E6
 	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:22:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A9E6B64FB9
+	by mail.kernel.org (Postfix) with ESMTP id 8939C64D79
 	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:22:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232861AbhBEVWW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Feb 2021 16:22:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45204 "EHLO mail.kernel.org"
+        id S233184AbhBEVWf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Feb 2021 16:22:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45208 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233556AbhBEVU3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Feb 2021 16:20:29 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D579664FCD;
-        Fri,  5 Feb 2021 21:18:44 +0000 (UTC)
+        id S233571AbhBEVUb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Feb 2021 16:20:31 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 033EC64FCE;
+        Fri,  5 Feb 2021 21:18:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612559925;
-        bh=09fwlS06GRNi/rpCunAQOj9ARQndaB759Ka/L3Ef090=;
+        s=korg; t=1612559931;
+        bh=bHy+wVSug1ErvA7vX6TJCvDd8q4UFU9TnFikHJ812YE=;
         h=Date:From:To:Subject:From;
-        b=pdZ0aCinuk8aDzhsTFwYBY7ri2ZmJNCmv/+NiM0Jif1gnL/h5nHGjE97mJ4GFr2pd
-         +JnY6qY0Ffu/x9TsSPiYNjgQyasUig9UL7Ri123delH28UGfMHS3fgnvUg160zu9gE
-         xfKsUTExpyqM91fi00MncVKrklHqED+L0/TYnn4Q=
-Date:   Fri, 05 Feb 2021 13:18:44 -0800
+        b=WJmWbToil1LB6ztbicZ/1JhCXnYWrOrjlKb2S09ZIzkKjRur6H0/Z0S2bft5gJK5P
+         8ubJfZ2uYJUw0G/uEGjjWkLCEKZHtyubWq6Gj8ARwddanoLHwiM28LofdoswwmGZ/E
+         n1YTN8SlY9QRAHARVzTkakoCVyNLwi6ZS2mjWP0k=
+Date:   Fri, 05 Feb 2021 13:18:50 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,10 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  + kasan-inline-hw_tags-helper-functions.patch added to
- -mm tree
-Message-ID: <20210205211844.nEumJIQhK%akpm@linux-foundation.org>
+Subject:  +
+ kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch added to -mm
+ tree
+Message-ID: <20210205211850.O9Q3I65tu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: inline HW_TAGS helper functions
+     Subject: kasan: clarify that only first bug is reported in HW_TAGS
 has been added to the -mm tree.  Its filename is
-     kasan-inline-hw_tags-helper-functions.patch
+     kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-inline-hw_tags-helper-functions.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-inline-hw_tags-helper-functions.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,12 +70,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: inline HW_TAGS helper functions
+Subject: kasan: clarify that only first bug is reported in HW_TAGS
 
-Mark all static functions in common.c and kasan.h that are used for
-hardware tag-based KASAN as inline to avoid unnecessary function calls.
+Hwardware tag-based KASAN only reports the first found bug. After that MTE
+tag checking gets disabled. Clarify this in comments and documentation.
 
-Link: https://lkml.kernel.org/r/2c94a2af0657f2b95b9337232339ff5ffa643ab5.1612546384.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/00383ba88a47c3f8342d12263c24bdf95527b07d.1612546384.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -90,52 +91,52 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ Documentation/dev-tools/kasan.rst |    8 ++++++--
+ mm/kasan/hw_tags.c                |    2 +-
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/kasan/common.c~kasan-inline-hw_tags-helper-functions
-+++ a/mm/kasan/common.c
-@@ -279,7 +279,8 @@ void __kasan_poison_object_data(struct k
-  *    based on objects indexes, so that objects that are next to each other
-  *    get different tags.
-  */
--static u8 assign_tag(struct kmem_cache *cache, const void *object, bool init)
-+static inline u8 assign_tag(struct kmem_cache *cache,
-+					const void *object, bool init)
- {
- 	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
- 		return 0xff;
-@@ -321,8 +322,8 @@ void * __must_check __kasan_init_slab_ob
- 	return (void *)object;
- }
+--- a/Documentation/dev-tools/kasan.rst~kasan-clarify-that-only-first-bug-is-reported-in-hw_tags
++++ a/Documentation/dev-tools/kasan.rst
+@@ -155,7 +155,7 @@ Boot parameters
+ ~~~~~~~~~~~~~~~
  
--static bool ____kasan_slab_free(struct kmem_cache *cache, void *object,
--			      unsigned long ip, bool quarantine)
-+static inline bool ____kasan_slab_free(struct kmem_cache *cache,
-+				void *object, unsigned long ip, bool quarantine)
- {
- 	u8 tag;
- 	void *tagged_object;
-@@ -366,7 +367,7 @@ bool __kasan_slab_free(struct kmem_cache
- 	return ____kasan_slab_free(cache, object, ip, true);
- }
+ Hardware tag-based KASAN mode (see the section about various modes below) is
+-intended for use in production as a security mitigation. Therefore it supports
++intended for use in production as a security mitigation. Therefore, it supports
+ boot parameters that allow to disable KASAN competely or otherwise control
+ particular KASAN features.
  
--static bool ____kasan_kfree_large(void *ptr, unsigned long ip)
-+static inline bool ____kasan_kfree_large(void *ptr, unsigned long ip)
- {
- 	if (ptr != page_address(virt_to_head_page(ptr))) {
- 		kasan_report_invalid_free(ptr, ip);
-@@ -461,8 +462,8 @@ void * __must_check __kasan_slab_alloc(s
- 	return tagged_object;
- }
+@@ -166,7 +166,8 @@ particular KASAN features.
+   ``off``).
  
--static void *____kasan_kmalloc(struct kmem_cache *cache, const void *object,
--					size_t size, gfp_t flags)
-+static inline void *____kasan_kmalloc(struct kmem_cache *cache,
-+				const void *object, size_t size, gfp_t flags)
- {
- 	unsigned long redzone_start;
- 	unsigned long redzone_end;
+ - ``kasan.fault=report`` or ``=panic`` controls whether to only print a KASAN
+-  report or also panic the kernel (default: ``report``).
++  report or also panic the kernel (default: ``report``). Note, that tag
++  checking gets disabled after the first reported bug.
+ 
+ For developers
+ ~~~~~~~~~~~~~~
+@@ -296,6 +297,9 @@ Note, that enabling CONFIG_KASAN_HW_TAGS
+ enabled. Even when kasan.mode=off is provided, or when the hardware doesn't
+ support MTE (but supports TBI).
+ 
++Hardware tag-based KASAN only reports the first found bug. After that MTE tag
++checking gets disabled.
++
+ What memory accesses are sanitised by KASAN?
+ --------------------------------------------
+ 
+--- a/mm/kasan/hw_tags.c~kasan-clarify-that-only-first-bug-is-reported-in-hw_tags
++++ a/mm/kasan/hw_tags.c
+@@ -48,7 +48,7 @@ EXPORT_SYMBOL(kasan_flag_enabled);
+ /* Whether to collect alloc/free stack traces. */
+ DEFINE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
+ 
+-/* Whether panic or disable tag checking on fault. */
++/* Whether to panic or print a report and disable tag checking on fault. */
+ bool kasan_flag_panic __ro_after_init;
+ 
+ /* kasan=off/on */
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
