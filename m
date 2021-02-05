@@ -7,36 +7,33 @@ X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DATE_IN_PAST_03_06,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8B2FC43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C27E7C433E6
 	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:15:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AEB0C64FD8
+	by mail.kernel.org (Postfix) with ESMTP id 8DA4F64FA8
 	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:15:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231657AbhBFDO4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Feb 2021 22:14:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42600 "EHLO mail.kernel.org"
+        id S229492AbhBFDOs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Feb 2021 22:14:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40538 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230153AbhBFDME (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Feb 2021 22:12:04 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CCC0E6500F;
-        Sat,  6 Feb 2021 00:05:55 +0000 (UTC)
+        id S232386AbhBFC44 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Feb 2021 21:56:56 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BB48A64E0A;
+        Fri,  5 Feb 2021 22:42:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612569956;
-        bh=1eMAz7k6GicW8nFsMEKojiGvPoT8cGQ2g2NYhSzNPeI=;
+        s=korg; t=1612564936;
+        bh=lz2d7DouIlArTMmw0udTOaj7Le3i2OoPRCmSmFxVyvA=;
         h=Date:From:To:Subject:From;
-        b=hfTZfX95qaInMx0HAMRJItI/Nc9e1Y5YTvGzcZcEVoDC+TlKEwA32b8YzdtzheW0p
-         7IGBnhK1KKsRorpOGMw+RNgW/ix+znsAdBRBj9csKMMBaeO0vR7RAPM0AtrS00qvlV
-         79FAx3GXhyIEltQJr2ZwKCkb3JPkyJ3MRn6mfGiw=
-Date:   Fri, 05 Feb 2021 16:05:55 -0800
+        b=gNIGrn5H7wWJqRvGnI1D7fYXNUrda+MkRXinWkSJh/kv395D4rDMxwluVQjxomQRZ
+         5SxYMCIwEAfnZUcefo+U6gNGOpcY48sU1Mor6S+mOENhruk1JjwqTGGuhIGpuGusSB
+         bdSt4bawwDl9qemYyy3tLEZIXEdkme6DlH6aejLo=
+Date:   Fri, 05 Feb 2021 14:42:16 -0800
 From:   akpm@linux-foundation.org
-To:     amir73il@gmail.com, borntraeger@de.ibm.com, chris@chrisdown.name,
-        gor@linux.ibm.com, hca@linux.ibm.com, hughd@google.com,
-        mm-commits@vger.kernel.org, seth.forshee@canonical.com,
-        stable@vger.kernel.org
-Subject:  + tmpfs-disallow-config_tmpfs_inode64-on-s390.patch added
- to -mm tree
-Message-ID: <20210206000555.gnxTOYin5%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com
+Subject:  + maintainers-update-andrey-ryabinins-email-address.patch
+ added to -mm tree
+Message-ID: <20210205224216.fsAc3RUcl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: disallow CONFIG_TMPFS_INODE64 on s390
+     Subject: MAINTAINERS: update Andrey Ryabinin's email address
 has been added to the -mm tree.  Its filename is
-     tmpfs-disallow-config_tmpfs_inode64-on-s390.patch
+     maintainers-update-andrey-ryabinins-email-address.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/tmpfs-disallow-config_tmpfs_inode64-on-s390.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-andrey-ryabinins-email-address.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-disallow-config_tmpfs_inode64-on-s390.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-andrey-ryabinins-email-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,57 +63,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Seth Forshee <seth.forshee@canonical.com>
-Subject: tmpfs: disallow CONFIG_TMPFS_INODE64 on s390
+From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Subject: MAINTAINERS: update Andrey Ryabinin's email address
 
-Currently there is an assumption in tmpfs that 64-bit architectures also
-have a 64-bit ino_t.  This is not true on s390 which has a 32-bit ino_t. 
-With CONFIG_TMPFS_INODE64=y tmpfs mounts will get 64-bit inode numbers and
-display "inode64" in the mount options, but passing the "inode64" mount
-option will fail.  This leads to the following behavior:
+Update my email, @virtuozzo.com will stop working shortly.
 
- # mkdir mnt
- # mount -t tmpfs nodev mnt
- # mount -o remount,rw mnt
- mount: /home/ubuntu/mnt: mount point not mounted or bad option.
-
-As mount sees "inode64" in the mount options and thus passes it in the
-options for the remount.
-
-
-So prevent CONFIG_TMPFS_INODE64 from being selected on s390.
-
-Link: https://lkml.kernel.org/r/20210205230620.518245-1-seth.forshee@canonical.com
-Fixes: ea3271f7196c ("tmpfs: support 64-bit inums per-sb")
-Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: <stable@vger.kernel.org>	[5.9+]
+Link: https://lkml.kernel.org/r/20210204223904.3824-1-ryabinin.a.a@gmail.com
+Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .mailmap    |    1 +
+ MAINTAINERS |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/Kconfig~tmpfs-disallow-config_tmpfs_inode64-on-s390
-+++ a/fs/Kconfig
-@@ -203,7 +203,7 @@ config TMPFS_XATTR
+--- a/.mailmap~maintainers-update-andrey-ryabinins-email-address
++++ a/.mailmap
+@@ -37,6 +37,7 @@ Andrew Murray <amurray@thegoodpenguin.co
+ Andrew Murray <amurray@thegoodpenguin.co.uk> <andrew.murray@arm.com>
+ Andrew Vasquez <andrew.vasquez@qlogic.com>
+ Andrey Ryabinin <ryabinin.a.a@gmail.com> <a.ryabinin@samsung.com>
++Andrey Ryabinin <ryabinin.a.a@gmail.com> <aryabinin@virtuozzo.com>
+ Andy Adamson <andros@citi.umich.edu>
+ Antoine Tenart <atenart@kernel.org> <antoine.tenart@bootlin.com>
+ Antoine Tenart <atenart@kernel.org> <antoine.tenart@free-electrons.com>
+--- a/MAINTAINERS~maintainers-update-andrey-ryabinins-email-address
++++ a/MAINTAINERS
+@@ -9559,7 +9559,7 @@ F:	Documentation/hwmon/k8temp.rst
+ F:	drivers/hwmon/k8temp.c
  
- config TMPFS_INODE64
- 	bool "Use 64-bit ino_t by default in tmpfs"
--	depends on TMPFS && 64BIT
-+	depends on TMPFS && 64BIT && !S390
- 	default n
- 	help
- 	  tmpfs has historically used only inode numbers as wide as an unsigned
+ KASAN
+-M:	Andrey Ryabinin <aryabinin@virtuozzo.com>
++M:	Andrey Ryabinin <ryabinin.a.a@gmail.com>
+ R:	Alexander Potapenko <glider@google.com>
+ R:	Dmitry Vyukov <dvyukov@google.com>
+ L:	kasan-dev@googlegroups.com
 _
 
-Patches currently in -mm which might be from seth.forshee@canonical.com are
+Patches currently in -mm which might be from ryabinin.a.a@gmail.com are
 
-tmpfs-disallow-config_tmpfs_inode64-on-s390.patch
-tmpfs-dont-use-64-bit-inodes-by-defulat-with-32-bit-ino_t.patch
+maintainers-update-andrey-ryabinins-email-address.patch
 
