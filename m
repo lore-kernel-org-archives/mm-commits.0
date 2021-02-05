@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30D3AC433DB
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 20:33:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3927C433DB
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 20:43:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ECE8B64EE8
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 20:33:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E57F64FBB
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 20:43:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233108AbhBESur (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Feb 2021 13:50:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39256 "EHLO mail.kernel.org"
+        id S232861AbhBETBA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Feb 2021 14:01:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40322 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232870AbhBEStz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Feb 2021 13:49:55 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EB04A64F31;
-        Fri,  5 Feb 2021 20:31:37 +0000 (UTC)
+        id S233360AbhBETAZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Feb 2021 14:00:25 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DABF764F99;
+        Fri,  5 Feb 2021 20:42:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612557098;
-        bh=A8N7tHMfu+I4DYn6dMGyU/pXd+uyfQJVVgNSB+zRUC4=;
+        s=korg; t=1612557725;
+        bh=gvlF9Vx55/7A7jvkokoSjbsKaYE4dbw2jfU7B2EVjxs=;
         h=Date:From:To:Subject:From;
-        b=wl+SAvOBVQQB2fsZeLu5ocrv1zxRRmUK+ctxmMwbVbaj7ehJJ+Uiuc8+mMqxGwEXG
-         PoUCLDzefTMPIp0PjKKfcUmn0lgo9LrW5ZMYpxEzPF+qpzq79QbeR6QXeZfSKaIiH2
-         g39g0C6A7fCjUINfJbjHRn1uEhAn2FsoDI/X2OdA=
-Date:   Fri, 05 Feb 2021 12:31:37 -0800
+        b=GLNiqXW+hyBpHPFOdynhK39SollGG3Q33MJ73Ld9ioqz+0VWkrwT6rJNSvAEfWhgC
+         dJmLPT5dD8309PViqoEKRq5/equtDRmLIkJTWlHYmo6FMmAyfkoTpGP19+8cSZ//hi
+         4XdIeT6Yv96ziEQUQAK9t91WuV9oMb8LdtcAKhGk=
+Date:   Fri, 05 Feb 2021 12:42:04 -0800
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, dianders@chromium.org, lkp@intel.com,
-        maskray@google.com, mm-commits@vger.kernel.org, nathan@kernel.org,
-        ndesaulniers@google.com
-Subject:  + firmware_loader-align-builtin_fw-to-8.patch added to
+To:     amir73il@gmail.com, chris@chrisdown.name, hughd@google.com,
+        mm-commits@vger.kernel.org, seth.forshee@canonical.com,
+        stable@vger.kernel.org
+Subject:  +
+ tmpfs-dont-use-64-bit-inodes-by-defulat-with-32-bit-ino_t.patch added to
  -mm tree
-Message-ID: <20210205203137.jHV27DEyx%akpm@linux-foundation.org>
+Message-ID: <20210205204204.h0rdk8Nti%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: firmware_loader: align .builtin_fw to 8
+     Subject: tmpfs: don't use 64-bit inodes by defulat with 32-bit ino_t
 has been added to the -mm tree.  Its filename is
-     firmware_loader-align-builtin_fw-to-8.patch
+     tmpfs-dont-use-64-bit-inodes-by-defulat-with-32-bit-ino_t.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/firmware_loader-align-builtin_fw-to-8.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/tmpfs-dont-use-64-bit-inodes-by-defulat-with-32-bit-ino_t.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/firmware_loader-align-builtin_fw-to-8.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-dont-use-64-bit-inodes-by-defulat-with-32-bit-ino_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,51 +66,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fangrui Song <maskray@google.com>
-Subject: firmware_loader: align .builtin_fw to 8
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: tmpfs: don't use 64-bit inodes by defulat with 32-bit ino_t
 
-arm64 references the start address of .builtin_fw (__start_builtin_fw)
-with a pair of R_AARCH64_ADR_PREL_PG_HI21/R_AARCH64_LDST64_ABS_LO12_NC
-relocations.  The compiler is allowed to emit the
-R_AARCH64_LDST64_ABS_LO12_NC relocation because struct builtin_fw in
-include/linux/firmware.h is 8-byte aligned.
+Currently there seems to be an assumption in tmpfs that 64-bit
+architectures also have a 64-bit ino_t.  This is not true; s390 at least
+has a 32-bit ino_t.  With CONFIG_TMPFS_INODE64=y tmpfs mounts will get
+64-bit inode numbers and display "inode64" in the mount options, but
+passing the "inode64" mount option will fail.  This leads to the following
+behavior:
 
-The R_AARCH64_LDST64_ABS_LO12_NC relocation requires the address to be a
-multiple of 8, which may not be the case if .builtin_fw is empty. 
-Unconditionally align .builtin_fw to fix the linker error.  32-bit
-architectures could use ALIGN(4) but that would add unnecessary
-complexity, so just use ALIGN(8).
+ # mkdir mnt
+ # mount -t tmpfs nodev mnt
+ # mount -o remount,rw mnt
+ mount: /home/ubuntu/mnt: mount point not mounted or bad option.
 
-Link: https://lkml.kernel.org/r/20201208054646.2913063-1-maskray@google.com
-Link: https://github.com/ClangBuiltLinux/linux/issues/1204
-Fixes: 5658c76 ("firmware: allow firmware files to be built into kernel image")
-Signed-off-by: Fangrui Song <maskray@google.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-Tested-by: Nick Desaulniers <ndesaulniers@google.com>
-Tested-by: Douglas Anderson <dianders@chromium.org>
-Acked-by: Nathan Chancellor <nathan@kernel.org>
+As mount sees "inode64" in the mount options and thus passes it in the
+options for the remount.
+
+Ideally CONFIG_TMPFS_INODE64 would depend on sizeof(ino_t) < 8, but I
+don't think it's possible to test for this (potentially
+CONFIG_ARCH_HAS_64BIT_INO_T or similar could be added, but I'm not sure
+whether or not that is wanted).  So fix this by simply refusing to honor
+the CONFIG_TMPFS_INODE64 setting when sizeof(ino_t) < 8.
+
+Link: https://lkml.kernel.org/r/20210205202159.505612-1-seth.forshee@canonical.com
+Fixes: ea3271f7196c ("tmpfs: support 64-bit inums per-sb")
+Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/vmlinux.lds.h |    2 +-
+ mm/shmem.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/asm-generic/vmlinux.lds.h~firmware_loader-align-builtin_fw-to-8
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -459,7 +459,7 @@
- 	}								\
- 									\
- 	/* Built-in firmware blobs */					\
--	.builtin_fw        : AT(ADDR(.builtin_fw) - LOAD_OFFSET) {	\
-+	.builtin_fw : AT(ADDR(.builtin_fw) - LOAD_OFFSET) ALIGN(8) {	\
- 		__start_builtin_fw = .;					\
- 		KEEP(*(.builtin_fw))					\
- 		__end_builtin_fw = .;					\
+--- a/mm/shmem.c~tmpfs-dont-use-64-bit-inodes-by-defulat-with-32-bit-ino_t
++++ a/mm/shmem.c
+@@ -3733,7 +3733,7 @@ static int shmem_fill_super(struct super
+ 			ctx->blocks = shmem_default_max_blocks();
+ 		if (!(ctx->seen & SHMEM_SEEN_INODES))
+ 			ctx->inodes = shmem_default_max_inodes();
+-		if (!(ctx->seen & SHMEM_SEEN_INUMS))
++		if (!(ctx->seen & SHMEM_SEEN_INUMS) && sizeof(ino_t) >= 8)
+ 			ctx->full_inums = IS_ENABLED(CONFIG_TMPFS_INODE64);
+ 	} else {
+ 		sb->s_flags |= SB_NOUSER;
 _
 
-Patches currently in -mm which might be from maskray@google.com are
+Patches currently in -mm which might be from seth.forshee@canonical.com are
 
-firmware_loader-align-builtin_fw-to-8.patch
+tmpfs-dont-use-64-bit-inodes-by-defulat-with-32-bit-ino_t.patch
 
