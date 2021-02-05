@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDD2DC433DB
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:21:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87B3AC433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:22:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B054064FB9
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:21:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55BFC64FBA
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:22:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233115AbhBEVVe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Feb 2021 16:21:34 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45110 "EHLO mail.kernel.org"
+        id S233042AbhBEVW2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Feb 2021 16:22:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45206 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233311AbhBEVUT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Feb 2021 16:20:19 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0BE0964FC2;
-        Fri,  5 Feb 2021 21:18:32 +0000 (UTC)
+        id S233580AbhBEVUb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Feb 2021 16:20:31 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3695164FCC;
+        Fri,  5 Feb 2021 21:18:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612559913;
-        bh=3aXWDXP0cnc7S00dFktjcdYOGtjD93T5YH7b2vAcMrE=;
+        s=korg; t=1612559928;
+        bh=j/FGL6cuEfBWW92HLkgIJSc34/+REUjM0sg0gSBkJMA=;
         h=Date:From:To:Subject:From;
-        b=Az964CNTv064Kg+8M+jxuyJ2RiLR6c3o5UVCJAUwC/IsAbZNM+EpM+tEKHo67POKx
-         vHzQ/7d/MhgIVu8jNRDdibf7Sd/HPcPXfUQjxXR84wSHWlJL4JnUDBVtTjpRc9TSpb
-         VXKQ0lafXuyQZ5YFhJq5pZZmPU0p9IqDGL2slxj0=
-Date:   Fri, 05 Feb 2021 13:18:32 -0800
+        b=AjX7ZsBbaS1OEQjIMhbLRihe83Rv/OnQFkjB1ZTi3wK9PJKO8HUCUFccyEGHcLATS
+         dHu+NxLmF6XNvuWME5C13RhBmOCk4Havb0APREz6GfWXs43sdF6rO4b7RFJWQvsBbz
+         w0+PtglbGvleTNZbeS1erqlLiXLN5OoLz1ZB4bbI=
+Date:   Fri, 05 Feb 2021 13:18:47 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  + kasan-mm-optimize-krealloc-poisoning.patch added to -mm
- tree
-Message-ID: <20210205211832.nv6D19LVc%akpm@linux-foundation.org>
+Subject:  + arm64-kasan-export-mte-symbols-for-kasan-tests.patch
+ added to -mm tree
+Message-ID: <20210205211847.zzVXqXxXA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, mm: optimize krealloc poisoning
+     Subject: arm64: kasan: export MTE symbols for KASAN tests
 has been added to the -mm tree.  Its filename is
-     kasan-mm-optimize-krealloc-poisoning.patch
+     arm64-kasan-export-mte-symbols-for-kasan-tests.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-mm-optimize-krealloc-poisoning.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kasan-export-mte-symbols-for-kasan-tests.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-mm-optimize-krealloc-poisoning.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kasan-export-mte-symbols-for-kasan-tests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,26 +69,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, mm: optimize krealloc poisoning
+Subject: arm64: kasan: export MTE symbols for KASAN tests
 
-Currently, krealloc() always calls ksize(), which unpoisons the whole
-object including the redzone.  This is inefficient, as kasan_krealloc()
-repoisons the redzone for objects that fit into the same buffer.
+Export mte_enable_kernel() and mte_set_report_once() to fix:
 
-This patch changes krealloc() instrumentation to use uninstrumented
-__ksize() that doesn't unpoison the memory.  Instead, kasan_kreallos() is
-changed to unpoison the memory excluding the redzone.
+ERROR: modpost: "mte_enable_kernel" [lib/test_kasan.ko] undefined!
+ERROR: modpost: "mte_set_report_once" [lib/test_kasan.ko] undefined!
 
-For objects that don't fit into the old allocation, this patch disables
-KASAN accessibility checks when copying memory into a new object instead
-of unpoisoning it.
-
-Link: https://lkml.kernel.org/r/9bef90327c9cb109d736c40115684fd32f49e6b0.1612546384.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/14da91876a25a6ae5b2096f7c06ebbc6deb3cf6b.1612546384.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
@@ -99,83 +92,25 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |   12 ++++++++++--
- mm/slab_common.c  |   20 ++++++++++++++------
- 2 files changed, 24 insertions(+), 8 deletions(-)
+ arch/arm64/kernel/mte.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/kasan/common.c~kasan-mm-optimize-krealloc-poisoning
-+++ a/mm/kasan/common.c
-@@ -476,7 +476,7 @@ static void *____kasan_kmalloc(struct km
- 
- 	/*
- 	 * The object has already been unpoisoned by kasan_slab_alloc() for
--	 * kmalloc() or by ksize() for krealloc().
-+	 * kmalloc() or by kasan_krealloc() for krealloc().
- 	 */
- 
- 	/*
-@@ -526,7 +526,7 @@ void * __must_check __kasan_kmalloc_larg
- 
- 	/*
- 	 * The object has already been unpoisoned by kasan_alloc_pages() for
--	 * alloc_pages() or by ksize() for krealloc().
-+	 * alloc_pages() or by kasan_krealloc() for krealloc().
- 	 */
- 
- 	/*
-@@ -554,8 +554,16 @@ void * __must_check __kasan_krealloc(con
- 	if (unlikely(object == ZERO_SIZE_PTR))
- 		return (void *)object;
- 
-+	/*
-+	 * Unpoison the object's data.
-+	 * Part of it might already have been unpoisoned, but it's unknown
-+	 * how big that part is.
-+	 */
-+	kasan_unpoison(object, size);
-+
- 	page = virt_to_head_page(object);
- 
-+	/* Piggy-back on kmalloc() instrumentation to poison the redzone. */
- 	if (unlikely(!PageSlab(page)))
- 		return __kasan_kmalloc_large(object, size, flags);
- 	else
---- a/mm/slab_common.c~kasan-mm-optimize-krealloc-poisoning
-+++ a/mm/slab_common.c
-@@ -1061,19 +1061,27 @@ static __always_inline void *__do_kreall
- 	void *ret;
- 	size_t ks;
- 
--	if (likely(!ZERO_OR_NULL_PTR(p)) && !kasan_check_byte(p))
--		return NULL;
--
--	ks = ksize(p);
-+	/* Don't use instrumented ksize to allow precise KASAN poisoning. */
-+	if (likely(!ZERO_OR_NULL_PTR(p))) {
-+		if (!kasan_check_byte(p))
-+			return NULL;
-+		ks = kfence_ksize(p) ?: __ksize(p);
-+	} else
-+		ks = 0;
- 
-+	/* If the object still fits, repoison it precisely. */
- 	if (ks >= new_size) {
- 		p = kasan_krealloc((void *)p, new_size, flags);
- 		return (void *)p;
- 	}
- 
- 	ret = kmalloc_track_caller(new_size, flags);
--	if (ret && p)
--		memcpy(ret, p, ks);
-+	if (ret && p) {
-+		/* Disable KASAN checks as the object's redzone is accessed. */
-+		kasan_disable_current();
-+		memcpy(ret, kasan_reset_tag(p), ks);
-+		kasan_enable_current();
-+	}
- 
- 	return ret;
+--- a/arch/arm64/kernel/mte.c~arm64-kasan-export-mte-symbols-for-kasan-tests
++++ a/arch/arm64/kernel/mte.c
+@@ -113,11 +113,13 @@ void mte_enable_kernel(void)
+ 	sysreg_clear_set(sctlr_el1, SCTLR_ELx_TCF_MASK, SCTLR_ELx_TCF_SYNC);
+ 	isb();
  }
++EXPORT_SYMBOL_GPL(mte_enable_kernel);
+ 
+ void mte_set_report_once(bool state)
+ {
+ 	WRITE_ONCE(report_fault_once, state);
+ }
++EXPORT_SYMBOL_GPL(mte_set_report_once);
+ 
+ bool mte_report_once(void)
+ {
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
