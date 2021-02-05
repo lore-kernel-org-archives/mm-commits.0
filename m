@@ -7,38 +7,40 @@ X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DATE_IN_PAST_03_06,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52A8BC4332B
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 02:39:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55AB4C433E0
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 02:59:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1C3B264FEF
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 02:39:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2083264E3D
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 02:59:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230160AbhBFCjH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Feb 2021 21:39:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37454 "EHLO mail.kernel.org"
+        id S229997AbhBFC6r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Feb 2021 21:58:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38974 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231314AbhBFChI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Feb 2021 21:37:08 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C63CB64FE4;
-        Fri,  5 Feb 2021 23:27:28 +0000 (UTC)
+        id S231911AbhBFCq4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Feb 2021 21:46:56 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A5A796501D;
+        Fri,  5 Feb 2021 23:41:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612567649;
-        bh=zxJMi1GT/2xLRrsIYPdTGEs4sfwZ70zlmT35BVzT+pA=;
+        s=korg; t=1612568471;
+        bh=sL42fBkIHoXO3lC96z3bzs3rFImpSlDATMffD73Tv18=;
         h=Date:From:To:Subject:From;
-        b=Oa0Vrcuy9FN6RSzleL22Xmohs9JU8QGk0wlzBMrX3/aOrPpxcA8IAXMwn669jqR/H
-         LmAEtN8JfYia7+8J8djl9UhbtoFC9uQpriC7UPS7WVExzmEeVlWu/aU2+s8yHxwIWf
-         IK+drlBR/Txw8XR3ddAeVsGxJFwv4lGR9bnIt5Ok=
-Date:   Fri, 05 Feb 2021 15:27:28 -0800
+        b=lyLtkFRHTl7EZF5AcMw1Lb9UNpqEwCQTeGxZhlV/pvHnqpeYHTcWOfWL4qatCVBqM
+         ukpB4cs1MdIKw6w3PCSBI/rU9q1ga8fA5PtwhpgaLzdg0Uv0l+cAQDmOW+CogoWjpX
+         WnqB5Yh5MC6eC8KzynQqoEa74GHx0tVb/pwAx9n8=
+Date:   Fri, 05 Feb 2021 15:41:10 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, yaoaili@kingsoft.com
-Subject:  +
- =?US-ASCII?Q?mmhwpoison-send-sigbus-to-pf=5Fmce=5Fearly-processes-on-acti?=
- =?US-ASCII?Q?on-required-events.patch?= added to -mm tree
-Message-ID: <20210205232728.yFsg6kXAI%akpm@linux-foundation.org>
+To:     ambrosehua@gmail.com, chenhc@lemote.com,
+        christophe.leroy@csgroup.eu, gaojuxin@loongson.cn,
+        huangpei@loongson.cn, jiaxun.yang@flygoat.com,
+        lixuefeng@loongson.cn, maobibo@loongson.cn,
+        mm-commits@vger.kernel.org, npiggin@gmail.com,
+        paulburton@kernel.org, tsbogend@alpha.franken.de,
+        yangtiezhu@loongson.cn, zhangfx@lemote.com
+Subject:  + mips-make-userspace-mapping-young-by-default.patch
+ added to -mm tree
+Message-ID: <20210205234110.Qg4sj6BMr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: send SIGBUS to PF_MCE_EARLY processes on action required events
+     Subject: MIPS: make userspace mapping young by default
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-send-sigbus-to-pf_mce_early-processes-on-action-required-events.patch
+     mips-make-userspace-mapping-young-by-default.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-send-sigbus-to-pf_mce_early-processes-on-action-required-events.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mips-make-userspace-mapping-young-by-default.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-send-sigbus-to-pf_mce_early-processes-on-action-required-events.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mips-make-userspace-mapping-young-by-default.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,99 +69,138 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Aili Yao <yaoaili@kingsoft.com>
-Subject: mm,hwpoison: send SIGBUS to PF_MCE_EARLY processes on action required events
+From: Huang Pei <huangpei@loongson.cn>
+Subject: MIPS: make userspace mapping young by default
 
-When a memory uncorrected error is triggered by process who accessed the
-address with error, It's Action Required Case for only current process
-which triggered this; This Action Required case means Action optional to
-other process who share the same page.  Usually killing current process
-will be sufficient, other processes sharing the same page will get be
-signaled when they really touch the poisoned page.
+MIPS page fault path(except huge page) takes 3 exceptions (1 TLB Miss + 2
+TLB Invalid), butthe second TLB Invalid exception is just triggered by
+__update_tlb from do_page_fault writing tlb without _PAGE_VALID set.  With
+this patch, user space mapping prot is made young by default (with both
+_PAGE_VALID and _PAGE_YOUNG set), and it only take 1 TLB Miss + 1 TLB
+Invalid exception
 
-But there is another scenario that other processes sharing the same page
-want to be signaled early with PF_MCE_EARLY set.  In this case, we should
-get them into kill list and signal BUS_MCEERR_AO to them.
+Remove pte_sw_mkyoung without polluting MM code and make page fault delay
+of MIPS on par with other architecture
 
-So in this patch, task_early_kill will check current process if
-force_early is set, and if not current,the code will fallback to
-find_early_kill_thread() to check if there is PF_MCE_EARLY process who
-cares the error.
-
-In kill_proc(), BUS_MCEERR_AR is only send to current, other processes in
-kill list will be signaled with BUS_MCEERR_AO.
-
-Link: https://lkml.kernel.org/r/20210122132424.313c8f5f.yaoaili@kingsoft.com
-Signed-off-by: Aili Yao <yaoaili@kingsoft.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/20210204013942.8398-1-huangpei@loongson.cn
+Signed-off-by: Huang Pei <huangpei@loongson.cn>
+Reviewed-by: Nicholas Piggin <npiggin@gmail.com>
+Acked-by: <huangpei@loongson.cn>
+Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: <ambrosehua@gmail.com>
+Cc: Bibo Mao <maobibo@loongson.cn>
+Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: Li Xuefeng <lixuefeng@loongson.cn>
+Cc: Yang Tiezhu <yangtiezhu@loongson.cn>
+Cc: Gao Juxin <gaojuxin@loongson.cn>
+Cc: Fuxin Zhang <zhangfx@lemote.com>
+Cc: Huacai Chen <chenhc@lemote.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   34 +++++++++++++++++++---------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
+ arch/mips/mm/cache.c    |   30 ++++++++++++++++--------------
+ include/linux/pgtable.h |    8 --------
+ mm/memory.c             |    4 ----
+ 3 files changed, 16 insertions(+), 26 deletions(-)
 
---- a/mm/memory-failure.c~mmhwpoison-send-sigbus-to-pf_mce_early-processes-on-action-required-events
-+++ a/mm/memory-failure.c
-@@ -243,9 +243,13 @@ static int kill_proc(struct to_kill *tk,
- 			pfn, t->comm, t->pid);
+--- a/arch/mips/mm/cache.c~mips-make-userspace-mapping-young-by-default
++++ a/arch/mips/mm/cache.c
+@@ -157,29 +157,31 @@ unsigned long _page_cachable_default;
+ EXPORT_SYMBOL(_page_cachable_default);
  
- 	if (flags & MF_ACTION_REQUIRED) {
--		WARN_ON_ONCE(t != current);
--		ret = force_sig_mceerr(BUS_MCEERR_AR,
-+		if (t == current)
-+			ret = force_sig_mceerr(BUS_MCEERR_AR,
- 					 (void __user *)tk->addr, addr_lsb);
-+		else
-+			/* Signal other processes sharing the page if they have PF_MCE_EARLY set. */
-+			ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)tk->addr,
-+				addr_lsb, t);
- 	} else {
- 		/*
- 		 * Don't use force here, it's convenient if the signal
-@@ -440,26 +444,26 @@ static struct task_struct *find_early_ki
-  * Determine whether a given process is "early kill" process which expects
-  * to be signaled when some page under the process is hwpoisoned.
-  * Return task_struct of the dedicated thread (main thread unless explicitly
-- * specified) if the process is "early kill," and otherwise returns NULL.
-+ * specified) if the process is "early kill" and otherwise returns NULL.
-  *
-- * Note that the above is true for Action Optional case, but not for Action
-- * Required case where SIGBUS should sent only to the current thread.
-+ * Note that the above is true for Action Optional case. For Action Required
-+ * case, it's only meaningful to the current thread which need to be signaled
-+ * with SIGBUS, this error is Action Optional for other non current
-+ * processes sharing the same error page,if the process is "early kill", the
-+ * task_struct of the dedicated thread will also be returned.
-  */
- static struct task_struct *task_early_kill(struct task_struct *tsk,
- 					   int force_early)
+ #define PM(p)	__pgprot(_page_cachable_default | (p))
++#define PVA(p)	PM(_PAGE_VALID | _PAGE_ACCESSED | (p))
+ 
+ static inline void setup_protection_map(void)
  {
- 	if (!tsk->mm)
- 		return NULL;
--	if (force_early) {
--		/*
--		 * Comparing ->mm here because current task might represent
--		 * a subthread, while tsk always points to the main thread.
--		 */
--		if (tsk->mm == current->mm)
--			return current;
--		else
--			return NULL;
--	}
-+	/*
-+	 * Comparing ->mm here because current task might represent
-+	 * a subthread, while tsk always points to the main thread.
-+	 */
-+	if (force_early && tsk->mm == current->mm)
-+		return current;
-+
- 	return find_early_kill_thread(tsk);
+ 	protection_map[0]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[1]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[2]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[3]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[4]  = PM(_PAGE_PRESENT);
+-	protection_map[5]  = PM(_PAGE_PRESENT);
+-	protection_map[6]  = PM(_PAGE_PRESENT);
+-	protection_map[7]  = PM(_PAGE_PRESENT);
++	protection_map[1]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[2]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
++	protection_map[3]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[4]  = PVA(_PAGE_PRESENT);
++	protection_map[5]  = PVA(_PAGE_PRESENT);
++	protection_map[6]  = PVA(_PAGE_PRESENT);
++	protection_map[7]  = PVA(_PAGE_PRESENT);
+ 
+ 	protection_map[8]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[9]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[10] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
++	protection_map[9]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[10] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
+ 				_PAGE_NO_READ);
+-	protection_map[11] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
+-	protection_map[12] = PM(_PAGE_PRESENT);
+-	protection_map[13] = PM(_PAGE_PRESENT);
+-	protection_map[14] = PM(_PAGE_PRESENT | _PAGE_WRITE);
+-	protection_map[15] = PM(_PAGE_PRESENT | _PAGE_WRITE);
++	protection_map[11] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
++	protection_map[12] = PVA(_PAGE_PRESENT);
++	protection_map[13] = PVA(_PAGE_PRESENT);
++	protection_map[14] = PVA(_PAGE_PRESENT);
++	protection_map[15] = PVA(_PAGE_PRESENT);
  }
  
++#undef _PVA
+ #undef PM
+ 
+ void cpu_cache_init(void)
+--- a/include/linux/pgtable.h~mips-make-userspace-mapping-young-by-default
++++ a/include/linux/pgtable.h
+@@ -432,14 +432,6 @@ static inline void ptep_set_wrprotect(st
+  * To be differentiate with macro pte_mkyoung, this macro is used on platforms
+  * where software maintains page access bit.
+  */
+-#ifndef pte_sw_mkyoung
+-static inline pte_t pte_sw_mkyoung(pte_t pte)
+-{
+-	return pte;
+-}
+-#define pte_sw_mkyoung	pte_sw_mkyoung
+-#endif
+-
+ #ifndef pte_savedwrite
+ #define pte_savedwrite pte_write
+ #endif
+--- a/mm/memory.c~mips-make-userspace-mapping-young-by-default
++++ a/mm/memory.c
+@@ -2902,7 +2902,6 @@ static vm_fault_t wp_page_copy(struct vm
+ 		}
+ 		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
+ 		entry = mk_pte(new_page, vma->vm_page_prot);
+-		entry = pte_sw_mkyoung(entry);
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+ 
+ 		/*
+@@ -3560,7 +3559,6 @@ static vm_fault_t do_anonymous_page(stru
+ 	__SetPageUptodate(page);
+ 
+ 	entry = mk_pte(page, vma->vm_page_prot);
+-	entry = pte_sw_mkyoung(entry);
+ 	if (vma->vm_flags & VM_WRITE)
+ 		entry = pte_mkwrite(pte_mkdirty(entry));
+ 
+@@ -3745,8 +3743,6 @@ void do_set_pte(struct vm_fault *vmf, st
+ 
+ 	if (prefault && arch_wants_old_prefaulted_pte())
+ 		entry = pte_mkold(entry);
+-	else
+-		entry = pte_sw_mkyoung(entry);
+ 
+ 	if (write)
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
 _
 
-Patches currently in -mm which might be from yaoaili@kingsoft.com are
+Patches currently in -mm which might be from huangpei@loongson.cn are
 
-mmhwpoison-send-sigbus-to-pf_mce_early-processes-on-action-required-events.patch
+mips-make-userspace-mapping-young-by-default.patch
+mips-make-userspace-mapping-young-by-default.patch
 
