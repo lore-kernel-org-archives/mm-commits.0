@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DATE_IN_PAST_03_06,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EAC6C433E6
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:07:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 501FBC433DB
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:08:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C045364FD8
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:07:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1BE3D64FD6
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:08:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230232AbhBFDHQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Feb 2021 22:07:16 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41366 "EHLO mail.kernel.org"
+        id S231251AbhBFDHc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Feb 2021 22:07:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41362 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231840AbhBFDB4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Feb 2021 22:01:56 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D1DD264FB4;
-        Fri,  5 Feb 2021 22:14:57 +0000 (UTC)
+        id S231858AbhBFDCE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Feb 2021 22:02:04 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F314364FD8;
+        Fri,  5 Feb 2021 23:24:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612563298;
-        bh=LWkBMCob2VYYjnKbdxTFQhr4NbqlL/4Yl9rYDciEJYI=;
+        s=korg; t=1612567490;
+        bh=K0bRW15VVCsLMfeggUTfJuUsP5VPaDg9/Fpo65oeZbY=;
         h=Date:From:To:Subject:From;
-        b=sGdwA8jrqokhTmkVw/LLxqkbqZDmFm53ulmywNkNMWBM/Gu9NdQs7nFhiwBjGRw+D
-         br1mYYwsMnvRcKs/wp6T6DdFk8h3bbVfzhhLHsr7Oi2hArmaof0pdnM6lG4ngK0S+j
-         WO5XimSI+n8xCfHOSMtIXiA614u6INtqPzwchbkY=
-Date:   Fri, 05 Feb 2021 14:14:57 -0800
+        b=V0JQ2/LiHrL4lG/04rX5sNdROmCd5M4k/RUxxUBvTi63DlQlwQ/JUZqoYPw5a1p/X
+         5K9LZrc1EdaKFmikb9jv38XoVYlCHADDsGgkzLLC2OcXcFzm0kHdDfQahKggHc3i8e
+         nn08KBxtU3NNq+zTxIPxcROT0RzPpCQg3qqe/Q9M=
+Date:   Fri, 05 Feb 2021 15:24:49 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, chrisw@sous-sol.org,
-        ian.pratt@xensource.com, linmiaohe@huawei.com, mingo@elte.hu,
-        mm-commits@vger.kernel.org
+To:     david@redhat.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
 Subject:  +
- mm-memoryc-fix-potential-pte_unmap_unlock-pte-error.patch added to -mm tree
-Message-ID: <20210205221457.-xfPuKwFN%akpm@linux-foundation.org>
+ mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch added to
+ -mm tree
+Message-ID: <20210205232449.K0Pvi1_DN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: fix potential pte_unmap_unlock pte error
+     Subject: mm/mlock: stop counting mlocked pages when none vma is found
 has been added to the -mm tree.  Its filename is
-     mm-memoryc-fix-potential-pte_unmap_unlock-pte-error.patch
+     mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memoryc-fix-potential-pte_unmap_unlock-pte-error.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memoryc-fix-potential-pte_unmap_unlock-pte-error.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,59 +65,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory.c: fix potential pte_unmap_unlock pte error
+Subject: mm/mlock: stop counting mlocked pages when none vma is found
 
-If all pte entry is none in 'non-create' case, we would break the loop with
-pte unchanged.  Then the wrong pte - 1 would be passed to pte_unmap_unlock.
-This is a theoretical issue which may not be a real bug. So it's not worth
-cc stable.
+There will be no vma satisfies addr < vm_end when find_vma() returns NULL.
+Thus it's meaningless to traverse the vma list below because we can't
+find any vma to count mlocked pages.  Stop counting mlocked pages in this
+case to save some vma list traversal cycles.
 
-Link: https://lkml.kernel.org/r/20210205081925.59809-1-linmiaohe@huawei.com
-Fixes: aee16b3cee27 ("Add apply_to_page_range() which applies a function to a pte range")
+Link: https://lkml.kernel.org/r/20210204110705.17586-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ian Pratt <ian.pratt@xensource.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/mlock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-memoryc-fix-potential-pte_unmap_unlock-pte-error
-+++ a/mm/memory.c
-@@ -2382,18 +2382,18 @@ static int apply_to_pte_range(struct mm_
- 				     pte_fn_t fn, void *data, bool create,
- 				     pgtbl_mod_mask *mask)
- {
--	pte_t *pte;
-+	pte_t *pte, *mapped_pte;
- 	int err = 0;
- 	spinlock_t *ptl;
+--- a/mm/mlock.c~mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found
++++ a/mm/mlock.c
+@@ -622,7 +622,7 @@ static unsigned long count_mm_mlocked_pa
  
- 	if (create) {
--		pte = (mm == &init_mm) ?
-+		mapped_pte = pte = (mm == &init_mm) ?
- 			pte_alloc_kernel_track(pmd, addr, mask) :
- 			pte_alloc_map_lock(mm, pmd, addr, &ptl);
- 		if (!pte)
- 			return -ENOMEM;
- 	} else {
--		pte = (mm == &init_mm) ?
-+		mapped_pte = pte = (mm == &init_mm) ?
- 			pte_offset_kernel(pmd, addr) :
- 			pte_offset_map_lock(mm, pmd, addr, &ptl);
- 	}
-@@ -2416,7 +2416,7 @@ static int apply_to_pte_range(struct mm_
- 	arch_leave_lazy_mmu_mode();
+ 	vma = find_vma(mm, start);
+ 	if (vma == NULL)
+-		vma = mm->mmap;
++		return 0;
  
- 	if (mm != &init_mm)
--		pte_unmap_unlock(pte-1, ptl);
-+		pte_unmap_unlock(mapped_pte, ptl);
- 	return err;
- }
- 
+ 	for (; vma ; vma = vma->vm_next) {
+ 		if (start >= vma->vm_end)
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -136,6 +109,7 @@ mm-hugetlb-fix-use-after-free-when-subpool-max_hpages-accounting-is-not-enabled.
 mm-hugetlb-fix-some-comment-typos.patch
 mm-remove-unused-return-value-of-set_huge_zero_page.patch
 hugetlb_cgroup-use-helper-pages_per_huge_page-in-hugetlb_cgroup.patch
+mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
 mm-workingsetc-avoid-unnecessary-max_nodes-estimation-in-count_shadow_nodes.patch
 z3fold-remove-unused-attribute-for-release_z3fold_page.patch
 z3fold-simplify-the-zhdr-initialization-code-in-init_z3fold_page.patch
@@ -149,6 +123,7 @@ hugetlbfs-make-hugepage-size-conversion-more-readable.patch
 hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch
 hugetlbfs-fix-some-comment-typos.patch
 mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
+mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
 mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
 mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
 mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
