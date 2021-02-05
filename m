@@ -2,40 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DATE_IN_PAST_03_06,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15028C433DB
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:54:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52A8BC4332B
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 02:39:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C7EAB64F92
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Feb 2021 21:54:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C3B264FEF
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 02:39:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232679AbhBEVyE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Feb 2021 16:54:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50688 "EHLO mail.kernel.org"
+        id S230160AbhBFCjH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Feb 2021 21:39:07 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232954AbhBEVxm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Feb 2021 16:53:42 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AC5D464F92;
-        Fri,  5 Feb 2021 21:53:01 +0000 (UTC)
+        id S231314AbhBFChI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Feb 2021 21:37:08 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C63CB64FE4;
+        Fri,  5 Feb 2021 23:27:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612561981;
-        bh=ZeQAhf3JKZJcKPyJ3wdUJZ6zbOwrmrGADGnw6QS43mA=;
+        s=korg; t=1612567649;
+        bh=zxJMi1GT/2xLRrsIYPdTGEs4sfwZ70zlmT35BVzT+pA=;
         h=Date:From:To:Subject:From;
-        b=x0xP9HyXM33Wq1ipNRKng9cqyUrbRzfsvIxxrnF/dvm0Ei1K5ftuHj7n/++r7YgOd
-         o1Q4rZi+7JAtwDdJABGKhO6HVEvcvM4JHjtXqm4CGyo2qDIcdZGSDSzPL3BUH4wYaN
-         LUv3YfbL0ToNitskPI2s0XuDTuDhp8uJey+11B3s=
-Date:   Fri, 05 Feb 2021 13:53:01 -0800
+        b=Oa0Vrcuy9FN6RSzleL22Xmohs9JU8QGk0wlzBMrX3/aOrPpxcA8IAXMwn669jqR/H
+         LmAEtN8JfYia7+8J8djl9UhbtoFC9uQpriC7UPS7WVExzmEeVlWu/aU2+s8yHxwIWf
+         IK+drlBR/Txw8XR3ddAeVsGxJFwv4lGR9bnIt5Ok=
+Date:   Fri, 05 Feb 2021 15:27:28 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, yaoaili@kingsoft.com
 Subject:  +
- hugetlb_cgroup-use-helper-pages_per_huge_page-in-hugetlb_cgroup.patch added
- to -mm tree
-Message-ID: <20210205215301.03Hi764qA%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mmhwpoison-send-sigbus-to-pf=5Fmce=5Fearly-processes-on-acti?=
+ =?US-ASCII?Q?on-required-events.patch?= added to -mm tree
+Message-ID: <20210205232728.yFsg6kXAI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb_cgroup: use helper pages_per_huge_page() in hugetlb_cgroup
+     Subject: mm,hwpoison: send SIGBUS to PF_MCE_EARLY processes on action required events
 has been added to the -mm tree.  Its filename is
-     hugetlb_cgroup-use-helper-pages_per_huge_page-in-hugetlb_cgroup.patch
+     mmhwpoison-send-sigbus-to-pf_mce_early-processes-on-action-required-events.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb_cgroup-use-helper-pages_per_huge_page-in-hugetlb_cgroup.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-send-sigbus-to-pf_mce_early-processes-on-action-required-events.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb_cgroup-use-helper-pages_per_huge_page-in-hugetlb_cgroup.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-send-sigbus-to-pf_mce_early-processes-on-action-required-events.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,84 +67,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlb_cgroup: use helper pages_per_huge_page() in hugetlb_cgroup
+From: Aili Yao <yaoaili@kingsoft.com>
+Subject: mm,hwpoison: send SIGBUS to PF_MCE_EARLY processes on action required events
 
-We could use helper function pages_per_huge_page() to get the number of
-pages in a hstate to simplify the code slightly.
+When a memory uncorrected error is triggered by process who accessed the
+address with error, It's Action Required Case for only current process
+which triggered this; This Action Required case means Action optional to
+other process who share the same page.  Usually killing current process
+will be sufficient, other processes sharing the same page will get be
+signaled when they really touch the poisoned page.
 
-Link: https://lkml.kernel.org/r/20210205084513.29624-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+But there is another scenario that other processes sharing the same page
+want to be signaled early with PF_MCE_EARLY set.  In this case, we should
+get them into kill list and signal BUS_MCEERR_AO to them.
+
+So in this patch, task_early_kill will check current process if
+force_early is set, and if not current,the code will fallback to
+find_early_kill_thread() to check if there is PF_MCE_EARLY process who
+cares the error.
+
+In kill_proc(), BUS_MCEERR_AR is only send to current, other processes in
+kill list will be signaled with BUS_MCEERR_AO.
+
+Link: https://lkml.kernel.org/r/20210122132424.313c8f5f.yaoaili@kingsoft.com
+Signed-off-by: Aili Yao <yaoaili@kingsoft.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |   34 +++++++++++++++++++---------------
+ 1 file changed, 19 insertions(+), 15 deletions(-)
 
---- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-use-helper-pages_per_huge_page-in-hugetlb_cgroup
-+++ a/mm/hugetlb_cgroup.c
-@@ -113,7 +113,7 @@ static void hugetlb_cgroup_init(struct h
- 			rsvd_parent);
+--- a/mm/memory-failure.c~mmhwpoison-send-sigbus-to-pf_mce_early-processes-on-action-required-events
++++ a/mm/memory-failure.c
+@@ -243,9 +243,13 @@ static int kill_proc(struct to_kill *tk,
+ 			pfn, t->comm, t->pid);
  
- 		limit = round_down(PAGE_COUNTER_MAX,
--				   1 << huge_page_order(&hstates[idx]));
-+				   pages_per_huge_page(&hstates[idx]));
+ 	if (flags & MF_ACTION_REQUIRED) {
+-		WARN_ON_ONCE(t != current);
+-		ret = force_sig_mceerr(BUS_MCEERR_AR,
++		if (t == current)
++			ret = force_sig_mceerr(BUS_MCEERR_AR,
+ 					 (void __user *)tk->addr, addr_lsb);
++		else
++			/* Signal other processes sharing the page if they have PF_MCE_EARLY set. */
++			ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)tk->addr,
++				addr_lsb, t);
+ 	} else {
+ 		/*
+ 		 * Don't use force here, it's convenient if the signal
+@@ -440,26 +444,26 @@ static struct task_struct *find_early_ki
+  * Determine whether a given process is "early kill" process which expects
+  * to be signaled when some page under the process is hwpoisoned.
+  * Return task_struct of the dedicated thread (main thread unless explicitly
+- * specified) if the process is "early kill," and otherwise returns NULL.
++ * specified) if the process is "early kill" and otherwise returns NULL.
+  *
+- * Note that the above is true for Action Optional case, but not for Action
+- * Required case where SIGBUS should sent only to the current thread.
++ * Note that the above is true for Action Optional case. For Action Required
++ * case, it's only meaningful to the current thread which need to be signaled
++ * with SIGBUS, this error is Action Optional for other non current
++ * processes sharing the same error page,if the process is "early kill", the
++ * task_struct of the dedicated thread will also be returned.
+  */
+ static struct task_struct *task_early_kill(struct task_struct *tsk,
+ 					   int force_early)
+ {
+ 	if (!tsk->mm)
+ 		return NULL;
+-	if (force_early) {
+-		/*
+-		 * Comparing ->mm here because current task might represent
+-		 * a subthread, while tsk always points to the main thread.
+-		 */
+-		if (tsk->mm == current->mm)
+-			return current;
+-		else
+-			return NULL;
+-	}
++	/*
++	 * Comparing ->mm here because current task might represent
++	 * a subthread, while tsk always points to the main thread.
++	 */
++	if (force_early && tsk->mm == current->mm)
++		return current;
++
+ 	return find_early_kill_thread(tsk);
+ }
  
- 		ret = page_counter_set_max(
- 			hugetlb_cgroup_counter_from_cgroup(h_cgroup, idx),
-@@ -460,7 +460,7 @@ static int hugetlb_cgroup_read_u64_max(s
- 	counter = &h_cg->hugepage[idx];
- 
- 	limit = round_down(PAGE_COUNTER_MAX,
--			   1 << huge_page_order(&hstates[idx]));
-+			   pages_per_huge_page(&hstates[idx]));
- 
- 	switch (MEMFILE_ATTR(cft->private)) {
- 	case RES_RSVD_USAGE:
-@@ -507,7 +507,7 @@ static ssize_t hugetlb_cgroup_write(stru
- 		return ret;
- 
- 	idx = MEMFILE_IDX(of_cft(of)->private);
--	nr_pages = round_down(nr_pages, 1 << huge_page_order(&hstates[idx]));
-+	nr_pages = round_down(nr_pages, pages_per_huge_page(&hstates[idx]));
- 
- 	switch (MEMFILE_ATTR(of_cft(of)->private)) {
- 	case RES_RSVD_LIMIT:
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from yaoaili@kingsoft.com are
 
-mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-page_owner-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-fix-potential-pte_unmap_unlock-pte-error.patch
-mm-simplify-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch
-mm-pgtable-genericc-optimize-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch
-mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
-mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
-mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
-mm-hugetlb-fix-use-after-free-when-subpool-max_hpages-accounting-is-not-enabled.patch
-mm-hugetlb-fix-some-comment-typos.patch
-mm-remove-unused-return-value-of-set_huge_zero_page.patch
-hugetlb_cgroup-use-helper-pages_per_huge_page-in-hugetlb_cgroup.patch
-mm-workingsetc-avoid-unnecessary-max_nodes-estimation-in-count_shadow_nodes.patch
-z3fold-remove-unused-attribute-for-release_z3fold_page.patch
-z3fold-simplify-the-zhdr-initialization-code-in-init_z3fold_page.patch
-mm-compaction-remove-duplicated-vm_bug_on_page-pagelocked.patch
-mm-mempolicy-use-helper-range_in_vma-in-queue_pages_test_walk.patch
-hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
-hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs.patch
-hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter.patch
-hugetlbfs-remove-meaningless-variable-avoid_reserve.patch
-hugetlbfs-make-hugepage-size-conversion-more-readable.patch
-hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch
-hugetlbfs-fix-some-comment-typos.patch
-mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
-mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
-mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
-mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
-mm-rmap-correct-obsolete-comment-of-page_get_anon_vma.patch
-mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
-mm-zsmallocc-use-page_private-to-access-page-private.patch
+mmhwpoison-send-sigbus-to-pf_mce_early-processes-on-action-required-events.patch
 
