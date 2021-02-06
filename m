@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DATE_IN_PAST_03_06,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3DF8C433DB
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:15:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C621C433E0
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:23:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C77A064DF2
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:15:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2BA1C64F9B
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:23:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231749AbhBFDPB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Feb 2021 22:15:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42594 "EHLO mail.kernel.org"
+        id S230515AbhBFDWq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Feb 2021 22:22:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42590 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230248AbhBFDME (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Feb 2021 22:12:04 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 64FB664FF1;
-        Fri,  5 Feb 2021 23:34:58 +0000 (UTC)
+        id S230366AbhBFDL5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Feb 2021 22:11:57 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B0A9965018;
+        Sat,  6 Feb 2021 00:06:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612568098;
-        bh=BYPVdRKZh9d4qKVQ46WXMIcsDZ/OWQK6XgeYjEmkm+M=;
+        s=korg; t=1612569970;
+        bh=sMLs3L/SAP+WzsJitFnnORkNS+sfiIL1sSzW6f/+5bA=;
         h=Date:From:To:Subject:From;
-        b=CPQByhW7Yyu2Kb0GaWuMk0KMzq/Ggknup/+BMLYBNXNotdn52kPmdSEBSxIjuw25w
-         rzbUMJhF6hoEn1DnmMGXBWEH3YZkhqbrYbEnP48samn0PlBVsicyzTdodgFAgTNAJh
-         OXOSmd0Wz4ANHy58u5FU7eM/zr2g7g0KFCwqiZbg=
-Date:   Fri, 05 Feb 2021 15:34:57 -0800
+        b=gIOn/xit3OrCyrJE1FJoLpPYPtkV8vYHdm4pq736+Lo4SHs9K01CoaJtRdnWwVVF3
+         dRwIaOFrVvOrzqTq06p1TyRlXlKhcOuhxuPyW54/TXUdjoMMiU8Gdd0QwoXqWgVRZh
+         AvMFPmDtLPNp4PrK39Nfzp4E6eEsjhyz7f3B6dmY=
+Date:   Fri, 05 Feb 2021 16:06:09 -0800
 From:   akpm@linux-foundation.org
-To:     christophe.leroy@csgroup.eu, justin.he@arm.com,
-        maobibo@loongson.cn, mm-commits@vger.kernel.org,
-        tsbogend@alpha.franken.de
-Subject:  [to-be-updated] mm-memoryc-remove-pte_sw_mkyoung.patch
- removed from -mm tree
-Message-ID: <20210205233457.OEwk5RotP%akpm@linux-foundation.org>
+To:     amir73il@gmail.com, chris@chrisdown.name, hughd@google.com,
+        mm-commits@vger.kernel.org, seth.forshee@canonical.com,
+        stable@vger.kernel.org
+Subject:  [alternative-merged]
+ tmpfs-dont-use-64-bit-inodes-by-defulat-with-32-bit-ino_t.patch removed
+ from -mm tree
+Message-ID: <20210206000609.xM6fuPWxb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,113 +45,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: remove pte_sw_mkyoung()
+     Subject: tmpfs: don't use 64-bit inodes by defulat with 32-bit ino_t
 has been removed from the -mm tree.  Its filename was
-     mm-memoryc-remove-pte_sw_mkyoung.patch
+     tmpfs-dont-use-64-bit-inodes-by-defulat-with-32-bit-ino_t.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: mm/memory.c: remove pte_sw_mkyoung()
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: tmpfs: don't use 64-bit inodes by defulat with 32-bit ino_t
 
-Commit 83d116c53058 ("mm: fix double page fault on arm64 if PTE_AF is
-cleared") introduced arch_faults_on_old_pte() helper to identify platforms
-that don't set page access bit in HW and require a page fault to set it.
+Currently there seems to be an assumption in tmpfs that 64-bit
+architectures also have a 64-bit ino_t.  This is not true; s390 at least
+has a 32-bit ino_t.  With CONFIG_TMPFS_INODE64=y tmpfs mounts will get
+64-bit inode numbers and display "inode64" in the mount options, but
+passing the "inode64" mount option will fail.  This leads to the following
+behavior:
 
-Commit 44bf431b47b4 ("mm/memory.c: Add memory read privilege on page fault
-handling") added pte_sw_mkyoung() which is yet another way to manage
-platforms that don't set page access bit in HW and require a page fault to
-set it.
+ # mkdir mnt
+ # mount -t tmpfs nodev mnt
+ # mount -o remount,rw mnt
+ mount: /home/ubuntu/mnt: mount point not mounted or bad option.
 
-Remove that pte_sw_mkyoung() helper and use the already existing
-arch_faults_on_old_pte() helper together with pte_mkyoung() instead.
+As mount sees "inode64" in the mount options and thus passes it in the
+options for the remount.
 
-Link: https://lkml.kernel.org/r/f302ef92c48d1f08a0459aaee1c568ca11213814.1612345700.git.christophe.leroy@csgroup.eu
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Bibo Mao <maobibo@loongson.cn>
-Cc: Jia He <justin.he@arm.com>
+Ideally CONFIG_TMPFS_INODE64 would depend on sizeof(ino_t) < 8, but I
+don't think it's possible to test for this (potentially
+CONFIG_ARCH_HAS_64BIT_INO_T or similar could be added, but I'm not sure
+whether or not that is wanted).  So fix this by simply refusing to honor
+the CONFIG_TMPFS_INODE64 setting when sizeof(ino_t) < 8.
+
+Link: https://lkml.kernel.org/r/20210205202159.505612-1-seth.forshee@canonical.com
+Fixes: ea3271f7196c ("tmpfs: support 64-bit inums per-sb")
+Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgtable.h |    2 --
- include/linux/pgtable.h         |   16 ----------------
- mm/memory.c                     |   10 ++++++----
- 3 files changed, 6 insertions(+), 22 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/mips/include/asm/pgtable.h~mm-memoryc-remove-pte_sw_mkyoung
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -406,8 +406,6 @@ static inline pte_t pte_mkyoung(pte_t pt
- 	return pte;
- }
- 
--#define pte_sw_mkyoung	pte_mkyoung
--
- #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
- static inline int pte_huge(pte_t pte)	{ return pte_val(pte) & _PAGE_HUGE; }
- 
---- a/include/linux/pgtable.h~mm-memoryc-remove-pte_sw_mkyoung
-+++ a/include/linux/pgtable.h
-@@ -424,22 +424,6 @@ static inline void ptep_set_wrprotect(st
- }
- #endif
- 
--/*
-- * On some architectures hardware does not set page access bit when accessing
-- * memory page, it is responsibilty of software setting this bit. It brings
-- * out extra page fault penalty to track page access bit. For optimization page
-- * access bit can be set during all page fault flow on these arches.
-- * To be differentiate with macro pte_mkyoung, this macro is used on platforms
-- * where software maintains page access bit.
-- */
--#ifndef pte_sw_mkyoung
--static inline pte_t pte_sw_mkyoung(pte_t pte)
--{
--	return pte;
--}
--#define pte_sw_mkyoung	pte_sw_mkyoung
--#endif
--
- #ifndef pte_savedwrite
- #define pte_savedwrite pte_write
- #endif
---- a/mm/memory.c~mm-memoryc-remove-pte_sw_mkyoung
-+++ a/mm/memory.c
-@@ -2902,7 +2902,8 @@ static vm_fault_t wp_page_copy(struct vm
- 		}
- 		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
- 		entry = mk_pte(new_page, vma->vm_page_prot);
--		entry = pte_sw_mkyoung(entry);
-+		if (arch_faults_on_old_pte())
-+			entry = pte_mkyoung(entry);
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
- 
- 		/*
-@@ -3560,7 +3561,8 @@ static vm_fault_t do_anonymous_page(stru
- 	__SetPageUptodate(page);
- 
- 	entry = mk_pte(page, vma->vm_page_prot);
--	entry = pte_sw_mkyoung(entry);
-+	if (arch_faults_on_old_pte())
-+		entry = pte_mkyoung(entry);
- 	if (vma->vm_flags & VM_WRITE)
- 		entry = pte_mkwrite(pte_mkdirty(entry));
- 
-@@ -3745,8 +3747,8 @@ void do_set_pte(struct vm_fault *vmf, st
- 
- 	if (prefault && arch_wants_old_prefaulted_pte())
- 		entry = pte_mkold(entry);
--	else
--		entry = pte_sw_mkyoung(entry);
-+	else if (arch_faults_on_old_pte())
-+		entry = pte_mkyoung(entry);
- 
- 	if (write)
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+--- a/mm/shmem.c~tmpfs-dont-use-64-bit-inodes-by-defulat-with-32-bit-ino_t
++++ a/mm/shmem.c
+@@ -3733,7 +3733,7 @@ static int shmem_fill_super(struct super
+ 			ctx->blocks = shmem_default_max_blocks();
+ 		if (!(ctx->seen & SHMEM_SEEN_INODES))
+ 			ctx->inodes = shmem_default_max_inodes();
+-		if (!(ctx->seen & SHMEM_SEEN_INUMS))
++		if (!(ctx->seen & SHMEM_SEEN_INUMS) && sizeof(ino_t) >= 8)
+ 			ctx->full_inums = IS_ENABLED(CONFIG_TMPFS_INODE64);
+ 	} else {
+ 		sb->s_flags |= SB_NOUSER;
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from seth.forshee@canonical.com are
 
-mm-remove-arch_remap-and-mm-arch-hooksh.patch
+tmpfs-disallow-config_tmpfs_inode64-on-s390.patch
 
