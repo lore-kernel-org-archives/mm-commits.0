@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DATE_IN_PAST_03_06,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BF0BC433DB
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:11:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8B2FC43381
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:15:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C698864F99
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:11:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AEB0C64FD8
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Feb 2021 03:15:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230035AbhBFDKm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Feb 2021 22:10:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42070 "EHLO mail.kernel.org"
+        id S231657AbhBFDO4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Feb 2021 22:14:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42600 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229492AbhBFDG4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Feb 2021 22:06:56 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C0E2F64DBA;
-        Fri,  5 Feb 2021 22:51:53 +0000 (UTC)
+        id S230153AbhBFDME (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Feb 2021 22:12:04 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CCC0E6500F;
+        Sat,  6 Feb 2021 00:05:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612565514;
-        bh=K2vCmDQMvJNms/OGPdq/lY0iH6Ue9gGJGNA5AoyApwE=;
+        s=korg; t=1612569956;
+        bh=1eMAz7k6GicW8nFsMEKojiGvPoT8cGQ2g2NYhSzNPeI=;
         h=Date:From:To:Subject:From;
-        b=KWEIcIDZevZX0+SXZ/5Q5Y7T7kqidOuvCZDq78bqWvhfivK41TMlnhzUcc48slBMk
-         F48yoGSdidyfbIJ76Y89cbQM5c2jO7VSUZjoMdCWq9U76KsIeRBDdvWt1lLIcnM1eN
-         bnJkI1ycX1oIZ4qAO/Ur/ECLDh6AuQLz3fYwa7E0=
-Date:   Fri, 05 Feb 2021 14:51:53 -0800
+        b=hfTZfX95qaInMx0HAMRJItI/Nc9e1Y5YTvGzcZcEVoDC+TlKEwA32b8YzdtzheW0p
+         7IGBnhK1KKsRorpOGMw+RNgW/ix+znsAdBRBj9csKMMBaeO0vR7RAPM0AtrS00qvlV
+         79FAx3GXhyIEltQJr2ZwKCkb3JPkyJ3MRn6mfGiw=
+Date:   Fri, 05 Feb 2021 16:05:55 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org
-Subject:  +
- mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
- added to -mm tree
-Message-ID: <20210205225153.wCX_3E9tI%akpm@linux-foundation.org>
+To:     amir73il@gmail.com, borntraeger@de.ibm.com, chris@chrisdown.name,
+        gor@linux.ibm.com, hca@linux.ibm.com, hughd@google.com,
+        mm-commits@vger.kernel.org, seth.forshee@canonical.com,
+        stable@vger.kernel.org
+Subject:  + tmpfs-disallow-config_tmpfs_inode64-on-s390.patch added
+ to -mm tree
+Message-ID: <20210206000555.gnxTOYin5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: use helper function range_in_vma() in page_table_shareable()
+     Subject: tmpfs: disallow CONFIG_TMPFS_INODE64 on s390
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
+     tmpfs-disallow-config_tmpfs_inode64-on-s390.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/tmpfs-disallow-config_tmpfs_inode64-on-s390.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-disallow-config_tmpfs_inode64-on-s390.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,68 +66,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: use helper function range_in_vma() in page_table_shareable()
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: tmpfs: disallow CONFIG_TMPFS_INODE64 on s390
 
-We could use helper function range_in_vma() to check whether the vma is in
-the desired range to simplify the code.
+Currently there is an assumption in tmpfs that 64-bit architectures also
+have a 64-bit ino_t.  This is not true on s390 which has a 32-bit ino_t. 
+With CONFIG_TMPFS_INODE64=y tmpfs mounts will get 64-bit inode numbers and
+display "inode64" in the mount options, but passing the "inode64" mount
+option will fail.  This leads to the following behavior:
 
-Link: https://lkml.kernel.org/r/20210204112949.43051-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+ # mkdir mnt
+ # mount -t tmpfs nodev mnt
+ # mount -o remount,rw mnt
+ mount: /home/ubuntu/mnt: mount point not mounted or bad option.
+
+As mount sees "inode64" in the mount options and thus passes it in the
+options for the remount.
+
+
+So prevent CONFIG_TMPFS_INODE64 from being selected on s390.
+
+Link: https://lkml.kernel.org/r/20210205230620.518245-1-seth.forshee@canonical.com
+Fixes: ea3271f7196c ("tmpfs: support 64-bit inums per-sb")
+Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: <stable@vger.kernel.org>	[5.9+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
+ fs/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable
-+++ a/mm/hugetlb.c
-@@ -5296,7 +5296,7 @@ static unsigned long page_table_shareabl
- 	 */
- 	if (pmd_index(addr) != pmd_index(saddr) ||
- 	    vm_flags != svm_flags ||
--	    sbase < svma->vm_start || svma->vm_end < s_end)
-+	    !range_in_vma(svma, sbase, s_end))
- 		return 0;
+--- a/fs/Kconfig~tmpfs-disallow-config_tmpfs_inode64-on-s390
++++ a/fs/Kconfig
+@@ -203,7 +203,7 @@ config TMPFS_XATTR
  
- 	return saddr;
+ config TMPFS_INODE64
+ 	bool "Use 64-bit ino_t by default in tmpfs"
+-	depends on TMPFS && 64BIT
++	depends on TMPFS && 64BIT && !S390
+ 	default n
+ 	help
+ 	  tmpfs has historically used only inode numbers as wide as an unsigned
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from seth.forshee@canonical.com are
 
-mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-page_owner-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-fix-potential-pte_unmap_unlock-pte-error.patch
-mm-simplify-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch
-mm-pgtable-genericc-optimize-the-vm_bug_on-condition-in-pmdp_huge_clear_flush.patch
-mm-memoryc-fix-potential-pte_unmap_unlock-pte-error.patch
-mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
-mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
-mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
-mm-hugetlb-fix-use-after-free-when-subpool-max_hpages-accounting-is-not-enabled.patch
-mm-hugetlb-fix-some-comment-typos.patch
-mm-remove-unused-return-value-of-set_huge_zero_page.patch
-hugetlb_cgroup-use-helper-pages_per_huge_page-in-hugetlb_cgroup.patch
-mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
-mm-workingsetc-avoid-unnecessary-max_nodes-estimation-in-count_shadow_nodes.patch
-z3fold-remove-unused-attribute-for-release_z3fold_page.patch
-z3fold-simplify-the-zhdr-initialization-code-in-init_z3fold_page.patch
-mm-compaction-remove-duplicated-vm_bug_on_page-pagelocked.patch
-mm-mempolicy-use-helper-range_in_vma-in-queue_pages_test_walk.patch
-hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
-hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs.patch
-hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter.patch
-hugetlbfs-remove-meaningless-variable-avoid_reserve.patch
-hugetlbfs-make-hugepage-size-conversion-more-readable.patch
-hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch
-hugetlbfs-fix-some-comment-typos.patch
-mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
-mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
-mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
-mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
-mm-rmap-correct-obsolete-comment-of-page_get_anon_vma.patch
-mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
-mm-zsmallocc-use-page_private-to-access-page-private.patch
+tmpfs-disallow-config_tmpfs_inode64-on-s390.patch
+tmpfs-dont-use-64-bit-inodes-by-defulat-with-32-bit-ino_t.patch
 
