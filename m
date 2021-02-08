@@ -7,36 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9F4CC433E6
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:24:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59312C433DB
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:24:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADEBA64E45
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:24:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0FADA64EA1
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:24:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233498AbhBHRYM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Feb 2021 12:24:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34900 "EHLO mail.kernel.org"
+        id S232967AbhBHRYP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Feb 2021 12:24:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34896 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234823AbhBHRWt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Feb 2021 12:22:49 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B854F64EBA;
-        Mon,  8 Feb 2021 17:20:45 +0000 (UTC)
+        id S234873AbhBHRXC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Feb 2021 12:23:02 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BBC9464EBC;
+        Mon,  8 Feb 2021 17:21:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612804846;
-        bh=NUYee0DLT43cT/EtMtA460oVPjYGd2sLvvYeS9UNhXY=;
+        s=korg; t=1612804865;
+        bh=i48H4bD69zmJkE5H7iqprSJR+h77EaGar5oFNiCv+Yc=;
         h=Date:From:To:Subject:From;
-        b=M0kmGuGdRNRSi/vpIUyhef0+xTrf7LRcMEnc9vTqBCs7ohY/SlNuJmwurtHHI2M1+
-         2S7l6g1lu5c49k0mVfFZW91zWP+3qflH0E5fckZZizS21uMfdUDkVw7gE3M9eAceki
-         jauRQU5SVQKE1jDLhZ7nt+rSDgOf3mNp1g/wiIaI=
-Date:   Mon, 08 Feb 2021 09:20:45 -0800
+        b=KsD0d2SzF9Uqpxi6qA1HPB4Q8KzeFkNVHtPhMxCjK5uji8UJKKOhbZQhhaGKO52EQ
+         rkOlOT6W6QcFn/1A6b1VuROMsL7+IlyNlR3IMLX5eUWAVkD6Fu38ZlOw8EmSTzqwkF
+         Fj4wjEZndOFqJ3clGKX71L8NCYEYMz8SRBlLmPEU=
+Date:   Mon, 08 Feb 2021 09:21:04 -0800
 From:   akpm@linux-foundation.org
-To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, vbabka@suse.cz, wu-yan@tcl.com
+To:     alex.shi@linux.alibaba.com, hannes@cmpxchg.org,
+        linmiaohe@huawei.com, longman@redhat.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, smuchun@gmail.com,
+        stable@vger.kernel.org, willy@infradead.org
 Subject:  [merged]
- mm-compaction-move-high_pfn-to-the-for-loop-scope.patch removed from -mm
- tree
-Message-ID: <20210208172045.0Y6TwG8oa%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-filemap-adding-missing-mem=5Fcgroup=5Funcharge-to-?=
+ =?US-ASCII?Q?=5F=5Fadd=5Fto=5Fpage=5Fcache=5Flocked.patch?= removed from
+ -mm tree
+Message-ID: <20210208172104.e6pvkmkP3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,93 +49,113 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: move high_pfn to the for loop scope
+     Subject: mm/filemap: add missing mem_cgroup_uncharge() to __add_to_page_cache_locked()
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-move-high_pfn-to-the-for-loop-scope.patch
+     mm-filemap-adding-missing-mem_cgroup_uncharge-to-__add_to_page_cache_locked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rokudo Yan <wu-yan@tcl.com>
-Subject: mm, compaction: move high_pfn to the for loop scope
+From: Waiman Long <longman@redhat.com>
+Subject: mm/filemap: add missing mem_cgroup_uncharge() to __add_to_page_cache_locked()
 
-In fast_isolate_freepages, high_pfn will be used if a prefered one(PFN >=
-low_fn) not found.  But the high_pfn is not reset before searching an free
-area, so when it was used as freepage, it may from another free area
-searched before.  And move_freelist_head(freelist, freepage) will have
-unexpected behavior(eg.  corrupt the MOVABLE freelist)
+commit 3fea5a499d57 ("mm: memcontrol: convert page cache to a new
+mem_cgroup_charge() API") introduced a bug in __add_to_page_cache_locked()
+causing the following splat:
 
-Unable to handle kernel paging request at virtual address dead000000000200
-Mem abort info:
-  ESR = 0x96000044
-  Exception class = DABT (current EL), IL = 32 bits
-  SET = 0, FnV = 0
-  EA = 0, S1PTW = 0
-Data abort info:
-  ISV = 0, ISS = 0x00000044
-  CM = 0, WnR = 1
-[dead000000000200] address between user and kernel address ranges
+ [ 1570.068330] page dumped because: VM_BUG_ON_PAGE(page_memcg(page))
+ [ 1570.068333] pages's memcg:ffff8889a4116000
+ [ 1570.068343] ------------[ cut here ]------------
+ [ 1570.068346] kernel BUG at mm/memcontrol.c:2924!
+ [ 1570.068355] invalid opcode: 0000 [#1] SMP KASAN PTI
+ [ 1570.068359] CPU: 35 PID: 12345 Comm: cat Tainted: G S      W I       5.11.0-rc4-debug+ #1
+ [ 1570.068363] Hardware name: HP HP Z8 G4 Workstation/81C7, BIOS P60 v01.25 12/06/2017
+ [ 1570.068365] RIP: 0010:commit_charge+0xf4/0x130
+   :
+ [ 1570.068375] RSP: 0018:ffff8881b38d70e8 EFLAGS: 00010286
+ [ 1570.068379] RAX: 0000000000000000 RBX: ffffea00260ddd00 RCX: 0000000000000027
+ [ 1570.068382] RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffff88907ebe05a8
+ [ 1570.068384] RBP: ffffea00260ddd00 R08: ffffed120fd7c0b6 R09: ffffed120fd7c0b6
+ [ 1570.068386] R10: ffff88907ebe05ab R11: ffffed120fd7c0b5 R12: ffffea00260ddd38
+ [ 1570.068389] R13: ffff8889a4116000 R14: ffff8889a4116000 R15: 0000000000000001
+ [ 1570.068391] FS:  00007ff039638680(0000) GS:ffff88907ea00000(0000) knlGS:0000000000000000
+ [ 1570.068394] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ [ 1570.068396] CR2: 00007f36f354cc20 CR3: 00000008a0126006 CR4: 00000000007706e0
+ [ 1570.068398] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+ [ 1570.068400] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+ [ 1570.068402] PKRU: 55555554
+ [ 1570.068404] Call Trace:
+ [ 1570.068407]  mem_cgroup_charge+0x175/0x770
+ [ 1570.068413]  __add_to_page_cache_locked+0x712/0xad0
+ [ 1570.068439]  add_to_page_cache_lru+0xc5/0x1f0
+ [ 1570.068461]  cachefiles_read_or_alloc_pages+0x895/0x2e10 [cachefiles]
+ [ 1570.068524]  __fscache_read_or_alloc_pages+0x6c0/0xa00 [fscache]
+ [ 1570.068540]  __nfs_readpages_from_fscache+0x16d/0x630 [nfs]
+ [ 1570.068585]  nfs_readpages+0x24e/0x540 [nfs]
+ [ 1570.068693]  read_pages+0x5b1/0xc40
+ [ 1570.068711]  page_cache_ra_unbounded+0x460/0x750
+ [ 1570.068729]  generic_file_buffered_read_get_pages+0x290/0x1710
+ [ 1570.068756]  generic_file_buffered_read+0x2a9/0xc30
+ [ 1570.068832]  nfs_file_read+0x13f/0x230 [nfs]
+ [ 1570.068872]  new_sync_read+0x3af/0x610
+ [ 1570.068901]  vfs_read+0x339/0x4b0
+ [ 1570.068909]  ksys_read+0xf1/0x1c0
+ [ 1570.068920]  do_syscall_64+0x33/0x40
+ [ 1570.068926]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+ [ 1570.068930] RIP: 0033:0x7ff039135595
 
--000|list_cut_before(inline)
--000|move_freelist_head(inline)
--000|fast_isolate_freepages(inline)
--000|isolate_freepages(inline)
--000|compaction_alloc(?, ?)
--001|unmap_and_move(inline)
--001|migrate_pages([NSD:0xFFFFFF80088CBBD0] from = 0xFFFFFF80088CBD88, [NSD:0xFFFFFF80088CBBC8] get_new_p
--002|__read_once_size(inline)
--002|static_key_count(inline)
--002|static_key_false(inline)
--002|trace_mm_compaction_migratepages(inline)
--002|compact_zone(?, [NSD:0xFFFFFF80088CBCB0] capc = 0x0)
--003|kcompactd_do_work(inline)
--003|kcompactd([X19] p = 0xFFFFFF93227FBC40)
--004|kthread([X20] _create = 0xFFFFFFE1AFB26380)
--005|ret_from_fork(asm)
----|end of frame
+Before that commit, there was a try_charge() and commit_charge() in
+__add_to_page_cache_locked().  These 2 separated charge functions were
+replaced by a single mem_cgroup_charge().  However, it forgot to add a
+matching mem_cgroup_uncharge() when the xarray insertion failed with the
+page released back to the pool.  Fix this by adding a
+mem_cgroup_uncharge() call when insertion error happens.
 
-The issue was reported on an smart phone product with 6GB ram and 3GB zram
-as swap device.
-
-This patch fixes the issue by reset high_pfn before searching each free
-area, which ensure freepage and freelist match when call
-move_freelist_head in fast_isolate_freepages().
-
-Link: http://lkml.kernel.org/r/20190118175136.31341-12-mgorman@techsingularity.net
-Link: https://lkml.kernel.org/r/20210112094720.1238444-1-wu-yan@tcl.com
-Fixes: 5a811889de10f1eb ("mm, compaction: use free lists to quickly locate a migration target")
-Signed-off-by: Rokudo Yan <wu-yan@tcl.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20210125042441.20030-1-longman@redhat.com
+Fixes: 3fea5a499d57 ("mm: memcontrol: convert page cache to a new mem_cgroup_charge() API")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Muchun Song <smuchun@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/filemap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/compaction.c~mm-compaction-move-high_pfn-to-the-for-loop-scope
-+++ a/mm/compaction.c
-@@ -1342,7 +1342,7 @@ fast_isolate_freepages(struct compact_co
- {
- 	unsigned int limit = min(1U, freelist_scan_limit(cc) >> 1);
- 	unsigned int nr_scanned = 0;
--	unsigned long low_pfn, min_pfn, high_pfn = 0, highest = 0;
-+	unsigned long low_pfn, min_pfn, highest = 0;
- 	unsigned long nr_isolated = 0;
- 	unsigned long distance;
- 	struct page *page = NULL;
-@@ -1387,6 +1387,7 @@ fast_isolate_freepages(struct compact_co
- 		struct page *freepage;
- 		unsigned long flags;
- 		unsigned int order_scanned = 0;
-+		unsigned long high_pfn = 0;
+--- a/mm/filemap.c~mm-filemap-adding-missing-mem_cgroup_uncharge-to-__add_to_page_cache_locked
++++ a/mm/filemap.c
+@@ -835,6 +835,7 @@ noinline int __add_to_page_cache_locked(
+ 	XA_STATE(xas, &mapping->i_pages, offset);
+ 	int huge = PageHuge(page);
+ 	int error;
++	bool charged = false;
  
- 		if (!area->nr_free)
- 			continue;
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	VM_BUG_ON_PAGE(PageSwapBacked(page), page);
+@@ -848,6 +849,7 @@ noinline int __add_to_page_cache_locked(
+ 		error = mem_cgroup_charge(page, current->mm, gfp);
+ 		if (error)
+ 			goto error;
++		charged = true;
+ 	}
+ 
+ 	gfp &= GFP_RECLAIM_MASK;
+@@ -896,6 +898,8 @@ unlock:
+ 
+ 	if (xas_error(&xas)) {
+ 		error = xas_error(&xas);
++		if (charged)
++			mem_cgroup_uncharge(page);
+ 		goto error;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from wu-yan@tcl.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-zsmalloc-account-the-number-of-compacted-pages-correctly.patch
 
