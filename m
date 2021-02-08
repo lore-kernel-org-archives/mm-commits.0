@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79B49C433DB
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:25:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A82FBC433E6
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:25:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2BB0A64E45
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:25:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B38464E45
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:25:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232069AbhBHRYh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Feb 2021 12:24:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35840 "EHLO mail.kernel.org"
+        id S234890AbhBHRZA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Feb 2021 12:25:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35240 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234893AbhBHRXT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Feb 2021 12:23:19 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B081A64E6E;
-        Mon,  8 Feb 2021 17:20:48 +0000 (UTC)
+        id S234895AbhBHRXU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Feb 2021 12:23:20 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A6E9564EC8;
+        Mon,  8 Feb 2021 17:21:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612804849;
-        bh=8l0fJtEYie+CjNPjSsOCrmRUM62MsJXi9RAxA1l54xA=;
+        s=korg; t=1612804875;
+        bh=r4k4aNNbQQPvmqWODdj8iy8w7SE3it+KGhs0QKLspAw=;
         h=Date:From:To:Subject:From;
-        b=SPpkL8dyLDo/gPqM3xOKinwTszstMJv8+KhCY2DY17FNxRhG5H+WqJTwxR6V5X8KK
-         mKAj9huXC9G2ktcAaYnGJyTEILM3moFl4p7LQKgq8XmF+tZ0KW4NK7X6vzmKkdlTEx
-         bCLPug93pQEWbB5kxmbwgMX0MTKLh3bbRnxHDaTU=
-Date:   Mon, 08 Feb 2021 09:20:48 -0800
+        b=EoEt4hPbGbp2i8ib1fRx7/BvjvcfcrI+uupM55xyaN8OfKXqXFx6aoAU8/rGuENz4
+         wS25D8h6i+YJ6JvgD7IhnF9zwVYG9YPOKa6cM9o5K/UVdFCqhkq9UabaKDddaURlx1
+         D47dERbF13XV0Pp0RLk9iAd9erwTAxjqmlEOktoU=
+Date:   Mon, 08 Feb 2021 09:21:15 -0800
 From:   akpm@linux-foundation.org
-To:     dja@axtens.net, hch@lst.de, linmiaohe@huawei.com,
-        mm-commits@vger.kernel.org, rick.p.edgecombe@intel.com,
-        stable@vger.kernel.org, willy@infradead.org
+To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        stable@vger.kernel.org
 Subject:  [merged]
- mm-vmalloc-separate-put-pages-and-flush-vm-flags.patch removed from -mm
- tree
-Message-ID: <20210208172048.v9fS2xjms%akpm@linux-foundation.org>
+ mm-hugetlb-fix-missing-put_page-in-gather_surplus_pages.patch removed from
+ -mm tree
+Message-ID: <20210208172115.0a5gX6R45%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,65 +45,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: separate put pages and flush VM flags
+     Subject: mm: hugetlb: fix missing put_page in gather_surplus_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-separate-put-pages-and-flush-vm-flags.patch
+     mm-hugetlb-fix-missing-put_page-in-gather_surplus_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Subject: mm/vmalloc: separate put pages and flush VM flags
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: hugetlb: fix missing put_page in gather_surplus_pages()
 
-When VM_MAP_PUT_PAGES was added, it was defined with the same value as
-VM_FLUSH_RESET_PERMS.  This doesn't seem like it will cause any big
-functional problems other than some excess flushing for VM_MAP_PUT_PAGES
-allocations.
+The VM_BUG_ON_PAGE avoids the generation of any code, even if that
+expression has side-effects when !CONFIG_DEBUG_VM.
 
-Redefine VM_MAP_PUT_PAGES to have its own value.  Also, rearrange things
-so flags are less likely to be missed in the future.
-
-Link: https://lkml.kernel.org/r/20210122233706.9304-1-rick.p.edgecombe@intel.com
-Fixes: b944afc9d64d ("mm: add a VM_MAP_PUT_PAGES flag for vmap")
-Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Daniel Axtens <dja@axtens.net>
+Link: https://lkml.kernel.org/r/20210126031009.96266-1-songmuchun@bytedance.com
+Fixes: e5dfacebe4a4 ("mm/hugetlb.c: just use put_page_testzero() instead of page_count()")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ mm/hugetlb.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/include/linux/vmalloc.h~mm-vmalloc-separate-put-pages-and-flush-vm-flags
-+++ a/include/linux/vmalloc.h
-@@ -24,7 +24,8 @@ struct notifier_block;		/* in notifier.h
- #define VM_UNINITIALIZED	0x00000020	/* vm_struct is not fully initialized */
- #define VM_NO_GUARD		0x00000040      /* don't add guard page */
- #define VM_KASAN		0x00000080      /* has allocated kasan shadow memory */
--#define VM_MAP_PUT_PAGES	0x00000100	/* put pages and free array in vfree */
-+#define VM_FLUSH_RESET_PERMS	0x00000100	/* reset direct map and flush TLB on unmap, can't be freed in atomic context */
-+#define VM_MAP_PUT_PAGES	0x00000200	/* put pages and free array in vfree */
+--- a/mm/hugetlb.c~mm-hugetlb-fix-missing-put_page-in-gather_surplus_pages
++++ a/mm/hugetlb.c
+@@ -2047,13 +2047,16 @@ retry:
  
- /*
-  * VM_KASAN is used slighly differently depending on CONFIG_KASAN_VMALLOC.
-@@ -37,12 +38,6 @@ struct notifier_block;		/* in notifier.h
-  * determine which allocations need the module shadow freed.
-  */
- 
--/*
-- * Memory with VM_FLUSH_RESET_PERMS cannot be freed in an interrupt or with
-- * vfree_atomic().
-- */
--#define VM_FLUSH_RESET_PERMS	0x00000100      /* Reset direct map and flush TLB on unmap */
--
- /* bits [20..32] reserved for arch specific ioremap internals */
- 
- /*
+ 	/* Free the needed pages to the hugetlb pool */
+ 	list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
++		int zeroed;
++
+ 		if ((--needed) < 0)
+ 			break;
+ 		/*
+ 		 * This page is now managed by the hugetlb allocator and has
+ 		 * no users -- drop the buddy allocator's reference.
+ 		 */
+-		VM_BUG_ON_PAGE(!put_page_testzero(page), page);
++		zeroed = put_page_testzero(page);
++		VM_BUG_ON_PAGE(!zeroed, page);
+ 		enqueue_huge_page(h, page);
+ 	}
+ free:
 _
 
-Patches currently in -mm which might be from rick.p.edgecombe@intel.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
+mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage.patch
+mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
+mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
+mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
+mm-memcontrol-make-the-slab-calculation-consistent.patch
+mm-memcontrol-replace-the-loop-with-a-list_for_each_entry.patch
+hugetlb-convert-page_huge_active-hpagemigratable-flag-fix.patch
 
