@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6F0DC433DB
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 21:06:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A23AC433E9
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 21:07:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73EE864E56
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 21:06:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ADC5864E74
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 21:07:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232222AbhBHVGS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Feb 2021 16:06:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59758 "EHLO mail.kernel.org"
+        id S230465AbhBHVHR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Feb 2021 16:07:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59950 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234677AbhBHVGE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Feb 2021 16:06:04 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 04A2D60230;
-        Mon,  8 Feb 2021 21:05:23 +0000 (UTC)
+        id S235235AbhBHVHI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Feb 2021 16:07:08 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E5F1564D73;
+        Mon,  8 Feb 2021 21:06:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612818324;
-        bh=pukLus9JYDRfhMH2FIlLFKdYiuBJctIfGPRSjx6NipI=;
+        s=korg; t=1612818388;
+        bh=3S2d6f69B6RMm+yGHd0aHknkoKMawqweHdndLtYm+SU=;
         h=Date:From:To:Subject:From;
-        b=yX3ZlU0HcB1tHG53Lo+GCodFzYR2De4nvd5N0Ylp60nHQt1i6qgA1glgYFje3QCwa
-         h4zFA01K+Csnhb4z3q4R9xYhLMWm7kPKmcj1aF0JPE6qxTi8oln1wp0zT3YmyVfFmB
-         WevDwlLOdS8oB3ZecSL1O0ZWwVS/89PBLf0dSLO0=
-Date:   Mon, 08 Feb 2021 13:05:23 -0800
+        b=ywf3ERizektQ+D8qKgSpPN19+pr3irCbHNIxQ6zkBeOTU1bGx+0UTn9heHZuVknqA
+         iYVpLutOL0T0i6WnTNCkOyspNNnqv8YD4Tk91bixxswsNfhjcmm0f1LU3W64eVHKCJ
+         czK9ynw6kHiXxIOq2PwsIp55jnuJa2vHLIztdX+Y=
+Date:   Mon, 08 Feb 2021 13:06:27 -0800
 From:   akpm@linux-foundation.org
-To:     georgi.djakov@linaro.org, minchan@kernel.org,
-        mm-commits@vger.kernel.org, pdaly@codeaurora.org
-Subject:  + mm-cma-print-region-name-on-failure.patch added to -mm
- tree
-Message-ID: <20210208210523.bWPUB054J%akpm@linux-foundation.org>
+To:     joachim.henke@t-systems.com, konishi.ryusuke@gmail.com,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org
+Subject:  + nilfs2-make-splice-write-available-again.patch added to
+ -mm tree
+Message-ID: <20210208210627.AdnLy6rXt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: print region name on failure
+     Subject: nilfs2: make splice write available again
 has been added to the -mm tree.  Its filename is
-     mm-cma-print-region-name-on-failure.patch
+     nilfs2-make-splice-write-available-again.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-print-region-name-on-failure.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/nilfs2-make-splice-write-available-again.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-print-region-name-on-failure.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-make-splice-write-available-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,38 +64,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Patrick Daly <pdaly@codeaurora.org>
-Subject: mm: cma: print region name on failure
+From: Joachim Henke <joachim.henke@t-systems.com>
+Subject: nilfs2: make splice write available again
 
-Print the name of the cma region for convienience.  This is useful
-information to have when cma_alloc() fails.
+Since 5.10, splice() or sendfile() to NILFS2 return EINVAL.  This was
+caused by commit 36e2c7421f02 ("fs: don't allow splice read/write without
+explicit ops").
 
-Link: https://lkml.kernel.org/r/20210208115200.20286-1-georgi.djakov@linaro.org
-Signed-off-by: Patrick Daly <pdaly@codeaurora.org>
-Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
-Cc: Minchan Kim <minchan@kernel.org>
+This patch initializes the splice_write field in file_operations, like
+most file systems do, to restore the functionality.
+
+Link: https://lkml.kernel.org/r/1612784101-14353-1-git-send-email-konishi.ryusuke@gmail.com
+Signed-off-by: Joachim Henke <joachim.henke@t-systems.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>	[5.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/nilfs2/file.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/cma.c~mm-cma-print-region-name-on-failure
-+++ a/mm/cma.c
-@@ -500,8 +500,8 @@ struct page *cma_alloc(struct cma *cma,
- 	}
+--- a/fs/nilfs2/file.c~nilfs2-make-splice-write-available-again
++++ a/fs/nilfs2/file.c
+@@ -141,6 +141,7 @@ const struct file_operations nilfs_file_
+ 	/* .release	= nilfs_release_file, */
+ 	.fsync		= nilfs_sync_file,
+ 	.splice_read	= generic_file_splice_read,
++	.splice_write   = iter_file_splice_write,
+ };
  
- 	if (ret && !no_warn) {
--		pr_err("%s: alloc failed, req-size: %zu pages, ret: %d\n",
--			__func__, count, ret);
-+		pr_err("%s: %s: alloc failed, req-size: %zu pages, ret: %d\n",
-+		       __func__, cma->name, cma->count, ret);
- 		cma_debug_show_areas(cma);
- 	}
- 
+ const struct inode_operations nilfs_file_inode_operations = {
 _
 
-Patches currently in -mm which might be from pdaly@codeaurora.org are
+Patches currently in -mm which might be from joachim.henke@t-systems.com are
 
-mm-cma-print-region-name-on-failure.patch
+nilfs2-make-splice-write-available-again.patch
 
