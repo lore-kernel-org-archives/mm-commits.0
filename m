@@ -5,38 +5,40 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA4EAC433DB
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:25:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09845C433E0
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:25:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9224E64E56
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:25:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA6F264E45
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:25:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234934AbhBHRYt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Feb 2021 12:24:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35842 "EHLO mail.kernel.org"
+        id S234948AbhBHRZN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Feb 2021 12:25:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35894 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234890AbhBHRXU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Feb 2021 12:23:20 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CC8AE64EBF;
-        Mon,  8 Feb 2021 17:20:56 +0000 (UTC)
+        id S234928AbhBHRX1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Feb 2021 12:23:27 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DFDE864EC5;
+        Mon,  8 Feb 2021 17:21:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612804857;
-        bh=ETSmpktXcq2fuOSiswDx8JpmynP3tp4R5xEf41bCjsY=;
+        s=korg; t=1612804868;
+        bh=Bkr/MDtpvUnci6RevJDctzse7ZgGRvGxz2CYK4WTmqE=;
         h=Date:From:To:Subject:From;
-        b=ogK35GL3URab53L7F1zeP8fhFsmfFL9QYtK8XKG0s0RpGgKsTgRqqNL4kPrONHKpB
-         FsbLHb4kmxx+J11tFaRVXEMOF6LWmGflQv3RSXUffw3oe8cy7jpWlQy6CS0wCmdrmJ
-         TJ0l+hV3AvNrgTCcP+50E67VI4NrRlsE9TafkNYc=
-Date:   Mon, 08 Feb 2021 09:20:56 -0800
+        b=IFSYsWhXzE7OkMUWjijA0s/rJr4a8BIclHgg/7a+kSnInQLZW22sIKKQ5AFjc9wQa
+         bWeJ81pdB/E4aW84NSJ5GwQVTnmYE0qECuy2fxPe3biaaBq8xqaF3yeMY/nNr10LJK
+         oNyx8m2092apCGR1F8Ar8bIkQPcuRstQ58IcsLb4=
+Date:   Mon, 08 Feb 2021 09:21:07 -0800
 From:   akpm@linux-foundation.org
-To:     bauerman@linux.ibm.com, guro@fb.com, iamjoonsoo.kim@lge.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com,
-        rppt@linux.ibm.com, stable@vger.kernel.org, vvghjk1234@gmail.com
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
+        catalin.marinas@arm.com, dvyukov@google.com, glider@google.com,
+        leonro@mellanox.com, mark.rutland@arm.com,
+        mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
+        paulmck@kernel.org, vincenzo.frascino@arm.com, will@kernel.org
 Subject:  [merged]
- memblock-do-not-start-bottom-up-allocations-with-kernel_end.patch removed
- from -mm tree
-Message-ID: <20210208172056.0VUXXSwLA%akpm@linux-foundation.org>
+ kasan-add-explicit-preconditions-to-kasan_report.patch removed from -mm
+ tree
+Message-ID: <20210208172107.t9h6I344Z%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,157 +47,113 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: do not start bottom-up allocations with kernel_end
+     Subject: kasan: add explicit preconditions to kasan_report()
 has been removed from the -mm tree.  Its filename was
-     memblock-do-not-start-bottom-up-allocations-with-kernel_end.patch
+     kasan-add-explicit-preconditions-to-kasan_report.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: memblock: do not start bottom-up allocations with kernel_end
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: kasan: add explicit preconditions to kasan_report()
 
-With kaslr the kernel image is placed at a random place, so starting the
-bottom-up allocation with the kernel_end can result in an allocation
-failure and a warning like this one:
+Patch series "kasan: Fix metadata detection for KASAN_HW_TAGS", v5.
 
-[    0.002920] hugetlb_cma: reserve 2048 MiB, up to 2048 MiB per node
-[    0.002921] ------------[ cut here ]------------
-[    0.002922] memblock: bottom-up allocation failed, memory hotremove may be affected
-[    0.002937] WARNING: CPU: 0 PID: 0 at mm/memblock.c:332 memblock_find_in_range_node+0x178/0x25a
-[    0.002937] Modules linked in:
-[    0.002939] CPU: 0 PID: 0 Comm: swapper Not tainted 5.10.0+ #1169
-[    0.002940] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-1.fc33 04/01/2014
-[    0.002942] RIP: 0010:memblock_find_in_range_node+0x178/0x25a
-[    0.002944] Code: e9 6d ff ff ff 48 85 c0 0f 85 da 00 00 00 80 3d 9b 35 df 00 00 75 15 48 c7 c7 c0 75 59 88 c6 05 8b 35 df 00 01 e8 25 8a fa ff <0f> 0b 48 c7 44 24 20 ff ff ff ff 44 89 e6 44 89 ea 48 c7 c1 70 5c
-[    0.002945] RSP: 0000:ffffffff88803d18 EFLAGS: 00010086 ORIG_RAX: 0000000000000000
-[    0.002947] RAX: 0000000000000000 RBX: 0000000240000000 RCX: 00000000ffffdfff
-[    0.002948] RDX: 00000000ffffdfff RSI: 00000000ffffffea RDI: 0000000000000046
-[    0.002948] RBP: 0000000100000000 R08: ffffffff88922788 R09: 0000000000009ffb
-[    0.002949] R10: 00000000ffffe000 R11: 3fffffffffffffff R12: 0000000000000000
-[    0.002950] R13: 0000000000000000 R14: 0000000080000000 R15: 00000001fb42c000
-[    0.002952] FS:  0000000000000000(0000) GS:ffffffff88f71000(0000) knlGS:0000000000000000
-[    0.002953] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    0.002954] CR2: ffffa080fb401000 CR3: 00000001fa80a000 CR4: 00000000000406b0
-[    0.002956] Call Trace:
-[    0.002961]  ? memblock_alloc_range_nid+0x8d/0x11e
-[    0.002963]  ? cma_declare_contiguous_nid+0x2c4/0x38c
-[    0.002964]  ? hugetlb_cma_reserve+0xdc/0x128
-[    0.002968]  ? flush_tlb_one_kernel+0xc/0x20
-[    0.002969]  ? native_set_fixmap+0x82/0xd0
-[    0.002971]  ? flat_get_apic_id+0x5/0x10
-[    0.002973]  ? register_lapic_address+0x8e/0x97
-[    0.002975]  ? setup_arch+0x8a5/0xc3f
-[    0.002978]  ? start_kernel+0x66/0x547
-[    0.002980]  ? load_ucode_bsp+0x4c/0xcd
-[    0.002982]  ? secondary_startup_64_no_verify+0xb0/0xbb
-[    0.002986] random: get_random_bytes called from __warn+0xab/0x110 with crng_init=0
-[    0.002988] ---[ end trace f151227d0b39be70 ]---
+With the introduction of KASAN_HW_TAGS, kasan_report() currently assumes
+that every location in memory has valid metadata associated.  This is due
+to the fact that addr_has_metadata() returns always true.
 
-At the same time, the kernel image is protected with memblock_reserve(),
-so we can just start searching at PAGE_SIZE.  In this case the bottom-up
-allocation has the same chances to success as a top-down allocation, so
-there is no reason to fallback in the case of a failure.  All together it
-simplifies the logic.
+As a consequence of this, an invalid address (e.g.  NULL pointer address)
+passed to kasan_report() when KASAN_HW_TAGS is enabled, leads to a kernel
+panic.
 
-Link: https://lkml.kernel.org/r/20201217201214.3414100-2-guro@fb.com
-Fixes: 8fabc623238e ("powerpc: Ensure that swiotlb buffer is allocated from low memory")
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Wonhyuk Yang <vvghjk1234@gmail.com>
-Cc: Thiago Jung Bauermann <bauerman@linux.ibm.com>
+Example below, based on arm64:
+
+ ==================================================================
+ BUG: KASAN: invalid-access in 0x0
+ Read at addr 0000000000000000 by task swapper/0/1
+ Unable to handle kernel NULL pointer dereference at virtual address 0000000000000000
+ Mem abort info:
+   ESR = 0x96000004
+   EC = 0x25: DABT (current EL), IL = 32 bits
+   SET = 0, FnV = 0
+   EA = 0, S1PTW = 0
+ Data abort info:
+   ISV = 0, ISS = 0x00000004
+   CM = 0, WnR = 0
+
+...
+
+ Call trace:
+  mte_get_mem_tag+0x24/0x40
+  kasan_report+0x1a4/0x410
+  alsa_sound_last_init+0x8c/0xa4
+  do_one_initcall+0x50/0x1b0
+  kernel_init_freeable+0x1d4/0x23c
+  kernel_init+0x14/0x118
+  ret_from_fork+0x10/0x34
+ Code: d65f03c0 9000f021 f9428021 b6cfff61 (d9600000)
+ ---[ end trace 377c8bb45bdd3a1a ]---
+ hrtimer: interrupt took 48694256 ns
+ note: swapper/0[1] exited with preempt_count 1
+ Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+ SMP: stopping secondary CPUs
+ Kernel Offset: 0x35abaf140000 from 0xffff800010000000
+ PHYS_OFFSET: 0x40000000
+ CPU features: 0x0a7e0152,61c0a030
+ Memory Limit: none
+ ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b ]---
+
+This series fixes the behavior of addr_has_metadata() that now returns
+true only when the address is valid.
+
+
+This patch (of 2):
+
+With the introduction of KASAN_HW_TAGS, kasan_report() accesses the
+metadata only when addr_has_metadata() succeeds.
+
+Add a comment to make sure that the preconditions to the function are
+explicitly clarified.
+
+Link: https://lkml.kernel.org/r/20210126134409.47894-1-vincenzo.frascino@arm.com
+Link: https://lkml.kernel.org/r/20210126134409.47894-2-vincenzo.frascino@arm.com
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |   49 +++++-------------------------------------------
- 1 file changed, 6 insertions(+), 43 deletions(-)
+ include/linux/kasan.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/memblock.c~memblock-do-not-start-bottom-up-allocations-with-kernel_end
-+++ a/mm/memblock.c
-@@ -275,14 +275,6 @@ __memblock_find_range_top_down(phys_addr
-  *
-  * Find @size free area aligned to @align in the specified range and node.
-  *
-- * When allocation direction is bottom-up, the @start should be greater
-- * than the end of the kernel image. Otherwise, it will be trimmed. The
-- * reason is that we want the bottom-up allocation just near the kernel
-- * image so it is highly likely that the allocated memory and the kernel
-- * will reside in the same node.
-- *
-- * If bottom-up allocation failed, will try to allocate memory top-down.
-- *
-  * Return:
-  * Found address on success, 0 on failure.
-  */
-@@ -291,8 +283,6 @@ static phys_addr_t __init_memblock membl
- 					phys_addr_t end, int nid,
- 					enum memblock_flags flags)
- {
--	phys_addr_t kernel_end, ret;
--
- 	/* pump up @end */
- 	if (end == MEMBLOCK_ALLOC_ACCESSIBLE ||
- 	    end == MEMBLOCK_ALLOC_KASAN)
-@@ -301,40 +291,13 @@ static phys_addr_t __init_memblock membl
- 	/* avoid allocating the first page */
- 	start = max_t(phys_addr_t, start, PAGE_SIZE);
- 	end = max(start, end);
--	kernel_end = __pa_symbol(_end);
--
--	/*
--	 * try bottom-up allocation only when bottom-up mode
--	 * is set and @end is above the kernel image.
--	 */
--	if (memblock_bottom_up() && end > kernel_end) {
--		phys_addr_t bottom_up_start;
--
--		/* make sure we will allocate above the kernel */
--		bottom_up_start = max(start, kernel_end);
--
--		/* ok, try bottom-up allocation first */
--		ret = __memblock_find_range_bottom_up(bottom_up_start, end,
--						      size, align, nid, flags);
--		if (ret)
--			return ret;
--
--		/*
--		 * we always limit bottom-up allocation above the kernel,
--		 * but top-down allocation doesn't have the limit, so
--		 * retrying top-down allocation may succeed when bottom-up
--		 * allocation failed.
--		 *
--		 * bottom-up allocation is expected to be fail very rarely,
--		 * so we use WARN_ONCE() here to see the stack trace if
--		 * fail happens.
--		 */
--		WARN_ONCE(IS_ENABLED(CONFIG_MEMORY_HOTREMOVE),
--			  "memblock: bottom-up allocation failed, memory hotremove may be affected\n");
--	}
- 
--	return __memblock_find_range_top_down(start, end, size, align, nid,
--					      flags);
-+	if (memblock_bottom_up())
-+		return __memblock_find_range_bottom_up(start, end, size, align,
-+						       nid, flags);
-+	else
-+		return __memblock_find_range_top_down(start, end, size, align,
-+						      nid, flags);
+--- a/include/linux/kasan.h~kasan-add-explicit-preconditions-to-kasan_report
++++ a/include/linux/kasan.h
+@@ -333,6 +333,13 @@ static inline void *kasan_reset_tag(cons
+ 	return (void *)arch_kasan_reset_tag(addr);
  }
  
- /**
++/**
++ * kasan_report - print a report about a bad memory access detected by KASAN
++ * @addr: address of the bad access
++ * @size: size of the bad access
++ * @is_write: whether the bad access is a write or a read
++ * @ip: instruction pointer for the accessibility check or the bad access itself
++ */
+ bool kasan_report(unsigned long addr, size_t size,
+ 		bool is_write, unsigned long ip);
+ 
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from vincenzo.frascino@arm.com are
 
-mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch
-mm-kmem-make-__memcg_kmem_uncharge-static.patch
-mm-cma-allocate-cma-areas-bottom-up.patch
-mm-cma-allocate-cma-areas-bottom-up-fix.patch
-mm-cma-allocate-cma-areas-bottom-up-fix-2.patch
-mm-cma-allocate-cma-areas-bottom-up-fix-3.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 
