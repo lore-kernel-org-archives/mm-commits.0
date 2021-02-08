@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DB0FC433E9
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:24:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9F4CC433E6
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:24:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BDE0464E56
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:24:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ADEBA64E45
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:24:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233489AbhBHRYH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Feb 2021 12:24:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34782 "EHLO mail.kernel.org"
+        id S233498AbhBHRYM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Feb 2021 12:24:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34900 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232146AbhBHRWt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234823AbhBHRWt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 8 Feb 2021 12:22:49 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B541C64E5A;
-        Mon,  8 Feb 2021 17:20:37 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B854F64EBA;
+        Mon,  8 Feb 2021 17:20:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612804838;
-        bh=Q9dB5lJ8G//4Cdafi/VVQhgD4tKdEJc/MAloKlYdUEw=;
+        s=korg; t=1612804846;
+        bh=NUYee0DLT43cT/EtMtA460oVPjYGd2sLvvYeS9UNhXY=;
         h=Date:From:To:Subject:From;
-        b=iXh1cVcns4AdHsdbNW1FKIzPilYG0Y9FCJoCjDx18dAoNno2FbnDB9EuPUa/eM4b6
-         dydb7odoDzTSYamM5BnJYsVbrFjUj1PYPOplGVQDhjjrqJ1AK399Dfmsr9lGAr3RgR
-         fpUG4rL8schfu+UVAfityiq0SYPNzIyKlOD4I2Ik=
-Date:   Mon, 08 Feb 2021 09:20:37 -0800
+        b=M0kmGuGdRNRSi/vpIUyhef0+xTrf7LRcMEnc9vTqBCs7ohY/SlNuJmwurtHHI2M1+
+         2S7l6g1lu5c49k0mVfFZW91zWP+3qflH0E5fckZZizS21uMfdUDkVw7gE3M9eAceki
+         jauRQU5SVQKE1jDLhZ7nt+rSDgOf3mNp1g/wiIaI=
+Date:   Mon, 08 Feb 2021 09:20:45 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, osalvador@suse.de, shy828301@gmail.com,
-        songmuchun@bytedance.com, stable@vger.kernel.org
+To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, vbabka@suse.cz, wu-yan@tcl.com
 Subject:  [merged]
- mm-hugetlb-fix-a-race-between-freeing-and-dissolving-the-page.patch removed
- from -mm tree
-Message-ID: <20210208172037.gp4P-ob6I%akpm@linux-foundation.org>
+ mm-compaction-move-high_pfn-to-the-for-loop-scope.patch removed from -mm
+ tree
+Message-ID: <20210208172045.0Y6TwG8oa%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,154 +44,93 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: fix a race between freeing and dissolving the page
+     Subject: mm, compaction: move high_pfn to the for loop scope
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-a-race-between-freeing-and-dissolving-the-page.patch
+     mm-compaction-move-high_pfn-to-the-for-loop-scope.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb: fix a race between freeing and dissolving the page
+From: Rokudo Yan <wu-yan@tcl.com>
+Subject: mm, compaction: move high_pfn to the for loop scope
 
-There is a race condition between __free_huge_page()
-and dissolve_free_huge_page().
+In fast_isolate_freepages, high_pfn will be used if a prefered one(PFN >=
+low_fn) not found.  But the high_pfn is not reset before searching an free
+area, so when it was used as freepage, it may from another free area
+searched before.  And move_freelist_head(freelist, freepage) will have
+unexpected behavior(eg.  corrupt the MOVABLE freelist)
 
-CPU0:                         CPU1:
+Unable to handle kernel paging request at virtual address dead000000000200
+Mem abort info:
+  ESR = 0x96000044
+  Exception class = DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+Data abort info:
+  ISV = 0, ISS = 0x00000044
+  CM = 0, WnR = 1
+[dead000000000200] address between user and kernel address ranges
 
-// page_count(page) == 1
-put_page(page)
-  __free_huge_page(page)
-                              dissolve_free_huge_page(page)
-                                spin_lock(&hugetlb_lock)
-                                // PageHuge(page) && !page_count(page)
-                                update_and_free_page(page)
-                                // page is freed to the buddy
-                                spin_unlock(&hugetlb_lock)
-    spin_lock(&hugetlb_lock)
-    clear_page_huge_active(page)
-    enqueue_huge_page(page)
-    // It is wrong, the page is already freed
-    spin_unlock(&hugetlb_lock)
+-000|list_cut_before(inline)
+-000|move_freelist_head(inline)
+-000|fast_isolate_freepages(inline)
+-000|isolate_freepages(inline)
+-000|compaction_alloc(?, ?)
+-001|unmap_and_move(inline)
+-001|migrate_pages([NSD:0xFFFFFF80088CBBD0] from = 0xFFFFFF80088CBD88, [NSD:0xFFFFFF80088CBBC8] get_new_p
+-002|__read_once_size(inline)
+-002|static_key_count(inline)
+-002|static_key_false(inline)
+-002|trace_mm_compaction_migratepages(inline)
+-002|compact_zone(?, [NSD:0xFFFFFF80088CBCB0] capc = 0x0)
+-003|kcompactd_do_work(inline)
+-003|kcompactd([X19] p = 0xFFFFFF93227FBC40)
+-004|kthread([X20] _create = 0xFFFFFFE1AFB26380)
+-005|ret_from_fork(asm)
+---|end of frame
 
-The race windows is between put_page() and dissolve_free_huge_page().
+The issue was reported on an smart phone product with 6GB ram and 3GB zram
+as swap device.
 
-We should make sure that the page is already on the free list
-when it is dissolved.
+This patch fixes the issue by reset high_pfn before searching each free
+area, which ensure freepage and freelist match when call
+move_freelist_head in fast_isolate_freepages().
 
-As a result __free_huge_page would corrupt page(s) already in the buddy
-allocator.
-
-Link: https://lkml.kernel.org/r/20210115124942.46403-4-songmuchun@bytedance.com
-Fixes: c8721bbbdd36 ("mm: memory-hotplug: enable memory hotplug to handle hugepage")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Link: http://lkml.kernel.org/r/20190118175136.31341-12-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20210112094720.1238444-1-wu-yan@tcl.com
+Fixes: 5a811889de10f1eb ("mm, compaction: use free lists to quickly locate a migration target")
+Signed-off-by: Rokudo Yan <wu-yan@tcl.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ mm/compaction.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-a-race-between-freeing-and-dissolving-the-page
-+++ a/mm/hugetlb.c
-@@ -79,6 +79,21 @@ DEFINE_SPINLOCK(hugetlb_lock);
- static int num_fault_mutexes;
- struct mutex *hugetlb_fault_mutex_table ____cacheline_aligned_in_smp;
- 
-+static inline bool PageHugeFreed(struct page *head)
-+{
-+	return page_private(head + 4) == -1UL;
-+}
-+
-+static inline void SetPageHugeFreed(struct page *head)
-+{
-+	set_page_private(head + 4, -1UL);
-+}
-+
-+static inline void ClearPageHugeFreed(struct page *head)
-+{
-+	set_page_private(head + 4, 0);
-+}
-+
- /* Forward declaration */
- static int hugetlb_acct_memory(struct hstate *h, long delta);
- 
-@@ -1028,6 +1043,7 @@ static void enqueue_huge_page(struct hst
- 	list_move(&page->lru, &h->hugepage_freelists[nid]);
- 	h->free_huge_pages++;
- 	h->free_huge_pages_node[nid]++;
-+	SetPageHugeFreed(page);
- }
- 
- static struct page *dequeue_huge_page_node_exact(struct hstate *h, int nid)
-@@ -1044,6 +1060,7 @@ static struct page *dequeue_huge_page_no
- 
- 		list_move(&page->lru, &h->hugepage_activelist);
- 		set_page_refcounted(page);
-+		ClearPageHugeFreed(page);
- 		h->free_huge_pages--;
- 		h->free_huge_pages_node[nid]--;
- 		return page;
-@@ -1505,6 +1522,7 @@ static void prep_new_huge_page(struct hs
- 	spin_lock(&hugetlb_lock);
- 	h->nr_huge_pages++;
- 	h->nr_huge_pages_node[nid]++;
-+	ClearPageHugeFreed(page);
- 	spin_unlock(&hugetlb_lock);
- }
- 
-@@ -1755,6 +1773,7 @@ int dissolve_free_huge_page(struct page
+--- a/mm/compaction.c~mm-compaction-move-high_pfn-to-the-for-loop-scope
++++ a/mm/compaction.c
+@@ -1342,7 +1342,7 @@ fast_isolate_freepages(struct compact_co
  {
- 	int rc = -EBUSY;
+ 	unsigned int limit = min(1U, freelist_scan_limit(cc) >> 1);
+ 	unsigned int nr_scanned = 0;
+-	unsigned long low_pfn, min_pfn, high_pfn = 0, highest = 0;
++	unsigned long low_pfn, min_pfn, highest = 0;
+ 	unsigned long nr_isolated = 0;
+ 	unsigned long distance;
+ 	struct page *page = NULL;
+@@ -1387,6 +1387,7 @@ fast_isolate_freepages(struct compact_co
+ 		struct page *freepage;
+ 		unsigned long flags;
+ 		unsigned int order_scanned = 0;
++		unsigned long high_pfn = 0;
  
-+retry:
- 	/* Not to disrupt normal path by vainly holding hugetlb_lock */
- 	if (!PageHuge(page))
- 		return 0;
-@@ -1771,6 +1790,26 @@ int dissolve_free_huge_page(struct page
- 		int nid = page_to_nid(head);
- 		if (h->free_huge_pages - h->resv_huge_pages == 0)
- 			goto out;
-+
-+		/*
-+		 * We should make sure that the page is already on the free list
-+		 * when it is dissolved.
-+		 */
-+		if (unlikely(!PageHugeFreed(head))) {
-+			spin_unlock(&hugetlb_lock);
-+			cond_resched();
-+
-+			/*
-+			 * Theoretically, we should return -EBUSY when we
-+			 * encounter this race. In fact, we have a chance
-+			 * to successfully dissolve the page if we do a
-+			 * retry. Because the race window is quite small.
-+			 * If we seize this opportunity, it is an optimization
-+			 * for increasing the success rate of dissolving page.
-+			 */
-+			goto retry;
-+		}
-+
- 		/*
- 		 * Move PageHWPoison flag from head page to the raw error page,
- 		 * which makes any subpages rather than the error page reusable.
+ 		if (!area->nr_free)
+ 			continue;
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from wu-yan@tcl.com are
 
-mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage.patch
-mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
-mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
-mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
-mm-memcontrol-make-the-slab-calculation-consistent.patch
-mm-memcontrol-replace-the-loop-with-a-list_for_each_entry.patch
-hugetlb-convert-page_huge_active-hpagemigratable-flag-fix.patch
+zsmalloc-account-the-number-of-compacted-pages-correctly.patch
 
