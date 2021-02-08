@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83FA4C433E0
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 21:47:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49E04C433E0
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 21:48:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2BF7964DE1
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 21:47:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0DD5364E8F
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 21:48:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236936AbhBHVq4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Feb 2021 16:46:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39342 "EHLO mail.kernel.org"
+        id S235595AbhBHVr5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Feb 2021 16:47:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39616 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236774AbhBHVpf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Feb 2021 16:45:35 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E369C64E8F;
-        Mon,  8 Feb 2021 21:44:48 +0000 (UTC)
+        id S236850AbhBHVqi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Feb 2021 16:46:38 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C1F2564EA1;
+        Mon,  8 Feb 2021 21:45:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612820689;
-        bh=+SQ6w208SDzl9N1mCuzbH8qaABnS0/GDLNvXmRRTZOY=;
+        s=korg; t=1612820756;
+        bh=N9VpbADMsHviR8uibg27XbRWO/IXgKoXWXqmayyn+nE=;
         h=Date:From:To:Subject:From;
-        b=UibOWxyDAY9HtEyoCAtcI9uB3twjNeNMVewnjiEmjrvsMVfObthH82xCZ50jTHKzb
-         ZPkkAmNd1MY0RnmmZNifGU6eej4GHKUrW3e6TxuN2O120GTJYwZjqVxr8Cual6aN9l
-         d7DWzeej2n3N/RSDbHG8Q2iK4cG5K1k9G1ugwMUQ=
-Date:   Mon, 08 Feb 2021 13:44:48 -0800
+        b=YPGjL1PFos2gevvQ/NPBOpSVid43kCAqcILXKOQ9/foDeSezKvwT1RtecRM1GADwx
+         Bl3ZO71Ylsps345mBW+YByRXns6onn6tyttWr0cnTkUJ+WqEHw1ck0nHQapXQBwopw
+         iO3beqWt1yf+r+aT07rLMxCAFHEyYd3bMdDkA9Zc=
+Date:   Mon, 08 Feb 2021 13:45:55 -0800
 From:   akpm@linux-foundation.org
 To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org
 Subject:  +
- hugetlbfs-remove-unneeded-return-value-of-hugetlb_vmtruncate.patch added to
+ mm-hugetlb-use-helper-huge_page_size-to-get-hugepage-size.patch added to
  -mm tree
-Message-ID: <20210208214448.lrezA7dr4%akpm@linux-foundation.org>
+Message-ID: <20210208214555.klkOm7_oK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: remove unneeded return value of hugetlb_vmtruncate()
+     Subject: mm/hugetlb: use helper huge_page_size() to get hugepage size
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-remove-unneeded-return-value-of-hugetlb_vmtruncate.patch
+     mm-hugetlb-use-helper-huge_page_size-to-get-hugepage-size.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-remove-unneeded-return-value-of-hugetlb_vmtruncate.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-helper-huge_page_size-to-get-hugepage-size.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-remove-unneeded-return-value-of-hugetlb_vmtruncate.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-helper-huge_page_size-to-get-hugepage-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,51 +66,73 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlbfs: remove unneeded return value of hugetlb_vmtruncate()
+Subject: mm/hugetlb: use helper huge_page_size() to get hugepage size
 
-The function hugetlb_vmtruncate() is guaranteed to always success since
-commit 7aa91e104028 ("hugetlb: allow extending ftruncate on hugetlbfs").
-So we should remove the unneeded return value which is always 0.
+We can use helper huge_page_size() to get the hugepage size directly to
+simplify the code slightly.
 
-Link: https://lkml.kernel.org/r/20210208084637.47789-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210208082450.15716-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/hugetlb.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-remove-unneeded-return-value-of-hugetlb_vmtruncate
-+++ a/fs/hugetlbfs/inode.c
-@@ -567,7 +567,7 @@ static void hugetlbfs_evict_inode(struct
- 	clear_inode(inode);
- }
+--- a/mm/hugetlb.c~mm-hugetlb-use-helper-huge_page_size-to-get-hugepage-size
++++ a/mm/hugetlb.c
+@@ -3248,7 +3248,7 @@ void __init hugetlb_add_hstate(unsigned
+ 	BUG_ON(order == 0);
+ 	h = &hstates[hugetlb_max_hstate++];
+ 	h->order = order;
+-	h->mask = ~((1ULL << (order + PAGE_SHIFT)) - 1);
++	h->mask = ~(huge_page_size(h) - 1);
+ 	for (i = 0; i < MAX_NUMNODES; ++i)
+ 		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
+ 	INIT_LIST_HEAD(&h->hugepage_activelist);
+@@ -3523,7 +3523,7 @@ void hugetlb_report_meminfo(struct seq_f
+ 	for_each_hstate(h) {
+ 		unsigned long count = h->nr_huge_pages;
  
--static int hugetlb_vmtruncate(struct inode *inode, loff_t offset)
-+static void hugetlb_vmtruncate(struct inode *inode, loff_t offset)
- {
- 	pgoff_t pgoff;
- 	struct address_space *mapping = inode->i_mapping;
-@@ -582,7 +582,6 @@ static int hugetlb_vmtruncate(struct ino
- 		hugetlb_vmdelete_list(&mapping->i_mmap, pgoff, 0);
- 	i_mmap_unlock_write(mapping);
- 	remove_inode_hugepages(inode, offset, LLONG_MAX);
--	return 0;
- }
+-		total += (PAGE_SIZE << huge_page_order(h)) * count;
++		total += huge_page_size(h) * count;
  
- static long hugetlbfs_punch_hole(struct inode *inode, loff_t offset, loff_t len)
-@@ -780,9 +779,7 @@ static int hugetlbfs_setattr(struct dent
- 		if ((newsize < oldsize && (info->seals & F_SEAL_SHRINK)) ||
- 		    (newsize > oldsize && (info->seals & F_SEAL_GROW)))
- 			return -EPERM;
--		error = hugetlb_vmtruncate(inode, newsize);
--		if (error)
--			return error;
-+		hugetlb_vmtruncate(inode, newsize);
+ 		if (h == &default_hstate)
+ 			seq_printf(m,
+@@ -3536,10 +3536,10 @@ void hugetlb_report_meminfo(struct seq_f
+ 				   h->free_huge_pages,
+ 				   h->resv_huge_pages,
+ 				   h->surplus_huge_pages,
+-				   (PAGE_SIZE << huge_page_order(h)) / 1024);
++				   huge_page_size(h) / SZ_1K);
  	}
  
- 	setattr_copy(inode, attr);
+-	seq_printf(m, "Hugetlb:        %8lu kB\n", total / 1024);
++	seq_printf(m, "Hugetlb:        %8lu kB\n", total / SZ_1K);
+ }
+ 
+ int hugetlb_report_node_meminfo(char *buf, int len, int nid)
+@@ -3573,7 +3573,7 @@ void hugetlb_show_meminfo(void)
+ 				h->nr_huge_pages_node[nid],
+ 				h->free_huge_pages_node[nid],
+ 				h->surplus_huge_pages_node[nid],
+-				1UL << (huge_page_order(h) + PAGE_SHIFT - 10));
++				huge_page_size(h) >> 10);
+ }
+ 
+ void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm)
+@@ -3696,9 +3696,7 @@ static int hugetlb_vm_op_split(struct vm
+ 
+ static unsigned long hugetlb_vm_op_pagesize(struct vm_area_struct *vma)
+ {
+-	struct hstate *hstate = hstate_vma(vma);
+-
+-	return 1UL << huge_page_shift(hstate);
++	return huge_page_size(hstate_vma(vma));
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -128,6 +150,8 @@ mm-hugetlb-fix-some-comment-typos.patch
 mm-remove-unused-return-value-of-set_huge_zero_page.patch
 hugetlb_cgroup-use-helper-pages_per_huge_page-in-hugetlb_cgroup.patch
 mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
+mm-hugetlb-remove-redundant-vm_bug_on_page-on-putback_active_hugepage.patch
+mm-hugetlb-use-helper-huge_page_size-to-get-hugepage-size.patch
 mm-workingsetc-avoid-unnecessary-max_nodes-estimation-in-count_shadow_nodes.patch
 z3fold-remove-unused-attribute-for-release_z3fold_page.patch
 z3fold-simplify-the-zhdr-initialization-code-in-init_z3fold_page.patch
