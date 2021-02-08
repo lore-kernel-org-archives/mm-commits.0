@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBBFBC433E0
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:23:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2284C43381
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:24:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 88EF464E6C
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:23:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 585B164E5A
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:24:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231744AbhBHRXf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Feb 2021 12:23:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35242 "EHLO mail.kernel.org"
+        id S232532AbhBHRXx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Feb 2021 12:23:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34780 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232532AbhBHRWB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Feb 2021 12:22:01 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BDEE164EB6;
-        Mon,  8 Feb 2021 17:20:35 +0000 (UTC)
+        id S232286AbhBHRWt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Feb 2021 12:22:49 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C111064E8F;
+        Mon,  8 Feb 2021 17:20:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612804836;
-        bh=WxNHKfVnJNV0p0s6INK9QbFffDs6h2PYeHfXaoOAMYE=;
+        s=korg; t=1612804840;
+        bh=gfzwbbSpJCj9w0shoqiaVqZL0JZYWxRRzObu6/o9I5Y=;
         h=Date:From:To:Subject:From;
-        b=Kdqw2AnRyg7eG478QecHpg6nJqRxvk1sHBGmHCQnwfeG9NSiOXMjJO9+a6BzyJcvj
-         p8mqQW27j7XmFwy7cvEHQ+iIcdy4g8gpqBOOrkMCBoRP58TxPDEPEEKaz2N15RC5Nn
-         443fI+rYl6AH0O5AxMvB+WtEZEM0wDgPc/jQZN4Y=
-Date:   Mon, 08 Feb 2021 09:20:35 -0800
+        b=T635pDhsUiNYvAUJkOVM7dUHV4XPTKziH/L43nLFOJxNRCQ++X64MsSx/7HH7Aorf
+         gmOTOBHU1f8JfmkURUlVH25f+LfCFtbWUn9bXXq6CFlt3g0oVSte5uic8vBObD8YT9
+         /EyIahq7bEwlJez9qnywa65K9OzqlIAm7HVo2+U8=
+Date:   Mon, 08 Feb 2021 09:20:39 -0800
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, osalvador@suse.de, shy828301@gmail.com,
         songmuchun@bytedance.com, stable@vger.kernel.org
 Subject:  [merged]
- mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page.patch removed
- from -mm tree
-Message-ID: <20210208172035.I2tSjhvov%akpm@linux-foundation.org>
+ mm-hugetlb-fix-a-race-between-isolating-and-freeing-page.patch removed from
+ -mm tree
+Message-ID: <20210208172039.Sm82d1MQd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,29 +45,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlbfs: fix cannot migrate the fallocated HugeTLB page
+     Subject: mm: hugetlb: fix a race between isolating and freeing page
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page.patch
+     mm-hugetlb-fix-a-race-between-isolating-and-freeing-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlbfs: fix cannot migrate the fallocated HugeTLB page
+Subject: mm: hugetlb: fix a race between isolating and freeing page
 
-If a new hugetlb page is allocated during fallocate it will not be marked
-as active (set_page_huge_active) which will result in a later
-isolate_huge_page failure when the page migration code would like to move
-that page.  Such a failure would be unexpected and wrong.
+There is a race between isolate_huge_page() and __free_huge_page().
 
-Only export set_page_huge_active, just leave clear_page_huge_active as
-static.  Because there are no external users.
+CPU0:                                       CPU1:
 
-Link: https://lkml.kernel.org/r/20210115124942.46403-3-songmuchun@bytedance.com
-Fixes: 70c3547e36f5 (hugetlbfs: add hugetlbfs_fallocate())
+if (PageHuge(page))
+                                            put_page(page)
+                                              __free_huge_page(page)
+                                                  spin_lock(&hugetlb_lock)
+                                                  update_and_free_page(page)
+                                                    set_compound_page_dtor(page,
+                                                      NULL_COMPOUND_DTOR)
+                                                  spin_unlock(&hugetlb_lock)
+  isolate_huge_page(page)
+    // trigger BUG_ON
+    VM_BUG_ON_PAGE(!PageHead(page), page)
+    spin_lock(&hugetlb_lock)
+    page_huge_active(page)
+      // trigger BUG_ON
+      VM_BUG_ON_PAGE(!PageHuge(page), page)
+    spin_unlock(&hugetlb_lock)
+
+When we isolate a HugeTLB page on CPU0. Meanwhile, we free it to the
+buddy allocator on CPU1. Then, we can trigger a BUG_ON on CPU0. Because
+it is already freed to the buddy allocator.
+
+Link: https://lkml.kernel.org/r/20210115124942.46403-5-songmuchun@bytedance.com
+Fixes: c8721bbbdd36 ("mm: memory-hotplug: enable memory hotplug to handle hugepage")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Yang Shi <shy828301@gmail.com>
@@ -75,47 +92,23 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |    3 ++-
- include/linux/hugetlb.h |    2 ++
- mm/hugetlb.c            |    2 +-
- 3 files changed, 5 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page
-+++ a/fs/hugetlbfs/inode.c
-@@ -735,9 +735,10 @@ static long hugetlbfs_fallocate(struct f
- 
- 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 
-+		set_page_huge_active(page);
- 		/*
- 		 * unlock_page because locked by add_to_page_cache()
--		 * page_put due to reference from alloc_huge_page()
-+		 * put_page() due to reference from alloc_huge_page()
- 		 */
- 		unlock_page(page);
- 		put_page(page);
---- a/include/linux/hugetlb.h~mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page
-+++ a/include/linux/hugetlb.h
-@@ -770,6 +770,8 @@ static inline void huge_ptep_modify_prot
- }
- #endif
- 
-+void set_page_huge_active(struct page *page);
-+
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
- 
---- a/mm/hugetlb.c~mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page
+--- a/mm/hugetlb.c~mm-hugetlb-fix-a-race-between-isolating-and-freeing-page
 +++ a/mm/hugetlb.c
-@@ -1349,7 +1349,7 @@ bool page_huge_active(struct page *page)
- }
- 
- /* never called for tail page */
--static void set_page_huge_active(struct page *page)
-+void set_page_huge_active(struct page *page)
+@@ -5594,9 +5594,9 @@ bool isolate_huge_page(struct page *page
  {
- 	VM_BUG_ON_PAGE(!PageHeadHuge(page), page);
- 	SetPagePrivate(&page[1]);
+ 	bool ret = true;
+ 
+-	VM_BUG_ON_PAGE(!PageHead(page), page);
+ 	spin_lock(&hugetlb_lock);
+-	if (!page_huge_active(page) || !get_page_unless_zero(page)) {
++	if (!PageHeadHuge(page) || !page_huge_active(page) ||
++	    !get_page_unless_zero(page)) {
+ 		ret = false;
+ 		goto unlock;
+ 	}
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
