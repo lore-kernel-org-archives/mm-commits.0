@@ -5,38 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A108C43331
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D9DEC43332
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:24:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF56C64E56
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:24:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4157D64E66
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Feb 2021 17:24:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233196AbhBHRX5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Feb 2021 12:23:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34774 "EHLO mail.kernel.org"
+        id S233251AbhBHRYD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Feb 2021 12:24:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34776 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234821AbhBHRWt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S233964AbhBHRWt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 8 Feb 2021 12:22:49 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B0E2264E60;
-        Mon,  8 Feb 2021 17:20:41 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A23DC64EBE;
+        Mon,  8 Feb 2021 17:20:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612804842;
-        bh=Oxrbu0kIaSSQaWVgg5aolTnGz0372Ko+k+4m3qUV5v0=;
+        s=korg; t=1612804853;
+        bh=897gLS827YhrLuo0046PDL0rI29OgmqW7hgAC5MMv0o=;
         h=Date:From:To:Subject:From;
-        b=hbat88T7Y+5HlOXG+pWGY6rBjDlQQIOqaThxzme89z4tOv+2TXXuOIZU/nb0jFrWr
-         lkvdW4xeqk5SDlYp47LRTg7uEv8P5SPFiYbN8oADAHKUAd0qicMLs/dXlviK4V7nzU
-         DgYEhoFNJHxG4a7oVnK6RdqBgkTOyrrdt9dPeLR4=
-Date:   Mon, 08 Feb 2021 09:20:41 -0800
+        b=Qf1KTz79AHCXa0IYk6W0k3Og4FUpHtO9HK0Jks360zUg92UMELKX8OyLom9TeyAN/
+         VcKBORi+VQyOuFLrUvi/0NWBxzOHcON1NLbcD2i4tYh0xL6LN/GfMab8i2Hv105OT7
+         8fBYSXlQlR8jCYo/umTQzfCDBYAQ/Q4QnY5hwmSY=
+Date:   Mon, 08 Feb 2021 09:20:53 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, osalvador@suse.de, shy828301@gmail.com,
-        songmuchun@bytedance.com, stable@vger.kernel.org
+To:     aarcange@redhat.com, hughd@google.com, mm-commits@vger.kernel.org,
+        sergey.senozhatsky.work@gmail.com, stable@vger.kernel.org
 Subject:  [merged]
- mm-hugetlb-remove-vm_bug_on_page-from-page_huge_active.patch removed from
- -mm tree
-Message-ID: <20210208172041.1V98czMC9%akpm@linux-foundation.org>
+ mm-thp-fix-madv_remove-deadlock-on-shmem-thp.patch removed from -mm tree
+Message-ID: <20210208172053.mRd4drViV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,62 +43,119 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: remove VM_BUG_ON_PAGE from page_huge_active
+     Subject: mm: thp: fix MADV_REMOVE deadlock on shmem THP
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-remove-vm_bug_on_page-from-page_huge_active.patch
+     mm-thp-fix-madv_remove-deadlock-on-shmem-thp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb: remove VM_BUG_ON_PAGE from page_huge_active
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: thp: fix MADV_REMOVE deadlock on shmem THP
 
-The page_huge_active() can be called from scan_movable_pages() which do
-not hold a reference count to the HugeTLB page.  So when we call
-page_huge_active() from scan_movable_pages(), the HugeTLB page can be
-freed parallel.  Then we will trigger a BUG_ON which is in the
-page_huge_active() when CONFIG_DEBUG_VM is enabled.  Just remove the
-VM_BUG_ON_PAGE.
+Sergey reported deadlock between kswapd correctly doing its usual
+lock_page(page) followed by down_read(page->mapping->i_mmap_rwsem), and
+madvise(MADV_REMOVE) on an madvise(MADV_HUGEPAGE) area doing
+down_write(page->mapping->i_mmap_rwsem) followed by lock_page(page).
 
-Link: https://lkml.kernel.org/r/20210115124942.46403-6-songmuchun@bytedance.com
-Fixes: 7e1f049efb86 ("mm: hugetlb: cleanup using paeg_huge_active()")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Yang Shi <shy828301@gmail.com>
+This happened when shmem_fallocate(punch hole)'s unmap_mapping_range()
+reaches zap_pmd_range()'s call to __split_huge_pmd().  The same deadlock
+could occur when partially truncating a mapped huge tmpfs file, or using
+fallocate(FALLOC_FL_PUNCH_HOLE) on it.
+
+__split_huge_pmd()'s page lock was added in 5.8, to make sure that any
+concurrent use of reuse_swap_page() (holding page lock) could not catch
+the anon THP's mapcounts and swapcounts while they were being split.
+
+Fortunately, reuse_swap_page() is never applied to a shmem or file THP
+(not even by khugepaged, which checks PageSwapCache before calling), and
+anonymous THPs are never created in shmem or file areas: so that
+__split_huge_pmd()'s page lock can only be necessary for anonymous THPs,
+on which there is no risk of deadlock with i_mmap_rwsem.
+
+Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2101161409470.2022@eggly.anvils
+Fixes: c444eb564fb1 ("mm: thp: make the THP mapcount atomic against __split_huge_pmd_locked()")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/huge_memory.c |   37 +++++++++++++++++++++++--------------
+ 1 file changed, 23 insertions(+), 14 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-remove-vm_bug_on_page-from-page_huge_active
-+++ a/mm/hugetlb.c
-@@ -1361,8 +1361,7 @@ struct hstate *size_to_hstate(unsigned l
-  */
- bool page_huge_active(struct page *page)
+--- a/mm/huge_memory.c~mm-thp-fix-madv_remove-deadlock-on-shmem-thp
++++ a/mm/huge_memory.c
+@@ -2202,7 +2202,7 @@ void __split_huge_pmd(struct vm_area_str
  {
--	VM_BUG_ON_PAGE(!PageHuge(page), page);
--	return PageHead(page) && PagePrivate(&page[1]);
-+	return PageHeadHuge(page) && PagePrivate(&page[1]);
- }
+ 	spinlock_t *ptl;
+ 	struct mmu_notifier_range range;
+-	bool was_locked = false;
++	bool do_unlock_page = false;
+ 	pmd_t _pmd;
  
- /* never called for tail page */
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+@@ -2218,7 +2218,6 @@ void __split_huge_pmd(struct vm_area_str
+ 	VM_BUG_ON(freeze && !page);
+ 	if (page) {
+ 		VM_WARN_ON_ONCE(!PageLocked(page));
+-		was_locked = true;
+ 		if (page != pmd_page(*pmd))
+ 			goto out;
+ 	}
+@@ -2227,19 +2226,29 @@ repeat:
+ 	if (pmd_trans_huge(*pmd)) {
+ 		if (!page) {
+ 			page = pmd_page(*pmd);
+-			if (unlikely(!trylock_page(page))) {
+-				get_page(page);
+-				_pmd = *pmd;
+-				spin_unlock(ptl);
+-				lock_page(page);
+-				spin_lock(ptl);
+-				if (unlikely(!pmd_same(*pmd, _pmd))) {
+-					unlock_page(page);
++			/*
++			 * An anonymous page must be locked, to ensure that a
++			 * concurrent reuse_swap_page() sees stable mapcount;
++			 * but reuse_swap_page() is not used on shmem or file,
++			 * and page lock must not be taken when zap_pmd_range()
++			 * calls __split_huge_pmd() while i_mmap_lock is held.
++			 */
++			if (PageAnon(page)) {
++				if (unlikely(!trylock_page(page))) {
++					get_page(page);
++					_pmd = *pmd;
++					spin_unlock(ptl);
++					lock_page(page);
++					spin_lock(ptl);
++					if (unlikely(!pmd_same(*pmd, _pmd))) {
++						unlock_page(page);
++						put_page(page);
++						page = NULL;
++						goto repeat;
++					}
+ 					put_page(page);
+-					page = NULL;
+-					goto repeat;
+ 				}
+-				put_page(page);
++				do_unlock_page = true;
+ 			}
+ 		}
+ 		if (PageMlocked(page))
+@@ -2249,7 +2258,7 @@ repeat:
+ 	__split_huge_pmd_locked(vma, pmd, range.start, freeze);
+ out:
+ 	spin_unlock(ptl);
+-	if (!was_locked && page)
++	if (do_unlock_page)
+ 		unlock_page(page);
+ 	/*
+ 	 * No need to double call mmu_notifier->invalidate_range() callback.
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage.patch
-mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
-mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
-mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
-mm-memcontrol-make-the-slab-calculation-consistent.patch
-mm-memcontrol-replace-the-loop-with-a-list_for_each_entry.patch
-hugetlb-convert-page_huge_active-hpagemigratable-flag-fix.patch
 
