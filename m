@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A9ABC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97605C433E6
 	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 23:10:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 31A9964E57
+	by mail.kernel.org (Postfix) with ESMTP id 5AAC964E58
 	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 23:10:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234755AbhBIXHd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 9 Feb 2021 18:07:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55850 "EHLO mail.kernel.org"
+        id S234763AbhBIXHt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 9 Feb 2021 18:07:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55568 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233865AbhBIWRC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Feb 2021 17:17:02 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 68B6D64ED3;
-        Tue,  9 Feb 2021 21:42:18 +0000 (UTC)
+        id S234039AbhBIWR2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Feb 2021 17:17:28 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C6DD364EC4;
+        Tue,  9 Feb 2021 21:41:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612906938;
-        bh=Hz+xFEDLQbLz7sIpeqc/i/vMtdm3bEADpBa/hneV2O4=;
+        s=korg; t=1612906911;
+        bh=LYrdgh9B9MJd+gEQVz2818OkEWazwLzDnyWKnJ/SkJc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=d+AkoTsbXU4HvL5HcZ0kXBP9P2bLLSQPJLI+36OpdIERUgjH3tmwIINNuQYM5Jw+/
-         LiTswwHHeNhmqjAMaiYNTLoi56B3fRGRMz0ZJpmY/doAOBUVINFnygLi8lJ3Vwa+5z
-         vzKh/nd2sc9IoRbNaB56Ckh4XXJlBgUcO1D4CYZ4=
-Date:   Tue, 09 Feb 2021 13:42:17 -0800
+        b=NwBdFMqBo8f9en5/27ItLhAfFUmTW+kU2EPj6iLdVtMsfVl54rIDY69etgrwysTD8
+         RiFxT3pUeFIofS0/rpGy5WEs84NutBOHO+FPDwfgKs7wTEQYfihUWr854hp45Bytk8
+         kYzW1jd2geGqLD3+TXtCp6+mWBhSshlrvDaFStEI=
+Date:   Tue, 09 Feb 2021 13:41:50 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, amir73il@gmail.com,
-        chris@chrisdown.name, hughd@google.com, ink@jurassic.park.msu.ru,
-        linux-mm@kvack.org, mattst88@gmail.com, mm-commits@vger.kernel.org,
-        rth@twiddle.net, seth.forshee@canonical.com,
-        stable@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 09/14] tmpfs: disallow CONFIG_TMPFS_INODE64 on
- alpha
-Message-ID: <20210209214217.gRa4Jmu1g%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
+        pliard@google.com, stable@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 01/14] squashfs: avoid out of bounds writes in
+ decompressors
+Message-ID: <20210209214150._Vu1-fOx4%akpm@linux-foundation.org>
 In-Reply-To: <20210209134115.4d933d446165cd0ed8977b03@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,46 +44,84 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Seth Forshee <seth.forshee@canonical.com>
-Subject: tmpfs: disallow CONFIG_TMPFS_INODE64 on alpha
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: squashfs: avoid out of bounds writes in decompressors
 
-As with s390, alpha is a 64-bit architecture with a 32-bit ino_t.  With
-CONFIG_TMPFS_INODE64=y tmpfs mounts will get 64-bit inode numbers and
-display "inode64" in the mount options, whereas passing "inode64" in the
-mount options will fail.  This leads to erroneous behaviours such as this:
+Patch series "Squashfs: fix BIO migration regression and add sanity checks".
 
- # mkdir mnt
- # mount -t tmpfs nodev mnt
- # mount -o remount,rw mnt
- mount: /home/ubuntu/mnt: mount point not mounted or bad option.
+Patch [1/4] fixes a regression introduced by the "migrate from ll_rw_block
+usage to BIO" patch, which has produced a number of Sysbot/Syzkaller
+reports.
 
-Prevent CONFIG_TMPFS_INODE64 from being selected on alpha.
+Patches [2/4], [3/4], and [4/4] fix a number of filesystem corruption
+issues which have produced Sysbot reports in the id, inode and xattr
+lookup code.
 
-Link: https://lkml.kernel.org/r/20210208215726.608197-1-seth.forshee@canonical.com
-Fixes: ea3271f7196c ("tmpfs: support 64-bit inums per-sb")
-Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: <stable@vger.kernel.org>	[5.9+]
+Each patch has been tested against the Sysbot reproducers using the given
+kernel configuration.  They have the appropriate "Reported-by:" lines
+added.
+
+Additionally, all of the reproducer filesystems are indirectly fixed by
+patch [4/4] due to the fact they all have xattr corruption which is now
+detected there.
+
+Additional testing with other configurations and architectures (32bit, big
+endian), and normal filesystems has also been done to trap any inadvertent
+regressions caused by the additional sanity checks.
+
+
+This patch (of 4):
+
+This is a regression introduced by the patch "migrate from ll_rw_block
+usage to BIO".
+
+Sysbot/Syskaller has reported a number of "out of bounds writes" and
+"unable to handle kernel paging request in squashfs_decompress" errors
+which have been identified as a regression introduced by the above patch.
+
+Specifically, the patch removed the following sanity check
+
+if (length < 0 || length > output->length ||
+		(index + length) > msblk->bytes_used)
+
+This check did two things:
+
+1. It ensured any reads were not beyond the end of the filesystem
+
+2. It ensured that the "length" field read from the filesystem
+   was within the expected maximum length.  Without this any
+   corrupted values can over-run allocated buffers.
+
+Link: https://lkml.kernel.org/r/20210204130249.4495-1-phillip@squashfs.org.uk
+Link: https://lkml.kernel.org/r/20210204130249.4495-2-phillip@squashfs.org.uk
+Fixes: 93e72b3c612adc ("squashfs: migrate from ll_rw_block usage to BIO")
+Reported-by: syzbot+6fba78f99b9afd4b5634@syzkaller.appspotmail.com
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: Philippe Liard <pliard@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/squashfs/block.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/fs/Kconfig~tmpfs-disallow-config_tmpfs_inode64-on-alpha
-+++ a/fs/Kconfig
-@@ -203,7 +203,7 @@ config TMPFS_XATTR
+--- a/fs/squashfs/block.c~squashfs-avoid-out-of-bounds-writes-in-decompressors
++++ a/fs/squashfs/block.c
+@@ -196,9 +196,15 @@ int squashfs_read_data(struct super_bloc
+ 		length = SQUASHFS_COMPRESSED_SIZE(length);
+ 		index += 2;
  
- config TMPFS_INODE64
- 	bool "Use 64-bit ino_t by default in tmpfs"
--	depends on TMPFS && 64BIT && !S390
-+	depends on TMPFS && 64BIT && !(S390 || ALPHA)
- 	default n
- 	help
- 	  tmpfs has historically used only inode numbers as wide as an unsigned
+-		TRACE("Block @ 0x%llx, %scompressed size %d\n", index,
++		TRACE("Block @ 0x%llx, %scompressed size %d\n", index - 2,
+ 		      compressed ? "" : "un", length);
+ 	}
++	if (length < 0 || length > output->length ||
++			(index + length) > msblk->bytes_used) {
++		res = -EIO;
++		goto out;
++	}
++
+ 	if (next_index)
+ 		*next_index = index + length;
+ 
 _
