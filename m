@@ -7,137 +7,210 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6287EC433DB
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 23:07:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4317BC433E6
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 23:07:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E20964E50
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 23:07:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04E6564E56
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 23:07:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234729AbhBIXGM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 9 Feb 2021 18:06:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55564 "EHLO mail.kernel.org"
+        id S234731AbhBIXGs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 9 Feb 2021 18:06:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55566 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234142AbhBIWO6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Feb 2021 17:14:58 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BBE9D64EDC;
-        Tue,  9 Feb 2021 21:42:28 +0000 (UTC)
+        id S234155AbhBIWO7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Feb 2021 17:14:59 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2EAD164EC5;
+        Tue,  9 Feb 2021 21:41:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612906949;
-        bh=mw63lzKuaouZ2/TeRTfIAKz/wCBCHrlNN4+tdhHNUj8=;
+        s=korg; t=1612906914;
+        bh=+R4mdfV/B/rzJsOhjEYGlGH54+uq4W9gWlFo2bOy89Y=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ZNGwi7UDYTepVkxbg0UkoHZavTs/pFtd7tJv37ezhNer2E3JDSngCnoNNAihrd21F
-         HxXxb5IxL7i7iU29EwO4/JWUfWJVzfaJWu9KT6uEOQ+Gbx3NlG7nF5oAPtW7qV4Ak1
-         HhSXBdf5z8BRZh8eKsITakWgMeFGI1FqUNlQ8xiQ=
-Date:   Tue, 09 Feb 2021 13:42:28 -0800
+        b=f3PtiMNIPro9hXox81mPiP3e4D527hQeznEND+xoU/v7qx4W1TuZ/OnIYCKTwrYAq
+         PpAMRFDeRDmIH8NpbTbpDHyaPe2vBH/AnXL0XL5d0xGfeUKJhEuqnszeMkxTgmjxy2
+         +w0sQ945lF2IBuDnQhU1ghv8ZDXStkkapQg2uQ68=
+Date:   Tue, 09 Feb 2021 13:41:53 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, chris@chrisdown.name, guro@fb.com,
-        hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@suse.com,
-        mkoutny@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com,
-        stable@vger.kernel.org, tj@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 12/14] Revert "mm: memcontrol: avoid workload
- stalls when lowering memory.high"
-Message-ID: <20210209214228.djnZUZeMX%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
+        stable@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 02/14] squashfs: add more sanity checks in id
+ lookup
+Message-ID: <20210209214153.l0Cs-q9SO%akpm@linux-foundation.org>
 In-Reply-To: <20210209134115.4d933d446165cd0ed8977b03@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: Johannes Weiner <hannes@cmpxchg.org>
-Subject: Revert "mm: memcontrol: avoid workload stalls when lowering memory=
-.high"
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: squashfs: add more sanity checks in id lookup
 
-This reverts commit 536d3bf261a2fc3b05b3e91e7eef7383443015cf, as it can
-cause writers to memory.high to get stuck in the kernel forever,
-performing page reclaim and consuming excessive amounts of CPU cycles.
+Sysbot has reported a number of "slab-out-of-bounds reads" and
+"use-after-free read" errors which has been identified as being caused by
+a corrupted index value read from the inode.  This could be because the
+metadata block is uncompressed, or because the "compression" bit has been
+corrupted (turning a compressed block into an uncompressed block).
 
-Before the patch, a write to memory.high would first put the new limit in
-place for the workload, and then reclaim the requested delta.  After the
-patch, the kernel tries to reclaim the delta before putting the new limit
-into place, in order to not overwhelm the workload with a sudden, large
-excess over the limit.  However, if reclaim is actively racing with new
-allocations from the uncurbed workload, it can keep the write() working
-inside the kernel indefinitely.
+This patch adds additional sanity checks to detect this, and the
+following corruption.
 
-This is causing problems in Facebook production.  A privileged
-system-level daemon that adjusts memory.high for various workloads running
-on a host can get unexpectedly stuck in the kernel and essentially turn
-into a sort of involuntary kswapd for one of the workloads.  We've
-observed that daemon busy-spin in a write() for minutes at a time,
-neglecting its other duties on the system, and expending privileged system
-resources on behalf of a workload.
+1. It checks against corruption of the ids count.  This can either
+   lead to a larger table to be read, or a smaller than expected
+   table to be read.
 
-To remedy this, we have first considered changing the reclaim logic to
-break out after a couple of loops - whether the workload has converged to
-the new limit or not - and bound the write() call this way.  However, the
-root cause that inspired the sequence change in the first place has been
-fixed through other means, and so a revert back to the proven
-limit-setting sequence, also used by memory.max, is preferable.
+   In the case of a too large ids count, this would often have been
+   trapped by the existing sanity checks, but this patch introduces
+   a more exact check, which can identify too small values.
 
-The sequence was changed to avoid extreme latencies in the workload when
-the limit was lowered: the sudden, large excess created by the limit
-lowering would erroneously trigger the penalty sleeping code that is meant
-to throttle excessive growth from below.  Allocating threads could end up
-sleeping long after the write() had already reclaimed the delta for which
-they were being punished.
+2. It checks the contents of the index table for corruption.
 
-However, erroneous throttling also caused problems in other scenarios at
-around the same time.  This resulted in commit b3ff92916af3 ("mm, memcg:
-reclaim more aggressively before high allocator throttling"), included in
-the same release as the offending commit.  When allocating threads now
-encounter large excess caused by a racing write() to memory.high, instead
-of entering punitive sleeps, they will simply be tasked with helping
-reclaim down the excess, and will be held no longer than it takes to
-accomplish that.  This is in line with regular limit enforcement - i.e.=20
-if the workload allocates up against or over an otherwise unchanged limit
-from below.
-
-With the patch breaking userspace, and the root cause addressed by other
-means already, revert it again.
-
-Link: https://lkml.kernel.org/r/20210122184341.292461-1-hannes@cmpxchg.org
-Fixes: 536d3bf261a2 ("mm: memcontrol: avoid workload stalls when lowering m=
-emory.high")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Tejun Heo <tj@kernel.org>
-Acked-by: Chris Down <chris@chrisdown.name>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Michal Koutn=C3=BD <mkoutny@suse.com>
-Cc: <stable@vger.kernel.org>	[5.8+]
+Link: https://lkml.kernel.org/r/20210204130249.4495-3-phillip@squashfs.org.uk
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Reported-by: syzbot+b06d57ba83f604522af2@syzkaller.appspotmail.com
+Reported-by: syzbot+c021ba012da41ee9807c@syzkaller.appspotmail.com
+Reported-by: syzbot+5024636e8b5fd19f0f19@syzkaller.appspotmail.com
+Reported-by: syzbot+bcbc661df46657d0fa4f@syzkaller.appspotmail.com
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/squashfs/id.c             |   40 ++++++++++++++++++++++++++-------
+ fs/squashfs/squashfs_fs_sb.h |    1 
+ fs/squashfs/super.c          |    6 ++--
+ fs/squashfs/xattr.h          |   10 +++++++-
+ 4 files changed, 45 insertions(+), 12 deletions(-)
 
---- a/mm/memcontrol.c~revert-mm-memcontrol-avoid-workload-stalls-when-lower=
-ing-memoryhigh
-+++ a/mm/memcontrol.c
-@@ -6271,6 +6271,8 @@ static ssize_t memory_high_write(struct
- 	if (err)
- 		return err;
-=20
-+	page_counter_set_high(&memcg->memory, high);
+--- a/fs/squashfs/id.c~squashfs-add-more-sanity-checks-in-id-lookup
++++ a/fs/squashfs/id.c
+@@ -35,10 +35,15 @@ int squashfs_get_id(struct super_block *
+ 	struct squashfs_sb_info *msblk = sb->s_fs_info;
+ 	int block = SQUASHFS_ID_BLOCK(index);
+ 	int offset = SQUASHFS_ID_BLOCK_OFFSET(index);
+-	u64 start_block = le64_to_cpu(msblk->id_table[block]);
++	u64 start_block;
+ 	__le32 disk_id;
+ 	int err;
+ 
++	if (index >= msblk->ids)
++		return -EINVAL;
 +
- 	for (;;) {
- 		unsigned long nr_pages =3D page_counter_read(&memcg->memory);
- 		unsigned long reclaimed;
-@@ -6294,10 +6296,7 @@ static ssize_t memory_high_write(struct
- 			break;
++	start_block = le64_to_cpu(msblk->id_table[block]);
++
+ 	err = squashfs_read_metadata(sb, &disk_id, &start_block, &offset,
+ 							sizeof(disk_id));
+ 	if (err < 0)
+@@ -56,7 +61,10 @@ __le64 *squashfs_read_id_index_table(str
+ 		u64 id_table_start, u64 next_table, unsigned short no_ids)
+ {
+ 	unsigned int length = SQUASHFS_ID_BLOCK_BYTES(no_ids);
++	unsigned int indexes = SQUASHFS_ID_BLOCKS(no_ids);
++	int n;
+ 	__le64 *table;
++	u64 start, end;
+ 
+ 	TRACE("In read_id_index_table, length %d\n", length);
+ 
+@@ -67,20 +75,36 @@ __le64 *squashfs_read_id_index_table(str
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	/*
+-	 * length bytes should not extend into the next table - this check
+-	 * also traps instances where id_table_start is incorrectly larger
+-	 * than the next table start
++	 * The computed size of the index table (length bytes) should exactly
++	 * match the table start and end points
+ 	 */
+-	if (id_table_start + length > next_table)
++	if (length != (next_table - id_table_start))
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	table = squashfs_read_table(sb, id_table_start, length);
++	if (IS_ERR(table))
++		return table;
+ 
+ 	/*
+-	 * table[0] points to the first id lookup table metadata block, this
+-	 * should be less than id_table_start
++	 * table[0], table[1], ... table[indexes - 1] store the locations
++	 * of the compressed id blocks.   Each entry should be less than
++	 * the next (i.e. table[0] < table[1]), and the difference between them
++	 * should be SQUASHFS_METADATA_SIZE or less.  table[indexes - 1]
++	 * should be less than id_table_start, and again the difference
++	 * should be SQUASHFS_METADATA_SIZE or less
+ 	 */
+-	if (!IS_ERR(table) && le64_to_cpu(table[0]) >= id_table_start) {
++	for (n = 0; n < (indexes - 1); n++) {
++		start = le64_to_cpu(table[n]);
++		end = le64_to_cpu(table[n + 1]);
++
++		if (start >= end || (end - start) > SQUASHFS_METADATA_SIZE) {
++			kfree(table);
++			return ERR_PTR(-EINVAL);
++		}
++	}
++
++	start = le64_to_cpu(table[indexes - 1]);
++	if (start >= id_table_start || (id_table_start - start) > SQUASHFS_METADATA_SIZE) {
+ 		kfree(table);
+ 		return ERR_PTR(-EINVAL);
  	}
-=20
--	page_counter_set_high(&memcg->memory, high);
--
- 	memcg_wb_domain_size_changed(memcg);
--
- 	return nbytes;
+--- a/fs/squashfs/squashfs_fs_sb.h~squashfs-add-more-sanity-checks-in-id-lookup
++++ a/fs/squashfs/squashfs_fs_sb.h
+@@ -64,5 +64,6 @@ struct squashfs_sb_info {
+ 	unsigned int				inodes;
+ 	unsigned int				fragments;
+ 	int					xattr_ids;
++	unsigned int				ids;
+ };
+ #endif
+--- a/fs/squashfs/super.c~squashfs-add-more-sanity-checks-in-id-lookup
++++ a/fs/squashfs/super.c
+@@ -166,6 +166,7 @@ static int squashfs_fill_super(struct su
+ 	msblk->directory_table = le64_to_cpu(sblk->directory_table_start);
+ 	msblk->inodes = le32_to_cpu(sblk->inodes);
+ 	msblk->fragments = le32_to_cpu(sblk->fragments);
++	msblk->ids = le16_to_cpu(sblk->no_ids);
+ 	flags = le16_to_cpu(sblk->flags);
+ 
+ 	TRACE("Found valid superblock on %pg\n", sb->s_bdev);
+@@ -177,7 +178,7 @@ static int squashfs_fill_super(struct su
+ 	TRACE("Block size %d\n", msblk->block_size);
+ 	TRACE("Number of inodes %d\n", msblk->inodes);
+ 	TRACE("Number of fragments %d\n", msblk->fragments);
+-	TRACE("Number of ids %d\n", le16_to_cpu(sblk->no_ids));
++	TRACE("Number of ids %d\n", msblk->ids);
+ 	TRACE("sblk->inode_table_start %llx\n", msblk->inode_table);
+ 	TRACE("sblk->directory_table_start %llx\n", msblk->directory_table);
+ 	TRACE("sblk->fragment_table_start %llx\n",
+@@ -236,8 +237,7 @@ static int squashfs_fill_super(struct su
+ allocate_id_index_table:
+ 	/* Allocate and read id index table */
+ 	msblk->id_table = squashfs_read_id_index_table(sb,
+-		le64_to_cpu(sblk->id_table_start), next_table,
+-		le16_to_cpu(sblk->no_ids));
++		le64_to_cpu(sblk->id_table_start), next_table, msblk->ids);
+ 	if (IS_ERR(msblk->id_table)) {
+ 		errorf(fc, "unable to read id index table");
+ 		err = PTR_ERR(msblk->id_table);
+--- a/fs/squashfs/xattr.h~squashfs-add-more-sanity-checks-in-id-lookup
++++ a/fs/squashfs/xattr.h
+@@ -17,8 +17,16 @@ extern int squashfs_xattr_lookup(struct
+ static inline __le64 *squashfs_read_xattr_id_table(struct super_block *sb,
+ 		u64 start, u64 *xattr_table_start, int *xattr_ids)
+ {
++	struct squashfs_xattr_id_table *id_table;
++
++	id_table = squashfs_read_table(sb, start, sizeof(*id_table));
++	if (IS_ERR(id_table))
++		return (__le64 *) id_table;
++
++	*xattr_table_start = le64_to_cpu(id_table->xattr_table_start);
++	kfree(id_table);
++
+ 	ERROR("Xattrs in filesystem, these will be ignored\n");
+-	*xattr_table_start = start;
+ 	return ERR_PTR(-ENOTSUPP);
  }
-=20
+ 
 _
