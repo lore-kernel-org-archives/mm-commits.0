@@ -5,37 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 174CAC433E6
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 22:28:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32896C433E6
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 22:29:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D2A7D64DEE
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 22:28:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B89964DEC
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 22:29:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234116AbhBIW1o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 9 Feb 2021 17:27:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55448 "EHLO mail.kernel.org"
+        id S233898AbhBIW2q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 9 Feb 2021 17:28:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55456 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233984AbhBIWMP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S233982AbhBIWMP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 9 Feb 2021 17:12:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E184D64ED9;
-        Tue,  9 Feb 2021 21:42:24 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BDE7564ED5;
+        Tue,  9 Feb 2021 21:42:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612906945;
-        bh=vV7Xnf8LWXtlXGOFXAz8nKs1+d8VhdXcil6iddTY3o0=;
+        s=korg; t=1612906942;
+        bh=LhrEa46rTAlqYXz+fnHb+GOfsNWXuoInvZlrVTLXNsg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=yeChl2tO72RCOkDQadvhYkqGnF9ZSpEA5CgsUc+czyr9yfwsITD5bC7iAM0BBgLN2
-         CMbYKDNOmBLA4v47o3k4FTBg76ZZHXEzaHjkmNV0F2SKuCRZBqqXzpt8cZgm79XQBu
-         oJFfMjtenF1UKrN/7Bi15XdRqY2Abuk3EKUnmxAU=
-Date:   Tue, 09 Feb 2021 13:42:24 -0800
+        b=o/ST+x0gGOxvFNVDuEsr/tdgkTtRXhSOx1mkU1nM+rD1BEMPVI9FwFma1AJN3LoJ8
+         biRDUTnZaSKUvpcv4ZFr75V8WvhQY8Hzv5B2Ne7dKBCXRThYGpSVMFDVBXleRwWGK9
+         UXtxzPNTYFs9KhiR+bwC7T+/v7ynwWEZDxntrYqI=
+Date:   Tue, 09 Feb 2021 13:42:21 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+To:     akpm@linux-foundation.org, jhubbard@nvidia.com, linux-mm@kvack.org,
+        lkp@intel.com, mm-commits@vger.kernel.org, rong.a.chen@intel.com,
         torvalds@linux-foundation.org
-Subject:  [patch 11/14] MAINTAINERS: update Andrey Ryabinin's email
- address
-Message-ID: <20210209214224.8JRtCT_1R%akpm@linux-foundation.org>
+Subject:  [patch 10/14] selftests/vm: rename file run_vmtests to
+ run_vmtests.sh
+Message-ID: <20210209214221.ge_x1EsLw%akpm@linux-foundation.org>
 In-Reply-To: <20210209134115.4d933d446165cd0ed8977b03@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,39 +43,32 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Subject: MAINTAINERS: update Andrey Ryabinin's email address
+From: Rong Chen <rong.a.chen@intel.com>
+Subject: selftests/vm: rename file run_vmtests to run_vmtests.sh
 
-Update my email, @virtuozzo.com will stop working shortly.
+Commit c2aa8afc36fa has renamed run_vmtests in Makefile, but the file
+still uses the old name.
 
-Link: https://lkml.kernel.org/r/20210204223904.3824-1-ryabinin.a.a@gmail.com
-Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+The kernel test robot reported the following issue:
+
+ # selftests: vm: run_vmtests.sh
+ # Warning: file run_vmtests.sh is missing!
+ not ok 1 selftests: vm: run_vmtests.sh
+
+Link: https://lkml.kernel.org/r/20210205085507.1479894-1-rong.a.chen@intel.com
+Fixes: c2aa8afc36fa (selftests/vm: rename run_vmtests --> run_vmtests.sh)
+Signed-off-by: Rong Chen <rong.a.chen@intel.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    1 +
- MAINTAINERS |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ tools/testing/selftests/vm/{run_vmtests => run_vmtests.sh} | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ rename tools/testing/selftests/vm/{run_vmtests => run_vmtests.sh} (100%)
 
---- a/.mailmap~maintainers-update-andrey-ryabinins-email-address
-+++ a/.mailmap
-@@ -37,6 +37,7 @@ Andrew Murray <amurray@thegoodpenguin.co
- Andrew Murray <amurray@thegoodpenguin.co.uk> <andrew.murray@arm.com>
- Andrew Vasquez <andrew.vasquez@qlogic.com>
- Andrey Ryabinin <ryabinin.a.a@gmail.com> <a.ryabinin@samsung.com>
-+Andrey Ryabinin <ryabinin.a.a@gmail.com> <aryabinin@virtuozzo.com>
- Andy Adamson <andros@citi.umich.edu>
- Antoine Tenart <atenart@kernel.org> <antoine.tenart@bootlin.com>
- Antoine Tenart <atenart@kernel.org> <antoine.tenart@free-electrons.com>
---- a/MAINTAINERS~maintainers-update-andrey-ryabinins-email-address
-+++ a/MAINTAINERS
-@@ -9559,7 +9559,7 @@ F:	Documentation/hwmon/k8temp.rst
- F:	drivers/hwmon/k8temp.c
- 
- KASAN
--M:	Andrey Ryabinin <aryabinin@virtuozzo.com>
-+M:	Andrey Ryabinin <ryabinin.a.a@gmail.com>
- R:	Alexander Potapenko <glider@google.com>
- R:	Dmitry Vyukov <dvyukov@google.com>
- L:	kasan-dev@googlegroups.com
-_
+diff --git a/tools/testing/selftests/vm/run_vmtests b/tools/testing/selftests/vm/run_vmtests.sh
+similarity index 100%
+rename from tools/testing/selftests/vm/run_vmtests
+rename to tools/testing/selftests/vm/run_vmtests.sh
+
