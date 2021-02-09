@@ -7,35 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32896C433E6
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 22:29:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB09FC433E0
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 22:30:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B89964DEC
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 22:29:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B628A64DEE
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 22:30:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233898AbhBIW2q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 9 Feb 2021 17:28:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55456 "EHLO mail.kernel.org"
+        id S233373AbhBIW3B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 9 Feb 2021 17:29:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55446 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233982AbhBIWMP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Feb 2021 17:12:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BDE7564ED5;
-        Tue,  9 Feb 2021 21:42:21 +0000 (UTC)
+        id S233980AbhBIWMQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Feb 2021 17:12:16 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EEF2264ECD;
+        Tue,  9 Feb 2021 21:42:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612906942;
-        bh=LhrEa46rTAlqYXz+fnHb+GOfsNWXuoInvZlrVTLXNsg=;
+        s=korg; t=1612906924;
+        bh=xZSowleWtaeqZhTcDcTbm/BmRYYIaEdtQV2EpoetsNs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=o/ST+x0gGOxvFNVDuEsr/tdgkTtRXhSOx1mkU1nM+rD1BEMPVI9FwFma1AJN3LoJ8
-         biRDUTnZaSKUvpcv4ZFr75V8WvhQY8Hzv5B2Ne7dKBCXRThYGpSVMFDVBXleRwWGK9
-         UXtxzPNTYFs9KhiR+bwC7T+/v7ynwWEZDxntrYqI=
-Date:   Tue, 09 Feb 2021 13:42:21 -0800
+        b=nV+9eYMoxV4NqeQMiHsE9JGOu1mmKzHislOrDKf4XaEgjllLvSdR4ykFOWOS57QJg
+         EiEz7zomJ7pGjYWl2NU6LbMzV7rsioX9S+qB/xSQ8EUd5aIeRGgEVaedQhSruhoSA3
+         x8k+lyWyg/jTIkgcutit3hb2im/uyQXlduEyN2CI=
+Date:   Tue, 09 Feb 2021 13:42:03 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, jhubbard@nvidia.com, linux-mm@kvack.org,
-        lkp@intel.com, mm-commits@vger.kernel.org, rong.a.chen@intel.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 10/14] selftests/vm: rename file run_vmtests to
- run_vmtests.sh
-Message-ID: <20210209214221.ge_x1EsLw%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
+        catalin.marinas@arm.com, dvyukov@google.com, elver@google.com,
+        eugenis@google.com, glider@google.com, kevin.brodsky@arm.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
+        torvalds@linux-foundation.org, vincenzo.frascino@arm.com,
+        will.deacon@arm.com
+Subject:  [patch 05/14] kasan: fix stack traces dependency for
+ HW_TAGS
+Message-ID: <20210209214203.tt68YEBnH%akpm@linux-foundation.org>
 In-Reply-To: <20210209134115.4d933d446165cd0ed8977b03@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,32 +47,75 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Rong Chen <rong.a.chen@intel.com>
-Subject: selftests/vm: rename file run_vmtests to run_vmtests.sh
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: fix stack traces dependency for HW_TAGS
 
-Commit c2aa8afc36fa has renamed run_vmtests in Makefile, but the file
-still uses the old name.
+Currently, whether the alloc/free stack traces collection is enabled by
+default for hardware tag-based KASAN depends on CONFIG_DEBUG_KERNEL.  The
+intention for this dependency was to only enable collection on slow debug
+kernels due to a significant perf and memory impact.
 
-The kernel test robot reported the following issue:
+As it turns out, CONFIG_DEBUG_KERNEL is not considered a debug option and
+is enabled on many productions kernels including Android and Ubuntu.  As
+the result, this dependency is pointless and only complicates the code and
+documentation.
 
- # selftests: vm: run_vmtests.sh
- # Warning: file run_vmtests.sh is missing!
- not ok 1 selftests: vm: run_vmtests.sh
+Having stack traces collection disabled by default would make the hardware
+mode work differently to to the software ones, which is confusing.
 
-Link: https://lkml.kernel.org/r/20210205085507.1479894-1-rong.a.chen@intel.com
-Fixes: c2aa8afc36fa (selftests/vm: rename run_vmtests --> run_vmtests.sh)
-Signed-off-by: Rong Chen <rong.a.chen@intel.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+This change removes the dependency and enables stack traces collection by
+default.
+
+Looking into the future, this default might makes sense for production
+kernels, assuming we implement a fast stack trace collection approach.
+
+Link: https://lkml.kernel.org/r/6678d77ceffb71f1cff2cf61560e2ffe7bb6bfe9.1612808820.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/{run_vmtests => run_vmtests.sh} | 0
- 1 file changed, 0 insertions(+), 0 deletions(-)
- rename tools/testing/selftests/vm/{run_vmtests => run_vmtests.sh} (100%)
+ Documentation/dev-tools/kasan.rst |    3 +--
+ mm/kasan/hw_tags.c                |    8 ++------
+ 2 files changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/tools/testing/selftests/vm/run_vmtests b/tools/testing/selftests/vm/run_vmtests.sh
-similarity index 100%
-rename from tools/testing/selftests/vm/run_vmtests
-rename to tools/testing/selftests/vm/run_vmtests.sh
-
+--- a/Documentation/dev-tools/kasan.rst~kasan-fix-stack-traces-dependency-for-hw_tags
++++ a/Documentation/dev-tools/kasan.rst
+@@ -163,8 +163,7 @@ particular KASAN features.
+ - ``kasan=off`` or ``=on`` controls whether KASAN is enabled (default: ``on``).
+ 
+ - ``kasan.stacktrace=off`` or ``=on`` disables or enables alloc and free stack
+-  traces collection (default: ``on`` for ``CONFIG_DEBUG_KERNEL=y``, otherwise
+-  ``off``).
++  traces collection (default: ``on``).
+ 
+ - ``kasan.fault=report`` or ``=panic`` controls whether to only print a KASAN
+   report or also panic the kernel (default: ``report``).
+--- a/mm/kasan/hw_tags.c~kasan-fix-stack-traces-dependency-for-hw_tags
++++ a/mm/kasan/hw_tags.c
+@@ -134,12 +134,8 @@ void __init kasan_init_hw_tags(void)
+ 
+ 	switch (kasan_arg_stacktrace) {
+ 	case KASAN_ARG_STACKTRACE_DEFAULT:
+-		/*
+-		 * Default to enabling stack trace collection for
+-		 * debug kernels.
+-		 */
+-		if (IS_ENABLED(CONFIG_DEBUG_KERNEL))
+-			static_branch_enable(&kasan_flag_stacktrace);
++		/* Default to enabling stack trace collection. */
++		static_branch_enable(&kasan_flag_stacktrace);
+ 		break;
+ 	case KASAN_ARG_STACKTRACE_OFF:
+ 		/* Do nothing, kasan_flag_stacktrace keeps its default value. */
+_
