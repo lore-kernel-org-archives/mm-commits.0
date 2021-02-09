@@ -7,133 +7,148 @@ X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2E55C433DB
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 05:03:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8941C433E0
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 14:27:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6EDD664EB8
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 05:03:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A183E64E6C
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 14:27:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229691AbhBIFDC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 9 Feb 2021 00:03:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60902 "EHLO
+        id S231440AbhBIO13 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 9 Feb 2021 09:27:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40962 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229683AbhBIFDB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2021 00:03:01 -0500
-Received: from ozlabs.org (ozlabs.org [IPv6:2401:3900:2:1::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86FC5C061786;
-        Mon,  8 Feb 2021 21:02:21 -0800 (PST)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4DZW385xCmz9sS8;
-        Tue,  9 Feb 2021 16:02:08 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1612846939;
-        bh=Csow+kkuJ/2yUX44H5MgA6XuUlNeuqlukseReSX30x4=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=XE8ck3uVokA0ODM3KcFJmqOCfKM+lkfFoQ4WGkpXXpGuHpt9mvpPfSUAZv0Clzkon
-         ZWIzWQLdBU0+Zqoydovkx/CI3NpSAclytXQpyzwhj6alUBsEt2mxuO3wTwsdofgWgJ
-         JBo5IDcx6bII/LRS1P3w4Visbd4mL/WO+UCRQEkxCMHx/nAzfihqhYJHRU4yTpkanO
-         Ite0cho14Hmo3I81R713aGUOVdPfHIPHB6JAJR1E/JT8/5ZXRYwWVumIjVHLNINDG/
-         Xtna+vYh1xW+5rV3fQNRySVPY1ia6arMnV15z+Xu5iI5Mk4d4+ld0yvR3njhsU2kDh
-         gVJC/qDZe6NLg==
-Date:   Tue, 9 Feb 2021 16:02:08 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     akpm@linux-foundation.org, broonie@kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org,
-        linux-media <linux-media@vger.kernel.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Niklas =?UTF-8?B?U8O2ZGVy?= =?UTF-8?B?bHVuZA==?= 
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: Re: mmotm 2021-02-08-15-44 uploaded (drivers/media/i2c/rdacm2*.c)
-Message-ID: <20210209160208.2fc39c2b@canb.auug.org.au>
-In-Reply-To: <2a0149a9-b1ae-6d41-f4d7-04108fcd1431@infradead.org>
+        with ESMTP id S231663AbhBIO11 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2021 09:27:27 -0500
+Received: from mail-wm1-x332.google.com (mail-wm1-x332.google.com [IPv6:2a00:1450:4864:20::332])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 676D9C06178B
+        for <mm-commits@vger.kernel.org>; Tue,  9 Feb 2021 06:26:47 -0800 (PST)
+Received: by mail-wm1-x332.google.com with SMTP id j11so3325592wmi.3
+        for <mm-commits@vger.kernel.org>; Tue, 09 Feb 2021 06:26:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=to:references:from:subject:message-id:date:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=Uc4hLLfkzcuaU372Q8Ip+lqv8soO3u0k2b73t1eaFus=;
+        b=n9UozebptPP2PPvDim1k4FxcVXje29hmjNsONdbZ5u7jjioGjQPGJV1oOajW7zw4zu
+         JQw2WxxRulBdmUafraawGTZbzFndIYdPqdRgoe9g/1GhszCEeDOPFH5G2WcL/qQxIjI/
+         qoc2hW5vvxTdLPV3675zX6hefLyIBaqo6Qpjm08HVFK87v7qzED5z5LITq/EE1vIHCew
+         dLdVEOOBvu5sDhhDehEGc5nhT7bWAK4kFeiJv4Q7DZJikN1rI+VAFhMZBOE1YjU+rgVV
+         J5gayV8gIRvQupK3pXnaGPppGj+++5KZPjQGuYeV3VbPoI2ligcg/rwnvgAOCDmt2KC/
+         loeQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:to:references:from:subject:message-id:date
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=Uc4hLLfkzcuaU372Q8Ip+lqv8soO3u0k2b73t1eaFus=;
+        b=Gq36iPXS1b/8xRcgajugTMo5CcORcUp6MyZnEbCp7GDznyMG24XZaFigGseszKqArS
+         qr/Q03nhoY7/PMCOswy9et49HtDXEZtOj65bSTy49CDCuQOZtycgLzLk3aeaAOEt5PKt
+         Am+cO3jTw309PYhODI0k9/IXyffLPRMQPvYEFN2ATzqZvWDQTYcLwAWPMzMt9wr855dC
+         bPXDaPVJ8rYIxssDEeLHwW+djthZ8YxSHMLrsRhY1GkAGA3gc7bGBWVBTIhA/uE+xQSG
+         qo5N1KZZpSlRpTx9m92aWb3XI0JKlJFbsN7rRw7kkLBbrKVDO16wXFhsPlUIl7vT8YGo
+         Cm+Q==
+X-Gm-Message-State: AOAM530PgIh/7rcxppcvSoqd8ViX/Ac6KdMN83nLAOjJeXN9STg+oJQ+
+        kQZvUTX4qn7oVkPd6rE1vaFxfd8bbTlVXw==
+X-Google-Smtp-Source: ABdhPJwv+DvJmRgxDf0fCMECeVERTy5UALceUi2tv/8UPY8cpppnpNJqhbI4CBtV4sA8TjumeiSkuQ==
+X-Received: by 2002:a7b:ca57:: with SMTP id m23mr3677321wml.75.1612880806014;
+        Tue, 09 Feb 2021 06:26:46 -0800 (PST)
+Received: from [10.44.66.8] ([212.45.67.2])
+        by smtp.googlemail.com with ESMTPSA id t8sm4337913wmq.36.2021.02.09.06.26.44
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 09 Feb 2021 06:26:45 -0800 (PST)
+To:     Randy Dunlap <rdunlap@infradead.org>, akpm@linux-foundation.org,
+        broonie@kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-next@vger.kernel.org, mhocko@suse.cz,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        Patrick Daly <pdaly@codeaurora.org>
 References: <20210208234508.iCc6kmL1z%akpm@linux-foundation.org>
-        <2a0149a9-b1ae-6d41-f4d7-04108fcd1431@infradead.org>
+ <c85a7dba-2f2a-c518-ab9d-26a0c934adda@infradead.org>
+From:   Georgi Djakov <georgi.djakov@linaro.org>
+Subject: Re: mmotm 2021-02-08-15-44 uploaded
+ (mm-cma-print-region-name-on-failure.patch)
+Message-ID: <05e2ea61-af8b-7a75-f458-f936dc8cf65a@linaro.org>
+Date:   Tue, 9 Feb 2021 16:26:44 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/LCnxAV6p98/IHSm75GQt19j";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+In-Reply-To: <c85a7dba-2f2a-c518-ab9d-26a0c934adda@infradead.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/LCnxAV6p98/IHSm75GQt19j
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On 2/9/21 06:03, Randy Dunlap wrote:
+> On 2/8/21 3:45 PM, akpm@linux-foundation.org wrote:
+>> The mm-of-the-moment snapshot 2021-02-08-15-44 has been uploaded to
+>>
+>>     https://www.ozlabs.org/~akpm/mmotm/
+>>
+>> mmotm-readme.txt says
+>>
+>> README for mm-of-the-moment:
+>>
+>> https://www.ozlabs.org/~akpm/mmotm/
+>>
+>> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+>> more than once a week.
+>>
+>> You will need quilt to apply these patches to the latest Linus release (5.x
+>> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+>> https://ozlabs.org/~akpm/mmotm/series
+>>
+>> The file broken-out.tar.gz contains two datestamp files: .DATE and
+>> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+>> followed by the base kernel version against which this patch series is to
+>> be applied.
+>>
+>> This tree is partially included in linux-next.  To see which patches are
+>> included in linux-next, consult the `series' file.  Only the patches
+>> within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+>> linux-next.
+> 
+> mm-cma-print-region-name-on-failure.patch:
+> 
+> This causes a printk format warning on i386 (these used to be readable):
+> 
+> In file included from ../include/linux/printk.h:7:0,
+>                   from ../include/linux/kernel.h:16,
+>                   from ../include/asm-generic/bug.h:20,
+>                   from ../arch/x86/include/asm/bug.h:93,
+>                   from ../include/linux/bug.h:5,
+>                   from ../include/linux/mmdebug.h:5,
+>                   from ../include/linux/mm.h:9,
+>                   from ../include/linux/memblock.h:13,
+>                   from ../mm/cma.c:24:
+> ../mm/cma.c: In function ‘cma_alloc’:
+> ../include/linux/kern_levels.h:5:18: warning: format ‘%zu’ expects argument of type ‘size_t’, but argument 4 has type ‘long unsigned int’ [-Wformat=]
+>   #define KERN_SOH "\001"  /* ASCII Start Of Header */
+>                    ^
+> ../include/linux/kern_levels.h:11:18: note: in expansion of macro ‘KERN_SOH’
+>   #define KERN_ERR KERN_SOH "3" /* error conditions */
+>                    ^~~~~~~~
+> ../include/linux/printk.h:343:9: note: in expansion of macro ‘KERN_ERR’
+>    printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
+>           ^~~~~~~~
+> ../mm/cma.c:503:3: note: in expansion of macro ‘pr_err’
+>     pr_err("%s: %s: alloc failed, req-size: %zu pages, ret: %d\n",
+>     ^~~~~~
+> ../mm/cma.c:503:45: note: format string is defined here
+>     pr_err("%s: %s: alloc failed, req-size: %zu pages, ret: %d\n",
+>                                             ~~^
+>                                             %lu
+> 
+> because the type of count is not the same as the type of cma->count.
+> 
+> Furthermore, are you sure that cma->count is the same value as count?
+> I'm not.
 
-Hi Randy,
+Good catch. Sorry, it was not intentional.
 
-On Mon, 8 Feb 2021 20:20:04 -0800 Randy Dunlap <rdunlap@infradead.org> wrot=
-e:
->
-> on x86_64:
-> CONFIG_VIDEO_RDACM20=3Dm
-> CONFIG_VIDEO_RDACM21=3Dm
->=20
-> WARNING: modpost: drivers/media/i2c/rdacm21-camera_module: 'max9271_set_s=
-erial_link' exported twice. Previous export was in drivers/media/i2c/rdacm2=
-0-camera_module.ko
-> WARNING: modpost: drivers/media/i2c/rdacm21-camera_module: 'max9271_confi=
-gure_i2c' exported twice. Previous export was in drivers/media/i2c/rdacm20-=
-camera_module.ko
-> WARNING: modpost: drivers/media/i2c/rdacm21-camera_module: 'max9271_set_h=
-igh_threshold' exported twice. Previous export was in drivers/media/i2c/rda=
-cm20-camera_module.ko
-> WARNING: modpost: drivers/media/i2c/rdacm21-camera_module: 'max9271_confi=
-gure_gmsl_link' exported twice. Previous export was in drivers/media/i2c/rd=
-acm20-camera_module.ko
-> WARNING: modpost: drivers/media/i2c/rdacm21-camera_module: 'max9271_set_g=
-pios' exported twice. Previous export was in drivers/media/i2c/rdacm20-came=
-ra_module.ko
-> WARNING: modpost: drivers/media/i2c/rdacm21-camera_module: 'max9271_clear=
-_gpios' exported twice. Previous export was in drivers/media/i2c/rdacm20-ca=
-mera_module.ko
-> WARNING: modpost: drivers/media/i2c/rdacm21-camera_module: 'max9271_enabl=
-e_gpios' exported twice. Previous export was in drivers/media/i2c/rdacm20-c=
-amera_module.ko
-> WARNING: modpost: drivers/media/i2c/rdacm21-camera_module: 'max9271_disab=
-le_gpios' exported twice. Previous export was in drivers/media/i2c/rdacm20-=
-camera_module.ko
-> WARNING: modpost: drivers/media/i2c/rdacm21-camera_module: 'max9271_verif=
-y_id' exported twice. Previous export was in drivers/media/i2c/rdacm20-came=
-ra_module.ko
-> WARNING: modpost: drivers/media/i2c/rdacm21-camera_module: 'max9271_set_a=
-ddress' exported twice. Previous export was in drivers/media/i2c/rdacm20-ca=
-mera_module.ko
-> WARNING: modpost: drivers/media/i2c/rdacm21-camera_module: 'max9271_set_d=
-eserializer_address' exported twice. Previous export was in drivers/media/i=
-2c/rdacm20-camera_module.ko
-> WARNING: modpost: drivers/media/i2c/rdacm21-camera_module: 'max9271_set_t=
-ranslation' exported twice. Previous export was in drivers/media/i2c/rdacm2=
-0-camera_module.ko
+> 
+> (also s/convienience/convenience/ in the patch description)
 
-This was reported in yesterday' linux-next and is being worked on.
+Thanks! I have fixed these and sent v2.
 
---=20
-Cheers,
-Stephen Rothwell
-
---Sig_/LCnxAV6p98/IHSm75GQt19j
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmAiF1AACgkQAVBC80lX
-0GzVXwf/TACeaLB1CkSR2gSOvl86oSx/35+hVAKWAKfALSEWzENXuI0vB6yDbChm
-0/Tlr0m28p9fbt9PT0lNLCnAZWHuXpg/pbgaKSlV1cw5wyGILajRxqOkPAXYlsqR
-/CwPjCAPjmgxiD7OToDKWwm7mYFI+S037QlrSrni1xE1rdnjxykHxCzyFlIecu0i
-RAq2U5hqlV57cP7Q6+XILX2MXRXEr4ofatRGB7Xi7gqQ9boPQsrIarSAYfiwHGL5
-bn1R8Am8im/0LX8uJoC3+kaJGdtbKIMt5K0b8zvNHk6wJsamZbigeXPJbh7h7lLE
-FA5/3lmrMqZicd4jUIf9pxfbVxoXmw==
-=gQzm
------END PGP SIGNATURE-----
-
---Sig_/LCnxAV6p98/IHSm75GQt19j--
+BR,
+Georgi
