@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1877C433DB
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 20:12:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC866C433E0
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 21:03:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A9F064ECD
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 20:12:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6049B64E6B
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 21:03:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233780AbhBIULL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 9 Feb 2021 15:11:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56266 "EHLO mail.kernel.org"
+        id S233805AbhBIVBV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 9 Feb 2021 16:01:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41376 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233621AbhBITqA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Feb 2021 14:46:00 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DE1CC64EDD;
-        Tue,  9 Feb 2021 19:45:14 +0000 (UTC)
+        id S233898AbhBIUl5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Feb 2021 15:41:57 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EB5BC64EC6;
+        Tue,  9 Feb 2021 20:09:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612899915;
-        bh=4/bPcUe5zyH9YUoIpsI7U3297Jdn+0cFJEytQi7//rg=;
+        s=korg; t=1612901353;
+        bh=vDY2uwa0Y5bG/820WVuKWMGjeSUUU/vzBVldPpm1EPw=;
         h=Date:From:To:Subject:From;
-        b=nQo5+FmA8cT+0gQghetDmkLxTjivc8m87VJJb9T342roh0hOgUdv27cIPdSsu6RsG
-         Q6Kt1EdmKx3mEJX0mzxqfD5WyU547jOjn8nQcxJx6aup526HvpZE62oJ7Qnsgx0DC9
-         CU2+ZNPnLm4ZgqDmZyJfcrotJOn9CUjl9Tufamik=
-Date:   Tue, 09 Feb 2021 11:45:14 -0800
+        b=vsdmbqlcUGWSN1SjVjEs4wRpHDGrxEWBDxQX8zBz1dFzGonFPGyzS12k7cbpu7H0Y
+         TEFXt7iOeT1bqwLTKdrIzWhGhme7yt1PyTb7V00+cLYlKvfTPHWFhUXXbPt+TDPuUM
+         hddWWRiymb3264OrgTFbD/XIA9hcvlAoWGtY4PYo=
+Date:   Tue, 09 Feb 2021 12:09:12 -0800
 From:   akpm@linux-foundation.org
 To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org
-Subject:  [alternative-merged]
- mm-hugetlb-remove-redundant-vm_bug_on_page-on-putback_active_hugepage.patch
- removed from -mm tree
-Message-ID: <20210209194514.r0GDpg8Sf%akpm@linux-foundation.org>
+Subject:  +
+ mm-hugetlb-use-helper-huge_page_size-to-get-hugepage-size-v2.patch added to
+ -mm tree
+Message-ID: <20210209200912.za6weC0v6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,38 +44,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: remove redundant VM_BUG_ON_PAGE on putback_active_hugepage()
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-remove-redundant-vm_bug_on_page-on-putback_active_hugepage.patch
+     Subject: mm/hugetlb: use helper huge_page_size() to get hugepage size
+has been added to the -mm tree.  Its filename is
+     mm-hugetlb-use-helper-huge_page_size-to-get-hugepage-size-v2.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-helper-huge_page_size-to-get-hugepage-size-v2.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-helper-huge_page_size-to-get-hugepage-size-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: remove redundant VM_BUG_ON_PAGE on putback_active_hugepage()
+Subject: mm/hugetlb: use helper huge_page_size() to get hugepage size
 
-PageHead(page) is implicitly checked in set_page_huge_active() via the
-PageHeadHuge(page) check. So remove this explicit one.
+change huge_page_size(h) >> 10 to huge_page_size(h) / SZ_1K
 
-Link: https://lkml.kernel.org/r/20210208083739.33178-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210209021803.49211-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-remove-redundant-vm_bug_on_page-on-putback_active_hugepage
+--- a/mm/hugetlb.c~mm-hugetlb-use-helper-huge_page_size-to-get-hugepage-size-v2
 +++ a/mm/hugetlb.c
-@@ -5636,7 +5636,6 @@ unlock:
+@@ -3573,7 +3573,7 @@ void hugetlb_show_meminfo(void)
+ 				h->nr_huge_pages_node[nid],
+ 				h->free_huge_pages_node[nid],
+ 				h->surplus_huge_pages_node[nid],
+-				huge_page_size(h) >> 10);
++				huge_page_size(h) / SZ_1K);
+ }
  
- void putback_active_hugepage(struct page *page)
- {
--	VM_BUG_ON_PAGE(!PageHead(page), page);
- 	spin_lock(&hugetlb_lock);
- 	set_page_huge_active(page);
- 	list_move_tail(&page->lru, &(page_hstate(page))->hugepage_activelist);
+ void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm)
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -95,6 +109,7 @@ hugetlb_cgroup-use-helper-pages_per_huge_page-in-hugetlb_cgroup.patch
 mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
 mm-hugetlb-remove-unnecessary-vm_bug_on_page-on-putback_active_hugepage.patch
 mm-hugetlb-use-helper-huge_page_size-to-get-hugepage-size.patch
+mm-hugetlb-use-helper-huge_page_size-to-get-hugepage-size-v2.patch
 mm-workingsetc-avoid-unnecessary-max_nodes-estimation-in-count_shadow_nodes.patch
 z3fold-remove-unused-attribute-for-release_z3fold_page.patch
 z3fold-simplify-the-zhdr-initialization-code-in-init_z3fold_page.patch
