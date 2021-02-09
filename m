@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21C91C433E9
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 22:30:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65B0CC43381
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 22:31:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9C4064E3E
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 22:30:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D53564DE7
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 22:31:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233980AbhBIW3a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 9 Feb 2021 17:29:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55938 "EHLO mail.kernel.org"
+        id S233394AbhBIWai (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 9 Feb 2021 17:30:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55936 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234207AbhBIWRy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234210AbhBIWRy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 9 Feb 2021 17:17:54 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A7A2964EC6;
-        Tue,  9 Feb 2021 21:42:00 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A9CB564ECC;
+        Tue,  9 Feb 2021 21:42:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612906921;
-        bh=TCzoe9JQziNvVHa90fFpG29M+5+j6wz+oHY3DdrgANA=;
+        s=korg; t=1612906928;
+        bh=zTWtcTr5Gt7DkuHparBKcQhceV/OCPZZI2EV0Nz5sDo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=inV+5CWEo0VCrpGTf363EQPjNmQkUuo1tAXAMRmR3NMjjdBepaup3ByKXyQaov/1m
-         Nq3jO9jUCw3inYb+mWKcsOttJrYkjO6CEuO4Zi048ANjauMm/rnSxVCGL40VoTJRkS
-         1A5Xg78QfUDDo8hSEiAFvnK9l+IRgaxjyIXfxVa0=
-Date:   Tue, 09 Feb 2021 13:42:00 -0800
+        b=i81qsVmbOZKWL3lwtZxpt6cc3MOB6X8QhkGr4KVhfeTTVRdEllzIeJkKKaLO6HlZt
+         Mway357aAEthr+m6RCAe6ReS/C+1CW2Irdvt9E9dnL+Mw8JtbW1utr8kRjM+KqhsNT
+         6bqOT9WmhN4HY4km7sQ2kHlYjHh+7ptNlN6+p9h8=
+Date:   Tue, 09 Feb 2021 13:42:07 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
-        stable@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 04/14] squashfs: add more sanity checks in xattr
- id lookup
-Message-ID: <20210209214200.eB2f3Dmb5%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, arnd@arndb.de, dianders@chromium.org,
+        linux-mm@kvack.org, lkp@intel.com, maskray@google.com,
+        mm-commits@vger.kernel.org, nathan@kernel.org,
+        ndesaulniers@google.com, torvalds@linux-foundation.org
+Subject:  [patch 06/14] firmware_loader: align .builtin_fw to 8
+Message-ID: <20210209214207.awsYPCA3W%akpm@linux-foundation.org>
 In-Reply-To: <20210209134115.4d933d446165cd0ed8977b03@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,135 +43,46 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: squashfs: add more sanity checks in xattr id lookup
+From: Fangrui Song <maskray@google.com>
+Subject: firmware_loader: align .builtin_fw to 8
 
-Sysbot has reported a warning where a kmalloc() attempt exceeds the
-maximum limit.  This has been identified as corruption of the xattr_ids
-count when reading the xattr id lookup table.
+arm64 references the start address of .builtin_fw (__start_builtin_fw)
+with a pair of R_AARCH64_ADR_PREL_PG_HI21/R_AARCH64_LDST64_ABS_LO12_NC
+relocations.  The compiler is allowed to emit the
+R_AARCH64_LDST64_ABS_LO12_NC relocation because struct builtin_fw in
+include/linux/firmware.h is 8-byte aligned.
 
-This patch adds a number of additional sanity checks to detect this
-corruption and others.
+The R_AARCH64_LDST64_ABS_LO12_NC relocation requires the address to be a
+multiple of 8, which may not be the case if .builtin_fw is empty. 
+Unconditionally align .builtin_fw to fix the linker error.  32-bit
+architectures could use ALIGN(4) but that would add unnecessary
+complexity, so just use ALIGN(8).
 
-1. It checks for a corrupted xattr index read from the inode.  This could
-   be because the metadata block is uncompressed, or because the
-   "compression" bit has been corrupted (turning a compressed block
-   into an uncompressed block).  This would cause an out of bounds read.
-
-2. It checks against corruption of the xattr_ids count.  This can either
-   lead to the above kmalloc failure, or a smaller than expected
-   table to be read.
-
-3. It checks the contents of the index table for corruption.
-
-[phillip@squashfs.org.uk: fix checkpatch issue]
-  Link: https://lkml.kernel.org/r/270245655.754655.1612770082682@webmail.123-reg.co.uk
-Link: https://lkml.kernel.org/r/20210204130249.4495-5-phillip@squashfs.org.uk
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-Reported-by: syzbot+2ccea6339d368360800d@syzkaller.appspotmail.com
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20201208054646.2913063-1-maskray@google.com
+Link: https://github.com/ClangBuiltLinux/linux/issues/1204
+Fixes: 5658c76 ("firmware: allow firmware files to be built into kernel image")
+Signed-off-by: Fangrui Song <maskray@google.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+Tested-by: Nick Desaulniers <ndesaulniers@google.com>
+Tested-by: Douglas Anderson <dianders@chromium.org>
+Acked-by: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/xattr_id.c |   66 +++++++++++++++++++++++++++++++++------
- 1 file changed, 57 insertions(+), 9 deletions(-)
+ include/asm-generic/vmlinux.lds.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/squashfs/xattr_id.c~squashfs-add-more-sanity-checks-in-xattr-id-lookup
-+++ a/fs/squashfs/xattr_id.c
-@@ -31,10 +31,15 @@ int squashfs_xattr_lookup(struct super_b
- 	struct squashfs_sb_info *msblk = sb->s_fs_info;
- 	int block = SQUASHFS_XATTR_BLOCK(index);
- 	int offset = SQUASHFS_XATTR_BLOCK_OFFSET(index);
--	u64 start_block = le64_to_cpu(msblk->xattr_id_table[block]);
-+	u64 start_block;
- 	struct squashfs_xattr_id id;
- 	int err;
- 
-+	if (index >= msblk->xattr_ids)
-+		return -EINVAL;
-+
-+	start_block = le64_to_cpu(msblk->xattr_id_table[block]);
-+
- 	err = squashfs_read_metadata(sb, &id, &start_block, &offset,
- 							sizeof(id));
- 	if (err < 0)
-@@ -50,13 +55,17 @@ int squashfs_xattr_lookup(struct super_b
- /*
-  * Read uncompressed xattr id lookup table indexes from disk into memory
-  */
--__le64 *squashfs_read_xattr_id_table(struct super_block *sb, u64 start,
-+__le64 *squashfs_read_xattr_id_table(struct super_block *sb, u64 table_start,
- 		u64 *xattr_table_start, int *xattr_ids)
- {
--	unsigned int len;
-+	struct squashfs_sb_info *msblk = sb->s_fs_info;
-+	unsigned int len, indexes;
- 	struct squashfs_xattr_id_table *id_table;
-+	__le64 *table;
-+	u64 start, end;
-+	int n;
- 
--	id_table = squashfs_read_table(sb, start, sizeof(*id_table));
-+	id_table = squashfs_read_table(sb, table_start, sizeof(*id_table));
- 	if (IS_ERR(id_table))
- 		return (__le64 *) id_table;
- 
-@@ -70,13 +79,52 @@ __le64 *squashfs_read_xattr_id_table(str
- 	if (*xattr_ids == 0)
- 		return ERR_PTR(-EINVAL);
- 
--	/* xattr_table should be less than start */
--	if (*xattr_table_start >= start)
-+	len = SQUASHFS_XATTR_BLOCK_BYTES(*xattr_ids);
-+	indexes = SQUASHFS_XATTR_BLOCKS(*xattr_ids);
-+
-+	/*
-+	 * The computed size of the index table (len bytes) should exactly
-+	 * match the table start and end points
-+	 */
-+	start = table_start + sizeof(*id_table);
-+	end = msblk->bytes_used;
-+
-+	if (len != (end - start))
- 		return ERR_PTR(-EINVAL);
- 
--	len = SQUASHFS_XATTR_BLOCK_BYTES(*xattr_ids);
-+	table = squashfs_read_table(sb, start, len);
-+	if (IS_ERR(table))
-+		return table;
-+
-+	/* table[0], table[1], ... table[indexes - 1] store the locations
-+	 * of the compressed xattr id blocks.  Each entry should be less than
-+	 * the next (i.e. table[0] < table[1]), and the difference between them
-+	 * should be SQUASHFS_METADATA_SIZE or less.  table[indexes - 1]
-+	 * should be less than table_start, and again the difference
-+	 * shouls be SQUASHFS_METADATA_SIZE or less.
-+	 *
-+	 * Finally xattr_table_start should be less than table[0].
-+	 */
-+	for (n = 0; n < (indexes - 1); n++) {
-+		start = le64_to_cpu(table[n]);
-+		end = le64_to_cpu(table[n + 1]);
-+
-+		if (start >= end || (end - start) > SQUASHFS_METADATA_SIZE) {
-+			kfree(table);
-+			return ERR_PTR(-EINVAL);
-+		}
-+	}
-+
-+	start = le64_to_cpu(table[indexes - 1]);
-+	if (start >= table_start || (table_start - start) > SQUASHFS_METADATA_SIZE) {
-+		kfree(table);
-+		return ERR_PTR(-EINVAL);
-+	}
- 
--	TRACE("In read_xattr_index_table, length %d\n", len);
-+	if (*xattr_table_start >= le64_to_cpu(table[0])) {
-+		kfree(table);
-+		return ERR_PTR(-EINVAL);
-+	}
- 
--	return squashfs_read_table(sb, start + sizeof(*id_table), len);
-+	return table;
- }
+--- a/include/asm-generic/vmlinux.lds.h~firmware_loader-align-builtin_fw-to-8
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -459,7 +459,7 @@
+ 	}								\
+ 									\
+ 	/* Built-in firmware blobs */					\
+-	.builtin_fw        : AT(ADDR(.builtin_fw) - LOAD_OFFSET) {	\
++	.builtin_fw : AT(ADDR(.builtin_fw) - LOAD_OFFSET) ALIGN(8) {	\
+ 		__start_builtin_fw = .;					\
+ 		KEEP(*(.builtin_fw))					\
+ 		__end_builtin_fw = .;					\
 _
