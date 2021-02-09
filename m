@@ -2,43 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 361AEC433E6
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 18:24:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0808BC433DB
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 19:32:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB1BA64E87
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 18:24:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CAF3764DE8
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Feb 2021 19:32:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232974AbhBISYe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 9 Feb 2021 13:24:34 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42230 "EHLO mail.kernel.org"
+        id S233341AbhBITbD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 9 Feb 2021 14:31:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50500 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233236AbhBISV4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Feb 2021 13:21:56 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 20EA964EC5;
-        Tue,  9 Feb 2021 17:57:29 +0000 (UTC)
+        id S233528AbhBITTn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Feb 2021 14:19:43 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E35BE64ECB;
+        Tue,  9 Feb 2021 19:18:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612893449;
-        bh=R5/Z4YVY+CRp4WOBrSRBK9EYjUyvY/7ttju1PrJy/tg=;
+        s=korg; t=1612898298;
+        bh=cv09Xs6tXP9gW4lIVgDFGbzPVoqA77LH4zLYPAmt/vI=;
         h=Date:From:To:Subject:From;
-        b=yixuL2P+wFSthqbZXG1u9v6tUFmRfZWhSPRF6Bt86jNibq/tf42s6p/DszfCcQrxF
-         XqKj75aTk6Q2XRqdrVv7wMM5p2CQRBNTaEW97OdoUMfgkO3eLmnrV6xa3M3r1gu5nP
-         k0Q22VpoELecjlHCNouYWRglEBZ29T4B5iVdaatg=
-Date:   Tue, 09 Feb 2021 09:57:28 -0800
+        b=VJ490gj0fE9fv5b/YMEnV+QT67PFz/q3Ks3SorE8XUhKfZCDNOSgJNRsJgniPYkZ/
+         u+5q/NNLTIWMrR+J6j75AuPcxxPQCqSQDdUDyigCNsDaBmIKhx0bxSc43oySUbvC0T
+         R5/YWPJW3AqdYhn3csfnDawEGvZJD+DtxZHYxacE=
+Date:   Tue, 09 Feb 2021 11:18:17 -0800
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, dave.hansen@linux.intel.com, davem@davemloft.net,
-        lucien.xin@gmail.com, luto@kernel.org, marcelo.leitner@gmail.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, neilb@suse.de,
-        nhorman@tuxdriver.com, peterz@infradead.org,
-        stable@vger.kernel.org, viro@zeniv.linux.org.uk,
-        vyasevich@gmail.com
-Subject:  [merged]
- net-fix-iteration-for-sctp-transport-seq_files.patch removed from -mm tree
-Message-ID: <20210209175728.8pjvclyN3%akpm@linux-foundation.org>
+To:     david@redhat.com, georgi.djakov@linaro.org, minchan@kernel.org,
+        mm-commits@vger.kernel.org, pdaly@codeaurora.org,
+        rdunlap@infradead.org
+Subject:  + mm-cma-print-region-name-on-failure-v2.patch added to
+ -mm tree
+Message-ID: <20210209191817.PTxm9wr7U%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,98 +44,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net: fix iteration for sctp transport seq_files
-has been removed from the -mm tree.  Its filename was
-     net-fix-iteration-for-sctp-transport-seq_files.patch
+     Subject: mm-cma-print-region-name-on-failure-v2
+has been added to the -mm tree.  Its filename is
+     mm-cma-print-region-name-on-failure-v2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-print-region-name-on-failure-v2.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-print-region-name-on-failure-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: NeilBrown <neilb@suse.de>
-Subject: net: fix iteration for sctp transport seq_files
+From: Patrick Daly <pdaly@codeaurora.org>
+Subject: mm-cma-print-region-name-on-failure-v2
 
-The sctp transport seq_file iterators take a reference to the transport in
-the ->start and ->next functions and releases the reference in the ->show
-function.  The preferred handling for such resources is to release them in
-the subsequent ->next or ->stop function call.
+print the "count" variable, as it was originally in the code, per Randy
 
-Since Commit 1f4aace60b0e ("fs/seq_file.c: simplify seq_file iteration
-code and interface") there is no guarantee that ->show will be called
-after ->next, so this function can now leak references.
-
-So move the sctp_transport_put() call to ->next and ->stop.
-
-Link: https://lkml.kernel.org/r/161248539022.21478.17038123892954492263.stgit@noble1
-Fixes: 1f4aace60b0e ("fs/seq_file.c: simplify seq_file iteration code and interface")
-Signed-off-by: NeilBrown <neilb@suse.de>
-Reported-by: Xin Long <lucien.xin@gmail.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Vlad Yasevich <vyasevich@gmail.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210209142414.12768-1-georgi.djakov@linaro.org
+Signed-off-by: Patrick Daly <pdaly@codeaurora.org>
+Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/proc.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ mm/cma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/net/sctp/proc.c~net-fix-iteration-for-sctp-transport-seq_files
-+++ a/net/sctp/proc.c
-@@ -215,6 +215,12 @@ static void sctp_transport_seq_stop(stru
- {
- 	struct sctp_ht_iter *iter = seq->private;
+--- a/mm/cma.c~mm-cma-print-region-name-on-failure-v2
++++ a/mm/cma.c
+@@ -501,7 +501,7 @@ struct page *cma_alloc(struct cma *cma,
  
-+	if (v && v != SEQ_START_TOKEN) {
-+		struct sctp_transport *transport = v;
-+
-+		sctp_transport_put(transport);
-+	}
-+
- 	sctp_transport_walk_stop(&iter->hti);
- }
- 
-@@ -222,6 +228,12 @@ static void *sctp_transport_seq_next(str
- {
- 	struct sctp_ht_iter *iter = seq->private;
- 
-+	if (v && v != SEQ_START_TOKEN) {
-+		struct sctp_transport *transport = v;
-+
-+		sctp_transport_put(transport);
-+	}
-+
- 	++*pos;
- 
- 	return sctp_transport_get_next(seq_file_net(seq), &iter->hti);
-@@ -277,8 +289,6 @@ static int sctp_assocs_seq_show(struct s
- 		sk->sk_rcvbuf);
- 	seq_printf(seq, "\n");
- 
--	sctp_transport_put(transport);
--
- 	return 0;
- }
- 
-@@ -354,8 +364,6 @@ static int sctp_remaddr_seq_show(struct
- 		seq_printf(seq, "\n");
+ 	if (ret && !no_warn) {
+ 		pr_err("%s: %s: alloc failed, req-size: %zu pages, ret: %d\n",
+-		       __func__, cma->name, cma->count, ret);
++		       __func__, cma->name, count, ret);
+ 		cma_debug_show_areas(cma);
  	}
- 
--	sctp_transport_put(transport);
--
- 	return 0;
- }
  
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from pdaly@codeaurora.org are
 
-seq_file-document-how-per-entry-resources-are-managed.patch
-x86-fix-seq_file-iteration-for-pat-memtypec.patch
+mm-cma-print-region-name-on-failure.patch
+mm-cma-print-region-name-on-failure-v2.patch
 
