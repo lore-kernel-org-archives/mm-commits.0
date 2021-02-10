@@ -2,91 +2,129 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8745C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 10 Feb 2021 14:35:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80740C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 10 Feb 2021 17:29:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CF1264E6F
-	for <mm-commits@archiver.kernel.org>; Wed, 10 Feb 2021 14:35:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4FEE364E8B
+	for <mm-commits@archiver.kernel.org>; Wed, 10 Feb 2021 17:29:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230243AbhBJOfE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Feb 2021 09:35:04 -0500
-Received: from mx2.suse.de ([195.135.220.15]:34700 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229610AbhBJOfC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Feb 2021 09:35:02 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 334EAAED2;
-        Wed, 10 Feb 2021 14:34:17 +0000 (UTC)
-Subject: Re: [patch 13/14] mm, slub: better heuristic for number of cpus when
- calculating slab order
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        aneesh.kumar@linux.ibm.com, bharata@linux.ibm.com,
-        catalin.marinas@arm.com, cl@linux.com, guro@fb.com,
-        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, jannh@google.com,
-        linux-mm@kvack.org, mgorman@techsingularity.net, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, rientjes@google.com,
-        shakeelb@google.com, stable@vger.kernel.org,
-        torvalds@linux-foundation.org, vincent.guittot@linaro.org,
-        will@kernel.org
-References: <20210209214232.hlVJaEmRu%akpm@linux-foundation.org>
-From:   Vlastimil Babka <vbabka@suse.cz>
-Message-ID: <4d33f14e-93ba-76ec-a82e-168ee2f25fe6@suse.cz>
-Date:   Wed, 10 Feb 2021 15:34:16 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.7.0
+        id S232097AbhBJR26 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Feb 2021 12:28:58 -0500
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:26524 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S232107AbhBJR25 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Feb 2021 12:28:57 -0500
+Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 11AHCJtK028363;
+        Wed, 10 Feb 2021 12:27:58 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
+ subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=pp1; bh=jAhH+RYwYlrxGzHNekfUXPMbLIQjGPrR85OXciJb3wI=;
+ b=NYgw1QYuq3o8j5qGADRMceXntV35aPf2D99Lp/8bAnzzB/REE3Sa3xmwL+XSFtYQfvje
+ FldBoHDC2LaAhvHO41+aGbQWwyULT/D0GKoFtdeTCT7PqDfJms8N1QfGJodH+N0e2bfJ
+ fIAxAzOk6uYeLFwp+Ff7jfDRQUItEA1VAimwELX05GW9vZ8y4H4kHAwUPxfIFfEByCiB
+ DQEXBlnUuCHCHYimwH4Qc/Hqo9at2iFVA4SCc6Bp8xzKsArYm9uJpmQwNXBp9OJZl8HO
+ G/F8xYQDDYCbIHPZ8xCmbLd1jAVjC6bm9B3ln4E8fRvH1efR/8nsCULdPfJ3MM7S00xV CA== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 36mkp58gk0-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 10 Feb 2021 12:27:58 -0500
+Received: from m0098420.ppops.net (m0098420.ppops.net [127.0.0.1])
+        by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 11AHEYW9042809;
+        Wed, 10 Feb 2021 12:27:58 -0500
+Received: from ppma04fra.de.ibm.com (6a.4a.5195.ip4.static.sl-reverse.com [149.81.74.106])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 36mkp58gje-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 10 Feb 2021 12:27:57 -0500
+Received: from pps.filterd (ppma04fra.de.ibm.com [127.0.0.1])
+        by ppma04fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 11AHRuCS004643;
+        Wed, 10 Feb 2021 17:27:56 GMT
+Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
+        by ppma04fra.de.ibm.com with ESMTP id 36hjr8am4j-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 10 Feb 2021 17:27:55 +0000
+Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
+        by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 11AHRgRl27525476
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 10 Feb 2021 17:27:42 GMT
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id A866D11C05B;
+        Wed, 10 Feb 2021 17:27:52 +0000 (GMT)
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id E842111C04A;
+        Wed, 10 Feb 2021 17:27:51 +0000 (GMT)
+Received: from osiris (unknown [9.171.5.38])
+        by d06av25.portsmouth.uk.ibm.com (Postfix) with ESMTPS;
+        Wed, 10 Feb 2021 17:27:51 +0000 (GMT)
+Date:   Wed, 10 Feb 2021 18:27:50 +0100
+From:   Heiko Carstens <hca@linux.ibm.com>
+To:     Heiko Carstens <hca@linux.ibm.com>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Amir Goldstein <amir73il@gmail.com>,
+        Chris Down <chris@chrisdown.name>,
+        Hugh Dickins <hughd@google.com>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Linux-MM <linux-mm@kvack.org>, Matt Turner <mattst88@gmail.com>,
+        mm-commits@vger.kernel.org, Richard Henderson <rth@twiddle.net>,
+        Seth Forshee <seth.forshee@canonical.com>,
+        stable <stable@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+        Ulrich Weigand <Ulrich.Weigand@de.ibm.com>,
+        Tuan Hoang1 <Tuan.Hoang1@ibm.com>
+Subject: Re: [patch 09/14] tmpfs: disallow CONFIG_TMPFS_INODE64 on alpha
+Message-ID: <YCQXllnwOtTaak6g@osiris>
+References: <20210209134115.4d933d446165cd0ed8977b03@linux-foundation.org>
+ <20210209214217.gRa4Jmu1g%akpm@linux-foundation.org>
+ <CAHk-=wiDt_eJvfrr-dCXq3eZ+ZmVTD2-rM2pcxBk4d-FM3h-bw@mail.gmail.com>
+ <YCPgzb1PhtvfUh9y@osiris>
 MIME-Version: 1.0
-In-Reply-To: <20210209214232.hlVJaEmRu%akpm@linux-foundation.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YCPgzb1PhtvfUh9y@osiris>
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.737
+ definitions=2021-02-10_06:2021-02-10,2021-02-10 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=836 mlxscore=0
+ clxscore=1015 impostorscore=0 suspectscore=0 bulkscore=0 phishscore=0
+ lowpriorityscore=0 malwarescore=0 adultscore=0 priorityscore=1501
+ spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2102100153
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 2/9/21 10:42 PM, Andrew Morton wrote:
-> From: Vlastimil Babka <vbabka@suse.cz>
-> Subject: mm, slub: better heuristic for number of cpus when calculating slab order
-> 
+On Wed, Feb 10, 2021 at 02:34:08PM +0100, Heiko Carstens wrote:
+> diff --git a/include/linux/types.h b/include/linux/types.h
+> index a147977602b5..1e9d0a2c1dba 100644
+> --- a/include/linux/types.h
+> +++ b/include/linux/types.h
+> @@ -14,7 +14,7 @@ typedef u32 __kernel_dev_t;
+>  
+>  typedef __kernel_fd_set		fd_set;
+>  typedef __kernel_dev_t		dev_t;
+> -typedef __kernel_ino_t		ino_t;
+> +typedef __kernel_ulong_t	ino_t;
+>  typedef __kernel_mode_t		mode_t;
+>  typedef unsigned short		umode_t;
+>  typedef u32			nlink_t;
+> @@ -189,7 +189,11 @@ struct hlist_node {
+>  
+>  struct ustat {
+>  	__kernel_daddr_t	f_tfree;
+> -	__kernel_ino_t		f_tinode;
+> +#ifdef ARCH_HAS_32BIT_F_TINODE
+> +	unsigned int		f_tinode;
+> +#else
+> +	unsigned long		f_tinode;
+> +#endif
 
-...
-
-> Link: https://lkml.kernel.org/r/20210208134108.22286-1-vbabka@suse.cz
-> Fixes: 045ab8c9487b ("mm/slub: let number of online CPUs determine the slub page order")
-> Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-> Reported-by: Vincent Guittot <vincent.guittot@linaro.org>
-> Reported-by: Mel Gorman <mgorman@techsingularity.net>
-> Tested-by: Vincent Guittot <vincent.guittot@linaro.org>
-
-As Andrew's incoming series might have been not merged yet, I will point to
-Mel's Tested-by:
-
-https://lore.kernel.org/linux-mm/20210210140712.GB3697@techsingularity.net/
-
-Thanks, Mel!
-
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> Cc: Bharata B Rao <bharata@linux.ibm.com>
-> Cc: Christoph Lameter <cl@linux.com>
-> Cc: Roman Gushchin <guro@fb.com>
-> Cc: Johannes Weiner <hannes@cmpxchg.org>
-> Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-> Cc: Jann Horn <jannh@google.com>
-> Cc: Michal Hocko <mhocko@kernel.org>
-> Cc: David Rientjes <rientjes@google.com>
-> Cc: Shakeel Butt <shakeelb@google.com>
-> Cc: Will Deacon <will@kernel.org>
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  mm/slub.c |   18 ++++++++++++++++--
->  1 file changed, 16 insertions(+), 2 deletions(-)
-> 
+Of course that should have been CONFIG_ARCH_32BIT_USTAT_F_TINODE in
+order to not break the existing ABI for alpha and s390.
