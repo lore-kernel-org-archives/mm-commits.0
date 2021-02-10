@@ -2,97 +2,114 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 788B8C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 10 Feb 2021 19:31:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67C24C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 10 Feb 2021 19:56:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 49B3E64D87
-	for <mm-commits@archiver.kernel.org>; Wed, 10 Feb 2021 19:31:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37F5564EE8
+	for <mm-commits@archiver.kernel.org>; Wed, 10 Feb 2021 19:56:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234615AbhBJTbj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Feb 2021 14:31:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50114 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234242AbhBJTbg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2021 14:31:36 -0500
-Received: from mail-io1-xd35.google.com (mail-io1-xd35.google.com [IPv6:2607:f8b0:4864:20::d35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93EE8C061756
-        for <mm-commits@vger.kernel.org>; Wed, 10 Feb 2021 11:30:56 -0800 (PST)
-Received: by mail-io1-xd35.google.com with SMTP id f20so3121471ioo.10
-        for <mm-commits@vger.kernel.org>; Wed, 10 Feb 2021 11:30:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=XR3GJYIrFqVh/P4AaYfLRSkAEDtaWqwqBD1TKpNkqZA=;
-        b=bxN2BwNs3tdQqP3WHeziz9Kyj02bvgwpyBZJJqV9quH5IrMHzseF6fX5i/QqhEOIDU
-         N/cnJlpbCMzDI9KItYP08h/4UB7dz/x0mvQeZNBGkXhQdJ+l0aREjeuzOBS8e/IfljwD
-         yl1fV6QBd4hslnuvA6/4n/isUDgsTwPmE47k4=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=XR3GJYIrFqVh/P4AaYfLRSkAEDtaWqwqBD1TKpNkqZA=;
-        b=k3nwYjPxVMdWLtJbihXYcmP14TuvcoFX099M9iAS5mjDva0+NbW6ybTctZ5OzIj3C4
-         wd4PAdw7LrbsGEk9oEkhKFpctI9Zrh80D2Jp+8SrGxgoWrmI3RQ35YDtr91f8/aYG1ZB
-         IqtjHkTls8RUdAZWokY0H/FCQFywTHusbr8ZjLCSZLgd689+zmIkDcIpa5Dj6TNSYicS
-         7AxhPvDIhQLPYc5zrTxgstvRpdq7zdHPfMEaP8PkwkaInC9iJ6mleQjyRdlsW+KuEATZ
-         I+Y51q6zkyH7ObOyrETeCHSaaT80dVzMJyBDDiyQdKGHlSsc86mfTovB4Ie+HI9Xfm3C
-         urBg==
-X-Gm-Message-State: AOAM5317zFnSx17osddvmdCCQRhq01wfF5u+GjeufsBdn0myaO3UskE+
-        Puw27ACl0B2953WZ9E/S5fK3vdDx0N35GQ==
-X-Google-Smtp-Source: ABdhPJyDYWke1rrjBy+fGfW6ugSaAkj/5KtqzuK1K7SIcWl8oxReVrVYW3cAkyIqglKcQ4dtFHpO+g==
-X-Received: by 2002:a02:6208:: with SMTP id d8mr4941471jac.56.1612985455284;
-        Wed, 10 Feb 2021 11:30:55 -0800 (PST)
-Received: from mail-io1-f52.google.com (mail-io1-f52.google.com. [209.85.166.52])
-        by smtp.gmail.com with ESMTPSA id n7sm1376394ili.79.2021.02.10.11.30.55
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 10 Feb 2021 11:30:55 -0800 (PST)
-Received: by mail-io1-f52.google.com with SMTP id e133so3130613iof.8
-        for <mm-commits@vger.kernel.org>; Wed, 10 Feb 2021 11:30:55 -0800 (PST)
-X-Received: by 2002:a92:c26a:: with SMTP id h10mr2537425ild.234.1612984986592;
- Wed, 10 Feb 2021 11:23:06 -0800 (PST)
+        id S232306AbhBJT4g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Feb 2021 14:56:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41232 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232614AbhBJT42 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Feb 2021 14:56:28 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1F4A364EEA;
+        Wed, 10 Feb 2021 19:55:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1612986947;
+        bh=ySOGh/LfDfk0EzIqZMt+l+18yGYgMtEtuEXYBi5g4TA=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=NZ6ZYISXE7p99BEUvfNFWg2og56folXbUeOyoZ8+kVzAgtDJZ03+I89uh4iqrlRRy
+         wM2C9l4aWJRzKKmf+ok848J0AJTyWwt6ew8vnqxJu1GlFrcUUaE9TUtK94YXdsNHCJ
+         8yySFz0SyNzlod+AzBQBWQPyjbm7HOIHMGF6VDYlea6MdSW+8HVeFO2Edf7fRjQwOV
+         Nj6pRFBYyT+aDuCael3O1mDT42s3EMVULHPdrlyNP+9QKLaIjrKkANbOF5yd3aMh8E
+         QpDbZWI82gbDPsSARpuVP3x+QlX+rv4nc5QxC9gLrojopDQJtijBc1PAZSxbBHpouq
+         6Bc1tai7xcQCQ==
+Received: by mail-ot1-f46.google.com with SMTP id l23so2968977otn.10;
+        Wed, 10 Feb 2021 11:55:47 -0800 (PST)
+X-Gm-Message-State: AOAM531WjL7YeecWllIsaLrmfoH5pgyWCQJvDwA8FervTAIi+m0l0r4k
+        gJ+hNPcq6kk3vOB9mPjreYO3GFOZ6vHDqfaT1qI=
+X-Google-Smtp-Source: ABdhPJzFbtRr/UiFKse9DDFj7qK/D6leqlSGTX/krNy8dk6itAmmGB+6zN0Q1h8IBj4DQy1pe/Nkq+znMh4FLhb764M=
+X-Received: by 2002:a05:6830:18e6:: with SMTP id d6mr3452163otf.251.1612986946460;
+ Wed, 10 Feb 2021 11:55:46 -0800 (PST)
 MIME-Version: 1.0
-References: <20210209214232.hlVJaEmRu%akpm@linux-foundation.org> <4d33f14e-93ba-76ec-a82e-168ee2f25fe6@suse.cz>
-In-Reply-To: <4d33f14e-93ba-76ec-a82e-168ee2f25fe6@suse.cz>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Wed, 10 Feb 2021 11:22:50 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wgMASx-nw8L_pYGktuVQH6msBnm718e9=JW+MCA8PSweg@mail.gmail.com>
-Message-ID: <CAHk-=wgMASx-nw8L_pYGktuVQH6msBnm718e9=JW+MCA8PSweg@mail.gmail.com>
-Subject: Re: [patch 13/14] mm, slub: better heuristic for number of cpus when
- calculating slab order
-To:     Vlastimil Babka <vbabka@suse.cz>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        bharata@linux.ibm.com, Catalin Marinas <catalin.marinas@arm.com>,
-        Christoph Lameter <cl@linux.com>, Roman Gushchin <guro@fb.com>,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
-        Jann Horn <jannh@google.com>, Linux-MM <linux-mm@kvack.org>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Michal Hocko <mhocko@kernel.org>, mm-commits@vger.kernel.org,
-        David Rientjes <rientjes@google.com>,
-        Shakeel Butt <shakeelb@google.com>,
-        stable <stable@vger.kernel.org>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Will Deacon <will@kernel.org>
+References: <20210209134115.4d933d446165cd0ed8977b03@linux-foundation.org>
+ <20210209214217.gRa4Jmu1g%akpm@linux-foundation.org> <CAHk-=wiDt_eJvfrr-dCXq3eZ+ZmVTD2-rM2pcxBk4d-FM3h-bw@mail.gmail.com>
+ <YCPgzb1PhtvfUh9y@osiris> <CAHk-=wghVA-6aNQz3rwr5VHmJAHkUvGyzKFpsEN1HPB5SL+aQA@mail.gmail.com>
+In-Reply-To: <CAHk-=wghVA-6aNQz3rwr5VHmJAHkUvGyzKFpsEN1HPB5SL+aQA@mail.gmail.com>
+From:   Arnd Bergmann <arnd@kernel.org>
+Date:   Wed, 10 Feb 2021 20:55:30 +0100
+X-Gmail-Original-Message-ID: <CAK8P3a3P6tMpVaLJHwNbp8sEj9+XVh5j4ymNAiXjF6P=noxL-g@mail.gmail.com>
+Message-ID: <CAK8P3a3P6tMpVaLJHwNbp8sEj9+XVh5j4ymNAiXjF6P=noxL-g@mail.gmail.com>
+Subject: Re: [patch 09/14] tmpfs: disallow CONFIG_TMPFS_INODE64 on alpha
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Heiko Carstens <hca@linux.ibm.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Amir Goldstein <amir73il@gmail.com>,
+        Chris Down <chris@chrisdown.name>,
+        Hugh Dickins <hughd@google.com>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Linux-MM <linux-mm@kvack.org>, Matt Turner <mattst88@gmail.com>,
+        mm-commits@vger.kernel.org, Richard Henderson <rth@twiddle.net>,
+        Seth Forshee <seth.forshee@canonical.com>,
+        stable <stable@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+        Ulrich Weigand <Ulrich.Weigand@de.ibm.com>,
+        Tuan Hoang1 <Tuan.Hoang1@ibm.com>,
+        Debian <debian-kernel@lists.debian.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, Feb 10, 2021 at 6:34 AM Vlastimil Babka <vbabka@suse.cz> wrote:
+On Wed, Feb 10, 2021 at 8:17 PM Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
 >
-> As Andrew's incoming series might have been not merged yet, I will point to
-> Mel's Tested-by:
+> On Wed, Feb 10, 2021 at 5:39 AM Heiko Carstens <hca@linux.ibm.com> wrote:
+> >
+> > I couldn't spot any and also gave the patch below a try and my system
+> > still boots without any errors.
+> > So, as far as I can tell it _should_ be ok to change this.
+>
+> So your patch (with the fix on top) looks sane to me.
+>
+> I'm not entirely sure it is worth it, but the fact that we've had bugs
+> wrt this before does seem to imply that we should do this.
+>
+> I'd remove the __kernel_ino_t type entirely, but I wonder if user
+> space might depend on it. I do find
+>
+>    #ifndef __kernel_ino_t
+>    typedef __kernel_ulong_t __kernel_ino_t;
+>    #endif
+>
+> in the GNU libc headers I have, but then I don't find any actual use
+> of that, so it looks like it may be jyst a "we copied things for other
+> reasons".
 
-Thanks, added.
+I checked debian codesearch to see if there are any users in
+distro source code and found exactly one instance that will
+definitely break at compile time:
 
+https://sources.debian.org/src/nfs-utils/1:1.3.4-4/support/include/nfs/nfs.h/?hl=99#L99
 
-           Linus
+This is a copy of a kernel header that was removed ten years ago
+with commit c152292f9ee7 ("nfsd: remove include/linux/nfsd/syscall.h").
+
+The mainline version of that package removed the contents in 2016 in
+the following release (2.1.1), but debian is still on the previous
+version (1.3.4)
+http://git.linux-nfs.org/?p=steved/nfs-utils.git;a=commitdiff;h=fc1127d754578cd1
+
+Someone will have to update the package for Debian, but it seems
+that would be a good idea anyway.
+
+      Arnd
