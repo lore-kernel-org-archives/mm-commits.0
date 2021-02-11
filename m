@@ -5,37 +5,40 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DD32C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 18:46:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD650C433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 18:46:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C326264E74
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 18:46:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 858CB64E65
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 18:46:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231964AbhBKScg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Feb 2021 13:32:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56096 "EHLO mail.kernel.org"
+        id S230097AbhBKSdH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Feb 2021 13:33:07 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56112 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230231AbhBKSbY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Feb 2021 13:31:24 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8433664E6B;
-        Thu, 11 Feb 2021 18:30:43 +0000 (UTC)
+        id S229533AbhBKSb1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Feb 2021 13:31:27 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A104E64E15;
+        Thu, 11 Feb 2021 18:30:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1613068243;
-        bh=Z4AbWi52NLvxs/9fmJgEwMO/O3n5tayBprgBYm0Nlr0=;
+        s=korg; t=1613068246;
+        bh=fxGPwC9pWn/7HIXom13vXpUL6HkUvAn1d6fbnSLbO4I=;
         h=Date:From:To:Subject:From;
-        b=e5II13PtCjH+qn7ayNUe8ua0l5P1rswWzyWECX7E2NGr2A6yllucl9OxsSPNmQGQp
-         Sm+HFuOPvvBjhktpAOAf4qhqrsjPporqSkPqMhohzHXvsAmOa7C0zaQfy2hqhLUhsm
-         Y7DH5Zq0d3cXQMM7jyXnt8osITWHC1Sm+DPmYwMI=
-Date:   Thu, 11 Feb 2021 10:30:43 -0800
+        b=l8D4lTKicI11yxFz786ALW0AR+gLfpZDXFTiC2jeqTqGofN5gTUMurnpiCfGNuPYo
+         dFXZeEUyQXYSY2yPr6CqBnLtE/vMBNpFXDSAuJrL6siXHPxuv2ttPnJ1igcf01PfTc
+         2cT78j/QUzd94HZdCR/tj38ZeiE9CslhuyHwCR0Q=
+Date:   Thu, 11 Feb 2021 10:30:45 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
-        stable@vger.kernel.org
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
+        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
+        dvyukov@google.com, elver@google.com, eugenis@google.com,
+        glider@google.com, kevin.brodsky@arm.com,
+        mm-commits@vger.kernel.org, pcc@google.com,
+        vincenzo.frascino@arm.com, will.deacon@arm.com
 Subject:  [merged]
- squashfs-add-more-sanity-checks-in-xattr-id-lookup.patch removed from -mm
- tree
-Message-ID: <20210211183043.tbBUI5nk5%akpm@linux-foundation.org>
+ kasan-fix-stack-traces-dependency-for-hw_tags.patch removed from -mm tree
+Message-ID: <20210211183045.-4UEn42f8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,146 +47,115 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: squashfs: add more sanity checks in xattr id lookup
+     Subject: kasan: fix stack traces dependency for HW_TAGS
 has been removed from the -mm tree.  Its filename was
-     squashfs-add-more-sanity-checks-in-xattr-id-lookup.patch
+     kasan-fix-stack-traces-dependency-for-hw_tags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: squashfs: add more sanity checks in xattr id lookup
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: fix stack traces dependency for HW_TAGS
 
-Sysbot has reported a warning where a kmalloc() attempt exceeds the
-maximum limit.  This has been identified as corruption of the xattr_ids
-count when reading the xattr id lookup table.
+Currently, whether the alloc/free stack traces collection is enabled by
+default for hardware tag-based KASAN depends on CONFIG_DEBUG_KERNEL.  The
+intention for this dependency was to only enable collection on slow debug
+kernels due to a significant perf and memory impact.
 
-This patch adds a number of additional sanity checks to detect this
-corruption and others.
+As it turns out, CONFIG_DEBUG_KERNEL is not considered a debug option and
+is enabled on many productions kernels including Android and Ubuntu.  As
+the result, this dependency is pointless and only complicates the code and
+documentation.
 
-1. It checks for a corrupted xattr index read from the inode.  This could
-   be because the metadata block is uncompressed, or because the
-   "compression" bit has been corrupted (turning a compressed block
-   into an uncompressed block).  This would cause an out of bounds read.
+Having stack traces collection disabled by default would make the hardware
+mode work differently to to the software ones, which is confusing.
 
-2. It checks against corruption of the xattr_ids count.  This can either
-   lead to the above kmalloc failure, or a smaller than expected
-   table to be read.
+This change removes the dependency and enables stack traces collection by
+default.
 
-3. It checks the contents of the index table for corruption.
+Looking into the future, this default might makes sense for production
+kernels, assuming we implement a fast stack trace collection approach.
 
-[phillip@squashfs.org.uk: fix checkpatch issue]
-  Link: https://lkml.kernel.org/r/270245655.754655.1612770082682@webmail.123-reg.co.uk
-Link: https://lkml.kernel.org/r/20210204130249.4495-5-phillip@squashfs.org.uk
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-Reported-by: syzbot+2ccea6339d368360800d@syzkaller.appspotmail.com
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/6678d77ceffb71f1cff2cf61560e2ffe7bb6bfe9.1612808820.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/xattr_id.c |   66 +++++++++++++++++++++++++++++++++------
- 1 file changed, 57 insertions(+), 9 deletions(-)
+ Documentation/dev-tools/kasan.rst |    3 +--
+ mm/kasan/hw_tags.c                |    8 ++------
+ 2 files changed, 3 insertions(+), 8 deletions(-)
 
---- a/fs/squashfs/xattr_id.c~squashfs-add-more-sanity-checks-in-xattr-id-lookup
-+++ a/fs/squashfs/xattr_id.c
-@@ -31,10 +31,15 @@ int squashfs_xattr_lookup(struct super_b
- 	struct squashfs_sb_info *msblk = sb->s_fs_info;
- 	int block = SQUASHFS_XATTR_BLOCK(index);
- 	int offset = SQUASHFS_XATTR_BLOCK_OFFSET(index);
--	u64 start_block = le64_to_cpu(msblk->xattr_id_table[block]);
-+	u64 start_block;
- 	struct squashfs_xattr_id id;
- 	int err;
+--- a/Documentation/dev-tools/kasan.rst~kasan-fix-stack-traces-dependency-for-hw_tags
++++ a/Documentation/dev-tools/kasan.rst
+@@ -163,8 +163,7 @@ particular KASAN features.
+ - ``kasan=off`` or ``=on`` controls whether KASAN is enabled (default: ``on``).
  
-+	if (index >= msblk->xattr_ids)
-+		return -EINVAL;
-+
-+	start_block = le64_to_cpu(msblk->xattr_id_table[block]);
-+
- 	err = squashfs_read_metadata(sb, &id, &start_block, &offset,
- 							sizeof(id));
- 	if (err < 0)
-@@ -50,13 +55,17 @@ int squashfs_xattr_lookup(struct super_b
- /*
-  * Read uncompressed xattr id lookup table indexes from disk into memory
-  */
--__le64 *squashfs_read_xattr_id_table(struct super_block *sb, u64 start,
-+__le64 *squashfs_read_xattr_id_table(struct super_block *sb, u64 table_start,
- 		u64 *xattr_table_start, int *xattr_ids)
- {
--	unsigned int len;
-+	struct squashfs_sb_info *msblk = sb->s_fs_info;
-+	unsigned int len, indexes;
- 	struct squashfs_xattr_id_table *id_table;
-+	__le64 *table;
-+	u64 start, end;
-+	int n;
+ - ``kasan.stacktrace=off`` or ``=on`` disables or enables alloc and free stack
+-  traces collection (default: ``on`` for ``CONFIG_DEBUG_KERNEL=y``, otherwise
+-  ``off``).
++  traces collection (default: ``on``).
  
--	id_table = squashfs_read_table(sb, start, sizeof(*id_table));
-+	id_table = squashfs_read_table(sb, table_start, sizeof(*id_table));
- 	if (IS_ERR(id_table))
- 		return (__le64 *) id_table;
+ - ``kasan.fault=report`` or ``=panic`` controls whether to only print a KASAN
+   report or also panic the kernel (default: ``report``).
+--- a/mm/kasan/hw_tags.c~kasan-fix-stack-traces-dependency-for-hw_tags
++++ a/mm/kasan/hw_tags.c
+@@ -134,12 +134,8 @@ void __init kasan_init_hw_tags(void)
  
-@@ -70,13 +79,52 @@ __le64 *squashfs_read_xattr_id_table(str
- 	if (*xattr_ids == 0)
- 		return ERR_PTR(-EINVAL);
- 
--	/* xattr_table should be less than start */
--	if (*xattr_table_start >= start)
-+	len = SQUASHFS_XATTR_BLOCK_BYTES(*xattr_ids);
-+	indexes = SQUASHFS_XATTR_BLOCKS(*xattr_ids);
-+
-+	/*
-+	 * The computed size of the index table (len bytes) should exactly
-+	 * match the table start and end points
-+	 */
-+	start = table_start + sizeof(*id_table);
-+	end = msblk->bytes_used;
-+
-+	if (len != (end - start))
- 		return ERR_PTR(-EINVAL);
- 
--	len = SQUASHFS_XATTR_BLOCK_BYTES(*xattr_ids);
-+	table = squashfs_read_table(sb, start, len);
-+	if (IS_ERR(table))
-+		return table;
-+
-+	/* table[0], table[1], ... table[indexes - 1] store the locations
-+	 * of the compressed xattr id blocks.  Each entry should be less than
-+	 * the next (i.e. table[0] < table[1]), and the difference between them
-+	 * should be SQUASHFS_METADATA_SIZE or less.  table[indexes - 1]
-+	 * should be less than table_start, and again the difference
-+	 * shouls be SQUASHFS_METADATA_SIZE or less.
-+	 *
-+	 * Finally xattr_table_start should be less than table[0].
-+	 */
-+	for (n = 0; n < (indexes - 1); n++) {
-+		start = le64_to_cpu(table[n]);
-+		end = le64_to_cpu(table[n + 1]);
-+
-+		if (start >= end || (end - start) > SQUASHFS_METADATA_SIZE) {
-+			kfree(table);
-+			return ERR_PTR(-EINVAL);
-+		}
-+	}
-+
-+	start = le64_to_cpu(table[indexes - 1]);
-+	if (start >= table_start || (table_start - start) > SQUASHFS_METADATA_SIZE) {
-+		kfree(table);
-+		return ERR_PTR(-EINVAL);
-+	}
- 
--	TRACE("In read_xattr_index_table, length %d\n", len);
-+	if (*xattr_table_start >= le64_to_cpu(table[0])) {
-+		kfree(table);
-+		return ERR_PTR(-EINVAL);
-+	}
- 
--	return squashfs_read_table(sb, start + sizeof(*id_table), len);
-+	return table;
- }
+ 	switch (kasan_arg_stacktrace) {
+ 	case KASAN_ARG_STACKTRACE_DEFAULT:
+-		/*
+-		 * Default to enabling stack trace collection for
+-		 * debug kernels.
+-		 */
+-		if (IS_ENABLED(CONFIG_DEBUG_KERNEL))
+-			static_branch_enable(&kasan_flag_stacktrace);
++		/* Default to enabling stack trace collection. */
++		static_branch_enable(&kasan_flag_stacktrace);
+ 		break;
+ 	case KASAN_ARG_STACKTRACE_OFF:
+ 		/* Do nothing, kasan_flag_stacktrace keeps its default value. */
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
+kasan-prefix-global-functions-with-kasan_.patch
+kasan-clarify-hw_tags-impact-on-tbi.patch
+kasan-clean-up-comments-in-tests.patch
+kasan-add-macros-to-simplify-checking-test-constraints.patch
+kasan-add-match-all-tag-tests.patch
+kasan-arm64-allow-using-kunit-tests-with-hw_tags-mode.patch
+kasan-rename-config_test_kasan_module.patch
+kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
+kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
+kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
+kasan-move-_ret_ip_-to-inline-wrappers.patch
+kasan-fix-bug-detection-via-ksize-for-hw_tags-mode.patch
+kasan-add-proper-page-allocator-tests.patch
+kasan-add-a-test-for-kmem_cache_alloc-free_bulk.patch
+kasan-dont-run-tests-when-kasan-is-not-enabled.patch
+kfence-kasan-make-kfence-compatible-with-kasan-fix-2.patch
+kasan-mm-dont-save-alloc-stacks-twice.patch
+kasan-mm-optimize-kmalloc-poisoning.patch
+kasan-optimize-large-kmalloc-poisoning.patch
+kasan-clean-up-setting-free-info-in-kasan_slab_free.patch
+kasan-unify-large-kfree-checks.patch
+kasan-rework-krealloc-tests.patch
+kasan-mm-fail-krealloc-on-freed-objects.patch
+kasan-mm-optimize-krealloc-poisoning.patch
+kasan-ensure-poisoning-size-alignment.patch
+arm64-kasan-simplify-and-inline-mte-functions.patch
+kasan-inline-hw_tags-helper-functions.patch
+arm64-kasan-export-mte-symbols-for-kasan-tests.patch
+kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch
 
