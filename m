@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 636E6C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 18:47:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E6D4C433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 18:48:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D55364E66
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 18:47:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BCE5D64E66
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 18:48:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229873AbhBKSfB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Feb 2021 13:35:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56520 "EHLO mail.kernel.org"
+        id S229929AbhBKSfC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Feb 2021 13:35:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56522 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232830AbhBKSc4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S232831AbhBKSc4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 11 Feb 2021 13:32:56 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7E76264E77;
-        Thu, 11 Feb 2021 18:31:00 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6CCC364E8A;
+        Thu, 11 Feb 2021 18:31:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1613068260;
-        bh=KcAcAr70n1IiJRBt9N+Y40srFRW/O8lP29TUxujBDnY=;
+        s=korg; t=1613068262;
+        bh=kaW+GiKmha4DqFQPY8BtMuwwk1H8O+ytUhAmiBWyExs=;
         h=Date:From:To:Subject:From;
-        b=h+fF+EzseJBhSn32VgTRIUOeons42Axb72YqrdDHYHvfWtVCqDfR0+Og0TUnM1nc4
-         y1ZQgWPO9Hw7JaAENo8LvA6STliq3c6mEWQOyEqNHX9IT8+oNmca+a+PgFc9Jglksj
-         UlVYVSv/sAgfpYFbLfXcQMk+Y8ePHuxN73o6zwhE=
-Date:   Thu, 11 Feb 2021 10:31:00 -0800
+        b=R7n0SKaf8PojarVyFh9KWDY+gS5ccrJfekNdr3UaqVhpeK8FpjN54rPKsGc2CKBsW
+         LME69MPG8K0Yo/HZUkvWFDYVqGYZw8znOPAFGfXAh993zVU5qjM48d7Q390W2W2xkp
+         9w0R31z47zRurJRTWr4Wu12MlB0UBt/olUAyRyTI=
+Date:   Thu, 11 Feb 2021 10:31:02 -0800
 From:   akpm@linux-foundation.org
-To:     jhubbard@nvidia.com, lkp@intel.com, mm-commits@vger.kernel.org,
-        rong.a.chen@intel.com
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com
 Subject:  [merged]
- selftests-vm-rename-file-run_vmtests-to-run_vmtestssh.patch removed from
- -mm tree
-Message-ID: <20210211183100.VWQEdhnyI%akpm@linux-foundation.org>
+ maintainers-update-andrey-ryabinins-email-address.patch removed from -mm
+ tree
+Message-ID: <20210211183102.VI3TxOP0k%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,43 +43,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: rename file run_vmtests to run_vmtests.sh
+     Subject: MAINTAINERS: update Andrey Ryabinin's email address
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-rename-file-run_vmtests-to-run_vmtestssh.patch
+     maintainers-update-andrey-ryabinins-email-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rong Chen <rong.a.chen@intel.com>
-Subject: selftests/vm: rename file run_vmtests to run_vmtests.sh
+From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Subject: MAINTAINERS: update Andrey Ryabinin's email address
 
-Commit c2aa8afc36fa has renamed run_vmtests in Makefile, but the file
-still uses the old name.
+Update my email, @virtuozzo.com will stop working shortly.
 
-The kernel test robot reported the following issue:
-
- # selftests: vm: run_vmtests.sh
- # Warning: file run_vmtests.sh is missing!
- not ok 1 selftests: vm: run_vmtests.sh
-
-Link: https://lkml.kernel.org/r/20210205085507.1479894-1-rong.a.chen@intel.com
-Fixes: c2aa8afc36fa (selftests/vm: rename run_vmtests --> run_vmtests.sh)
-Signed-off-by: Rong Chen <rong.a.chen@intel.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Link: https://lkml.kernel.org/r/20210204223904.3824-1-ryabinin.a.a@gmail.com
+Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/{run_vmtests => run_vmtests.sh} | 0
- 1 file changed, 0 insertions(+), 0 deletions(-)
- rename tools/testing/selftests/vm/{run_vmtests => run_vmtests.sh} (100%)
+ .mailmap    |    1 +
+ MAINTAINERS |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/tools/testing/selftests/vm/run_vmtests b/tools/testing/selftests/vm/run_vmtests.sh
-similarity index 100%
-rename from tools/testing/selftests/vm/run_vmtests
-rename to tools/testing/selftests/vm/run_vmtests.sh
+--- a/.mailmap~maintainers-update-andrey-ryabinins-email-address
++++ a/.mailmap
+@@ -37,6 +37,7 @@ Andrew Murray <amurray@thegoodpenguin.co
+ Andrew Murray <amurray@thegoodpenguin.co.uk> <andrew.murray@arm.com>
+ Andrew Vasquez <andrew.vasquez@qlogic.com>
+ Andrey Ryabinin <ryabinin.a.a@gmail.com> <a.ryabinin@samsung.com>
++Andrey Ryabinin <ryabinin.a.a@gmail.com> <aryabinin@virtuozzo.com>
+ Andy Adamson <andros@citi.umich.edu>
+ Antoine Tenart <atenart@kernel.org> <antoine.tenart@bootlin.com>
+ Antoine Tenart <atenart@kernel.org> <antoine.tenart@free-electrons.com>
+--- a/MAINTAINERS~maintainers-update-andrey-ryabinins-email-address
++++ a/MAINTAINERS
+@@ -9559,7 +9559,7 @@ F:	Documentation/hwmon/k8temp.rst
+ F:	drivers/hwmon/k8temp.c
+ 
+ KASAN
+-M:	Andrey Ryabinin <aryabinin@virtuozzo.com>
++M:	Andrey Ryabinin <ryabinin.a.a@gmail.com>
+ R:	Alexander Potapenko <glider@google.com>
+ R:	Dmitry Vyukov <dvyukov@google.com>
+ L:	kasan-dev@googlegroups.com
+_
 
-
-Patches currently in -mm which might be from rong.a.chen@intel.com are
+Patches currently in -mm which might be from ryabinin.a.a@gmail.com are
 
 
