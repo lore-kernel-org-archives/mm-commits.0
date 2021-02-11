@@ -2,141 +2,113 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8310FC433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 18:55:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF3DAC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 23:36:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5424C64E66
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 18:55:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C19D864E42
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 23:36:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229836AbhBKSqv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Feb 2021 13:46:51 -0500
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:47346 "EHLO
-        mx0b-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229531AbhBKSqV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Feb 2021 13:46:21 -0500
-Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 11BIWCPU020694;
-        Thu, 11 Feb 2021 13:45:30 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
- subject : message-id : references : mime-version : content-type :
- in-reply-to; s=pp1; bh=cUMcfW6W91iN2G3Yyw9CCdncpMUjks/XYXMIQxJ7sLk=;
- b=Qs+y4DgvPqlswCDkUjzc8WfyvGh11oZZhQsQRkXE0MgRIzuk9HD7l/ZxLTmecb2aEUHa
- SZKllg9U5pvDDXX/zl9seH4tWqhp2xP3peSbOsZiB8fj6yk6urAkr9gjq54xLbvtpPJN
- KlVICgE37OxKF2p8ONROhIktEkq949SEHKGIMpwwjYfjlwnzMiPeUIGWcXudpcfUU5et
- QQjk31b3a4KNu+t0qY2NyisMExsfx1gj+RRip3IyDpeH9qT4ynfY7ubJCQwDaYlnrrAF
- TJ8aEy3iMMQ792Vq08jrXtyLenVVLLt62Sp8ZFMlclsRQf1Ttby000Tn2b7d+1n9P4ss jQ== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 36n9wy8e0v-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 11 Feb 2021 13:45:29 -0500
-Received: from m0127361.ppops.net (m0127361.ppops.net [127.0.0.1])
-        by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 11BIWQhE021590;
-        Thu, 11 Feb 2021 13:45:29 -0500
-Received: from ppma01fra.de.ibm.com (46.49.7a9f.ip4.static.sl-reverse.com [159.122.73.70])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 36n9wy8e07-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 11 Feb 2021 13:45:29 -0500
-Received: from pps.filterd (ppma01fra.de.ibm.com [127.0.0.1])
-        by ppma01fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 11BIWkuB024862;
-        Thu, 11 Feb 2021 18:45:27 GMT
-Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
-        by ppma01fra.de.ibm.com with ESMTP id 36hjr8352g-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 11 Feb 2021 18:45:27 +0000
-Received: from d06av24.portsmouth.uk.ibm.com (mk.ibm.com [9.149.105.60])
-        by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 11BIjOFf41550256
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 11 Feb 2021 18:45:24 GMT
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 488E442041;
-        Thu, 11 Feb 2021 18:45:24 +0000 (GMT)
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 9168C4203F;
-        Thu, 11 Feb 2021 18:45:23 +0000 (GMT)
-Received: from osiris (unknown [9.171.6.148])
-        by d06av24.portsmouth.uk.ibm.com (Postfix) with ESMTPS;
-        Thu, 11 Feb 2021 18:45:23 +0000 (GMT)
-Date:   Thu, 11 Feb 2021 19:45:22 +0100
-From:   Heiko Carstens <hca@linux.ibm.com>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Chris Down <chris@chrisdown.name>,
-        Hugh Dickins <hughd@google.com>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Linux-MM <linux-mm@kvack.org>, Matt Turner <mattst88@gmail.com>,
-        mm-commits@vger.kernel.org, Richard Henderson <rth@twiddle.net>,
-        Seth Forshee <seth.forshee@canonical.com>,
-        stable <stable@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Ulrich Weigand <Ulrich.Weigand@de.ibm.com>,
-        Tuan Hoang1 <Tuan.Hoang1@ibm.com>
-Subject: Re: [patch 09/14] tmpfs: disallow CONFIG_TMPFS_INODE64 on alpha
-Message-ID: <YCV7QiyoweJwvN+m@osiris>
-References: <20210209134115.4d933d446165cd0ed8977b03@linux-foundation.org>
- <20210209214217.gRa4Jmu1g%akpm@linux-foundation.org>
- <CAHk-=wiDt_eJvfrr-dCXq3eZ+ZmVTD2-rM2pcxBk4d-FM3h-bw@mail.gmail.com>
- <YCPgzb1PhtvfUh9y@osiris>
- <CAHk-=wghVA-6aNQz3rwr5VHmJAHkUvGyzKFpsEN1HPB5SL+aQA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHk-=wghVA-6aNQz3rwr5VHmJAHkUvGyzKFpsEN1HPB5SL+aQA@mail.gmail.com>
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.737
- definitions=2021-02-11_07:2021-02-11,2021-02-11 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- lowpriorityscore=0 suspectscore=0 mlxlogscore=877 mlxscore=0
- malwarescore=0 phishscore=0 adultscore=0 priorityscore=1501 clxscore=1015
- spamscore=0 bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2102110146
+        id S229837AbhBKXfz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Feb 2021 18:35:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50296 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230228AbhBKXfr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Feb 2021 18:35:47 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C66E864E30;
+        Thu, 11 Feb 2021 23:35:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1613086507;
+        bh=ZGIYFVXJvHuJGFmZt5NAjYsK+XjQ6JtEslKmMPdG+uA=;
+        h=Date:From:To:Subject:From;
+        b=CBi5plPqhhldenuSqkrgHF8W8ZSp0HDiE0zAGajjbBPdTALrDw/hAtsJwGUwoLxiI
+         WwxBH6UHDJcKLKNHR+4fdCFB/2Dn2XS8QCotn4OxTQj7Nx7wOhRp6pqslnDhpbGURX
+         Xv6R90U7ohfePqHyoQmFQCBOKvO9nsbohV+fMPNc=
+Date:   Thu, 11 Feb 2021 15:35:06 -0800
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, lkp@intel.com, gerg@linux-m68k.org,
+        geert@linux-m68k.org, rppt@linux.ibm.com
+Subject:  +
+ m68k-make-__pfn_to_phys-and-__phys_to_pfn-available-for-mmu.patch added to
+ -mm tree
+Message-ID: <20210211233506.iwyxB%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, Feb 10, 2021 at 11:17:10AM -0800, Linus Torvalds wrote:
-> On Wed, Feb 10, 2021 at 5:39 AM Heiko Carstens <hca@linux.ibm.com> wrote:
-> >
-> > I couldn't spot any and also gave the patch below a try and my system
-> > still boots without any errors.
-> > So, as far as I can tell it _should_ be ok to change this.
-> 
-> So your patch (with the fix on top) looks sane to me.
-> 
-> I'm not entirely sure it is worth it, but the fact that we've had bugs
-> wrt this before does seem to imply that we should do this.
-> 
-> I'd remove the __kernel_ino_t type entirely, but I wonder if user
-> space might depend on it. I do find
-> 
->    #ifndef __kernel_ino_t
->    typedef __kernel_ulong_t __kernel_ino_t;
->    #endif
-> 
-> in the GNU libc headers I have, but then I don't find any actual use
-> of that, so it looks like it may be jyst a "we copied things for other
-> reasons".
-> 
-> On the whole I think this would be the right thing to do, but I'm a
-> bit worried that it's more pain that it might be worth.
-> 
-> Heiko, I think I'll leave this decision entirely to you. If you think
-> it's worth it to avoid any possible future pain wrt this odd inode
-> number thing for s390, just add it to the s390 tree with my ack.
-> Because honestly, I think s390 is the only architecture that really
-> cares by now.
 
-So, yes. We will go to change this to hopefully avoid future
-problems. The patch is supposed to be part of the next merge
-window and converts both s390 and alpha, unless somebody objects.
+The patch titled
+     Subject: m68k: make __pfn_to_phys() and __phys_to_pfn() available for !MMU
+has been added to the -mm tree.  Its filename is
+     m68k-make-__pfn_to_phys-and-__phys_to_pfn-available-for-mmu.patch
 
-After that has been merged I'll provide a follow-on patch which
-enables TMPFS_INODE64 for alpha and s390 again, and yet another one
-which removes __kernel_ino_t as suggested by you.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/m68k-make-__pfn_to_phys-and-__phys_to_pfn-available-for-mmu.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/m68k-make-__pfn_to_phys-and-__phys_to_pfn-available-for-mmu.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: m68k: make __pfn_to_phys() and __phys_to_pfn() available for !MMU
+
+Recent changes that obsoleted DISCONTIGMEM on m68k switched the MMU
+variant to use generic definitions of __pfn_to_phys() and __phys_to_pfn(),
+but missed the !MMU variant which caused a build failure:
+
+All errors (new ones prefixed by >>):
+
+   drivers/media/common/videobuf2/videobuf2-dma-contig.c: In function 'vb2_dc_get_userptr':
+>> drivers/media/common/videobuf2/videobuf2-dma-contig.c:509:5: error: implicit declaration of function '__pfn_to_phys' [-Werror=implicit-function-declaration]
+     509 |     __pfn_to_phys(nums[0]), size, buf->dma_dir, 0);
+         |     ^~~~~~~~~~~~~
+   cc1: some warnings being treated as errors
+
+Enable __pfn_to_phys() and __phys_to_pfn() on !MMU builds.
+
+Link: https://lkml.kernel.org/r/20210211232202.GS299309@linux.ibm.com
+Fixes: 4bfc848e0981 ("m68k/mm: enable use of generic memory_model.h for !DISCONTIGMEM")
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/m68k/include/asm/page.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/arch/m68k/include/asm/page.h~m68k-make-__pfn_to_phys-and-__phys_to_pfn-available-for-mmu
++++ a/arch/m68k/include/asm/page.h
+@@ -62,7 +62,7 @@ extern unsigned long _ramend;
+ #include <asm/page_no.h>
+ #endif
+ 
+-#ifdef CONFIG_DISCONTIGMEM
++#if !defined(CONFIG_MMU) || defined(CONFIG_DISCONTIGMEM)
+ #define __phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
+ #define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+ #endif
+_
+
+Patches currently in -mm which might be from rppt@linux.ibm.com are
+
+m68k-make-__pfn_to_phys-and-__phys_to_pfn-available-for-mmu.patch
+mm-refactor-initialization-of-struct-page-for-holes-in-memory-layout.patch
+
