@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 250CCC433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 350E7C433DB
 	for <mm-commits@archiver.kernel.org>; Fri, 12 Feb 2021 19:17:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF1D6601FE
+	by mail.kernel.org (Postfix) with ESMTP id E7DB264DF0
 	for <mm-commits@archiver.kernel.org>; Fri, 12 Feb 2021 19:17:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231574AbhBLTRJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 Feb 2021 14:17:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38770 "EHLO mail.kernel.org"
+        id S231289AbhBLTRN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 Feb 2021 14:17:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38854 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231430AbhBLTRI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 12 Feb 2021 14:17:08 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3454764DD5;
-        Fri, 12 Feb 2021 19:16:28 +0000 (UTC)
+        id S231430AbhBLTRM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 12 Feb 2021 14:17:12 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0752164DF0;
+        Fri, 12 Feb 2021 19:16:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1613157388;
-        bh=40VuRdZOCEEIgGqvrukOP67IUkmPW9wkF1o2mgvrCLs=;
+        s=korg; t=1613157391;
+        bh=0Nfjq67yi+AOkxVcsUdaObWGwtwGmNy9DWAsY7bYdNM=;
         h=Date:From:To:Subject:From;
-        b=H8kDLbotrje5duWwYO7XTjzQ+ADfrQgN/XxZ2vogoLjbmF/jr2L4xGz6Jiaz9dToY
-         ZV77xI+dIoQjfABrudIUDEyUrHVfBqQGu4uu8+04j4W5MP2kuNrdW6jt13KSnsIdOH
-         PGIyjID/pp8vWq4tgqgp/qld/GG/MEZYgOprfuyA=
-Date:   Fri, 12 Feb 2021 11:16:27 -0800
+        b=X4pckx8dk/PpBPGttNngCD5ADW364mBHwdA8ET5T2uOSO0WlY1bbUxLFvTuZcYRjO
+         cRNlENFJ6dUTNhrzvynY97br5AWMCHV/Si5/1ogS+IgZORj/XDZvxogzMH9sVfkHhw
+         5v9CVqiQi8QDwE0aCHWf5y9qW1IcKCj5rMh3N/uU=
+Date:   Fri, 12 Feb 2021 11:16:30 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, glider@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com
-Subject:  + maintainers-update-kasan-file-list.patch added to -mm
- tree
-Message-ID: <20210212191627.7k7mU%akpm@linux-foundation.org>
+Subject:  + maintainers-update-andrey-konovalovs-email-address.patch
+ added to -mm tree
+Message-ID: <20210212191630.WECf-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update KASAN file list
+     Subject: MAINTAINERS: update Andrey Konovalov's email address
 has been added to the -mm tree.  Its filename is
-     maintainers-update-kasan-file-list.patch
+     maintainers-update-andrey-konovalovs-email-address.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-kasan-file-list.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-andrey-konovalovs-email-address.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-kasan-file-list.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-andrey-konovalovs-email-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,15 +65,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: MAINTAINERS: update KASAN file list
+Subject: MAINTAINERS: update Andrey Konovalov's email address
 
-Account for the following files:
+Use my personal email address.
 
-- lib/Kconfig.kasan
-- lib/test_kasan_module.c
-- arch/arm64/include/asm/mte-kasan.h
-
-Link: https://lkml.kernel.org/r/7f9771d97b34d396bfdc4e288ad93486bb865a06.1613150186.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/b0ec98dabbc12336c162788f5ccde97045a0d65e.1613150186.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -81,25 +77,20 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-update-kasan-file-list
+--- a/MAINTAINERS~maintainers-update-andrey-konovalovs-email-address
 +++ a/MAINTAINERS
-@@ -9565,10 +9565,11 @@ R:	Dmitry Vyukov <dvyukov@google.com>
+@@ -9584,7 +9584,7 @@ F:	scripts/kconfig/
+ 
+ KCOV
+ R:	Dmitry Vyukov <dvyukov@google.com>
+-R:	Andrey Konovalov <andreyknvl@google.com>
++R:	Andrey Konovalov <andreyknvl@gmail.com>
  L:	kasan-dev@googlegroups.com
  S:	Maintained
- F:	Documentation/dev-tools/kasan.rst
--F:	arch/*/include/asm/kasan.h
-+F:	arch/*/include/asm/*kasan.h
- F:	arch/*/mm/kasan_init*
- F:	include/linux/kasan*.h
--F:	lib/test_kasan.c
-+F:	lib/Kconfig.kasan
-+F:	lib/test_kasan*.c
- F:	mm/kasan/
- F:	scripts/Makefile.kasan
- 
+ F:	Documentation/dev-tools/kcov.rst
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
