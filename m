@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC428C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 23:59:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 707AAC433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 12 Feb 2021 00:04:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7D08764E4A
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Feb 2021 23:59:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2DDF164E4B
+	for <mm-commits@archiver.kernel.org>; Fri, 12 Feb 2021 00:04:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230000AbhBKX7u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Feb 2021 18:59:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53992 "EHLO mail.kernel.org"
+        id S229968AbhBLAER (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Feb 2021 19:04:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54292 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229647AbhBKX7s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Feb 2021 18:59:48 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AB1DB64DDB;
-        Thu, 11 Feb 2021 23:59:07 +0000 (UTC)
+        id S229711AbhBLAER (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Feb 2021 19:04:17 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AE7A464E4A;
+        Fri, 12 Feb 2021 00:03:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1613087947;
-        bh=7f3PmEgbdVtZkmB+J71/HA2VHBhQ8NEJLabm3RS9CwA=;
+        s=korg; t=1613088216;
+        bh=EHo8slU8eGsWimbed6u0jl5n2k1Q2f1mfnoxmXjlKAA=;
         h=Date:From:To:Subject:From;
-        b=IEBN5Z8kZQo2CuawdT3+AyRjWnlyjnn7QabSVyEYVNEWJkM18xRBG39LfLD2lb9aR
-         S3OmXS+bVBZ5sKuFdnJ6RTm8KF904W57TPk4YE3F6tdMj99VdhSRW32LPg0cC0zpBa
-         skZigt2TXk9qwYO3Sa6GiRZ4BaYgRqsKrri9fkag=
-Date:   Thu, 11 Feb 2021 15:59:07 -0800
+        b=XucsssQdve6w6sXcIy4OCXnwumM1MEz/hQ2xXxFz5RPVFs7T9BzKvuEBrEEfNOo+m
+         url3gpZ/6Xnfufs0uPBZXn/sNtQg5BPuzba4BjmklG2nN8kcZ5XfmsSHxn1tAfQcyJ
+         LOJhfV1B/3ntgoeS6LYCJB48zZd9coRXDkP8sL1U=
+Date:   Thu, 11 Feb 2021 16:03:36 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, ysato@users.osdn.me, lkp@intel.com,
-        dalias@libc.org, rong.a.chen@intel.com
-Subject:  +
- scripts-recordmcountpl-support-big-endian-for-arch-sh.patch added to -mm tree
-Message-ID: <20210211235907.5zAnT%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, vbabka@suse.cz, hch@lst.de,
+        adobriyan@gmail.com, josef@toxicpanda.com
+Subject:  + proc-use-vmalloc-for-our-kernel-buffer.patch added to -mm
+ tree
+Message-ID: <20210212000336.Tg9YT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/recordmcount.pl: support big endian for ARCH sh
+     Subject: proc: use kvzalloc for our kernel buffer
 has been added to the -mm tree.  Its filename is
-     scripts-recordmcountpl-support-big-endian-for-arch-sh.patch
+     proc-use-vmalloc-for-our-kernel-buffer.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/scripts-recordmcountpl-support-big-endian-for-arch-sh.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/proc-use-vmalloc-for-our-kernel-buffer.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/scripts-recordmcountpl-support-big-endian-for-arch-sh.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/proc-use-vmalloc-for-our-kernel-buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,51 +65,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rong Chen <rong.a.chen@intel.com>
-Subject: scripts/recordmcount.pl: support big endian for ARCH sh
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: proc: use kvzalloc for our kernel buffer
 
-The kernel test robot reported the following issue:
-    CC [M]  drivers/soc/litex/litex_soc_ctrl.o
-  sh4-linux-objcopy: Unable to change endianness of input file(s)
-  sh4-linux-ld: cannot find drivers/soc/litex/.tmp_gl_litex_soc_ctrl.o: No such file or directory
-  sh4-linux-objcopy: 'drivers/soc/litex/.tmp_mx_litex_soc_ctrl.o': No such file
+Since
 
-The problem is that the format of input file is elf32-shbig-linux,
-but sh4-linux-objcopy wants to output a file which format is elf32-sh-linux:
+  sysctl: pass kernel pointers to ->proc_handler
 
-  $ sh4-linux-objdump -d drivers/soc/litex/litex_soc_ctrl.o | grep format
-  drivers/soc/litex/litex_soc_ctrl.o:     file format elf32-shbig-linux
+we have been pre-allocating a buffer to copy the data from the proc
+handlers into, and then copying that to userspace.  The problem is this
+just blindly kzalloc()'s the buffer size passed in from the read, which in
+the case of our 'cat' binary was 64kib.  Order-4 allocations are not
+awesome, and since we can potentially allocate up to our maximum order, so
+use kvzalloc for these buffers.
 
-Link: https://lkml.kernel.org/r/20210210150435.2171567-1-rong.a.chen@intel.com
-Link: https://lore.kernel.org/linux-mm/202101261118.GbbYSlHu-lkp@intel.com
-Signed-off-by: Rong Chen <rong.a.chen@intel.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Yoshinori Sato <ysato@users.osdn.me>
-Cc: Rich Felker <dalias@libc.org>
+[willy@infradead.org: changelog tweaks]
+Link: https://lkml.kernel.org/r/6345270a2c1160b89dd5e6715461f388176899d1.1612972413.git.josef@toxicpanda.com
+Fixes: 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+CC: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/recordmcount.pl |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/proc/proc_sysctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/scripts/recordmcount.pl~scripts-recordmcountpl-support-big-endian-for-arch-sh
-+++ a/scripts/recordmcount.pl
-@@ -265,7 +265,11 @@ if ($arch eq "x86_64") {
+--- a/fs/proc/proc_sysctl.c~proc-use-vmalloc-for-our-kernel-buffer
++++ a/fs/proc/proc_sysctl.c
+@@ -571,7 +571,7 @@ static ssize_t proc_sys_call_handler(str
+ 	error = -ENOMEM;
+ 	if (count >= KMALLOC_MAX_SIZE)
+ 		goto out;
+-	kbuf = kzalloc(count + 1, GFP_KERNEL);
++	kbuf = kvzalloc(count + 1, GFP_KERNEL);
+ 	if (!kbuf)
+ 		goto out;
  
-     # force flags for this arch
-     $ld .= " -m shlelf_linux";
--    $objcopy .= " -O elf32-sh-linux";
-+    if ($endian eq "big") {
-+        $objcopy .= " -O elf32-shbig-linux";
-+    } else {
-+        $objcopy .= " -O elf32-sh-linux";
-+    }
+@@ -600,7 +600,7 @@ static ssize_t proc_sys_call_handler(str
  
- } elsif ($arch eq "powerpc") {
-     my $ldemulation;
+ 	error = count;
+ out_free_buf:
+-	kfree(kbuf);
++	kvfree(kbuf);
+ out:
+ 	sysctl_head_finish(head);
+ 
 _
 
-Patches currently in -mm which might be from rong.a.chen@intel.com are
+Patches currently in -mm which might be from josef@toxicpanda.com are
 
-scripts-recordmcountpl-support-big-endian-for-arch-sh.patch
+proc-use-vmalloc-for-our-kernel-buffer.patch
 
