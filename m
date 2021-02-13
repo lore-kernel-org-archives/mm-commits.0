@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8101C433E6
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Feb 2021 04:41:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37642C43381
+	for <mm-commits@archiver.kernel.org>; Sat, 13 Feb 2021 04:41:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8C5664E64
+	by mail.kernel.org (Postfix) with ESMTP id F2A9D64E64
 	for <mm-commits@archiver.kernel.org>; Sat, 13 Feb 2021 04:41:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229650AbhBMEle (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 Feb 2021 23:41:34 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48146 "EHLO mail.kernel.org"
+        id S230376AbhBMElk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 Feb 2021 23:41:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48200 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229718AbhBMEld (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 12 Feb 2021 23:41:33 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A8BAC64E9A;
-        Sat, 13 Feb 2021 04:40:52 +0000 (UTC)
+        id S229718AbhBMElj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 12 Feb 2021 23:41:39 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A78B064E8E;
+        Sat, 13 Feb 2021 04:40:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1613191252;
-        bh=E9yw/P/K82z6Vc0z8wrgG900gvXmXFHctwi0lTNbTyo=;
+        s=korg; t=1613191259;
+        bh=4ix650XdzSre2zmKhQcu2FIhSPI0hKtHTFx9fYE0sFY=;
         h=Date:From:To:Subject:From;
-        b=PHItmIuEZLRxDtlfUCBTOsak6/+xg0GotPYR9UaMY2gFxm84bWU+cjJNk9KQBvEEl
-         KTYi4xCZS5dqCJU0OWGOYMH8PWjf2r8I3ONUOauKEGisE3ZzZ8jX8WjDJ1pBpr5iwp
-         i1f5kfN+h3wrAzWY+SlfcXWa5mI5v8U2eKjuiCEM=
-Date:   Fri, 12 Feb 2021 20:40:50 -0800
+        b=WhYvuN9VExTd2Mu6100gNa5zphUISStW52YpvqDHOguPCvSKPpXBFHFKqLUS9iL0I
+         2Z10v1NNe4f0VifD0Ll4aR5zjOh3jJRNTVMj5ILAU1rw8/eljoEDGWUdkDNaMq5tLR
+         LAx2arTUSiN5DFUM+rPEQNjL1Dp/GqcKl6wmDh50=
+Date:   Fri, 12 Feb 2021 20:40:58 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
-        tiantao6@hisilicon.com, sjenning@redhat.com, ddstreet@ieee.org,
-        colin.king@canonical.com
+        song.bao.hua@hisilicon.com, sjenning@redhat.com, efault@gmx.de,
+        ddstreet@ieee.org, bigeasy@linutronix.de, tiantao6@hisilicon.com
 Subject:  [folded-merged]
- mm-zswap-add-the-flag-can_sleep_mapped-fix-3.patch removed from -mm tree
-Message-ID: <20210213044050.ORhTs%akpm@linux-foundation.org>
+ mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold.patch removed from -mm
+ tree
+Message-ID: <20210213044058.e_nvL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,49 +45,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zswap: fix potential uninitialized pointer read on tmp
+     Subject: mm: set the sleep_mapped to true for zbud and z3fold
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-add-the-flag-can_sleep_mapped-fix-3.patch
+     mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold.patch
 
 This patch was dropped because it was folded into mm-zswap-add-the-flag-can_sleep_mapped.patch
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: mm/zswap: fix potential uninitialized pointer read on tmp
+From: Tian Tao <tiantao6@hisilicon.com>
+Subject: mm: set the sleep_mapped to true for zbud and z3fold
 
-In the case where zpool_can_sleep_mapped(pool) returns 0 then tmp is not
-allocated and tmp is then an uninitialized pointer.  Later if entry is
-null, tmp is freed, hence free'ing an uninitialized pointer.  Fix this by
-ensuring tmp is initialized to NULL.
+zpool driver adds a flag to indicate whether the zpool driver can enter an
+atomic context after mapping.  This patch sets it true for z3fold and
+zbud.
 
-Link: https://lkml.kernel.org/r/20210128141728.639030-1-colin.king@canonical.com
-Addresses-Coverity: ("Uninitialized pointer read")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Link: https://lkml.kernel.org/r/1611035683-12732-3-git-send-email-tiantao6@hisilicon.com
+Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
+Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
+Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Reported-by: Mike Galbraith <efault@gmx.de>
 Cc: Seth Jennings <sjenning@redhat.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Tian Tao <tiantao6@hisilicon.com>
+Cc: Barry Song <song.bao.hua@hisilicon.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/z3fold.c |    1 +
+ mm/zbud.c   |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/mm/zswap.c~mm-zswap-add-the-flag-can_sleep_mapped-fix-3
-+++ a/mm/zswap.c
-@@ -935,7 +935,7 @@ static int zswap_writeback_entry(struct
- 	struct scatterlist input, output;
- 	struct crypto_acomp_ctx *acomp_ctx;
+--- a/mm/z3fold.c~mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold
++++ a/mm/z3fold.c
+@@ -1771,6 +1771,7 @@ static u64 z3fold_zpool_total_size(void
  
--	u8 *src, *tmp;
-+	u8 *src, *tmp = NULL;
- 	unsigned int dlen;
- 	int ret;
- 	struct writeback_control wbc = {
+ static struct zpool_driver z3fold_zpool_driver = {
+ 	.type =		"z3fold",
++	.sleep_mapped = true,
+ 	.owner =	THIS_MODULE,
+ 	.create =	z3fold_zpool_create,
+ 	.destroy =	z3fold_zpool_destroy,
+--- a/mm/zbud.c~mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold
++++ a/mm/zbud.c
+@@ -203,6 +203,7 @@ static u64 zbud_zpool_total_size(void *p
+ 
+ static struct zpool_driver zbud_zpool_driver = {
+ 	.type =		"zbud",
++	.sleep_mapped = true,
+ 	.owner =	THIS_MODULE,
+ 	.create =	zbud_zpool_create,
+ 	.destroy =	zbud_zpool_destroy,
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from tiantao6@hisilicon.com are
 
-scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
 mm-zswap-add-the-flag-can_sleep_mapped.patch
 
