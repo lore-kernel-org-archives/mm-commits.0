@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1B3BC433E0
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Feb 2021 04:53:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B37DFC433E0
+	for <mm-commits@archiver.kernel.org>; Sat, 13 Feb 2021 04:53:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 729C564E3C
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Feb 2021 04:53:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 723D160C3E
+	for <mm-commits@archiver.kernel.org>; Sat, 13 Feb 2021 04:53:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229718AbhBMExX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 Feb 2021 23:53:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50504 "EHLO mail.kernel.org"
+        id S232142AbhBMExa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 Feb 2021 23:53:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50562 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232116AbhBMExW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 12 Feb 2021 23:53:22 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DFB5864E38;
-        Sat, 13 Feb 2021 04:52:41 +0000 (UTC)
+        id S232116AbhBMExZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 12 Feb 2021 23:53:25 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E0C1560C3E;
+        Sat, 13 Feb 2021 04:52:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1613191962;
-        bh=Db00HAQF1Jkl1fQ5S7H2xpREDJoUTBpler2IsLSq0gU=;
+        s=korg; t=1613191965;
+        bh=zZ2bXkVqctW7aCZ03p336vZ0+lt8jVcgmKb6Uc753/w=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=YXfQSaLllag66YJbmQ6IdH3Ic9K55g09OobQi+KP1YyzKaZK1T+Cgf8WHHJSfJitC
-         F1vL63/myXKOzQCTGvFH2iPPeaSbS7u8DpnjSqjhg/hapgfrQZGZ0Fydnc8Juj60V3
-         YokXvt4YaA/CVrFevDUHTV1dZPvKGMFnPtoUFuKU=
-Date:   Fri, 12 Feb 2021 20:52:41 -0800
+        b=JIR5x3qzB2ANl3eUMD2Ws0CcgIYwJWJvTAxgNn/jZk/3zOlq+BcTTy7xtiNfcuajv
+         yfKHPZPBMlI2svTtq/pLL3rFIzYVsG1oSa2IL4hHeRV9r3NwByQjm7EfNRBoB87XJy
+         prDLHAS4ip4iD2uFNlANz5Y17+Dpv75T6U+pdEoc=
+Date:   Fri, 12 Feb 2021 20:52:44 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dalias@libc.org, linux-mm@kvack.org,
-        lkp@intel.com, mm-commits@vger.kernel.org, rong.a.chen@intel.com,
-        torvalds@linux-foundation.org, ysato@users.osdn.me
-Subject:  [patch 2/6] scripts/recordmcount.pl: support big endian
- for ARCH sh
-Message-ID: <20210213045241.tECE_IEky%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        dvyukov@google.com, elver@google.com, glider@google.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 3/6] MAINTAINERS: update KASAN file list
+Message-ID: <20210213045244.KHDVAQ7yL%akpm@linux-foundation.org>
 In-Reply-To: <20210212205206.f99cbe2e7e368c802a385104@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,46 +43,40 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Rong Chen <rong.a.chen@intel.com>
-Subject: scripts/recordmcount.pl: support big endian for ARCH sh
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: MAINTAINERS: update KASAN file list
 
-The kernel test robot reported the following issue:
-    CC [M]  drivers/soc/litex/litex_soc_ctrl.o
-  sh4-linux-objcopy: Unable to change endianness of input file(s)
-  sh4-linux-ld: cannot find drivers/soc/litex/.tmp_gl_litex_soc_ctrl.o: No such file or directory
-  sh4-linux-objcopy: 'drivers/soc/litex/.tmp_mx_litex_soc_ctrl.o': No such file
+Account for the following files:
 
-The problem is that the format of input file is elf32-shbig-linux,
-but sh4-linux-objcopy wants to output a file which format is elf32-sh-linux:
+- lib/Kconfig.kasan
+- lib/test_kasan_module.c
+- arch/arm64/include/asm/mte-kasan.h
 
-  $ sh4-linux-objdump -d drivers/soc/litex/litex_soc_ctrl.o | grep format
-  drivers/soc/litex/litex_soc_ctrl.o:     file format elf32-shbig-linux
-
-Link: https://lkml.kernel.org/r/20210210150435.2171567-1-rong.a.chen@intel.com
-Link: https://lore.kernel.org/linux-mm/202101261118.GbbYSlHu-lkp@intel.com
-Signed-off-by: Rong Chen <rong.a.chen@intel.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Yoshinori Sato <ysato@users.osdn.me>
-Cc: Rich Felker <dalias@libc.org>
+Link: https://lkml.kernel.org/r/7f9771d97b34d396bfdc4e288ad93486bb865a06.1613150186.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/recordmcount.pl |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ MAINTAINERS |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/scripts/recordmcount.pl~scripts-recordmcountpl-support-big-endian-for-arch-sh
-+++ a/scripts/recordmcount.pl
-@@ -265,7 +265,11 @@ if ($arch eq "x86_64") {
+--- a/MAINTAINERS~maintainers-update-kasan-file-list
++++ a/MAINTAINERS
+@@ -9565,10 +9565,11 @@ R:	Dmitry Vyukov <dvyukov@google.com>
+ L:	kasan-dev@googlegroups.com
+ S:	Maintained
+ F:	Documentation/dev-tools/kasan.rst
+-F:	arch/*/include/asm/kasan.h
++F:	arch/*/include/asm/*kasan.h
+ F:	arch/*/mm/kasan_init*
+ F:	include/linux/kasan*.h
+-F:	lib/test_kasan.c
++F:	lib/Kconfig.kasan
++F:	lib/test_kasan*.c
+ F:	mm/kasan/
+ F:	scripts/Makefile.kasan
  
-     # force flags for this arch
-     $ld .= " -m shlelf_linux";
--    $objcopy .= " -O elf32-sh-linux";
-+    if ($endian eq "big") {
-+        $objcopy .= " -O elf32-shbig-linux";
-+    } else {
-+        $objcopy .= " -O elf32-sh-linux";
-+    }
- 
- } elsif ($arch eq "powerpc") {
-     my $ldemulation;
 _
