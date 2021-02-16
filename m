@@ -4,77 +4,96 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 932D1C433E0
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Feb 2021 04:53:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D6E6C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Feb 2021 20:20:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 45A7860C3E
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Feb 2021 04:53:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5A3964EB3
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Feb 2021 20:20:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232134AbhBMExh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 Feb 2021 23:53:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50668 "EHLO mail.kernel.org"
+        id S229767AbhBPUUW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 16 Feb 2021 15:20:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60442 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232148AbhBMExg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 12 Feb 2021 23:53:36 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 640A864E3B;
-        Sat, 13 Feb 2021 04:52:54 +0000 (UTC)
+        id S229708AbhBPUUU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 16 Feb 2021 15:20:20 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C569664E7A;
+        Tue, 16 Feb 2021 20:19:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1613191974;
-        bh=V0+GvBZARs2BHNyHdAboWk8oJQqFt0z3Q2lQlguArZs=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=tsZemh7+ijJLZpmsWWfBNtxEpF4jhUXLsVPP4rEnyUOrZDlWsphyhrdSF8WcBKc/6
-         AAEI9SA5p2LUDxQOnF4Eo50UzhaPpp/Pt4YNln1xaRJsKZzFC/oFRyeG+IBtT+IL75
-         bo1uyOC5qRZTnTMc4BXnOvcSYfGorW3puCZGSEc8=
-Date:   Fri, 12 Feb 2021 20:52:54 -0800
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org, lkp@intel.com,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        tglx@linutronix.de, torvalds@linux-foundation.org,
-        ysato@users.sourceforge.jp
-Subject:  [patch 6/6] h8300: fix PREEMPTION build, TI_PRE_COUNT
- undefined
-Message-ID: <20210213045254.t7hAEyRSN%akpm@linux-foundation.org>
-In-Reply-To: <20210212205206.f99cbe2e7e368c802a385104@linux-foundation.org>
+        s=korg; t=1613506780;
+        bh=9wCauCd13SZSHIGvbikWVR4Q1rdNlzib81R9pQgAP4k=;
+        h=Date:From:To:Subject:From;
+        b=neI07ySa1m93KkIrjiB7gVUtrPuH+L4DCMIzFIbswKZ2lSd/F4iyPTNgQT5oXm6wZ
+         3ORS25Jz4EbsuVwhcjYVw2SOjhA63M8eNtJlwqjRCm8rkmnREuuxUtwTmqVtpLXKc3
+         6mNb7zS7z2VP4szlhbrLPhQcun640zpSaL2ZPuvY=
+Date:   Tue, 16 Feb 2021 12:19:39 -0800
+From:   akpm@linux-foundation.org
+To:     geert@linux-m68k.org, gerg@linux-m68k.org, lkp@intel.com,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com
+Subject:  [merged]
+ m68k-make-__pfn_to_phys-and-__phys_to_pfn-available-for-mmu.patch removed
+ from -mm tree
+Message-ID: <20210216201939.KLmeTt4XO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: h8300: fix PREEMPTION build, TI_PRE_COUNT undefined
 
-Fix a build error for undefined 'TI_PRE_COUNT' by adding it to
-asm-offsets.c.
+The patch titled
+     Subject: m68k: make __pfn_to_phys() and __phys_to_pfn() available for !MMU
+has been removed from the -mm tree.  Its filename was
+     m68k-make-__pfn_to_phys-and-__phys_to_pfn-available-for-mmu.patch
 
-h8300-linux-ld: arch/h8300/kernel/entry.o: in function `resume_kernel':
-(.text+0x29a): undefined reference to `TI_PRE_COUNT'
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-Link: https://lkml.kernel.org/r/20210212021650.22740-1-rdunlap@infradead.org
-Fixes: df2078b8daa7 ("h8300: Low level entry")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+------------------------------------------------------
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: m68k: make __pfn_to_phys() and __phys_to_pfn() available for !MMU
+
+Recent changes that obsoleted DISCONTIGMEM on m68k switched the MMU
+variant to use generic definitions of __pfn_to_phys() and __phys_to_pfn(),
+but missed the !MMU variant which caused a build failure:
+
+All errors (new ones prefixed by >>):
+
+   drivers/media/common/videobuf2/videobuf2-dma-contig.c: In function 'vb2_dc_get_userptr':
+>> drivers/media/common/videobuf2/videobuf2-dma-contig.c:509:5: error: implicit declaration of function '__pfn_to_phys' [-Werror=implicit-function-declaration]
+     509 |     __pfn_to_phys(nums[0]), size, buf->dma_dir, 0);
+         |     ^~~~~~~~~~~~~
+   cc1: some warnings being treated as errors
+
+Enable __pfn_to_phys() and __phys_to_pfn() on !MMU builds.
+
+Link: https://lkml.kernel.org/r/20210211232202.GS299309@linux.ibm.com
+Fixes: 4bfc848e0981 ("m68k/mm: enable use of generic memory_model.h for !DISCONTIGMEM")
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Reported-by: kernel test robot <lkp@intel.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/kernel/asm-offsets.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/m68k/include/asm/page.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/h8300/kernel/asm-offsets.c~h8300-fix-preemption-build-ti_pre_count-undefined
-+++ a/arch/h8300/kernel/asm-offsets.c
-@@ -63,6 +63,9 @@ int main(void)
- 	OFFSET(TI_FLAGS, thread_info, flags);
- 	OFFSET(TI_CPU, thread_info, cpu);
- 	OFFSET(TI_PRE, thread_info, preempt_count);
-+#ifdef CONFIG_PREEMPTION
-+	DEFINE(TI_PRE_COUNT, offsetof(struct thread_info, preempt_count));
-+#endif
+--- a/arch/m68k/include/asm/page.h~m68k-make-__pfn_to_phys-and-__phys_to_pfn-available-for-mmu
++++ a/arch/m68k/include/asm/page.h
+@@ -62,7 +62,7 @@ extern unsigned long _ramend;
+ #include <asm/page_no.h>
+ #endif
  
- 	return 0;
- }
+-#ifdef CONFIG_DISCONTIGMEM
++#if !defined(CONFIG_MMU) || defined(CONFIG_DISCONTIGMEM)
+ #define __phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
+ #define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+ #endif
 _
+
+Patches currently in -mm which might be from rppt@linux.ibm.com are
+
+mm-refactor-initialization-of-struct-page-for-holes-in-memory-layout.patch
+
