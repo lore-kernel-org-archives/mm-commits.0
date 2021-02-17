@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21964C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Feb 2021 19:07:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3767C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Feb 2021 19:10:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F183964E45
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Feb 2021 19:07:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 80F6264DF3
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Feb 2021 19:10:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231623AbhBQTHk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Feb 2021 14:07:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51304 "EHLO mail.kernel.org"
+        id S231847AbhBQTKI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Feb 2021 14:10:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51528 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231491AbhBQTHY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Feb 2021 14:07:24 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DEC4D64E45;
-        Wed, 17 Feb 2021 19:06:43 +0000 (UTC)
+        id S231653AbhBQTKI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Feb 2021 14:10:08 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9CA3A64E15;
+        Wed, 17 Feb 2021 19:09:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1613588804;
-        bh=ppWodC2x3evZp4C3JH55ouugKaldiv516PsZqHqCSNY=;
+        s=korg; t=1613588967;
+        bh=o3/mMKuKtucwSnLneGf6pdTOOqjYmaFjNUnx459vc0U=;
         h=Date:From:To:Subject:From;
-        b=DWaB8pl6EcyTAq0Hhj3vsIyIWxfXVSqW2wTFXXwzPtTd6qdhWZ7Pf9vaO0wBF/BtQ
-         OJYzrtjdgkvRVVsjEsvZAIHck0XMM5k1x0vRtfMj/i16fCc6OrBgxprePOrGNoWDbx
-         WwwUGI/6lMa7eEvy+0Qp2YFZF3RM1YATxn1mo5x8=
-Date:   Wed, 17 Feb 2021 11:06:43 -0800
+        b=JSm+5qCQtKHDK2bkKfIpkmQF/eHpg3Asj9bx+SsmQ+Z3uoznPf5PIvfYgqyE0Z7GE
+         T12mIY4f6AjkkzdKe2vJIib5fmkrxCSiI8Tui2q3Kj7ejSxNmdXzGEnXiiABBodlVa
+         9tjxIAgUezSXwtiZDo+700rjAEE9k2bYAJ6nzpHo=
+Date:   Wed, 17 Feb 2021 11:09:27 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
-        stable@vger.kernel.org, osalvador@suse.de,
-        kirill.shutemov@linux.intel.com, joao.m.martins@oracle.com,
-        dbueso@suse.de, aarcange@redhat.com, mike.kravetz@oracle.com
-Subject:  +
- hugetlb-fix-copy_huge_page_from_user-contig-page-struct-assumption.patch
+To:     mm-commits@vger.kernel.org, mtk.manpages@gmail.com,
+        david@redhat.com, vbabka@suse.cz
+Subject:  + maintainers-add-uapi-directories-to-api-abi-section.patch
  added to -mm tree
-Message-ID: <20210217190643.m4y-2%akpm@linux-foundation.org>
+Message-ID: <20210217190927.PvKOv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix copy_huge_page_from_user contig page struct assumption
+     Subject: MAINTAINERS: add uapi directories to API/ABI section
 has been added to the -mm tree.  Its filename is
-     hugetlb-fix-copy_huge_page_from_user-contig-page-struct-assumption.patch
+     maintainers-add-uapi-directories-to-api-abi-section.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-fix-copy_huge_page_from_user-contig-page-struct-assumption.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-uapi-directories-to-api-abi-section.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-fix-copy_huge_page_from_user-contig-page-struct-assumption.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-uapi-directories-to-api-abi-section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,76 +64,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: fix copy_huge_page_from_user contig page struct assumption
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: MAINTAINERS: add uapi directories to API/ABI section
 
-page structs are not guaranteed to be contiguous for gigantic pages.  The
-routine copy_huge_page_from_user can encounter gigantic pages, yet it
-assumes page structs are contiguous when copying pages from user space.
+Let's add include/uapi/ and arch/*/include/uapi/ to API/ABI section, so
+that for patches modifying them, get_maintainers.pl suggests CCing
+linux-api@ so people don't forget.
 
-Since page structs for the target gigantic page are not contiguous, the
-data copied from user space could overwrite other pages not associated
-with the gigantic page and cause data corruption.
-
-Non-contiguous page structs are generally not an issue.  However, they can
-exist with a specific kernel configuration and hotplug operations.  For
-example: Configure the kernel with CONFIG_SPARSEMEM and
-!CONFIG_SPARSEMEM_VMEMMAP.  Then, hotplug add memory for the area where
-the gigantic page will be allocated.
-
-Link: https://lkml.kernel.org/r/20210217184926.33567-2-mike.kravetz@oracle.com
-Fixes: 8fb5debc5fcd ("userfaultfd: hugetlbfs: add hugetlb_mcopy_atomic_pte for userfaultfd support")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210217174745.13591-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: David Hildenbrand <david@redhat.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/memory.c~hugetlb-fix-copy_huge_page_from_user-contig-page-struct-assumption
-+++ a/mm/memory.c
-@@ -5173,17 +5173,19 @@ long copy_huge_page_from_user(struct pag
- 	void *page_kaddr;
- 	unsigned long i, rc = 0;
- 	unsigned long ret_val = pages_per_huge_page * PAGE_SIZE;
-+	struct page *subpage = dst_page;
+--- a/MAINTAINERS~maintainers-add-uapi-directories-to-api-abi-section
++++ a/MAINTAINERS
+@@ -261,6 +261,8 @@ ABI/API
+ L:	linux-api@vger.kernel.org
+ F:	include/linux/syscalls.h
+ F:	kernel/sys_ni.c
++F:	include/uapi/
++F:	arch/*/include/uapi/
  
--	for (i = 0; i < pages_per_huge_page; i++) {
-+	for (i = 0; i < pages_per_huge_page;
-+	     i++, subpage = mem_map_next(subpage, dst_page, i)) {
- 		if (allow_pagefault)
--			page_kaddr = kmap(dst_page + i);
-+			page_kaddr = kmap(subpage);
- 		else
--			page_kaddr = kmap_atomic(dst_page + i);
-+			page_kaddr = kmap_atomic(subpage);
- 		rc = copy_from_user(page_kaddr,
- 				(const void __user *)(src + i * PAGE_SIZE),
- 				PAGE_SIZE);
- 		if (allow_pagefault)
--			kunmap(dst_page + i);
-+			kunmap(subpage);
- 		else
- 			kunmap_atomic(page_kaddr);
- 
+ ABIT UGURU 1,2 HARDWARE MONITOR DRIVER
+ M:	Hans de Goede <hdegoede@redhat.com>
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-hugetlb-fix-update_and_free_page-contig-page-struct-assumption.patch
-hugetlb-fix-copy_huge_page_from_user-contig-page-struct-assumption.patch
-hugetlb-use-pageprivate-for-hugetlb-specific-page-flags.patch
-hugetlb-convert-page_huge_active-hpagemigratable-flag.patch
-hugetlb-convert-pagehugetemporary-to-hpagetemporary-flag.patch
-hugetlb-convert-pagehugefreed-to-hpagefreed-flag.patch
-mm-hugetlb-change-hugetlb_reserve_pages-to-type-bool.patch
-hugetlbfs-remove-special-hugetlbfs_set_page_dirty.patch
+mm-slub-stop-freeing-kmem_cache_node-structures-on-node-offline.patch
+mm-slab-slub-stop-taking-memory-hotplug-lock.patch
+mm-slab-slub-stop-taking-cpu-hotplug-lock.patch
+mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch
+mm-slub-remove-slub_memcg_sysfs-boot-param-and-config_slub_memcg_sysfs_on.patch
+maintainers-add-uapi-directories-to-api-abi-section.patch
 
