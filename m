@@ -2,41 +2,46 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CE02C433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Feb 2021 20:21:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CA77C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Feb 2021 19:07:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4495E64EAE
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Feb 2021 20:21:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 21B1A64E63
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Feb 2021 19:07:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230006AbhBPUVE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 16 Feb 2021 15:21:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60610 "EHLO mail.kernel.org"
+        id S231474AbhBQTHX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Feb 2021 14:07:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51270 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229864AbhBPUVC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 16 Feb 2021 15:21:02 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 80AA364EB2;
-        Tue, 16 Feb 2021 20:19:52 +0000 (UTC)
+        id S231439AbhBQTHW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Feb 2021 14:07:22 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 09CE264DE0;
+        Wed, 17 Feb 2021 19:06:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1613506792;
-        bh=P9cpFAmcd0RGEv7FzGf3quPRBv6f+GgipxSs4f+JXSU=;
+        s=korg; t=1613588801;
+        bh=wmMbEgQUr3JrFli1SCzjAY5ndgEnQKnrID4cKCb1ZCg=;
         h=Date:From:To:Subject:From;
-        b=hZ4qDxdPxAs+nd+5x8FniGhSEgDjEnwqob05pVEPtc/jaMBpS1VXoQef3Amxv3Z/I
-         vnRQc+It9HZkyeJFHPXUpbwsFGuQX8MUzDWwpR45syMOeDbdItQULHp943Tt4jFnaE
-         YLMe0VTyjcxPUUwykhu/TFyp4cZXYerguz4rj0Sg=
-Date:   Tue, 16 Feb 2021 12:19:52 -0800
+        b=Xq4Qr1oUzpvwjKziqaKk1b9EZQbv87pf+Z5oXBpSimwom29LnbgrrJ7D0PxYs788E
+         BUgJV2foMkYxirldnr9A7dEC4BA8NQnW3qrHTToJ8Q2suyTbbup1WfnApJnhx7QZCv
+         wwGUhQFiqHtIiUN3Q/jvRwHxRfyHl5blE0bnN7GE=
+Date:   Wed, 17 Feb 2021 11:06:40 -0800
 From:   akpm@linux-foundation.org
-To:     anton.ivanov@cambridgegreys.com, arnd@arndb.de,
-        christophe.leroy@csgroup.eu, jdike@addtoit.com,
-        mm-commits@vger.kernel.org, richard@nod.at
-Subject:  [merged] mm-remove-arch_remap-and-mm-arch-hooksh.patch
- removed from -mm tree
-Message-ID: <20210216201952.8rYEtcSZl%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
+        stable@vger.kernel.org, osalvador@suse.de,
+        kirill.shutemov@linux.intel.com, joao.m.martins@oracle.com,
+        dbueso@suse.de, aarcange@redhat.com, mike.kravetz@oracle.com
+Subject:  +
+ hugetlb-fix-update_and_free_page-contig-page-struct-assumption.patch added to
+ -mm tree
+Message-ID: <20210217190640.BiIUU%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,125 +49,103 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove arch_remap() and mm-arch-hooks.h
-has been removed from the -mm tree.  Its filename was
-     mm-remove-arch_remap-and-mm-arch-hooksh.patch
+     Subject: hugetlb: fix update_and_free_page contig page struct assumpti=
+on
+has been added to the -mm tree.  Its filename is
+     hugetlb-fix-update_and_free_page-contig-page-struct-assumption.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-fix-update_and_free_p=
+age-contig-page-struct-assumption.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-fix-update_and_free_p=
+age-contig-page-struct-assumption.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: mm: remove arch_remap() and mm-arch-hooks.h
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: fix update_and_free_page contig page struct assumption
 
-powerpc was the last provider of arch_remap() and the last user of
-mm-arch-hooks.h.
+page structs are not guaranteed to be contiguous for gigantic pages.  The
+routine update_and_free_page can encounter a gigantic page, yet it assumes
+page structs are contiguous when setting page flags in subpages.
 
-Since commit 526a9c4a7234 ("powerpc/vdso: Provide vdso_remap()"),
-arch_remap() hence mm-arch-hooks.h are not used anymore.
+If update_and_free_page encounters non-contiguous page structs, we can see
+=E2=80=9CBUG: Bad page state in process =E2=80=A6=E2=80=9D errors.
 
-Remove them.
+Non-contiguous page structs are generally not an issue.  However, they can
+exist with a specific kernel configuration and hotplug operations.  For
+example: Configure the kernel with CONFIG_SPARSEMEM and
+!CONFIG_SPARSEMEM_VMEMMAP.  Then, hotplug add memory for the area where
+the gigantic page will be allocated.  Zi Yan outlined steps to reproduce
+here [1].
 
-Link: https://lkml.kernel.org/r/320d7a9ed7b379a6e0edf16d539bc22447272e65.1608299993.git.christophe.leroy@csgroup.eu
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+[1] https://lore.kernel.org/linux-mm/16F7C58B-4D79-41C5-9B64-A1A1628F4AF2@n=
+vidia.com/
+
+Link: https://lkml.kernel.org/r/20210217184926.33567-1-mike.kravetz@oracle.=
+com
+Fixes: 944d9fec8d7a ("hugetlb: add support for gigantic page allocation at =
+runtime")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/Kbuild          |    1 -
- include/asm-generic/Kbuild          |    1 -
- include/asm-generic/mm-arch-hooks.h |   16 ----------------
- include/linux/mm-arch-hooks.h       |   22 ----------------------
- mm/mremap.c                         |    3 ---
- 5 files changed, 43 deletions(-)
+ mm/hugetlb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/arch/um/include/asm/Kbuild~mm-remove-arch_remap-and-mm-arch-hooksh
-+++ a/arch/um/include/asm/Kbuild
-@@ -14,7 +14,6 @@ generic-y += irq_regs.h
- generic-y += irq_work.h
- generic-y += kdebug.h
- generic-y += mcs_spinlock.h
--generic-y += mm-arch-hooks.h
- generic-y += mmiowb.h
- generic-y += module.lds.h
- generic-y += param.h
---- a/include/asm-generic/Kbuild~mm-remove-arch_remap-and-mm-arch-hooksh
-+++ a/include/asm-generic/Kbuild
-@@ -35,7 +35,6 @@ mandatory-y += kprobes.h
- mandatory-y += linkage.h
- mandatory-y += local.h
- mandatory-y += local64.h
--mandatory-y += mm-arch-hooks.h
- mandatory-y += mmiowb.h
- mandatory-y += mmu.h
- mandatory-y += mmu_context.h
---- a/include/asm-generic/mm-arch-hooks.h
-+++ /dev/null
-@@ -1,16 +0,0 @@
--/*
-- * Architecture specific mm hooks
-- */
--
--#ifndef _ASM_GENERIC_MM_ARCH_HOOKS_H
--#define _ASM_GENERIC_MM_ARCH_HOOKS_H
--
--/*
-- * This file should be included through arch/../include/asm/Kbuild for
-- * the architecture which doesn't need specific mm hooks.
-- *
-- * In that case, the generic hooks defined in include/linux/mm-arch-hooks.h
-- * are used.
-- */
--
--#endif /* _ASM_GENERIC_MM_ARCH_HOOKS_H */
---- a/include/linux/mm-arch-hooks.h
-+++ /dev/null
-@@ -1,22 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- * Generic mm no-op hooks.
-- *
-- * Copyright (C) 2015, IBM Corporation
-- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-- */
--#ifndef _LINUX_MM_ARCH_HOOKS_H
--#define _LINUX_MM_ARCH_HOOKS_H
--
--#include <asm/mm-arch-hooks.h>
--
--#ifndef arch_remap
--static inline void arch_remap(struct mm_struct *mm,
--			      unsigned long old_start, unsigned long old_end,
--			      unsigned long new_start, unsigned long new_end)
--{
--}
--#define arch_remap arch_remap
--#endif
--
--#endif /* _LINUX_MM_ARCH_HOOKS_H */
---- a/mm/mremap.c~mm-remove-arch_remap-and-mm-arch-hooksh
-+++ a/mm/mremap.c
-@@ -22,7 +22,6 @@
- #include <linux/syscalls.h>
- #include <linux/mmu_notifier.h>
- #include <linux/uaccess.h>
--#include <linux/mm-arch-hooks.h>
- #include <linux/userfaultfd_k.h>
- 
- #include <asm/cacheflush.h>
-@@ -563,8 +562,6 @@ static unsigned long move_vma(struct vm_
- 		new_addr = err;
- 	} else {
- 		mremap_userfaultfd_prep(new_vma, uf);
--		arch_remap(mm, old_addr, old_addr + old_len,
--			   new_addr, new_addr + new_len);
- 	}
- 
- 	/* Conceal VM_ACCOUNT so old reservation is not undone */
+--- a/mm/hugetlb.c~hugetlb-fix-update_and_free_page-contig-page-struct-assu=
+mption
++++ a/mm/hugetlb.c
+@@ -1321,14 +1321,16 @@ static inline void destroy_compound_giga
+ static void update_and_free_page(struct hstate *h, struct page *page)
+ {
+ 	int i;
++	struct page *subpage =3D page;
+=20
+ 	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
+ 		return;
+=20
+ 	h->nr_huge_pages--;
+ 	h->nr_huge_pages_node[page_to_nid(page)]--;
+-	for (i =3D 0; i < pages_per_huge_page(h); i++) {
+-		page[i].flags &=3D ~(1 << PG_locked | 1 << PG_error |
++	for (i =3D 0; i < pages_per_huge_page(h);
++	     i++, subpage =3D mem_map_next(subpage, page, i)) {
++		subpage->flags &=3D ~(1 << PG_locked | 1 << PG_error |
+ 				1 << PG_referenced | 1 << PG_dirty |
+ 				1 << PG_active | 1 << PG_private |
+ 				1 << PG_writeback);
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
+hugetlb-fix-update_and_free_page-contig-page-struct-assumption.patch
+hugetlb-fix-copy_huge_page_from_user-contig-page-struct-assumption.patch
+hugetlb-use-pageprivate-for-hugetlb-specific-page-flags.patch
+hugetlb-convert-page_huge_active-hpagemigratable-flag.patch
+hugetlb-convert-pagehugetemporary-to-hpagetemporary-flag.patch
+hugetlb-convert-pagehugefreed-to-hpagefreed-flag.patch
+mm-hugetlb-change-hugetlb_reserve_pages-to-type-bool.patch
+hugetlbfs-remove-special-hugetlbfs_set_page_dirty.patch
 
