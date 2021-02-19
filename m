@@ -2,229 +2,222 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17727C433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Feb 2021 21:20:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E077DC433DB
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Feb 2021 21:27:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B90D364E38
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Feb 2021 21:20:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 970B364EBD
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Feb 2021 21:27:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229734AbhBSVUO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Feb 2021 16:20:14 -0500
-Received: from userp2130.oracle.com ([156.151.31.86]:44746 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229771AbhBSVUM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Feb 2021 16:20:12 -0500
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 11JLAZBj043975;
-        Fri, 19 Feb 2021 21:19:23 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+        id S229612AbhBSV11 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Feb 2021 16:27:27 -0500
+Received: from aserp2120.oracle.com ([141.146.126.78]:42886 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229620AbhBSV1Z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Feb 2021 16:27:25 -0500
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 11JLNx9O143484;
+        Fri, 19 Feb 2021 21:26:34 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to :
  references : from : message-id : date : in-reply-to : content-type :
  content-transfer-encoding : mime-version; s=corp-2020-01-29;
- bh=q8YnFtqIcbubEh0D4FjkE5EcA8gxEIQmbQIfdhA5lLY=;
- b=qKinAoXyRZF4V3uqHYpVu5K9/qIOdGWGvPYp93tiV95onr6zDE13vIHrIEBLvx1gwCBk
- N3TkpomTwl6gGaSXtk0JpXMV/9ycvqOxfZv8MiJvVXfJeyY+bYjFWQMEgYY73Y2VCAGn
- aMV3ILmUr5GnKakCBowbYhCp8kfPlryoKwu72PUnlmZVT44FIh544oTY1rQ7lrUZuU1/
- dag55gN1bJoFeyfhw6G8LKh7Ka2nc+/wUOerzxbsj4lT9UvfF5th6fn/x60SWEbO22gu
- JU2w0PAunrVOb0uhlLnzHbZZMewrpYckeMosXTXgIXNLNqOeHJ3QUB1jCXv9zJcVqlPt nQ== 
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-        by userp2130.oracle.com with ESMTP id 36p66raus0-1
+ bh=xXp/qDAbMPdGjG8R8kV+hQII6LQrhzi6Ie8ll6q1VW4=;
+ b=N9cIsc2fQIS4ZohuuA8kPJBnm0f6pUxWls9WsGte6WDFqR0zWPxXhluglYpZpZLUn3Sq
+ 9viTn2l64ZEjO4dcZiZ43RlnJcUZvcNrvLAa+uG4ERU4BWd1t4/5460ZhJoQr8mHNlKn
+ Oy3hxpMgCNpDkqvuGa0KqtQozYJ2bjAAcAMdXPi9ox93Lf7lrkMMMgdAMiI7ADVz1hza
+ 9h4SNY07MNexXFPSSHJKInAamAaYwVl7EaTm9ec93Dl9WfCRIt+Bqj6bL6ygp543L3wk
+ QfaVCPvnIgPCleqX4ex857pnfkFvJrIrXGJGkQdzTOFCVTMdWoKs6hTIfTlNtCsx2oxZ Pg== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+        by aserp2120.oracle.com with ESMTP id 36pd9ajc69-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 19 Feb 2021 21:19:23 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 11JLAWpY091629;
-        Fri, 19 Feb 2021 21:19:22 GMT
-Received: from nam11-dm6-obe.outbound.protection.outlook.com (mail-dm6nam11lp2172.outbound.protection.outlook.com [104.47.57.172])
-        by aserp3030.oracle.com with ESMTP id 36prbskwdh-1
+        Fri, 19 Feb 2021 21:26:34 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+        by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 11JLQU0J102304;
+        Fri, 19 Feb 2021 21:26:33 GMT
+Received: from nam11-dm6-obe.outbound.protection.outlook.com (mail-dm6nam11lp2175.outbound.protection.outlook.com [104.47.57.175])
+        by userp3030.oracle.com with ESMTP id 36prq2cx4g-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 19 Feb 2021 21:19:22 +0000
+        Fri, 19 Feb 2021 21:26:32 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=VmtMdx7Ep0bFtI0UC67ivQuTLIO1xumObe1rhPYEF361+9yTdCLKg+/w4/PtyUjTw7OPK8BfUQwTvtonXDPbo9Xy7CfUhJBAfB71iK17e10hOFW/gKs2xWvrCVmjw88eCUj+3R8Qa/nMp9PdT39uAlWKLnaOW69nmQ5Z+Bpp7b7tfLMWvHRETo9fjb2YRmDEE0hWNx4q3EhI2oRIg5mYseYxlidXRJlWz7jQlSBiCphoFUTjgb8zs6D8dF70fQ2l2Dsk+JoBuFllh2AU4xJq/Om/affn0T44NPgu6ZU1fiJLoRh+gwfdrjcKFqjGMmIWNJ1juHbEUpE97JKi+okQ0Q==
+ b=PNxaqVuere1kGaaPpL9Y3U68OZWrN18Mq7HDrUlGv3ojFW4UcNFPU5nAWuo6Mg3oLw0zEyT5rvaJE5PTqbP3VABRHPumRddZk0FvKM89GODm4l5VrdXYfn4iyYT+gS9nReE1YOF4jUAzqyiM+ioopdqNVi/UDPJZffRPSzoOnfOf9tcNKac5Al9l6A/zdAzX7r//Ct3xWC34Xq5Ef+vvS4lotINUO4N4vhST2auvu9vnx9d+HwLFt/y9hnmb5Vt/bZHpgGYmjItAw1EvOeD6gjEUtFEvBc2fiRyb6XYrLJ3NFmXf+/+YXCN5d8b2v8U02Z72uHcqUbHLG1FYlvApAA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=q8YnFtqIcbubEh0D4FjkE5EcA8gxEIQmbQIfdhA5lLY=;
- b=SArgrny7xHvOUzZ9MsAygedG/96sB+ctiB8t5jy9JsugVj9BDTjMKNpF7tnTYHZQ/U3CeA/fA6OdZ18w2J8dgHvb5iiOogUUlXjurAC6fGiJFeq7/s2DNlS4wpEd3pCnuBZMNYODrrd707Bno2jn+dWAw2WTp2TdVlKk8X/9QOlgoYnlEDt5rueBkJZYmYUJRq5oyjuBZD14jtgcGGETVpiONaYIR1FlGl2gJG3MKalWOuU2DP+bE6jjTLCoiG/5BOWg8mocoRGGcSxG6C20w4L4HsLWf4cS/i/fRYNhKpN2RXrUGCudJunbVXELhUsxsHONgkhYPWvzcpdl7+9gRg==
+ bh=xXp/qDAbMPdGjG8R8kV+hQII6LQrhzi6Ie8ll6q1VW4=;
+ b=dyXlVN293Wybdau1/Zmc0XqJmxaPpngLtU+lnmBQbs3oKdU3Tp2uDvwrmPmlSz8SfSrjesSuuBn4YzwQFFEYi8yVd89rOu8L0LgBP/qdTw/AmpaX+CyXATq0s0d4vRd42gcAwIvo+Ni5ORJA7qYDtCJpLkgfbmutLctNLID/d8NHTrwRguxjQoJq8Ok5tz/v1piJQsF/WyijaI+RcsJoDWLFm5/agQErYqg/dfni9zebGusRdhbqzfh+AD8yMlhh137WyNQn/toUFLmu1D80muG3hw9PlE81JWqbYh+KC0T7rLlutkJt8147QyiwZiLhwnyu855IJ+gQy+WfoayG3Q==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
  dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=q8YnFtqIcbubEh0D4FjkE5EcA8gxEIQmbQIfdhA5lLY=;
- b=vkGrvDcVOdY4vUfiEoBVPin2q+mIc76RQ3PG4aEKVoZqbigjd5SqJRuuOQcqC15Q+W3GqwXc7eE4fNhocLDPI8K1v2XgPMQsuuvCiRX6li1wTSnzdWPhNvl9Y/tyHkO6NV6/52pphghhKmDYs9BLPAKGL0/zkMDw9eTFP0EyeLo=
+ bh=xXp/qDAbMPdGjG8R8kV+hQII6LQrhzi6Ie8ll6q1VW4=;
+ b=elp/p7ZdAf0c11d70z9pjJHVzIHMwHN9ZHblFsNpIQoFfwVkoZLNctYKgy41md3uSqMqLQZKqyfviGZkU9g8UaixBww1IlV22I10AeG8Y8apima3xRWL2V+qfC2IXuKS8wB9FtEYouECjdlBAaXo7CfhJPDukXSym4ydLvloazU=
 Authentication-Results: huawei.com; dkim=none (message not signed)
  header.d=none;huawei.com; dmarc=none action=none header.from=oracle.com;
 Received: from DM6PR10MB4201.namprd10.prod.outlook.com (2603:10b6:5:216::10)
- by DM6PR10MB3211.namprd10.prod.outlook.com (2603:10b6:5:1a6::16) with
+ by DS7PR10MB5117.namprd10.prod.outlook.com (2603:10b6:5:3a6::17) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3846.26; Fri, 19 Feb
- 2021 21:19:20 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3846.31; Fri, 19 Feb
+ 2021 21:26:07 +0000
 Received: from DM6PR10MB4201.namprd10.prod.outlook.com
  ([fe80::ad89:6caa:4481:b733]) by DM6PR10MB4201.namprd10.prod.outlook.com
  ([fe80::ad89:6caa:4481:b733%3]) with mapi id 15.20.3846.042; Fri, 19 Feb 2021
- 21:19:20 +0000
-Subject: Re: +
- mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch added
- to -mm tree
-To:     Roman Gushchin <guro@fb.com>
-Cc:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+ 21:26:07 +0000
+Subject: Re: [nacked]
+ mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch removed
+ from -mm tree
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org, guro@fb.com,
         chenwandun@huawei.com
-References: <20210219183717.02Po6%akpm@linux-foundation.org>
- <YDAVzRNTpFTXGR93@carbon.dhcp.thefacebook.com>
- <c6a1e494-ae82-5a71-d799-34f0857ecb7c@oracle.com>
- <YDAbeDsG7GhV6s6B@carbon.dhcp.thefacebook.com>
+References: <20210219210312.wEdZw%akpm@linux-foundation.org>
 From:   Mike Kravetz <mike.kravetz@oracle.com>
-Message-ID: <944f8378-d2bb-9579-5556-d95d3f95749b@oracle.com>
-Date:   Fri, 19 Feb 2021 13:19:17 -0800
+Message-ID: <9adbe665-6e1c-8021-9e89-fc57d3c4be8d@oracle.com>
+Date:   Fri, 19 Feb 2021 13:26:05 -0800
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
  Thunderbird/68.1.1
-In-Reply-To: <YDAbeDsG7GhV6s6B@carbon.dhcp.thefacebook.com>
+In-Reply-To: <20210219210312.wEdZw%akpm@linux-foundation.org>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 X-Originating-IP: [50.38.35.18]
-X-ClientProxiedBy: CO2PR05CA0086.namprd05.prod.outlook.com
- (2603:10b6:104:1::12) To DM6PR10MB4201.namprd10.prod.outlook.com
- (2603:10b6:5:216::10)
+X-ClientProxiedBy: MWHPR10CA0018.namprd10.prod.outlook.com (2603:10b6:301::28)
+ To DM6PR10MB4201.namprd10.prod.outlook.com (2603:10b6:5:216::10)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from [192.168.2.112] (50.38.35.18) by CO2PR05CA0086.namprd05.prod.outlook.com (2603:10b6:104:1::12) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3890.11 via Frontend Transport; Fri, 19 Feb 2021 21:19:20 +0000
+Received: from [192.168.2.112] (50.38.35.18) by MWHPR10CA0018.namprd10.prod.outlook.com (2603:10b6:301::28) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3868.27 via Frontend Transport; Fri, 19 Feb 2021 21:26:06 +0000
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 81feb6eb-12a8-4e8d-b4ef-08d8d51c059d
-X-MS-TrafficTypeDiagnostic: DM6PR10MB3211:
-X-Microsoft-Antispam-PRVS: <DM6PR10MB3211E4ADFB095C56FCAD2E92E2849@DM6PR10MB3211.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:125;
+X-MS-Office365-Filtering-Correlation-Id: dc4ccea8-6ebd-4e04-26fc-08d8d51cf82d
+X-MS-TrafficTypeDiagnostic: DS7PR10MB5117:
+X-Microsoft-Antispam-PRVS: <DS7PR10MB5117DC0FBC9D13AD8399028AE2849@DS7PR10MB5117.namprd10.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:161;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: SWkkBKBhCLSVVnUzD+zixGiqbOcl1GpUUmVBQol1GxTmR6MYpFxnSEJRsYAB8wPMK6tSj45p8xcjziMVyBP3FQXib0BcLnGBrB5ADcEjHa/5mj0rNz+WR0KDESb3JShXoNOPdg+mtsr2OTME+Y3VhP4d3840kGXVL8Km+EbzElPEurTjeC+sJbi1bS5oNXQjB5RF2wza914N8pj83illWieS2ydDV2sb2fQ6LqyBXT6lgVeh2d0DJPc2+sQ9gkCT2eHJMW6Y/WR8+dNhSLhPV95yTfzlXAubrAr3KxRAryT5JM+tbJYu9Es1665f/Bk8LgmatHFsN9WpH9aib+LfS/sR41hpB1+elRkXC+oZWieUfhvSIv9RqWRGvz04kb0saBv1AyvhKYeH556scQERbvaGCP0lgUjeDgB476C9J3As5TOoBSb2ritcKI4zWGH5AZ3eTIU/KDadnEIpMY67WK1CtisUseohX0N7vV0qnoI+AyVBfjQGONbdtvfy+KUHg/CHGtlA+XkQ+fBJeJn4pqEm1O8cxYFcZxCikwq0Q929gza64XSHbb867zn8IPHESi0iYZDzXqs/91c/n9xfi5ZEKi1IDtD1LikGn9nihMv8b2XsBHb4vbShbb4/cAaOkpJ24z/IVMdvLanDc0xD9y9ZQETPdEt5FOwBMkzT9D6M+9DSnCGnemOgbH8AwWLq
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR10MB4201.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(39860400002)(366004)(136003)(376002)(396003)(346002)(8676002)(956004)(316002)(44832011)(26005)(83380400001)(4326008)(31686004)(31696002)(16526019)(16576012)(186003)(66556008)(66476007)(478600001)(2616005)(66946007)(36756003)(6486002)(5660300002)(2906002)(6666004)(966005)(53546011)(52116002)(86362001)(8936002)(6916009)(43740500002)(45980500001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: =?utf-8?B?b2RuZ2ZXZURhZlJZR0cya3FOamNobFVUZ0hJN3hZNEhuMkRsdS9nbVhwa01p?=
- =?utf-8?B?WE1xQWpZL3BIUU0zVUVKQmFPNllQRmV5NVZBeEQ2MXd6emV4cWNCQ0hMcWFH?=
- =?utf-8?B?TitVTXdYMlZITTRBcUVKc3ZiQmZUWVZwSDRKMzlJMmFFYkI1alVWOWZxZXo2?=
- =?utf-8?B?VUw0WFQvRlZHMlNMcXlrdmRueEk4VGNJZFNtQ25PK2JCYlFQYXlxZjEvS2Jm?=
- =?utf-8?B?cFpMS09zQkFYdlFlOEo0RUc4ckVLaERhb1hnOUxScU1teFM3cFNRT1lTOXdq?=
- =?utf-8?B?Ujc4bHZyT1JSMmFUeXRCazQrMlluZCtsRmtyMjVhM0p0cG9wVnlCNnlRb092?=
- =?utf-8?B?VVhJMHFtRzNNcnhuajdZYXlvRHBBWXFPR0s2TWc2WUpHeGd0aVNTdjlkOGh1?=
- =?utf-8?B?aEZ6eVlQbERUNHh3OVpVdWVNMjRGOFlkR1NwKzdickx1UklSUUZrM04ySHNn?=
- =?utf-8?B?ZUpTTWw5dGZndHFmeDl3KzBtbkFWQ04rclVJZDlIaURubjU2S3lwUENDNGd0?=
- =?utf-8?B?UmtuSVhwYjBSeW1CZUtoaENBb0wwdHQ1TUN6S2pZTTMwRG96Y05wVUF4MTJF?=
- =?utf-8?B?Mjl5aDcybEYvUEtscDNkd3EvZ0UranU3UkorYTRibzJydDY4bkk0clZjazZ6?=
- =?utf-8?B?UWYvMElhd2dQSldVaFlmMWVmUWdJanRZeXF6VlBjdVlnTkpRQ3VTTGZYSmkx?=
- =?utf-8?B?V3BIaVJHOUhRcS9keG1yakdWSzJsVGprTGg5WHZmNXhjUG14REtxZGlHSStw?=
- =?utf-8?B?TEtMSXFsajFOUzZHdWtka1ptNDJZOGdsQWtiZWh6U2J4TERweHRldC8xNFp0?=
- =?utf-8?B?blFqM1NqYWVLZ1k0dU5ZZkRiQ2xqSFRpRzJMUklyTEhJZ0F4TjB5S0dLdkQw?=
- =?utf-8?B?Q1JIbTg1RVhpWU0rbkpoT3ljSFZocmU4czh3ZU1DUVc5QkpjNnNZTHZkMnhE?=
- =?utf-8?B?UG1SeFFXaEkva1pNSnNiRlNKMnhrMDNjNlFSdXhFRGlYQ2RkR0tUQ2VnTGRI?=
- =?utf-8?B?eGtUWnFMNjhEVTBKN3pjVWNMdGQ3TVdBZElQNmRJK1JSQkFWZ3dsekRnTVd5?=
- =?utf-8?B?d2lBeUtEZXNjSXpqYzBCZjM2ZDE3RWZOUmRwTHZHMk1kVE5tSHRsNklxVm5R?=
- =?utf-8?B?cDFrbXRFWk5tbXZ4dFhHS2llWUFSQkxHQ21aRCtSck1kNFNkbVFyVGZBaDdh?=
- =?utf-8?B?SU50dlNtZWVCb1IxendSSWxjWW51dnJ2Z0kxcDZhaDhOYis2UVRaekV2MmZt?=
- =?utf-8?B?RklxRktMdTFRZndBaTJuWUxFNnhoSmdEOHFsak9tTUtSL2pzR1NES2JDajZW?=
- =?utf-8?B?TllsYUNCRWFvNUpXZHJZdUkzSk9McEQrMHlVQ29HMUNxZDRuaWlMMW9GUklC?=
- =?utf-8?B?eWoxN0ZzWlpnU014eGRoeVVCVm1PcENQd3A1UnQ2QXRlWDB0MFB5cHJ5K0E2?=
- =?utf-8?B?MzJQQUJZd3JkMTFlaDZUSERpK0FHMnJkTUtNekZyL1JzM0hsLzMzaVJ0WWJM?=
- =?utf-8?B?SVh4RFdIUXVuS0hHYmVzeWFuNHVlZVFiYk1DekgxWFBvbGM4T1RtN2x0cHBT?=
- =?utf-8?B?UHNGSS9TNWJRamJSb2N5Qlo3b0xoeDg5SktEeWswQ2RBMW9nNDZ1eGt2QUNk?=
- =?utf-8?B?VnB5NlBmZVVSVFhrbXF5RHNFN3pNOXhlSjE5eVREbSswcVFKWVc2d3ljOXJH?=
- =?utf-8?B?SVhFdmdJMjMyYU5BRzhWekRLOXp2UTJlbnl3MHExNG5HeGw0eU52Slp2NEVw?=
- =?utf-8?Q?xZwsAPFCVKeNRLRl1jvc2JXYvMB/+pVpeAIUU+X?=
+X-Microsoft-Antispam-Message-Info: kXMb7jrJWRsrxIwnUMQyKut04U0n2ZhA+YWadEIrfV+VNTgHhvsT1Q7X25En8WTBiNERZrnIkzeJ28PAq5ikygIDxjvCDTQFhEat4zeV5Tn7/RZClS/c6yk7olEEMc90TJHPKEyHfPWm2URgULO9C503e582E50JPtiXvuR1NucouXot6lIY8wP+oF59PaVWnfXoYJoCUfTFANtCZY8UudAynb6+JqZzJcvya2xBG6Jfec3MrxBA8wpdvGNZ/ojtuSM8xvUeibyny9H699bZDhOZZGALIs0HCEcHnkUSnYu+v3sXiStHYHcS1iA1aREZ2njnUt4j7sgwZ07WtonVBY1wIs2JGt6ulkv73fXV+epIWmPy11C/UG9MrMessOiuBVtJR5OZpo6Y/yE9fYAbWujykXat+d7YceiJ7ZBRo6RmYil0vegutiSPdwPFiUoYA4A+hL2jFE9x85YFvM9f+r0h3G62HeSDnAWJBI3g1csZpAyMO63KcHvzjhLzij/O9hS2tqsKz4Abu/gXTy4DeU3b7UKAaaK1tMhbKC3coJ+xIrlfrHSACZtUrNCTXo0gdiwyjUN/L0y2tRUQ4RRzLzUFO2sUFq9PZkg72RiQX4yBvh/StVBJnuPLr98ln1nHzPjDnw9BzkWPuoEZnh9HWyYwyVBDxrKze/QYZpyMF/UETIQ4rAPJyHOazfln7NUD
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR10MB4201.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(376002)(136003)(346002)(396003)(39860400002)(83380400001)(8676002)(5660300002)(966005)(53546011)(6486002)(44832011)(2906002)(16576012)(31686004)(186003)(31696002)(478600001)(66556008)(36756003)(66476007)(316002)(86362001)(2616005)(52116002)(16526019)(66946007)(956004)(8936002)(26005)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: =?utf-8?B?eTd4Ni9zNTB6akJTNVFhcHIzYk1oL2FML2NOOEV0cXlvSTQxWUxaL2hlMGRK?=
+ =?utf-8?B?eU1rU3gvWmQ0S2NPWlB6aUFXSU5GTFhLdGtxY254aDNxT2xHVFdFYmVzdDR6?=
+ =?utf-8?B?TGk1L1c1SW1DT0JNZURVMHZHN3JzdkNXTTdHOWthRm4yQTB5c1QzWkxTNUg4?=
+ =?utf-8?B?c1pBUHk1djhkOElMQUIrK0NFL0ZmR1QxU3ZYMVMwbm9HcVR5T1h4bEE3bHZz?=
+ =?utf-8?B?Z2RrZHI1QkVaWmp4MU1ieVZQa3J1bkdXSEkwTDNxcWRUNVh6V252N0NXNzlF?=
+ =?utf-8?B?UEwzdEVHcnVOYk41cWt1RUZ2NzZaNXZYOW5GVFdZdUhsVUtHaU1CVDh0KzJR?=
+ =?utf-8?B?b2pGdWNSdEMyWThDY1RoTENtY2dNYzZZalYwTVdFMXhaUFpNcjlMZnBzaGl2?=
+ =?utf-8?B?Z0d5enlIRjRVcnRsTmh6YWVKQTk5TzU3RWo4bm96cEFXZDJuSnM2ZnIvV2FW?=
+ =?utf-8?B?YzRSYThnREkwaTM0eEtWaS9FbG41K2ZPUlp1T0FmbkZRLzN5K2l6dlcwTFNU?=
+ =?utf-8?B?M1FmVGM0cm1xT2kwLy9YQklkYWJxT0pHaXY1emNqVVl3S3FQdms3S1FzQ0N2?=
+ =?utf-8?B?cGVWTmFpUUVpcG0yYThaSUxGYkwzMlZyUGtyTDVvQmplZ2hkeDkxenFYOWF5?=
+ =?utf-8?B?ZHlZVmxIV0MrOHlKN3JhbVFIdFdaR29uSXBxRzJOSitLRWx3Qk5rbUhlVzho?=
+ =?utf-8?B?QUVXaGt1RTRaSWtaMWN4ek1pdXhpWktoQ3djWGV1ZTY0b2c4cFV0c0VhVmUv?=
+ =?utf-8?B?QktreSt0NTZKc2FpNGdrczBtKzJJNklYS0NKQzhHYVI5QTJWQW16VFUxZHd5?=
+ =?utf-8?B?bU9yV0ExaDlTL091cDJwQUhyNDVRU0Q2cUpYTnBEZFN0SjRUL1JBcmlUdDc4?=
+ =?utf-8?B?QUhZdE5DWDl1UTNNQitSTUk0SVBZMW00NHZtQ1EzMm5SKzVaUmYyNVVhNVEy?=
+ =?utf-8?B?bWxDZHNYVkNzdDIrWkR3MjNxMHNza0J2Unk0SXhOY2QyS3VhTTc5anB2RkJS?=
+ =?utf-8?B?VVNVQUpIVTErVnY5NmlKVDhOMWhMbHkrTC8yVFRBdWdOVll2SG1VZGtVUmx1?=
+ =?utf-8?B?OFlNaGtIUXhLYU1GL0lFMkdOZWRadFhMOEE5ZWFPVENIM2FlUk82U2VwdS94?=
+ =?utf-8?B?S05vVEpjNzF5R09UQjdYdkMwQUZ0QnVJeFB0cmczTE9YWlpPNzV1RnhWVTlQ?=
+ =?utf-8?B?aDh5eC96VXdRUTJta2d3R1U3TURaRTRUNTh2VndYQVVaNml3K2E1UWNxc1pO?=
+ =?utf-8?B?SFZjU004VzFodWtRblBFN3VONkhmcUhIV2tCd0hRT1ZtbEVhNFh4Y0lqNjQx?=
+ =?utf-8?B?YXloRTdpLzJxaEVnR0N2QUtBM2FBSm83dE5nbVNsdGhwRXRhSFMzNFNNS3hW?=
+ =?utf-8?B?cVJRV2xjSnVza1IwcU00WkhOalc4dXRSbWdFVlJlNGE5S0ZMb3BTL21FSklQ?=
+ =?utf-8?B?a1pOYlFZaHBMUnlHRHFxbXNETUpWc1AvWlhLcTdSaHJCT21IaDJTQWo3Mjl1?=
+ =?utf-8?B?djF3UWVpQ1BMYlY1NCs1MFB0aFV1WnYvQWJmVVVHcExMNVNkYzJLTXU3amly?=
+ =?utf-8?B?TDhWb1dwUyswZDV0YlNwZk91NzhEVEdMV2gvbjNsT3dTZklIaCtCWXg1WjN5?=
+ =?utf-8?B?cW5HZmJjT29jbCtkdkNWaUVxTlF4UitkeTZIbEk4cXlvTGFJNVNRNXpkbGVk?=
+ =?utf-8?B?WHdkWWk1OE5GUG1WR002V1A2R1JJbTZpSkF5Zi9lZ3FzK2drSFY0ME5QN3ZJ?=
+ =?utf-8?Q?4tyfcyKiQp2RoQLUDIWQzmBl+9ZH0n+gxeHyAKn?=
 X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 81feb6eb-12a8-4e8d-b4ef-08d8d51c059d
+X-MS-Exchange-CrossTenant-Network-Message-Id: dc4ccea8-6ebd-4e04-26fc-08d8d51cf82d
 X-MS-Exchange-CrossTenant-AuthSource: DM6PR10MB4201.namprd10.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Feb 2021 21:19:20.4440
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Feb 2021 21:26:07.3171
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 0BKsxbVD5ZqRSL/dR2CCFtldl7kofMVui0mbTksViYT46vTHqcpfukIzlfGISKzKBvqTgYqyPeHOfBqSoQi5Eg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR10MB3211
+X-MS-Exchange-CrossTenant-UserPrincipalName: oefal7rrVwnsNdZv9sJSvFpJ9MvEw6RgaCm3qg/yAVdorabYNECo2LhHXjU7APH+KLUeRhKkO1+0igSd+g/5UA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR10MB5117
 X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9900 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 spamscore=0 mlxscore=0
- phishscore=0 adultscore=0 bulkscore=0 mlxlogscore=999 suspectscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2102190171
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxlogscore=999
+ phishscore=0 adultscore=0 mlxscore=0 suspectscore=0 malwarescore=0
+ spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2102190172
 X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9900 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 lowpriorityscore=0 suspectscore=0
- impostorscore=0 priorityscore=1501 clxscore=1015 spamscore=0 mlxscore=0
- phishscore=0 malwarescore=0 bulkscore=0 adultscore=0 mlxlogscore=999
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2102190171
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 clxscore=1015 impostorscore=0
+ mlxscore=0 phishscore=0 mlxlogscore=999 spamscore=0 bulkscore=0
+ priorityscore=1501 malwarescore=0 suspectscore=0 adultscore=0
+ lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2102190172
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 2/19/21 12:11 PM, Roman Gushchin wrote:
-> On Fri, Feb 19, 2021 at 12:04:32PM -0800, Mike Kravetz wrote:
->> On 2/19/21 11:47 AM, Roman Gushchin wrote:
->>> On Fri, Feb 19, 2021 at 10:37:17AM -0800, Andrew Morton wrote:
->>>>
->>>> The patch titled
->>>>      Subject: mm/hugetlb: suppress wrong warning info when alloc gigantic page
->>>> has been added to the -mm tree.  Its filename is
->>>>      mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch
->>>>
->>>> This patch should soon appear at
->>>>     https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch  
->>>> and later at
->>>>     https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch  
->>>>
->>>> Before you just go and hit "reply", please:
->>>>    a) Consider who else should be cc'ed
->>>>    b) Prefer to cc a suitable mailing list as well
->>>>    c) Ideally: find the original patch on the mailing list and do a
->>>>       reply-to-all to that, adding suitable additional cc's
->>>>
->>>> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
->>>>
->>>> The -mm tree is included into linux-next and is updated
->>>> there every 3-4 working days
->>>>
->>>> ------------------------------------------------------
->>>> From: Chen Wandun <chenwandun@huawei.com>
->>>> Subject: mm/hugetlb: suppress wrong warning info when alloc gigantic page
->>>>
->>>> If hugetlb_cma is enabled, it will skip boot time allocation when
->>>> allocating gigantic page, that doesn't means allocation failure, so
->>>> suppress this warning info.
->>>>
->>>> Link: https://lkml.kernel.org/r/20210219123909.13130-1-chenwandun@huawei.com
->>>> Fixes: cf11e85fc08c ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
->>>> Signed-off-by: Chen Wandun <chenwandun@huawei.com>
->>>> Cc: Roman Gushchin <guro@fb.com>
->>>> Cc: Mike Kravetz <mike.kravetz@oracle.com>
->>>> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
->>>
->>> Acked-by: Roman Gushchin <guro@fb.com>
->>>
->>> Thank!s
->>
->>
->> Roman, I was under the impression that this warning provided some value?
->>
->> It will only be logged if user asks for both preallocation and cma reservation
->> on the command line.  In this case, we ignore the parameter requesting
->> preallocation.  It seems reasonable that we log a warning if dropping a
->> user requested parameter.
+On 2/19/21 1:03 PM, akpm@linux-foundation.org wrote:
 > 
-> There are two warnings:
-> "HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n" and
-> "HugeTLB: allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n"
+> The patch titled
+>      Subject: mm/hugetlb: suppress wrong warning info when alloc gigantic page
+> has been removed from the -mm tree.  Its filename was
+>      mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch
 > 
-> The point of this patch is to skip printing the second one if the first one is printed.
-> It makes sense to me.
-> 
-> Thanks!
+> This patch was dropped because it was nacked
 
-Thanks you!
+Sorry Andrew (and everyone),
 
-My bad for not taking a closer look.
+My objection to this patch was incorrect.  I did not look closely enough
+to notice that only a redundant warning is being removed.
 
+Upon closer examination, you can even add:
+
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 -- 
 Mike Kravetz
+
+> 
+> ------------------------------------------------------
+> From: Chen Wandun <chenwandun@huawei.com>
+> Subject: mm/hugetlb: suppress wrong warning info when alloc gigantic page
+> 
+> If hugetlb_cma is enabled, it will skip boot time allocation when
+> allocating gigantic page, that doesn't means allocation failure, so
+> suppress this warning info.
+> 
+> Link: https://lkml.kernel.org/r/20210219123909.13130-1-chenwandun@huawei.com
+> Fixes: cf11e85fc08c ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
+> Signed-off-by: Chen Wandun <chenwandun@huawei.com>
+> Cc: Roman Gushchin <guro@fb.com>
+> Cc: Mike Kravetz <mike.kravetz@oracle.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  mm/hugetlb.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> --- a/mm/hugetlb.c~mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page
+> +++ a/mm/hugetlb.c
+> @@ -2529,7 +2529,7 @@ static void __init hugetlb_hstate_alloc_
+>  		if (hstate_is_gigantic(h)) {
+>  			if (hugetlb_cma_size) {
+>  				pr_warn_once("HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n");
+> -				break;
+> +				goto free;
+>  			}
+>  			if (!alloc_bootmem_huge_page(h))
+>  				break;
+> @@ -2547,7 +2547,7 @@ static void __init hugetlb_hstate_alloc_
+>  			h->max_huge_pages, buf, i);
+>  		h->max_huge_pages = i;
+>  	}
+> -
+> +free:
+>  	kfree(node_alloc_noretry);
+>  }
+>  
+> _
+> 
+> Patches currently in -mm which might be from chenwandun@huawei.com are
+> 
+> 
