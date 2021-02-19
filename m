@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36572C433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Feb 2021 18:13:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73037C433DB
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Feb 2021 18:38:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 08BFD64E46
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Feb 2021 18:13:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E22C64E54
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Feb 2021 18:38:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229734AbhBSSNo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Feb 2021 13:13:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44078 "EHLO mail.kernel.org"
+        id S229524AbhBSSh7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Feb 2021 13:37:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48030 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229658AbhBSSNn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 19 Feb 2021 13:13:43 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BDBC364E5F;
-        Fri, 19 Feb 2021 18:13:00 +0000 (UTC)
+        id S229515AbhBSSh6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 19 Feb 2021 13:37:58 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 14E8964E4B;
+        Fri, 19 Feb 2021 18:37:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1613758381;
-        bh=KXbqB0AafQi08sFrypSSuGtu3K2of498qAYJkDSkMHY=;
+        s=korg; t=1613759838;
+        bh=+qP5HXt+8haj5BGTpCiWTgsuRw2MiwzCgb5TOsC0ufk=;
         h=Date:From:To:Subject:From;
-        b=0jsQnKqXPTOxGgdBb9Lm56g9cStkXqMhfa8zr21BiE/XonHCs2iAj9UXIirIgKudb
-         lwPZpU/SVeZLwr+urg4m1JLBm1GZTY/2J1MTk4aB9rpNJ/GlZTVTIwbK5CjBWupzgW
-         46sCqndFeXMRFRySIZZNnr0DQuyqg15M9KGX9BAo=
-Date:   Fri, 19 Feb 2021 10:13:00 -0800
+        b=jV5OmEhhFL3u1VXqHdz+mqqzFAKhgW5i8lhW7CpWFByL8jX+uBnknVTJt0QDi0Xv4
+         rpOs0eT08IiUxDq8zzxclX2HaGAp4sr/rflXsD5wwQ94BAB7FAW7CbGNs64qzID/IK
+         rCzs+HsCJzkQvTo71b3AzZKinBDbFUcRMo+4VB08=
+Date:   Fri, 19 Feb 2021 10:37:17 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com, tobin@kernel.org,
-        stable@vger.kernel.org, rientjes@google.com, osalvador@suse.de,
-        dwagner@suse.de, dan.j.williams@intel.com, cl@linux.com,
-        cai@lca.pw, ben.widawsky@intel.com, alex.shi@linux.alibaba.com,
-        akpm@linux-foundation.org, dave.hansen@linux.intel.com
-Subject:  + mm-vmscan-restore-zone_reclaim_mode-abi.patch added to
- -mm tree
-Message-ID: <20210219181300.JjFg6%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com, guro@fb.com,
+        chenwandun@huawei.com
+Subject:  +
+ mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch added
+ to -mm tree
+Message-ID: <20210219183717.02Po6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: restore zone_reclaim_mode ABI
+     Subject: mm/hugetlb: suppress wrong warning info when alloc gigantic page
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-restore-zone_reclaim_mode-abi.patch
+     mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-restore-zone_reclaim_mode-abi.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-restore-zone_reclaim_mode-abi.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,99 +65,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm/vmscan: restore zone_reclaim_mode ABI
+From: Chen Wandun <chenwandun@huawei.com>
+Subject: mm/hugetlb: suppress wrong warning info when alloc gigantic page
 
-I went to go add a new RECLAIM_* mode for the zone_reclaim_mode sysctl. 
-Like a good kernel developer, I also went to go update the documentation. 
-I noticed that the bits in the documentation didn't match the bits in the
-#defines.
+If hugetlb_cma is enabled, it will skip boot time allocation when
+allocating gigantic page, that doesn't means allocation failure, so
+suppress this warning info.
 
-The VM never explicitly checks the RECLAIM_ZONE bit.  The bit is, however
-implicitly checked when checking 'node_reclaim_mode==0'.  The RECLAIM_ZONE
-#define was removed in a cleanup.  That, by itself is fine.
-
-But, when the bit was removed (bit 0) the _other_ bit locations also got
-changed.  That's not OK because the bit values are documented to mean one
-specific thing.  Users surely do not expect the meaning to change from
-kernel to kernel.
-
-The end result is that if someone had a script that did:
-
-	sysctl vm.zone_reclaim_mode=1
-
-it would have gone from enabling node reclaim for clean unmapped pages to
-writing out pages during node reclaim after the commit in question. 
-That's not great.
-
-Put the bits back the way they were and add a comment so something like
-this is a bit harder to do again.  Update the documentation to make it
-clear that the first bit is ignored.
-
-Link: https://lkml.kernel.org/r/20210219172555.FF0CDF23@viggo.jf.intel.com
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Fixes: 648b5cf368e0 ("mm/vmscan: remove unused RECLAIM_OFF/RECLAIM_ZONE")
-Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Daniel Wagner <dwagner@suse.de>
-Cc: "Tobin C. Harding" <tobin@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Daniel Wagner <dwagner@suse.de>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210219123909.13130-1-chenwandun@huawei.com
+Fixes: cf11e85fc08c ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
+Signed-off-by: Chen Wandun <chenwandun@huawei.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |   10 +++++-----
- mm/vmscan.c                             |    9 +++++++--
- 2 files changed, 12 insertions(+), 7 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-vmscan-restore-zone_reclaim_mode-abi
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -983,11 +983,11 @@ that benefit from having their data cach
- left disabled as the caching effect is likely to be more important than
- data locality.
+--- a/mm/hugetlb.c~mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page
++++ a/mm/hugetlb.c
+@@ -2529,7 +2529,7 @@ static void __init hugetlb_hstate_alloc_
+ 		if (hstate_is_gigantic(h)) {
+ 			if (hugetlb_cma_size) {
+ 				pr_warn_once("HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n");
+-				break;
++				goto free;
+ 			}
+ 			if (!alloc_bootmem_huge_page(h))
+ 				break;
+@@ -2547,7 +2547,7 @@ static void __init hugetlb_hstate_alloc_
+ 			h->max_huge_pages, buf, i);
+ 		h->max_huge_pages = i;
+ 	}
+-
++free:
+ 	kfree(node_alloc_noretry);
+ }
  
--zone_reclaim may be enabled if it's known that the workload is partitioned
--such that each partition fits within a NUMA node and that accessing remote
--memory would cause a measurable performance reduction.  The page allocator
--will then reclaim easily reusable pages (those page cache pages that are
--currently not used) before allocating off node pages.
-+Consider enabling one or more zone_reclaim mode bits if it's known that the
-+workload is partitioned such that each partition fits within a NUMA node
-+and that accessing remote memory would cause a measurable performance
-+reduction.  The page allocator will take additional actions before
-+allocating off node pages.
- 
- Allowing zone reclaim to write out pages stops processes that are
- writing large amounts of data from dirtying pages on other nodes. Zone
---- a/mm/vmscan.c~mm-vmscan-restore-zone_reclaim_mode-abi
-+++ a/mm/vmscan.c
-@@ -4085,8 +4085,13 @@ module_init(kswapd_init)
-  */
- int node_reclaim_mode __read_mostly;
- 
--#define RECLAIM_WRITE (1<<0)	/* Writeout pages during reclaim */
--#define RECLAIM_UNMAP (1<<1)	/* Unmap pages during reclaim */
-+/*
-+ * These bit locations are exposed in the vm.zone_reclaim_mode sysctl
-+ * ABI.  New bits are OK, but existing bits can never change.
-+ */
-+#define RECLAIM_ZONE  (1<<0)   /* Run shrink_inactive_list on the zone */
-+#define RECLAIM_WRITE (1<<1)   /* Writeout pages during reclaim */
-+#define RECLAIM_UNMAP (1<<2)   /* Unmap pages during reclaim */
- 
- /*
-  * Priority for NODE_RECLAIM. This determines the fraction of pages
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from chenwandun@huawei.com are
 
-mm-vmscan-restore-zone_reclaim_mode-abi.patch
+mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch
 
