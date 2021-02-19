@@ -2,245 +2,179 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF1F1C433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Feb 2021 18:53:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A662C433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Feb 2021 19:48:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8576764EB1
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Feb 2021 18:53:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4168564EAF
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Feb 2021 19:48:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229945AbhBSSxI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Feb 2021 13:53:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50596 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229874AbhBSSxG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 19 Feb 2021 13:53:06 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3597564E77;
-        Fri, 19 Feb 2021 18:52:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1613760745;
-        bh=1wMM7arak7Ur7EpwqQ+RZisJnqsrS/oF+tcfFaUgQEo=;
-        h=Date:From:To:Subject:From;
-        b=T3pQ6fP48MrFvxwb22SSK15vChCLZUE4AkDWXKhOmXsGYmR1YcEyInzcjddV1zczr
-         Y/DYcuNGVIx7/QQUJvXqtj0eTZQEcg0quStDFaYCpjsIVOsBwL2a997Tc4iZkvUpm/
-         8ZOHnO0rOlP8XyLLoLTPgAAhMTU+ARuoP16EMESc=
-Date:   Fri, 19 Feb 2021 10:52:24 -0800
-From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, will.deacon@arm.com,
-        vincenzo.frascino@arm.com, pcc@google.com, kevin.brodsky@arm.com,
-        hch@infradead.org, glider@google.com, eugenis@google.com,
-        elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
-        Branislav.Rankov@arm.com, aryabinin@virtuozzo.com,
-        andreyknvl@google.com
-Subject:  [to-be-updated] mm-kasan-dont-poison-boot-memory.patch
- removed from -mm tree
-Message-ID: <20210219185224.xfwRY%akpm@linux-foundation.org>
-User-Agent: s-nail v14.9.10
+        id S229819AbhBSTsz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Feb 2021 14:48:55 -0500
+Received: from mx0b-00082601.pphosted.com ([67.231.153.30]:63998 "EHLO
+        mx0b-00082601.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S230074AbhBSTsw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 19 Feb 2021 14:48:52 -0500
+Received: from pps.filterd (m0109331.ppops.net [127.0.0.1])
+        by mx0a-00082601.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 11JJiChv015474;
+        Fri, 19 Feb 2021 11:47:32 -0800
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fb.com; h=date : from : to : cc :
+ subject : message-id : references : content-type : in-reply-to :
+ mime-version; s=facebook; bh=Fxy/eGa1RkPlGJvpFq9YW8s51Nkf2UJCcLY6UOloki0=;
+ b=n8d8lcbsg/8OAUr708NrGVuT6E0oBoi1wDUE7QA+zmUCmxQistLlqEe6EGuDAAR8r/Yo
+ WYzMzXjbHuOvP0X4GpdQmc8aNWGxEbI5vXUX3+Yib92UCzMRBnSyra7endHqwqk37DC8
+ ooIgU4JB9wbWkjqL79ONLlBkCJEdIVLogBY= 
+Received: from maileast.thefacebook.com ([163.114.130.16])
+        by mx0a-00082601.pphosted.com with ESMTP id 36tbkjar0r-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
+        Fri, 19 Feb 2021 11:47:32 -0800
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (100.104.31.183)
+ by o365-in.thefacebook.com (100.104.36.102) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1979.3; Fri, 19 Feb 2021 11:47:31 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=f5ppe0tznRgpp9HAM0MDHQeHi6AFHaj41kA8zDJJLLrsagt5isocM3c9hknGeAtzqTJqco17UElfbPEIy2/3jn13q7cuLnBdwQYYZ1hwd8ygUuU3Q1su+9XBnjLN5ffrmBTNg8OTv4dn2Dnul38oMNlStJo5rB0syWHUqKoCiQb7evapv6ccPsEZoywK18iZfQoV6S8uBH3F/0oPSj5vTGSvKX+W8Z811aiWdQ7WSxn6Y2ryc6Set28049dAbySfa8uqHgvhv6UXcOdEo781VKrcw6gu3uLrLHf4zzoEiaww6yAV3KmgOOw6aQP6aKxhLG3hdL4whNpdkBpaLX7EDA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=pCmdJRH2u2gWjgc2kRr29JN6Lhx0V711m0/4Jv59GLw=;
+ b=YHplrsuMfNVXpp9Sc2eRLvsevspBwU5IZRtAD/p8xYU3J67/MY2sJ/gr/IJVOPUfSyfMSpHWVDDqxu+DdwQkTe9AeFgQlyAETvLucKypAIUQRteyROIen1YkA3mCcqXKUJ1C3V1MAzPcHMZSflggr0wy2ZstK8/Kszc3LYp83PBpGnQP8dx64kGeTCceE9oEHv63I87MMkivOnJ//J5hnytE94dosoHpGbuWQ65fsW5rR7iBz9Tkahe1tEdrrrHT55q7ZeA+rJxLqHNtbs/m495fr4y7yTQ/ENIHvuzrKZGyOudBuBX2PS8yPA53P0HeKWtnLAQNq32FjdurokMygg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=fb.com; dmarc=pass action=none header.from=fb.com; dkim=pass
+ header.d=fb.com; arc=none
+Authentication-Results: linux-foundation.org; dkim=none (message not signed)
+ header.d=none;linux-foundation.org; dmarc=none action=none
+ header.from=fb.com;
+Received: from BYAPR15MB4136.namprd15.prod.outlook.com (2603:10b6:a03:96::24)
+ by BYAPR15MB2759.namprd15.prod.outlook.com (2603:10b6:a03:151::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3846.34; Fri, 19 Feb
+ 2021 19:47:30 +0000
+Received: from BYAPR15MB4136.namprd15.prod.outlook.com
+ ([fe80::53a:b2c3:8b03:12d1]) by BYAPR15MB4136.namprd15.prod.outlook.com
+ ([fe80::53a:b2c3:8b03:12d1%7]) with mapi id 15.20.3846.043; Fri, 19 Feb 2021
+ 19:47:29 +0000
+Date:   Fri, 19 Feb 2021 11:47:25 -0800
+From:   Roman Gushchin <guro@fb.com>
+To:     <akpm@linux-foundation.org>
+CC:     <mm-commits@vger.kernel.org>, <mike.kravetz@oracle.com>,
+        <chenwandun@huawei.com>
+Subject: Re: +
+ mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch added
+ to -mm tree
+Message-ID: <YDAVzRNTpFTXGR93@carbon.dhcp.thefacebook.com>
+References: <20210219183717.02Po6%akpm@linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20210219183717.02Po6%akpm@linux-foundation.org>
+X-Originating-IP: [2620:10d:c090:400::5:dfaf]
+X-ClientProxiedBy: MWHPR14CA0049.namprd14.prod.outlook.com
+ (2603:10b6:300:81::11) To BYAPR15MB4136.namprd15.prod.outlook.com
+ (2603:10b6:a03:96::24)
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from carbon.dhcp.thefacebook.com (2620:10d:c090:400::5:dfaf) by MWHPR14CA0049.namprd14.prod.outlook.com (2603:10b6:300:81::11) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3868.28 via Frontend Transport; Fri, 19 Feb 2021 19:47:29 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 3169d095-38e2-499a-78ea-08d8d50f3107
+X-MS-TrafficTypeDiagnostic: BYAPR15MB2759:
+X-Microsoft-Antispam-PRVS: <BYAPR15MB27594D5510AF4E76A26854B5BE849@BYAPR15MB2759.namprd15.prod.outlook.com>
+X-FB-Source: Internal
+X-MS-Oob-TLC-OOBClassifiers: OLM:107;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: sJsrhkSLh2IN3/u+HXCWVd1oEfE4ypgQ9c5saMTgBtMoKLc+k7wp9biZMgJ8QtK7GKJail0iu3OOj3cCGePcBb56KfiCREgaFRXRAAF6QnLctFlwEwAUNu6n5swEAM2y5ZXvnOlJef2gPOk43w/p2BMGUMXpz/AFTuEH8JGNNLLm6CD2S3Nixsv0coZMEY6NHZveAMwScdJ3IG4v4T23TVyx+lyXtoxROfGdPw6/D8sTTeCk/4YXsU7gxyYyrmPqkobcWdv1B1DTuBcNVjGkm9T9tnTHP1Us/QcOdJUrlZtll6tOan3J3xg/R9Gr8kfOVESR4i3yKDy6U47CrNMYb1XVbHFzyBPDDpALIA+CXKHaF1Un/xqaJ6MjDi1lJbYu2kBzH//nZC5TFktr1SY3l71mIvTs9NT7p3etUeK1OmtZPh8QGSNwYVrGmiNN/UoXR4ae7rTDq8TGp8WSvjokhFsDAVEw2G47R5f6GHmHEXMvAyCJ2kXfbtC3u06+yVP5DnpH1IKfvgwblD4TXXGs9QSsrTVxfabFtAVoS1CJ/dYKFrS5ma3n9vNFuAARGfl7gPj8DT8C+Hst5UeQDIDzJw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR15MB4136.namprd15.prod.outlook.com;PTR:;CAT:NONE;SFS:(396003)(366004)(346002)(376002)(136003)(39860400002)(55016002)(7696005)(6916009)(8936002)(16526019)(8676002)(186003)(9686003)(478600001)(52116002)(66556008)(66476007)(66946007)(6666004)(83380400001)(5660300002)(6506007)(316002)(2906002)(86362001)(4326008)(966005);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?rEM0VRK1ryk+9qSJiffzSZ+aM4fY9LE2GnrDWld9vw2kYdv5zV0E1X2UyBNV?=
+ =?us-ascii?Q?pgF97KUJvjzVS5Sylr7anuePvxHl0wdLpKSJWCADJGgXQoNbFWsmgCw2XA0H?=
+ =?us-ascii?Q?TP5ZAVgK/LyPpyEiEWNNAghOj+xXRxIUc/58VFDGJNPAkE6Y0oYUxrH4JSNa?=
+ =?us-ascii?Q?tgeJ3S8W3B7p73tfWo0zyruHgpkzfPq8y1UvObvKdXkdPjlllvHdSFkwyXby?=
+ =?us-ascii?Q?QCfp2n+2pBjVJclB8yH/gX0mp/+7opgn4XqbuFkvUFBVlATDI4v+J1zapSq0?=
+ =?us-ascii?Q?PPS6/g2bxT+pFCh6aUPX3t+TsI3lrw7mPrxKVPJN1/RlSKVAFZJUM9OR7bO3?=
+ =?us-ascii?Q?Ay1Txtin9F0l76LDBHHYVbKA0VQEZwY/s7kq4t+4PmQZxILnbUtH4zSUv/VM?=
+ =?us-ascii?Q?fWIIWm++MEBz51uO0bGf+/6gF2pwS6LzU3ySG3NAMGZe1rH+GXsFl9ER5e/y?=
+ =?us-ascii?Q?kC2a9yavepZnikTFkFKzkkExPrBLq89g38JBML5mv3vdRaJLpPYGWXBUwk5H?=
+ =?us-ascii?Q?b++5Q+q0IN0m21+kAL4PwaXJsRuAX5/toU99ATddO3QeCK1x4a92oFbXuBz8?=
+ =?us-ascii?Q?pbShkeQBh7hvdcCXJ+Ze34rJxRZeDkbEYhs7JovUhJQYvJuHmVA7004GqehN?=
+ =?us-ascii?Q?WfSMnZq0zpttbkavTrQJju+uQACeJwaxJWpEVL5VnN6ZimomC6Vtpydtklm+?=
+ =?us-ascii?Q?+yxP8RaWZGjenHAegHCFL7bJXGBrfYQQDHfxkbRmYtvEbORjrlHdRSkiagR0?=
+ =?us-ascii?Q?R4qmkLUDZvgESz464bc/pFEq6Q5ZwSOBoSjax5SimqOfiaLPTL2/oeAdcAw1?=
+ =?us-ascii?Q?gc+t/INMDAu1QH0D76srPslkTYPs4va32062Cks8H6Vd2Ix+mWkVWjXPXN0N?=
+ =?us-ascii?Q?1XAOE1zUR232ZvVZyCH1McUkcibJjh1JVXCOFOmbAN2Uugb0JpM7cywGAl3W?=
+ =?us-ascii?Q?byLJXUdrQFt3621yCKV2LwHL4zQ8bvqLhYz7qT0CH6Qmzj0gSCjspGGQYgl0?=
+ =?us-ascii?Q?QIZPZWjNq34GAZMtQ/1OrytcS2J8bEVoOG4sWhhx2YscEBoQaEcS6e/Nnxb/?=
+ =?us-ascii?Q?d4PP+/xe4eTTN9T5UdGhHRud2hLHGopHAJ8ozK7B6UYGKz5A+iOMAs00Hctm?=
+ =?us-ascii?Q?0YykGD0/ZOc3oXCZNTezuBCj25lNE07Q8oBaI82gZNS5gQMHu9MHsPbRFFq4?=
+ =?us-ascii?Q?TxjbWI6S7bHHrFKNi0JwId1sATw4fwnNE3bL2qTNwo5QMZxHB468hqE6aPKh?=
+ =?us-ascii?Q?LWLo6XIdNFHgGe9y0OoL9QVXxcnBXlMTWiupGfxtYrlL42hb6z082oOXNnST?=
+ =?us-ascii?Q?H2e9T4jZXisltr++CZgdAl/eup60WiSUYKscq7+J7hQfkw=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3169d095-38e2-499a-78ea-08d8d50f3107
+X-MS-Exchange-CrossTenant-AuthSource: BYAPR15MB4136.namprd15.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Feb 2021 19:47:29.8892
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 8ae927fe-1255-47a7-a2af-5f3a069daaa2
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: hqYEFA+ms9nCcMNK14R85b9afMLdag23y3er8qt23ZvnWRvm7JznBmDnBzaanByp
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR15MB2759
+X-OriginatorOrg: fb.com
+X-Proofpoint-UnRewURL: 2 URL's were un-rewritten
+MIME-Version: 1.0
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.761
+ definitions=2021-02-19_08:2021-02-18,2021-02-19 signatures=0
+X-Proofpoint-Spam-Details: rule=fb_default_notspam policy=fb_default score=0 suspectscore=0
+ adultscore=0 phishscore=0 spamscore=0 mlxscore=0 bulkscore=0
+ mlxlogscore=999 malwarescore=0 impostorscore=0 clxscore=1011
+ priorityscore=1501 lowpriorityscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2009150000 definitions=main-2102190156
+X-FB-Internal: deliver
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Fri, Feb 19, 2021 at 10:37:17AM -0800, Andrew Morton wrote:
+> 
+> The patch titled
+>      Subject: mm/hugetlb: suppress wrong warning info when alloc gigantic page
+> has been added to the -mm tree.  Its filename is
+>      mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch
+> 
+> This patch should soon appear at
+>     https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch 
+> and later at
+>     https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch 
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
+> 
+> ------------------------------------------------------
+> From: Chen Wandun <chenwandun@huawei.com>
+> Subject: mm/hugetlb: suppress wrong warning info when alloc gigantic page
+> 
+> If hugetlb_cma is enabled, it will skip boot time allocation when
+> allocating gigantic page, that doesn't means allocation failure, so
+> suppress this warning info.
+> 
+> Link: https://lkml.kernel.org/r/20210219123909.13130-1-chenwandun@huawei.com
+> Fixes: cf11e85fc08c ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
+> Signed-off-by: Chen Wandun <chenwandun@huawei.com>
+> Cc: Roman Gushchin <guro@fb.com>
+> Cc: Mike Kravetz <mike.kravetz@oracle.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-The patch titled
-     Subject: mm, kasan: don't poison boot memory
-has been removed from the -mm tree.  Its filename was
-     mm-kasan-dont-poison-boot-memory.patch
+Acked-by: Roman Gushchin <guro@fb.com>
 
-This patch was dropped because an updated version will be merged
-
-------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: mm, kasan: don't poison boot memory
-
-During boot, all non-reserved memblock memory is exposed to the buddy
-allocator.  Poisoning all that memory with KASAN lengthens boot time,
-especially on systems with large amount of RAM.  This patch makes
-page_alloc to not call kasan_free_pages() on all new memory.
-
-__free_pages_core() is used when exposing fresh memory during system boot
-and when onlining memory during hotplug.  This patch adds a new
-FPI_SKIP_KASAN_POISON flag and passes it to __free_pages_ok() through
-free_pages_prepare() from __free_pages_core().
-
-This has little impact on KASAN memory tracking.
-
-Assuming that there are no references to newly exposed pages before they
-are ever allocated, there won't be any intended (but buggy) accesses to
-that memory that KASAN would normally detect.
-
-However, with this patch, KASAN stops detecting wild and large
-out-of-bounds accesses that happen to land on a fresh memory page that was
-never allocated.  This is taken as an acceptable trade-off.
-
-All memory allocated normally when the boot is over keeps getting
-poisoned as usual.
-
-Link: https://lkml.kernel.org/r/8d79640cdab4608c454310881b6c771e856dbd2e.1613595522.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/page_alloc.c |   43 ++++++++++++++++++++++++++++++++-----------
- 1 file changed, 32 insertions(+), 11 deletions(-)
-
---- a/mm/page_alloc.c~mm-kasan-dont-poison-boot-memory
-+++ a/mm/page_alloc.c
-@@ -108,6 +108,17 @@ typedef int __bitwise fpi_t;
-  */
- #define FPI_TO_TAIL		((__force fpi_t)BIT(1))
- 
-+/*
-+ * Don't poison memory with KASAN.
-+ * During boot, all non-reserved memblock memory is exposed to the buddy
-+ * allocator. Poisoning all that memory lengthens boot time, especially on
-+ * systems with large amount of RAM. This flag is used to skip that poisoning.
-+ * Assuming that there are no references to those newly exposed pages before
-+ * they are ever allocated, this has little effect on KASAN memory tracking.
-+ * All memory allocated normally after boot gets poisoned as usual.
-+ */
-+#define FPI_SKIP_KASAN_POISON	((__force fpi_t)BIT(2))
-+
- /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
- static DEFINE_MUTEX(pcp_batch_high_lock);
- #define MIN_PERCPU_PAGELIST_FRACTION	(8)
-@@ -384,10 +395,14 @@ static DEFINE_STATIC_KEY_TRUE(deferred_p
-  * on-demand allocation and then freed again before the deferred pages
-  * initialization is done, but this is not likely to happen.
-  */
--static inline void kasan_free_nondeferred_pages(struct page *page, int order)
-+static inline void kasan_free_nondeferred_pages(struct page *page, int order,
-+							fpi_t fpi_flags)
- {
--	if (!static_branch_unlikely(&deferred_pages))
--		kasan_free_pages(page, order);
-+	if (static_branch_unlikely(&deferred_pages))
-+		return;
-+	if (fpi_flags & FPI_SKIP_KASAN_POISON)
-+		return;
-+	kasan_free_pages(page, order);
- }
- 
- /* Returns true if the struct page for the pfn is uninitialised */
-@@ -438,7 +453,13 @@ defer_init(int nid, unsigned long pfn, u
- 	return false;
- }
- #else
--#define kasan_free_nondeferred_pages(p, o)	kasan_free_pages(p, o)
-+static inline void kasan_free_nondeferred_pages(struct page *page, int order,
-+							fpi_t fpi_flags)
-+{
-+	if (fpi_flags & FPI_SKIP_KASAN_POISON)
-+		return;
-+	kasan_free_pages(page, order);
-+}
- 
- static inline bool early_page_uninitialised(unsigned long pfn)
- {
-@@ -1216,7 +1237,7 @@ static void kernel_init_free_pages(struc
- }
- 
- static __always_inline bool free_pages_prepare(struct page *page,
--					unsigned int order, bool check_free)
-+			unsigned int order, bool check_free, fpi_t fpi_flags)
- {
- 	int bad = 0;
- 
-@@ -1290,7 +1311,7 @@ static __always_inline bool free_pages_p
- 
- 	debug_pagealloc_unmap_pages(page, 1 << order);
- 
--	kasan_free_nondeferred_pages(page, order);
-+	kasan_free_nondeferred_pages(page, order, fpi_flags);
- 
- 	return true;
- }
-@@ -1303,7 +1324,7 @@ static __always_inline bool free_pages_p
-  */
- static bool free_pcp_prepare(struct page *page)
- {
--	return free_pages_prepare(page, 0, true);
-+	return free_pages_prepare(page, 0, true, FPI_NONE);
- }
- 
- static bool bulkfree_pcp_prepare(struct page *page)
-@@ -1323,9 +1344,9 @@ static bool bulkfree_pcp_prepare(struct
- static bool free_pcp_prepare(struct page *page)
- {
- 	if (debug_pagealloc_enabled_static())
--		return free_pages_prepare(page, 0, true);
-+		return free_pages_prepare(page, 0, true, FPI_NONE);
- 	else
--		return free_pages_prepare(page, 0, false);
-+		return free_pages_prepare(page, 0, false, FPI_NONE);
- }
- 
- static bool bulkfree_pcp_prepare(struct page *page)
-@@ -1533,7 +1554,7 @@ static void __free_pages_ok(struct page
- 	int migratetype;
- 	unsigned long pfn = page_to_pfn(page);
- 
--	if (!free_pages_prepare(page, order, true))
-+	if (!free_pages_prepare(page, order, true, fpi_flags))
- 		return;
- 
- 	migratetype = get_pfnblock_migratetype(page, pfn);
-@@ -1570,7 +1591,7 @@ void __free_pages_core(struct page *page
- 	 * Bypass PCP and place fresh pages right to the tail, primarily
- 	 * relevant for memory onlining.
- 	 */
--	__free_pages_ok(page, order, FPI_TO_TAIL);
-+	__free_pages_ok(page, order, FPI_TO_TAIL | FPI_SKIP_KASAN_POISON);
- }
- 
- #ifdef CONFIG_NEED_MULTIPLE_NODES
-_
-
-Patches currently in -mm which might be from andreyknvl@google.com are
-
-kasan-prefix-global-functions-with-kasan_.patch
-kasan-clarify-hw_tags-impact-on-tbi.patch
-kasan-clean-up-comments-in-tests.patch
-kasan-add-macros-to-simplify-checking-test-constraints.patch
-kasan-add-match-all-tag-tests.patch
-kasan-arm64-allow-using-kunit-tests-with-hw_tags-mode.patch
-kasan-arm64-allow-using-kunit-tests-with-hw_tags-mode-fix.patch
-kasan-rename-config_test_kasan_module.patch
-kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
-kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
-kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
-kasan-move-_ret_ip_-to-inline-wrappers.patch
-kasan-fix-bug-detection-via-ksize-for-hw_tags-mode.patch
-kasan-add-proper-page-allocator-tests.patch
-kasan-add-a-test-for-kmem_cache_alloc-free_bulk.patch
-kasan-dont-run-tests-when-kasan-is-not-enabled.patch
-kfence-kasan-make-kfence-compatible-with-kasan-fix-2.patch
-kasan-mm-dont-save-alloc-stacks-twice.patch
-kasan-mm-optimize-kmalloc-poisoning.patch
-kasan-optimize-large-kmalloc-poisoning.patch
-kasan-clean-up-setting-free-info-in-kasan_slab_free.patch
-kasan-unify-large-kfree-checks.patch
-kasan-rework-krealloc-tests.patch
-kasan-mm-fail-krealloc-on-freed-objects.patch
-kasan-mm-optimize-krealloc-poisoning.patch
-kasan-ensure-poisoning-size-alignment.patch
-arm64-kasan-simplify-and-inline-mte-functions.patch
-kasan-inline-hw_tags-helper-functions.patch
-kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch
-
+Thanks!
