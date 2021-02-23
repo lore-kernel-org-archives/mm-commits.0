@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B9EFC433DB
-	for <mm-commits@archiver.kernel.org>; Sat, 20 Feb 2021 03:15:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28BB1C433DB
+	for <mm-commits@archiver.kernel.org>; Tue, 23 Feb 2021 21:07:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3344F64EDF
-	for <mm-commits@archiver.kernel.org>; Sat, 20 Feb 2021 03:15:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED66264E00
+	for <mm-commits@archiver.kernel.org>; Tue, 23 Feb 2021 21:07:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229765AbhBTDPm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Feb 2021 22:15:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45494 "EHLO mail.kernel.org"
+        id S233185AbhBWVHl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Feb 2021 16:07:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51294 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229745AbhBTDPl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 19 Feb 2021 22:15:41 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B61BC64E60;
-        Sat, 20 Feb 2021 03:15:00 +0000 (UTC)
+        id S232050AbhBWVHh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Feb 2021 16:07:37 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 12B9F64E60;
+        Tue, 23 Feb 2021 21:06:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1613790900;
-        bh=E12dcDeuwJx8nvGx/+eMN+ry+l2AzcOTBz7Y8CdCTIQ=;
+        s=korg; t=1614114416;
+        bh=22ryb/B4GlXmXwTGg7vsSTCyDgba+2MHyFCxKJKWS2E=;
         h=Date:From:To:Subject:From;
-        b=Cyc1HKhjWYk4W1N6RNqhxMN3IMf5qaHmJ8WCYP5DO5sG9fhUM3PNKjrmkmb7E0GgP
-         Dn52JuKYOVmA/tNHFXdHYsCB0XsJ9Y9xh9DSWRKPwMuyNvgnx0H/mXdh+NJHCUC/Rx
-         07BPUFhqnfXIO3p0qZsH00w+7cafnwDDBdRn5Ilc=
-Date:   Fri, 19 Feb 2021 19:15:00 -0800
+        b=LzYo9tMxcaC0CTc+yfqPHdT65uRZw3lV0xibOwQHLH7FoqVjAurEsrR76nkgYlAgF
+         KHMdLnkDx0GF05Nvh9ODv5K3WgOyDDYVp28+762qjD9XfYkb+vCJXSFCtdKZ43cUO5
+         UTYpUSfVifYtBGouhuR5Tiaah532BXOK08OgQXUM=
+Date:   Tue, 23 Feb 2021 13:06:55 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com, nathan@kernel.org,
-        willy@infradead.org
-Subject:  +
- mm-gfp-add-kernel-doc-for-gfp_tpatch-removed-from-mm-tree.patch added to -mm
- tree
-Message-ID: <20210220031500.PctGL%akpm@linux-foundation.org>
-User-Agent: s-nail v14.9.10
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-git-rejects.patch added to -mm tree
+Message-ID: <20210223210655.pGMPY4GRT%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gfp: add kernel-doc for gfp_t
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-gfp-add-kernel-doc-for-gfp_tpatch-removed-from-mm-tree.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gfp-add-kernel-doc-for-gfp_tpatch-removed-from-mm-tree.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gfp-add-kernel-doc-for-gfp_tpatch-removed-from-mm-tree.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,106 +62,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/gfp: add kernel-doc for gfp_t
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-The generated html will link to the definition of the gfp_t automatically
-once we define it.  Move the one-paragraph overview of GFP flags from the
-documentation directory into gfp.h and pull gfp.h into the documentation.
-
-This generates warnings with clang
-(https://lkml.kernel.org/r/20210219195509.GA59987@24bbad8f3778), so use
-#if 0 to hide it from the compiler for now.
-
-Link: https://lkml.kernel.org/r/20210215204909.3824509-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20210220003049.GZ2858050@casper.infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/mm-api.rst |    7 ++-----
- include/linux/gfp.h               |   14 ++++++++++++++
- 2 files changed, 16 insertions(+), 5 deletions(-)
+ drivers/hwtracing/coresight/coresight-etm4x-core.c |    4 ----
+ init/Kconfig                                       |    4 ----
+ 2 files changed, 8 deletions(-)
 
---- a/Documentation/core-api/mm-api.rst~mm-gfp-add-kernel-doc-for-gfp_tpatch-removed-from-mm-tree
-+++ a/Documentation/core-api/mm-api.rst
-@@ -19,11 +19,8 @@ User Space Memory Access
- Memory Allocation Controls
- ==========================
+--- a/drivers/hwtracing/coresight/coresight-etm4x-core.c~linux-next-git-rejects
++++ a/drivers/hwtracing/coresight/coresight-etm4x-core.c
+@@ -1899,11 +1899,7 @@ static void clear_etmdrvdata(void *info)
+ 	etmdrvdata[cpu] = NULL;
+ }
  
--Functions which need to allocate memory often use GFP flags to express
--how that memory should be allocated. The GFP acronym stands for "get
--free pages", the underlying memory allocation function. Not every GFP
--flag is allowed to every function which may allocate memory. Most
--users will want to use a plain ``GFP_KERNEL``.
-+.. kernel-doc:: include/linux/gfp.h
-+   :internal:
+-<<<<<<< HEAD
+-static void etm4_remove(struct amba_device *adev)
+-=======
+ static int __exit etm4_remove_dev(struct etmv4_drvdata *drvdata)
+->>>>>>> linux-next/akpm-base
+ {
+ 	etm_perf_symlink(drvdata->csdev, false);
+ 	/*
+--- a/init/Kconfig~linux-next-git-rejects
++++ a/init/Kconfig
+@@ -2266,10 +2266,6 @@ config MODULE_ALLOW_MISSING_NAMESPACE_IM
  
- .. kernel-doc:: include/linux/gfp.h
-    :doc: Page mobility and placement hints
---- a/include/linux/gfp.h~mm-gfp-add-kernel-doc-for-gfp_tpatch-removed-from-mm-tree
-+++ a/include/linux/gfp.h
-@@ -8,6 +8,20 @@
- #include <linux/linkage.h>
- #include <linux/topology.h>
- 
-+/* The typedef is in types.h but we want the documentation here */
-+#if 0
-+/**
-+ * typedef gfp_t - Memory allocation flags.
-+ *
-+ * GFP flags are commonly used throughout Linux to indicate how memory
-+ * should be allocated.  The GFP acronym stands for get_free_pages(),
-+ * the underlying memory allocation function.  Not every GFP flag is
-+ * supported by every function which may allocate memory.  Most users
-+ * will want to use a plain ``GFP_KERNEL``.
-+ */
-+typedef unsigned int __bitwise gfp_t;
-+#endif
-+
- struct vm_area_struct;
- 
- /*
+ config TRIM_UNUSED_KSYMS
+ 	bool "Trim unused exported kernel symbols"
+-<<<<<<< HEAD
+-	depends on BROKEN
+-=======
+->>>>>>> linux-next/akpm-base
+ 	help
+ 	  The kernel and some modules make many symbols available for
+ 	  other modules to use via EXPORT_SYMBOL() and variants. Depending
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-debug-improve-memcg-debugging.patch
-mm-filemap-rename-generic_file_buffered_read-subfunctions.patch
-mm-filemap-remove-dynamically-allocated-array-from-filemap_read.patch
-mm-filemap-convert-filemap_get_pages-to-take-a-pagevec.patch
-mm-filemap-use-head-pages-in-generic_file_buffered_read.patch
-mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked.patch
-mm-filemap-support-readpage-splitting-a-page.patch
-mm-filemap-inline-__wait_on_page_locked_async-into-caller.patch
-mm-filemap-dont-call-readpage-if-iocb_waitq-is-set.patch
-mm-filemap-change-filemap_read_page-calling-conventions.patch
-mm-filemap-change-filemap_create_page-calling-conventions.patch
-mm-filemap-convert-filemap_update_page-to-return-an-errno.patch
-mm-filemap-move-the-iocb-checks-into-filemap_update_page.patch
-mm-filemap-add-filemap_range_uptodate.patch
-mm-filemap-add-filemap_range_uptodate-fix.patch
-mm-filemap-split-filemap_readahead-out-of-filemap_get_pages.patch
-mm-filemap-restructure-filemap_get_pages.patch
-mm-filemap-dont-relock-the-page-after-calling-readpage.patch
-mm-gfp-add-kernel-doc-for-gfp_tpatch-removed-from-mm-tree.patch
-mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
-mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
-mm-swap-optimise-get_shadow_from_swap_cache.patch
-mm-add-fgp_entry.patch
-mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
-mm-filemap-add-helper-for-finding-pages.patch
-mm-filemap-add-helper-for-finding-pages-fix.patch
-mm-filemap-add-mapping_seek_hole_data.patch
-mm-filemap-add-mapping_seek_hole_data-fix.patch
-iomap-use-mapping_seek_hole_data.patch
-mm-add-and-use-find_lock_entries.patch
-mm-add-and-use-find_lock_entries-fix.patch
-mm-add-an-end-parameter-to-find_get_entries.patch
-mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
-mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
-mm-pass-pvec-directly-to-find_get_entries.patch
-mm-remove-pagevec_lookup_entries.patch
+mm.patch
+mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix.patch
+mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage-checkpatch-fixes.patch
+mm-memcg-add-swapcache-stat-for-memcg-v2-fix.patch
+kasan-add-match-all-tag-tests-fix-fix.patch
+mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-memory_hotplug-prevalidate-the-address-range-being-added-with-platform-fix.patch
+bdi-use-might_alloc-fix.patch
+kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
+lib-stackdepot-add-support-to-disable-stack-depot-fix.patch
+seq_file-document-how-per-entry-resources-are-managed-fix.patch
+initramfs-panic-with-memory-information-fix.patch
+linux-next-rejects.patch
+fs-ramfs-inodec-update-inode_operationstmpfile.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+linux-next-git-rejects.patch
 
