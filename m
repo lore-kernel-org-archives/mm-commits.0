@@ -7,37 +7,39 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AECEC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 17:29:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A2ACC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 19:09:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D49A264F0D
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 17:29:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF31564E90
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 19:08:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235135AbhBXR3N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 12:29:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51864 "EHLO mail.kernel.org"
+        id S235957AbhBXTI5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 14:08:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39686 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229594AbhBXR3M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 12:29:12 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1A3DD64F0C;
-        Wed, 24 Feb 2021 17:28:31 +0000 (UTC)
+        id S235928AbhBXTIw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 14:08:52 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EEFFF64E90;
+        Wed, 24 Feb 2021 18:59:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614187711;
-        bh=Ee/yXod1N2l8eflVqrDSBWg4Z6lb9PNV0u93mdSx6ng=;
+        s=korg; t=1614193147;
+        bh=KCZ2BZornCqcYwx7wYYln82cUQ5B5g+Dnfj8njGJWpY=;
         h=Date:From:To:Subject:From;
-        b=rmbcLmAkpp2PkVKa9lXZUIQlJK586rr5r/IWc/5enpLC8EYJv1r0JVSLYcRA1kPRA
-         l3Z6rw8oaVWAjdIwt1kFVgfN4sZzgSWg434q5Ct8QVon2pD22/ghKdxc04qMbjo85L
-         SiM/7YqKDQns67nZXCWpZkvkrZObddUT+7wbIYrU=
-Date:   Wed, 24 Feb 2021 09:28:30 -0800
+        b=jS7qyDS9L1dOd22oK3/2OuP0WeBQXd6XA7u/FKOxytY1A5GpCXbOeBeZL4xCdEcj1
+         zW9Q9jpKMMlvRu+SbReA5cBujuo1+tZhOa6nr8ZU2+0VCvA3HMM2+EBy159YNuKn2c
+         zmvdfPvie46rEKqFbNvpWRGXx94tnx4715/NFVUU=
+Date:   Wed, 24 Feb 2021 10:59:06 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, hughd@google.com, mgorman@suse.de,
-        mhocko@suse.com, mm-commits@vger.kernel.org, riel@surriel.com,
-        vbabka@suse.cz, willy@infradead.org, xuyu@linux.alibaba.com
-Subject:  +
- mmshmemthp-limit-shmem-thp-allocations-to-requested-zones.patch added to
- -mm tree
-Message-ID: <20210224172830.A4rx6d0re%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cl@linux.com, guro@fb.com,
+        hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org,
+        shakeelb@google.com
+Subject:  [folded-merged]
+ =?US-ASCII?Q?mm-memcg-slab-pre-allocate-obj=5Fcgroups-for-slab-caches-wit?=
+ =?US-ASCII?Q?h-slab=5Faccount-fix.patch?= removed from -mm tree
+Message-ID: <20210224185906.KXmEOz7Ag%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,71 +47,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,shmem,thp: limit shmem THP allocations to requested zones
-has been added to the -mm tree.  Its filename is
-     mmshmemthp-limit-shmem-thp-allocations-to-requested-zones.patch
+     Subject: mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix
+has been removed from the -mm tree.  Its filename was
+     mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmshmemthp-limit-shmem-thp-allocations-to-requested-zones.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmshmemthp-limit-shmem-thp-allocations-to-requested-zones.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: mm,shmem,thp: limit shmem THP allocations to requested zones
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix
 
-Hugh pointed out that the gma500 driver uses shmem pages, but needs to
-limit them to the DMA32 zone.  Ensure the allocations resulting from the
-gfp_mask returned by limit_gfp_mask use the zone flags that were
-originally passed to shmem_getpage_gfp.
+fix it for
+mm-slub-call-account_slab_page-after-slab-page-initialization-fix.patch
 
-Link: https://lkml.kernel.org/r/20210224121016.1314ed6d@imladris.surriel.com
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Suggested-by: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xu Yu <xuyu@linux.alibaba.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/shmem.c~mmshmemthp-limit-shmem-thp-allocations-to-requested-zones
-+++ a/mm/shmem.c
-@@ -1513,7 +1513,11 @@ static gfp_t limit_gfp_mask(gfp_t huge_g
- {
- 	gfp_t allowflags = __GFP_IO | __GFP_FS | __GFP_RECLAIM;
- 	gfp_t denyflags = __GFP_NOWARN | __GFP_NORETRY;
--	gfp_t result = huge_gfp & ~allowflags;
-+	gfp_t zoneflags = limit_gfp & GFP_ZONEMASK;
-+	gfp_t result = huge_gfp & ~(allowflags | GFP_ZONEMASK);
-+
-+	/* Allow allocations only from the originally specified zones. */
-+	result |= zoneflags;
+--- a/mm/slub.c~mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix
++++ a/mm/slub.c
+@@ -1785,7 +1785,7 @@ static struct page *allocate_slab(struct
  
- 	/*
- 	 * Minimize the result gfp by taking the union with the deny flags,
+ 	page->objects = oo_objects(oo);
+ 
+-	account_slab_page(page, oo_order(oo), s);
++	account_slab_page(page, oo_order(oo), s, flags);
+ 
+ 	page->slab_cache = s;
+ 	__SetPageSlab(page);
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mmthpshmem-limit-shmem-thp-alloc-gfp_mask.patch
-mmthpshm-limit-gfp-mask-to-no-more-than-specified.patch
-mmthpshmem-make-khugepaged-obey-tmpfs-mount-flags.patch
-mmshmemthp-limit-shmem-thp-allocations-to-requested-zones.patch
+mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch
+mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage-checkpatch-fixes.patch
+mm-memcg-add-swapcache-stat-for-memcg-v2-fix.patch
+kasan-add-match-all-tag-tests-fix-fix.patch
+mm.patch
+mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-memory_hotplug-prevalidate-the-address-range-being-added-with-platform-fix.patch
+bdi-use-might_alloc-fix.patch
+kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
+lib-stackdepot-add-support-to-disable-stack-depot-fix.patch
+seq_file-document-how-per-entry-resources-are-managed-fix.patch
+initramfs-panic-with-memory-information-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
