@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CA62C433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3C87C43381
 	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EEDA064F14
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 954CF64F14
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233743AbhBXUGQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:06:16 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56702 "EHLO mail.kernel.org"
+        id S233440AbhBXUGS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:06:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56778 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235165AbhBXUFg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235120AbhBXUFg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 24 Feb 2021 15:05:36 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0A5B364F08;
-        Wed, 24 Feb 2021 20:04:16 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 99A5B64F32;
+        Wed, 24 Feb 2021 20:04:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197056;
-        bh=qpY4DySb6Qdg0r072i2zKud5TA2ga17Nkt0ocrLYpx4=;
+        s=korg; t=1614197060;
+        bh=b8z0jFYGhZJXgwfpm3qd1Qnj3LqjaHi5HU4vzHcmA/4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=PosR8Gnp70bvAUnt3yMyiJSKJ7/KDjCL+wpzAfG7mzl13WMpvDlK2XKh5k5Oa55Fj
-         y7f+hCESUIeE+Rr1P9rClfevjxPgXMlw4ONI08oqV/1Jix3ZQ889mynw2d7MsStHiP
-         hznNLx0MPNvRRtp8+M7mhOSdznGfP5sEqL8SPi4A=
-Date:   Wed, 24 Feb 2021 12:04:15 -0800
+        b=IKlOtRgJqR4hrwoFFiTiea8tUcTonCvTXKqzlR36HWl3pVc8oQDuxnFuarMG5wrVx
+         wCvh/VP1XcTMCad9gSOmfnn0NJ1WjoKc3RviocJGf3x+S2R+EE2aT5PSjM+Z2yeXdh
+         UvkGKUmMia0KYZKfwznkgiSKFRYtdqibrnJAdbXI=
+Date:   Wed, 24 Feb 2021 12:04:19 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
-        linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org,
-        shakeelb@google.com, songmuchun@bytedance.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 072/173] fs: buffer: use raw page_memcg() on
- locked page
-Message-ID: <20210224200415.uBhXwogkS%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hannes@cmpxchg.org, linux-mm@kvack.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com,
+        songmuchun@bytedance.com, stable@vger.kernel.org,
+        torvalds@linux-foundation.org, vdavydov.dev@gmail.com
+Subject:  [patch 073/173] mm: memcontrol: fix swap undercounting in
+ cgroup2
+Message-ID: <20210224200419.SKAB6Vl7M%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,105 +44,76 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: fs: buffer: use raw page_memcg() on locked page
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcontrol: fix swap undercounting in cgroup2
 
-alloc_page_buffers() currently uses get_mem_cgroup_from_page() for
-charging the buffers to the page owner, which does an rcu-protected
-page->memcg lookup and acquires a reference.  But buffer allocation has
-the page lock held throughout, which pins the page to the memcg and
-thereby the memcg - neither rcu nor holding an extra reference during the
-allocation are necessary.  Use a raw page_memcg() instead.
+When pages are swapped in, the VM may retain the swap copy to avoid
+repeated writes in the future.  It's also retained if shared pages are
+faulted back in some processes, but not in others.  During that time we
+have an in-memory copy of the page, as well as an on-swap copy.  Cgroup1
+and cgroup2 handle these overlapping lifetimes slightly differently due to
+the nature of how they account memory and swap:
 
-This was the last user of get_mem_cgroup_from_page(), delete it.
+Cgroup1 has a unified memory+swap counter that tracks a data page
+regardless whether it's in-core or swapped out.  On swapin, we transfer
+the charge from the swap entry to the newly allocated swapcache page, even
+though the swap entry might stick around for a while.  That's why we have
+a mem_cgroup_uncharge_swap() call inside mem_cgroup_charge().
 
-Link: https://lkml.kernel.org/r/20210209190126.97842-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Muchun Song <songmuchun@bytedance.com>
+Cgroup2 tracks memory and swap as separate, independent resources and thus
+has split memory and swap counters.  On swapin, we charge the newly
+allocated swapcache page as memory, while the swap slot in turn must
+remain charged to the swap counter as long as its allocated too.
+
+The cgroup2 logic was broken by commit 2d1c498072de ("mm: memcontrol: make
+swap tracking an integral part of memory control"), because it
+accidentally removed the do_memsw_account() check in the branch inside
+mem_cgroup_uncharge() that was supposed to tell the difference between the
+charge transfer in cgroup1 and the separate counters in cgroup2.
+
+As a result, cgroup2 currently undercounts retained swap to varying
+degrees: swap slots are cached up to 50% of the configured limit or total
+available swap space; partially faulted back shared pages are only limited
+by physical capacity.  This in turn allows cgroups to significantly
+overconsume their alloted swap space.
+
+Add the do_memsw_account() check back to fix this problem.
+
+Link: https://lkml.kernel.org/r/20210217153237.92484-1-songmuchun@bytedance.com
+Fixes: 2d1c498072de ("mm: memcontrol: make swap tracking an integral part of memory control")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <guro@fb.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: <stable@vger.kernel.org>	[5.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                |    4 ++--
- include/linux/memcontrol.h |    7 -------
- mm/memcontrol.c            |   23 -----------------------
- 3 files changed, 2 insertions(+), 32 deletions(-)
+ mm/memcontrol.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
---- a/fs/buffer.c~fs-buffer-use-raw-page_memcg-on-locked-page
-+++ a/fs/buffer.c
-@@ -847,7 +847,8 @@ struct buffer_head *alloc_page_buffers(s
- 	if (retry)
- 		gfp |= __GFP_NOFAIL;
- 
--	memcg = get_mem_cgroup_from_page(page);
-+	/* The page lock pins the memcg */
-+	memcg = page_memcg(page);
- 	old_memcg = set_active_memcg(memcg);
- 
- 	head = NULL;
-@@ -868,7 +869,6 @@ struct buffer_head *alloc_page_buffers(s
- 	}
- out:
- 	set_active_memcg(old_memcg);
--	mem_cgroup_put(memcg);
- 	return head;
- /*
-  * In case anything failed, we just free everything we got.
---- a/include/linux/memcontrol.h~fs-buffer-use-raw-page_memcg-on-locked-page
-+++ a/include/linux/memcontrol.h
-@@ -680,8 +680,6 @@ struct mem_cgroup *mem_cgroup_from_task(
- 
- struct mem_cgroup *get_mem_cgroup_from_mm(struct mm_struct *mm);
- 
--struct mem_cgroup *get_mem_cgroup_from_page(struct page *page);
--
- struct lruvec *lock_page_lruvec(struct page *page);
- struct lruvec *lock_page_lruvec_irq(struct page *page);
- struct lruvec *lock_page_lruvec_irqsave(struct page *page,
-@@ -1190,11 +1188,6 @@ static inline struct mem_cgroup *get_mem
- {
- 	return NULL;
- }
--
--static inline struct mem_cgroup *get_mem_cgroup_from_page(struct page *page)
--{
--	return NULL;
--}
- 
- static inline void mem_cgroup_put(struct mem_cgroup *memcg)
- {
---- a/mm/memcontrol.c~fs-buffer-use-raw-page_memcg-on-locked-page
+--- a/mm/memcontrol.c~mm-memcontrol-fix-swap-undercounting-in-cgroup2
 +++ a/mm/memcontrol.c
-@@ -1047,29 +1047,6 @@ struct mem_cgroup *get_mem_cgroup_from_m
- }
- EXPORT_SYMBOL(get_mem_cgroup_from_mm);
+@@ -6748,7 +6748,19 @@ int mem_cgroup_charge(struct page *page,
+ 	memcg_check_events(memcg, page);
+ 	local_irq_enable();
  
--/**
-- * get_mem_cgroup_from_page: Obtain a reference on given page's memcg.
-- * @page: page from which memcg should be extracted.
-- *
-- * Obtain a reference on page->memcg and returns it if successful. Otherwise
-- * root_mem_cgroup is returned.
-- */
--struct mem_cgroup *get_mem_cgroup_from_page(struct page *page)
--{
--	struct mem_cgroup *memcg = page_memcg(page);
--
--	if (mem_cgroup_disabled())
--		return NULL;
--
--	rcu_read_lock();
--	/* Page should not get uncharged and freed memcg under us. */
--	if (!memcg || WARN_ON_ONCE(!css_tryget(&memcg->css)))
--		memcg = root_mem_cgroup;
--	rcu_read_unlock();
--	return memcg;
--}
--EXPORT_SYMBOL(get_mem_cgroup_from_page);
--
- static __always_inline struct mem_cgroup *active_memcg(void)
- {
- 	if (in_interrupt())
+-	if (PageSwapCache(page)) {
++	/*
++	 * Cgroup1's unified memory+swap counter has been charged with the
++	 * new swapcache page, finish the transfer by uncharging the swap
++	 * slot. The swap slot would also get uncharged when it dies, but
++	 * it can stick around indefinitely and we'd count the page twice
++	 * the entire time.
++	 *
++	 * Cgroup2 has separate resource counters for memory and swap,
++	 * so this is a non-issue here. Memory and swap charge lifetimes
++	 * correspond 1:1 to page and swap slot lifetimes: we charge the
++	 * page to memory here, and uncharge swap when the slot is freed.
++	 */
++	if (do_memsw_account() && PageSwapCache(page)) {
+ 		swp_entry_t entry = { .val = page_private(page) };
+ 		/*
+ 		 * The swap entry might not get freed for a long time,
 _
