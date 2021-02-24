@@ -7,35 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E07C3C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:11:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1242DC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:12:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A3E9D64E6C
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:11:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CED1B64E20
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:12:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235410AbhBXULj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:11:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33728 "EHLO mail.kernel.org"
+        id S235543AbhBXULl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:11:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33776 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235420AbhBXUKS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:10:18 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A66E764F0D;
-        Wed, 24 Feb 2021 20:09:36 +0000 (UTC)
+        id S235427AbhBXUKV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:10:21 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3626E64F08;
+        Wed, 24 Feb 2021 20:09:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197377;
-        bh=GSGlVlt9tDAHnmijpnHpxdcRPGZZnZy58WjHF9y9VNI=;
+        s=korg; t=1614197380;
+        bh=VV6ZulOy2kH1v4Md6bTtg1bw8UcpYGu+3f/5IWxm+AE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=SDEZ1twNEaYS6NogeeNPgZqZge62MhcWJ/hDELpr9axCCQwenUFbMo3B5QSLGk0MK
-         1NZupWLqsabKUq4ARTBREVrXqqnRTNZw0M81/dxdDGtElyIciQY2WOLKf7+dw1fiVa
-         r3+vG7n4jW9Agh0mPY4jJqB6CbcE6WhVkWlBUEjM=
-Date:   Wed, 24 Feb 2021 12:09:36 -0800
+        b=vP6hVi4+mA48JEBv/XbAVy3giNWWIgob9CiX0fd69Xjersrv61MOqia/yl3pJuNIL
+         ov0ujnwWJevafn16RetSlB83DYQ9WUQDUDoEhFyp5bG5e/svxnI5FFqrPSqaBdhVkV
+         IjUbInV6VzzHt2CJwuS0LuiFORhbebSny6ud0Z6o=
+Date:   Wed, 24 Feb 2021 12:09:39 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, vbabka@suse.cz, vvghjk1234@gmail.com
-Subject:  [patch 158/173] mm/compaction: fix misbehaviors of
- fast_find_migrateblock()
-Message-ID: <20210224200936.2tiDMI299%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org, david@redhat.com,
+        linux-mm@kvack.org, mgorman@techsingularity.net, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, rientjes@google.com, rppt@kernel.org,
+        stable@vger.kernel.org, torvalds@linux-foundation.org,
+        vbabka@suse.cz
+Subject:  [patch 159/173] mm, compaction: make
+ fast_isolate_freepages() stay within zone
+Message-ID: <20210224200939.yLPGAqLE6%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,105 +45,95 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Wonhyuk Yang <vvghjk1234@gmail.com>
-Subject: mm/compaction: fix misbehaviors of fast_find_migrateblock()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: make fast_isolate_freepages() stay within zone
 
-In the fast_find_migrateblock(), it iterates ocer the freelist to find the
-proper pageblock.  But there are some misbehaviors.
+Compaction always operates on pages from a single given zone when
+isolating both pages to migrate and freepages.  Pageblock boundaries are
+intersected with zone boundaries to be safe in case zone starts or ends in
+the middle of pageblock.  The use of pageblock_pfn_to_page() protects
+against non-contiguous pageblocks.
 
-First, if the page we found is equal to cc->migrate_pfn, it is considered
-that we didn't find a suitable pageblock.  Secondly, if the loop was
-terminated because order is less than PAGE_ALLOC_COSTLY_ORDER, it could be
-considered that we found a suitable one.  Thirdly, if the skip bit is set
-on the page block and we goto continue, it doesn't check nr_scanned. 
-Fourthly, if the page block's skip bit is set, it checks that page block
-is the last of list, which is unnecessary.
+The functions fast_isolate_freepages() and fast_isolate_around() don't
+currently protect the fast freepage isolation thoroughly enough against
+these corner cases, and can result in freepage isolation operate outside
+of zone boundaries:
 
-Link: https://lkml.kernel.org/r/20210128130411.6125-1-vvghjk1234@gmail.com
-Fixes: 70b44595eafe9 ("mm, compaction: use free lists to quickly locate a migration source")
-Signed-off-by: Wonhyuk Yang <vvghjk1234@gmail.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+- in fast_isolate_freepages() if we get a pfn from the first pageblock
+  of a zone that starts in the middle of that pageblock, 'highest' can be
+  a pfn outside of the zone.  If we fail to isolate anything in this
+  function, we may then call fast_isolate_around() on a pfn outside of the
+  zone and there effectively do a set_pageblock_skip(page_to_pfn(highest))
+  which may currently hit a VM_BUG_ON() in some configurations
+
+- fast_isolate_around() checks only the zone end boundary and not
+  beginning, nor that the pageblock is contiguous (with
+  pageblock_pfn_to_page()) so it's possible that we end up calling
+  isolate_freepages_block() on a range of pfn's from two different zones
+  and end up e.g.  isolating freepages under the wrong zone's lock.
+
+This patch should fix the above issues.
+
+Link: https://lkml.kernel.org/r/20210217173300.6394-1-vbabka@suse.cz
+Fixes: 5a811889de10 ("mm, compaction: use free lists to quickly locate a migration target")
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ mm/compaction.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
---- a/mm/compaction.c~mm-compactoin-fix-misbehaviors-of-fast_find_migrateblock
+--- a/mm/compaction.c~mm-compaction-make-fast_isolate_freepages-stay-within-zone
 +++ a/mm/compaction.c
-@@ -1698,6 +1698,7 @@ static unsigned long fast_find_migratebl
- 	unsigned long pfn = cc->migrate_pfn;
- 	unsigned long high_pfn;
- 	int order;
-+	bool found_block = false;
+@@ -1284,7 +1284,7 @@ static void
+ fast_isolate_around(struct compact_control *cc, unsigned long pfn, unsigned long nr_isolated)
+ {
+ 	unsigned long start_pfn, end_pfn;
+-	struct page *page = pfn_to_page(pfn);
++	struct page *page;
  
- 	/* Skip hints are relied on to avoid repeats on the fast search */
- 	if (cc->ignore_skip_hint)
-@@ -1740,7 +1741,7 @@ static unsigned long fast_find_migratebl
- 	high_pfn = pageblock_start_pfn(cc->migrate_pfn + distance);
+ 	/* Do not search around if there are enough pages already */
+ 	if (cc->nr_freepages >= cc->nr_migratepages)
+@@ -1295,8 +1295,12 @@ fast_isolate_around(struct compact_contr
+ 		return;
  
- 	for (order = cc->order - 1;
--	     order >= PAGE_ALLOC_COSTLY_ORDER && pfn == cc->migrate_pfn && nr_scanned < limit;
-+	     order >= PAGE_ALLOC_COSTLY_ORDER && !found_block && nr_scanned < limit;
- 	     order--) {
- 		struct free_area *area = &cc->zone->free_area[order];
- 		struct list_head *freelist;
-@@ -1755,7 +1756,11 @@ static unsigned long fast_find_migratebl
- 		list_for_each_entry(freepage, freelist, lru) {
- 			unsigned long free_pfn;
- 
--			nr_scanned++;
-+			if (nr_scanned++ >= limit) {
-+				move_freelist_tail(freelist, freepage);
-+				break;
-+			}
+ 	/* Pageblock boundaries */
+-	start_pfn = pageblock_start_pfn(pfn);
+-	end_pfn = min(pageblock_end_pfn(pfn), zone_end_pfn(cc->zone)) - 1;
++	start_pfn = max(pageblock_start_pfn(pfn), cc->zone->zone_start_pfn);
++	end_pfn = min(pageblock_end_pfn(pfn), zone_end_pfn(cc->zone));
 +
- 			free_pfn = page_to_pfn(freepage);
- 			if (free_pfn < high_pfn) {
- 				/*
-@@ -1764,12 +1769,8 @@ static unsigned long fast_find_migratebl
- 				 * the list assumes an entry is deleted, not
- 				 * reordered.
- 				 */
--				if (get_pageblock_skip(freepage)) {
--					if (list_is_last(freelist, &freepage->lru))
--						break;
--
-+				if (get_pageblock_skip(freepage))
- 					continue;
--				}
++	page = pageblock_pfn_to_page(start_pfn, end_pfn, cc->zone);
++	if (!page)
++		return;
  
- 				/* Reorder to so a future search skips recent pages */
- 				move_freelist_tail(freelist, freepage);
-@@ -1777,15 +1778,10 @@ static unsigned long fast_find_migratebl
- 				update_fast_start_pfn(cc, free_pfn);
- 				pfn = pageblock_start_pfn(free_pfn);
+ 	/* Scan before */
+ 	if (start_pfn != pfn) {
+@@ -1398,7 +1402,8 @@ fast_isolate_freepages(struct compact_co
+ 			pfn = page_to_pfn(freepage);
+ 
+ 			if (pfn >= highest)
+-				highest = pageblock_start_pfn(pfn);
++				highest = max(pageblock_start_pfn(pfn),
++					      cc->zone->zone_start_pfn);
+ 
+ 			if (pfn >= low_pfn) {
  				cc->fast_search_fail = 0;
-+				found_block = true;
- 				set_pageblock_skip(freepage);
- 				break;
- 			}
--
--			if (nr_scanned >= limit) {
--				cc->fast_search_fail++;
--				move_freelist_tail(freelist, freepage);
--				break;
--			}
- 		}
- 		spin_unlock_irqrestore(&cc->zone->lock, flags);
- 	}
-@@ -1796,9 +1792,10 @@ static unsigned long fast_find_migratebl
- 	 * If fast scanning failed then use a cached entry for a page block
- 	 * that had free pages as the basis for starting a linear scan.
- 	 */
--	if (pfn == cc->migrate_pfn)
-+	if (!found_block) {
-+		cc->fast_search_fail++;
- 		pfn = reinit_migrate_pfn(cc);
--
-+	}
- 	return pfn;
- }
- 
+@@ -1468,7 +1473,8 @@ fast_isolate_freepages(struct compact_co
+ 			} else {
+ 				if (cc->direct_compaction && pfn_valid(min_pfn)) {
+ 					page = pageblock_pfn_to_page(min_pfn,
+-						pageblock_end_pfn(min_pfn),
++						min(pageblock_end_pfn(min_pfn),
++						    zone_end_pfn(cc->zone)),
+ 						cc->zone);
+ 					cc->free_pfn = min_pfn;
+ 				}
 _
