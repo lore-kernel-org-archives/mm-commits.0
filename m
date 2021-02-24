@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 833D1C433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D655C433E9
 	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 415FA64E6C
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF16D64EC4
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231335AbhBXUGm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:06:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55482 "EHLO mail.kernel.org"
+        id S235274AbhBXUGl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:06:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55472 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235186AbhBXUF7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:05:59 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 15D7F64F20;
-        Wed, 24 Feb 2021 20:05:01 +0000 (UTC)
+        id S231335AbhBXUF4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:05:56 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 940C364F35;
+        Wed, 24 Feb 2021 20:04:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197102;
-        bh=vFh4qvEWMqr1XNAa0CR0/f9E19one+5mBlwsfnK63do=;
+        s=korg; t=1614197098;
+        bh=XQKP27moMFkKHciNc/q9f6Gqms+vt4sg+mpiFBlu66A=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=meL1AX21BoUYPv4qlKtSqm6odGKPfuEoD82MDU2TScTniGMZwOr0pcsbPO237E+d5
-         iq1ur6bK0JZRaeMauMQsK/WRfqXyV28JeKKfqPIL5oXDZKPRL++LHVDOzz2CKZn3H/
-         KS9feUiChP4IAVZbnqA2JgCKXc6s7/AeglK5esw4=
-Date:   Wed, 24 Feb 2021 12:05:00 -0800
+        b=unRm6qyPrQozw7PKb0Xj7gUnEnmSgS739GJqoGn6KcwB1oo9HsTJzBl7yAmGLyy6e
+         cJoFW0UsKH/FwyNXkhsPtRgWwK/ZPByWKHiAXafBSu1wTFr7bP58dlp5UVz6ZpNnvD
+         QudmVwmcsJZzloC0oagjXXsdSi0kX9cRGUPG6Zvo=
+Date:   Wed, 24 Feb 2021 12:04:57 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     abaci-bugfix@linux.alibaba.com, abaci@linux.alibaba.com,
-        adobriyan@gmail.com, akpm@linux-foundation.org, bhe@redhat.com,
-        dyoung@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, urezki@gmail.com, vgoyal@redhat.com
-Subject:  [patch 085/173] vmalloc: remove redundant NULL check
-Message-ID: <20210224200500.Nfm1N1293%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alexander.h.duyck@linux.intel.com,
+        david@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        sh_def@163.com, torvalds@linux-foundation.org
+Subject:  [patch 084/173] mm/page_reporting: use
+ list_entry_is_head() in page_reporting_cycle()
+Message-ID: <20210224200457.Ws5HbjiS0%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,41 +43,32 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yang Li <abaci-bugfix@linux.alibaba.com>
-Subject: vmalloc: remove redundant NULL check
+From: sh <sh_def@163.com>
+Subject: mm/page_reporting: use list_entry_is_head() in page_reporting_cycle()
 
-Fix below warnings reported by coccicheck:
-./fs/proc/vmcore.c:1503:2-7: WARNING: NULL check before some freeing
-functions is not needed.
+Replace '&next->lru != list' with list_entry_is_head().  No functional
+change.
 
-Link: https://lkml.kernel.org/r/1611216753-44598-1-git-send-email-abaci-bugfix@linux.alibaba.com
-Signed-off-by: Yang Li <abaci-bugfix@linux.alibaba.com>
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/20201222182735.GA1257912@ubuntu-A520I-AC
+Signed-off-by: sh <sh_def@163.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/page_reporting.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/proc/vmcore.c~vmalloc-remove-redundant-null-check
-+++ a/fs/proc/vmcore.c
-@@ -1503,11 +1503,8 @@ int vmcore_add_device_dump(struct vmcore
- 	return 0;
+--- a/mm/page_reporting.c~mm-page_reporting-use-list_entry_is_head-in-page_reporting_cycle
++++ a/mm/page_reporting.c
+@@ -211,7 +211,7 @@ page_reporting_cycle(struct page_reporti
+ 	}
  
- out_err:
--	if (buf)
--		vfree(buf);
--
--	if (dump)
--		vfree(dump);
-+	vfree(buf);
-+	vfree(dump);
+ 	/* Rotate any leftover pages to the head of the freelist */
+-	if (&next->lru != list && !list_is_first(&next->lru, list))
++	if (!list_entry_is_head(next, list, lru) && !list_is_first(&next->lru, list))
+ 		list_rotate_to_front(&next->lru, list);
  
- 	return ret;
- }
+ 	spin_unlock_irq(&zone->lock);
 _
