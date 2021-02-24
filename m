@@ -7,108 +7,185 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EF4EC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D46ACC433E9
 	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:08:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11A1C64EC3
+	by mail.kernel.org (Postfix) with ESMTP id 9527A64F1F
 	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:08:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235158AbhBXUIm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:08:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59764 "EHLO mail.kernel.org"
+        id S235371AbhBXUIo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:08:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60200 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235372AbhBXUIG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:08:06 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9964764E60;
-        Wed, 24 Feb 2021 20:07:50 +0000 (UTC)
+        id S235297AbhBXUIS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:08:18 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 419B964F0C;
+        Wed, 24 Feb 2021 20:07:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197271;
-        bh=/PowuA+liQXKosAi5ro+HSU9tErdU/1suZR4xdRManE=;
+        s=korg; t=1614197233;
+        bh=xu3dQIUcuFjKfiYnfBSYI8L8Ak26a5TGLhjBocQIuXo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=jvOjdcmzKa5aBOYZ+fyNyBW2hJVjNkQRdaXh/D8Ntd5ODyhnrYVOoJZCPIgYkJoDf
-         FRxeEIVvTk/8EqZvTBtX1BG7fxOuBTsl2KR9+Q9jHRU8oWrLD3xK5z17aBkWM3CFt6
-         trWjNffznm0i3evCunxpUI93ScH6chRbhfWhMKjo=
-Date:   Wed, 24 Feb 2021 12:07:50 -0800
+        b=WG5n3xx/ZcIZ04y3c+lE1Hi5PtijhYR4kBQ2jxqep6VdWEXIcdaYsX5en3Kff2cjV
+         AswbRKLKSgLpGX93SpnGmPXr6jTvNlLQs2neEJzOb9f77KBIN/hc5Qg52ELM/AU3OA
+         S9g9CkVx8C991JKw1Q7IHiUSfeJ1/m75PzxU4G5g=
+Date:   Wed, 24 Feb 2021 12:07:12 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, akpm@linux-foundation.org, dbueso@suse.de,
-        joao.m.martins@oracle.com, kirill.shutemov@linux.intel.com,
+To:     akpm@linux-foundation.org, joao.m.martins@oracle.com,
         linux-mm@kvack.org, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, osalvador@suse.de,
-        stable@vger.kernel.org, torvalds@linux-foundation.org,
-        willy@infradead.org, ziy@nvidia.com
-Subject:  [patch 130/173] hugetlb: fix update_and_free_page contig
- page struct assumption
-Message-ID: <20210224200750.Dfh-Co_Ux%akpm@linux-foundation.org>
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 119/173] mm/hugetlb: grab head page refcount once
+ for group of subpages
+Message-ID: <20210224200712.-Mz_odraQ%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: fix update_and_free_page contig page struct assumption
+From: Joao Martins <joao.m.martins@oracle.com>
+Subject: mm/hugetlb: grab head page refcount once for group of subpages
 
-page structs are not guaranteed to be contiguous for gigantic pages.  The
-routine update_and_free_page can encounter a gigantic page, yet it assumes
-page structs are contiguous when setting page flags in subpages.
+Patch series "mm/hugetlb: follow_hugetlb_page() improvements", v2.
 
-If update_and_free_page encounters non-contiguous page structs, we can see
-=E2=80=9CBUG: Bad page state in process =E2=80=A6=E2=80=9D errors.
+While looking at ZONE_DEVICE struct page reuse particularly the last
+patch[0], I found two possible improvements for follow_hugetlb_page()
+which is solely used for get_user_pages()/pin_user_pages().
 
-Non-contiguous page structs are generally not an issue.  However, they can
-exist with a specific kernel configuration and hotplug operations.  For
-example: Configure the kernel with CONFIG_SPARSEMEM and
-!CONFIG_SPARSEMEM_VMEMMAP.  Then, hotplug add memory for the area where
-the gigantic page will be allocated.  Zi Yan outlined steps to reproduce
-here [1].
+The first patch batches page refcount updates while the second tidies up
+storing the subpages/vmas.  Both together bring the cost of slow variant
+of gup() cost from ~87.6k usecs to ~5.8k usecs.
 
-[1] https://lore.kernel.org/linux-mm/16F7C58B-4D79-41C5-9B64-A1A1628F4AF2@n=
-vidia.com/
+libhugetlbfs tests seem to pass as well gup_test benchmarks with hugetlbfs
+vmas.
 
-Link: https://lkml.kernel.org/r/20210217184926.33567-1-mike.kravetz@oracle.=
-com
-Fixes: 944d9fec8d7a ("hugetlb: add support for gigantic page allocation at =
-runtime")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: <stable@vger.kernel.org>
+
+This patch (of 2):
+
+follow_hugetlb_page() once it locks the pmd/pud, checks all its N subpages
+in a huge page and grabs a reference for each one.  Similar to gup-fast,
+have follow_hugetlb_page() grab the head page refcount only after counting
+all its subpages that are part of the just faulted huge page.
+
+Consequently we reduce the number of atomics necessary to pin said huge
+page, which improves non-fast gup() considerably:
+
+  - 16G with 1G huge page size
+  gup_test -f /mnt/huge/file -m 16384 -r 10 -L -S -n 512 -w
+
+PIN_LONGTERM_BENCHMARK: ~87.6k us -> ~12.8k us
+
+Link: https://lkml.kernel.org/r/20210128182632.24562-1-joao.m.martins@oracle.com
+Link: https://lkml.kernel.org/r/20210128182632.24562-2-joao.m.martins@oracle.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    3 +++
+ mm/gup.c           |    5 ++---
+ mm/hugetlb.c       |   43 ++++++++++++++++++++++++-------------------
+ 3 files changed, 29 insertions(+), 22 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-fix-update_and_free_page-contig-page-struct-assu=
-mption
-+++ a/mm/hugetlb.c
-@@ -1321,14 +1321,16 @@ static inline void destroy_compound_giga
- static void update_and_free_page(struct hstate *h, struct page *page)
+--- a/include/linux/mm.h~mm-hugetlb-grab-head-page-refcount-once-for-group-of-subpages
++++ a/include/linux/mm.h
+@@ -1187,6 +1187,9 @@ static inline void get_page(struct page
+ }
+ 
+ bool __must_check try_grab_page(struct page *page, unsigned int flags);
++__maybe_unused struct page *try_grab_compound_head(struct page *page, int refs,
++						   unsigned int flags);
++
+ 
+ static inline __must_check bool try_get_page(struct page *page)
  {
- 	int i;
-+	struct page *subpage =3D page;
-=20
- 	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
- 		return;
-=20
- 	h->nr_huge_pages--;
- 	h->nr_huge_pages_node[page_to_nid(page)]--;
--	for (i =3D 0; i < pages_per_huge_page(h); i++) {
--		page[i].flags &=3D ~(1 << PG_locked | 1 << PG_error |
-+	for (i =3D 0; i < pages_per_huge_page(h);
-+	     i++, subpage =3D mem_map_next(subpage, page, i)) {
-+		subpage->flags &=3D ~(1 << PG_locked | 1 << PG_error |
- 				1 << PG_referenced | 1 << PG_dirty |
- 				1 << PG_active | 1 << PG_private |
- 				1 << PG_writeback);
+--- a/mm/gup.c~mm-hugetlb-grab-head-page-refcount-once-for-group-of-subpages
++++ a/mm/gup.c
+@@ -78,9 +78,8 @@ static inline struct page *try_get_compo
+  * considered failure, and furthermore, a likely bug in the caller, so a warning
+  * is also emitted.
+  */
+-static __maybe_unused struct page *try_grab_compound_head(struct page *page,
+-							  int refs,
+-							  unsigned int flags)
++__maybe_unused struct page *try_grab_compound_head(struct page *page,
++						   int refs, unsigned int flags)
+ {
+ 	if (flags & FOLL_GET)
+ 		return try_get_compound_head(page, refs);
+--- a/mm/hugetlb.c~mm-hugetlb-grab-head-page-refcount-once-for-group-of-subpages
++++ a/mm/hugetlb.c
+@@ -4796,7 +4796,7 @@ long follow_hugetlb_page(struct mm_struc
+ 	unsigned long vaddr = *position;
+ 	unsigned long remainder = *nr_pages;
+ 	struct hstate *h = hstate_vma(vma);
+-	int err = -EFAULT;
++	int err = -EFAULT, refs;
+ 
+ 	while (vaddr < vma->vm_end && remainder) {
+ 		pte_t *pte;
+@@ -4916,26 +4916,11 @@ long follow_hugetlb_page(struct mm_struc
+ 			continue;
+ 		}
+ 
++		refs = 0;
++
+ same_page:
+-		if (pages) {
++		if (pages)
+ 			pages[i] = mem_map_offset(page, pfn_offset);
+-			/*
+-			 * try_grab_page() should always succeed here, because:
+-			 * a) we hold the ptl lock, and b) we've just checked
+-			 * that the huge page is present in the page tables. If
+-			 * the huge page is present, then the tail pages must
+-			 * also be present. The ptl prevents the head page and
+-			 * tail pages from being rearranged in any way. So this
+-			 * page must be available at this point, unless the page
+-			 * refcount overflowed:
+-			 */
+-			if (WARN_ON_ONCE(!try_grab_page(pages[i], flags))) {
+-				spin_unlock(ptl);
+-				remainder = 0;
+-				err = -ENOMEM;
+-				break;
+-			}
+-		}
+ 
+ 		if (vmas)
+ 			vmas[i] = vma;
+@@ -4944,6 +4929,7 @@ same_page:
+ 		++pfn_offset;
+ 		--remainder;
+ 		++i;
++		++refs;
+ 		if (vaddr < vma->vm_end && remainder &&
+ 				pfn_offset < pages_per_huge_page(h)) {
+ 			/*
+@@ -4951,6 +4937,25 @@ same_page:
+ 			 * of this compound page.
+ 			 */
+ 			goto same_page;
++		} else if (pages) {
++			/*
++			 * try_grab_compound_head() should always succeed here,
++			 * because: a) we hold the ptl lock, and b) we've just
++			 * checked that the huge page is present in the page
++			 * tables. If the huge page is present, then the tail
++			 * pages must also be present. The ptl prevents the
++			 * head page and tail pages from being rearranged in
++			 * any way. So this page must be available at this
++			 * point, unless the page refcount overflowed:
++			 */
++			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i-1],
++								 refs,
++								 flags))) {
++				spin_unlock(ptl);
++				remainder = 0;
++				err = -ENOMEM;
++				break;
++			}
+ 		}
+ 		spin_unlock(ptl);
+ 	}
 _
