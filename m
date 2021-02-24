@@ -5,37 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3B2EC43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8393C433E9
 	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:03:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B43BB64F1D
+	by mail.kernel.org (Postfix) with ESMTP id 6E59264F1D
 	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:03:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235410AbhBXUDH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:03:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55470 "EHLO mail.kernel.org"
+        id S235120AbhBXUDE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:03:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55458 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235225AbhBXUC1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:02:27 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E812C64E09;
-        Wed, 24 Feb 2021 20:01:39 +0000 (UTC)
+        id S235216AbhBXUC0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:02:26 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AE9B864E20;
+        Wed, 24 Feb 2021 20:01:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614196900;
-        bh=HztGbotrskxQl5YEUxl1erJfoM7EIYD5NNsM7KtS8xY=;
+        s=korg; t=1614196890;
+        bh=toh4JbE/mFziqaT8vghw6ctptenKDfbrWau1XAqpAkk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=2r7H+2/4FpJpBFhJDHIWauRQ01dJvKczCP4jqVCZRF12mYCD9sfimyf6y9f9q17W9
-         DeOvJuojHTyaDiOj4B5nwhBZpzJfo4ev2lJUmQ0FkFvawz4Mnq4CgHYTcYE9Iqmfgl
-         KlG0EEFBINis18cPiq0clQz7+0/Z4a7aAZ0QrCMo=
-Date:   Wed, 24 Feb 2021 12:01:39 -0800
+        b=1I5XAof1vqyjwy2NSLCMOnqiYWzLbsdTts2qjLc95SSguL9cuLiAEIaM8tj63RKF7
+         bfpy5lOy77laJpmTfVH+VfeCc1BH+e5xztBmpOp8ppoywy+yJ141Jst439lPFAa96A
+         Jh87IYRAlUDJhbEiLkfz1cD6Bd++kkelGOUnAcho=
+Date:   Wed, 24 Feb 2021 12:01:29 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linmiaohe@huawei.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 027/173] mm/page_owner: use helper function
- zone_end_pfn() to get end_pfn
-Message-ID: <20210224200139.gHZVOOVcn%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hannes@cmpxchg.org, linux-mm@kvack.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, willy@infradead.org, ziy@nvidia.com
+Subject:  [patch 024/173] mm/debug: improve memcg debugging
+Message-ID: <20210224200129.GAA7qjsYK%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,35 +42,48 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/page_owner: use helper function zone_end_pfn() to get end_pfn
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/debug: improve memcg debugging
 
-Commit 108bcc96ef70 ("mm: add & use zone_end_pfn() and zone_spans_pfn()")
-introduced the helper zone_end_pfn() to calculate the zone end pfn.  But
-pagetypeinfo_showmixedcount_print forgot to use it.  And the
-initialization of local variable pfn is duplicated, remove one.
+The memcg_data is only valid on the head page, not the tail pages.  Change
+the format and location of the printout within the dump to match the other
+parts of struct page better.
 
-Link: https://lkml.kernel.org/r/20210123070538.5861-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20210114190200.1894484-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/debug.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-use-helper-function-zone_end_pfn-to-get-end_pfn
-+++ a/mm/page_owner.c
-@@ -263,8 +263,8 @@ void pagetypeinfo_showmixedcount_print(s
- 	struct page *page;
- 	struct page_ext *page_ext;
- 	struct page_owner *page_owner;
--	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
--	unsigned long end_pfn = pfn + zone->spanned_pages;
-+	unsigned long pfn, block_end_pfn;
-+	unsigned long end_pfn = zone_end_pfn(zone);
- 	unsigned long count[MIGRATE_TYPES] = { 0, };
- 	int pageblock_mt, page_mt;
- 	int i;
+--- a/mm/debug.c~mm-debug-improve-memcg-debugging
++++ a/mm/debug.c
+@@ -110,6 +110,11 @@ void __dump_page(struct page *page, cons
+ 					head_compound_mapcount(head));
+ 		}
+ 	}
++
++#ifdef CONFIG_MEMCG
++	if (head->memcg_data)
++		pr_warn("memcg:%lx\n", head->memcg_data);
++#endif
+ 	if (PageKsm(page))
+ 		type = "ksm ";
+ 	else if (PageAnon(page))
+@@ -180,11 +185,6 @@ hex_only:
+ 
+ 	if (reason)
+ 		pr_warn("page dumped because: %s\n", reason);
+-
+-#ifdef CONFIG_MEMCG
+-	if (!page_poisoned && page->memcg_data)
+-		pr_warn("pages's memcg:%lx\n", page->memcg_data);
+-#endif
+ }
+ 
+ void dump_page(struct page *page, const char *reason)
 _
