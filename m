@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4355DC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C29DC433E6
 	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F16B464E60
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44AC664EC3
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231638AbhBXUGs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:06:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56140 "EHLO mail.kernel.org"
+        id S233506AbhBXUGt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:06:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56778 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235165AbhBXUGb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235120AbhBXUGb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 24 Feb 2021 15:06:31 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 414E064EC4;
-        Wed, 24 Feb 2021 20:05:39 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7993664E20;
+        Wed, 24 Feb 2021 20:05:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197140;
-        bh=F6+6qRl94RcbrU28MNSRfxeMUmURNJ5b/eD235BZS/c=;
+        s=korg; t=1614197131;
+        bh=+zKbQoNPgHNt3ErXvSR41yhnexPq2doV0RBlDWwlggE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=asl209Up9XJu+mloGiNJCet+X2k0pcIUqeHKwvOdzU5iC0cZI7pD7XDgwrC0CamE8
-         3e3NfsFLU3a8Udx2q0qGGDfKBL0aTiEQ8eor+UztoXMUYJG2XXxfGZQU+OOD9hDmhK
-         BFO2ITKFfYuFU/iPA0M1xdr9iccs4C43MakLUqb8=
-Date:   Wed, 24 Feb 2021 12:05:38 -0800
+        b=typAWSZuoAnX2te227FAXN/g8+Nb4Ff1St3dNyeD8OyCgYkI3HjmcanFvLmMPG7iO
+         uomCyYIsISSwQVMTDE/hMacOxX3l3g1XtH0L+CyWyJ2jzNQbj1C83ksp0VTVDUIdLJ
+         o9UnA2OCjL76l+ZT4anxm0m8h8TWD7MlYnufm9BM=
+Date:   Wed, 24 Feb 2021 12:05:29 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,9 +37,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
         torvalds@linux-foundation.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [patch 094/173] kasan: adapt kmalloc_uaf2 test to HW_TAGS
- mode
-Message-ID: <20210224200538.lbNI_UzhS%akpm@linux-foundation.org>
+Subject:  [patch 092/173] kasan: rename CONFIG_TEST_KASAN_MODULE
+Message-ID: <20210224200529.HNKAZ1n1p%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,19 +47,14 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: adapt kmalloc_uaf2 test to HW_TAGS mode
+Subject: kasan: rename CONFIG_TEST_KASAN_MODULE
 
-In the kmalloc_uaf2() test, the pointers to the two allocated memory
-blocks might happen to be the same, and the test will fail. With the
-software tag-based mode, the probability of the that is 1/254, so it's
-hard to observe the failure. For the hardware tag-based mode though,
-the probablity is 1/14, which is quite noticable.
+Rename CONFIG_TEST_KASAN_MODULE to CONFIG_KASAN_MODULE_TEST.
 
-Allow up to 16 attempts at generating different tags for the tag-based
-modes.
+This naming is more consistent with the existing CONFIG_KASAN_KUNIT_TEST.
 
-Link: https://linux-review.googlesource.com/id/Ibfa458ef2804ff465d8eb07434a300bf36388d55
-Link: https://lkml.kernel.org/r/9cd5cf2f633dcbf55cab801cd26845d2b075cec7.1610733117.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/Id347dfa5fe8788b7a1a189863e039f409da0ae5f
+Link: https://lkml.kernel.org/r/f08250246683981bcf8a094fbba7c361995624d2.1610733117.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
@@ -76,35 +70,55 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ Documentation/dev-tools/kasan.rst |    8 ++++----
+ lib/Kconfig.kasan                 |    2 +-
+ lib/Makefile                      |    2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/lib/test_kasan.c~kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode
-+++ a/lib/test_kasan.c
-@@ -382,7 +382,9 @@ static void kmalloc_uaf2(struct kunit *t
- {
- 	char *ptr1, *ptr2;
- 	size_t size = 43;
-+	int counter = 0;
+--- a/Documentation/dev-tools/kasan.rst~kasan-rename-config_test_kasan_module
++++ a/Documentation/dev-tools/kasan.rst
+@@ -358,17 +358,17 @@ unmapped. This will require changes in a
+ This allows ``VMAP_STACK`` support on x86, and can simplify support of
+ architectures that do not have a fixed module region.
  
-+again:
- 	ptr1 = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
+-CONFIG_KASAN_KUNIT_TEST & CONFIG_TEST_KASAN_MODULE
+---------------------------------------------------
++CONFIG_KASAN_KUNIT_TEST and CONFIG_KASAN_MODULE_TEST
++----------------------------------------------------
  
-@@ -391,6 +393,15 @@ static void kmalloc_uaf2(struct kunit *t
- 	ptr2 = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
+-KASAN tests consist on two parts:
++KASAN tests consist of two parts:
  
-+	/*
-+	 * For tag-based KASAN ptr1 and ptr2 tags might happen to be the same.
-+	 * Allow up to 16 attempts at generating different tags.
-+	 */
-+	if (!IS_ENABLED(CONFIG_KASAN_GENERIC) && ptr1 == ptr2 && counter++ < 16) {
-+		kfree(ptr2);
-+		goto again;
-+	}
-+
- 	KUNIT_EXPECT_KASAN_FAIL(test, ptr1[40] = 'x');
- 	KUNIT_EXPECT_PTR_NE(test, ptr1, ptr2);
+ 1. Tests that are integrated with the KUnit Test Framework. Enabled with
+ ``CONFIG_KASAN_KUNIT_TEST``. These tests can be run and partially verified
+ automatically in a few different ways, see the instructions below.
  
+ 2. Tests that are currently incompatible with KUnit. Enabled with
+-``CONFIG_TEST_KASAN_MODULE`` and can only be run as a module. These tests can
++``CONFIG_KASAN_MODULE_TEST`` and can only be run as a module. These tests can
+ only be verified manually, by loading the kernel module and inspecting the
+ kernel log for KASAN reports.
+ 
+--- a/lib/Kconfig.kasan~kasan-rename-config_test_kasan_module
++++ a/lib/Kconfig.kasan
+@@ -192,7 +192,7 @@ config KASAN_KUNIT_TEST
+ 	  For more information on KUnit and unit tests in general, please refer
+ 	  to the KUnit documentation in Documentation/dev-tools/kunit.
+ 
+-config TEST_KASAN_MODULE
++config KASAN_MODULE_TEST
+ 	tristate "KUnit-incompatible tests of KASAN bug detection capabilities"
+ 	depends on m && KASAN && !KASAN_HW_TAGS
+ 	help
+--- a/lib/Makefile~kasan-rename-config_test_kasan_module
++++ a/lib/Makefile
+@@ -66,7 +66,7 @@ obj-$(CONFIG_TEST_IDA) += test_ida.o
+ obj-$(CONFIG_KASAN_KUNIT_TEST) += test_kasan.o
+ CFLAGS_test_kasan.o += -fno-builtin
+ CFLAGS_test_kasan.o += $(call cc-disable-warning, vla)
+-obj-$(CONFIG_TEST_KASAN_MODULE) += test_kasan_module.o
++obj-$(CONFIG_KASAN_MODULE_TEST) += test_kasan_module.o
+ CFLAGS_test_kasan_module.o += -fno-builtin
+ obj-$(CONFIG_TEST_UBSAN) += test_ubsan.o
+ CFLAGS_test_ubsan.o += $(call cc-disable-warning, vla)
 _
