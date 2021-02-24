@@ -7,39 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0765BC433E6
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:07:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC4C5C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:07:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B8F3564F23
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:07:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9984864F0E
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:07:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234706AbhBXUHL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:07:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56272 "EHLO mail.kernel.org"
+        id S234498AbhBXUHi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:07:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55904 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235172AbhBXUGx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:06:53 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7BB6664F0C;
-        Wed, 24 Feb 2021 20:06:03 +0000 (UTC)
+        id S235242AbhBXUG6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:06:58 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 82C8364F3A;
+        Wed, 24 Feb 2021 20:06:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197164;
-        bh=qw9ptL7Cnw4elSq3daOYS3InTUivIfyhGpsiItG/Ub4=;
+        s=korg; t=1614197196;
+        bh=S0oS6KcS8t0bMJvL3VnGBGEPzhOsu8h+HkMYXUqvW2Y=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=nTIFO2KC6jeZYIbqNAvBnC08GwHIkzy/kbuUSxjTD9v2R1YYSP7N8T4X4b6+zEsWY
-         VW4mtLTcJpVQLDP6YfeAfY+BatsBRJlOU3YNVCH4uz4P1YM/MjLeE13UtsoZnEHaTY
-         xLP8nCd/XGQonaFLYeoJ9DKpWYYWpt3E8Vn8mFfo=
-Date:   Wed, 24 Feb 2021 12:06:02 -0800
+        b=TE75duOwfU7grRNPC5L5rn88ZXXmNTHGlKwSw2RYcogd+nCWEY+ehZ84wp2h+5OuK
+         5HulX7QCutHP7ZAtOlk0qypcGFstnZIuK/vqDYUwgOuMm418CvOEV4qmZmPhyAqUVw
+         NZazUqx6XOjZjVhjqUFLyFrr8+uOYBhyu8/due/s=
+Date:   Wed, 24 Feb 2021 12:06:35 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@google.com,
-        aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
-        catalin.marinas@arm.com, dvyukov@google.com, elver@google.com,
-        eugenis@google.com, glider@google.com, kevin.brodsky@arm.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
-        torvalds@linux-foundation.org, vincenzo.frascino@arm.com,
-        will.deacon@arm.com
-Subject:  [patch 100/173] kasan: don't run tests when KASAN is not
- enabled
-Message-ID: <20210224200602.U_Wshqs7c%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, nathan@kernel.org, rppt@linux.ibm.com,
+        torvalds@linux-foundation.org, willy@infradead.org
+Subject:  [patch 109/173] mm/gfp: add kernel-doc for gfp_t
+Message-ID: <20210224200635.7ADCBJmnK%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,44 +42,66 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: don't run tests when KASAN is not enabled
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/gfp: add kernel-doc for gfp_t
 
-Don't run KASAN tests when it's disabled with kasan.mode=off to avoid
-corrupting kernel memory.
+The generated html will link to the definition of the gfp_t automatically
+once we define it.  Move the one-paragraph overview of GFP flags from the
+documentation directory into gfp.h and pull gfp.h into the documentation.
 
-Link: https://linux-review.googlesource.com/id/I6447af436a69a94bfc35477f6bf4e2122948355e
-Link: https://lkml.kernel.org/r/25bd4fb5cae7b421d806a1f33fb633edd313f0c7.1610733117.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
+This generates warnings with clang
+(https://lkml.kernel.org/r/20210219195509.GA59987@24bbad8f3778), so
+use a #if 0 to hide it from the compiler for now.
+
+Link: https://lkml.kernel.org/r/20210215204909.3824509-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210220003049.GZ2858050@casper.infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/core-api/mm-api.rst |    7 ++-----
+ include/linux/gfp.h               |   14 ++++++++++++++
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
---- a/lib/test_kasan.c~kasan-dont-run-tests-when-kasan-is-not-enabled
-+++ a/lib/test_kasan.c
-@@ -47,6 +47,11 @@ static bool multishot;
-  */
- static int kasan_test_init(struct kunit *test)
- {
-+	if (!kasan_enabled()) {
-+		kunit_err(test, "can't run KASAN tests with KASAN disabled");
-+		return -1;
-+	}
+--- a/Documentation/core-api/mm-api.rst~mm-gfp-add-kernel-doc-for-gfp_t
++++ a/Documentation/core-api/mm-api.rst
+@@ -19,11 +19,8 @@ User Space Memory Access
+ Memory Allocation Controls
+ ==========================
+ 
+-Functions which need to allocate memory often use GFP flags to express
+-how that memory should be allocated. The GFP acronym stands for "get
+-free pages", the underlying memory allocation function. Not every GFP
+-flag is allowed to every function which may allocate memory. Most
+-users will want to use a plain ``GFP_KERNEL``.
++.. kernel-doc:: include/linux/gfp.h
++   :internal:
+ 
+ .. kernel-doc:: include/linux/gfp.h
+    :doc: Page mobility and placement hints
+--- a/include/linux/gfp.h~mm-gfp-add-kernel-doc-for-gfp_t
++++ a/include/linux/gfp.h
+@@ -8,6 +8,20 @@
+ #include <linux/linkage.h>
+ #include <linux/topology.h>
+ 
++/* The typedef is in types.h but we want the documentation here */
++#if 0
++/**
++ * typedef gfp_t - Memory allocation flags.
++ *
++ * GFP flags are commonly used throughout Linux to indicate how memory
++ * should be allocated.  The GFP acronym stands for get_free_pages(),
++ * the underlying memory allocation function.  Not every GFP flag is
++ * supported by every function which may allocate memory.  Most users
++ * will want to use a plain ``GFP_KERNEL``.
++ */
++typedef unsigned int __bitwise gfp_t;
++#endif
 +
- 	multishot = kasan_save_enable_multi_shot();
- 	kasan_set_tagging_report_once(false);
- 	return 0;
+ struct vm_area_struct;
+ 
+ /*
 _
