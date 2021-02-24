@@ -7,38 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 635C4C433E9
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:11:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE0D4C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:11:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 27EAA64E09
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:11:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 787E264F1D
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:11:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235382AbhBXUKl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:10:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33268 "EHLO mail.kernel.org"
+        id S235517AbhBXULF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:11:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33566 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235339AbhBXUJq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:09:46 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0412964E24;
-        Wed, 24 Feb 2021 20:09:04 +0000 (UTC)
+        id S234906AbhBXUKD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:10:03 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 16BCB64E20;
+        Wed, 24 Feb 2021 20:09:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197345;
-        bh=QC0AIZ6aUxbhZZgviX5mx6Iepg59j3OqAEvMZ48Jxcs=;
+        s=korg; t=1614197363;
+        bh=cbWVhJb2ikl9MPOfzpsd3ykSmD86J00qxvIHN0u7wzY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=NMYp21prKFxsZPE19g44nbOMSNdYhaxiJAVU+bEtNwp0DCROfZWWw60fFpJVk/s90
-         rroG9i5Vc0mpMzu1YT8oxiObU8tlZGMebINdtlOrytwvBPBzn52DW0wIAPWCzmZcak
-         qlBrxMa9BI6WGlZTPA6ErlodsB+XCTE11K5SEPko=
-Date:   Wed, 24 Feb 2021 12:09:04 -0800
+        b=LK3mBFc5d+lEAOnttoR9xNMFXxpPVEmmiyG9jv3Z0b+4uef/moQizfMf58c6n6/cG
+         gOv/c+xUejgEILcPS7Uzi6tYXXSiep6ZZGplNC/+3fh6KWfQh0mTladuS6/dSHmllK
+         85pWuisGmufqy7Rj3EZk1b7uz55hYfIVyI/dAMV4=
+Date:   Wed, 24 Feb 2021 12:09:22 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linmiaohe@huawei.com,
-        linux-mm@kvack.org, mhocko@kernel.org, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        n-horiguchi@ah.jp.nec.com, osalvador@suse.de,
-        songmuchun@bytedance.com, torvalds@linux-foundation.org,
-        willy@infradead.org
-Subject:  [patch 149/173] hugetlb: convert PageHugeFreed to
- HPageFreed flag
-Message-ID: <20210224200904.e6JwA1acj%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, vitaly.wool@konsulko.com
+Subject:  [patch 154/173] z3fold: simplify the zhdr initialization
+ code in init_z3fold_page()
+Message-ID: <20210224200922.1vIVbQDbU%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,111 +43,40 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: convert PageHugeFreed to HPageFreed flag
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: z3fold: simplify the zhdr initialization code in init_z3fold_page()
 
-Use new hugetlb specific HPageFreed flag to replace the PageHugeFreed
-interfaces.
+We can simplify the zhdr initialization by memset() the zhdr first instead
+of set struct member to zero one by one.  This would also make code more
+compact and clear.
 
-Link: https://lkml.kernel.org/r/20210122195231.324857-6-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: https://lkml.kernel.org/r/20210120085851.16159-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    3 +++
- mm/hugetlb.c            |   23 ++++-------------------
- 2 files changed, 7 insertions(+), 19 deletions(-)
+ mm/z3fold.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
---- a/include/linux/hugetlb.h~hugetlb-convert-pagehugefreed-to-hpagefreed-flag
-+++ a/include/linux/hugetlb.h
-@@ -487,11 +487,13 @@ unsigned long hugetlb_get_unmapped_area(
-  *	allocator.  Typically used for migration target pages when no pages
-  *	are available in the pool.  The hugetlb free page path will
-  *	immediately free pages with this flag set to the buddy allocator.
-+ * HPG_freed - Set when page is on the free lists.
-  */
- enum hugetlb_page_flags {
- 	HPG_restore_reserve = 0,
- 	HPG_migratable,
- 	HPG_temporary,
-+	HPG_freed,
- 	__NR_HPAGEFLAGS,
- };
+--- a/mm/z3fold.c~z3fold-simplify-the-zhdr-initialization-code-in-init_z3fold_page
++++ a/mm/z3fold.c
+@@ -413,16 +413,10 @@ static struct z3fold_header *init_z3fold
+ 	if (!slots)
+ 		return NULL;
  
-@@ -536,6 +538,7 @@ static inline void ClearHPage##uname(str
- HPAGEFLAG(RestoreReserve, restore_reserve)
- HPAGEFLAG(Migratable, migratable)
- HPAGEFLAG(Temporary, temporary)
-+HPAGEFLAG(Freed, freed)
- 
- #ifdef CONFIG_HUGETLB_PAGE
- 
---- a/mm/hugetlb.c~hugetlb-convert-pagehugefreed-to-hpagefreed-flag
-+++ a/mm/hugetlb.c
-@@ -79,21 +79,6 @@ DEFINE_SPINLOCK(hugetlb_lock);
- static int num_fault_mutexes;
- struct mutex *hugetlb_fault_mutex_table ____cacheline_aligned_in_smp;
- 
--static inline bool PageHugeFreed(struct page *head)
--{
--	return page_private(head + 4) == -1UL;
--}
--
--static inline void SetPageHugeFreed(struct page *head)
--{
--	set_page_private(head + 4, -1UL);
--}
--
--static inline void ClearPageHugeFreed(struct page *head)
--{
--	set_page_private(head + 4, 0);
--}
--
- /* Forward declaration */
- static int hugetlb_acct_memory(struct hstate *h, long delta);
- 
-@@ -1053,7 +1038,7 @@ static void enqueue_huge_page(struct hst
- 	list_move(&page->lru, &h->hugepage_freelists[nid]);
- 	h->free_huge_pages++;
- 	h->free_huge_pages_node[nid]++;
--	SetPageHugeFreed(page);
-+	SetHPageFreed(page);
- }
- 
- static struct page *dequeue_huge_page_node_exact(struct hstate *h, int nid)
-@@ -1070,7 +1055,7 @@ static struct page *dequeue_huge_page_no
- 
- 		list_move(&page->lru, &h->hugepage_activelist);
- 		set_page_refcounted(page);
--		ClearPageHugeFreed(page);
-+		ClearHPageFreed(page);
- 		h->free_huge_pages--;
- 		h->free_huge_pages_node[nid]--;
- 		return page;
-@@ -1485,7 +1470,7 @@ static void prep_new_huge_page(struct hs
- 	spin_lock(&hugetlb_lock);
- 	h->nr_huge_pages++;
- 	h->nr_huge_pages_node[nid]++;
--	ClearPageHugeFreed(page);
-+	ClearHPageFreed(page);
- 	spin_unlock(&hugetlb_lock);
- }
- 
-@@ -1756,7 +1741,7 @@ retry:
- 		 * We should make sure that the page is already on the free list
- 		 * when it is dissolved.
- 		 */
--		if (unlikely(!PageHugeFreed(head))) {
-+		if (unlikely(!HPageFreed(head))) {
- 			spin_unlock(&hugetlb_lock);
- 			cond_resched();
- 
++	memset(zhdr, 0, sizeof(*zhdr));
+ 	spin_lock_init(&zhdr->page_lock);
+ 	kref_init(&zhdr->refcount);
+-	zhdr->first_chunks = 0;
+-	zhdr->middle_chunks = 0;
+-	zhdr->last_chunks = 0;
+-	zhdr->first_num = 0;
+-	zhdr->start_middle = 0;
+ 	zhdr->cpu = -1;
+-	zhdr->foreign_handles = 0;
+-	zhdr->mapped_count = 0;
+ 	zhdr->slots = slots;
+ 	zhdr->pool = pool;
+ 	INIT_LIST_HEAD(&zhdr->buddy);
 _
