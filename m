@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDC84C43381
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:03:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81C80C433E6
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:03:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7AA7564F31
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:03:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 365B964F34
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:03:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235344AbhBXUDz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:03:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56138 "EHLO mail.kernel.org"
+        id S235375AbhBXUD4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:03:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56140 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235385AbhBXUCx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235384AbhBXUCx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 24 Feb 2021 15:02:53 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1618764E60;
-        Wed, 24 Feb 2021 20:01:43 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AB9F864EC4;
+        Wed, 24 Feb 2021 20:01:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614196903;
-        bh=Gx2UYBXkLKplZFlSpc9Xu7tBsp3g7Fq+GrNge51Cqsg=;
+        s=korg; t=1614196910;
+        bh=2hPNHFAWK4SArcZOrl8XmoD8oHkK0U679kOXky30KlM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Z85b3vtFhKgUpbwj5fuw71BjQtykRpL+418oZL5X5gFFGL0xNEKb7gArTSWofk5sv
-         rBnt9RZ3sti89Bm0Aqyoz9Oc2yiuPY7zls3uj/mDgvMyhhcRgjJ03Dcnayf8HN+Btf
-         0sVfLORhQws6aNfKFwwzwfIq+QqXuml0EgkT3IVo=
-Date:   Wed, 24 Feb 2021 12:01:42 -0800
+        b=D+PvGpxneGSFeMozTOlaz69CIVKeZFK8bTqXhEzEPnzuF5h6Fovbl6PjdUlpABdMc
+         /Q2YfOADjGRMGtbxr9kzeTnVj1DlC1xPj+GMtjGoTX9LVHrDCW8/264FYyGI7NJx/Y
+         65CufEydGrTT7wwwk6KClJ83S9S7f6qYhpQ2+o/8=
+Date:   Wed, 24 Feb 2021 12:01:49 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, baolin.wang@linux.alibaba.com,
-        linux-mm@kvack.org, miklos@szeredi.hu, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [patch 028/173] mm/filemap: remove unused parameter and
- change to void type for replace_page_cache_page()
-Message-ID: <20210224200142.Kn7XyNig0%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hch@lst.de, kent.overstreet@gmail.com,
+        linmiaohe@huawei.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        willy@infradead.org
+Subject:  [patch 030/173] mm/filemap: rename
+ generic_file_buffered_read subfunctions
+Message-ID: <20210224200149.q7jigblJl%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,81 +44,143 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm/filemap: remove unused parameter and change to void type for replace_page_cache_page()
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/filemap: rename generic_file_buffered_read subfunctions
 
-Since commit 74d609585d8b ("page cache: Add and replace pages using the
-XArray") was merged, the replace_page_cache_page() can not fail and always
-return 0, we can remove the redundant return value and void it.  Moreover
-remove the unused gfp_mask.
+Patch series "Refactor generic_file_buffered_read", v5.
 
-Link: https://lkml.kernel.org/r/609c30e5274ba15d8b90c872fd0d8ac437a9b2bb.1610071401.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
+This is a combination of Christoph's work to refactor
+generic_file_buffered_read() and some of my large-page support
+which was disrupted by Kent's refactoring of generic_file_buffered_read.
+
+
+This patch (of 18):
+
+The recent split of generic_file_buffered_read() created some very long
+function names which are hard to distinguish from each other.  Rename as
+follows:
+
+generic_file_buffered_read_readpage -> filemap_read_page
+generic_file_buffered_read_pagenotuptodate -> filemap_update_page
+generic_file_buffered_read_no_cached_page -> filemap_create_page
+generic_file_buffered_read_get_pages -> filemap_get_pages
+
+Link: https://lkml.kernel.org/r/20210122160140.223228-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210122160140.223228-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dev.c           |    6 +-----
- include/linux/pagemap.h |    2 +-
- mm/filemap.c            |    7 +------
- 3 files changed, 3 insertions(+), 12 deletions(-)
+ mm/filemap.c |   44 +++++++++++++++-----------------------------
+ 1 file changed, 15 insertions(+), 29 deletions(-)
 
---- a/fs/fuse/dev.c~mm-filemap-remove-unused-parameter-and-change-to-void-type-for-replace_page_cache_page
-+++ a/fs/fuse/dev.c
-@@ -844,11 +844,7 @@ static int fuse_try_move_page(struct fus
- 	if (WARN_ON(PageMlocked(oldpage)))
- 		goto out_fallback_unlock;
- 
--	err = replace_page_cache_page(oldpage, newpage, GFP_KERNEL);
--	if (err) {
--		unlock_page(newpage);
--		goto out_put_old;
--	}
-+	replace_page_cache_page(oldpage, newpage);
- 
- 	get_page(newpage);
- 
---- a/include/linux/pagemap.h~mm-filemap-remove-unused-parameter-and-change-to-void-type-for-replace_page_cache_page
-+++ a/include/linux/pagemap.h
-@@ -757,7 +757,7 @@ int add_to_page_cache_lru(struct page *p
- 				pgoff_t index, gfp_t gfp_mask);
- extern void delete_from_page_cache(struct page *page);
- extern void __delete_from_page_cache(struct page *page, void *shadow);
--int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask);
-+void replace_page_cache_page(struct page *old, struct page *new);
- void delete_from_page_cache_batch(struct address_space *mapping,
- 				  struct pagevec *pvec);
- 
---- a/mm/filemap.c~mm-filemap-remove-unused-parameter-and-change-to-void-type-for-replace_page_cache_page
+--- a/mm/filemap.c~mm-filemap-rename-generic_file_buffered_read-subfunctions
 +++ a/mm/filemap.c
-@@ -777,7 +777,6 @@ EXPORT_SYMBOL(file_write_and_wait_range)
-  * replace_page_cache_page - replace a pagecache page with a new one
-  * @old:	page to be replaced
-  * @new:	page to replace with
-- * @gfp_mask:	allocation mode
-  *
-  * This function replaces a page in the pagecache with a new one.  On
-  * success it acquires the pagecache reference for the new page and
-@@ -786,10 +785,8 @@ EXPORT_SYMBOL(file_write_and_wait_range)
-  * caller must do that.
-  *
-  * The remove + add is atomic.  This function cannot fail.
-- *
-- * Return: %0
-  */
--int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask)
-+void replace_page_cache_page(struct page *old, struct page *new)
- {
- 	struct address_space *mapping = old->mapping;
- 	void (*freepage)(struct page *) = mapping->a_ops->freepage;
-@@ -824,8 +821,6 @@ int replace_page_cache_page(struct page
- 	if (freepage)
- 		freepage(old);
- 	put_page(old);
--
--	return 0;
+@@ -2178,11 +2178,8 @@ static int lock_page_for_iocb(struct kio
+ 		return lock_page_killable(page);
  }
- EXPORT_SYMBOL_GPL(replace_page_cache_page);
  
+-static struct page *
+-generic_file_buffered_read_readpage(struct kiocb *iocb,
+-				    struct file *filp,
+-				    struct address_space *mapping,
+-				    struct page *page)
++static struct page *filemap_read_page(struct kiocb *iocb, struct file *filp,
++		struct address_space *mapping, struct page *page)
+ {
+ 	struct file_ra_state *ra = &filp->f_ra;
+ 	int error;
+@@ -2233,12 +2230,9 @@ generic_file_buffered_read_readpage(stru
+ 	return page;
+ }
+ 
+-static struct page *
+-generic_file_buffered_read_pagenotuptodate(struct kiocb *iocb,
+-					   struct file *filp,
+-					   struct iov_iter *iter,
+-					   struct page *page,
+-					   loff_t pos, loff_t count)
++static struct page *filemap_update_page(struct kiocb *iocb, struct file *filp,
++		struct iov_iter *iter, struct page *page, loff_t pos,
++		loff_t count)
+ {
+ 	struct address_space *mapping = filp->f_mapping;
+ 	struct inode *inode = mapping->host;
+@@ -2301,12 +2295,11 @@ page_not_up_to_date_locked:
+ 		return page;
+ 	}
+ 
+-	return generic_file_buffered_read_readpage(iocb, filp, mapping, page);
++	return filemap_read_page(iocb, filp, mapping, page);
+ }
+ 
+-static struct page *
+-generic_file_buffered_read_no_cached_page(struct kiocb *iocb,
+-					  struct iov_iter *iter)
++static struct page *filemap_create_page(struct kiocb *iocb,
++		struct iov_iter *iter)
+ {
+ 	struct file *filp = iocb->ki_filp;
+ 	struct address_space *mapping = filp->f_mapping;
+@@ -2317,10 +2310,6 @@ generic_file_buffered_read_no_cached_pag
+ 	if (iocb->ki_flags & IOCB_NOIO)
+ 		return ERR_PTR(-EAGAIN);
+ 
+-	/*
+-	 * Ok, it wasn't cached, so we need to create a new
+-	 * page..
+-	 */
+ 	page = page_cache_alloc(mapping);
+ 	if (!page)
+ 		return ERR_PTR(-ENOMEM);
+@@ -2332,13 +2321,11 @@ generic_file_buffered_read_no_cached_pag
+ 		return error != -EEXIST ? ERR_PTR(error) : NULL;
+ 	}
+ 
+-	return generic_file_buffered_read_readpage(iocb, filp, mapping, page);
++	return filemap_read_page(iocb, filp, mapping, page);
+ }
+ 
+-static int generic_file_buffered_read_get_pages(struct kiocb *iocb,
+-						struct iov_iter *iter,
+-						struct page **pages,
+-						unsigned int nr)
++static int filemap_get_pages(struct kiocb *iocb, struct iov_iter *iter,
++		struct page **pages, unsigned int nr)
+ {
+ 	struct file *filp = iocb->ki_filp;
+ 	struct address_space *mapping = filp->f_mapping;
+@@ -2365,7 +2352,7 @@ find_page:
+ 	if (nr_got)
+ 		goto got_pages;
+ 
+-	pages[0] = generic_file_buffered_read_no_cached_page(iocb, iter);
++	pages[0] = filemap_create_page(iocb, iter);
+ 	err = PTR_ERR_OR_ZERO(pages[0]);
+ 	if (!IS_ERR_OR_NULL(pages[0]))
+ 		nr_got = 1;
+@@ -2399,8 +2386,8 @@ got_pages:
+ 				break;
+ 			}
+ 
+-			page = generic_file_buffered_read_pagenotuptodate(iocb,
+-					filp, iter, page, pg_pos, pg_count);
++			page = filemap_update_page(iocb, filp, iter, page,
++					pg_pos, pg_count);
+ 			if (IS_ERR_OR_NULL(page)) {
+ 				for (j = i + 1; j < nr_got; j++)
+ 					put_page(pages[j]);
+@@ -2479,8 +2466,7 @@ ssize_t generic_file_buffered_read(struc
+ 			iocb->ki_flags |= IOCB_NOWAIT;
+ 
+ 		i = 0;
+-		pg_nr = generic_file_buffered_read_get_pages(iocb, iter,
+-							     pages, nr_pages);
++		pg_nr = filemap_get_pages(iocb, iter, pages, nr_pages);
+ 		if (pg_nr < 0) {
+ 			error = pg_nr;
+ 			break;
 _
