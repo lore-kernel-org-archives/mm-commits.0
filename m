@@ -7,36 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 706D7C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:05:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC197C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:05:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2EB7064F19
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:05:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6840464F23
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:05:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235175AbhBXUFg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235211AbhBXUFg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 24 Feb 2021 15:05:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56140 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56156 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235451AbhBXUDy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:03:54 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2F61F64F19;
-        Wed, 24 Feb 2021 20:03:12 +0000 (UTC)
+        id S235475AbhBXUDz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:03:55 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AF6AF64F23;
+        Wed, 24 Feb 2021 20:03:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614196992;
-        bh=wnv2gPunmDBgfhIz6H6tZTejPLxGw4Ic4evpBnqFYQ4=;
+        s=korg; t=1614196996;
+        bh=3x4m3lmkAA65F08g8yrHU6ZnNa8VHA5bEtx+8Pta33E=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=lECEGzugYoFjLz5CPiSxnlK8SHx4bX46GTaX+NuCW5TqpejmzF6ZoG/ApqGPunilF
-         2H1UtIz9Ue3glyOTOZA7lsmKpoIck0HT2KWROOrCifuw3CHvex0x2GtEik74VXHfWl
-         shmPHZV13WbFz9NSeplbvaZv6ZTjWrTLzDd8Z2Pw=
-Date:   Wed, 24 Feb 2021 12:03:11 -0800
+        b=nzZi2ydsGEFIkeOxO9z1qvD7VU13vqzkuY3GZCJ7WK6Rp+3wbcOZ+NEyAHbGwXMuu
+         lpaUrcz8zkwSy/tuiOzQyGRlQwiqbELw3QSCI9eh97/M2JX0St7OG22fJiY1WUwbt9
+         DUA1cpv8TGZhrwo0SKvhKLO8Lc1C5N2RXRjTgUe8=
+Date:   Wed, 24 Feb 2021 12:03:15 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com, guro@fb.com,
-        hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, shakeelb@google.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 055/173] mm: memcg/slab: pre-allocate obj_cgroups
- for slab caches with SLAB_ACCOUNT
-Message-ID: <20210224200311.FvZgQBV11%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, chris@chrisdown.name, guro@fb.com,
+        hannes@cmpxchg.org, laoar.shao@gmail.com, linux-mm@kvack.org,
+        mhocko@kernel.org, mm-commits@vger.kernel.org,
+        richard.weiyang@gmail.com, sfr@canb.auug.org.au,
+        shakeelb@google.com, songmuchun@bytedance.com,
+        torvalds@linux-foundation.org, vdavydov.dev@gmail.com
+Subject:  [patch 056/173] mm: memcontrol: optimize per-lruvec stats
+ counter memory usage
+Message-ID: <20210224200315.yvHU1H9Am%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,191 +46,96 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: memcg/slab: pre-allocate obj_cgroups for slab caches with SLAB_ACCOUNT
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcontrol: optimize per-lruvec stats counter memory usage
 
-In general it's unknown in advance if a slab page will contain accounted
-objects or not.  In order to avoid memory waste, an obj_cgroup vector is
-allocated dynamically when a need to account of a new object arises.  Such
-approach is memory efficient, but requires an expensive cmpxchg() to set
-up the memcg/objcgs pointer, because an allocation can race with a
-different allocation on another cpu.
+The vmstat threshold is 32 (MEMCG_CHARGE_BATCH), Actually the threshold
+can be as big as MEMCG_CHARGE_BATCH * PAGE_SIZE.  It still fits into s32. 
+So introduce struct batched_lruvec_stat to optimize memory usage.
 
-But in some common cases it's known for sure that a slab page will contain
-accounted objects: if the page belongs to a slab cache with a SLAB_ACCOUNT
-flag set.  It includes such popular objects like vm_area_struct, anon_vma,
-task_struct, etc.
+The size of struct lruvec_stat is 304 bytes on 64 bit systems.  As it is a
+per-cpu structure.  So with this patch, we can save 304 / 2 * ncpu bytes
+per-memcg per-node where ncpu is the number of the possible CPU.  If there
+are c memory cgroup (include dying cgroup) and n NUMA node in the system. 
+Finally, we can save (152 * ncpu * c * n) bytes.
 
-In such cases we can pre-allocate the objcgs vector and simple assign it
-to the page without any atomic operations, because at this early stage the
-page is not visible to anyone else.
-
-A very simplistic benchmark (allocating 10000000 64-bytes objects in a
-row) shows ~15% win.  In the real life it seems that most workloads are
-not very sensitive to the speed of (accounted) slab allocations.
-
-[guro@fb.com: open-code set_page_objcgs() and add some comments, by Johannes]
-  Link: https://lkml.kernel.org/r/20201113001926.GA2934489@carbon.dhcp.thefacebook.com
-[akpm@linux-foundation.org: fix it for mm-slub-call-account_slab_page-after-slab-page-initialization-fix.patch]
-Link: https://lkml.kernel.org/r/20201110195753.530157-2-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+[akpm@linux-foundation.org: fix typo in comment]
+Link: https://lkml.kernel.org/r/20201210042121.39665-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   19 -------------------
- mm/memcontrol.c            |   23 +++++++++++++++++++----
- mm/slab.c                  |    2 +-
- mm/slab.h                  |   14 ++++++++++----
- mm/slub.c                  |    2 +-
- 5 files changed, 31 insertions(+), 29 deletions(-)
+ include/linux/memcontrol.h |   14 ++++++++++++--
+ mm/memcontrol.c            |   10 +++++++++-
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account
+--- a/include/linux/memcontrol.h~mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage
 +++ a/include/linux/memcontrol.h
-@@ -475,19 +475,6 @@ static inline struct obj_cgroup **page_o
- 	return (struct obj_cgroup **)(memcg_data & ~MEMCG_DATA_FLAGS_MASK);
- }
+@@ -92,6 +92,10 @@ struct lruvec_stat {
+ 	long count[NR_VM_NODE_STAT_ITEMS];
+ };
  
--/*
-- * set_page_objcgs - associate a page with a object cgroups vector
-- * @page: a pointer to the page struct
-- * @objcgs: a pointer to the object cgroups vector
-- *
-- * Atomically associates a page with a vector of object cgroups.
-- */
--static inline bool set_page_objcgs(struct page *page,
--					struct obj_cgroup **objcgs)
--{
--	return !cmpxchg(&page->memcg_data, 0, (unsigned long)objcgs |
--			MEMCG_DATA_OBJCGS);
--}
- #else
- static inline struct obj_cgroup **page_objcgs(struct page *page)
- {
-@@ -498,12 +485,6 @@ static inline struct obj_cgroup **page_o
- {
- 	return NULL;
- }
--
--static inline bool set_page_objcgs(struct page *page,
--					struct obj_cgroup **objcgs)
--{
--	return true;
--}
- #endif
++struct batched_lruvec_stat {
++	s32 count[NR_VM_NODE_STAT_ITEMS];
++};
++
+ /*
+  * Bitmap of shrinker::id corresponding to memcg-aware shrinkers,
+  * which have elements charged to this memcg.
+@@ -107,11 +111,17 @@ struct memcg_shrinker_map {
+ struct mem_cgroup_per_node {
+ 	struct lruvec		lruvec;
  
- static __always_inline bool memcg_stat_item_in_bytes(int idx)
---- a/mm/memcontrol.c~mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account
+-	/* Legacy local VM stats */
++	/*
++	 * Legacy local VM stats. This should be struct lruvec_stat and
++	 * cannot be optimized to struct batched_lruvec_stat. Because
++	 * the threshold of the lruvec_stat_cpu can be as big as
++	 * MEMCG_CHARGE_BATCH * PAGE_SIZE. It can fit into s32. But this
++	 * filed has no upper limit.
++	 */
+ 	struct lruvec_stat __percpu *lruvec_stat_local;
+ 
+ 	/* Subtree VM stats (batched updates) */
+-	struct lruvec_stat __percpu *lruvec_stat_cpu;
++	struct batched_lruvec_stat __percpu *lruvec_stat_cpu;
+ 	atomic_long_t		lruvec_stat[NR_VM_NODE_STAT_ITEMS];
+ 
+ 	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
+--- a/mm/memcontrol.c~mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage
 +++ a/mm/memcontrol.c
-@@ -2935,9 +2935,10 @@ static void commit_charge(struct page *p
- 
- #ifdef CONFIG_MEMCG_KMEM
- int memcg_alloc_page_obj_cgroups(struct page *page, struct kmem_cache *s,
--				 gfp_t gfp)
-+				 gfp_t gfp, bool new_page)
- {
- 	unsigned int objects = objs_per_slab_page(s, page);
-+	unsigned long memcg_data;
- 	void *vec;
- 
- 	vec = kcalloc_node(objects, sizeof(struct obj_cgroup *), gfp,
-@@ -2945,11 +2946,25 @@ int memcg_alloc_page_obj_cgroups(struct
- 	if (!vec)
- 		return -ENOMEM;
- 
--	if (!set_page_objcgs(page, vec))
-+	memcg_data = (unsigned long) vec | MEMCG_DATA_OBJCGS;
-+	if (new_page) {
-+		/*
-+		 * If the slab page is brand new and nobody can yet access
-+		 * it's memcg_data, no synchronization is required and
-+		 * memcg_data can be simply assigned.
-+		 */
-+		page->memcg_data = memcg_data;
-+	} else if (cmpxchg(&page->memcg_data, 0, memcg_data)) {
-+		/*
-+		 * If the slab page is already in use, somebody can allocate
-+		 * and assign obj_cgroups in parallel. In this case the existing
-+		 * objcg vector should be reused.
-+		 */
- 		kfree(vec);
--	else
--		kmemleak_not_leak(vec);
-+		return 0;
-+	}
- 
-+	kmemleak_not_leak(vec);
- 	return 0;
- }
- 
---- a/mm/slab.c~mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account
-+++ a/mm/slab.c
-@@ -1379,7 +1379,7 @@ static struct page *kmem_getpages(struct
- 		return NULL;
+@@ -5208,7 +5208,7 @@ static int alloc_mem_cgroup_per_node_inf
+ 		return 1;
  	}
  
--	account_slab_page(page, cachep->gfporder, cachep);
-+	account_slab_page(page, cachep->gfporder, cachep, flags);
- 	__SetPageSlab(page);
- 	/* Record if ALLOC_NO_WATERMARKS was set when allocating the slab */
- 	if (sk_memalloc_socks() && page_is_pfmemalloc(page))
---- a/mm/slab.h~mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account
-+++ a/mm/slab.h
-@@ -238,7 +238,7 @@ static inline bool kmem_cache_debug_flag
- 
- #ifdef CONFIG_MEMCG_KMEM
- int memcg_alloc_page_obj_cgroups(struct page *page, struct kmem_cache *s,
--				 gfp_t gfp);
-+				 gfp_t gfp, bool new_page);
- 
- static inline void memcg_free_page_obj_cgroups(struct page *page)
+-	pn->lruvec_stat_cpu = alloc_percpu_gfp(struct lruvec_stat,
++	pn->lruvec_stat_cpu = alloc_percpu_gfp(struct batched_lruvec_stat,
+ 					       GFP_KERNEL_ACCOUNT);
+ 	if (!pn->lruvec_stat_cpu) {
+ 		free_percpu(pn->lruvec_stat_local);
+@@ -7093,6 +7093,14 @@ static int __init mem_cgroup_init(void)
  {
-@@ -315,7 +315,8 @@ static inline void memcg_slab_post_alloc
- 			page = virt_to_head_page(p[i]);
+ 	int cpu, node;
  
- 			if (!page_objcgs(page) &&
--			    memcg_alloc_page_obj_cgroups(page, s, flags)) {
-+			    memcg_alloc_page_obj_cgroups(page, s, flags,
-+							 false)) {
- 				obj_cgroup_uncharge(objcg, obj_full_size(s));
- 				continue;
- 			}
-@@ -379,7 +380,8 @@ static inline struct mem_cgroup *memcg_f
- }
- 
- static inline int memcg_alloc_page_obj_cgroups(struct page *page,
--					       struct kmem_cache *s, gfp_t gfp)
-+					       struct kmem_cache *s, gfp_t gfp,
-+					       bool new_page)
- {
- 	return 0;
- }
-@@ -420,8 +422,12 @@ static inline struct kmem_cache *virt_to
- }
- 
- static __always_inline void account_slab_page(struct page *page, int order,
--					      struct kmem_cache *s)
-+					      struct kmem_cache *s,
-+					      gfp_t gfp)
- {
-+	if (memcg_kmem_enabled() && (s->flags & SLAB_ACCOUNT))
-+		memcg_alloc_page_obj_cgroups(page, s, gfp, true);
++	/*
++	 * Currently s32 type (can refer to struct batched_lruvec_stat) is
++	 * used for per-memcg-per-cpu caching of per-node statistics. In order
++	 * to work fine, we should make sure that the overfill threshold can't
++	 * exceed S32_MAX / PAGE_SIZE.
++	 */
++	BUILD_BUG_ON(MEMCG_CHARGE_BATCH > S32_MAX / PAGE_SIZE);
 +
- 	mod_node_page_state(page_pgdat(page), cache_vmstat_idx(s),
- 			    PAGE_SIZE << order);
- }
---- a/mm/slub.c~mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account
-+++ a/mm/slub.c
-@@ -1785,7 +1785,7 @@ static struct page *allocate_slab(struct
+ 	cpuhp_setup_state_nocalls(CPUHP_MM_MEMCQ_DEAD, "mm/memctrl:dead", NULL,
+ 				  memcg_hotplug_cpu_dead);
  
- 	page->objects = oo_objects(oo);
- 
--	account_slab_page(page, oo_order(oo), s);
-+	account_slab_page(page, oo_order(oo), s, flags);
- 
- 	page->slab_cache = s;
- 	__SetPageSlab(page);
 _
