@@ -5,37 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4370EC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4257C43381
 	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC27564F2C
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 607BA64F28
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235216AbhBXUGi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233331AbhBXUGi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 24 Feb 2021 15:06:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55514 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55458 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235306AbhBXUFy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235307AbhBXUFy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 24 Feb 2021 15:05:54 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3397364F2D;
-        Wed, 24 Feb 2021 20:04:40 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D3EB964F31;
+        Wed, 24 Feb 2021 20:04:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197080;
-        bh=gTjnI4BIkQ1GHRRNKlBFUJ5q0apX1+RAnlPsE3l1wrM=;
+        s=korg; t=1614197087;
+        bh=c04nelTSFATbEmttuyWFPL753KSZH3WH9JphC+q50wg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=rxojsoa+cRx2XPRA9Tgq0RbmX4T5PVc6bvMRulNKxb0w/nPJQsLKp7Ult8N7TQXop
-         Qt+mvrAgu50RxT+RJDHuvr1MhuMgHYO4eZZaAdg0JUbbE8X6m8enKLyhQJpBiN0Jrd
-         CYKIz+y1sHvZGBFBe2zhvLpjLVA8OxlBIpFOER6A=
-Date:   Wed, 24 Feb 2021 12:04:39 -0800
+        b=E8HNuA8A6+YYmOpYnWWmw6qupGzOBLphP1S4+0REheTgGu67/nCoZJth7s7YFslyy
+         7Do1jlQDsuqfEClFC155nuWEQBVWuXQvcWw8wFSFLx09eIsaXQU6UMg7d0qxyvY5B/
+         PBAHo9XmhaU7YAwWQoJbnnbRifRydV87MTsynQn8=
+Date:   Wed, 24 Feb 2021 12:04:46 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 079/173] mm/pgtable-generic.c: optimize the
- VM_BUG_ON condition in pmdp_huge_clear_flush()
-Message-ID: <20210224200439.0k6rJzU8V%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, jarkko@kernel.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, tianjia.zhang@linux.alibaba.com,
+        torvalds@linux-foundation.org, zhang.jia@linux.alibaba.com
+Subject:  [patch 081/173] mm/mprotect.c: optimize error detection
+ in do_mprotect_pkey()
+Message-ID: <20210224200446.uerlj0CaI%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,36 +43,42 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/pgtable-generic.c: optimize the VM_BUG_ON condition in pmdp_huge_clear_flush()
+From: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
+Subject: mm/mprotect.c: optimize error detection in do_mprotect_pkey()
 
-The developer will have trouble figuring out why the BUG actually
-triggered when there is a complex expression in the VM_BUG_ON.  Because we
-can only identify the condition triggered BUG via line number provided by
-VM_BUG_ON.  Optimize this by spliting such a complex expression into two
-simple conditions.
+Obviously, the error variable detection of the if statement is
+for the mprotect callback function, so it is also put into the
+scope of calling callbck.
 
-Link: https://lkml.kernel.org/r/20210203084137.25522-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+This is a cleanup which makes this site consistent with the rest of this
+function's error handling.
+
+Link: https://lkml.kernel.org/r/20210118133310.98375-1-tianjia.zhang@linux.alibaba.com
+Signed-off-by: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
+Reported-by: Jia Zhang <zhang.jia@linux.alibaba.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pgtable-generic.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/mprotect.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/pgtable-generic.c~mm-pgtable-genericc-optimize-the-vm_bug_on-condition-in-pmdp_huge_clear_flush
-+++ a/mm/pgtable-generic.c
-@@ -135,8 +135,9 @@ pmd_t pmdp_huge_clear_flush(struct vm_ar
- {
- 	pmd_t pmd;
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
--	VM_BUG_ON(!pmd_present(*pmdp) || (!pmd_trans_huge(*pmdp) &&
--					  !pmd_devmap(*pmdp)));
-+	VM_BUG_ON(!pmd_present(*pmdp));
-+	/* Below assumes pmd_present() is true */
-+	VM_BUG_ON(!pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
- 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
- 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
- 	return pmd;
+--- a/mm/mprotect.c~mm-optimizing-error-condition-detection-in-do_mprotect_pkey
++++ a/mm/mprotect.c
+@@ -617,10 +617,11 @@ static int do_mprotect_pkey(unsigned lon
+ 		if (tmp > end)
+ 			tmp = end;
+ 
+-		if (vma->vm_ops && vma->vm_ops->mprotect)
++		if (vma->vm_ops && vma->vm_ops->mprotect) {
+ 			error = vma->vm_ops->mprotect(vma, nstart, tmp, newflags);
+-		if (error)
+-			goto out;
++			if (error)
++				goto out;
++		}
+ 
+ 		error = mprotect_fixup(vma, &prev, nstart, tmp, newflags);
+ 		if (error)
 _
