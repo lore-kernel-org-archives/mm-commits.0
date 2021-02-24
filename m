@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5610AC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39EA2C433E0
 	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:03:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1EF5364F27
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:03:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0451A64F26
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:03:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235278AbhBXUDQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235279AbhBXUDQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 24 Feb 2021 15:03:16 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55904 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55482 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235276AbhBXUCf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:02:35 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C946D64F27;
-        Wed, 24 Feb 2021 20:01:19 +0000 (UTC)
+        id S235278AbhBXUCh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:02:37 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C29BB64F0E;
+        Wed, 24 Feb 2021 20:01:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614196880;
-        bh=jJmBw70Q4ZmcE00zu4Pf1un0MifT4w1jTt1CpNzF+Ew=;
+        s=korg; t=1614196920;
+        bh=aCK0dNgwGkv90of6nPlfiG1AVyeLOiO5Ok0TXQU0XMc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=xWu6QaUQY9OnoibF1/q20w8jpMApfD41tmLHFMUR2+tfLAJIxlHa8jJw4ZnJ3jCME
-         CGty2LpA4YB9OBM4O5aDJHQWJaORuj2c1cMHTQs0fEYgJxT7dqb0iZvVsyvhr/vOrs
-         AOxaCYd7qFCmVpj9a7DqhWtWhF4MqTRL/eskSULg=
-Date:   Wed, 24 Feb 2021 12:01:19 -0800
+        b=D5IzzQK/qajMCdfut204yMk9o/QPSWaK/gcOBWiYEh3t7WQPbYAF0ht3XjcaJ5LMm
+         cb46X6COJ+VNPBrQZq1j6OVsKgLKYaYn0OBbK+Asxkq2GjuNqRCq0iN2U6sXFDmQI7
+         1550nZBo0PmZlZafnawguYrx7VerSdxv1e/nyCKM=
+Date:   Wed, 24 Feb 2021 12:01:59 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
-        jannh@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        penberg@kernel.org, rientjes@google.com,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 021/173] mm, slub: splice cpu and page freelists
- in deactivate_slab()
-Message-ID: <20210224200119.Ytx7rYOAU%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hch@lst.de, kent.overstreet@gmail.com,
+        linmiaohe@huawei.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        willy@infradead.org
+Subject:  [patch 033/173] mm/filemap: use head pages in
+ generic_file_buffered_read
+Message-ID: <20210224200159.h_ITNzOVN%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,129 +44,244 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: splice cpu and page freelists in deactivate_slab()
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/filemap: use head pages in generic_file_buffered_read
 
-In deactivate_slab() we currently move all but one objects on the cpu
-freelist to the page freelist one by one using the costly cmpxchg_double()
-operation.  Then we unfreeze the page while moving the last object on page
-freelist, with a final cmpxchg_double().
+Add filemap_get_read_batch() which returns the head pages which represent
+a contiguous array of bytes in the file.  It also stops when encountering
+a page marked as Readahead or !Uptodate (but does return that page) so it
+can be handled appropriately by filemap_get_pages().  That lets us remove
+the loop in filemap_get_pages() and check only the last page.
 
-This can be optimized to avoid the cmpxchg_double() per object.  Just
-count the objects on cpu freelist (to adjust page->inuse properly) and
-also remember the last object in the chain.  Then splice page->freelist to
-the last object and effectively add the whole cpu freelist to
-page->freelist while unfreezing the page, with a single cmpxchg_double().
-
-Link: https://lkml.kernel.org/r/20210115183543.15097-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Jann Horn <jannh@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lkml.kernel.org/r/20210122160140.223228-5-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   59 +++++++++++++++++++++-------------------------------
- 1 file changed, 24 insertions(+), 35 deletions(-)
+ mm/filemap.c |  122 ++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 85 insertions(+), 37 deletions(-)
 
---- a/mm/slub.c~mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab
-+++ a/mm/slub.c
-@@ -2167,9 +2167,9 @@ static void deactivate_slab(struct kmem_
+--- a/mm/filemap.c~mm-filemap-use-head-pages-in-generic_file_buffered_read
++++ a/mm/filemap.c
+@@ -2178,6 +2178,51 @@ static int lock_page_for_iocb(struct kio
+ 		return lock_page_killable(page);
+ }
+ 
++/*
++ * filemap_get_read_batch - Get a batch of pages for read
++ *
++ * Get a batch of pages which represent a contiguous range of bytes
++ * in the file.  No tail pages will be returned.  If @index is in the
++ * middle of a THP, the entire THP will be returned.  The last page in
++ * the batch may have Readahead set or be not Uptodate so that the
++ * caller can take the appropriate action.
++ */
++static void filemap_get_read_batch(struct address_space *mapping,
++		pgoff_t index, pgoff_t max, struct pagevec *pvec)
++{
++	XA_STATE(xas, &mapping->i_pages, index);
++	struct page *head;
++
++	rcu_read_lock();
++	for (head = xas_load(&xas); head; head = xas_next(&xas)) {
++		if (xas_retry(&xas, head))
++			continue;
++		if (xas.xa_index > max || xa_is_value(head))
++			break;
++		if (!page_cache_get_speculative(head))
++			goto retry;
++
++		/* Has the page moved or been split? */
++		if (unlikely(head != xas_reload(&xas)))
++			goto put_page;
++
++		if (!pagevec_add(pvec, head))
++			break;
++		if (!PageUptodate(head))
++			break;
++		if (PageReadahead(head))
++			break;
++		xas.xa_index = head->index + thp_nr_pages(head) - 1;
++		xas.xa_offset = (xas.xa_index >> xas.xa_shift) & XA_CHUNK_MASK;
++		continue;
++put_page:
++		put_page(head);
++retry:
++		xas_reset(&xas);
++	}
++	rcu_read_unlock();
++}
++
+ static struct page *filemap_read_page(struct kiocb *iocb, struct file *filp,
+ 		struct address_space *mapping, struct page *page)
  {
- 	enum slab_modes { M_NONE, M_PARTIAL, M_FULL, M_FREE };
- 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
--	int lock = 0;
-+	int lock = 0, free_delta = 0;
- 	enum slab_modes l = M_NONE, m = M_NONE;
--	void *nextfree;
-+	void *nextfree, *freelist_iter, *freelist_tail;
- 	int tail = DEACTIVATE_TO_HEAD;
- 	struct page new;
- 	struct page old;
-@@ -2180,45 +2180,34 @@ static void deactivate_slab(struct kmem_
+@@ -2331,15 +2376,15 @@ static int filemap_get_pages(struct kioc
+ 	struct address_space *mapping = filp->f_mapping;
+ 	struct file_ra_state *ra = &filp->f_ra;
+ 	pgoff_t index = iocb->ki_pos >> PAGE_SHIFT;
+-	pgoff_t last_index = (iocb->ki_pos + iter->count + PAGE_SIZE-1) >> PAGE_SHIFT;
+-	unsigned int nr = min_t(unsigned long, last_index - index, PAGEVEC_SIZE);
+-	int i, j, err = 0;
++	pgoff_t last_index;
++	int err = 0;
+ 
++	last_index = DIV_ROUND_UP(iocb->ki_pos + iter->count, PAGE_SIZE);
+ find_page:
+ 	if (fatal_signal_pending(current))
+ 		return -EINTR;
+ 
+-	pvec->nr = find_get_pages_contig(mapping, index, nr, pvec->pages);
++	filemap_get_read_batch(mapping, index, last_index, pvec);
+ 	if (pvec->nr)
+ 		goto got_pages;
+ 
+@@ -2348,29 +2393,30 @@ find_page:
+ 
+ 	page_cache_sync_readahead(mapping, ra, filp, index, last_index - index);
+ 
+-	pvec->nr = find_get_pages_contig(mapping, index, nr, pvec->pages);
++	filemap_get_read_batch(mapping, index, last_index, pvec);
+ 	if (pvec->nr)
+ 		goto got_pages;
+ 
+ 	pvec->pages[0] = filemap_create_page(iocb, iter);
+ 	err = PTR_ERR_OR_ZERO(pvec->pages[0]);
+-	if (!IS_ERR_OR_NULL(pvec->pages[0]))
+-		pvec->nr = 1;
++	if (IS_ERR_OR_NULL(pvec->pages[0]))
++		goto err;
++	pvec->nr = 1;
++	return 0;
+ got_pages:
+-	for (i = 0; i < pvec->nr; i++) {
+-		struct page *page = pvec->pages[i];
+-		pgoff_t pg_index = index + i;
++	{
++		struct page *page = pvec->pages[pvec->nr - 1];
++		pgoff_t pg_index = page->index;
+ 		loff_t pg_pos = max(iocb->ki_pos,
+ 				    (loff_t) pg_index << PAGE_SHIFT);
+ 		loff_t pg_count = iocb->ki_pos + iter->count - pg_pos;
+ 
+ 		if (PageReadahead(page)) {
+ 			if (iocb->ki_flags & IOCB_NOIO) {
+-				for (j = i; j < pvec->nr; j++)
+-					put_page(pvec->pages[j]);
+-				pvec->nr = i;
++				put_page(page);
++				pvec->nr--;
+ 				err = -EAGAIN;
+-				break;
++				goto err;
+ 			}
+ 			page_cache_async_readahead(mapping, ra, filp, page,
+ 					pg_index, last_index - pg_index);
+@@ -2378,26 +2424,23 @@ got_pages:
+ 
+ 		if (!PageUptodate(page)) {
+ 			if ((iocb->ki_flags & IOCB_NOWAIT) ||
+-			    ((iocb->ki_flags & IOCB_WAITQ) && i)) {
+-				for (j = i; j < pvec->nr; j++)
+-					put_page(pvec->pages[j]);
+-				pvec->nr = i;
++			    ((iocb->ki_flags & IOCB_WAITQ) && pvec->nr > 1)) {
++				put_page(page);
++				pvec->nr--;
+ 				err = -EAGAIN;
+-				break;
++				goto err;
+ 			}
+ 
+ 			page = filemap_update_page(iocb, filp, iter, page,
+ 					pg_pos, pg_count);
+ 			if (IS_ERR_OR_NULL(page)) {
+-				for (j = i + 1; j < pvec->nr; j++)
+-					put_page(pvec->pages[j]);
+-				pvec->nr = i;
++				pvec->nr--;
+ 				err = PTR_ERR_OR_ZERO(page);
+-				break;
+ 			}
+ 		}
  	}
  
- 	/*
--	 * Stage one: Free all available per cpu objects back
--	 * to the page freelist while it is still frozen. Leave the
--	 * last one.
--	 *
--	 * There is no need to take the list->lock because the page
--	 * is still frozen.
-+	 * Stage one: Count the objects on cpu's freelist as free_delta and
-+	 * remember the last object in freelist_tail for later splicing.
- 	 */
--	while (freelist && (nextfree = get_freepointer(s, freelist))) {
--		void *prior;
--		unsigned long counters;
-+	freelist_tail = NULL;
-+	freelist_iter = freelist;
-+	while (freelist_iter) {
-+		nextfree = get_freepointer(s, freelist_iter);
++err:
+ 	if (likely(pvec->nr))
+ 		return 0;
+ 	if (err)
+@@ -2442,6 +2485,7 @@ ssize_t generic_file_buffered_read(struc
+ 		return 0;
  
- 		/*
- 		 * If 'nextfree' is invalid, it is possible that the object at
--		 * 'freelist' is already corrupted.  So isolate all objects
--		 * starting at 'freelist'.
-+		 * 'freelist_iter' is already corrupted.  So isolate all objects
-+		 * starting at 'freelist_iter' by skipping them.
- 		 */
--		if (freelist_corrupted(s, page, &freelist, nextfree))
-+		if (freelist_corrupted(s, page, &freelist_iter, nextfree))
- 			break;
+ 	iov_iter_truncate(iter, inode->i_sb->s_maxbytes);
++	pagevec_init(&pvec);
  
--		do {
--			prior = page->freelist;
--			counters = page->counters;
--			set_freepointer(s, freelist, prior);
--			new.counters = counters;
--			new.inuse--;
--			VM_BUG_ON(!new.frozen);
+ 	do {
+ 		cond_resched();
+@@ -2469,13 +2513,8 @@ ssize_t generic_file_buffered_read(struc
+ 		isize = i_size_read(inode);
+ 		if (unlikely(iocb->ki_pos >= isize))
+ 			goto put_pages;
 -
--		} while (!__cmpxchg_double_slab(s, page,
--			prior, counters,
--			freelist, new.counters,
--			"drain percpu freelist"));
-+		freelist_tail = freelist_iter;
-+		free_delta++;
+ 		end_offset = min_t(loff_t, isize, iocb->ki_pos + iter->count);
  
--		freelist = nextfree;
-+		freelist_iter = nextfree;
- 	}
+-		while ((iocb->ki_pos >> PAGE_SHIFT) + pvec.nr >
+-		       (end_offset + PAGE_SIZE - 1) >> PAGE_SHIFT)
+-			put_page(pvec.pages[--pvec.nr]);
+-
+ 		/*
+ 		 * Once we start copying data, we don't want to be touching any
+ 		 * cachelines that might be contended:
+@@ -2489,24 +2528,32 @@ ssize_t generic_file_buffered_read(struc
+ 		if (iocb->ki_pos >> PAGE_SHIFT !=
+ 		    ra->prev_pos >> PAGE_SHIFT)
+ 			mark_page_accessed(pvec.pages[0]);
+-		for (i = 1; i < pagevec_count(&pvec); i++)
+-			mark_page_accessed(pvec.pages[i]);
  
- 	/*
--	 * Stage two: Ensure that the page is unfrozen while the
--	 * list presence reflects the actual number of objects
--	 * during unfreeze.
-+	 * Stage two: Unfreeze the page while splicing the per-cpu
-+	 * freelist to the head of page's freelist.
-+	 *
-+	 * Ensure that the page is unfrozen while the list presence
-+	 * reflects the actual number of objects during unfreeze.
- 	 *
- 	 * We setup the list membership and then perform a cmpxchg
- 	 * with the count. If there is a mismatch then the page
-@@ -2231,15 +2220,15 @@ static void deactivate_slab(struct kmem_
- 	 */
- redo:
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+-			unsigned int offset = iocb->ki_pos & ~PAGE_MASK;
+-			unsigned int bytes = min_t(loff_t, end_offset - iocb->ki_pos,
+-						   PAGE_SIZE - offset);
+-			unsigned int copied;
++			struct page *page = pvec.pages[i];
++			size_t page_size = thp_size(page);
++			size_t offset = iocb->ki_pos & (page_size - 1);
++			size_t bytes = min_t(loff_t, end_offset - iocb->ki_pos,
++					     page_size - offset);
++			size_t copied;
  
--	old.freelist = page->freelist;
--	old.counters = page->counters;
-+	old.freelist = READ_ONCE(page->freelist);
-+	old.counters = READ_ONCE(page->counters);
- 	VM_BUG_ON(!old.frozen);
++			if (end_offset < page_offset(page))
++				break;
++			if (i > 0)
++				mark_page_accessed(page);
+ 			/*
+ 			 * If users can be writing to this page using arbitrary
+ 			 * virtual addresses, take care about potential aliasing
+ 			 * before reading the page on the kernel side.
+ 			 */
+-			if (writably_mapped)
+-				flush_dcache_page(pvec.pages[i]);
++			if (writably_mapped) {
++				int j;
++
++				for (j = 0; j < thp_nr_pages(page); j++)
++					flush_dcache_page(page + j);
++			}
  
- 	/* Determine target state of the slab */
- 	new.counters = old.counters;
--	if (freelist) {
--		new.inuse--;
--		set_freepointer(s, freelist, old.freelist);
-+	if (freelist_tail) {
-+		new.inuse -= free_delta;
-+		set_freepointer(s, freelist_tail, old.freelist);
- 		new.freelist = freelist;
- 	} else
- 		new.freelist = old.freelist;
+-			copied = copy_page_to_iter(pvec.pages[i], offset, bytes, iter);
++			copied = copy_page_to_iter(page, offset, bytes, iter);
+ 
+ 			written += copied;
+ 			iocb->ki_pos += copied;
+@@ -2520,6 +2567,7 @@ ssize_t generic_file_buffered_read(struc
+ put_pages:
+ 		for (i = 0; i < pagevec_count(&pvec); i++)
+ 			put_page(pvec.pages[i]);
++		pagevec_reinit(&pvec);
+ 	} while (iov_iter_count(iter) && iocb->ki_pos < isize && !error);
+ 
+ 	file_accessed(filp);
 _
