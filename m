@@ -5,37 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96A7BC433E6
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:05:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D48FC433E9
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:05:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5625064F3B
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:05:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4407764F39
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:05:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235136AbhBXUFY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:05:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56778 "EHLO mail.kernel.org"
+        id S235156AbhBXUFZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:05:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56702 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235397AbhBXUDy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235461AbhBXUDy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 24 Feb 2021 15:03:54 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6D42B64E60;
-        Wed, 24 Feb 2021 20:03:02 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 16D7564E09;
+        Wed, 24 Feb 2021 20:02:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614196982;
-        bh=EMCDtPTrNWcTg4yKqS51VPz73gYHPSpsGa5jQGbYHF4=;
+        s=korg; t=1614196976;
+        bh=T85Xr9DPB97rqTmjlllDlIAKZVTOHYa0asJFqBT5srk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=fVOSBhGXC2/zbOjc9Nxl+thAVd02hDPDlzG2HgtbNL3gWH+FEsakmlhD5UMeCEfEx
-         1UAWSiwKLKSWu3UbklKqrn2hJzYeUCsYm46udHXHJyTvm8ZXXtsbTQLSfBL/TJ5s2e
-         REslQvhJmaspN10o8LNI0dBPRfuHKsX8kN5Oq+3E=
-Date:   Wed, 24 Feb 2021 12:03:01 -0800
+        b=q/AFx7eU6VRssTE7HU2EtPoLJq8H9Pf4MSSLyVqwUsPAIDkYyaKK9RNvGuyJuy+Li
+         80A4Pf7CGtbKaMh1A9NHBfTA0M7p+dCHLJZn/hlrvkHkvBrlLSwCpqjtAl3EaRtGII
+         Vn7/POCjuooG51grwbwzN8jNOEjNsLevplIkDnjs=
+Date:   Wed, 24 Feb 2021 12:02:55 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, georgi.djakov@linaro.org,
-        linmiaohe@huawei.com, linux-mm@kvack.org, minchan@kernel.org,
+To:     abaci-bugfix@linux.alibaba.com, abaci@linux.alibaba.com,
+        akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 052/173] mm/page_io: use pr_alert_ratelimited for
- swap read/write errors
-Message-ID: <20210224200301._0q-FlWXk%akpm@linux-foundation.org>
+Subject:  [patch 050/173] mm/swap_slots.c: remove redundant NULL
+ check
+Message-ID: <20210224200255.cTufYVXJh%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,54 +43,34 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Georgi Djakov <georgi.djakov@linaro.org>
-Subject: mm/page_io: use pr_alert_ratelimited for swap read/write errors
+From: Yang Li <abaci-bugfix@linux.alibaba.com>
+Subject: mm/swap_slots.c: remove redundant NULL check
 
-If there are errors during swap read or write, they can easily fill the
-log buffer and remove any previous messages that might be useful for
-debugging, especially on systems that rely for logging only on the kernel
-ring-buffer.
+Fix below warnings reported by coccicheck:
+./mm/swap_slots.c:197:3-9: WARNING: NULL check before some freeing
+functions is not needed.
 
-For example, on a systems using zram as swap, we are more likely to see
-any page allocation errors preceding the swap write errors if the alerts
-are ratelimited.
-
-Link: https://lkml.kernel.org/r/20210201142055.29068-1-georgi.djakov@linaro.org
-Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/1611214229-11225-1-git-send-email-abaci-bugfix@linux.alibaba.com
+Signed-off-by: Yang Li <abaci-bugfix@linux.alibaba.com>
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/swap_slots.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/page_io.c~mm-page_io-use-pr_alert_ratelimited-for-swap-read-write-errors
-+++ a/mm/page_io.c
-@@ -41,9 +41,9 @@ void end_swap_bio_write(struct bio *bio)
- 		 * Also clear PG_reclaim to avoid rotate_reclaimable_page()
- 		 */
- 		set_page_dirty(page);
--		pr_alert("Write-error on swap-device (%u:%u:%llu)\n",
--			 MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
--			 (unsigned long long)bio->bi_iter.bi_sector);
-+		pr_alert_ratelimited("Write-error on swap-device (%u:%u:%llu)\n",
-+				     MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
-+				     (unsigned long long)bio->bi_iter.bi_sector);
- 		ClearPageReclaim(page);
+--- a/mm/swap_slots.c~mm-swap_slotsc-remove-redundant-null-check
++++ a/mm/swap_slots.c
+@@ -193,8 +193,7 @@ static void drain_slots_cache_cpu(unsign
+ 			cache->slots_ret = NULL;
+ 		}
+ 		spin_unlock_irq(&cache->free_lock);
+-		if (slots)
+-			kvfree(slots);
++		kvfree(slots);
  	}
- 	end_page_writeback(page);
-@@ -106,9 +106,9 @@ static void end_swap_bio_read(struct bio
- 	if (bio->bi_status) {
- 		SetPageError(page);
- 		ClearPageUptodate(page);
--		pr_alert("Read-error on swap-device (%u:%u:%llu)\n",
--			 MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
--			 (unsigned long long)bio->bi_iter.bi_sector);
-+		pr_alert_ratelimited("Read-error on swap-device (%u:%u:%llu)\n",
-+				     MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
-+				     (unsigned long long)bio->bi_iter.bi_sector);
- 		goto out;
- 	}
+ }
  
 _
