@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BA2CC433E9
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:10:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DF41C433E6
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:11:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4737660202
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:10:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE93964E09
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:11:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235446AbhBXUKW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:10:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33234 "EHLO mail.kernel.org"
+        id S235483AbhBXUKf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:10:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33332 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235316AbhBXUJm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:09:42 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0C3A464F25;
-        Wed, 24 Feb 2021 20:09:01 +0000 (UTC)
+        id S235382AbhBXUJw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:09:52 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9430364EC3;
+        Wed, 24 Feb 2021 20:09:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197342;
-        bh=df+0qV+j7KcQUdsOCl5oTF2mMefbNZbXZqcH02cX53o=;
+        s=korg; t=1614197348;
+        bh=lFbVt0vxQbWNFTZr7by1YJiXlS0bmT0HIfAulncMONc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=LVa/atVTsOfFbGudUgrKD2pftzm3OWSReTX0eym68t5EuPPpCeLsQ+NzyE9lnRqke
-         HvOTc3by5R4gFmMqhFurO8IApOT3pQLh4v9J/QYxY7SfN4nuFhIDonajGGmRSPByR5
-         7GepXAZIBFqWDcm1lQ5hKGnTZSafhdHQ3wqXofBM=
-Date:   Wed, 24 Feb 2021 12:09:00 -0800
+        b=aGXKVx2Wg9YzDKxelFFWD46mA357KjNkd3juLoGxhhEqalEYruJ+2yEz/52154tsz
+         EyVIEW3Wp1o6alN8tKLgsdXmZ9s5t4HSyjAzJVF+j2y5Ct5AaVstTg41U7MbBGQj2m
+         jpuwO20J7RhMAkp4pJ0SJ9SCrGVe5eFIJ0w3R81U=
+Date:   Wed, 24 Feb 2021 12:09:08 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linmiaohe@huawei.com,
-        linux-mm@kvack.org, mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
-        osalvador@suse.de, songmuchun@bytedance.com,
-        torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [patch 148/173] hugetlb: convert PageHugeTemporary() to
- HPageTemporary flag
-Message-ID: <20210224200900.91raiWk2W%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org, mhocko@suse.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 150/173] include/linux/hugetlb.h: add
+ synchronization information for new hugetlb specific flags
+Message-ID: <20210224200908.vZa9u-els%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,131 +44,44 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: convert PageHugeTemporary() to HPageTemporary flag
+Subject: include/linux/hugetlb.h: add synchronization information for new hugetlb specific flags
 
-Use new hugetlb specific HPageTemporary flag to replace the
-PageHugeTemporary() interfaces.  PageHugeTemporary does contain a
-PageHuge() check.  However, this interface is only used within hugetlb
-code where we know we are dealing with a hugetlb page.  Therefore, the
-check can be eliminated.
+Add comments, no functional change.
 
-Link: https://lkml.kernel.org/r/20210122195231.324857-5-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/62a80585-2a73-10cc-4a2d-5721540d4ad2@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 ++++++
- mm/hugetlb.c            |   36 +++++++-----------------------------
- 2 files changed, 13 insertions(+), 29 deletions(-)
+ include/linux/hugetlb.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/include/linux/hugetlb.h~hugetlb-convert-pagehugetemporary-to-hpagetemporary-flag
+--- a/include/linux/hugetlb.h~include-linux-hugetlbh-add-synchronization-information-for-new-hugetlb-specific-flags
 +++ a/include/linux/hugetlb.h
-@@ -483,10 +483,15 @@ unsigned long hugetlb_get_unmapped_area(
+@@ -480,14 +480,24 @@ unsigned long hugetlb_get_unmapped_area(
+  * HPG_restore_reserve - Set when a hugetlb page consumes a reservation at
+  *	allocation time.  Cleared when page is fully instantiated.  Free
+  *	routine checks flag to restore a reservation on error paths.
++ *	Synchronization:  Examined or modified by code that knows it has
++ *	the only reference to page.  i.e. After allocation but before use
++ *	or when the page is being freed.
   * HPG_migratable  - Set after a newly allocated page is added to the page
   *	cache and/or page tables.  Indicates the page is a candidate for
   *	migration.
-+ * HPG_temporary - - Set on a page that is temporarily allocated from the buddy
-+ *	allocator.  Typically used for migration target pages when no pages
-+ *	are available in the pool.  The hugetlb free page path will
-+ *	immediately free pages with this flag set to the buddy allocator.
++ *	Synchronization:  Initially set after new page allocation with no
++ *	locking.  When examined and modified during migration processing
++ *	(isolate, migrate, putback) the hugetlb_lock is held.
+  * HPG_temporary - - Set on a page that is temporarily allocated from the buddy
+  *	allocator.  Typically used for migration target pages when no pages
+  *	are available in the pool.  The hugetlb free page path will
+  *	immediately free pages with this flag set to the buddy allocator.
++ *	Synchronization: Can be set after huge page allocation from buddy when
++ *	code knows it has only reference.  All other examinations and
++ *	modifications require hugetlb_lock.
+  * HPG_freed - Set when page is on the free lists.
++ *	Synchronization: hugetlb_lock held for examination and modification.
   */
  enum hugetlb_page_flags {
  	HPG_restore_reserve = 0,
- 	HPG_migratable,
-+	HPG_temporary,
- 	__NR_HPAGEFLAGS,
- };
- 
-@@ -530,6 +535,7 @@ static inline void ClearHPage##uname(str
-  */
- HPAGEFLAG(RestoreReserve, restore_reserve)
- HPAGEFLAG(Migratable, migratable)
-+HPAGEFLAG(Temporary, temporary)
- 
- #ifdef CONFIG_HUGETLB_PAGE
- 
---- a/mm/hugetlb.c~hugetlb-convert-pagehugetemporary-to-hpagetemporary-flag
-+++ a/mm/hugetlb.c
-@@ -1364,28 +1364,6 @@ struct hstate *size_to_hstate(unsigned l
- 	return NULL;
- }
- 
--/*
-- * Internal hugetlb specific page flag. Do not use outside of the hugetlb
-- * code
-- */
--static inline bool PageHugeTemporary(struct page *page)
--{
--	if (!PageHuge(page))
--		return false;
--
--	return (unsigned long)page[2].mapping == -1U;
--}
--
--static inline void SetPageHugeTemporary(struct page *page)
--{
--	page[2].mapping = (void *)-1U;
--}
--
--static inline void ClearPageHugeTemporary(struct page *page)
--{
--	page[2].mapping = NULL;
--}
--
- static void __free_huge_page(struct page *page)
- {
- 	/*
-@@ -1433,9 +1411,9 @@ static void __free_huge_page(struct page
- 	if (restore_reserve)
- 		h->resv_huge_pages++;
- 
--	if (PageHugeTemporary(page)) {
-+	if (HPageTemporary(page)) {
- 		list_del(&page->lru);
--		ClearPageHugeTemporary(page);
-+		ClearHPageTemporary(page);
- 		update_and_free_page(h, page);
- 	} else if (h->surplus_huge_pages_node[nid]) {
- 		/* remove the page from active list */
-@@ -1869,7 +1847,7 @@ static struct page *alloc_surplus_huge_p
- 	 * codeflow
- 	 */
- 	if (h->surplus_huge_pages >= h->nr_overcommit_huge_pages) {
--		SetPageHugeTemporary(page);
-+		SetHPageTemporary(page);
- 		spin_unlock(&hugetlb_lock);
- 		put_page(page);
- 		return NULL;
-@@ -1900,7 +1878,7 @@ static struct page *alloc_migrate_huge_p
- 	 * We do not account these pages as surplus because they are only
- 	 * temporary and will be released properly on the last reference
- 	 */
--	SetPageHugeTemporary(page);
-+	SetHPageTemporary(page);
- 
- 	return page;
- }
-@@ -5625,12 +5603,12 @@ void move_hugetlb_state(struct page *old
- 	 * here as well otherwise the global surplus count will not match
- 	 * the per-node's.
- 	 */
--	if (PageHugeTemporary(newpage)) {
-+	if (HPageTemporary(newpage)) {
- 		int old_nid = page_to_nid(oldpage);
- 		int new_nid = page_to_nid(newpage);
- 
--		SetPageHugeTemporary(oldpage);
--		ClearPageHugeTemporary(newpage);
-+		SetHPageTemporary(oldpage);
-+		ClearHPageTemporary(newpage);
- 
- 		spin_lock(&hugetlb_lock);
- 		if (h->surplus_huge_pages_node[old_nid]) {
 _
