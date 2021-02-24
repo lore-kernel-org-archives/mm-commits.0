@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D497C4332D
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:13:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A279C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:13:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EF70264EC4
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:13:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D44564E20
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:13:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235493AbhBXUMx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:12:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33360 "EHLO mail.kernel.org"
+        id S235497AbhBXUNB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:13:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34154 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235498AbhBXUKp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:10:45 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B2C5064F12;
-        Wed, 24 Feb 2021 20:10:18 +0000 (UTC)
+        id S235500AbhBXUKq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:10:46 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7FF8764F09;
+        Wed, 24 Feb 2021 20:10:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197419;
-        bh=tHWvyoZDisRvTn/EDMCKyTePaT1tbvgEM8wBRd/eKkk=;
+        s=korg; t=1614197405;
+        bh=89ua4NCxevzCS8WG7x5y58cgAeK8KEYSosUa8A8VxB8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=UYujt1yS0Lv0EgsBCsTk3z1901w5siKfAThBWn8MGuW6jAWmrDqbIMKCA38HZbHbx
-         htZ93kEvF4bwo9kwO8gUn6PBcWm/wwQ9AYtmYCVmKJzczqu7fHzWTmrmID/d8T2uAz
-         AhJ3QYrwLBuxhkepyqpRziVT/O6E+6mnNvtKZJSY=
-Date:   Wed, 24 Feb 2021 12:10:18 -0800
+        b=ve+MVRp6i9cuedqmwDxqTHGzKBMn6zkIqjo/bbeL7tuo+85l+1TZUd1Yf+MtbXfN/
+         K/tICoMdTbdFZEsr9eF1AERrSva8cddBet5a7pT0+itDwaQExLElwW7AIrNm4c1UI9
+         yKGzy2NgBOudtJVgbKRr0b4FLG6XTI6fD0onzKLs=
+Date:   Wed, 24 Feb 2021 12:10:04 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+To:     akpm@linux-foundation.org, david@redhat.com, linmiaohe@huawei.com,
         linux-mm@kvack.org, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 170/173] hugetlbfs: correct some obsolete comments
- about inode i_mutex
-Message-ID: <20210224201018.Sn23UYdQF%akpm@linux-foundation.org>
+Subject:  [patch 166/173] hugetlbfs: use helper macro
+ default_hstate in init_hugetlbfs_fs
+Message-ID: <20210224201004.oP8JoZock%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,39 +44,31 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlbfs: correct some obsolete comments about inode i_mutex
+Subject: hugetlbfs: use helper macro default_hstate in init_hugetlbfs_fs
 
-Since commit 9902af79c01a ("parallel lookups: actual switch to rwsem"),
-i_mutex of inode is converted to i_rwsem. So replace i_mutex with i_rwsem
-to make comments up to date.
+Since commit e5ff215941d5 ("hugetlb: multiple hstates for multiple page
+sizes"), we can use macro default_hstate to get the struct hstate which we
+use by default.  But init_hugetlbfs_fs() forgot to use it.
 
-Link: https://lkml.kernel.org/r/20210127093111.36672-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210116091827.20982-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/hugetlbfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs
 +++ a/fs/hugetlbfs/inode.c
-@@ -604,7 +604,7 @@ static long hugetlbfs_punch_hole(struct
+@@ -1543,7 +1543,7 @@ static int __init init_hugetlbfs_fs(void
+ 		goto out_free;
  
- 		inode_lock(inode);
- 
--		/* protected by i_mutex */
-+		/* protected by i_rwsem */
- 		if (info->seals & (F_SEAL_WRITE | F_SEAL_FUTURE_WRITE)) {
- 			inode_unlock(inode);
- 			return -EPERM;
-@@ -777,7 +777,7 @@ static int hugetlbfs_setattr(struct user
- 
- 		if (newsize & ~huge_page_mask(h))
- 			return -EINVAL;
--		/* protected by i_mutex */
-+		/* protected by i_rwsem */
- 		if ((newsize < oldsize && (info->seals & F_SEAL_SHRINK)) ||
- 		    (newsize > oldsize && (info->seals & F_SEAL_GROW)))
- 			return -EPERM;
+ 	/* default hstate mount is required */
+-	mnt = mount_one_hugetlbfs(&hstates[default_hstate_idx]);
++	mnt = mount_one_hugetlbfs(&default_hstate);
+ 	if (IS_ERR(mnt)) {
+ 		error = PTR_ERR(mnt);
+ 		goto out_unreg;
 _
