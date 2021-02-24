@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5884AC433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:08:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0916DC433E6
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:09:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0EE8864F1B
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:08:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB4BB64F23
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:09:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234135AbhBXUIr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235289AbhBXUIr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 24 Feb 2021 15:08:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59402 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60238 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235289AbhBXUIT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:08:19 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 199E264EC3;
-        Wed, 24 Feb 2021 20:08:03 +0000 (UTC)
+        id S234644AbhBXUIV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:08:21 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E752364F23;
+        Wed, 24 Feb 2021 20:07:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197283;
-        bh=gVElk86W0iovkBG5MvbBrGnab76DsuQO3EEOO4hWJfM=;
+        s=korg; t=1614197240;
+        bh=uMWlgw9tOoEw/DXcTXlWnrGApna+wy9o5SEsUZ5XyA0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vWxkBcUMJH4Xnkkfz1FRjD4bIN3o+7GLfmEBKFdUJpBA6HXrOmlpVbO6AgcJ0zzRQ
-         E2pP3cnN/1uckK2DJ7bjq7eKa7Ku4nnH60FPcxvawM1akH+VDfGUBHt2o+s9vXB+rF
-         +KD1pTnwCb5mkfpcoJIUH3sw6oY0q2zd4Xc2cpKQ=
-Date:   Wed, 24 Feb 2021 12:08:01 -0800
+        b=xcW88dNM/p/iDUnEr08O8Wm4pXIu7/YDZCWej8vDiQbh9zt8nTa7K6kkXlxVM+ATe
+         A4g+FuJx+jGQrnG9HMmV3oqKTHMPkhYM34OjK21dlOoDWUi/Jd4C7aJecf4NqIqhlg
+         OshZGVkdYyvH00Tsendeb9aDvep3YLxeErPgLhPc=
+Date:   Wed, 24 Feb 2021 12:07:19 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
-        hughd@google.com, linux-mm@kvack.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        vbabka@suse.cz, willy@infradead.org, yuzhao@google.com
-Subject:  [patch 133/173] mm/vmscan: __isolate_lru_page_prepare()
- cleanup
-Message-ID: <20210224200801.zJa7Eq7jv%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, jrdr.linux@gmail.com,
+        linmiaohe@huawei.com, linux-mm@kvack.org, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 121/173] mm/hugetlb: fix some comment typos
+Message-ID: <20210224200719.KYC8uNy-0%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,170 +42,61 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/vmscan: __isolate_lru_page_prepare() cleanup
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/hugetlb: fix some comment typos
 
-The function just returns 2 results, so using a 'switch' to deal with its
-result is unnecessary.  Also simplify it to a bool func as Vlastimil
-suggested.
+Fix typos sasitfy to satisfy, reservtion to reservation, hugegpage to
+hugepage and uniprocesor to uniprocessor in comments.
 
-Also remove 'goto' by reusing list_move(), and take Matthew Wilcox's
-suggestion to update comments in function.
-
-Link: https://lkml.kernel.org/r/728874d7-2d93-4049-68c1-dcc3b2d52ccd@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20210128112028.64831-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 -
- mm/compaction.c      |    2 -
- mm/vmscan.c          |   68 ++++++++++++++++++-----------------------
- 3 files changed, 33 insertions(+), 39 deletions(-)
+ include/linux/hugetlb.h |    2 +-
+ mm/hugetlb.c            |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/swap.h~mm-vmscan-__isolate_lru_page_prepare-clean-up
-+++ a/include/linux/swap.h
-@@ -356,7 +356,7 @@ extern void lru_cache_add_inactive_or_un
- extern unsigned long zone_reclaimable_pages(struct zone *zone);
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask, nodemask_t *mask);
--extern int __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode);
-+extern bool __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode);
- extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
- 						  unsigned long nr_pages,
- 						  gfp_t gfp_mask,
---- a/mm/compaction.c~mm-vmscan-__isolate_lru_page_prepare-clean-up
-+++ a/mm/compaction.c
-@@ -988,7 +988,7 @@ isolate_migratepages_block(struct compac
- 		if (unlikely(!get_page_unless_zero(page)))
- 			goto isolate_fail;
+--- a/include/linux/hugetlb.h~mm-hugetlb-fix-some-comment-typos
++++ a/include/linux/hugetlb.h
+@@ -37,7 +37,7 @@ struct hugepage_subpool {
+ 	struct hstate *hstate;
+ 	long min_hpages;	/* Minimum huge pages or -1 if no minimum. */
+ 	long rsv_hpages;	/* Pages reserved against global pool to */
+-				/* sasitfy minimum size. */
++				/* satisfy minimum size. */
+ };
  
--		if (__isolate_lru_page_prepare(page, isolate_mode) != 0)
-+		if (!__isolate_lru_page_prepare(page, isolate_mode))
- 			goto isolate_fail_put;
- 
- 		/* Try isolate the page */
---- a/mm/vmscan.c~mm-vmscan-__isolate_lru_page_prepare-clean-up
-+++ a/mm/vmscan.c
-@@ -1539,19 +1539,17 @@ unsigned int reclaim_clean_pages_from_li
-  * page:	page to consider
-  * mode:	one of the LRU isolation modes defined above
-  *
-- * returns 0 on success, -ve errno on failure.
-+ * returns true on success, false on failure.
-  */
--int __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode)
-+bool __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode)
- {
--	int ret = -EBUSY;
--
- 	/* Only take pages on the LRU. */
- 	if (!PageLRU(page))
--		return ret;
-+		return false;
- 
- 	/* Compaction should not handle unevictable pages but CMA can do so */
- 	if (PageUnevictable(page) && !(mode & ISOLATE_UNEVICTABLE))
--		return ret;
-+		return false;
- 
- 	/*
- 	 * To minimise LRU disruption, the caller can indicate that it only
-@@ -1564,7 +1562,7 @@ int __isolate_lru_page_prepare(struct pa
- 	if (mode & ISOLATE_ASYNC_MIGRATE) {
- 		/* All the caller can do on PageWriteback is block */
- 		if (PageWriteback(page))
--			return ret;
-+			return false;
- 
- 		if (PageDirty(page)) {
- 			struct address_space *mapping;
-@@ -1580,20 +1578,20 @@ int __isolate_lru_page_prepare(struct pa
- 			 * from the page cache.
- 			 */
- 			if (!trylock_page(page))
--				return ret;
-+				return false;
- 
- 			mapping = page_mapping(page);
- 			migrate_dirty = !mapping || mapping->a_ops->migratepage;
- 			unlock_page(page);
- 			if (!migrate_dirty)
--				return ret;
-+				return false;
- 		}
- 	}
- 
- 	if ((mode & ISOLATE_UNMAPPED) && page_mapped(page))
--		return ret;
-+		return false;
- 
--	return 0;
-+	return true;
- }
- 
+ struct resv_map {
+--- a/mm/hugetlb.c~mm-hugetlb-fix-some-comment-typos
++++ a/mm/hugetlb.c
+@@ -1434,7 +1434,7 @@ static void __free_huge_page(struct page
+ 	 * reservation.  If the page was associated with a subpool, there
+ 	 * would have been a page reserved in the subpool before allocation
+ 	 * via hugepage_subpool_get_pages().  Since we are 'restoring' the
+-	 * reservtion, do not call hugepage_subpool_put_pages() as this will
++	 * reservation, do not call hugepage_subpool_put_pages() as this will
+ 	 * remove the reserved page from the subpool.
+ 	 */
+ 	if (!restore_reserve) {
+@@ -3707,7 +3707,7 @@ static unsigned long hugetlb_vm_op_pages
  /*
-@@ -1677,35 +1675,31 @@ static unsigned long isolate_lru_pages(u
- 		 * only when the page is being freed somewhere else.
- 		 */
- 		scan += nr_pages;
--		switch (__isolate_lru_page_prepare(page, mode)) {
--		case 0:
--			/*
--			 * Be careful not to clear PageLRU until after we're
--			 * sure the page is not being freed elsewhere -- the
--			 * page release code relies on it.
--			 */
--			if (unlikely(!get_page_unless_zero(page)))
--				goto busy;
-+		if (!__isolate_lru_page_prepare(page, mode)) {
-+			/* It is being freed elsewhere */
-+			list_move(&page->lru, src);
-+			continue;
-+		}
-+		/*
-+		 * Be careful not to clear PageLRU until after we're
-+		 * sure the page is not being freed elsewhere -- the
-+		 * page release code relies on it.
-+		 */
-+		if (unlikely(!get_page_unless_zero(page))) {
-+			list_move(&page->lru, src);
-+			continue;
-+		}
- 
--			if (!TestClearPageLRU(page)) {
--				/*
--				 * This page may in other isolation path,
--				 * but we still hold lru_lock.
--				 */
--				put_page(page);
--				goto busy;
--			}
--
--			nr_taken += nr_pages;
--			nr_zone_taken[page_zonenum(page)] += nr_pages;
--			list_move(&page->lru, dst);
--			break;
--
--		default:
--busy:
--			/* else it is being freed elsewhere */
-+		if (!TestClearPageLRU(page)) {
-+			/* Another thread is already isolating this page */
-+			put_page(page);
- 			list_move(&page->lru, src);
-+			continue;
- 		}
-+
-+		nr_taken += nr_pages;
-+		nr_zone_taken[page_zonenum(page)] += nr_pages;
-+		list_move(&page->lru, dst);
- 	}
- 
- 	/*
+  * We cannot handle pagefaults against hugetlb pages at all.  They cause
+  * handle_mm_fault() to try to instantiate regular-sized pages in the
+- * hugegpage VMA.  do_page_fault() is supposed to trap this, so BUG is we get
++ * hugepage VMA.  do_page_fault() is supposed to trap this, so BUG is we get
+  * this far.
+  */
+ static vm_fault_t hugetlb_vm_op_fault(struct vm_fault *vmf)
+@@ -4491,7 +4491,7 @@ u32 hugetlb_fault_mutex_hash(struct addr
+ }
+ #else
+ /*
+- * For uniprocesor systems we always use a single mutex, so just
++ * For uniprocessor systems we always use a single mutex, so just
+  * return 0 and avoid the hashing overhead.
+  */
+ u32 hugetlb_fault_mutex_hash(struct address_space *mapping, pgoff_t idx)
 _
