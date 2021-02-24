@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D46ACC433E9
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:08:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5884AC433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:08:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9527A64F1F
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:08:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0EE8864F1B
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:08:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235371AbhBXUIo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:08:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60200 "EHLO mail.kernel.org"
+        id S234135AbhBXUIr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:08:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59402 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235297AbhBXUIS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:08:18 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 419B964F0C;
-        Wed, 24 Feb 2021 20:07:13 +0000 (UTC)
+        id S235289AbhBXUIT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:08:19 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 199E264EC3;
+        Wed, 24 Feb 2021 20:08:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197233;
-        bh=xu3dQIUcuFjKfiYnfBSYI8L8Ak26a5TGLhjBocQIuXo=;
+        s=korg; t=1614197283;
+        bh=gVElk86W0iovkBG5MvbBrGnab76DsuQO3EEOO4hWJfM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=WG5n3xx/ZcIZ04y3c+lE1Hi5PtijhYR4kBQ2jxqep6VdWEXIcdaYsX5en3Kff2cjV
-         AswbRKLKSgLpGX93SpnGmPXr6jTvNlLQs2neEJzOb9f77KBIN/hc5Qg52ELM/AU3OA
-         S9g9CkVx8C991JKw1Q7IHiUSfeJ1/m75PzxU4G5g=
-Date:   Wed, 24 Feb 2021 12:07:12 -0800
+        b=vWxkBcUMJH4Xnkkfz1FRjD4bIN3o+7GLfmEBKFdUJpBA6HXrOmlpVbO6AgcJ0zzRQ
+         E2pP3cnN/1uckK2DJ7bjq7eKa7Ku4nnH60FPcxvawM1akH+VDfGUBHt2o+s9vXB+rF
+         +KD1pTnwCb5mkfpcoJIUH3sw6oY0q2zd4Xc2cpKQ=
+Date:   Wed, 24 Feb 2021 12:08:01 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, joao.m.martins@oracle.com,
-        linux-mm@kvack.org, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 119/173] mm/hugetlb: grab head page refcount once
- for group of subpages
-Message-ID: <20210224200712.-Mz_odraQ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
+        hughd@google.com, linux-mm@kvack.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        vbabka@suse.cz, willy@infradead.org, yuzhao@google.com
+Subject:  [patch 133/173] mm/vmscan: __isolate_lru_page_prepare()
+ cleanup
+Message-ID: <20210224200801.zJa7Eq7jv%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,149 +44,170 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/hugetlb: grab head page refcount once for group of subpages
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/vmscan: __isolate_lru_page_prepare() cleanup
 
-Patch series "mm/hugetlb: follow_hugetlb_page() improvements", v2.
+The function just returns 2 results, so using a 'switch' to deal with its
+result is unnecessary.  Also simplify it to a bool func as Vlastimil
+suggested.
 
-While looking at ZONE_DEVICE struct page reuse particularly the last
-patch[0], I found two possible improvements for follow_hugetlb_page()
-which is solely used for get_user_pages()/pin_user_pages().
+Also remove 'goto' by reusing list_move(), and take Matthew Wilcox's
+suggestion to update comments in function.
 
-The first patch batches page refcount updates while the second tidies up
-storing the subpages/vmas.  Both together bring the cost of slow variant
-of gup() cost from ~87.6k usecs to ~5.8k usecs.
-
-libhugetlbfs tests seem to pass as well gup_test benchmarks with hugetlbfs
-vmas.
-
-
-This patch (of 2):
-
-follow_hugetlb_page() once it locks the pmd/pud, checks all its N subpages
-in a huge page and grabs a reference for each one.  Similar to gup-fast,
-have follow_hugetlb_page() grab the head page refcount only after counting
-all its subpages that are part of the just faulted huge page.
-
-Consequently we reduce the number of atomics necessary to pin said huge
-page, which improves non-fast gup() considerably:
-
-  - 16G with 1G huge page size
-  gup_test -f /mnt/huge/file -m 16384 -r 10 -L -S -n 512 -w
-
-PIN_LONGTERM_BENCHMARK: ~87.6k us -> ~12.8k us
-
-Link: https://lkml.kernel.org/r/20210128182632.24562-1-joao.m.martins@oracle.com
-Link: https://lkml.kernel.org/r/20210128182632.24562-2-joao.m.martins@oracle.com
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/728874d7-2d93-4049-68c1-dcc3b2d52ccd@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 +++
- mm/gup.c           |    5 ++---
- mm/hugetlb.c       |   43 ++++++++++++++++++++++++-------------------
- 3 files changed, 29 insertions(+), 22 deletions(-)
+ include/linux/swap.h |    2 -
+ mm/compaction.c      |    2 -
+ mm/vmscan.c          |   68 ++++++++++++++++++-----------------------
+ 3 files changed, 33 insertions(+), 39 deletions(-)
 
---- a/include/linux/mm.h~mm-hugetlb-grab-head-page-refcount-once-for-group-of-subpages
-+++ a/include/linux/mm.h
-@@ -1187,6 +1187,9 @@ static inline void get_page(struct page
+--- a/include/linux/swap.h~mm-vmscan-__isolate_lru_page_prepare-clean-up
++++ a/include/linux/swap.h
+@@ -356,7 +356,7 @@ extern void lru_cache_add_inactive_or_un
+ extern unsigned long zone_reclaimable_pages(struct zone *zone);
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask, nodemask_t *mask);
+-extern int __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode);
++extern bool __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode);
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
+ 						  unsigned long nr_pages,
+ 						  gfp_t gfp_mask,
+--- a/mm/compaction.c~mm-vmscan-__isolate_lru_page_prepare-clean-up
++++ a/mm/compaction.c
+@@ -988,7 +988,7 @@ isolate_migratepages_block(struct compac
+ 		if (unlikely(!get_page_unless_zero(page)))
+ 			goto isolate_fail;
+ 
+-		if (__isolate_lru_page_prepare(page, isolate_mode) != 0)
++		if (!__isolate_lru_page_prepare(page, isolate_mode))
+ 			goto isolate_fail_put;
+ 
+ 		/* Try isolate the page */
+--- a/mm/vmscan.c~mm-vmscan-__isolate_lru_page_prepare-clean-up
++++ a/mm/vmscan.c
+@@ -1539,19 +1539,17 @@ unsigned int reclaim_clean_pages_from_li
+  * page:	page to consider
+  * mode:	one of the LRU isolation modes defined above
+  *
+- * returns 0 on success, -ve errno on failure.
++ * returns true on success, false on failure.
+  */
+-int __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode)
++bool __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode)
+ {
+-	int ret = -EBUSY;
+-
+ 	/* Only take pages on the LRU. */
+ 	if (!PageLRU(page))
+-		return ret;
++		return false;
+ 
+ 	/* Compaction should not handle unevictable pages but CMA can do so */
+ 	if (PageUnevictable(page) && !(mode & ISOLATE_UNEVICTABLE))
+-		return ret;
++		return false;
+ 
+ 	/*
+ 	 * To minimise LRU disruption, the caller can indicate that it only
+@@ -1564,7 +1562,7 @@ int __isolate_lru_page_prepare(struct pa
+ 	if (mode & ISOLATE_ASYNC_MIGRATE) {
+ 		/* All the caller can do on PageWriteback is block */
+ 		if (PageWriteback(page))
+-			return ret;
++			return false;
+ 
+ 		if (PageDirty(page)) {
+ 			struct address_space *mapping;
+@@ -1580,20 +1578,20 @@ int __isolate_lru_page_prepare(struct pa
+ 			 * from the page cache.
+ 			 */
+ 			if (!trylock_page(page))
+-				return ret;
++				return false;
+ 
+ 			mapping = page_mapping(page);
+ 			migrate_dirty = !mapping || mapping->a_ops->migratepage;
+ 			unlock_page(page);
+ 			if (!migrate_dirty)
+-				return ret;
++				return false;
+ 		}
+ 	}
+ 
+ 	if ((mode & ISOLATE_UNMAPPED) && page_mapped(page))
+-		return ret;
++		return false;
+ 
+-	return 0;
++	return true;
  }
  
- bool __must_check try_grab_page(struct page *page, unsigned int flags);
-+__maybe_unused struct page *try_grab_compound_head(struct page *page, int refs,
-+						   unsigned int flags);
-+
- 
- static inline __must_check bool try_get_page(struct page *page)
- {
---- a/mm/gup.c~mm-hugetlb-grab-head-page-refcount-once-for-group-of-subpages
-+++ a/mm/gup.c
-@@ -78,9 +78,8 @@ static inline struct page *try_get_compo
-  * considered failure, and furthermore, a likely bug in the caller, so a warning
-  * is also emitted.
-  */
--static __maybe_unused struct page *try_grab_compound_head(struct page *page,
--							  int refs,
--							  unsigned int flags)
-+__maybe_unused struct page *try_grab_compound_head(struct page *page,
-+						   int refs, unsigned int flags)
- {
- 	if (flags & FOLL_GET)
- 		return try_get_compound_head(page, refs);
---- a/mm/hugetlb.c~mm-hugetlb-grab-head-page-refcount-once-for-group-of-subpages
-+++ a/mm/hugetlb.c
-@@ -4796,7 +4796,7 @@ long follow_hugetlb_page(struct mm_struc
- 	unsigned long vaddr = *position;
- 	unsigned long remainder = *nr_pages;
- 	struct hstate *h = hstate_vma(vma);
--	int err = -EFAULT;
-+	int err = -EFAULT, refs;
- 
- 	while (vaddr < vma->vm_end && remainder) {
- 		pte_t *pte;
-@@ -4916,26 +4916,11 @@ long follow_hugetlb_page(struct mm_struc
- 			continue;
- 		}
- 
-+		refs = 0;
-+
- same_page:
--		if (pages) {
-+		if (pages)
- 			pages[i] = mem_map_offset(page, pfn_offset);
+ /*
+@@ -1677,35 +1675,31 @@ static unsigned long isolate_lru_pages(u
+ 		 * only when the page is being freed somewhere else.
+ 		 */
+ 		scan += nr_pages;
+-		switch (__isolate_lru_page_prepare(page, mode)) {
+-		case 0:
 -			/*
--			 * try_grab_page() should always succeed here, because:
--			 * a) we hold the ptl lock, and b) we've just checked
--			 * that the huge page is present in the page tables. If
--			 * the huge page is present, then the tail pages must
--			 * also be present. The ptl prevents the head page and
--			 * tail pages from being rearranged in any way. So this
--			 * page must be available at this point, unless the page
--			 * refcount overflowed:
+-			 * Be careful not to clear PageLRU until after we're
+-			 * sure the page is not being freed elsewhere -- the
+-			 * page release code relies on it.
 -			 */
--			if (WARN_ON_ONCE(!try_grab_page(pages[i], flags))) {
--				spin_unlock(ptl);
--				remainder = 0;
--				err = -ENOMEM;
--				break;
--			}
--		}
+-			if (unlikely(!get_page_unless_zero(page)))
+-				goto busy;
++		if (!__isolate_lru_page_prepare(page, mode)) {
++			/* It is being freed elsewhere */
++			list_move(&page->lru, src);
++			continue;
++		}
++		/*
++		 * Be careful not to clear PageLRU until after we're
++		 * sure the page is not being freed elsewhere -- the
++		 * page release code relies on it.
++		 */
++		if (unlikely(!get_page_unless_zero(page))) {
++			list_move(&page->lru, src);
++			continue;
++		}
  
- 		if (vmas)
- 			vmas[i] = vma;
-@@ -4944,6 +4929,7 @@ same_page:
- 		++pfn_offset;
- 		--remainder;
- 		++i;
-+		++refs;
- 		if (vaddr < vma->vm_end && remainder &&
- 				pfn_offset < pages_per_huge_page(h)) {
- 			/*
-@@ -4951,6 +4937,25 @@ same_page:
- 			 * of this compound page.
- 			 */
- 			goto same_page;
-+		} else if (pages) {
-+			/*
-+			 * try_grab_compound_head() should always succeed here,
-+			 * because: a) we hold the ptl lock, and b) we've just
-+			 * checked that the huge page is present in the page
-+			 * tables. If the huge page is present, then the tail
-+			 * pages must also be present. The ptl prevents the
-+			 * head page and tail pages from being rearranged in
-+			 * any way. So this page must be available at this
-+			 * point, unless the page refcount overflowed:
-+			 */
-+			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i-1],
-+								 refs,
-+								 flags))) {
-+				spin_unlock(ptl);
-+				remainder = 0;
-+				err = -ENOMEM;
-+				break;
-+			}
+-			if (!TestClearPageLRU(page)) {
+-				/*
+-				 * This page may in other isolation path,
+-				 * but we still hold lru_lock.
+-				 */
+-				put_page(page);
+-				goto busy;
+-			}
+-
+-			nr_taken += nr_pages;
+-			nr_zone_taken[page_zonenum(page)] += nr_pages;
+-			list_move(&page->lru, dst);
+-			break;
+-
+-		default:
+-busy:
+-			/* else it is being freed elsewhere */
++		if (!TestClearPageLRU(page)) {
++			/* Another thread is already isolating this page */
++			put_page(page);
+ 			list_move(&page->lru, src);
++			continue;
  		}
- 		spin_unlock(ptl);
++
++		nr_taken += nr_pages;
++		nr_zone_taken[page_zonenum(page)] += nr_pages;
++		list_move(&page->lru, dst);
  	}
+ 
+ 	/*
 _
