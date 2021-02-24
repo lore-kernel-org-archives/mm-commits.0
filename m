@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C29DC433E6
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76E6AC4332D
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44AC664EC3
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 332AE64F28
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233506AbhBXUGt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:06:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56778 "EHLO mail.kernel.org"
+        id S235165AbhBXUGu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:06:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56740 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235120AbhBXUGb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235092AbhBXUGb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 24 Feb 2021 15:06:31 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7993664E20;
-        Wed, 24 Feb 2021 20:05:30 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 64DE164F1F;
+        Wed, 24 Feb 2021 20:05:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197131;
-        bh=+zKbQoNPgHNt3ErXvSR41yhnexPq2doV0RBlDWwlggE=;
+        s=korg; t=1614197136;
+        bh=Qiyegy6GgJrFfih/Z9Yl0FqPnozPTJKh2V4KK6EnueU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=typAWSZuoAnX2te227FAXN/g8+Nb4Ff1St3dNyeD8OyCgYkI3HjmcanFvLmMPG7iO
-         uomCyYIsISSwQVMTDE/hMacOxX3l3g1XtH0L+CyWyJ2jzNQbj1C83ksp0VTVDUIdLJ
-         o9UnA2OCjL76l+ZT4anxm0m8h8TWD7MlYnufm9BM=
-Date:   Wed, 24 Feb 2021 12:05:29 -0800
+        b=sDLxUSzWaDgoAk6jkLytx6fL8LafAqjLPJJwgPb8U8aaNvHpvOEEA79FiNryQyp8D
+         b49F7/tZJEVXVevhVl3OWAJTBYhGNl+9d/XDSxZA7BbUmIoqW6nvRRd//ro6sJB6VY
+         8ESm2ElurC4QfVW1/U2k3v0vg9Y9yNkaBw6OU9yM=
+Date:   Wed, 24 Feb 2021 12:05:34 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,8 +37,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
         torvalds@linux-foundation.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [patch 092/173] kasan: rename CONFIG_TEST_KASAN_MODULE
-Message-ID: <20210224200529.HNKAZ1n1p%akpm@linux-foundation.org>
+Subject:  [patch 093/173] kasan: add compiler barriers to
+ KUNIT_EXPECT_KASAN_FAIL
+Message-ID: <20210224200534.sK9xuqhpq%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,14 +48,18 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: rename CONFIG_TEST_KASAN_MODULE
+Subject: kasan: add compiler barriers to KUNIT_EXPECT_KASAN_FAIL
 
-Rename CONFIG_TEST_KASAN_MODULE to CONFIG_KASAN_MODULE_TEST.
+It might not be obvious to the compiler that the expression must be
+executed between writing and reading to fail_data. In this case, the
+compiler might reorder or optimize away some of the accesses, and
+the tests will fail.
 
-This naming is more consistent with the existing CONFIG_KASAN_KUNIT_TEST.
+Add compiler barriers around the expression in KUNIT_EXPECT_KASAN_FAIL
+and use READ/WRITE_ONCE() for accessing fail_data fields.
 
-Link: https://linux-review.googlesource.com/id/Id347dfa5fe8788b7a1a189863e039f409da0ae5f
-Link: https://lkml.kernel.org/r/f08250246683981bcf8a094fbba7c361995624d2.1610733117.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I046079f48641a1d36fe627fc8827a9249102fd50
+Link: https://lkml.kernel.org/r/6f11596f367d8ae8f71d800351e9a5d91eda19f6.1610733117.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
@@ -70,55 +75,57 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |    8 ++++----
- lib/Kconfig.kasan                 |    2 +-
- lib/Makefile                      |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ lib/test_kasan.c  |   17 ++++++++++++-----
+ mm/kasan/report.c |    2 +-
+ 2 files changed, 13 insertions(+), 6 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-rename-config_test_kasan_module
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -358,17 +358,17 @@ unmapped. This will require changes in a
- This allows ``VMAP_STACK`` support on x86, and can simplify support of
- architectures that do not have a fixed module region.
+--- a/lib/test_kasan.c~kasan-add-compiler-barriers-to-kunit_expect_kasan_fail
++++ a/lib/test_kasan.c
+@@ -68,23 +68,30 @@ static void kasan_test_exit(struct kunit
+  * normally auto-disabled. When this happens, this test handler reenables
+  * tag checking. As tag checking can be only disabled or enabled per CPU, this
+  * handler disables migration (preemption).
++ *
++ * Since the compiler doesn't see that the expression can change the fail_data
++ * fields, it can reorder or optimize away the accesses to those fields.
++ * Use READ/WRITE_ONCE() for the accesses and compiler barriers around the
++ * expression to prevent that.
+  */
+ #define KUNIT_EXPECT_KASAN_FAIL(test, expression) do {		\
+ 	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS))			\
+ 		migrate_disable();				\
+-	fail_data.report_expected = true;			\
+-	fail_data.report_found = false;				\
++	WRITE_ONCE(fail_data.report_expected, true);		\
++	WRITE_ONCE(fail_data.report_found, false);		\
+ 	kunit_add_named_resource(test,				\
+ 				NULL,				\
+ 				NULL,				\
+ 				&resource,			\
+ 				"kasan_data", &fail_data);	\
++	barrier();						\
+ 	expression;						\
++	barrier();						\
+ 	KUNIT_EXPECT_EQ(test,					\
+-			fail_data.report_expected,		\
+-			fail_data.report_found);		\
++			READ_ONCE(fail_data.report_expected),	\
++			READ_ONCE(fail_data.report_found));	\
+ 	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS)) {			\
+-		if (fail_data.report_found)			\
++		if (READ_ONCE(fail_data.report_found))		\
+ 			kasan_enable_tagging();			\
+ 		migrate_enable();				\
+ 	}							\
+--- a/mm/kasan/report.c~kasan-add-compiler-barriers-to-kunit_expect_kasan_fail
++++ a/mm/kasan/report.c
+@@ -331,7 +331,7 @@ static void kasan_update_kunit_status(st
+ 	}
  
--CONFIG_KASAN_KUNIT_TEST & CONFIG_TEST_KASAN_MODULE
----------------------------------------------------
-+CONFIG_KASAN_KUNIT_TEST and CONFIG_KASAN_MODULE_TEST
-+----------------------------------------------------
- 
--KASAN tests consist on two parts:
-+KASAN tests consist of two parts:
- 
- 1. Tests that are integrated with the KUnit Test Framework. Enabled with
- ``CONFIG_KASAN_KUNIT_TEST``. These tests can be run and partially verified
- automatically in a few different ways, see the instructions below.
- 
- 2. Tests that are currently incompatible with KUnit. Enabled with
--``CONFIG_TEST_KASAN_MODULE`` and can only be run as a module. These tests can
-+``CONFIG_KASAN_MODULE_TEST`` and can only be run as a module. These tests can
- only be verified manually, by loading the kernel module and inspecting the
- kernel log for KASAN reports.
- 
---- a/lib/Kconfig.kasan~kasan-rename-config_test_kasan_module
-+++ a/lib/Kconfig.kasan
-@@ -192,7 +192,7 @@ config KASAN_KUNIT_TEST
- 	  For more information on KUnit and unit tests in general, please refer
- 	  to the KUnit documentation in Documentation/dev-tools/kunit.
- 
--config TEST_KASAN_MODULE
-+config KASAN_MODULE_TEST
- 	tristate "KUnit-incompatible tests of KASAN bug detection capabilities"
- 	depends on m && KASAN && !KASAN_HW_TAGS
- 	help
---- a/lib/Makefile~kasan-rename-config_test_kasan_module
-+++ a/lib/Makefile
-@@ -66,7 +66,7 @@ obj-$(CONFIG_TEST_IDA) += test_ida.o
- obj-$(CONFIG_KASAN_KUNIT_TEST) += test_kasan.o
- CFLAGS_test_kasan.o += -fno-builtin
- CFLAGS_test_kasan.o += $(call cc-disable-warning, vla)
--obj-$(CONFIG_TEST_KASAN_MODULE) += test_kasan_module.o
-+obj-$(CONFIG_KASAN_MODULE_TEST) += test_kasan_module.o
- CFLAGS_test_kasan_module.o += -fno-builtin
- obj-$(CONFIG_TEST_UBSAN) += test_ubsan.o
- CFLAGS_test_ubsan.o += $(call cc-disable-warning, vla)
+ 	kasan_data = (struct kunit_kasan_expectation *)resource->data;
+-	kasan_data->report_found = true;
++	WRITE_ONCE(kasan_data->report_found, true);
+ 	kunit_put_resource(resource);
+ }
+ #endif /* IS_ENABLED(CONFIG_KUNIT) */
 _
