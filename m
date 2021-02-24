@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14118C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDCCCC433E9
 	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D4C5C64F2A
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6CF7364F24
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235314AbhBXUFy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:05:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55484 "EHLO mail.kernel.org"
+        id S235096AbhBXUF4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:05:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55902 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235096AbhBXUFO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235126AbhBXUFO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 24 Feb 2021 15:05:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E65B264F2F;
-        Wed, 24 Feb 2021 20:03:58 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CBBF264F2B;
+        Wed, 24 Feb 2021 20:04:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197039;
-        bh=QqTMeJTbGJz/dCouHrhTiGyDXHQTRy1K8qh2winai+g=;
+        s=korg; t=1614197046;
+        bh=AW6VtjcalHNtIglQEhdtRWcN5XijATaQZwWBHKishGU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ciRXpoESzD+p9ZztBT1g0MSZArxQlGEmnhiU1WjUpvuymDEzfXp2GBdKDFpdRIAVc
-         PnesOG00K0r1DdCe4XvlhPuSR37iEMd0kFNL/jBiMzjZtBw6ewhXSkZknFGJiSx3Q0
-         EMAZ2w8NAsiQRoCyD86lm2n8V8drO1ZD+tAM+cz4=
-Date:   Wed, 24 Feb 2021 12:03:58 -0800
+        b=WOwYQg0f0aShgkmdreL9Hx32w6yw0L7F8+ZyE5kQ4jXvQweMy+p1zHpAGYTSv/S3e
+         2b0FqLI898ujScdYYPTdc8AvX2W4wXiCLr0JBnyCmrHgxyUQvb3dKIrSHsSkQg5iXO
+         1KMwRIAqWTbiOya19RwIMc0QfF+QX1SjfFQ2P1SM=
+Date:   Wed, 24 Feb 2021 12:04:05 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, guro@fb.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, shakeelb@google.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 067/173] mm: kmem: make __memcg_kmem_(un)charge
- static
-Message-ID: <20210224200358.hE1s6mymp%akpm@linux-foundation.org>
+To:     abaci-bugfix@linux.alibaba.com, abaci@linux.alibaba.com,
+        akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 069/173] mm/memcontrol: remove redundant NULL
+ check
+Message-ID: <20210224200405.jNrV0hE5t%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,69 +43,34 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: kmem: make __memcg_kmem_(un)charge static
+From: Yang Li <abaci-bugfix@linux.alibaba.com>
+Subject: mm/memcontrol: remove redundant NULL check
 
-I've noticed that __memcg_kmem_charge() and __memcg_kmem_uncharge() are
-not used anywhere except memcontrol.c.  Yet they are not declared as
-non-static and are declared in memcontrol.h.
+Fix below warnings reported by coccicheck:
+./mm/memcontrol.c:451:3-9: WARNING: NULL check before some freeing
+functions is not needed.
 
-This patch makes them static.
-
-Link: https://lkml.kernel.org/r/20210108020332.4096911-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/1611216029-34397-1-git-send-email-abaci-bugfix@linux.alibaba.com
+Signed-off-by: Yang Li <abaci-bugfix@linux.alibaba.com>
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 ---
- mm/memcontrol.c            |   11 ++++++++---
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-kmem-make-__memcg_kmem_uncharge-static
-+++ a/include/linux/memcontrol.h
-@@ -1592,9 +1592,6 @@ static inline void memcg_set_shrinker_bi
- #endif
- 
- #ifdef CONFIG_MEMCG_KMEM
--int __memcg_kmem_charge(struct mem_cgroup *memcg, gfp_t gfp,
--			unsigned int nr_pages);
--void __memcg_kmem_uncharge(struct mem_cgroup *memcg, unsigned int nr_pages);
- int __memcg_kmem_charge_page(struct page *page, gfp_t gfp, int order);
- void __memcg_kmem_uncharge_page(struct page *page, int order);
- 
---- a/mm/memcontrol.c~mm-kmem-make-__memcg_kmem_uncharge-static
+--- a/mm/memcontrol.c~mm-memcontrol-remove-redundant-null-check
 +++ a/mm/memcontrol.c
-@@ -255,6 +255,11 @@ struct cgroup_subsys_state *vmpressure_t
- #ifdef CONFIG_MEMCG_KMEM
- extern spinlock_t css_set_lock;
- 
-+static int __memcg_kmem_charge(struct mem_cgroup *memcg, gfp_t gfp,
-+			       unsigned int nr_pages);
-+static void __memcg_kmem_uncharge(struct mem_cgroup *memcg,
-+				  unsigned int nr_pages);
-+
- static void obj_cgroup_release(struct percpu_ref *ref)
- {
- 	struct obj_cgroup *objcg = container_of(ref, struct obj_cgroup, refcnt);
-@@ -3087,8 +3092,8 @@ static void memcg_free_cache_id(int id)
-  *
-  * Returns 0 on success, an error code on failure.
-  */
--int __memcg_kmem_charge(struct mem_cgroup *memcg, gfp_t gfp,
--			unsigned int nr_pages)
-+static int __memcg_kmem_charge(struct mem_cgroup *memcg, gfp_t gfp,
-+			       unsigned int nr_pages)
- {
- 	struct page_counter *counter;
- 	int ret;
-@@ -3120,7 +3125,7 @@ int __memcg_kmem_charge(struct mem_cgrou
-  * @memcg: memcg to uncharge
-  * @nr_pages: number of pages to uncharge
-  */
--void __memcg_kmem_uncharge(struct mem_cgroup *memcg, unsigned int nr_pages)
-+static void __memcg_kmem_uncharge(struct mem_cgroup *memcg, unsigned int nr_pages)
- {
- 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
- 		page_counter_uncharge(&memcg->kmem, nr_pages);
+@@ -452,8 +452,7 @@ static void memcg_free_shrinker_maps(str
+ 	for_each_node(nid) {
+ 		pn = mem_cgroup_nodeinfo(memcg, nid);
+ 		map = rcu_dereference_protected(pn->shrinker_map, true);
+-		if (map)
+-			kvfree(map);
++		kvfree(map);
+ 		rcu_assign_pointer(pn->shrinker_map, NULL);
+ 	}
+ }
 _
