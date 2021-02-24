@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7A0DC433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:10:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BA2CC433E9
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:10:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA36364EC3
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:10:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4737660202
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:10:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235408AbhBXUKI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:10:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33162 "EHLO mail.kernel.org"
+        id S235446AbhBXUKW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:10:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33234 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235285AbhBXUJj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:09:39 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6115364F1B;
-        Wed, 24 Feb 2021 20:08:57 +0000 (UTC)
+        id S235316AbhBXUJm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:09:42 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0C3A464F25;
+        Wed, 24 Feb 2021 20:09:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197338;
-        bh=X10FdWo7ZBgG9/LpPj+4BAPYv7HNjkhcf1mK8lNnWbE=;
+        s=korg; t=1614197342;
+        bh=df+0qV+j7KcQUdsOCl5oTF2mMefbNZbXZqcH02cX53o=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Eapsrm5e5qvyoihuF1CQP3fZu/bQucj0h0k1Wu14goi/kTeDWMKtJoOv2TmuLciXf
-         CXyJDd4EJj8EToL+Rh9sY/rkGvk0mXyLNtRBmoHOQgxOajlnQR2fynSC22ototuj/s
-         DqB99WoVc4CDY0C7RQd5IzoN3XM436pwuBcbyC0s=
-Date:   Wed, 24 Feb 2021 12:08:56 -0800
+        b=LVa/atVTsOfFbGudUgrKD2pftzm3OWSReTX0eym68t5EuPPpCeLsQ+NzyE9lnRqke
+         HvOTc3by5R4gFmMqhFurO8IApOT3pQLh4v9J/QYxY7SfN4nuFhIDonajGGmRSPByR5
+         7GepXAZIBFqWDcm1lQ5hKGnTZSafhdHQ3wqXofBM=
+Date:   Wed, 24 Feb 2021 12:09:00 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, david@redhat.com, linmiaohe@huawei.com,
         linux-mm@kvack.org, mhocko@suse.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
         osalvador@suse.de, songmuchun@bytedance.com,
         torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [patch 147/173] hugetlb: convert page_huge_active()
- HPageMigratable flag
-Message-ID: <20210224200856.v70i--a0K%akpm@linux-foundation.org>
+Subject:  [patch 148/173] hugetlb: convert PageHugeTemporary() to
+ HPageTemporary flag
+Message-ID: <20210224200900.91raiWk2W%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,230 +46,131 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: convert page_huge_active() HPageMigratable flag
+Subject: hugetlb: convert PageHugeTemporary() to HPageTemporary flag
 
-Use the new hugetlb page specific flag HPageMigratable to replace the
-page_huge_active interfaces.  By it's name, page_huge_active implied that
-a huge page was on the active list.  However, that is not really what code
-checking the flag wanted to know.  It really wanted to determine if the
-huge page could be migrated.  This happens when the page is actually added
-to the page cache and/or task page table.  This is the reasoning behind
-the name change.
+Use new hugetlb specific HPageTemporary flag to replace the
+PageHugeTemporary() interfaces.  PageHugeTemporary does contain a
+PageHuge() check.  However, this interface is only used within hugetlb
+code where we know we are dealing with a hugetlb page.  Therefore, the
+check can be eliminated.
 
-The VM_BUG_ON_PAGE() calls in the *_huge_active() interfaces are not
-really necessary as we KNOW the page is a hugetlb page.  Therefore, they
-are removed.
-
-The routine page_huge_active checked for PageHeadHuge before testing the
-active bit.  This is unnecessary in the case where we hold a reference or
-lock and know it is a hugetlb head page.  page_huge_active is also called
-without holding a reference or lock (scan_movable_pages), and can race
-with code freeing the page.  The extra check in page_huge_active shortened
-the race window, but did not prevent the race.  Offline code calling
-scan_movable_pages already deals with these races, so removing the check
-is acceptable.  Add comment to racy code.
-
-[songmuchun@bytedance.com: remove set_page_huge_active() declaration from include/linux/hugetlb.h]
-  Link: https://lkml.kernel.org/r/CAMZfGtUda+KoAZscU0718TN61cSFwp4zy=y2oZ=+6Z2TAZZwng@mail.gmail.com
-Link: https://lkml.kernel.org/r/20210122195231.324857-3-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20210122195231.324857-5-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c       |    2 -
- include/linux/hugetlb.h    |    7 +++--
- include/linux/page-flags.h |    6 ----
- mm/hugetlb.c               |   45 ++++++++---------------------------
- mm/memory_hotplug.c        |    9 ++++++-
- 5 files changed, 25 insertions(+), 44 deletions(-)
+ include/linux/hugetlb.h |    6 ++++++
+ mm/hugetlb.c            |   36 +++++++-----------------------------
+ 2 files changed, 13 insertions(+), 29 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlb-convert-page_huge_active-hpagemigratable-flag
-+++ a/fs/hugetlbfs/inode.c
-@@ -735,7 +735,7 @@ static long hugetlbfs_fallocate(struct f
- 
- 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 
--		set_page_huge_active(page);
-+		SetHPageMigratable(page);
- 		/*
- 		 * unlock_page because locked by add_to_page_cache()
- 		 * put_page() due to reference from alloc_huge_page()
---- a/include/linux/hugetlb.h~hugetlb-convert-page_huge_active-hpagemigratable-flag
+--- a/include/linux/hugetlb.h~hugetlb-convert-pagehugetemporary-to-hpagetemporary-flag
 +++ a/include/linux/hugetlb.h
-@@ -480,9 +480,13 @@ unsigned long hugetlb_get_unmapped_area(
-  * HPG_restore_reserve - Set when a hugetlb page consumes a reservation at
-  *	allocation time.  Cleared when page is fully instantiated.  Free
-  *	routine checks flag to restore a reservation on error paths.
-+ * HPG_migratable  - Set after a newly allocated page is added to the page
-+ *	cache and/or page tables.  Indicates the page is a candidate for
-+ *	migration.
+@@ -483,10 +483,15 @@ unsigned long hugetlb_get_unmapped_area(
+  * HPG_migratable  - Set after a newly allocated page is added to the page
+  *	cache and/or page tables.  Indicates the page is a candidate for
+  *	migration.
++ * HPG_temporary - - Set on a page that is temporarily allocated from the buddy
++ *	allocator.  Typically used for migration target pages when no pages
++ *	are available in the pool.  The hugetlb free page path will
++ *	immediately free pages with this flag set to the buddy allocator.
   */
  enum hugetlb_page_flags {
  	HPG_restore_reserve = 0,
-+	HPG_migratable,
+ 	HPG_migratable,
++	HPG_temporary,
  	__NR_HPAGEFLAGS,
  };
  
-@@ -525,6 +529,7 @@ static inline void ClearHPage##uname(str
-  * Create functions associated with hugetlb page flags
+@@ -530,6 +535,7 @@ static inline void ClearHPage##uname(str
   */
  HPAGEFLAG(RestoreReserve, restore_reserve)
-+HPAGEFLAG(Migratable, migratable)
+ HPAGEFLAG(Migratable, migratable)
++HPAGEFLAG(Temporary, temporary)
  
  #ifdef CONFIG_HUGETLB_PAGE
  
-@@ -838,8 +843,6 @@ static inline void huge_ptep_modify_prot
- }
- #endif
- 
--void set_page_huge_active(struct page *page);
--
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
- 
---- a/include/linux/page-flags.h~hugetlb-convert-page_huge_active-hpagemigratable-flag
-+++ a/include/linux/page-flags.h
-@@ -592,15 +592,9 @@ static inline void ClearPageCompound(str
- #ifdef CONFIG_HUGETLB_PAGE
- int PageHuge(struct page *page);
- int PageHeadHuge(struct page *page);
--bool page_huge_active(struct page *page);
- #else
- TESTPAGEFLAG_FALSE(Huge)
- TESTPAGEFLAG_FALSE(HeadHuge)
--
--static inline bool page_huge_active(struct page *page)
--{
--	return 0;
--}
- #endif
- 
- 
---- a/mm/hugetlb.c~hugetlb-convert-page_huge_active-hpagemigratable-flag
+--- a/mm/hugetlb.c~hugetlb-convert-pagehugetemporary-to-hpagetemporary-flag
 +++ a/mm/hugetlb.c
-@@ -1365,30 +1365,6 @@ struct hstate *size_to_hstate(unsigned l
+@@ -1364,28 +1364,6 @@ struct hstate *size_to_hstate(unsigned l
+ 	return NULL;
  }
  
- /*
-- * Test to determine whether the hugepage is "active/in-use" (i.e. being linked
-- * to hstate->hugepage_activelist.)
-- *
-- * This function can be called for tail pages, but never returns true for them.
-- */
--bool page_huge_active(struct page *page)
--{
--	return PageHeadHuge(page) && PagePrivate(&page[1]);
--}
--
--/* never called for tail page */
--void set_page_huge_active(struct page *page)
--{
--	VM_BUG_ON_PAGE(!PageHeadHuge(page), page);
--	SetPagePrivate(&page[1]);
--}
--
--static void clear_page_huge_active(struct page *page)
--{
--	VM_BUG_ON_PAGE(!PageHeadHuge(page), page);
--	ClearPagePrivate(&page[1]);
--}
--
 -/*
-  * Internal hugetlb specific page flag. Do not use outside of the hugetlb
-  * code
-  */
-@@ -1449,7 +1425,7 @@ static void __free_huge_page(struct page
- 	}
- 
- 	spin_lock(&hugetlb_lock);
--	clear_page_huge_active(page);
-+	ClearHPageMigratable(page);
- 	hugetlb_cgroup_uncharge_page(hstate_index(h),
- 				     pages_per_huge_page(h), page);
- 	hugetlb_cgroup_uncharge_page_rsvd(hstate_index(h),
-@@ -4218,7 +4194,7 @@ retry_avoidcopy:
- 				make_huge_pte(vma, new_page, 1));
- 		page_remove_rmap(old_page, true);
- 		hugepage_add_new_anon_rmap(new_page, vma, haddr);
--		set_page_huge_active(new_page);
-+		SetHPageMigratable(new_page);
- 		/* Make the old page be freed below */
- 		new_page = old_page;
- 	}
-@@ -4455,12 +4431,12 @@ retry:
- 	spin_unlock(ptl);
- 
- 	/*
--	 * Only make newly allocated pages active.  Existing pages found
--	 * in the pagecache could be !page_huge_active() if they have been
--	 * isolated for migration.
-+	 * Only set HPageMigratable in newly allocated pages.  Existing pages
-+	 * found in the pagecache may not have HPageMigratableset if they have
-+	 * been isolated for migration.
- 	 */
- 	if (new_page)
--		set_page_huge_active(page);
-+		SetHPageMigratable(page);
- 
- 	unlock_page(page);
- out:
-@@ -4771,7 +4747,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	update_mmu_cache(dst_vma, dst_addr, dst_pte);
- 
- 	spin_unlock(ptl);
--	set_page_huge_active(page);
-+	SetHPageMigratable(page);
- 	if (vm_shared)
- 		unlock_page(page);
- 	ret = 0;
-@@ -5610,12 +5586,13 @@ bool isolate_huge_page(struct page *page
- 	bool ret = true;
- 
- 	spin_lock(&hugetlb_lock);
--	if (!PageHeadHuge(page) || !page_huge_active(page) ||
-+	if (!PageHeadHuge(page) ||
-+	    !HPageMigratable(page) ||
- 	    !get_page_unless_zero(page)) {
- 		ret = false;
- 		goto unlock;
- 	}
--	clear_page_huge_active(page);
-+	ClearHPageMigratable(page);
- 	list_move_tail(&page->lru, list);
- unlock:
- 	spin_unlock(&hugetlb_lock);
-@@ -5625,7 +5602,7 @@ unlock:
- void putback_active_hugepage(struct page *page)
+- * Internal hugetlb specific page flag. Do not use outside of the hugetlb
+- * code
+- */
+-static inline bool PageHugeTemporary(struct page *page)
+-{
+-	if (!PageHuge(page))
+-		return false;
+-
+-	return (unsigned long)page[2].mapping == -1U;
+-}
+-
+-static inline void SetPageHugeTemporary(struct page *page)
+-{
+-	page[2].mapping = (void *)-1U;
+-}
+-
+-static inline void ClearPageHugeTemporary(struct page *page)
+-{
+-	page[2].mapping = NULL;
+-}
+-
+ static void __free_huge_page(struct page *page)
  {
- 	spin_lock(&hugetlb_lock);
--	set_page_huge_active(page);
-+	SetHPageMigratable(page);
- 	list_move_tail(&page->lru, &(page_hstate(page))->hugepage_activelist);
- 	spin_unlock(&hugetlb_lock);
- 	put_page(page);
---- a/mm/memory_hotplug.c~hugetlb-convert-page_huge_active-hpagemigratable-flag
-+++ a/mm/memory_hotplug.c
-@@ -1260,7 +1260,14 @@ static int scan_movable_pages(unsigned l
- 		if (!PageHuge(page))
- 			continue;
- 		head = compound_head(page);
--		if (page_huge_active(head))
-+		/*
-+		 * This test is racy as we hold no reference or lock.  The
-+		 * hugetlb page could have been free'ed and head is no longer
-+		 * a hugetlb page before the following check.  In such unlikely
-+		 * cases false positives and negatives are possible.  Calling
-+		 * code must deal with these scenarios.
-+		 */
-+		if (HPageMigratable(head))
- 			goto found;
- 		skip = compound_nr(head) - (page - head);
- 		pfn += skip - 1;
+ 	/*
+@@ -1433,9 +1411,9 @@ static void __free_huge_page(struct page
+ 	if (restore_reserve)
+ 		h->resv_huge_pages++;
+ 
+-	if (PageHugeTemporary(page)) {
++	if (HPageTemporary(page)) {
+ 		list_del(&page->lru);
+-		ClearPageHugeTemporary(page);
++		ClearHPageTemporary(page);
+ 		update_and_free_page(h, page);
+ 	} else if (h->surplus_huge_pages_node[nid]) {
+ 		/* remove the page from active list */
+@@ -1869,7 +1847,7 @@ static struct page *alloc_surplus_huge_p
+ 	 * codeflow
+ 	 */
+ 	if (h->surplus_huge_pages >= h->nr_overcommit_huge_pages) {
+-		SetPageHugeTemporary(page);
++		SetHPageTemporary(page);
+ 		spin_unlock(&hugetlb_lock);
+ 		put_page(page);
+ 		return NULL;
+@@ -1900,7 +1878,7 @@ static struct page *alloc_migrate_huge_p
+ 	 * We do not account these pages as surplus because they are only
+ 	 * temporary and will be released properly on the last reference
+ 	 */
+-	SetPageHugeTemporary(page);
++	SetHPageTemporary(page);
+ 
+ 	return page;
+ }
+@@ -5625,12 +5603,12 @@ void move_hugetlb_state(struct page *old
+ 	 * here as well otherwise the global surplus count will not match
+ 	 * the per-node's.
+ 	 */
+-	if (PageHugeTemporary(newpage)) {
++	if (HPageTemporary(newpage)) {
+ 		int old_nid = page_to_nid(oldpage);
+ 		int new_nid = page_to_nid(newpage);
+ 
+-		SetPageHugeTemporary(oldpage);
+-		ClearPageHugeTemporary(newpage);
++		SetHPageTemporary(oldpage);
++		ClearHPageTemporary(newpage);
+ 
+ 		spin_lock(&hugetlb_lock);
+ 		if (h->surplus_huge_pages_node[old_nid]) {
 _
