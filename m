@@ -5,39 +5,39 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D5FEC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22715C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1840D64F1B
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBA7B64F20
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:06:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234718AbhBXUGj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235276AbhBXUGj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 24 Feb 2021 15:06:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55460 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55470 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235316AbhBXUFz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235274AbhBXUFz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 24 Feb 2021 15:05:55 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7E34164F36;
-        Wed, 24 Feb 2021 20:04:50 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F3DC464F37;
+        Wed, 24 Feb 2021 20:04:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197090;
-        bh=o5B2UwUoJBuubQ9hFq7S1qGARKUxOP/DrAwHAuIUB9s=;
+        s=korg; t=1614197094;
+        bh=k1hKdwrJHIO+A24G95yDbw/sYmpvr+nfWn01btySRwo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=oCvZTMNtDzZZMa6A+QSEMsvYKBuAbdcR1ITA0W++v4hXJfLUtlxY67kEX9CQJ29xd
-         LKR3CgnGwgnAuNU5Y/R1kOoUaoojpydwZXr/Fearnp4OlAPuEAIPQiTKvxDgJLExFQ
-         pNngKXLa4/hBrIJxzsKHa2T/1vkfJ+VBzBo4EsqQ=
-Date:   Wed, 24 Feb 2021 12:04:49 -0800
+        b=MwSpEj+WUQe55xi1uFZg0iBdxbBJ1ij+JM/q2AMWhhoa2/Aixeuz1itnlS2XjODHp
+         UGBDf0Ng0UIdcKVkQkNyMaxDHonLdhoxWpWTnKl9t1cV1gSMMasmBNg16dHOR33Plt
+         6J8lDKopmtQvvRely11yqFZgBOt1L7/06Ta173w0=
+Date:   Wed, 24 Feb 2021 12:04:53 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aarcange@redhat.com, akpm@linux-foundation.org, bgeffon@google.com,
         kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
         lixinhai.lxh@gmail.com, lokeshgidra@google.com, minchan@kernel.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vbabka@suse.cz
-Subject:  [patch 082/173] mm: rmap: explicitly reset vma->anon_vma
- in unlink_anon_vmas()
-Message-ID: <20210224200449.hkU5GTEiH%akpm@linux-foundation.org>
+Subject:  [patch 083/173] mm: mremap: unlink anon_vmas when mremap
+ with MREMAP_DONTUNMAP success
+Message-ID: <20210224200453.9k7nHP6Ig%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,50 +46,48 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Li Xinhai <lixinhai.lxh@gmail.com>
-Subject: mm: rmap: explicitly reset vma->anon_vma in unlink_anon_vmas()
+Subject: mm: mremap: unlink anon_vmas when mremap with MREMAP_DONTUNMAP success
 
-In case the vma will continue to be used after unlink its relevant
-anon_vma, we need to reset the vma->anon_vma pointer to NULL.  So, later
-when fault happen within this vma again, a new anon_vma will be prepared.
+mremap with MREMAP_DONTUNMAP can move all page table entries to new vma,
+which means all pages allocated for the old vma are not relevant to it
+anymore, and the relevant anon_vma links needs to be unlinked, in nature
+the old vma is much like been freshly created and have no pages been fault
+in.
 
-By this way, the vma will only be checked for reverse mapping of pages
-which been fault in after the unlink_anon_vmas call.
+But we should not do unlink, if the new vma has effectively merged with
+the old one.
 
-Currently, the mremap with MREMAP_DONTUNMAP scenario will continue use the
-vma after moved its page table entries to a new vma.  For other scenarios,
-the vma itself will be freed after call unlink_anon_vmas.
-
-Link: https://lkml.kernel.org/r/20210119075126.3513154-1-lixinhai.lxh@gmail.com
+[lixinhai.lxh@gmail.com: v2]
+  Link: https://lkml.kernel.org/r/20210127083917.309264-2-lixinhai.lxh@gmail.com
+Link: https://lkml.kernel.org/r/20210119075126.3513154-2-lixinhai.lxh@gmail.com
 Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Brian Geffon <bgeffon@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Lokesh Gidra <lokeshgidra@google.com>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/mremap.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/rmap.c~mm-rmap-explicitly-reset-vma-anon_vma-in-unlink_anon_vmas
-+++ a/mm/rmap.c
-@@ -413,8 +413,15 @@ void unlink_anon_vmas(struct vm_area_str
- 		list_del(&avc->same_vma);
- 		anon_vma_chain_free(avc);
- 	}
--	if (vma->anon_vma)
-+	if (vma->anon_vma) {
- 		vma->anon_vma->degree--;
-+
-+		/*
-+		 * vma would still be needed after unlink, and anon_vma will be prepared
-+		 * when handle fault.
-+		 */
-+		vma->anon_vma = NULL;
-+	}
- 	unlock_anon_vma_root(root);
+--- a/mm/mremap.c~mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success
++++ a/mm/mremap.c
+@@ -593,6 +593,14 @@ static unsigned long move_vma(struct vm_
+ 		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
+ 		vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
  
- 	/*
++		/*
++		 * anon_vma links of the old vma is no longer needed after its page
++		 * table has been moved.
++		 */
++		if (new_vma != vma && vma->vm_start == old_addr &&
++			vma->vm_end == (old_addr + old_len))
++			unlink_anon_vmas(vma);
++
+ 		/* Because we won't unmap we don't need to touch locked_vm */
+ 		return new_addr;
+ 	}
 _
