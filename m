@@ -5,38 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF60EC4332B
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:02:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC10BC433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:02:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9033164F09
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:02:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A454E64F08
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:02:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235092AbhBXUCO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:02:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55472 "EHLO mail.kernel.org"
+        id S235096AbhBXUCP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:02:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55484 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235096AbhBXUCJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235120AbhBXUCJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 24 Feb 2021 15:02:09 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 12C5664F0D;
-        Wed, 24 Feb 2021 20:00:42 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 56CC264F20;
+        Wed, 24 Feb 2021 20:00:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614196842;
-        bh=tFLvzF/05wfF40cbbsEzhmNPBeTsfhCRhMW9E521+Z8=;
+        s=korg; t=1614196852;
+        bh=BG36qJtyKsDqyW3kruv9FcwEBVvj/yyLc2TZ80f2/7Q=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=A2v4M5TiFJyLKT8uyHrcGl7hfTClrl6u1PwGWkqcRH77yZMxJoNWBrnO+PMnfEtiy
-         P+8EmSzX2HGyOBwhA4E7K3I/eexUM2c0B3/RPf1BRkQyxV/KHZPwEkr2Xka7fuitzA
-         D27QhMjWawJKB2Ev82MOnpKyJi/34TfVXpQwsGOo=
-Date:   Wed, 24 Feb 2021 12:00:41 -0800
+        b=xYNu2gUAXGavgLOrj7KZ/TWpJyWBlmjMjlm/5rTor+aa7QD9C2QrozZBZN1EFSy2X
+         2+SMttSq5sYX9BBG/Kw0u+/+2Y0FVKuJoQAUlR/KnBbC5P8A/haSDaamIKO2coTAu+
+         FBS0QHohgY9mgFatyg5MDWX2vCuBmpln//fhD5LA=
+Date:   Wed, 24 Feb 2021 12:00:51 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dan.carpenter@oracle.com,
-        gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
-        linux-mm@kvack.org, mark@fasheh.com, mm-commits@vger.kernel.org,
-        piaojun@huawei.com, torvalds@linux-foundation.org
-Subject:  [patch 010/173] ocfs2: fix a use after free on error
-Message-ID: <20210224200041.4n4v6wlIZ%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, akpm@linux-foundation.org,
+        christian.brauner@ubuntu.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        viro@zeniv.linux.org.uk
+Subject:  [patch 013/173] ramfs: support O_TMPFILE
+Message-ID: <20210224200051.MRGrUqyzj%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,52 +43,47 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: ocfs2: fix a use after free on error
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: ramfs: support O_TMPFILE
 
-The error handling in this function frees "reg" but it is still on the
-"o2hb_all_regions" list so it will lead to a use after freew.  Joseph Qi
-points out that we need to clear the bit in the "o2hb_region_bitmap" as
-well
-
-Link: https://lkml.kernel.org/r/YBk4M6HUG8jB/jc7@mwanda
-Fixes: 1cf257f51191 ("ocfs2: fix memory leak")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+[akpm@linux-foundation.org: update inode_operations.tmpfile]
+Link: http://lkml.kernel.org/r/20190206073349.GA15311@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ fs/ramfs/inode.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-fix-a-use-after-free-on-error
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -2042,7 +2042,7 @@ static struct config_item *o2hb_heartbea
- 			o2hb_nego_timeout_handler,
- 			reg, NULL, &reg->hr_handler_list);
- 	if (ret)
--		goto free;
-+		goto remove_item;
+--- a/fs/ramfs/inode.c~ramfs-support-o_tmpfile
++++ a/fs/ramfs/inode.c
+@@ -151,6 +151,18 @@ static int ramfs_symlink(struct user_nam
+ 	return error;
+ }
  
- 	ret = o2net_register_handler(O2HB_NEGO_APPROVE_MSG, reg->hr_key,
- 			sizeof(struct o2hb_nego_msg),
-@@ -2057,6 +2057,12 @@ static struct config_item *o2hb_heartbea
++static int ramfs_tmpfile(struct user_namespace *mnt_userns,
++			 struct inode *dir, struct dentry *dentry, umode_t mode)
++{
++	struct inode *inode;
++
++	inode = ramfs_get_inode(dir->i_sb, dir, mode, 0);
++	if (!inode)
++		return -ENOSPC;
++	d_tmpfile(dentry, inode);
++	return 0;
++}
++
+ static const struct inode_operations ramfs_dir_inode_operations = {
+ 	.create		= ramfs_create,
+ 	.lookup		= simple_lookup,
+@@ -161,6 +173,7 @@ static const struct inode_operations ram
+ 	.rmdir		= simple_rmdir,
+ 	.mknod		= ramfs_mknod,
+ 	.rename		= simple_rename,
++	.tmpfile	= ramfs_tmpfile,
+ };
  
- unregister_handler:
- 	o2net_unregister_handler_list(&reg->hr_handler_list);
-+remove_item:
-+	spin_lock(&o2hb_live_lock);
-+	list_del(&reg->hr_all_item);
-+	if (o2hb_global_heartbeat_active())
-+		clear_bit(reg->hr_region_num, o2hb_region_bitmap);
-+	spin_unlock(&o2hb_live_lock);
- free:
- 	kfree(reg);
- 	return ERR_PTR(ret);
+ /*
 _
