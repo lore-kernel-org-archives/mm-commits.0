@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 941B2C433E6
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:09:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3FFBC433E9
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:09:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5638D64F28
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:09:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AFFEF64F0E
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Feb 2021 20:09:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235306AbhBXUJ3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 15:09:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60200 "EHLO mail.kernel.org"
+        id S232446AbhBXUJe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 15:09:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60626 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235052AbhBXUIt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 15:08:49 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 48C6F64E7A;
-        Wed, 24 Feb 2021 20:08:33 +0000 (UTC)
+        id S235376AbhBXUIv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 15:08:51 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3B4FA64E20;
+        Wed, 24 Feb 2021 20:08:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614197314;
-        bh=sylk1bvGCaTJ5Qua3xWqLf5tDYuM1TisyKVRzm9pXdo=;
+        s=korg; t=1614197291;
+        bh=+Zoh4nGQnzlHZdjko/P99CODOn2oRmcFDH23R/7asjI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=TwSKAyX3rsJsdBfH1iN3WFEsc+IpsOhWyJyAQoQYD0ufkUFk8vY28lLmcSb9ZcfBq
-         rEJanW8UETr4HgNU8N9aBSCbtMtYRIZLnFCPIVvuhSmUJnA8nacaOGWpmAqZ2O4v7W
-         E7zRBjbFQ+YO+g/MaOjpRmu56dgZ3WjAX0//Xq2Q=
-Date:   Wed, 24 Feb 2021 12:08:32 -0800
+        b=rDInu1UBWS+FClGI3ENNejvS1kd6HyXdYFxyu0wl73BaaedpFgTILJK8DiKzgFdq5
+         EKskMP6hQWOX6hGebx5VAhQYUpQ/RSGcpaZmfThVn28tFTzqV5elqWuLb6CeNZVy/c
+         CLy4VH8j6zy53835UGC3Wl+V58jCJAMXQZGZF6Fg=
+Date:   Wed, 24 Feb 2021 12:08:09 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com, guro@fb.com,
-        hannes@cmpxchg.org, hughd@google.com, linux-mm@kvack.org,
-        mhocko@kernel.org, mm-commits@vger.kernel.org,
+        hannes@cmpxchg.org, hughd@google.com, linmiaohe@huawei.com,
+        linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, vbabka@suse.cz,
         vdavydov.dev@gmail.com, willy@infradead.org, yuzhao@google.com
-Subject:  [patch 141/173] mm: VM_BUG_ON lru page flags
-Message-ID: <20210224200832.cfPceYDI1%akpm@linux-foundation.org>
+Subject:  [patch 135/173] mm/vmscan.c: use add_page_to_lru_list()
+Message-ID: <20210224200809.sGCYmo_d4%akpm@linux-foundation.org>
 In-Reply-To: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,76 +45,83 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm: VM_BUG_ON lru page flags
+Subject: mm/vmscan.c: use add_page_to_lru_list()
 
-Move scattered VM_BUG_ONs to two essential places that cover all
-lru list additions and deletions.
+Patch series "mm: lru related cleanups", v2.
 
-Link: https://lore.kernel.org/linux-mm/20201207220949.830352-8-yuzhao@google.com/
-Link: https://lkml.kernel.org/r/20210122220600.906146-8-yuzhao@google.com
+The cleanups are intended to reduce the verbosity in lru list operations
+and make them less error-prone.  A typical example would be how the
+patches change __activate_page():
+
+ static void __activate_page(struct page *page, struct lruvec *lruvec)
+ {
+ 	if (!PageActive(page) && !PageUnevictable(page)) {
+-		int lru = page_lru_base_type(page);
+ 		int nr_pages = thp_nr_pages(page);
+ 
+-		del_page_from_lru_list(page, lruvec, lru);
++		del_page_from_lru_list(page, lruvec);
+ 		SetPageActive(page);
+-		lru += LRU_ACTIVE;
+-		add_page_to_lru_list(page, lruvec, lru);
++		add_page_to_lru_list(page, lruvec);
+ 		trace_mm_lru_activate(page);
+
+There are a few more places like __activate_page() and they are
+unnecessarily repetitive in terms of figuring out which list a page should
+be added onto or deleted from.  And with the duplicated code removed, they
+are easier to read, IMO.
+
+Patch 1 to 5 basically cover the above.  Patch 6 and 7 make code more
+robust by improving bug reporting.  Patch 8, 9 and 10 take care of some
+dangling helpers left in header files.
+
+
+This patch (of 10):
+
+There is add_page_to_lru_list(), and move_pages_to_lru() should reuse it,
+not duplicate it.
+
+Link: https://lkml.kernel.org/r/20210122220600.906146-1-yuzhao@google.com
+Link: https://lore.kernel.org/linux-mm/20201207220949.830352-2-yuzhao@google.com/
+Link: https://lkml.kernel.org/r/20210122220600.906146-2-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    4 ++++
- mm/swap.c                 |    2 --
- mm/vmscan.c               |    1 -
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-vm_bug_on-lru-page-flags
-+++ a/include/linux/mm_inline.h
-@@ -66,6 +66,8 @@ static inline enum lru_list page_lru_bas
-  */
- static __always_inline void __clear_page_lru_flags(struct page *page)
- {
-+	VM_BUG_ON_PAGE(!PageLRU(page), page);
-+
- 	__ClearPageLRU(page);
- 
- 	/* this shouldn't happen, so leave the flags to bad_page() */
-@@ -87,6 +89,8 @@ static __always_inline enum lru_list pag
- {
- 	enum lru_list lru;
- 
-+	VM_BUG_ON_PAGE(PageActive(page) && PageUnevictable(page), page);
-+
- 	if (PageUnevictable(page))
- 		lru = LRU_UNEVICTABLE;
- 	else {
---- a/mm/swap.c~mm-vm_bug_on-lru-page-flags
-+++ a/mm/swap.c
-@@ -83,7 +83,6 @@ static void __page_cache_release(struct
- 		unsigned long flags;
- 
- 		lruvec = lock_page_lruvec_irqsave(page, &flags);
--		VM_BUG_ON_PAGE(!PageLRU(page), page);
- 		del_page_from_lru_list(page, lruvec);
- 		__clear_page_lru_flags(page);
- 		unlock_page_lruvec_irqrestore(lruvec, flags);
-@@ -909,7 +908,6 @@ void release_pages(struct page **pages,
- 			if (prev_lruvec != lruvec)
- 				lock_batch = 0;
- 
--			VM_BUG_ON_PAGE(!PageLRU(page), page);
- 			del_page_from_lru_list(page, lruvec);
- 			__clear_page_lru_flags(page);
- 		}
---- a/mm/vmscan.c~mm-vm_bug_on-lru-page-flags
+--- a/mm/vmscan.c~mm-use-add_page_to_lru_list
 +++ a/mm/vmscan.c
-@@ -4281,7 +4281,6 @@ void check_move_unevictable_pages(struct
+@@ -1823,7 +1823,6 @@ static unsigned noinline_for_stack move_
+ 	int nr_pages, nr_moved = 0;
+ 	LIST_HEAD(pages_to_free);
+ 	struct page *page;
+-	enum lru_list lru;
  
- 		lruvec = relock_page_lruvec_irq(page, lruvec);
- 		if (page_evictable(page) && PageUnevictable(page)) {
--			VM_BUG_ON_PAGE(PageActive(page), page);
- 			del_page_from_lru_list(page, lruvec);
- 			ClearPageUnevictable(page);
- 			add_page_to_lru_list(page, lruvec);
+ 	while (!list_empty(list)) {
+ 		page = lru_to_page(list);
+@@ -1868,11 +1867,8 @@ static unsigned noinline_for_stack move_
+ 		 * inhibits memcg migration).
+ 		 */
+ 		VM_BUG_ON_PAGE(!lruvec_holds_page_lru_lock(page, lruvec), page);
+-		lru = page_lru(page);
++		add_page_to_lru_list(page, lruvec, page_lru(page));
+ 		nr_pages = thp_nr_pages(page);
+-
+-		update_lru_size(lruvec, lru, page_zonenum(page), nr_pages);
+-		list_add(&page->lru, &lruvec->lists[lru]);
+ 		nr_moved += nr_pages;
+ 		if (PageActive(page))
+ 			workingset_age_nonresident(lruvec, nr_pages);
 _
