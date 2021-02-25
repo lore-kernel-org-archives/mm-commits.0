@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED0DEC433E9
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:27:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E816C4332D
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:27:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A138964ECE
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:27:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2FDD864ECE
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:27:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233805AbhBYT1H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:27:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35722 "EHLO mail.kernel.org"
+        id S231284AbhBYT1L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:27:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233820AbhBYTZW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:25:22 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CC8FC64F81;
-        Thu, 25 Feb 2021 19:15:20 +0000 (UTC)
+        id S233866AbhBYTZY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:25:24 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C5E7B64F82;
+        Thu, 25 Feb 2021 19:15:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280521;
-        bh=7Va6vT0pLJ/BaLy4Y/LEh6C8NjkHWZGRN9q45qUZwfI=;
+        s=korg; t=1614280528;
+        bh=0FVQy4vqnJVM6r7Vz07oKoGmsInuijm7rsrbcG2nOxU=;
         h=Date:From:To:Subject:From;
-        b=z66BJvHfEkp0fXCDxyGKXCHoeTTZsNRWD0RQFw5/Jbv1nohDviZ/2uWGN7Huvk3bH
-         gD70llOFW3lT5xsamcOtIWsoMAnyRXarTZ0EhVrbTOvNVYWEcMl/U0in7marbPlSO0
-         rzwCP+8f3CHagQOOjrZCgcffNfeXrlDgpzNS65E8=
-Date:   Thu, 25 Feb 2021 11:15:20 -0800
+        b=La4kvt5at29RAVFZdY8ZZkC+r26ti3dV5TPfFGcnvFupNIltzFnia34FxTs+ZJ4uH
+         c70DrZMLoAXOPqogUYh8Lo6ElmO1ZzoZGReSiRqumf/4m8sf47ZIQC0KvuBagbL8ni
+         YE+yTlbrb1S3PHXNY5ZgOBX8eRJV9ZK3LY0Ki+IA=
+Date:   Thu, 25 Feb 2021 11:15:27 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,10 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [merged] kasan-clarify-hw_tags-impact-on-tbi.patch
- removed from -mm tree
-Message-ID: <20210225191520.p8HlVDhk6%akpm@linux-foundation.org>
+Subject:  [merged]
+ kasan-add-macros-to-simplify-checking-test-constraints.patch removed from
+ -mm tree
+Message-ID: <20210225191527.737-l4fqb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,24 +48,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: clarify HW_TAGS impact on TBI
+     Subject: kasan: add macros to simplify checking test constraints
 has been removed from the -mm tree.  Its filename was
-     kasan-clarify-hw_tags-impact-on-tbi.patch
+     kasan-add-macros-to-simplify-checking-test-constraints.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: clarify HW_TAGS impact on TBI
+Subject: kasan: add macros to simplify checking test constraints
 
-Mention in the documentation that enabling CONFIG_KASAN_HW_TAGS always
-results in in-kernel TBI (Top Byte Ignore) being enabled.
+Some KASAN tests require specific kernel configs to be enabled.
+Instead of copy-pasting the checks for these configs add a few helper
+macros and use them.
 
-Also do a few minor documentation cleanups.
-
-Link: https://linux-review.googlesource.com/id/Iba2a6697e3c6304cb53f89ec61dedc77fa29e3ae
-Link: https://lkml.kernel.org/r/3b4ea6875bb14d312092ad14ac55cb456c83c08e.1610733117.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I237484a7fddfedf4a4aae9cc61ecbcdbe85a0a63
+Link: https://lkml.kernel.org/r/6a0fcdb9676b7e869cfc415893ede12d916c246c.1610733117.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Suggested-by: Alexander Potapenko <glider@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -79,45 +80,217 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ lib/test_kasan.c |  101 +++++++++++++--------------------------------
+ 1 file changed, 31 insertions(+), 70 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-clarify-hw_tags-impact-on-tbi
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -147,15 +147,14 @@ negative values to distinguish between d
- like redzones or freed memory (see mm/kasan/kasan.h).
+--- a/lib/test_kasan.c~kasan-add-macros-to-simplify-checking-test-constraints
++++ a/lib/test_kasan.c
+@@ -73,6 +73,20 @@ static void kasan_test_exit(struct kunit
+ 			fail_data.report_found); \
+ } while (0)
  
- In the report above the arrows point to the shadow byte 03, which means that
--the accessed address is partially accessible.
++#define KASAN_TEST_NEEDS_CONFIG_ON(test, config) do {			\
++	if (!IS_ENABLED(config)) {					\
++		kunit_info((test), "skipping, " #config " required");	\
++		return;							\
++	}								\
++} while (0)
++
++#define KASAN_TEST_NEEDS_CONFIG_OFF(test, config) do {			\
++	if (IS_ENABLED(config)) {					\
++		kunit_info((test), "skipping, " #config " enabled");	\
++		return;							\
++	}								\
++} while (0)
++
+ static void kmalloc_oob_right(struct kunit *test)
+ {
+ 	char *ptr;
+@@ -114,10 +128,7 @@ static void kmalloc_pagealloc_oob_right(
+ 	char *ptr;
+ 	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
+ 
+-	if (!IS_ENABLED(CONFIG_SLUB)) {
+-		kunit_info(test, "CONFIG_SLUB is not enabled.");
+-		return;
+-	}
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
+ 
+ 	/*
+ 	 * Allocate a chunk that does not fit into a SLUB cache to trigger
+@@ -135,10 +146,7 @@ static void kmalloc_pagealloc_uaf(struct
+ 	char *ptr;
+ 	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
+ 
+-	if (!IS_ENABLED(CONFIG_SLUB)) {
+-		kunit_info(test, "CONFIG_SLUB is not enabled.");
+-		return;
+-	}
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
+ 
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+@@ -152,10 +160,7 @@ static void kmalloc_pagealloc_invalid_fr
+ 	char *ptr;
+ 	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
+ 
+-	if (!IS_ENABLED(CONFIG_SLUB)) {
+-		kunit_info(test, "CONFIG_SLUB is not enabled.");
+-		return;
+-	}
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
+ 
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+@@ -218,10 +223,7 @@ static void kmalloc_oob_16(struct kunit
+ 	} *ptr1, *ptr2;
+ 
+ 	/* This test is specifically crafted for the generic mode. */
+-	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
+-		kunit_info(test, "CONFIG_KASAN_GENERIC required\n");
+-		return;
+-	}
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_GENERIC);
+ 
+ 	ptr1 = kmalloc(sizeof(*ptr1) - 3, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
+@@ -454,10 +456,7 @@ static void kasan_global_oob(struct kuni
+ 	char *p = &global_array[ARRAY_SIZE(global_array) + i];
+ 
+ 	/* Only generic mode instruments globals. */
+-	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
+-		kunit_info(test, "CONFIG_KASAN_GENERIC required");
+-		return;
+-	}
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_GENERIC);
+ 
+ 	KUNIT_EXPECT_KASAN_FAIL(test, *(volatile char *)p);
+ }
+@@ -486,10 +485,7 @@ static void kasan_stack_oob(struct kunit
+ 	volatile int i = OOB_TAG_OFF;
+ 	char *p = &stack_array[ARRAY_SIZE(stack_array) + i];
+ 
+-	if (!IS_ENABLED(CONFIG_KASAN_STACK)) {
+-		kunit_info(test, "CONFIG_KASAN_STACK is not enabled");
+-		return;
+-	}
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_STACK);
+ 
+ 	KUNIT_EXPECT_KASAN_FAIL(test, *(volatile char *)p);
+ }
+@@ -501,15 +497,8 @@ static void kasan_alloca_oob_left(struct
+ 	char *p = alloca_array - 1;
+ 
+ 	/* Only generic mode instruments dynamic allocas. */
+-	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
+-		kunit_info(test, "CONFIG_KASAN_GENERIC required");
+-		return;
+-	}
 -
--For tag-based KASAN this last report section shows the memory tags around the
--accessed address (see `Implementation details`_ section).
-+the accessed address is partially accessible. For tag-based KASAN modes this
-+last report section shows the memory tags around the accessed address
-+(see the `Implementation details`_ section).
+-	if (!IS_ENABLED(CONFIG_KASAN_STACK)) {
+-		kunit_info(test, "CONFIG_KASAN_STACK is not enabled");
+-		return;
+-	}
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_GENERIC);
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_STACK);
  
- Boot parameters
- ~~~~~~~~~~~~~~~
+ 	KUNIT_EXPECT_KASAN_FAIL(test, *(volatile char *)p);
+ }
+@@ -521,15 +510,8 @@ static void kasan_alloca_oob_right(struc
+ 	char *p = alloca_array + i;
  
--Hardware tag-based KASAN mode (see the section about different mode below) is
-+Hardware tag-based KASAN mode (see the section about various modes below) is
- intended for use in production as a security mitigation. Therefore it supports
- boot parameters that allow to disable KASAN competely or otherwise control
- particular KASAN features.
-@@ -289,6 +288,13 @@ reserved to tag freed memory regions.
- Hardware tag-based KASAN currently only supports tagging of
- kmem_cache_alloc/kmalloc and page_alloc memory.
+ 	/* Only generic mode instruments dynamic allocas. */
+-	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
+-		kunit_info(test, "CONFIG_KASAN_GENERIC required");
+-		return;
+-	}
+-
+-	if (!IS_ENABLED(CONFIG_KASAN_STACK)) {
+-		kunit_info(test, "CONFIG_KASAN_STACK is not enabled");
+-		return;
+-	}
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_GENERIC);
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_STACK);
  
-+If the hardware doesn't support MTE (pre ARMv8.5), hardware tag-based KASAN
-+won't be enabled. In this case all boot parameters are ignored.
-+
-+Note, that enabling CONFIG_KASAN_HW_TAGS always results in in-kernel TBI being
-+enabled. Even when kasan.mode=off is provided, or when the hardware doesn't
-+support MTE (but supports TBI).
-+
- What memory accesses are sanitised by KASAN?
- --------------------------------------------
+ 	KUNIT_EXPECT_KASAN_FAIL(test, *(volatile char *)p);
+ }
+@@ -593,11 +575,7 @@ static void kasan_memchr(struct kunit *t
+ 	 * str* functions are not instrumented with CONFIG_AMD_MEM_ENCRYPT.
+ 	 * See https://bugzilla.kernel.org/show_bug.cgi?id=206337 for details.
+ 	 */
+-	if (IS_ENABLED(CONFIG_AMD_MEM_ENCRYPT)) {
+-		kunit_info(test,
+-			"str* functions are not instrumented with CONFIG_AMD_MEM_ENCRYPT");
+-		return;
+-	}
++	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_AMD_MEM_ENCRYPT);
  
+ 	if (OOB_TAG_OFF)
+ 		size = round_up(size, OOB_TAG_OFF);
+@@ -621,11 +599,7 @@ static void kasan_memcmp(struct kunit *t
+ 	 * str* functions are not instrumented with CONFIG_AMD_MEM_ENCRYPT.
+ 	 * See https://bugzilla.kernel.org/show_bug.cgi?id=206337 for details.
+ 	 */
+-	if (IS_ENABLED(CONFIG_AMD_MEM_ENCRYPT)) {
+-		kunit_info(test,
+-			"str* functions are not instrumented with CONFIG_AMD_MEM_ENCRYPT");
+-		return;
+-	}
++	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_AMD_MEM_ENCRYPT);
+ 
+ 	if (OOB_TAG_OFF)
+ 		size = round_up(size, OOB_TAG_OFF);
+@@ -648,11 +622,7 @@ static void kasan_strings(struct kunit *
+ 	 * str* functions are not instrumented with CONFIG_AMD_MEM_ENCRYPT.
+ 	 * See https://bugzilla.kernel.org/show_bug.cgi?id=206337 for details.
+ 	 */
+-	if (IS_ENABLED(CONFIG_AMD_MEM_ENCRYPT)) {
+-		kunit_info(test,
+-			"str* functions are not instrumented with CONFIG_AMD_MEM_ENCRYPT");
+-		return;
+-	}
++	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_AMD_MEM_ENCRYPT);
+ 
+ 	ptr = kmalloc(size, GFP_KERNEL | __GFP_ZERO);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+@@ -713,10 +683,7 @@ static void kasan_bitops_generic(struct
+ 	long *bits;
+ 
+ 	/* This test is specifically crafted for the generic mode. */
+-	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
+-		kunit_info(test, "CONFIG_KASAN_GENERIC required\n");
+-		return;
+-	}
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_GENERIC);
+ 
+ 	/*
+ 	 * Allocate 1 more byte, which causes kzalloc to round up to 16 bytes;
+@@ -744,11 +711,8 @@ static void kasan_bitops_tags(struct kun
+ {
+ 	long *bits;
+ 
+-	/* This test is specifically crafted for the tag-based mode. */
+-	if (IS_ENABLED(CONFIG_KASAN_GENERIC)) {
+-		kunit_info(test, "CONFIG_KASAN_SW_TAGS required\n");
+-		return;
+-	}
++	/* This test is specifically crafted for tag-based modes. */
++	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_KASAN_GENERIC);
+ 
+ 	/* Allocation size will be rounded to up granule size, which is 16. */
+ 	bits = kzalloc(sizeof(*bits), GFP_KERNEL);
+@@ -777,10 +741,7 @@ static void vmalloc_oob(struct kunit *te
+ {
+ 	void *area;
+ 
+-	if (!IS_ENABLED(CONFIG_KASAN_VMALLOC)) {
+-		kunit_info(test, "CONFIG_KASAN_VMALLOC is not enabled.");
+-		return;
+-	}
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_VMALLOC);
+ 
+ 	/*
+ 	 * We have to be careful not to hit the guard page.
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
