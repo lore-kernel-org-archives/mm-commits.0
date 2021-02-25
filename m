@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6C76C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:34:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81761C433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:34:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7121F64F28
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:34:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A27364F18
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:34:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233441AbhBYTeY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:34:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39446 "EHLO mail.kernel.org"
+        id S233720AbhBYTe3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:34:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38130 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233866AbhBYTcR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:32:17 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C96D564FA1;
-        Thu, 25 Feb 2021 19:17:39 +0000 (UTC)
+        id S234725AbhBYTcU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:32:20 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BCCBC64FA3;
+        Thu, 25 Feb 2021 19:17:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280660;
-        bh=PpER6lM1BBnnDY/AICNnP3IhZuNFA9a7gmwfgka5xOE=;
+        s=korg; t=1614280666;
+        bh=C26OBYuHH8n4HSH3FcjPymnifjz8GltBpLGUsu0trDI=;
         h=Date:From:To:Subject:From;
-        b=uPzyZTfWxExawBcIaq45+aiPtafzCFg6cUtVt8+5aG2zAgdCqmNT3cOwBJkIzFcWD
-         xIPDOvZObW158QJH0k6NigV6VvwWvh2jG8aChvoTPdLlfzKEjT4jAxEynA9bLPsGlu
-         Zw2Q0+9/+xZFb8JaWBXyaFKxHs274QjdkbjGMp9A=
-Date:   Thu, 25 Feb 2021 11:17:39 -0800
+        b=mTWJ9v++fyZPuDQEeOz6Uc1Qby5iGOZekyg0caMdrUw9pYWY3jTLQGL5rd+nqGxZd
+         7LcKQEwCIOw30aJaaw+Sj40jzVKDq8vUO+kepM1ex5SEgm95LOZts9EKjIAgvEWATc
+         kxHTBkeTQ2AgmwPVPALN+c1wiKv1SmL1Uive6SXw=
+Date:   Thu, 25 Feb 2021 11:17:45 -0800
 From:   akpm@linux-foundation.org
 To:     alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org,
-        hughd@google.com, linmiaohe@huawei.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, vbabka@suse.cz, vdavydov.dev@gmail.com,
-        willy@infradead.org, yuzhao@google.com
-Subject:  [merged] mm-use-add_page_to_lru_list.patch removed from
- -mm tree
-Message-ID: <20210225191739.xpBUweOIZ%akpm@linux-foundation.org>
+        hughd@google.com, mhocko@kernel.org, mm-commits@vger.kernel.org,
+        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
+        yuzhao@google.com
+Subject:  [merged]
+ mm-dont-pass-enum-lru_list-to-lru-list-addition-functions.patch removed
+ from -mm tree
+Message-ID: <20210225191745.f2O6seq2F%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,93 +46,157 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: use add_page_to_lru_list()
+     Subject: mm: don't pass "enum lru_list" to lru list addition functions
 has been removed from the -mm tree.  Its filename was
-     mm-use-add_page_to_lru_list.patch
+     mm-dont-pass-enum-lru_list-to-lru-list-addition-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm/vmscan.c: use add_page_to_lru_list()
+Subject: mm: don't pass "enum lru_list" to lru list addition functions
 
-Patch series "mm: lru related cleanups", v2.
+The "enum lru_list" parameter to add_page_to_lru_list() and
+add_page_to_lru_list_tail() is redundant in the sense that it can
+be extracted from the "struct page" parameter by page_lru().
 
-The cleanups are intended to reduce the verbosity in lru list operations
-and make them less error-prone.  A typical example would be how the
-patches change __activate_page():
+A caveat is that we need to make sure PageActive() or
+PageUnevictable() is correctly set or cleared before calling
+these two functions. And they are indeed.
 
- static void __activate_page(struct page *page, struct lruvec *lruvec)
- {
- 	if (!PageActive(page) && !PageUnevictable(page)) {
--		int lru = page_lru_base_type(page);
- 		int nr_pages = thp_nr_pages(page);
+Link: https://lore.kernel.org/linux-mm/20201207220949.830352-4-yuzhao@google.com/
+Link: https://lkml.kernel.org/r/20210122220600.906146-4-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/mm_inline.h |    8 ++++++--
+ mm/swap.c                 |   15 +++++++--------
+ mm/vmscan.c               |    6 ++----
+ 3 files changed, 15 insertions(+), 14 deletions(-)
+
+--- a/include/linux/mm_inline.h~mm-dont-pass-enum-lru_list-to-lru-list-addition-functions
++++ a/include/linux/mm_inline.h
+@@ -106,15 +106,19 @@ static __always_inline enum lru_list pag
+ }
  
--		del_page_from_lru_list(page, lruvec, lru);
-+		del_page_from_lru_list(page, lruvec);
+ static __always_inline void add_page_to_lru_list(struct page *page,
+-				struct lruvec *lruvec, enum lru_list lru)
++				struct lruvec *lruvec)
+ {
++	enum lru_list lru = page_lru(page);
++
+ 	update_lru_size(lruvec, lru, page_zonenum(page), thp_nr_pages(page));
+ 	list_add(&page->lru, &lruvec->lists[lru]);
+ }
+ 
+ static __always_inline void add_page_to_lru_list_tail(struct page *page,
+-				struct lruvec *lruvec, enum lru_list lru)
++				struct lruvec *lruvec)
+ {
++	enum lru_list lru = page_lru(page);
++
+ 	update_lru_size(lruvec, lru, page_zonenum(page), thp_nr_pages(page));
+ 	list_add_tail(&page->lru, &lruvec->lists[lru]);
+ }
+--- a/mm/swap.c~mm-dont-pass-enum-lru_list-to-lru-list-addition-functions
++++ a/mm/swap.c
+@@ -231,7 +231,7 @@ static void pagevec_move_tail_fn(struct
+ 	if (!PageUnevictable(page)) {
+ 		del_page_from_lru_list(page, lruvec, page_lru(page));
+ 		ClearPageActive(page);
+-		add_page_to_lru_list_tail(page, lruvec, page_lru(page));
++		add_page_to_lru_list_tail(page, lruvec);
+ 		__count_vm_events(PGROTATED, thp_nr_pages(page));
+ 	}
+ }
+@@ -313,8 +313,7 @@ static void __activate_page(struct page
+ 
+ 		del_page_from_lru_list(page, lruvec, lru);
  		SetPageActive(page);
 -		lru += LRU_ACTIVE;
 -		add_page_to_lru_list(page, lruvec, lru);
 +		add_page_to_lru_list(page, lruvec);
  		trace_mm_lru_activate(page);
-
-There are a few more places like __activate_page() and they are
-unnecessarily repetitive in terms of figuring out which list a page should
-be added onto or deleted from.  And with the duplicated code removed, they
-are easier to read, IMO.
-
-Patch 1 to 5 basically cover the above.  Patch 6 and 7 make code more
-robust by improving bug reporting.  Patch 8, 9 and 10 take care of some
-dangling helpers left in header files.
-
-
-This patch (of 10):
-
-There is add_page_to_lru_list(), and move_pages_to_lru() should reuse it,
-not duplicate it.
-
-Link: https://lkml.kernel.org/r/20210122220600.906146-1-yuzhao@google.com
-Link: https://lore.kernel.org/linux-mm/20201207220949.830352-2-yuzhao@google.com/
-Link: https://lkml.kernel.org/r/20210122220600.906146-2-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/vmscan.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
-
---- a/mm/vmscan.c~mm-use-add_page_to_lru_list
-+++ a/mm/vmscan.c
-@@ -1823,7 +1823,6 @@ static unsigned noinline_for_stack move_
- 	int nr_pages, nr_moved = 0;
- 	LIST_HEAD(pages_to_free);
- 	struct page *page;
--	enum lru_list lru;
  
- 	while (!list_empty(list)) {
- 		page = lru_to_page(list);
-@@ -1868,11 +1867,8 @@ static unsigned noinline_for_stack move_
+ 		__count_vm_events(PGACTIVATE, nr_pages);
+@@ -543,14 +542,14 @@ static void lru_deactivate_file_fn(struc
+ 		 * It can make readahead confusing.  But race window
+ 		 * is _really_ small and  it's non-critical problem.
+ 		 */
+-		add_page_to_lru_list(page, lruvec, lru);
++		add_page_to_lru_list(page, lruvec);
+ 		SetPageReclaim(page);
+ 	} else {
+ 		/*
+ 		 * The page's writeback ends up during pagevec
+ 		 * We moves tha page into tail of inactive.
+ 		 */
+-		add_page_to_lru_list_tail(page, lruvec, lru);
++		add_page_to_lru_list_tail(page, lruvec);
+ 		__count_vm_events(PGROTATED, nr_pages);
+ 	}
+ 
+@@ -570,7 +569,7 @@ static void lru_deactivate_fn(struct pag
+ 		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
+ 		ClearPageActive(page);
+ 		ClearPageReferenced(page);
+-		add_page_to_lru_list(page, lruvec, lru);
++		add_page_to_lru_list(page, lruvec);
+ 
+ 		__count_vm_events(PGDEACTIVATE, nr_pages);
+ 		__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE,
+@@ -595,7 +594,7 @@ static void lru_lazyfree_fn(struct page
+ 		 * anonymous pages
+ 		 */
+ 		ClearPageSwapBacked(page);
+-		add_page_to_lru_list(page, lruvec, LRU_INACTIVE_FILE);
++		add_page_to_lru_list(page, lruvec);
+ 
+ 		__count_vm_events(PGLAZYFREE, nr_pages);
+ 		__count_memcg_events(lruvec_memcg(lruvec), PGLAZYFREE,
+@@ -1005,7 +1004,7 @@ static void __pagevec_lru_add_fn(struct
+ 			__count_vm_events(UNEVICTABLE_PGCULLED, nr_pages);
+ 	}
+ 
+-	add_page_to_lru_list(page, lruvec, lru);
++	add_page_to_lru_list(page, lruvec);
+ 	trace_mm_lru_insertion(page, lru);
+ }
+ 
+--- a/mm/vmscan.c~mm-dont-pass-enum-lru_list-to-lru-list-addition-functions
++++ a/mm/vmscan.c
+@@ -1867,7 +1867,7 @@ static unsigned noinline_for_stack move_
  		 * inhibits memcg migration).
  		 */
  		VM_BUG_ON_PAGE(!lruvec_holds_page_lru_lock(page, lruvec), page);
--		lru = page_lru(page);
-+		add_page_to_lru_list(page, lruvec, page_lru(page));
+-		add_page_to_lru_list(page, lruvec, page_lru(page));
++		add_page_to_lru_list(page, lruvec);
  		nr_pages = thp_nr_pages(page);
--
--		update_lru_size(lruvec, lru, page_zonenum(page), nr_pages);
--		list_add(&page->lru, &lruvec->lists[lru]);
  		nr_moved += nr_pages;
  		if (PageActive(page))
- 			workingset_age_nonresident(lruvec, nr_pages);
+@@ -4282,12 +4282,10 @@ void check_move_unevictable_pages(struct
+ 
+ 		lruvec = relock_page_lruvec_irq(page, lruvec);
+ 		if (page_evictable(page) && PageUnevictable(page)) {
+-			enum lru_list lru = page_lru_base_type(page);
+-
+ 			VM_BUG_ON_PAGE(PageActive(page), page);
+ 			ClearPageUnevictable(page);
+ 			del_page_from_lru_list(page, lruvec, LRU_UNEVICTABLE);
+-			add_page_to_lru_list(page, lruvec, lru);
++			add_page_to_lru_list(page, lruvec);
+ 			pgrescued += nr_pages;
+ 		}
+ 		SetPageLRU(page);
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
