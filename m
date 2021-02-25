@@ -5,37 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C25DDC433E9
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:18:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E830C43381
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:18:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6684B64FBE
+	by mail.kernel.org (Postfix) with ESMTP id C659064FBF
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:18:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233681AbhBYTRV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:17:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57184 "EHLO mail.kernel.org"
+        id S234345AbhBYTRb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:17:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233960AbhBYTOy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234274AbhBYTOy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:14:54 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A314564F29;
-        Thu, 25 Feb 2021 19:11:27 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A56C064F37;
+        Thu, 25 Feb 2021 19:11:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280287;
-        bh=1gB9LNMVWAZ1Ak/QOPUuxy1c0xwolMhRlVZMIcvOQ2Y=;
+        s=korg; t=1614280304;
+        bh=AGbNZ3wpC9RpwvpEs3D9egCpEvfofjc/j+Dqfkzpt6s=;
         h=Date:From:To:Subject:From;
-        b=ConZIPNaj4872NNJxnvAFY8JOby85Lm6QU4s6pjIOCNXvh0ncOmWeadX9FqjVkLpr
-         /Hyxqkei2R/b4//LxSNe0vClsPETHYHFuK3mGDePZcSD0jSC4nwjfuDpiQgLaiTIyw
-         MdHCHIQY2vXPisX1dWD8bGfJoYmD1ex3k16ItRho=
-Date:   Thu, 25 Feb 2021 11:11:27 -0800
+        b=mxx3tb2aHer0zrF39jNscDbaiP0YFzN6tpfM+qrnqu71Ow4r6nSE1vRVJEgI7oM0e
+         udEPpv65q45wsPZUixbfAZaI04Mzx6kT54N40oJC3Tkz4dBSuyJLkDjf3orFjB4czD
+         +FhCMdsuSkEhgJWCN7Yr9MPs+AsEQ1tdAplU/99M=
+Date:   Thu, 25 Feb 2021 11:11:44 -0800
 From:   akpm@linux-foundation.org
-To:     anton@tuxera.com, mm-commits@vger.kernel.org, rkovhaev@gmail.com,
-        stable@vger.kernel.org
-Subject:  [merged]
- ntfs-check-for-valid-standard-information-attribute.patch removed from -mm
+To:     adobriyan@gmail.com, christian.brauner@ubuntu.com,
+        mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
+Subject:  [merged] ramfs-support-o_tmpfile.patch removed from -mm
  tree
-Message-ID: <20210225191127.GNU2Eisy0%akpm@linux-foundation.org>
+Message-ID: <20210225191144.UXtCMFWi1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,51 +43,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ntfs: check for valid standard information attribute
+     Subject: ramfs: support O_TMPFILE
 has been removed from the -mm tree.  Its filename was
-     ntfs-check-for-valid-standard-information-attribute.patch
+     ramfs-support-o_tmpfile.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rustam Kovhaev <rkovhaev@gmail.com>
-Subject: ntfs: check for valid standard information attribute
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: ramfs: support O_TMPFILE
 
-Mounting a corrupted filesystem with NTFS resulted in a kernel crash.
-
-We should check for valid STANDARD_INFORMATION attribute offset and length
-before trying to access it
-
-Link: https://lkml.kernel.org/r/20210217155930.1506815-1-rkovhaev@gmail.com
-Link: https://syzkaller.appspot.com/bug?extid=c584225dabdea2f71969
-Signed-off-by: Rustam Kovhaev <rkovhaev@gmail.com>
-Reported-by: syzbot+c584225dabdea2f71969@syzkaller.appspotmail.com
-Tested-by: syzbot+c584225dabdea2f71969@syzkaller.appspotmail.com
-Acked-by: Anton Altaparmakov <anton@tuxera.com>
-Cc: <stable@vger.kernel.org>
+[akpm@linux-foundation.org: update inode_operations.tmpfile]
+Link: http://lkml.kernel.org/r/20190206073349.GA15311@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/inode.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/ramfs/inode.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/fs/ntfs/inode.c~ntfs-check-for-valid-standard-information-attribute
-+++ a/fs/ntfs/inode.c
-@@ -629,6 +629,12 @@ static int ntfs_read_locked_inode(struct
- 	}
- 	a = ctx->attr;
- 	/* Get the standard information attribute value. */
-+	if ((u8 *)a + le16_to_cpu(a->data.resident.value_offset)
-+			+ le32_to_cpu(a->data.resident.value_length) >
-+			(u8 *)ctx->mrec + vol->mft_record_size) {
-+		ntfs_error(vi->i_sb, "Corrupt standard information attribute in inode.");
-+		goto unm_err_out;
-+	}
- 	si = (STANDARD_INFORMATION*)((u8*)a +
- 			le16_to_cpu(a->data.resident.value_offset));
+--- a/fs/ramfs/inode.c~ramfs-support-o_tmpfile
++++ a/fs/ramfs/inode.c
+@@ -151,6 +151,18 @@ static int ramfs_symlink(struct user_nam
+ 	return error;
+ }
  
++static int ramfs_tmpfile(struct user_namespace *mnt_userns,
++			 struct inode *dir, struct dentry *dentry, umode_t mode)
++{
++	struct inode *inode;
++
++	inode = ramfs_get_inode(dir->i_sb, dir, mode, 0);
++	if (!inode)
++		return -ENOSPC;
++	d_tmpfile(dentry, inode);
++	return 0;
++}
++
+ static const struct inode_operations ramfs_dir_inode_operations = {
+ 	.create		= ramfs_create,
+ 	.lookup		= simple_lookup,
+@@ -161,6 +173,7 @@ static const struct inode_operations ram
+ 	.rmdir		= simple_rmdir,
+ 	.mknod		= ramfs_mknod,
+ 	.rename		= simple_rename,
++	.tmpfile	= ramfs_tmpfile,
+ };
+ 
+ /*
 _
 
-Patches currently in -mm which might be from rkovhaev@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 
