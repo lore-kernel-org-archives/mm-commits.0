@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DAA1C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03698C433E9
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E6D064F42
+	by mail.kernel.org (Postfix) with ESMTP id B0B6464F3C
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233365AbhBYTWb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:22:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33992 "EHLO mail.kernel.org"
+        id S234649AbhBYTWz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:22:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33984 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234747AbhBYTUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234736AbhBYTUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:20:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6CD6A64F44;
-        Thu, 25 Feb 2021 19:13:08 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A61D264F58;
+        Thu, 25 Feb 2021 19:12:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280388;
-        bh=i1zkPwpl9Wye2uoDhnlFkHV1t/q9kezf9Z3lA7+ndxA=;
+        s=korg; t=1614280376;
+        bh=I9rIpx8KQ37ywEm7SbyLn8BkL0iLAPYkbAPJgpefno8=;
         h=Date:From:To:Subject:From;
-        b=1ATJ/Gjl46HPSI4dUexMvuE8c0RHNhID2hprdjdTYtxfG+/rpv57fVUAdRluzj0vT
-         A1wxBbAXsM1f3M72dPDLG7wYko2u3yJxZQuepCCs1WnJZV1gT6T7i4tHBCfj+M82xH
-         Mjmt1Fjev1FuMgrd0S1L0afvWWTQPKorYCbyxf24=
-Date:   Thu, 25 Feb 2021 11:13:08 -0800
+        b=mvLUoSSv+u5o5Fud0ycwdOZWgj71VsGZDB1bl0BxALDxHnmSmkkn9+rjTdWFRr2aS
+         cOVwNwWOa9o58yCMGncZeJvlp+nlQGvIs4T5Aoog1WtOgCBY48iqvlyvSUsNJKUnwc
+         zHWrDJYRXPEemHjPjFjhxFR+xfN92F+RG1oQWY5A=
+Date:   Thu, 25 Feb 2021 11:12:56 -0800
 From:   akpm@linux-foundation.org
 To:     hch@lst.de, kent.overstreet@gmail.com, linmiaohe@huawei.com,
         mm-commits@vger.kernel.org, willy@infradead.org
 Subject:  [merged]
- mm-filemap-move-the-iocb-checks-into-filemap_update_page.patch removed from
- -mm tree
-Message-ID: <20210225191308.bToEiepyr%akpm@linux-foundation.org>
+ mm-filemap-dont-call-readpage-if-iocb_waitq-is-set.patch removed from -mm
+ tree
+Message-ID: <20210225191256.d8onX-hzk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,20 +44,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: move the iocb checks into filemap_update_page
+     Subject: mm/filemap: don't call ->readpage if IOCB_WAITQ is set
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-move-the-iocb-checks-into-filemap_update_page.patch
+     mm-filemap-dont-call-readpage-if-iocb_waitq-is-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: move the iocb checks into filemap_update_page
+Subject: mm/filemap: don't call ->readpage if IOCB_WAITQ is set
 
-We don't need to give up when a non-blocking request sees a !Uptodate
-page.  We may be able to satisfy the read from a partially-uptodate page.
+The readpage operation can block in many (most?) filesystems, so we should
+punt to a work queue instead of calling it.  This was the last caller of
+lock_page_for_iocb(), so remove it.
 
-Link: https://lkml.kernel.org/r/20210122160140.223228-13-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210122160140.223228-9-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
@@ -65,52 +66,46 @@ Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+ mm/filemap.c |   14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-move-the-iocb-checks-into-filemap_update_page
+--- a/mm/filemap.c~mm-filemap-dont-call-readpage-if-iocb_waitq-is-set
 +++ a/mm/filemap.c
-@@ -2240,15 +2240,16 @@ static int filemap_update_page(struct ki
- 	struct inode *inode = mapping->host;
+@@ -2154,16 +2154,6 @@ static void shrink_readahead_size_eio(st
+ 	ra->ra_pages /= 4;
+ }
+ 
+-static int lock_page_for_iocb(struct kiocb *iocb, struct page *page)
+-{
+-	if (iocb->ki_flags & IOCB_WAITQ)
+-		return lock_page_async(page, iocb->ki_waitq);
+-	else if (iocb->ki_flags & IOCB_NOWAIT)
+-		return trylock_page(page) ? 0 : -EAGAIN;
+-	else
+-		return lock_page_killable(page);
+-}
+-
+ /*
+  * filemap_get_read_batch - Get a batch of pages for read
+  *
+@@ -2215,7 +2205,7 @@ static struct page *filemap_read_page(st
+ 	struct file_ra_state *ra = &filp->f_ra;
  	int error;
  
--	if (iocb->ki_flags & IOCB_WAITQ) {
--		error = lock_page_async(page, iocb->ki_waitq);
--		if (error)
--			return error;
--	} else {
--		if (!trylock_page(page)) {
-+	if (!trylock_page(page)) {
-+		if (iocb->ki_flags & (IOCB_NOWAIT | IOCB_NOIO))
-+			return -EAGAIN;
-+		if (!(iocb->ki_flags & IOCB_WAITQ)) {
- 			put_and_wait_on_page_locked(page, TASK_KILLABLE);
- 			return AOP_TRUNCATED_PAGE;
- 		}
-+		error = __lock_page_async(page, iocb->ki_waitq);
-+		if (error)
-+			return error;
+-	if (iocb->ki_flags & (IOCB_NOIO | IOCB_NOWAIT)) {
++	if (iocb->ki_flags & (IOCB_NOIO | IOCB_NOWAIT | IOCB_WAITQ)) {
+ 		unlock_page(page);
+ 		put_page(page);
+ 		return ERR_PTR(-EAGAIN);
+@@ -2236,7 +2226,7 @@ static struct page *filemap_read_page(st
  	}
  
- 	if (!page->mapping)
-@@ -2366,14 +2367,9 @@ got_pages:
- 		}
- 
- 		if (!PageUptodate(page)) {
--			if ((iocb->ki_flags & IOCB_NOWAIT) ||
--			    ((iocb->ki_flags & IOCB_WAITQ) && pvec->nr > 1)) {
--				put_page(page);
--				pvec->nr--;
--				err = -EAGAIN;
--				goto err;
--			}
--
-+			if ((iocb->ki_flags & IOCB_WAITQ) &&
-+			    pagevec_count(pvec) > 1)
-+				iocb->ki_flags |= IOCB_NOWAIT;
- 			err = filemap_update_page(iocb, mapping, iter, page,
- 					pg_pos, pg_count);
- 			if (err) {
+ 	if (!PageUptodate(page)) {
+-		error = lock_page_for_iocb(iocb, page);
++		error = lock_page_killable(page);
+ 		if (unlikely(error)) {
+ 			put_page(page);
+ 			return ERR_PTR(error);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
