@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C438FC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:27:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0D77C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:27:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D3B764E90
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:27:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 63E2A64F1A
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:27:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233814AbhBYT1T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:27:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35728 "EHLO mail.kernel.org"
+        id S233902AbhBYT1V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:27:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35726 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233902AbhBYTZZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:25:25 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C290464F80;
-        Thu, 25 Feb 2021 19:15:24 +0000 (UTC)
+        id S233591AbhBYTZe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:25:34 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C500A64F7F;
+        Thu, 25 Feb 2021 19:15:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280525;
-        bh=eJ69PkUo3lLX2mSSK1E4rZtlbuj6EvE4VPIkaYfbaTU=;
+        s=korg; t=1614280537;
+        bh=OHquS9LCM51oW9i/IILPVBptEiOwcaRdOoWT3ciLuK0=;
         h=Date:From:To:Subject:From;
-        b=Q26XrtZiJyk2WKIOI+X2Pb+pJwVY/MiMnWKKfVWPPldL+rhYB3fJ8WQ4JzSoYK1SN
-         cVyZGE/Y3Xr8x8Rma8XF+2r9eQZBs1qCJGhAbiQddzJCJK0DQyi0tHKFyhyDgAIzIz
-         nN0I0TtiO/1icIA7ctEa3kVBzqieUKWflKb5StDc=
-Date:   Thu, 25 Feb 2021 11:15:24 -0800
+        b=Rm7owEEtKskxpB6d2qZe08xPRyz+dPZc6whoA9V49Vb8ntvTjSnhcGCK4yzUCEUkE
+         Ueuj497TYR/CcTv8kR2t0dWDtzaGR/tWu3ZAP2hXuraskSNT7bHI3vxxoNQ/iBEEpP
+         +AN04QQv7UVTLQtiTZNG/OqCXqoAcDQAc8H5crqM=
+Date:   Thu, 25 Feb 2021 11:15:36 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [merged] kasan-clean-up-comments-in-tests.patch removed
- from -mm tree
-Message-ID: <20210225191524._qlN8jYqX%akpm@linux-foundation.org>
+Subject:  [merged] kasan-rename-config_test_kasan_module.patch
+ removed from -mm tree
+Message-ID: <20210225191536.qZee_PJHw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,20 +47,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: clean up comments in tests
+     Subject: kasan: rename CONFIG_TEST_KASAN_MODULE
 has been removed from the -mm tree.  Its filename was
-     kasan-clean-up-comments-in-tests.patch
+     kasan-rename-config_test_kasan_module.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: clean up comments in tests
+Subject: kasan: rename CONFIG_TEST_KASAN_MODULE
 
-Clarify and update comments in KASAN tests.
+Rename CONFIG_TEST_KASAN_MODULE to CONFIG_KASAN_MODULE_TEST.
 
-Link: https://linux-review.googlesource.com/id/I6c816c51fa1e0eb7aa3dead6bda1f339d2af46c8
-Link: https://lkml.kernel.org/r/ba6db104d53ae0e3796f80ef395f6873c1c1282f.1610733117.git.andreyknvl@google.com
+This naming is more consistent with the existing CONFIG_KASAN_KUNIT_TEST.
+
+Link: https://linux-review.googlesource.com/id/Id347dfa5fe8788b7a1a189863e039f409da0ae5f
+Link: https://lkml.kernel.org/r/f08250246683981bcf8a094fbba7c361995624d2.1610733117.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
@@ -76,176 +78,57 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c        |   59 +++++++++++++++++++++++---------------
- lib/test_kasan_module.c |    5 +--
- 2 files changed, 39 insertions(+), 25 deletions(-)
+ Documentation/dev-tools/kasan.rst |    8 ++++----
+ lib/Kconfig.kasan                 |    2 +-
+ lib/Makefile                      |    2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/lib/test_kasan.c~kasan-clean-up-comments-in-tests
-+++ a/lib/test_kasan.c
-@@ -28,10 +28,9 @@
- #define OOB_TAG_OFF (IS_ENABLED(CONFIG_KASAN_GENERIC) ? 0 : KASAN_GRANULE_SIZE)
+--- a/Documentation/dev-tools/kasan.rst~kasan-rename-config_test_kasan_module
++++ a/Documentation/dev-tools/kasan.rst
+@@ -358,17 +358,17 @@ unmapped. This will require changes in a
+ This allows ``VMAP_STACK`` support on x86, and can simplify support of
+ architectures that do not have a fixed module region.
  
- /*
-- * We assign some test results to these globals to make sure the tests
-- * are not eliminated as dead code.
-+ * Some tests use these global variables to store return values from function
-+ * calls that could otherwise be eliminated by the compiler as dead code.
-  */
--
- void *kasan_ptr_result;
- int kasan_int_result;
+-CONFIG_KASAN_KUNIT_TEST & CONFIG_TEST_KASAN_MODULE
+---------------------------------------------------
++CONFIG_KASAN_KUNIT_TEST and CONFIG_KASAN_MODULE_TEST
++----------------------------------------------------
  
-@@ -39,14 +38,13 @@ static struct kunit_resource resource;
- static struct kunit_kasan_expectation fail_data;
- static bool multishot;
+-KASAN tests consist on two parts:
++KASAN tests consist of two parts:
  
-+/*
-+ * Temporarily enable multi-shot mode. Otherwise, KASAN would only report the
-+ * first detected bug and panic the kernel if panic_on_warn is enabled.
-+ */
- static int kasan_test_init(struct kunit *test)
- {
--	/*
--	 * Temporarily enable multi-shot mode and set panic_on_warn=0.
--	 * Otherwise, we'd only get a report for the first case.
--	 */
- 	multishot = kasan_save_enable_multi_shot();
--
- 	return 0;
- }
+ 1. Tests that are integrated with the KUnit Test Framework. Enabled with
+ ``CONFIG_KASAN_KUNIT_TEST``. These tests can be run and partially verified
+ automatically in a few different ways, see the instructions below.
  
-@@ -56,12 +54,12 @@ static void kasan_test_exit(struct kunit
- }
+ 2. Tests that are currently incompatible with KUnit. Enabled with
+-``CONFIG_TEST_KASAN_MODULE`` and can only be run as a module. These tests can
++``CONFIG_KASAN_MODULE_TEST`` and can only be run as a module. These tests can
+ only be verified manually, by loading the kernel module and inspecting the
+ kernel log for KASAN reports.
  
- /**
-- * KUNIT_EXPECT_KASAN_FAIL() - Causes a test failure when the expression does
-- * not cause a KASAN error. This uses a KUnit resource named "kasan_data." Do
-- * Do not use this name for a KUnit resource outside here.
-- *
-+ * KUNIT_EXPECT_KASAN_FAIL() - check that the executed expression produces a
-+ * KASAN report; causes a test failure otherwise. This relies on a KUnit
-+ * resource named "kasan_data". Do not use this name for KUnit resources
-+ * outside of KASAN tests.
-  */
--#define KUNIT_EXPECT_KASAN_FAIL(test, condition) do { \
-+#define KUNIT_EXPECT_KASAN_FAIL(test, expression) do { \
- 	fail_data.report_expected = true; \
- 	fail_data.report_found = false; \
- 	kunit_add_named_resource(test, \
-@@ -69,7 +67,7 @@ static void kasan_test_exit(struct kunit
- 				NULL, \
- 				&resource, \
- 				"kasan_data", &fail_data); \
--	condition; \
-+	expression; \
- 	KUNIT_EXPECT_EQ(test, \
- 			fail_data.report_expected, \
- 			fail_data.report_found); \
-@@ -121,7 +119,8 @@ static void kmalloc_pagealloc_oob_right(
- 		return;
- 	}
+--- a/lib/Kconfig.kasan~kasan-rename-config_test_kasan_module
++++ a/lib/Kconfig.kasan
+@@ -192,7 +192,7 @@ config KASAN_KUNIT_TEST
+ 	  For more information on KUnit and unit tests in general, please refer
+ 	  to the KUnit documentation in Documentation/dev-tools/kunit.
  
--	/* Allocate a chunk that does not fit into a SLUB cache to trigger
-+	/*
-+	 * Allocate a chunk that does not fit into a SLUB cache to trigger
- 	 * the page allocator fallback.
- 	 */
- 	ptr = kmalloc(size, GFP_KERNEL);
-@@ -168,7 +167,9 @@ static void kmalloc_large_oob_right(stru
- {
- 	char *ptr;
- 	size_t size = KMALLOC_MAX_CACHE_SIZE - 256;
--	/* Allocate a chunk that is large enough, but still fits into a slab
-+
-+	/*
-+	 * Allocate a chunk that is large enough, but still fits into a slab
- 	 * and does not trigger the page allocator fallback in SLUB.
- 	 */
- 	ptr = kmalloc(size, GFP_KERNEL);
-@@ -469,10 +470,13 @@ static void ksize_unpoisons_memory(struc
- 	ptr = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 	real_size = ksize(ptr);
--	/* This access doesn't trigger an error. */
-+
-+	/* This access shouldn't trigger a KASAN report. */
- 	ptr[size] = 'x';
--	/* This one does. */
-+
-+	/* This one must. */
- 	KUNIT_EXPECT_KASAN_FAIL(test, ptr[real_size] = 'y');
-+
- 	kfree(ptr);
- }
- 
-@@ -568,7 +572,7 @@ static void kmem_cache_invalid_free(stru
- 		return;
- 	}
- 
--	/* Trigger invalid free, the object doesn't get freed */
-+	/* Trigger invalid free, the object doesn't get freed. */
- 	KUNIT_EXPECT_KASAN_FAIL(test, kmem_cache_free(cache, p + 1));
- 
- 	/*
-@@ -585,7 +589,10 @@ static void kasan_memchr(struct kunit *t
- 	char *ptr;
- 	size_t size = 24;
- 
--	/* See https://bugzilla.kernel.org/show_bug.cgi?id=206337 */
-+	/*
-+	 * str* functions are not instrumented with CONFIG_AMD_MEM_ENCRYPT.
-+	 * See https://bugzilla.kernel.org/show_bug.cgi?id=206337 for details.
-+	 */
- 	if (IS_ENABLED(CONFIG_AMD_MEM_ENCRYPT)) {
- 		kunit_info(test,
- 			"str* functions are not instrumented with CONFIG_AMD_MEM_ENCRYPT");
-@@ -610,7 +617,10 @@ static void kasan_memcmp(struct kunit *t
- 	size_t size = 24;
- 	int arr[9];
- 
--	/* See https://bugzilla.kernel.org/show_bug.cgi?id=206337 */
-+	/*
-+	 * str* functions are not instrumented with CONFIG_AMD_MEM_ENCRYPT.
-+	 * See https://bugzilla.kernel.org/show_bug.cgi?id=206337 for details.
-+	 */
- 	if (IS_ENABLED(CONFIG_AMD_MEM_ENCRYPT)) {
- 		kunit_info(test,
- 			"str* functions are not instrumented with CONFIG_AMD_MEM_ENCRYPT");
-@@ -634,7 +644,10 @@ static void kasan_strings(struct kunit *
- 	char *ptr;
- 	size_t size = 24;
- 
--	/* See https://bugzilla.kernel.org/show_bug.cgi?id=206337 */
-+	/*
-+	 * str* functions are not instrumented with CONFIG_AMD_MEM_ENCRYPT.
-+	 * See https://bugzilla.kernel.org/show_bug.cgi?id=206337 for details.
-+	 */
- 	if (IS_ENABLED(CONFIG_AMD_MEM_ENCRYPT)) {
- 		kunit_info(test,
- 			"str* functions are not instrumented with CONFIG_AMD_MEM_ENCRYPT");
-@@ -706,7 +719,7 @@ static void kasan_bitops_generic(struct
- 	}
- 
- 	/*
--	 * Allocate 1 more byte, which causes kzalloc to round up to 16-bytes;
-+	 * Allocate 1 more byte, which causes kzalloc to round up to 16 bytes;
- 	 * this way we do not actually corrupt other memory.
- 	 */
- 	bits = kzalloc(sizeof(*bits) + 1, GFP_KERNEL);
---- a/lib/test_kasan_module.c~kasan-clean-up-comments-in-tests
-+++ a/lib/test_kasan_module.c
-@@ -123,8 +123,9 @@ static noinline void __init kasan_workqu
- static int __init test_kasan_module_init(void)
- {
- 	/*
--	 * Temporarily enable multi-shot mode. Otherwise, we'd only get a
--	 * report for the first case.
-+	 * Temporarily enable multi-shot mode. Otherwise, KASAN would only
-+	 * report the first detected bug and panic the kernel if panic_on_warn
-+	 * is enabled.
- 	 */
- 	bool multishot = kasan_save_enable_multi_shot();
- 
+-config TEST_KASAN_MODULE
++config KASAN_MODULE_TEST
+ 	tristate "KUnit-incompatible tests of KASAN bug detection capabilities"
+ 	depends on m && KASAN && !KASAN_HW_TAGS
+ 	help
+--- a/lib/Makefile~kasan-rename-config_test_kasan_module
++++ a/lib/Makefile
+@@ -66,7 +66,7 @@ obj-$(CONFIG_TEST_IDA) += test_ida.o
+ obj-$(CONFIG_KASAN_KUNIT_TEST) += test_kasan.o
+ CFLAGS_test_kasan.o += -fno-builtin
+ CFLAGS_test_kasan.o += $(call cc-disable-warning, vla)
+-obj-$(CONFIG_TEST_KASAN_MODULE) += test_kasan_module.o
++obj-$(CONFIG_KASAN_MODULE_TEST) += test_kasan_module.o
+ CFLAGS_test_kasan_module.o += -fno-builtin
+ obj-$(CONFIG_TEST_UBSAN) += test_ubsan.o
+ CFLAGS_test_ubsan.o += $(call cc-disable-warning, vla)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
