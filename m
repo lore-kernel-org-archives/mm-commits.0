@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14C64C43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7670FC4332D
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D25EE64F42
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 389D564F3C
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234708AbhBYTW5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:22:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33986 "EHLO mail.kernel.org"
+        id S234742AbhBYTW6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:22:58 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33990 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234761AbhBYTUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234773AbhBYTUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:20:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A130064F51;
-        Thu, 25 Feb 2021 19:13:11 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9E9F664F4D;
+        Thu, 25 Feb 2021 19:12:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280391;
-        bh=VNy6KbAr6Sb/G0LEYH+OSK3rWvMD/6b2fFVg6g3A1w0=;
+        s=korg; t=1614280379;
+        bh=QHJshWvJrLHWSbK9vBM111gX+mma8Cf1hr/dR2TxLV8=;
         h=Date:From:To:Subject:From;
-        b=MHpjMZnYicwdXknBsfrHyXe8iMnTgUlgKgQDM9VRzrh7jVDZ0KhNy0eDZUrE5xc+9
-         4HLNXEk4yYKVqXFXxhwOHaITK1rgBWIx3E4eNORR1HQpVRTB/d4cGW3aY7lPsmPoCx
-         bXnRQIr6BTPnKC7Her3/qTKGBEfTkBK1tX8R+tAc=
-Date:   Thu, 25 Feb 2021 11:13:11 -0800
+        b=dVIUTh/VE8EXxf9FsgY2lM2jDJRw4JieZl8BYAPFQoArqnUoB5E8faf7ucMuSzeu5
+         nd5LtaKzXpKmW3GrbuXJrsgAaHiuLTBpqZG4IPT0AqOVCge09yKpBG+HfdHG88ex9E
+         OVpcP4dxAF9fXQace3VFKRSImaU8B91depOEWvVA=
+Date:   Thu, 25 Feb 2021 11:12:59 -0800
 From:   akpm@linux-foundation.org
 To:     hch@lst.de, kent.overstreet@gmail.com, linmiaohe@huawei.com,
         mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  [merged] mm-filemap-add-filemap_range_uptodate.patch
- removed from -mm tree
-Message-ID: <20210225191311.q3MSLrgHG%akpm@linux-foundation.org>
+Subject:  [merged]
+ mm-filemap-change-filemap_read_page-calling-conventions.patch removed from
+ -mm tree
+Message-ID: <20210225191259.kNjWCaXux%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,22 +44,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: add filemap_range_uptodate
+     Subject: mm/filemap: change filemap_read_page calling conventions
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-add-filemap_range_uptodate.patch
+     mm-filemap-change-filemap_read_page-calling-conventions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: add filemap_range_uptodate
+Subject: mm/filemap: change filemap_read_page calling conventions
 
-Move the complicated condition and the calculations out of
-filemap_update_page() into its own function.
+Make this function more generic by passing the file instead of the iocb. 
+Check in the callers whether we should call readpage or not.  Also make it
+return an errno / 0 / AOP_TRUNCATED_PAGE, and make calling put_page() the
+caller's responsibility.
 
-[willy@infradead.org: unlock page before dropping its refcount]
-  Link: https://lkml.kernel.org/r/20210201125229.GO308988@casper.infradead.org
-Link: https://lkml.kernel.org/r/20210122160140.223228-14-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210122160140.223228-10-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
@@ -66,115 +67,139 @@ Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   65 +++++++++++++++++++++++++++++--------------------
- 1 file changed, 39 insertions(+), 26 deletions(-)
+ mm/filemap.c |   89 +++++++++++++++++++++++--------------------------
+ 1 file changed, 42 insertions(+), 47 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-add-filemap_range_uptodate
+--- a/mm/filemap.c~mm-filemap-change-filemap_read_page-calling-conventions
 +++ a/mm/filemap.c
-@@ -2233,11 +2233,36 @@ static int filemap_read_page(struct file
- 	return error;
+@@ -2199,56 +2199,38 @@ retry:
+ 	rcu_read_unlock();
  }
  
-+static bool filemap_range_uptodate(struct address_space *mapping,
-+		loff_t pos, struct iov_iter *iter, struct page *page)
-+{
-+	int count;
-+
-+	if (PageUptodate(page))
-+		return true;
-+	/* pipes can't handle partially uptodate pages */
-+	if (iov_iter_is_pipe(iter))
-+		return false;
-+	if (!mapping->a_ops->is_partially_uptodate)
-+		return false;
-+	if (mapping->host->i_blkbits >= (PAGE_SHIFT + thp_order(page)))
-+		return false;
-+
-+	count = iter->count;
-+	if (page_offset(page) > pos) {
-+		count -= page_offset(page) - pos;
-+		pos = 0;
-+	} else {
-+		pos -= page_offset(page);
-+	}
-+
-+	return mapping->a_ops->is_partially_uptodate(page, pos, count);
-+}
-+
- static int filemap_update_page(struct kiocb *iocb,
- 		struct address_space *mapping, struct iov_iter *iter,
--		struct page *page, loff_t pos, loff_t count)
+-static struct page *filemap_read_page(struct kiocb *iocb, struct file *filp,
+-		struct address_space *mapping, struct page *page)
++static int filemap_read_page(struct file *file, struct address_space *mapping,
 +		struct page *page)
  {
--	struct inode *inode = mapping->host;
+-	struct file_ra_state *ra = &filp->f_ra;
  	int error;
  
- 	if (!trylock_page(page)) {
-@@ -2254,26 +2279,15 @@ static int filemap_update_page(struct ki
- 
- 	if (!page->mapping)
- 		goto truncated;
--	if (PageUptodate(page))
--		goto uptodate;
--	if (inode->i_blkbits == PAGE_SHIFT ||
--			!mapping->a_ops->is_partially_uptodate)
--		goto readpage;
--	/* pipes can't handle partially uptodate pages */
--	if (unlikely(iov_iter_is_pipe(iter)))
--		goto readpage;
--	if (!mapping->a_ops->is_partially_uptodate(page,
--				pos & (thp_size(page) - 1), count))
--		goto readpage;
--uptodate:
--	unlock_page(page);
--	return 0;
- 
--readpage:
 -	if (iocb->ki_flags & (IOCB_NOIO | IOCB_NOWAIT | IOCB_WAITQ)) {
 -		unlock_page(page);
--		return -EAGAIN;
+-		put_page(page);
+-		return ERR_PTR(-EAGAIN);
 -	}
-+	error = 0;
-+	if (filemap_range_uptodate(mapping, iocb->ki_pos, iter, page))
-+		goto unlock;
-+
-+	error = -EAGAIN;
-+	if (iocb->ki_flags & (IOCB_NOIO | IOCB_NOWAIT | IOCB_WAITQ))
-+		goto unlock;
-+
- 	error = filemap_read_page(iocb->ki_filp, mapping, page);
- 	if (error == AOP_TRUNCATED_PAGE)
- 		put_page(page);
-@@ -2282,6 +2296,9 @@ truncated:
- 	unlock_page(page);
- 	put_page(page);
- 	return AOP_TRUNCATED_PAGE;
-+unlock:
+-
+ 	/*
+-	 * A previous I/O error may have been due to temporary
+-	 * failures, eg. multipath errors.
+-	 * PG_error will be set again if readpage fails.
++	 * A previous I/O error may have been due to temporary failures,
++	 * eg. multipath errors.  PG_error will be set again if readpage
++	 * fails.
+ 	 */
+ 	ClearPageError(page);
+ 	/* Start the actual read. The read will unlock the page. */
+-	error = mapping->a_ops->readpage(filp, page);
+-
+-	if (unlikely(error)) {
+-		put_page(page);
+-		return error != AOP_TRUNCATED_PAGE ? ERR_PTR(error) : NULL;
+-	}
++	error = mapping->a_ops->readpage(file, page);
++	if (error)
++		return error;
++	if (PageUptodate(page))
++		return 0;
+ 
++	error = lock_page_killable(page);
++	if (error)
++		return error;
+ 	if (!PageUptodate(page)) {
+-		error = lock_page_killable(page);
+-		if (unlikely(error)) {
+-			put_page(page);
+-			return ERR_PTR(error);
+-		}
+-		if (!PageUptodate(page)) {
+-			if (page->mapping == NULL) {
+-				/*
+-				 * invalidate_mapping_pages got it
+-				 */
+-				unlock_page(page);
+-				put_page(page);
+-				return NULL;
+-			}
+-			unlock_page(page);
+-			shrink_readahead_size_eio(ra);
+-			put_page(page);
+-			return ERR_PTR(-EIO);
++		if (page->mapping == NULL) {
++			/* page truncated */
++			error = AOP_TRUNCATED_PAGE;
++		} else {
++			shrink_readahead_size_eio(&file->f_ra);
++			error = -EIO;
+ 		}
+-		unlock_page(page);
+ 	}
+-
+-	return page;
 +	unlock_page(page);
 +	return error;
  }
  
- static int filemap_create_page(struct file *file,
-@@ -2351,9 +2368,6 @@ got_pages:
- 	{
- 		struct page *page = pvec->pages[pvec->nr - 1];
- 		pgoff_t pg_index = page->index;
--		loff_t pg_pos = max(iocb->ki_pos,
--				    (loff_t) pg_index << PAGE_SHIFT);
--		loff_t pg_count = iocb->ki_pos + iter->count - pg_pos;
+ static struct page *filemap_update_page(struct kiocb *iocb, struct file *filp,
+@@ -2290,7 +2272,18 @@ uptodate:
+ 	return page;
  
- 		if (PageReadahead(page)) {
- 			if (iocb->ki_flags & IOCB_NOIO) {
-@@ -2370,8 +2384,7 @@ got_pages:
- 			if ((iocb->ki_flags & IOCB_WAITQ) &&
- 			    pagevec_count(pvec) > 1)
- 				iocb->ki_flags |= IOCB_NOWAIT;
--			err = filemap_update_page(iocb, mapping, iter, page,
--					pg_pos, pg_count);
-+			err = filemap_update_page(iocb, mapping, iter, page);
- 			if (err) {
- 				if (err < 0)
- 					put_page(page);
+ readpage:
+-	return filemap_read_page(iocb, filp, mapping, page);
++	if (iocb->ki_flags & (IOCB_NOIO | IOCB_NOWAIT | IOCB_WAITQ)) {
++		unlock_page(page);
++		put_page(page);
++		return ERR_PTR(-EAGAIN);
++	}
++	error = filemap_read_page(iocb->ki_filp, mapping, page);
++	if (!error)
++		return page;
++	put_page(page);
++	if (error == AOP_TRUNCATED_PAGE)
++		return NULL;
++	return ERR_PTR(error);
+ truncated:
+ 	unlock_page(page);
+ 	put_page(page);
+@@ -2306,7 +2299,7 @@ static struct page *filemap_create_page(
+ 	struct page *page;
+ 	int error;
+ 
+-	if (iocb->ki_flags & IOCB_NOIO)
++	if (iocb->ki_flags & (IOCB_NOIO | IOCB_NOWAIT | IOCB_WAITQ))
+ 		return ERR_PTR(-EAGAIN);
+ 
+ 	page = page_cache_alloc(mapping);
+@@ -2315,12 +2308,14 @@ static struct page *filemap_create_page(
+ 
+ 	error = add_to_page_cache_lru(page, mapping, index,
+ 				      mapping_gfp_constraint(mapping, GFP_KERNEL));
+-	if (error) {
+-		put_page(page);
+-		return error != -EEXIST ? ERR_PTR(error) : NULL;
+-	}
+-
+-	return filemap_read_page(iocb, filp, mapping, page);
++	if (!error)
++		error = filemap_read_page(iocb->ki_filp, mapping, page);
++	if (!error)
++		return page;
++	put_page(page);
++	if (error == -EEXIST || error == AOP_TRUNCATED_PAGE)
++		return NULL;
++	return ERR_PTR(error);
+ }
+ 
+ static int filemap_get_pages(struct kiocb *iocb, struct iov_iter *iter,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
