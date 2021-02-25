@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFB84C433E6
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6C6CC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:32:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8E1364F45
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 931FE64F28
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:32:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234704AbhBYTbV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:31:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38378 "EHLO mail.kernel.org"
+        id S233242AbhBYTcS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:32:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38130 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234660AbhBYT2Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:28:16 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 85C9364F84;
-        Thu, 25 Feb 2021 19:16:06 +0000 (UTC)
+        id S234827AbhBYTaE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:30:04 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9893964F9F;
+        Thu, 25 Feb 2021 19:16:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280566;
-        bh=/RMZBFzr4MIQbo5I4xeQxB1Xurky9nEt0sQBRTBAZlI=;
+        s=korg; t=1614280606;
+        bh=fYDGXm+2ANoS4/8xCLd7XryuFiBBeAMfFlU329h8IbU=;
         h=Date:From:To:Subject:From;
-        b=CsXUBWbyurJzAjZMLFE/C2XDsmdDRua6fbfcx1+/wv2EBYU7o+qxWkUMeWC59vXQv
-         1te+YJmyRRz+ZA2irmeyTQEF0FHlFLS5jXzo38fMtbWZ7lE2wmM+3wHvgN61eacEuq
-         /atWkCRGqhRq7kFPJhuHedZL+62C5z1pvbvLdwTU=
-Date:   Thu, 25 Feb 2021 11:16:06 -0800
+        b=bjhkoiVdbtKITov0GxIiTmALpc6YXViUohDCcCrv3Dk/8nn2tBCppEDyKZUS80fdk
+         y1JRnSs7ZNTUKsLyjt39hGWMbRFuq0/9Bgmc2aKaDXj65AEid5qep9oQjz7Znwz/F/
+         cuMnf7T77B/7bkLlayoB7CLASQz22Ng/LOR9pe88=
+Date:   Thu, 25 Feb 2021 11:16:46 -0800
 From:   akpm@linux-foundation.org
-To:     bhe@redhat.com, david@redhat.com, mm-commits@vger.kernel.org,
-        rppt@linux.ibm.com
-Subject:  [merged] mm-rename-memmap_init-and-memmap_init_zone.patch
- removed from -mm tree
-Message-ID: <20210225191606.eZ17rhkLF%akpm@linux-foundation.org>
+To:     linmiaohe@huawei.com, louhongxiang@huawei.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org
+Subject:  [merged]
+ =?US-ASCII?Q?mm-hugetlb-fix-use-after-free-when-subpool-max=5Fhpages-acc?=
+ =?US-ASCII?Q?ounting-is-not-enabled.patch?= removed from -mm tree
+Message-ID: <20210225191646.o00J67iNs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,123 +46,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rename memmap_init() and memmap_init_zone()
+     Subject: mm/hugetlb: fix use after free when subpool max_hpages accounting is not enabled
 has been removed from the -mm tree.  Its filename was
-     mm-rename-memmap_init-and-memmap_init_zone.patch
+     mm-hugetlb-fix-use-after-free-when-subpool-max_hpages-accounting-is-not-enabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm: rename memmap_init() and memmap_init_zone()
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/hugetlb: fix use after free when subpool max_hpages accounting is not enabled
 
-The current memmap_init_zone() only handles memory region inside one zone,
-actually memmap_init() does the memmap init of one zone.  So rename both
-of them accordingly.
+If a hugetlbfs filesystem is created with the min_size option and
+without the size option, used_hpages is always 0 and might lead to
+release subpool prematurely because it indicates no pages are used now
+while there might be.
 
-Link: https://lkml.kernel.org/r/20210122135956.5946-3-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+In order to fix this issue, we should check used_hpages == 0 iff
+max_hpages accounting is enabled.  As max_hpages accounting should be
+enabled in most common case, this is not worth a Cc stable.
+
+[mike.kravetz@oracle.com: new changelog]
+Link: https://lkml.kernel.org/r/20210126115510.53374-1-linmiaohe@huawei.com
+Signed-off-by: Hongxiang Lou <louhongxiang@huawei.com>
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c |    6 +++---
- include/linux/mm.h  |    4 ++--
- mm/memory_hotplug.c |    2 +-
- mm/page_alloc.c     |    8 ++++----
- 4 files changed, 10 insertions(+), 10 deletions(-)
+ mm/hugetlb.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
---- a/arch/ia64/mm/init.c~mm-rename-memmap_init-and-memmap_init_zone
-+++ a/arch/ia64/mm/init.c
-@@ -536,18 +536,18 @@ virtual_memmap_init(u64 start, u64 end,
- 		    / sizeof(struct page));
+--- a/mm/hugetlb.c~mm-hugetlb-fix-use-after-free-when-subpool-max_hpages-accounting-is-not-enabled
++++ a/mm/hugetlb.c
+@@ -97,16 +97,26 @@ static inline void ClearPageHugeFreed(st
+ /* Forward declaration */
+ static int hugetlb_acct_memory(struct hstate *h, long delta);
  
- 	if (map_start < map_end)
--		memmap_init_zone((unsigned long)(map_end - map_start),
-+		memmap_init_range((unsigned long)(map_end - map_start),
- 				 args->nid, args->zone, page_to_pfn(map_start), page_to_pfn(map_end),
- 				 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
- 	return 0;
- }
- 
- void __meminit
--memmap_init (unsigned long size, int nid, unsigned long zone,
-+memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 	     unsigned long start_pfn)
+-static inline void unlock_or_release_subpool(struct hugepage_subpool *spool)
++static inline bool subpool_is_free(struct hugepage_subpool *spool)
  {
- 	if (!vmem_map) {
--		memmap_init_zone(size, nid, zone, start_pfn, start_pfn + size,
-+		memmap_init_range(size, nid, zone, start_pfn, start_pfn + size,
- 				 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
- 	} else {
- 		struct page *start;
---- a/include/linux/mm.h~mm-rename-memmap_init-and-memmap_init_zone
-+++ a/include/linux/mm.h
-@@ -2405,10 +2405,10 @@ extern int __meminit early_pfn_to_nid(un
- #endif
+-	bool free = (spool->count == 0) && (spool->used_hpages == 0);
++	if (spool->count)
++		return false;
++	if (spool->max_hpages != -1)
++		return spool->used_hpages == 0;
++	if (spool->min_hpages != -1)
++		return spool->rsv_hpages == spool->min_hpages;
++
++	return true;
++}
  
- extern void set_dma_reserve(unsigned long new_dma_reserve);
--extern void memmap_init_zone(unsigned long, int, unsigned long,
-+extern void memmap_init_range(unsigned long, int, unsigned long,
- 		unsigned long, unsigned long, enum meminit_context,
- 		struct vmem_altmap *, int migratetype);
--extern void memmap_init(unsigned long size, int nid,
-+extern void memmap_init_zone(unsigned long size, int nid,
- 		unsigned long zone, unsigned long range_start_pfn);
- extern void setup_per_zone_wmarks(void);
- extern int __meminit init_per_zone_wmark_min(void);
---- a/mm/memory_hotplug.c~mm-rename-memmap_init-and-memmap_init_zone
-+++ a/mm/memory_hotplug.c
-@@ -713,7 +713,7 @@ void __ref move_pfn_range_to_zone(struct
- 	 * expects the zone spans the pfn range. All the pages in the range
- 	 * are reserved so nobody should be touching them so we should be safe
- 	 */
--	memmap_init_zone(nr_pages, nid, zone_idx(zone), start_pfn, 0,
-+	memmap_init_range(nr_pages, nid, zone_idx(zone), start_pfn, 0,
- 			 MEMINIT_HOTPLUG, altmap, migratetype);
++static inline void unlock_or_release_subpool(struct hugepage_subpool *spool)
++{
+ 	spin_unlock(&spool->lock);
  
- 	set_zone_contiguous(zone);
---- a/mm/page_alloc.c~mm-rename-memmap_init-and-memmap_init_zone
-+++ a/mm/page_alloc.c
-@@ -6121,7 +6121,7 @@ overlap_memmap_init(unsigned long zone,
-  * (usually MIGRATE_MOVABLE). Besides setting the migratetype, no related
-  * zone stats (e.g., nr_isolate_pageblock) are touched.
-  */
--void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
-+void __meminit memmap_init_range(unsigned long size, int nid, unsigned long zone,
- 		unsigned long start_pfn, unsigned long zone_end_pfn,
- 		enum meminit_context context,
- 		struct vmem_altmap *altmap, int migratetype)
-@@ -6258,7 +6258,7 @@ static void __meminit zone_init_free_lis
- 	}
- }
- 
--void __meminit __weak memmap_init(unsigned long size, int nid,
-+void __meminit __weak memmap_init_zone(unsigned long size, int nid,
- 				  unsigned long zone,
- 				  unsigned long range_start_pfn)
- {
-@@ -6272,7 +6272,7 @@ void __meminit __weak memmap_init(unsign
- 
- 		if (end_pfn > start_pfn) {
- 			size = end_pfn - start_pfn;
--			memmap_init_zone(size, nid, zone, start_pfn, range_end_pfn,
-+			memmap_init_range(size, nid, zone, start_pfn, range_end_pfn,
- 					 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
- 		}
- 	}
-@@ -6982,7 +6982,7 @@ static void __init free_area_init_core(s
- 		set_pageblock_order();
- 		setup_usemap(pgdat, zone, zone_start_pfn, size);
- 		init_currently_empty_zone(zone, zone_start_pfn, size);
--		memmap_init(size, nid, j, zone_start_pfn);
-+		memmap_init_zone(size, nid, j, zone_start_pfn);
- 	}
- }
- 
+ 	/* If no pages are used, and no other handles to the subpool
+ 	 * remain, give up any reservations based on minimum size and
+ 	 * free the subpool */
+-	if (free) {
++	if (subpool_is_free(spool)) {
+ 		if (spool->min_hpages != -1)
+ 			hugetlb_acct_memory(spool->hstate,
+ 						-spool->min_hpages);
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
+mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
+mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
+mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
+mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
+mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
+mm-rmap-correct-obsolete-comment-of-page_get_anon_vma.patch
+mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
+mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
+mm-zsmallocc-use-page_private-to-access-page-private.patch
 
