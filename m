@@ -7,36 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD1DCC4332B
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADC7AC4332D
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 974D464F28
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D2B664F28
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233159AbhBYTdZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:33:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36908 "EHLO mail.kernel.org"
+        id S234654AbhBYTdc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:33:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38166 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234859AbhBYTaN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234598AbhBYTaN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:30:13 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8CDC564F30;
-        Thu, 25 Feb 2021 19:17:06 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9446E64F2B;
+        Thu, 25 Feb 2021 19:17:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280626;
-        bh=IYMK8KfCVMJ2GAHjZBJwGSehEWPgXHe83ifrc08pvIc=;
+        s=korg; t=1614280620;
+        bh=FmB+2OBz9s3wt+8GPtw5CPlzE2PeNALn76GYc6jZzx4=;
         h=Date:From:To:Subject:From;
-        b=idrNRQ9YMYg/54EPg4wbyWadcOE6IN7+5drxv9+iYpPTm66ndSjTeFVTYf5pbrNI6
-         LFL1Zql4p5hVfZ1caUHQhI19i+ifEDmKNZBM62D9nKZj6HZ9bspSBCOYl7O2YoVe/1
-         S5z5TH7Mw+WJ47oz+0ZwNV5zXFmjZv1rEGnJQzrQ=
-Date:   Thu, 25 Feb 2021 11:17:06 -0800
+        b=OL7BJpnzVC4iY+EeDBEQyBKwTCAJhLyqafkOdu9BuXP9IKAnZAgAg6nYLM4YHocEY
+         1a2ZE/kMYC4GCap7BTodb6Y12KWLI9gB7tyVZ13DrCZ7exBpGsDuVxGMNhidFDqOCs
+         Yc0PVl7G9ojaevtUdJAy7MBBZwyjBUCvpjidzpts=
+Date:   Thu, 25 Feb 2021 11:17:00 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org
+To:     david@redhat.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, yanfei.xu@windriver.com
 Subject:  [merged]
- mm-remove-unused-return-value-of-set_huge_zero_page.patch removed from -mm
- tree
-Message-ID: <20210225191706.ZfYUZLh0I%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-hugetlb-remove-redundant-check-in-preparing-and-destro?=
+ =?US-ASCII?Q?ying-gigantic-page.patch?= removed from -mm tree
+Message-ID: <20210225191700.CJrsKZRtD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,65 +46,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: remove unused return value of set_huge_zero_page()
+     Subject: mm/hugetlb: remove redundant check in preparing and destroying gigantic page
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unused-return-value-of-set_huge_zero_page.patch
+     mm-hugetlb-remove-redundant-check-in-preparing-and-destroying-gigantic-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory.c: remove unused return value of set_huge_zero_page()
+From: Yanfei Xu <yanfei.xu@windriver.com>
+Subject: mm/hugetlb: remove redundant check in preparing and destroying gigantic page
 
-The return value of set_huge_zero_page() is always ignored.  So we should
-drop such return value.
+Gigantic page is a compound page and its order is more than 1.  Thus it
+must be available for hpage_pincount.  Let's remove the redundant check
+for gigantic page.
 
-Link: https://lkml.kernel.org/r/20210203084816.46307-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/20210202112002.73170-1-yanfei.xu@windriver.com
+Signed-off-by: Yanfei Xu <yanfei.xu@windriver.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/mm/huge_memory.c~mm-remove-unused-return-value-of-set_huge_zero_page
-+++ a/mm/huge_memory.c
-@@ -691,20 +691,19 @@ static inline gfp_t alloc_hugepage_direc
+--- a/mm/hugetlb.c~mm-hugetlb-remove-redundant-check-in-preparing-and-destroying-gigantic-page
++++ a/mm/hugetlb.c
+@@ -1234,8 +1234,7 @@ static void destroy_compound_gigantic_pa
+ 	struct page *p = page + 1;
+ 
+ 	atomic_set(compound_mapcount_ptr(page), 0);
+-	if (hpage_pincount_available(page))
+-		atomic_set(compound_pincount_ptr(page), 0);
++	atomic_set(compound_pincount_ptr(page), 0);
+ 
+ 	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
+ 		clear_compound_head(p);
+@@ -1563,9 +1562,7 @@ static void prep_compound_gigantic_page(
+ 		set_compound_head(p, page);
+ 	}
+ 	atomic_set(compound_mapcount_ptr(page), -1);
+-
+-	if (hpage_pincount_available(page))
+-		atomic_set(compound_pincount_ptr(page), 0);
++	atomic_set(compound_pincount_ptr(page), 0);
  }
  
- /* Caller must hold page table lock. */
--static bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
-+static void set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
- 		struct vm_area_struct *vma, unsigned long haddr, pmd_t *pmd,
- 		struct page *zero_page)
- {
- 	pmd_t entry;
- 	if (!pmd_none(*pmd))
--		return false;
-+		return;
- 	entry = mk_pmd(zero_page, vma->vm_page_prot);
- 	entry = pmd_mkhuge(entry);
- 	if (pgtable)
- 		pgtable_trans_huge_deposit(mm, pmd, pgtable);
- 	set_pmd_at(mm, haddr, pmd, entry);
- 	mm_inc_nr_ptes(mm);
--	return true;
- }
- 
- vm_fault_t do_huge_pmd_anonymous_page(struct vm_fault *vmf)
+ /*
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from yanfei.xu@windriver.com are
 
-mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
-mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
-mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
-mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
-mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
-mm-rmap-correct-obsolete-comment-of-page_get_anon_vma.patch
-mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
-mm-zsmallocc-use-page_private-to-access-page-private.patch
 
