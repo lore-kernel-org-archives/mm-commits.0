@@ -5,41 +5,40 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5406DC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47662C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0ABFA64F28
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F423664F2A
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235017AbhBYTfQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:35:16 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41406 "EHLO mail.kernel.org"
+        id S234017AbhBYTfW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:35:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235114AbhBYTdF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:33:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D03EB64FB6;
-        Thu, 25 Feb 2021 19:18:30 +0000 (UTC)
+        id S235080AbhBYTc7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:32:59 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C23A64FB2;
+        Thu, 25 Feb 2021 19:18:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280711;
-        bh=MG9BjmuuJNFhroQsoEYxdshBKoMagSaUS1d5fjIosOQ=;
+        s=korg; t=1614280704;
+        bh=xJOD53YWy5SwCMmBQ9TUpk+3XwZAvauJV8lPJ2XEv2c=;
         h=Date:From:To:Subject:From;
-        b=npgObSAClWhy6mGPE3b8uYq9+cGdbSQKRmo5RiitkYYPpQHeHop7ITpEM0Rn6vt+V
-         oBhZxvOAXz2KH/4WqN9DXy9nUf7gRkKlkPcuPrMLSwJ+TEMqIskH2uRcpc9Ay4hh8i
-         y0Z9Lp8MUdeImhD43rpMj1YDzKc5Ym0EWK8YSN9M=
-Date:   Thu, 25 Feb 2021 11:18:30 -0800
+        b=0mSy4qKABPpLm5e0rbbL3KnaNMRfi695TS9q9MArU9VI2fDi2UX2a56wAT+1XeBhe
+         kaLgKq8NZkqZ/QhrMJB/cAG+8rEox5Dl1qviQOhJ5rjvJ1igvKvsbItNU/Lm7DCLAJ
+         gak3IxX0Dv0hh28sX4GyiAJSEsbLzq8R4p8sDSnc=
+Date:   Thu, 25 Feb 2021 11:18:24 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
-        ben.widawsky@intel.com, cai@lca.pw, cl@linux.com,
-        dan.j.williams@intel.com, dave.hansen@linux.intel.com,
-        dwagner@suse.de, mm-commits@vger.kernel.org, osalvador@suse.de,
-        rientjes@google.com, stable@vger.kernel.org, tobin@kernel.org,
-        ying.huang@intel.com
-Subject:  [merged] mm-vmscan-restore-zone_reclaim_mode-abi.patch
- removed from -mm tree
-Message-ID: <20210225191830.Q3lUICjhK%akpm@linux-foundation.org>
+To:     mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org
+Subject:  [merged]
+ =?US-ASCII?Q?include-linux-hugetlbh-add-synchronization-information-for-?=
+ =?US-ASCII?Q?new-hugetlb-specific-flags.patch?= removed from -mm tree
+Message-ID: <20210225191824.RG8ns5lS_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,105 +46,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: restore zone_reclaim_mode ABI
+     Subject: include/linux/hugetlb.h: add synchronization information for new hugetlb specific flags
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-restore-zone_reclaim_mode-abi.patch
+     include-linux-hugetlbh-add-synchronization-information-for-new-hugetlb-specific-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm/vmscan: restore zone_reclaim_mode ABI
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: include/linux/hugetlb.h: add synchronization information for new hugetlb specific flags
 
-I went to go add a new RECLAIM_* mode for the zone_reclaim_mode
-sysctl.  Like a good kernel developer, I also went to go update the
-documentation.  I noticed that the bits in the documentation didn't
-match the bits in the #defines.
+Add comments, no functional change.
 
-The VM never explicitly checks the RECLAIM_ZONE bit.  The bit is,
-however implicitly checked when checking 'node_reclaim_mode==0'.  The
-RECLAIM_ZONE #define was removed in a cleanup.  That, by itself is
-fine.
-
-But, when the bit was removed (bit 0) the _other_ bit locations also got
-changed.  That's not OK because the bit values are documented to mean one
-specific thing.  Users surely do not expect the meaning to change from
-kernel to kernel.
-
-The end result is that if someone had a script that did:
-
-	sysctl vm.zone_reclaim_mode=1
-
-it would have gone from enabling node reclaim for clean unmapped pages to
-writing out pages during node reclaim after the commit in question. 
-That's not great.
-
-Put the bits back the way they were and add a comment so something like
-this is a bit harder to do again.  Update the documentation to make it
-clear that the first bit is ignored.
-
-Link: https://lkml.kernel.org/r/20210219172555.FF0CDF23@viggo.jf.intel.com
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Fixes: 648b5cf368e0 ("mm/vmscan: remove unused RECLAIM_OFF/RECLAIM_ZONE")
-Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Daniel Wagner <dwagner@suse.de>
-Cc: "Tobin C. Harding" <tobin@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/62a80585-2a73-10cc-4a2d-5721540d4ad2@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |   10 +++++-----
- mm/vmscan.c                             |    9 +++++++--
- 2 files changed, 12 insertions(+), 7 deletions(-)
+ include/linux/hugetlb.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-vmscan-restore-zone_reclaim_mode-abi
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -983,11 +983,11 @@ that benefit from having their data cach
- left disabled as the caching effect is likely to be more important than
- data locality.
- 
--zone_reclaim may be enabled if it's known that the workload is partitioned
--such that each partition fits within a NUMA node and that accessing remote
--memory would cause a measurable performance reduction.  The page allocator
--will then reclaim easily reusable pages (those page cache pages that are
--currently not used) before allocating off node pages.
-+Consider enabling one or more zone_reclaim mode bits if it's known that the
-+workload is partitioned such that each partition fits within a NUMA node
-+and that accessing remote memory would cause a measurable performance
-+reduction.  The page allocator will take additional actions before
-+allocating off node pages.
- 
- Allowing zone reclaim to write out pages stops processes that are
- writing large amounts of data from dirtying pages on other nodes. Zone
---- a/mm/vmscan.c~mm-vmscan-restore-zone_reclaim_mode-abi
-+++ a/mm/vmscan.c
-@@ -4085,8 +4085,13 @@ module_init(kswapd_init)
+--- a/include/linux/hugetlb.h~include-linux-hugetlbh-add-synchronization-information-for-new-hugetlb-specific-flags
++++ a/include/linux/hugetlb.h
+@@ -480,14 +480,24 @@ unsigned long hugetlb_get_unmapped_area(
+  * HPG_restore_reserve - Set when a hugetlb page consumes a reservation at
+  *	allocation time.  Cleared when page is fully instantiated.  Free
+  *	routine checks flag to restore a reservation on error paths.
++ *	Synchronization:  Examined or modified by code that knows it has
++ *	the only reference to page.  i.e. After allocation but before use
++ *	or when the page is being freed.
+  * HPG_migratable  - Set after a newly allocated page is added to the page
+  *	cache and/or page tables.  Indicates the page is a candidate for
+  *	migration.
++ *	Synchronization:  Initially set after new page allocation with no
++ *	locking.  When examined and modified during migration processing
++ *	(isolate, migrate, putback) the hugetlb_lock is held.
+  * HPG_temporary - - Set on a page that is temporarily allocated from the buddy
+  *	allocator.  Typically used for migration target pages when no pages
+  *	are available in the pool.  The hugetlb free page path will
+  *	immediately free pages with this flag set to the buddy allocator.
++ *	Synchronization: Can be set after huge page allocation from buddy when
++ *	code knows it has only reference.  All other examinations and
++ *	modifications require hugetlb_lock.
+  * HPG_freed - Set when page is on the free lists.
++ *	Synchronization: hugetlb_lock held for examination and modification.
   */
- int node_reclaim_mode __read_mostly;
- 
--#define RECLAIM_WRITE (1<<0)	/* Writeout pages during reclaim */
--#define RECLAIM_UNMAP (1<<1)	/* Unmap pages during reclaim */
-+/*
-+ * These bit locations are exposed in the vm.zone_reclaim_mode sysctl
-+ * ABI.  New bits are OK, but existing bits can never change.
-+ */
-+#define RECLAIM_ZONE  (1<<0)   /* Run shrink_inactive_list on the zone */
-+#define RECLAIM_WRITE (1<<1)   /* Writeout pages during reclaim */
-+#define RECLAIM_UNMAP (1<<2)   /* Unmap pages during reclaim */
- 
- /*
-  * Priority for NODE_RECLAIM. This determines the fraction of pages
+ enum hugetlb_page_flags {
+ 	HPG_restore_reserve = 0,
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
 
