@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2B20C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:17:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01D15C433E9
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:17:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 684B764F33
+	by mail.kernel.org (Postfix) with ESMTP id AA40764FA3
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:17:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234492AbhBYTQ4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:16:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57324 "EHLO mail.kernel.org"
+        id S234267AbhBYTQ6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:16:58 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57452 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233848AbhBYTOy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:14:54 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CA97164F31;
-        Thu, 25 Feb 2021 19:11:38 +0000 (UTC)
+        id S234142AbhBYTOz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:14:55 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A122864F33;
+        Thu, 25 Feb 2021 19:11:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280299;
-        bh=wM2sR7aCjJ/tYOHukMKR/J9+256ybVsDnRtBHERrpO4=;
+        s=korg; t=1614280301;
+        bh=z1AsSVJrkW90SaEvKc4kt1TIUUfO8or0bT84YOX8+pY=;
         h=Date:From:To:Subject:From;
-        b=JzNjEnl1eHD/Oln5J6wlUSRrugrr2xgY5+U3Jr0PTrAClmKqWhto70zKh4XnaajzF
-         L8WDSzDxSmgdlyzHaIAuk18b9FTtlyodOI7FVunzGdkmv4EC1d2a7BxEdR85exCuiD
-         gV0s0LbkFGVoTHh48UHNB6if1k2x74av1Fmm1CLs=
-Date:   Thu, 25 Feb 2021 11:11:38 -0800
+        b=1rfKj0yID/i1vfjushdSr3H/7b9NX69nJNxYtYcDKE2HbRIjoo1hNYDUP33QZ00kg
+         3082oOhkjNXERi3ZCFERsLqCaC5sWIPFpivFdDOtLg5+kMPTasnQTV8gWSQdasvCdG
+         Q74laL6JPEU0L7Z3Bvp6Kgxbxcjivk9qWvfc08sU=
+Date:   Thu, 25 Feb 2021 11:11:41 -0800
 From:   akpm@linux-foundation.org
-To:     abaci@linux.alibaba.com, gechangwei@live.cn, ghe@suse.com,
-        jiapeng.chong@linux.alibaba.com, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
-Subject:  [merged]
- ocfs2-simplify-the-calculation-of-variables.patch removed from -mm tree
-Message-ID: <20210225191138.xTixtPLJj%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        viro@zeniv.linux.org.uk, willy@infradead.org
+Subject:  [merged] fs-delete-repeated-words-in-comments.patch
+ removed from -mm tree
+Message-ID: <20210225191141.mIs9NYprv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,50 +43,127 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: simplify the calculation of variables
+     Subject: fs: delete repeated words in comments
 has been removed from the -mm tree.  Its filename was
-     ocfs2-simplify-the-calculation-of-variables.patch
+     fs-delete-repeated-words-in-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-Subject: ocfs2: simplify the calculation of variables
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: fs: delete repeated words in comments
 
-Fix the following coccicheck warnings:
+Delete duplicate words in fs/*.c.
+The doubled words that are being dropped are:
+  that, be, the, in, and, for
 
-./fs/ocfs2/refcounttree.c:981:16-18: WARNING !A || A && B is equivalent
-to !A || B.
-
-Link: https://lkml.kernel.org/r/1612235424-80367-1-git-send-email-jiapeng.chong@linux.alibaba.com
-Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20201224052810.25315-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/block_dev.c |    2 +-
+ fs/dcache.c    |    4 ++--
+ fs/direct-io.c |    4 ++--
+ fs/exec.c      |    4 ++--
+ fs/fhandle.c   |    2 +-
+ fs/pipe.c      |    2 +-
+ 6 files changed, 9 insertions(+), 9 deletions(-)
 
---- a/fs/ocfs2/refcounttree.c~ocfs2-simplify-the-calculation-of-variables
-+++ a/fs/ocfs2/refcounttree.c
-@@ -978,7 +978,7 @@ static int ocfs2_get_refcount_cpos_end(s
- 		return 0;
- 	}
- 
--	if (!eb || (eb && !eb->h_next_leaf_blk)) {
-+	if (!eb || !eb->h_next_leaf_blk) {
+--- a/fs/block_dev.c~fs-delete-repeated-words-in-comments
++++ a/fs/block_dev.c
+@@ -1270,7 +1270,7 @@ rescan:
+ 	return ret;
+ }
+ /*
+- * Only exported for for loop and dasd for historic reasons.  Don't use in new
++ * Only exported for loop and dasd for historic reasons.  Don't use in new
+  * code!
+  */
+ EXPORT_SYMBOL_GPL(bdev_disk_changed);
+--- a/fs/dcache.c~fs-delete-repeated-words-in-comments
++++ a/fs/dcache.c
+@@ -2176,8 +2176,8 @@ EXPORT_SYMBOL(d_obtain_root);
+  * same inode, only the actual correct case is stored in the dcache for
+  * case-insensitive filesystems.
+  *
+- * For a case-insensitive lookup match and if the the case-exact dentry
+- * already exists in in the dcache, use it and return it.
++ * For a case-insensitive lookup match and if the case-exact dentry
++ * already exists in the dcache, use it and return it.
+  *
+  * If no entry exists with the exact case name, allocate new dentry with
+  * the exact case, and return the spliced entry.
+--- a/fs/direct-io.c~fs-delete-repeated-words-in-comments
++++ a/fs/direct-io.c
+@@ -462,7 +462,7 @@ static inline void dio_cleanup(struct di
+  * Wait for the next BIO to complete.  Remove it and return it.  NULL is
+  * returned once all BIOs have been completed.  This must only be called once
+  * all bios have been issued so that dio->refcount can only decrease.  This
+- * requires that that the caller hold a reference on the dio.
++ * requires that the caller hold a reference on the dio.
+  */
+ static struct bio *dio_await_one(struct dio *dio)
+ {
+@@ -1279,7 +1279,7 @@ do_blockdev_direct_IO(struct kiocb *iocb
+ 	if (retval == -ENOTBLK) {
  		/*
- 		 * We are the last extent rec, so any high cpos should
- 		 * be stored in this leaf refcount block.
+ 		 * The remaining part of the request will be
+-		 * be handled by buffered I/O when we return
++		 * handled by buffered I/O when we return
+ 		 */
+ 		retval = 0;
+ 	}
+--- a/fs/exec.c~fs-delete-repeated-words-in-comments
++++ a/fs/exec.c
+@@ -1455,7 +1455,7 @@ EXPORT_SYMBOL(finalize_exec);
+ /*
+  * Prepare credentials and lock ->cred_guard_mutex.
+  * setup_new_exec() commits the new creds and drops the lock.
+- * Or, if exec fails before, free_bprm() should release ->cred and
++ * Or, if exec fails before, free_bprm() should release ->cred
+  * and unlock.
+  */
+ static int prepare_bprm_creds(struct linux_binprm *bprm)
+@@ -1841,7 +1841,7 @@ static int bprm_execve(struct linux_binp
+ 
+ out:
+ 	/*
+-	 * If past the point of no return ensure the the code never
++	 * If past the point of no return ensure the code never
+ 	 * returns to the userspace process.  Use an existing fatal
+ 	 * signal if present otherwise terminate the process with
+ 	 * SIGSEGV.
+--- a/fs/fhandle.c~fs-delete-repeated-words-in-comments
++++ a/fs/fhandle.c
+@@ -173,7 +173,7 @@ static int handle_to_path(int mountdirfd
+ 
+ 	/*
+ 	 * With handle we don't look at the execute bit on the
+-	 * the directory. Ideally we would like CAP_DAC_SEARCH.
++	 * directory. Ideally we would like CAP_DAC_SEARCH.
+ 	 * But we don't have that
+ 	 */
+ 	if (!capable(CAP_DAC_READ_SEARCH)) {
+--- a/fs/pipe.c~fs-delete-repeated-words-in-comments
++++ a/fs/pipe.c
+@@ -171,7 +171,7 @@ EXPORT_SYMBOL(generic_pipe_buf_try_steal
+  *
+  * Description:
+  *	This function grabs an extra reference to @buf. It's used in
+- *	in the tee() system call, when we duplicate the buffers in one
++ *	the tee() system call, when we duplicate the buffers in one
+  *	pipe into another.
+  */
+ bool generic_pipe_buf_get(struct pipe_inode_info *pipe, struct pipe_buffer *buf)
 _
 
-Patches currently in -mm which might be from jiapeng.chong@linux.alibaba.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
+mm-zswap-clean-up-confusing-comment.patch
+alpha-remove-config_experimental-from-defconfigs.patch
+include-linux-remove-repeated-words.patch
+kernel-delete-repeated-words-in-comments.patch
 
