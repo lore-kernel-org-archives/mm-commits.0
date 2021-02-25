@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 481A2C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63265C43381
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:38:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0949764F2B
+	by mail.kernel.org (Postfix) with ESMTP id 2AA5164F39
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:38:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234690AbhBYTh1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:37:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41318 "EHLO mail.kernel.org"
+        id S234717AbhBYThb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:37:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41326 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234978AbhBYTfP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:35:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A1DC664F3B;
-        Thu, 25 Feb 2021 19:19:22 +0000 (UTC)
+        id S232770AbhBYTfR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:35:17 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 979A664F3E;
+        Thu, 25 Feb 2021 19:19:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280762;
-        bh=qbRsIEFDy2DhpqMWLocZu7NRQIhWdVFaLlImdJ3n+Zk=;
+        s=korg; t=1614280768;
+        bh=pOM0SVw01dmQEhK8q56vjWKMcRzPqrR4kFKSZK1hDX0=;
         h=Date:From:To:Subject:From;
-        b=Xbxi0SFnKcPT/r9qL5HZpH/erza6mtdFMMZCm8GX7hkOOELWq5JVGPFvcv5vlAN/D
-         uII+G7C68Zsk/7kUd/MeWqduqsQ/FxHx9ppnesuBwtvkec+EvGLaHJwsRliOnD36F5
-         /umFBOVTGwN57GgrRupRwe7/N3PGztwEA+zIDZ6w=
-Date:   Thu, 25 Feb 2021 11:19:22 -0800
+        b=0ViBBWlCGf69A7p6L1jSvNTPHxPQRZJhST5wkelKUhgyYDorMAxBrZ2h0FHkP4a0D
+         wQ7l3Ev5JodFdO483nC8V21qR49qepbdAnqTBc6tsJEhpZ8rGEqw3CuXVkQ1qZwR8/
+         dVsabcvI+f80Lu3ttlMww6Y/7Y1X9FqLA+AWzxHY=
+Date:   Thu, 25 Feb 2021 11:19:28 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
+To:     david@redhat.com, linmiaohe@huawei.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org
 Subject:  [merged]
- hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch removed
+ hugetlbfs-remove-unneeded-return-value-of-hugetlb_vmtruncate.patch removed
  from -mm tree
-Message-ID: <20210225191922.NmaYtU7ve%akpm@linux-foundation.org>
+Message-ID: <20210225191928.5GvIX8Vfr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,49 +44,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: correct some obsolete comments about inode i_mutex
+     Subject: hugetlbfs: remove unneeded return value of hugetlb_vmtruncate()
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch
+     hugetlbfs-remove-unneeded-return-value-of-hugetlb_vmtruncate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlbfs: correct some obsolete comments about inode i_mutex
+Subject: hugetlbfs: remove unneeded return value of hugetlb_vmtruncate()
 
-Since commit 9902af79c01a ("parallel lookups: actual switch to rwsem"),
-i_mutex of inode is converted to i_rwsem. So replace i_mutex with i_rwsem
-to make comments up to date.
+The function hugetlb_vmtruncate() is guaranteed to always success since
+commit 7aa91e104028 ("hugetlb: allow extending ftruncate on hugetlbfs").
+So we should remove the unneeded return value which is always 0.
 
-Link: https://lkml.kernel.org/r/20210127093111.36672-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210208084637.47789-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/hugetlbfs/inode.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-remove-unneeded-return-value-of-hugetlb_vmtruncate
 +++ a/fs/hugetlbfs/inode.c
-@@ -604,7 +604,7 @@ static long hugetlbfs_punch_hole(struct
+@@ -567,7 +567,7 @@ static void hugetlbfs_evict_inode(struct
+ 	clear_inode(inode);
+ }
  
- 		inode_lock(inode);
+-static int hugetlb_vmtruncate(struct inode *inode, loff_t offset)
++static void hugetlb_vmtruncate(struct inode *inode, loff_t offset)
+ {
+ 	pgoff_t pgoff;
+ 	struct address_space *mapping = inode->i_mapping;
+@@ -582,7 +582,6 @@ static int hugetlb_vmtruncate(struct ino
+ 		hugetlb_vmdelete_list(&mapping->i_mmap, pgoff, 0);
+ 	i_mmap_unlock_write(mapping);
+ 	remove_inode_hugepages(inode, offset, LLONG_MAX);
+-	return 0;
+ }
  
--		/* protected by i_mutex */
-+		/* protected by i_rwsem */
- 		if (info->seals & (F_SEAL_WRITE | F_SEAL_FUTURE_WRITE)) {
- 			inode_unlock(inode);
- 			return -EPERM;
-@@ -777,7 +777,7 @@ static int hugetlbfs_setattr(struct user
- 
- 		if (newsize & ~huge_page_mask(h))
- 			return -EINVAL;
--		/* protected by i_mutex */
-+		/* protected by i_rwsem */
+ static long hugetlbfs_punch_hole(struct inode *inode, loff_t offset, loff_t len)
+@@ -781,9 +780,7 @@ static int hugetlbfs_setattr(struct user
  		if ((newsize < oldsize && (info->seals & F_SEAL_SHRINK)) ||
  		    (newsize > oldsize && (info->seals & F_SEAL_GROW)))
  			return -EPERM;
+-		error = hugetlb_vmtruncate(inode, newsize);
+-		if (error)
+-			return error;
++		hugetlb_vmtruncate(inode, newsize);
+ 	}
+ 
+ 	setattr_copy(&init_user_ns, inode, attr);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
