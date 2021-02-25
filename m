@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7351DC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:30:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AADD9C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:30:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3431764F28
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:30:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 665FD64F1A
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:30:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234111AbhBYT35 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:29:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38154 "EHLO mail.kernel.org"
+        id S234405AbhBYTaA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:30:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38130 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234453AbhBYT1v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:27:51 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BA93C64F8D;
-        Thu, 25 Feb 2021 19:15:57 +0000 (UTC)
+        id S234435AbhBYT1t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:27:49 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BC25D64F8A;
+        Thu, 25 Feb 2021 19:15:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280558;
-        bh=FMOSbwf79Xnyf2XkCtbPgvUThCJ/sP8cTdNarDx9AGI=;
+        s=korg; t=1614280549;
+        bh=J4ItupXAM6bQkmIKP1fcJItHz5cA+H/aos9erqMmGAY=;
         h=Date:From:To:Subject:From;
-        b=X+tFRfSJiWiMwMpTcxgryvLet+hpPVdWunsOzxjQRDX77FceB9Mtx3KBoNJ0asS9G
-         HBwNaE+Vu5IUak31s51O3pf6rDTjcIIby3CVH+Iz2paoxt73hLcXVheNsaMw8jSkjT
-         zLXyzVE3JxLVHGWD5hwaxXWVYWzL50JbhCQPoHQs=
-Date:   Thu, 25 Feb 2021 11:15:57 -0800
+        b=kXAVtoadSfGxwY7B0CoyOjxgy+8OT0LpRqXyUHXrEezeE1FccGz0Mlepqj6rJ6CKq
+         ++nadpIT6vu0zwd8PslBrWf983GXIj9oYJItRG3LHQ08tPwFmoGnD9BPTs1HeU+Kk4
+         +iHG3+dyYwjpOKzTfQDxLDzGV++KSyBVmNuSUULM=
+Date:   Thu, 25 Feb 2021 11:15:48 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -37,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [merged]
- kasan-add-a-test-for-kmem_cache_alloc-free_bulk.patch removed from -mm tree
-Message-ID: <20210225191557.0ovvfL7X7%akpm@linux-foundation.org>
+Subject:  [merged] kasan-move-_ret_ip_-to-inline-wrappers.patch
+ removed from -mm tree
+Message-ID: <20210225191548.aBa20Kt2F%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,21 +47,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add a test for kmem_cache_alloc/free_bulk
+     Subject: kasan: move _RET_IP_ to inline wrappers
 has been removed from the -mm tree.  Its filename was
-     kasan-add-a-test-for-kmem_cache_alloc-free_bulk.patch
+     kasan-move-_ret_ip_-to-inline-wrappers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: add a test for kmem_cache_alloc/free_bulk
+Subject: kasan: move _RET_IP_ to inline wrappers
 
-Add a test for kmem_cache_alloc/free_bulk to make sure there are no
-false-positives when these functions are used.
+Generic mm functions that call KASAN annotations that might report a bug
+pass _RET_IP_ to them as an argument. This allows KASAN to include the
+name of the function that called the mm function in its report's header.
 
-Link: https://linux-review.googlesource.com/id/I2a8bf797aecf81baeac61380c567308f319e263d
-Link: https://lkml.kernel.org/r/418122ebe4600771ac81e9ca6eab6740cf8dcfa1.1610733117.git.andreyknvl@google.com
+Now that KASAN has inline wrappers for all of its annotations, move
+_RET_IP_ to those wrappers to simplify annotation call sites.
+
+Link: https://linux-review.googlesource.com/id/I8fb3c06d49671305ee184175a39591bc26647a67
+Link: https://lkml.kernel.org/r/5c1490eddf20b436b8c4eeea83fce47687d5e4a4.1610733117.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
@@ -78,82 +81,117 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   38 +++++++++++++++++++++++++++++++++-----
- 1 file changed, 33 insertions(+), 5 deletions(-)
+ include/linux/kasan.h |   20 +++++++++-----------
+ mm/mempool.c          |    2 +-
+ mm/slab.c             |    2 +-
+ mm/slub.c             |    4 ++--
+ 4 files changed, 13 insertions(+), 15 deletions(-)
 
---- a/lib/test_kasan.c~kasan-add-a-test-for-kmem_cache_alloc-free_bulk
-+++ a/lib/test_kasan.c
-@@ -479,10 +479,11 @@ static void kmem_cache_oob(struct kunit
- {
- 	char *p;
- 	size_t size = 200;
--	struct kmem_cache *cache = kmem_cache_create("test_cache",
--						size, 0,
--						0, NULL);
-+	struct kmem_cache *cache;
-+
-+	cache = kmem_cache_create("test_cache", size, 0, 0, NULL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
-+
- 	p = kmem_cache_alloc(cache, GFP_KERNEL);
- 	if (!p) {
- 		kunit_err(test, "Allocation failed: %s\n", __func__);
-@@ -491,11 +492,12 @@ static void kmem_cache_oob(struct kunit
- 	}
- 
- 	KUNIT_EXPECT_KASAN_FAIL(test, *p = p[size + OOB_TAG_OFF]);
-+
- 	kmem_cache_free(cache, p);
- 	kmem_cache_destroy(cache);
+--- a/include/linux/kasan.h~kasan-move-_ret_ip_-to-inline-wrappers
++++ a/include/linux/kasan.h
+@@ -185,19 +185,18 @@ static __always_inline void * __must_che
  }
  
--static void memcg_accounted_kmem_cache(struct kunit *test)
-+static void kmem_cache_accounted(struct kunit *test)
+ bool __kasan_slab_free(struct kmem_cache *s, void *object, unsigned long ip);
+-static __always_inline bool kasan_slab_free(struct kmem_cache *s, void *object,
+-						unsigned long ip)
++static __always_inline bool kasan_slab_free(struct kmem_cache *s, void *object)
  {
- 	int i;
- 	char *p;
-@@ -522,6 +524,31 @@ free_cache:
- 	kmem_cache_destroy(cache);
+ 	if (kasan_enabled())
+-		return __kasan_slab_free(s, object, ip);
++		return __kasan_slab_free(s, object, _RET_IP_);
+ 	return false;
  }
  
-+static void kmem_cache_bulk(struct kunit *test)
-+{
-+	struct kmem_cache *cache;
-+	size_t size = 200;
-+	char *p[10];
-+	bool ret;
-+	int i;
-+
-+	cache = kmem_cache_create("test_cache", size, 0, 0, NULL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
-+
-+	ret = kmem_cache_alloc_bulk(cache, GFP_KERNEL, ARRAY_SIZE(p), (void **)&p);
-+	if (!ret) {
-+		kunit_err(test, "Allocation failed: %s\n", __func__);
-+		kmem_cache_destroy(cache);
-+		return;
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(p); i++)
-+		p[i][0] = p[i][size - 1] = 42;
-+
-+	kmem_cache_free_bulk(cache, ARRAY_SIZE(p), (void **)&p);
-+	kmem_cache_destroy(cache);
-+}
-+
- static char global_array[10];
+ void __kasan_slab_free_mempool(void *ptr, unsigned long ip);
+-static __always_inline void kasan_slab_free_mempool(void *ptr, unsigned long ip)
++static __always_inline void kasan_slab_free_mempool(void *ptr)
+ {
+ 	if (kasan_enabled())
+-		__kasan_slab_free_mempool(ptr, ip);
++		__kasan_slab_free_mempool(ptr, _RET_IP_);
+ }
  
- static void kasan_global_oob(struct kunit *test)
-@@ -961,7 +988,8 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kfree_via_page),
- 	KUNIT_CASE(kfree_via_phys),
- 	KUNIT_CASE(kmem_cache_oob),
--	KUNIT_CASE(memcg_accounted_kmem_cache),
-+	KUNIT_CASE(kmem_cache_accounted),
-+	KUNIT_CASE(kmem_cache_bulk),
- 	KUNIT_CASE(kasan_global_oob),
- 	KUNIT_CASE(kasan_stack_oob),
- 	KUNIT_CASE(kasan_alloca_oob_left),
+ void * __must_check __kasan_slab_alloc(struct kmem_cache *s,
+@@ -241,10 +240,10 @@ static __always_inline void * __must_che
+ }
+ 
+ void __kasan_kfree_large(void *ptr, unsigned long ip);
+-static __always_inline void kasan_kfree_large(void *ptr, unsigned long ip)
++static __always_inline void kasan_kfree_large(void *ptr)
+ {
+ 	if (kasan_enabled())
+-		__kasan_kfree_large(ptr, ip);
++		__kasan_kfree_large(ptr, _RET_IP_);
+ }
+ 
+ bool kasan_save_enable_multi_shot(void);
+@@ -277,12 +276,11 @@ static inline void *kasan_init_slab_obj(
+ {
+ 	return (void *)object;
+ }
+-static inline bool kasan_slab_free(struct kmem_cache *s, void *object,
+-				   unsigned long ip)
++static inline bool kasan_slab_free(struct kmem_cache *s, void *object)
+ {
+ 	return false;
+ }
+-static inline void kasan_slab_free_mempool(void *ptr, unsigned long ip) {}
++static inline void kasan_slab_free_mempool(void *ptr) {}
+ static inline void *kasan_slab_alloc(struct kmem_cache *s, void *object,
+ 				   gfp_t flags)
+ {
+@@ -302,7 +300,7 @@ static inline void *kasan_krealloc(const
+ {
+ 	return (void *)object;
+ }
+-static inline void kasan_kfree_large(void *ptr, unsigned long ip) {}
++static inline void kasan_kfree_large(void *ptr) {}
+ 
+ #endif /* CONFIG_KASAN */
+ 
+--- a/mm/mempool.c~kasan-move-_ret_ip_-to-inline-wrappers
++++ a/mm/mempool.c
+@@ -104,7 +104,7 @@ static inline void poison_element(mempoo
+ static __always_inline void kasan_poison_element(mempool_t *pool, void *element)
+ {
+ 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
+-		kasan_slab_free_mempool(element, _RET_IP_);
++		kasan_slab_free_mempool(element);
+ 	else if (pool->alloc == mempool_alloc_pages)
+ 		kasan_free_pages(element, (unsigned long)pool->pool_data);
+ }
+--- a/mm/slab.c~kasan-move-_ret_ip_-to-inline-wrappers
++++ a/mm/slab.c
+@@ -3420,7 +3420,7 @@ static __always_inline void __cache_free
+ 		memset(objp, 0, cachep->object_size);
+ 
+ 	/* Put the object into the quarantine, don't touch it for now. */
+-	if (kasan_slab_free(cachep, objp, _RET_IP_))
++	if (kasan_slab_free(cachep, objp))
+ 		return;
+ 
+ 	/* Use KCSAN to help debug racy use-after-free. */
+--- a/mm/slub.c~kasan-move-_ret_ip_-to-inline-wrappers
++++ a/mm/slub.c
+@@ -1528,7 +1528,7 @@ static inline void *kmalloc_large_node_h
+ static __always_inline void kfree_hook(void *x)
+ {
+ 	kmemleak_free(x);
+-	kasan_kfree_large(x, _RET_IP_);
++	kasan_kfree_large(x);
+ }
+ 
+ static __always_inline bool slab_free_hook(struct kmem_cache *s, void *x)
+@@ -1558,7 +1558,7 @@ static __always_inline bool slab_free_ho
+ 				     KCSAN_ACCESS_WRITE | KCSAN_ACCESS_ASSERT);
+ 
+ 	/* KASAN might put x into memory quarantine, delaying its reuse */
+-	return kasan_slab_free(s, x, _RET_IP_);
++	return kasan_slab_free(s, x);
+ }
+ 
+ static inline bool slab_free_freelist_hook(struct kmem_cache *s,
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
