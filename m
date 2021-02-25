@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB9DBC433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:14:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B83BC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:14:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35F0564F6E
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:14:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D089864F75
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:14:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233720AbhBYTOT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:14:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54722 "EHLO mail.kernel.org"
+        id S234081AbhBYTOZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:14:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54756 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233922AbhBYTLz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S233844AbhBYTLz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:11:55 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6EEB560201;
-        Thu, 25 Feb 2021 19:11:12 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9E88164EFA;
+        Thu, 25 Feb 2021 19:11:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280272;
-        bh=E7O4ulvIg70dfFAk3qpLfbTlG/ZgZjii096j8XdI/9o=;
+        s=korg; t=1614280274;
+        bh=r2PVQ4Q56Am5caNYCUyM4nxoNf/+VX9d+/AeBMaP8Lk=;
         h=Date:From:To:Subject:From;
-        b=XE6VIXHqSXs3A6WQ7BkFQvaM5a7AAkU81ioMimE76y4lCk5dJA8WFql9w1XPWdiXB
-         2XbzZ2Fj5MV6mCNkz1sb5QpANTGXgsY3PVHXKOxkrWYFhSDS0Ti6dGi7+yaNG6zvel
-         Ty1d3pLRIh5m0K84hrBpHofLTOmz5NJdORrLRSnQ=
-Date:   Thu, 25 Feb 2021 11:11:11 -0800
+        b=kTHtg15XlWU7j5rvPeylJ0Tic1FsFDS/iK8qGYQ50ukbyUYhMg9oeiNoeTht02uw+
+         Torlh21+1P/akwrUxKNahGR3LXNGpiIyuZDjY1y2sH2aN4FaTLlKeldJWq2K3GES8r
+         mDjE+z+bSUA0jZcIzwW6GgGPN9ViaWNQ9xPzzQD4=
+Date:   Thu, 25 Feb 2021 11:11:14 -0800
 From:   akpm@linux-foundation.org
-To:     bcain@codeaurora.org, gregkh@linuxfoundation.org,
-        keescook@chromium.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org
+To:     mm-commits@vger.kernel.org, tangchunyou@yulong.com,
+        zhangwen@yulong.com
 Subject:  [merged]
- hexagon-remove-config_experimental-from-defconfigs.patch removed from -mm
- tree
-Message-ID: <20210225191111.TgFIlRa9Z%akpm@linux-foundation.org>
+ scripts-spellingtxt-increase-error-prone-spell-checking.patch removed from
+ -mm tree
+Message-ID: <20210225191114.ZO6hZuBze%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,47 +44,38 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexagon: remove CONFIG_EXPERIMENTAL from defconfigs
+     Subject: scripts/spelling.txt: increase error-prone spell checking
 has been removed from the -mm tree.  Its filename was
-     hexagon-remove-config_experimental-from-defconfigs.patch
+     scripts-spellingtxt-increase-error-prone-spell-checking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: hexagon: remove CONFIG_EXPERIMENTAL from defconfigs
+From: tangchunyou <tangchunyou@yulong.com>
+Subject: scripts/spelling.txt: increase error-prone spell checking
 
-Since CONFIG_EXPERIMENTAL was removed in 2013, go ahead and drop it
-from any defconfig files.
+Increase maping spelling error check.
 
-Link: https://lkml.kernel.org/r/20210115010011.29483-1-rdunlap@infradead.org
-Fixes: 3d374d09f16f ("final removal of CONFIG_EXPERIMENTAL")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Brian Cain <bcain@codeaurora.org>
+Link: https://lkml.kernel.org/r/20210121092125.2663-1-tangchunyou@163.com
+Signed-off-by: WenZhang <zhangwen@yulong.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/configs/comet_defconfig |    1 -
- 1 file changed, 1 deletion(-)
+ scripts/spelling.txt |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/hexagon/configs/comet_defconfig~hexagon-remove-config_experimental-from-defconfigs
-+++ a/arch/hexagon/configs/comet_defconfig
-@@ -1,7 +1,6 @@
- CONFIG_SMP=y
- CONFIG_DEFAULT_MMAP_MIN_ADDR=0
- CONFIG_HZ_100=y
--CONFIG_EXPERIMENTAL=y
- CONFIG_CROSS_COMPILE="hexagon-"
- CONFIG_LOCALVERSION="-smp"
- # CONFIG_LOCALVERSION_AUTO is not set
+--- a/scripts/spelling.txt~scripts-spellingtxt-increase-error-prone-spell-checking
++++ a/scripts/spelling.txt
+@@ -875,6 +875,7 @@ manger||manager
+ manoeuvering||maneuvering
+ manufaucturing||manufacturing
+ mappping||mapping
++maping||mapping
+ matchs||matches
+ mathimatical||mathematical
+ mathimatic||mathematic
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from tangchunyou@yulong.com are
 
-mm-zswap-clean-up-confusing-comment.patch
-alpha-remove-config_experimental-from-defconfigs.patch
-include-linux-remove-repeated-words.patch
-kernel-delete-repeated-words-in-comments.patch
 
