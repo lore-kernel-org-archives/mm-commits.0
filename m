@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E45E8C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFD9EC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9EC9B64F28
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 856B864F28
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234928AbhBYTfN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:35:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41322 "EHLO mail.kernel.org"
+        id S234932AbhBYTfO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:35:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41320 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235072AbhBYTc7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235067AbhBYTc7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:32:59 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9392D64FAB;
-        Thu, 25 Feb 2021 19:18:06 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C428464FA7;
+        Thu, 25 Feb 2021 19:17:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280687;
-        bh=bVOUURG91TjvuD+EVIvJptDzIZx8lfT8Z/H7yoLwyOo=;
+        s=korg; t=1614280678;
+        bh=3ZwJX26iNEMIuisnIjdY6XtC4uHYXumSG42ImiUOMs8=;
         h=Date:From:To:Subject:From;
-        b=z7shkX4hz9OZq4EpV9Ab7Y+h/uPVzo65/fPOf6Omt4Y0bf/j/AODTTWPNpsMmob4U
-         YaBSu2h760+H77ElDBUA6rb1/kQheAiA7M3FPM4Z2OCrjl+v+X2AOJSAdlYKCHNTWW
-         DnXJO0Jfq/xlN3d35qlTE+/joq4xKFOaKyir863o=
-Date:   Thu, 25 Feb 2021 11:18:06 -0800
+        b=CA4sCk7HBoY9R6I3Fc7VWdi6Y3C6OqnZcExCMVmwqKV8GSwem+X6Um0P4Tw9CECRm
+         e6Eo28MjUJBkasPaCgIfLF0oWsQpDcQyOHYBcoUxamB8Loug8He4iIKYfH5DuStMi+
+         ptv0mZKtP081OvuhDTcRv9mhhZOgEjLbPbLdIjbI=
+Date:   Thu, 25 Feb 2021 11:17:57 -0800
 From:   akpm@linux-foundation.org
 To:     alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org,
         hughd@google.com, mhocko@kernel.org, mm-commits@vger.kernel.org,
         vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
         yuzhao@google.com
-Subject:  [merged] mm-make-lruvec_lru_size-static.patch removed
- from -mm tree
-Message-ID: <20210225191806.0eUmTfh1f%akpm@linux-foundation.org>
+Subject:  [merged] mm-vm_bug_on-lru-page-flags.patch removed from
+ -mm tree
+Message-ID: <20210225191757.vlMJMP6Ng%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,24 +45,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: make lruvec_lru_size() static
+     Subject: mm: VM_BUG_ON lru page flags
 has been removed from the -mm tree.  Its filename was
-     mm-make-lruvec_lru_size-static.patch
+     mm-vm_bug_on-lru-page-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm/vmscan.c: make lruvec_lru_size() static
+Subject: mm: VM_BUG_ON lru page flags
 
-All other references to the function were removed after
-commit b910718a948a ("mm: vmscan: detect file thrashing at the reclaim
-root").
+Move scattered VM_BUG_ONs to two essential places that cover all
+lru list additions and deletions.
 
-Link: https://lore.kernel.org/linux-mm/20201207220949.830352-11-yuzhao@google.com/
-Link: https://lkml.kernel.org/r/20210122220600.906146-11-yuzhao@google.com
+Link: https://lore.kernel.org/linux-mm/20201207220949.830352-8-yuzhao@google.com/
+Link: https://lkml.kernel.org/r/20210122220600.906146-8-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -73,33 +72,59 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 --
- mm/vmscan.c            |    3 ++-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ include/linux/mm_inline.h |    4 ++++
+ mm/swap.c                 |    2 --
+ mm/vmscan.c               |    1 -
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
---- a/include/linux/mmzone.h~mm-make-lruvec_lru_size-static
-+++ a/include/linux/mmzone.h
-@@ -892,8 +892,6 @@ static inline struct pglist_data *lruvec
- #endif
- }
- 
--extern unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx);
--
- #ifdef CONFIG_HAVE_MEMORYLESS_NODES
- int local_memory_node(int node_id);
- #else
---- a/mm/vmscan.c~mm-make-lruvec_lru_size-static
-+++ a/mm/vmscan.c
-@@ -310,7 +310,8 @@ unsigned long zone_reclaimable_pages(str
-  * @lru: lru to use
-  * @zone_idx: zones to consider (use MAX_NR_ZONES for the whole LRU list)
+--- a/include/linux/mm_inline.h~mm-vm_bug_on-lru-page-flags
++++ a/include/linux/mm_inline.h
+@@ -66,6 +66,8 @@ static inline enum lru_list page_lru_bas
   */
--unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx)
-+static unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru,
-+				     int zone_idx)
+ static __always_inline void __clear_page_lru_flags(struct page *page)
  {
- 	unsigned long size = 0;
- 	int zid;
++	VM_BUG_ON_PAGE(!PageLRU(page), page);
++
+ 	__ClearPageLRU(page);
+ 
+ 	/* this shouldn't happen, so leave the flags to bad_page() */
+@@ -87,6 +89,8 @@ static __always_inline enum lru_list pag
+ {
+ 	enum lru_list lru;
+ 
++	VM_BUG_ON_PAGE(PageActive(page) && PageUnevictable(page), page);
++
+ 	if (PageUnevictable(page))
+ 		lru = LRU_UNEVICTABLE;
+ 	else {
+--- a/mm/swap.c~mm-vm_bug_on-lru-page-flags
++++ a/mm/swap.c
+@@ -83,7 +83,6 @@ static void __page_cache_release(struct
+ 		unsigned long flags;
+ 
+ 		lruvec = lock_page_lruvec_irqsave(page, &flags);
+-		VM_BUG_ON_PAGE(!PageLRU(page), page);
+ 		del_page_from_lru_list(page, lruvec);
+ 		__clear_page_lru_flags(page);
+ 		unlock_page_lruvec_irqrestore(lruvec, flags);
+@@ -909,7 +908,6 @@ void release_pages(struct page **pages,
+ 			if (prev_lruvec != lruvec)
+ 				lock_batch = 0;
+ 
+-			VM_BUG_ON_PAGE(!PageLRU(page), page);
+ 			del_page_from_lru_list(page, lruvec);
+ 			__clear_page_lru_flags(page);
+ 		}
+--- a/mm/vmscan.c~mm-vm_bug_on-lru-page-flags
++++ a/mm/vmscan.c
+@@ -4281,7 +4281,6 @@ void check_move_unevictable_pages(struct
+ 
+ 		lruvec = relock_page_lruvec_irq(page, lruvec);
+ 		if (page_evictable(page) && PageUnevictable(page)) {
+-			VM_BUG_ON_PAGE(PageActive(page), page);
+ 			del_page_from_lru_list(page, lruvec);
+ 			ClearPageUnevictable(page);
+ 			add_page_to_lru_list(page, lruvec);
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
