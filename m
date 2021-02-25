@@ -7,38 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47662C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8693C433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F423664F2A
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8980964F28
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234017AbhBYTfW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:35:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41334 "EHLO mail.kernel.org"
+        id S233603AbhBYTfg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:35:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41324 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235080AbhBYTc7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235070AbhBYTc7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:32:59 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C23A64FB2;
-        Thu, 25 Feb 2021 19:18:24 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ACC3C64FAC;
+        Thu, 25 Feb 2021 19:18:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280704;
-        bh=xJOD53YWy5SwCMmBQ9TUpk+3XwZAvauJV8lPJ2XEv2c=;
+        s=korg; t=1614280684;
+        bh=pdwc+FEQ1kljROxpmHiP+kwE6p3Pg3O85S6fs9szRHI=;
         h=Date:From:To:Subject:From;
-        b=0mSy4qKABPpLm5e0rbbL3KnaNMRfi695TS9q9MArU9VI2fDi2UX2a56wAT+1XeBhe
-         kaLgKq8NZkqZ/QhrMJB/cAG+8rEox5Dl1qviQOhJ5rjvJ1igvKvsbItNU/Lm7DCLAJ
-         gak3IxX0Dv0hh28sX4GyiAJSEsbLzq8R4p8sDSnc=
-Date:   Thu, 25 Feb 2021 11:18:24 -0800
+        b=V8H69otIm4PTEvvmCCLeSPTomC92+V8isWiK+NH7Qecpj13q50Ef17iiHLvXpOgY/
+         bftSTeGHKySfilyj+AVfptTafulbYEXwXtQc8V7OwuGvThLVPXbOXnNN1a+3FgJKKl
+         Bu7wmFUERUyazUA+erjphfkrANRnW77aXT3z4Kk0=
+Date:   Thu, 25 Feb 2021 11:18:03 -0800
 From:   akpm@linux-foundation.org
-To:     mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org
+To:     alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org,
+        hughd@google.com, mhocko@kernel.org, mm-commits@vger.kernel.org,
+        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
+        yuzhao@google.com
 Subject:  [merged]
- =?US-ASCII?Q?include-linux-hugetlbh-add-synchronization-information-for-?=
- =?US-ASCII?Q?new-hugetlb-specific-flags.patch?= removed from -mm tree
-Message-ID: <20210225191824.RG8ns5lS_%akpm@linux-foundation.org>
+ mm-fold-__update_lru_size-into-its-sole-caller.patch removed from -mm tree
+Message-ID: <20210225191803.NUdmYQRjY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,56 +45,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/hugetlb.h: add synchronization information for new hugetlb specific flags
+     Subject: include/linux/mm_inline.h: fold __update_lru_size() into its sole caller
 has been removed from the -mm tree.  Its filename was
-     include-linux-hugetlbh-add-synchronization-information-for-new-hugetlb-specific-flags.patch
+     mm-fold-__update_lru_size-into-its-sole-caller.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: include/linux/hugetlb.h: add synchronization information for new hugetlb specific flags
+From: Yu Zhao <yuzhao@google.com>
+Subject: include/linux/mm_inline.h: fold __update_lru_size() into its sole caller
 
-Add comments, no functional change.
+All other references to the function were removed after commit
+a892cb6b977f ("mm/vmscan.c: use update_lru_size() in update_lru_sizes()").
 
-Link: https://lkml.kernel.org/r/62a80585-2a73-10cc-4a2d-5721540d4ad2@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: https://lore.kernel.org/linux-mm/20201207220949.830352-10-yuzhao@google.com/
+Link: https://lkml.kernel.org/r/20210122220600.906146-10-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ include/linux/mm_inline.h |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
---- a/include/linux/hugetlb.h~include-linux-hugetlbh-add-synchronization-information-for-new-hugetlb-specific-flags
-+++ a/include/linux/hugetlb.h
-@@ -480,14 +480,24 @@ unsigned long hugetlb_get_unmapped_area(
-  * HPG_restore_reserve - Set when a hugetlb page consumes a reservation at
-  *	allocation time.  Cleared when page is fully instantiated.  Free
-  *	routine checks flag to restore a reservation on error paths.
-+ *	Synchronization:  Examined or modified by code that knows it has
-+ *	the only reference to page.  i.e. After allocation but before use
-+ *	or when the page is being freed.
-  * HPG_migratable  - Set after a newly allocated page is added to the page
-  *	cache and/or page tables.  Indicates the page is a candidate for
-  *	migration.
-+ *	Synchronization:  Initially set after new page allocation with no
-+ *	locking.  When examined and modified during migration processing
-+ *	(isolate, migrate, putback) the hugetlb_lock is held.
-  * HPG_temporary - - Set on a page that is temporarily allocated from the buddy
-  *	allocator.  Typically used for migration target pages when no pages
-  *	are available in the pool.  The hugetlb free page path will
-  *	immediately free pages with this flag set to the buddy allocator.
-+ *	Synchronization: Can be set after huge page allocation from buddy when
-+ *	code knows it has only reference.  All other examinations and
-+ *	modifications require hugetlb_lock.
-  * HPG_freed - Set when page is on the free lists.
-+ *	Synchronization: hugetlb_lock held for examination and modification.
-  */
- enum hugetlb_page_flags {
- 	HPG_restore_reserve = 0,
+--- a/include/linux/mm_inline.h~mm-fold-__update_lru_size-into-its-sole-caller
++++ a/include/linux/mm_inline.h
+@@ -24,7 +24,7 @@ static inline int page_is_file_lru(struc
+ 	return !PageSwapBacked(page);
+ }
+ 
+-static __always_inline void __update_lru_size(struct lruvec *lruvec,
++static __always_inline void update_lru_size(struct lruvec *lruvec,
+ 				enum lru_list lru, enum zone_type zid,
+ 				int nr_pages)
+ {
+@@ -33,13 +33,6 @@ static __always_inline void __update_lru
+ 	__mod_lruvec_state(lruvec, NR_LRU_BASE + lru, nr_pages);
+ 	__mod_zone_page_state(&pgdat->node_zones[zid],
+ 				NR_ZONE_LRU_BASE + lru, nr_pages);
+-}
+-
+-static __always_inline void update_lru_size(struct lruvec *lruvec,
+-				enum lru_list lru, enum zone_type zid,
+-				int nr_pages)
+-{
+-	__update_lru_size(lruvec, lru, zid, nr_pages);
+ #ifdef CONFIG_MEMCG
+ 	mem_cgroup_update_lru_size(lruvec, lru, zid, nr_pages);
+ #endif
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
 
