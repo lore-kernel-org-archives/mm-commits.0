@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA0D1C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:28:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B7FAC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:28:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8FF6164F1A
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:28:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1734764F1A
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:28:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233618AbhBYT2A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:28:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36912 "EHLO mail.kernel.org"
+        id S234250AbhBYT2D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:28:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36920 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234250AbhBYTZj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234308AbhBYTZj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:25:39 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C688264F76;
-        Thu, 25 Feb 2021 19:14:50 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C6B7064F78;
+        Thu, 25 Feb 2021 19:15:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280491;
-        bh=RgM+275n5guRpp+i1Ks+UcJjGh3IylDA2XloDWSbbSg=;
+        s=korg; t=1614280503;
+        bh=E92laFKK8HDajPBioHdRf/Z0ofTeEkTnrmvwt4I3wr0=;
         h=Date:From:To:Subject:From;
-        b=ohIe8Bo7zT+vEE+IeKE4bMQ+nzSgkNA4NXFI1YY1Nl3xqL+LLQ0iPxgy9SDtHm0eb
-         w3CeCnExppQLcugXWamfUvQuvnBdTzEKAoZX3bcRCEZIbWbXLwSsJiOcqg7+1L3mee
-         CmjPSz2uEV3EP5otPiQ8BAaaih5Aa7WQ1uU+wABE=
-Date:   Thu, 25 Feb 2021 11:14:50 -0800
+        b=dUFbNPQEJTyroQ991nlzkVgmyNiW3IURanO6YC3gr4l1Xn9i/R4l8WC06isnz/dTa
+         CqiDoHpCV8e7ulWQL7DzpdepGgoe4+R2UxRGnECAyp0hoqakRantRUz/tDuF7fcK76
+         QYDiMlbyKp7kpVmfgkEHTUv+wJpmpKMLnEFdbARQ=
+Date:   Thu, 25 Feb 2021 11:15:02 -0800
 From:   akpm@linux-foundation.org
-To:     ak@linux.intel.com, dave.hansen@intel.com, jpoimboe@redhat.com,
-        linmiaohe@huawei.com, louhongxiang@huawei.com,
-        mm-commits@vger.kernel.org, tglx@linutronix.de
+To:     akpm@linux-foundation.org, jarkko@kernel.org,
+        mm-commits@vger.kernel.org, tianjia.zhang@linux.alibaba.com,
+        zhang.jia@linux.alibaba.com
 Subject:  [merged]
- mm-fix-potential-pte_unmap_unlock-pte-error.patch removed from -mm tree
-Message-ID: <20210225191450.gL0Qk3A_Z%akpm@linux-foundation.org>
+ mm-optimizing-error-condition-detection-in-do_mprotect_pkey.patch removed
+ from -mm tree
+Message-ID: <20210225191502.r6Bvio8uP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,79 +45,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: fix potential pte_unmap_unlock pte error
+     Subject: mm/mprotect.c: optimize error detection in do_mprotect_pkey()
 has been removed from the -mm tree.  Its filename was
-     mm-fix-potential-pte_unmap_unlock-pte-error.patch
+     mm-optimizing-error-condition-detection-in-do_mprotect_pkey.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory.c: fix potential pte_unmap_unlock pte error
+From: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
+Subject: mm/mprotect.c: optimize error detection in do_mprotect_pkey()
 
-Since commit 42e4089c7890 ("x86/speculation/l1tf: Disallow non privileged
-high MMIO PROT_NONE mappings"), when the first pfn modify is not allowed,
-we would break the loop with pte unchanged.  Then the wrong pte - 1 would
-be passed to pte_unmap_unlock.
+Obviously, the error variable detection of the if statement is
+for the mprotect callback function, so it is also put into the
+scope of calling callbck.
 
-Andi said:
+This is a cleanup which makes this site consistent with the rest of this
+function's error handling.
 
-: While the fix is correct, I'm not sure if it actually is a real bug.  Is
-: there any architecture that would do something else than unlocking the
-: underlying page?  If it's just the underlying page then it should be
-: always the same page, so no bug.
-
-Link: https://lkml.kernel.org/r/20210109080118.20885-1-linmiaohe@huawei.com
-Fixes: 42e4089c789 ("x86/speculation/l1tf: Disallow non privileged high MMIO PROT_NONE mappings")
-Signed-off-by: Hongxiang Lou <louhongxiang@huawei.com>
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Link: https://lkml.kernel.org/r/20210118133310.98375-1-tianjia.zhang@linux.alibaba.com
+Signed-off-by: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
+Reported-by: Jia Zhang <zhang.jia@linux.alibaba.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/mprotect.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-fix-potential-pte_unmap_unlock-pte-error
-+++ a/mm/memory.c
-@@ -2177,11 +2177,11 @@ static int remap_pte_range(struct mm_str
- 			unsigned long addr, unsigned long end,
- 			unsigned long pfn, pgprot_t prot)
- {
--	pte_t *pte;
-+	pte_t *pte, *mapped_pte;
- 	spinlock_t *ptl;
- 	int err = 0;
+--- a/mm/mprotect.c~mm-optimizing-error-condition-detection-in-do_mprotect_pkey
++++ a/mm/mprotect.c
+@@ -617,10 +617,11 @@ static int do_mprotect_pkey(unsigned lon
+ 		if (tmp > end)
+ 			tmp = end;
  
--	pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
-+	mapped_pte = pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
- 	if (!pte)
- 		return -ENOMEM;
- 	arch_enter_lazy_mmu_mode();
-@@ -2195,7 +2195,7 @@ static int remap_pte_range(struct mm_str
- 		pfn++;
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
- 	arch_leave_lazy_mmu_mode();
--	pte_unmap_unlock(pte - 1, ptl);
-+	pte_unmap_unlock(mapped_pte, ptl);
- 	return err;
- }
+-		if (vma->vm_ops && vma->vm_ops->mprotect)
++		if (vma->vm_ops && vma->vm_ops->mprotect) {
+ 			error = vma->vm_ops->mprotect(vma, nstart, tmp, newflags);
+-		if (error)
+-			goto out;
++			if (error)
++				goto out;
++		}
  
+ 		error = mprotect_fixup(vma, &prev, nstart, tmp, newflags);
+ 		if (error)
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from tianjia.zhang@linux.alibaba.com are
 
-mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
-mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
-mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
-mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
-mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
-mm-rmap-correct-obsolete-comment-of-page_get_anon_vma.patch
-mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
-mm-zsmallocc-use-page_private-to-access-page-private.patch
 
