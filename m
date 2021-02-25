@@ -7,38 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC153C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFB84C433E6
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B54CB64F3C
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8E1364F45
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234619AbhBYTbI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:31:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36916 "EHLO mail.kernel.org"
+        id S234704AbhBYTbV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:31:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38378 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234536AbhBYT16 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:27:58 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8AB7A64F9A;
-        Thu, 25 Feb 2021 19:16:26 +0000 (UTC)
+        id S234660AbhBYT2Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:28:16 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 85C9364F84;
+        Thu, 25 Feb 2021 19:16:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280586;
-        bh=t2oQf8ctSFPrYmFhvpAfXudx7jm/QYnCc9mnr9SBvx0=;
+        s=korg; t=1614280566;
+        bh=/RMZBFzr4MIQbo5I4xeQxB1Xurky9nEt0sQBRTBAZlI=;
         h=Date:From:To:Subject:From;
-        b=yLECpFJWjnHU1V0OMYKTizOfjpT/TfklTnHbfc53CNza/h/QxfunJA6J5QIWltz5d
-         q31Nw9Y64Qfbhidqu4v6m6KBySW2BK7kKIuaObXO4xnt2Dehk62yKobxMWW/t/OCxs
-         TD2XPPhrUndwM1cf2nVjZBeyM7q+SGW+GRz/77oA=
-Date:   Thu, 25 Feb 2021 11:16:26 -0800
+        b=CsXUBWbyurJzAjZMLFE/C2XDsmdDRua6fbfcx1+/wv2EBYU7o+qxWkUMeWC59vXQv
+         1te+YJmyRRz+ZA2irmeyTQEF0FHlFLS5jXzo38fMtbWZ7lE2wmM+3wHvgN61eacEuq
+         /atWkCRGqhRq7kFPJhuHedZL+62C5z1pvbvLdwTU=
+Date:   Thu, 25 Feb 2021 11:16:06 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, yaoaili@kingsoft.com
-Subject:  [merged]
- =?US-ASCII?Q?mmhwpoison-send-sigbus-to-pf=5Fmce=5Fearly-processes-on-acti?=
- =?US-ASCII?Q?on-required-events.patch?= removed from -mm tree
-Message-ID: <20210225191626.EXmI3Vifz%akpm@linux-foundation.org>
+To:     bhe@redhat.com, david@redhat.com, mm-commits@vger.kernel.org,
+        rppt@linux.ibm.com
+Subject:  [merged] mm-rename-memmap_init-and-memmap_init_zone.patch
+ removed from -mm tree
+Message-ID: <20210225191606.eZ17rhkLF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,105 +43,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: send SIGBUS to PF_MCE_EARLY processes on action required events
+     Subject: mm: rename memmap_init() and memmap_init_zone()
 has been removed from the -mm tree.  Its filename was
-     mmhwpoison-send-sigbus-to-pf_mce_early-processes-on-action-required-events.patch
+     mm-rename-memmap_init-and-memmap_init_zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Aili Yao <yaoaili@kingsoft.com>
-Subject: mm,hwpoison: send SIGBUS to PF_MCE_EARLY processes on action required events
+From: Baoquan He <bhe@redhat.com>
+Subject: mm: rename memmap_init() and memmap_init_zone()
 
-When a memory uncorrected error is triggered by process who accessed the
-address with error, It's Action Required Case for only current process
-which triggered this; This Action Required case means Action optional to
-other process who share the same page.  Usually killing current process
-will be sufficient, other processes sharing the same page will get be
-signaled when they really touch the poisoned page.
+The current memmap_init_zone() only handles memory region inside one zone,
+actually memmap_init() does the memmap init of one zone.  So rename both
+of them accordingly.
 
-But there is another scenario that other processes sharing the same page
-want to be signaled early with PF_MCE_EARLY set.  In this case, we should
-get them into kill list and signal BUS_MCEERR_AO to them.
-
-So in this patch, task_early_kill will check current process if
-force_early is set, and if not current,the code will fallback to
-find_early_kill_thread() to check if there is PF_MCE_EARLY process who
-cares the error.
-
-In kill_proc(), BUS_MCEERR_AR is only send to current, other processes in
-kill list will be signaled with BUS_MCEERR_AO.
-
-Link: https://lkml.kernel.org/r/20210122132424.313c8f5f.yaoaili@kingsoft.com
-Signed-off-by: Aili Yao <yaoaili@kingsoft.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/20210122135956.5946-3-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   34 +++++++++++++++++++---------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
+ arch/ia64/mm/init.c |    6 +++---
+ include/linux/mm.h  |    4 ++--
+ mm/memory_hotplug.c |    2 +-
+ mm/page_alloc.c     |    8 ++++----
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
---- a/mm/memory-failure.c~mmhwpoison-send-sigbus-to-pf_mce_early-processes-on-action-required-events
-+++ a/mm/memory-failure.c
-@@ -243,9 +243,13 @@ static int kill_proc(struct to_kill *tk,
- 			pfn, t->comm, t->pid);
+--- a/arch/ia64/mm/init.c~mm-rename-memmap_init-and-memmap_init_zone
++++ a/arch/ia64/mm/init.c
+@@ -536,18 +536,18 @@ virtual_memmap_init(u64 start, u64 end,
+ 		    / sizeof(struct page));
  
- 	if (flags & MF_ACTION_REQUIRED) {
--		WARN_ON_ONCE(t != current);
--		ret = force_sig_mceerr(BUS_MCEERR_AR,
-+		if (t == current)
-+			ret = force_sig_mceerr(BUS_MCEERR_AR,
- 					 (void __user *)tk->addr, addr_lsb);
-+		else
-+			/* Signal other processes sharing the page if they have PF_MCE_EARLY set. */
-+			ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)tk->addr,
-+				addr_lsb, t);
- 	} else {
- 		/*
- 		 * Don't use force here, it's convenient if the signal
-@@ -440,26 +444,26 @@ static struct task_struct *find_early_ki
-  * Determine whether a given process is "early kill" process which expects
-  * to be signaled when some page under the process is hwpoisoned.
-  * Return task_struct of the dedicated thread (main thread unless explicitly
-- * specified) if the process is "early kill," and otherwise returns NULL.
-+ * specified) if the process is "early kill" and otherwise returns NULL.
-  *
-- * Note that the above is true for Action Optional case, but not for Action
-- * Required case where SIGBUS should sent only to the current thread.
-+ * Note that the above is true for Action Optional case. For Action Required
-+ * case, it's only meaningful to the current thread which need to be signaled
-+ * with SIGBUS, this error is Action Optional for other non current
-+ * processes sharing the same error page,if the process is "early kill", the
-+ * task_struct of the dedicated thread will also be returned.
-  */
- static struct task_struct *task_early_kill(struct task_struct *tsk,
- 					   int force_early)
+ 	if (map_start < map_end)
+-		memmap_init_zone((unsigned long)(map_end - map_start),
++		memmap_init_range((unsigned long)(map_end - map_start),
+ 				 args->nid, args->zone, page_to_pfn(map_start), page_to_pfn(map_end),
+ 				 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
+ 	return 0;
+ }
+ 
+ void __meminit
+-memmap_init (unsigned long size, int nid, unsigned long zone,
++memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+ 	     unsigned long start_pfn)
  {
- 	if (!tsk->mm)
- 		return NULL;
--	if (force_early) {
--		/*
--		 * Comparing ->mm here because current task might represent
--		 * a subthread, while tsk always points to the main thread.
--		 */
--		if (tsk->mm == current->mm)
--			return current;
--		else
--			return NULL;
--	}
-+	/*
-+	 * Comparing ->mm here because current task might represent
-+	 * a subthread, while tsk always points to the main thread.
-+	 */
-+	if (force_early && tsk->mm == current->mm)
-+		return current;
-+
- 	return find_early_kill_thread(tsk);
+ 	if (!vmem_map) {
+-		memmap_init_zone(size, nid, zone, start_pfn, start_pfn + size,
++		memmap_init_range(size, nid, zone, start_pfn, start_pfn + size,
+ 				 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
+ 	} else {
+ 		struct page *start;
+--- a/include/linux/mm.h~mm-rename-memmap_init-and-memmap_init_zone
++++ a/include/linux/mm.h
+@@ -2405,10 +2405,10 @@ extern int __meminit early_pfn_to_nid(un
+ #endif
+ 
+ extern void set_dma_reserve(unsigned long new_dma_reserve);
+-extern void memmap_init_zone(unsigned long, int, unsigned long,
++extern void memmap_init_range(unsigned long, int, unsigned long,
+ 		unsigned long, unsigned long, enum meminit_context,
+ 		struct vmem_altmap *, int migratetype);
+-extern void memmap_init(unsigned long size, int nid,
++extern void memmap_init_zone(unsigned long size, int nid,
+ 		unsigned long zone, unsigned long range_start_pfn);
+ extern void setup_per_zone_wmarks(void);
+ extern int __meminit init_per_zone_wmark_min(void);
+--- a/mm/memory_hotplug.c~mm-rename-memmap_init-and-memmap_init_zone
++++ a/mm/memory_hotplug.c
+@@ -713,7 +713,7 @@ void __ref move_pfn_range_to_zone(struct
+ 	 * expects the zone spans the pfn range. All the pages in the range
+ 	 * are reserved so nobody should be touching them so we should be safe
+ 	 */
+-	memmap_init_zone(nr_pages, nid, zone_idx(zone), start_pfn, 0,
++	memmap_init_range(nr_pages, nid, zone_idx(zone), start_pfn, 0,
+ 			 MEMINIT_HOTPLUG, altmap, migratetype);
+ 
+ 	set_zone_contiguous(zone);
+--- a/mm/page_alloc.c~mm-rename-memmap_init-and-memmap_init_zone
++++ a/mm/page_alloc.c
+@@ -6121,7 +6121,7 @@ overlap_memmap_init(unsigned long zone,
+  * (usually MIGRATE_MOVABLE). Besides setting the migratetype, no related
+  * zone stats (e.g., nr_isolate_pageblock) are touched.
+  */
+-void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
++void __meminit memmap_init_range(unsigned long size, int nid, unsigned long zone,
+ 		unsigned long start_pfn, unsigned long zone_end_pfn,
+ 		enum meminit_context context,
+ 		struct vmem_altmap *altmap, int migratetype)
+@@ -6258,7 +6258,7 @@ static void __meminit zone_init_free_lis
+ 	}
+ }
+ 
+-void __meminit __weak memmap_init(unsigned long size, int nid,
++void __meminit __weak memmap_init_zone(unsigned long size, int nid,
+ 				  unsigned long zone,
+ 				  unsigned long range_start_pfn)
+ {
+@@ -6272,7 +6272,7 @@ void __meminit __weak memmap_init(unsign
+ 
+ 		if (end_pfn > start_pfn) {
+ 			size = end_pfn - start_pfn;
+-			memmap_init_zone(size, nid, zone, start_pfn, range_end_pfn,
++			memmap_init_range(size, nid, zone, start_pfn, range_end_pfn,
+ 					 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
+ 		}
+ 	}
+@@ -6982,7 +6982,7 @@ static void __init free_area_init_core(s
+ 		set_pageblock_order();
+ 		setup_usemap(pgdat, zone, zone_start_pfn, size);
+ 		init_currently_empty_zone(zone, zone_start_pfn, size);
+-		memmap_init(size, nid, j, zone_start_pfn);
++		memmap_init_zone(size, nid, j, zone_start_pfn);
+ 	}
  }
  
 _
 
-Patches currently in -mm which might be from yaoaili@kingsoft.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
 
