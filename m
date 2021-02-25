@@ -5,38 +5,40 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFD9EC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5406DC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 856B864F28
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0ABFA64F28
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234932AbhBYTfO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:35:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41320 "EHLO mail.kernel.org"
+        id S235017AbhBYTfQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:35:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41406 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235067AbhBYTc7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:32:59 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C428464FA7;
-        Thu, 25 Feb 2021 19:17:57 +0000 (UTC)
+        id S235114AbhBYTdF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:33:05 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D03EB64FB6;
+        Thu, 25 Feb 2021 19:18:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280678;
-        bh=3ZwJX26iNEMIuisnIjdY6XtC4uHYXumSG42ImiUOMs8=;
+        s=korg; t=1614280711;
+        bh=MG9BjmuuJNFhroQsoEYxdshBKoMagSaUS1d5fjIosOQ=;
         h=Date:From:To:Subject:From;
-        b=CA4sCk7HBoY9R6I3Fc7VWdi6Y3C6OqnZcExCMVmwqKV8GSwem+X6Um0P4Tw9CECRm
-         e6Eo28MjUJBkasPaCgIfLF0oWsQpDcQyOHYBcoUxamB8Loug8He4iIKYfH5DuStMi+
-         ptv0mZKtP081OvuhDTcRv9mhhZOgEjLbPbLdIjbI=
-Date:   Thu, 25 Feb 2021 11:17:57 -0800
+        b=npgObSAClWhy6mGPE3b8uYq9+cGdbSQKRmo5RiitkYYPpQHeHop7ITpEM0Rn6vt+V
+         oBhZxvOAXz2KH/4WqN9DXy9nUf7gRkKlkPcuPrMLSwJ+TEMqIskH2uRcpc9Ay4hh8i
+         y0Z9Lp8MUdeImhD43rpMj1YDzKc5Ym0EWK8YSN9M=
+Date:   Thu, 25 Feb 2021 11:18:30 -0800
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org,
-        hughd@google.com, mhocko@kernel.org, mm-commits@vger.kernel.org,
-        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
-        yuzhao@google.com
-Subject:  [merged] mm-vm_bug_on-lru-page-flags.patch removed from
- -mm tree
-Message-ID: <20210225191757.vlMJMP6Ng%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
+        ben.widawsky@intel.com, cai@lca.pw, cl@linux.com,
+        dan.j.williams@intel.com, dave.hansen@linux.intel.com,
+        dwagner@suse.de, mm-commits@vger.kernel.org, osalvador@suse.de,
+        rientjes@google.com, stable@vger.kernel.org, tobin@kernel.org,
+        ying.huang@intel.com
+Subject:  [merged] mm-vmscan-restore-zone_reclaim_mode-abi.patch
+ removed from -mm tree
+Message-ID: <20210225191830.Q3lUICjhK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,88 +47,105 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: VM_BUG_ON lru page flags
+     Subject: mm/vmscan: restore zone_reclaim_mode ABI
 has been removed from the -mm tree.  Its filename was
-     mm-vm_bug_on-lru-page-flags.patch
+     mm-vmscan-restore-zone_reclaim_mode-abi.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm: VM_BUG_ON lru page flags
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm/vmscan: restore zone_reclaim_mode ABI
 
-Move scattered VM_BUG_ONs to two essential places that cover all
-lru list additions and deletions.
+I went to go add a new RECLAIM_* mode for the zone_reclaim_mode
+sysctl.  Like a good kernel developer, I also went to go update the
+documentation.  I noticed that the bits in the documentation didn't
+match the bits in the #defines.
 
-Link: https://lore.kernel.org/linux-mm/20201207220949.830352-8-yuzhao@google.com/
-Link: https://lkml.kernel.org/r/20210122220600.906146-8-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
+The VM never explicitly checks the RECLAIM_ZONE bit.  The bit is,
+however implicitly checked when checking 'node_reclaim_mode==0'.  The
+RECLAIM_ZONE #define was removed in a cleanup.  That, by itself is
+fine.
+
+But, when the bit was removed (bit 0) the _other_ bit locations also got
+changed.  That's not OK because the bit values are documented to mean one
+specific thing.  Users surely do not expect the meaning to change from
+kernel to kernel.
+
+The end result is that if someone had a script that did:
+
+	sysctl vm.zone_reclaim_mode=1
+
+it would have gone from enabling node reclaim for clean unmapped pages to
+writing out pages during node reclaim after the commit in question. 
+That's not great.
+
+Put the bits back the way they were and add a comment so something like
+this is a bit harder to do again.  Update the documentation to make it
+clear that the first bit is ignored.
+
+Link: https://lkml.kernel.org/r/20210219172555.FF0CDF23@viggo.jf.intel.com
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Fixes: 648b5cf368e0 ("mm/vmscan: remove unused RECLAIM_OFF/RECLAIM_ZONE")
+Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Daniel Wagner <dwagner@suse.de>
+Cc: "Tobin C. Harding" <tobin@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    4 ++++
- mm/swap.c                 |    2 --
- mm/vmscan.c               |    1 -
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/sysctl/vm.rst |   10 +++++-----
+ mm/vmscan.c                             |    9 +++++++--
+ 2 files changed, 12 insertions(+), 7 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-vm_bug_on-lru-page-flags
-+++ a/include/linux/mm_inline.h
-@@ -66,6 +66,8 @@ static inline enum lru_list page_lru_bas
-  */
- static __always_inline void __clear_page_lru_flags(struct page *page)
- {
-+	VM_BUG_ON_PAGE(!PageLRU(page), page);
-+
- 	__ClearPageLRU(page);
+--- a/Documentation/admin-guide/sysctl/vm.rst~mm-vmscan-restore-zone_reclaim_mode-abi
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -983,11 +983,11 @@ that benefit from having their data cach
+ left disabled as the caching effect is likely to be more important than
+ data locality.
  
- 	/* this shouldn't happen, so leave the flags to bad_page() */
-@@ -87,6 +89,8 @@ static __always_inline enum lru_list pag
- {
- 	enum lru_list lru;
+-zone_reclaim may be enabled if it's known that the workload is partitioned
+-such that each partition fits within a NUMA node and that accessing remote
+-memory would cause a measurable performance reduction.  The page allocator
+-will then reclaim easily reusable pages (those page cache pages that are
+-currently not used) before allocating off node pages.
++Consider enabling one or more zone_reclaim mode bits if it's known that the
++workload is partitioned such that each partition fits within a NUMA node
++and that accessing remote memory would cause a measurable performance
++reduction.  The page allocator will take additional actions before
++allocating off node pages.
  
-+	VM_BUG_ON_PAGE(PageActive(page) && PageUnevictable(page), page);
-+
- 	if (PageUnevictable(page))
- 		lru = LRU_UNEVICTABLE;
- 	else {
---- a/mm/swap.c~mm-vm_bug_on-lru-page-flags
-+++ a/mm/swap.c
-@@ -83,7 +83,6 @@ static void __page_cache_release(struct
- 		unsigned long flags;
- 
- 		lruvec = lock_page_lruvec_irqsave(page, &flags);
--		VM_BUG_ON_PAGE(!PageLRU(page), page);
- 		del_page_from_lru_list(page, lruvec);
- 		__clear_page_lru_flags(page);
- 		unlock_page_lruvec_irqrestore(lruvec, flags);
-@@ -909,7 +908,6 @@ void release_pages(struct page **pages,
- 			if (prev_lruvec != lruvec)
- 				lock_batch = 0;
- 
--			VM_BUG_ON_PAGE(!PageLRU(page), page);
- 			del_page_from_lru_list(page, lruvec);
- 			__clear_page_lru_flags(page);
- 		}
---- a/mm/vmscan.c~mm-vm_bug_on-lru-page-flags
+ Allowing zone reclaim to write out pages stops processes that are
+ writing large amounts of data from dirtying pages on other nodes. Zone
+--- a/mm/vmscan.c~mm-vmscan-restore-zone_reclaim_mode-abi
 +++ a/mm/vmscan.c
-@@ -4281,7 +4281,6 @@ void check_move_unevictable_pages(struct
+@@ -4085,8 +4085,13 @@ module_init(kswapd_init)
+  */
+ int node_reclaim_mode __read_mostly;
  
- 		lruvec = relock_page_lruvec_irq(page, lruvec);
- 		if (page_evictable(page) && PageUnevictable(page)) {
--			VM_BUG_ON_PAGE(PageActive(page), page);
- 			del_page_from_lru_list(page, lruvec);
- 			ClearPageUnevictable(page);
- 			add_page_to_lru_list(page, lruvec);
+-#define RECLAIM_WRITE (1<<0)	/* Writeout pages during reclaim */
+-#define RECLAIM_UNMAP (1<<1)	/* Unmap pages during reclaim */
++/*
++ * These bit locations are exposed in the vm.zone_reclaim_mode sysctl
++ * ABI.  New bits are OK, but existing bits can never change.
++ */
++#define RECLAIM_ZONE  (1<<0)   /* Run shrink_inactive_list on the zone */
++#define RECLAIM_WRITE (1<<1)   /* Writeout pages during reclaim */
++#define RECLAIM_UNMAP (1<<2)   /* Unmap pages during reclaim */
+ 
+ /*
+  * Priority for NODE_RECLAIM. This determines the fraction of pages
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
 
