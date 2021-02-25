@@ -5,37 +5,43 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B66FC4332D
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:32:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06B8EC43332
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:32:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 445AA64F18
+	by mail.kernel.org (Postfix) with ESMTP id B76C664F1A
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:32:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234379AbhBYTcZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:32:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38140 "EHLO mail.kernel.org"
+        id S234813AbhBYTc3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:32:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36924 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234851AbhBYTaP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234879AbhBYTaP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:30:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9EB5F64F2A;
-        Thu, 25 Feb 2021 19:16:57 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D392664F34;
+        Thu, 25 Feb 2021 19:17:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280617;
-        bh=73MppLhaaSGZq2gvJWhvNmVh6QLAtvZQBiGlTi84w+0=;
+        s=korg; t=1614280645;
+        bh=moz1E1ye/uyWdvK7moV1jIZ9dVb5lZ9+JoUbnL+PstM=;
         h=Date:From:To:Subject:From;
-        b=jjfF9k/iQQwFYH585mEdMzS3FOwhgAK3hu9RbX3s4fEeoyVxrOrEw8Lvz71mAMvCA
-         HF1S4CtrQ5ueZsnJMaflAJtdO98JjoRZjhAEd6Pj6EkJLWNFTQKpn0MuJ7AqRWtZmD
-         gDSotQ5BZ4KT36E1YJ+3WJeQcRNi3U0cV0Qvo/HU=
-Date:   Thu, 25 Feb 2021 11:16:57 -0800
+        b=Tjz2nk/mCC8ArS0vbd0j/NnWNvCHOpImWODt8h9wQY443AdV9hKG3+PAWsGfM3LEo
+         kofNu40gUETDzb6d0tgcpp9mTSxpK6cEn3TMLHdkdkekkjUWCVBhz4Qg6TVh3GZdsR
+         zzqESnXBRVRHb/4MPTRaeynXm2YZgT8wF1aFoyZg=
+Date:   Thu, 25 Feb 2021 11:17:24 -0800
 From:   akpm@linux-foundation.org
-To:     jrdr.linux@gmail.com, linmiaohe@huawei.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org
-Subject:  [merged] mm-hugetlb-fix-some-comment-typos.patch removed
- from -mm tree
-Message-ID: <20210225191657.-GQhLVtU_%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, dbueso@suse.de, joao.m.martins@oracle.com,
+        kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, osalvador@suse.de,
+        stable@vger.kernel.org, willy@infradead.org, ziy@nvidia.com
+Subject:  [merged]
+ hugetlb-fix-update_and_free_page-contig-page-struct-assumption.patch
+ removed from -mm tree
+Message-ID: <20210225191724.8ziH2aj_k%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,82 +49,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix some comment typos
+     Subject: hugetlb: fix update_and_free_page contig page struct assumpti=
+on
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-some-comment-typos.patch
+     hugetlb-fix-update_and_free_page-contig-page-struct-assumption.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: fix some comment typos
+=46rom: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: fix update_and_free_page contig page struct assumption
 
-Fix typos sasitfy to satisfy, reservtion to reservation, hugegpage to
-hugepage and uniprocesor to uniprocessor in comments.
+page structs are not guaranteed to be contiguous for gigantic pages.  The
+routine update_and_free_page can encounter a gigantic page, yet it assumes
+page structs are contiguous when setting page flags in subpages.
 
-Link: https://lkml.kernel.org/r/20210128112028.64831-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+If update_and_free_page encounters non-contiguous page structs, we can see
+=E2=80=9CBUG: Bad page state in process =E2=80=A6=E2=80=9D errors.
+
+Non-contiguous page structs are generally not an issue.  However, they can
+exist with a specific kernel configuration and hotplug operations.  For
+example: Configure the kernel with CONFIG_SPARSEMEM and
+!CONFIG_SPARSEMEM_VMEMMAP.  Then, hotplug add memory for the area where
+the gigantic page will be allocated.  Zi Yan outlined steps to reproduce
+here [1].
+
+[1] https://lore.kernel.org/linux-mm/16F7C58B-4D79-41C5-9B64-A1A1628F4AF2@n=
+vidia.com/
+
+Link: https://lkml.kernel.org/r/20210217184926.33567-1-mike.kravetz@oracle.=
+com
+Fixes: 944d9fec8d7a ("hugetlb: add support for gigantic page allocation at =
+runtime")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- mm/hugetlb.c            |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-fix-some-comment-typos
-+++ a/include/linux/hugetlb.h
-@@ -37,7 +37,7 @@ struct hugepage_subpool {
- 	struct hstate *hstate;
- 	long min_hpages;	/* Minimum huge pages or -1 if no minimum. */
- 	long rsv_hpages;	/* Pages reserved against global pool to */
--				/* sasitfy minimum size. */
-+				/* satisfy minimum size. */
- };
- 
- struct resv_map {
---- a/mm/hugetlb.c~mm-hugetlb-fix-some-comment-typos
+--- a/mm/hugetlb.c~hugetlb-fix-update_and_free_page-contig-page-struct-assu=
+mption
 +++ a/mm/hugetlb.c
-@@ -1434,7 +1434,7 @@ static void __free_huge_page(struct page
- 	 * reservation.  If the page was associated with a subpool, there
- 	 * would have been a page reserved in the subpool before allocation
- 	 * via hugepage_subpool_get_pages().  Since we are 'restoring' the
--	 * reservtion, do not call hugepage_subpool_put_pages() as this will
-+	 * reservation, do not call hugepage_subpool_put_pages() as this will
- 	 * remove the reserved page from the subpool.
- 	 */
- 	if (!restore_reserve) {
-@@ -3707,7 +3707,7 @@ static unsigned long hugetlb_vm_op_pages
- /*
-  * We cannot handle pagefaults against hugetlb pages at all.  They cause
-  * handle_mm_fault() to try to instantiate regular-sized pages in the
-- * hugegpage VMA.  do_page_fault() is supposed to trap this, so BUG is we get
-+ * hugepage VMA.  do_page_fault() is supposed to trap this, so BUG is we get
-  * this far.
-  */
- static vm_fault_t hugetlb_vm_op_fault(struct vm_fault *vmf)
-@@ -4491,7 +4491,7 @@ u32 hugetlb_fault_mutex_hash(struct addr
- }
- #else
- /*
-- * For uniprocesor systems we always use a single mutex, so just
-+ * For uniprocessor systems we always use a single mutex, so just
-  * return 0 and avoid the hashing overhead.
-  */
- u32 hugetlb_fault_mutex_hash(struct address_space *mapping, pgoff_t idx)
+@@ -1321,14 +1321,16 @@ static inline void destroy_compound_giga
+ static void update_and_free_page(struct hstate *h, struct page *page)
+ {
+ 	int i;
++	struct page *subpage =3D page;
+=20
+ 	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
+ 		return;
+=20
+ 	h->nr_huge_pages--;
+ 	h->nr_huge_pages_node[page_to_nid(page)]--;
+-	for (i =3D 0; i < pages_per_huge_page(h); i++) {
+-		page[i].flags &=3D ~(1 << PG_locked | 1 << PG_error |
++	for (i =3D 0; i < pages_per_huge_page(h);
++	     i++, subpage =3D mem_map_next(subpage, page, i)) {
++		subpage->flags &=3D ~(1 << PG_locked | 1 << PG_error |
+ 				1 << PG_referenced | 1 << PG_dirty |
+ 				1 << PG_active | 1 << PG_private |
+ 				1 << PG_writeback);
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
-mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
-mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
-mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
-mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
-mm-rmap-correct-obsolete-comment-of-page_get_anon_vma.patch
-mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
-mm-zsmallocc-use-page_private-to-access-page-private.patch
 
