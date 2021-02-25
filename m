@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A99F3C4332D
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:37:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57CCEC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:37:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5DFD464E90
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:37:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 149FE64F29
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:37:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234637AbhBYThT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:37:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41328 "EHLO mail.kernel.org"
+        id S234364AbhBYThV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:37:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41310 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234962AbhBYTfO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234964AbhBYTfO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:35:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 802F564FC6;
-        Thu, 25 Feb 2021 19:19:08 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A407864F3A;
+        Thu, 25 Feb 2021 19:19:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280748;
-        bh=0Nt2WxrKhaA6Fl/BnbQag4607tIVr86Ycdphlf++C9k=;
+        s=korg; t=1614280756;
+        bh=4nqDT0uuTjp/xN2QGGRKj4gjQuY6c1ZMXqSq7Yf9PAc=;
         h=Date:From:To:Subject:From;
-        b=Wt2RTPBq/qB5zzmgpwLkvHbsm3mAnaHCYUDNa1vcS/pDRyZgc6qIlVLLnOGtemBKm
-         y9erIMR9yqZGepxbCf868sQL52CHTehax4J6IIs+OQIzCyhHv2GjlBs7jhu5hLo0gj
-         sA71iBPw8pxFsqt4nmDqPSlz1abRJxSd2wmKLB0o=
-Date:   Thu, 25 Feb 2021 11:19:08 -0800
+        b=S21z7zLOMK1IOq8umsaSFkRk1UXCuZAQO/HEqiZqeghURny52orpZKlu6KOzPQPw0
+         vFF3g6DjF5vm4k9GJF82Yaclt8wpL48Nm4DBCFhVchqrT68Q08+Of16y4UToOSezAV
+         O+8NdOwCuKBGSUvcIVZZQ2u4xC1v58bwKBiTt6ik=
+Date:   Thu, 25 Feb 2021 11:19:16 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
+To:     david@redhat.com, linmiaohe@huawei.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org
 Subject:  [merged]
- hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch removed
- from -mm tree
-Message-ID: <20210225191908.jwP0eOQyg%akpm@linux-foundation.org>
+ hugetlbfs-remove-meaningless-variable-avoid_reserve.patch removed from -mm
+ tree
+Message-ID: <20210225191916.NTl9OcJRM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,40 +44,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: remove useless BUG_ON(!inode) in hugetlbfs_setattr()
+     Subject: hugetlbfs: remove meaningless variable avoid_reserve
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
+     hugetlbfs-remove-meaningless-variable-avoid_reserve.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlbfs: remove useless BUG_ON(!inode) in hugetlbfs_setattr()
+Subject: hugetlbfs: remove meaningless variable avoid_reserve
 
-When we reach here with inode = NULL, we should have crashed as inode has
-already been dereferenced via hstate_inode.  So this BUG_ON(!inode) does
-not take effect and should be removed.
+The variable avoid_reserve is meaningless because we never changed its
+value and just passed it to alloc_huge_page().  So remove it to make code
+more clear that in hugetlbfs_fallocate, we never avoid reserve when alloc
+hugepage yet.  Also add a comment offered by Mike Kravetz to explain this.
 
-Link: https://lkml.kernel.org/r/20210118110700.52506-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210120071508.9078-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/hugetlbfs/inode.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-remove-meaningless-variable-avoid_reserve
 +++ a/fs/hugetlbfs/inode.c
-@@ -761,8 +761,6 @@ static int hugetlbfs_setattr(struct user
- 	unsigned int ia_valid = attr->ia_valid;
- 	struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
+@@ -680,7 +680,6 @@ static long hugetlbfs_fallocate(struct f
+ 		 */
+ 		struct page *page;
+ 		unsigned long addr;
+-		int avoid_reserve = 0;
  
--	BUG_ON(!inode);
--
- 	error = setattr_prepare(&init_user_ns, dentry, attr);
- 	if (error)
- 		return error;
+ 		cond_resched();
+ 
+@@ -716,8 +715,15 @@ static long hugetlbfs_fallocate(struct f
+ 			continue;
+ 		}
+ 
+-		/* Allocate page and add to page cache */
+-		page = alloc_huge_page(&pseudo_vma, addr, avoid_reserve);
++		/*
++		 * Allocate page without setting the avoid_reserve argument.
++		 * There certainly are no reserves associated with the
++		 * pseudo_vma.  However, there could be shared mappings with
++		 * reserves for the file at the inode level.  If we fallocate
++		 * pages in these areas, we need to consume the reserves
++		 * to keep reservation accounting consistent.
++		 */
++		page = alloc_huge_page(&pseudo_vma, addr, 0);
+ 		hugetlb_drop_vma_policy(&pseudo_vma);
+ 		if (IS_ERR(page)) {
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
