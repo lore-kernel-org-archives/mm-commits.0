@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0B92C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:22:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 064A5C433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:22:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7D77964F3C
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:22:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A59E264F3C
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:22:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233529AbhBYTWC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:22:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34000 "EHLO mail.kernel.org"
+        id S233364AbhBYTWG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:22:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60064 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234754AbhBYTUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:20:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A788064F52;
-        Thu, 25 Feb 2021 19:13:17 +0000 (UTC)
+        id S234687AbhBYTUG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:20:06 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ABA9364F59;
+        Thu, 25 Feb 2021 19:13:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280397;
-        bh=AFrnqJYvkB5E5PN40+k1WHbgjdVY56yUA1/6HGEyM4g=;
+        s=korg; t=1614280409;
+        bh=DDeKHfQnDdVndP3Bd0tR35KXlJXkKuSLf+3Xs4H5Od8=;
         h=Date:From:To:Subject:From;
-        b=wA2FFoMxhmCJsSROPDuxY/osmaUnct5OxJSjgj4qh+qm3t8kzbpxSDODURi26evtY
-         MMi8BgKa5fGE629NzJk7szJ6KHeqNZ+6v9x+kj99Jev7IcSjLoIUMVLWfnDR/Baat+
-         CzDN6tCnGp62gTGRCVF6m77EV8Fuaq8/aAJwqG7I=
-Date:   Thu, 25 Feb 2021 11:13:17 -0800
+        b=1RHmUMTCxVPf9TJEW1AnNmJLwibqluJPwRtTK1lTy7Raqo6OKOH34v+qcA5qffoqF
+         hrQs8ftWri/BQ0rxrd1/WQQOp37ZaOdQlD0aZ3szu85sVMRmfaKZPb+ePPnGv8m0n+
+         0RwWW6AMDZQVVoWRjXPAEM2wfJb7wbdjZlOVy6lw=
+Date:   Thu, 25 Feb 2021 11:13:29 -0800
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, kent.overstreet@gmail.com, linmiaohe@huawei.com,
-        mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  [merged] mm-filemap-restructure-filemap_get_pages.patch
- removed from -mm tree
-Message-ID: <20210225191317.yBdMSCP18%akpm@linux-foundation.org>
+To:     guoyang2@huawei.com, mm-commits@vger.kernel.org, npiggin@suse.de,
+        viro@zeniv.linux.org.uk, zhangshaokun@hisilicon.com
+Subject:  [merged]
+ fs-bufferc-add-checking-buffer-head-stat-before-clear.patch removed from
+ -mm tree
+Message-ID: <20210225191329.Vln9biZxg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,150 +44,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: restructure filemap_get_pages
+     Subject: fs/buffer.c: add checking buffer head stat before clear
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-restructure-filemap_get_pages.patch
+     fs-bufferc-add-checking-buffer-head-stat-before-clear.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: restructure filemap_get_pages
+From: Yang Guo <guoyang2@huawei.com>
+Subject: fs/buffer.c: add checking buffer head stat before clear
 
-Remove the got_pages label, remove indentation, rename find_page to retry,
-simplify error handling.
+clear_buffer_new() is used to clear buffer new stat.  When PAGE_SIZE is
+64K, most buffer heads in the list are not needed to clear. 
+clear_buffer_new() has an enpensive atomic modification operation, Let's
+add checking buffer head before clear it as __block_write_begin_int does
+which is good for performance.
 
-Link: https://lkml.kernel.org/r/20210122160140.223228-16-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/1612332890-57918-1-git-send-email-zhangshaokun@hisilicon.com
+Signed-off-by: Yang Guo <guoyang2@huawei.com>
+Signed-off-by: Shaokun Zhang <zhangshaokun@hisilicon.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   71 +++++++++++++++++++------------------------------
- 1 file changed, 28 insertions(+), 43 deletions(-)
+ fs/buffer.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/filemap.c~mm-filemap-restructure-filemap_get_pages
-+++ a/mm/filemap.c
-@@ -2349,70 +2349,55 @@ static int filemap_get_pages(struct kioc
- 	struct file_ra_state *ra = &filp->f_ra;
- 	pgoff_t index = iocb->ki_pos >> PAGE_SHIFT;
- 	pgoff_t last_index;
-+	struct page *page;
- 	int err = 0;
+--- a/fs/buffer.c~fs-bufferc-add-checking-buffer-head-stat-before-clear
++++ a/fs/buffer.c
+@@ -2083,7 +2083,8 @@ static int __block_commit_write(struct i
+ 			set_buffer_uptodate(bh);
+ 			mark_buffer_dirty(bh);
+ 		}
+-		clear_buffer_new(bh);
++		if (buffer_new(bh))
++			clear_buffer_new(bh);
  
- 	last_index = DIV_ROUND_UP(iocb->ki_pos + iter->count, PAGE_SIZE);
--find_page:
-+retry:
- 	if (fatal_signal_pending(current))
- 		return -EINTR;
- 
- 	filemap_get_read_batch(mapping, index, last_index, pvec);
--	if (pvec->nr)
--		goto got_pages;
--
--	if (iocb->ki_flags & IOCB_NOIO)
--		return -EAGAIN;
--
--	page_cache_sync_readahead(mapping, ra, filp, index, last_index - index);
--
--	filemap_get_read_batch(mapping, index, last_index, pvec);
-+	if (!pagevec_count(pvec)) {
-+		if (iocb->ki_flags & IOCB_NOIO)
-+			return -EAGAIN;
-+		page_cache_sync_readahead(mapping, ra, filp, index,
-+				last_index - index);
-+		filemap_get_read_batch(mapping, index, last_index, pvec);
-+	}
- 	if (!pagevec_count(pvec)) {
- 		if (iocb->ki_flags & (IOCB_NOWAIT | IOCB_WAITQ))
- 			return -EAGAIN;
- 		err = filemap_create_page(filp, mapping,
- 				iocb->ki_pos >> PAGE_SHIFT, pvec);
- 		if (err == AOP_TRUNCATED_PAGE)
--			goto find_page;
-+			goto retry;
- 		return err;
- 	}
--got_pages:
--	{
--		struct page *page = pvec->pages[pvec->nr - 1];
--
--		if (PageReadahead(page)) {
--			err = filemap_readahead(iocb, filp, mapping, page,
--					last_index);
--			if (err) {
--				put_page(page);
--				pvec->nr--;
--				goto err;
--			}
--		}
- 
--		if (!PageUptodate(page)) {
--			if ((iocb->ki_flags & IOCB_WAITQ) &&
--			    pagevec_count(pvec) > 1)
--				iocb->ki_flags |= IOCB_NOWAIT;
--			err = filemap_update_page(iocb, mapping, iter, page);
--			if (err) {
--				if (err < 0)
--					put_page(page);
--				pvec->nr--;
--			}
--		}
-+	page = pvec->pages[pagevec_count(pvec) - 1];
-+	if (PageReadahead(page)) {
-+		err = filemap_readahead(iocb, filp, mapping, page, last_index);
-+		if (err)
-+			goto err;
-+	}
-+	if (!PageUptodate(page)) {
-+		if ((iocb->ki_flags & IOCB_WAITQ) && pagevec_count(pvec) > 1)
-+			iocb->ki_flags |= IOCB_NOWAIT;
-+		err = filemap_update_page(iocb, mapping, iter, page);
-+		if (err)
-+			goto err;
- 	}
- 
-+	return 0;
- err:
--	if (likely(pvec->nr))
-+	if (err < 0)
-+		put_page(page);
-+	if (likely(--pvec->nr))
- 		return 0;
- 	if (err == AOP_TRUNCATED_PAGE)
--		goto find_page;
--	if (err)
--		return err;
--	/*
--	 * No pages and no error means we raced and should retry:
--	 */
--	goto find_page;
-+		goto retry;
-+	return err;
- }
- 
- /**
+ 		block_start = block_end;
+ 		bh = bh->b_this_page;
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from guoyang2@huawei.com are
 
-mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
-mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
-mm-swap-optimise-get_shadow_from_swap_cache.patch
-mm-add-fgp_entry.patch
-mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
-mm-filemap-add-helper-for-finding-pages.patch
-mm-filemap-add-helper-for-finding-pages-fix.patch
-mm-filemap-add-mapping_seek_hole_data.patch
-mm-filemap-add-mapping_seek_hole_data-fix.patch
-iomap-use-mapping_seek_hole_data.patch
-mm-add-and-use-find_lock_entries.patch
-mm-add-and-use-find_lock_entries-fix.patch
-mm-add-an-end-parameter-to-find_get_entries.patch
-mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
-mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
-mm-pass-pvec-directly-to-find_get_entries.patch
-mm-remove-pagevec_lookup_entries.patch
 
