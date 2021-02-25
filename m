@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC358C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:37:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29D6AC433E6
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:37:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B0DF64F18
+	by mail.kernel.org (Postfix) with ESMTP id EB1FE64F2A
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:37:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234492AbhBYThB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:37:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41316 "EHLO mail.kernel.org"
+        id S234548AbhBYThD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:37:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41314 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234948AbhBYTfO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234965AbhBYTfO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:35:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9ED7F64FBF;
-        Thu, 25 Feb 2021 19:18:56 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A200B64F3D;
+        Thu, 25 Feb 2021 19:19:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280736;
-        bh=z1R1kVgdbJnfDAMIxMdJSmUGcmuFcN1rlIVUOL8Ku2s=;
+        s=korg; t=1614280759;
+        bh=3w66xG8FWs+VD4vClP78aXBvBLBBJNlyAubVpcW2iss=;
         h=Date:From:To:Subject:From;
-        b=tlHI+B4+LWMlABXIXGt9N8J3fkvFryHdaUKcjfdWlR7S3bIo2uD0smh8X8tus3P65
-         2DgQpZnM8qksvq2/VqEnzAKtdvFM1avtoyzScBAvb3FORG0TprFdcIS01l7A5I4sJ5
-         fSlxBNqrkUEPlTYWJSnw/GkoSc+7AXLpEQtEsMdU=
-Date:   Thu, 25 Feb 2021 11:18:56 -0800
+        b=laoRotI+XlM6vrvY1BwSfSx/ccC+8WGEs6fG4JP2urqHi5oktswfIykd+X+gK5FC0
+         5lyg7tW5rHttZmHGCU9AdlRB5F8Xy8enl0Jh/IGph3pE4ebT469aPGscFInbp0LkSy
+         9aUGuiL9lpI062qIM5/0nZAds/m7cMHuqh1M8yoo=
+Date:   Thu, 25 Feb 2021 11:19:19 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
+To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-mempolicy-use-helper-range_in_vma-in-queue_pages_test_walk.patch removed
- from -mm tree
-Message-ID: <20210225191856.KmaG3VeHy%akpm@linux-foundation.org>
+ hugetlbfs-make-hugepage-size-conversion-more-readable.patch removed from
+ -mm tree
+Message-ID: <20210225191919.afosCpj0S%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,40 +44,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: use helper range_in_vma() in queue_pages_test_walk()
+     Subject: hugetlbfs: make hugepage size conversion more readable
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-use-helper-range_in_vma-in-queue_pages_test_walk.patch
+     hugetlbfs-make-hugepage-size-conversion-more-readable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/mempolicy: use helper range_in_vma() in queue_pages_test_walk()
+Subject: hugetlbfs: make hugepage size conversion more readable
 
-The helper range_in_vma() is introduced via commit 017b1660df89 ("mm:
-migration: fix migration of huge PMD shared pages"). But we forgot to
-use it in queue_pages_test_walk().
+The calculation 1U << (h->order + PAGE_SHIFT - 10) is actually equal to
+(PAGE_SHIFT << (h->order)) >> 10.  So we can make it more readable by
+replace it with huge_page_size(h) >> 10.
 
-Link: https://lkml.kernel.org/r/20210130091352.20220-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210122083141.24548-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-use-helper-range_in_vma-in-queue_pages_test_walk
-+++ a/mm/mempolicy.c
-@@ -677,7 +677,7 @@ static int queue_pages_test_walk(unsigne
- 	unsigned long flags = qp->flags;
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-make-hugepage-size-conversion-more-readable
++++ a/fs/hugetlbfs/inode.c
+@@ -1520,8 +1520,8 @@ static struct vfsmount *__init mount_one
+ 		put_fs_context(fc);
+ 	}
+ 	if (IS_ERR(mnt))
+-		pr_err("Cannot mount internal hugetlbfs for page size %uK",
+-		       1U << (h->order + PAGE_SHIFT - 10));
++		pr_err("Cannot mount internal hugetlbfs for page size %luK",
++		       huge_page_size(h) >> 10);
+ 	return mnt;
+ }
  
- 	/* range check first */
--	VM_BUG_ON_VMA((vma->vm_start > start) || (vma->vm_end < end), vma);
-+	VM_BUG_ON_VMA(!range_in_vma(vma, start, end), vma);
- 
- 	if (!qp->first) {
- 		qp->first = vma;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
