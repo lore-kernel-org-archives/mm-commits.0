@@ -7,38 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D49CBC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EF17C433E6
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8D3E564F3C
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFE5764F3C
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234568AbhBYTbB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:31:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36966 "EHLO mail.kernel.org"
+        id S233815AbhBYTbG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:31:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36920 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234619AbhBYT2A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:28:00 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AEF8A64F94;
-        Thu, 25 Feb 2021 19:16:35 +0000 (UTC)
+        id S234554AbhBYT16 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:27:58 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AC5FB64F92;
+        Thu, 25 Feb 2021 19:16:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280596;
-        bh=WO5uaZtCQ8og/Bet+BInMKkliCM/aun7Btn5C9t/s8E=;
+        s=korg; t=1614280585;
+        bh=q7Tjv15UBUhA/v5NChddYnHn673rCwqOJVkHZDHRHJI=;
         h=Date:From:To:Subject:From;
-        b=vqc+DnaYFlwsAzW2KQ1yIxb3RxX0pwq40Ds3x11tLaMokqh1Oi6yG8srj0vBMyvo3
-         WtSkT+clIu2s3b1TuZ8o6SjrogUyeD2Cw0URzQ5ZnVvclGDsKJkBXEK6r6rTnA6ldz
-         9w5H/eWq892M2tFuSi3jMxz8yUB41PtkUmOfonEY=
-Date:   Thu, 25 Feb 2021 11:16:35 -0800
+        b=Te9EPJAPthnfi59QvrMYw/E4P43o59AXRkF17ALJIBN++bARkFb9I00M3gyyt4gmX
+         SY0orn6+ddoNoStapJl9cb23FA38w2diyXCIAOziiW6wyJWGkrb1/JdQtrmC9sauZU
+         XfwiYaFbt/ridU4X+Hn09L8jbWLSK3OYyXkHvmD8=
+Date:   Thu, 25 Feb 2021 11:16:24 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, smuchun@gmail.com
-Subject:  [merged]
- =?US-ASCII?Q?mm-hugetlb-fix-potential-double-free-in-hugetlb=5Fregist?=
- =?US-ASCII?Q?er=5Fnode-error-path.patch?= removed from -mm tree
-Message-ID: <20210225191635.mYASrx18k%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, nathan@kernel.org, rppt@linux.ibm.com,
+        willy@infradead.org
+Subject:  [merged] mm-gfp-add-kernel-doc-for-gfp_t.patch removed
+ from -mm tree
+Message-ID: <20210225191624.FQMl_t_tz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,58 +43,94 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix potential double free in hugetlb_register_node() error path
+     Subject: mm/gfp: add kernel-doc for gfp_t
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
+     mm-gfp-add-kernel-doc-for-gfp_t.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: fix potential double free in hugetlb_register_node() error path
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/gfp: add kernel-doc for gfp_t
 
-In hugetlb_sysfs_add_hstate(), we would do kobject_put() on hstate_kobjs
-when failed to create sysfs group but forget to set hstate_kobjs to NULL. 
-Then in hugetlb_register_node() error path, we may free it again via
-hugetlb_unregister_node().
+The generated html will link to the definition of the gfp_t automatically
+once we define it.  Move the one-paragraph overview of GFP flags from the
+documentation directory into gfp.h and pull gfp.h into the documentation.
 
-Link: https://lkml.kernel.org/r/20210107123249.36964-1-linmiaohe@huawei.com
-Fixes: a3437870160c ("hugetlb: new sysfs interface")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Muchun Song <smuchun@gmail.com>
+This generates warnings with clang
+(https://lkml.kernel.org/r/20210219195509.GA59987@24bbad8f3778), so
+use a #if 0 to hide it from the compiler for now.
+
+Link: https://lkml.kernel.org/r/20210215204909.3824509-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210220003049.GZ2858050@casper.infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ Documentation/core-api/mm-api.rst |    7 ++-----
+ include/linux/gfp.h               |   14 ++++++++++++++
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path
-+++ a/mm/hugetlb.c
-@@ -2988,8 +2988,10 @@ static int hugetlb_sysfs_add_hstate(stru
- 		return -ENOMEM;
+--- a/Documentation/core-api/mm-api.rst~mm-gfp-add-kernel-doc-for-gfp_t
++++ a/Documentation/core-api/mm-api.rst
+@@ -19,11 +19,8 @@ User Space Memory Access
+ Memory Allocation Controls
+ ==========================
  
- 	retval = sysfs_create_group(hstate_kobjs[hi], hstate_attr_group);
--	if (retval)
-+	if (retval) {
- 		kobject_put(hstate_kobjs[hi]);
-+		hstate_kobjs[hi] = NULL;
-+	}
+-Functions which need to allocate memory often use GFP flags to express
+-how that memory should be allocated. The GFP acronym stands for "get
+-free pages", the underlying memory allocation function. Not every GFP
+-flag is allowed to every function which may allocate memory. Most
+-users will want to use a plain ``GFP_KERNEL``.
++.. kernel-doc:: include/linux/gfp.h
++   :internal:
  
- 	return retval;
- }
+ .. kernel-doc:: include/linux/gfp.h
+    :doc: Page mobility and placement hints
+--- a/include/linux/gfp.h~mm-gfp-add-kernel-doc-for-gfp_t
++++ a/include/linux/gfp.h
+@@ -8,6 +8,20 @@
+ #include <linux/linkage.h>
+ #include <linux/topology.h>
+ 
++/* The typedef is in types.h but we want the documentation here */
++#if 0
++/**
++ * typedef gfp_t - Memory allocation flags.
++ *
++ * GFP flags are commonly used throughout Linux to indicate how memory
++ * should be allocated.  The GFP acronym stands for get_free_pages(),
++ * the underlying memory allocation function.  Not every GFP flag is
++ * supported by every function which may allocate memory.  Most users
++ * will want to use a plain ``GFP_KERNEL``.
++ */
++typedef unsigned int __bitwise gfp_t;
++#endif
++
+ struct vm_area_struct;
+ 
+ /*
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
-mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
-mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
-mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
-mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
-mm-rmap-correct-obsolete-comment-of-page_get_anon_vma.patch
-mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
-mm-zsmallocc-use-page_private-to-access-page-private.patch
+mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
+mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
+mm-swap-optimise-get_shadow_from_swap_cache.patch
+mm-add-fgp_entry.patch
+mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
+mm-filemap-add-helper-for-finding-pages.patch
+mm-filemap-add-helper-for-finding-pages-fix.patch
+mm-filemap-add-mapping_seek_hole_data.patch
+mm-filemap-add-mapping_seek_hole_data-fix.patch
+iomap-use-mapping_seek_hole_data.patch
+mm-add-and-use-find_lock_entries.patch
+mm-add-and-use-find_lock_entries-fix.patch
+mm-add-an-end-parameter-to-find_get_entries.patch
+mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
+mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
+mm-pass-pvec-directly-to-find_get_entries.patch
+mm-remove-pagevec_lookup_entries.patch
 
