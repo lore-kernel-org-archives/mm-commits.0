@@ -7,38 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA95BC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:34:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4504EC433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:34:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 994E864F18
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:34:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E908F64F29
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:34:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234409AbhBYTdz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:33:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36922 "EHLO mail.kernel.org"
+        id S232139AbhBYTeB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:34:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39446 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234864AbhBYTaN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:30:13 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A353E64F2C;
-        Thu, 25 Feb 2021 19:17:18 +0000 (UTC)
+        id S234453AbhBYTaB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:30:01 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AC1BA64F9D;
+        Thu, 25 Feb 2021 19:16:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280638;
-        bh=Dyr4sQatzkrg2+5ImvWRUbcQWlAAPXRiPNRGwFA/KU4=;
+        s=korg; t=1614280601;
+        bh=G4eBkuabPYo17WMIfsQ0jclV2ousT+TdQB0/nTustOU=;
         h=Date:From:To:Subject:From;
-        b=teBJNIVcxEsbmDXScs63lJmyfjXL5kLnIMo6vn+AUxPeFTFfr6QDD7VGxfKUB243Y
-         9I59L7PbImSdm2cjaDHiwLhj0KC43YSsU1BkxPSilay+iWmDWDELfBEmPsdKngOtJ0
-         DOmrfb6jcg9ayYTe0nLxg4rc+/SbGxthetpjQ0GY=
-Date:   Thu, 25 Feb 2021 11:17:18 -0800
+        b=r8DDsHUYcqkWMFOCntS4MQ1ra6czJEQ0Sa2aT5/G8yS3csgqv1PTQBRzvoz1fGYys
+         l1Era6e34MxY94WDEr0wXKIsjbXghHOpMixmCpiLhBGAOqwc3Wa5jHbfuvCixO+IsL
+         zhZ7mrTjFFAtal3ZKSd4jr4gtdN+zhHMTIrCh1Fk=
+Date:   Thu, 25 Feb 2021 11:16:40 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
+To:     david@redhat.com, linmiaohe@huawei.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, osalvador@suse.de
 Subject:  [merged]
- =?US-ASCII?Q?mm-hugetlb-remove-unnecessary-vm=5Fbug=5Fon=5Fpage-on-putba?=
- =?US-ASCII?Q?ck=5Factive=5Fhugepage.patch?= removed from -mm tree
-Message-ID: <20210225191718.6vHGClUQF%akpm@linux-foundation.org>
+ mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch removed from
+ -mm tree
+Message-ID: <20210225191640.Li-ONp11O%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,39 +44,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: remove unnecessary VM_BUG_ON_PAGE on putback_active_hugepage()
+     Subject: mm/hugetlb: avoid unnecessary hugetlb_acct_memory() call
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-remove-unnecessary-vm_bug_on_page-on-putback_active_hugepage.patch
+     mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: remove unnecessary VM_BUG_ON_PAGE on putback_active_hugepage()
+Subject: mm/hugetlb: avoid unnecessary hugetlb_acct_memory() call
 
-All callers know they are operating on a hugetlb head page.  So this
-VM_BUG_ON_PAGE can not catch anything useful.
+When reservation accounting remains unchanged, hugetlb_acct_memory() will
+do nothing except holding and releasing hugetlb_lock.  We should avoid
+this unnecessary hugetlb_lock lock/unlock cycle which is happening on
+'most' hugetlb munmap operations by check delta against 0 at the beginning
+of hugetlb_acct_memory.
 
-Link: https://lkml.kernel.org/r/20210209071151.44731-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210115092013.61012-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/hugetlb.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-remove-unnecessary-vm_bug_on_page-on-putback_active_hugepage
+--- a/mm/hugetlb.c~mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call
 +++ a/mm/hugetlb.c
-@@ -5622,7 +5622,6 @@ unlock:
- 
- void putback_active_hugepage(struct page *page)
+@@ -3591,6 +3591,9 @@ static int hugetlb_acct_memory(struct hs
  {
--	VM_BUG_ON_PAGE(!PageHead(page), page);
+ 	int ret = -ENOMEM;
+ 
++	if (!delta)
++		return 0;
++
  	spin_lock(&hugetlb_lock);
- 	set_page_huge_active(page);
- 	list_move_tail(&page->lru, &(page_hstate(page))->hugepage_activelist);
+ 	/*
+ 	 * When cpuset is configured, it breaks the strict hugetlb page
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
