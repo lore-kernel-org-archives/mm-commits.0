@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01D15C433E9
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:17:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A563C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:17:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA40764FA3
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:17:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E6B8D64F2C
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:17:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234267AbhBYTQ6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:16:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57452 "EHLO mail.kernel.org"
+        id S234142AbhBYTQ7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:16:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57690 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234142AbhBYTOz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S232081AbhBYTOz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:14:55 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A122864F33;
-        Thu, 25 Feb 2021 19:11:41 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B48A264F39;
+        Thu, 25 Feb 2021 19:11:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280301;
-        bh=z1AsSVJrkW90SaEvKc4kt1TIUUfO8or0bT84YOX8+pY=;
+        s=korg; t=1614280311;
+        bh=8e/8j7DVeLWAJreT5q0exokwROESqtrZiNmdhHSFeJY=;
         h=Date:From:To:Subject:From;
-        b=1rfKj0yID/i1vfjushdSr3H/7b9NX69nJNxYtYcDKE2HbRIjoo1hNYDUP33QZ00kg
-         3082oOhkjNXERi3ZCFERsLqCaC5sWIPFpivFdDOtLg5+kMPTasnQTV8gWSQdasvCdG
-         Q74laL6JPEU0L7Z3Bvp6Kgxbxcjivk9qWvfc08sU=
-Date:   Thu, 25 Feb 2021 11:11:41 -0800
+        b=FUc7OEq6eHRxWQG4t/HQDX7W8Npz2WUwVwHjOFhpnStJhIpHbX1m2zaEp/LN0b7M1
+         B4D6Y49V7hB5B+Fr+Isl9tCVXaKXlSbxfiytWUpuF8rty66h+kVz8bJ7wVg1GFDs+X
+         KZHiDvP/6Ie6AU1XCwAqPiNdnrkBLLnhDBHkYbAA=
+Date:   Thu, 25 Feb 2021 11:11:50 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        viro@zeniv.linux.org.uk, willy@infradead.org
-Subject:  [merged] fs-delete-repeated-words-in-comments.patch
- removed from -mm tree
-Message-ID: <20210225191141.mIs9NYprv%akpm@linux-foundation.org>
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org, nborisov@suse.com, penberg@kernel.org,
+        rientjes@google.com, vbabka@suse.cz
+Subject:  [merged]
+ mm-remove-ctor-argument-from-kmem_cache_flags.patch removed from -mm tree
+Message-ID: <20210225191150.yXhZOLbk_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,127 +44,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: delete repeated words in comments
+     Subject: mm/sl?b.c: remove ctor argument from kmem_cache_flags
 has been removed from the -mm tree.  Its filename was
-     fs-delete-repeated-words-in-comments.patch
+     mm-remove-ctor-argument-from-kmem_cache_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: fs: delete repeated words in comments
+From: Nikolay Borisov <nborisov@suse.com>
+Subject: mm/sl?b.c: remove ctor argument from kmem_cache_flags
 
-Delete duplicate words in fs/*.c.
-The doubled words that are being dropped are:
-  that, be, the, in, and, for
+This argument hasn't been used since e153362a50a3 ("slub: Remove objsize
+check in kmem_cache_flags()") so simply remove it.
 
-Link: https://lkml.kernel.org/r/20201224052810.25315-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Link: https://lkml.kernel.org/r/20210126095733.974665-1-nborisov@suse.com
+Signed-off-by: Nikolay Borisov <nborisov@suse.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    2 +-
- fs/dcache.c    |    4 ++--
- fs/direct-io.c |    4 ++--
- fs/exec.c      |    4 ++--
- fs/fhandle.c   |    2 +-
- fs/pipe.c      |    2 +-
- 6 files changed, 9 insertions(+), 9 deletions(-)
+ mm/slab.c        |    3 +--
+ mm/slab.h        |    6 ++----
+ mm/slab_common.c |    2 +-
+ mm/slub.c        |    9 +++------
+ 4 files changed, 7 insertions(+), 13 deletions(-)
 
---- a/fs/block_dev.c~fs-delete-repeated-words-in-comments
-+++ a/fs/block_dev.c
-@@ -1270,7 +1270,7 @@ rescan:
- 	return ret;
+--- a/mm/slab.c~mm-remove-ctor-argument-from-kmem_cache_flags
++++ a/mm/slab.c
+@@ -1790,8 +1790,7 @@ static int __ref setup_cpu_cache(struct
  }
- /*
-- * Only exported for for loop and dasd for historic reasons.  Don't use in new
-+ * Only exported for loop and dasd for historic reasons.  Don't use in new
-  * code!
-  */
- EXPORT_SYMBOL_GPL(bdev_disk_changed);
---- a/fs/dcache.c~fs-delete-repeated-words-in-comments
-+++ a/fs/dcache.c
-@@ -2176,8 +2176,8 @@ EXPORT_SYMBOL(d_obtain_root);
-  * same inode, only the actual correct case is stored in the dcache for
-  * case-insensitive filesystems.
-  *
-- * For a case-insensitive lookup match and if the the case-exact dentry
-- * already exists in in the dcache, use it and return it.
-+ * For a case-insensitive lookup match and if the case-exact dentry
-+ * already exists in the dcache, use it and return it.
-  *
-  * If no entry exists with the exact case name, allocate new dentry with
-  * the exact case, and return the spliced entry.
---- a/fs/direct-io.c~fs-delete-repeated-words-in-comments
-+++ a/fs/direct-io.c
-@@ -462,7 +462,7 @@ static inline void dio_cleanup(struct di
-  * Wait for the next BIO to complete.  Remove it and return it.  NULL is
-  * returned once all BIOs have been completed.  This must only be called once
-  * all bios have been issued so that dio->refcount can only decrease.  This
-- * requires that that the caller hold a reference on the dio.
-+ * requires that the caller hold a reference on the dio.
-  */
- static struct bio *dio_await_one(struct dio *dio)
+ 
+ slab_flags_t kmem_cache_flags(unsigned int object_size,
+-	slab_flags_t flags, const char *name,
+-	void (*ctor)(void *))
++	slab_flags_t flags, const char *name)
  {
-@@ -1279,7 +1279,7 @@ do_blockdev_direct_IO(struct kiocb *iocb
- 	if (retval == -ENOTBLK) {
- 		/*
- 		 * The remaining part of the request will be
--		 * be handled by buffered I/O when we return
-+		 * handled by buffered I/O when we return
- 		 */
- 		retval = 0;
- 	}
---- a/fs/exec.c~fs-delete-repeated-words-in-comments
-+++ a/fs/exec.c
-@@ -1455,7 +1455,7 @@ EXPORT_SYMBOL(finalize_exec);
- /*
-  * Prepare credentials and lock ->cred_guard_mutex.
-  * setup_new_exec() commits the new creds and drops the lock.
-- * Or, if exec fails before, free_bprm() should release ->cred and
-+ * Or, if exec fails before, free_bprm() should release ->cred
-  * and unlock.
-  */
- static int prepare_bprm_creds(struct linux_binprm *bprm)
-@@ -1841,7 +1841,7 @@ static int bprm_execve(struct linux_binp
+ 	return flags;
+ }
+--- a/mm/slab_common.c~mm-remove-ctor-argument-from-kmem_cache_flags
++++ a/mm/slab_common.c
+@@ -197,7 +197,7 @@ struct kmem_cache *find_mergeable(unsign
+ 	size = ALIGN(size, sizeof(void *));
+ 	align = calculate_alignment(flags, align, size);
+ 	size = ALIGN(size, align);
+-	flags = kmem_cache_flags(size, flags, name, NULL);
++	flags = kmem_cache_flags(size, flags, name);
  
- out:
- 	/*
--	 * If past the point of no return ensure the the code never
-+	 * If past the point of no return ensure the code never
- 	 * returns to the userspace process.  Use an existing fatal
- 	 * signal if present otherwise terminate the process with
- 	 * SIGSEGV.
---- a/fs/fhandle.c~fs-delete-repeated-words-in-comments
-+++ a/fs/fhandle.c
-@@ -173,7 +173,7 @@ static int handle_to_path(int mountdirfd
+ 	if (flags & SLAB_NEVER_MERGE)
+ 		return NULL;
+--- a/mm/slab.h~mm-remove-ctor-argument-from-kmem_cache_flags
++++ a/mm/slab.h
+@@ -110,8 +110,7 @@ __kmem_cache_alias(const char *name, uns
+ 		   slab_flags_t flags, void (*ctor)(void *));
  
- 	/*
- 	 * With handle we don't look at the execute bit on the
--	 * the directory. Ideally we would like CAP_DAC_SEARCH.
-+	 * directory. Ideally we would like CAP_DAC_SEARCH.
- 	 * But we don't have that
- 	 */
- 	if (!capable(CAP_DAC_READ_SEARCH)) {
---- a/fs/pipe.c~fs-delete-repeated-words-in-comments
-+++ a/fs/pipe.c
-@@ -171,7 +171,7 @@ EXPORT_SYMBOL(generic_pipe_buf_try_steal
+ slab_flags_t kmem_cache_flags(unsigned int object_size,
+-	slab_flags_t flags, const char *name,
+-	void (*ctor)(void *));
++	slab_flags_t flags, const char *name);
+ #else
+ static inline struct kmem_cache *
+ __kmem_cache_alias(const char *name, unsigned int size, unsigned int align,
+@@ -119,8 +118,7 @@ __kmem_cache_alias(const char *name, uns
+ { return NULL; }
+ 
+ static inline slab_flags_t kmem_cache_flags(unsigned int object_size,
+-	slab_flags_t flags, const char *name,
+-	void (*ctor)(void *))
++	slab_flags_t flags, const char *name)
+ {
+ 	return flags;
+ }
+--- a/mm/slub.c~mm-remove-ctor-argument-from-kmem_cache_flags
++++ a/mm/slub.c
+@@ -1400,7 +1400,6 @@ __setup("slub_debug", setup_slub_debug);
+  * @object_size:	the size of an object without meta data
+  * @flags:		flags to set
+  * @name:		name of the cache
+- * @ctor:		constructor function
   *
-  * Description:
-  *	This function grabs an extra reference to @buf. It's used in
-- *	in the tee() system call, when we duplicate the buffers in one
-+ *	the tee() system call, when we duplicate the buffers in one
-  *	pipe into another.
+  * Debug option(s) are applied to @flags. In addition to the debug
+  * option(s), if a slab name (or multiple) is specified i.e.
+@@ -1408,8 +1407,7 @@ __setup("slub_debug", setup_slub_debug);
+  * then only the select slabs will receive the debug option(s).
   */
- bool generic_pipe_buf_get(struct pipe_inode_info *pipe, struct pipe_buffer *buf)
+ slab_flags_t kmem_cache_flags(unsigned int object_size,
+-	slab_flags_t flags, const char *name,
+-	void (*ctor)(void *))
++	slab_flags_t flags, const char *name)
+ {
+ 	char *iter;
+ 	size_t len;
+@@ -1474,8 +1472,7 @@ static inline void add_full(struct kmem_
+ static inline void remove_full(struct kmem_cache *s, struct kmem_cache_node *n,
+ 					struct page *page) {}
+ slab_flags_t kmem_cache_flags(unsigned int object_size,
+-	slab_flags_t flags, const char *name,
+-	void (*ctor)(void *))
++	slab_flags_t flags, const char *name)
+ {
+ 	return flags;
+ }
+@@ -3797,7 +3794,7 @@ static int calculate_sizes(struct kmem_c
+ 
+ static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
+ {
+-	s->flags = kmem_cache_flags(s->size, flags, s->name, s->ctor);
++	s->flags = kmem_cache_flags(s->size, flags, s->name);
+ #ifdef CONFIG_SLAB_FREELIST_HARDENED
+ 	s->random = get_random_long();
+ #endif
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from nborisov@suse.com are
 
-mm-zswap-clean-up-confusing-comment.patch
-alpha-remove-config_experimental-from-defconfigs.patch
-include-linux-remove-repeated-words.patch
-kernel-delete-repeated-words-in-comments.patch
 
