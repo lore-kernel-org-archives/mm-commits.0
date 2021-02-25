@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EE18C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:20:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81B76C433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:20:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF0B564DF2
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:20:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38D6664DE3
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:20:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234385AbhBYTUO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:20:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60068 "EHLO mail.kernel.org"
+        id S234358AbhBYTUQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:20:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60054 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234403AbhBYTRg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234375AbhBYTRg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:17:36 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9BD2764F4A;
-        Thu, 25 Feb 2021 19:12:44 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D15AC64F38;
+        Thu, 25 Feb 2021 19:12:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280364;
-        bh=zY6efaRXv0CPfNW6CAaooPx2QHRRVda5HTpB0Q1906I=;
+        s=korg; t=1614280323;
+        bh=VJcZag1zH78TDYPlxaYPbS7b7hz387NwNlOJ/yc2FMM=;
         h=Date:From:To:Subject:From;
-        b=L/vh/VvPhEMiLtrHHG+JGewsAq5khL3nHfkRt43kG4iZPAcPttQ37VeqK9Bv/N39A
-         tRnFINXUL/LYTLcudwGVBYv+woGF1pjK1QZpoHM3BnVrE2S/SPSJmRCRHpE1E6Y8/X
-         JdqcbQRE2q/KJG0aEuZ3bj7uqxXYmZrNiPayqSwY=
-Date:   Thu, 25 Feb 2021 11:12:44 -0800
+        b=Wkmf1Bn3wPaXRo/BXtHmYsSGADnug2S7W4AZlxfUbxCRRCty+mOO9DzFSrCWDtDy3
+         6bZZzaSkTDQuev6yHzA3GG2Q4KEVKmaf2EGtQ3JSH1EbED10V+7q6/IPaY4+V5HKdO
+         382GDyXvzMh2j70Y3uf/UpcMYSOJuVSXhtCKjNvI=
+Date:   Thu, 25 Feb 2021 11:12:02 -0800
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, kent.overstreet@gmail.com, linmiaohe@huawei.com,
-        mm-commits@vger.kernel.org, willy@infradead.org
+To:     cai@redhat.com, cl@linux.com, david@redhat.com,
+        iamjoonsoo.kim@lge.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, vbabka@suse.cz, vdavydov.dev@gmail.com
 Subject:  [merged]
- mm-filemap-use-head-pages-in-generic_file_buffered_read.patch removed from
- -mm tree
-Message-ID: <20210225191244.f4uWN2Jih%akpm@linux-foundation.org>
+ mm-slab-slub-stop-taking-memory-hotplug-lock.patch removed from -mm tree
+Message-ID: <20210225191202.2fu_4u5EO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,272 +45,221 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: use head pages in generic_file_buffered_read
+     Subject: mm, slab, slub: stop taking memory hotplug lock
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-use-head-pages-in-generic_file_buffered_read.patch
+     mm-slab-slub-stop-taking-memory-hotplug-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: use head pages in generic_file_buffered_read
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slab, slub: stop taking memory hotplug lock
 
-Add filemap_get_read_batch() which returns the head pages which represent
-a contiguous array of bytes in the file.  It also stops when encountering
-a page marked as Readahead or !Uptodate (but does return that page) so it
-can be handled appropriately by filemap_get_pages().  That lets us remove
-the loop in filemap_get_pages() and check only the last page.
+Since commit 03afc0e25f7f ("slab: get_online_mems for
+kmem_cache_{create,destroy,shrink}") we are taking memory hotplug lock for
+SLAB and SLUB when creating, destroying or shrinking a cache.  It is quite
+a heavy lock and it's best to avoid it if possible, as we had several
+issues with lockdep complaining about ordering in the past, see e.g. 
+e4f8e513c3d3 ("mm/slub: fix a deadlock in show_slab_objects()").
 
-Link: https://lkml.kernel.org/r/20210122160140.223228-5-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+The problem scenario in 03afc0e25f7f (solved by the memory hotplug lock)
+can be summarized as follows: while there's slab_mutex synchronizing new
+kmem cache creation and SLUB's MEM_GOING_ONLINE callback
+slab_mem_going_online_callback(), we may miss creation of kmem_cache_node
+for the hotplugged node in the new kmem cache, because the hotplug
+callback doesn't yet see the new cache, and cache creation in
+init_kmem_cache_nodes() only inits kmem_cache_node for nodes in the
+N_NORMAL_MEMORY nodemask, which however may not yet include the new node,
+as that happens only later after the MEM_GOING_ONLINE callback.
+
+Instead of using get/put_online_mems(), the problem can be solved by SLUB
+maintaining its own nodemask of nodes for which it has allocated the
+per-node kmem_cache_node structures.  This nodemask would generally mirror
+the N_NORMAL_MEMORY nodemask, but would be updated only in under SLUB's
+control in its memory hotplug callbacks under the slab_mutex.  This patch
+adds such nodemask and its handling.
+
+Commit 03afc0e25f7f mentiones "issues like [the one above]", but there
+don't appear to be further issues.  All the paths (shared for SLAB and
+SLUB) taking the memory hotplug locks are also taking the slab_mutex,
+except kmem_cache_shrink() where 03afc0e25f7f replaced slab_mutex with
+get/put_online_mems().
+
+We however cannot simply restore slab_mutex in kmem_cache_shrink(), as
+SLUB can enters the function from a write to sysfs 'shrink' file, thus
+holding kernfs lock, and in kmem_cache_create() the kernfs lock is nested
+within slab_mutex.  But on closer inspection we don't actually need to
+protect kmem_cache_shrink() from hotplug callbacks: While SLUB's
+__kmem_cache_shrink() does for_each_kmem_cache_node(), missing a new node
+added in parallel hotplug is not fatal, and parallel hotremove does not
+free kmem_cache_node's anymore after the previous patch, so use-after free
+cannot happen.  The per-node shrinking itself is protected by
+n->list_lock.  Same is true for SLAB, and SLOB is no-op.
+
+SLAB also doesn't need the memory hotplug locking, which it only gained by
+03afc0e25f7f through the shared paths in slab_common.c.  Its memory
+hotplug callbacks are also protected by slab_mutex against races with
+these paths.  The problem of SLUB relying on N_NORMAL_MEMORY doesn't apply
+to SLAB, as its setup_kmem_cache_nodes relies on N_ONLINE, and the new
+node is already set there during the MEM_GOING_ONLINE callback, so no
+special care is needed for SLAB.
+
+As such, this patch removes all get/put_online_mems() usage by the slab
+subsystem.
+
+Link: https://lkml.kernel.org/r/20210113131634.3671-3-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Qian Cai <cai@redhat.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |  122 ++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 85 insertions(+), 37 deletions(-)
+ mm/slab_common.c |    8 ++------
+ mm/slub.c        |   28 +++++++++++++++++++++++++---
+ 2 files changed, 27 insertions(+), 9 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-use-head-pages-in-generic_file_buffered_read
-+++ a/mm/filemap.c
-@@ -2178,6 +2178,51 @@ static int lock_page_for_iocb(struct kio
- 		return lock_page_killable(page);
+--- a/mm/slab_common.c~mm-slab-slub-stop-taking-memory-hotplug-lock
++++ a/mm/slab_common.c
+@@ -310,7 +310,6 @@ kmem_cache_create_usercopy(const char *n
+ 	int err;
+ 
+ 	get_online_cpus();
+-	get_online_mems();
+ 
+ 	mutex_lock(&slab_mutex);
+ 
+@@ -360,7 +359,6 @@ kmem_cache_create_usercopy(const char *n
+ out_unlock:
+ 	mutex_unlock(&slab_mutex);
+ 
+-	put_online_mems();
+ 	put_online_cpus();
+ 
+ 	if (err) {
+@@ -487,7 +485,6 @@ void kmem_cache_destroy(struct kmem_cach
+ 		return;
+ 
+ 	get_online_cpus();
+-	get_online_mems();
+ 
+ 	mutex_lock(&slab_mutex);
+ 
+@@ -504,7 +501,6 @@ void kmem_cache_destroy(struct kmem_cach
+ out_unlock:
+ 	mutex_unlock(&slab_mutex);
+ 
+-	put_online_mems();
+ 	put_online_cpus();
+ }
+ EXPORT_SYMBOL(kmem_cache_destroy);
+@@ -523,10 +519,10 @@ int kmem_cache_shrink(struct kmem_cache
+ 	int ret;
+ 
+ 	get_online_cpus();
+-	get_online_mems();
++
+ 	kasan_cache_shrink(cachep);
+ 	ret = __kmem_cache_shrink(cachep);
+-	put_online_mems();
++
+ 	put_online_cpus();
+ 	return ret;
+ }
+--- a/mm/slub.c~mm-slab-slub-stop-taking-memory-hotplug-lock
++++ a/mm/slub.c
+@@ -235,6 +235,14 @@ static inline void stat(const struct kme
+ #endif
  }
  
 +/*
-+ * filemap_get_read_batch - Get a batch of pages for read
-+ *
-+ * Get a batch of pages which represent a contiguous range of bytes
-+ * in the file.  No tail pages will be returned.  If @index is in the
-+ * middle of a THP, the entire THP will be returned.  The last page in
-+ * the batch may have Readahead set or be not Uptodate so that the
-+ * caller can take the appropriate action.
++ * Tracks for which NUMA nodes we have kmem_cache_nodes allocated.
++ * Corresponds to node_state[N_NORMAL_MEMORY], but can temporarily
++ * differ during memory hotplug/hotremove operations.
++ * Protected by slab_mutex.
 + */
-+static void filemap_get_read_batch(struct address_space *mapping,
-+		pgoff_t index, pgoff_t max, struct pagevec *pvec)
-+{
-+	XA_STATE(xas, &mapping->i_pages, index);
-+	struct page *head;
++static nodemask_t slab_nodes;
 +
-+	rcu_read_lock();
-+	for (head = xas_load(&xas); head; head = xas_next(&xas)) {
-+		if (xas_retry(&xas, head))
-+			continue;
-+		if (xas.xa_index > max || xa_is_value(head))
-+			break;
-+		if (!page_cache_get_speculative(head))
-+			goto retry;
-+
-+		/* Has the page moved or been split? */
-+		if (unlikely(head != xas_reload(&xas)))
-+			goto put_page;
-+
-+		if (!pagevec_add(pvec, head))
-+			break;
-+		if (!PageUptodate(head))
-+			break;
-+		if (PageReadahead(head))
-+			break;
-+		xas.xa_index = head->index + thp_nr_pages(head) - 1;
-+		xas.xa_offset = (xas.xa_index >> xas.xa_shift) & XA_CHUNK_MASK;
-+		continue;
-+put_page:
-+		put_page(head);
-+retry:
-+		xas_reset(&xas);
-+	}
-+	rcu_read_unlock();
-+}
-+
- static struct page *filemap_read_page(struct kiocb *iocb, struct file *filp,
- 		struct address_space *mapping, struct page *page)
- {
-@@ -2331,15 +2376,15 @@ static int filemap_get_pages(struct kioc
- 	struct address_space *mapping = filp->f_mapping;
- 	struct file_ra_state *ra = &filp->f_ra;
- 	pgoff_t index = iocb->ki_pos >> PAGE_SHIFT;
--	pgoff_t last_index = (iocb->ki_pos + iter->count + PAGE_SIZE-1) >> PAGE_SHIFT;
--	unsigned int nr = min_t(unsigned long, last_index - index, PAGEVEC_SIZE);
--	int i, j, err = 0;
-+	pgoff_t last_index;
-+	int err = 0;
- 
-+	last_index = DIV_ROUND_UP(iocb->ki_pos + iter->count, PAGE_SIZE);
- find_page:
- 	if (fatal_signal_pending(current))
- 		return -EINTR;
- 
--	pvec->nr = find_get_pages_contig(mapping, index, nr, pvec->pages);
-+	filemap_get_read_batch(mapping, index, last_index, pvec);
- 	if (pvec->nr)
- 		goto got_pages;
- 
-@@ -2348,29 +2393,30 @@ find_page:
- 
- 	page_cache_sync_readahead(mapping, ra, filp, index, last_index - index);
- 
--	pvec->nr = find_get_pages_contig(mapping, index, nr, pvec->pages);
-+	filemap_get_read_batch(mapping, index, last_index, pvec);
- 	if (pvec->nr)
- 		goto got_pages;
- 
- 	pvec->pages[0] = filemap_create_page(iocb, iter);
- 	err = PTR_ERR_OR_ZERO(pvec->pages[0]);
--	if (!IS_ERR_OR_NULL(pvec->pages[0]))
--		pvec->nr = 1;
-+	if (IS_ERR_OR_NULL(pvec->pages[0]))
-+		goto err;
-+	pvec->nr = 1;
-+	return 0;
- got_pages:
--	for (i = 0; i < pvec->nr; i++) {
--		struct page *page = pvec->pages[i];
--		pgoff_t pg_index = index + i;
-+	{
-+		struct page *page = pvec->pages[pvec->nr - 1];
-+		pgoff_t pg_index = page->index;
- 		loff_t pg_pos = max(iocb->ki_pos,
- 				    (loff_t) pg_index << PAGE_SHIFT);
- 		loff_t pg_count = iocb->ki_pos + iter->count - pg_pos;
- 
- 		if (PageReadahead(page)) {
- 			if (iocb->ki_flags & IOCB_NOIO) {
--				for (j = i; j < pvec->nr; j++)
--					put_page(pvec->pages[j]);
--				pvec->nr = i;
-+				put_page(page);
-+				pvec->nr--;
- 				err = -EAGAIN;
--				break;
-+				goto err;
- 			}
- 			page_cache_async_readahead(mapping, ra, filp, page,
- 					pg_index, last_index - pg_index);
-@@ -2378,26 +2424,23 @@ got_pages:
- 
- 		if (!PageUptodate(page)) {
- 			if ((iocb->ki_flags & IOCB_NOWAIT) ||
--			    ((iocb->ki_flags & IOCB_WAITQ) && i)) {
--				for (j = i; j < pvec->nr; j++)
--					put_page(pvec->pages[j]);
--				pvec->nr = i;
-+			    ((iocb->ki_flags & IOCB_WAITQ) && pvec->nr > 1)) {
-+				put_page(page);
-+				pvec->nr--;
- 				err = -EAGAIN;
--				break;
-+				goto err;
- 			}
- 
- 			page = filemap_update_page(iocb, filp, iter, page,
- 					pg_pos, pg_count);
- 			if (IS_ERR_OR_NULL(page)) {
--				for (j = i + 1; j < pvec->nr; j++)
--					put_page(pvec->pages[j]);
--				pvec->nr = i;
-+				pvec->nr--;
- 				err = PTR_ERR_OR_ZERO(page);
--				break;
- 			}
- 		}
+ /********************************************************************
+  * 			Core slab cache functions
+  *******************************************************************/
+@@ -2678,7 +2686,7 @@ static void *___slab_alloc(struct kmem_c
+ 		 * ignore the node constraint
+ 		 */
+ 		if (unlikely(node != NUMA_NO_NODE &&
+-			     !node_state(node, N_NORMAL_MEMORY)))
++			     !node_isset(node, slab_nodes)))
+ 			node = NUMA_NO_NODE;
+ 		goto new_slab;
  	}
+@@ -2689,7 +2697,7 @@ redo:
+ 		 * same as above but node_match() being false already
+ 		 * implies node != NUMA_NO_NODE
+ 		 */
+-		if (!node_state(node, N_NORMAL_MEMORY)) {
++		if (!node_isset(node, slab_nodes)) {
+ 			node = NUMA_NO_NODE;
+ 			goto redo;
+ 		} else {
+@@ -3592,7 +3600,7 @@ static int init_kmem_cache_nodes(struct
+ {
+ 	int node;
  
-+err:
- 	if (likely(pvec->nr))
- 		return 0;
- 	if (err)
-@@ -2442,6 +2485,7 @@ ssize_t generic_file_buffered_read(struc
- 		return 0;
+-	for_each_node_state(node, N_NORMAL_MEMORY) {
++	for_each_node_mask(node, slab_nodes) {
+ 		struct kmem_cache_node *n;
  
- 	iov_iter_truncate(iter, inode->i_sb->s_maxbytes);
-+	pagevec_init(&pvec);
+ 		if (slab_state == DOWN) {
+@@ -4286,6 +4294,7 @@ static void slab_mem_offline_callback(vo
+ 		return;
  
- 	do {
- 		cond_resched();
-@@ -2469,13 +2513,8 @@ ssize_t generic_file_buffered_read(struc
- 		isize = i_size_read(inode);
- 		if (unlikely(iocb->ki_pos >= isize))
- 			goto put_pages;
--
- 		end_offset = min_t(loff_t, isize, iocb->ki_pos + iter->count);
+ 	mutex_lock(&slab_mutex);
++	node_clear(offline_node, slab_nodes);
+ 	/*
+ 	 * We no longer free kmem_cache_node structures here, as it would be
+ 	 * racy with all get_node() users, and infeasible to protect them with
+@@ -4335,6 +4344,11 @@ static int slab_mem_going_online_callbac
+ 		init_kmem_cache_node(n);
+ 		s->node[nid] = n;
+ 	}
++	/*
++	 * Any cache created after this point will also have kmem_cache_node
++	 * initialized for the new node.
++	 */
++	node_set(nid, slab_nodes);
+ out:
+ 	mutex_unlock(&slab_mutex);
+ 	return ret;
+@@ -4415,6 +4429,7 @@ void __init kmem_cache_init(void)
+ {
+ 	static __initdata struct kmem_cache boot_kmem_cache,
+ 		boot_kmem_cache_node;
++	int node;
  
--		while ((iocb->ki_pos >> PAGE_SHIFT) + pvec.nr >
--		       (end_offset + PAGE_SIZE - 1) >> PAGE_SHIFT)
--			put_page(pvec.pages[--pvec.nr]);
--
- 		/*
- 		 * Once we start copying data, we don't want to be touching any
- 		 * cachelines that might be contended:
-@@ -2489,24 +2528,32 @@ ssize_t generic_file_buffered_read(struc
- 		if (iocb->ki_pos >> PAGE_SHIFT !=
- 		    ra->prev_pos >> PAGE_SHIFT)
- 			mark_page_accessed(pvec.pages[0]);
--		for (i = 1; i < pagevec_count(&pvec); i++)
--			mark_page_accessed(pvec.pages[i]);
+ 	if (debug_guardpage_minorder())
+ 		slub_max_order = 0;
+@@ -4422,6 +4437,13 @@ void __init kmem_cache_init(void)
+ 	kmem_cache_node = &boot_kmem_cache_node;
+ 	kmem_cache = &boot_kmem_cache;
  
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
--			unsigned int offset = iocb->ki_pos & ~PAGE_MASK;
--			unsigned int bytes = min_t(loff_t, end_offset - iocb->ki_pos,
--						   PAGE_SIZE - offset);
--			unsigned int copied;
-+			struct page *page = pvec.pages[i];
-+			size_t page_size = thp_size(page);
-+			size_t offset = iocb->ki_pos & (page_size - 1);
-+			size_t bytes = min_t(loff_t, end_offset - iocb->ki_pos,
-+					     page_size - offset);
-+			size_t copied;
- 
-+			if (end_offset < page_offset(page))
-+				break;
-+			if (i > 0)
-+				mark_page_accessed(page);
- 			/*
- 			 * If users can be writing to this page using arbitrary
- 			 * virtual addresses, take care about potential aliasing
- 			 * before reading the page on the kernel side.
- 			 */
--			if (writably_mapped)
--				flush_dcache_page(pvec.pages[i]);
-+			if (writably_mapped) {
-+				int j;
++	/*
++	 * Initialize the nodemask for which we will allocate per node
++	 * structures. Here we don't need taking slab_mutex yet.
++	 */
++	for_each_node_state(node, N_NORMAL_MEMORY)
++		node_set(node, slab_nodes);
 +
-+				for (j = 0; j < thp_nr_pages(page); j++)
-+					flush_dcache_page(page + j);
-+			}
+ 	create_boot_cache(kmem_cache_node, "kmem_cache_node",
+ 		sizeof(struct kmem_cache_node), SLAB_HWCACHE_ALIGN, 0, 0);
  
--			copied = copy_page_to_iter(pvec.pages[i], offset, bytes, iter);
-+			copied = copy_page_to_iter(page, offset, bytes, iter);
- 
- 			written += copied;
- 			iocb->ki_pos += copied;
-@@ -2520,6 +2567,7 @@ ssize_t generic_file_buffered_read(struc
- put_pages:
- 		for (i = 0; i < pagevec_count(&pvec); i++)
- 			put_page(pvec.pages[i]);
-+		pagevec_reinit(&pvec);
- 	} while (iov_iter_count(iter) && iocb->ki_pos < isize && !error);
- 
- 	file_accessed(filp);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
-mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
-mm-swap-optimise-get_shadow_from_swap_cache.patch
-mm-add-fgp_entry.patch
-mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
-mm-filemap-add-helper-for-finding-pages.patch
-mm-filemap-add-helper-for-finding-pages-fix.patch
-mm-filemap-add-mapping_seek_hole_data.patch
-mm-filemap-add-mapping_seek_hole_data-fix.patch
-iomap-use-mapping_seek_hole_data.patch
-mm-add-and-use-find_lock_entries.patch
-mm-add-and-use-find_lock_entries-fix.patch
-mm-add-an-end-parameter-to-find_get_entries.patch
-mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
-mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
-mm-pass-pvec-directly-to-find_get_entries.patch
-mm-remove-pagevec_lookup_entries.patch
+maintainers-add-uapi-directories-to-api-abi-section.patch
 
