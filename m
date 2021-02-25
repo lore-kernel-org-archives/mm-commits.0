@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4838BC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E45E8C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0AD5264F28
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9EC9B64F28
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234927AbhBYTfL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:35:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38378 "EHLO mail.kernel.org"
+        id S234928AbhBYTfN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:35:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41322 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235039AbhBYTc7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235072AbhBYTc7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:32:59 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A05C264FB7;
-        Thu, 25 Feb 2021 19:18:35 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9392D64FAB;
+        Thu, 25 Feb 2021 19:18:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280715;
-        bh=1kS58LTuFt6jq1rLYjn3FZkj0uIT6SFYi5rKT1ADfL0=;
+        s=korg; t=1614280687;
+        bh=bVOUURG91TjvuD+EVIvJptDzIZx8lfT8Z/H7yoLwyOo=;
         h=Date:From:To:Subject:From;
-        b=XfrPkuq711ckDtJinxMV3sCkYcbXUfwrwyGJwiln8zF97M6arIEDqHjFyZPCgr1/f
-         1AXtBU4Ujl6g//4DZQxOURWtX4PcqhVZvHuqUnj9GMsoKa8z/gePWUfTjafycHS5zN
-         HKdJwGdhoLnPCwz0xijLrQubmzrLtzb/rWSjhKHQ=
-Date:   Thu, 25 Feb 2021 11:18:35 -0800
+        b=z7shkX4hz9OZq4EpV9Ab7Y+h/uPVzo65/fPOf6Omt4Y0bf/j/AODTTWPNpsMmob4U
+         YaBSu2h760+H77ElDBUA6rb1/kQheAiA7M3FPM4Z2OCrjl+v+X2AOJSAdlYKCHNTWW
+         DnXJO0Jfq/xlN3d35qlTE+/joq4xKFOaKyir863o=
+Date:   Thu, 25 Feb 2021 11:18:06 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org,
-        vitaly.wool@konsulko.com
-Subject:  [merged]
- z3fold-simplify-the-zhdr-initialization-code-in-init_z3fold_page.patch
- removed from -mm tree
-Message-ID: <20210225191835.TZUUVNKrr%akpm@linux-foundation.org>
+To:     alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org,
+        hughd@google.com, mhocko@kernel.org, mm-commits@vger.kernel.org,
+        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
+        yuzhao@google.com
+Subject:  [merged] mm-make-lruvec_lru_size-static.patch removed
+ from -mm tree
+Message-ID: <20210225191806.0eUmTfh1f%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,61 +45,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: z3fold: simplify the zhdr initialization code in init_z3fold_page()
+     Subject: mm/vmscan.c: make lruvec_lru_size() static
 has been removed from the -mm tree.  Its filename was
-     z3fold-simplify-the-zhdr-initialization-code-in-init_z3fold_page.patch
+     mm-make-lruvec_lru_size-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: z3fold: simplify the zhdr initialization code in init_z3fold_page()
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/vmscan.c: make lruvec_lru_size() static
 
-We can simplify the zhdr initialization by memset() the zhdr first instead
-of set struct member to zero one by one.  This would also make code more
-compact and clear.
+All other references to the function were removed after
+commit b910718a948a ("mm: vmscan: detect file thrashing at the reclaim
+root").
 
-Link: https://lkml.kernel.org/r/20210120085851.16159-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Link: https://lore.kernel.org/linux-mm/20201207220949.830352-11-yuzhao@google.com/
+Link: https://lkml.kernel.org/r/20210122220600.906146-11-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ include/linux/mmzone.h |    2 --
+ mm/vmscan.c            |    3 ++-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/z3fold.c~z3fold-simplify-the-zhdr-initialization-code-in-init_z3fold_page
-+++ a/mm/z3fold.c
-@@ -413,16 +413,10 @@ static struct z3fold_header *init_z3fold
- 	if (!slots)
- 		return NULL;
+--- a/include/linux/mmzone.h~mm-make-lruvec_lru_size-static
++++ a/include/linux/mmzone.h
+@@ -892,8 +892,6 @@ static inline struct pglist_data *lruvec
+ #endif
+ }
  
-+	memset(zhdr, 0, sizeof(*zhdr));
- 	spin_lock_init(&zhdr->page_lock);
- 	kref_init(&zhdr->refcount);
--	zhdr->first_chunks = 0;
--	zhdr->middle_chunks = 0;
--	zhdr->last_chunks = 0;
--	zhdr->first_num = 0;
--	zhdr->start_middle = 0;
- 	zhdr->cpu = -1;
--	zhdr->foreign_handles = 0;
--	zhdr->mapped_count = 0;
- 	zhdr->slots = slots;
- 	zhdr->pool = pool;
- 	INIT_LIST_HEAD(&zhdr->buddy);
+-extern unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx);
+-
+ #ifdef CONFIG_HAVE_MEMORYLESS_NODES
+ int local_memory_node(int node_id);
+ #else
+--- a/mm/vmscan.c~mm-make-lruvec_lru_size-static
++++ a/mm/vmscan.c
+@@ -310,7 +310,8 @@ unsigned long zone_reclaimable_pages(str
+  * @lru: lru to use
+  * @zone_idx: zones to consider (use MAX_NR_ZONES for the whole LRU list)
+  */
+-unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx)
++static unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru,
++				     int zone_idx)
+ {
+ 	unsigned long size = 0;
+ 	int zid;
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
-mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
-mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
-mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
-mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
-mm-rmap-correct-obsolete-comment-of-page_get_anon_vma.patch
-mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
-mm-zsmallocc-use-page_private-to-access-page-private.patch
 
