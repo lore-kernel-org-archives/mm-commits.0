@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D582C433E6
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:20:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C77ECC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:20:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1270164F45
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:20:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E18B64F3C
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:20:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234478AbhBYTTi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:19:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57322 "EHLO mail.kernel.org"
+        id S234513AbhBYTUK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:20:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60066 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234563AbhBYTRL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:17:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C4A6864F41;
-        Thu, 25 Feb 2021 19:12:05 +0000 (UTC)
+        id S234385AbhBYTRg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:17:36 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0182464F48;
+        Thu, 25 Feb 2021 19:12:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280326;
-        bh=ZvXHjh4HHlkJ5o+kPiDwoqbmGldjLxoJzCf355Eoi4E=;
+        s=korg; t=1614280359;
+        bh=w7NU/Bd8f4lPRjywXfXh3MlchYA/Uu2bBNzlXQ8gcgw=;
         h=Date:From:To:Subject:From;
-        b=cA70MmJkZ2g1UeJ3QB/n0j2J1ro9ohvGykX2pDYcvjdZyzLW/zF7U7FDcUi3SoUBk
-         EQnadF8s5bfyMewWTjZ96KFD4pwF5byxafvaAQy/IXl7ZAX+YQWPdwB5zxEC4lpV+8
-         s2l7sv1Lq6SUzE+9w4AJXYhaY4MJl7IbWUmahn3A=
-Date:   Thu, 25 Feb 2021 11:12:05 -0800
+        b=dlY4rRFOb5XrABjYeZYUiJtZP2OqmOIrVzTFFlAM8/bPPb0c71PWjP4RBjMBSnOC3
+         ZGmf7sNWSeD2oUxH3AUpIWYZX5woixRmZru2gV7zcDhYocB/Ssq1MjCi/dVYpBF9q4
+         SbCJqsk1BOAwILSoFnU1AyTsQBoafRwUXTV9xIi4=
+Date:   Thu, 25 Feb 2021 11:12:38 -0800
 From:   akpm@linux-foundation.org
-To:     cai@redhat.com, cl@linux.com, david@redhat.com,
-        iamjoonsoo.kim@lge.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz, vdavydov.dev@gmail.com
-Subject:  [merged] mm-slab-slub-stop-taking-cpu-hotplug-lock.patch
+To:     hch@lst.de, kent.overstreet@gmail.com, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org, willy@infradead.org
+Subject:  [merged]
+ mm-filemap-remove-dynamically-allocated-array-from-filemap_read.patch
  removed from -mm tree
-Message-ID: <20210225191205.tDR8UlJrT%akpm@linux-foundation.org>
+Message-ID: <20210225191238.gbsz-tI-I%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,117 +44,88 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slab, slub: stop taking cpu hotplug lock
+     Subject: mm/filemap: remove dynamically allocated array from filemap_read
 has been removed from the -mm tree.  Its filename was
-     mm-slab-slub-stop-taking-cpu-hotplug-lock.patch
+     mm-filemap-remove-dynamically-allocated-array-from-filemap_read.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slab, slub: stop taking cpu hotplug lock
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/filemap: remove dynamically allocated array from filemap_read
 
-SLAB has been using get/put_online_cpus() around creating, destroying and
-shrinking kmem caches since 95402b382901 ("cpu-hotplug: replace
-per-subsystem mutexes with get_online_cpus()") in 2008, which is supposed
-to be replacing a private mutex (cache_chain_mutex, called slab_mutex
-today) with system-wide mechanism, but in case of SLAB it's in fact used
-in addition to the existing mutex, without explanation why.
+Increasing the batch size runs into diminishing returns.  It's probably
+better to make, eg, three calls to filemap_get_pages() than it is to call
+into kmalloc().
 
-SLUB appears to have avoided the cpu hotplug lock initially, but gained it
-due to common code unification, such as 20cea9683ecc ("mm, sl[aou]b: Move
-kmem_cache_create mutex handling to common code").
-
-Regardless of the history, checking if the hotplug lock is actually needed
-today suggests that it's not, and therefore it's better to avoid this
-system-wide lock and the ordering this imposes wrt other locks (such as
-slab_mutex).
-
-Specifically, in SLAB we have for_each_online_cpu() in do_tune_cpucache()
-protected by slab_mutex, and cpu hotplug callbacks that also take the
-slab_mutex, which is also taken by the common slab function that currently
-also take the hotplug lock.  Thus the slab_mutex protection should be
-sufficient.  Also per-cpu array caches are allocated for each possible
-cpu, so not affected by their online/offline state.
-
-In SLUB we have for_each_online_cpu() in functions that show statistics
-and are already unprotected today, as racing with hotplug is not harmful. 
-Otherwise SLUB relies on percpu allocator.  The slub_cpu_dead() hotplug
-callback takes the slab_mutex.
-
-To sum up, this patch removes get/put_online_cpus() calls from slab as it
-should be safe without further adjustments.
-
-Link: https://lkml.kernel.org/r/20210113131634.3671-4-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Qian Cai <cai@redhat.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: https://lkml.kernel.org/r/20210122160140.223228-3-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ mm/filemap.c |   15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
---- a/mm/slab_common.c~mm-slab-slub-stop-taking-cpu-hotplug-lock
-+++ a/mm/slab_common.c
-@@ -309,8 +309,6 @@ kmem_cache_create_usercopy(const char *n
- 	const char *cache_name;
- 	int err;
+--- a/mm/filemap.c~mm-filemap-remove-dynamically-allocated-array-from-filemap_read
++++ a/mm/filemap.c
+@@ -2431,8 +2431,8 @@ ssize_t generic_file_buffered_read(struc
+ 	struct file_ra_state *ra = &filp->f_ra;
+ 	struct address_space *mapping = filp->f_mapping;
+ 	struct inode *inode = mapping->host;
+-	struct page *pages_onstack[PAGEVEC_SIZE], **pages = NULL;
+-	unsigned int nr_pages = min_t(unsigned int, 512,
++	struct page *pages[PAGEVEC_SIZE];
++	unsigned int nr_pages = min_t(unsigned int, PAGEVEC_SIZE,
+ 			((iocb->ki_pos + iter->count + PAGE_SIZE - 1) >> PAGE_SHIFT) -
+ 			(iocb->ki_pos >> PAGE_SHIFT));
+ 	int i, pg_nr, error = 0;
+@@ -2446,14 +2446,6 @@ ssize_t generic_file_buffered_read(struc
  
--	get_online_cpus();
+ 	iov_iter_truncate(iter, inode->i_sb->s_maxbytes);
+ 
+-	if (nr_pages > ARRAY_SIZE(pages_onstack))
+-		pages = kmalloc_array(nr_pages, sizeof(void *), GFP_KERNEL);
 -
- 	mutex_lock(&slab_mutex);
- 
- 	err = kmem_cache_sanity_check(name, size);
-@@ -359,8 +357,6 @@ kmem_cache_create_usercopy(const char *n
- out_unlock:
- 	mutex_unlock(&slab_mutex);
- 
--	put_online_cpus();
+-	if (!pages) {
+-		pages = pages_onstack;
+-		nr_pages = min_t(unsigned int, nr_pages, ARRAY_SIZE(pages_onstack));
+-	}
 -
- 	if (err) {
- 		if (flags & SLAB_PANIC)
- 			panic("kmem_cache_create: Failed to create slab '%s'. Error %d\n",
-@@ -484,8 +480,6 @@ void kmem_cache_destroy(struct kmem_cach
- 	if (unlikely(!s))
- 		return;
+ 	do {
+ 		cond_resched();
  
--	get_online_cpus();
--
- 	mutex_lock(&slab_mutex);
+@@ -2538,9 +2530,6 @@ put_pages:
  
- 	s->refcount--;
-@@ -500,8 +494,6 @@ void kmem_cache_destroy(struct kmem_cach
- 	}
- out_unlock:
- 	mutex_unlock(&slab_mutex);
+ 	file_accessed(filp);
+ 
+-	if (pages != pages_onstack)
+-		kfree(pages);
 -
--	put_online_cpus();
+ 	return written ? written : error;
  }
- EXPORT_SYMBOL(kmem_cache_destroy);
- 
-@@ -518,12 +510,10 @@ int kmem_cache_shrink(struct kmem_cache
- {
- 	int ret;
- 
--	get_online_cpus();
- 
- 	kasan_cache_shrink(cachep);
- 	ret = __kmem_cache_shrink(cachep);
- 
--	put_online_cpus();
- 	return ret;
- }
- EXPORT_SYMBOL(kmem_cache_shrink);
+ EXPORT_SYMBOL_GPL(generic_file_buffered_read);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from willy@infradead.org are
 
-maintainers-add-uapi-directories-to-api-abi-section.patch
+mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
+mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
+mm-swap-optimise-get_shadow_from_swap_cache.patch
+mm-add-fgp_entry.patch
+mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
+mm-filemap-add-helper-for-finding-pages.patch
+mm-filemap-add-helper-for-finding-pages-fix.patch
+mm-filemap-add-mapping_seek_hole_data.patch
+mm-filemap-add-mapping_seek_hole_data-fix.patch
+iomap-use-mapping_seek_hole_data.patch
+mm-add-and-use-find_lock_entries.patch
+mm-add-and-use-find_lock_entries-fix.patch
+mm-add-an-end-parameter-to-find_get_entries.patch
+mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
+mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
+mm-pass-pvec-directly-to-find_get_entries.patch
+mm-remove-pagevec_lookup_entries.patch
 
