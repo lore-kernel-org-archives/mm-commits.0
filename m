@@ -7,37 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FED3C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8ABFCC433E6
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 37F3664ECE
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E1E864ECE
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233919AbhBYTZY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:25:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35722 "EHLO mail.kernel.org"
+        id S234087AbhBYTZ1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:25:27 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35728 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234490AbhBYTXP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:23:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B568A64F6F;
-        Thu, 25 Feb 2021 19:14:29 +0000 (UTC)
+        id S234493AbhBYTXR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:23:17 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B994C64F6D;
+        Thu, 25 Feb 2021 19:14:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280470;
-        bh=JcrIJke51i1i+vQb7aqk1ktRBNm4XW1gyRQaN3yHaAs=;
+        s=korg; t=1614280464;
+        bh=a6ArclxqjWGqAbcJQY3WRB+qEI7vWjh7NCbVk/1Wqeg=;
         h=Date:From:To:Subject:From;
-        b=I2kElnX0UlSHFvZRZQzmNUtwQ0wdjHGsxoYteikMg2flGf9PF0BGNQ2CZodAG/4QP
-         lyC3umCW9yrdKQAOD9hlKRQHSUTPbIhvviqCirvsF9jDY5U+3sTzhAWTsC4EjaKbQa
-         tTF6la1hbjCdUMHMxcZpwXlXgjK7nDanM5M38PSs=
-Date:   Thu, 25 Feb 2021 11:14:29 -0800
+        b=t7fM5kYqZa3QUZ9GO8Tj+JU11hCr7W5WCVCkZi2hT5IO+4uB1W3Wr9xouy0KZD0b6
+         KE7T/mff8IQPpNjkE83IbniXz7Z4uoU1w21jdI+fsgjPARiKpk5VLJaI2/ud5UfKNS
+         yHe9eV0WVfkSbGZGTHlo2sm8xb6nau8/zfOOu2jM=
+Date:   Thu, 25 Feb 2021 11:14:23 -0800
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, linmiaohe@huawei.com,
-        mhocko@suse.com, mm-commits@vger.kernel.org,
-        songmuchun@bytedance.com
+To:     feng.tang@intel.com, guro@fb.com, hannes@cmpxchg.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com
 Subject:  [merged]
- mm-memcontrol-replace-the-loop-with-a-list_for_each_entry.patch removed
+ mm-page_counter-relayout-structure-to-reduce-false-sharing.patch removed
  from -mm tree
-Message-ID: <20210225191429.9Xnd5PJvW%akpm@linux-foundation.org>
+Message-ID: <20210225191423.xR7V1aSOg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,94 +47,112 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: replace the loop with a list_for_each_entry()
+     Subject: mm: page_counter: re-layout structure to reduce false sharing
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-replace-the-loop-with-a-list_for_each_entry.patch
+     mm-page_counter-relayout-structure-to-reduce-false-sharing.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: replace the loop with a list_for_each_entry()
+=46rom: Feng Tang <feng.tang@intel.com>
+Subject: mm: page_counter: re-layout structure to reduce false sharing
 
-The rule of list walk has gone since:
+When checking a memory cgroup related performance regression [1], from the
+perf c2c profiling data, we found high false sharing for accessing 'usage'
+and 'parent'.
 
- commit a9d5adeeb4b2 ("mm/memcontrol: allow to uncharge page without using page->lru field")
+On 64 bit system, the 'usage' and 'parent' are close to each other, and
+easy to be in one cacheline (for cacheline size =3D=3D 64+ B).  'usage' is
+usally written, while 'parent' is usually read as the cgroup's
+hierarchical counting nature.
 
-So remove the strange comment and replace the loop with a
-list_for_each_entry().
+So move the 'parent' to the end of the structure to make sure they
+are in different cache lines.
 
-There is only one caller of the uncharge_list().  So just fold it into
-mem_cgroup_uncharge_list() and remove it.
+Following are some performance data with the patch, against v5.11-rc1.  [
+In the data, A means a platform with 2 sockets 48C/96T, B is a platform of
+4 sockests 72C/144T, and if a %stddev will be shown bigger than 2%,
+P100/P50 means number of test tasks equals to 100%/50% of nr_cpu]
 
-Link: https://lkml.kernel.org/r/20210204163055.56080-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+will-it-scale/malloc1
+---------------------
+	   v5.11-rc1			v5.11-rc1+patch
+
+A-P100	     15782 =C2=B1  2%      -0.1%      15765 =C2=B1  3%  will-it-scal=
+e.per_process_ops
+A-P50	     21511            +8.9%      23432        will-it-scale.per_proce=
+ss_ops
+B-P100	      9155            +2.2%       9357        will-it-scale.per_proc=
+ess_ops
+B-P50	     10967            +7.1%      11751 =C2=B1  2%  will-it-scale.per_=
+process_ops
+
+will-it-scale/pagefault2
+------------------------
+	   v5.11-rc1			v5.11-rc1+patch
+
+A-P100	     79028            +3.0%      81411        will-it-scale.per_proc=
+ess_ops
+A-P50	    183960 =C2=B1  2%      +4.4%     192078 =C2=B1  2%  will-it-scale=
+.per_process_ops
+B-P100	     85966            +9.9%      94467 =C2=B1  3%  will-it-scale.per=
+_process_ops
+B-P50	    198195            +9.8%     217526        will-it-scale.per_proce=
+ss_ops
+
+fio (4k/1M is block size)
+-------------------------
+	   v5.11-rc1			v5.11-rc1+patch
+
+A-P50-r-4k     16881 =C2=B1  2%    +1.2%      17081 =C2=B1  2%  fio.read_bw=
+_MBps
+A-P50-w-4k      3931          +4.5%       4111 =C2=B1  2%  fio.write_bw_MBps
+A-P50-r-1M     15178          -0.2%      15154        fio.read_bw_MBps
+A-P50-w-1M      3924          +0.1%       3929        fio.write_bw_MBps
+
+[1].https://lore.kernel.org/lkml/20201102091543.GM31092@shao2-debian/
+Link: https://lkml.kernel.org/r/1611040814-33449-1-git-send-email-feng.tang=
+@intel.com
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Reviewed-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   35 ++++++++---------------------------
- 1 file changed, 8 insertions(+), 27 deletions(-)
+ include/linux/page_counter.h |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-replace-the-loop-with-a-list_for_each_entry
-+++ a/mm/memcontrol.c
-@@ -6862,31 +6862,6 @@ static void uncharge_page(struct page *p
- 	css_put(&ug->memcg->css);
- }
- 
--static void uncharge_list(struct list_head *page_list)
--{
--	struct uncharge_gather ug;
--	struct list_head *next;
--
--	uncharge_gather_clear(&ug);
--
--	/*
--	 * Note that the list can be a single page->lru; hence the
--	 * do-while loop instead of a simple list_for_each_entry().
--	 */
--	next = page_list->next;
--	do {
--		struct page *page;
--
--		page = list_entry(next, struct page, lru);
--		next = page->lru.next;
--
--		uncharge_page(page, &ug);
--	} while (next != page_list);
--
--	if (ug.memcg)
--		uncharge_batch(&ug);
--}
--
- /**
-  * mem_cgroup_uncharge - uncharge a page
-  * @page: page to uncharge
-@@ -6918,11 +6893,17 @@ void mem_cgroup_uncharge(struct page *pa
-  */
- void mem_cgroup_uncharge_list(struct list_head *page_list)
- {
-+	struct uncharge_gather ug;
-+	struct page *page;
+--- a/include/linux/page_counter.h~mm-page_counter-relayout-structure-to-re=
+duce-false-sharing
++++ a/include/linux/page_counter.h
+@@ -12,7 +12,6 @@ struct page_counter {
+ 	unsigned long low;
+ 	unsigned long high;
+ 	unsigned long max;
+-	struct page_counter *parent;
+=20
+ 	/* effective memory.min and memory.min usage tracking */
+ 	unsigned long emin;
+@@ -27,6 +26,14 @@ struct page_counter {
+ 	/* legacy */
+ 	unsigned long watermark;
+ 	unsigned long failcnt;
 +
- 	if (mem_cgroup_disabled())
- 		return;
- 
--	if (!list_empty(page_list))
--		uncharge_list(page_list);
-+	uncharge_gather_clear(&ug);
-+	list_for_each_entry(page, page_list, lru)
-+		uncharge_page(page, &ug);
-+	if (ug.memcg)
-+		uncharge_batch(&ug);
- }
- 
- /**
++	/*
++	 * 'parent' is placed here to be far from 'usage' to reduce
++	 * cache false sharing, as 'usage' is written mostly while
++	 * parent is frequently read for cgroup's hierarchical
++	 * counting nature.
++	 */
++	struct page_counter *parent;
+ };
+=20
+ #if BITS_PER_LONG =3D=3D 32
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from feng.tang@intel.com are
 
 
