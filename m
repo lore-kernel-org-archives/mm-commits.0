@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E9CDC432C3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3C3CC433DB
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24ECE64F3C
+	by mail.kernel.org (Postfix) with ESMTP id 7BF1864E21
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234799AbhBYTXI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:23:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60052 "EHLO mail.kernel.org"
+        id S234834AbhBYTX0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:23:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60062 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234675AbhBYTUG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:20:06 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7B59364F65;
-        Thu, 25 Feb 2021 19:13:40 +0000 (UTC)
+        id S234664AbhBYTUF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:20:05 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 988DC64F5A;
+        Thu, 25 Feb 2021 19:13:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280420;
-        bh=WkY5a6SBWoOuFGKafvY3N4yKr46lsp0nA3IA6wUFt6k=;
+        s=korg; t=1614280406;
+        bh=kJVs6M3IvEEDTYW15gRDOSWOZky/CjxmHoDalB6JOE0=;
         h=Date:From:To:Subject:From;
-        b=Ejl7PID9HEeqWrMpI6EqUXaIagxPgV0Yj6p5CY8xa4ZLEuL5iXWTTHx/9meHzOOSH
-         m2cBVqkfezinkf7tIKXmxy7j/ArCFI3/0Ps9vclEXV0oZhQjl0ZlooUsnD3HC5NjsS
-         5cHc9vg3pRJW2hxLhPNkqe7s7MqyZcokz5gZWXAY=
-Date:   Thu, 25 Feb 2021 11:13:40 -0800
+        b=jtwEy6vpMf2xzhYIi6ohLHFTnbJ0wA8nD7C6Ji9+qce3bosLShSR6TJOzK/yIjF4t
+         KmwDs/k96oRHoV7SJZzLCCP9ocTAXDNT21r+gmrZdRRAKs3zZFbdYexDA4xk4IGGp6
+         S6XlrxL5jt5iWgKWRTsTK0WnBTaNxa/vFBa65vZI=
+Date:   Thu, 25 Feb 2021 11:13:26 -0800
 From:   akpm@linux-foundation.org
-To:     georgi.djakov@linaro.org, linmiaohe@huawei.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org
-Subject:  [merged]
- mm-page_io-use-pr_alert_ratelimited-for-swap-read-write-errors.patch
+To:     hch@lst.de, kent.overstreet@gmail.com, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org, willy@infradead.org
+Subject:  [merged] mm-filemap-simplify-generic_file_read_iter.patch
  removed from -mm tree
-Message-ID: <20210225191340.IrvsafFrf%akpm@linux-foundation.org>
+Message-ID: <20210225191326.FBBzXTJXr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,65 +43,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_io: use pr_alert_ratelimited for swap read/write errors
+     Subject: mm/filemap: simplify generic_file_read_iter
 has been removed from the -mm tree.  Its filename was
-     mm-page_io-use-pr_alert_ratelimited-for-swap-read-write-errors.patch
+     mm-filemap-simplify-generic_file_read_iter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Georgi Djakov <georgi.djakov@linaro.org>
-Subject: mm/page_io: use pr_alert_ratelimited for swap read/write errors
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm/filemap: simplify generic_file_read_iter
 
-If there are errors during swap read or write, they can easily fill the
-log buffer and remove any previous messages that might be useful for
-debugging, especially on systems that rely for logging only on the kernel
-ring-buffer.
+Avoid the pointless goto out just for returning retval.
 
-For example, on a systems using zram as swap, we are more likely to see
-any page allocation errors preceding the swap write errors if the alerts
-are ratelimited.
-
-Link: https://lkml.kernel.org/r/20210201142055.29068-1-georgi.djakov@linaro.org
-Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/20210122160140.223228-19-willy@infradead.org
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/filemap.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/page_io.c~mm-page_io-use-pr_alert_ratelimited-for-swap-read-write-errors
-+++ a/mm/page_io.c
-@@ -41,9 +41,9 @@ void end_swap_bio_write(struct bio *bio)
- 		 * Also clear PG_reclaim to avoid rotate_reclaimable_page()
+--- a/mm/filemap.c~mm-filemap-simplify-generic_file_read_iter
++++ a/mm/filemap.c
+@@ -2543,7 +2543,7 @@ generic_file_read_iter(struct kiocb *ioc
+ 	ssize_t retval = 0;
+ 
+ 	if (!count)
+-		goto out; /* skip atime */
++		return 0; /* skip atime */
+ 
+ 	if (iocb->ki_flags & IOCB_DIRECT) {
+ 		struct file *file = iocb->ki_filp;
+@@ -2561,7 +2561,7 @@ generic_file_read_iter(struct kiocb *ioc
+ 						iocb->ki_pos,
+ 					        iocb->ki_pos + count - 1);
+ 			if (retval < 0)
+-				goto out;
++				return retval;
+ 		}
+ 
+ 		file_accessed(file);
+@@ -2585,12 +2585,10 @@ generic_file_read_iter(struct kiocb *ioc
  		 */
- 		set_page_dirty(page);
--		pr_alert("Write-error on swap-device (%u:%u:%llu)\n",
--			 MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
--			 (unsigned long long)bio->bi_iter.bi_sector);
-+		pr_alert_ratelimited("Write-error on swap-device (%u:%u:%llu)\n",
-+				     MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
-+				     (unsigned long long)bio->bi_iter.bi_sector);
- 		ClearPageReclaim(page);
+ 		if (retval < 0 || !count || iocb->ki_pos >= size ||
+ 		    IS_DAX(inode))
+-			goto out;
++			return retval;
  	}
- 	end_page_writeback(page);
-@@ -106,9 +106,9 @@ static void end_swap_bio_read(struct bio
- 	if (bio->bi_status) {
- 		SetPageError(page);
- 		ClearPageUptodate(page);
--		pr_alert("Read-error on swap-device (%u:%u:%llu)\n",
--			 MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
--			 (unsigned long long)bio->bi_iter.bi_sector);
-+		pr_alert_ratelimited("Read-error on swap-device (%u:%u:%llu)\n",
-+				     MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
-+				     (unsigned long long)bio->bi_iter.bi_sector);
- 		goto out;
- 	}
+ 
+-	retval = filemap_read(iocb, iter, retval);
+-out:
+-	return retval;
++	return filemap_read(iocb, iter, retval);
+ }
+ EXPORT_SYMBOL(generic_file_read_iter);
  
 _
 
-Patches currently in -mm which might be from georgi.djakov@linaro.org are
+Patches currently in -mm which might be from hch@lst.de are
 
 
