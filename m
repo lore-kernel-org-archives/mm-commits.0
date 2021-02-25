@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F350C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C551BC433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:34:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C3E8A64F28
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8923664F28
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:34:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234641AbhBYTdq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:33:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36920 "EHLO mail.kernel.org"
+        id S234407AbhBYTdu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:33:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38106 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234875AbhBYTaN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:30:13 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 83F8D64F18;
-        Thu, 25 Feb 2021 19:17:12 +0000 (UTC)
+        id S233944AbhBYTaC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:30:02 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9470264F95;
+        Thu, 25 Feb 2021 19:16:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280632;
-        bh=KzgAkexKi7tK6PGQrINyo/1RVyY3c+WxZyo4JjdMBc4=;
+        s=korg; t=1614280603;
+        bh=EPX+n834PcVzgtKe+/s9LihwmcbOB0+XDVWKm1UBATQ=;
         h=Date:From:To:Subject:From;
-        b=XBnXNCkpYdJgiPMWfrmvAN5oDB1LZhpsNrCI2sGtJef0B3K091PSy52YRmt40ouAb
-         VgTHo5aaVXeqg9RQeafhSHgEdnlE3U9Dao9znIAvOTD1tfLTeDOPVvHW+Yb1zBL3Up
-         IsZSU2bsOfqYPrnwkQ7q1K7Y7+4siJLfM1ygEr7Y=
-Date:   Thu, 25 Feb 2021 11:17:12 -0800
+        b=LkTQKqQBjQcfXg8dITEzNy3PyKfvyCl131qk28vqnMmDm2emYp6DcDx7ppQN4w/M8
+         aYnI3hupeS1qKOsOM10CTpSAVllbEaQhzbDMM0AJY4FPSZtqsVRUhYwxq1d5Q4ECrN
+         JhR0rEem750eUwSCnB1odbGQTFTXgbhUr5cI/ei0=
+Date:   Thu, 25 Feb 2021 11:16:43 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
+To:     david@redhat.com, linmiaohe@huawei.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- hugetlb_cgroup-use-helper-pages_per_huge_page-in-hugetlb_cgroup.patch
- removed from -mm tree
-Message-ID: <20210225191712.og48qUAgq%akpm@linux-foundation.org>
+ mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch removed
+ from -mm tree
+Message-ID: <20210225191643.J9OqJ-434%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,57 +44,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb_cgroup: use helper pages_per_huge_page() in hugetlb_cgroup
+     Subject: mm/hugetlb: use helper huge_page_order and pages_per_huge_page
 has been removed from the -mm tree.  Its filename was
-     hugetlb_cgroup-use-helper-pages_per_huge_page-in-hugetlb_cgroup.patch
+     mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlb_cgroup: use helper pages_per_huge_page() in hugetlb_cgroup
+Subject: mm/hugetlb: use helper huge_page_order and pages_per_huge_page
 
-We could use helper function pages_per_huge_page() to get the number of
-pages in a hstate to simplify the code slightly.
+Since commit a5516438959d ("hugetlb: modular state for hugetlb page
+size"), we can use huge_page_order to access hstate->order and
+pages_per_huge_page to fetch the pages per huge page.  But
+gather_bootmem_prealloc() forgot to use it.
 
-Link: https://lkml.kernel.org/r/20210205084513.29624-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210114114435.40075-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-use-helper-pages_per_huge_page-in-hugetlb_cgroup
-+++ a/mm/hugetlb_cgroup.c
-@@ -113,7 +113,7 @@ static void hugetlb_cgroup_init(struct h
- 			rsvd_parent);
+--- a/mm/hugetlb.c~mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page
++++ a/mm/hugetlb.c
+@@ -2476,7 +2476,7 @@ static void __init gather_bootmem_preall
+ 		struct hstate *h = m->hstate;
  
- 		limit = round_down(PAGE_COUNTER_MAX,
--				   1 << huge_page_order(&hstates[idx]));
-+				   pages_per_huge_page(&hstates[idx]));
- 
- 		ret = page_counter_set_max(
- 			hugetlb_cgroup_counter_from_cgroup(h_cgroup, idx),
-@@ -460,7 +460,7 @@ static int hugetlb_cgroup_read_u64_max(s
- 	counter = &h_cg->hugepage[idx];
- 
- 	limit = round_down(PAGE_COUNTER_MAX,
--			   1 << huge_page_order(&hstates[idx]));
-+			   pages_per_huge_page(&hstates[idx]));
- 
- 	switch (MEMFILE_ATTR(cft->private)) {
- 	case RES_RSVD_USAGE:
-@@ -507,7 +507,7 @@ static ssize_t hugetlb_cgroup_write(stru
- 		return ret;
- 
- 	idx = MEMFILE_IDX(of_cft(of)->private);
--	nr_pages = round_down(nr_pages, 1 << huge_page_order(&hstates[idx]));
-+	nr_pages = round_down(nr_pages, pages_per_huge_page(&hstates[idx]));
- 
- 	switch (MEMFILE_ATTR(of_cft(of)->private)) {
- 	case RES_RSVD_LIMIT:
+ 		WARN_ON(page_count(page) != 1);
+-		prep_compound_huge_page(page, h->order);
++		prep_compound_huge_page(page, huge_page_order(h));
+ 		WARN_ON(PageReserved(page));
+ 		prep_new_huge_page(h, page, page_to_nid(page));
+ 		put_page(page); /* free it into the hugepage allocator */
+@@ -2488,7 +2488,7 @@ static void __init gather_bootmem_preall
+ 		 * side-effects, like CommitLimit going negative.
+ 		 */
+ 		if (hstate_is_gigantic(h))
+-			adjust_managed_page_count(page, 1 << h->order);
++			adjust_managed_page_count(page, pages_per_huge_page(h));
+ 		cond_resched();
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
