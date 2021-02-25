@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33800C433E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52E7DC433DB
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:22:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D2AB164E21
+	by mail.kernel.org (Postfix) with ESMTP id 10EE264F3C
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:22:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234202AbhBYTWI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:22:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34044 "EHLO mail.kernel.org"
+        id S234256AbhBYTWQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:22:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34002 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234796AbhBYTUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234766AbhBYTUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:20:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A70B964F57;
-        Thu, 25 Feb 2021 19:13:20 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7317164F4F;
+        Thu, 25 Feb 2021 19:13:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280401;
-        bh=S2grJOwv384tigFjniGr9N5kL0IdT9ao6wWbjUYob2k=;
+        s=korg; t=1614280394;
+        bh=6iTmPh+Yr22ED0+Mh19Op0CCA16KDe71cDilZmpa0a4=;
         h=Date:From:To:Subject:From;
-        b=uTfH66n9Vaptml0CXTJaT2bm04XX3S5djyfeWS0se1s1D3akMNIibZFs4Qe8gdZ3B
-         Uim8RoJi2A8SqwnsMxhPZOZ5h0PIGjLrYi+Drc1J9bqntpR5T7Qa2B+PHoqwbNDFBR
-         xjOoXa3Vtmy2Jl2Fj1LtnnGdc2vF4NDhu4WaIPws=
-Date:   Thu, 25 Feb 2021 11:13:20 -0800
+        b=mWBmBPrnsDE9x0sQdqEAJgbLkTd+Qe4gyq8WoV7lAhVbMdLNUTU9sDyM39rT7Wben
+         ioDz/Oy6bsvYtMTxPOqAvoXcanFPCnCpki1n5SpFw0oMiMcgE7BhgvadUJGLNaFZZN
+         C4/FCMCPwNquCvzEIpo4psQcji4o4nyoKb0nU4vA=
+Date:   Thu, 25 Feb 2021 11:13:14 -0800
 From:   akpm@linux-foundation.org
 To:     hch@lst.de, kent.overstreet@gmail.com, linmiaohe@huawei.com,
         mm-commits@vger.kernel.org, willy@infradead.org
 Subject:  [merged]
- mm-filemap-dont-relock-the-page-after-calling-readpage.patch removed from
- -mm tree
-Message-ID: <20210225191320.vyckNZ_Q4%akpm@linux-foundation.org>
+ mm-filemap-split-filemap_readahead-out-of-filemap_get_pages.patch removed
+ from -mm tree
+Message-ID: <20210225191314.Dx8IqSBFr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,21 +44,19 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: don't relock the page after calling readpage
+     Subject: mm/filemap: split filemap_readahead out of filemap_get_pages
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-dont-relock-the-page-after-calling-readpage.patch
+     mm-filemap-split-filemap_readahead-out-of-filemap_get_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: don't relock the page after calling readpage
+Subject: mm/filemap: split filemap_readahead out of filemap_get_pages
 
-We don't need to get the page lock again; we just need to wait for the I/O
-to finish, so use wait_on_page_locked_killable() like the other callers of
-->readpage.
+This simplifies the error handling.
 
-Link: https://lkml.kernel.org/r/20210122160140.223228-17-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210122160140.223228-15-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
@@ -66,42 +64,50 @@ Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ mm/filemap.c |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-dont-relock-the-page-after-calling-readpage
+--- a/mm/filemap.c~mm-filemap-split-filemap_readahead-out-of-filemap_get_pages
 +++ a/mm/filemap.c
-@@ -2214,23 +2214,16 @@ static int filemap_read_page(struct file
- 	error = mapping->a_ops->readpage(file, page);
- 	if (error)
- 		return error;
--	if (PageUptodate(page))
--		return 0;
- 
--	error = lock_page_killable(page);
-+	error = wait_on_page_locked_killable(page);
- 	if (error)
- 		return error;
--	if (!PageUptodate(page)) {
--		if (page->mapping == NULL) {
--			/* page truncated */
--			error = AOP_TRUNCATED_PAGE;
--		} else {
--			shrink_readahead_size_eio(&file->f_ra);
--			error = -EIO;
--		}
--	}
--	unlock_page(page);
--	return error;
-+	if (PageUptodate(page))
-+		return 0;
-+	if (!page->mapping)	/* page truncated */
-+		return AOP_TRUNCATED_PAGE;
-+	shrink_readahead_size_eio(&file->f_ra);
-+	return -EIO;
+@@ -2330,6 +2330,17 @@ error:
+ 	return error;
  }
  
- static bool filemap_range_uptodate(struct address_space *mapping,
++static int filemap_readahead(struct kiocb *iocb, struct file *file,
++		struct address_space *mapping, struct page *page,
++		pgoff_t last_index)
++{
++	if (iocb->ki_flags & IOCB_NOIO)
++		return -EAGAIN;
++	page_cache_async_readahead(mapping, &file->f_ra, file, page,
++			page->index, last_index - page->index);
++	return 0;
++}
++
+ static int filemap_get_pages(struct kiocb *iocb, struct iov_iter *iter,
+ 		struct pagevec *pvec)
+ {
+@@ -2367,17 +2378,15 @@ find_page:
+ got_pages:
+ 	{
+ 		struct page *page = pvec->pages[pvec->nr - 1];
+-		pgoff_t pg_index = page->index;
+ 
+ 		if (PageReadahead(page)) {
+-			if (iocb->ki_flags & IOCB_NOIO) {
++			err = filemap_readahead(iocb, filp, mapping, page,
++					last_index);
++			if (err) {
+ 				put_page(page);
+ 				pvec->nr--;
+-				err = -EAGAIN;
+ 				goto err;
+ 			}
+-			page_cache_async_readahead(mapping, ra, filp, page,
+-					pg_index, last_index - pg_index);
+ 		}
+ 
+ 		if (!PageUptodate(page)) {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
