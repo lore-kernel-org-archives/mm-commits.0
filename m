@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C3CFC433E6
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 838E4C433E9
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C856764F2A
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4AA3964F2A
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235037AbhBYTcr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:32:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38152 "EHLO mail.kernel.org"
+        id S235104AbhBYTc7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:32:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36914 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234849AbhBYTaP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:30:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A48AC64F2D;
-        Thu, 25 Feb 2021 19:16:55 +0000 (UTC)
+        id S234863AbhBYTaN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:30:13 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A00C864F2F;
+        Thu, 25 Feb 2021 19:17:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280615;
-        bh=MT+Ze1/x5wiwRomg7coDg9vEPmOPWuBTeKoe0lG9M08=;
+        s=korg; t=1614280635;
+        bh=CsJYfR2tYfsTcOjooLHLyVMNV1Vv1QFliM/FXOfRJNY=;
         h=Date:From:To:Subject:From;
-        b=db8dP3ZDJlxK8LUn1tyl94dT6Z3BABMnpdnSWkWzmkvPf1ZxeW4dWZhxFxGW3FOzG
-         GbJEU3mJLEg8Kh+ZOdowPZpZoWzpJag5Fuy8AVNeGuFvBXT19uTvM2jNfno77VXYs7
-         xeFWLVzZMzEvQo+6BaMrsc823yqzFVEwvULHEDLE=
-Date:   Thu, 25 Feb 2021 11:16:55 -0800
+        b=SKnDHt+2WuM6jnGIh4McAtr/9cQPV49Bhnhz0d/O57F6YLcs7VT8brnRPK+BdJRAQ
+         RtuF2Kr0zZfMPt1OOPZpW7o2VLIoqxVxEto4RdxhpbOa9fGSQoQlGMZ+hlgjBxmeHZ
+         QPEWZJcw6//aVoC974C8A2MjHxs115jF2YonM9+Q=
+Date:   Thu, 25 Feb 2021 11:17:15 -0800
 From:   akpm@linux-foundation.org
-To:     joao.m.martins@oracle.com, mike.kravetz@oracle.com,
+To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org
-Subject:  [merged] mm-hugetlb-refactor-subpage-recording.patch
+Subject:  [merged]
+ mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
  removed from -mm tree
-Message-ID: <20210225191655.4a35cLAuv%akpm@linux-foundation.org>
+Message-ID: <20210225191715.EueqgqvpJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,131 +44,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: refactor subpage recording
+     Subject: mm/hugetlb: use helper function range_in_vma() in page_table_shareable()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-refactor-subpage-recording.patch
+     mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/hugetlb: refactor subpage recording
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/hugetlb: use helper function range_in_vma() in page_table_shareable()
 
-For a given hugepage backing a VA, there's a rather ineficient loop which
-is solely responsible for storing subpages in GUP @pages/@vmas array.  For
-each subpage we check whether it's within range or size of @pages and keep
-increment @pfn_offset and a couple other variables per subpage iteration.
+We could use helper function range_in_vma() to check whether the vma is in
+the desired range to simplify the code.
 
-Simplify this logic and minimize the cost of each iteration to just store
-the output page/vma.  Instead of incrementing number of @refs iteratively,
-we do it through pre-calculation of @refs and only with a tight loop for
-storing pinned subpages/vmas.
-
-Additionally, retain existing behaviour with using mem_map_offset() when
-recording the subpages for configurations that don't have a contiguous
-mem_map.
-
-pinning consequently improves bringing us close to
-{pin,get}_user_pages_fast:
-
-  - 16G with 1G huge page size
-  gup_test -f /mnt/huge/file -m 16384 -r 30 -L -S -n 512 -w
-
-PIN_LONGTERM_BENCHMARK: ~12.8k us -> ~5.8k us
-PIN_FAST_BENCHMARK: ~3.7k us
-
-Link: https://lkml.kernel.org/r/20210128182632.24562-3-joao.m.martins@oracle.com
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Link: https://lkml.kernel.org/r/20210204112949.43051-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   49 ++++++++++++++++++++++++++++---------------------
- 1 file changed, 28 insertions(+), 21 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-refactor-subpage-recording
+--- a/mm/hugetlb.c~mm-hugetlb-use-helper-function-range_in_vma-in-page_table_shareable
 +++ a/mm/hugetlb.c
-@@ -4787,6 +4787,20 @@ out_release_nounlock:
- 	goto out;
- }
+@@ -5282,7 +5282,7 @@ static unsigned long page_table_shareabl
+ 	 */
+ 	if (pmd_index(addr) != pmd_index(saddr) ||
+ 	    vm_flags != svm_flags ||
+-	    sbase < svma->vm_start || svma->vm_end < s_end)
++	    !range_in_vma(svma, sbase, s_end))
+ 		return 0;
  
-+static void record_subpages_vmas(struct page *page, struct vm_area_struct *vma,
-+				 int refs, struct page **pages,
-+				 struct vm_area_struct **vmas)
-+{
-+	int nr;
-+
-+	for (nr = 0; nr < refs; nr++) {
-+		if (likely(pages))
-+			pages[nr] = mem_map_offset(page, nr);
-+		if (vmas)
-+			vmas[nr] = vma;
-+	}
-+}
-+
- long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			 struct page **pages, struct vm_area_struct **vmas,
- 			 unsigned long *position, unsigned long *nr_pages,
-@@ -4916,28 +4930,16 @@ long follow_hugetlb_page(struct mm_struc
- 			continue;
- 		}
- 
--		refs = 0;
-+		refs = min3(pages_per_huge_page(h) - pfn_offset,
-+			    (vma->vm_end - vaddr) >> PAGE_SHIFT, remainder);
- 
--same_page:
--		if (pages)
--			pages[i] = mem_map_offset(page, pfn_offset);
-+		if (pages || vmas)
-+			record_subpages_vmas(mem_map_offset(page, pfn_offset),
-+					     vma, refs,
-+					     likely(pages) ? pages + i : NULL,
-+					     vmas ? vmas + i : NULL);
- 
--		if (vmas)
--			vmas[i] = vma;
--
--		vaddr += PAGE_SIZE;
--		++pfn_offset;
--		--remainder;
--		++i;
--		++refs;
--		if (vaddr < vma->vm_end && remainder &&
--				pfn_offset < pages_per_huge_page(h)) {
--			/*
--			 * We use pfn_offset to avoid touching the pageframes
--			 * of this compound page.
--			 */
--			goto same_page;
--		} else if (pages) {
-+		if (pages) {
- 			/*
- 			 * try_grab_compound_head() should always succeed here,
- 			 * because: a) we hold the ptl lock, and b) we've just
-@@ -4948,7 +4950,7 @@ same_page:
- 			 * any way. So this page must be available at this
- 			 * point, unless the page refcount overflowed:
- 			 */
--			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i-1],
-+			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i],
- 								 refs,
- 								 flags))) {
- 				spin_unlock(ptl);
-@@ -4957,6 +4959,11 @@ same_page:
- 				break;
- 			}
- 		}
-+
-+		vaddr += (refs << PAGE_SHIFT);
-+		remainder -= refs;
-+		i += refs;
-+
- 		spin_unlock(ptl);
- 	}
- 	*nr_pages = remainder;
+ 	return saddr;
 _
 
-Patches currently in -mm which might be from joao.m.martins@oracle.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
+mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
+mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
+mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
+mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
+mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
+mm-rmap-correct-obsolete-comment-of-page_get_anon_vma.patch
+mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
+mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
+mm-zsmallocc-use-page_private-to-access-page-private.patch
 
