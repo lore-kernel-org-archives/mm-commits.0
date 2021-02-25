@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F3B1C4332D
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:21:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A434BC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:21:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F21BE64DE3
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:21:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 59F7564DF2
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:21:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233688AbhBYTU7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:20:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57688 "EHLO mail.kernel.org"
+        id S234587AbhBYTVB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:21:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57690 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234561AbhBYTRK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234545AbhBYTRK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:17:10 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8B4CF64F3A;
-        Thu, 25 Feb 2021 19:12:08 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A19864F3B;
+        Thu, 25 Feb 2021 19:11:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280328;
-        bh=cn55YUrEfSbfRlHF6AliiCVDorFjFLZfO0vIXsYXGoA=;
+        s=korg; t=1614280313;
+        bh=mqiFrThEtyIPz5ooGbMfsylNPCfFndG8e6KYAmSezS4=;
         h=Date:From:To:Subject:From;
-        b=FGIq4APFxs3Xdai3nZU081d4JCgEW17kDzzKQ4QcsGFfd5jlM0a9fkqL3s6ygk/b5
-         hEWiCvUteS05AVvDlDLYGP4vXECQdeP6kgcbbPZwayXZiUHzuyZ5faX+x1DqORmvFA
-         Yrpn11haTlsjI1qI+Tk6hsAGzoINIQ5nu0oldaBM=
-Date:   Thu, 25 Feb 2021 11:12:08 -0800
+        b=g1X4/Z0ZsiB9XIxuKkYF1xaLK0kf716vBOTQSYpTWdQTJRCSArnuuChSpGHKrHzb9
+         uMfMnT1Om+oZ+4mji6uGVXIBeGj7OzsY6imTs9MbboC65z7aWgR8OwY32vdyAfX4vF
+         uRsZJGDsZwr7ZDTmQ9/6EEwBLJfDKVac35EZmxgA=
+Date:   Thu, 25 Feb 2021 11:11:53 -0800
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, iamjoonsoo.kim@lge.com, jannh@google.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz
-Subject:  [merged]
- mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch removed from
- -mm tree
-Message-ID: <20210225191208.EVNIWFDwH%akpm@linux-foundation.org>
+To:     daizhiyuan@phytium.com.cn, mm-commits@vger.kernel.org,
+        rientjes@google.com
+Subject:  [merged] mm-slab-minor-coding-style-tweaks.patch removed
+ from -mm tree
+Message-ID: <20210225191153.yfOcickwn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,141 +43,86 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: splice cpu and page freelists in deactivate_slab()
+     Subject: mm/slab: minor coding style tweaks
 has been removed from the -mm tree.  Its filename was
-     mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch
+     mm-slab-minor-coding-style-tweaks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: splice cpu and page freelists in deactivate_slab()
+From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+Subject: mm/slab: minor coding style tweaks
 
-In deactivate_slab() we currently move all but one objects on the cpu
-freelist to the page freelist one by one using the costly cmpxchg_double()
-operation.  Then we unfreeze the page while moving the last object on page
-freelist, with a final cmpxchg_double().
+Fix some coding style issues, improve code reading.  Adds whitespace to
+clearly separate the parameters.
 
-This can be optimized to avoid the cmpxchg_double() per object.  Just
-count the objects on cpu freelist (to adjust page->inuse properly) and
-also remember the last object in the chain.  Then splice page->freelist to
-the last object and effectively add the whole cpu freelist to
-page->freelist while unfreezing the page, with a single cmpxchg_double().
-
-Link: https://lkml.kernel.org/r/20210115183543.15097-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Jann Horn <jannh@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lkml.kernel.org/r/1612841499-32166-1-git-send-email-daizhiyuan@phytium.com.cn
+Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   59 +++++++++++++++++++++-------------------------------
- 1 file changed, 24 insertions(+), 35 deletions(-)
+ mm/slab.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/slub.c~mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab
-+++ a/mm/slub.c
-@@ -2167,9 +2167,9 @@ static void deactivate_slab(struct kmem_
+--- a/mm/slab.c~mm-slab-minor-coding-style-tweaks
++++ a/mm/slab.c
+@@ -272,7 +272,7 @@ static void kmem_cache_node_init(struct
+ #define	STATS_DEC_ACTIVE(x)	((x)->num_active--)
+ #define	STATS_INC_ALLOCED(x)	((x)->num_allocations++)
+ #define	STATS_INC_GROWN(x)	((x)->grown++)
+-#define	STATS_ADD_REAPED(x,y)	((x)->reaped += (y))
++#define	STATS_ADD_REAPED(x, y)	((x)->reaped += (y))
+ #define	STATS_SET_HIGH(x)						\
+ 	do {								\
+ 		if ((x)->num_active > (x)->high_mark)			\
+@@ -296,7 +296,7 @@ static void kmem_cache_node_init(struct
+ #define	STATS_DEC_ACTIVE(x)	do { } while (0)
+ #define	STATS_INC_ALLOCED(x)	do { } while (0)
+ #define	STATS_INC_GROWN(x)	do { } while (0)
+-#define	STATS_ADD_REAPED(x,y)	do { (void)(y); } while (0)
++#define	STATS_ADD_REAPED(x, y)	do { (void)(y); } while (0)
+ #define	STATS_SET_HIGH(x)	do { } while (0)
+ #define	STATS_INC_ERR(x)	do { } while (0)
+ #define	STATS_INC_NODEALLOCS(x)	do { } while (0)
+@@ -332,7 +332,7 @@ static int obj_offset(struct kmem_cache
+ static unsigned long long *dbg_redzone1(struct kmem_cache *cachep, void *objp)
  {
- 	enum slab_modes { M_NONE, M_PARTIAL, M_FULL, M_FREE };
- 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
--	int lock = 0;
-+	int lock = 0, free_delta = 0;
- 	enum slab_modes l = M_NONE, m = M_NONE;
--	void *nextfree;
-+	void *nextfree, *freelist_iter, *freelist_tail;
- 	int tail = DEACTIVATE_TO_HEAD;
- 	struct page new;
- 	struct page old;
-@@ -2180,45 +2180,34 @@ static void deactivate_slab(struct kmem_
- 	}
+ 	BUG_ON(!(cachep->flags & SLAB_RED_ZONE));
+-	return (unsigned long long*) (objp + obj_offset(cachep) -
++	return (unsigned long long *) (objp + obj_offset(cachep) -
+ 				      sizeof(unsigned long long));
+ }
  
- 	/*
--	 * Stage one: Free all available per cpu objects back
--	 * to the page freelist while it is still frozen. Leave the
--	 * last one.
--	 *
--	 * There is no need to take the list->lock because the page
--	 * is still frozen.
-+	 * Stage one: Count the objects on cpu's freelist as free_delta and
-+	 * remember the last object in freelist_tail for later splicing.
- 	 */
--	while (freelist && (nextfree = get_freepointer(s, freelist))) {
--		void *prior;
--		unsigned long counters;
-+	freelist_tail = NULL;
-+	freelist_iter = freelist;
-+	while (freelist_iter) {
-+		nextfree = get_freepointer(s, freelist_iter);
+@@ -580,7 +580,7 @@ static int transfer_objects(struct array
+ 	if (!nr)
+ 		return 0;
  
- 		/*
- 		 * If 'nextfree' is invalid, it is possible that the object at
--		 * 'freelist' is already corrupted.  So isolate all objects
--		 * starting at 'freelist'.
-+		 * 'freelist_iter' is already corrupted.  So isolate all objects
-+		 * starting at 'freelist_iter' by skipping them.
- 		 */
--		if (freelist_corrupted(s, page, &freelist, nextfree))
-+		if (freelist_corrupted(s, page, &freelist_iter, nextfree))
- 			break;
+-	memcpy(to->entry + to->avail, from->entry + from->avail -nr,
++	memcpy(to->entry + to->avail, from->entry + from->avail - nr,
+ 			sizeof(void *) *nr);
  
--		do {
--			prior = page->freelist;
--			counters = page->counters;
--			set_freepointer(s, freelist, prior);
--			new.counters = counters;
--			new.inuse--;
--			VM_BUG_ON(!new.frozen);
--
--		} while (!__cmpxchg_double_slab(s, page,
--			prior, counters,
--			freelist, new.counters,
--			"drain percpu freelist"));
-+		freelist_tail = freelist_iter;
-+		free_delta++;
+ 	from->avail -= nr;
+@@ -2737,7 +2737,7 @@ static void *cache_free_debugcheck(struc
  
--		freelist = nextfree;
-+		freelist_iter = nextfree;
- 	}
+ #else
+ #define kfree_debugcheck(x) do { } while(0)
+-#define cache_free_debugcheck(x,objp,z) (objp)
++#define cache_free_debugcheck(x, objp, z) (objp)
+ #endif
  
- 	/*
--	 * Stage two: Ensure that the page is unfrozen while the
--	 * list presence reflects the actual number of objects
--	 * during unfreeze.
-+	 * Stage two: Unfreeze the page while splicing the per-cpu
-+	 * freelist to the head of page's freelist.
-+	 *
-+	 * Ensure that the page is unfrozen while the list presence
-+	 * reflects the actual number of objects during unfreeze.
- 	 *
- 	 * We setup the list membership and then perform a cmpxchg
- 	 * with the count. If there is a mismatch then the page
-@@ -2231,15 +2220,15 @@ static void deactivate_slab(struct kmem_
- 	 */
- redo:
+ static inline void fixup_objfreelist_debug(struct kmem_cache *cachep,
+@@ -3024,7 +3024,7 @@ static void *cache_alloc_debugcheck_afte
+ 	return objp;
+ }
+ #else
+-#define cache_alloc_debugcheck_after(a,b,objp,d) (objp)
++#define cache_alloc_debugcheck_after(a, b, objp, d) (objp)
+ #endif
  
--	old.freelist = page->freelist;
--	old.counters = page->counters;
-+	old.freelist = READ_ONCE(page->freelist);
-+	old.counters = READ_ONCE(page->counters);
- 	VM_BUG_ON(!old.frozen);
- 
- 	/* Determine target state of the slab */
- 	new.counters = old.counters;
--	if (freelist) {
--		new.inuse--;
--		set_freepointer(s, freelist, old.freelist);
-+	if (freelist_tail) {
-+		new.inuse -= free_delta;
-+		set_freepointer(s, freelist_tail, old.freelist);
- 		new.freelist = freelist;
- 	} else
- 		new.freelist = old.freelist;
+ static inline void *____cache_alloc(struct kmem_cache *cachep, gfp_t flags)
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
 
-maintainers-add-uapi-directories-to-api-abi-section.patch
 
