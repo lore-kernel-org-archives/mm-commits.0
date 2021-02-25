@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A75BC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A99F3C4332D
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:37:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B42664F18
+	by mail.kernel.org (Postfix) with ESMTP id 5DFD464E90
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:37:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233804AbhBYThR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:37:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41330 "EHLO mail.kernel.org"
+        id S234637AbhBYThT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:37:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41328 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234986AbhBYTfO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234962AbhBYTfO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:35:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 923F464F40;
-        Thu, 25 Feb 2021 19:19:25 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 802F564FC6;
+        Thu, 25 Feb 2021 19:19:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280765;
-        bh=I83TWsTc/2c9Wgov7oEsfNDjVu4yXw9q2jEw2yPKk18=;
+        s=korg; t=1614280748;
+        bh=0Nt2WxrKhaA6Fl/BnbQag4607tIVr86Ycdphlf++C9k=;
         h=Date:From:To:Subject:From;
-        b=YrYMqiuIavvYG92ug/JM/42vjxbWfmkrfFHFuTCV1uBjxCz3nzTHhsY+W1zx7IYCO
-         nHIH3h8DROC1cOz+cP7N6B7O9bKBpWn1l1qvQ5eIz5hUFM8QSMVQo1dq9/bqW++EGT
-         2m2i8AvSOB6eI8J3Sm5BhoqG1oac2JZUzfJawkQM=
-Date:   Thu, 25 Feb 2021 11:19:25 -0800
+        b=Wt2RTPBq/qB5zzmgpwLkvHbsm3mAnaHCYUDNa1vcS/pDRyZgc6qIlVLLnOGtemBKm
+         y9erIMR9yqZGepxbCf868sQL52CHTehax4J6IIs+OQIzCyhHv2GjlBs7jhu5hLo0gj
+         sA71iBPw8pxFsqt4nmDqPSlz1abRJxSd2wmKLB0o=
+Date:   Thu, 25 Feb 2021 11:19:08 -0800
 From:   akpm@linux-foundation.org
 To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org
-Subject:  [merged] hugetlbfs-fix-some-comment-typos.patch removed
+Subject:  [merged]
+ hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch removed
  from -mm tree
-Message-ID: <20210225191925.t-iELAScb%akpm@linux-foundation.org>
+Message-ID: <20210225191908.jwP0eOQyg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,58 +44,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: fix some comment typos
+     Subject: hugetlbfs: remove useless BUG_ON(!inode) in hugetlbfs_setattr()
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-fix-some-comment-typos.patch
+     hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlbfs: fix some comment typos
+Subject: hugetlbfs: remove useless BUG_ON(!inode) in hugetlbfs_setattr()
 
-Fix typos reserv to reserve, minimim to minimum. No functional change
-intended.
+When we reach here with inode = NULL, we should have crashed as inode has
+already been dereferenced via hstate_inode.  So this BUG_ON(!inode) does
+not take effect and should be removed.
 
-Link: https://lkml.kernel.org/r/20210130092351.28072-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210118110700.52506-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/hugetlbfs/inode.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-fix-some-comment-typos
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr
 +++ a/fs/hugetlbfs/inode.c
-@@ -442,15 +442,15 @@ hugetlb_vmdelete_list(struct rb_root_cac
-  *
-  * truncation is indicated by end of range being LLONG_MAX
-  *	In this case, we first scan the range and release found pages.
-- *	After releasing pages, hugetlb_unreserve_pages cleans up region/reserv
-+ *	After releasing pages, hugetlb_unreserve_pages cleans up region/reserve
-  *	maps and global counts.  Page faults can not race with truncation
-  *	in this routine.  hugetlb_no_page() holds i_mmap_rwsem and prevents
-  *	page faults in the truncated range by checking i_size.  i_size is
-  *	modified while holding i_mmap_rwsem.
-  * hole punch is indicated if end is not LLONG_MAX
-  *	In the hole punch case we scan the range and release found pages.
-- *	Only when releasing a page is the associated region/reserv map
-- *	deleted.  The region/reserv map for ranges without associated
-+ *	Only when releasing a page is the associated region/reserve map
-+ *	deleted.  The region/reserve map for ranges without associated
-  *	pages are not modified.  Page faults can race with hole punch.
-  *	This is indicated if we find a mapped page.
-  * Note: If the passed end of range value is beyond the end of file, but
-@@ -1343,7 +1343,7 @@ hugetlbfs_fill_super(struct super_block
+@@ -761,8 +761,6 @@ static int hugetlbfs_setattr(struct user
+ 	unsigned int ia_valid = attr->ia_valid;
+ 	struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
  
- 	/*
- 	 * Allocate and initialize subpool if maximum or minimum size is
--	 * specified.  Any needed reservations (for minimim size) are taken
-+	 * specified.  Any needed reservations (for minimum size) are taken
- 	 * taken when the subpool is created.
- 	 */
- 	if (ctx->max_hpages != -1 || ctx->min_hpages != -1) {
+-	BUG_ON(!inode);
+-
+ 	error = setattr_prepare(&init_user_ns, dentry, attr);
+ 	if (error)
+ 		return error;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
