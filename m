@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64981C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26DA4C43381
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 28FF164F29
+	by mail.kernel.org (Postfix) with ESMTP id D7AA564F29
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:35:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234899AbhBYTfI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:35:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41312 "EHLO mail.kernel.org"
+        id S234900AbhBYTfJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:35:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41326 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235066AbhBYTc7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235075AbhBYTc7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:32:59 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C02B364FA6;
-        Thu, 25 Feb 2021 19:17:51 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 96E6564FAE;
+        Thu, 25 Feb 2021 19:18:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280672;
-        bh=wOq0tKO6hDAv6h5fjzvyrpBq/dcjDfvLbwOIDKJoKdE=;
+        s=korg; t=1614280693;
+        bh=XdsAAtEWMFzGz0iULZWMPm5tuzVj1IjJVUHDvzopfL8=;
         h=Date:From:To:Subject:From;
-        b=CvZ7AWWKA/knegLXql9i25Wlv2cuJvmDxgl6mZrsw5wIjQLOJnfrrHrwD5jGfdjHA
-         jGdqLZFo0QZYxm6frmgmR077nmesWUwpf9W3LG/L1SIpGAaGVINnSyWmyv5bCyq/hI
-         Bbu+8nWDKPaACDkZjszDhB4XRNb+dMbLL5pxyJSo=
-Date:   Thu, 25 Feb 2021 11:17:51 -0800
+        b=DzJEYMGqgAGjR4DzWIth5ryEdi3UG2DQ89Y+6ftNq+QftFXCGce2xUAvG3alnquIR
+         ykAaITNw/wNDazgxRABF0pssGzRvd1sKaXozkDo3xzTzJjT1sc6veiDuEFiT+OM66a
+         4YmwNrfJNr86ojYCSLrWCll+uYe0+QyAUbLcSaQQ=
+Date:   Thu, 25 Feb 2021 11:18:12 -0800
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org,
-        hughd@google.com, mhocko@kernel.org, mm-commits@vger.kernel.org,
-        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
-        yuzhao@google.com
+To:     david@redhat.com, linmiaohe@huawei.com, mhocko@suse.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        n-horiguchi@ah.jp.nec.com, osalvador@suse.de,
+        songmuchun@bytedance.com, willy@infradead.org
 Subject:  [merged]
- mm-dont-pass-enum-lru_list-to-del_page_from_lru_list.patch removed from -mm
- tree
-Message-ID: <20210225191751.lmSixdTOD%akpm@linux-foundation.org>
+ hugetlb-use-pageprivate-for-hugetlb-specific-page-flags.patch removed from
+ -mm tree
+Message-ID: <20210225191812.lG9PmO2ob%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,197 +46,334 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap.c: don't pass "enum lru_list" to del_page_from_lru_list()
+     Subject: hugetlb: use page.private for hugetlb specific page flags
 has been removed from the -mm tree.  Its filename was
-     mm-dont-pass-enum-lru_list-to-del_page_from_lru_list.patch
+     hugetlb-use-pageprivate-for-hugetlb-specific-page-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/swap.c: don't pass "enum lru_list" to del_page_from_lru_list()
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: use page.private for hugetlb specific page flags
 
-The parameter is redundant in the sense that it can be potentially
-extracted from the "struct page" parameter by page_lru(). We need to
-make sure that existing PageActive() or PageUnevictable() remains
-until the function returns. A few places don't conform, and simple
-reordering fixes them.
+Patch series "create hugetlb flags to consolidate state", v3.
 
-This patch may have left page_off_lru() seemingly odd, and we'll take
-care of it in the next patch.
+While discussing a series of hugetlb fixes in [1], it became evident that
+the hugetlb specific page state information is stored in a somewhat
+haphazard manner.  Code dealing with state information would be easier to
+read, understand and maintain if this information was stored in a
+consistent manner.
 
-Link: https://lore.kernel.org/linux-mm/20201207220949.830352-6-yuzhao@google.com/
-Link: https://lkml.kernel.org/r/20210122220600.906146-6-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+This series uses page.private of the hugetlb head page for storing a set
+of hugetlb specific page flags.  Routines are priovided for test, set and
+clear of the flags.
+
+[1] https://lore.kernel.org/r/20210106084739.63318-1-songmuchun@bytedance.com
+
+
+This patch (of 4):
+
+As hugetlbfs evolved, state information about hugetlb pages was added. 
+One 'convenient' way of doing this was to use available fields in tail
+pages.  Over time, it has become difficult to know the meaning or contents
+of fields simply by looking at a small bit of code.  Sometimes, the naming
+is just confusing.  For example: The PagePrivate flag indicates a huge
+page reservation was consumed and needs to be restored if an error is
+encountered and the page is freed before it is instantiated.  The
+page.private field contains the pointer to a subpool if the page is
+associated with one.
+
+In an effort to make the code more readable, use page.private to contain
+hugetlb specific page flags.  These flags will have test, set and clear
+functions similar to those used for 'normal' page flags.  More
+importantly, an enum of flag values will be created with names that
+actually reflect their purpose.
+
+In this patch,
+- Create infrastructure for hugetlb specific page flag functions
+- Move subpool pointer to page[1].private to make way for flags
+  Create routines with meaningful names to modify subpool field
+- Use new HPageRestoreReserve flag instead of PagePrivate
+
+Conversion of other state information will happen in subsequent patches.
+
+Link: https://lkml.kernel.org/r/20210122195231.324857-1-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20210122195231.324857-2-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    5 +++--
- mm/compaction.c           |    2 +-
- mm/mlock.c                |    3 +--
- mm/swap.c                 |   26 ++++++++++----------------
- mm/vmscan.c               |    4 ++--
- 5 files changed, 17 insertions(+), 23 deletions(-)
+ fs/hugetlbfs/inode.c    |   12 +-----
+ include/linux/hugetlb.h |   68 ++++++++++++++++++++++++++++++++++++++
+ mm/hugetlb.c            |   48 +++++++++++++-------------
+ 3 files changed, 96 insertions(+), 32 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-dont-pass-enum-lru_list-to-del_page_from_lru_list
-+++ a/include/linux/mm_inline.h
-@@ -124,9 +124,10 @@ static __always_inline void add_page_to_
- }
+--- a/fs/hugetlbfs/inode.c~hugetlb-use-pageprivate-for-hugetlb-specific-page-flags
++++ a/fs/hugetlbfs/inode.c
+@@ -973,15 +973,9 @@ static int hugetlbfs_migrate_page(struct
+ 	if (rc != MIGRATEPAGE_SUCCESS)
+ 		return rc;
  
- static __always_inline void del_page_from_lru_list(struct page *page,
--				struct lruvec *lruvec, enum lru_list lru)
-+				struct lruvec *lruvec)
- {
- 	list_del(&page->lru);
--	update_lru_size(lruvec, lru, page_zonenum(page), -thp_nr_pages(page));
-+	update_lru_size(lruvec, page_lru(page), page_zonenum(page),
-+			-thp_nr_pages(page));
- }
- #endif
---- a/mm/compaction.c~mm-dont-pass-enum-lru_list-to-del_page_from_lru_list
-+++ a/mm/compaction.c
-@@ -1034,7 +1034,7 @@ isolate_migratepages_block(struct compac
- 			low_pfn += compound_nr(page) - 1;
- 
- 		/* Successfully isolated */
--		del_page_from_lru_list(page, lruvec, page_lru(page));
-+		del_page_from_lru_list(page, lruvec);
- 		mod_node_page_state(page_pgdat(page),
- 				NR_ISOLATED_ANON + page_is_file_lru(page),
- 				thp_nr_pages(page));
---- a/mm/mlock.c~mm-dont-pass-enum-lru_list-to-del_page_from_lru_list
-+++ a/mm/mlock.c
-@@ -278,8 +278,7 @@ static void __munlock_pagevec(struct pag
- 			 */
- 			if (TestClearPageLRU(page)) {
- 				lruvec = relock_page_lruvec_irq(page, lruvec);
--				del_page_from_lru_list(page, lruvec,
--							page_lru(page));
-+				del_page_from_lru_list(page, lruvec);
- 				continue;
- 			} else
- 				__munlock_isolation_failed(page);
---- a/mm/swap.c~mm-dont-pass-enum-lru_list-to-del_page_from_lru_list
-+++ a/mm/swap.c
-@@ -85,7 +85,8 @@ static void __page_cache_release(struct
- 		lruvec = lock_page_lruvec_irqsave(page, &flags);
- 		VM_BUG_ON_PAGE(!PageLRU(page), page);
- 		__ClearPageLRU(page);
--		del_page_from_lru_list(page, lruvec, page_off_lru(page));
-+		del_page_from_lru_list(page, lruvec);
-+		page_off_lru(page);
- 		unlock_page_lruvec_irqrestore(lruvec, flags);
+-	/*
+-	 * page_private is subpool pointer in hugetlb pages.  Transfer to
+-	 * new page.  PagePrivate is not associated with page_private for
+-	 * hugetlb pages and can not be set here as only page_huge_active
+-	 * pages can be migrated.
+-	 */
+-	if (page_private(page)) {
+-		set_page_private(newpage, page_private(page));
+-		set_page_private(page, 0);
++	if (hugetlb_page_subpool(page)) {
++		hugetlb_set_page_subpool(newpage, hugetlb_page_subpool(page));
++		hugetlb_set_page_subpool(page, NULL);
  	}
- 	__ClearPageWaiters(page);
-@@ -229,7 +230,7 @@ static void pagevec_lru_move_fn(struct p
- static void pagevec_move_tail_fn(struct page *page, struct lruvec *lruvec)
- {
- 	if (!PageUnevictable(page)) {
--		del_page_from_lru_list(page, lruvec, page_lru(page));
-+		del_page_from_lru_list(page, lruvec);
- 		ClearPageActive(page);
- 		add_page_to_lru_list_tail(page, lruvec);
- 		__count_vm_events(PGROTATED, thp_nr_pages(page));
-@@ -308,10 +309,9 @@ void lru_note_cost_page(struct page *pag
- static void __activate_page(struct page *page, struct lruvec *lruvec)
- {
- 	if (!PageActive(page) && !PageUnevictable(page)) {
--		int lru = page_lru_base_type(page);
- 		int nr_pages = thp_nr_pages(page);
  
--		del_page_from_lru_list(page, lruvec, lru);
-+		del_page_from_lru_list(page, lruvec);
- 		SetPageActive(page);
- 		add_page_to_lru_list(page, lruvec);
- 		trace_mm_lru_activate(page);
-@@ -518,8 +518,7 @@ void lru_cache_add_inactive_or_unevictab
+ 	if (mode != MIGRATE_SYNC_NO_COPY)
+--- a/include/linux/hugetlb.h~hugetlb-use-pageprivate-for-hugetlb-specific-page-flags
++++ a/include/linux/hugetlb.h
+@@ -472,6 +472,60 @@ unsigned long hugetlb_get_unmapped_area(
+ 					unsigned long flags);
+ #endif /* HAVE_ARCH_HUGETLB_UNMAPPED_AREA */
+ 
++/*
++ * huegtlb page specific state flags.  These flags are located in page.private
++ * of the hugetlb head page.  Functions created via the below macros should be
++ * used to manipulate these flags.
++ *
++ * HPG_restore_reserve - Set when a hugetlb page consumes a reservation at
++ *	allocation time.  Cleared when page is fully instantiated.  Free
++ *	routine checks flag to restore a reservation on error paths.
++ */
++enum hugetlb_page_flags {
++	HPG_restore_reserve = 0,
++	__NR_HPAGEFLAGS,
++};
++
++/*
++ * Macros to create test, set and clear function definitions for
++ * hugetlb specific page flags.
++ */
++#ifdef CONFIG_HUGETLB_PAGE
++#define TESTHPAGEFLAG(uname, flname)				\
++static inline int HPage##uname(struct page *page)		\
++	{ return test_bit(HPG_##flname, &(page->private)); }
++
++#define SETHPAGEFLAG(uname, flname)				\
++static inline void SetHPage##uname(struct page *page)		\
++	{ set_bit(HPG_##flname, &(page->private)); }
++
++#define CLEARHPAGEFLAG(uname, flname)				\
++static inline void ClearHPage##uname(struct page *page)		\
++	{ clear_bit(HPG_##flname, &(page->private)); }
++#else
++#define TESTHPAGEFLAG(uname, flname)				\
++static inline int HPage##uname(struct page *page)		\
++	{ return 0; }
++
++#define SETHPAGEFLAG(uname, flname)				\
++static inline void SetHPage##uname(struct page *page)		\
++	{ }
++
++#define CLEARHPAGEFLAG(uname, flname)				\
++static inline void ClearHPage##uname(struct page *page)		\
++	{ }
++#endif
++
++#define HPAGEFLAG(uname, flname)				\
++	TESTHPAGEFLAG(uname, flname)				\
++	SETHPAGEFLAG(uname, flname)				\
++	CLEARHPAGEFLAG(uname, flname)				\
++
++/*
++ * Create functions associated with hugetlb page flags
++ */
++HPAGEFLAG(RestoreReserve, restore_reserve)
++
+ #ifdef CONFIG_HUGETLB_PAGE
+ 
+ #define HSTATE_NAME_LEN 32
+@@ -531,6 +585,20 @@ extern unsigned int default_hstate_idx;
+ 
+ #define default_hstate (hstates[default_hstate_idx])
+ 
++/*
++ * hugetlb page subpool pointer located in hpage[1].private
++ */
++static inline struct hugepage_subpool *hugetlb_page_subpool(struct page *hpage)
++{
++	return (struct hugepage_subpool *)(hpage+1)->private;
++}
++
++static inline void hugetlb_set_page_subpool(struct page *hpage,
++					struct hugepage_subpool *subpool)
++{
++	set_page_private(hpage+1, (unsigned long)subpool);
++}
++
+ static inline struct hstate *hstate_file(struct file *f)
+ {
+ 	return hstate_inode(file_inode(f));
+--- a/mm/hugetlb.c~hugetlb-use-pageprivate-for-hugetlb-specific-page-flags
++++ a/mm/hugetlb.c
+@@ -1143,7 +1143,7 @@ static struct page *dequeue_huge_page_vm
+ 	nid = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
+ 	page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
+ 	if (page && !avoid_reserve && vma_has_reserves(vma, chg)) {
+-		SetPagePrivate(page);
++		SetHPageRestoreReserve(page);
+ 		h->resv_huge_pages--;
+ 	}
+ 
+@@ -1418,20 +1418,19 @@ static void __free_huge_page(struct page
+ 	 */
+ 	struct hstate *h = page_hstate(page);
+ 	int nid = page_to_nid(page);
+-	struct hugepage_subpool *spool =
+-		(struct hugepage_subpool *)page_private(page);
++	struct hugepage_subpool *spool = hugetlb_page_subpool(page);
+ 	bool restore_reserve;
+ 
+ 	VM_BUG_ON_PAGE(page_count(page), page);
+ 	VM_BUG_ON_PAGE(page_mapcount(page), page);
+ 
+-	set_page_private(page, 0);
++	hugetlb_set_page_subpool(page, NULL);
+ 	page->mapping = NULL;
+-	restore_reserve = PagePrivate(page);
+-	ClearPagePrivate(page);
++	restore_reserve = HPageRestoreReserve(page);
++	ClearHPageRestoreReserve(page);
+ 
+ 	/*
+-	 * If PagePrivate() was set on page, page allocation consumed a
++	 * If HPageRestoreReserve was set on page, page allocation consumed a
+ 	 * reservation.  If the page was associated with a subpool, there
+ 	 * would have been a page reserved in the subpool before allocation
+ 	 * via hugepage_subpool_get_pages().  Since we are 'restoring' the
+@@ -2263,24 +2262,24 @@ static long vma_add_reservation(struct h
+  * This routine is called to restore a reservation on error paths.  In the
+  * specific error paths, a huge page was allocated (via alloc_huge_page)
+  * and is about to be freed.  If a reservation for the page existed,
+- * alloc_huge_page would have consumed the reservation and set PagePrivate
+- * in the newly allocated page.  When the page is freed via free_huge_page,
+- * the global reservation count will be incremented if PagePrivate is set.
+- * However, free_huge_page can not adjust the reserve map.  Adjust the
+- * reserve map here to be consistent with global reserve count adjustments
+- * to be made by free_huge_page.
++ * alloc_huge_page would have consumed the reservation and set
++ * HPageRestoreReserve in the newly allocated page.  When the page is freed
++ * via free_huge_page, the global reservation count will be incremented if
++ * HPageRestoreReserve is set.  However, free_huge_page can not adjust the
++ * reserve map.  Adjust the reserve map here to be consistent with global
++ * reserve count adjustments to be made by free_huge_page.
   */
- static void lru_deactivate_file_fn(struct page *page, struct lruvec *lruvec)
+ static void restore_reserve_on_error(struct hstate *h,
+ 			struct vm_area_struct *vma, unsigned long address,
+ 			struct page *page)
  {
--	int lru;
--	bool active;
-+	bool active = PageActive(page);
- 	int nr_pages = thp_nr_pages(page);
+-	if (unlikely(PagePrivate(page))) {
++	if (unlikely(HPageRestoreReserve(page))) {
+ 		long rc = vma_needs_reservation(h, vma, address);
  
- 	if (PageUnevictable(page))
-@@ -529,10 +528,7 @@ static void lru_deactivate_file_fn(struc
- 	if (page_mapped(page))
- 		return;
- 
--	active = PageActive(page);
--	lru = page_lru_base_type(page);
--
--	del_page_from_lru_list(page, lruvec, lru + active);
-+	del_page_from_lru_list(page, lruvec);
- 	ClearPageActive(page);
- 	ClearPageReferenced(page);
- 
-@@ -563,10 +559,9 @@ static void lru_deactivate_file_fn(struc
- static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec)
- {
- 	if (PageActive(page) && !PageUnevictable(page)) {
--		int lru = page_lru_base_type(page);
- 		int nr_pages = thp_nr_pages(page);
- 
--		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
-+		del_page_from_lru_list(page, lruvec);
- 		ClearPageActive(page);
- 		ClearPageReferenced(page);
- 		add_page_to_lru_list(page, lruvec);
-@@ -581,11 +576,9 @@ static void lru_lazyfree_fn(struct page
- {
- 	if (PageAnon(page) && PageSwapBacked(page) &&
- 	    !PageSwapCache(page) && !PageUnevictable(page)) {
--		bool active = PageActive(page);
- 		int nr_pages = thp_nr_pages(page);
- 
--		del_page_from_lru_list(page, lruvec,
--				       LRU_INACTIVE_ANON + active);
-+		del_page_from_lru_list(page, lruvec);
- 		ClearPageActive(page);
- 		ClearPageReferenced(page);
- 		/*
-@@ -919,7 +912,8 @@ void release_pages(struct page **pages,
- 
- 			VM_BUG_ON_PAGE(!PageLRU(page), page);
- 			__ClearPageLRU(page);
--			del_page_from_lru_list(page, lruvec, page_off_lru(page));
-+			del_page_from_lru_list(page, lruvec);
-+			page_off_lru(page);
- 		}
- 
- 		__ClearPageWaiters(page);
---- a/mm/vmscan.c~mm-dont-pass-enum-lru_list-to-del_page_from_lru_list
-+++ a/mm/vmscan.c
-@@ -1766,7 +1766,7 @@ int isolate_lru_page(struct page *page)
- 
- 		get_page(page);
- 		lruvec = lock_page_lruvec_irq(page);
--		del_page_from_lru_list(page, lruvec, page_lru(page));
-+		del_page_from_lru_list(page, lruvec);
- 		unlock_page_lruvec_irq(lruvec);
- 		ret = 0;
+ 		if (unlikely(rc < 0)) {
+ 			/*
+ 			 * Rare out of memory condition in reserve map
+-			 * manipulation.  Clear PagePrivate so that
++			 * manipulation.  Clear HPageRestoreReserve so that
+ 			 * global reserve count will not be incremented
+ 			 * by free_huge_page.  This will make it appear
+ 			 * as though the reservation for this page was
+@@ -2289,7 +2288,7 @@ static void restore_reserve_on_error(str
+ 			 * is better than inconsistent global huge page
+ 			 * accounting of reserve counts.
+ 			 */
+-			ClearPagePrivate(page);
++			ClearHPageRestoreReserve(page);
+ 		} else if (rc) {
+ 			rc = vma_add_reservation(h, vma, address);
+ 			if (unlikely(rc < 0))
+@@ -2297,7 +2296,7 @@ static void restore_reserve_on_error(str
+ 				 * See above comment about rare out of
+ 				 * memory condition.
+ 				 */
+-				ClearPagePrivate(page);
++				ClearHPageRestoreReserve(page);
+ 		} else
+ 			vma_end_reservation(h, vma, address);
  	}
-@@ -4283,8 +4283,8 @@ void check_move_unevictable_pages(struct
- 		lruvec = relock_page_lruvec_irq(page, lruvec);
- 		if (page_evictable(page) && PageUnevictable(page)) {
- 			VM_BUG_ON_PAGE(PageActive(page), page);
-+			del_page_from_lru_list(page, lruvec);
- 			ClearPageUnevictable(page);
--			del_page_from_lru_list(page, lruvec, LRU_UNEVICTABLE);
- 			add_page_to_lru_list(page, lruvec);
- 			pgrescued += nr_pages;
+@@ -2378,7 +2377,7 @@ struct page *alloc_huge_page(struct vm_a
+ 		if (!page)
+ 			goto out_uncharge_cgroup;
+ 		if (!avoid_reserve && vma_has_reserves(vma, gbl_chg)) {
+-			SetPagePrivate(page);
++			SetHPageRestoreReserve(page);
+ 			h->resv_huge_pages--;
  		}
+ 		spin_lock(&hugetlb_lock);
+@@ -2396,7 +2395,7 @@ struct page *alloc_huge_page(struct vm_a
+ 
+ 	spin_unlock(&hugetlb_lock);
+ 
+-	set_page_private(page, (unsigned long)spool);
++	hugetlb_set_page_subpool(page, spool);
+ 
+ 	map_commit = vma_commit_reservation(h, vma, addr);
+ 	if (unlikely(map_chg > map_commit)) {
+@@ -3170,6 +3169,9 @@ static int __init hugetlb_init(void)
+ {
+ 	int i;
+ 
++	BUILD_BUG_ON(sizeof_field(struct page, private) * BITS_PER_BYTE <
++			__NR_HPAGEFLAGS);
++
+ 	if (!hugepages_supported()) {
+ 		if (hugetlb_max_hstate || default_hstate_max_huge_pages)
+ 			pr_warn("HugeTLB: huge pages not supported, ignoring associated command-line parameters\n");
+@@ -4207,7 +4209,7 @@ retry_avoidcopy:
+ 	spin_lock(ptl);
+ 	ptep = huge_pte_offset(mm, haddr, huge_page_size(h));
+ 	if (likely(ptep && pte_same(huge_ptep_get(ptep), pte))) {
+-		ClearPagePrivate(new_page);
++		ClearHPageRestoreReserve(new_page);
+ 
+ 		/* Break COW */
+ 		huge_ptep_clear_flush(vma, haddr, ptep);
+@@ -4274,7 +4276,7 @@ int huge_add_to_page_cache(struct page *
+ 
+ 	if (err)
+ 		return err;
+-	ClearPagePrivate(page);
++	ClearHPageRestoreReserve(page);
+ 
+ 	/*
+ 	 * set page dirty so that it will not be removed from cache/file
+@@ -4436,7 +4438,7 @@ retry:
+ 		goto backout;
+ 
+ 	if (anon_rmap) {
+-		ClearPagePrivate(page);
++		ClearHPageRestoreReserve(page);
+ 		hugepage_add_new_anon_rmap(page, vma, haddr);
+ 	} else
+ 		page_dup_rmap(page, true);
+@@ -4750,7 +4752,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 	if (vm_shared) {
+ 		page_dup_rmap(page, true);
+ 	} else {
+-		ClearPagePrivate(page);
++		ClearHPageRestoreReserve(page);
+ 		hugepage_add_new_anon_rmap(page, dst_vma, dst_addr);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
 
