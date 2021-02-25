@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0EE5C433E6
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:28:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBC38C4332E
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:28:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C8CE64F47
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:28:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9891064F46
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:28:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234244AbhBYT2O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:28:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36918 "EHLO mail.kernel.org"
+        id S233659AbhBYT2Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:28:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234282AbhBYTZj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:25:39 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A7C5164F75;
-        Thu, 25 Feb 2021 19:14:59 +0000 (UTC)
+        id S233481AbhBYTZn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:25:43 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ABD9964F7A;
+        Thu, 25 Feb 2021 19:15:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280500;
-        bh=y9APxILmMMp7nfbHo6oErLLZIfXHt7HszSSKR1QOnmU=;
+        s=korg; t=1614280512;
+        bh=Bv8WL1SjKkAKi9B5fDZRvgbrlG1jsf28KhU3ghavasc=;
         h=Date:From:To:Subject:From;
-        b=GiRnnUEvle0rO1kXgVmMdeVz5BqGonh8lb7MyE9HatoaSEzRN6V57e1McjVIAAm9b
-         wtfYvVTeujnS797afkR4ZicbVF7sepD6+MvaWz8Nflv3GTZ3T5LFdLVn5SabekxIak
-         EPKP9xV0zw3eFRkTGSMMzEFJly6Fj2+ix9dTUTsk=
-Date:   Thu, 25 Feb 2021 11:14:59 -0800
+        b=kKxoft+ZoqrNAOCSZeoSNuf3ZB9GUzU93iRt7CBVrlizDuPA0GLIfnNQGSZQolcpB
+         7+G2VkfTpZgp0eWCTkbAMlOtccvraofl29zAwf3LwBn1XrRV2kvORJ03amQTg7+Gf/
+         Yume283wMPX2MqP9ZH04YPu0lx6Q+YCRH9epGagA=
+Date:   Thu, 25 Feb 2021 11:15:11 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, chrisw@sous-sol.org,
-        ian.pratt@xensource.com, linmiaohe@huawei.com, mingo@elte.hu,
-        mm-commits@vger.kernel.org
+To:     akpm@linux-foundation.org, alexander.h.duyck@linux.intel.com,
+        david@redhat.com, mm-commits@vger.kernel.org, sh_def@163.com
 Subject:  [merged]
- mm-memoryc-fix-potential-pte_unmap_unlock-pte-error.patch removed from -mm
- tree
-Message-ID: <20210225191459.er9D43bm0%akpm@linux-foundation.org>
+ mm-page_reporting-use-list_entry_is_head-in-page_reporting_cycle.patch
+ removed from -mm tree
+Message-ID: <20210225191511.5Ubu3PC4F%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,79 +44,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: fix potential pte_unmap_unlock pte error
+     Subject: mm/page_reporting: use list_entry_is_head() in page_reporting_cycle()
 has been removed from the -mm tree.  Its filename was
-     mm-memoryc-fix-potential-pte_unmap_unlock-pte-error.patch
+     mm-page_reporting-use-list_entry_is_head-in-page_reporting_cycle.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory.c: fix potential pte_unmap_unlock pte error
+From: sh <sh_def@163.com>
+Subject: mm/page_reporting: use list_entry_is_head() in page_reporting_cycle()
 
-If all pte entry is none in 'non-create' case, we would break the loop with
-pte unchanged.  Then the wrong pte - 1 would be passed to pte_unmap_unlock.
-This is a theoretical issue which may not be a real bug. So it's not worth
-cc stable.
+Replace '&next->lru != list' with list_entry_is_head().  No functional
+change.
 
-Link: https://lkml.kernel.org/r/20210205081925.59809-1-linmiaohe@huawei.com
-Fixes: aee16b3cee27 ("Add apply_to_page_range() which applies a function to a pte range")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/20201222182735.GA1257912@ubuntu-A520I-AC
+Signed-off-by: sh <sh_def@163.com>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ian Pratt <ian.pratt@xensource.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/page_reporting.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-memoryc-fix-potential-pte_unmap_unlock-pte-error
-+++ a/mm/memory.c
-@@ -2394,18 +2394,18 @@ static int apply_to_pte_range(struct mm_
- 				     pte_fn_t fn, void *data, bool create,
- 				     pgtbl_mod_mask *mask)
- {
--	pte_t *pte;
-+	pte_t *pte, *mapped_pte;
- 	int err = 0;
- 	spinlock_t *ptl;
- 
- 	if (create) {
--		pte = (mm == &init_mm) ?
-+		mapped_pte = pte = (mm == &init_mm) ?
- 			pte_alloc_kernel_track(pmd, addr, mask) :
- 			pte_alloc_map_lock(mm, pmd, addr, &ptl);
- 		if (!pte)
- 			return -ENOMEM;
- 	} else {
--		pte = (mm == &init_mm) ?
-+		mapped_pte = pte = (mm == &init_mm) ?
- 			pte_offset_kernel(pmd, addr) :
- 			pte_offset_map_lock(mm, pmd, addr, &ptl);
+--- a/mm/page_reporting.c~mm-page_reporting-use-list_entry_is_head-in-page_reporting_cycle
++++ a/mm/page_reporting.c
+@@ -211,7 +211,7 @@ page_reporting_cycle(struct page_reporti
  	}
-@@ -2428,7 +2428,7 @@ static int apply_to_pte_range(struct mm_
- 	arch_leave_lazy_mmu_mode();
  
- 	if (mm != &init_mm)
--		pte_unmap_unlock(pte-1, ptl);
-+		pte_unmap_unlock(mapped_pte, ptl);
- 	return err;
- }
+ 	/* Rotate any leftover pages to the head of the freelist */
+-	if (&next->lru != list && !list_is_first(&next->lru, list))
++	if (!list_entry_is_head(next, list, lru) && !list_is_first(&next->lru, list))
+ 		list_rotate_to_front(&next->lru, list);
  
+ 	spin_unlock_irq(&zone->lock);
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from sh_def@163.com are
 
-mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
-mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
-mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
-mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
-mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
-mm-rmap-correct-obsolete-comment-of-page_get_anon_vma.patch
-mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
-mm-zsmallocc-use-page_private-to-access-page-private.patch
 
