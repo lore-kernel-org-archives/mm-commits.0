@@ -7,35 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EE85C433E9
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77017C433E6
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 00FA964F27
+	by mail.kernel.org (Postfix) with ESMTP id 421DD64ECE
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234048AbhBYTZg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:25:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35724 "EHLO mail.kernel.org"
+        id S234188AbhBYTZf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:25:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35662 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234559AbhBYTXR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234458AbhBYTXR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:23:17 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AC05764F1A;
-        Thu, 25 Feb 2021 19:14:17 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DDCA664F64;
+        Thu, 25 Feb 2021 19:14:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280458;
-        bh=3TyQZim8AzCcRH97P1OL3AzVQh3CAGUvPhsZeUMwJR0=;
+        s=korg; t=1614280443;
+        bh=JOMHFRcrJXeRf1RfBWpAaYGTgUbAKaTmcH4UixJjbpM=;
         h=Date:From:To:Subject:From;
-        b=Qy4EOtI6UUe4D6YIbRr2aoJ+nQ2q8rKKU4WMz+jRs5S+KrkSZz/niZXvnKCu1miJu
-         tv0zjexexLh+3joGCQ8GX3aFmZG725fypj3oXq171Q+uotmrZa+pfPRDYnj464i9lb
-         /tV9hVSaeoTORWJFzvOw1RtzppZlqg2s0iOexB/A=
-Date:   Thu, 25 Feb 2021 11:14:17 -0800
+        b=ieMDiHfHgiJnQ0+Zril5ZSGntDvzfCpN0kXviIdbBTa7LORmWARn7oxWYiDMBW6Zb
+         GYzj6PnDLfrfonGrX6n6Hia1cACUaS+YX3Eug2c8WnQrjkbsRbxjex8KfcA2s6GMsC
+         w0bXGd7EX07zCx9j+1l2im3EY33vB0F7VP1BD8FM=
+Date:   Thu, 25 Feb 2021 11:14:02 -0800
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com,
-        shy828301@gmail.com, songmuchun@bytedance.com
-Subject:  [merged] mm-memcg-add-swapcache-stat-for-memcg-v2.patch
- removed from -mm tree
-Message-ID: <20210225191417.KS0jwdg5k%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, feng.tang@intel.com,
+        gregkh@linuxfoundation.org, guro@fb.com, hannes@cmpxchg.org,
+        hughd@google.com, iamjoonsoo.kim@lge.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, neilb@suse.de,
+        pankaj.gupta@cloud.ionos.com, rafael@kernel.org,
+        rdunlap@infradead.org, samitolvanen@google.com,
+        shakeelb@google.com, songmuchun@bytedance.com,
+        vdavydov.dev@gmail.com
+Subject:  [merged]
+ mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch removed from -mm
+ tree
+Message-ID: <20210225191402.e2fxqDCPp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,229 +50,210 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: add swapcache stat for memcg v2
+     Subject: mm: memcontrol: convert NR_SHMEM_THPS account to pages
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-add-swapcache-stat-for-memcg-v2.patch
+     mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: memcg: add swapcache stat for memcg v2
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcontrol: convert NR_SHMEM_THPS account to pages
 
-This patch adds swapcache stat for the cgroup v2.  The swapcache
-represents the memory that is accounted against both the memory and the
-swap limit of the cgroup.  The main motivation behind exposing the
-swapcache stat is for enabling users to gracefully migrate from cgroup
-v1's memsw counter to cgroup v2's memory and swap counters.
+Currently we use struct per_cpu_nodestat to cache the vmstat counters,
+which leads to inaccurate statistics especially THP vmstat counters.  In
+the systems with hundreds of processors it can be GBs of memory.  For
+example, for a 96 CPUs system, the threshold is the maximum number of 125.
+And the per cpu counters can cache 23.4375 GB in total.
 
-Cgroup v1's memsw limit allows users to limit the memory+swap usage of a
-workload but without control on the exact proportion of memory and swap. 
-Cgroup v2 provides separate limits for memory and swap which enables more
-control on the exact usage of memory and swap individually for the
-workload.
+The THP page is already a form of batched addition (it will add 512 worth
+of memory in one go) so skipping the batching seems like sensible. 
+Although every THP stats update overflows the per-cpu counter, resorting
+to atomic global updates.  But it can make the statistics more accuracy
+for the THP vmstat counters.
 
-With some little subtleties, the v1's memsw limit can be switched with the
-sum of the v2's memory and swap limits.  However the alternative for memsw
-usage is not yet available in cgroup v2.  Exposing per-cgroup swapcache
-stat enables that alternative.  Adding the memory usage and swap usage and
-subtracting the swapcache will approximate the memsw usage.  This will
-help in the transparent migration of the workloads depending on memsw
-usage and limit to v2' memory and swap counters.
+So we convert the NR_SHMEM_THPS account to pages.  This patch is
+consistent with 8f182270dfec ("mm/swap.c: flush lru pvecs on compound page
+arrival").  Doing this also can make the unit of vmstat counters more
+unified.  Finally, the unit of the vmstat counters are pages, kB and
+bytes.  The B/KB suffix can tell us that the unit is bytes or kB.  The
+rest which is without suffix are pages.
 
-The reasons these applications are still interested in this approximate
-memsw usage are: (1) these applications are not really interested in two
-separate memory and swap usage metrics.  A single usage metric is more
-simple to use and reason about for them.
-
-(2) The memsw usage metric hides the underlying system's swap setup from
-the applications.  Applications with multiple instances running in a
-datacenter with heterogeneous systems (some have swap and some don't) will
-keep seeing a consistent view of their usage.
-
-[akpm@linux-foundation.org: fix CONFIG_SWAP=n build]
-Link: https://lkml.kernel.org/r/20210108155813.2914586-3-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Roman Gushchin <guro@fb.com>
+Link: https://lkml.kernel.org/r/20201228164110.2838-5-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
+Cc: Rafael. J. Wysocki <rafael@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    4 +++
- drivers/base/node.c                     |    6 ++++
- include/linux/mmzone.h                  |    3 ++
- include/linux/swap.h                    |    6 +++-
- mm/memcontrol.c                         |    3 ++
- mm/migrate.c                            |    6 ++++
- mm/swap_state.c                         |   28 +---------------------
- mm/vmstat.c                             |    3 ++
- 8 files changed, 32 insertions(+), 27 deletions(-)
+ drivers/base/node.c    |    3 +--
+ fs/proc/meminfo.c      |    2 +-
+ include/linux/mmzone.h |    3 ++-
+ mm/filemap.c           |    2 +-
+ mm/huge_memory.c       |    3 ++-
+ mm/khugepaged.c        |    2 +-
+ mm/memcontrol.c        |   26 ++------------------------
+ mm/page_alloc.c        |    2 +-
+ mm/shmem.c             |    2 +-
+ 9 files changed, 12 insertions(+), 33 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcg-add-swapcache-stat-for-memcg-v2
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1299,6 +1299,10 @@ PAGE_SIZE multiple when read back.
- 		Amount of cached filesystem data that was modified and
- 		is currently being written back to disk
- 
-+	  swapcached
-+		Amount of swap cached in memory. The swapcache is accounted
-+		against both memory and swap usage.
-+
- 	  anon_thp
- 		Amount of memory used in anonymous mappings backed by
- 		transparent hugepages
---- a/drivers/base/node.c~mm-memcg-add-swapcache-stat-for-memcg-v2
+--- a/drivers/base/node.c~mm-memcontrol-convert-nr_shmem_thps-account-to-pages
 +++ a/drivers/base/node.c
-@@ -372,14 +372,19 @@ static ssize_t node_read_meminfo(struct
- 	struct pglist_data *pgdat = NODE_DATA(nid);
- 	struct sysinfo i;
- 	unsigned long sreclaimable, sunreclaimable;
-+	unsigned long swapcached = 0;
- 
- 	si_meminfo_node(&i, nid);
- 	sreclaimable = node_page_state_pages(pgdat, NR_SLAB_RECLAIMABLE_B);
- 	sunreclaimable = node_page_state_pages(pgdat, NR_SLAB_UNRECLAIMABLE_B);
-+#ifdef CONFIG_SWAP
-+	swapcached = node_page_state_pages(pgdat, NR_SWAPCACHE);
-+#endif
- 	len = sysfs_emit_at(buf, len,
- 			    "Node %d MemTotal:       %8lu kB\n"
- 			    "Node %d MemFree:        %8lu kB\n"
- 			    "Node %d MemUsed:        %8lu kB\n"
-+			    "Node %d SwapCached:     %8lu kB\n"
- 			    "Node %d Active:         %8lu kB\n"
- 			    "Node %d Inactive:       %8lu kB\n"
- 			    "Node %d Active(anon):   %8lu kB\n"
-@@ -391,6 +396,7 @@ static ssize_t node_read_meminfo(struct
- 			    nid, K(i.totalram),
- 			    nid, K(i.freeram),
- 			    nid, K(i.totalram - i.freeram),
-+			    nid, K(swapcached),
- 			    nid, K(node_page_state(pgdat, NR_ACTIVE_ANON) +
- 				   node_page_state(pgdat, NR_ACTIVE_FILE)),
- 			    nid, K(node_page_state(pgdat, NR_INACTIVE_ANON) +
---- a/include/linux/mmzone.h~mm-memcg-add-swapcache-stat-for-memcg-v2
-+++ a/include/linux/mmzone.h
-@@ -206,6 +206,9 @@ enum node_stat_item {
- 	NR_KERNEL_SCS_KB,	/* measured in KiB */
- #endif
- 	NR_PAGETABLE,		/* used for pagetables */
-+#ifdef CONFIG_SWAP
-+	NR_SWAPCACHE,
-+#endif
- 	NR_VM_NODE_STAT_ITEMS
- };
- 
---- a/include/linux/swap.h~mm-memcg-add-swapcache-stat-for-memcg-v2
-+++ a/include/linux/swap.h
-@@ -408,7 +408,11 @@ extern struct address_space *swapper_spa
- #define swap_address_space(entry)			    \
- 	(&swapper_spaces[swp_type(entry)][swp_offset(entry) \
- 		>> SWAP_ADDRESS_SPACE_SHIFT])
--extern unsigned long total_swapcache_pages(void);
-+static inline unsigned long total_swapcache_pages(void)
-+{
-+	return global_node_page_state(NR_SWAPCACHE);
-+}
-+
- extern void show_swap_cache_info(void);
- extern int add_to_swap(struct page *page);
- extern void *get_shadow_from_swap_cache(swp_entry_t entry);
---- a/mm/memcontrol.c~mm-memcg-add-swapcache-stat-for-memcg-v2
-+++ a/mm/memcontrol.c
-@@ -1521,6 +1521,9 @@ static const struct memory_stat memory_s
- 	{ "file_mapped",		NR_FILE_MAPPED			},
- 	{ "file_dirty",			NR_FILE_DIRTY			},
- 	{ "file_writeback",		NR_WRITEBACK			},
-+#ifdef CONFIG_SWAP
-+	{ "swapcached",			NR_SWAPCACHE			},
-+#endif
+@@ -462,8 +462,7 @@ static ssize_t node_read_meminfo(struct
  #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	{ "anon_thp",			NR_ANON_THPS			},
- 	{ "file_thp",			NR_FILE_THPS			},
---- a/mm/migrate.c~mm-memcg-add-swapcache-stat-for-memcg-v2
-+++ a/mm/migrate.c
-@@ -500,6 +500,12 @@ int migrate_page_move_mapping(struct add
- 			__mod_lruvec_state(old_lruvec, NR_SHMEM, -nr);
- 			__mod_lruvec_state(new_lruvec, NR_SHMEM, nr);
- 		}
-+#ifdef CONFIG_SWAP
-+		if (PageSwapCache(page)) {
-+			__mod_lruvec_state(old_lruvec, NR_SWAPCACHE, -nr);
-+			__mod_lruvec_state(new_lruvec, NR_SWAPCACHE, nr);
-+		}
-+#endif
- 		if (dirty && mapping_can_writeback(mapping)) {
- 			__mod_lruvec_state(old_lruvec, NR_FILE_DIRTY, -nr);
- 			__mod_zone_page_state(oldzone, NR_ZONE_WRITE_PENDING, -nr);
---- a/mm/swap_state.c~mm-memcg-add-swapcache-stat-for-memcg-v2
-+++ a/mm/swap_state.c
-@@ -68,32 +68,6 @@ static struct {
- 	unsigned long find_total;
- } swap_cache_info;
+ 			     ,
+ 			     nid, K(node_page_state(pgdat, NR_ANON_THPS)),
+-			     nid, K(node_page_state(pgdat, NR_SHMEM_THPS) *
+-				    HPAGE_PMD_NR),
++			     nid, K(node_page_state(pgdat, NR_SHMEM_THPS)),
+ 			     nid, K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED) *
+ 				    HPAGE_PMD_NR),
+ 			     nid, K(node_page_state(pgdat, NR_FILE_THPS)),
+--- a/fs/proc/meminfo.c~mm-memcontrol-convert-nr_shmem_thps-account-to-pages
++++ a/fs/proc/meminfo.c
+@@ -131,7 +131,7 @@ static int meminfo_proc_show(struct seq_
+ 	show_val_kb(m, "AnonHugePages:  ",
+ 		    global_node_page_state(NR_ANON_THPS));
+ 	show_val_kb(m, "ShmemHugePages: ",
+-		    global_node_page_state(NR_SHMEM_THPS) * HPAGE_PMD_NR);
++		    global_node_page_state(NR_SHMEM_THPS));
+ 	show_val_kb(m, "ShmemPmdMapped: ",
+ 		    global_node_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR);
+ 	show_val_kb(m, "FileHugePages:  ",
+--- a/include/linux/mmzone.h~mm-memcontrol-convert-nr_shmem_thps-account-to-pages
++++ a/include/linux/mmzone.h
+@@ -220,7 +220,8 @@ static __always_inline bool vmstat_item_
+ 		return false;
  
--unsigned long total_swapcache_pages(void)
--{
--	unsigned int i, j, nr;
--	unsigned long ret = 0;
--	struct address_space *spaces;
--	struct swap_info_struct *si;
--
--	for (i = 0; i < MAX_SWAPFILES; i++) {
--		swp_entry_t entry = swp_entry(i, 1);
--
--		/* Avoid get_swap_device() to warn for bad swap entry */
--		if (!swp_swap_info(entry))
--			continue;
--		/* Prevent swapoff to free swapper_spaces */
--		si = get_swap_device(entry);
--		if (!si)
--			continue;
--		nr = nr_swapper_spaces[i];
--		spaces = swapper_spaces[i];
--		for (j = 0; j < nr; j++)
--			ret += spaces[j].nrpages;
--		put_swap_device(si);
--	}
--	return ret;
--}
--
- static atomic_t swapin_readahead_hits = ATOMIC_INIT(4);
- 
- void show_swap_cache_info(void)
-@@ -163,6 +137,7 @@ int add_to_swap_cache(struct page *page,
- 		address_space->nrexceptional -= nr_shadows;
- 		address_space->nrpages += nr;
- 		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, nr);
-+		__mod_lruvec_page_state(page, NR_SWAPCACHE, nr);
- 		ADD_CACHE_INFO(add_total, nr);
- unlock:
- 		xas_unlock_irq(&xas);
-@@ -203,6 +178,7 @@ void __delete_from_swap_cache(struct pag
- 		address_space->nrexceptional += nr;
- 	address_space->nrpages -= nr;
- 	__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, -nr);
-+	__mod_lruvec_page_state(page, NR_SWAPCACHE, -nr);
- 	ADD_CACHE_INFO(del_total, nr);
+ 	return item == NR_ANON_THPS ||
+-	       item == NR_FILE_THPS;
++	       item == NR_FILE_THPS ||
++	       item == NR_SHMEM_THPS;
  }
  
---- a/mm/vmstat.c~mm-memcg-add-swapcache-stat-for-memcg-v2
-+++ a/mm/vmstat.c
-@@ -1215,6 +1215,9 @@ const char * const vmstat_text[] = {
- 	"nr_shadow_call_stack",
- #endif
- 	"nr_page_table_pages",
-+#ifdef CONFIG_SWAP
-+	"nr_swapcached",
-+#endif
+ /*
+--- a/mm/filemap.c~mm-memcontrol-convert-nr_shmem_thps-account-to-pages
++++ a/mm/filemap.c
+@@ -206,7 +206,7 @@ static void unaccount_page_cache_page(st
+ 	if (PageSwapBacked(page)) {
+ 		__mod_lruvec_page_state(page, NR_SHMEM, -nr);
+ 		if (PageTransHuge(page))
+-			__dec_lruvec_page_state(page, NR_SHMEM_THPS);
++			__mod_lruvec_page_state(page, NR_SHMEM_THPS, -nr);
+ 	} else if (PageTransHuge(page)) {
+ 		__mod_lruvec_page_state(page, NR_FILE_THPS, -nr);
+ 		filemap_nr_thps_dec(mapping);
+--- a/mm/huge_memory.c~mm-memcontrol-convert-nr_shmem_thps-account-to-pages
++++ a/mm/huge_memory.c
+@@ -2755,7 +2755,8 @@ int split_huge_page_to_list(struct page
+ 			int nr = thp_nr_pages(head);
  
- 	/* enum writeback_stat_item counters */
- 	"nr_dirty_threshold",
+ 			if (PageSwapBacked(head))
+-				__dec_lruvec_page_state(head, NR_SHMEM_THPS);
++				__mod_lruvec_page_state(head, NR_SHMEM_THPS,
++							-nr);
+ 			else
+ 				__mod_lruvec_page_state(head, NR_FILE_THPS,
+ 							-nr);
+--- a/mm/khugepaged.c~mm-memcontrol-convert-nr_shmem_thps-account-to-pages
++++ a/mm/khugepaged.c
+@@ -1858,7 +1858,7 @@ out_unlock:
+ 	nr = thp_nr_pages(new_page);
+ 
+ 	if (is_shmem)
+-		__inc_lruvec_page_state(new_page, NR_SHMEM_THPS);
++		__mod_lruvec_page_state(new_page, NR_SHMEM_THPS, nr);
+ 	else {
+ 		__mod_lruvec_page_state(new_page, NR_FILE_THPS, nr);
+ 		filemap_nr_thps_inc(mapping);
+--- a/mm/memcontrol.c~mm-memcontrol-convert-nr_shmem_thps-account-to-pages
++++ a/mm/memcontrol.c
+@@ -1516,7 +1516,7 @@ struct memory_stat {
+ 	unsigned int idx;
+ };
+ 
+-static struct memory_stat memory_stats[] = {
++static const struct memory_stat memory_stats[] = {
+ 	{ "anon", PAGE_SIZE, NR_ANON_MAPPED },
+ 	{ "file", PAGE_SIZE, NR_FILE_PAGES },
+ 	{ "kernel_stack", 1024, NR_KERNEL_STACK_KB },
+@@ -1528,14 +1528,9 @@ static struct memory_stat memory_stats[]
+ 	{ "file_dirty", PAGE_SIZE, NR_FILE_DIRTY },
+ 	{ "file_writeback", PAGE_SIZE, NR_WRITEBACK },
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	/*
+-	 * The ratio will be initialized in memory_stats_init(). Because
+-	 * on some architectures, the macro of HPAGE_PMD_SIZE is not
+-	 * constant(e.g. powerpc).
+-	 */
+ 	{ "anon_thp", PAGE_SIZE, NR_ANON_THPS },
+ 	{ "file_thp", PAGE_SIZE, NR_FILE_THPS },
+-	{ "shmem_thp", 0, NR_SHMEM_THPS },
++	{ "shmem_thp", PAGE_SIZE, NR_SHMEM_THPS },
+ #endif
+ 	{ "inactive_anon", PAGE_SIZE, NR_INACTIVE_ANON },
+ 	{ "active_anon", PAGE_SIZE, NR_ACTIVE_ANON },
+@@ -1560,23 +1555,6 @@ static struct memory_stat memory_stats[]
+ 	{ "workingset_nodereclaim", 1, WORKINGSET_NODERECLAIM },
+ };
+ 
+-static int __init memory_stats_init(void)
+-{
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		if (memory_stats[i].idx == NR_SHMEM_THPS)
+-			memory_stats[i].ratio = HPAGE_PMD_SIZE;
+-#endif
+-		VM_BUG_ON(!memory_stats[i].ratio);
+-		VM_BUG_ON(memory_stats[i].idx >= MEMCG_NR_STAT);
+-	}
+-
+-	return 0;
+-}
+-pure_initcall(memory_stats_init);
+-
+ static char *memory_stat_format(struct mem_cgroup *memcg)
+ {
+ 	struct seq_buf s;
+--- a/mm/page_alloc.c~mm-memcontrol-convert-nr_shmem_thps-account-to-pages
++++ a/mm/page_alloc.c
+@@ -5584,7 +5584,7 @@ void show_free_areas(unsigned int filter
+ 			K(node_page_state(pgdat, NR_WRITEBACK)),
+ 			K(node_page_state(pgdat, NR_SHMEM)),
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-			K(node_page_state(pgdat, NR_SHMEM_THPS) * HPAGE_PMD_NR),
++			K(node_page_state(pgdat, NR_SHMEM_THPS)),
+ 			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)
+ 					* HPAGE_PMD_NR),
+ 			K(node_page_state(pgdat, NR_ANON_THPS)),
+--- a/mm/shmem.c~mm-memcontrol-convert-nr_shmem_thps-account-to-pages
++++ a/mm/shmem.c
+@@ -713,7 +713,7 @@ next:
+ 		}
+ 		if (PageTransHuge(page)) {
+ 			count_vm_event(THP_FILE_ALLOC);
+-			__inc_lruvec_page_state(page, NR_SHMEM_THPS);
++			__mod_lruvec_page_state(page, NR_SHMEM_THPS, nr);
+ 		}
+ 		mapping->nrpages += nr;
+ 		__mod_lruvec_page_state(page, NR_FILE_PAGES, nr);
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 
