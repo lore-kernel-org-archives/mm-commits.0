@@ -7,39 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E878BC433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C3CFC433E6
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A298C64F1A
+	by mail.kernel.org (Postfix) with ESMTP id C856764F2A
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234438AbhBYTcl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:32:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36912 "EHLO mail.kernel.org"
+        id S235037AbhBYTcr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:32:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38152 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234869AbhBYTaP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234849AbhBYTaP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:30:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B2B2764F33;
-        Thu, 25 Feb 2021 19:17:09 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A48AC64F2D;
+        Thu, 25 Feb 2021 19:16:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280630;
-        bh=r9KyBAcHh2PPPltbhj89N389P8b5DQm6Tv/6aRXOmiU=;
+        s=korg; t=1614280615;
+        bh=MT+Ze1/x5wiwRomg7coDg9vEPmOPWuBTeKoe0lG9M08=;
         h=Date:From:To:Subject:From;
-        b=CLEae24ymXBzs4w/P+l0EtSeJbFWsWn0HH6RgyTYe43gH0I7U6SkqWgmwmJBC4PmK
-         +/3DTq40HmS+7ohNINk+lmEl08+Q54zUB9v7ADg9aOC9PhGIQsvOIgrjfZtlzUf6s6
-         5LsDA3Nt/68WZR4gNP/QiM+OaLQpTb0FgTCQnDNg=
-Date:   Thu, 25 Feb 2021 11:17:09 -0800
+        b=db8dP3ZDJlxK8LUn1tyl94dT6Z3BABMnpdnSWkWzmkvPf1ZxeW4dWZhxFxGW3FOzG
+         GbJEU3mJLEg8Kh+ZOdowPZpZoWzpJag5Fuy8AVNeGuFvBXT19uTvM2jNfno77VXYs7
+         xeFWLVzZMzEvQo+6BaMrsc823yqzFVEwvULHEDLE=
+Date:   Thu, 25 Feb 2021 11:16:55 -0800
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, dan.j.williams@intel.com,
-        david@redhat.com, jack@suse.cz, kirill.shutemov@linux.intel.com,
+To:     joao.m.martins@oracle.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org
-Subject:  [merged]
- =?US-ASCII?Q?mm-pmem-avoid-inserting-hugepage-pte-entry-with-fsdax-if-hu?=
- =?US-ASCII?Q?gepage-support-is-disabled.patch?= removed from -mm tree
-Message-ID: <20210225191709.6vEKpFnpd%akpm@linux-foundation.org>
+Subject:  [merged] mm-hugetlb-refactor-subpage-recording.patch
+ removed from -mm tree
+Message-ID: <20210225191655.4a35cLAuv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,101 +43,131 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/pmem: avoid inserting hugepage PTE entry with fsdax if hugepage support is disabled
+     Subject: mm/hugetlb: refactor subpage recording
 has been removed from the -mm tree.  Its filename was
-     mm-pmem-avoid-inserting-hugepage-pte-entry-with-fsdax-if-hugepage-support-is-disabled.patch
+     mm-hugetlb-refactor-subpage-recording.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/pmem: avoid inserting hugepage PTE entry with fsdax if hugepage support is disabled
+From: Joao Martins <joao.m.martins@oracle.com>
+Subject: mm/hugetlb: refactor subpage recording
 
-Differentiate between hardware not supporting hugepages and user disabling
-THP via 'echo never > /sys/kernel/mm/transparent_hugepage/enabled'
+For a given hugepage backing a VA, there's a rather ineficient loop which
+is solely responsible for storing subpages in GUP @pages/@vmas array.  For
+each subpage we check whether it's within range or size of @pages and keep
+increment @pfn_offset and a couple other variables per subpage iteration.
 
-For the devdax namespace, the kernel handles the above via the
-supported_alignment attribute and failing to initialize the namespace if
-the namespace align value is not supported on the platform.
+Simplify this logic and minimize the cost of each iteration to just store
+the output page/vma.  Instead of incrementing number of @refs iteratively,
+we do it through pre-calculation of @refs and only with a tight loop for
+storing pinned subpages/vmas.
 
-For the fsdax namespace, the kernel will continue to initialize the
-namespace.  This can result in the kernel creating a huge pte entry even
-though the hardware don't support the same.
+Additionally, retain existing behaviour with using mem_map_offset() when
+recording the subpages for configurations that don't have a contiguous
+mem_map.
 
-We do want hugepage support with pmem even if the end-user disabled THP
-via sysfs file (/sys/kernel/mm/transparent_hugepage/enabled).  Hence
-differentiate between hardware/firmware lacking support vs user-controlled
-disable of THP and prevent a huge fault if the hardware lacks hugepage
-support.
+pinning consequently improves bringing us close to
+{pin,get}_user_pages_fast:
 
-Link: https://lkml.kernel.org/r/20210205023956.417587-1-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
+  - 16G with 1G huge page size
+  gup_test -f /mnt/huge/file -m 16384 -r 30 -L -S -n 512 -w
+
+PIN_LONGTERM_BENCHMARK: ~12.8k us -> ~5.8k us
+PIN_FAST_BENCHMARK: ~3.7k us
+
+Link: https://lkml.kernel.org/r/20210128182632.24562-3-joao.m.martins@oracle.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   15 +++++++++------
- mm/huge_memory.c        |    6 +++++-
- 2 files changed, 14 insertions(+), 7 deletions(-)
+ mm/hugetlb.c |   49 ++++++++++++++++++++++++++++---------------------
+ 1 file changed, 28 insertions(+), 21 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-pmem-avoid-inserting-hugepage-pte-entry-with-fsdax-if-hugepage-support-is-disabled
-+++ a/include/linux/huge_mm.h
-@@ -78,6 +78,7 @@ static inline vm_fault_t vmf_insert_pfn_
+--- a/mm/hugetlb.c~mm-hugetlb-refactor-subpage-recording
++++ a/mm/hugetlb.c
+@@ -4787,6 +4787,20 @@ out_release_nounlock:
+ 	goto out;
  }
  
- enum transparent_hugepage_flag {
-+	TRANSPARENT_HUGEPAGE_NEVER_DAX,
- 	TRANSPARENT_HUGEPAGE_FLAG,
- 	TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
- 	TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG,
-@@ -123,6 +124,13 @@ extern unsigned long transparent_hugepag
-  */
- static inline bool __transparent_hugepage_enabled(struct vm_area_struct *vma)
- {
++static void record_subpages_vmas(struct page *page, struct vm_area_struct *vma,
++				 int refs, struct page **pages,
++				 struct vm_area_struct **vmas)
++{
++	int nr;
 +
-+	/*
-+	 * If the hardware/firmware marked hugepage support disabled.
-+	 */
-+	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_NEVER_DAX))
-+		return false;
++	for (nr = 0; nr < refs; nr++) {
++		if (likely(pages))
++			pages[nr] = mem_map_offset(page, nr);
++		if (vmas)
++			vmas[nr] = vma;
++	}
++}
 +
- 	if (vma->vm_flags & VM_NOHUGEPAGE)
- 		return false;
+ long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			 struct page **pages, struct vm_area_struct **vmas,
+ 			 unsigned long *position, unsigned long *nr_pages,
+@@ -4916,28 +4930,16 @@ long follow_hugetlb_page(struct mm_struc
+ 			continue;
+ 		}
  
-@@ -134,12 +142,7 @@ static inline bool __transparent_hugepag
+-		refs = 0;
++		refs = min3(pages_per_huge_page(h) - pfn_offset,
++			    (vma->vm_end - vaddr) >> PAGE_SHIFT, remainder);
  
- 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
- 		return true;
--	/*
--	 * For dax vmas, try to always use hugepage mappings. If the kernel does
--	 * not support hugepages, fsdax mappings will fallback to PAGE_SIZE
--	 * mappings, and device-dax namespaces, that try to guarantee a given
--	 * mapping size, will fail to enable
--	 */
+-same_page:
+-		if (pages)
+-			pages[i] = mem_map_offset(page, pfn_offset);
++		if (pages || vmas)
++			record_subpages_vmas(mem_map_offset(page, pfn_offset),
++					     vma, refs,
++					     likely(pages) ? pages + i : NULL,
++					     vmas ? vmas + i : NULL);
+ 
+-		if (vmas)
+-			vmas[i] = vma;
+-
+-		vaddr += PAGE_SIZE;
+-		++pfn_offset;
+-		--remainder;
+-		++i;
+-		++refs;
+-		if (vaddr < vma->vm_end && remainder &&
+-				pfn_offset < pages_per_huge_page(h)) {
+-			/*
+-			 * We use pfn_offset to avoid touching the pageframes
+-			 * of this compound page.
+-			 */
+-			goto same_page;
+-		} else if (pages) {
++		if (pages) {
+ 			/*
+ 			 * try_grab_compound_head() should always succeed here,
+ 			 * because: a) we hold the ptl lock, and b) we've just
+@@ -4948,7 +4950,7 @@ same_page:
+ 			 * any way. So this page must be available at this
+ 			 * point, unless the page refcount overflowed:
+ 			 */
+-			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i-1],
++			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i],
+ 								 refs,
+ 								 flags))) {
+ 				spin_unlock(ptl);
+@@ -4957,6 +4959,11 @@ same_page:
+ 				break;
+ 			}
+ 		}
 +
- 	if (vma_is_dax(vma))
- 		return true;
- 
---- a/mm/huge_memory.c~mm-pmem-avoid-inserting-hugepage-pte-entry-with-fsdax-if-hugepage-support-is-disabled
-+++ a/mm/huge_memory.c
-@@ -386,7 +386,11 @@ static int __init hugepage_init(void)
- 	struct kobject *hugepage_kobj;
- 
- 	if (!has_transparent_hugepage()) {
--		transparent_hugepage_flags = 0;
-+		/*
-+		 * Hardware doesn't support hugepages, hence disable
-+		 * DAX PMD support.
-+		 */
-+		transparent_hugepage_flags = 1 << TRANSPARENT_HUGEPAGE_NEVER_DAX;
- 		return -EINVAL;
++		vaddr += (refs << PAGE_SHIFT);
++		remainder -= refs;
++		i += refs;
++
+ 		spin_unlock(ptl);
  	}
- 
+ 	*nr_pages = remainder;
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from joao.m.martins@oracle.com are
 
 
