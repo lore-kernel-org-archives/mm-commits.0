@@ -2,201 +2,95 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC691C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 01:38:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79A39C433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 01:52:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7103864EC4
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 01:38:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35DCD64E85
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 01:52:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233895AbhBYBhy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 20:37:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49386 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235080AbhBYBhw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Feb 2021 20:37:52 -0500
-Received: from oasis.local.home (cpe-66-24-58-225.stny.res.rr.com [66.24.58.225])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 660E564F03;
-        Thu, 25 Feb 2021 01:37:10 +0000 (UTC)
-Date:   Wed, 24 Feb 2021 20:37:08 -0500
-From:   Steven Rostedt <rostedt@goodmis.org>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     cl@linux.com, iamjoonsoo.kim@lge.com, jian.w.wen@oracle.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        paulmck@linux.vnet.ibm.com, penberg@kernel.org,
-        rientjes@google.com, torvalds@linux-foundation.org
-Subject: Re: [patch 014/173] mm, tracing: record slab name for
- kmem_cache_free()
-Message-ID: <20210224203708.4489755a@oasis.local.home>
-In-Reply-To: <20210224200055.U7Xz47kX5%akpm@linux-foundation.org>
-References: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
-        <20210224200055.U7Xz47kX5%akpm@linux-foundation.org>
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+        id S235210AbhBYBwr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 20:52:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60996 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235198AbhBYBwr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Feb 2021 20:52:47 -0500
+Received: from mail-lf1-x129.google.com (mail-lf1-x129.google.com [IPv6:2a00:1450:4864:20::129])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 169C5C061574
+        for <mm-commits@vger.kernel.org>; Wed, 24 Feb 2021 17:52:07 -0800 (PST)
+Received: by mail-lf1-x129.google.com with SMTP id j19so6081338lfr.12
+        for <mm-commits@vger.kernel.org>; Wed, 24 Feb 2021 17:52:06 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=nuEwacw9WQYf7hqKeQHh+UiK1mAkKdfy2q7SV6e4fgo=;
+        b=USn4m91gCrg/tHu49UfSsfjmTB5sGx2Y/Mtg72X4FUydasLo+OTlGYtBumcw24QK52
+         iaMJjwti2qOaGaWqVhmk1vsoV8PXgnL9GlhOEYhf9s50YfZeyNHcr7vKVxBD/iz89qtj
+         PyQOxUTIsPB0qvjfHbOnJlGUmyDQIXUMsHtlM=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=nuEwacw9WQYf7hqKeQHh+UiK1mAkKdfy2q7SV6e4fgo=;
+        b=BBZz6KozapikMUyP9NiH20Rrjndb6FIZOhSSmSE92LrYElWaDSN9W3MD9n0CXYMTbT
+         0v9psM9iugr/+VzZb+G4WChBmtUxGZl9ExA23v2XSx9imSyzHYrztv2GIE9Tyjk7vR4W
+         Zill7T0DF8ZllhVUKPcm0+Jhj6I3y0PWRfTbXK/xA8osgU+7I7v12BWOuHjWpxVmboJW
+         hHx+cD9RROI/bS7yl1GC60+DZrZiArP/FeUGcmx08ZHoztePqXkNEHiUXMBHZLh5IPbf
+         GqxmOTdyMhR0y8ekNxc+hgit1qrImLLhqDpcM82Zv0DROlp5Iw6CypHlZPEwKlya72t6
+         yntQ==
+X-Gm-Message-State: AOAM533b+rvzwFUChPPrVL/e8K0obUb/KgSyXT1sRgKmiZYaqBwzn88t
+        5Hf5MiQ3ZyYY4oaMkFGI9ule3NIsUpcm7w==
+X-Google-Smtp-Source: ABdhPJwRbzqSq62vcxbcV8S2VPN9KgtRwtKvKc2AdvW7M2mHhmmsd/lmFDDe5s6MjRgDZ2SKcoUHmw==
+X-Received: by 2002:ac2:5184:: with SMTP id u4mr460764lfi.487.1614217924338;
+        Wed, 24 Feb 2021 17:52:04 -0800 (PST)
+Received: from mail-lf1-f45.google.com (mail-lf1-f45.google.com. [209.85.167.45])
+        by smtp.gmail.com with ESMTPSA id p9sm526188ljn.16.2021.02.24.17.52.03
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 24 Feb 2021 17:52:03 -0800 (PST)
+Received: by mail-lf1-f45.google.com with SMTP id u4so6173273lfs.0
+        for <mm-commits@vger.kernel.org>; Wed, 24 Feb 2021 17:52:03 -0800 (PST)
+X-Received: by 2002:a19:8186:: with SMTP id c128mr459588lfd.377.1614217922822;
+ Wed, 24 Feb 2021 17:52:02 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+References: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
+ <20210224200055.U7Xz47kX5%akpm@linux-foundation.org> <20210224203708.4489755a@oasis.local.home>
+In-Reply-To: <20210224203708.4489755a@oasis.local.home>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Wed, 24 Feb 2021 17:51:46 -0800
+X-Gmail-Original-Message-ID: <CAHk-=whoqLWCcUXOBfWsEu49jLRJFkwnCRq6dyjg_M=dO1FhcQ@mail.gmail.com>
+Message-ID: <CAHk-=whoqLWCcUXOBfWsEu49jLRJFkwnCRq6dyjg_M=dO1FhcQ@mail.gmail.com>
+Subject: Re: [patch 014/173] mm, tracing: record slab name for kmem_cache_free()
+To:     Steven Rostedt <rostedt@goodmis.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Christoph Lameter <cl@linux.com>,
+        Joonsoo Kim <iamjoonsoo.kim@lge.com>, jian.w.wen@oracle.com,
+        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+        Paul McKenney <paulmck@linux.vnet.ibm.com>,
+        Pekka Enberg <penberg@kernel.org>,
+        David Rientjes <rientjes@google.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, 24 Feb 2021 12:00:55 -0800
-Andrew Morton <akpm@linux-foundation.org> wrote:
+On Wed, Feb 24, 2021 at 5:37 PM Steven Rostedt <rostedt@goodmis.org> wrote:
+>
+> Please do not apply this patch as is, it is very buggy!
 
-> From: Jacob Wen <jian.w.wen@oracle.com>
-> Subject: mm, tracing: record slab name for kmem_cache_free()
-> 
-> Currently, a trace record generated by the RCU core is as below.
-> 
-> ... kmem_cache_free: call_site=rcu_core+0x1fd/0x610 ptr=00000000f3b49a66
-> 
-> It doesn't tell us what the RCU core has freed.
-> 
-> This patch adds the slab name to trace_kmem_cache_free().
-> The new format is as follows.
-> 
-> ... kmem_cache_free: call_site=rcu_core+0x1fd/0x610 ptr=0000000037f79c8d name=dentry
-> ... kmem_cache_free: call_site=rcu_core+0x1fd/0x610 ptr=00000000f78cb7b5 name=sock_inode_cache
-> ... kmem_cache_free: call_site=rcu_core+0x1fd/0x610 ptr=0000000018768985 name=pool_workqueue
-> ... kmem_cache_free: call_site=rcu_core+0x1fd/0x610 ptr=000000006a6cb484 name=radix_tree_node
-> 
-> We can use it to understand what the RCU core is going to free. For
-> example, some users maybe interested in when the RCU core starts
-> freeing reclaimable slabs like dentry to reduce memory pressure.
-> 
-> Link: https://lkml.kernel.org/r/20201216072804.8838-1-jian.w.wen@oracle.com
-> Signed-off-by: Jacob Wen <jian.w.wen@oracle.com>
-> Cc: Christoph Lameter <cl@linux.com>
-> Cc: Pekka Enberg <penberg@kernel.org>
-> Cc: David Rientjes <rientjes@google.com>
-> Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-> Cc: Steven Rostedt <rostedt@goodmis.org>
-> Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  include/trace/events/kmem.h |   24 ++++++++++++++++--------
->  mm/slab.c                   |    2 +-
->  mm/slob.c                   |    2 +-
->  mm/slub.c                   |    2 +-
->  4 files changed, 19 insertions(+), 11 deletions(-)
-> 
-> --- a/include/trace/events/kmem.h~mm-tracing-record-slab-name-for-kmem_cache_free
-> +++ a/include/trace/events/kmem.h
-> @@ -115,7 +115,7 @@ DEFINE_EVENT(kmem_alloc_node, kmem_cache
->  	TP_ARGS(call_site, ptr, bytes_req, bytes_alloc, gfp_flags, node)
->  );
->  
-> -DECLARE_EVENT_CLASS(kmem_free,
-> +TRACE_EVENT(kfree,
->  
->  	TP_PROTO(unsigned long call_site, const void *ptr),
->  
-> @@ -135,18 +135,26 @@ DECLARE_EVENT_CLASS(kmem_free,
->  		  (void *)__entry->call_site, __entry->ptr)
->  );
->  
-> -DEFINE_EVENT(kmem_free, kfree,
-> +TRACE_EVENT(kmem_cache_free,
->  
-> -	TP_PROTO(unsigned long call_site, const void *ptr),
-> +	TP_PROTO(unsigned long call_site, const void *ptr, const char *name),
->  
-> -	TP_ARGS(call_site, ptr)
-> -);
-> +	TP_ARGS(call_site, ptr, name),
->  
-> -DEFINE_EVENT(kmem_free, kmem_cache_free,
-> +	TP_STRUCT__entry(
-> +		__field(	unsigned long,	call_site	)
-> +		__field(	const void *,	ptr		)
-> +		__field(	const char *,	name		)
+Sadly, it's already there and pushed out.  I try to wait a few hours
+(sometimes overnight) with Andrew's series before pushing things out
+in order to catch comments like this, but this one came too late.
 
-You must use __string() here!
+I can obviously revert, but if the fix is the two-liner you outlined,
+perhaps that is better? Mind sending it as a patch (or just putting it
+in your tracing tree)? Or Jacob? A tested patch along the lines that
+Steven outlined?
 
-		__string(name, name);
-
-> +	),
->  
-> -	TP_PROTO(unsigned long call_site, const void *ptr),
-> +	TP_fast_assign(
-> +		__entry->call_site	= call_site;
-> +		__entry->ptr		= ptr;
-> +		__entry->name		= name;
-
-This must be:
-
-		__assign_str(name, name);
-
-
-> +	),
->  
-> -	TP_ARGS(call_site, ptr)
-> +	TP_printk("call_site=%pS ptr=%p name=%s",
-> +		  (void *)__entry->call_site, __entry->ptr, __entry->name)
-
-	You must use __get_str(name) here!
-
-(see other users of this logic in include/trace/events/*.h)
-
-What is happening is that TP_fast_assign() is called by the tracepoint
-logic (at the time of the event), then much later (seconds, minutes,
-hours, days!), when the user does a "cat trace" of the file, the
-__entry->name is read and the printf logic is called against it. Well,
-the s->name that __entry->name points to, can be long gone by then!
-
-Instead, using __string() tells the TRACE_EVENT() macro that this is a
-dynamic string. The __assign_str() records the string into the ring
-buffer. The __get_str() retrieves the string from the ring buffer as
-part of the event, so it stays around as long as the event being read
-by the trace file is around.
-
-Please do not apply this patch as is, it is very buggy!
-
--- Steve
-
-
->  );
->  
->  TRACE_EVENT(mm_page_free,
-> --- a/mm/slab.c~mm-tracing-record-slab-name-for-kmem_cache_free
-> +++ a/mm/slab.c
-> @@ -3717,7 +3717,7 @@ void kmem_cache_free(struct kmem_cache *
->  	__cache_free(cachep, objp, _RET_IP_);
->  	local_irq_restore(flags);
->  
-> -	trace_kmem_cache_free(_RET_IP_, objp);
-> +	trace_kmem_cache_free(_RET_IP_, objp, cachep->name);
->  }
->  EXPORT_SYMBOL(kmem_cache_free);
->  
-> --- a/mm/slob.c~mm-tracing-record-slab-name-for-kmem_cache_free
-> +++ a/mm/slob.c
-> @@ -673,7 +673,7 @@ void kmem_cache_free(struct kmem_cache *
->  		__kmem_cache_free(b, c->size);
->  	}
->  
-> -	trace_kmem_cache_free(_RET_IP_, b);
-> +	trace_kmem_cache_free(_RET_IP_, b, c->name);
->  }
->  EXPORT_SYMBOL(kmem_cache_free);
->  
-> --- a/mm/slub.c~mm-tracing-record-slab-name-for-kmem_cache_free
-> +++ a/mm/slub.c
-> @@ -3157,7 +3157,7 @@ void kmem_cache_free(struct kmem_cache *
->  	if (!s)
->  		return;
->  	slab_free(s, virt_to_head_page(x), x, NULL, 1, _RET_IP_);
-> -	trace_kmem_cache_free(_RET_IP_, x);
-> +	trace_kmem_cache_free(_RET_IP_, x, s->name);
->  }
->  EXPORT_SYMBOL(kmem_cache_free);
->  
-> _
-
+               Linus
