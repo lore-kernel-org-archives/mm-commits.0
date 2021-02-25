@@ -2,123 +2,100 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_SANE_2
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43530C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 09:14:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5639C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 11:08:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E60F164EDB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 09:14:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 592F264F0F
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 11:08:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233984AbhBYJN6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 04:13:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41858 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236230AbhBYJLw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Feb 2021 04:11:52 -0500
-Received: from mail-il1-x12e.google.com (mail-il1-x12e.google.com [IPv6:2607:f8b0:4864:20::12e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C2B9C06178A
-        for <mm-commits@vger.kernel.org>; Thu, 25 Feb 2021 01:11:12 -0800 (PST)
-Received: by mail-il1-x12e.google.com with SMTP id d5so4297723iln.6
-        for <mm-commits@vger.kernel.org>; Thu, 25 Feb 2021 01:11:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=LeLPPmID49LvirohPpMN9mTLkHB5bvTGmvtbjDEM2Z8=;
-        b=SOOrXddGau0HHs1e43hezGMLM/dQ1m89kgYrawmohOd5eoAXaTvFNqyVBbPA3+lj6t
-         tP1eq3F/NLNtJ9vBP2OCj/kSTuZQ9XeNkWfrPAIBaKCxToKxc2T7hgrNRIjW++H5lxhW
-         mz2iU+F+rx1bLuXRzOxvs9rG8BJFX6zedRUfnUkhUsTPs0crPdMJXlZO/28rnvNSYIXS
-         DScfV874YHdajJJUGJojfK7dzAxazDnk79E+GwruWSbU/aN0WaWRABAvj3DWJvFLyDkw
-         u/tNQVLfkSjHZbMoe3BvX/8NzEri0rKiyK36WNZ8cunIOtbTagCG3zNUhg90rhWT9tXl
-         a6pQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=LeLPPmID49LvirohPpMN9mTLkHB5bvTGmvtbjDEM2Z8=;
-        b=CJatDhzojBDeuqnMZtHWTCWadlP0ZWJV/kd7OJS5lRL3TcXFmbWShuxPhnh981v8E2
-         Rp02koirWqSaS47AsY3IE3tUxoMh+6qg4G8nlpOTG1+R2TkNfVY0y0BU0mF6r4zKhaRj
-         QnQHTpIObIkMnCDjxiZz1XoI95+Bo1JTzy531r62LrhEJ8IRnjiGktE8j/9g4l4dUYaD
-         EauDOFMMQmpQuINnKGE8G60qwzksUp8nqW/2W8STc0Qzb4MYumM8CUuY6ndULFQ3uy+b
-         CRYfqk24LoYYQNCXA1ETO7eakdor0riOd6DElZcD0n2bXSE/wS/3nd5K9T+62xmuQSWo
-         AIkQ==
-X-Gm-Message-State: AOAM531Q9nzVvvO/U5g3Ah799n560mpL8mac4oLpTa3gUfQNtngTXB6g
-        oozqn9xLIWZPFxA28WVd/2jAfmTVKIAPXqVw9dU=
-X-Google-Smtp-Source: ABdhPJyjiPpkwkTnIjvpd0OF4ySo5GqQjzicjbXJH6FcsMzPQviEYpFqHjv4GBRxRbXr0DHTkVPj3eFf9w/oLYzgKoE=
-X-Received: by 2002:a92:d7c7:: with SMTP id g7mr1655745ilq.305.1614244271797;
- Thu, 25 Feb 2021 01:11:11 -0800 (PST)
-MIME-Version: 1.0
-References: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
- <CAHk-=wiO1=xV1_gOsiWS9TuFJ_RQ0_HuXLg-qVAMnNj2TvHk2g@mail.gmail.com>
- <CAHk-=wibSMJcDmepGEDQ-O4-_d0KUQi4SAF0h3=fj3Ab3DbBdQ@mail.gmail.com> <CAK8P3a3PJZBJQN-=K8DRAWL8fcUa_FPm92HPFWfvZ5jcH-c7Dg@mail.gmail.com>
-In-Reply-To: <CAK8P3a3PJZBJQN-=K8DRAWL8fcUa_FPm92HPFWfvZ5jcH-c7Dg@mail.gmail.com>
-From:   Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Date:   Thu, 25 Feb 2021 12:12:31 +0300
-Message-ID: <CAPAsAGz-xzkak9Cj5TuL_FZ86DTtrfybQtgeou-fSjc0UaZRig@mail.gmail.com>
+        id S229561AbhBYLIB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 06:08:01 -0500
+Received: from mailgw02.mediatek.com ([210.61.82.184]:40440 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S231335AbhBYLH7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Feb 2021 06:07:59 -0500
+X-UUID: 26a41181d2304b19b736388e3d37d796-20210225
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=mediatek.com; s=dk;
+        h=Content-Transfer-Encoding:MIME-Version:Content-Type:References:In-Reply-To:Date:CC:To:From:Subject:Message-ID; bh=EoxH8nxIL++xtiNGqc0Is8rihip7r1SRKZ+MdbneffU=;
+        b=Y29keS7Wp0ZJH/0PvHg1YSljoCCs9ts4O3tIDFQcIDnAXpItqBGgi1BETn0DL0LDWQ77m4O9DRkGYuaMdfEkpmYxkfgjRysec1tnoR4oG6v86BA/P+B8UfsfTNjenF7qEr0x/ZYuOYz7eOTPjvJophAE3nYTLtGqOeZTMVibYrQ=;
+X-UUID: 26a41181d2304b19b736388e3d37d796-20210225
+Received: from mtkexhb01.mediatek.inc [(172.21.101.102)] by mailgw02.mediatek.com
+        (envelope-from <walter-zh.wu@mediatek.com>)
+        (Cellopoint E-mail Firewall v4.1.14 Build 0819 with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
+        with ESMTP id 320164400; Thu, 25 Feb 2021 19:07:09 +0800
+Received: from mtkcas07.mediatek.inc (172.21.101.84) by
+ mtkmbs02n1.mediatek.inc (172.21.101.77) with Microsoft SMTP Server (TLS) id
+ 15.0.1497.2; Thu, 25 Feb 2021 19:07:08 +0800
+Received: from [172.21.84.99] (172.21.84.99) by mtkcas07.mediatek.inc
+ (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
+ Transport; Thu, 25 Feb 2021 19:07:08 +0800
+Message-ID: <1614251228.7523.2.camel@mtksdccf07>
 Subject: Re: incoming
-To:     Arnd Bergmann <arnd@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+From:   Walter Wu <walter-zh.wu@mediatek.com>
+To:     Andrey Ryabinin <ryabinin.a.a@gmail.com>
+CC:     Arnd Bergmann <arnd@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
         Andrew Morton <akpm@linux-foundation.org>,
-        Walter Wu <walter-zh.wu@mediatek.com>,
         Dmitry Vyukov <dvyukov@google.com>,
         Nathan Chancellor <natechancellor@gmail.com>,
         Arnd Bergmann <arnd@arndb.de>,
         Andrey Konovalov <andreyknvl@google.com>,
-        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+        Linux-MM <linux-mm@kvack.org>, <mm-commits@vger.kernel.org>,
         Andrey Ryabinin <aryabinin@virtuozzo.com>,
         Alexander Potapenko <glider@google.com>
+Date:   Thu, 25 Feb 2021 19:07:08 +0800
+In-Reply-To: <CAPAsAGz-xzkak9Cj5TuL_FZ86DTtrfybQtgeou-fSjc0UaZRig@mail.gmail.com>
+References: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
+         <CAHk-=wiO1=xV1_gOsiWS9TuFJ_RQ0_HuXLg-qVAMnNj2TvHk2g@mail.gmail.com>
+         <CAHk-=wibSMJcDmepGEDQ-O4-_d0KUQi4SAF0h3=fj3Ab3DbBdQ@mail.gmail.com>
+         <CAK8P3a3PJZBJQN-=K8DRAWL8fcUa_FPm92HPFWfvZ5jcH-c7Dg@mail.gmail.com>
+         <CAPAsAGz-xzkak9Cj5TuL_FZ86DTtrfybQtgeou-fSjc0UaZRig@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-Mailer: Evolution 3.2.3-0ubuntu6 
+MIME-Version: 1.0
+X-MTK:  N
+Content-Transfer-Encoding: base64
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, Feb 25, 2021 at 11:53 AM Arnd Bergmann <arnd@kernel.org> wrote:
->
-> On Wed, Feb 24, 2021 at 10:37 PM Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
-> >
-> > On Wed, Feb 24, 2021 at 1:30 PM Linus Torvalds
-> > <torvalds@linux-foundation.org> wrote:
-> > >
-> > > Hmm. I haven't bisected things yet, but I suspect it's something with
-> > > the KASAN patches. With this all applied, I get:
-> > >
-> > >   lib/crypto/curve25519-hacl64.c: In function =E2=80=98ladder_cmult.c=
-onstprop=E2=80=99:
-> > >   lib/crypto/curve25519-hacl64.c:601:1: warning: the frame size of
-> > > 2288 bytes is larger than 2048 bytes [-Wframe-larger-than=3D]
-> > >
-> > > and
-> > >
-> > >   lib/bitfield_kunit.c: In function =E2=80=98test_bitfields_constants=
-=E2=80=99:
-> > >   lib/bitfield_kunit.c:93:1: warning: the frame size of 11200 bytes i=
-s
-> > > larger than 2048 bytes [-Wframe-larger-than=3D]
-> > >
-> > > which is obviously not really acceptable. A 11kB stack frame _will_
-> > > cause issues.
-> >
-> > A quick bisect shoes that this was introduced by "[patch 101/173]
-> > kasan: remove redundant config option".
-> >
-> > I didn't check what part of that patch screws up, but it's definitely
-> > doing something bad.
->
-> I'm not sure why that patch surfaced the bug, but it's worth pointing
-> out that the underlying problem is asan-stack in combination
-> with the structleak plugin. This will happen for every user of kunit.
->
+SGkgQW5kcmV5LA0KDQpPbiBUaHUsIDIwMjEtMDItMjUgYXQgMTI6MTIgKzAzMDAsIEFuZHJleSBS
+eWFiaW5pbiB3cm90ZToNCj4gT24gVGh1LCBGZWIgMjUsIDIwMjEgYXQgMTE6NTMgQU0gQXJuZCBC
+ZXJnbWFubiA8YXJuZEBrZXJuZWwub3JnPiB3cm90ZToNCj4gPg0KPiA+IE9uIFdlZCwgRmViIDI0
+LCAyMDIxIGF0IDEwOjM3IFBNIExpbnVzIFRvcnZhbGRzDQo+ID4gPHRvcnZhbGRzQGxpbnV4LWZv
+dW5kYXRpb24ub3JnPiB3cm90ZToNCj4gPiA+DQo+ID4gPiBPbiBXZWQsIEZlYiAyNCwgMjAyMSBh
+dCAxOjMwIFBNIExpbnVzIFRvcnZhbGRzDQo+ID4gPiA8dG9ydmFsZHNAbGludXgtZm91bmRhdGlv
+bi5vcmc+IHdyb3RlOg0KPiA+ID4gPg0KPiA+ID4gPiBIbW0uIEkgaGF2ZW4ndCBiaXNlY3RlZCB0
+aGluZ3MgeWV0LCBidXQgSSBzdXNwZWN0IGl0J3Mgc29tZXRoaW5nIHdpdGgNCj4gPiA+ID4gdGhl
+IEtBU0FOIHBhdGNoZXMuIFdpdGggdGhpcyBhbGwgYXBwbGllZCwgSSBnZXQ6DQo+ID4gPiA+DQo+
+ID4gPiA+ICAgbGliL2NyeXB0by9jdXJ2ZTI1NTE5LWhhY2w2NC5jOiBJbiBmdW5jdGlvbiDigJhs
+YWRkZXJfY211bHQuY29uc3Rwcm9w4oCZOg0KPiA+ID4gPiAgIGxpYi9jcnlwdG8vY3VydmUyNTUx
+OS1oYWNsNjQuYzo2MDE6MTogd2FybmluZzogdGhlIGZyYW1lIHNpemUgb2YNCj4gPiA+ID4gMjI4
+OCBieXRlcyBpcyBsYXJnZXIgdGhhbiAyMDQ4IGJ5dGVzIFstV2ZyYW1lLWxhcmdlci10aGFuPV0N
+Cj4gPiA+ID4NCj4gPiA+ID4gYW5kDQo+ID4gPiA+DQo+ID4gPiA+ICAgbGliL2JpdGZpZWxkX2t1
+bml0LmM6IEluIGZ1bmN0aW9uIOKAmHRlc3RfYml0ZmllbGRzX2NvbnN0YW50c+KAmToNCj4gPiA+
+ID4gICBsaWIvYml0ZmllbGRfa3VuaXQuYzo5MzoxOiB3YXJuaW5nOiB0aGUgZnJhbWUgc2l6ZSBv
+ZiAxMTIwMCBieXRlcyBpcw0KPiA+ID4gPiBsYXJnZXIgdGhhbiAyMDQ4IGJ5dGVzIFstV2ZyYW1l
+LWxhcmdlci10aGFuPV0NCj4gPiA+ID4NCj4gPiA+ID4gd2hpY2ggaXMgb2J2aW91c2x5IG5vdCBy
+ZWFsbHkgYWNjZXB0YWJsZS4gQSAxMWtCIHN0YWNrIGZyYW1lIF93aWxsXw0KPiA+ID4gPiBjYXVz
+ZSBpc3N1ZXMuDQo+ID4gPg0KPiA+ID4gQSBxdWljayBiaXNlY3Qgc2hvZXMgdGhhdCB0aGlzIHdh
+cyBpbnRyb2R1Y2VkIGJ5ICJbcGF0Y2ggMTAxLzE3M10NCj4gPiA+IGthc2FuOiByZW1vdmUgcmVk
+dW5kYW50IGNvbmZpZyBvcHRpb24iLg0KPiA+ID4NCj4gPiA+IEkgZGlkbid0IGNoZWNrIHdoYXQg
+cGFydCBvZiB0aGF0IHBhdGNoIHNjcmV3cyB1cCwgYnV0IGl0J3MgZGVmaW5pdGVseQ0KPiA+ID4g
+ZG9pbmcgc29tZXRoaW5nIGJhZC4NCj4gPg0KPiA+IEknbSBub3Qgc3VyZSB3aHkgdGhhdCBwYXRj
+aCBzdXJmYWNlZCB0aGUgYnVnLCBidXQgaXQncyB3b3J0aCBwb2ludGluZw0KPiA+IG91dCB0aGF0
+IHRoZSB1bmRlcmx5aW5nIHByb2JsZW0gaXMgYXNhbi1zdGFjayBpbiBjb21iaW5hdGlvbg0KPiA+
+IHdpdGggdGhlIHN0cnVjdGxlYWsgcGx1Z2luLiBUaGlzIHdpbGwgaGFwcGVuIGZvciBldmVyeSB1
+c2VyIG9mIGt1bml0Lg0KPiA+DQo+IA0KPiBUaGUgcGF0Y2ggZGlkbid0IHVwZGF0ZSBLQVNBTl9T
+VEFDSyBkZXBlbmRlbmN5IGluIGtjb25maWc6DQo+ICAgICAgICAgY29uZmlnIEdDQ19QTFVHSU5f
+U1RSVUNUTEVBS19CWVJFRg0KPiAuLi4uDQo+ICAgICAgICAgICAgICAgIGRlcGVuZHMgb24gIShL
+QVNBTiAmJiBLQVNBTl9TVEFDSz0xKQ0KPiANCj4gVGhpcyAnZGVwZW5kcyBvbicgIHN0b3BwZWQg
+d29ya2luZyB3aXRoIHRoZSBwYXRjaA0KDQpUaGFua3MgZm9yIHBvaW50aW5nIG91dCB0aGlzIHBy
+b2JsZW0uIEkgd2lsbCByZS1zZW5kIHRoYXQgcGF0Y2guDQoNCg0KV2FsdGVyDQo=
 
-The patch didn't update KASAN_STACK dependency in kconfig:
-        config GCC_PLUGIN_STRUCTLEAK_BYREF
-....
-               depends on !(KASAN && KASAN_STACK=3D1)
-
-This 'depends on'  stopped working with the patch
