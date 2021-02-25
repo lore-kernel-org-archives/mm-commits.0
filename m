@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CFC6C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C5CBC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 04E0C64E90
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B055A64EFA
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233153AbhBYTZS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:25:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35620 "EHLO mail.kernel.org"
+        id S233811AbhBYTZT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:25:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35622 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234379AbhBYTXI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234403AbhBYTXI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:23:08 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DD14464F66;
-        Thu, 25 Feb 2021 19:13:58 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ECA4160201;
+        Thu, 25 Feb 2021 19:13:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280439;
-        bh=uHY3JueOL5LbE+sAOQ4GnSpBzdoOUSJIAvUFi5/G0zY=;
+        s=korg; t=1614280436;
+        bh=VwoVY/4ekqAwzQLWzaR/h2lJlJOEfS0C7BRLcenTCbw=;
         h=Date:From:To:Subject:From;
-        b=Mh6w0FyG7fZyc838xzi4xGaYN9t4iW57b2Zl4ZxosNWwnp+grdr3sMKwM46GdSN2v
-         ymY/kZHg6jE/h4BgqeUZaupch7/yfgkw+lkEvmlrccBrHnvWH5L5VzrKuF/LPCLAy5
-         ijLrLgdWznthAeBcQh55rHFlULVxMfz720RrtQag=
-Date:   Thu, 25 Feb 2021 11:13:58 -0800
+        b=r6S5aQPQqFBQCjuVBVpZvRrgkIgyShg2dWorlkKzpt31ho92I47FFx5J2Ic+7W88e
+         nbFtt+MmvPGWrSIya0rPcluVAL5jKnBPpPPVKSrzeFGcPxW0FX4IpzU2ZF+VrlCFRr
+         saNhLAmLUMBFZ5O6LCzGxzTCRnDJBgULY703oTls=
+Date:   Thu, 25 Feb 2021 11:13:55 -0800
 From:   akpm@linux-foundation.org
 To:     adobriyan@gmail.com, feng.tang@intel.com,
         gregkh@linuxfoundation.org, guro@fb.com, hannes@cmpxchg.org,
@@ -39,9 +39,9 @@ To:     adobriyan@gmail.com, feng.tang@intel.com,
         shakeelb@google.com, songmuchun@bytedance.com,
         vdavydov.dev@gmail.com
 Subject:  [merged]
- mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch removed from -mm
- tree
-Message-ID: <20210225191358.4t3W-nWnL%akpm@linux-foundation.org>
+ mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch removed
+ from -mm tree
+Message-ID: <20210225191355.7l_Va3v1E%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,268 +50,112 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: convert NR_ANON_THPS account to pages
+     Subject: mm: memcontrol: fix NR_ANON_THPS accounting in charge moving
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
+     mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: convert NR_ANON_THPS account to pages
+Subject: mm: memcontrol: fix NR_ANON_THPS accounting in charge moving
 
-Currently we use struct per_cpu_nodestat to cache the vmstat counters,
-which leads to inaccurate statistics especially THP vmstat counters.  In
-the systems with hundreds of processors it can be GBs of memory.  For
-example, for a 96 CPUs system, the threshold is the maximum number of 125.
-And the per cpu counters can cache 23.4375 GB in total.
+Patch series "Convert all THP vmstat counters to pages", v6.
 
-The THP page is already a form of batched addition (it will add 512 worth
-of memory in one go) so skipping the batching seems like sensible. 
-Although every THP stats update overflows the per-cpu counter, resorting
-to atomic global updates.  But it can make the statistics more accuracy
-for the THP vmstat counters.
+This patch series is aimed to convert all THP vmstat counters to pages.
 
-So we convert the NR_ANON_THPS account to pages.  This patch is consistent
-with 8f182270dfec ("mm/swap.c: flush lru pvecs on compound page arrival").
-Doing this also can make the unit of vmstat counters more unified. 
-Finally, the unit of the vmstat counters are pages, kB and bytes.  The
-B/KB suffix can tell us that the unit is bytes or kB.  The rest which is
-without suffix are pages.
+The unit of some vmstat counters are pages, some are bytes, some are
+HPAGE_PMD_NR, and some are KiB. When we want to expose these vmstat
+counters to the userspace, we have to know the unit of the vmstat counters
+is which one. When the unit is bytes or kB, both clearly distinguishable
+by the B/KB suffix. But for the THP vmstat counters, we may make mistakes.
 
-Link: https://lkml.kernel.org/r/20201228164110.2838-3-songmuchun@bytedance.com
+For example, the below is some bug fix for the THP vmstat counters:
+
+  - 7de2e9f195b9 ("mm: memcontrol: correct the NR_ANON_THPS counter of hierarchical memcg")
+  - The first commit in this series ("fix NR_ANON_THPS accounting in charge moving")
+
+This patch series can make the code clear. And make all the unit of the THP
+vmstat counters in pages. Finally, the unit of the vmstat counters are
+pages, kB and bytes. The B/KB suffix can tell us that the unit is bytes
+or kB. The rest which is without suffix are pages.
+
+In this series, I changed the following vmstat counters unit from HPAGE_PMD_NR
+to pages. However, there is no change to the print format of output to user
+space.
+
+  - NR_ANON_THPS
+  - NR_FILE_THPS
+  - NR_SHMEM_THPS
+  - NR_SHMEM_PMDMAPPED
+  - NR_FILE_PMDMAPPED
+
+Doing this also can make the statistics more accuracy for the THP vmstat
+counters. This series is consistent with 8f182270dfec ("mm/swap.c: flush lru
+pvecs on compound page arrival").
+
+Because we use struct per_cpu_nodestat to cache the vmstat counters, which
+leads to inaccurate statistics especially THP vmstat counters. In the systems
+with hundreds of processors it can be GBs of memory. For example, for a 96
+CPUs system, the threshold is the maximum number of 125. And the per cpu
+counters can cache 23.4375 GB in total.
+
+The THP page is already a form of batched addition (it will add 512 worth of
+memory in one go) so skipping the batching seems like sensible. Although every
+THP stats update overflows the per-cpu counter, resorting to atomic global
+updates. But it can make the statistics more accuracy for the THP vmstat
+counters. From this point of view, I think that do this converting is
+reasonable.
+
+Thanks Hugh for mentioning this. This was inspired by Johannes and Roman.
+Thanks to them.
+
+
+This patch (of 7):
+
+The unit of NR_ANON_THPS is HPAGE_PMD_NR already.  So it should inc/dec by
+one rather than nr_pages.
+
+Link: https://lkml.kernel.org/r/20201228164110.2838-1-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20201228164110.2838-2-songmuchun@bytedance.com
+Fixes: 468c398233da ("mm: memcontrol: switch to native NR_ANON_THPS counter")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Rafael. J. Wysocki <rafael@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
+Reviewed-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Sami Tolvanen <samitolvanen@google.com>
 Cc: Feng Tang <feng.tang@intel.com>
-Cc: NeilBrown <neilb@suse.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Rafael. J. Wysocki <rafael@kernel.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c    |   15 +++++++++------
- fs/proc/meminfo.c      |    2 +-
- include/linux/mmzone.h |   13 +++++++++++++
- mm/huge_memory.c       |    3 ++-
- mm/memcontrol.c        |   20 ++++++--------------
- mm/page_alloc.c        |    2 +-
- mm/rmap.c              |    6 +++---
- mm/vmstat.c            |   11 +++++++++--
- 8 files changed, 44 insertions(+), 28 deletions(-)
+ mm/memcontrol.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/drivers/base/node.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
-+++ a/drivers/base/node.c
-@@ -461,8 +461,7 @@ static ssize_t node_read_meminfo(struct
- 			     nid, K(sunreclaimable)
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 			     ,
--			     nid, K(node_page_state(pgdat, NR_ANON_THPS) *
--				    HPAGE_PMD_NR),
-+			     nid, K(node_page_state(pgdat, NR_ANON_THPS)),
- 			     nid, K(node_page_state(pgdat, NR_SHMEM_THPS) *
- 				    HPAGE_PMD_NR),
- 			     nid, K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED) *
-@@ -519,10 +518,14 @@ static ssize_t node_read_vmstat(struct d
- 				     sum_zone_numa_state(nid, i));
- 
- #endif
--	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
--		len += sysfs_emit_at(buf, len, "%s %lu\n",
--				     node_stat_name(i),
--				     node_page_state_pages(pgdat, i));
-+	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
-+		unsigned long pages = node_page_state_pages(pgdat, i);
-+
-+		if (vmstat_item_print_in_thp(i))
-+			pages /= HPAGE_PMD_NR;
-+		len += sysfs_emit_at(buf, len, "%s %lu\n", node_stat_name(i),
-+				     pages);
-+	}
- 
- 	return len;
- }
---- a/fs/proc/meminfo.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
-+++ a/fs/proc/meminfo.c
-@@ -129,7 +129,7 @@ static int meminfo_proc_show(struct seq_
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	show_val_kb(m, "AnonHugePages:  ",
--		    global_node_page_state(NR_ANON_THPS) * HPAGE_PMD_NR);
-+		    global_node_page_state(NR_ANON_THPS));
- 	show_val_kb(m, "ShmemHugePages: ",
- 		    global_node_page_state(NR_SHMEM_THPS) * HPAGE_PMD_NR);
- 	show_val_kb(m, "ShmemPmdMapped: ",
---- a/include/linux/mmzone.h~mm-memcontrol-convert-nr_anon_thps-account-to-pages
-+++ a/include/linux/mmzone.h
-@@ -210,6 +210,19 @@ enum node_stat_item {
- };
- 
- /*
-+ * Returns true if the item should be printed in THPs (/proc/vmstat
-+ * currently prints number of anon, file and shmem THPs. But the item
-+ * is charged in pages).
-+ */
-+static __always_inline bool vmstat_item_print_in_thp(enum node_stat_item item)
-+{
-+	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
-+		return false;
-+
-+	return item == NR_ANON_THPS;
-+}
-+
-+/*
-  * Returns true if the value is measured in bytes (most vmstat values are
-  * measured in pages). This defines the API part, the internal representation
-  * might be different.
---- a/mm/huge_memory.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
-+++ a/mm/huge_memory.c
-@@ -2176,7 +2176,8 @@ static void __split_huge_pmd_locked(stru
- 		lock_page_memcg(page);
- 		if (atomic_add_negative(-1, compound_mapcount_ptr(page))) {
- 			/* Last compound_mapcount is gone. */
--			__dec_lruvec_page_state(page, NR_ANON_THPS);
-+			__mod_lruvec_page_state(page, NR_ANON_THPS,
-+						-HPAGE_PMD_NR);
- 			if (TestClearPageDoubleMap(page)) {
- 				/* No need in mapcount reference anymore */
- 				for (i = 0; i < HPAGE_PMD_NR; i++)
---- a/mm/memcontrol.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
+--- a/mm/memcontrol.c~mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving
 +++ a/mm/memcontrol.c
-@@ -1533,7 +1533,7 @@ static struct memory_stat memory_stats[]
- 	 * on some architectures, the macro of HPAGE_PMD_SIZE is not
- 	 * constant(e.g. powerpc).
- 	 */
--	{ "anon_thp", 0, NR_ANON_THPS },
-+	{ "anon_thp", PAGE_SIZE, NR_ANON_THPS },
- 	{ "file_thp", 0, NR_FILE_THPS },
- 	{ "shmem_thp", 0, NR_SHMEM_THPS },
- #endif
-@@ -1566,8 +1566,7 @@ static int __init memory_stats_init(void
- 
- 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		if (memory_stats[i].idx == NR_ANON_THPS ||
--		    memory_stats[i].idx == NR_FILE_THPS ||
-+		if (memory_stats[i].idx == NR_FILE_THPS ||
- 		    memory_stats[i].idx == NR_SHMEM_THPS)
- 			memory_stats[i].ratio = HPAGE_PMD_SIZE;
- #endif
-@@ -4087,10 +4086,6 @@ static int memcg_stat_show(struct seq_fi
- 		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
- 			continue;
- 		nr = memcg_page_state_local(memcg, memcg1_stats[i]);
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		if (memcg1_stats[i] == NR_ANON_THPS)
--			nr *= HPAGE_PMD_NR;
--#endif
- 		seq_printf(m, "%s %lu\n", memcg1_stat_names[i], nr * PAGE_SIZE);
- 	}
- 
-@@ -4121,10 +4116,6 @@ static int memcg_stat_show(struct seq_fi
- 		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
- 			continue;
- 		nr = memcg_page_state(memcg, memcg1_stats[i]);
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		if (memcg1_stats[i] == NR_ANON_THPS)
--			nr *= HPAGE_PMD_NR;
--#endif
- 		seq_printf(m, "total_%s %llu\n", memcg1_stat_names[i],
- 						(u64)nr * PAGE_SIZE);
- 	}
-@@ -5652,10 +5643,11 @@ static int mem_cgroup_move_account(struc
+@@ -5652,10 +5652,8 @@ static int mem_cgroup_move_account(struc
  			__mod_lruvec_state(from_vec, NR_ANON_MAPPED, -nr_pages);
  			__mod_lruvec_state(to_vec, NR_ANON_MAPPED, nr_pages);
  			if (PageTransHuge(page)) {
--				__dec_lruvec_state(from_vec, NR_ANON_THPS);
--				__inc_lruvec_state(to_vec, NR_ANON_THPS);
-+				__mod_lruvec_state(from_vec, NR_ANON_THPS,
-+						   -nr_pages);
-+				__mod_lruvec_state(to_vec, NR_ANON_THPS,
-+						   nr_pages);
+-				__mod_lruvec_state(from_vec, NR_ANON_THPS,
+-						   -nr_pages);
+-				__mod_lruvec_state(to_vec, NR_ANON_THPS,
+-						   nr_pages);
++				__dec_lruvec_state(from_vec, NR_ANON_THPS);
++				__inc_lruvec_state(to_vec, NR_ANON_THPS);
  			}
--
+ 
  		}
- 	} else {
- 		__mod_lruvec_state(from_vec, NR_FILE_PAGES, -nr_pages);
---- a/mm/page_alloc.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
-+++ a/mm/page_alloc.c
-@@ -5587,7 +5587,7 @@ void show_free_areas(unsigned int filter
- 			K(node_page_state(pgdat, NR_SHMEM_THPS) * HPAGE_PMD_NR),
- 			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)
- 					* HPAGE_PMD_NR),
--			K(node_page_state(pgdat, NR_ANON_THPS) * HPAGE_PMD_NR),
-+			K(node_page_state(pgdat, NR_ANON_THPS)),
- #endif
- 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
- 			node_page_state(pgdat, NR_KERNEL_STACK_KB),
---- a/mm/rmap.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
-+++ a/mm/rmap.c
-@@ -1144,7 +1144,7 @@ void do_page_add_anon_rmap(struct page *
- 		 * disabled.
- 		 */
- 		if (compound)
--			__inc_lruvec_page_state(page, NR_ANON_THPS);
-+			__mod_lruvec_page_state(page, NR_ANON_THPS, nr);
- 		__mod_lruvec_page_state(page, NR_ANON_MAPPED, nr);
- 	}
- 
-@@ -1186,7 +1186,7 @@ void page_add_new_anon_rmap(struct page
- 		if (hpage_pincount_available(page))
- 			atomic_set(compound_pincount_ptr(page), 0);
- 
--		__inc_lruvec_page_state(page, NR_ANON_THPS);
-+		__mod_lruvec_page_state(page, NR_ANON_THPS, nr);
- 	} else {
- 		/* Anon THP always mapped first with PMD */
- 		VM_BUG_ON_PAGE(PageTransCompound(page), page);
-@@ -1292,7 +1292,7 @@ static void page_remove_anon_compound_rm
- 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
- 		return;
- 
--	__dec_lruvec_page_state(page, NR_ANON_THPS);
-+	__mod_lruvec_page_state(page, NR_ANON_THPS, -thp_nr_pages(page));
- 
- 	if (TestClearPageDoubleMap(page)) {
- 		/*
---- a/mm/vmstat.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
-+++ a/mm/vmstat.c
-@@ -1619,8 +1619,12 @@ static void zoneinfo_show_print(struct s
- 	if (is_zone_first_populated(pgdat, zone)) {
- 		seq_printf(m, "\n  per-node stats");
- 		for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
-+			unsigned long pages = node_page_state_pages(pgdat, i);
-+
-+			if (vmstat_item_print_in_thp(i))
-+				pages /= HPAGE_PMD_NR;
- 			seq_printf(m, "\n      %-12s %lu", node_stat_name(i),
--				   node_page_state_pages(pgdat, i));
-+				   pages);
- 		}
- 	}
- 	seq_printf(m,
-@@ -1740,8 +1744,11 @@ static void *vmstat_start(struct seq_fil
- 	v += NR_VM_NUMA_STAT_ITEMS;
- #endif
- 
--	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
-+	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
- 		v[i] = global_node_page_state_pages(i);
-+		if (vmstat_item_print_in_thp(i))
-+			v[i] /= HPAGE_PMD_NR;
-+	}
- 	v += NR_VM_NODE_STAT_ITEMS;
- 
- 	global_dirty_limits(v + NR_DIRTY_BG_THRESHOLD,
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
