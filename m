@@ -7,41 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C5CBC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FED3C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B055A64EFA
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37F3664ECE
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233811AbhBYTZT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:25:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35622 "EHLO mail.kernel.org"
+        id S233919AbhBYTZY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:25:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35722 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234403AbhBYTXI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:23:08 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ECA4160201;
-        Thu, 25 Feb 2021 19:13:55 +0000 (UTC)
+        id S234490AbhBYTXP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:23:15 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B568A64F6F;
+        Thu, 25 Feb 2021 19:14:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280436;
-        bh=VwoVY/4ekqAwzQLWzaR/h2lJlJOEfS0C7BRLcenTCbw=;
+        s=korg; t=1614280470;
+        bh=JcrIJke51i1i+vQb7aqk1ktRBNm4XW1gyRQaN3yHaAs=;
         h=Date:From:To:Subject:From;
-        b=r6S5aQPQqFBQCjuVBVpZvRrgkIgyShg2dWorlkKzpt31ho92I47FFx5J2Ic+7W88e
-         nbFtt+MmvPGWrSIya0rPcluVAL5jKnBPpPPVKSrzeFGcPxW0FX4IpzU2ZF+VrlCFRr
-         saNhLAmLUMBFZ5O6LCzGxzTCRnDJBgULY703oTls=
-Date:   Thu, 25 Feb 2021 11:13:55 -0800
+        b=I2kElnX0UlSHFvZRZQzmNUtwQ0wdjHGsxoYteikMg2flGf9PF0BGNQ2CZodAG/4QP
+         lyC3umCW9yrdKQAOD9hlKRQHSUTPbIhvviqCirvsF9jDY5U+3sTzhAWTsC4EjaKbQa
+         tTF6la1hbjCdUMHMxcZpwXlXgjK7nDanM5M38PSs=
+Date:   Thu, 25 Feb 2021 11:14:29 -0800
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, feng.tang@intel.com,
-        gregkh@linuxfoundation.org, guro@fb.com, hannes@cmpxchg.org,
-        hughd@google.com, iamjoonsoo.kim@lge.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, neilb@suse.de,
-        pankaj.gupta@cloud.ionos.com, rafael@kernel.org,
-        rdunlap@infradead.org, samitolvanen@google.com,
-        shakeelb@google.com, songmuchun@bytedance.com,
-        vdavydov.dev@gmail.com
+To:     guro@fb.com, hannes@cmpxchg.org, linmiaohe@huawei.com,
+        mhocko@suse.com, mm-commits@vger.kernel.org,
+        songmuchun@bytedance.com
 Subject:  [merged]
- mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch removed
+ mm-memcontrol-replace-the-loop-with-a-list_for_each_entry.patch removed
  from -mm tree
-Message-ID: <20210225191355.7l_Va3v1E%akpm@linux-foundation.org>
+Message-ID: <20210225191429.9Xnd5PJvW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,112 +45,92 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fix NR_ANON_THPS accounting in charge moving
+     Subject: mm: memcontrol: replace the loop with a list_for_each_entry()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
+     mm-memcontrol-replace-the-loop-with-a-list_for_each_entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: fix NR_ANON_THPS accounting in charge moving
+Subject: mm: memcontrol: replace the loop with a list_for_each_entry()
 
-Patch series "Convert all THP vmstat counters to pages", v6.
+The rule of list walk has gone since:
 
-This patch series is aimed to convert all THP vmstat counters to pages.
+ commit a9d5adeeb4b2 ("mm/memcontrol: allow to uncharge page without using page->lru field")
 
-The unit of some vmstat counters are pages, some are bytes, some are
-HPAGE_PMD_NR, and some are KiB. When we want to expose these vmstat
-counters to the userspace, we have to know the unit of the vmstat counters
-is which one. When the unit is bytes or kB, both clearly distinguishable
-by the B/KB suffix. But for the THP vmstat counters, we may make mistakes.
+So remove the strange comment and replace the loop with a
+list_for_each_entry().
 
-For example, the below is some bug fix for the THP vmstat counters:
+There is only one caller of the uncharge_list().  So just fold it into
+mem_cgroup_uncharge_list() and remove it.
 
-  - 7de2e9f195b9 ("mm: memcontrol: correct the NR_ANON_THPS counter of hierarchical memcg")
-  - The first commit in this series ("fix NR_ANON_THPS accounting in charge moving")
-
-This patch series can make the code clear. And make all the unit of the THP
-vmstat counters in pages. Finally, the unit of the vmstat counters are
-pages, kB and bytes. The B/KB suffix can tell us that the unit is bytes
-or kB. The rest which is without suffix are pages.
-
-In this series, I changed the following vmstat counters unit from HPAGE_PMD_NR
-to pages. However, there is no change to the print format of output to user
-space.
-
-  - NR_ANON_THPS
-  - NR_FILE_THPS
-  - NR_SHMEM_THPS
-  - NR_SHMEM_PMDMAPPED
-  - NR_FILE_PMDMAPPED
-
-Doing this also can make the statistics more accuracy for the THP vmstat
-counters. This series is consistent with 8f182270dfec ("mm/swap.c: flush lru
-pvecs on compound page arrival").
-
-Because we use struct per_cpu_nodestat to cache the vmstat counters, which
-leads to inaccurate statistics especially THP vmstat counters. In the systems
-with hundreds of processors it can be GBs of memory. For example, for a 96
-CPUs system, the threshold is the maximum number of 125. And the per cpu
-counters can cache 23.4375 GB in total.
-
-The THP page is already a form of batched addition (it will add 512 worth of
-memory in one go) so skipping the batching seems like sensible. Although every
-THP stats update overflows the per-cpu counter, resorting to atomic global
-updates. But it can make the statistics more accuracy for the THP vmstat
-counters. From this point of view, I think that do this converting is
-reasonable.
-
-Thanks Hugh for mentioning this. This was inspired by Johannes and Roman.
-Thanks to them.
-
-
-This patch (of 7):
-
-The unit of NR_ANON_THPS is HPAGE_PMD_NR already.  So it should inc/dec by
-one rather than nr_pages.
-
-Link: https://lkml.kernel.org/r/20201228164110.2838-1-songmuchun@bytedance.com
-Link: https://lkml.kernel.org/r/20201228164110.2838-2-songmuchun@bytedance.com
-Fixes: 468c398233da ("mm: memcontrol: switch to native NR_ANON_THPS counter")
+Link: https://lkml.kernel.org/r/20210204163055.56080-1-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
-Reviewed-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: NeilBrown <neilb@suse.de>
-Cc: Rafael. J. Wysocki <rafael@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   35 ++++++++---------------------------
+ 1 file changed, 8 insertions(+), 27 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving
+--- a/mm/memcontrol.c~mm-memcontrol-replace-the-loop-with-a-list_for_each_entry
 +++ a/mm/memcontrol.c
-@@ -5652,10 +5652,8 @@ static int mem_cgroup_move_account(struc
- 			__mod_lruvec_state(from_vec, NR_ANON_MAPPED, -nr_pages);
- 			__mod_lruvec_state(to_vec, NR_ANON_MAPPED, nr_pages);
- 			if (PageTransHuge(page)) {
--				__mod_lruvec_state(from_vec, NR_ANON_THPS,
--						   -nr_pages);
--				__mod_lruvec_state(to_vec, NR_ANON_THPS,
--						   nr_pages);
-+				__dec_lruvec_state(from_vec, NR_ANON_THPS);
-+				__inc_lruvec_state(to_vec, NR_ANON_THPS);
- 			}
+@@ -6862,31 +6862,6 @@ static void uncharge_page(struct page *p
+ 	css_put(&ug->memcg->css);
+ }
  
- 		}
+-static void uncharge_list(struct list_head *page_list)
+-{
+-	struct uncharge_gather ug;
+-	struct list_head *next;
+-
+-	uncharge_gather_clear(&ug);
+-
+-	/*
+-	 * Note that the list can be a single page->lru; hence the
+-	 * do-while loop instead of a simple list_for_each_entry().
+-	 */
+-	next = page_list->next;
+-	do {
+-		struct page *page;
+-
+-		page = list_entry(next, struct page, lru);
+-		next = page->lru.next;
+-
+-		uncharge_page(page, &ug);
+-	} while (next != page_list);
+-
+-	if (ug.memcg)
+-		uncharge_batch(&ug);
+-}
+-
+ /**
+  * mem_cgroup_uncharge - uncharge a page
+  * @page: page to uncharge
+@@ -6918,11 +6893,17 @@ void mem_cgroup_uncharge(struct page *pa
+  */
+ void mem_cgroup_uncharge_list(struct list_head *page_list)
+ {
++	struct uncharge_gather ug;
++	struct page *page;
++
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 
+-	if (!list_empty(page_list))
+-		uncharge_list(page_list);
++	uncharge_gather_clear(&ug);
++	list_for_each_entry(page, page_list, lru)
++		uncharge_page(page, &ug);
++	if (ug.memcg)
++		uncharge_batch(&ug);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
