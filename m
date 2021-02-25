@@ -2,90 +2,90 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70554C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 17:59:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB9DBC433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:14:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 348B064F4E
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 17:59:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35F0564F6E
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:14:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233148AbhBYR6g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 12:58:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50598 "EHLO mail.kernel.org"
+        id S233720AbhBYTOT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:14:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54722 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232491AbhBYR6Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 12:58:25 -0500
-Received: from gandalf.local.home (cpe-66-24-58-225.stny.res.rr.com [66.24.58.225])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 35E5F64DE8;
-        Thu, 25 Feb 2021 17:57:43 +0000 (UTC)
-Date:   Thu, 25 Feb 2021 12:57:41 -0500
-From:   Steven Rostedt <rostedt@goodmis.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Jacob Wen <jian.w.wen@oracle.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Joe Perches <joe@perches.com>,
-        Christoph Lameter <cl@linux.com>,
-        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
-        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
-        Paul McKenney <paulmck@linux.vnet.ibm.com>,
-        Pekka Enberg <penberg@kernel.org>,
-        David Rientjes <rientjes@google.com>
-Subject: Re: [patch 014/173] mm, tracing: record slab name for
- kmem_cache_free()
-Message-ID: <20210225125741.4fc7e43e@gandalf.local.home>
-In-Reply-To: <CAHk-=witGXc2FsqkOUy+Fh1_Vdpg=G5-MnDnDHv5DR5d6bRztQ@mail.gmail.com>
-References: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
-        <20210224200055.U7Xz47kX5%akpm@linux-foundation.org>
-        <20210224203708.4489755a@oasis.local.home>
-        <20210224210740.73273c7a@oasis.local.home>
-        <5a0b6fb4-6efd-e391-45fa-cd188f181d5d@oracle.com>
-        <20210225093128.4cd86439@gandalf.local.home>
-        <CAHk-=witGXc2FsqkOUy+Fh1_Vdpg=G5-MnDnDHv5DR5d6bRztQ@mail.gmail.com>
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        id S233922AbhBYTLz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:11:55 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6EEB560201;
+        Thu, 25 Feb 2021 19:11:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1614280272;
+        bh=E7O4ulvIg70dfFAk3qpLfbTlG/ZgZjii096j8XdI/9o=;
+        h=Date:From:To:Subject:From;
+        b=XE6VIXHqSXs3A6WQ7BkFQvaM5a7AAkU81ioMimE76y4lCk5dJA8WFql9w1XPWdiXB
+         2XbzZ2Fj5MV6mCNkz1sb5QpANTGXgsY3PVHXKOxkrWYFhSDS0Ti6dGi7+yaNG6zvel
+         Ty1d3pLRIh5m0K84hrBpHofLTOmz5NJdORrLRSnQ=
+Date:   Thu, 25 Feb 2021 11:11:11 -0800
+From:   akpm@linux-foundation.org
+To:     bcain@codeaurora.org, gregkh@linuxfoundation.org,
+        keescook@chromium.org, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org
+Subject:  [merged]
+ hexagon-remove-config_experimental-from-defconfigs.patch removed from -mm
+ tree
+Message-ID: <20210225191111.TgFIlRa9Z%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, 25 Feb 2021 09:49:15 -0800
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> On Thu, Feb 25, 2021 at 6:31 AM Steven Rostedt <rostedt@goodmis.org> wrote:
-> >
-> > Here's nothing special about %s in TP_printk. It uses the same code as
-> > printk() and what other string formatters use.
-> >
-> > What is special is that the print is on data that is stored from a previous
-> > time.  
-> 
-> Well, technically that's not actually limited to just %s, although
-> that's the common case.
-> 
-> All our magic "%p*" formats do the same thing: they print out not the
-> argument _value_, but something that the pointer value points to.
-> 
-> So "%pD" takes a "struct file *" pointer, and follows it to the
-> dentry, and then from the dentry to the name. So it will in fact
-> follow pointers even more than "%s" does.
+The patch titled
+     Subject: hexagon: remove CONFIG_EXPERIMENTAL from defconfigs
+has been removed from the -mm tree.  Its filename was
+     hexagon-remove-config_experimental-from-defconfigs.patch
 
-Correct, as I've told people about that as well.
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-> 
-> It might indeed be worth having a warning for TP_printk() about any of
-> the formats that follow a pointer, exactly because of the whole "by
-> the time it actually prints, the pointer may be long gone".
->
+------------------------------------------------------
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: hexagon: remove CONFIG_EXPERIMENTAL from defconfigs
 
-Just a comment? Or should we add some check that gives a warning for when
-one of these are used? That can be done at boot up or module load. (note, %s
-can be OK for some cases, as mentioned in a previous email).
+Since CONFIG_EXPERIMENTAL was removed in 2013, go ahead and drop it
+from any defconfig files.
 
--- Steve
+Link: https://lkml.kernel.org/r/20210115010011.29483-1-rdunlap@infradead.org
+Fixes: 3d374d09f16f ("final removal of CONFIG_EXPERIMENTAL")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Brian Cain <bcain@codeaurora.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/hexagon/configs/comet_defconfig |    1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/arch/hexagon/configs/comet_defconfig~hexagon-remove-config_experimental-from-defconfigs
++++ a/arch/hexagon/configs/comet_defconfig
+@@ -1,7 +1,6 @@
+ CONFIG_SMP=y
+ CONFIG_DEFAULT_MMAP_MIN_ADDR=0
+ CONFIG_HZ_100=y
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_CROSS_COMPILE="hexagon-"
+ CONFIG_LOCALVERSION="-smp"
+ # CONFIG_LOCALVERSION_AUTO is not set
+_
+
+Patches currently in -mm which might be from rdunlap@infradead.org are
+
+mm-zswap-clean-up-confusing-comment.patch
+alpha-remove-config_experimental-from-defconfigs.patch
+include-linux-remove-repeated-words.patch
+kernel-delete-repeated-words-in-comments.patch
+
