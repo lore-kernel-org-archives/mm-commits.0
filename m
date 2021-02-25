@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3C3CC433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB9E8C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:24:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7BF1864E21
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E95964F3F
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:24:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234834AbhBYTX0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:23:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60062 "EHLO mail.kernel.org"
+        id S234109AbhBYTXg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:23:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60066 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234664AbhBYTUF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234663AbhBYTUF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:20:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 988DC64F5A;
-        Thu, 25 Feb 2021 19:13:26 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 98E6B64F5E;
+        Thu, 25 Feb 2021 19:13:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280406;
-        bh=kJVs6M3IvEEDTYW15gRDOSWOZky/CjxmHoDalB6JOE0=;
+        s=korg; t=1614280418;
+        bh=kT9utayuDwZa27Oa4DR1T/lgFgUlUOkjmfS43agxV0w=;
         h=Date:From:To:Subject:From;
-        b=jtwEy6vpMf2xzhYIi6ohLHFTnbJ0wA8nD7C6Ji9+qce3bosLShSR6TJOzK/yIjF4t
-         KmwDs/k96oRHoV7SJZzLCCP9ocTAXDNT21r+gmrZdRRAKs3zZFbdYexDA4xk4IGGp6
-         S6XlrxL5jt5iWgKWRTsTK0WnBTaNxa/vFBa65vZI=
-Date:   Thu, 25 Feb 2021 11:13:26 -0800
+        b=nQGBt7f7laX9iERefzwVYfpkwy8vlhp0AJuUv3BuDh38JoWVgzZDSfdk42KNYVNPs
+         SJeZzwjLkuQg4XVdH9XinYmMTQOawZe6ZfubZk78w3eVCjNhTC8SXVx6IsNRaJPjbn
+         blFZiXFUONiCNh/4V68/zyaYBF4zw1/0qPCZUmU0=
+Date:   Thu, 25 Feb 2021 11:13:38 -0800
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, kent.overstreet@gmail.com, linmiaohe@huawei.com,
-        mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  [merged] mm-filemap-simplify-generic_file_read_iter.patch
- removed from -mm tree
-Message-ID: <20210225191326.FBBzXTJXr%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, stephenzhangzsd@gmail.com
+Subject:  [merged]
+ mm-swapfilec-fix-debugging-information-problem.patch removed from -mm tree
+Message-ID: <20210225191338.75qacvB3Q%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,66 +42,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: simplify generic_file_read_iter
+     Subject: mm/swapfile.c: fix debugging information problem
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-simplify-generic_file_read_iter.patch
+     mm-swapfilec-fix-debugging-information-problem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm/filemap: simplify generic_file_read_iter
+From: Stephen Zhang <stephenzhangzsd@gmail.com>
+Subject: mm/swapfile.c: fix debugging information problem
 
-Avoid the pointless goto out just for returning retval.
+Once the function name is changed, it may be easy to forget to modify the
+corresponding code here.
 
-Link: https://lkml.kernel.org/r/20210122160140.223228-19-willy@infradead.org
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/1611369120-2276-1-git-send-email-stephenzhangzsd@gmail.com
+Signed-off-by: Stephen Zhang <stephenzhangzsd@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/swapfile.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-simplify-generic_file_read_iter
-+++ a/mm/filemap.c
-@@ -2543,7 +2543,7 @@ generic_file_read_iter(struct kiocb *ioc
- 	ssize_t retval = 0;
+--- a/mm/swapfile.c~mm-swapfilec-fix-debugging-information-problem
++++ a/mm/swapfile.c
+@@ -1157,13 +1157,13 @@ static struct swap_info_struct *__swap_i
+ 	return p;
  
- 	if (!count)
--		goto out; /* skip atime */
-+		return 0; /* skip atime */
- 
- 	if (iocb->ki_flags & IOCB_DIRECT) {
- 		struct file *file = iocb->ki_filp;
-@@ -2561,7 +2561,7 @@ generic_file_read_iter(struct kiocb *ioc
- 						iocb->ki_pos,
- 					        iocb->ki_pos + count - 1);
- 			if (retval < 0)
--				goto out;
-+				return retval;
- 		}
- 
- 		file_accessed(file);
-@@ -2585,12 +2585,10 @@ generic_file_read_iter(struct kiocb *ioc
- 		 */
- 		if (retval < 0 || !count || iocb->ki_pos >= size ||
- 		    IS_DAX(inode))
--			goto out;
-+			return retval;
- 	}
- 
--	retval = filemap_read(iocb, iter, retval);
--out:
--	return retval;
-+	return filemap_read(iocb, iter, retval);
+ bad_offset:
+-	pr_err("swap_info_get: %s%08lx\n", Bad_offset, entry.val);
++	pr_err("%s: %s%08lx\n", __func__, Bad_offset, entry.val);
+ 	goto out;
+ bad_device:
+-	pr_err("swap_info_get: %s%08lx\n", Unused_file, entry.val);
++	pr_err("%s: %s%08lx\n", __func__, Unused_file, entry.val);
+ 	goto out;
+ bad_nofile:
+-	pr_err("swap_info_get: %s%08lx\n", Bad_file, entry.val);
++	pr_err("%s: %s%08lx\n", __func__, Bad_file, entry.val);
+ out:
+ 	return NULL;
  }
- EXPORT_SYMBOL(generic_file_read_iter);
+@@ -1180,7 +1180,7 @@ static struct swap_info_struct *_swap_in
+ 	return p;
  
+ bad_free:
+-	pr_err("swap_info_get: %s%08lx\n", Unused_offset, entry.val);
++	pr_err("%s: %s%08lx\n", __func__, Unused_offset, entry.val);
+ out:
+ 	return NULL;
+ }
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from stephenzhangzsd@gmail.com are
 
+mm-early_ioremapc-use-__func__-instead-of-function-name.patch
 
