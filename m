@@ -2,72 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 708D7C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 01:53:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7565BC433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 02:04:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1B84A64EB1
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 01:53:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 211D864ECE
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 02:04:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235256AbhBYBxm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 20:53:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32982 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235198AbhBYBxm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Feb 2021 20:53:42 -0500
-Received: from mail-lj1-x229.google.com (mail-lj1-x229.google.com [IPv6:2a00:1450:4864:20::229])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDDC8C061574
-        for <mm-commits@vger.kernel.org>; Wed, 24 Feb 2021 17:53:01 -0800 (PST)
-Received: by mail-lj1-x229.google.com with SMTP id c8so4664946ljd.12
-        for <mm-commits@vger.kernel.org>; Wed, 24 Feb 2021 17:53:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Mh7o610LxlV2/U6h/ZruDPO4/3tZZo0CK9z9YNL0Osc=;
-        b=CaiAx2UvsURkIclBiKEd8v5fQdmINg0E+P031xrPnjuSfkRh01ODYwRKRyYQAB7Mfe
-         RJZUqI5UvvWbnzraXAO97VdSYgH76v0afcOXb/SaN4Mda1V0lrS2lzWOC7ZJcspy49lt
-         xjBQLsCfsSgQMOgXzxGE6NAzu45qTDpwvX1gY=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Mh7o610LxlV2/U6h/ZruDPO4/3tZZo0CK9z9YNL0Osc=;
-        b=I9gBNJFTIFEX0hYIZSfibMqPQPLZSJOhTKcA9NggMl3jIZrmwChQRbZ5amDVGZOk8r
-         eLD3ODq0jXfvFNFBuvdGeVfYXR+EGhx7QrDWFvtqJtP7al2BRc69gYKaHVECW2NAAz0t
-         E3E1GoDnQ7pGHHAm22otIMyegsVn/270WdzsrrcMRii1Q0sZhFm526yMbipIGpHrYkd5
-         qiJ04mT97StCJnkgkD2z9C+sDk20eNf1ORm8bMMTtePXnYCXP4ppyHv2bHQQ1s9aILAL
-         hluDFWADn9XAklVOHUI3TPn+NDFpRvfyB/+HcZXpTmtS8UIw8CPx6t/G0JY+44DIhrvA
-         22AQ==
-X-Gm-Message-State: AOAM530PTigMwgGJQ1KnAmR/pKvmk8Pk+z+RJABLLZvz8icGLyBoQjZG
-        tGYjUejF6DA7WtGrJzNRFsrNHSV633NNpA==
-X-Google-Smtp-Source: ABdhPJyc6J4teRTtj/rZuLWpmyGStkBKUP3w17NAVz0iNCIaiEMTJC4jmzmEX3JRMy0umCK8yM3Hxw==
-X-Received: by 2002:a2e:9c50:: with SMTP id t16mr337372ljj.102.1614217979817;
-        Wed, 24 Feb 2021 17:52:59 -0800 (PST)
-Received: from mail-lf1-f52.google.com (mail-lf1-f52.google.com. [209.85.167.52])
-        by smtp.gmail.com with ESMTPSA id w12sm837078ljo.20.2021.02.24.17.52.58
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 24 Feb 2021 17:52:59 -0800 (PST)
-Received: by mail-lf1-f52.google.com with SMTP id v5so6092937lft.13
-        for <mm-commits@vger.kernel.org>; Wed, 24 Feb 2021 17:52:58 -0800 (PST)
-X-Received: by 2002:ac2:4acd:: with SMTP id m13mr460260lfp.201.1614217978393;
- Wed, 24 Feb 2021 17:52:58 -0800 (PST)
-MIME-Version: 1.0
-References: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
- <20210224200055.U7Xz47kX5%akpm@linux-foundation.org> <20210224203708.4489755a@oasis.local.home>
- <CAHk-=whoqLWCcUXOBfWsEu49jLRJFkwnCRq6dyjg_M=dO1FhcQ@mail.gmail.com>
-In-Reply-To: <CAHk-=whoqLWCcUXOBfWsEu49jLRJFkwnCRq6dyjg_M=dO1FhcQ@mail.gmail.com>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Wed, 24 Feb 2021 17:52:42 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wgyUz_NPbvK7TGrriOjXSiqvQm5pPN5xGpePRR16w+ZFw@mail.gmail.com>
-Message-ID: <CAHk-=wgyUz_NPbvK7TGrriOjXSiqvQm5pPN5xGpePRR16w+ZFw@mail.gmail.com>
-Subject: Re: [patch 014/173] mm, tracing: record slab name for kmem_cache_free()
-To:     Steven Rostedt <rostedt@goodmis.org>
+        id S235863AbhBYCDt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 21:03:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51940 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S235738AbhBYCDq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Feb 2021 21:03:46 -0500
+Received: from oasis.local.home (cpe-66-24-58-225.stny.res.rr.com [66.24.58.225])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id E415964ECB;
+        Thu, 25 Feb 2021 02:03:04 +0000 (UTC)
+Date:   Wed, 24 Feb 2021 21:03:02 -0500
+From:   Steven Rostedt <rostedt@goodmis.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Christoph Lameter <cl@linux.com>,
         Joonsoo Kim <iamjoonsoo.kim@lge.com>, jian.w.wen@oracle.com,
@@ -75,17 +33,57 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Paul McKenney <paulmck@linux.vnet.ibm.com>,
         Pekka Enberg <penberg@kernel.org>,
         David Rientjes <rientjes@google.com>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [patch 014/173] mm, tracing: record slab name for
+ kmem_cache_free()
+Message-ID: <20210224210302.0e0a196a@oasis.local.home>
+In-Reply-To: <CAHk-=whoqLWCcUXOBfWsEu49jLRJFkwnCRq6dyjg_M=dO1FhcQ@mail.gmail.com>
+References: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
+        <20210224200055.U7Xz47kX5%akpm@linux-foundation.org>
+        <20210224203708.4489755a@oasis.local.home>
+        <CAHk-=whoqLWCcUXOBfWsEu49jLRJFkwnCRq6dyjg_M=dO1FhcQ@mail.gmail.com>
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, Feb 24, 2021 at 5:51 PM Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
+On Wed, 24 Feb 2021 17:51:46 -0800
+Linus Torvalds <torvalds@linux-foundation.org> wrote:
+
+> On Wed, Feb 24, 2021 at 5:37 PM Steven Rostedt <rostedt@goodmis.org> wrote:
+> >
+> > Please do not apply this patch as is, it is very buggy!  
+> 
+> Sadly, it's already there and pushed out.  I try to wait a few hours
+> (sometimes overnight) with Andrew's series before pushing things out
+> in order to catch comments like this, but this one came too late.
+
+I try to look at patches like this for these very mistakes. I don't
+seem to be Cc'd on the original patch, and this looks to be the first
+time I've seen this patch. I should update my lkml filter to send me
+any patches that touch include/trace/ code or has TRACE_EVENT in it,
+and forward it to my inbox if I'm not already on the Cc.
+
+> 
 > I can obviously revert, but if the fix is the two-liner you outlined,
+> perhaps that is better? Mind sending it as a patch (or just putting it
+> in your tracing tree)? Or Jacob? A tested patch along the lines that
+> Steven outlined?
 
-Duh. Three lines, not two...
+I'm done for the night, but if nobody does anything by tomorrow, I can
+write up a quick fix in a few minutes. I prefer the original author to
+do it, just so they get into the habit of understanding strings in
+events.
 
-          Linus
+But even though it's very buggy, it wont break anything unless people
+really try to. The breakage would require enabling the event, then
+doing something that would free a slab and its name, then reading the
+trace file that has the events. In other words, the risk is low, but
+something you don't want on a production system. I don't see this
+breaking current mainline testing, so its not urgent to get fixed
+immediately.
+
+-- Steve
