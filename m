@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4F6AC43331
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3162C4332E
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 66BE464F43
+	by mail.kernel.org (Postfix) with ESMTP id 93BF864F3F
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234749AbhBYTW7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:22:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33988 "EHLO mail.kernel.org"
+        id S234757AbhBYTXA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:23:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234725AbhBYTUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234739AbhBYTUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:20:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A042364F53;
-        Thu, 25 Feb 2021 19:13:05 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 953BA64F4B;
+        Thu, 25 Feb 2021 19:12:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280385;
-        bh=lKmtBz00VrMKcc9Ib8p5FtXet+3ulqcW3WTg/NSX1Xg=;
+        s=korg; t=1614280373;
+        bh=BswsYASIwkwxDpTmV8QJLcIlnTprcyZgvOCnLvwuJV8=;
         h=Date:From:To:Subject:From;
-        b=fOndyjArSbsjk2t/giiLXGqTP9aiuxIUhHpMXuqW+guvTdcjtgBNU+Y0Tl1G4av48
-         QQTfEernf8C38RDccyOG4cVGUBe8q+ateS7ZFN2K5aECF+U0hDffJKmTyrO3t45x3u
-         kI2uMDv+00mONCNEpLzyujjX5vm2ms+QQrhyDisM=
-Date:   Thu, 25 Feb 2021 11:13:05 -0800
+        b=ClRo9RCrcGUECIKn+763dBEJ/JeEP7kdeBpEpxE2Pph19AkKvff3MYNhujBv1XAP1
+         y/UFkFlEyL2/bKdyxLZ6+mO+iaIrjad97GlUzUXvtpmMI2wMc/uAsljQK9r+zTmn9z
+         390vHccjbm4My3OJhOdsWlo1jDqihR1CrkicH55w=
+Date:   Thu, 25 Feb 2021 11:12:53 -0800
 From:   akpm@linux-foundation.org
 To:     hch@lst.de, kent.overstreet@gmail.com, linmiaohe@huawei.com,
         mm-commits@vger.kernel.org, willy@infradead.org
 Subject:  [merged]
- mm-filemap-convert-filemap_update_page-to-return-an-errno.patch removed
+ mm-filemap-inline-__wait_on_page_locked_async-into-caller.patch removed
  from -mm tree
-Message-ID: <20210225191305.C-LVW5W-e%akpm@linux-foundation.org>
+Message-ID: <20210225191253.fQroD4GHV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,22 +44,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: convert filemap_update_page to return an errno
+     Subject: mm/filemap: inline __wait_on_page_locked_async into caller
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-convert-filemap_update_page-to-return-an-errno.patch
+     mm-filemap-inline-__wait_on_page_locked_async-into-caller.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: convert filemap_update_page to return an errno
+Subject: mm/filemap: inline __wait_on_page_locked_async into caller
 
-Use AOP_TRUNCATED_PAGE to indicate that no error occurred, but the page we
-looked up is no longer valid.  In this case, the reference to the page
-will have been removed; if we hit any other error, the caller will release
-the reference.
+The previous patch removed wait_on_page_locked_async(), so inline
+__wait_on_page_locked_async into __lock_page_async().
 
-Link: https://lkml.kernel.org/r/20210122160140.223228-12-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210122160140.223228-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
@@ -67,98 +65,78 @@ Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   38 +++++++++++++++++---------------------
- 1 file changed, 17 insertions(+), 21 deletions(-)
+ mm/filemap.c |   53 ++++++++++++++++++++-----------------------------
+ 1 file changed, 22 insertions(+), 31 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-convert-filemap_update_page-to-return-an-errno
+--- a/mm/filemap.c~mm-filemap-inline-__wait_on_page_locked_async-into-caller
 +++ a/mm/filemap.c
-@@ -2233,24 +2233,21 @@ static int filemap_read_page(struct file
- 	return error;
+@@ -1343,36 +1343,6 @@ int wait_on_page_bit_killable(struct pag
  }
+ EXPORT_SYMBOL(wait_on_page_bit_killable);
  
--static struct page *filemap_update_page(struct kiocb *iocb, struct file *filp,
--		struct iov_iter *iter, struct page *page, loff_t pos,
--		loff_t count)
-+static int filemap_update_page(struct kiocb *iocb,
-+		struct address_space *mapping, struct iov_iter *iter,
-+		struct page *page, loff_t pos, loff_t count)
+-static int __wait_on_page_locked_async(struct page *page,
+-				       struct wait_page_queue *wait, bool set)
+-{
+-	struct wait_queue_head *q = page_waitqueue(page);
+-	int ret = 0;
+-
+-	wait->page = page;
+-	wait->bit_nr = PG_locked;
+-
+-	spin_lock_irq(&q->lock);
+-	__add_wait_queue_entry_tail(q, &wait->wait);
+-	SetPageWaiters(page);
+-	if (set)
+-		ret = !trylock_page(page);
+-	else
+-		ret = PageLocked(page);
+-	/*
+-	 * If we were successful now, we know we're still on the
+-	 * waitqueue as we're still under the lock. This means it's
+-	 * safe to remove and return success, we know the callback
+-	 * isn't going to trigger.
+-	 */
+-	if (!ret)
+-		__remove_wait_queue(q, &wait->wait);
+-	else
+-		ret = -EIOCBQUEUED;
+-	spin_unlock_irq(&q->lock);
+-	return ret;
+-}
+-
+ /**
+  * put_and_wait_on_page_locked - Drop a reference and wait for it to be unlocked
+  * @page: The page to wait for.
+@@ -1548,7 +1518,28 @@ EXPORT_SYMBOL_GPL(__lock_page_killable);
+ 
+ int __lock_page_async(struct page *page, struct wait_page_queue *wait)
  {
--	struct address_space *mapping = filp->f_mapping;
- 	struct inode *inode = mapping->host;
- 	int error;
- 
- 	if (iocb->ki_flags & IOCB_WAITQ) {
- 		error = lock_page_async(page, iocb->ki_waitq);
--		if (error) {
--			put_page(page);
--			return ERR_PTR(error);
--		}
-+		if (error)
-+			return error;
- 	} else {
- 		if (!trylock_page(page)) {
- 			put_and_wait_on_page_locked(page, TASK_KILLABLE);
--			return NULL;
-+			return AOP_TRUNCATED_PAGE;
- 		}
- 	}
- 
-@@ -2269,25 +2266,21 @@ static struct page *filemap_update_page(
- 		goto readpage;
- uptodate:
- 	unlock_page(page);
--	return page;
-+	return 0;
- 
- readpage:
- 	if (iocb->ki_flags & (IOCB_NOIO | IOCB_NOWAIT | IOCB_WAITQ)) {
- 		unlock_page(page);
--		put_page(page);
--		return ERR_PTR(-EAGAIN);
-+		return -EAGAIN;
- 	}
- 	error = filemap_read_page(iocb->ki_filp, mapping, page);
--	if (!error)
--		return page;
--	put_page(page);
- 	if (error == AOP_TRUNCATED_PAGE)
--		return NULL;
--	return ERR_PTR(error);
-+		put_page(page);
-+	return error;
- truncated:
- 	unlock_page(page);
- 	put_page(page);
--	return NULL;
-+	return AOP_TRUNCATED_PAGE;
+-	return __wait_on_page_locked_async(page, wait, true);
++	struct wait_queue_head *q = page_waitqueue(page);
++	int ret = 0;
++
++	wait->page = page;
++	wait->bit_nr = PG_locked;
++
++	spin_lock_irq(&q->lock);
++	__add_wait_queue_entry_tail(q, &wait->wait);
++	SetPageWaiters(page);
++	ret = !trylock_page(page);
++	/*
++	 * If we were successful now, we know we're still on the
++	 * waitqueue as we're still under the lock. This means it's
++	 * safe to remove and return success, we know the callback
++	 * isn't going to trigger.
++	 */
++	if (!ret)
++		__remove_wait_queue(q, &wait->wait);
++	else
++		ret = -EIOCBQUEUED;
++	spin_unlock_irq(&q->lock);
++	return ret;
  }
  
- static int filemap_create_page(struct file *file,
-@@ -2381,11 +2374,12 @@ got_pages:
- 				goto err;
- 			}
- 
--			page = filemap_update_page(iocb, filp, iter, page,
-+			err = filemap_update_page(iocb, mapping, iter, page,
- 					pg_pos, pg_count);
--			if (IS_ERR_OR_NULL(page)) {
-+			if (err) {
-+				if (err < 0)
-+					put_page(page);
- 				pvec->nr--;
--				err = PTR_ERR_OR_ZERO(page);
- 			}
- 		}
- 	}
-@@ -2393,6 +2387,8 @@ got_pages:
- err:
- 	if (likely(pvec->nr))
- 		return 0;
-+	if (err == AOP_TRUNCATED_PAGE)
-+		goto find_page;
- 	if (err)
- 		return err;
- 	/*
+ /*
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
