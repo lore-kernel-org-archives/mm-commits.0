@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C60C5C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:24:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8843EC433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7485164E21
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:24:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 380BB64F42
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:25:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233452AbhBYTYy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:24:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34000 "EHLO mail.kernel.org"
+        id S233498AbhBYTZD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:25:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33994 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234222AbhBYTWy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:22:54 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 98EE064F5C;
-        Thu, 25 Feb 2021 19:13:46 +0000 (UTC)
+        id S234405AbhBYTW6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:22:58 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D7B764F60;
+        Thu, 25 Feb 2021 19:14:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280426;
-        bh=4OW/wVdbuykVmM0Waf7BvqQMtVsPIQ7k6y5Kvv5/Gk0=;
+        s=korg; t=1614280455;
+        bh=O4rs++FA8ZvQKvPanPb5FO1hEhXIi/aRtUpit6fBe8I=;
         h=Date:From:To:Subject:From;
-        b=WHndeip+TkeP0rWnoIxF/bI5CrOA1AJ7+tgITN7IHiYx1ICyP8NP+IdfU0UpyNFQE
-         EAfpaM3A8UMkJot4/O1fPxLLQb7vp0q7H+7VrpYGqulpovMJVeazDgg0LkIVrsq0Yo
-         nERqWdzLSUJTYQapjeOo8yviLrnX3BJFNPoLeZzE=
-Date:   Thu, 25 Feb 2021 11:13:46 -0800
+        b=g00wVrwXu00lB2yNHUAkAN4zVDMLGEXJNdAwcdqWheQ1XknMqy8uasqZzKyiUPiP+
+         LE86xpG7vPUy95acQlxrHPnt41NvRyJX5MRYtH2b4qI2fFjCnCXwy1IjMIzTOCtP2s
+         oCzEKX+zLYdOvO+ePdRGRMTH6KvNu6AyfxSlAEto=
+Date:   Thu, 25 Feb 2021 11:14:14 -0800
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, vbabka@suse.cz, yuzhao@google.com
+To:     alex.shi@linux.alibaba.com, hannes@cmpxchg.org, hughd@google.com,
+        mhocko@kernel.org, mm-commits@vger.kernel.org,
+        vdavydov.dev@gmail.com
 Subject:  [merged]
- mm-swap-dont-setpageworkingset-unconditionally-during-swapin.patch removed
- from -mm tree
-Message-ID: <20210225191346.pDF3-nG7X%akpm@linux-foundation.org>
+ mm-memcg-remove-rcu-locking-for-lock_page_lruvec-function-series.patch
+ removed from -mm tree
+Message-ID: <20210225191414.AdzfbhY3j%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,69 +45,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: don't SetPageWorkingset unconditionally during swapin
+     Subject: mm/memcg: remove rcu locking for lock_page_lruvec function series
 has been removed from the -mm tree.  Its filename was
-     mm-swap-dont-setpageworkingset-unconditionally-during-swapin.patch
+     mm-memcg-remove-rcu-locking-for-lock_page_lruvec-function-series.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/swap: don't SetPageWorkingset unconditionally during swapin
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/memcg: remove rcu locking for lock_page_lruvec function series
 
-We are capable of SetPageWorkingset based on refault distances after
-commit aae466b0052e ("mm/swap: implement workingset detection for
-anonymous LRU").  This is done by workingset_refault(), which is right
-above the unconditional SetPageWorkingset deleted by this patch.
+lock_page_lruvec() and its variants used rcu_read_lock() with the
+intention of safeguarding against the mem_cgroup being destroyed
+concurrently; but so long as they are called under the specified
+conditions (as they are), there is no way for the page's mem_cgroup to be
+destroyed.  Delete the unnecessary rcu_read_lock() and _unlock().
 
-The unconditional SetPageWorkingset miscategorizes pages that are read
-ahead or never belonged to the working set (e.g., tmpfs pages accessed
-only once by fd).  When those pages are swapped in (after they were
-swapped out) for the first time, they skew PSI (when using async swap). 
-When this happens again, depending on their refault distances, they might
-skew workingset_restore_anon counter in addition to PSI because their
-shadows indicate they were part of the working set.
+Hugh Dickins polished the commit log.  Thanks a lot!
 
-Historically, SetPageWorkingset was added as part of the PSI series, and
-Johannes said:
- "It was meant to mark incoming pages under IO with SetPageWorkingset
-  when waiting for them constituted a memory stall.
-
-  On the page cache side, because we HAVE workingset detection, this was
-  specific to recently evicted pages that had been active in their
-  previous life. On the anon side, the aging algorithm had no
-  distinction between workingset and sporadically used pages. Given the
-  choice between a) no swapin stalls are pressure and b) all swapin
-  stalls are pressure, I went with the latter in order to detect swap
-  storms. The false positive case - high rate of swapin without severe
-  memory pressure - was relatively unlikely, because we tried to avoid
-  swapping until everything was completely on fire in the first place."
-
-Link: https://lkml.kernel.org/r/20201209012400.1771150-1-yuzhao@google.com
-Link: https://lkml.kernel.org/r/20201214231253.62313-1-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/1608614453-10739-2-git-send-email-alex.shi@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memcontrol.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-dont-setpageworkingset-unconditionally-during-swapin
-+++ a/mm/swap_state.c
-@@ -537,7 +537,6 @@ struct page *__read_swap_cache_async(swp
- 		workingset_refault(page, shadow);
+--- a/mm/memcontrol.c~mm-memcg-remove-rcu-locking-for-lock_page_lruvec-function-series
++++ a/mm/memcontrol.c
+@@ -1357,10 +1357,8 @@ struct lruvec *lock_page_lruvec(struct p
+ 	struct lruvec *lruvec;
+ 	struct pglist_data *pgdat = page_pgdat(page);
  
- 	/* Caller will initiate read into locked page */
--	SetPageWorkingset(page);
- 	lru_cache_add(page);
- 	*new_page_allocated = true;
- 	return page;
+-	rcu_read_lock();
+ 	lruvec = mem_cgroup_page_lruvec(page, pgdat);
+ 	spin_lock(&lruvec->lru_lock);
+-	rcu_read_unlock();
+ 
+ 	lruvec_memcg_debug(lruvec, page);
+ 
+@@ -1372,10 +1370,8 @@ struct lruvec *lock_page_lruvec_irq(stru
+ 	struct lruvec *lruvec;
+ 	struct pglist_data *pgdat = page_pgdat(page);
+ 
+-	rcu_read_lock();
+ 	lruvec = mem_cgroup_page_lruvec(page, pgdat);
+ 	spin_lock_irq(&lruvec->lru_lock);
+-	rcu_read_unlock();
+ 
+ 	lruvec_memcg_debug(lruvec, page);
+ 
+@@ -1387,10 +1383,8 @@ struct lruvec *lock_page_lruvec_irqsave(
+ 	struct lruvec *lruvec;
+ 	struct pglist_data *pgdat = page_pgdat(page);
+ 
+-	rcu_read_lock();
+ 	lruvec = mem_cgroup_page_lruvec(page, pgdat);
+ 	spin_lock_irqsave(&lruvec->lru_lock, *flags);
+-	rcu_read_unlock();
+ 
+ 	lruvec_memcg_debug(lruvec, page);
+ 
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
 
