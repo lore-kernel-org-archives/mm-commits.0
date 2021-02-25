@@ -7,64 +7,65 @@ X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79A39C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 01:52:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 708D7C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 01:53:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35DCD64E85
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 01:52:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1B84A64EB1
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 01:53:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235210AbhBYBwr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Feb 2021 20:52:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60996 "EHLO
+        id S235256AbhBYBxm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Feb 2021 20:53:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32982 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235198AbhBYBwr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Feb 2021 20:52:47 -0500
-Received: from mail-lf1-x129.google.com (mail-lf1-x129.google.com [IPv6:2a00:1450:4864:20::129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 169C5C061574
-        for <mm-commits@vger.kernel.org>; Wed, 24 Feb 2021 17:52:07 -0800 (PST)
-Received: by mail-lf1-x129.google.com with SMTP id j19so6081338lfr.12
-        for <mm-commits@vger.kernel.org>; Wed, 24 Feb 2021 17:52:06 -0800 (PST)
+        with ESMTP id S235198AbhBYBxm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Feb 2021 20:53:42 -0500
+Received: from mail-lj1-x229.google.com (mail-lj1-x229.google.com [IPv6:2a00:1450:4864:20::229])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDDC8C061574
+        for <mm-commits@vger.kernel.org>; Wed, 24 Feb 2021 17:53:01 -0800 (PST)
+Received: by mail-lj1-x229.google.com with SMTP id c8so4664946ljd.12
+        for <mm-commits@vger.kernel.org>; Wed, 24 Feb 2021 17:53:01 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linux-foundation.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=nuEwacw9WQYf7hqKeQHh+UiK1mAkKdfy2q7SV6e4fgo=;
-        b=USn4m91gCrg/tHu49UfSsfjmTB5sGx2Y/Mtg72X4FUydasLo+OTlGYtBumcw24QK52
-         iaMJjwti2qOaGaWqVhmk1vsoV8PXgnL9GlhOEYhf9s50YfZeyNHcr7vKVxBD/iz89qtj
-         PyQOxUTIsPB0qvjfHbOnJlGUmyDQIXUMsHtlM=
+        bh=Mh7o610LxlV2/U6h/ZruDPO4/3tZZo0CK9z9YNL0Osc=;
+        b=CaiAx2UvsURkIclBiKEd8v5fQdmINg0E+P031xrPnjuSfkRh01ODYwRKRyYQAB7Mfe
+         RJZUqI5UvvWbnzraXAO97VdSYgH76v0afcOXb/SaN4Mda1V0lrS2lzWOC7ZJcspy49lt
+         xjBQLsCfsSgQMOgXzxGE6NAzu45qTDpwvX1gY=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=nuEwacw9WQYf7hqKeQHh+UiK1mAkKdfy2q7SV6e4fgo=;
-        b=BBZz6KozapikMUyP9NiH20Rrjndb6FIZOhSSmSE92LrYElWaDSN9W3MD9n0CXYMTbT
-         0v9psM9iugr/+VzZb+G4WChBmtUxGZl9ExA23v2XSx9imSyzHYrztv2GIE9Tyjk7vR4W
-         Zill7T0DF8ZllhVUKPcm0+Jhj6I3y0PWRfTbXK/xA8osgU+7I7v12BWOuHjWpxVmboJW
-         hHx+cD9RROI/bS7yl1GC60+DZrZiArP/FeUGcmx08ZHoztePqXkNEHiUXMBHZLh5IPbf
-         GqxmOTdyMhR0y8ekNxc+hgit1qrImLLhqDpcM82Zv0DROlp5Iw6CypHlZPEwKlya72t6
-         yntQ==
-X-Gm-Message-State: AOAM533b+rvzwFUChPPrVL/e8K0obUb/KgSyXT1sRgKmiZYaqBwzn88t
-        5Hf5MiQ3ZyYY4oaMkFGI9ule3NIsUpcm7w==
-X-Google-Smtp-Source: ABdhPJwRbzqSq62vcxbcV8S2VPN9KgtRwtKvKc2AdvW7M2mHhmmsd/lmFDDe5s6MjRgDZ2SKcoUHmw==
-X-Received: by 2002:ac2:5184:: with SMTP id u4mr460764lfi.487.1614217924338;
-        Wed, 24 Feb 2021 17:52:04 -0800 (PST)
-Received: from mail-lf1-f45.google.com (mail-lf1-f45.google.com. [209.85.167.45])
-        by smtp.gmail.com with ESMTPSA id p9sm526188ljn.16.2021.02.24.17.52.03
+        bh=Mh7o610LxlV2/U6h/ZruDPO4/3tZZo0CK9z9YNL0Osc=;
+        b=I9gBNJFTIFEX0hYIZSfibMqPQPLZSJOhTKcA9NggMl3jIZrmwChQRbZ5amDVGZOk8r
+         eLD3ODq0jXfvFNFBuvdGeVfYXR+EGhx7QrDWFvtqJtP7al2BRc69gYKaHVECW2NAAz0t
+         E3E1GoDnQ7pGHHAm22otIMyegsVn/270WdzsrrcMRii1Q0sZhFm526yMbipIGpHrYkd5
+         qiJ04mT97StCJnkgkD2z9C+sDk20eNf1ORm8bMMTtePXnYCXP4ppyHv2bHQQ1s9aILAL
+         hluDFWADn9XAklVOHUI3TPn+NDFpRvfyB/+HcZXpTmtS8UIw8CPx6t/G0JY+44DIhrvA
+         22AQ==
+X-Gm-Message-State: AOAM530PTigMwgGJQ1KnAmR/pKvmk8Pk+z+RJABLLZvz8icGLyBoQjZG
+        tGYjUejF6DA7WtGrJzNRFsrNHSV633NNpA==
+X-Google-Smtp-Source: ABdhPJyc6J4teRTtj/rZuLWpmyGStkBKUP3w17NAVz0iNCIaiEMTJC4jmzmEX3JRMy0umCK8yM3Hxw==
+X-Received: by 2002:a2e:9c50:: with SMTP id t16mr337372ljj.102.1614217979817;
+        Wed, 24 Feb 2021 17:52:59 -0800 (PST)
+Received: from mail-lf1-f52.google.com (mail-lf1-f52.google.com. [209.85.167.52])
+        by smtp.gmail.com with ESMTPSA id w12sm837078ljo.20.2021.02.24.17.52.58
         for <mm-commits@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 24 Feb 2021 17:52:03 -0800 (PST)
-Received: by mail-lf1-f45.google.com with SMTP id u4so6173273lfs.0
-        for <mm-commits@vger.kernel.org>; Wed, 24 Feb 2021 17:52:03 -0800 (PST)
-X-Received: by 2002:a19:8186:: with SMTP id c128mr459588lfd.377.1614217922822;
- Wed, 24 Feb 2021 17:52:02 -0800 (PST)
+        Wed, 24 Feb 2021 17:52:59 -0800 (PST)
+Received: by mail-lf1-f52.google.com with SMTP id v5so6092937lft.13
+        for <mm-commits@vger.kernel.org>; Wed, 24 Feb 2021 17:52:58 -0800 (PST)
+X-Received: by 2002:ac2:4acd:: with SMTP id m13mr460260lfp.201.1614217978393;
+ Wed, 24 Feb 2021 17:52:58 -0800 (PST)
 MIME-Version: 1.0
 References: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
  <20210224200055.U7Xz47kX5%akpm@linux-foundation.org> <20210224203708.4489755a@oasis.local.home>
-In-Reply-To: <20210224203708.4489755a@oasis.local.home>
+ <CAHk-=whoqLWCcUXOBfWsEu49jLRJFkwnCRq6dyjg_M=dO1FhcQ@mail.gmail.com>
+In-Reply-To: <CAHk-=whoqLWCcUXOBfWsEu49jLRJFkwnCRq6dyjg_M=dO1FhcQ@mail.gmail.com>
 From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Wed, 24 Feb 2021 17:51:46 -0800
-X-Gmail-Original-Message-ID: <CAHk-=whoqLWCcUXOBfWsEu49jLRJFkwnCRq6dyjg_M=dO1FhcQ@mail.gmail.com>
-Message-ID: <CAHk-=whoqLWCcUXOBfWsEu49jLRJFkwnCRq6dyjg_M=dO1FhcQ@mail.gmail.com>
+Date:   Wed, 24 Feb 2021 17:52:42 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wgyUz_NPbvK7TGrriOjXSiqvQm5pPN5xGpePRR16w+ZFw@mail.gmail.com>
+Message-ID: <CAHk-=wgyUz_NPbvK7TGrriOjXSiqvQm5pPN5xGpePRR16w+ZFw@mail.gmail.com>
 Subject: Re: [patch 014/173] mm, tracing: record slab name for kmem_cache_free()
 To:     Steven Rostedt <rostedt@goodmis.org>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
@@ -80,17 +81,11 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, Feb 24, 2021 at 5:37 PM Steven Rostedt <rostedt@goodmis.org> wrote:
+On Wed, Feb 24, 2021 at 5:51 PM Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
 >
-> Please do not apply this patch as is, it is very buggy!
+> I can obviously revert, but if the fix is the two-liner you outlined,
 
-Sadly, it's already there and pushed out.  I try to wait a few hours
-(sometimes overnight) with Andrew's series before pushing things out
-in order to catch comments like this, but this one came too late.
+Duh. Three lines, not two...
 
-I can obviously revert, but if the fix is the two-liner you outlined,
-perhaps that is better? Mind sending it as a patch (or just putting it
-in your tracing tree)? Or Jacob? A tested patch along the lines that
-Steven outlined?
-
-               Linus
+          Linus
