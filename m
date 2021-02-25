@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D441EC433E6
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14C64C43381
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 94DC664F49
+	by mail.kernel.org (Postfix) with ESMTP id D25EE64F42
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:23:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234584AbhBYTWt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:22:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33996 "EHLO mail.kernel.org"
+        id S234708AbhBYTW5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:22:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33986 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234719AbhBYTUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234761AbhBYTUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:20:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 99BB464F49;
-        Thu, 25 Feb 2021 19:12:47 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A130064F51;
+        Thu, 25 Feb 2021 19:13:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280367;
-        bh=b5VmviN7Jr6Pq7ZhiSItERVuGg6mhJ9MLzLLAI84Crs=;
+        s=korg; t=1614280391;
+        bh=VNy6KbAr6Sb/G0LEYH+OSK3rWvMD/6b2fFVg6g3A1w0=;
         h=Date:From:To:Subject:From;
-        b=Q7QZ3CFEsWhrxhVUDnFsinHfsnlY5dHQ7A2f0SCNXNZx3NpjJaLIfDc3zGNs6vb8d
-         Thr8B5cLP16Y3ShrRe45B8RdyvbZKWtgLp+TQqiM5Lawk5c1Z97dKeQWD5EQCwnQqM
-         Jirm7bGvrQUmU6kd44uh5SJh4NnPaG6cczsLdIJ0=
-Date:   Thu, 25 Feb 2021 11:12:47 -0800
+        b=MHpjMZnYicwdXknBsfrHyXe8iMnTgUlgKgQDM9VRzrh7jVDZ0KhNy0eDZUrE5xc+9
+         4HLNXEk4yYKVqXFXxhwOHaITK1rgBWIx3E4eNORR1HQpVRTB/d4cGW3aY7lPsmPoCx
+         bXnRQIr6BTPnKC7Her3/qTKGBEfTkBK1tX8R+tAc=
+Date:   Thu, 25 Feb 2021 11:13:11 -0800
 From:   akpm@linux-foundation.org
 To:     hch@lst.de, kent.overstreet@gmail.com, linmiaohe@huawei.com,
         mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  [merged]
- mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked.patch removed
- from -mm tree
-Message-ID: <20210225191247.UXt-PKKZ9%akpm@linux-foundation.org>
+Subject:  [merged] mm-filemap-add-filemap_range_uptodate.patch
+ removed from -mm tree
+Message-ID: <20210225191311.q3MSLrgHG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,20 +43,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: pass a sleep state to put_and_wait_on_page_locked
+     Subject: mm/filemap: add filemap_range_uptodate
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked.patch
+     mm-filemap-add-filemap_range_uptodate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: pass a sleep state to put_and_wait_on_page_locked
+Subject: mm/filemap: add filemap_range_uptodate
 
-This is prep work for the next patch, but I think at least one of the
-current callers would prefer a killable sleep to an uninterruptible one.
+Move the complicated condition and the calculations out of
+filemap_update_page() into its own function.
 
-Link: https://lkml.kernel.org/r/20210122160140.223228-6-willy@infradead.org
+[willy@infradead.org: unlock page before dropping its refcount]
+  Link: https://lkml.kernel.org/r/20210201125229.GO308988@casper.infradead.org
+Link: https://lkml.kernel.org/r/20210122160140.223228-14-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
@@ -65,92 +66,115 @@ Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    3 +--
- mm/filemap.c            |    7 +++++--
- mm/huge_memory.c        |    4 ++--
- mm/migrate.c            |    4 ++--
- 4 files changed, 10 insertions(+), 8 deletions(-)
+ mm/filemap.c |   65 +++++++++++++++++++++++++++++--------------------
+ 1 file changed, 39 insertions(+), 26 deletions(-)
 
---- a/include/linux/pagemap.h~mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked
-+++ a/include/linux/pagemap.h
-@@ -681,8 +681,7 @@ static inline int wait_on_page_locked_ki
- 	return wait_on_page_bit_killable(compound_head(page), PG_locked);
- }
- 
--extern void put_and_wait_on_page_locked(struct page *page);
--
-+int put_and_wait_on_page_locked(struct page *page, int state);
- void wait_on_page_writeback(struct page *page);
- extern void end_page_writeback(struct page *page);
- void wait_for_stable_page(struct page *page);
---- a/mm/filemap.c~mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked
+--- a/mm/filemap.c~mm-filemap-add-filemap_range_uptodate
 +++ a/mm/filemap.c
-@@ -1384,20 +1384,23 @@ static int wait_on_page_locked_async(str
- /**
-  * put_and_wait_on_page_locked - Drop a reference and wait for it to be unlocked
-  * @page: The page to wait for.
-+ * @state: The sleep state (TASK_KILLABLE, TASK_UNINTERRUPTIBLE, etc).
-  *
-  * The caller should hold a reference on @page.  They expect the page to
-  * become unlocked relatively soon, but do not wish to hold up migration
-  * (for example) by holding the reference while waiting for the page to
-  * come unlocked.  After this function returns, the caller should not
-  * dereference @page.
-+ *
-+ * Return: 0 if the page was unlocked or -EINTR if interrupted by a signal.
-  */
--void put_and_wait_on_page_locked(struct page *page)
-+int put_and_wait_on_page_locked(struct page *page, int state)
- {
- 	wait_queue_head_t *q;
- 
- 	page = compound_head(page);
- 	q = page_waitqueue(page);
--	wait_on_page_bit_common(q, page, PG_locked, TASK_UNINTERRUPTIBLE, DROP);
-+	return wait_on_page_bit_common(q, page, PG_locked, state, DROP);
+@@ -2233,11 +2233,36 @@ static int filemap_read_page(struct file
+ 	return error;
  }
  
- /**
---- a/mm/huge_memory.c~mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked
-+++ a/mm/huge_memory.c
-@@ -1439,7 +1439,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 		if (!get_page_unless_zero(page))
- 			goto out_unlock;
- 		spin_unlock(vmf->ptl);
--		put_and_wait_on_page_locked(page);
-+		put_and_wait_on_page_locked(page, TASK_UNINTERRUPTIBLE);
- 		goto out;
- 	}
++static bool filemap_range_uptodate(struct address_space *mapping,
++		loff_t pos, struct iov_iter *iter, struct page *page)
++{
++	int count;
++
++	if (PageUptodate(page))
++		return true;
++	/* pipes can't handle partially uptodate pages */
++	if (iov_iter_is_pipe(iter))
++		return false;
++	if (!mapping->a_ops->is_partially_uptodate)
++		return false;
++	if (mapping->host->i_blkbits >= (PAGE_SHIFT + thp_order(page)))
++		return false;
++
++	count = iter->count;
++	if (page_offset(page) > pos) {
++		count -= page_offset(page) - pos;
++		pos = 0;
++	} else {
++		pos -= page_offset(page);
++	}
++
++	return mapping->a_ops->is_partially_uptodate(page, pos, count);
++}
++
+ static int filemap_update_page(struct kiocb *iocb,
+ 		struct address_space *mapping, struct iov_iter *iter,
+-		struct page *page, loff_t pos, loff_t count)
++		struct page *page)
+ {
+-	struct inode *inode = mapping->host;
+ 	int error;
  
-@@ -1475,7 +1475,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 		if (!get_page_unless_zero(page))
- 			goto out_unlock;
- 		spin_unlock(vmf->ptl);
--		put_and_wait_on_page_locked(page);
-+		put_and_wait_on_page_locked(page, TASK_UNINTERRUPTIBLE);
- 		goto out;
- 	}
+ 	if (!trylock_page(page)) {
+@@ -2254,26 +2279,15 @@ static int filemap_update_page(struct ki
  
---- a/mm/migrate.c~mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked
-+++ a/mm/migrate.c
-@@ -331,7 +331,7 @@ void __migration_entry_wait(struct mm_st
- 	if (!get_page_unless_zero(page))
- 		goto out;
- 	pte_unmap_unlock(ptep, ptl);
--	put_and_wait_on_page_locked(page);
-+	put_and_wait_on_page_locked(page, TASK_UNINTERRUPTIBLE);
- 	return;
- out:
- 	pte_unmap_unlock(ptep, ptl);
-@@ -365,7 +365,7 @@ void pmd_migration_entry_wait(struct mm_
- 	if (!get_page_unless_zero(page))
- 		goto unlock;
- 	spin_unlock(ptl);
--	put_and_wait_on_page_locked(page);
-+	put_and_wait_on_page_locked(page, TASK_UNINTERRUPTIBLE);
- 	return;
- unlock:
- 	spin_unlock(ptl);
+ 	if (!page->mapping)
+ 		goto truncated;
+-	if (PageUptodate(page))
+-		goto uptodate;
+-	if (inode->i_blkbits == PAGE_SHIFT ||
+-			!mapping->a_ops->is_partially_uptodate)
+-		goto readpage;
+-	/* pipes can't handle partially uptodate pages */
+-	if (unlikely(iov_iter_is_pipe(iter)))
+-		goto readpage;
+-	if (!mapping->a_ops->is_partially_uptodate(page,
+-				pos & (thp_size(page) - 1), count))
+-		goto readpage;
+-uptodate:
+-	unlock_page(page);
+-	return 0;
+ 
+-readpage:
+-	if (iocb->ki_flags & (IOCB_NOIO | IOCB_NOWAIT | IOCB_WAITQ)) {
+-		unlock_page(page);
+-		return -EAGAIN;
+-	}
++	error = 0;
++	if (filemap_range_uptodate(mapping, iocb->ki_pos, iter, page))
++		goto unlock;
++
++	error = -EAGAIN;
++	if (iocb->ki_flags & (IOCB_NOIO | IOCB_NOWAIT | IOCB_WAITQ))
++		goto unlock;
++
+ 	error = filemap_read_page(iocb->ki_filp, mapping, page);
+ 	if (error == AOP_TRUNCATED_PAGE)
+ 		put_page(page);
+@@ -2282,6 +2296,9 @@ truncated:
+ 	unlock_page(page);
+ 	put_page(page);
+ 	return AOP_TRUNCATED_PAGE;
++unlock:
++	unlock_page(page);
++	return error;
+ }
+ 
+ static int filemap_create_page(struct file *file,
+@@ -2351,9 +2368,6 @@ got_pages:
+ 	{
+ 		struct page *page = pvec->pages[pvec->nr - 1];
+ 		pgoff_t pg_index = page->index;
+-		loff_t pg_pos = max(iocb->ki_pos,
+-				    (loff_t) pg_index << PAGE_SHIFT);
+-		loff_t pg_count = iocb->ki_pos + iter->count - pg_pos;
+ 
+ 		if (PageReadahead(page)) {
+ 			if (iocb->ki_flags & IOCB_NOIO) {
+@@ -2370,8 +2384,7 @@ got_pages:
+ 			if ((iocb->ki_flags & IOCB_WAITQ) &&
+ 			    pagevec_count(pvec) > 1)
+ 				iocb->ki_flags |= IOCB_NOWAIT;
+-			err = filemap_update_page(iocb, mapping, iter, page,
+-					pg_pos, pg_count);
++			err = filemap_update_page(iocb, mapping, iter, page);
+ 			if (err) {
+ 				if (err < 0)
+ 					put_page(page);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
