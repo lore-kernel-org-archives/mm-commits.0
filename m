@@ -7,36 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0C89C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E878BC433DB
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73BBC64F28
+	by mail.kernel.org (Postfix) with ESMTP id A298C64F1A
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:33:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234871AbhBYTck (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:32:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36966 "EHLO mail.kernel.org"
+        id S234438AbhBYTcl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:32:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36912 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234438AbhBYTaU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:30:20 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A814064F39;
-        Thu, 25 Feb 2021 19:17:30 +0000 (UTC)
+        id S234869AbhBYTaP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:30:15 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B2B2764F33;
+        Thu, 25 Feb 2021 19:17:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280650;
-        bh=LdCW6dmUWJYzRfXCdyTY3Akth2EagGc60/LpP5M6kfc=;
+        s=korg; t=1614280630;
+        bh=r9KyBAcHh2PPPltbhj89N389P8b5DQm6Tv/6aRXOmiU=;
         h=Date:From:To:Subject:From;
-        b=ChFkPuq+T6V6JB7lTnk2+Tq3IKGmG/ZOBj59G0JjwS9uFJFBs4ObpAQ55li0c/Biw
-         qJUTN/jOuECva0l9wGp0kSV6cY5+vRLE+eyVW6euuad1THVUPX42/ugviNW9lH86c9
-         7Q9GAddf6sB/UOeiyLQ0njggrTZmi1ee9Wf+/dls=
-Date:   Thu, 25 Feb 2021 11:17:30 -0800
+        b=CLEae24ymXBzs4w/P+l0EtSeJbFWsWn0HH6RgyTYe43gH0I7U6SkqWgmwmJBC4PmK
+         +/3DTq40HmS+7ohNINk+lmEl08+Q54zUB9v7ADg9aOC9PhGIQsvOIgrjfZtlzUf6s6
+         5LsDA3Nt/68WZR4gNP/QiM+OaLQpTb0FgTCQnDNg=
+Date:   Thu, 25 Feb 2021 11:17:09 -0800
 From:   akpm@linux-foundation.org
-To:     chenwandun@huawei.com, guro@fb.com, mike.kravetz@oracle.com,
+To:     aneesh.kumar@linux.ibm.com, dan.j.williams@intel.com,
+        david@redhat.com, jack@suse.cz, kirill.shutemov@linux.intel.com,
         mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch
- removed from -mm tree
-Message-ID: <20210225191730.vo2Y4iZxl%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-pmem-avoid-inserting-hugepage-pte-entry-with-fsdax-if-hu?=
+ =?US-ASCII?Q?gepage-support-is-disabled.patch?= removed from -mm tree
+Message-ID: <20210225191709.6vEKpFnpd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,53 +47,101 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: suppress wrong warning info when alloc gigantic page
+     Subject: mm/pmem: avoid inserting hugepage PTE entry with fsdax if hugepage support is disabled
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page.patch
+     mm-pmem-avoid-inserting-hugepage-pte-entry-with-fsdax-if-hugepage-support-is-disabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Wandun <chenwandun@huawei.com>
-Subject: mm/hugetlb: suppress wrong warning info when alloc gigantic page
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/pmem: avoid inserting hugepage PTE entry with fsdax if hugepage support is disabled
 
-If hugetlb_cma is enabled, it will skip boot time allocation when
-allocating gigantic page, that doesn't means allocation failure, so
-suppress this warning info.
+Differentiate between hardware not supporting hugepages and user disabling
+THP via 'echo never > /sys/kernel/mm/transparent_hugepage/enabled'
 
-Link: https://lkml.kernel.org/r/20210219123909.13130-1-chenwandun@huawei.com
-Fixes: cf11e85fc08c ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
-Signed-off-by: Chen Wandun <chenwandun@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Roman Gushchin <guro@fb.com>
+For the devdax namespace, the kernel handles the above via the
+supported_alignment attribute and failing to initialize the namespace if
+the namespace align value is not supported on the platform.
+
+For the fsdax namespace, the kernel will continue to initialize the
+namespace.  This can result in the kernel creating a huge pte entry even
+though the hardware don't support the same.
+
+We do want hugepage support with pmem even if the end-user disabled THP
+via sysfs file (/sys/kernel/mm/transparent_hugepage/enabled).  Hence
+differentiate between hardware/firmware lacking support vs user-controlled
+disable of THP and prevent a huge fault if the hardware lacks hugepage
+support.
+
+Link: https://lkml.kernel.org/r/20210205023956.417587-1-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/huge_mm.h |   15 +++++++++------
+ mm/huge_memory.c        |    6 +++++-
+ 2 files changed, 14 insertions(+), 7 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-suppress-wrong-warning-info-when-alloc-gigantic-page
-+++ a/mm/hugetlb.c
-@@ -2529,7 +2529,7 @@ static void __init hugetlb_hstate_alloc_
- 		if (hstate_is_gigantic(h)) {
- 			if (hugetlb_cma_size) {
- 				pr_warn_once("HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n");
--				break;
-+				goto free;
- 			}
- 			if (!alloc_bootmem_huge_page(h))
- 				break;
-@@ -2547,7 +2547,7 @@ static void __init hugetlb_hstate_alloc_
- 			h->max_huge_pages, buf, i);
- 		h->max_huge_pages = i;
- 	}
--
-+free:
- 	kfree(node_alloc_noretry);
+--- a/include/linux/huge_mm.h~mm-pmem-avoid-inserting-hugepage-pte-entry-with-fsdax-if-hugepage-support-is-disabled
++++ a/include/linux/huge_mm.h
+@@ -78,6 +78,7 @@ static inline vm_fault_t vmf_insert_pfn_
  }
+ 
+ enum transparent_hugepage_flag {
++	TRANSPARENT_HUGEPAGE_NEVER_DAX,
+ 	TRANSPARENT_HUGEPAGE_FLAG,
+ 	TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
+ 	TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG,
+@@ -123,6 +124,13 @@ extern unsigned long transparent_hugepag
+  */
+ static inline bool __transparent_hugepage_enabled(struct vm_area_struct *vma)
+ {
++
++	/*
++	 * If the hardware/firmware marked hugepage support disabled.
++	 */
++	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_NEVER_DAX))
++		return false;
++
+ 	if (vma->vm_flags & VM_NOHUGEPAGE)
+ 		return false;
+ 
+@@ -134,12 +142,7 @@ static inline bool __transparent_hugepag
+ 
+ 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
+ 		return true;
+-	/*
+-	 * For dax vmas, try to always use hugepage mappings. If the kernel does
+-	 * not support hugepages, fsdax mappings will fallback to PAGE_SIZE
+-	 * mappings, and device-dax namespaces, that try to guarantee a given
+-	 * mapping size, will fail to enable
+-	 */
++
+ 	if (vma_is_dax(vma))
+ 		return true;
+ 
+--- a/mm/huge_memory.c~mm-pmem-avoid-inserting-hugepage-pte-entry-with-fsdax-if-hugepage-support-is-disabled
++++ a/mm/huge_memory.c
+@@ -386,7 +386,11 @@ static int __init hugepage_init(void)
+ 	struct kobject *hugepage_kobj;
+ 
+ 	if (!has_transparent_hugepage()) {
+-		transparent_hugepage_flags = 0;
++		/*
++		 * Hardware doesn't support hugepages, hence disable
++		 * DAX PMD support.
++		 */
++		transparent_hugepage_flags = 1 << TRANSPARENT_HUGEPAGE_NEVER_DAX;
+ 		return -EINVAL;
+ 	}
  
 _
 
-Patches currently in -mm which might be from chenwandun@huawei.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
 
