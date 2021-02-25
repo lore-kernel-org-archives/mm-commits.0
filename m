@@ -7,39 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A56EC4332E
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D49CBC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 54E5764F43
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D3E564F3C
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:31:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234938AbhBYTa6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:30:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36918 "EHLO mail.kernel.org"
+        id S234568AbhBYTbB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:31:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234568AbhBYT16 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 14:27:58 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B9C8D64F98;
-        Thu, 25 Feb 2021 19:16:29 +0000 (UTC)
+        id S234619AbhBYT2A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 14:28:00 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AEF8A64F94;
+        Thu, 25 Feb 2021 19:16:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280590;
-        bh=USMI6O1eUqhZgJL4eHHCmftOAxAq2atdhhRsCo1VQFc=;
+        s=korg; t=1614280596;
+        bh=WO5uaZtCQ8og/Bet+BInMKkliCM/aun7Btn5C9t/s8E=;
         h=Date:From:To:Subject:From;
-        b=jpLO39RsetrVVw+jUVbYdgN7t55X/tUku84Vpog2+QG2smtrIgEOmnhURE/wF1AaX
-         QKga+ysnY1Tu+Z5ZaZ/L1c9Z6R68scSyjQbwJPTWej4VjqDO9qqfNr/0i7nnUO5Cah
-         rYPMoffdJCe33hV/kEkaM5PVDxBhrqTwdEx76UTI=
-Date:   Thu, 25 Feb 2021 11:16:29 -0800
+        b=vqc+DnaYFlwsAzW2KQ1yIxb3RxX0pwq40Ds3x11tLaMokqh1Oi6yG8srj0vBMyvo3
+         WtSkT+clIu2s3b1TuZ8o6SjrogUyeD2Cw0URzQ5ZnVvclGDsKJkBXEK6r6rTnA6ldz
+         9w5H/eWq892M2tFuSi3jMxz8yUB41PtkUmOfonEY=
+Date:   Thu, 25 Feb 2021 11:16:35 -0800
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, dansilsby@gmail.com,
-        kirill.shutemov@linux.intel.com, maobibo@loongson.cn,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        paulburton@kernel.org, ralf@linux-mips.org, rppt@linux.ibm.com,
-        tsbogend@alpha.franken.de
+To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, smuchun@gmail.com
 Subject:  [merged]
- mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch removed from -mm
- tree
-Message-ID: <20210225191629.pzfKaOKns%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-hugetlb-fix-potential-double-free-in-hugetlb=5Fregist?=
+ =?US-ASCII?Q?er=5Fnode-error-path.patch?= removed from -mm tree
+Message-ID: <20210225191635.mYASrx18k%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,59 +46,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: update tlb entry if pmd is changed
+     Subject: mm/hugetlb: fix potential double free in hugetlb_register_node() error path
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch
+     mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bibo Mao <maobibo@loongson.cn>
-Subject: mm/huge_memory.c: update tlb entry if pmd is changed
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/hugetlb: fix potential double free in hugetlb_register_node() error path
 
-When set_pmd_at is called in function do_huge_pmd_anonymous_page, new tlb
-entry can be added by software on MIPS platform.
+In hugetlb_sysfs_add_hstate(), we would do kobject_put() on hstate_kobjs
+when failed to create sysfs group but forget to set hstate_kobjs to NULL. 
+Then in hugetlb_register_node() error path, we may free it again via
+hugetlb_unregister_node().
 
-Here add update_mmu_cache_pmd when pmd entry is set, and
-update_mmu_cache_pmd is defined as empty excepts arc/mips platform.  This
-patch has no negative effect on other platforms except arc/mips system.
-
-Link: http://lkml.kernel.org/r/1592990792-1923-2-git-send-email-maobibo@loongson.cn
-Signed-off-by: Bibo Mao <maobibo@loongson.cn>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Daniel Silsby <dansilsby@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Paul Burton <paulburton@kernel.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Link: https://lkml.kernel.org/r/20210107123249.36964-1-linmiaohe@huawei.com
+Fixes: a3437870160c ("hugetlb: new sysfs interface")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Muchun Song <smuchun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/hugetlb.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed
-+++ a/mm/huge_memory.c
-@@ -636,6 +636,7 @@ static vm_fault_t __do_huge_pmd_anonymou
- 		lru_cache_add_inactive_or_unevictable(page, vma);
- 		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
- 		set_pmd_at(vma->vm_mm, haddr, vmf->pmd, entry);
-+		update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
- 		add_mm_counter(vma->vm_mm, MM_ANONPAGES, HPAGE_PMD_NR);
- 		mm_inc_nr_ptes(vma->vm_mm);
- 		spin_unlock(vmf->ptl);
-@@ -749,6 +750,7 @@ vm_fault_t do_huge_pmd_anonymous_page(st
- 			} else {
- 				set_huge_zero_page(pgtable, vma->vm_mm, vma,
- 						   haddr, vmf->pmd, zero_page);
-+				update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
- 				spin_unlock(vmf->ptl);
- 			}
- 		} else {
+--- a/mm/hugetlb.c~mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path
++++ a/mm/hugetlb.c
+@@ -2988,8 +2988,10 @@ static int hugetlb_sysfs_add_hstate(stru
+ 		return -ENOMEM;
+ 
+ 	retval = sysfs_create_group(hstate_kobjs[hi], hstate_attr_group);
+-	if (retval)
++	if (retval) {
+ 		kobject_put(hstate_kobjs[hi]);
++		hstate_kobjs[hi] = NULL;
++	}
+ 
+ 	return retval;
+ }
 _
 
-Patches currently in -mm which might be from maobibo@loongson.cn are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
+mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
+mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
+mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
+mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
+mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
+mm-rmap-correct-obsolete-comment-of-page_get_anon_vma.patch
+mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
+mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
+mm-zsmallocc-use-page_private-to-access-page-private.patch
 
