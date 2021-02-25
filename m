@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ED1AC433E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D582C433E6
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:20:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E31864F38
+	by mail.kernel.org (Postfix) with ESMTP id 1270164F45
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:20:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234517AbhBYTTo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:19:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57186 "EHLO mail.kernel.org"
+        id S234478AbhBYTTi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:19:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57322 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234548AbhBYTRL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234563AbhBYTRL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:17:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8694F64F3F;
-        Thu, 25 Feb 2021 19:12:17 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C4A6864F41;
+        Thu, 25 Feb 2021 19:12:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280337;
-        bh=knwkXSXR3GX/rqsFOqIlxfLZm5Ye4/Hdq0KSKEE0nOU=;
+        s=korg; t=1614280326;
+        bh=ZvXHjh4HHlkJ5o+kPiDwoqbmGldjLxoJzCf355Eoi4E=;
         h=Date:From:To:Subject:From;
-        b=xI5lHRLrFH+s/uD9lPVoK6nFJTsnJscdGRLXy2wntu36Pd3wRvSFgVTFvahbHO7K9
-         9K0FJLZyj++fudkVhyLDbMcXC0SzTE+unoWik1BEfSEoMUaFccoh7KOAbv+Qmew5lt
-         LNnPPCWj0BioT1aQ7+87bEAZ24L+/Xx49fQiMqHg=
-Date:   Thu, 25 Feb 2021 11:12:17 -0800
+        b=cA70MmJkZ2g1UeJ3QB/n0j2J1ro9ohvGykX2pDYcvjdZyzLW/zF7U7FDcUi3SoUBk
+         EQnadF8s5bfyMewWTjZ96KFD4pwF5byxafvaAQy/IXl7ZAX+YQWPdwB5zxEC4lpV+8
+         s2l7sv1Lq6SUzE+9w4AJXYhaY4MJl7IbWUmahn3A=
+Date:   Thu, 25 Feb 2021 11:12:05 -0800
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org,
-        willy@infradead.org, ziy@nvidia.com
-Subject:  [merged] mm-debug-improve-memcg-debugging.patch removed
- from -mm tree
-Message-ID: <20210225191217.epklGcwbv%akpm@linux-foundation.org>
+To:     cai@redhat.com, cl@linux.com, david@redhat.com,
+        iamjoonsoo.kim@lge.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, vbabka@suse.cz, vdavydov.dev@gmail.com
+Subject:  [merged] mm-slab-slub-stop-taking-cpu-hotplug-lock.patch
+ removed from -mm tree
+Message-ID: <20210225191205.tDR8UlJrT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,76 +45,117 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug: improve memcg debugging
+     Subject: mm, slab, slub: stop taking cpu hotplug lock
 has been removed from the -mm tree.  Its filename was
-     mm-debug-improve-memcg-debugging.patch
+     mm-slab-slub-stop-taking-cpu-hotplug-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/debug: improve memcg debugging
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slab, slub: stop taking cpu hotplug lock
 
-The memcg_data is only valid on the head page, not the tail pages.  Change
-the format and location of the printout within the dump to match the other
-parts of struct page better.
+SLAB has been using get/put_online_cpus() around creating, destroying and
+shrinking kmem caches since 95402b382901 ("cpu-hotplug: replace
+per-subsystem mutexes with get_online_cpus()") in 2008, which is supposed
+to be replacing a private mutex (cache_chain_mutex, called slab_mutex
+today) with system-wide mechanism, but in case of SLAB it's in fact used
+in addition to the existing mutex, without explanation why.
 
-Link: https://lkml.kernel.org/r/20210114190200.1894484-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+SLUB appears to have avoided the cpu hotplug lock initially, but gained it
+due to common code unification, such as 20cea9683ecc ("mm, sl[aou]b: Move
+kmem_cache_create mutex handling to common code").
+
+Regardless of the history, checking if the hotplug lock is actually needed
+today suggests that it's not, and therefore it's better to avoid this
+system-wide lock and the ordering this imposes wrt other locks (such as
+slab_mutex).
+
+Specifically, in SLAB we have for_each_online_cpu() in do_tune_cpucache()
+protected by slab_mutex, and cpu hotplug callbacks that also take the
+slab_mutex, which is also taken by the common slab function that currently
+also take the hotplug lock.  Thus the slab_mutex protection should be
+sufficient.  Also per-cpu array caches are allocated for each possible
+cpu, so not affected by their online/offline state.
+
+In SLUB we have for_each_online_cpu() in functions that show statistics
+and are already unprotected today, as racing with hotplug is not harmful. 
+Otherwise SLUB relies on percpu allocator.  The slub_cpu_dead() hotplug
+callback takes the slab_mutex.
+
+To sum up, this patch removes get/put_online_cpus() calls from slab as it
+should be safe without further adjustments.
+
+Link: https://lkml.kernel.org/r/20210113131634.3671-4-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Qian Cai <cai@redhat.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/slab_common.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/mm/debug.c~mm-debug-improve-memcg-debugging
-+++ a/mm/debug.c
-@@ -110,6 +110,11 @@ void __dump_page(struct page *page, cons
- 					head_compound_mapcount(head));
- 		}
- 	}
-+
-+#ifdef CONFIG_MEMCG
-+	if (head->memcg_data)
-+		pr_warn("memcg:%lx\n", head->memcg_data);
-+#endif
- 	if (PageKsm(page))
- 		type = "ksm ";
- 	else if (PageAnon(page))
-@@ -180,11 +185,6 @@ hex_only:
+--- a/mm/slab_common.c~mm-slab-slub-stop-taking-cpu-hotplug-lock
++++ a/mm/slab_common.c
+@@ -309,8 +309,6 @@ kmem_cache_create_usercopy(const char *n
+ 	const char *cache_name;
+ 	int err;
  
- 	if (reason)
- 		pr_warn("page dumped because: %s\n", reason);
+-	get_online_cpus();
 -
--#ifdef CONFIG_MEMCG
--	if (!page_poisoned && page->memcg_data)
--		pr_warn("pages's memcg:%lx\n", page->memcg_data);
--#endif
- }
+ 	mutex_lock(&slab_mutex);
  
- void dump_page(struct page *page, const char *reason)
+ 	err = kmem_cache_sanity_check(name, size);
+@@ -359,8 +357,6 @@ kmem_cache_create_usercopy(const char *n
+ out_unlock:
+ 	mutex_unlock(&slab_mutex);
+ 
+-	put_online_cpus();
+-
+ 	if (err) {
+ 		if (flags & SLAB_PANIC)
+ 			panic("kmem_cache_create: Failed to create slab '%s'. Error %d\n",
+@@ -484,8 +480,6 @@ void kmem_cache_destroy(struct kmem_cach
+ 	if (unlikely(!s))
+ 		return;
+ 
+-	get_online_cpus();
+-
+ 	mutex_lock(&slab_mutex);
+ 
+ 	s->refcount--;
+@@ -500,8 +494,6 @@ void kmem_cache_destroy(struct kmem_cach
+ 	}
+ out_unlock:
+ 	mutex_unlock(&slab_mutex);
+-
+-	put_online_cpus();
+ }
+ EXPORT_SYMBOL(kmem_cache_destroy);
+ 
+@@ -518,12 +510,10 @@ int kmem_cache_shrink(struct kmem_cache
+ {
+ 	int ret;
+ 
+-	get_online_cpus();
+ 
+ 	kasan_cache_shrink(cachep);
+ 	ret = __kmem_cache_shrink(cachep);
+ 
+-	put_online_cpus();
+ 	return ret;
+ }
+ EXPORT_SYMBOL(kmem_cache_shrink);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
-mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
-mm-swap-optimise-get_shadow_from_swap_cache.patch
-mm-add-fgp_entry.patch
-mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
-mm-filemap-add-helper-for-finding-pages.patch
-mm-filemap-add-helper-for-finding-pages-fix.patch
-mm-filemap-add-mapping_seek_hole_data.patch
-mm-filemap-add-mapping_seek_hole_data-fix.patch
-iomap-use-mapping_seek_hole_data.patch
-mm-add-and-use-find_lock_entries.patch
-mm-add-and-use-find_lock_entries-fix.patch
-mm-add-an-end-parameter-to-find_get_entries.patch
-mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
-mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
-mm-pass-pvec-directly-to-find_get_entries.patch
-mm-remove-pagevec_lookup_entries.patch
+maintainers-add-uapi-directories-to-api-abi-section.patch
 
