@@ -5,37 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57CCEC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:37:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8369BC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:38:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 149FE64F29
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:37:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 32D1964F2B
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Feb 2021 19:38:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234364AbhBYThV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 14:37:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41310 "EHLO mail.kernel.org"
+        id S234660AbhBYThX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 14:37:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41324 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234964AbhBYTfO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234942AbhBYTfO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 14:35:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A407864F3A;
-        Thu, 25 Feb 2021 19:19:16 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CA26264FBC;
+        Thu, 25 Feb 2021 19:18:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614280756;
-        bh=4nqDT0uuTjp/xN2QGGRKj4gjQuY6c1ZMXqSq7Yf9PAc=;
+        s=korg; t=1614280731;
+        bh=nYMIHv6+aNwba1OhKW4oyLvpwZSTLMPBxnwBmszH718=;
         h=Date:From:To:Subject:From;
-        b=S21z7zLOMK1IOq8umsaSFkRk1UXCuZAQO/HEqiZqeghURny52orpZKlu6KOzPQPw0
-         vFF3g6DjF5vm4k9GJF82Yaclt8wpL48Nm4DBCFhVchqrT68Q08+Of16y4UToOSezAV
-         O+8NdOwCuKBGSUvcIVZZQ2u4xC1v58bwKBiTt6ik=
-Date:   Thu, 25 Feb 2021 11:19:16 -0800
+        b=i0W0zclbWTB6JswfgtwMLiJjH/7/W1zdoRxUnU6TRhEcXwPOUR7DhLACQVEusL7QH
+         DqGVxisyMQwT+RCGf29hdjSbsowvgXv7tt1yqVWgTqfevho0M0uaxSg+WOeoqw/yGr
+         3cXaTZpKGa1VbrRETf4v1ff7epFnppReHax/vFrk=
+Date:   Thu, 25 Feb 2021 11:18:50 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, linmiaohe@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org
+To:     aarcange@redhat.com, david@redhat.com, mgorman@techsingularity.net,
+        mhocko@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com,
+        rppt@kernel.org, stable@vger.kernel.org, vbabka@suse.cz
 Subject:  [merged]
- hugetlbfs-remove-meaningless-variable-avoid_reserve.patch removed from -mm
- tree
-Message-ID: <20210225191916.NTl9OcJRM%akpm@linux-foundation.org>
+ mm-compaction-make-fast_isolate_freepages-stay-within-zone.patch removed
+ from -mm tree
+Message-ID: <20210225191850.2w_qtWW2V%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,71 +45,107 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: remove meaningless variable avoid_reserve
+     Subject: mm, compaction: make fast_isolate_freepages() stay within zone
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-remove-meaningless-variable-avoid_reserve.patch
+     mm-compaction-make-fast_isolate_freepages-stay-within-zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlbfs: remove meaningless variable avoid_reserve
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: make fast_isolate_freepages() stay within zone
 
-The variable avoid_reserve is meaningless because we never changed its
-value and just passed it to alloc_huge_page().  So remove it to make code
-more clear that in hugetlbfs_fallocate, we never avoid reserve when alloc
-hugepage yet.  Also add a comment offered by Mike Kravetz to explain this.
+Compaction always operates on pages from a single given zone when
+isolating both pages to migrate and freepages.  Pageblock boundaries are
+intersected with zone boundaries to be safe in case zone starts or ends in
+the middle of pageblock.  The use of pageblock_pfn_to_page() protects
+against non-contiguous pageblocks.
 
-Link: https://lkml.kernel.org/r/20210120071508.9078-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+The functions fast_isolate_freepages() and fast_isolate_around() don't
+currently protect the fast freepage isolation thoroughly enough against
+these corner cases, and can result in freepage isolation operate outside
+of zone boundaries:
+
+- in fast_isolate_freepages() if we get a pfn from the first pageblock
+  of a zone that starts in the middle of that pageblock, 'highest' can be
+  a pfn outside of the zone.  If we fail to isolate anything in this
+  function, we may then call fast_isolate_around() on a pfn outside of the
+  zone and there effectively do a set_pageblock_skip(page_to_pfn(highest))
+  which may currently hit a VM_BUG_ON() in some configurations
+
+- fast_isolate_around() checks only the zone end boundary and not
+  beginning, nor that the pageblock is contiguous (with
+  pageblock_pfn_to_page()) so it's possible that we end up calling
+  isolate_freepages_block() on a range of pfn's from two different zones
+  and end up e.g.  isolating freepages under the wrong zone's lock.
+
+This patch should fix the above issues.
+
+Link: https://lkml.kernel.org/r/20210217173300.6394-1-vbabka@suse.cz
+Fixes: 5a811889de10 ("mm, compaction: use free lists to quickly locate a migration target")
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ mm/compaction.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-remove-meaningless-variable-avoid_reserve
-+++ a/fs/hugetlbfs/inode.c
-@@ -680,7 +680,6 @@ static long hugetlbfs_fallocate(struct f
- 		 */
- 		struct page *page;
- 		unsigned long addr;
--		int avoid_reserve = 0;
+--- a/mm/compaction.c~mm-compaction-make-fast_isolate_freepages-stay-within-zone
++++ a/mm/compaction.c
+@@ -1284,7 +1284,7 @@ static void
+ fast_isolate_around(struct compact_control *cc, unsigned long pfn, unsigned long nr_isolated)
+ {
+ 	unsigned long start_pfn, end_pfn;
+-	struct page *page = pfn_to_page(pfn);
++	struct page *page;
  
- 		cond_resched();
+ 	/* Do not search around if there are enough pages already */
+ 	if (cc->nr_freepages >= cc->nr_migratepages)
+@@ -1295,8 +1295,12 @@ fast_isolate_around(struct compact_contr
+ 		return;
  
-@@ -716,8 +715,15 @@ static long hugetlbfs_fallocate(struct f
- 			continue;
- 		}
+ 	/* Pageblock boundaries */
+-	start_pfn = pageblock_start_pfn(pfn);
+-	end_pfn = min(pageblock_end_pfn(pfn), zone_end_pfn(cc->zone)) - 1;
++	start_pfn = max(pageblock_start_pfn(pfn), cc->zone->zone_start_pfn);
++	end_pfn = min(pageblock_end_pfn(pfn), zone_end_pfn(cc->zone));
++
++	page = pageblock_pfn_to_page(start_pfn, end_pfn, cc->zone);
++	if (!page)
++		return;
  
--		/* Allocate page and add to page cache */
--		page = alloc_huge_page(&pseudo_vma, addr, avoid_reserve);
-+		/*
-+		 * Allocate page without setting the avoid_reserve argument.
-+		 * There certainly are no reserves associated with the
-+		 * pseudo_vma.  However, there could be shared mappings with
-+		 * reserves for the file at the inode level.  If we fallocate
-+		 * pages in these areas, we need to consume the reserves
-+		 * to keep reservation accounting consistent.
-+		 */
-+		page = alloc_huge_page(&pseudo_vma, addr, 0);
- 		hugetlb_drop_vma_policy(&pseudo_vma);
- 		if (IS_ERR(page)) {
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 	/* Scan before */
+ 	if (start_pfn != pfn) {
+@@ -1398,7 +1402,8 @@ fast_isolate_freepages(struct compact_co
+ 			pfn = page_to_pfn(freepage);
+ 
+ 			if (pfn >= highest)
+-				highest = pageblock_start_pfn(pfn);
++				highest = max(pageblock_start_pfn(pfn),
++					      cc->zone->zone_start_pfn);
+ 
+ 			if (pfn >= low_pfn) {
+ 				cc->fast_search_fail = 0;
+@@ -1468,7 +1473,8 @@ fast_isolate_freepages(struct compact_co
+ 			} else {
+ 				if (cc->direct_compaction && pfn_valid(min_pfn)) {
+ 					page = pageblock_pfn_to_page(min_pfn,
+-						pageblock_end_pfn(min_pfn),
++						min(pageblock_end_pfn(min_pfn),
++						    zone_end_pfn(cc->zone)),
+ 						cc->zone);
+ 					cc->free_pfn = min_pfn;
+ 				}
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found.patch
-mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
-mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
-mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
-mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
-mm-rmap-correct-obsolete-comment-of-page_get_anon_vma.patch
-mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
-mm-zsmallocc-use-page_private-to-access-page-private.patch
+maintainers-add-uapi-directories-to-api-abi-section.patch
 
