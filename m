@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4C39C432C3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54589C433E6
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:22:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9C09864F30
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:22:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1261064F30
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:22:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229537AbhBZBWg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:22:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52654 "EHLO mail.kernel.org"
+        id S230079AbhBZBWf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:22:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52400 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230060AbhBZBVc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S229537AbhBZBVc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 20:21:32 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2C92B64F3C;
-        Fri, 26 Feb 2021 01:21:04 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AAAF264F33;
+        Fri, 26 Feb 2021 01:21:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302464;
-        bh=l1n256VGACAvnIN1lwNELVlMM6rCPZVqR8xukU1Rs2w=;
+        s=korg; t=1614302468;
+        bh=3AWE9fS2XGydhtf8F1l9OjR3mK9r6cTvv+qO/yeMJLI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=DqsQ/ABOE6qdcbJ3JF8xE/KSuRwnIo1BDzo2IbHLRnTQWpnFm5X+AXbnVB+jRZl23
-         qCAETiH4M2pXMG6fBO9yPjFYV0KWfo3d2p13mTEJD51n6qOUMJDV/AH6RP52/Mx1rG
-         A6wH+tr2NdqEWxeKQ8j/3+qmo7Ruaz6q1vbLlc68=
-Date:   Thu, 25 Feb 2021 17:21:03 -0800
+        b=thV6qlKvJcy5r0GlJZsE6dMmh5aOv9JRqDglxe2EOCmxtMEyJlC6WZNfGLD58w/PW
+         RaKovFKFPYsA8aHQAdNpzLqfwHkynzwjcH2alKP10CcaKDpLEx43RevdXXdpYBui5j
+         qrG4pP7+P2IfN8bnNVAhWTGNuciF4W2xFqsqNMrY=
+Date:   Thu, 25 Feb 2021 17:21:07 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, hubert.jasudowicz@gmail.com,
         linux-mm@kvack.org, mikelley@microsoft.com,
         mm-commits@vger.kernel.org, mortonm@chromium.org,
         peterz@infradead.org, thomascedeno@google.com,
         torvalds@linux-foundation.org, xiang@kernel.org
-Subject:  [patch 088/118] groups: use flexible-array member in
- struct group_info
-Message-ID: <20210226012103.WcPCc2XlT%akpm@linux-foundation.org>
+Subject:  [patch 089/118] groups: simplify struct group_info
+ allocation
+Message-ID: <20210226012107.i2xRgetEx%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,33 +46,38 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Hubert Jasudowicz <hubert.jasudowicz@gmail.com>
-Subject: groups: use flexible-array member in struct group_info
+Subject: groups: simplify struct group_info allocation
 
-Replace zero-size array with flexible array member, as recommended by
-the docs.
+Combine kmalloc and vmalloc into a single call.  Use struct_size macro
+instead of direct size calculation.
 
-Link: https://lkml.kernel.org/r/155995eed35c3c1bdcc56e69d8997c8e4c46740a.1611620846.git.hubert.jasudowicz@gmail.com
+Link: https://lkml.kernel.org/r/ba9ba5beea9a44b7196c41a0d9528abd5f20dd2e.1611620846.git.hubert.jasudowicz@gmail.com
 Signed-off-by: Hubert Jasudowicz <hubert.jasudowicz@gmail.com>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
-Cc: Micah Morton <mortonm@chromium.org>
 Cc: Gao Xiang <xiang@kernel.org>
+Cc: Micah Morton <mortonm@chromium.org>
 Cc: Michael Kelley <mikelley@microsoft.com>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
 Cc: Thomas Cedeno <thomascedeno@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cred.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/groups.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/include/linux/cred.h~groups-use-flexible-array-member-in-struct-group_info
-+++ a/include/linux/cred.h
-@@ -25,7 +25,7 @@ struct inode;
- struct group_info {
- 	atomic_t	usage;
- 	int		ngroups;
--	kgid_t		gid[0];
-+	kgid_t		gid[];
- } __randomize_layout;
+--- a/kernel/groups.c~groups-simplify-struct-group_info-allocation
++++ a/kernel/groups.c
+@@ -15,12 +15,7 @@
+ struct group_info *groups_alloc(int gidsetsize)
+ {
+ 	struct group_info *gi;
+-	unsigned int len;
+-
+-	len = sizeof(struct group_info) + sizeof(kgid_t) * gidsetsize;
+-	gi = kmalloc(len, GFP_KERNEL_ACCOUNT|__GFP_NOWARN|__GFP_NORETRY);
+-	if (!gi)
+-		gi = __vmalloc(len, GFP_KERNEL_ACCOUNT);
++	gi = kvmalloc(struct_size(gi, gid, gidsetsize), GFP_KERNEL_ACCOUNT);
+ 	if (!gi)
+ 		return NULL;
  
- /**
 _
