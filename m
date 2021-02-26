@@ -7,35 +7,43 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07AA5C43381
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:19:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0C2FC433E6
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:19:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B58FB64F33
+	by mail.kernel.org (Postfix) with ESMTP id 65A5964F1A
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:19:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229823AbhBZBTs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:19:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51484 "EHLO mail.kernel.org"
+        id S229596AbhBZBT0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:19:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50902 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229598AbhBZBT3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:19:29 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1A63C64F2D;
-        Fri, 26 Feb 2021 01:18:49 +0000 (UTC)
+        id S229894AbhBZBTV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:19:21 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DACA164F22;
+        Fri, 26 Feb 2021 01:19:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302329;
-        bh=vJm911EVMjSxlFFawOBOUPYT5JOFBmhG2jYg/shh7W4=;
+        s=korg; t=1614302345;
+        bh=V1kjaSn35AL9zUYmFGwKjvGSp2Q2G949QFUgg9UBCuc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=sAEfXD95svZsggWYJuV/zP1l0siZFvgv3Vk4A+e9e5LUXl+3DP2XVDe9CIRREsem3
-         lYoYRER1tTauHWQYde9Y6HD4pkm4tYrwYpzbO3tqdx8dkY7gbck43cxFsOTPx8RPQa
-         mLwiSVAzGXlQ3LW5CNn7V0jZOjEIl9N0kAphDSKU=
-Date:   Thu, 25 Feb 2021 17:18:48 -0800
+        b=GTLPNYzHsHNGCnWqY2ksLCZ+AupBGoHuMFhUPq9v2EB1pPlgfLDtIz3LmQ56qz8sA
+         nPSlx5FvcwS2ibQcynJhl/1Bgr5AVc7xF9XuGBaYyAraXuLDR2wUJ12IwQ3ZfUVb/R
+         rnEGAT50DMqIDV0lDnGqBKbD5Mpd8mPtp9GVMonY=
+Date:   Thu, 25 Feb 2021 17:19:03 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, stephenzhangzsd@gmail.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 055/118] mm/early_ioremap.c: use __func__ instead
- of function name
-Message-ID: <20210226011848.78gxatB5c%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        aryabinin@virtuozzo.com, bp@alien8.de, catalin.marinas@arm.com,
+        cl@linux.com, corbet@lwn.net, dave.hansen@linux.intel.com,
+        dvyukov@google.com, edumazet@google.com, elver@google.com,
+        glider@google.com, gregkh@linuxfoundation.org, hdanton@sina.com,
+        hpa@zytor.com, iamjoonsoo.kim@lge.com, jannh@google.com,
+        joern@purestorage.com, keescook@chromium.org, linux-mm@kvack.org,
+        luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com,
+        mm-commits@vger.kernel.org, paulmck@kernel.org, penberg@kernel.org,
+        peterz@infradead.org, rientjes@google.com, sjpark@amazon.de,
+        tglx@linutronix.de, torvalds@linux-foundation.org, vbabka@suse.cz,
+        will@kernel.org
+Subject:  [patch 058/118] arm64, kfence: enable KFENCE for ARM64
+Message-ID: <20210226011903.0X34ONJ39%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,43 +51,134 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Stephen Zhang <stephenzhangzsd@gmail.com>
-Subject: mm/early_ioremap.c: use __func__ instead of function name
+From: Marco Elver <elver@google.com>
+Subject: arm64, kfence: enable KFENCE for ARM64
 
-It is better to use __func__ instead of function name.
+Add architecture specific implementation details for KFENCE and enable
+KFENCE for the arm64 architecture. In particular, this implements the
+required interface in <asm/kfence.h>.
 
-Link: https://lkml.kernel.org/r/1611385587-4209-1-git-send-email-stephenzhangzsd@gmail.com
-Signed-off-by: Stephen Zhang <stephenzhangzsd@gmail.com>
+KFENCE requires that attributes for pages from its memory pool can
+individually be set. Therefore, force the entire linear map to be mapped
+at page granularity. Doing so may result in extra memory allocated for
+page tables in case rodata=full is not set; however, currently
+CONFIG_RODATA_FULL_DEFAULT_ENABLED=y is the default, and the common case
+is therefore not affected by this change.
+
+[elver@google.com: add missing copyright and description header]
+  Link: https://lkml.kernel.org/r/20210118092159.145934-3-elver@google.com
+Link: https://lkml.kernel.org/r/20201103175841.3495947-4-elver@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Co-developed-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Jann Horn <jannh@google.com>
+Reviewed-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Joern Engel <joern@purestorage.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: SeongJae Park <sjpark@amazon.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/early_ioremap.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/arm64/Kconfig              |    1 +
+ arch/arm64/include/asm/kfence.h |   24 ++++++++++++++++++++++++
+ arch/arm64/mm/fault.c           |    4 ++++
+ arch/arm64/mm/mmu.c             |    8 +++++++-
+ 4 files changed, 36 insertions(+), 1 deletion(-)
 
---- a/mm/early_ioremap.c~mm-early_ioremapc-use-__func__-instead-of-function-name
-+++ a/mm/early_ioremap.c
-@@ -181,17 +181,17 @@ void __init early_iounmap(void __iomem *
- 		}
+--- /dev/null
++++ a/arch/arm64/include/asm/kfence.h
+@@ -0,0 +1,24 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * arm64 KFENCE support.
++ *
++ * Copyright (C) 2020, Google LLC.
++ */
++
++#ifndef __ASM_KFENCE_H
++#define __ASM_KFENCE_H
++
++#include <asm/cacheflush.h>
++
++#define KFENCE_SKIP_ARCH_FAULT_HANDLER "el1_sync"
++
++static inline bool arch_kfence_init_pool(void) { return true; }
++
++static inline bool kfence_protect_page(unsigned long addr, bool protect)
++{
++	set_memory_valid(addr, 1, !protect);
++
++	return true;
++}
++
++#endif /* __ASM_KFENCE_H */
+--- a/arch/arm64/Kconfig~arm64-kfence-enable-kfence-for-arm64
++++ a/arch/arm64/Kconfig
+@@ -140,6 +140,7 @@ config ARM64
+ 	select HAVE_ARCH_KASAN if !(ARM64_16K_PAGES && ARM64_VA_BITS_48)
+ 	select HAVE_ARCH_KASAN_SW_TAGS if HAVE_ARCH_KASAN
+ 	select HAVE_ARCH_KASAN_HW_TAGS if (HAVE_ARCH_KASAN && ARM64_MTE)
++	select HAVE_ARCH_KFENCE
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_MMAP_RND_BITS
+ 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
+--- a/arch/arm64/mm/fault.c~arm64-kfence-enable-kfence-for-arm64
++++ a/arch/arm64/mm/fault.c
+@@ -10,6 +10,7 @@
+ #include <linux/acpi.h>
+ #include <linux/bitfield.h>
+ #include <linux/extable.h>
++#include <linux/kfence.h>
+ #include <linux/signal.h>
+ #include <linux/mm.h>
+ #include <linux/hardirq.h>
+@@ -389,6 +390,9 @@ static void __do_kernel_fault(unsigned l
+ 	} else if (addr < PAGE_SIZE) {
+ 		msg = "NULL pointer dereference";
+ 	} else {
++		if (kfence_handle_page_fault(addr))
++			return;
++
+ 		msg = "paging request";
  	}
  
--	if (WARN(slot < 0, "early_iounmap(%p, %08lx) not found slot\n",
--		 addr, size))
-+	if (WARN(slot < 0, "%s(%p, %08lx) not found slot\n",
-+		  __func__, addr, size))
- 		return;
+--- a/arch/arm64/mm/mmu.c~arm64-kfence-enable-kfence-for-arm64
++++ a/arch/arm64/mm/mmu.c
+@@ -1465,7 +1465,13 @@ int arch_add_memory(int nid, u64 start,
+ 	int ret, flags = 0;
  
- 	if (WARN(prev_size[slot] != size,
--		 "early_iounmap(%p, %08lx) [%d] size not consistent %08lx\n",
--		 addr, size, slot, prev_size[slot]))
-+		 "%s(%p, %08lx) [%d] size not consistent %08lx\n",
-+		  __func__, addr, size, slot, prev_size[slot]))
- 		return;
+ 	VM_BUG_ON(!mhp_range_allowed(start, size, true));
+-	if (rodata_full || debug_pagealloc_enabled())
++
++	/*
++	 * KFENCE requires linear map to be mapped at page granularity, so that
++	 * it is possible to protect/unprotect single pages in the KFENCE pool.
++	 */
++	if (rodata_full || debug_pagealloc_enabled() ||
++	    IS_ENABLED(CONFIG_KFENCE))
+ 		flags = NO_BLOCK_MAPPINGS | NO_CONT_MAPPINGS;
  
--	WARN(early_ioremap_debug, "early_iounmap(%p, %08lx) [%d]\n",
--	     addr, size, slot);
-+	WARN(early_ioremap_debug, "%s(%p, %08lx) [%d]\n",
-+	      __func__, addr, size, slot);
- 
- 	virt_addr = (unsigned long)addr;
- 	if (WARN_ON(virt_addr < fix_to_virt(FIX_BTMAP_BEGIN)))
+ 	__create_pgd_mapping(swapper_pg_dir, start, __phys_to_virt(start),
 _
