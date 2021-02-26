@@ -5,37 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3618C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEA98C433E6
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:19:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7FDAE64F27
+	by mail.kernel.org (Postfix) with ESMTP id A13A564F2C
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:19:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229996AbhBZBTD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229537AbhBZBTD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 25 Feb 2021 20:19:03 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50648 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50714 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229537AbhBZBSo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:18:44 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D187564F14;
-        Fri, 26 Feb 2021 01:18:03 +0000 (UTC)
+        id S230029AbhBZBSr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:18:47 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1BFBC64F27;
+        Fri, 26 Feb 2021 01:18:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302284;
-        bh=Rgwf2N9AUfX4uo2Q6UMa+x09WD3wbzSI+HO4p0Dwso8=;
+        s=korg; t=1614302287;
+        bh=o6FBAWVWSbku31OQl5AYFKq5xoM0tAOVECW09qXUk+8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=o0K0By2alDG/5kH8YByCxE65Zt7R8pQtR8R5DivmwhSfAN68sy5BKlXSj/V/CzoCA
-         TWXslAe3TigZtvE/BUwpxhUdZ0EJcREf87fwWWet/zhfVdV9kKeutWtAyuRdHpzaXY
-         uL7zOd2hMuAvMp5foVF2Fu7rJi035GjpRngkTZS4=
-Date:   Thu, 25 Feb 2021 17:18:03 -0800
+        b=LpmFE1iWvF6EfkgB4dHWY213BjDTkDIUUAPyaoEY7LKguY0w4aEa50gQ5tgzQYgGN
+         YghF0IkssN9e/EVOeMu3uGWQ0NnNx7QqmzweX5BeqH1z4rU37BUFfUvPIDqf6sahqZ
+         e28oqFJhlRXXEsWOVZCFssazbOmSiXZt5astB758=
+Date:   Thu, 25 Feb 2021 17:18:06 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 043/118] mm/rmap: use page_not_mapped in
- try_to_unmap()
-Message-ID: <20210226011803.oZt-qQ9hD%akpm@linux-foundation.org>
+To:     a.p.zijlstra@chello.nl, akpm@linux-foundation.org,
+        linmiaohe@huawei.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 044/118] mm/rmap: correct obsolete comment of
+ page_get_anon_vma()
+Message-ID: <20210226011806.4im9na6_G%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,56 +44,33 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/rmap: use page_not_mapped in try_to_unmap()
+Subject: mm/rmap: correct obsolete comment of page_get_anon_vma()
 
-page_mapcount_is_zero() calculates accurately how many mappings a hugepage
-has in order to check against 0 only.  This is a waste of cpu time.  We
-can do this via page_not_mapped() to save some possible atomic_read
-cycles.  Remove the function page_mapcount_is_zero() as it's not used
-anymore and move page_not_mapped() above try_to_unmap() to avoid
-identifier undeclared compilation error.
+Since commit 746b18d421da ("mm: use refcounts for page_lock_anon_vma()"),
+page_lock_anon_vma() is renamed to page_get_anon_vma() and converted to
+return a refcount increased anon_vma.  But it forgot to change the
+relevant comment.
 
-Link: https://lkml.kernel.org/r/20210130084904.35307-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210203093215.31990-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ mm/rmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-use-page_not_mapped-in-try_to_unmap
+--- a/mm/rmap.c~mm-rmap-correct-obsolete-comment-of-page_get_anon_vma
 +++ a/mm/rmap.c
-@@ -1736,9 +1736,9 @@ static bool invalid_migration_vma(struct
- 	return vma_is_temporary_stack(vma);
- }
- 
--static int page_mapcount_is_zero(struct page *page)
-+static int page_not_mapped(struct page *page)
- {
--	return !total_mapcount(page);
-+	return !page_mapped(page);
- }
- 
- /**
-@@ -1756,7 +1756,7 @@ bool try_to_unmap(struct page *page, enu
- 	struct rmap_walk_control rwc = {
- 		.rmap_one = try_to_unmap_one,
- 		.arg = (void *)flags,
--		.done = page_mapcount_is_zero,
-+		.done = page_not_mapped,
- 		.anon_lock = page_lock_anon_vma_read,
- 	};
- 
-@@ -1780,11 +1780,6 @@ bool try_to_unmap(struct page *page, enu
- 	return !page_mapcount(page) ? true : false;
- }
- 
--static int page_not_mapped(struct page *page)
--{
--	return !page_mapped(page);
--}
--
- /**
-  * try_to_munlock - try to munlock a page
-  * @page: the page to be munlocked
+@@ -462,8 +462,8 @@ void __init anon_vma_init(void)
+  * Getting a lock on a stable anon_vma from a page off the LRU is tricky!
+  *
+  * Since there is no serialization what so ever against page_remove_rmap()
+- * the best this function can do is return a locked anon_vma that might
+- * have been relevant to this page.
++ * the best this function can do is return a refcount increased anon_vma
++ * that might have been relevant to this page.
+  *
+  * The page might have been remapped to a different anon_vma or the anon_vma
+  * returned may already be freed (and even reused).
 _
