@@ -7,41 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B312C4332E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76BEAC4332B
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:18:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5AD1064F26
+	by mail.kernel.org (Postfix) with ESMTP id 32C9064F29
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:18:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230018AbhBZBSP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:18:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49808 "EHLO mail.kernel.org"
+        id S230014AbhBZBSM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:18:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49664 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229845AbhBZBR7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:17:59 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 126F964EE1;
-        Fri, 26 Feb 2021 01:17:18 +0000 (UTC)
+        id S230018AbhBZBRv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:17:51 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2B53264F10;
+        Fri, 26 Feb 2021 01:17:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302239;
-        bh=AWYsEPbVJzkQaSPaH7duVO/1OsIEceK3U40PL1ysTK8=;
+        s=korg; t=1614302230;
+        bh=nj2mn8PzokQPH3M4TxUFd6o6AkalNQNeB1bNFp6zETM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=OIhvGk/Kl5SD1u1AomUu7HYq8f5tp5yqu2NuwCofEw5NCwz016otG+UEn6H7k+wmR
-         72RAQwSjUtbEpnafBtKxIR31aS9OJNJjPudjfHcvUEG5jgER6rt9+3m8sPbjl2zC3+
-         /oo6SedCX17fCpQZ1dqGgWs1Oe7sla3uyBWF21ic=
-Date:   Thu, 25 Feb 2021 17:17:17 -0800
+        b=MF+gD3sDqkyRT893WRwo+iqIaLxMJ+k+AbEE490enaVq/J9Bb2F4E2wXRxjo4RgMt
+         v4qomVfK708HeiHnGcN40rCxH69XZAl/Ewg7NqeI7b3xAYtfElaBiO9bOtLd8bX8Un
+         Fj+07ZlUz9KIgY2ukXR8bS69sSNKO9WUV43DCfe8=
+Date:   Thu, 25 Feb 2021 17:17:08 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
-        boris.ostrovsky@oracle.com, david@redhat.com,
-        haiyangz@microsoft.com, jasowang@redhat.com, jgross@suse.com,
-        kys@microsoft.com, linmiaohe@huawei.com, linux-mm@kvack.org,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, mst@redhat.com,
-        osalvador@suse.de, pankaj.gupta@cloud.ionos.com,
-        richard.weiyang@linux.alibaba.com, sstabellini@kernel.org,
-        sthemmin@microsoft.com, torvalds@linux-foundation.org,
-        wei.liu@kernel.org
-Subject:  [patch 031/118] mm/memory_hotplug: MEMHP_MERGE_RESOURCE
- -> MHP_MERGE_RESOURCE
-Message-ID: <20210226011717.hzkb9o8DP%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cai@lca.pw, dan.j.williams@intel.com,
+        david@redhat.com, linux-mm@kvack.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, torvalds@linux-foundation.org
+Subject:  [patch 029/118] mm: fix memory_failure() handling of
+ dax-namespace metadata
+Message-ID: <20210226011708.N4sC0luia%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -49,95 +44,94 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: MEMHP_MERGE_RESOURCE -> MHP_MERGE_RESOURCE
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: fix memory_failure() handling of dax-namespace metadata
 
-Let's make "MEMHP_MERGE_RESOURCE" consistent with "MHP_NONE", "mhp_t" and
-"mhp_flags".  As discussed recently [1], "mhp" is our internal acronym for
-memory hotplug now.
+Given 'struct dev_pagemap' spans both data pages and metadata pages be
+careful to consult the altmap if present to delineate metadata.  In fact
+the pfn_first() helper already identifies the first valid data pfn, so
+export that helper for other code paths via pgmap_pfn_valid().
 
-[1] https://lore.kernel.org/linux-mm/c37de2d0-28a1-4f7d-f944-cfd7d81c334d@redhat.com/
+Other usage of get_dev_pagemap() are not a concern because those are
+operating on known data pfns having been looked up by get_user_pages(). 
+I.e.  metadata pfns are never user mapped.
 
-Link: https://lkml.kernel.org/r/20210126115829.10909-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Michael S. Tsirkin <mst@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Wei Liu <wei.liu@kernel.org>
-Reviewed-by: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/161058501758.1840162.4239831989762604527.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: 6100e34b2526 ("mm, memory_failure: Teach memory_failure() about dev_pagemap pages")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Qian Cai <cai@lca.pw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hv/hv_balloon.c        |    2 +-
- drivers/virtio/virtio_mem.c    |    2 +-
- drivers/xen/balloon.c          |    2 +-
- include/linux/memory_hotplug.h |    2 +-
- mm/memory_hotplug.c            |    2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ include/linux/memremap.h |    6 ++++++
+ mm/memory-failure.c      |    6 ++++++
+ mm/memremap.c            |   15 +++++++++++++++
+ 3 files changed, 27 insertions(+)
 
---- a/drivers/hv/hv_balloon.c~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
-+++ a/drivers/hv/hv_balloon.c
-@@ -726,7 +726,7 @@ static void hv_mem_hot_add(unsigned long
+--- a/include/linux/memremap.h~mm-fix-memory_failure-handling-of-dax-namespace-metadata
++++ a/include/linux/memremap.h
+@@ -137,6 +137,7 @@ void *devm_memremap_pages(struct device
+ void devm_memunmap_pages(struct device *dev, struct dev_pagemap *pgmap);
+ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
+ 		struct dev_pagemap *pgmap);
++bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn);
  
- 		nid = memory_add_physaddr_to_nid(PFN_PHYS(start_pfn));
- 		ret = add_memory(nid, PFN_PHYS((start_pfn)),
--				(HA_CHUNK << PAGE_SHIFT), MEMHP_MERGE_RESOURCE);
-+				(HA_CHUNK << PAGE_SHIFT), MHP_MERGE_RESOURCE);
+ unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
+ void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns);
+@@ -165,6 +166,11 @@ static inline struct dev_pagemap *get_de
+ 	return NULL;
+ }
  
- 		if (ret) {
- 			pr_err("hot_add memory failed error is %d\n", ret);
---- a/drivers/virtio/virtio_mem.c~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
-+++ a/drivers/virtio/virtio_mem.c
-@@ -623,7 +623,7 @@ static int virtio_mem_add_memory(struct
- 	/* Memory might get onlined immediately. */
- 	atomic64_add(size, &vm->offline_size);
- 	rc = add_memory_driver_managed(vm->nid, addr, size, vm->resource_name,
--				       MEMHP_MERGE_RESOURCE);
-+				       MHP_MERGE_RESOURCE);
- 	if (rc) {
- 		atomic64_sub(size, &vm->offline_size);
- 		dev_warn(&vm->vdev->dev, "adding memory failed: %d\n", rc);
---- a/drivers/xen/balloon.c~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
-+++ a/drivers/xen/balloon.c
-@@ -331,7 +331,7 @@ static enum bp_state reserve_additional_
- 	mutex_unlock(&balloon_mutex);
- 	/* add_memory_resource() requires the device_hotplug lock */
- 	lock_device_hotplug();
--	rc = add_memory_resource(nid, resource, MEMHP_MERGE_RESOURCE);
-+	rc = add_memory_resource(nid, resource, MHP_MERGE_RESOURCE);
- 	unlock_device_hotplug();
- 	mutex_lock(&balloon_mutex);
++static inline bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn)
++{
++	return false;
++}
++
+ static inline unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
+ {
+ 	return 0;
+--- a/mm/memory-failure.c~mm-fix-memory_failure-handling-of-dax-namespace-metadata
++++ a/mm/memory-failure.c
+@@ -1312,6 +1312,12 @@ static int memory_failure_dev_pagemap(un
+ 		 */
+ 		put_page(page);
  
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
-+++ a/include/linux/memory_hotplug.h
-@@ -53,7 +53,7 @@ typedef int __bitwise mhp_t;
-  * with this flag set, the resource pointer must no longer be used as it
-  * might be stale, or the resource might have changed.
-  */
--#define MEMHP_MERGE_RESOURCE	((__force mhp_t)BIT(0))
-+#define MHP_MERGE_RESOURCE	((__force mhp_t)BIT(0))
++	/* device metadata space is not recoverable */
++	if (!pgmap_pfn_valid(pgmap, pfn)) {
++		rc = -ENXIO;
++		goto out;
++	}
++
+ 	/*
+ 	 * Prevent the inode from being freed while we are interrogating
+ 	 * the address_space, typically this would be handled by
+--- a/mm/memremap.c~mm-fix-memory_failure-handling-of-dax-namespace-metadata
++++ a/mm/memremap.c
+@@ -80,6 +80,21 @@ static unsigned long pfn_first(struct de
+ 	return pfn + vmem_altmap_offset(pgmap_altmap(pgmap));
+ }
  
- /*
-  * Extended parameters for memory hotplug:
---- a/mm/memory_hotplug.c~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
-+++ a/mm/memory_hotplug.c
-@@ -1153,7 +1153,7 @@ int __ref add_memory_resource(int nid, s
- 	 * In case we're allowed to merge the resource, flag it and trigger
- 	 * merging now that adding succeeded.
- 	 */
--	if (mhp_flags & MEMHP_MERGE_RESOURCE)
-+	if (mhp_flags & MHP_MERGE_RESOURCE)
- 		merge_system_ram_resource(res);
- 
- 	/* online pages if requested */
++bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn)
++{
++	int i;
++
++	for (i = 0; i < pgmap->nr_range; i++) {
++		struct range *range = &pgmap->ranges[i];
++
++		if (pfn >= PHYS_PFN(range->start) &&
++		    pfn <= PHYS_PFN(range->end))
++			return pfn >= pfn_first(pgmap, i);
++	}
++
++	return false;
++}
++
+ static unsigned long pfn_end(struct dev_pagemap *pgmap, int range_id)
+ {
+ 	const struct range *range = &pgmap->ranges[range_id];
 _
