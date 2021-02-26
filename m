@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11E91C433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:50:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE8C9C433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:51:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE60B64E2B
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:50:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 87905601FD
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:51:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231320AbhBZAuV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 19:50:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35380 "EHLO mail.kernel.org"
+        id S231326AbhBZAvR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 19:51:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35758 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230352AbhBZAuV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 19:50:21 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 573C664DA3;
-        Fri, 26 Feb 2021 00:49:40 +0000 (UTC)
+        id S231270AbhBZAvQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 19:51:16 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E16E4601FD;
+        Fri, 26 Feb 2021 00:50:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614300580;
-        bh=G/ffaCxbxi599g0O95qENOe3WbJffVVXSYhSz9q3zb0=;
+        s=korg; t=1614300636;
+        bh=3b0ZbxSncW+QDoUnkGWvkqIwXpkGEsroz3unkjaDml4=;
         h=Date:From:To:Subject:From;
-        b=XGnIXzR4rv6olcrCQltvggrjE1789Le0EfltgXHfhyECStToKhWx3vsTDKYOasNOg
-         AGwCFk5ZiiHBTjDPMZ/3V/F19HpePlIzuMsmJkl1ihVxhDMAFoMO/GUzo+H66EaPPi
-         tzeTkAQVIRwQDu5KMDqLFOPxkuINczB2rs3JNYeI=
-Date:   Thu, 25 Feb 2021 16:49:39 -0800
+        b=L3rduFu51xobpDBGTkwsLiqQk8DGzr4yDbId033/hNKQXoKqDiM64HphI/z0zAT/j
+         gGLqK4zztHOqld+ucQ7dLn+0Spv7ZH+1JmIPC+DndbT/Cp8oRebgnMCbcvivheqMlh
+         gyIoY2PkNDMKaOMBRTKT0S4pFX37015LDvGgO6jU=
+Date:   Thu, 25 Feb 2021 16:50:35 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, catalin.marinas@arm.com, elver@google.com,
-        mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        will@kernel.org
+To:     akpm@linux-foundation.org, glider@google.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, vinmenon@codeaurora.org,
+        vjitta@codeaurora.org, ylal@codeaurora.org
 Subject:  [folded-merged]
- arm64-kasan-simplify-and-inline-mte-functions-fix.patch removed from -mm
- tree
-Message-ID: <20210226004939.z6fc3AP5t%akpm@linux-foundation.org>
+ lib-stackdepot-add-support-to-disable-stack-depot-fix.patch removed from
+ -mm tree
+Message-ID: <20210226005035.wMolcHgNk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,58 +45,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: fix warning in mte_get_random_tag()
+     Subject: lib-stackdepot-add-support-to-disable-stack-depot-fix
 has been removed from the -mm tree.  Its filename was
-     arm64-kasan-simplify-and-inline-mte-functions-fix.patch
+     lib-stackdepot-add-support-to-disable-stack-depot-fix.patch
 
-This patch was dropped because it was folded into arm64-kasan-simplify-and-inline-mte-functions.patch
+This patch was dropped because it was folded into lib-stackdepot-add-support-to-disable-stack-depot.patch
 
 ------------------------------------------------------
-From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: arm64: fix warning in mte_get_random_tag()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-stackdepot-add-support-to-disable-stack-depot-fix
 
-The simplification of mte_get_random_tag() caused the introduction of the
-warning below:
+fix CONFIG_STACKDEPOT=n build
 
-In file included from arch/arm64/include/asm/kasan.h:9,
-                 from include/linux/kasan.h:16,
-                 from mm/kasan/common.c:14:
-mm/kasan/common.c: In function `mte_get_random_tag':
-arch/arm64/include/asm/mte-kasan.h:45:9: warning: `addr' is used
-                                         uninitialized [-Wuninitialized]
-   45 |         asm(__MTE_PREAMBLE "irg %0, %0"
-      |
+main.c:(.init.text+0x4c1): undefined reference to `stack_depot_init'
 
-Fix the warning using "=r" for the address in the asm inline.
-
-Link: https://lkml.kernel.org/r/20210211152208.23811-1-vincenzo.frascino@arm.com
-Fixes: c8f8de4c0887 ("arm64: kasan: simplify and inline MTE functions")
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Acked-by: Andrey Konovalov <andreyknvl@google.com>
-Tested-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vijayanand Jitta <vjitta@codeaurora.org>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: Yogesh Lal <ylal@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/mte-kasan.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/stackdepot.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/arch/arm64/include/asm/mte-kasan.h~arm64-kasan-simplify-and-inline-mte-functions-fix
-+++ a/arch/arm64/include/asm/mte-kasan.h
-@@ -43,7 +43,7 @@ static inline u8 mte_get_random_tag(void
- 	void *addr;
+--- a/include/linux/stackdepot.h~lib-stackdepot-add-support-to-disable-stack-depot-fix
++++ a/include/linux/stackdepot.h
+@@ -21,5 +21,13 @@ unsigned int stack_depot_fetch(depot_sta
  
- 	asm(__MTE_PREAMBLE "irg %0, %0"
--		: "+r" (addr));
-+		: "=r" (addr));
+ unsigned int filter_irq_stacks(unsigned long *entries, unsigned int nr_entries);
  
- 	return mte_get_ptr_tag(addr);
- }
++#ifdef CONFIG_STACKDEPOT
+ int stack_depot_init(void);
++#else
++static inline int stack_depot_init(void)
++{
++	return 0;
++}
++#endif	/* CONFIG_STACKDEPOT */
++
+ #endif
 _
 
-Patches currently in -mm which might be from vincenzo.frascino@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-arm64-kasan-simplify-and-inline-mte-functions.patch
+lib-stackdepot-add-support-to-disable-stack-depot.patch
+seq_file-document-how-per-entry-resources-are-managed-fix.patch
+initramfs-panic-with-memory-information-fix.patch
+mm-page_allocc-refactor-initialization-of-struct-page-for-holes-in-memory-layout-fix.patch
+mm.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
