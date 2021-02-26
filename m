@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0801CC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54091C433E9
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:19:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C1C5E64F27
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:19:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1002564F21
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:19:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229586AbhBZBTF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:19:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50830 "EHLO mail.kernel.org"
+        id S229864AbhBZBTG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:19:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50504 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229791AbhBZBSz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:18:55 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A35364F10;
-        Fri, 26 Feb 2021 01:18:14 +0000 (UTC)
+        id S230037AbhBZBTB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:19:01 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E3A4E64F2C;
+        Fri, 26 Feb 2021 01:18:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302295;
-        bh=iDV7BnBVMMrnHFyoTPMHuskWrc47E75txaG7wS0TInY=;
+        s=korg; t=1614302326;
+        bh=0Ag/HJ1j9d8tj7P8IcswBjUmM1000KSxYpTWpTiEZq8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=nwD6OUshflTBp4upBAlNP0pg6gGnWKTWp5EuxIk3ntiORs8PtjgIvLg8hzYOOFDlc
-         23Wux5kgzvciaM6KMI1LQLIANjt2g+JP7At2MeIoQCDj37YtUjS9jjDWCHRdg3/QEE
-         AY7o8ke5NX3kFAA074Obi0X9Mtrf8MNcvg9qkhBI=
-Date:   Thu, 25 Feb 2021 17:18:13 -0800
+        b=br09TGjpoZfl0jmvcfjGXKM/5BLzbA0/nPyU9Ag7QKbs1i/ho5uafdVhTgHXCPblJ
+         f5WGzLhXrkjxBhQIXrRo8KdkC4dNeoaMkgnsdpBttct8TJeYj7Ou/NfFlKxRgZJJdG
+         L60YtuB9/FAFdo9UlEKHDlml3JqjKyAkRGcMqfsg=
+Date:   Thu, 25 Feb 2021 17:18:45 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, ddstreet@ieee.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        sjenning@redhat.com, sjennings@variantweb.net,
-        torvalds@linux-foundation.org, vitaly.wool@konsulko.com,
-        weijie.yang@samsung.com
-Subject:  [patch 046/118] mm: zswap: clean up confusing comment
-Message-ID: <20210226011813.NE7U5GTqD%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, daniel.vetter@ffwll.ch,
+        daniel.vetter@intel.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 054/118] mm/backing-dev.c: use might_alloc()
+Message-ID: <20210226011845.1L0FuhJb6%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,39 +42,38 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm: zswap: clean up confusing comment
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: mm/backing-dev.c: use might_alloc()
 
-Correct wording and change one duplicated word (it) to "it is".
+Now that my little helper has landed, use it more.  On top of the existing
+check this also uses lockdep through the fs_reclaim annotations.
 
-Link: https://lkml.kernel.org/r/20201221042848.13980-1-rdunlap@infradead.org
-Fixes: 0ab0abcf5115 ("mm/zswap: refactor the get/put routines")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Weijie Yang <weijie.yang@samsung.com>
-Cc: Seth Jennings <sjennings@variantweb.net>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+[akpm@linux-foundation.org: include linux/sched/mm.h]
+Link: https://lkml.kernel.org/r/20210113135009.3606813-2-daniel.vetter@ffwll.ch
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/backing-dev.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/zswap.c~mm-zswap-clean-up-confusing-comment
-+++ a/mm/zswap.c
-@@ -1022,10 +1022,10 @@ static int zswap_writeback_entry(struct
+--- a/mm/backing-dev.c~bdi-use-might_alloc
++++ a/mm/backing-dev.c
+@@ -8,6 +8,7 @@
+ #include <linux/fs.h>
+ #include <linux/pagemap.h>
+ #include <linux/mm.h>
++#include <linux/sched/mm.h>
+ #include <linux/sched.h>
+ #include <linux/module.h>
+ #include <linux/writeback.h>
+@@ -578,7 +579,7 @@ struct bdi_writeback *wb_get_create(stru
+ {
+ 	struct bdi_writeback *wb;
  
- 	/*
- 	* if we get here due to ZSWAP_SWAPCACHE_EXIST
--	* a load may happening concurrently
--	* it is safe and okay to not free the entry
-+	* a load may be happening concurrently.
-+	* it is safe and okay to not free the entry.
- 	* if we free the entry in the following put
--	* it it either okay to return !0
-+	* it is also okay to return !0
- 	*/
- fail:
- 	spin_lock(&tree->lock);
+-	might_sleep_if(gfpflags_allow_blocking(gfp));
++	might_alloc(gfp);
+ 
+ 	if (!memcg_css->parent)
+ 		return &bdi->wb;
 _
