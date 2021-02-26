@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B725BC433E9
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06E47C4332B
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 748C064F17
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BDC2764F24
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229745AbhBZBR3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:17:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48970 "EHLO mail.kernel.org"
+        id S229863AbhBZBRb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:17:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48640 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229492AbhBZBRL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:17:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3444064EDC;
-        Fri, 26 Feb 2021 01:16:30 +0000 (UTC)
+        id S229885AbhBZBRU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:17:20 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3AE2C64F22;
+        Fri, 26 Feb 2021 01:17:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302190;
-        bh=ggn0p2fdOJkIBElRAnGekKbMcEGELEf1UZfPWGA6FlY=;
+        s=korg; t=1614302222;
+        bh=PQqIjvtNkkK1K4SHTu5a6m0IhLTSsEshyXekogPqoaY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=2fUmH0vMM7dL7bDbzmd2AWjXaf1xgZdGdb3HMCMYHkGzOVXZ1kJs/JWPIxuVaviOj
-         cOHsXGVFGSOQdDSFZZE9PALvpyOTIkYA3SIOsSDCl1LmAtdsZkWQ1NBcxbKwifTL9Y
-         wpyhzfUHEzJQtM5lcSdotbXsOlxtyP3OeuthAySE=
-Date:   Thu, 25 Feb 2021 17:16:29 -0800
+        b=LCihsm8r6WEHyxWDDrSfhr8++zfznnGAgqbfqmfT5YD7DrZIIhoJowmi6QgwgG3iN
+         KxJt+LQ1wbQt7OAKyWYY3pq3ZKHTHSzTiZBE6mUDVCFvque4+AmBHGEsKR1VIAUJPg
+         HAr/B1SGlI63DK2/2eZO9xKxR48HYSorn0mGcsiA=
+Date:   Thu, 25 Feb 2021 17:17:01 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, akpm@linux-foundation.org, hughd@google.com,
-        linux-mm@kvack.org, mgorman@suse.de, mhocko@suse.com,
-        mm-commits@vger.kernel.org, riel@surriel.com,
-        torvalds@linux-foundation.org, vbabka@suse.cz, willy@infradead.org,
-        xuyu@linux.alibaba.com
-Subject:  [patch 018/118] mm,shmem,thp: limit shmem THP allocations
- to requested zones
-Message-ID: <20210226011629.y0GUQrjp_%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cai@lca.pw, dan.j.williams@intel.com,
+        david@redhat.com, linux-mm@kvack.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, torvalds@linux-foundation.org
+Subject:  [patch 027/118] mm: teach pfn_to_online_page() to
+ consider subsection validity
+Message-ID: <20210226011701.hYlY8joRB%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,42 +44,64 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Rik van Riel <riel@surriel.com>
-Subject: mm,shmem,thp: limit shmem THP allocations to requested zones
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: teach pfn_to_online_page() to consider subsection validity
 
-Hugh pointed out that the gma500 driver uses shmem pages, but needs to
-limit them to the DMA32 zone.  Ensure the allocations resulting from the
-gfp_mask returned by limit_gfp_mask use the zone flags that were
-originally passed to shmem_getpage_gfp.
+pfn_to_online_page is primarily used to filter out offline or fully
+uninitialized pages.  pfn_valid resp.  online_section_nr have a coarse
+per memory section granularity.  If a section shared with a partially
+offline memory (e.g.  part of ZONE_DEVICE) then pfn_to_online_page
+would lead to a false positive on some pfns.  Fix this by adding
+pfn_section_valid check which is subsection aware.
 
-Link: https://lkml.kernel.org/r/20210224121016.1314ed6d@imladris.surriel.com
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Suggested-by: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xu Yu <xuyu@linux.alibaba.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+[mhocko@kernel.org: changelog rewrite]
+Link: https://lkml.kernel.org/r/161058500148.1840162.4365921007820501696.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: b13bc35193d9 ("mm/hotplug: invalid PFNs from pfn_to_online_page()")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/memory_hotplug.c |   23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
---- a/mm/shmem.c~mmshmemthp-limit-shmem-thp-allocations-to-requested-zones
-+++ a/mm/shmem.c
-@@ -1513,7 +1513,11 @@ static gfp_t limit_gfp_mask(gfp_t huge_g
+--- a/mm/memory_hotplug.c~mm-teach-pfn_to_online_page-to-consider-subsection-validity
++++ a/mm/memory_hotplug.c
+@@ -308,11 +308,26 @@ static int check_hotplug_memory_addressa
+ struct page *pfn_to_online_page(unsigned long pfn)
  {
- 	gfp_t allowflags = __GFP_IO | __GFP_FS | __GFP_RECLAIM;
- 	gfp_t denyflags = __GFP_NOWARN | __GFP_NORETRY;
--	gfp_t result = huge_gfp & ~allowflags;
-+	gfp_t zoneflags = limit_gfp & GFP_ZONEMASK;
-+	gfp_t result = huge_gfp & ~(allowflags | GFP_ZONEMASK);
-+
-+	/* Allow allocations only from the originally specified zones. */
-+	result |= zoneflags;
+ 	unsigned long nr = pfn_to_section_nr(pfn);
++	struct mem_section *ms;
  
- 	/*
- 	 * Minimize the result gfp by taking the union with the deny flags,
+-	if (nr < NR_MEM_SECTIONS && online_section_nr(nr) &&
+-	    pfn_valid_within(pfn))
+-		return pfn_to_page(pfn);
+-	return NULL;
++	if (nr >= NR_MEM_SECTIONS)
++		return NULL;
++
++	ms = __nr_to_section(nr);
++	if (!online_section(ms))
++		return NULL;
++
++	/*
++	 * Save some code text when online_section() +
++	 * pfn_section_valid() are sufficient.
++	 */
++	if (IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID) && !pfn_valid(pfn))
++		return NULL;
++
++	if (!pfn_section_valid(ms, pfn))
++		return NULL;
++
++	return pfn_to_page(pfn);
+ }
+ EXPORT_SYMBOL_GPL(pfn_to_online_page);
+ 
 _
