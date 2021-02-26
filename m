@@ -5,36 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3623C433E9
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:19:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07AA5C43381
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:19:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E55664F13
+	by mail.kernel.org (Postfix) with ESMTP id B58FB64F33
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:19:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229894AbhBZBTs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229823AbhBZBTs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 25 Feb 2021 20:19:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51348 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51484 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229863AbhBZBTX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:19:23 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8303864F13;
-        Fri, 26 Feb 2021 01:18:42 +0000 (UTC)
+        id S229598AbhBZBT3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:19:29 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1A63C64F2D;
+        Fri, 26 Feb 2021 01:18:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302322;
-        bh=Wjzf7Wy1XNiCjLfKFdrmbrxjXNl//kp0itjsuMsup+U=;
+        s=korg; t=1614302329;
+        bh=vJm911EVMjSxlFFawOBOUPYT5JOFBmhG2jYg/shh7W4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=MB8hCmsUMUvRh5OYbgxRlSueDoyRajrA+7OkrIyp4yZ/y0AoZZE+OwZj3jJA5IXmy
-         dif3Va9XPDL8/vb77kq3aXiGTODu3o0LGVvJiPGaMeY903pPd+JmioKbbu0pecAHMf
-         JPdkrwH8kx1C/qh61su8KIHo27BR932AYfbHFEoM=
-Date:   Thu, 25 Feb 2021 17:18:41 -0800
+        b=sAEfXD95svZsggWYJuV/zP1l0siZFvgv3Vk4A+e9e5LUXl+3DP2XVDe9CIRREsem3
+         lYoYRER1tTauHWQYde9Y6HD4pkm4tYrwYpzbO3tqdx8dkY7gbck43cxFsOTPx8RPQa
+         mLwiSVAzGXlQ3LW5CNn7V0jZOjEIl9N0kAphDSKU=
+Date:   Thu, 25 Feb 2021 17:18:48 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, daniel.vetter@ffwll.ch,
-        daniel.vetter@intel.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 053/118] mm/dmapool: use might_alloc()
-Message-ID: <20210226011841.FKty5IXOj%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, stephenzhangzsd@gmail.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 055/118] mm/early_ioremap.c: use __func__ instead
+ of function name
+Message-ID: <20210226011848.78gxatB5c%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,37 +43,43 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: mm/dmapool: use might_alloc()
+From: Stephen Zhang <stephenzhangzsd@gmail.com>
+Subject: mm/early_ioremap.c: use __func__ instead of function name
 
-Now that my little helper has landed, use it more.  On top of the existing
-check this also uses lockdep through the fs_reclaim annotations.
+It is better to use __func__ instead of function name.
 
-Link: https://lkml.kernel.org/r/20210113135009.3606813-1-daniel.vetter@ffwll.ch
-Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+Link: https://lkml.kernel.org/r/1611385587-4209-1-git-send-email-stephenzhangzsd@gmail.com
+Signed-off-by: Stephen Zhang <stephenzhangzsd@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/dmapool.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/early_ioremap.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/dmapool.c~mm-dmapool-use-might_alloc
-+++ a/mm/dmapool.c
-@@ -28,6 +28,7 @@
- #include <linux/mutex.h>
- #include <linux/poison.h>
- #include <linux/sched.h>
-+#include <linux/sched/mm.h>
- #include <linux/slab.h>
- #include <linux/stat.h>
- #include <linux/spinlock.h>
-@@ -319,7 +320,7 @@ void *dma_pool_alloc(struct dma_pool *po
- 	size_t offset;
- 	void *retval;
+--- a/mm/early_ioremap.c~mm-early_ioremapc-use-__func__-instead-of-function-name
++++ a/mm/early_ioremap.c
+@@ -181,17 +181,17 @@ void __init early_iounmap(void __iomem *
+ 		}
+ 	}
  
--	might_sleep_if(gfpflags_allow_blocking(mem_flags));
-+	might_alloc(mem_flags);
+-	if (WARN(slot < 0, "early_iounmap(%p, %08lx) not found slot\n",
+-		 addr, size))
++	if (WARN(slot < 0, "%s(%p, %08lx) not found slot\n",
++		  __func__, addr, size))
+ 		return;
  
- 	spin_lock_irqsave(&pool->lock, flags);
- 	list_for_each_entry(page, &pool->page_list, page_list) {
+ 	if (WARN(prev_size[slot] != size,
+-		 "early_iounmap(%p, %08lx) [%d] size not consistent %08lx\n",
+-		 addr, size, slot, prev_size[slot]))
++		 "%s(%p, %08lx) [%d] size not consistent %08lx\n",
++		  __func__, addr, size, slot, prev_size[slot]))
+ 		return;
+ 
+-	WARN(early_ioremap_debug, "early_iounmap(%p, %08lx) [%d]\n",
+-	     addr, size, slot);
++	WARN(early_ioremap_debug, "%s(%p, %08lx) [%d]\n",
++	      __func__, addr, size, slot);
+ 
+ 	virt_addr = (unsigned long)addr;
+ 	if (WARN_ON(virt_addr < fix_to_virt(FIX_BTMAP_BEGIN)))
 _
