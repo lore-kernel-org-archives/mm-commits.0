@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EACAFC433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:40:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4AF2C433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:40:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9FB2A64F1F
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:40:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9606864F1B
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:40:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231414AbhBZAkE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 19:40:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58714 "EHLO mail.kernel.org"
+        id S231320AbhBZAkW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 19:40:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58804 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231375AbhBZAkD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 19:40:03 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6ACD964F1B;
-        Fri, 26 Feb 2021 00:39:22 +0000 (UTC)
+        id S231614AbhBZAkQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 19:40:16 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D4AAA64F21;
+        Fri, 26 Feb 2021 00:39:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614299962;
-        bh=yTAs5cWVV/9nnr/O+xLM1+UQvRoTnPM/yjXmYFphuSM=;
+        s=korg; t=1614299969;
+        bh=leyFSUXcODB71AtS3AqOkrI+Wh2soTIwKNtwT2Iy90Q=;
         h=Date:From:To:Subject:From;
-        b=GkfTpYVyVks24ErDqFTvrn2o97K76/2j07Tsk8VF06VzMhQITGcxghbjx1jmY3VHB
-         wJcNQNo9LD0H2FK8ktcGri5iVBVFT0nFfKePhy9XGsC8wr6B8P1zbv+e55QuomOK/g
-         3ST0uyfR10Up6z/9nJy/4colNE+rvLYtn8jnqL2s=
-Date:   Thu, 25 Feb 2021 16:39:21 -0800
+        b=kppOctRSqP4E/GufEWrJwcaxrIoNivmjVniKQ37UuiT2qR55gWNfGT3BvzXGFhJ7f
+         4fqqtJ21OW3eGX88OU197JaFL91FAlnynRCHRQ+4pFZGHRWaLUDTB0OC8Mr+8oEMK4
+         sY+7VBjeO3wP8J/qAJiX09Wb68dGOtZmXSAPx43g=
+Date:   Thu, 25 Feb 2021 16:39:28 -0800
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, riel@surriel.com, rppt@linux.ibm.com,
-        vvghjk1234@gmail.com
+To:     guro@fb.com, mm-commits@vger.kernel.org, rppt@kernel.org,
+        sfr@canb.auug.org.au
 Subject:  [folded-merged]
- mm-cma-allocate-cma-areas-bottom-up-fix.patch removed from -mm tree
-Message-ID: <20210226003921.b9uqqZsRR%akpm@linux-foundation.org>
+ mm-cma-allocate-cma-areas-bottom-up-fix-3.patch removed from -mm tree
+Message-ID: <20210226003928.5y_GhKR_Y%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,50 +43,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-allocate-cma-areas-bottom-up-fix
+     Subject: mm-cma-allocate-cma-areas-bottom-up-fix-3
 has been removed from the -mm tree.  Its filename was
-     mm-cma-allocate-cma-areas-bottom-up-fix.patch
+     mm-cma-allocate-cma-areas-bottom-up-fix-3.patch
 
 This patch was dropped because it was folded into mm-cma-allocate-cma-areas-bottom-up.patch
 
 ------------------------------------------------------
 From: Roman Gushchin <guro@fb.com>
-Subject: mm-cma-allocate-cma-areas-bottom-up-fix
+Subject: mm-cma-allocate-cma-areas-bottom-up-fix-3
 
-whitespace fix, per Mike
+> 32-bit systems can have more than 32 bit in the physical address.
+> I think a better option would be to use CONFIG_PHYS_ADDR_T_64BIT
 
-Link: https://lkml.kernel.org/r/20201221170551.GB3428478@carbon.DHCP.thefacebook.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Wonhyuk Yang <vvghjk1234@gmail.com>
+I agree. An updated fixup below.
+
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/cma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/cma.c~mm-cma-allocate-cma-areas-bottom-up-fix
+--- a/mm/cma.c~mm-cma-allocate-cma-areas-bottom-up-fix-3
 +++ a/mm/cma.c
-@@ -344,8 +344,7 @@ int __init cma_declare_contiguous_nid(ph
+@@ -344,7 +344,7 @@ int __init cma_declare_contiguous_nid(ph
  		 * Avoid using first 4GB to not interfere with constrained zones
  		 * like DMA/DMA32.
  		 */
--		if (!memblock_bottom_up() &&
--		    memblock_end >= SZ_4G + size) {
-+		if (!memblock_bottom_up() && memblock_end >= SZ_4G + size) {
+-#if BITS_PER_LONG > 32
++#if CONFIG_PHYS_ADDR_T_64BIT
+ 		if (!memblock_bottom_up() && memblock_end >= SZ_4G + size) {
  			memblock_set_bottom_up(true);
  			addr = memblock_alloc_range_nid(size, alignment, SZ_4G,
- 							limit, nid, true);
 _
 
 Patches currently in -mm which might be from guro@fb.com are
 
 mm-cma-allocate-cma-areas-bottom-up.patch
-mm-cma-allocate-cma-areas-bottom-up-fix-2.patch
-mm-cma-allocate-cma-areas-bottom-up-fix-3.patch
 mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
 mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 
