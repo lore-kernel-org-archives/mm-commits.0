@@ -2,212 +2,94 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B83C0C433DB
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 15:55:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3593AC433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 17:56:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C5B764E02
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 15:55:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE3CC64F1F
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 17:56:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229622AbhBZPzT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 10:55:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37830 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229550AbhBZPzS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 10:55:18 -0500
-Received: from gandalf.local.home (cpe-66-24-58-225.stny.res.rr.com [66.24.58.225])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7593564ED5;
-        Fri, 26 Feb 2021 15:54:33 +0000 (UTC)
-Date:   Fri, 26 Feb 2021 10:54:31 -0500
-From:   Steven Rostedt <rostedt@goodmis.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Jacob Wen <jian.w.wen@oracle.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Joe Perches <joe@perches.com>,
-        Christoph Lameter <cl@linux.com>,
-        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
-        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
-        Paul McKenney <paulmck@linux.vnet.ibm.com>,
-        Pekka Enberg <penberg@kernel.org>,
-        David Rientjes <rientjes@google.com>
-Subject: Re: [patch 014/173] mm, tracing: record slab name for
- kmem_cache_free()
-Message-ID: <20210226105431.03786c7b@gandalf.local.home>
-In-Reply-To: <20210225164829.30fe227d@gandalf.local.home>
-References: <20210224115824.1e289a6895087f10c41dd8d6@linux-foundation.org>
-        <20210224200055.U7Xz47kX5%akpm@linux-foundation.org>
-        <20210224203708.4489755a@oasis.local.home>
-        <20210224210740.73273c7a@oasis.local.home>
-        <5a0b6fb4-6efd-e391-45fa-cd188f181d5d@oracle.com>
-        <20210225093128.4cd86439@gandalf.local.home>
-        <CAHk-=witGXc2FsqkOUy+Fh1_Vdpg=G5-MnDnDHv5DR5d6bRztQ@mail.gmail.com>
-        <20210225125741.4fc7e43e@gandalf.local.home>
-        <20210225164829.30fe227d@gandalf.local.home>
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+        id S230194AbhBZR4a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 12:56:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39442 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230087AbhBZR41 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Feb 2021 12:56:27 -0500
+Received: from mail-lj1-x234.google.com (mail-lj1-x234.google.com [IPv6:2a00:1450:4864:20::234])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27D4BC061574
+        for <mm-commits@vger.kernel.org>; Fri, 26 Feb 2021 09:55:47 -0800 (PST)
+Received: by mail-lj1-x234.google.com with SMTP id h4so11384995ljl.0
+        for <mm-commits@vger.kernel.org>; Fri, 26 Feb 2021 09:55:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Bi/M4WPuCcLtUoXWMq2ombpa2lu5IzNZ8ddS8Z/E04M=;
+        b=FWaAhqE551i43fLrVXk0qpQ/cYZSzi3+vVRX3/WQR9KysW1b5D9mx/8XjPhy+vlS9w
+         POqyHD3iZnB76d7LcHtG7xVi+IgEu4+O7zxlKeVIK2LrigOEREAc9SmVrIUslSr/7NAZ
+         yp25VffJebxOIfn450pzgUBJe25lyeTczEgO4=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Bi/M4WPuCcLtUoXWMq2ombpa2lu5IzNZ8ddS8Z/E04M=;
+        b=EgiflU2e3tWaqZwkoKlAakX+JCUN+JHP9Fw6GiLD0/Udp6yhmHH80KcsBVkSoxmRCQ
+         CZi12AqjKD7gnK1uyx4f5V8nrbp2nobyYqjkNXkezqn/T5SKqrNj4abeSkxdfwJ0YpG/
+         YYu6VYJ4z4qTbNccb04EpMyEfr02HT2mTJ8gXwSUVHTkuGoBFIdS6fbpG6vZznPbwyqb
+         MgkU3eK8yw1BEPi9OnONgN5Qr9YA4+fgutNSCe69KE+dqnrIkmzzzYfx1jYR4GfGLEp1
+         QVU+sH8v9A0qFr6/JASTsuZozNi0B4ZCOfcfOszjt4oWBy4csMjlppKJfRJ13CC6DRLH
+         eSyg==
+X-Gm-Message-State: AOAM533vUG7/75QIN9kP7YQfRyJZFhvAA6H3at0nfTskZXQWzxGnQN6k
+        m1FB3k2+P4vFzF1vZlohJCcwvD/dQWkgJg==
+X-Google-Smtp-Source: ABdhPJwop93uJ+Df+nr/5znYqdDREjn5EP6LwRFEzQtecBIMyrUszVx9+acTUh3RfIAadDz81j2FAA==
+X-Received: by 2002:a2e:94c8:: with SMTP id r8mr2343511ljh.332.1614362145306;
+        Fri, 26 Feb 2021 09:55:45 -0800 (PST)
+Received: from mail-lf1-f46.google.com (mail-lf1-f46.google.com. [209.85.167.46])
+        by smtp.gmail.com with ESMTPSA id 144sm1450521lfd.247.2021.02.26.09.55.44
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 26 Feb 2021 09:55:44 -0800 (PST)
+Received: by mail-lf1-f46.google.com with SMTP id b1so4294890lfb.7
+        for <mm-commits@vger.kernel.org>; Fri, 26 Feb 2021 09:55:44 -0800 (PST)
+X-Received: by 2002:ac2:41d5:: with SMTP id d21mr1853626lfi.487.1614362143872;
+ Fri, 26 Feb 2021 09:55:43 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+References: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
+In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Fri, 26 Feb 2021 09:55:27 -0800
+X-Gmail-Original-Message-ID: <CAHk-=whe0oboEyaUk-p8-wFWWCNDKWwy5vZbCEzm2ZNJTVLY-Q@mail.gmail.com>
+Message-ID: <CAHk-=whe0oboEyaUk-p8-wFWWCNDKWwy5vZbCEzm2ZNJTVLY-Q@mail.gmail.com>
+Subject: Re: incoming
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, Linux-MM <linux-mm@kvack.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, 25 Feb 2021 16:48:29 -0500
-Steven Rostedt <rostedt@goodmis.org> wrote:
+On Thu, Feb 25, 2021 at 5:14 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> - The rest of MM.
+>
+>   Includes kfence - another runtime memory validator.  Not as
+>   thorough as KASAN, but it has unmeasurable overhead and is intended
+>   to be usable in production builds.
+>
+> - Everything else
 
-> Because strings may be allowed if the trace point always passes in
-> something that is not freed, I would need to add a post processing check
-> (before the string is printed out) to make sure that no string is
-> dereferenced that doesn't point to kernel read only memory, and refuse to
-> print it if it does (and trigger a warning as well). That would have caught
-> the bug in this patch.
+Just to clarify: you have nothing else really pending?
 
-The below patch catches cases that unsafe strings are dereferenced. For
-example:
+I'm hoping to just do -rc1 this weekend after all - despite my late
+start due to loss of power for several days.
 
-  kmem_cache_free: call_site=__i915_gem_free_object_rcu+0x30/0x40 [i915] ptr=00000000f445da7e name=(0xffff8b01456930a0:drm_i915_gem_object)[UNSAFE-MEMORY]
+I'll allow late stragglers with good reason through, but the fewer of
+those there are, the better, of course.
 
-Note, I plan on changing this to make it an opt in option to display the
-string that is unsafe (as it is unsafe to display it) but may be necessary
-to see what those strings are to see why its unsafe and debug it.
-
-Note, because it allows strings that are constant in the core kernel, it
-doesn't always complain:
-
-  kmem_cache_free: call_site=unlink_anon_vmas+0x79/0x1e0 ptr=0000000056c4302b name=anon_vma_chain
-  kmem_cache_free: call_site=__put_anon_vma+0x4e/0xe0 ptr=00000000e658eb73 name=anon_vma
-
-It gives a big warning when it does trigger, so it shouldn't be missed.
-
-I'll add more comments and make this ready for the next merge window. At
-least now it should catch cases when people add unsafe strings, and be less
-reliant on me needing to police all trace event submissions.
-
--- Steve
-
-diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index e295c413580e..0bd76873a7f5 100644
---- a/kernel/trace/trace.c
-+++ b/kernel/trace/trace.c
-@@ -3551,6 +3551,89 @@ static char *trace_iter_expand_format(struct trace_iterator *iter)
- 	return tmp;
- }
- 
-+static bool trace_safe_str(struct trace_iterator *iter, const char *str)
-+{
-+	unsigned long addr = (unsigned long)str;
-+
-+	/* OK if part of the event data */
-+	if ((addr >= (unsigned long)iter->ent) &&
-+	    (addr < (unsigned long)iter->ent + iter->ent_size))
-+		return true;
-+	/* OK if part of the temp seq buffer */
-+	if ((addr >= (unsigned long)iter->tmp_seq.buffer) &&
-+	    (addr < (unsigned long)iter->tmp_seq.buffer + PAGE_SIZE))
-+		return true;
-+	/* Core rodata can not be freed */
-+	if (is_kernel_rodata(addr))
-+		return true;
-+	return false;
-+}
-+
-+void trace_check_vprintf(struct trace_iterator *iter, const char *fmt,
-+			 va_list ap)
-+{
-+	const char *p = fmt;
-+	const char *str;
-+	int i, j;
-+
-+	if (WARN_ON_ONCE(!fmt))
-+		return;
-+
-+	/* Don't bother checking when doing a ftrace_dump() */
-+	if (iter->fmt == static_fmt_buf)
-+		goto print;
-+
-+	while (*p) {
-+		j = 0;
-+
-+		for (i = 0; p[i]; i++) {
-+			if (i + 1 >= iter->fmt_size) {
-+				if (!trace_iter_expand_format(iter))
-+					goto print;
-+			}
-+
-+			if (p[i] == '\\' && p[i+1]) {
-+				i++;
-+				continue;
-+			}
-+			if (p[i] == '%') {
-+				for (j = 1; p[i+j]; j++) {
-+					if (isdigit(p[i+j]) ||
-+					    p[i+j] == '*' ||
-+					    p[i+j] == '.')
-+						continue;
-+					break;
-+				}
-+				if (p[i+j] == 's')
-+					break;
-+			}
-+			j = 0;
-+		}
-+		if (!p[i])
-+			break;
-+
-+		strncpy(iter->fmt, p, i);
-+		iter->fmt[i] = '\0';
-+		trace_seq_vprintf(&iter->seq, iter->fmt, ap);
-+
-+		str = va_arg(ap, const char *);
-+		if (WARN_ON_ONCE(!trace_safe_str(iter, str))) {
-+			trace_seq_printf(&iter->seq, "(0x%px:%s)", str, str);
-+			str = "[UNSAFE-MEMORY]";
-+			strcpy(iter->fmt, "%s");
-+		} else {
-+			strncpy(iter->fmt, p + i, j + 1);
-+			iter->fmt[j+1] = '\0';
-+		}
-+		trace_seq_printf(&iter->seq, iter->fmt, str);
-+
-+		p += i + j + 1;
-+	}
-+ print:
-+	if (*p)
-+		trace_seq_vprintf(&iter->seq, p, ap);
-+}
-+
- const char *trace_event_format(struct trace_iterator *iter, const char *fmt)
- {
- 	const char *p, *new_fmt;
-diff --git a/kernel/trace/trace.h b/kernel/trace/trace.h
-index dec13ff66077..5e41b5fd5318 100644
---- a/kernel/trace/trace.h
-+++ b/kernel/trace/trace.h
-@@ -582,6 +582,8 @@ void trace_buffer_unlock_commit_nostack(struct trace_buffer *buffer,
- 					struct ring_buffer_event *event);
- 
- const char *trace_event_format(struct trace_iterator *iter, const char *fmt);
-+void trace_check_vprintf(struct trace_iterator *iter, const char *fmt,
-+			 va_list ap);
- 
- int trace_empty(struct trace_iterator *iter);
- 
-diff --git a/kernel/trace/trace_output.c b/kernel/trace/trace_output.c
-index 61255bad7e01..a0146e1fffdf 100644
---- a/kernel/trace/trace_output.c
-+++ b/kernel/trace/trace_output.c
-@@ -317,7 +317,7 @@ void trace_event_printf(struct trace_iterator *iter, const char *fmt, ...)
- 	va_list ap;
- 
- 	va_start(ap, fmt);
--	trace_seq_vprintf(&iter->seq, trace_event_format(iter, fmt), ap);
-+	trace_check_vprintf(iter, trace_event_format(iter, fmt), ap);
- 	va_end(ap);
- }
- EXPORT_SYMBOL(trace_event_printf);
+Thanks,
+                   Linus
