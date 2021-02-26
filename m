@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0913DC433E6
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:22:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E04FC433E6
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:22:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B7E9D64F4D
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:22:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6317F64F30
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:22:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229864AbhBZBWI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:22:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53214 "EHLO mail.kernel.org"
+        id S229535AbhBZBWT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:22:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53344 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229508AbhBZBU5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:20:57 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CFEA064F1A;
-        Fri, 26 Feb 2021 01:20:15 +0000 (UTC)
+        id S230010AbhBZBVF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:21:05 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2A2A364EE4;
+        Fri, 26 Feb 2021 01:20:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302416;
-        bh=sUdX0lbDohmruNdHdrnGX3gQqQfiT2TizKU+mLahDJc=;
+        s=korg; t=1614302425;
+        bh=rmXR++pRs00CfbhKXr47y1G7u3aOztuwanuB78Nzi78=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=kOgqlCgp9YtK6oO8O9EY5biokB533tlLW5DwSwsI+AmgyFvtMj4itZM4Aoxlk3upZ
-         kAcuxXNY8xBT+rmgjTw1C0ukxLqAnh4/focjjxuloVZizgSPUW15Y5B7Nan39LPxCa
-         Y4ECeiuk7CR4jJjadcNSQhFj9VZe3jHLY6fog7FM=
-Date:   Thu, 25 Feb 2021 17:20:15 -0800
+        b=ljyL5ew92BgP+rXehPwOD203fZug68X98PKY0VUuogztYCKQSW9CV6YIt6MQ45jgL
+         +TDz6I+sr6VnI5i8K7rHq9+stmHQ2NDLRUhvQOFWLel+gf1WWyjslyEElpa6SgKlDn
+         W5batGJgY5IHKqtQErn3yOlPfGVaCTeMoXZUEduo=
+Date:   Thu, 25 Feb 2021 17:20:23 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,8 +37,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
         torvalds@linux-foundation.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [patch 075/118] kasan: rework krealloc tests
-Message-ID: <20210226012015.yFntF2iFm%akpm@linux-foundation.org>
+Subject:  [patch 077/118] kasan, mm: optimize krealloc poisoning
+Message-ID: <20210226012023.nlDQicTs8%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,15 +47,21 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: rework krealloc tests
+Subject: kasan, mm: optimize krealloc poisoning
 
-This patch reworks KASAN-KUnit tests for krealloc() to:
+Currently, krealloc() always calls ksize(), which unpoisons the whole
+object including the redzone.  This is inefficient, as kasan_krealloc()
+repoisons the redzone for objects that fit into the same buffer.
 
-1. Check both slab and page_alloc based krealloc() implementations.
-2. Allow at least one full granule to fit between old and new sizes for
-   each KASAN mode, and check accesses to that granule accordingly.
+This patch changes krealloc() instrumentation to use uninstrumented
+__ksize() that doesn't unpoison the memory.  Instead, kasan_kreallos() is
+changed to unpoison the memory excluding the redzone.
 
-Link: https://lkml.kernel.org/r/c707f128a2bb9f2f05185d1eb52192cf179cf4fa.1612546384.git.andreyknvl@google.com
+For objects that don't fit into the old allocation, this patch disables
+KASAN accessibility checks when copying memory into a new object instead
+of unpoisoning it.
+
+Link: https://lkml.kernel.org/r/9bef90327c9cb109d736c40115684fd32f49e6b0.1612546384.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -71,138 +77,81 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   91 ++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 81 insertions(+), 10 deletions(-)
+ mm/kasan/common.c |   12 ++++++++++--
+ mm/slab_common.c  |   20 ++++++++++++++------
+ 2 files changed, 24 insertions(+), 8 deletions(-)
 
---- a/lib/test_kasan.c~kasan-rework-krealloc-tests
-+++ a/lib/test_kasan.c
-@@ -252,11 +252,14 @@ static void kmalloc_large_oob_right(stru
- 	kfree(ptr);
- }
+--- a/mm/kasan/common.c~kasan-mm-optimize-krealloc-poisoning
++++ a/mm/kasan/common.c
+@@ -476,7 +476,7 @@ static void *____kasan_kmalloc(struct km
  
--static void kmalloc_oob_krealloc_more(struct kunit *test)
-+static void krealloc_more_oob_helper(struct kunit *test,
-+					size_t size1, size_t size2)
- {
- 	char *ptr1, *ptr2;
--	size_t size1 = 17;
--	size_t size2 = 19;
-+	size_t middle;
-+
-+	KUNIT_ASSERT_LT(test, size1, size2);
-+	middle = size1 + (size2 - size1) / 2;
+ 	/*
+ 	 * The object has already been unpoisoned by kasan_slab_alloc() for
+-	 * kmalloc() or by ksize() for krealloc().
++	 * kmalloc() or by kasan_krealloc() for krealloc().
+ 	 */
  
- 	ptr1 = kmalloc(size1, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
-@@ -264,15 +267,31 @@ static void kmalloc_oob_krealloc_more(st
- 	ptr2 = krealloc(ptr1, size2, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
+ 	/*
+@@ -526,7 +526,7 @@ void * __must_check __kasan_kmalloc_larg
  
--	KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size2 + OOB_TAG_OFF] = 'x');
-+	/* All offsets up to size2 must be accessible. */
-+	ptr2[size1 - 1] = 'x';
-+	ptr2[size1] = 'x';
-+	ptr2[middle] = 'x';
-+	ptr2[size2 - 1] = 'x';
-+
-+	/* Generic mode is precise, so unaligned size2 must be inaccessible. */
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
-+		KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size2] = 'x');
-+
-+	/* For all modes first aligned offset after size2 must be inaccessible. */
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		ptr2[round_up(size2, KASAN_GRANULE_SIZE)] = 'x');
-+
- 	kfree(ptr2);
- }
+ 	/*
+ 	 * The object has already been unpoisoned by kasan_alloc_pages() for
+-	 * alloc_pages() or by ksize() for krealloc().
++	 * alloc_pages() or by kasan_krealloc() for krealloc().
+ 	 */
  
--static void kmalloc_oob_krealloc_less(struct kunit *test)
-+static void krealloc_less_oob_helper(struct kunit *test,
-+					size_t size1, size_t size2)
- {
- 	char *ptr1, *ptr2;
--	size_t size1 = 17;
--	size_t size2 = 15;
-+	size_t middle;
-+
-+	KUNIT_ASSERT_LT(test, size2, size1);
-+	middle = size2 + (size1 - size2) / 2;
+ 	/*
+@@ -554,8 +554,16 @@ void * __must_check __kasan_krealloc(con
+ 	if (unlikely(object == ZERO_SIZE_PTR))
+ 		return (void *)object;
  
- 	ptr1 = kmalloc(size1, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
-@@ -280,10 +299,60 @@ static void kmalloc_oob_krealloc_less(st
- 	ptr2 = krealloc(ptr1, size2, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
- 
--	KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size2 + OOB_TAG_OFF] = 'x');
-+	/* Must be accessible for all modes. */
-+	ptr2[size2 - 1] = 'x';
-+
-+	/* Generic mode is precise, so unaligned size2 must be inaccessible. */
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
-+		KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size2] = 'x');
-+
-+	/* For all modes first aligned offset after size2 must be inaccessible. */
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		ptr2[round_up(size2, KASAN_GRANULE_SIZE)] = 'x');
-+
 +	/*
-+	 * For all modes all size2, middle, and size1 should land in separate
-+	 * granules and thus the latter two offsets should be inaccessible.
++	 * Unpoison the object's data.
++	 * Part of it might already have been unpoisoned, but it's unknown
++	 * how big that part is.
 +	 */
-+	KUNIT_EXPECT_LE(test, round_up(size2, KASAN_GRANULE_SIZE),
-+				round_down(middle, KASAN_GRANULE_SIZE));
-+	KUNIT_EXPECT_LE(test, round_up(middle, KASAN_GRANULE_SIZE),
-+				round_down(size1, KASAN_GRANULE_SIZE));
-+	KUNIT_EXPECT_KASAN_FAIL(test, ptr2[middle] = 'x');
-+	KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size1 - 1] = 'x');
-+	KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size1] = 'x');
++	kasan_unpoison(object, size);
 +
- 	kfree(ptr2);
- }
+ 	page = virt_to_head_page(object);
  
-+static void krealloc_more_oob(struct kunit *test)
-+{
-+	krealloc_more_oob_helper(test, 201, 235);
-+}
-+
-+static void krealloc_less_oob(struct kunit *test)
-+{
-+	krealloc_less_oob_helper(test, 235, 201);
-+}
-+
-+static void krealloc_pagealloc_more_oob(struct kunit *test)
-+{
-+	/* page_alloc fallback in only implemented for SLUB. */
-+	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
-+
-+	krealloc_more_oob_helper(test, KMALLOC_MAX_CACHE_SIZE + 201,
-+					KMALLOC_MAX_CACHE_SIZE + 235);
-+}
-+
-+static void krealloc_pagealloc_less_oob(struct kunit *test)
-+{
-+	/* page_alloc fallback in only implemented for SLUB. */
-+	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
-+
-+	krealloc_less_oob_helper(test, KMALLOC_MAX_CACHE_SIZE + 235,
-+					KMALLOC_MAX_CACHE_SIZE + 201);
-+}
-+
- static void kmalloc_oob_16(struct kunit *test)
- {
- 	struct {
-@@ -977,8 +1046,10 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(pagealloc_oob_right),
- 	KUNIT_CASE(pagealloc_uaf),
- 	KUNIT_CASE(kmalloc_large_oob_right),
--	KUNIT_CASE(kmalloc_oob_krealloc_more),
--	KUNIT_CASE(kmalloc_oob_krealloc_less),
-+	KUNIT_CASE(krealloc_more_oob),
-+	KUNIT_CASE(krealloc_less_oob),
-+	KUNIT_CASE(krealloc_pagealloc_more_oob),
-+	KUNIT_CASE(krealloc_pagealloc_less_oob),
- 	KUNIT_CASE(kmalloc_oob_16),
- 	KUNIT_CASE(kmalloc_uaf_16),
- 	KUNIT_CASE(kmalloc_oob_in_memset),
++	/* Piggy-back on kmalloc() instrumentation to poison the redzone. */
+ 	if (unlikely(!PageSlab(page)))
+ 		return __kasan_kmalloc_large(object, size, flags);
+ 	else
+--- a/mm/slab_common.c~kasan-mm-optimize-krealloc-poisoning
++++ a/mm/slab_common.c
+@@ -1136,19 +1136,27 @@ static __always_inline void *__do_kreall
+ 	void *ret;
+ 	size_t ks;
+ 
+-	if (likely(!ZERO_OR_NULL_PTR(p)) && !kasan_check_byte(p))
+-		return NULL;
+-
+-	ks = ksize(p);
++	/* Don't use instrumented ksize to allow precise KASAN poisoning. */
++	if (likely(!ZERO_OR_NULL_PTR(p))) {
++		if (!kasan_check_byte(p))
++			return NULL;
++		ks = kfence_ksize(p) ?: __ksize(p);
++	} else
++		ks = 0;
+ 
++	/* If the object still fits, repoison it precisely. */
+ 	if (ks >= new_size) {
+ 		p = kasan_krealloc((void *)p, new_size, flags);
+ 		return (void *)p;
+ 	}
+ 
+ 	ret = kmalloc_track_caller(new_size, flags);
+-	if (ret && p)
+-		memcpy(ret, p, ks);
++	if (ret && p) {
++		/* Disable KASAN checks as the object's redzone is accessed. */
++		kasan_disable_current();
++		memcpy(ret, kasan_reset_tag(p), ks);
++		kasan_enable_current();
++	}
+ 
+ 	return ret;
+ }
 _
