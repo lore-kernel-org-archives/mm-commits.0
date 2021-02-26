@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE8C9C433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:51:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6323AC433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:51:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 87905601FD
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:51:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 259F364F21
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:51:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231326AbhBZAvR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 19:51:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35758 "EHLO mail.kernel.org"
+        id S230100AbhBZAvy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 19:51:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231270AbhBZAvQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 19:51:16 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E16E4601FD;
-        Fri, 26 Feb 2021 00:50:35 +0000 (UTC)
+        id S230010AbhBZAvw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 19:51:52 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4DCB664F21;
+        Fri, 26 Feb 2021 00:51:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614300636;
-        bh=3b0ZbxSncW+QDoUnkGWvkqIwXpkGEsroz3unkjaDml4=;
+        s=korg; t=1614300672;
+        bh=de47eTfYXQonWzF4f9krsfs/1D3Z1th6H7aO7HWZrjI=;
         h=Date:From:To:Subject:From;
-        b=L3rduFu51xobpDBGTkwsLiqQk8DGzr4yDbId033/hNKQXoKqDiM64HphI/z0zAT/j
-         gGLqK4zztHOqld+ucQ7dLn+0Spv7ZH+1JmIPC+DndbT/Cp8oRebgnMCbcvivheqMlh
-         gyIoY2PkNDMKaOMBRTKT0S4pFX37015LDvGgO6jU=
-Date:   Thu, 25 Feb 2021 16:50:35 -0800
+        b=fji3t+olj5+PhH6S7Yts71ERLSx5tRE1H2WQpu5hTQ3eOJY1/+BildN1CH1mkTIjQ
+         shnzxrSjbGXXSmh4Oxtf2aVGyFo0IzCr3DhGyVXuMmt0H7zy7wXn6xShTD/zfLv9hD
+         CY5SdUzg1785LZ5XyElHWUlsef0jQqnw6PM+T+pc=
+Date:   Thu, 25 Feb 2021 16:51:11 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, glider@google.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, vinmenon@codeaurora.org,
-        vjitta@codeaurora.org, ylal@codeaurora.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        neilb@suse.de, willy@infradead.org
 Subject:  [folded-merged]
- lib-stackdepot-add-support-to-disable-stack-depot-fix.patch removed from
- -mm tree
-Message-ID: <20210226005035.wMolcHgNk%akpm@linux-foundation.org>
+ seq_file-document-how-per-entry-resources-are-managed-fix.patch removed
+ from -mm tree
+Message-ID: <20210226005111.jxmBJNpth%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,53 +44,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-stackdepot-add-support-to-disable-stack-depot-fix
+     Subject: seq_file-document-how-per-entry-resources-are-managed-fix
 has been removed from the -mm tree.  Its filename was
-     lib-stackdepot-add-support-to-disable-stack-depot-fix.patch
+     seq_file-document-how-per-entry-resources-are-managed-fix.patch
 
-This patch was dropped because it was folded into lib-stackdepot-add-support-to-disable-stack-depot.patch
+This patch was dropped because it was folded into seq_file-document-how-per-entry-resources-are-managed.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-stackdepot-add-support-to-disable-stack-depot-fix
+Subject: seq_file-document-how-per-entry-resources-are-managed-fix
 
-fix CONFIG_STACKDEPOT=n build
+fix typo, per Willy
 
-main.c:(.init.text+0x4c1): undefined reference to `stack_depot_init'
-
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Vijayanand Jitta <vjitta@codeaurora.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: Yogesh Lal <ylal@codeaurora.org>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stackdepot.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ Documentation/filesystems/seq_file.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/stackdepot.h~lib-stackdepot-add-support-to-disable-stack-depot-fix
-+++ a/include/linux/stackdepot.h
-@@ -21,5 +21,13 @@ unsigned int stack_depot_fetch(depot_sta
+--- a/Documentation/filesystems/seq_file.rst~seq_file-document-how-per-entry-resources-are-managed-fix
++++ a/Documentation/filesystems/seq_file.rst
+@@ -218,7 +218,7 @@ is a reasonable thing to do. The seq_fil
+ other locks while the iterator is active.
  
- unsigned int filter_irq_stacks(unsigned long *entries, unsigned int nr_entries);
- 
-+#ifdef CONFIG_STACKDEPOT
- int stack_depot_init(void);
-+#else
-+static inline int stack_depot_init(void)
-+{
-+	return 0;
-+}
-+#endif	/* CONFIG_STACKDEPOT */
-+
- #endif
+ The iterater value returned by start() or next() is guaranteed to be
+-passed to a subsequenct next() or stop() call.  This allows resources
++passed to a subsequent next() or stop() call.  This allows resources
+ such as locks that were taken to be reliably released.  There is *no*
+ guarantee that the iterator will be passed to show(), though in practice
+ it often will be.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-stackdepot-add-support-to-disable-stack-depot.patch
-seq_file-document-how-per-entry-resources-are-managed-fix.patch
+seq_file-document-how-per-entry-resources-are-managed.patch
 initramfs-panic-with-memory-information-fix.patch
 mm-page_allocc-refactor-initialization-of-struct-page-for-holes-in-memory-layout-fix.patch
 mm.patch
