@@ -7,40 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AD7DC433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10C79C43381
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E551664EE4
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C382864EE1
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229934AbhBZBXk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:23:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53010 "EHLO mail.kernel.org"
+        id S230095AbhBZBXn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:23:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53214 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230095AbhBZBWz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:22:55 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6E5D864EE4;
-        Fri, 26 Feb 2021 01:22:26 +0000 (UTC)
+        id S230087AbhBZBX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:23:28 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 40F4864F31;
+        Fri, 26 Feb 2021 01:22:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302547;
-        bh=jKB901BQIYoU4zp3CyOHUYXxA7nUUV5QF+6E8s0LEXI=;
+        s=korg; t=1614302555;
+        bh=xz9opxgThwFT45Sk7LQLdNJWyrpuVqtOy/u3NZiOnhQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=CVW8kwEXCaX/Te74zcCKz52B9zSiXKwxrkrf2jb4462CsYracict7PBK4jy+mp+47
-         aQYEePpiJmP0CUunumddXqQRrGE6aMOw3NhcFFaM5+Zk8if1EdkVW+WWN1ZQZta455
-         Uf399bRYY2VuQxEVj4717sDMg+xtbxMdVj91/iZ4=
-Date:   Thu, 25 Feb 2021 17:22:25 -0800
+        b=kjgOkjhMJcKenyPdnRaWGIZKN75a57+6AcAche4rH98rE0bbDCfN90IiXPGn2aUAz
+         UnJFxnd5CA4gIj0QYdZajyO7T0AhVu7GLbr+caLTT4Bd4lg22zqm0BLdyMRQgPdZo9
+         uE5paqwa2jy1miqy9iCIsyZwvgaYJszjcuT5DFB4=
+Date:   Thu, 25 Feb 2021 17:22:34 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, corbet@lwn.net,
-        dave.hansen@linux.intel.com, davem@davemloft.net,
-        linux-mm@kvack.org, lucien.xin@gmail.com, luto@kernel.org,
-        marcelo.leitner@gmail.com, mingo@redhat.com,
-        mm-commits@vger.kernel.org, neilb@suse.de, nhorman@tuxdriver.com,
-        peterz@infradead.org, stable@vger.kernel.org,
-        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk,
-        vyasevich@gmail.com
-Subject:  [patch 112/118] seq_file: document how per-entry
- resources are managed.
-Message-ID: <20210226012225.-bfePYsH9%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, jan.kiszka@siemens.com,
+        kbingham@kernel.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, prekageo@amazon.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 114/118] scripts/gdb: fix list_for_each
+Message-ID: <20210226012234.Xo_rgwHyK%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,80 +43,34 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: NeilBrown <neilb@suse.de>
-Subject: seq_file: document how per-entry resources are managed.
+From: George Prekas <prekageo@amazon.com>
+Subject: scripts/gdb: fix list_for_each
 
-Patch series "Fix some seq_file users that were recently broken".
+If the list is uninitialized (next pointer is NULL), list_for_each gets
+stuck in an infinite loop. Print a message and treat list as empty.
 
-A recent change to seq_file broke some users which were using seq_file
-in a non-"standard" way ...  though the "standard" isn't documented, so
-they can be excused.  The result is a possible leak - of memory in one
-case, of references to a 'transport' in the other.
-
-These three patches:
- 1/ document and explain the problem
- 2/ fix the problem user in x86
- 3/ fix the problem user in net/sctp
-
-
-This patch (of 3):
-
-Users of seq_file will sometimes find it convenient to take a resource,
-such as a lock or memory allocation, in the ->start or ->next operations. 
-These are per-entry resources, distinct from per-session resources which
-are taken in ->start and released in ->stop.
-
-The preferred management of these is release the resource on the
-subsequent call to ->next or ->stop.
-
-However prior to Commit 1f4aace60b0e ("fs/seq_file.c: simplify seq_file
-iteration code and interface") it happened that ->show would always be
-called after ->start or ->next, and a few users chose to release the
-resource in ->show.
-
-This is no longer reliable.  Since the mentioned commit, ->next will
-always come after a successful ->show (to ensure m->index is updated
-correctly), so the original ordering cannot be maintained.
-
-This patch updates the documentation to clearly state the required
-behaviour.  Other patches will fix the few problematic users.
-
-[akpm@linux-foundation.org: fix typo, per Willy]
-Link: https://lkml.kernel.org/r/161248518659.21478.2484341937387294998.stgit@noble1
-Link: https://lkml.kernel.org/r/161248539020.21478.3147971477400875336.stgit@noble1
-Fixes: 1f4aace60b0e ("fs/seq_file.c: simplify seq_file iteration code and interface")
-Signed-off-by: NeilBrown <neilb@suse.de>
-Cc: Xin Long <lucien.xin@gmail.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vlad Yasevich <vyasevich@gmail.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/4ae23bb1-c333-f669-da2d-fa35c4f49018@amazon.com
+Signed-off-by: George Prekas <prekageo@amazon.com>
+Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/seq_file.rst |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/gdb/linux/lists.py |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/Documentation/filesystems/seq_file.rst~seq_file-document-how-per-entry-resources-are-managed
-+++ a/Documentation/filesystems/seq_file.rst
-@@ -217,6 +217,12 @@ between the calls to start() and stop(),
- is a reasonable thing to do. The seq_file code will also avoid taking any
- other locks while the iterator is active.
+--- a/scripts/gdb/linux/lists.py~scripts-gdb-fix-list_for_each
++++ a/scripts/gdb/linux/lists.py
+@@ -27,6 +27,11 @@ def list_for_each(head):
+         raise TypeError("Must be struct list_head not {}"
+                            .format(head.type))
  
-+The iterater value returned by start() or next() is guaranteed to be
-+passed to a subsequent next() or stop() call.  This allows resources
-+such as locks that were taken to be reliably released.  There is *no*
-+guarantee that the iterator will be passed to show(), though in practice
-+it often will be.
++    if head['next'] == 0:
++        gdb.write("list_for_each: Uninitialized list '{}' treated as empty\n"
++                     .format(head.address))
++        return
 +
- 
- Formatted output
- ================
+     node = head['next'].dereference()
+     while node.address != head.address:
+         yield node.address
 _
