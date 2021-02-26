@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10530C433DB
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B7A1C433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9AE564F17
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E857964EE2
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230040AbhBZBXS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229999AbhBZBXS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 25 Feb 2021 20:23:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53634 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52296 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230081AbhBZBWi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S230083AbhBZBWi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 20:22:38 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6971464F41;
-        Fri, 26 Feb 2021 01:21:51 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E5FC464F42;
+        Fri, 26 Feb 2021 01:21:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302511;
-        bh=FfuTJGlO127o8DalZNUFdfrDB3uGY44TJCV+vmc/VNM=;
+        s=korg; t=1614302515;
+        bh=NNg7VSGccGaPEWu+1xW048UQ643iDq2tfK23+P9ikVA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=plkV+/LrTNQf4zy5NPxay8oX6WLuq1XRq/DiOMIGHnwXTR5KUONeOTcSK3IrR4DE1
-         tVYfeMPbTnzoj7DpArD16jNMUVCbuPBoyartrZp0YH0t5jbQMm613ledRlBUUhfHUN
-         KbbLooxZt1HitYD1Ip/Ynq2nONZBslUoXHWXAN/U=
-Date:   Thu, 25 Feb 2021 17:21:50 -0800
+        b=WZsF8wuU5HY93Pplc3Y+IBotV8WCyRYz0+Cfsv3rNzHG3goda4BVe9sGRYHIoW5Jh
+         B8OqplA8SEuoSDKqY1l9EF+6FVtw+AgDY8/2G/D/ySSeg9dUTS/GLZElk4G+1Y5o6j
+         SvEu16zFW2JwFEyRq2dRunf3bI26fMP34/Eyg2ak=
+Date:   Thu, 25 Feb 2021 17:21:54 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dan.carpenter@oracle.com,
-        gregkh@linuxfoundation.org, joe@perches.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 102/118] checkpatch: prefer ftrace over function
- entry/exit printks
-Message-ID: <20210226012150.BM2udiq4_%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dgilbert@interlog.com, joe@perches.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 103/118] checkpatch: improve TYPECAST_INT_CONSTANT
+ test message
+Message-ID: <20210226012154.kJ5ZmuRtE%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,72 +44,49 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: prefer ftrace over function entry/exit printks
+Subject: checkpatch: improve TYPECAST_INT_CONSTANT test message
 
-Prefer using ftrace over function entry/exit logging messages.
+Improve the TYPECAST_INT_CONSTANT test by showing the suggested conversion
+for various type of uses like (unsigned int)1 to 1U.
 
-Warn with various function entry/exit only logging that only
-use __func__ with or without descriptive decoration.
-
-Link: https://lkml.kernel.org/r/47c01081533a417c99c9a80a4cd537f8c308503f.camel@perches.com
+Link: https://lkml.kernel.org/r/ecefe8dcb93fe7028311b69dd297ba52224233d4.camel@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Douglas Gilbert <dgilbert@interlog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ scripts/checkpatch.pl |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-prefer-ftrace-over-function-entry-exit-printks
+--- a/scripts/checkpatch.pl~checkpatch-improve-typecast_int_constant-test-message
 +++ a/scripts/checkpatch.pl
-@@ -507,6 +507,30 @@ our $signature_tags = qr{(?xi:
- 	Cc:
- )};
- 
-+our $tracing_logging_tags = qr{(?xi:
-+	[=-]*> |
-+	<[=-]* |
-+	\[ |
-+	\] |
-+	start |
-+	called |
-+	entered |
-+	entry |
-+	enter |
-+	in |
-+	inside |
-+	here |
-+	begin |
-+	exit |
-+	end |
-+	done |
-+	leave |
-+	completed |
-+	out |
-+	return |
-+	[\.\!:\s]*
-+)};
-+
- sub edit_distance_min {
- 	my (@arr) = @_;
- 	my $len = scalar @arr;
-@@ -5972,6 +5996,17 @@ sub process {
- 			     "Prefer using '\"%s...\", __func__' to using '$context_function', this function's name, in a string\n" . $herecurr);
- 		}
- 
-+# check for unnecessary function tracing like uses
-+# This does not use $logFunctions because there are many instances like
-+# 'dprintk(FOO, "%s()\n", __func__);' which do not match $logFunctions
-+		if ($rawline =~ /^\+.*\([^"]*"$tracing_logging_tags{0,3}%s(?:\s*\(\s*\)\s*)?$tracing_logging_tags{0,3}(?:\\n)?"\s*,\s*__func__\s*\)\s*;/) {
-+			if (WARN("TRACING_LOGGING",
-+				 "Unnecessary ftrace-like logging - prefer using ftrace\n" . $herecurr) &&
-+			    $fix) {
-+                                fix_delete_line($fixlinenr, $rawline);
+@@ -6518,18 +6518,18 @@ sub process {
+ 		if ($line =~ /(\(\s*$C90_int_types\s*\)\s*)($Constant)\b/) {
+ 			my $cast = $1;
+ 			my $const = $2;
++			my $suffix = "";
++			my $newconst = $const;
++			$newconst =~ s/${Int_type}$//;
++			$suffix .= 'U' if ($cast =~ /\bunsigned\b/);
++			if ($cast =~ /\blong\s+long\b/) {
++			    $suffix .= 'LL';
++			} elsif ($cast =~ /\blong\b/) {
++			    $suffix .= 'L';
 +			}
-+		}
-+
- # check for spaces before a quoted newline
- 		if ($rawline =~ /^.*\".*\s\\n/) {
- 			if (WARN("QUOTED_WHITESPACE_BEFORE_NEWLINE",
+ 			if (WARN("TYPECAST_INT_CONSTANT",
+-				 "Unnecessary typecast of c90 int constant\n" . $herecurr) &&
++				 "Unnecessary typecast of c90 int constant - '$cast$const' could be '$const$suffix'\n" . $herecurr) &&
+ 			    $fix) {
+-				my $suffix = "";
+-				my $newconst = $const;
+-				$newconst =~ s/${Int_type}$//;
+-				$suffix .= 'U' if ($cast =~ /\bunsigned\b/);
+-				if ($cast =~ /\blong\s+long\b/) {
+-					$suffix .= 'LL';
+-				} elsif ($cast =~ /\blong\b/) {
+-					$suffix .= 'L';
+-				}
+ 				$fixed[$fixlinenr] =~ s/\Q$cast\E$const\b/$newconst$suffix/;
+ 			}
+ 		}
 _
