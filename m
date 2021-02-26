@@ -7,41 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 990D3C433E6
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:18:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26082C4332B
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:18:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 55CBC64F32
+	by mail.kernel.org (Postfix) with ESMTP id D285B64F34
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:18:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229534AbhBZBSb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:18:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49294 "EHLO mail.kernel.org"
+        id S229885AbhBZBSq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:18:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50504 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229915AbhBZBS0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:18:26 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 64F1A64F13;
-        Fri, 26 Feb 2021 01:18:10 +0000 (UTC)
+        id S230029AbhBZBSe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:18:34 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D82BA64F1A;
+        Fri, 26 Feb 2021 01:17:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302291;
-        bh=GRz/YDUGpemyDjkFpfiVFZidIphaGUxJBjg6+Wjonhw=;
+        s=korg; t=1614302274;
+        bh=uWjzaaz86y/VYYq7deNhMjooxJDEvDlRP0I7FFSiYgo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=LgsI/MbdEYVnoVaWCWPOLAzYhklnRYMywZojkF7CfaK1ruR7gths5pxrdmN89pR4x
-         hH9qpjjT61UfIwlX80Zm8klVZ/kwTEGrmKhl3X9aS7HykBr7aehxxq+spcqTXrwLE8
-         Llt1zAPagqGc1hIjZnOHylrI7Vo63HK+MhqWZ2es=
-Date:   Thu, 25 Feb 2021 17:18:09 -0800
+        b=l/wCIN/YUpCnwpn6Am2B/rkUaW8otlx+VjvsPYCyu5Z2Nv+d7m+x+AoBpC/hEV9mx
+         JCVQQzHR0xbMi821/RqLLyXn5DT7mUZ73fG3hbDKHVpM4oxdsJ4VYAtY5j9ktRLs4l
+         d6Wlkd15E3RwfJ1/zVwt3D6pbhWqmsTjtAFLhQsI=
+Date:   Thu, 25 Feb 2021 17:17:53 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     0x7f454c46@gmail.com, akpm@linux-foundation.org,
-        bgeffon@google.com, hannes@cmpxchg.org, keescook@chromium.org,
-        kirill.shutemov@linux.intel.com, linmiaohe@huawei.com,
-        linux-mm@kvack.org, louhongxiang@huawei.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        natechancellor@gmail.com, ndesaulniers@google.com,
-        richard.weiyang@linux.alibaba.com, sedat.dilek@gmail.com,
-        shakeelb@google.com, torvalds@linux-foundation.org, vbabka@suse.cz,
-        walken@google.com
-Subject:  [patch 045/118] mm/rmap: fix potential pte_unmap on an
- not mapped pte
-Message-ID: <20210226011809.ybM2-WPA7%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, riel@surriel.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 040/118] mm/rmap: correct some obsolete comments
+ of anon_vma
+Message-ID: <20210226011753.Q5VHvNWMS%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -50,47 +44,41 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/rmap: fix potential pte_unmap on an not mapped pte
+Subject: mm/rmap: correct some obsolete comments of anon_vma
 
-For PMD-mapped page (usually THP), pvmw->pte is NULL.  For PTE-mapped THP,
-pvmw->pte is mapped.  But for HugeTLB pages, pvmw->pte is not mapped and
-set to the relevant page table entry.  So in page_vma_mapped_walk_done(),
-we may do pte_unmap() for HugeTLB pte which is not mapped.  Fix this by
-checking pvmw->page against PageHuge before trying to do pte_unmap().
+commit 2b575eb64f7a ("mm: convert anon_vma->lock to a mutex") changed
+spinlock used to serialize access to vma list to mutex.  And further, the
+commit 5a505085f043 ("mm/rmap: Convert the struct anon_vma::mutex to an
+rwsem") converted the mutex to an rwsem for solving scalability problem. 
+So replace spinlock with rwsem to make comment uptodate.
 
-Link: https://lkml.kernel.org/r/20210127093349.39081-1-linmiaohe@huawei.com
-Fixes: ace71a19cec5 ("mm: introduce page_vma_mapped_walk()")
-Signed-off-by: Hongxiang Lou <louhongxiang@huawei.com>
+Link: https://lkml.kernel.org/r/20210123072459.25903-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: Brian Geffon <bgeffon@google.com>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/rmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte
-+++ a/include/linux/rmap.h
-@@ -213,7 +213,8 @@ struct page_vma_mapped_walk {
+--- a/mm/rmap.c~mm-rmap-correct-some-obsolete-comments-of-anon_vma
++++ a/mm/rmap.c
+@@ -168,7 +168,7 @@ static void anon_vma_chain_link(struct v
+  *
+  * Anon-vma allocations are very subtle, because we may have
+  * optimistically looked up an anon_vma in page_lock_anon_vma_read()
+- * and that may actually touch the spinlock even in the newly
++ * and that may actually touch the rwsem even in the newly
+  * allocated vma (it depends on RCU to make sure that the
+  * anon_vma isn't actually destroyed).
+  *
+@@ -359,7 +359,7 @@ int anon_vma_fork(struct vm_area_struct
+ 		goto out_error_free_anon_vma;
  
- static inline void page_vma_mapped_walk_done(struct page_vma_mapped_walk *pvmw)
- {
--	if (pvmw->pte)
-+	/* HugeTLB pte is set to the relevant page table entry without pte_mapped. */
-+	if (pvmw->pte && !PageHuge(pvmw->page))
- 		pte_unmap(pvmw->pte);
- 	if (pvmw->ptl)
- 		spin_unlock(pvmw->ptl);
+ 	/*
+-	 * The root anon_vma's spinlock is the lock actually used when we
++	 * The root anon_vma's rwsem is the lock actually used when we
+ 	 * lock any of the anon_vmas in this anon_vma tree.
+ 	 */
+ 	anon_vma->root = pvma->anon_vma->root;
 _
