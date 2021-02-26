@@ -7,38 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3BB0C433DB
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F4A0C433DB
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9BF8C64F0D
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61C7264EE4
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229823AbhBZBRG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:17:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48714 "EHLO mail.kernel.org"
+        id S229849AbhBZBRL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:17:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48452 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229791AbhBZBRA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:17:00 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B06A64EE1;
-        Fri, 26 Feb 2021 01:16:11 +0000 (UTC)
+        id S229622AbhBZBRF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:17:05 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 79AB664EE3;
+        Fri, 26 Feb 2021 01:16:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302172;
-        bh=98kjZfB3cpKDQlBRCErfj55DCMG1L6dOyRH/cSVMDJw=;
+        s=korg; t=1614302202;
+        bh=o2VEk35S0PpUb+Gp0rG9X1F2cppdrDYZpydmaIo3AtM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=jpbe16m8LjIU4HmTcrC9EOgwzpbL/9TeyH+PTVL2DsnDPRhLmV0jbDIeA7V4TrMei
-         Hwft+qgKFP3K/uoDLScSv44FTy/XdtskIc2S5HxPqo/OPHJWyePCImyBRU83wkp9Uw
-         Zyq+AhK6y51h53TaxicppL/lhSJus4dx0q15wl3M=
-Date:   Thu, 25 Feb 2021 17:16:11 -0800
+        b=QgPTgFiJENPF9ExQPLHD9sFmzo7obYSBpBcVDa0RoQ3wi1hYLrmedi0BSPPg94+/+
+         BQ2T5RZLrCxor8qGborOXUbBE3GiW2YuIZZvt895ZizSjfuZXGUuKOP0cWMT1c4vNH
+         r8GC/JUg8tnPyeH6hSpNkzGGVeDMfMg+yJl32Yqs=
+Date:   Thu, 25 Feb 2021 17:16:40 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dchinner@redhat.com, hannes@cmpxchg.org,
-        hch@lst.de, hughd@google.com, jack@suse.cz,
-        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        william.kucharski@oracle.com, willy@infradead.org,
-        yang.shi@linux.alibaba.com
-Subject:  [patch 013/118] mm: pass pvec directly to
- find_get_entries
-Message-ID: <20210226011611.EvqKH32-M%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
+        mhocko@kernel.org, mm-commits@vger.kernel.org, osalvador@suse.de,
+        peterz@infradead.org, richard.weiyang@linux.alibaba.com,
+        rientjes@google.com, rppt@kernel.org, tglx@linutronix.de,
+        torvalds@linux-foundation.org, ziy@nvidia.com
+Subject:  [patch 021/118] mm/page_alloc: count CMA pages per zone
+ and print them in /proc/zoneinfo
+Message-ID: <20210226011640.TAscLZVgD%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,122 +45,131 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: pass pvec directly to find_get_entries
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/page_alloc: count CMA pages per zone and print them in /proc/zoneinfo
 
-All callers of find_get_entries() use a pvec, so pass it directly instead
-of manipulating it in the caller.
+Let's count the number of CMA pages per zone and print them in
+/proc/zoneinfo.
 
-Link: https://lkml.kernel.org/r/20201112212641.27837-14-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Having access to the total number of CMA pages per zone is helpful for
+debugging purposes to know where exactly the CMA pages ended up, and to
+figure out how many pages of a zone might behave differently, even after
+some of these pages might already have been allocated.
+
+As one example, CMA pages part of a kernel zone cannot be used for
+ordinary kernel allocations but instead behave more like ZONE_MOVABLE.
+
+For now, we are only able to get the global nr+free cma pages from
+/proc/meminfo and the free cma pages per zone from /proc/zoneinfo.
+
+Example after this patch when booting a 6 GiB QEMU VM with
+"hugetlb_cma=2G":
+  # cat /proc/zoneinfo | grep cma
+          cma      0
+        nr_free_cma  0
+          cma      0
+        nr_free_cma  0
+          cma      524288
+        nr_free_cma  493016
+          cma      0
+          cma      0
+  # cat /proc/meminfo | grep Cma
+  CmaTotal:        2097152 kB
+  CmaFree:         1972064 kB
+
+Note: We print even without CONFIG_CMA, just like "nr_free_cma"; this way,
+      one can be sure when spotting "cma 0", that there are definetly no
+      CMA pages located in a zone.
+
+[david@redhat.com: v2]
+  Link: https://lkml.kernel.org/r/20210128164533.18566-1-david@redhat.com
+[david@redhat.com: v3]
+  Link: https://lkml.kernel.org/r/20210129113451.22085-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20210127101813.6370-3-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    3 +--
- mm/filemap.c            |   21 +++++++++------------
- mm/shmem.c              |    5 ++---
- mm/swap.c               |    4 +---
- 4 files changed, 13 insertions(+), 20 deletions(-)
+ include/linux/mmzone.h |   15 +++++++++++++++
+ mm/page_alloc.c        |    1 +
+ mm/vmstat.c            |    6 ++++--
+ 3 files changed, 20 insertions(+), 2 deletions(-)
 
---- a/include/linux/pagemap.h~mm-pass-pvec-directly-to-find_get_entries
-+++ a/include/linux/pagemap.h
-@@ -451,8 +451,7 @@ static inline struct page *find_subpage(
+--- a/include/linux/mmzone.h~mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo
++++ a/include/linux/mmzone.h
+@@ -503,6 +503,9 @@ struct zone {
+ 	 * bootmem allocator):
+ 	 *	managed_pages = present_pages - reserved_pages;
+ 	 *
++	 * cma pages is present pages that are assigned for CMA use
++	 * (MIGRATE_CMA).
++	 *
+ 	 * So present_pages may be used by memory hotplug or memory power
+ 	 * management logic to figure out unmanaged pages by checking
+ 	 * (present_pages - managed_pages). And managed_pages should be used
+@@ -527,6 +530,9 @@ struct zone {
+ 	atomic_long_t		managed_pages;
+ 	unsigned long		spanned_pages;
+ 	unsigned long		present_pages;
++#ifdef CONFIG_CMA
++	unsigned long		cma_pages;
++#endif
+ 
+ 	const char		*name;
+ 
+@@ -624,6 +630,15 @@ static inline unsigned long zone_managed
+ 	return (unsigned long)atomic_long_read(&zone->managed_pages);
  }
  
- unsigned find_get_entries(struct address_space *mapping, pgoff_t start,
--		pgoff_t end, unsigned int nr_entries, struct page **entries,
--		pgoff_t *indices);
-+		pgoff_t end, struct pagevec *pvec, pgoff_t *indices);
- unsigned find_get_pages_range(struct address_space *mapping, pgoff_t *start,
- 			pgoff_t end, unsigned int nr_pages,
- 			struct page **pages);
---- a/mm/filemap.c~mm-pass-pvec-directly-to-find_get_entries
-+++ a/mm/filemap.c
-@@ -1866,14 +1866,12 @@ reset:
-  * @mapping:	The address_space to search
-  * @start:	The starting page cache index
-  * @end:	The final page index (inclusive).
-- * @nr_entries:	The maximum number of entries
-- * @entries:	Where the resulting entries are placed
-+ * @pvec:	Where the resulting entries are placed.
-  * @indices:	The cache indices corresponding to the entries in @entries
-  *
-- * find_get_entries() will search for and return a group of up to
-- * @nr_entries entries in the mapping.  The entries are placed at
-- * @entries.  find_get_entries() takes a reference against any actual
-- * pages it returns.
-+ * find_get_entries() will search for and return a batch of entries in
-+ * the mapping.  The entries are placed in @pvec.  find_get_entries()
-+ * takes a reference on any actual pages it returns.
-  *
-  * The search returns a group of mapping-contiguous page cache entries
-  * with ascending indexes.  There may be holes in the indices due to
-@@ -1890,15 +1888,12 @@ reset:
-  * Return: the number of pages and shadow entries which were found.
-  */
- unsigned find_get_entries(struct address_space *mapping, pgoff_t start,
--		pgoff_t end, unsigned int nr_entries, struct page **entries,
--		pgoff_t *indices)
-+		pgoff_t end, struct pagevec *pvec, pgoff_t *indices)
- {
- 	XA_STATE(xas, &mapping->i_pages, start);
- 	struct page *page;
- 	unsigned int ret = 0;
--
--	if (!nr_entries)
--		return 0;
-+	unsigned nr_entries = PAGEVEC_SIZE;
- 
- 	rcu_read_lock();
- 	while ((page = find_get_entry(&xas, end, XA_PRESENT))) {
-@@ -1913,11 +1908,13 @@ unsigned find_get_entries(struct address
- 		}
- 
- 		indices[ret] = xas.xa_index;
--		entries[ret] = page;
-+		pvec->pages[ret] = page;
- 		if (++ret == nr_entries)
- 			break;
- 	}
- 	rcu_read_unlock();
++static inline unsigned long zone_cma_pages(struct zone *zone)
++{
++#ifdef CONFIG_CMA
++	return zone->cma_pages;
++#else
++	return 0;
++#endif
++}
 +
-+	pvec->nr = ret;
- 	return ret;
- }
- 
---- a/mm/shmem.c~mm-pass-pvec-directly-to-find_get_entries
-+++ a/mm/shmem.c
-@@ -965,9 +965,8 @@ static void shmem_undo_range(struct inod
- 	while (index < end) {
- 		cond_resched();
- 
--		pvec.nr = find_get_entries(mapping, index, end - 1,
--				PAGEVEC_SIZE, pvec.pages, indices);
--		if (!pvec.nr) {
-+		if (!find_get_entries(mapping, index, end - 1, &pvec,
-+				indices)) {
- 			/* If all gone or hole-punch or unfalloc, we're done */
- 			if (index == start || end != -1)
- 				break;
---- a/mm/swap.c~mm-pass-pvec-directly-to-find_get_entries
-+++ a/mm/swap.c
-@@ -1046,9 +1046,7 @@ unsigned pagevec_lookup_entries(struct p
- 		struct address_space *mapping, pgoff_t start, pgoff_t end,
- 		pgoff_t *indices)
+ static inline unsigned long zone_end_pfn(const struct zone *zone)
  {
--	pvec->nr = find_get_entries(mapping, start, end, PAGEVEC_SIZE,
--				    pvec->pages, indices);
--	return pagevec_count(pvec);
-+	return find_get_entries(mapping, start, end, pvec, indices);
- }
+ 	return zone->zone_start_pfn + zone->spanned_pages;
+--- a/mm/page_alloc.c~mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo
++++ a/mm/page_alloc.c
+@@ -2168,6 +2168,7 @@ void __init init_cma_reserved_pageblock(
+ 	}
  
- /**
+ 	adjust_managed_page_count(page, pageblock_nr_pages);
++	page_zone(page)->cma_pages += pageblock_nr_pages;
+ }
+ #endif
+ 
+--- a/mm/vmstat.c~mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo
++++ a/mm/vmstat.c
+@@ -1637,14 +1637,16 @@ static void zoneinfo_show_print(struct s
+ 		   "\n        high     %lu"
+ 		   "\n        spanned  %lu"
+ 		   "\n        present  %lu"
+-		   "\n        managed  %lu",
++		   "\n        managed  %lu"
++		   "\n        cma      %lu",
+ 		   zone_page_state(zone, NR_FREE_PAGES),
+ 		   min_wmark_pages(zone),
+ 		   low_wmark_pages(zone),
+ 		   high_wmark_pages(zone),
+ 		   zone->spanned_pages,
+ 		   zone->present_pages,
+-		   zone_managed_pages(zone));
++		   zone_managed_pages(zone),
++		   zone_cma_pages(zone));
+ 
+ 	seq_printf(m,
+ 		   "\n        protection: (%ld",
 _
