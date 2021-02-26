@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86982C433DB
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:22:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B26BAC433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:22:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 444F164EE2
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:22:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F22A64F47
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:22:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229534AbhBZBWF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:22:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53086 "EHLO mail.kernel.org"
+        id S229800AbhBZBWG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:22:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53158 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229845AbhBZBUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:20:49 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0450C64F13;
-        Fri, 26 Feb 2021 01:20:07 +0000 (UTC)
+        id S229915AbhBZBUy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:20:54 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DA83364F26;
+        Fri, 26 Feb 2021 01:20:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302408;
-        bh=vcqUXwYpT4MiCqO2ZpqfLPODZinHn1Ma/oE35HdG9Fk=;
+        s=korg; t=1614302412;
+        bh=wce53Xwwu9lKx3GmC4ec2EKIUUqHbhyBfKHLHqVMRbA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=jDaWpV5fF1r5Ed9XQaeND05lGHe0kzC8+eM3xGtzi3SdW3FQhHEZ5/4PwqyFlSo4S
-         NfTZ0ObvIlinmxL/4aoM6WhRcWxJBGy2dP35ypA9TjEpK51Bm8Tof3Tx5Exqjg4mt/
-         3FONJgOnJr2/5AqMHFOukAZ7DRsa6qAAR6/q14jo=
-Date:   Thu, 25 Feb 2021 17:20:07 -0800
+        b=bWED7WbFR9P83v/ZjKKHDjlFrzaMYti4mj4n+w78IS/6cVme7j+BnTLjUiLzzvKot
+         4PQZDIomXBKBGdiVWLzIygbb9c8ctgXdl/5lNwGSerTKcGY2gE6E94BXdBtcjDcwmO
+         QAFTy2dsGmiHGcFHJRu2WYF1HmV9KcXBSAFBgtzc=
+Date:   Thu, 25 Feb 2021 17:20:11 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,9 +37,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
         torvalds@linux-foundation.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [patch 073/118] kasan: clean up setting free info in
- kasan_slab_free
-Message-ID: <20210226012007.YmTiSS4Uh%akpm@linux-foundation.org>
+Subject:  [patch 074/118] kasan: unify large kfree checks
+Message-ID: <20210226012011.dU6In8D5z%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,17 +47,15 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: clean up setting free info in kasan_slab_free
+Subject: kasan: unify large kfree checks
 
-Put kasan_stack_collection_enabled() check and kasan_set_free_info() calls
-next to each other.
+Unify checks in kasan_kfree_large() and in kasan_slab_free_mempool() for
+large allocations as it's done for small kfree() allocations.
 
-The way this was previously implemented was a minor optimization that
-relied of the the fact that kasan_stack_collection_enabled() is always
-true for generic KASAN.  The confusion that this brings outweights saving
-a few instructions.
+With this change, kasan_slab_free_mempool() starts checking that the first
+byte of the memory that's being freed is accessible.
 
-Link: https://lkml.kernel.org/r/f838e249be5ab5810bf54a36ef5072cfd80e2da7.1612546384.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/14ffc4cd867e0b1ed58f7527e3b748a1b4ad08aa.1612546384.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -74,25 +71,114 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ include/linux/kasan.h |   16 ++++++++--------
+ mm/kasan/common.c     |   36 ++++++++++++++++++++++++++----------
+ 2 files changed, 34 insertions(+), 18 deletions(-)
 
---- a/mm/kasan/common.c~kasan-clean-up-setting-free-info-in-kasan_slab_free
-+++ a/mm/kasan/common.c
-@@ -350,13 +350,11 @@ static bool ____kasan_slab_free(struct k
- 
- 	kasan_poison(object, cache->object_size, KASAN_KMALLOC_FREE);
- 
--	if (!kasan_stack_collection_enabled())
--		return false;
--
- 	if ((IS_ENABLED(CONFIG_KASAN_GENERIC) && !quarantine))
- 		return false;
- 
--	kasan_set_free_info(cache, object, tag);
-+	if (kasan_stack_collection_enabled())
-+		kasan_set_free_info(cache, object, tag);
- 
- 	return kasan_quarantine_put(cache, object);
+--- a/include/linux/kasan.h~kasan-unify-large-kfree-checks
++++ a/include/linux/kasan.h
+@@ -200,6 +200,13 @@ static __always_inline bool kasan_slab_f
+ 	return false;
  }
+ 
++void __kasan_kfree_large(void *ptr, unsigned long ip);
++static __always_inline void kasan_kfree_large(void *ptr)
++{
++	if (kasan_enabled())
++		__kasan_kfree_large(ptr, _RET_IP_);
++}
++
+ void __kasan_slab_free_mempool(void *ptr, unsigned long ip);
+ static __always_inline void kasan_slab_free_mempool(void *ptr)
+ {
+@@ -247,13 +254,6 @@ static __always_inline void * __must_che
+ 	return (void *)object;
+ }
+ 
+-void __kasan_kfree_large(void *ptr, unsigned long ip);
+-static __always_inline void kasan_kfree_large(void *ptr)
+-{
+-	if (kasan_enabled())
+-		__kasan_kfree_large(ptr, _RET_IP_);
+-}
+-
+ /*
+  * Unlike kasan_check_read/write(), kasan_check_byte() is performed even for
+  * the hardware tag-based mode that doesn't rely on compiler instrumentation.
+@@ -302,6 +302,7 @@ static inline bool kasan_slab_free(struc
+ {
+ 	return false;
+ }
++static inline void kasan_kfree_large(void *ptr) {}
+ static inline void kasan_slab_free_mempool(void *ptr) {}
+ static inline void *kasan_slab_alloc(struct kmem_cache *s, void *object,
+ 				   gfp_t flags)
+@@ -322,7 +323,6 @@ static inline void *kasan_krealloc(const
+ {
+ 	return (void *)object;
+ }
+-static inline void kasan_kfree_large(void *ptr) {}
+ static inline bool kasan_check_byte(const void *address)
+ {
+ 	return true;
+--- a/mm/kasan/common.c~kasan-unify-large-kfree-checks
++++ a/mm/kasan/common.c
+@@ -364,6 +364,31 @@ bool __kasan_slab_free(struct kmem_cache
+ 	return ____kasan_slab_free(cache, object, ip, true);
+ }
+ 
++static bool ____kasan_kfree_large(void *ptr, unsigned long ip)
++{
++	if (ptr != page_address(virt_to_head_page(ptr))) {
++		kasan_report_invalid_free(ptr, ip);
++		return true;
++	}
++
++	if (!kasan_byte_accessible(ptr)) {
++		kasan_report_invalid_free(ptr, ip);
++		return true;
++	}
++
++	/*
++	 * The object will be poisoned by kasan_free_pages() or
++	 * kasan_slab_free_mempool().
++	 */
++
++	return false;
++}
++
++void __kasan_kfree_large(void *ptr, unsigned long ip)
++{
++	____kasan_kfree_large(ptr, ip);
++}
++
+ void __kasan_slab_free_mempool(void *ptr, unsigned long ip)
+ {
+ 	struct page *page;
+@@ -377,10 +402,8 @@ void __kasan_slab_free_mempool(void *ptr
+ 	 * KMALLOC_MAX_SIZE, and kmalloc falls back onto page_alloc.
+ 	 */
+ 	if (unlikely(!PageSlab(page))) {
+-		if (ptr != page_address(page)) {
+-			kasan_report_invalid_free(ptr, ip);
++		if (____kasan_kfree_large(ptr, ip))
+ 			return;
+-		}
+ 		kasan_poison(ptr, page_size(page), KASAN_FREE_PAGE);
+ 	} else {
+ 		____kasan_slab_free(page->slab_cache, ptr, ip, false);
+@@ -539,13 +562,6 @@ void * __must_check __kasan_krealloc(con
+ 		return ____kasan_kmalloc(page->slab_cache, object, size, flags);
+ }
+ 
+-void __kasan_kfree_large(void *ptr, unsigned long ip)
+-{
+-	if (ptr != page_address(virt_to_head_page(ptr)))
+-		kasan_report_invalid_free(ptr, ip);
+-	/* The object will be poisoned by kasan_free_pages(). */
+-}
+-
+ bool __kasan_check_byte(const void *address, unsigned long ip)
+ {
+ 	if (!kasan_byte_accessible(address)) {
 _
