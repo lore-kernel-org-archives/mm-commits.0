@@ -7,35 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB869C43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 990D3C433E6
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:18:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA2A464F32
+	by mail.kernel.org (Postfix) with ESMTP id 55CBC64F32
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:18:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229915AbhBZBSc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:18:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50454 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230037AbhBZBSb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S229534AbhBZBSb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 25 Feb 2021 20:18:31 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 86AD564EFA;
-        Fri, 26 Feb 2021 01:17:50 +0000 (UTC)
+Received: from mail.kernel.org ([198.145.29.99]:49294 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229915AbhBZBS0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:18:26 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 64F1A64F13;
+        Fri, 26 Feb 2021 01:18:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302270;
-        bh=v/poSp92orn9KHI9WuRgQy6e4fk6nUHJhVynuIVRwWw=;
+        s=korg; t=1614302291;
+        bh=GRz/YDUGpemyDjkFpfiVFZidIphaGUxJBjg6+Wjonhw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=FrfkHd5rsJjAVHRSc7mnxShsQpUKklSKWlysZ6E9dkYoE9QHTXpB0uo8fSPxMGxpR
-         U4cP/ImhOrlgF7v+t85Zlqqj31jVs2SYqLD2jrsiknK2pvVyJ23ULQAavV1jLQIucr
-         NR2xmGG7Bn/3RvTQGNBTVIxhlPXTcJ0CqlQyW7sA=
-Date:   Thu, 25 Feb 2021 17:17:49 -0800
+        b=LgsI/MbdEYVnoVaWCWPOLAzYhklnRYMywZojkF7CfaK1ruR7gths5pxrdmN89pR4x
+         hH9qpjjT61UfIwlX80Zm8klVZ/kwTEGrmKhl3X9aS7HykBr7aehxxq+spcqTXrwLE8
+         Llt1zAPagqGc1hIjZnOHylrI7Vo63HK+MhqWZ2es=
+Date:   Thu, 25 Feb 2021 17:18:09 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linmiaohe@huawei.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 039/118] mm/mlock: stop counting mlocked pages
- when none vma is found
-Message-ID: <20210226011749.qhl2IJCLc%akpm@linux-foundation.org>
+To:     0x7f454c46@gmail.com, akpm@linux-foundation.org,
+        bgeffon@google.com, hannes@cmpxchg.org, keescook@chromium.org,
+        kirill.shutemov@linux.intel.com, linmiaohe@huawei.com,
+        linux-mm@kvack.org, louhongxiang@huawei.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        natechancellor@gmail.com, ndesaulniers@google.com,
+        richard.weiyang@linux.alibaba.com, sedat.dilek@gmail.com,
+        shakeelb@google.com, torvalds@linux-foundation.org, vbabka@suse.cz,
+        walken@google.com
+Subject:  [patch 045/118] mm/rmap: fix potential pte_unmap on an
+ not mapped pte
+Message-ID: <20210226011809.ybM2-WPA7%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,31 +50,47 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/mlock: stop counting mlocked pages when none vma is found
+Subject: mm/rmap: fix potential pte_unmap on an not mapped pte
 
-There will be no vma satisfies addr < vm_end when find_vma() returns NULL.
-Thus it's meaningless to traverse the vma list below because we can't
-find any vma to count mlocked pages.  Stop counting mlocked pages in this
-case to save some vma list traversal cycles.
+For PMD-mapped page (usually THP), pvmw->pte is NULL.  For PTE-mapped THP,
+pvmw->pte is mapped.  But for HugeTLB pages, pvmw->pte is not mapped and
+set to the relevant page table entry.  So in page_vma_mapped_walk_done(),
+we may do pte_unmap() for HugeTLB pte which is not mapped.  Fix this by
+checking pvmw->page against PageHuge before trying to do pte_unmap().
 
-Link: https://lkml.kernel.org/r/20210204110705.17586-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210127093349.39081-1-linmiaohe@huawei.com
+Fixes: ace71a19cec5 ("mm: introduce page_vma_mapped_walk()")
+Signed-off-by: Hongxiang Lou <louhongxiang@huawei.com>
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Brian Geffon <bgeffon@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/rmap.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/mlock.c~mm-mlock-stop-counting-mlocked-pages-when-none-vma-is-found
-+++ a/mm/mlock.c
-@@ -622,7 +622,7 @@ static unsigned long count_mm_mlocked_pa
+--- a/include/linux/rmap.h~mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte
++++ a/include/linux/rmap.h
+@@ -213,7 +213,8 @@ struct page_vma_mapped_walk {
  
- 	vma = find_vma(mm, start);
- 	if (vma == NULL)
--		vma = mm->mmap;
-+		return 0;
- 
- 	for (; vma ; vma = vma->vm_next) {
- 		if (start >= vma->vm_end)
+ static inline void page_vma_mapped_walk_done(struct page_vma_mapped_walk *pvmw)
+ {
+-	if (pvmw->pte)
++	/* HugeTLB pte is set to the relevant page table entry without pte_mapped. */
++	if (pvmw->pte && !PageHuge(pvmw->page))
+ 		pte_unmap(pvmw->pte);
+ 	if (pvmw->ptl)
+ 		spin_unlock(pvmw->ptl);
 _
