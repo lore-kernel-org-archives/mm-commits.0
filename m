@@ -7,34 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8FC4C433DB
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:24:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17F2BC433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:24:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8908D64EFA
+	by mail.kernel.org (Postfix) with ESMTP id BC0A064F13
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:24:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230100AbhBZBXr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:23:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53344 "EHLO mail.kernel.org"
+        id S230101AbhBZBXs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:23:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230101AbhBZBX3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S230104AbhBZBX3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 20:23:29 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B724D64F21;
-        Fri, 26 Feb 2021 01:22:46 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2B86764F35;
+        Fri, 26 Feb 2021 01:22:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302567;
-        bh=Z4OZFLP4p2Slm9Zm3Lpu1TBStzSfdRWcR5QaR4MZnxs=;
+        s=korg; t=1614302571;
+        bh=37Lt08SL1AOCqMoBpCWDdiIPkYUAoQaOE4qJNAJF5Ug=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=UEOJVATUPCRD62DAUV4W4PahCBgTEc8lB0DxUtnTzIyqYAWXbx4igVX2U+3JUypEa
-         qR0xEjnumczZ9v1jrA0VWn2dd/ch+4WKkquAbeDMT0Wd/nv+4YwHjTOqEHUrtFBqkp
-         VnGZTTjmaLK0K5/Y/z21k+cL6WI2l7FWr0NtlGww=
-Date:   Thu, 25 Feb 2021 17:22:46 -0800
+        b=QeiyweP1BwcbVhpJRrFMdk6LKEfzRCT6nit4T1yGrbjYhFK9F8+l4fLn1RfrMZeSy
+         HmudV6Ga6+izCFC6srANmE9wsIiJJJk+m1m/naAjYyjvJS+CGxRVnSvpR2//x3njpu
+         XPUQBCm5gf0veZpi8EMqEHWmV4/JDhQtRvRmeFwk=
+Date:   Thu, 25 Feb 2021 17:22:49 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, arnd@arndb.de, brho@google.com,
-        f.fainelli@gmail.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 117/118] initramfs: panic with memory information
-Message-ID: <20210226012246.rwUstM4sZ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, ambrosehua@gmail.com, chenhc@lemote.com,
+        christophe.leroy@csgroup.eu, gaojuxin@loongson.cn,
+        huangpei@loongson.cn, jiaxun.yang@flygoat.com, linux-mm@kvack.org,
+        lixuefeng@loongson.cn, maobibo@loongson.cn,
+        mm-commits@vger.kernel.org, npiggin@gmail.com,
+        paulburton@kernel.org, torvalds@linux-foundation.org,
+        tsbogend@alpha.franken.de, yangtiezhu@loongson.cn,
+        zhangfx@lemote.com
+Subject:  [patch 118/118] MIPS: make userspace mapping young by
+ default
+Message-ID: <20210226012249.-qWuoqPYr%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,90 +48,132 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: initramfs: panic with memory information
+From: Huang Pei <huangpei@loongson.cn>
+Subject: MIPS: make userspace mapping young by default
 
-On systems with large amounts of reserved memory we may fail to
-successfully complete unpack_to_rootfs() and be left with:
+MIPS page fault path(except huge page) takes 3 exceptions (1 TLB Miss + 2
+TLB Invalid), butthe second TLB Invalid exception is just triggered by
+__update_tlb from do_page_fault writing tlb without _PAGE_VALID set.  With
+this patch, user space mapping prot is made young by default (with both
+_PAGE_VALID and _PAGE_YOUNG set), and it only take 1 TLB Miss + 1 TLB
+Invalid exception
 
- Kernel panic - not syncing: write error
+Remove pte_sw_mkyoung without polluting MM code and make page fault delay
+of MIPS on par with other architecture
 
-this is not too helpful to understand what happened, so let's wrap the
-panic() calls with a surrounding show_mem() such that we have a chance of
-understanding the memory conditions leading to these allocation failures.
-
-[akpm@linux-foundation.org: replace macro with C function]
-Link: https://lkml.kernel.org/r/20210114231517.1854379-1-f.fainelli@gmail.com
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-Cc: Barret Rhoden <brho@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: https://lkml.kernel.org/r/20210204013942.8398-1-huangpei@loongson.cn
+Signed-off-by: Huang Pei <huangpei@loongson.cn>
+Reviewed-by: Nicholas Piggin <npiggin@gmail.com>
+Acked-by: <huangpei@loongson.cn>
+Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: <ambrosehua@gmail.com>
+Cc: Bibo Mao <maobibo@loongson.cn>
+Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: Li Xuefeng <lixuefeng@loongson.cn>
+Cc: Yang Tiezhu <yangtiezhu@loongson.cn>
+Cc: Gao Juxin <gaojuxin@loongson.cn>
+Cc: Fuxin Zhang <zhangfx@lemote.com>
+Cc: Huacai Chen <chenhc@lemote.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |   19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ arch/mips/mm/cache.c    |   30 ++++++++++++++++--------------
+ include/linux/pgtable.h |    8 --------
+ mm/memory.c             |    4 ----
+ 3 files changed, 16 insertions(+), 26 deletions(-)
 
---- a/init/initramfs.c~initramfs-panic-with-memory-information
-+++ a/init/initramfs.c
-@@ -11,6 +11,7 @@
- #include <linux/utime.h>
- #include <linux/file.h>
- #include <linux/memblock.h>
-+#include <linux/mm.h>
- #include <linux/namei.h>
- #include <linux/init_syscalls.h>
+--- a/arch/mips/mm/cache.c~mips-make-userspace-mapping-young-by-default
++++ a/arch/mips/mm/cache.c
+@@ -157,29 +157,31 @@ unsigned long _page_cachable_default;
+ EXPORT_SYMBOL(_page_cachable_default);
  
-@@ -45,6 +46,16 @@ static void __init error(char *x)
- 		message = x;
+ #define PM(p)	__pgprot(_page_cachable_default | (p))
++#define PVA(p)	PM(_PAGE_VALID | _PAGE_ACCESSED | (p))
+ 
+ static inline void setup_protection_map(void)
+ {
+ 	protection_map[0]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[1]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[2]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[3]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[4]  = PM(_PAGE_PRESENT);
+-	protection_map[5]  = PM(_PAGE_PRESENT);
+-	protection_map[6]  = PM(_PAGE_PRESENT);
+-	protection_map[7]  = PM(_PAGE_PRESENT);
++	protection_map[1]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[2]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
++	protection_map[3]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[4]  = PVA(_PAGE_PRESENT);
++	protection_map[5]  = PVA(_PAGE_PRESENT);
++	protection_map[6]  = PVA(_PAGE_PRESENT);
++	protection_map[7]  = PVA(_PAGE_PRESENT);
+ 
+ 	protection_map[8]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[9]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[10] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
++	protection_map[9]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[10] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
+ 				_PAGE_NO_READ);
+-	protection_map[11] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
+-	protection_map[12] = PM(_PAGE_PRESENT);
+-	protection_map[13] = PM(_PAGE_PRESENT);
+-	protection_map[14] = PM(_PAGE_PRESENT | _PAGE_WRITE);
+-	protection_map[15] = PM(_PAGE_PRESENT | _PAGE_WRITE);
++	protection_map[11] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
++	protection_map[12] = PVA(_PAGE_PRESENT);
++	protection_map[13] = PVA(_PAGE_PRESENT);
++	protection_map[14] = PVA(_PAGE_PRESENT);
++	protection_map[15] = PVA(_PAGE_PRESENT);
  }
  
-+static void panic_show_mem(const char *fmt, ...)
-+{
-+	va_list args;
-+
-+	show_mem(0, NULL);
-+	va_start(args, fmt);
-+	panic(fmt, args);
-+	va_end(args);
-+}
-+
- /* link hash */
++#undef _PVA
+ #undef PM
  
- #define N_ALIGN(len) ((((len) + 1) & ~3) + 2)
-@@ -80,7 +91,7 @@ static char __init *find_link(int major,
- 	}
- 	q = kmalloc(sizeof(struct hash), GFP_KERNEL);
- 	if (!q)
--		panic("can't allocate link hash entry");
-+		panic_show_mem("can't allocate link hash entry");
- 	q->major = major;
- 	q->minor = minor;
- 	q->ino = ino;
-@@ -125,7 +136,7 @@ static void __init dir_add(const char *n
- {
- 	struct dir_entry *de = kmalloc(sizeof(struct dir_entry), GFP_KERNEL);
- 	if (!de)
--		panic("can't allocate dir_entry buffer");
-+		panic_show_mem("can't allocate dir_entry buffer");
- 	INIT_LIST_HEAD(&de->list);
- 	de->name = kstrdup(name, GFP_KERNEL);
- 	de->mtime = mtime;
-@@ -460,7 +471,7 @@ static char * __init unpack_to_rootfs(ch
- 	name_buf = kmalloc(N_ALIGN(PATH_MAX), GFP_KERNEL);
+ void cpu_cache_init(void)
+--- a/include/linux/pgtable.h~mips-make-userspace-mapping-young-by-default
++++ a/include/linux/pgtable.h
+@@ -432,14 +432,6 @@ static inline void ptep_set_wrprotect(st
+  * To be differentiate with macro pte_mkyoung, this macro is used on platforms
+  * where software maintains page access bit.
+  */
+-#ifndef pte_sw_mkyoung
+-static inline pte_t pte_sw_mkyoung(pte_t pte)
+-{
+-	return pte;
+-}
+-#define pte_sw_mkyoung	pte_sw_mkyoung
+-#endif
+-
+ #ifndef pte_savedwrite
+ #define pte_savedwrite pte_write
+ #endif
+--- a/mm/memory.c~mips-make-userspace-mapping-young-by-default
++++ a/mm/memory.c
+@@ -2902,7 +2902,6 @@ static vm_fault_t wp_page_copy(struct vm
+ 		}
+ 		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
+ 		entry = mk_pte(new_page, vma->vm_page_prot);
+-		entry = pte_sw_mkyoung(entry);
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
  
- 	if (!header_buf || !symlink_buf || !name_buf)
--		panic("can't allocate buffers");
-+		panic_show_mem("can't allocate buffers");
+ 		/*
+@@ -3560,7 +3559,6 @@ static vm_fault_t do_anonymous_page(stru
+ 	__SetPageUptodate(page);
  
- 	state = Start;
- 	this_header = 0;
-@@ -607,7 +618,7 @@ static int __init populate_rootfs(void)
- 	/* Load the built in initramfs */
- 	char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);
- 	if (err)
--		panic("%s", err); /* Failed to decompress INTERNAL initramfs */
-+		panic_show_mem("%s", err); /* Failed to decompress INTERNAL initramfs */
+ 	entry = mk_pte(page, vma->vm_page_prot);
+-	entry = pte_sw_mkyoung(entry);
+ 	if (vma->vm_flags & VM_WRITE)
+ 		entry = pte_mkwrite(pte_mkdirty(entry));
  
- 	if (!initrd_start || IS_ENABLED(CONFIG_INITRAMFS_FORCE))
- 		goto done;
+@@ -3745,8 +3743,6 @@ void do_set_pte(struct vm_fault *vmf, st
+ 
+ 	if (prefault && arch_wants_old_prefaulted_pte())
+ 		entry = pte_mkold(entry);
+-	else
+-		entry = pte_sw_mkyoung(entry);
+ 
+ 	if (write)
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
 _
