@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A0CEC433E6
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 486FBC433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:18:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 59F0564F26
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2109D64EE4
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:18:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229946AbhBZBRg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:17:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49368 "EHLO mail.kernel.org"
+        id S230022AbhBZBRy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:17:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48936 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229949AbhBZBRd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:17:33 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C8A7864F03;
-        Fri, 26 Feb 2021 01:16:51 +0000 (UTC)
+        id S229990AbhBZBRh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:17:37 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EB19D64F14;
+        Fri, 26 Feb 2021 01:17:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302212;
-        bh=eXy8vO4itDYN5MUfc4uV2DiZdadEtVemdC7JXXQ2rcc=;
+        s=korg; t=1614302242;
+        bh=Z4OHlgasObe9I4YqEC3YmoTOEWdzb1EqS/GlEV19qm4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=bAyk94YIIWhEW9RhY56mTqAjtuHR6+Ssbib//ildQeT0TMd02iuee3ftnEupKJ/i4
-         MoVRHko7ex61QR8yhVwQfk27b2zh26C79GajIaCs+B3wO4FbA1nOjNc9Y6zEP8AZJr
-         vCG8X35jpIdjHYSQvvLNP/4RIyl9aKdXSrVCDH3U=
-Date:   Thu, 25 Feb 2021 17:16:51 -0800
+        b=CI9zTa73g+a8a5AZsdI1q2la97BDpyWCax53CatqFzB5ASleGwDI8UVNx3xCQtPOv
+         KF40bcb7vlZ3W2HND8spemmGNE7VsREJLjAGrOtIre+4+95tuOGrLIiFMGJO0Fmj6O
+         In9nigy59e4R/6TAKoG5o1QpaWA9rvfdv0Y7x6kM=
+Date:   Thu, 25 Feb 2021 17:17:21 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hannes@cmpxchg.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 024/118] mm: vmstat: add some comments on internal
- storage of byte items
-Message-ID: <20210226011651.UY-aB_mq-%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@redhat.com, linmiaohe@huawei.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 032/118] mm/memory_hotplug: use helper function
+ zone_end_pfn() to get end_pfn
+Message-ID: <20210226011721.ghyGpeBIK%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,68 +43,50 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmstat: add some comments on internal storage of byte items
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/memory_hotplug: use helper function zone_end_pfn() to get end_pfn
 
-Byte-accounted items are used for slab object accounting at the cgroup
-level, because the objects in a slab page can belong to different cgroups.
-At the global level these items always change in multiples of whole slab
-pages.  The vmstat code exploits this and stores these items as pages
-internally, which allows for more compact per-cpu data.
+Commit 108bcc96ef70 ("mm: add & use zone_end_pfn() and zone_spans_pfn()")
+introduced the helper zone_end_pfn() to calculate the zone end pfn.  But
+update_pgdat_span() forgot to use it.
 
-This optimization isn't self-evident from the asserts and the division in
-the stat update functions.  Provide the reader with some context.
+Use this helper and rename local variable zone_end_pfn to end_pfn to avoid
+a naming conflict with the existing zone_end_pfn().
 
-Link: https://lkml.kernel.org/r/20210202184411.118614-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20210127093211.37714-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    6 ++++++
- mm/vmstat.c            |   12 ++++++++++++
- 2 files changed, 18 insertions(+)
+ mm/memory_hotplug.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/include/linux/vmstat.h~mm-vmstat-add-some-comments-on-internal-storage-of-byte-items
-+++ a/include/linux/vmstat.h
-@@ -313,6 +313,12 @@ static inline void __mod_node_page_state
- 			enum node_stat_item item, int delta)
- {
- 	if (vmstat_item_in_bytes(item)) {
-+		/*
-+		 * Only cgroups use subpage accounting right now; at
-+		 * the global level, these items still change in
-+		 * multiples of whole pages. Store them as pages
-+		 * internally to keep the per-cpu counters compact.
-+		 */
- 		VM_WARN_ON_ONCE(delta & (PAGE_SIZE - 1));
- 		delta >>= PAGE_SHIFT;
- 	}
---- a/mm/vmstat.c~mm-vmstat-add-some-comments-on-internal-storage-of-byte-items
-+++ a/mm/vmstat.c
-@@ -342,6 +342,12 @@ void __mod_node_page_state(struct pglist
- 	long t;
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn
++++ a/mm/memory_hotplug.c
+@@ -493,20 +493,19 @@ static void update_pgdat_span(struct pgl
  
- 	if (vmstat_item_in_bytes(item)) {
-+		/*
-+		 * Only cgroups use subpage accounting right now; at
-+		 * the global level, these items still change in
-+		 * multiples of whole pages. Store them as pages
-+		 * internally to keep the per-cpu counters compact.
-+		 */
- 		VM_WARN_ON_ONCE(delta & (PAGE_SIZE - 1));
- 		delta >>= PAGE_SHIFT;
- 	}
-@@ -551,6 +557,12 @@ static inline void mod_node_state(struct
- 	long o, n, t, z;
+ 	for (zone = pgdat->node_zones;
+ 	     zone < pgdat->node_zones + MAX_NR_ZONES; zone++) {
+-		unsigned long zone_end_pfn = zone->zone_start_pfn +
+-					     zone->spanned_pages;
++		unsigned long end_pfn = zone_end_pfn(zone);
  
- 	if (vmstat_item_in_bytes(item)) {
-+		/*
-+		 * Only cgroups use subpage accounting right now; at
-+		 * the global level, these items still change in
-+		 * multiples of whole pages. Store them as pages
-+		 * internally to keep the per-cpu counters compact.
-+		 */
- 		VM_WARN_ON_ONCE(delta & (PAGE_SIZE - 1));
- 		delta >>= PAGE_SHIFT;
+ 		/* No need to lock the zones, they can't change. */
+ 		if (!zone->spanned_pages)
+ 			continue;
+ 		if (!node_end_pfn) {
+ 			node_start_pfn = zone->zone_start_pfn;
+-			node_end_pfn = zone_end_pfn;
++			node_end_pfn = end_pfn;
+ 			continue;
+ 		}
+ 
+-		if (zone_end_pfn > node_end_pfn)
+-			node_end_pfn = zone_end_pfn;
++		if (end_pfn > node_end_pfn)
++			node_end_pfn = end_pfn;
+ 		if (zone->zone_start_pfn < node_start_pfn)
+ 			node_start_pfn = zone->zone_start_pfn;
  	}
 _
