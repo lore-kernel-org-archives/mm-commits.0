@@ -7,34 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 960DAC433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A789C433E6
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C97464F0D
+	by mail.kernel.org (Postfix) with ESMTP id D096564EE4
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229894AbhBZBRU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:17:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48524 "EHLO mail.kernel.org"
+        id S229769AbhBZBRV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:17:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48936 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229769AbhBZBRI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:17:08 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 84BAA64F2B;
-        Fri, 26 Feb 2021 01:16:48 +0000 (UTC)
+        id S229841AbhBZBRK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:17:10 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 721A464F24;
+        Fri, 26 Feb 2021 01:16:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302208;
-        bh=LpMLGDTMIAYZn24LxN4Rcm5txiBnIPh4BlB3AJIhZIk=;
+        s=korg; t=1614302187;
+        bh=6janH+JFU3/c3MqipCB/XbY+/sd0HhrgkwsYOrNg5bA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=1a0nafmLl6jYa5klihoR2V/K93oXedufhY0hAlWSDR/GYBiEvt1vuC5vJpQT6URBY
-         aALw5/lVzYHSwrFAvrCptZ+Yl3zTkSWMKBN9p1s5FABbCiSFGeaBevQ2QETHsViJaw
-         WTXTiALZt4uccwZFPsA4LRZcDRWmcp8HG314JXHw=
-Date:   Thu, 25 Feb 2021 17:16:47 -0800
+        b=q/UgFOLvMEQOqDKdPh2Pt9zsyvTGCMwo1UJ3mkv+U3Q6+32klQI0P2uyN0DHZVrql
+         gQix+AhjsGevzZjwGBVFPvhU9YgTGgP0Y8qdm/o/WY3SjprSt2TEfBUhyUGvmV5T1p
+         ls3kIxB62x8M9CjUrCkSfZvpNXiSTMTwazUDD9Uc=
+Date:   Thu, 25 Feb 2021 17:16:25 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hannes@cmpxchg.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 023/118] mm: vmstat: fix NOHZ wakeups for node
- stat changes
-Message-ID: <20210226011647.uVMjpRAVE%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org, hughd@google.com,
+        linux-mm@kvack.org, mgorman@suse.de, mhocko@suse.com,
+        mm-commits@vger.kernel.org, riel@surriel.com,
+        torvalds@linux-foundation.org, vbabka@suse.cz, willy@infradead.org,
+        xuyu@linux.alibaba.com
+Subject:  [patch 017/118] mm,thp,shmem: make khugepaged obey tmpfs
+ mount flags
+Message-ID: <20210226011625.94M80NzHY%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,70 +45,87 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmstat: fix NOHZ wakeups for node stat changes
+From: Rik van Riel <riel@surriel.com>
+Subject: mm,thp,shmem: make khugepaged obey tmpfs mount flags
 
-On NOHZ, the periodic vmstat flushers on each CPU can go to sleep and
-won't wake up until stat changes are detected in the per-cpu deltas of the
-zone vmstat counters.
+Currently if thp enabled=[madvise], mounting a tmpfs filesystem with
+huge=always and mmapping files from that tmpfs does not result in
+khugepaged collapsing those mappings, despite the mount flag indicating
+that it should.
 
-In commit 75ef71840539 ("mm, vmstat: add infrastructure for per-node
-vmstats") per-node counters were introduced, and subsequently most stats
-were moved from the zone to the node level.  However, the node counters
-weren't added to the NOHZ wakeup detection.
+Fix that by breaking up the blocks of tests in hugepage_vma_check a little
+bit, and testing things in the correct order.
 
-In theory this can cause per-cpu errors to remain in the user-reported
-stats indefinitely.  In practice this only affects a handful of sub
-counters (file_mapped, dirty and writeback e.g.) because other page state
-changes at the node level likely involve a change at the zone level as
-well (alloc and free, lru ops).  Also, nobody has complained.
-
-Fix it up for completeness: wake up vmstat refreshing on node changes. 
-Also remove the BUILD_BUG_ONs that assert counter size; we haven't relied
-on it since we added sizeof() to the range calculation in commit
-13c9aaf7fa01 ("mm/vmstat.c: fix NUMA statistics updates").
-
-Link: https://lkml.kernel.org/r/20210202184342.118513-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20201124194925.623931-4-riel@surriel.com
+Fixes: c2231020ea7b ("mm: thp: register mm for khugepaged when merging vma for shmem")
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xu Yu <xuyu@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/khugepaged.h |    2 ++
+ mm/khugepaged.c            |   22 ++++++++++++++++------
+ 2 files changed, 18 insertions(+), 6 deletions(-)
 
---- a/mm/vmstat.c~mm-vmstat-fix-nohz-wakeups-for-node-stat-changes
-+++ a/mm/vmstat.c
-@@ -1894,16 +1894,12 @@ static void vmstat_update(struct work_st
-  */
- static bool need_update(int cpu)
- {
-+	pg_data_t *last_pgdat = NULL;
- 	struct zone *zone;
+--- a/include/linux/khugepaged.h~mmthpshmem-make-khugepaged-obey-tmpfs-mount-flags
++++ a/include/linux/khugepaged.h
+@@ -3,6 +3,7 @@
+ #define _LINUX_KHUGEPAGED_H
  
- 	for_each_populated_zone(zone) {
- 		struct per_cpu_pageset *p = per_cpu_ptr(zone->pageset, cpu);
--
--		BUILD_BUG_ON(sizeof(p->vm_stat_diff[0]) != 1);
--#ifdef CONFIG_NUMA
--		BUILD_BUG_ON(sizeof(p->vm_numa_stat_diff[0]) != 2);
--#endif
--
-+		struct per_cpu_nodestat *n;
- 		/*
- 		 * The fast way of checking if there are any vmstat diffs.
- 		 */
-@@ -1915,6 +1911,13 @@ static bool need_update(int cpu)
- 			       sizeof(p->vm_numa_stat_diff[0])))
- 			return true;
- #endif
-+		if (last_pgdat == zone->zone_pgdat)
-+			continue;
-+		last_pgdat = zone->zone_pgdat;
-+		n = per_cpu_ptr(zone->zone_pgdat->per_cpu_nodestats, cpu);
-+		if (memchr_inv(n->vm_node_stat_diff, 0, NR_VM_NODE_STAT_ITEMS *
-+			       sizeof(n->vm_node_stat_diff[0])))
-+		    return true;
+ #include <linux/sched/coredump.h> /* MMF_VM_HUGEPAGE */
++#include <linux/shmem_fs.h>
+ 
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+@@ -57,6 +58,7 @@ static inline int khugepaged_enter(struc
+ {
+ 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags))
+ 		if ((khugepaged_always() ||
++		     (shmem_file(vma->vm_file) && shmem_huge_enabled(vma)) ||
+ 		     (khugepaged_req_madv() && (vm_flags & VM_HUGEPAGE))) &&
+ 		    !(vm_flags & VM_NOHUGEPAGE) &&
+ 		    !test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
+--- a/mm/khugepaged.c~mmthpshmem-make-khugepaged-obey-tmpfs-mount-flags
++++ a/mm/khugepaged.c
+@@ -442,18 +442,28 @@ static inline int khugepaged_test_exit(s
+ static bool hugepage_vma_check(struct vm_area_struct *vma,
+ 			       unsigned long vm_flags)
+ {
+-	if ((!(vm_flags & VM_HUGEPAGE) && !khugepaged_always()) ||
+-	    (vm_flags & VM_NOHUGEPAGE) ||
++	/* Explicitly disabled through madvise. */
++	if ((vm_flags & VM_NOHUGEPAGE) ||
+ 	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
+ 		return false;
+ 
+-	if (shmem_file(vma->vm_file) ||
+-	    (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
+-	     vma->vm_file &&
+-	     (vm_flags & VM_DENYWRITE))) {
++	/* Enabled via shmem mount options or sysfs settings. */
++	if (shmem_file(vma->vm_file) && shmem_huge_enabled(vma)) {
+ 		return IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
+ 				HPAGE_PMD_NR);
  	}
- 	return false;
- }
++
++	/* THP settings require madvise. */
++	if (!(vm_flags & VM_HUGEPAGE) && !khugepaged_always())
++		return false;
++
++	/* Read-only file mappings need to be aligned for THP to work. */
++	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && vma->vm_file &&
++	    (vm_flags & VM_DENYWRITE)) {
++		return IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
++				HPAGE_PMD_NR);
++	}
++
+ 	if (!vma->anon_vma || vma->vm_ops)
+ 		return false;
+ 	if (vma_is_temporary_stack(vma))
 _
