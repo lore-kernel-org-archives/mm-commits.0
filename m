@@ -5,37 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDC02C43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 920EDC433E9
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9DE7664EE2
+	by mail.kernel.org (Postfix) with ESMTP id 4564D64EE2
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229946AbhBZBXZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:23:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52400 "EHLO mail.kernel.org"
+        id S229915AbhBZBXY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:23:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52654 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229912AbhBZBWt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S229946AbhBZBWt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 20:22:49 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DE9FA64F13;
-        Fri, 26 Feb 2021 01:22:01 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4241E64F03;
+        Fri, 26 Feb 2021 01:22:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302522;
-        bh=7EgLt7ixMD+x2IkqQ0JqG4wTI0BkIZFyBMLb/rcE+UE=;
+        s=korg; t=1614302525;
+        bh=Fi6yOwzC/g1bydpzhmjbQY9sFAaDnrS8jdiciF8/vqc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=kbXPaaepvMhcl+IZtrRXYzpQRsqX733/dW4o+ur9KgP8tHrNLMnEEHSr1yeciNveU
-         HQvMXQyWeN9vmnunrJcpy/dKcxY7Yxfw9Wn79mDAhyTbG0zFhtdP7/4xjVGjuU0WSa
-         vDepH67DY77MTiq66n3fApRfJGg5wfkA7HUCLBjo=
-Date:   Thu, 25 Feb 2021 17:22:01 -0800
+        b=NS7hivYbD5V9DymQJsnzBvlT6g3PkVmcvKemoBo2o6HATZWhm/rRzFmQmbOAYWdma
+         ga2Spct9nTOKCjhWokLILMvLJpPGEX/+bqHfpx9GNSAHF4Yme8SIMQV5woZuc2HXiG
+         Nk8a3IdkLR7EvXLXc/hKGvtDxIr9bSRyYi2+m4lM=
+Date:   Thu, 25 Feb 2021 17:22:04 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, joe@perches.com, kuba@kernel.org,
+To:     akpm@linux-foundation.org, chris@chrisdown.name, joe@perches.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 105/118] checkpatch: add kmalloc_array_node to
- unnecessary OOM message check
-Message-ID: <20210226012201.gwNkg1WcP%akpm@linux-foundation.org>
+Subject:  [patch 106/118] checkpatch: don't warn about colon
+ termination in linker scripts
+Message-ID: <20210226012204.xB5hJqZXG%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,31 +43,38 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add kmalloc_array_node to unnecessary OOM message check
+From: Chris Down <chris@chrisdown.name>
+Subject: checkpatch: don't warn about colon termination in linker scripts
 
-commit 5799b255c491 ("include/linux/slab.h: add kmalloc_array_node() and
-kcalloc_node()") was added in 2017.  Update the unnecessary OOM message
-test to include it.
+This check erroneously flags cases like the one in my recent printk
+enumeration patch[0], where the spaces are syntactic, and `section:' vs. 
+`section :' is syntactically important:
 
-Link: https://lkml.kernel.org/r/b9dc4a808b1518e08ab8761480d9872e5d18e7cd.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Jakub Kicinski <kuba@kernel.org>
+    ERROR: space prohibited before that ':' (ctx:WxW)
+    #258: FILE: include/asm-generic/vmlinux.lds.h:314:
+    +       .printk_fmts : AT(ADDR(.printk_fmts) - LOAD_OFFSET) {
+
+0: https://lore.kernel.org/patchwork/patch/1375749/
+
+Link: https://lkml.kernel.org/r/YBwhqsc2TIVeid3t@chrisdown.name
+Link: https://lkml.kernel.org/r/YB6UsjCOy1qrrlSD@chrisdown.name
+Signed-off-by: Chris Down <chris@chrisdown.name>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  scripts/checkpatch.pl |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-kmalloc_array_node-to-unnecessary-oom-message-check
+--- a/scripts/checkpatch.pl~checkpatch-dont-warn-about-colon-termination-in-linker-scripts
 +++ a/scripts/checkpatch.pl
-@@ -487,7 +487,7 @@ our $logFunctions = qr{(?x:
- 
- our $allocFunctions = qr{(?x:
- 	(?:(?:devm_)?
--		(?:kv|k|v)[czm]alloc(?:_node|_array)? |
-+		(?:kv|k|v)[czm]alloc(?:_array)?(?:_node)? |
- 		kstrdup(?:_const)? |
- 		kmemdup(?:_nul)?) |
- 	(?:\w+)?alloc_skb(?:_ip_align)? |
+@@ -5044,7 +5044,7 @@ sub process {
+ 				# A colon needs no spaces before when it is
+ 				# terminating a case value or a label.
+ 				} elsif ($opv eq ':C' || $opv eq ':L') {
+-					if ($ctx =~ /Wx./) {
++					if ($ctx =~ /Wx./ and $realfile !~ m@.*\.lds\.h$@) {
+ 						if (ERROR("SPACING",
+ 							  "space prohibited before that '$op' $at\n" . $hereptr)) {
+ 							$good = rtrim($fix_elements[$n]) . trim($fix_elements[$n + 1]);
 _
