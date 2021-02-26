@@ -5,37 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26082C4332B
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:18:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACDC2C433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:19:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D285B64F34
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:18:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5783B64EE1
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:19:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229885AbhBZBSq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:18:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50504 "EHLO mail.kernel.org"
+        id S229492AbhBZBSr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:18:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50614 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230029AbhBZBSe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:18:34 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D82BA64F1A;
-        Fri, 26 Feb 2021 01:17:53 +0000 (UTC)
+        id S230037AbhBZBSo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:18:44 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6FD6F64F24;
+        Fri, 26 Feb 2021 01:18:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302274;
-        bh=uWjzaaz86y/VYYq7deNhMjooxJDEvDlRP0I7FFSiYgo=;
+        s=korg; t=1614302280;
+        bh=CW0Y0Y1Ak43kKBuaaxro7IBEj4r8oOE1CH4qs5kHqFs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=l/wCIN/YUpCnwpn6Am2B/rkUaW8otlx+VjvsPYCyu5Z2Nv+d7m+x+AoBpC/hEV9mx
-         JCVQQzHR0xbMi821/RqLLyXn5DT7mUZ73fG3hbDKHVpM4oxdsJ4VYAtY5j9ktRLs4l
-         d6Wlkd15E3RwfJ1/zVwt3D6pbhWqmsTjtAFLhQsI=
-Date:   Thu, 25 Feb 2021 17:17:53 -0800
+        b=x35jhEn3oUgv1wDs1ven85cK6rpP56f1/ukx1UuQhJTNMZXfkEH9N3lTG1J37aidT
+         HWiMelLQiELWjDWLh8PVfa30ksPDHl4dBnXtBG+1GnhdO7kp/gOBtLvoog28Cr3Phv
+         APGiFmjWpPgK5XgaZBefPv4figTytfUmDdnRoqMg=
+Date:   Thu, 25 Feb 2021 17:17:59 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, riel@surriel.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 040/118] mm/rmap: correct some obsolete comments
- of anon_vma
-Message-ID: <20210226011753.Q5VHvNWMS%akpm@linux-foundation.org>
+Subject:  [patch 042/118] mm/rmap: fix obsolete comment in
+ __page_check_anon_rmap()
+Message-ID: <20210226011759.fJf9U1f9p%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,41 +44,30 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/rmap: correct some obsolete comments of anon_vma
+Subject: mm/rmap: fix obsolete comment in __page_check_anon_rmap()
 
-commit 2b575eb64f7a ("mm: convert anon_vma->lock to a mutex") changed
-spinlock used to serialize access to vma list to mutex.  And further, the
-commit 5a505085f043 ("mm/rmap: Convert the struct anon_vma::mutex to an
-rwsem") converted the mutex to an rwsem for solving scalability problem. 
-So replace spinlock with rwsem to make comment uptodate.
+Commit 21333b2b66b8 ("ksm: no debug in page_dup_rmap()") has reverted
+page_dup_rmap() to an inline atomic_inc of mapcount.  So page_dup_rmap()
+does not call __page_check_anon_rmap() anymore.
 
-Link: https://lkml.kernel.org/r/20210123072459.25903-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210128110209.50857-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/rmap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-correct-some-obsolete-comments-of-anon_vma
+--- a/mm/rmap.c~mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap
 +++ a/mm/rmap.c
-@@ -168,7 +168,7 @@ static void anon_vma_chain_link(struct v
-  *
-  * Anon-vma allocations are very subtle, because we may have
-  * optimistically looked up an anon_vma in page_lock_anon_vma_read()
-- * and that may actually touch the spinlock even in the newly
-+ * and that may actually touch the rwsem even in the newly
-  * allocated vma (it depends on RCU to make sure that the
-  * anon_vma isn't actually destroyed).
-  *
-@@ -359,7 +359,7 @@ int anon_vma_fork(struct vm_area_struct
- 		goto out_error_free_anon_vma;
- 
- 	/*
--	 * The root anon_vma's spinlock is the lock actually used when we
-+	 * The root anon_vma's rwsem is the lock actually used when we
- 	 * lock any of the anon_vmas in this anon_vma tree.
- 	 */
- 	anon_vma->root = pvma->anon_vma->root;
+@@ -1086,8 +1086,7 @@ static void __page_check_anon_rmap(struc
+ 	 * be set up correctly at this point.
+ 	 *
+ 	 * We have exclusion against page_add_anon_rmap because the caller
+-	 * always holds the page locked, except if called from page_dup_rmap,
+-	 * in which case the page is already known to be setup.
++	 * always holds the page locked.
+ 	 *
+ 	 * We have exclusion against page_add_new_anon_rmap because those pages
+ 	 * are initially only visible via the pagetables, and the pte is locked
 _
