@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B816C433DB
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A42BC4332B
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 04F0364F17
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C452C64F13
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229912AbhBZBX0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229534AbhBZBX0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 25 Feb 2021 20:23:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52800 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52600 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229989AbhBZBWu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:22:50 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A25D964F1A;
-        Fri, 26 Feb 2021 01:22:08 +0000 (UTC)
+        id S230014AbhBZBWv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:22:51 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 11CE464EE2;
+        Fri, 26 Feb 2021 01:22:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302529;
-        bh=MM4I6H40qqg7fp2p+asungIUj0TbK4OK2ow2x3jlkbY=;
+        s=korg; t=1614302532;
+        bh=TVrxXkYTJcU0Gp/HSjm3U7SJ7YxdjhEj83u/xBA/uFM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=i2JN1DE47WALl/Ao77f5UDBkHbiNVAGnplbpbUB77aNFy271W11fcGxTTAO1j0Iac
-         9X2vSjeQCPECidG4U7Y3gfZIzO8hfQdZMiuXf2E2bkcdg01xxtaj8+cWF0zI9JBLmS
-         0lgaXjoa1sLGzSMkYV9mhol916nx/7aG+pKkux9g=
-Date:   Thu, 25 Feb 2021 17:22:08 -0800
+        b=yI8DsRdU4PM11pnkAUS+LVrgPqaR28oFO3l802OLQoQOFQ2t/POmKAE9KAmFkv021
+         EN+8MUYI/J0r3jvnY91gCmqAxm40by+5nbhcAWEynL1LT75etHeya8Nfj5JLlIL/Vw
+         ahC8wmWVrXr10A2JMI5C49pHEgPJzH1xSpL/VAD8=
+Date:   Thu, 25 Feb 2021 17:22:11 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, joe@perches.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, songliubraving@fb.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 107/118] checkpatch: do not apply "initialise
- globals to 0" check to BPF progs
-Message-ID: <20210226012208.MXxMP4kfE%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, guilak@linux.vnet.ibm.com,
+        linux-mm@kvack.org, masahiroy@kernel.org, mchehab@kernel.org,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        rlrevell@joe-job.com, torvalds@linux-foundation.org
+Subject:  [patch 108/118] init/version.c: remove
+ Version_<LINUX_VERSION_CODE> symbol
+Message-ID: <20210226012211.04CF0wM3g%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,52 +44,60 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Song Liu <songliubraving@fb.com>
-Subject: checkpatch: do not apply "initialise globals to 0" check to BPF progs
+From: Masahiro Yamada <masahiroy@kernel.org>
+Subject: init/version.c: remove Version_<LINUX_VERSION_CODE> symbol
 
-BPF programs explicitly initialise global variables to 0 to make sure
-clang (v10 or older) do not put the variables in the common section.  Skip
-"initialise globals to 0" check for BPF programs to elimiate error
-messages like:
+This code hunk creates a Version_<LINUX_VERSION_CODE> symbol if
+CONFIG_KALLSYMS is disabled.  For example, building the kernel v5.10 for
+allnoconfig creates the following symbol:
 
-    ERROR: do not initialise globals to 0
-    #19: FILE: samples/bpf/tracex1_kern.c:21:
+  $ nm vmlinux | grep Version_
+  c116b028 B Version_330240
 
-Link: https://lkml.kernel.org/r/20210209211954.490077-1-songliubraving@fb.com
-Signed-off-by: Song Liu <songliubraving@fb.com>
-Acked-by: Joe Perches <joe@perches.com>
+There is no in-tree user of this symbol.
+
+Commit 197dcffc8ba0 ("init/version.c: define version_string only if
+CONFIG_KALLSYMS is not defined") mentions that Version_* is only used
+with ksymoops.
+
+However, a commit in the pre-git era [1] had added the statement,
+"ksymoops is useless on 2.6.  Please use the Oops in its original format".
+
+That statement existed until commit 4eb9241127a0 ("Documentation:
+admin-guide: update bug-hunting.rst") finally removed the stale
+ksymoops information.
+
+This symbol is no longer needed.
+
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/history/history.git/commit/?id=ad68b2f085f5c79e4759ca2d13947b3c885ee831
+
+Link: https://lkml.kernel.org/r/20210120033452.2895170-1-masahiroy@kernel.org
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Daniel Guilak <guilak@linux.vnet.ibm.com>
+Cc: Lee Revell <rlrevell@joe-job.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ init/version.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-do-not-apply-initialise-globals-to-0-check-to-bpf-progs
-+++ a/scripts/checkpatch.pl
-@@ -2453,6 +2453,15 @@ sub get_raw_comment {
- 	return $comment;
- }
+--- a/init/version.c~init-versionc-remove-version_linux_version_code-symbol
++++ a/init/version.c
+@@ -16,14 +16,6 @@
+ #include <linux/version.h>
+ #include <linux/proc_ns.h>
  
-+sub exclude_global_initialisers {
-+	my ($realfile) = @_;
-+
-+	# Do not check for BPF programs (tools/testing/selftests/bpf/progs/*.c, samples/bpf/*_kern.c, *.bpf.c).
-+	return $realfile =~ m@^tools/testing/selftests/bpf/progs/.*\.c$@ ||
-+		$realfile =~ m@^samples/bpf/.*_kern\.c$@ ||
-+		$realfile =~ m@/bpf/.*\.bpf\.c$@;
-+}
-+
- sub process {
- 	my $filename = shift;
- 
-@@ -4358,7 +4367,8 @@ sub process {
- 		}
- 
- # check for global initialisers.
--		if ($line =~ /^\+$Type\s*$Ident(?:\s+$Modifier)*\s*=\s*($zero_initializer)\s*;/) {
-+		if ($line =~ /^\+$Type\s*$Ident(?:\s+$Modifier)*\s*=\s*($zero_initializer)\s*;/ &&
-+		    !exclude_global_initialisers($realfile)) {
- 			if (ERROR("GLOBAL_INITIALISERS",
- 				  "do not initialise globals to $1\n" . $herecurr) &&
- 			    $fix) {
+-#ifndef CONFIG_KALLSYMS
+-#define version(a) Version_ ## a
+-#define version_string(a) version(a)
+-
+-extern int version_string(LINUX_VERSION_CODE);
+-int version_string(LINUX_VERSION_CODE);
+-#endif
+-
+ struct uts_namespace init_uts_ns = {
+ 	.ns.count = REFCOUNT_INIT(2),
+ 	.name = {
 _
