@@ -7,40 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE502C433E6
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 953B7C433DB
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6A8364EE4
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 49A0E64EE2
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230112AbhBZBXo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:23:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53158 "EHLO mail.kernel.org"
+        id S230121AbhBZBXp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:23:45 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53282 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230083AbhBZBX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S230099AbhBZBX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 20:23:28 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DC90864F49;
-        Fri, 26 Feb 2021 01:22:30 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CFDA364F2F;
+        Fri, 26 Feb 2021 01:22:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302552;
-        bh=9D3MCTfUWcx8h6AOs9X1S6qRmekrACM7jyDIHxg84YY=;
+        s=korg; t=1614302559;
+        bh=PIRKltMzDX6lIYu03elXo987LbwCwiie6L7C2qh3XIc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ujsrM1VFch/lB8MicVYu4rRHFs/+bGmkxuHx2/xN3NCeFUCPjehlbs7jDO5B31L4a
-         Y1Lk1v4Rgd+80FNBUDNtPGrXYDhOC8cUvxvbcB0x3iqsAhC8btHoMFZIBahL7dqET9
-         uNhpZCG3pT/cOSdDXiGNImClbUpsW6VtLsbKm4ZQ=
-Date:   Thu, 25 Feb 2021 17:22:29 -0800
+        b=Rn3T/DutKgxnW/JhKprfyi8BNvPOiFTBHvaoEEL/WE3K72eoX40qZqmCwqRu1MSml
+         Vg+EjVG6XyMPstOFL9cYx+nTTJ2q9bJggsTc4O+Pb213Lq0Hu+TkFojAUg0jxdJSnz
+         DC8pHm9cPdlM0JNrieqcOEQpmKeKcQ5k+N7X4ATE=
+Date:   Thu, 25 Feb 2021 17:22:38 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, corbet@lwn.net,
-        dave.hansen@linux.intel.com, davem@davemloft.net,
-        linux-mm@kvack.org, lucien.xin@gmail.com, luto@kernel.org,
-        marcelo.leitner@gmail.com, mingo@redhat.com,
-        mm-commits@vger.kernel.org, neilb@suse.de, nhorman@tuxdriver.com,
-        peterz@infradead.org, stable@vger.kernel.org,
-        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk,
-        vyasevich@gmail.com
-Subject:  [patch 113/118] x86: fix seq_file iteration for
- pat/memtype.c
-Message-ID: <20210226012229.S5QJUOJAz%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, daniel.thompson@linaro.org,
+        dianders@chromium.org, jason.wessel@windriver.com,
+        linux-mm@kvack.org, mhiramat@kernel.org,
+        mm-commits@vger.kernel.org, peterz@infradead.org,
+        rostedt@goodmis.org, sumit.garg@linaro.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 115/118] kgdb: fix to kill breakpoints on initmem
+ after boot
+Message-ID: <20210226012238.KcjJKp31i%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,65 +46,79 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: NeilBrown <neilb@suse.de>
-Subject: x86: fix seq_file iteration for pat/memtype.c
+From: Sumit Garg <sumit.garg@linaro.org>
+Subject: kgdb: fix to kill breakpoints on initmem after boot
 
-The memtype seq_file iterator allocates a buffer in the ->start and ->next
-functions and frees it in the ->show function.  The preferred handling for
-such resources is to free them in the subsequent ->next or ->stop function
-call.
+Currently breakpoints in kernel .init.text section are not handled
+correctly while allowing to remove them even after corresponding pages
+have been freed.
 
-Since Commit 1f4aace60b0e ("fs/seq_file.c: simplify seq_file iteration
-code and interface") there is no guarantee that ->show will be called
-after ->next, so this function can now leak memory.
+Fix it via killing .init.text section breakpoints just prior to initmem
+pages being freed.
 
-So move the freeing of the buffer to ->next and ->stop.
+Doug: "HW breakpoints aren't handled by this patch but it's probably
+not such a big deal".
 
-Link: https://lkml.kernel.org/r/161248539022.21478.13874455485854739066.stgit@noble1
-Fixes: 1f4aace60b0e ("fs/seq_file.c: simplify seq_file iteration code and interface")
-Signed-off-by: NeilBrown <neilb@suse.de>
-Cc: Xin Long <lucien.xin@gmail.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
+Link: https://lkml.kernel.org/r/20210224081652.587785-1-sumit.garg@linaro.org
+Signed-off-by: Sumit Garg <sumit.garg@linaro.org>
+Suggested-by: Doug Anderson <dianders@chromium.org>
+Acked-by: Doug Anderson <dianders@chromium.org>
+Acked-by: Daniel Thompson <daniel.thompson@linaro.org>
+Tested-by: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vlad Yasevich <vyasevich@gmail.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat/memtype.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kgdb.h      |    2 ++
+ init/main.c               |    1 +
+ kernel/debug/debug_core.c |   11 +++++++++++
+ 3 files changed, 14 insertions(+)
 
---- a/arch/x86/mm/pat/memtype.c~x86-fix-seq_file-iteration-for-pat-memtypec
-+++ a/arch/x86/mm/pat/memtype.c
-@@ -1164,12 +1164,14 @@ static void *memtype_seq_start(struct se
+--- a/include/linux/kgdb.h~kgdb-fix-to-kill-breakpoints-on-initmem-after-boot
++++ a/include/linux/kgdb.h
+@@ -359,9 +359,11 @@ extern atomic_t			kgdb_active;
+ extern bool dbg_is_early;
+ extern void __init dbg_late_init(void);
+ extern void kgdb_panic(const char *msg);
++extern void kgdb_free_init_mem(void);
+ #else /* ! CONFIG_KGDB */
+ #define in_dbg_master() (0)
+ #define dbg_late_init()
+ static inline void kgdb_panic(const char *msg) {}
++static inline void kgdb_free_init_mem(void) { }
+ #endif /* ! CONFIG_KGDB */
+ #endif /* _KGDB_H_ */
+--- a/init/main.c~kgdb-fix-to-kill-breakpoints-on-initmem-after-boot
++++ a/init/main.c
+@@ -1426,6 +1426,7 @@ static int __ref kernel_init(void *unuse
+ 	async_synchronize_full();
+ 	kprobe_free_init_mem();
+ 	ftrace_free_init_mem();
++	kgdb_free_init_mem();
+ 	free_initmem();
+ 	mark_readonly();
  
- static void *memtype_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- {
-+	kfree(v);
- 	++*pos;
- 	return memtype_get_idx(*pos);
- }
- 
- static void memtype_seq_stop(struct seq_file *seq, void *v)
- {
-+	kfree(v);
- }
- 
- static int memtype_seq_show(struct seq_file *seq, void *v)
-@@ -1181,8 +1183,6 @@ static int memtype_seq_show(struct seq_f
- 			entry_print->end,
- 			cattr_name(entry_print->type));
- 
--	kfree(entry_print);
--
+--- a/kernel/debug/debug_core.c~kgdb-fix-to-kill-breakpoints-on-initmem-after-boot
++++ a/kernel/debug/debug_core.c
+@@ -455,6 +455,17 @@ setundefined:
  	return 0;
  }
  
++void kgdb_free_init_mem(void)
++{
++	int i;
++
++	/* Clear init memory breakpoints. */
++	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++) {
++		if (init_section_contains((void *)kgdb_break[i].bpt_addr, 0))
++			kgdb_break[i].state = BP_UNDEFINED;
++	}
++}
++
+ #ifdef CONFIG_KGDB_KDB
+ void kdb_dump_stack_on_cpu(int cpu)
+ {
 _
