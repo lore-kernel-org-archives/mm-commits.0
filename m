@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7390C433DB
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:46:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 030ECC433DB
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:47:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6547264F22
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:46:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D58D64F21
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:47:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231530AbhBZAq4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 19:46:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33964 "EHLO mail.kernel.org"
+        id S231320AbhBZAr1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 19:47:27 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34162 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231375AbhBZAq4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 19:46:56 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2C1DA64DA3;
-        Fri, 26 Feb 2021 00:46:15 +0000 (UTC)
+        id S230010AbhBZAr0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 19:47:26 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2FFF8601FD;
+        Fri, 26 Feb 2021 00:46:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614300375;
-        bh=m4JJpua/Q92JUM+AJ7ygxWvJDohLCU2K6uCjYVkXggU=;
+        s=korg; t=1614300405;
+        bh=6JfNIM+B/+s0UbLASyXVA5TsApcTs0kMEEfHNZLJRxU=;
         h=Date:From:To:Subject:From;
-        b=V6SmN14yhvCnKhaW/0vih2iIg5ZqvrAIqTUJZXVmLnLW3FSJfgmE/WNh9Dom2PBsB
-         EKHkg5kQO7EybttrfXEAor4XzRhS6xelr/XmPnaeWI2tlJuNkXbUve2JVSoBkTBoso
-         QMXzvASnNaEXAuPT6IY5GLcTHQ/3Z2rJxtvHOYyY=
-Date:   Thu, 25 Feb 2021 16:46:14 -0800
+        b=y8GjyGMx8ezyWbrimgpaZPlhgjbXbbFed+OdUFtgCO8JdMHBfebK5sVpghz/7wue5
+         Hby+0Ao8CD7O9B2A0IojnlAHRpWxnBrd+0+zp6hcQRkavyqtOlblMOUT0KSZZMvLEK
+         v5zYyhaM56KiCajn0JDRqkNDxk6T8MYEBRDoy69g=
+Date:   Thu, 25 Feb 2021 16:46:44 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, dvyukov@google.com, elver@google.com,
-        glider@google.com, mm-commits@vger.kernel.org
+To:     akpm@linux-foundation.org, elver@google.com, glider@google.com,
+        mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- arm64-kfence-enable-kfence-for-arm64-fix.patch removed from -mm tree
-Message-ID: <20210226004614.Z-G-L3GuJ%akpm@linux-foundation.org>
+ kfence-kasan-make-kfence-compatible-with-kasan-fix.patch removed from -mm
+ tree
+Message-ID: <20210226004644.WP68iQyV0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,52 +44,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence, arm64: add missing copyright and description header
+     Subject: revert kasan-remove-kfence-leftovers
 has been removed from the -mm tree.  Its filename was
-     arm64-kfence-enable-kfence-for-arm64-fix.patch
+     kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
 
-This patch was dropped because it was folded into arm64-kfence-enable-kfence-for-arm64.patch
+This patch was dropped because it was folded into kfence-kasan-make-kfence-compatible-with-kasan.patch
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence, arm64: add missing copyright and description header
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert kasan-remove-kfence-leftovers
 
-Add missing copyright and description header to KFENCE source file.
-
-Link: https://lkml.kernel.org/r/20210118092159.145934-3-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Signed-off-by: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/kfence.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/kasan/kasan.h  |    9 +++++++++
+ mm/kasan/shadow.c |   13 +++++++++++++
+ 2 files changed, 22 insertions(+)
 
---- a/arch/arm64/include/asm/kfence.h~arm64-kfence-enable-kfence-for-arm64-fix
-+++ a/arch/arm64/include/asm/kfence.h
-@@ -1,4 +1,9 @@
- /* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * arm64 KFENCE support.
-+ *
-+ * Copyright (C) 2020, Google LLC.
-+ */
+--- a/mm/kasan/kasan.h~kfence-kasan-make-kfence-compatible-with-kasan-fix
++++ a/mm/kasan/kasan.h
+@@ -3,6 +3,7 @@
+ #define __MM_KASAN_KASAN_H
  
- #ifndef __ASM_KFENCE_H
- #define __ASM_KFENCE_H
+ #include <linux/kasan.h>
++#include <linux/kfence.h>
+ #include <linux/stackdepot.h>
+ 
+ #ifdef CONFIG_KASAN_HW_TAGS
+@@ -319,12 +320,20 @@ static inline u8 kasan_random_tag(void)
+ 
+ static inline void kasan_poison(const void *address, size_t size, u8 value)
+ {
++	/* Skip KFENCE memory if called explicitly outside of sl*b. */
++	if (is_kfence_address(address))
++		return;
++
+ 	hw_set_mem_tag_range(kasan_reset_tag(address),
+ 			round_up(size, KASAN_GRANULE_SIZE), value);
+ }
+ 
+ static inline void kasan_unpoison(const void *address, size_t size)
+ {
++	/* Skip KFENCE memory if called explicitly outside of sl*b. */
++	if (is_kfence_address(address))
++		return;
++
+ 	hw_set_mem_tag_range(kasan_reset_tag(address),
+ 			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
+ }
+--- a/mm/kasan/shadow.c~kfence-kasan-make-kfence-compatible-with-kasan-fix
++++ a/mm/kasan/shadow.c
+@@ -13,6 +13,7 @@
+ #include <linux/init.h>
+ #include <linux/kasan.h>
+ #include <linux/kernel.h>
++#include <linux/kfence.h>
+ #include <linux/kmemleak.h>
+ #include <linux/memory.h>
+ #include <linux/mm.h>
+@@ -84,6 +85,10 @@ void kasan_poison(const void *address, s
+ 	address = kasan_reset_tag(address);
+ 	size = round_up(size, KASAN_GRANULE_SIZE);
+ 
++	/* Skip KFENCE memory if called explicitly outside of sl*b. */
++	if (is_kfence_address(address))
++		return;
++
+ 	shadow_start = kasan_mem_to_shadow(address);
+ 	shadow_end = kasan_mem_to_shadow(address + size);
+ 
+@@ -102,6 +107,14 @@ void kasan_unpoison(const void *address,
+ 	 */
+ 	address = kasan_reset_tag(address);
+ 
++	/*
++	 * Skip KFENCE memory if called explicitly outside of sl*b. Also note
++	 * that calls to ksize(), where size is not a multiple of machine-word
++	 * size, would otherwise poison the invalid portion of the word.
++	 */
++	if (is_kfence_address(address))
++		return;
++
+ 	kasan_poison(address, size, tag);
+ 
+ 	if (size & KASAN_GRANULE_MASK) {
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-arm64-kfence-enable-kfence-for-arm64.patch
-kfence-use-pt_regs-to-generate-stack-trace-on-faults.patch
-kfence-documentation-add-kfence-documentation.patch
-kfence-documentation-add-kfence-documentation-fix.patch
-kfence-add-test-suite.patch
-kfence-add-test-suite-fix.patch
-kfence-add-test-suite-fix-2.patch
-maintainers-add-entry-for-kfence.patch
-kfence-report-sensitive-information-based-on-no_hash_pointers.patch
+kfence-kasan-make-kfence-compatible-with-kasan.patch
+lib-stackdepot-add-support-to-disable-stack-depot-fix.patch
+seq_file-document-how-per-entry-resources-are-managed-fix.patch
+initramfs-panic-with-memory-information-fix.patch
+mm-page_allocc-refactor-initialization-of-struct-page-for-holes-in-memory-layout-fix.patch
+mm.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
