@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A42BC4332B
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8AC3C433DB
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C452C64F13
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60FEF64EE4
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229534AbhBZBX0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:23:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52600 "EHLO mail.kernel.org"
+        id S229989AbhBZBX1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:23:27 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52948 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230014AbhBZBWv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:22:51 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 11CE464EE2;
-        Fri, 26 Feb 2021 01:22:12 +0000 (UTC)
+        id S230087AbhBZBWw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:22:52 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0581A64F2A;
+        Fri, 26 Feb 2021 01:22:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302532;
-        bh=TVrxXkYTJcU0Gp/HSjm3U7SJ7YxdjhEj83u/xBA/uFM=;
+        s=korg; t=1614302539;
+        bh=fbK5xZNbVI2PN5CGMgETojSaNUCDfWsqpg6CAsRAOXo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=yI8DsRdU4PM11pnkAUS+LVrgPqaR28oFO3l802OLQoQOFQ2t/POmKAE9KAmFkv021
-         EN+8MUYI/J0r3jvnY91gCmqAxm40by+5nbhcAWEynL1LT75etHeya8Nfj5JLlIL/Vw
-         ahC8wmWVrXr10A2JMI5C49pHEgPJzH1xSpL/VAD8=
-Date:   Thu, 25 Feb 2021 17:22:11 -0800
+        b=HdlTe+EOcmiiKYep4kf3knoe7q62ID7Jp3jMilV4b2Nv/Xtbq1w20z2Pp11D5QIfQ
+         Niu6JpUO48FHpqGYBNWz4LS1UKnH8KNk8UcLCe4qf7yuMrx0BSj5F4J3w4WfYnIAp7
+         2348IhTdyzfM6YscBfe4etYt9WPrLJmlnOV9FG2o=
+Date:   Thu, 25 Feb 2021 17:22:18 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, guilak@linux.vnet.ibm.com,
-        linux-mm@kvack.org, masahiroy@kernel.org, mchehab@kernel.org,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        rlrevell@joe-job.com, torvalds@linux-foundation.org
-Subject:  [patch 108/118] init/version.c: remove
- Version_<LINUX_VERSION_CODE> symbol
-Message-ID: <20210226012211.04CF0wM3g%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, nathan@kernel.org,
+        rdunlap@infradead.org, torvalds@linux-foundation.org,
+        unixbhaskar@gmail.com
+Subject:  [patch 110/118] init/Kconfig: fix a typo in
+ CC_VERSION_TEXT help text
+Message-ID: <20210226012218.4f2-kBtMy%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,60 +44,30 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Masahiro Yamada <masahiroy@kernel.org>
-Subject: init/version.c: remove Version_<LINUX_VERSION_CODE> symbol
+From: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Subject: init/Kconfig: fix a typo in CC_VERSION_TEXT help text
 
-This code hunk creates a Version_<LINUX_VERSION_CODE> symbol if
-CONFIG_KALLSYMS is disabled.  For example, building the kernel v5.10 for
-allnoconfig creates the following symbol:
+s/compier/compiler/
 
-  $ nm vmlinux | grep Version_
-  c116b028 B Version_330240
-
-There is no in-tree user of this symbol.
-
-Commit 197dcffc8ba0 ("init/version.c: define version_string only if
-CONFIG_KALLSYMS is not defined") mentions that Version_* is only used
-with ksymoops.
-
-However, a commit in the pre-git era [1] had added the statement,
-"ksymoops is useless on 2.6.  Please use the Oops in its original format".
-
-That statement existed until commit 4eb9241127a0 ("Documentation:
-admin-guide: update bug-hunting.rst") finally removed the stale
-ksymoops information.
-
-This symbol is no longer needed.
-
-[1] https://git.kernel.org/pub/scm/linux/kernel/git/history/history.git/commit/?id=ad68b2f085f5c79e4759ca2d13947b3c885ee831
-
-Link: https://lkml.kernel.org/r/20210120033452.2895170-1-masahiroy@kernel.org
-Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Daniel Guilak <guilak@linux.vnet.ibm.com>
-Cc: Lee Revell <rlrevell@joe-job.com>
+Link: https://lkml.kernel.org/r/20210224223325.29099-1-unixbhaskar@gmail.com
+Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/version.c |    8 --------
- 1 file changed, 8 deletions(-)
+ init/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/init/version.c~init-versionc-remove-version_linux_version_code-symbol
-+++ a/init/version.c
-@@ -16,14 +16,6 @@
- #include <linux/version.h>
- #include <linux/proc_ns.h>
+--- a/init/Kconfig~init-kconfig-fix-a-typo-in-cc_version_text-help-text
++++ a/init/Kconfig
+@@ -19,7 +19,7 @@ config CC_VERSION_TEXT
+ 	    CC_VERSION_TEXT so it is recorded in include/config/auto.conf.cmd.
+ 	    When the compiler is updated, Kconfig will be invoked.
  
--#ifndef CONFIG_KALLSYMS
--#define version(a) Version_ ## a
--#define version_string(a) version(a)
--
--extern int version_string(LINUX_VERSION_CODE);
--int version_string(LINUX_VERSION_CODE);
--#endif
--
- struct uts_namespace init_uts_ns = {
- 	.ns.count = REFCOUNT_INIT(2),
- 	.name = {
+-	  - Ensure full rebuild when the compier is updated
++	  - Ensure full rebuild when the compiler is updated
+ 	    include/linux/kconfig.h contains this option in the comment line so
+ 	    fixdep adds include/config/cc/version/text.h into the auto-generated
+ 	    dependency. When the compiler is updated, syncconfig will touch it
 _
