@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91B43C433E9
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8FC4C433DB
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:24:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5984364EE4
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8908D64EFA
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:24:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230083AbhBZBXq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:23:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53400 "EHLO mail.kernel.org"
+        id S230100AbhBZBXr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:23:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53344 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230100AbhBZBX3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S230101AbhBZBX3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 20:23:29 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 007DF64F32;
-        Fri, 26 Feb 2021 01:22:42 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B724D64F21;
+        Fri, 26 Feb 2021 01:22:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302563;
-        bh=x2XCohAYi0wo5uTGb0rMg1kh966aOzH6oKX/UPMclcI=;
+        s=korg; t=1614302567;
+        bh=Z4OZFLP4p2Slm9Zm3Lpu1TBStzSfdRWcR5QaR4MZnxs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=fCqX+9jHeJ7MfX6p5M/UIrNTnh+SUFmofKxhe+ElUk8YQDpaNoOghXUnMKqpAl0VV
-         fV1f7Z17gVO75qpDzoEmIGbfaQT7bV/+jFoOj+bI2y68hc91WlbFPLi5yl0JpSVtUp
-         lkxSK85tJuxstE+el+03NhbrVW3Sc7A8p3ljWC8o=
-Date:   Thu, 25 Feb 2021 17:22:42 -0800
+        b=UEOJVATUPCRD62DAUV4W4PahCBgTEc8lB0DxUtnTzIyqYAWXbx4igVX2U+3JUypEa
+         qR0xEjnumczZ9v1jrA0VWn2dd/ch+4WKkquAbeDMT0Wd/nv+4YwHjTOqEHUrtFBqkp
+         VnGZTTjmaLK0K5/Y/z21k+cL6WI2l7FWr0NtlGww=
+Date:   Thu, 25 Feb 2021 17:22:46 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dvyukov@google.com, jpoimboe@redhat.com,
-        keescook@chromium.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, peterz@infradead.org,
-        rdunlap@infradead.org, ryabinin.a.a@gmail.com,
-        sfr@canb.auug.org.au, torvalds@linux-foundation.org,
-        viro@zeniv.linux.org.uk
-Subject:  [patch 116/118] ubsan: remove overflow checks
-Message-ID: <20210226012242.wIqztJH53%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, arnd@arndb.de, brho@google.com,
+        f.fainelli@gmail.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 117/118] initramfs: panic with memory information
+Message-ID: <20210226012246.rwUstM4sZ%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,219 +42,90 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Subject: ubsan: remove overflow checks
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: initramfs: panic with memory information
 
-Since GCC 8.0 -fsanitize=signed-integer-overflow doesn't work with
--fwrapv.  -fwrapv makes signed overflows defines and GCC essentially
-disables ubsan checks.  On GCC < 8.0 -fwrapv doesn't have influence on
--fsanitize=signed-integer-overflow setting, so it kinda works but
-generates false-positves and violates uaccess rules:
+On systems with large amounts of reserved memory we may fail to
+successfully complete unpack_to_rootfs() and be left with:
 
-lib/iov_iter.o: warning: objtool: iovec_from_user()+0x22d: call to
-__ubsan_handle_add_overflow() with UACCESS enabled
+ Kernel panic - not syncing: write error
 
-Disable signed overflow checks to avoid these problems.  Remove unsigned
-overflow checks as well.  Unsigned overflow appeared as side effect of
-commit cdf8a76fda4a ("ubsan: move cc-option tests into Kconfig"), but it
-never worked (kernel doesn't boot).  And unsigned overflows are allowed by
-C standard, so it just pointless.
+this is not too helpful to understand what happened, so let's wrap the
+panic() calls with a surrounding show_mem() such that we have a chance of
+understanding the memory conditions leading to these allocation failures.
 
-Link: https://lkml.kernel.org/r/20210209232348.20510-1-ryabinin.a.a@gmail.com
-Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+[akpm@linux-foundation.org: replace macro with C function]
+Link: https://lkml.kernel.org/r/20210114231517.1854379-1-f.fainelli@gmail.com
+Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+Cc: Barret Rhoden <brho@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.ubsan      |   17 ---------
- lib/test_ubsan.c       |   49 ----------------------------
- lib/ubsan.c            |   68 ---------------------------------------
- scripts/Makefile.ubsan |    2 -
- 4 files changed, 136 deletions(-)
+ init/initramfs.c |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
---- a/lib/Kconfig.ubsan~ubsan-remove-overflow-checks
-+++ a/lib/Kconfig.ubsan
-@@ -112,23 +112,6 @@ config UBSAN_UNREACHABLE
- 	  This option enables -fsanitize=unreachable which checks for control
- 	  flow reaching an expected-to-be-unreachable position.
+--- a/init/initramfs.c~initramfs-panic-with-memory-information
++++ a/init/initramfs.c
+@@ -11,6 +11,7 @@
+ #include <linux/utime.h>
+ #include <linux/file.h>
+ #include <linux/memblock.h>
++#include <linux/mm.h>
+ #include <linux/namei.h>
+ #include <linux/init_syscalls.h>
  
--config UBSAN_SIGNED_OVERFLOW
--	bool "Perform checking for signed arithmetic overflow"
--	default UBSAN
--	depends on $(cc-option,-fsanitize=signed-integer-overflow)
--	help
--	  This option enables -fsanitize=signed-integer-overflow which checks
--	  for overflow of any arithmetic operations with signed integers.
--
--config UBSAN_UNSIGNED_OVERFLOW
--	bool "Perform checking for unsigned arithmetic overflow"
--	depends on $(cc-option,-fsanitize=unsigned-integer-overflow)
--	depends on !X86_32 # avoid excessive stack usage on x86-32/clang
--	help
--	  This option enables -fsanitize=unsigned-integer-overflow which checks
--	  for overflow of any arithmetic operations with unsigned integers. This
--	  currently causes x86 to fail to boot.
--
- config UBSAN_OBJECT_SIZE
- 	bool "Perform checking for accesses beyond the end of objects"
- 	default UBSAN
---- a/lib/test_ubsan.c~ubsan-remove-overflow-checks
-+++ a/lib/test_ubsan.c
-@@ -11,51 +11,6 @@ typedef void(*test_ubsan_fp)(void);
- 			#config, IS_ENABLED(config) ? "y" : "n");	\
- 	} while (0)
- 
--static void test_ubsan_add_overflow(void)
--{
--	volatile int val = INT_MAX;
--	volatile unsigned int uval = UINT_MAX;
--
--	UBSAN_TEST(CONFIG_UBSAN_SIGNED_OVERFLOW);
--	val += 2;
--
--	UBSAN_TEST(CONFIG_UBSAN_UNSIGNED_OVERFLOW);
--	uval += 2;
--}
--
--static void test_ubsan_sub_overflow(void)
--{
--	volatile int val = INT_MIN;
--	volatile unsigned int uval = 0;
--	volatile int val2 = 2;
--
--	UBSAN_TEST(CONFIG_UBSAN_SIGNED_OVERFLOW);
--	val -= val2;
--
--	UBSAN_TEST(CONFIG_UBSAN_UNSIGNED_OVERFLOW);
--	uval -= val2;
--}
--
--static void test_ubsan_mul_overflow(void)
--{
--	volatile int val = INT_MAX / 2;
--	volatile unsigned int uval = UINT_MAX / 2;
--
--	UBSAN_TEST(CONFIG_UBSAN_SIGNED_OVERFLOW);
--	val *= 3;
--
--	UBSAN_TEST(CONFIG_UBSAN_UNSIGNED_OVERFLOW);
--	uval *= 3;
--}
--
--static void test_ubsan_negate_overflow(void)
--{
--	volatile int val = INT_MIN;
--
--	UBSAN_TEST(CONFIG_UBSAN_SIGNED_OVERFLOW);
--	val = -val;
--}
--
- static void test_ubsan_divrem_overflow(void)
- {
- 	volatile int val = 16;
-@@ -155,10 +110,6 @@ static void test_ubsan_object_size_misma
+@@ -45,6 +46,16 @@ static void __init error(char *x)
+ 		message = x;
  }
  
- static const test_ubsan_fp test_ubsan_array[] = {
--	test_ubsan_add_overflow,
--	test_ubsan_sub_overflow,
--	test_ubsan_mul_overflow,
--	test_ubsan_negate_overflow,
- 	test_ubsan_shift_out_of_bounds,
- 	test_ubsan_out_of_bounds,
- 	test_ubsan_load_invalid_value,
---- a/lib/ubsan.c~ubsan-remove-overflow-checks
-+++ a/lib/ubsan.c
-@@ -163,74 +163,6 @@ static void ubsan_epilogue(void)
++static void panic_show_mem(const char *fmt, ...)
++{
++	va_list args;
++
++	show_mem(0, NULL);
++	va_start(args, fmt);
++	panic(fmt, args);
++	va_end(args);
++}
++
+ /* link hash */
+ 
+ #define N_ALIGN(len) ((((len) + 1) & ~3) + 2)
+@@ -80,7 +91,7 @@ static char __init *find_link(int major,
  	}
- }
- 
--static void handle_overflow(struct overflow_data *data, void *lhs,
--			void *rhs, char op)
--{
--
--	struct type_descriptor *type = data->type;
--	char lhs_val_str[VALUE_LENGTH];
--	char rhs_val_str[VALUE_LENGTH];
--
--	if (suppress_report(&data->location))
--		return;
--
--	ubsan_prologue(&data->location, type_is_signed(type) ?
--			"signed-integer-overflow" :
--			"unsigned-integer-overflow");
--
--	val_to_string(lhs_val_str, sizeof(lhs_val_str), type, lhs);
--	val_to_string(rhs_val_str, sizeof(rhs_val_str), type, rhs);
--	pr_err("%s %c %s cannot be represented in type %s\n",
--		lhs_val_str,
--		op,
--		rhs_val_str,
--		type->type_name);
--
--	ubsan_epilogue();
--}
--
--void __ubsan_handle_add_overflow(void *data,
--				void *lhs, void *rhs)
--{
--
--	handle_overflow(data, lhs, rhs, '+');
--}
--EXPORT_SYMBOL(__ubsan_handle_add_overflow);
--
--void __ubsan_handle_sub_overflow(void *data,
--				void *lhs, void *rhs)
--{
--	handle_overflow(data, lhs, rhs, '-');
--}
--EXPORT_SYMBOL(__ubsan_handle_sub_overflow);
--
--void __ubsan_handle_mul_overflow(void *data,
--				void *lhs, void *rhs)
--{
--	handle_overflow(data, lhs, rhs, '*');
--}
--EXPORT_SYMBOL(__ubsan_handle_mul_overflow);
--
--void __ubsan_handle_negate_overflow(void *_data, void *old_val)
--{
--	struct overflow_data *data = _data;
--	char old_val_str[VALUE_LENGTH];
--
--	if (suppress_report(&data->location))
--		return;
--
--	ubsan_prologue(&data->location, "negation-overflow");
--
--	val_to_string(old_val_str, sizeof(old_val_str), data->type, old_val);
--
--	pr_err("negation of %s cannot be represented in type %s:\n",
--		old_val_str, data->type->type_name);
--
--	ubsan_epilogue();
--}
--EXPORT_SYMBOL(__ubsan_handle_negate_overflow);
--
--
- void __ubsan_handle_divrem_overflow(void *_data, void *lhs, void *rhs)
+ 	q = kmalloc(sizeof(struct hash), GFP_KERNEL);
+ 	if (!q)
+-		panic("can't allocate link hash entry");
++		panic_show_mem("can't allocate link hash entry");
+ 	q->major = major;
+ 	q->minor = minor;
+ 	q->ino = ino;
+@@ -125,7 +136,7 @@ static void __init dir_add(const char *n
  {
- 	struct overflow_data *data = _data;
---- a/scripts/Makefile.ubsan~ubsan-remove-overflow-checks
-+++ a/scripts/Makefile.ubsan
-@@ -8,8 +8,6 @@ ubsan-cflags-$(CONFIG_UBSAN_LOCAL_BOUNDS
- ubsan-cflags-$(CONFIG_UBSAN_SHIFT)		+= -fsanitize=shift
- ubsan-cflags-$(CONFIG_UBSAN_DIV_ZERO)		+= -fsanitize=integer-divide-by-zero
- ubsan-cflags-$(CONFIG_UBSAN_UNREACHABLE)	+= -fsanitize=unreachable
--ubsan-cflags-$(CONFIG_UBSAN_SIGNED_OVERFLOW)	+= -fsanitize=signed-integer-overflow
--ubsan-cflags-$(CONFIG_UBSAN_UNSIGNED_OVERFLOW)	+= -fsanitize=unsigned-integer-overflow
- ubsan-cflags-$(CONFIG_UBSAN_OBJECT_SIZE)	+= -fsanitize=object-size
- ubsan-cflags-$(CONFIG_UBSAN_BOOL)		+= -fsanitize=bool
- ubsan-cflags-$(CONFIG_UBSAN_ENUM)		+= -fsanitize=enum
+ 	struct dir_entry *de = kmalloc(sizeof(struct dir_entry), GFP_KERNEL);
+ 	if (!de)
+-		panic("can't allocate dir_entry buffer");
++		panic_show_mem("can't allocate dir_entry buffer");
+ 	INIT_LIST_HEAD(&de->list);
+ 	de->name = kstrdup(name, GFP_KERNEL);
+ 	de->mtime = mtime;
+@@ -460,7 +471,7 @@ static char * __init unpack_to_rootfs(ch
+ 	name_buf = kmalloc(N_ALIGN(PATH_MAX), GFP_KERNEL);
+ 
+ 	if (!header_buf || !symlink_buf || !name_buf)
+-		panic("can't allocate buffers");
++		panic_show_mem("can't allocate buffers");
+ 
+ 	state = Start;
+ 	this_header = 0;
+@@ -607,7 +618,7 @@ static int __init populate_rootfs(void)
+ 	/* Load the built in initramfs */
+ 	char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);
+ 	if (err)
+-		panic("%s", err); /* Failed to decompress INTERNAL initramfs */
++		panic_show_mem("%s", err); /* Failed to decompress INTERNAL initramfs */
+ 
+ 	if (!initrd_start || IS_ENABLED(CONFIG_INITRAMFS_FORCE))
+ 		goto done;
 _
