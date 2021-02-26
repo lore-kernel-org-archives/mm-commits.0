@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F4A0C433DB
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28418C433E6
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 61C7264EE4
+	by mail.kernel.org (Postfix) with ESMTP id EF56464EE4
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:17:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229849AbhBZBRL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229622AbhBZBRL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 25 Feb 2021 20:17:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48452 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48450 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229622AbhBZBRF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:17:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 79AB664EE3;
-        Fri, 26 Feb 2021 01:16:41 +0000 (UTC)
+        id S229863AbhBZBRE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:17:04 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 012E764EE4;
+        Fri, 26 Feb 2021 01:16:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302202;
-        bh=o2VEk35S0PpUb+Gp0rG9X1F2cppdrDYZpydmaIo3AtM=;
+        s=korg; t=1614302194;
+        bh=oswZ/n8kvYSQSHFbTQC9B5gb7ozgoQXb7LeLHiWeZuE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=QgPTgFiJENPF9ExQPLHD9sFmzo7obYSBpBcVDa0RoQ3wi1hYLrmedi0BSPPg94+/+
-         BQ2T5RZLrCxor8qGborOXUbBE3GiW2YuIZZvt895ZizSjfuZXGUuKOP0cWMT1c4vNH
-         r8GC/JUg8tnPyeH6hSpNkzGGVeDMfMg+yJl32Yqs=
-Date:   Thu, 25 Feb 2021 17:16:40 -0800
+        b=t3c2+QMiAPGkPihl7HIsXCID86AT8RwRqOaBzlZCuDCmyG+7o82aVZFWSZXrVJp2A
+         ZTQYgyPf0ZvKyojT9IvUol+V/2tRTEQa7ym8lTM1hEHvh84jr1iWQiHxYu+bXJKXi2
+         d3q1kCUm2oJpkKSYbXovvedDWVL/myoCTjAaq6IU=
+Date:   Thu, 25 Feb 2021 17:16:33 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, osalvador@suse.de,
-        peterz@infradead.org, richard.weiyang@linux.alibaba.com,
-        rientjes@google.com, rppt@kernel.org, tglx@linutronix.de,
-        torvalds@linux-foundation.org, ziy@nvidia.com
-Subject:  [patch 021/118] mm/page_alloc: count CMA pages per zone
- and print them in /proc/zoneinfo
-Message-ID: <20210226011640.TAscLZVgD%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, guro@fb.com, iamjoonsoo.kim@lge.com,
+        linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org,
+        riel@surriel.com, rppt@linux.ibm.com,
+        torvalds@linux-foundation.org, vvghjk1234@gmail.com
+Subject:  [patch 019/118] mm: cma: allocate cma areas bottom-up
+Message-ID: <20210226011633.vTL2E_Khb%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,131 +43,83 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_alloc: count CMA pages per zone and print them in /proc/zoneinfo
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: cma: allocate cma areas bottom-up
 
-Let's count the number of CMA pages per zone and print them in
-/proc/zoneinfo.
+Currently cma areas without a fixed base are allocated close to the end of
+the node.  This placement is sub-optimal because of compaction: it brings
+pages into the cma area.  In particular, it can bring in hot executable
+pages, even if there is a plenty of free memory on the machine.  This
+results in cma allocation failures.
 
-Having access to the total number of CMA pages per zone is helpful for
-debugging purposes to know where exactly the CMA pages ended up, and to
-figure out how many pages of a zone might behave differently, even after
-some of these pages might already have been allocated.
+Instead let's place cma areas close to the beginning of a node.  In this
+case the compaction will help to free cma areas, resulting in better cma
+allocation success rates.
 
-As one example, CMA pages part of a kernel zone cannot be used for
-ordinary kernel allocations but instead behave more like ZONE_MOVABLE.
+If there is enough memory let's try to allocate bottom-up starting with
+4GB to exclude any possible interference with DMA32.  On smaller machines
+or in a case of a failure, stick with the old behavior.
 
-For now, we are only able to get the global nr+free cma pages from
-/proc/meminfo and the free cma pages per zone from /proc/zoneinfo.
+16GB vm, 2GB cma area:
+With this patch:
+[    0.000000] Command line: root=/dev/vda3 rootflags=subvol=/root systemd.unified_cgroup_hierarchy=1 enforcing=0 console=ttyS0,115200 hugetlb_cma=2G
+[    0.002928] hugetlb_cma: reserve 2048 MiB, up to 2048 MiB per node
+[    0.002930] cma: Reserved 2048 MiB at 0x0000000100000000
+[    0.002931] hugetlb_cma: reserved 2048 MiB on node 0
 
-Example after this patch when booting a 6 GiB QEMU VM with
-"hugetlb_cma=2G":
-  # cat /proc/zoneinfo | grep cma
-          cma      0
-        nr_free_cma  0
-          cma      0
-        nr_free_cma  0
-          cma      524288
-        nr_free_cma  493016
-          cma      0
-          cma      0
-  # cat /proc/meminfo | grep Cma
-  CmaTotal:        2097152 kB
-  CmaFree:         1972064 kB
+Without this patch:
+[    0.000000] Command line: root=/dev/vda3 rootflags=subvol=/root systemd.unified_cgroup_hierarchy=1 enforcing=0 console=ttyS0,115200 hugetlb_cma=2G
+[    0.002930] hugetlb_cma: reserve 2048 MiB, up to 2048 MiB per node
+[    0.002933] cma: Reserved 2048 MiB at 0x00000003c0000000
+[    0.002934] hugetlb_cma: reserved 2048 MiB on node 0
 
-Note: We print even without CONFIG_CMA, just like "nr_free_cma"; this way,
-      one can be sure when spotting "cma 0", that there are definetly no
-      CMA pages located in a zone.
+v2:
+  - switched to memblock_set_bottom_up(true), by Mike
+  - start with 4GB, by Mike
 
-[david@redhat.com: v2]
-  Link: https://lkml.kernel.org/r/20210128164533.18566-1-david@redhat.com
-[david@redhat.com: v3]
-  Link: https://lkml.kernel.org/r/20210129113451.22085-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20210127101813.6370-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
+[guro@fb.com: whitespace fix, per Mike]
+  Link: https://lkml.kernel.org/r/20201221170551.GB3428478@carbon.DHCP.thefacebook.com
+[guro@fb.com: fix 32-bit warnings]
+  Link: https://lkml.kernel.org/r/20201223163537.GA4011967@carbon.DHCP.thefacebook.com
+[guro@fb.com: fix 32-bit systems]
+[akpm@linux-foundation.org: build fix]
+Link: https://lkml.kernel.org/r/20201217201214.3414100-1-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Wonhyuk Yang <vvghjk1234@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Rik van Riel <riel@surriel.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   15 +++++++++++++++
- mm/page_alloc.c        |    1 +
- mm/vmstat.c            |    6 ++++--
- 3 files changed, 20 insertions(+), 2 deletions(-)
+ mm/cma.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
---- a/include/linux/mmzone.h~mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo
-+++ a/include/linux/mmzone.h
-@@ -503,6 +503,9 @@ struct zone {
- 	 * bootmem allocator):
- 	 *	managed_pages = present_pages - reserved_pages;
- 	 *
-+	 * cma pages is present pages that are assigned for CMA use
-+	 * (MIGRATE_CMA).
-+	 *
- 	 * So present_pages may be used by memory hotplug or memory power
- 	 * management logic to figure out unmanaged pages by checking
- 	 * (present_pages - managed_pages). And managed_pages should be used
-@@ -527,6 +530,9 @@ struct zone {
- 	atomic_long_t		managed_pages;
- 	unsigned long		spanned_pages;
- 	unsigned long		present_pages;
-+#ifdef CONFIG_CMA
-+	unsigned long		cma_pages;
+--- a/mm/cma.c~mm-cma-allocate-cma-areas-bottom-up
++++ a/mm/cma.c
+@@ -336,6 +336,23 @@ int __init cma_declare_contiguous_nid(ph
+ 			limit = highmem_start;
+ 		}
+ 
++		/*
++		 * If there is enough memory, try a bottom-up allocation first.
++		 * It will place the new cma area close to the start of the node
++		 * and guarantee that the compaction is moving pages out of the
++		 * cma area and not into it.
++		 * Avoid using first 4GB to not interfere with constrained zones
++		 * like DMA/DMA32.
++		 */
++#ifdef CONFIG_PHYS_ADDR_T_64BIT
++		if (!memblock_bottom_up() && memblock_end >= SZ_4G + size) {
++			memblock_set_bottom_up(true);
++			addr = memblock_alloc_range_nid(size, alignment, SZ_4G,
++							limit, nid, true);
++			memblock_set_bottom_up(false);
++		}
 +#endif
- 
- 	const char		*name;
- 
-@@ -624,6 +630,15 @@ static inline unsigned long zone_managed
- 	return (unsigned long)atomic_long_read(&zone->managed_pages);
- }
- 
-+static inline unsigned long zone_cma_pages(struct zone *zone)
-+{
-+#ifdef CONFIG_CMA
-+	return zone->cma_pages;
-+#else
-+	return 0;
-+#endif
-+}
 +
- static inline unsigned long zone_end_pfn(const struct zone *zone)
- {
- 	return zone->zone_start_pfn + zone->spanned_pages;
---- a/mm/page_alloc.c~mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo
-+++ a/mm/page_alloc.c
-@@ -2168,6 +2168,7 @@ void __init init_cma_reserved_pageblock(
- 	}
- 
- 	adjust_managed_page_count(page, pageblock_nr_pages);
-+	page_zone(page)->cma_pages += pageblock_nr_pages;
- }
- #endif
- 
---- a/mm/vmstat.c~mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo
-+++ a/mm/vmstat.c
-@@ -1637,14 +1637,16 @@ static void zoneinfo_show_print(struct s
- 		   "\n        high     %lu"
- 		   "\n        spanned  %lu"
- 		   "\n        present  %lu"
--		   "\n        managed  %lu",
-+		   "\n        managed  %lu"
-+		   "\n        cma      %lu",
- 		   zone_page_state(zone, NR_FREE_PAGES),
- 		   min_wmark_pages(zone),
- 		   low_wmark_pages(zone),
- 		   high_wmark_pages(zone),
- 		   zone->spanned_pages,
- 		   zone->present_pages,
--		   zone_managed_pages(zone));
-+		   zone_managed_pages(zone),
-+		   zone_cma_pages(zone));
- 
- 	seq_printf(m,
- 		   "\n        protection: (%ld",
+ 		if (!addr) {
+ 			addr = memblock_alloc_range_nid(size, alignment, base,
+ 					limit, nid, true);
 _
