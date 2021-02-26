@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 030ECC433DB
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:47:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA6CDC433DB
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:47:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D58D64F21
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:47:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 666AA64EDB
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 00:47:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231320AbhBZAr1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 19:47:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34162 "EHLO mail.kernel.org"
+        id S231375AbhBZArf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 19:47:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230010AbhBZAr0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 19:47:26 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2FFF8601FD;
-        Fri, 26 Feb 2021 00:46:45 +0000 (UTC)
+        id S230010AbhBZAr2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 19:47:28 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C7E8E64EDB;
+        Fri, 26 Feb 2021 00:46:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614300405;
-        bh=6JfNIM+B/+s0UbLASyXVA5TsApcTs0kMEEfHNZLJRxU=;
+        s=korg; t=1614300408;
+        bh=TZxr5J5ZgC9I7Vuro/4AlWExdsHCYUmxqsC44g8B+Nc=;
         h=Date:From:To:Subject:From;
-        b=y8GjyGMx8ezyWbrimgpaZPlhgjbXbbFed+OdUFtgCO8JdMHBfebK5sVpghz/7wue5
-         Hby+0Ao8CD7O9B2A0IojnlAHRpWxnBrd+0+zp6hcQRkavyqtOlblMOUT0KSZZMvLEK
-         v5zYyhaM56KiCajn0JDRqkNDxk6T8MYEBRDoy69g=
-Date:   Thu, 25 Feb 2021 16:46:44 -0800
+        b=tYFdiRb+T8gStg5blf8yUr9BXDVU7gyLA2omovvGuFBKpD20PKxQ39o59fPX1hNMv
+         8vGmhRs2ZsnkBsAETyLu70As+BPfJTnCPC4ixp0f5v3AcbnkWQzrj+FbkMzU+w/BSh
+         KE4l2MQT0FQXhS2iv54k26dz1kAeF1Hu2C5hQdZo=
+Date:   Thu, 25 Feb 2021 16:46:47 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, elver@google.com, glider@google.com,
-        mm-commits@vger.kernel.org
+To:     andreyknvl@google.com, dvyukov@google.com, elver@google.com,
+        glider@google.com, jannh@google.com, mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- kfence-kasan-make-kfence-compatible-with-kasan-fix.patch removed from -mm
+ kfence-kasan-make-kfence-compatible-with-kasan-fix-2.patch removed from -mm
  tree
-Message-ID: <20210226004644.WP68iQyV0%akpm@linux-foundation.org>
+Message-ID: <20210226004647.OMWZwTCiT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,104 +44,93 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert kasan-remove-kfence-leftovers
+     Subject: kasan: untag addresses for KFENCE
 has been removed from the -mm tree.  Its filename was
-     kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
+     kfence-kasan-make-kfence-compatible-with-kasan-fix-2.patch
 
 This patch was dropped because it was folded into kfence-kasan-make-kfence-compatible-with-kasan.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert kasan-remove-kfence-leftovers
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: untag addresses for KFENCE
 
-Signed-off-by: Marco Elver <elver@google.com>
-Signed-off-by: Alexander Potapenko <glider@google.com>
+KFENCE annotations operate on untagged addresses.
+
+Untag addresses in KASAN runtime where they might be tagged.
+
+Link: https://lkml.kernel.org/r/9dc196006921b191d25d10f6e611316db7da2efc.1611946152.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h  |    9 +++++++++
- mm/kasan/shadow.c |   13 +++++++++++++
- 2 files changed, 22 insertions(+)
+ mm/kasan/common.c |    2 +-
+ mm/kasan/kasan.h  |   12 +++++++++---
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
---- a/mm/kasan/kasan.h~kfence-kasan-make-kfence-compatible-with-kasan-fix
+--- a/mm/kasan/common.c~kfence-kasan-make-kfence-compatible-with-kasan-fix-2
++++ a/mm/kasan/common.c
+@@ -416,7 +416,7 @@ static void *____kasan_kmalloc(struct km
+ 	if (unlikely(object == NULL))
+ 		return NULL;
+ 
+-	if (is_kfence_address(object))
++	if (is_kfence_address(kasan_reset_tag(object)))
+ 		return (void *)object;
+ 
+ 	redzone_start = round_up((unsigned long)(object + size),
+--- a/mm/kasan/kasan.h~kfence-kasan-make-kfence-compatible-with-kasan-fix-2
 +++ a/mm/kasan/kasan.h
-@@ -3,6 +3,7 @@
- #define __MM_KASAN_KASAN_H
- 
- #include <linux/kasan.h>
-+#include <linux/kfence.h>
- #include <linux/stackdepot.h>
- 
- #ifdef CONFIG_KASAN_HW_TAGS
-@@ -319,12 +320,20 @@ static inline u8 kasan_random_tag(void)
+@@ -320,22 +320,28 @@ static inline u8 kasan_random_tag(void)
  
  static inline void kasan_poison(const void *address, size_t size, u8 value)
  {
-+	/* Skip KFENCE memory if called explicitly outside of sl*b. */
-+	if (is_kfence_address(address))
-+		return;
++	address = kasan_reset_tag(address);
 +
- 	hw_set_mem_tag_range(kasan_reset_tag(address),
+ 	/* Skip KFENCE memory if called explicitly outside of sl*b. */
+ 	if (is_kfence_address(address))
+ 		return;
+ 
+-	hw_set_mem_tag_range(kasan_reset_tag(address),
++	hw_set_mem_tag_range((void *)address,
  			round_up(size, KASAN_GRANULE_SIZE), value);
  }
  
  static inline void kasan_unpoison(const void *address, size_t size)
  {
-+	/* Skip KFENCE memory if called explicitly outside of sl*b. */
-+	if (is_kfence_address(address))
-+		return;
++	u8 tag = get_tag(address);
 +
- 	hw_set_mem_tag_range(kasan_reset_tag(address),
- 			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
++	address = kasan_reset_tag(address);
++
+ 	/* Skip KFENCE memory if called explicitly outside of sl*b. */
+ 	if (is_kfence_address(address))
+ 		return;
+ 
+-	hw_set_mem_tag_range(kasan_reset_tag(address),
+-			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
++	hw_set_mem_tag_range((void *)address,
++			round_up(size, KASAN_GRANULE_SIZE), tag);
  }
---- a/mm/kasan/shadow.c~kfence-kasan-make-kfence-compatible-with-kasan-fix
-+++ a/mm/kasan/shadow.c
-@@ -13,6 +13,7 @@
- #include <linux/init.h>
- #include <linux/kasan.h>
- #include <linux/kernel.h>
-+#include <linux/kfence.h>
- #include <linux/kmemleak.h>
- #include <linux/memory.h>
- #include <linux/mm.h>
-@@ -84,6 +85,10 @@ void kasan_poison(const void *address, s
- 	address = kasan_reset_tag(address);
- 	size = round_up(size, KASAN_GRANULE_SIZE);
  
-+	/* Skip KFENCE memory if called explicitly outside of sl*b. */
-+	if (is_kfence_address(address))
-+		return;
-+
- 	shadow_start = kasan_mem_to_shadow(address);
- 	shadow_end = kasan_mem_to_shadow(address + size);
- 
-@@ -102,6 +107,14 @@ void kasan_unpoison(const void *address,
- 	 */
- 	address = kasan_reset_tag(address);
- 
-+	/*
-+	 * Skip KFENCE memory if called explicitly outside of sl*b. Also note
-+	 * that calls to ksize(), where size is not a multiple of machine-word
-+	 * size, would otherwise poison the invalid portion of the word.
-+	 */
-+	if (is_kfence_address(address))
-+		return;
-+
- 	kasan_poison(address, size, tag);
- 
- 	if (size & KASAN_GRANULE_MASK) {
+ static inline bool kasan_byte_accessible(const void *addr)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
 kfence-kasan-make-kfence-compatible-with-kasan.patch
-lib-stackdepot-add-support-to-disable-stack-depot-fix.patch
-seq_file-document-how-per-entry-resources-are-managed-fix.patch
-initramfs-panic-with-memory-information-fix.patch
-mm-page_allocc-refactor-initialization-of-struct-page-for-holes-in-memory-layout-fix.patch
-mm.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+kasan-mm-dont-save-alloc-stacks-twice.patch
+kasan-mm-optimize-kmalloc-poisoning.patch
+kasan-optimize-large-kmalloc-poisoning.patch
+kasan-clean-up-setting-free-info-in-kasan_slab_free.patch
+kasan-unify-large-kfree-checks.patch
+kasan-rework-krealloc-tests.patch
+kasan-mm-fail-krealloc-on-freed-objects.patch
+kasan-mm-optimize-krealloc-poisoning.patch
+kasan-ensure-poisoning-size-alignment.patch
+arm64-kasan-simplify-and-inline-mte-functions.patch
+kasan-inline-hw_tags-helper-functions.patch
+kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch
 
