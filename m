@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48CA7C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71BD3C433E0
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:18:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0997A64F1A
+	by mail.kernel.org (Postfix) with ESMTP id 2F22064F30
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:18:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230040AbhBZBSb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229535AbhBZBSb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 25 Feb 2021 20:18:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50196 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50300 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229845AbhBZBST (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:18:19 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E717664EE3;
-        Fri, 26 Feb 2021 01:17:37 +0000 (UTC)
+        id S229534AbhBZBSY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:18:24 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2676A64F03;
+        Fri, 26 Feb 2021 01:17:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302259;
-        bh=C7dLpRKRVzopYTfQd7qjH2DJcx0pbrtj91GnrSHiYH4=;
+        s=korg; t=1614302263;
+        bh=CY7O5SQWJRQLb/bGOrul1TcWyLXGh8RrEetKwHZqNQY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=t8QZlCfZpyv4Fi7WmMjOtuP+tfsxMEOiHuC4+HjtIRkR7db4I1pKr6R1Fal3RxW0J
-         oeQgwBIFuJuKEv+Q8sH4UMBkFpmDgxOxKJGaL3x9wZN6tNlZJQfu4zkv/Al1MJjNbS
-         ewp5uvhPLKnZeWWhfdza64IjeovF6lQtQ/VzEsDI=
-Date:   Thu, 25 Feb 2021 17:17:37 -0800
+        b=NJFyQo1qJlC+AmLUoWMwlkari6PTYqd1oQCJnzBCsVt717WqpFetsdvJ8kp1bnGaz
+         oCkVpWfroW5cyjr9hoQnBGmACLOl/GAvbrMWWiF739A0EFTamiFKPF2+TxIPQ4ZNq/
+         tacN7jO2MEQYl0/4RKfPsOKRbf5LYkCe2kZKOHx8=
+Date:   Thu, 25 Feb 2021 17:17:41 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
         ardb@kernel.org, catalin.marinas@arm.com, david@redhat.com,
@@ -39,9 +40,8 @@ To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
         pankaj.gupta.linux@gmail.com, pankaj.gupta@cloud.ionos.com,
         richard.weiyang@linux.alibaba.com, teawaterz@linux.alibaba.com,
         torvalds@linux-foundation.org, will@kernel.org
-Subject:  [patch 036/118] arm64/mm: define
- arch_get_mappable_range()
-Message-ID: <20210226011737.yZfJ_esng%akpm@linux-foundation.org>
+Subject:  [patch 037/118] s390/mm: define arch_get_mappable_range()
+Message-ID: <20210226011741.sTLEIas1n%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -50,74 +50,81 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: arm64/mm: define arch_get_mappable_range()
+Subject: s390/mm: define arch_get_mappable_range()
 
-This overrides arch_get_mappable_range() on arm64 platform which will be
-used with recently added generic framework.  It drops
-inside_linear_region() and subsequent check in arch_add_memory() which are
-no longer required.  It also adds a VM_BUG_ON() check that would ensure
-that mhp_range_allowed() has already been called.
+This overrides arch_get_mappabble_range() on s390 platform which will be
+used with recently added generic framework.  It modifies the existing
+range check in vmem_add_mapping() using arch_get_mappable_range().  It
+also adds a VM_BUG_ON() check that would ensure that mhp_range_allowed()
+has already been called on the hotplug path.
 
-Link: https://lkml.kernel.org/r/1612149902-7867-3-git-send-email-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/1612149902-7867-4-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Heiko Carstens <hca@linux.ibm.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
 Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: teawater <teawaterz@linux.alibaba.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ arch/s390/mm/init.c |    1 +
+ arch/s390/mm/vmem.c |   14 +++++++++++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/mm/mmu.c~arm64-mm-define-arch_get_mappable_range
-+++ a/arch/arm64/mm/mmu.c
-@@ -1444,16 +1444,19 @@ static void __remove_pgd_mapping(pgd_t *
- 	free_empty_tables(start, end, PAGE_OFFSET, PAGE_END);
+--- a/arch/s390/mm/init.c~s390-mm-define-arch_get_mappable_range
++++ a/arch/s390/mm/init.c
+@@ -297,6 +297,7 @@ int arch_add_memory(int nid, u64 start,
+ 	if (WARN_ON_ONCE(params->pgprot.pgprot != PAGE_KERNEL.pgprot))
+ 		return -EINVAL;
+ 
++	VM_BUG_ON(!mhp_range_allowed(start, size, true));
+ 	rc = vmem_add_mapping(start, size);
+ 	if (rc)
+ 		return rc;
+--- a/arch/s390/mm/vmem.c~s390-mm-define-arch_get_mappable_range
++++ a/arch/s390/mm/vmem.c
+@@ -4,6 +4,7 @@
+  *    Author(s): Heiko Carstens <heiko.carstens@de.ibm.com>
+  */
+ 
++#include <linux/memory_hotplug.h>
+ #include <linux/memblock.h>
+ #include <linux/pfn.h>
+ #include <linux/mm.h>
+@@ -532,11 +533,22 @@ void vmem_remove_mapping(unsigned long s
+ 	mutex_unlock(&vmem_mutex);
  }
  
--static bool inside_linear_region(u64 start, u64 size)
 +struct range arch_get_mappable_range(void)
- {
++{
 +	struct range mhp_range;
 +
- 	/*
- 	 * Linear mapping region is the range [PAGE_OFFSET..(PAGE_END - 1)]
- 	 * accommodating both its ends but excluding PAGE_END. Max physical
- 	 * range which can be mapped inside this linear mapping range, must
- 	 * also be derived from its end points.
- 	 */
--	return start >= __pa(_PAGE_OFFSET(vabits_actual)) &&
--	       (start + size - 1) <= __pa(PAGE_END - 1);
-+	mhp_range.start = __pa(_PAGE_OFFSET(vabits_actual));
-+	mhp_range.end =  __pa(PAGE_END - 1);
++	mhp_range.start = 0;
++	mhp_range.end =  VMEM_MAX_PHYS - 1;
 +	return mhp_range;
- }
- 
- int arch_add_memory(int nid, u64 start, u64 size,
-@@ -1461,11 +1464,7 @@ int arch_add_memory(int nid, u64 start,
++}
++
+ int vmem_add_mapping(unsigned long start, unsigned long size)
  {
- 	int ret, flags = 0;
++	struct range range = arch_get_mappable_range();
+ 	int ret;
  
--	if (!inside_linear_region(start, size)) {
--		pr_err("[%llx %llx] is outside linear mapping region\n", start, start + size);
--		return -EINVAL;
--	}
--
-+	VM_BUG_ON(!mhp_range_allowed(start, size, true));
- 	if (rodata_full || debug_pagealloc_enabled())
- 		flags = NO_BLOCK_MAPPINGS | NO_CONT_MAPPINGS;
+-	if (start + size > VMEM_MAX_PHYS ||
++	if (start < range.start ||
++	    start + size > range.end + 1 ||
+ 	    start + size < start)
+ 		return -ERANGE;
  
 _
