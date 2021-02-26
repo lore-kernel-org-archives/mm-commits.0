@@ -7,37 +7,43 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6430EC4332D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12F94C433E9
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:21:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3AC9264F4A
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:21:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC92364F48
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:21:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230042AbhBZBV1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:21:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52654 "EHLO mail.kernel.org"
+        id S229999AbhBZBV0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:21:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52400 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230041AbhBZBU0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:20:26 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8742064F29;
-        Fri, 26 Feb 2021 01:19:44 +0000 (UTC)
+        id S229946AbhBZBUQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:20:16 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9801B64F21;
+        Fri, 26 Feb 2021 01:19:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302385;
-        bh=bVN+mXtmPcaenhSVrrGVtH6DhwQzdYCtAqiQAC2QRrM=;
+        s=korg; t=1614302373;
+        bh=bWTjBfEKdz5Isy/tWiA/rkkosfCHKfFA0hwGbD5DAUg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=rs16EBiQmx5KsQ7bO6AWVxyktnECq8btqg3sM3Df7mcLI8XwCo5MkG14rFODkHRjT
-         zP4yLA6w8Y+uaLyJ0xOSQgW9tsxHLBAZUpeBBUazSySpzlz9GhtvZLLtRdZd/Dbgi0
-         BhYrkufsOOrCyd1w8AuPTHMMf2Z8obOmeuKk4LwQ=
-Date:   Thu, 25 Feb 2021 17:19:44 -0800
+        b=NS1JIq5rwwuWMxAY7Qy9unxI2y4fDEphNuI5jQjNB3cSaKOK+D42Lm7apOHb99YP2
+         JG2eAomiFbQe9RgrGOl9Svz+cEx3bD8HW5EjGWrY1rkhsiLSQ7OyB8x9mXLQYNbNWZ
+         /RlGWnfpgTYwn4RhQ3C1XquPW6tXVYsvlv0mgC+c=
+Date:   Thu, 25 Feb 2021 17:19:31 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
-        dvyukov@google.com, elver@google.com, glider@google.com,
-        gregkh@linuxfoundation.org, linux-mm@kvack.org, mingo@redhat.com,
-        mm-commits@vger.kernel.org, pmladek@suse.com, rostedt@goodmis.org,
-        sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org,
-        vbabka@suse.cz
-Subject:  [patch 067/118] tracing: add error_report_end trace point
-Message-ID: <20210226011944.aSSBVuJAj%akpm@linux-foundation.org>
+        aryabinin@virtuozzo.com, bp@alien8.de, catalin.marinas@arm.com,
+        cl@linux.com, corbet@lwn.net, dave.hansen@linux.intel.com,
+        dvyukov@google.com, edumazet@google.com, elver@google.com,
+        glider@google.com, gregkh@linuxfoundation.org, hdanton@sina.com,
+        hpa@zytor.com, iamjoonsoo.kim@lge.com, jannh@google.com,
+        joern@purestorage.com, keescook@chromium.org, linux-mm@kvack.org,
+        luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com,
+        mm-commits@vger.kernel.org, paulmck@kernel.org, penberg@kernel.org,
+        peterz@infradead.org, rientjes@google.com, sjpark@amazon.de,
+        tglx@linutronix.de, torvalds@linux-foundation.org, vbabka@suse.cz,
+        will@kernel.org
+Subject:  [patch 064/118] kfence: add test suite
+Message-ID: <20210226011931.6_PJuzXas%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,149 +51,1155 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Alexander Potapenko <glider@google.com>
-Subject: tracing: add error_report_end trace point
+From: Marco Elver <elver@google.com>
+Subject: kfence: add test suite
 
-Patch series "Add error_report_end tracepoint to KFENCE and KASAN", v3.
+Add KFENCE test suite, testing various error detection scenarios. Makes
+use of KUnit for test organization. Since KFENCE's interface to obtain
+error reports is via the console, the test verifies that KFENCE outputs
+expected reports to the console.
 
-This patchset adds a tracepoint, error_repor_end, that is to be used by
-KFENCE, KASAN, and potentially other bug detection tools, when they print
-an error report.  One of the possible use cases is userspace collection of
-kernel error reports: interested parties can subscribe to the tracing
-event via tracefs, and get notified when an error report occurs.
-
-
-This patch (of 3):
-
-Introduce error_report_end tracepoint.  It can be used in debugging tools
-like KASAN, KFENCE, etc.  to provide extensions to the error reporting
-mechanisms (e.g.  allow tests hook into error reporting, ease error report
-collection from production kernels).  Another benefit would be making use
-of ftrace for debugging or benchmarking the tools themselves.
-
-Should we need it, the tracepoint name leaves us with the possibility to
-introduce a complementary error_report_start tracepoint in the future.
-
-Link: https://lkml.kernel.org/r/20210121131915.1331302-1-glider@google.com
-Link: https://lkml.kernel.org/r/20210121131915.1331302-2-glider@google.com
+[elver@google.com: fix typo in test]
+  Link: https://lkml.kernel.org/r/X9lHQExmHGvETxY4@elver.google.com
+[elver@google.com: show access type in report]
+  Link: https://lkml.kernel.org/r/20210111091544.3287013-2-elver@google.com
+Link: https://lkml.kernel.org/r/20201103175841.3495947-9-elver@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Suggested-by: Marco Elver <elver@google.com>
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Co-developed-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Jann Horn <jannh@google.com>
 Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Joern Engel <joern@purestorage.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: SeongJae Park <sjpark@amazon.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/error_report.h |   74 ++++++++++++++++++++++++++
- kernel/trace/Makefile               |    1 
- kernel/trace/error_report-traces.c  |   12 ++++
- 3 files changed, 87 insertions(+)
+ Documentation/dev-tools/kfence.rst |   12 
+ arch/arm64/mm/fault.c              |    2 
+ arch/x86/mm/fault.c                |    3 
+ include/linux/kfence.h             |    9 
+ lib/Kconfig.kfence                 |   13 
+ mm/kfence/Makefile                 |    3 
+ mm/kfence/core.c                   |   11 
+ mm/kfence/kfence.h                 |    2 
+ mm/kfence/kfence_test.c            |  858 +++++++++++++++++++++++++++
+ mm/kfence/report.c                 |   27 
+ 10 files changed, 915 insertions(+), 25 deletions(-)
 
+--- a/arch/arm64/mm/fault.c~kfence-add-test-suite
++++ a/arch/arm64/mm/fault.c
+@@ -390,7 +390,7 @@ static void __do_kernel_fault(unsigned l
+ 	} else if (addr < PAGE_SIZE) {
+ 		msg = "NULL pointer dereference";
+ 	} else {
+-		if (kfence_handle_page_fault(addr, regs))
++		if (kfence_handle_page_fault(addr, esr & ESR_ELx_WNR, regs))
+ 			return;
+ 
+ 		msg = "paging request";
+--- a/arch/x86/mm/fault.c~kfence-add-test-suite
++++ a/arch/x86/mm/fault.c
+@@ -682,7 +682,8 @@ page_fault_oops(struct pt_regs *regs, un
+ 		efi_crash_gracefully_on_page_fault(address);
+ 
+ 	/* Only not-present faults should be handled by KFENCE. */
+-	if (!(error_code & X86_PF_PROT) && kfence_handle_page_fault(address, regs))
++	if (!(error_code & X86_PF_PROT) &&
++	    kfence_handle_page_fault(address, error_code & X86_PF_WRITE, regs))
+ 		return;
+ 
+ oops:
+--- a/Documentation/dev-tools/kfence.rst~kfence-add-test-suite
++++ a/Documentation/dev-tools/kfence.rst
+@@ -65,9 +65,9 @@ Error reports
+ A typical out-of-bounds access looks like this::
+ 
+     ==================================================================
+-    BUG: KFENCE: out-of-bounds in test_out_of_bounds_read+0xa3/0x22b
++    BUG: KFENCE: out-of-bounds read in test_out_of_bounds_read+0xa3/0x22b
+ 
+-    Out-of-bounds access at 0xffffffffb672efff (1B left of kfence-#17):
++    Out-of-bounds read at 0xffffffffb672efff (1B left of kfence-#17):
+      test_out_of_bounds_read+0xa3/0x22b
+      kunit_try_run_case+0x51/0x85
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+@@ -94,9 +94,9 @@ its origin. Note that, real kernel addre
+ Use-after-free accesses are reported as::
+ 
+     ==================================================================
+-    BUG: KFENCE: use-after-free in test_use_after_free_read+0xb3/0x143
++    BUG: KFENCE: use-after-free read in test_use_after_free_read+0xb3/0x143
+ 
+-    Use-after-free access at 0xffffffffb673dfe0 (in kfence-#24):
++    Use-after-free read at 0xffffffffb673dfe0 (in kfence-#24):
+      test_use_after_free_read+0xb3/0x143
+      kunit_try_run_case+0x51/0x85
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+@@ -193,9 +193,9 @@ where it was not possible to determine a
+ object pages had not yet been allocated::
+ 
+     ==================================================================
+-    BUG: KFENCE: invalid access in test_invalid_access+0x26/0xe0
++    BUG: KFENCE: invalid read in test_invalid_access+0x26/0xe0
+ 
+-    Invalid access at 0xffffffffb670b00a:
++    Invalid read at 0xffffffffb670b00a:
+      test_invalid_access+0x26/0xe0
+      kunit_try_run_case+0x51/0x85
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+--- a/include/linux/kfence.h~kfence-add-test-suite
++++ a/include/linux/kfence.h
+@@ -186,6 +186,7 @@ static __always_inline __must_check bool
+ /**
+  * kfence_handle_page_fault() - perform page fault handling for KFENCE pages
+  * @addr: faulting address
++ * @is_write: is access a write
+  * @regs: current struct pt_regs (can be NULL, but shows full stack trace)
+  *
+  * Return:
+@@ -197,7 +198,7 @@ static __always_inline __must_check bool
+  * cases KFENCE prints an error message and marks the offending page as
+  * present, so that the kernel can proceed.
+  */
+-bool __must_check kfence_handle_page_fault(unsigned long addr, struct pt_regs *regs);
++bool __must_check kfence_handle_page_fault(unsigned long addr, bool is_write, struct pt_regs *regs);
+ 
+ #else /* CONFIG_KFENCE */
+ 
+@@ -210,7 +211,11 @@ static inline size_t kfence_ksize(const
+ static inline void *kfence_object_start(const void *addr) { return NULL; }
+ static inline void __kfence_free(void *addr) { }
+ static inline bool __must_check kfence_free(void *addr) { return false; }
+-static inline bool __must_check kfence_handle_page_fault(unsigned long addr, struct pt_regs *regs) { return false; }
++static inline bool __must_check kfence_handle_page_fault(unsigned long addr, bool is_write,
++							 struct pt_regs *regs)
++{
++	return false;
++}
+ 
+ #endif
+ 
+--- a/lib/Kconfig.kfence~kfence-add-test-suite
++++ a/lib/Kconfig.kfence
+@@ -66,4 +66,17 @@ config KFENCE_STRESS_TEST_FAULTS
+ 
+ 	  Only for KFENCE testing; set to 0 if you are not a KFENCE developer.
+ 
++config KFENCE_KUNIT_TEST
++	tristate "KFENCE integration test suite" if !KUNIT_ALL_TESTS
++	default KUNIT_ALL_TESTS
++	depends on TRACEPOINTS && KUNIT
++	help
++	  Test suite for KFENCE, testing various error detection scenarios with
++	  various allocation types, and checking that reports are correctly
++	  output to console.
++
++	  Say Y here if you want the test to be built into the kernel and run
++	  during boot; say M if you want the test to build as a module; say N
++	  if you are unsure.
++
+ endif # KFENCE
+--- a/mm/kfence/core.c~kfence-add-test-suite
++++ a/mm/kfence/core.c
+@@ -216,7 +216,7 @@ static inline bool check_canary_byte(u8
+ 		return true;
+ 
+ 	atomic_long_inc(&counters[KFENCE_COUNTER_BUGS]);
+-	kfence_report_error((unsigned long)addr, NULL, addr_to_metadata((unsigned long)addr),
++	kfence_report_error((unsigned long)addr, false, NULL, addr_to_metadata((unsigned long)addr),
+ 			    KFENCE_ERROR_CORRUPTION);
+ 	return false;
+ }
+@@ -355,7 +355,8 @@ static void kfence_guarded_free(void *ad
+ 	if (meta->state != KFENCE_OBJECT_ALLOCATED || meta->addr != (unsigned long)addr) {
+ 		/* Invalid or double-free, bail out. */
+ 		atomic_long_inc(&counters[KFENCE_COUNTER_BUGS]);
+-		kfence_report_error((unsigned long)addr, NULL, meta, KFENCE_ERROR_INVALID_FREE);
++		kfence_report_error((unsigned long)addr, false, NULL, meta,
++				    KFENCE_ERROR_INVALID_FREE);
+ 		raw_spin_unlock_irqrestore(&meta->lock, flags);
+ 		return;
+ 	}
+@@ -770,7 +771,7 @@ void __kfence_free(void *addr)
+ 		kfence_guarded_free(addr, meta, false);
+ }
+ 
+-bool kfence_handle_page_fault(unsigned long addr, struct pt_regs *regs)
++bool kfence_handle_page_fault(unsigned long addr, bool is_write, struct pt_regs *regs)
+ {
+ 	const int page_index = (addr - (unsigned long)__kfence_pool) / PAGE_SIZE;
+ 	struct kfence_metadata *to_report = NULL;
+@@ -833,11 +834,11 @@ bool kfence_handle_page_fault(unsigned l
+ 
+ out:
+ 	if (to_report) {
+-		kfence_report_error(addr, regs, to_report, error_type);
++		kfence_report_error(addr, is_write, regs, to_report, error_type);
+ 		raw_spin_unlock_irqrestore(&to_report->lock, flags);
+ 	} else {
+ 		/* This may be a UAF or OOB access, but we can't be sure. */
+-		kfence_report_error(addr, regs, NULL, KFENCE_ERROR_INVALID);
++		kfence_report_error(addr, is_write, regs, NULL, KFENCE_ERROR_INVALID);
+ 	}
+ 
+ 	return kfence_unprotect(addr); /* Unprotect and let access proceed. */
+--- a/mm/kfence/kfence.h~kfence-add-test-suite
++++ a/mm/kfence/kfence.h
+@@ -105,7 +105,7 @@ enum kfence_error_type {
+ 	KFENCE_ERROR_INVALID_FREE,	/* Invalid free. */
+ };
+ 
+-void kfence_report_error(unsigned long address, struct pt_regs *regs,
++void kfence_report_error(unsigned long address, bool is_write, struct pt_regs *regs,
+ 			 const struct kfence_metadata *meta, enum kfence_error_type type);
+ 
+ void kfence_print_object(struct seq_file *seq, const struct kfence_metadata *meta);
 --- /dev/null
-+++ a/include/trace/events/error_report.h
-@@ -0,0 +1,74 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * Declarations for error reporting tracepoints.
-+ *
-+ * Copyright (C) 2021, Google LLC.
-+ */
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM error_report
-+
-+#if !defined(_TRACE_ERROR_REPORT_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_ERROR_REPORT_H
-+
-+#include <linux/tracepoint.h>
-+
-+#ifndef __ERROR_REPORT_DECLARE_TRACE_ENUMS_ONCE_ONLY
-+#define __ERROR_REPORT_DECLARE_TRACE_ENUMS_ONCE_ONLY
-+
-+enum error_detector {
-+	ERROR_DETECTOR_KFENCE,
-+	ERROR_DETECTOR_KASAN
-+};
-+
-+#endif /* __ERROR_REPORT_DECLARE_TRACE_ENUMS_ONCE_ONLY */
-+
-+#define error_detector_list	\
-+	EM(ERROR_DETECTOR_KFENCE, "kfence")	\
-+	EMe(ERROR_DETECTOR_KASAN, "kasan")
-+/* Always end the list with an EMe. */
-+
-+#undef EM
-+#undef EMe
-+
-+#define EM(a, b)	TRACE_DEFINE_ENUM(a);
-+#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
-+
-+error_detector_list
-+
-+#undef EM
-+#undef EMe
-+
-+#define EM(a, b) { a, b },
-+#define EMe(a, b) { a, b }
-+
-+#define show_error_detector_list(val) \
-+	__print_symbolic(val, error_detector_list)
-+
-+DECLARE_EVENT_CLASS(error_report_template,
-+		    TP_PROTO(enum error_detector error_detector, unsigned long id),
-+		    TP_ARGS(error_detector, id),
-+		    TP_STRUCT__entry(__field(enum error_detector, error_detector)
-+					     __field(unsigned long, id)),
-+		    TP_fast_assign(__entry->error_detector = error_detector;
-+				   __entry->id = id;),
-+		    TP_printk("[%s] %lx",
-+			      show_error_detector_list(__entry->error_detector),
-+			      __entry->id));
-+
-+/**
-+ * error_report_end - called after printing the error report
-+ * @error_detector:	short string describing the error detection tool
-+ * @id:			pseudo-unique descriptor identifying the report
-+ *			(e.g. the memory access address)
-+ *
-+ * This event occurs right after a debugging tool finishes printing the error
-+ * report.
-+ */
-+DEFINE_EVENT(error_report_template, error_report_end,
-+	     TP_PROTO(enum error_detector error_detector, unsigned long id),
-+	     TP_ARGS(error_detector, id));
-+
-+#endif /* _TRACE_ERROR_REPORT_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
---- /dev/null
-+++ a/kernel/trace/error_report-traces.c
-@@ -0,0 +1,12 @@
++++ a/mm/kfence/kfence_test.c
+@@ -0,0 +1,858 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
-+ * Error reporting trace points.
++ * Test cases for KFENCE memory safety error detector. Since the interface with
++ * which KFENCE's reports are obtained is via the console, this is the output we
++ * should verify. For each test case checks the presence (or absence) of
++ * generated reports. Relies on 'console' tracepoint to capture reports as they
++ * appear in the kernel log.
 + *
-+ * Copyright (C) 2021, Google LLC.
++ * Copyright (C) 2020, Google LLC.
++ * Author: Alexander Potapenko <glider@google.com>
++ *         Marco Elver <elver@google.com>
 + */
 +
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/error_report.h>
++#include <kunit/test.h>
++#include <linux/jiffies.h>
++#include <linux/kernel.h>
++#include <linux/kfence.h>
++#include <linux/mm.h>
++#include <linux/random.h>
++#include <linux/slab.h>
++#include <linux/spinlock.h>
++#include <linux/string.h>
++#include <linux/tracepoint.h>
++#include <trace/events/printk.h>
 +
-+EXPORT_TRACEPOINT_SYMBOL_GPL(error_report_end);
++#include "kfence.h"
 +
---- a/kernel/trace/Makefile~tracing-add-error_report_end-trace-point
-+++ a/kernel/trace/Makefile
-@@ -81,6 +81,7 @@ obj-$(CONFIG_SYNTH_EVENTS) += trace_even
- obj-$(CONFIG_HIST_TRIGGERS) += trace_events_hist.o
- obj-$(CONFIG_BPF_EVENTS) += bpf_trace.o
- obj-$(CONFIG_KPROBE_EVENTS) += trace_kprobe.o
-+obj-$(CONFIG_TRACEPOINTS) += error_report-traces.o
- obj-$(CONFIG_TRACEPOINTS) += power-traces.o
- ifeq ($(CONFIG_PM),y)
- obj-$(CONFIG_TRACEPOINTS) += rpm-traces.o
++/* Report as observed from console. */
++static struct {
++	spinlock_t lock;
++	int nlines;
++	char lines[2][256];
++} observed = {
++	.lock = __SPIN_LOCK_UNLOCKED(observed.lock),
++};
++
++/* Probe for console output: obtains observed lines of interest. */
++static void probe_console(void *ignore, const char *buf, size_t len)
++{
++	unsigned long flags;
++	int nlines;
++
++	spin_lock_irqsave(&observed.lock, flags);
++	nlines = observed.nlines;
++
++	if (strnstr(buf, "BUG: KFENCE: ", len) && strnstr(buf, "test_", len)) {
++		/*
++		 * KFENCE report and related to the test.
++		 *
++		 * The provided @buf is not NUL-terminated; copy no more than
++		 * @len bytes and let strscpy() add the missing NUL-terminator.
++		 */
++		strscpy(observed.lines[0], buf, min(len + 1, sizeof(observed.lines[0])));
++		nlines = 1;
++	} else if (nlines == 1 && (strnstr(buf, "at 0x", len) || strnstr(buf, "of 0x", len))) {
++		strscpy(observed.lines[nlines++], buf, min(len + 1, sizeof(observed.lines[0])));
++	}
++
++	WRITE_ONCE(observed.nlines, nlines); /* Publish new nlines. */
++	spin_unlock_irqrestore(&observed.lock, flags);
++}
++
++/* Check if a report related to the test exists. */
++static bool report_available(void)
++{
++	return READ_ONCE(observed.nlines) == ARRAY_SIZE(observed.lines);
++}
++
++/* Information we expect in a report. */
++struct expect_report {
++	enum kfence_error_type type; /* The type or error. */
++	void *fn; /* Function pointer to expected function where access occurred. */
++	char *addr; /* Address at which the bad access occurred. */
++	bool is_write; /* Is access a write. */
++};
++
++static const char *get_access_type(const struct expect_report *r)
++{
++	return r->is_write ? "write" : "read";
++}
++
++/* Check observed report matches information in @r. */
++static bool report_matches(const struct expect_report *r)
++{
++	bool ret = false;
++	unsigned long flags;
++	typeof(observed.lines) expect;
++	const char *end;
++	char *cur;
++
++	/* Doubled-checked locking. */
++	if (!report_available())
++		return false;
++
++	/* Generate expected report contents. */
++
++	/* Title */
++	cur = expect[0];
++	end = &expect[0][sizeof(expect[0]) - 1];
++	switch (r->type) {
++	case KFENCE_ERROR_OOB:
++		cur += scnprintf(cur, end - cur, "BUG: KFENCE: out-of-bounds %s",
++				 get_access_type(r));
++		break;
++	case KFENCE_ERROR_UAF:
++		cur += scnprintf(cur, end - cur, "BUG: KFENCE: use-after-free %s",
++				 get_access_type(r));
++		break;
++	case KFENCE_ERROR_CORRUPTION:
++		cur += scnprintf(cur, end - cur, "BUG: KFENCE: memory corruption");
++		break;
++	case KFENCE_ERROR_INVALID:
++		cur += scnprintf(cur, end - cur, "BUG: KFENCE: invalid %s",
++				 get_access_type(r));
++		break;
++	case KFENCE_ERROR_INVALID_FREE:
++		cur += scnprintf(cur, end - cur, "BUG: KFENCE: invalid free");
++		break;
++	}
++
++	scnprintf(cur, end - cur, " in %pS", r->fn);
++	/* The exact offset won't match, remove it; also strip module name. */
++	cur = strchr(expect[0], '+');
++	if (cur)
++		*cur = '\0';
++
++	/* Access information */
++	cur = expect[1];
++	end = &expect[1][sizeof(expect[1]) - 1];
++
++	switch (r->type) {
++	case KFENCE_ERROR_OOB:
++		cur += scnprintf(cur, end - cur, "Out-of-bounds %s at", get_access_type(r));
++		break;
++	case KFENCE_ERROR_UAF:
++		cur += scnprintf(cur, end - cur, "Use-after-free %s at", get_access_type(r));
++		break;
++	case KFENCE_ERROR_CORRUPTION:
++		cur += scnprintf(cur, end - cur, "Corrupted memory at");
++		break;
++	case KFENCE_ERROR_INVALID:
++		cur += scnprintf(cur, end - cur, "Invalid %s at", get_access_type(r));
++		break;
++	case KFENCE_ERROR_INVALID_FREE:
++		cur += scnprintf(cur, end - cur, "Invalid free of");
++		break;
++	}
++
++	cur += scnprintf(cur, end - cur, " 0x" PTR_FMT, (void *)r->addr);
++
++	spin_lock_irqsave(&observed.lock, flags);
++	if (!report_available())
++		goto out; /* A new report is being captured. */
++
++	/* Finally match expected output to what we actually observed. */
++	ret = strstr(observed.lines[0], expect[0]) && strstr(observed.lines[1], expect[1]);
++out:
++	spin_unlock_irqrestore(&observed.lock, flags);
++	return ret;
++}
++
++/* ===== Test cases ===== */
++
++#define TEST_PRIV_WANT_MEMCACHE ((void *)1)
++
++/* Cache used by tests; if NULL, allocate from kmalloc instead. */
++static struct kmem_cache *test_cache;
++
++static size_t setup_test_cache(struct kunit *test, size_t size, slab_flags_t flags,
++			       void (*ctor)(void *))
++{
++	if (test->priv != TEST_PRIV_WANT_MEMCACHE)
++		return size;
++
++	kunit_info(test, "%s: size=%zu, ctor=%ps\n", __func__, size, ctor);
++
++	/*
++	 * Use SLAB_NOLEAKTRACE to prevent merging with existing caches. Any
++	 * other flag in SLAB_NEVER_MERGE also works. Use SLAB_ACCOUNT to
++	 * allocate via memcg, if enabled.
++	 */
++	flags |= SLAB_NOLEAKTRACE | SLAB_ACCOUNT;
++	test_cache = kmem_cache_create("test", size, 1, flags, ctor);
++	KUNIT_ASSERT_TRUE_MSG(test, test_cache, "could not create cache");
++
++	return size;
++}
++
++static void test_cache_destroy(void)
++{
++	if (!test_cache)
++		return;
++
++	kmem_cache_destroy(test_cache);
++	test_cache = NULL;
++}
++
++static inline size_t kmalloc_cache_alignment(size_t size)
++{
++	return kmalloc_caches[kmalloc_type(GFP_KERNEL)][kmalloc_index(size)]->align;
++}
++
++/* Must always inline to match stack trace against caller. */
++static __always_inline void test_free(void *ptr)
++{
++	if (test_cache)
++		kmem_cache_free(test_cache, ptr);
++	else
++		kfree(ptr);
++}
++
++/*
++ * If this should be a KFENCE allocation, and on which side the allocation and
++ * the closest guard page should be.
++ */
++enum allocation_policy {
++	ALLOCATE_ANY, /* KFENCE, any side. */
++	ALLOCATE_LEFT, /* KFENCE, left side of page. */
++	ALLOCATE_RIGHT, /* KFENCE, right side of page. */
++	ALLOCATE_NONE, /* No KFENCE allocation. */
++};
++
++/*
++ * Try to get a guarded allocation from KFENCE. Uses either kmalloc() or the
++ * current test_cache if set up.
++ */
++static void *test_alloc(struct kunit *test, size_t size, gfp_t gfp, enum allocation_policy policy)
++{
++	void *alloc;
++	unsigned long timeout, resched_after;
++	const char *policy_name;
++
++	switch (policy) {
++	case ALLOCATE_ANY:
++		policy_name = "any";
++		break;
++	case ALLOCATE_LEFT:
++		policy_name = "left";
++		break;
++	case ALLOCATE_RIGHT:
++		policy_name = "right";
++		break;
++	case ALLOCATE_NONE:
++		policy_name = "none";
++		break;
++	}
++
++	kunit_info(test, "%s: size=%zu, gfp=%x, policy=%s, cache=%i\n", __func__, size, gfp,
++		   policy_name, !!test_cache);
++
++	/*
++	 * 100x the sample interval should be more than enough to ensure we get
++	 * a KFENCE allocation eventually.
++	 */
++	timeout = jiffies + msecs_to_jiffies(100 * CONFIG_KFENCE_SAMPLE_INTERVAL);
++	/*
++	 * Especially for non-preemption kernels, ensure the allocation-gate
++	 * timer can catch up: after @resched_after, every failed allocation
++	 * attempt yields, to ensure the allocation-gate timer is scheduled.
++	 */
++	resched_after = jiffies + msecs_to_jiffies(CONFIG_KFENCE_SAMPLE_INTERVAL);
++	do {
++		if (test_cache)
++			alloc = kmem_cache_alloc(test_cache, gfp);
++		else
++			alloc = kmalloc(size, gfp);
++
++		if (is_kfence_address(alloc)) {
++			struct page *page = virt_to_head_page(alloc);
++			struct kmem_cache *s = test_cache ?: kmalloc_caches[kmalloc_type(GFP_KERNEL)][kmalloc_index(size)];
++
++			/*
++			 * Verify that various helpers return the right values
++			 * even for KFENCE objects; these are required so that
++			 * memcg accounting works correctly.
++			 */
++			KUNIT_EXPECT_EQ(test, obj_to_index(s, page, alloc), 0U);
++			KUNIT_EXPECT_EQ(test, objs_per_slab_page(s, page), 1);
++
++			if (policy == ALLOCATE_ANY)
++				return alloc;
++			if (policy == ALLOCATE_LEFT && IS_ALIGNED((unsigned long)alloc, PAGE_SIZE))
++				return alloc;
++			if (policy == ALLOCATE_RIGHT &&
++			    !IS_ALIGNED((unsigned long)alloc, PAGE_SIZE))
++				return alloc;
++		} else if (policy == ALLOCATE_NONE)
++			return alloc;
++
++		test_free(alloc);
++
++		if (time_after(jiffies, resched_after))
++			cond_resched();
++	} while (time_before(jiffies, timeout));
++
++	KUNIT_ASSERT_TRUE_MSG(test, false, "failed to allocate from KFENCE");
++	return NULL; /* Unreachable. */
++}
++
++static void test_out_of_bounds_read(struct kunit *test)
++{
++	size_t size = 32;
++	struct expect_report expect = {
++		.type = KFENCE_ERROR_OOB,
++		.fn = test_out_of_bounds_read,
++		.is_write = false,
++	};
++	char *buf;
++
++	setup_test_cache(test, size, 0, NULL);
++
++	/*
++	 * If we don't have our own cache, adjust based on alignment, so that we
++	 * actually access guard pages on either side.
++	 */
++	if (!test_cache)
++		size = kmalloc_cache_alignment(size);
++
++	/* Test both sides. */
++
++	buf = test_alloc(test, size, GFP_KERNEL, ALLOCATE_LEFT);
++	expect.addr = buf - 1;
++	READ_ONCE(*expect.addr);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++	test_free(buf);
++
++	buf = test_alloc(test, size, GFP_KERNEL, ALLOCATE_RIGHT);
++	expect.addr = buf + size;
++	READ_ONCE(*expect.addr);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++	test_free(buf);
++}
++
++static void test_out_of_bounds_write(struct kunit *test)
++{
++	size_t size = 32;
++	struct expect_report expect = {
++		.type = KFENCE_ERROR_OOB,
++		.fn = test_out_of_bounds_write,
++		.is_write = true,
++	};
++	char *buf;
++
++	setup_test_cache(test, size, 0, NULL);
++	buf = test_alloc(test, size, GFP_KERNEL, ALLOCATE_LEFT);
++	expect.addr = buf - 1;
++	WRITE_ONCE(*expect.addr, 42);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++	test_free(buf);
++}
++
++static void test_use_after_free_read(struct kunit *test)
++{
++	const size_t size = 32;
++	struct expect_report expect = {
++		.type = KFENCE_ERROR_UAF,
++		.fn = test_use_after_free_read,
++		.is_write = false,
++	};
++
++	setup_test_cache(test, size, 0, NULL);
++	expect.addr = test_alloc(test, size, GFP_KERNEL, ALLOCATE_ANY);
++	test_free(expect.addr);
++	READ_ONCE(*expect.addr);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
++static void test_double_free(struct kunit *test)
++{
++	const size_t size = 32;
++	struct expect_report expect = {
++		.type = KFENCE_ERROR_INVALID_FREE,
++		.fn = test_double_free,
++	};
++
++	setup_test_cache(test, size, 0, NULL);
++	expect.addr = test_alloc(test, size, GFP_KERNEL, ALLOCATE_ANY);
++	test_free(expect.addr);
++	test_free(expect.addr); /* Double-free. */
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
++static void test_invalid_addr_free(struct kunit *test)
++{
++	const size_t size = 32;
++	struct expect_report expect = {
++		.type = KFENCE_ERROR_INVALID_FREE,
++		.fn = test_invalid_addr_free,
++	};
++	char *buf;
++
++	setup_test_cache(test, size, 0, NULL);
++	buf = test_alloc(test, size, GFP_KERNEL, ALLOCATE_ANY);
++	expect.addr = buf + 1; /* Free on invalid address. */
++	test_free(expect.addr); /* Invalid address free. */
++	test_free(buf); /* No error. */
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
++static void test_corruption(struct kunit *test)
++{
++	size_t size = 32;
++	struct expect_report expect = {
++		.type = KFENCE_ERROR_CORRUPTION,
++		.fn = test_corruption,
++	};
++	char *buf;
++
++	setup_test_cache(test, size, 0, NULL);
++
++	/* Test both sides. */
++
++	buf = test_alloc(test, size, GFP_KERNEL, ALLOCATE_LEFT);
++	expect.addr = buf + size;
++	WRITE_ONCE(*expect.addr, 42);
++	test_free(buf);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++
++	buf = test_alloc(test, size, GFP_KERNEL, ALLOCATE_RIGHT);
++	expect.addr = buf - 1;
++	WRITE_ONCE(*expect.addr, 42);
++	test_free(buf);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
++/*
++ * KFENCE is unable to detect an OOB if the allocation's alignment requirements
++ * leave a gap between the object and the guard page. Specifically, an
++ * allocation of e.g. 73 bytes is aligned on 8 and 128 bytes for SLUB or SLAB
++ * respectively. Therefore it is impossible for the allocated object to
++ * contiguously line up with the right guard page.
++ *
++ * However, we test that an access to memory beyond the gap results in KFENCE
++ * detecting an OOB access.
++ */
++static void test_kmalloc_aligned_oob_read(struct kunit *test)
++{
++	const size_t size = 73;
++	const size_t align = kmalloc_cache_alignment(size);
++	struct expect_report expect = {
++		.type = KFENCE_ERROR_OOB,
++		.fn = test_kmalloc_aligned_oob_read,
++		.is_write = false,
++	};
++	char *buf;
++
++	buf = test_alloc(test, size, GFP_KERNEL, ALLOCATE_RIGHT);
++
++	/*
++	 * The object is offset to the right, so there won't be an OOB to the
++	 * left of it.
++	 */
++	READ_ONCE(*(buf - 1));
++	KUNIT_EXPECT_FALSE(test, report_available());
++
++	/*
++	 * @buf must be aligned on @align, therefore buf + size belongs to the
++	 * same page -> no OOB.
++	 */
++	READ_ONCE(*(buf + size));
++	KUNIT_EXPECT_FALSE(test, report_available());
++
++	/* Overflowing by @align bytes will result in an OOB. */
++	expect.addr = buf + size + align;
++	READ_ONCE(*expect.addr);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++
++	test_free(buf);
++}
++
++static void test_kmalloc_aligned_oob_write(struct kunit *test)
++{
++	const size_t size = 73;
++	struct expect_report expect = {
++		.type = KFENCE_ERROR_CORRUPTION,
++		.fn = test_kmalloc_aligned_oob_write,
++	};
++	char *buf;
++
++	buf = test_alloc(test, size, GFP_KERNEL, ALLOCATE_RIGHT);
++	/*
++	 * The object is offset to the right, so we won't get a page
++	 * fault immediately after it.
++	 */
++	expect.addr = buf + size;
++	WRITE_ONCE(*expect.addr, READ_ONCE(*expect.addr) + 1);
++	KUNIT_EXPECT_FALSE(test, report_available());
++	test_free(buf);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
++/* Test cache shrinking and destroying with KFENCE. */
++static void test_shrink_memcache(struct kunit *test)
++{
++	const size_t size = 32;
++	void *buf;
++
++	setup_test_cache(test, size, 0, NULL);
++	KUNIT_EXPECT_TRUE(test, test_cache);
++	buf = test_alloc(test, size, GFP_KERNEL, ALLOCATE_ANY);
++	kmem_cache_shrink(test_cache);
++	test_free(buf);
++
++	KUNIT_EXPECT_FALSE(test, report_available());
++}
++
++static void ctor_set_x(void *obj)
++{
++	/* Every object has at least 8 bytes. */
++	memset(obj, 'x', 8);
++}
++
++/* Ensure that SL*B does not modify KFENCE objects on bulk free. */
++static void test_free_bulk(struct kunit *test)
++{
++	int iter;
++
++	for (iter = 0; iter < 5; iter++) {
++		const size_t size = setup_test_cache(test, 8 + prandom_u32_max(300), 0,
++						     (iter & 1) ? ctor_set_x : NULL);
++		void *objects[] = {
++			test_alloc(test, size, GFP_KERNEL, ALLOCATE_RIGHT),
++			test_alloc(test, size, GFP_KERNEL, ALLOCATE_NONE),
++			test_alloc(test, size, GFP_KERNEL, ALLOCATE_LEFT),
++			test_alloc(test, size, GFP_KERNEL, ALLOCATE_NONE),
++			test_alloc(test, size, GFP_KERNEL, ALLOCATE_NONE),
++		};
++
++		kmem_cache_free_bulk(test_cache, ARRAY_SIZE(objects), objects);
++		KUNIT_ASSERT_FALSE(test, report_available());
++		test_cache_destroy();
++	}
++}
++
++/* Test init-on-free works. */
++static void test_init_on_free(struct kunit *test)
++{
++	const size_t size = 32;
++	struct expect_report expect = {
++		.type = KFENCE_ERROR_UAF,
++		.fn = test_init_on_free,
++		.is_write = false,
++	};
++	int i;
++
++	if (!IS_ENABLED(CONFIG_INIT_ON_FREE_DEFAULT_ON))
++		return;
++	/* Assume it hasn't been disabled on command line. */
++
++	setup_test_cache(test, size, 0, NULL);
++	expect.addr = test_alloc(test, size, GFP_KERNEL, ALLOCATE_ANY);
++	for (i = 0; i < size; i++)
++		expect.addr[i] = i + 1;
++	test_free(expect.addr);
++
++	for (i = 0; i < size; i++) {
++		/*
++		 * This may fail if the page was recycled by KFENCE and then
++		 * written to again -- this however, is near impossible with a
++		 * default config.
++		 */
++		KUNIT_EXPECT_EQ(test, expect.addr[i], (char)0);
++
++		if (!i) /* Only check first access to not fail test if page is ever re-protected. */
++			KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++	}
++}
++
++/* Ensure that constructors work properly. */
++static void test_memcache_ctor(struct kunit *test)
++{
++	const size_t size = 32;
++	char *buf;
++	int i;
++
++	setup_test_cache(test, size, 0, ctor_set_x);
++	buf = test_alloc(test, size, GFP_KERNEL, ALLOCATE_ANY);
++
++	for (i = 0; i < 8; i++)
++		KUNIT_EXPECT_EQ(test, buf[i], (char)'x');
++
++	test_free(buf);
++
++	KUNIT_EXPECT_FALSE(test, report_available());
++}
++
++/* Test that memory is zeroed if requested. */
++static void test_gfpzero(struct kunit *test)
++{
++	const size_t size = PAGE_SIZE; /* PAGE_SIZE so we can use ALLOCATE_ANY. */
++	char *buf1, *buf2;
++	int i;
++
++	if (CONFIG_KFENCE_SAMPLE_INTERVAL > 100) {
++		kunit_warn(test, "skipping ... would take too long\n");
++		return;
++	}
++
++	setup_test_cache(test, size, 0, NULL);
++	buf1 = test_alloc(test, size, GFP_KERNEL, ALLOCATE_ANY);
++	for (i = 0; i < size; i++)
++		buf1[i] = i + 1;
++	test_free(buf1);
++
++	/* Try to get same address again -- this can take a while. */
++	for (i = 0;; i++) {
++		buf2 = test_alloc(test, size, GFP_KERNEL | __GFP_ZERO, ALLOCATE_ANY);
++		if (buf1 == buf2)
++			break;
++		test_free(buf2);
++
++		if (i == CONFIG_KFENCE_NUM_OBJECTS) {
++			kunit_warn(test, "giving up ... cannot get same object back\n");
++			return;
++		}
++	}
++
++	for (i = 0; i < size; i++)
++		KUNIT_EXPECT_EQ(test, buf2[i], (char)0);
++
++	test_free(buf2);
++
++	KUNIT_EXPECT_FALSE(test, report_available());
++}
++
++static void test_invalid_access(struct kunit *test)
++{
++	const struct expect_report expect = {
++		.type = KFENCE_ERROR_INVALID,
++		.fn = test_invalid_access,
++		.addr = &__kfence_pool[10],
++		.is_write = false,
++	};
++
++	READ_ONCE(__kfence_pool[10]);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
++/* Test SLAB_TYPESAFE_BY_RCU works. */
++static void test_memcache_typesafe_by_rcu(struct kunit *test)
++{
++	const size_t size = 32;
++	struct expect_report expect = {
++		.type = KFENCE_ERROR_UAF,
++		.fn = test_memcache_typesafe_by_rcu,
++		.is_write = false,
++	};
++
++	setup_test_cache(test, size, SLAB_TYPESAFE_BY_RCU, NULL);
++	KUNIT_EXPECT_TRUE(test, test_cache); /* Want memcache. */
++
++	expect.addr = test_alloc(test, size, GFP_KERNEL, ALLOCATE_ANY);
++	*expect.addr = 42;
++
++	rcu_read_lock();
++	test_free(expect.addr);
++	KUNIT_EXPECT_EQ(test, *expect.addr, (char)42);
++	/*
++	 * Up to this point, memory should not have been freed yet, and
++	 * therefore there should be no KFENCE report from the above access.
++	 */
++	rcu_read_unlock();
++
++	/* Above access to @expect.addr should not have generated a report! */
++	KUNIT_EXPECT_FALSE(test, report_available());
++
++	/* Only after rcu_barrier() is the memory guaranteed to be freed. */
++	rcu_barrier();
++
++	/* Expect use-after-free. */
++	KUNIT_EXPECT_EQ(test, *expect.addr, (char)42);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
++/* Test krealloc(). */
++static void test_krealloc(struct kunit *test)
++{
++	const size_t size = 32;
++	const struct expect_report expect = {
++		.type = KFENCE_ERROR_UAF,
++		.fn = test_krealloc,
++		.addr = test_alloc(test, size, GFP_KERNEL, ALLOCATE_ANY),
++		.is_write = false,
++	};
++	char *buf = expect.addr;
++	int i;
++
++	KUNIT_EXPECT_FALSE(test, test_cache);
++	KUNIT_EXPECT_EQ(test, ksize(buf), size); /* Precise size match after KFENCE alloc. */
++	for (i = 0; i < size; i++)
++		buf[i] = i + 1;
++
++	/* Check that we successfully change the size. */
++	buf = krealloc(buf, size * 3, GFP_KERNEL); /* Grow. */
++	/* Note: Might no longer be a KFENCE alloc. */
++	KUNIT_EXPECT_GE(test, ksize(buf), size * 3);
++	for (i = 0; i < size; i++)
++		KUNIT_EXPECT_EQ(test, buf[i], (char)(i + 1));
++	for (; i < size * 3; i++) /* Fill to extra bytes. */
++		buf[i] = i + 1;
++
++	buf = krealloc(buf, size * 2, GFP_KERNEL); /* Shrink. */
++	KUNIT_EXPECT_GE(test, ksize(buf), size * 2);
++	for (i = 0; i < size * 2; i++)
++		KUNIT_EXPECT_EQ(test, buf[i], (char)(i + 1));
++
++	buf = krealloc(buf, 0, GFP_KERNEL); /* Free. */
++	KUNIT_EXPECT_EQ(test, (unsigned long)buf, (unsigned long)ZERO_SIZE_PTR);
++	KUNIT_ASSERT_FALSE(test, report_available()); /* No reports yet! */
++
++	READ_ONCE(*expect.addr); /* Ensure krealloc() actually freed earlier KFENCE object. */
++	KUNIT_ASSERT_TRUE(test, report_matches(&expect));
++}
++
++/* Test that some objects from a bulk allocation belong to KFENCE pool. */
++static void test_memcache_alloc_bulk(struct kunit *test)
++{
++	const size_t size = 32;
++	bool pass = false;
++	unsigned long timeout;
++
++	setup_test_cache(test, size, 0, NULL);
++	KUNIT_EXPECT_TRUE(test, test_cache); /* Want memcache. */
++	/*
++	 * 100x the sample interval should be more than enough to ensure we get
++	 * a KFENCE allocation eventually.
++	 */
++	timeout = jiffies + msecs_to_jiffies(100 * CONFIG_KFENCE_SAMPLE_INTERVAL);
++	do {
++		void *objects[100];
++		int i, num = kmem_cache_alloc_bulk(test_cache, GFP_ATOMIC, ARRAY_SIZE(objects),
++						   objects);
++		if (!num)
++			continue;
++		for (i = 0; i < ARRAY_SIZE(objects); i++) {
++			if (is_kfence_address(objects[i])) {
++				pass = true;
++				break;
++			}
++		}
++		kmem_cache_free_bulk(test_cache, num, objects);
++		/*
++		 * kmem_cache_alloc_bulk() disables interrupts, and calling it
++		 * in a tight loop may not give KFENCE a chance to switch the
++		 * static branch. Call cond_resched() to let KFENCE chime in.
++		 */
++		cond_resched();
++	} while (!pass && time_before(jiffies, timeout));
++
++	KUNIT_EXPECT_TRUE(test, pass);
++	KUNIT_EXPECT_FALSE(test, report_available());
++}
++
++/*
++ * KUnit does not provide a way to provide arguments to tests, and we encode
++ * additional info in the name. Set up 2 tests per test case, one using the
++ * default allocator, and another using a custom memcache (suffix '-memcache').
++ */
++#define KFENCE_KUNIT_CASE(test_name)						\
++	{ .run_case = test_name, .name = #test_name },				\
++	{ .run_case = test_name, .name = #test_name "-memcache" }
++
++static struct kunit_case kfence_test_cases[] = {
++	KFENCE_KUNIT_CASE(test_out_of_bounds_read),
++	KFENCE_KUNIT_CASE(test_out_of_bounds_write),
++	KFENCE_KUNIT_CASE(test_use_after_free_read),
++	KFENCE_KUNIT_CASE(test_double_free),
++	KFENCE_KUNIT_CASE(test_invalid_addr_free),
++	KFENCE_KUNIT_CASE(test_corruption),
++	KFENCE_KUNIT_CASE(test_free_bulk),
++	KFENCE_KUNIT_CASE(test_init_on_free),
++	KUNIT_CASE(test_kmalloc_aligned_oob_read),
++	KUNIT_CASE(test_kmalloc_aligned_oob_write),
++	KUNIT_CASE(test_shrink_memcache),
++	KUNIT_CASE(test_memcache_ctor),
++	KUNIT_CASE(test_invalid_access),
++	KUNIT_CASE(test_gfpzero),
++	KUNIT_CASE(test_memcache_typesafe_by_rcu),
++	KUNIT_CASE(test_krealloc),
++	KUNIT_CASE(test_memcache_alloc_bulk),
++	{},
++};
++
++/* ===== End test cases ===== */
++
++static int test_init(struct kunit *test)
++{
++	unsigned long flags;
++	int i;
++
++	spin_lock_irqsave(&observed.lock, flags);
++	for (i = 0; i < ARRAY_SIZE(observed.lines); i++)
++		observed.lines[i][0] = '\0';
++	observed.nlines = 0;
++	spin_unlock_irqrestore(&observed.lock, flags);
++
++	/* Any test with 'memcache' in its name will want a memcache. */
++	if (strstr(test->name, "memcache"))
++		test->priv = TEST_PRIV_WANT_MEMCACHE;
++	else
++		test->priv = NULL;
++
++	return 0;
++}
++
++static void test_exit(struct kunit *test)
++{
++	test_cache_destroy();
++}
++
++static struct kunit_suite kfence_test_suite = {
++	.name = "kfence",
++	.test_cases = kfence_test_cases,
++	.init = test_init,
++	.exit = test_exit,
++};
++static struct kunit_suite *kfence_test_suites[] = { &kfence_test_suite, NULL };
++
++static void register_tracepoints(struct tracepoint *tp, void *ignore)
++{
++	check_trace_callback_type_console(probe_console);
++	if (!strcmp(tp->name, "console"))
++		WARN_ON(tracepoint_probe_register(tp, probe_console, NULL));
++}
++
++static void unregister_tracepoints(struct tracepoint *tp, void *ignore)
++{
++	if (!strcmp(tp->name, "console"))
++		tracepoint_probe_unregister(tp, probe_console, NULL);
++}
++
++/*
++ * We only want to do tracepoints setup and teardown once, therefore we have to
++ * customize the init and exit functions and cannot rely on kunit_test_suite().
++ */
++static int __init kfence_test_init(void)
++{
++	/*
++	 * Because we want to be able to build the test as a module, we need to
++	 * iterate through all known tracepoints, since the static registration
++	 * won't work here.
++	 */
++	for_each_kernel_tracepoint(register_tracepoints, NULL);
++	return __kunit_test_suites_init(kfence_test_suites);
++}
++
++static void kfence_test_exit(void)
++{
++	__kunit_test_suites_exit(kfence_test_suites);
++	for_each_kernel_tracepoint(unregister_tracepoints, NULL);
++	tracepoint_synchronize_unregister();
++}
++
++late_initcall(kfence_test_init);
++module_exit(kfence_test_exit);
++
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Alexander Potapenko <glider@google.com>, Marco Elver <elver@google.com>");
+--- a/mm/kfence/Makefile~kfence-add-test-suite
++++ a/mm/kfence/Makefile
+@@ -1,3 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ 
+ obj-$(CONFIG_KFENCE) := core.o report.o
++
++CFLAGS_kfence_test.o := -g -fno-omit-frame-pointer -fno-optimize-sibling-calls
++obj-$(CONFIG_KFENCE_KUNIT_TEST) += kfence_test.o
+--- a/mm/kfence/report.c~kfence-add-test-suite
++++ a/mm/kfence/report.c
+@@ -156,7 +156,12 @@ static void print_diff_canary(unsigned l
+ 	pr_cont(" ]");
+ }
+ 
+-void kfence_report_error(unsigned long address, struct pt_regs *regs,
++static const char *get_access_type(bool is_write)
++{
++	return is_write ? "write" : "read";
++}
++
++void kfence_report_error(unsigned long address, bool is_write, struct pt_regs *regs,
+ 			 const struct kfence_metadata *meta, enum kfence_error_type type)
+ {
+ 	unsigned long stack_entries[KFENCE_STACK_DEPTH] = { 0 };
+@@ -194,17 +199,19 @@ void kfence_report_error(unsigned long a
+ 	case KFENCE_ERROR_OOB: {
+ 		const bool left_of_object = address < meta->addr;
+ 
+-		pr_err("BUG: KFENCE: out-of-bounds in %pS\n\n", (void *)stack_entries[skipnr]);
+-		pr_err("Out-of-bounds access at 0x" PTR_FMT " (%luB %s of kfence-#%zd):\n",
+-		       (void *)address,
++		pr_err("BUG: KFENCE: out-of-bounds %s in %pS\n\n", get_access_type(is_write),
++		       (void *)stack_entries[skipnr]);
++		pr_err("Out-of-bounds %s at 0x" PTR_FMT " (%luB %s of kfence-#%zd):\n",
++		       get_access_type(is_write), (void *)address,
+ 		       left_of_object ? meta->addr - address : address - meta->addr,
+ 		       left_of_object ? "left" : "right", object_index);
+ 		break;
+ 	}
+ 	case KFENCE_ERROR_UAF:
+-		pr_err("BUG: KFENCE: use-after-free in %pS\n\n", (void *)stack_entries[skipnr]);
+-		pr_err("Use-after-free access at 0x" PTR_FMT " (in kfence-#%zd):\n",
+-		       (void *)address, object_index);
++		pr_err("BUG: KFENCE: use-after-free %s in %pS\n\n", get_access_type(is_write),
++		       (void *)stack_entries[skipnr]);
++		pr_err("Use-after-free %s at 0x" PTR_FMT " (in kfence-#%zd):\n",
++		       get_access_type(is_write), (void *)address, object_index);
+ 		break;
+ 	case KFENCE_ERROR_CORRUPTION:
+ 		pr_err("BUG: KFENCE: memory corruption in %pS\n\n", (void *)stack_entries[skipnr]);
+@@ -213,8 +220,10 @@ void kfence_report_error(unsigned long a
+ 		pr_cont(" (in kfence-#%zd):\n", object_index);
+ 		break;
+ 	case KFENCE_ERROR_INVALID:
+-		pr_err("BUG: KFENCE: invalid access in %pS\n\n", (void *)stack_entries[skipnr]);
+-		pr_err("Invalid access at 0x" PTR_FMT ":\n", (void *)address);
++		pr_err("BUG: KFENCE: invalid %s in %pS\n\n", get_access_type(is_write),
++		       (void *)stack_entries[skipnr]);
++		pr_err("Invalid %s at 0x" PTR_FMT ":\n", get_access_type(is_write),
++		       (void *)address);
+ 		break;
+ 	case KFENCE_ERROR_INVALID_FREE:
+ 		pr_err("BUG: KFENCE: invalid free in %pS\n\n", (void *)stack_entries[skipnr]);
 _
