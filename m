@@ -5,38 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8AC3C433DB
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C297C433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 60FEF64EE4
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CC25E64EE4
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229989AbhBZBX1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229498AbhBZBX1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 25 Feb 2021 20:23:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52948 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52506 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230087AbhBZBWw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:22:52 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0581A64F2A;
-        Fri, 26 Feb 2021 01:22:18 +0000 (UTC)
+        id S230084AbhBZBWv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:22:51 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A4AFD64F46;
+        Fri, 26 Feb 2021 01:22:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302539;
-        bh=fbK5xZNbVI2PN5CGMgETojSaNUCDfWsqpg6CAsRAOXo=;
+        s=korg; t=1614302536;
+        bh=npd51zvtuSRyDukwVobHPPJmeu3pdjj7Lu4TqiM3zFo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=HdlTe+EOcmiiKYep4kf3knoe7q62ID7Jp3jMilV4b2Nv/Xtbq1w20z2Pp11D5QIfQ
-         Niu6JpUO48FHpqGYBNWz4LS1UKnH8KNk8UcLCe4qf7yuMrx0BSj5F4J3w4WfYnIAp7
-         2348IhTdyzfM6YscBfe4etYt9WPrLJmlnOV9FG2o=
-Date:   Thu, 25 Feb 2021 17:22:18 -0800
+        b=IVTSFo/pCq4r1OEzCuXgFmC4I+xNLmVtlQO7/6AhndiwFvx4H4zjsH33CPMbxUNk7
+         rbpzCj4fQShXaCjIZIMAjTibtrdSkHV0hH2+4VnX/I6uGp77vK/VsbHOyUcB4eTWmv
+         thUFLSjPSB3y1M1EuexVtbVyym7UStXEqTZsNDcM=
+Date:   Thu, 25 Feb 2021 17:22:15 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, nathan@kernel.org,
-        rdunlap@infradead.org, torvalds@linux-foundation.org,
-        unixbhaskar@gmail.com
-Subject:  [patch 110/118] init/Kconfig: fix a typo in
- CC_VERSION_TEXT help text
-Message-ID: <20210226012218.4f2-kBtMy%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, joe@perches.com, johan@kernel.org,
+        linux-mm@kvack.org, masahiroy@kernel.org,
+        mm-commits@vger.kernel.org, ndesaulniers@gooogle.com,
+        ojeda@kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 109/118] init: clean up early_param_on_off() macro
+Message-ID: <20210226012215.RdZaZD3LS%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,30 +43,41 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Subject: init/Kconfig: fix a typo in CC_VERSION_TEXT help text
+From: Masahiro Yamada <masahiroy@kernel.org>
+Subject: init: clean up early_param_on_off() macro
 
-s/compier/compiler/
+Use early_param() to define early_param_on_off().
 
-Link: https://lkml.kernel.org/r/20210224223325.29099-1-unixbhaskar@gmail.com
-Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Nathan Chancellor <nathan@kernel.org>
+Link: https://lkml.kernel.org/r/20210201041532.4025025-1-masahiroy@kernel.org
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+Reviewed-by: Johan Hovold <johan@kernel.org>
+Reviewed-by: Miguel Ojeda <ojeda@kernel.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Nick Desaulniers <ndesaulniers@gooogle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/init.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/init/Kconfig~init-kconfig-fix-a-typo-in-cc_version_text-help-text
-+++ a/init/Kconfig
-@@ -19,7 +19,7 @@ config CC_VERSION_TEXT
- 	    CC_VERSION_TEXT so it is recorded in include/config/auto.conf.cmd.
- 	    When the compiler is updated, Kconfig will be invoked.
+--- a/include/linux/init.h~init-clean-up-early_param_on_off-macro
++++ a/include/linux/init.h
+@@ -338,14 +338,14 @@ struct obs_kernel_param {
+ 		var = 1;						\
+ 		return 0;						\
+ 	}								\
+-	__setup_param(str_on, parse_##var##_on, parse_##var##_on, 1);	\
++	early_param(str_on, parse_##var##_on);				\
+ 									\
+ 	static int __init parse_##var##_off(char *arg)			\
+ 	{								\
+ 		var = 0;						\
+ 		return 0;						\
+ 	}								\
+-	__setup_param(str_off, parse_##var##_off, parse_##var##_off, 1)
++	early_param(str_off, parse_##var##_off)
  
--	  - Ensure full rebuild when the compier is updated
-+	  - Ensure full rebuild when the compiler is updated
- 	    include/linux/kconfig.h contains this option in the comment line so
- 	    fixdep adds include/config/cc/version/text.h into the auto-generated
- 	    dependency. When the compiler is updated, syncconfig will touch it
+ /* Relies on boot_command_line being set */
+ void __init parse_early_param(void);
 _
