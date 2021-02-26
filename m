@@ -5,39 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B1D0C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDC02C43381
 	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B508564EE4
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9DE7664EE2
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:23:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230049AbhBZBXY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:23:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53684 "EHLO mail.kernel.org"
+        id S229946AbhBZBXZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:23:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52400 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229915AbhBZBWn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Feb 2021 20:22:43 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4DE1364F43;
-        Fri, 26 Feb 2021 01:21:58 +0000 (UTC)
+        id S229912AbhBZBWt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Feb 2021 20:22:49 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DE9FA64F13;
+        Fri, 26 Feb 2021 01:22:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302518;
-        bh=PrKSCZGl0kLEiEEp++MoQMYdTD/1sHt+9FXhlrlGVmo=;
+        s=korg; t=1614302522;
+        bh=7EgLt7ixMD+x2IkqQ0JqG4wTI0BkIZFyBMLb/rcE+UE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=J+i8Q4+5AFmNmk8qqi7YsDRfR1AczvrDuxfp+CpK+G26s/japW8ydpKs63MpsXVnT
-         V9wO67FrJ3UlRh8iUnYn9nsHpFHVPymR9KZUbXG4gCPx5SI7rx+lLuwpczHlzW22Wn
-         4PG+ERnnB+lor2XBU6xZYAc2zpXOz36cmNyOuaZA=
-Date:   Thu, 25 Feb 2021 17:21:57 -0800
+        b=kbXPaaepvMhcl+IZtrRXYzpQRsqX733/dW4o+ur9KgP8tHrNLMnEEHSr1yeciNveU
+         HQvMXQyWeN9vmnunrJcpy/dKcxY7Yxfw9Wn79mDAhyTbG0zFhtdP7/4xjVGjuU0WSa
+         vDepH67DY77MTiq66n3fApRfJGg5wfkA7HUCLBjo=
+Date:   Thu, 25 Feb 2021 17:22:01 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, broonie@kernel.org,
-        dwaipayanray1@gmail.com, joe@perches.com, jpoimboe@redhat.com,
-        linux-mm@kvack.org, lukas.bulwahn@gmail.com,
-        mm-commits@vger.kernel.org, ndesaulniers@google.com,
-        torvalds@linux-foundation.org, yashsri421@gmail.com
-Subject:  [patch 104/118] checkpatch: add warning for avoiding .L
- prefix symbols in assembly files
-Message-ID: <20210226012157.Dq91JG3pF%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, joe@perches.com, kuba@kernel.org,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 105/118] checkpatch: add kmalloc_array_node to
+ unnecessary OOM message check
+Message-ID: <20210226012201.gwNkg1WcP%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,50 +43,31 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Aditya Srivastava <yashsri421@gmail.com>
-Subject: checkpatch: add warning for avoiding .L prefix symbols in assembly files
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add kmalloc_array_node to unnecessary OOM message check
 
-objtool requires that all code must be contained in an ELF symbol.  Symbol
-names that have a '.L' prefix do not emit symbol table entries, as they
-have special meaning for the assembler.
+commit 5799b255c491 ("include/linux/slab.h: add kmalloc_array_node() and
+kcalloc_node()") was added in 2017.  Update the unnecessary OOM message
+test to include it.
 
-'.L' prefixed symbols can be used within a code region, but should be
-avoided for denoting a range of code via 'SYM_*_START/END' annotations.
-
-Add a new check to emit a warning on finding the usage of '.L' symbols for
-'.S' files, if it denotes range of code via SYM_*_START/END annotation
-pair.
-
-Link: https://lkml.kernel.org/r/20210123190459.9701-1-yashsri421@gmail.com
-Link: https://lore.kernel.org/lkml/20210112210154.GI4646@sirena.org.uk
-Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
-Suggested-by: Mark Brown <broonie@kernel.org>
-Acked-by: Joe Perches <joe@perches.com>
-Acked-by: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Aditya Srivastava <yashsri421@gmail.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Link: https://lkml.kernel.org/r/b9dc4a808b1518e08ab8761480d9872e5d18e7cd.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++++
- 1 file changed, 7 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-warning-for-avoiding-l-prefix-symbols-in-assembly-files
+--- a/scripts/checkpatch.pl~checkpatch-add-kmalloc_array_node-to-unnecessary-oom-message-check
 +++ a/scripts/checkpatch.pl
-@@ -3599,6 +3599,13 @@ sub process {
- 			}
- 		}
+@@ -487,7 +487,7 @@ our $logFunctions = qr{(?x:
  
-+# check for .L prefix local symbols in .S files
-+		if ($realfile =~ /\.S$/ &&
-+		    $line =~ /^\+\s*(?:[A-Z]+_)?SYM_[A-Z]+_(?:START|END)(?:_[A-Z_]+)?\s*\(\s*\.L/) {
-+			WARN("AVOID_L_PREFIX",
-+			     "Avoid using '.L' prefixed local symbol names for denoting a range of code via 'SYM_*_START/END' annotations; see Documentation/asm-annotations.rst\n" . $herecurr);
-+		}
-+
- # check we are in a valid source file C or perl if not then ignore this hunk
- 		next if ($realfile !~ /\.(h|c|pl|dtsi|dts)$/);
- 
+ our $allocFunctions = qr{(?x:
+ 	(?:(?:devm_)?
+-		(?:kv|k|v)[czm]alloc(?:_node|_array)? |
++		(?:kv|k|v)[czm]alloc(?:_array)?(?:_node)? |
+ 		kstrdup(?:_const)? |
+ 		kmemdup(?:_nul)?) |
+ 	(?:\w+)?alloc_skb(?:_ip_align)? |
 _
