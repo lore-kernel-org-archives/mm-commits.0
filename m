@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAA50C433DB
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:16:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 369FAC433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:16:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8CCAA64F22
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:16:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EECA264F2D
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Feb 2021 01:16:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229596AbhBZBQs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Feb 2021 20:16:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48450 "EHLO mail.kernel.org"
+        id S229598AbhBZBQv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Feb 2021 20:16:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48452 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229571AbhBZBQs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S229498AbhBZBQs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 25 Feb 2021 20:16:48 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3635764F03;
-        Fri, 26 Feb 2021 01:15:49 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E554064F10;
+        Fri, 26 Feb 2021 01:15:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614302150;
-        bh=qnyQLUpQERqYNxaeFsyJczoASbT1emcmw2c8rlm1g8A=;
+        s=korg; t=1614302153;
+        bh=DCrIzSkRn/KXMy+08Uc+Pqcv5uXD/T8+Nvdgc5G3jTA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=unv2ic0SPGhGQZ+nhrVyuxJ2CZp7VCoO0yfDqNTLVNC1fDVuy52G/5L22PhFL3Rpe
-         DtDC5DEHeOuPsdtLb9vkH1/Ltwcsdrf70VqZ52yjY+BkkL5LAaKlE5dwrZqXdkB3ef
-         mj2zpIRebuAF8xW5I0xbFe2JaOJcZ044cjLt7jPY=
-Date:   Thu, 25 Feb 2021 17:15:48 -0800
+        b=PiJSwiz3TTEdVFBI+phtE83LWQhGZKtyXFJHq3ZNgjaoO1S9v9ty/tv0oYXxydCyk
+         isA6ANe+As4jqgvFOGIGP5Vs1+dTAg1OuF67GFECLyKh6JTMP8pkHa9xxngRbP1mG8
+         nscpGvwwotv9zdatK1rlVxqMCEIZmb4eiFpksJvM=
+Date:   Thu, 25 Feb 2021 17:15:52 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, dchinner@redhat.com, hannes@cmpxchg.org,
         hch@lst.de, hughd@google.com, jack@suse.cz,
@@ -36,8 +36,8 @@ To:     akpm@linux-foundation.org, dchinner@redhat.com, hannes@cmpxchg.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         william.kucharski@oracle.com, willy@infradead.org,
         yang.shi@linux.alibaba.com
-Subject:  [patch 007/118] mm/filemap: add mapping_seek_hole_data
-Message-ID: <20210226011548.POGN6tj1x%akpm@linux-foundation.org>
+Subject:  [patch 008/118] iomap: use mapping_seek_hole_data
+Message-ID: <20210226011552.Z2dkn0jeY%akpm@linux-foundation.org>
 In-Reply-To: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,217 +46,234 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: add mapping_seek_hole_data
+Subject: iomap: use mapping_seek_hole_data
 
-Rewrite shmem_seek_hole_data() and move it to filemap.c.
+Enhance mapping_seek_hole_data() to handle partially uptodate pages and
+convert the iomap seek code to call it.
 
-[willy@infradead.org: don't put an xa_is_value() page]
-  Link: https://lkml.kernel.org/r/20201124041507.28996-4-willy@infradead.org
-Link: https://lkml.kernel.org/r/20201112212641.27837-8-willy@infradead.org
+Link: https://lkml.kernel.org/r/20201112212641.27837-9-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Chinner <dchinner@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: William Kucharski <william.kucharski@oracle.com>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +
- mm/filemap.c            |   76 ++++++++++++++++++++++++++++++++++++++
- mm/shmem.c              |   74 ++-----------------------------------
- 3 files changed, 82 insertions(+), 70 deletions(-)
+ fs/iomap/seek.c |  125 ++++------------------------------------------
+ mm/filemap.c    |   37 +++++++++++--
+ 2 files changed, 43 insertions(+), 119 deletions(-)
 
---- a/include/linux/pagemap.h~mm-filemap-add-mapping_seek_hole_data
-+++ a/include/linux/pagemap.h
-@@ -760,6 +760,8 @@ extern void __delete_from_page_cache(str
- void replace_page_cache_page(struct page *old, struct page *new);
- void delete_from_page_cache_batch(struct address_space *mapping,
- 				  struct pagevec *pvec);
-+loff_t mapping_seek_hole_data(struct address_space *, loff_t start, loff_t end,
-+		int whence);
+--- a/fs/iomap/seek.c~iomap-use-mapping_seek_hole_data
++++ a/fs/iomap/seek.c
+@@ -10,122 +10,17 @@
+ #include <linux/pagemap.h>
+ #include <linux/pagevec.h>
  
- /*
-  * Like add_to_page_cache_locked, but used to add newly allocated pages:
---- a/mm/filemap.c~mm-filemap-add-mapping_seek_hole_data
+-/*
+- * Seek for SEEK_DATA / SEEK_HOLE within @page, starting at @lastoff.
+- * Returns true if found and updates @lastoff to the offset in file.
+- */
+-static bool
+-page_seek_hole_data(struct inode *inode, struct page *page, loff_t *lastoff,
+-		int whence)
+-{
+-	const struct address_space_operations *ops = inode->i_mapping->a_ops;
+-	unsigned int bsize = i_blocksize(inode), off;
+-	bool seek_data = whence == SEEK_DATA;
+-	loff_t poff = page_offset(page);
+-
+-	if (WARN_ON_ONCE(*lastoff >= poff + PAGE_SIZE))
+-		return false;
+-
+-	if (*lastoff < poff) {
+-		/*
+-		 * Last offset smaller than the start of the page means we found
+-		 * a hole:
+-		 */
+-		if (whence == SEEK_HOLE)
+-			return true;
+-		*lastoff = poff;
+-	}
+-
+-	/*
+-	 * Just check the page unless we can and should check block ranges:
+-	 */
+-	if (bsize == PAGE_SIZE || !ops->is_partially_uptodate)
+-		return PageUptodate(page) == seek_data;
+-
+-	lock_page(page);
+-	if (unlikely(page->mapping != inode->i_mapping))
+-		goto out_unlock_not_found;
+-
+-	for (off = 0; off < PAGE_SIZE; off += bsize) {
+-		if (offset_in_page(*lastoff) >= off + bsize)
+-			continue;
+-		if (ops->is_partially_uptodate(page, off, bsize) == seek_data) {
+-			unlock_page(page);
+-			return true;
+-		}
+-		*lastoff = poff + off + bsize;
+-	}
+-
+-out_unlock_not_found:
+-	unlock_page(page);
+-	return false;
+-}
+-
+-/*
+- * Seek for SEEK_DATA / SEEK_HOLE in the page cache.
+- *
+- * Within unwritten extents, the page cache determines which parts are holes
+- * and which are data: uptodate buffer heads count as data; everything else
+- * counts as a hole.
+- *
+- * Returns the resulting offset on successs, and -ENOENT otherwise.
+- */
+-static loff_t
+-page_cache_seek_hole_data(struct inode *inode, loff_t offset, loff_t length,
+-		int whence)
+-{
+-	pgoff_t index = offset >> PAGE_SHIFT;
+-	pgoff_t end = DIV_ROUND_UP(offset + length, PAGE_SIZE);
+-	loff_t lastoff = offset;
+-	struct pagevec pvec;
+-
+-	if (length <= 0)
+-		return -ENOENT;
+-
+-	pagevec_init(&pvec);
+-
+-	do {
+-		unsigned nr_pages, i;
+-
+-		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping, &index,
+-						end - 1);
+-		if (nr_pages == 0)
+-			break;
+-
+-		for (i = 0; i < nr_pages; i++) {
+-			struct page *page = pvec.pages[i];
+-
+-			if (page_seek_hole_data(inode, page, &lastoff, whence))
+-				goto check_range;
+-			lastoff = page_offset(page) + PAGE_SIZE;
+-		}
+-		pagevec_release(&pvec);
+-	} while (index < end);
+-
+-	/* When no page at lastoff and we are not done, we found a hole. */
+-	if (whence != SEEK_HOLE)
+-		goto not_found;
+-
+-check_range:
+-	if (lastoff < offset + length)
+-		goto out;
+-not_found:
+-	lastoff = -ENOENT;
+-out:
+-	pagevec_release(&pvec);
+-	return lastoff;
+-}
+-
+-
+ static loff_t
+-iomap_seek_hole_actor(struct inode *inode, loff_t offset, loff_t length,
++iomap_seek_hole_actor(struct inode *inode, loff_t start, loff_t length,
+ 		      void *data, struct iomap *iomap, struct iomap *srcmap)
+ {
++	loff_t offset = start;
++
+ 	switch (iomap->type) {
+ 	case IOMAP_UNWRITTEN:
+-		offset = page_cache_seek_hole_data(inode, offset, length,
+-						   SEEK_HOLE);
+-		if (offset < 0)
++		offset = mapping_seek_hole_data(inode->i_mapping, start,
++				start + length, SEEK_HOLE);
++		if (offset == start + length)
+ 			return length;
+ 		fallthrough;
+ 	case IOMAP_HOLE:
+@@ -164,15 +59,17 @@ iomap_seek_hole(struct inode *inode, lof
+ EXPORT_SYMBOL_GPL(iomap_seek_hole);
+ 
+ static loff_t
+-iomap_seek_data_actor(struct inode *inode, loff_t offset, loff_t length,
++iomap_seek_data_actor(struct inode *inode, loff_t start, loff_t length,
+ 		      void *data, struct iomap *iomap, struct iomap *srcmap)
+ {
++	loff_t offset = start;
++
+ 	switch (iomap->type) {
+ 	case IOMAP_HOLE:
+ 		return length;
+ 	case IOMAP_UNWRITTEN:
+-		offset = page_cache_seek_hole_data(inode, offset, length,
+-						   SEEK_DATA);
++		offset = mapping_seek_hole_data(inode->i_mapping, start,
++				start + length, SEEK_DATA);
+ 		if (offset < 0)
+ 			return length;
+ 		fallthrough;
+--- a/mm/filemap.c~iomap-use-mapping_seek_hole_data
 +++ a/mm/filemap.c
-@@ -2553,6 +2553,82 @@ generic_file_read_iter(struct kiocb *ioc
+@@ -2553,11 +2553,36 @@ generic_file_read_iter(struct kiocb *ioc
  }
  EXPORT_SYMBOL(generic_file_read_iter);
  
-+static inline bool page_seek_match(struct page *page, bool seek_data)
-+{
-+	if (xa_is_value(page) || PageUptodate(page))
-+		return seek_data;
-+	return !seek_data;
-+}
+-static inline bool page_seek_match(struct page *page, bool seek_data)
++static inline loff_t page_seek_hole_data(struct xa_state *xas,
++		struct address_space *mapping, struct page *page,
++		loff_t start, loff_t end, bool seek_data)
+ {
++	const struct address_space_operations *ops = mapping->a_ops;
++	size_t offset, bsz = i_blocksize(mapping->host);
 +
-+static inline
-+unsigned int seek_page_size(struct xa_state *xas, struct page *page)
-+{
-+	if (xa_is_value(page))
-+		return PAGE_SIZE << xa_get_order(xas->xa, xas->xa_index);
-+	return thp_size(page);
-+}
+ 	if (xa_is_value(page) || PageUptodate(page))
+-		return seek_data;
+-	return !seek_data;
++		return seek_data ? start : end;
++	if (!ops->is_partially_uptodate)
++		return seek_data ? end : start;
 +
-+/**
-+ * mapping_seek_hole_data - Seek for SEEK_DATA / SEEK_HOLE in the page cache.
-+ * @mapping: Address space to search.
-+ * @start: First byte to consider.
-+ * @end: Limit of search (exclusive).
-+ * @whence: Either SEEK_HOLE or SEEK_DATA.
-+ *
-+ * If the page cache knows which blocks contain holes and which blocks
-+ * contain data, your filesystem can use this function to implement
-+ * SEEK_HOLE and SEEK_DATA.  This is useful for filesystems which are
-+ * entirely memory-based such as tmpfs, and filesystems which support
-+ * unwritten extents.
-+ *
-+ * Return: The requested offset on successs, or -ENXIO if @whence specifies
-+ * SEEK_DATA and there is no data after @start.  There is an implicit hole
-+ * after @end - 1, so SEEK_HOLE returns @end if all the bytes between @start
-+ * and @end contain data.
-+ */
-+loff_t mapping_seek_hole_data(struct address_space *mapping, loff_t start,
-+		loff_t end, int whence)
-+{
-+	XA_STATE(xas, &mapping->i_pages, start >> PAGE_SHIFT);
-+	pgoff_t max = (end - 1) / PAGE_SIZE;
-+	bool seek_data = (whence == SEEK_DATA);
-+	struct page *page;
-+
-+	if (end <= start)
-+		return -ENXIO;
-+
-+	rcu_read_lock();
-+	while ((page = find_get_entry(&xas, max, XA_PRESENT))) {
-+		loff_t pos = xas.xa_index * PAGE_SIZE;
-+
-+		if (start < pos) {
-+			if (!seek_data)
-+				goto unlock;
-+			start = pos;
-+		}
-+
-+		if (page_seek_match(page, seek_data))
-+			goto unlock;
-+		start = pos + seek_page_size(&xas, page);
-+		if (!xa_is_value(page))
-+			put_page(page);
-+	}
++	xas_pause(xas);
 +	rcu_read_unlock();
++	lock_page(page);
++	if (unlikely(page->mapping != mapping))
++		goto unlock;
 +
-+	if (seek_data)
-+		return -ENXIO;
-+	goto out;
++	offset = offset_in_thp(page, start) & ~(bsz - 1);
 +
++	do {
++		if (ops->is_partially_uptodate(page, offset, bsz) == seek_data)
++			break;
++		start = (start + bsz) & ~(bsz - 1);
++		offset += bsz;
++	} while (offset < thp_size(page));
 +unlock:
-+	rcu_read_unlock();
-+	if (!xa_is_value(page))
-+		put_page(page);
-+out:
-+	if (start > end)
-+		return end;
++	unlock_page(page);
++	rcu_read_lock();
 +	return start;
-+}
-+
- #ifdef CONFIG_MMU
- #define MMAP_LOTSAMISS  (100)
- /*
---- a/mm/shmem.c~mm-filemap-add-mapping_seek_hole_data
-+++ a/mm/shmem.c
-@@ -2668,86 +2668,20 @@ static ssize_t shmem_file_read_iter(stru
- 	return retval ? retval : error;
  }
  
--/*
-- * llseek SEEK_DATA or SEEK_HOLE through the page cache.
-- */
--static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
--				    pgoff_t index, pgoff_t end, int whence)
--{
--	struct page *page;
--	struct pagevec pvec;
--	pgoff_t indices[PAGEVEC_SIZE];
--	bool done = false;
--	int i;
--
--	pagevec_init(&pvec);
--	pvec.nr = 1;		/* start small: we may be there already */
--	while (!done) {
--		pvec.nr = find_get_entries(mapping, index,
--					pvec.nr, pvec.pages, indices);
--		if (!pvec.nr) {
--			if (whence == SEEK_DATA)
--				index = end;
--			break;
--		}
--		for (i = 0; i < pvec.nr; i++, index++) {
--			if (index < indices[i]) {
--				if (whence == SEEK_HOLE) {
--					done = true;
--					break;
--				}
--				index = indices[i];
--			}
--			page = pvec.pages[i];
--			if (page && !xa_is_value(page)) {
--				if (!PageUptodate(page))
--					page = NULL;
--			}
--			if (index >= end ||
--			    (page && whence == SEEK_DATA) ||
--			    (!page && whence == SEEK_HOLE)) {
--				done = true;
--				break;
--			}
--		}
--		pagevec_remove_exceptionals(&pvec);
--		pagevec_release(&pvec);
--		pvec.nr = PAGEVEC_SIZE;
--		cond_resched();
--	}
--	return index;
--}
--
- static loff_t shmem_file_llseek(struct file *file, loff_t offset, int whence)
- {
- 	struct address_space *mapping = file->f_mapping;
- 	struct inode *inode = mapping->host;
--	pgoff_t start, end;
--	loff_t new_offset;
+ static inline
+@@ -2607,9 +2632,11 @@ loff_t mapping_seek_hole_data(struct add
+ 			start = pos;
+ 		}
  
- 	if (whence != SEEK_DATA && whence != SEEK_HOLE)
- 		return generic_file_llseek_size(file, offset, whence,
- 					MAX_LFS_FILESIZE, i_size_read(inode));
-+	if (offset < 0)
-+		return -ENXIO;
-+
- 	inode_lock(inode);
- 	/* We're holding i_mutex so we can access i_size directly */
--
--	if (offset < 0 || offset >= inode->i_size)
--		offset = -ENXIO;
--	else {
--		start = offset >> PAGE_SHIFT;
--		end = (inode->i_size + PAGE_SIZE - 1) >> PAGE_SHIFT;
--		new_offset = shmem_seek_hole_data(mapping, start, end, whence);
--		new_offset <<= PAGE_SHIFT;
--		if (new_offset > offset) {
--			if (new_offset < inode->i_size)
--				offset = new_offset;
--			else if (whence == SEEK_DATA)
--				offset = -ENXIO;
--			else
--				offset = inode->i_size;
--		}
--	}
--
-+	offset = mapping_seek_hole_data(mapping, offset, inode->i_size, whence);
- 	if (offset >= 0)
- 		offset = vfs_setpos(file, offset, MAX_LFS_FILESIZE);
- 	inode_unlock(inode);
+-		if (page_seek_match(page, seek_data))
++		pos += seek_page_size(&xas, page);
++		start = page_seek_hole_data(&xas, mapping, page, start, pos,
++				seek_data);
++		if (start < pos)
+ 			goto unlock;
+-		start = pos + seek_page_size(&xas, page);
+ 		if (!xa_is_value(page))
+ 			put_page(page);
+ 	}
 _
