@@ -7,36 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E528EC433E0
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19037C433DB
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A2C4F64F37
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E13D964F33
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230122AbhB0Cap (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:30:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51608 "EHLO mail.kernel.org"
+        id S230113AbhB0Cas (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:30:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51712 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230113AbhB0CaT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:30:19 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F97064F38;
-        Sat, 27 Feb 2021 02:29:17 +0000 (UTC)
+        id S230090AbhB0Ca1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:30:27 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A21B764F3C;
+        Sat, 27 Feb 2021 02:29:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614392957;
-        bh=AxaPEa/FGrB2h0lSdCfMgMZ9uGMTTa2HP77riFiOOCM=;
+        s=korg; t=1614392966;
+        bh=tiPwmmFhO5JMkuFk77xMkntHX6WIdaJSnqOZoT8Je3Y=;
         h=Date:From:To:Subject:From;
-        b=0c4MUor9e7cLORMOtNdv1mQXG5xqpTyJ5KO75vtHXxZtN6Lc/+p6+TPr6Ki4ydith
-         SS8Ean9lPF86jGDMAHaRN76GI8oJA01id+0lc8Src9y3jb+0XoWmbOSap0obDbak0V
-         G119lAaDnxbhXuIEd+bdopUlZ0CRSpLwt9Hg33g4=
-Date:   Fri, 26 Feb 2021 18:29:17 -0800
+        b=x94Z8y7O3fwtXGj1uMsFlIHvJ/nae/rdF/tYpEYSO4TSvV7I7V6wSCt2cdqDq42h+
+         T6mxuIzqlYX7urA42kOiVwMB7xjApmJp8krIj/e7oru0aFps5Uf5okv4Y9zpnI2/um
+         sNnwUBoQiSxFoH2keE0vkIGMbibEEKwYxP+fn43U=
+Date:   Fri, 26 Feb 2021 18:29:25 -0800
 From:   akpm@linux-foundation.org
-To:     cai@lca.pw, dan.j.williams@intel.com, david@redhat.com,
-        mhocko@suse.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, osalvador@suse.de
+To:     anshuman.khandual@arm.com, boris.ostrovsky@oracle.com,
+        david@redhat.com, haiyangz@microsoft.com, jasowang@redhat.com,
+        jgross@suse.com, kys@microsoft.com, linmiaohe@huawei.com,
+        mhocko@kernel.org, mm-commits@vger.kernel.org, mst@redhat.com,
+        osalvador@suse.de, pankaj.gupta@cloud.ionos.com,
+        richard.weiyang@linux.alibaba.com, sstabellini@kernel.org,
+        sthemmin@microsoft.com, wei.liu@kernel.org
 Subject:  [merged]
- mm-teach-pfn_to_online_page-about-zone_device-section-collisions.patch
- removed from -mm tree
-Message-ID: <20210227022917.SoVpbLpwZ%akpm@linux-foundation.org>
+ mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource.patch removed
+ from -mm tree
+Message-ID: <20210227022925.8AUsszmXk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,204 +49,106 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: teach pfn_to_online_page() about ZONE_DEVICE section collisions
+     Subject: mm/memory_hotplug: MEMHP_MERGE_RESOURCE -> MHP_MERGE_RESOURCE
 has been removed from the -mm tree.  Its filename was
-     mm-teach-pfn_to_online_page-about-zone_device-section-collisions.patch
+     mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: teach pfn_to_online_page() about ZONE_DEVICE section collisions
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/memory_hotplug: MEMHP_MERGE_RESOURCE -> MHP_MERGE_RESOURCE
 
-While pfn_to_online_page() is able to determine pfn_valid() at subsection
-granularity it is not able to reliably determine if a given pfn is also
-online if the section is mixes ZONE_{NORMAL,MOVABLE} with ZONE_DEVICE. 
-This means that pfn_to_online_page() may return invalid @page objects. 
-For example with a memory map like:
+Let's make "MEMHP_MERGE_RESOURCE" consistent with "MHP_NONE", "mhp_t" and
+"mhp_flags".  As discussed recently [1], "mhp" is our internal acronym for
+memory hotplug now.
 
-100000000-1fbffffff : System RAM
-  142000000-143002e16 : Kernel code
-  143200000-143713fff : Kernel rodata
-  143800000-143b15b7f : Kernel data
-  144227000-144ffffff : Kernel bss
-1fc000000-2fbffffff : Persistent Memory (legacy)
-  1fc000000-2fbffffff : namespace0.0
+[1] https://lore.kernel.org/linux-mm/c37de2d0-28a1-4f7d-f944-cfd7d81c334d@redhat.com/
 
-This command:
-
-echo 0x1fc000000 > /sys/devices/system/memory/soft_offline_page
-
-...succeeds when it should fail.  When it succeeds it touches an
-uninitialized page and may crash or cause other damage (see
-dissolve_free_huge_page()).
-
-While the memory map above is contrived via the memmap=ss!nn kernel
-command line option, the collision happens in practice on shipping
-platforms.  The memory controller resources that decode spans of physical
-address space are a limited resource.  One technique platform-firmware
-uses to conserve those resources is to share a decoder across 2 devices to
-keep the address range contiguous.  Unfortunately the unit of operation of
-a decoder is 64MiB while the Linux section size is 128MiB.  This results
-in situations where, without subsection hotplug memory mappings with
-different lifetimes collide into one object that can only express one
-lifetime.
-
-Update move_pfn_range_to_zone() to flag (SECTION_TAINT_ZONE_DEVICE) a
-section that mixes ZONE_DEVICE pfns with other online pfns.  With
-SECTION_TAINT_ZONE_DEVICE to delineate, pfn_to_online_page() can fall back
-to a slow-path check for ZONE_DEVICE pfns in an online section.  In the
-fast path online_section() for a full ZONE_DEVICE section returns false.
-
-Because the collision case is rare, and for simplicity, the
-SECTION_TAINT_ZONE_DEVICE flag is never cleared once set.
-
-[dan.j.williams@intel.com: fix CONFIG_ZONE_DEVICE=n build]
-  Link: https://lkml.kernel.org/r/CAPcyv4iX+7LAgAeSqx7Zw-Zd=ZV9gBv8Bo7oTbwCOOqJoZ3+Yg@mail.gmail.com
-Link: https://lkml.kernel.org/r/161058500675.1840162.7887862152161279354.stgit@dwillia2-desk3.amr.corp.intel.com
-Fixes: ba72b4c8cf60 ("mm/sparsemem: support sub-section hotplug")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reported-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20210126115829.10909-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Qian Cai <cai@lca.pw>
+Acked-by: Wei Liu <wei.liu@kernel.org>
+Reviewed-by: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   34 +++++++++++++++++++++++++++-------
- mm/memory_hotplug.c    |   38 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 65 insertions(+), 7 deletions(-)
+ drivers/hv/hv_balloon.c        |    2 +-
+ drivers/virtio/virtio_mem.c    |    2 +-
+ drivers/xen/balloon.c          |    2 +-
+ include/linux/memory_hotplug.h |    2 +-
+ mm/memory_hotplug.c            |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/linux/mmzone.h~mm-teach-pfn_to_online_page-about-zone_device-section-collisions
-+++ a/include/linux/mmzone.h
-@@ -918,6 +918,18 @@ static inline int local_memory_node(int
-  */
- #define zone_idx(zone)		((zone) - (zone)->zone_pgdat->node_zones)
+--- a/drivers/hv/hv_balloon.c~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
++++ a/drivers/hv/hv_balloon.c
+@@ -726,7 +726,7 @@ static void hv_mem_hot_add(unsigned long
  
-+#ifdef CONFIG_ZONE_DEVICE
-+static inline bool zone_is_zone_device(struct zone *zone)
-+{
-+	return zone_idx(zone) == ZONE_DEVICE;
-+}
-+#else
-+static inline bool zone_is_zone_device(struct zone *zone)
-+{
-+	return false;
-+}
-+#endif
-+
+ 		nid = memory_add_physaddr_to_nid(PFN_PHYS(start_pfn));
+ 		ret = add_memory(nid, PFN_PHYS((start_pfn)),
+-				(HA_CHUNK << PAGE_SHIFT), MEMHP_MERGE_RESOURCE);
++				(HA_CHUNK << PAGE_SHIFT), MHP_MERGE_RESOURCE);
+ 
+ 		if (ret) {
+ 			pr_err("hot_add memory failed error is %d\n", ret);
+--- a/drivers/virtio/virtio_mem.c~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
++++ a/drivers/virtio/virtio_mem.c
+@@ -623,7 +623,7 @@ static int virtio_mem_add_memory(struct
+ 	/* Memory might get onlined immediately. */
+ 	atomic64_add(size, &vm->offline_size);
+ 	rc = add_memory_driver_managed(vm->nid, addr, size, vm->resource_name,
+-				       MEMHP_MERGE_RESOURCE);
++				       MHP_MERGE_RESOURCE);
+ 	if (rc) {
+ 		atomic64_sub(size, &vm->offline_size);
+ 		dev_warn(&vm->vdev->dev, "adding memory failed: %d\n", rc);
+--- a/drivers/xen/balloon.c~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
++++ a/drivers/xen/balloon.c
+@@ -331,7 +331,7 @@ static enum bp_state reserve_additional_
+ 	mutex_unlock(&balloon_mutex);
+ 	/* add_memory_resource() requires the device_hotplug lock */
+ 	lock_device_hotplug();
+-	rc = add_memory_resource(nid, resource, MEMHP_MERGE_RESOURCE);
++	rc = add_memory_resource(nid, resource, MHP_MERGE_RESOURCE);
+ 	unlock_device_hotplug();
+ 	mutex_lock(&balloon_mutex);
+ 
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
++++ a/include/linux/memory_hotplug.h
+@@ -53,7 +53,7 @@ typedef int __bitwise mhp_t;
+  * with this flag set, the resource pointer must no longer be used as it
+  * might be stale, or the resource might have changed.
+  */
+-#define MEMHP_MERGE_RESOURCE	((__force mhp_t)BIT(0))
++#define MHP_MERGE_RESOURCE	((__force mhp_t)BIT(0))
+ 
  /*
-  * Returns true if a zone has pages managed by the buddy allocator.
-  * All the reclaim decisions have to use this function rather than
-@@ -1306,13 +1318,14 @@ extern size_t mem_section_usage_size(voi
-  *      which results in PFN_SECTION_SHIFT equal 6.
-  * To sum it up, at least 6 bits are available.
-  */
--#define	SECTION_MARKED_PRESENT	(1UL<<0)
--#define SECTION_HAS_MEM_MAP	(1UL<<1)
--#define SECTION_IS_ONLINE	(1UL<<2)
--#define SECTION_IS_EARLY	(1UL<<3)
--#define SECTION_MAP_LAST_BIT	(1UL<<4)
--#define SECTION_MAP_MASK	(~(SECTION_MAP_LAST_BIT-1))
--#define SECTION_NID_SHIFT	3
-+#define SECTION_MARKED_PRESENT		(1UL<<0)
-+#define SECTION_HAS_MEM_MAP		(1UL<<1)
-+#define SECTION_IS_ONLINE		(1UL<<2)
-+#define SECTION_IS_EARLY		(1UL<<3)
-+#define SECTION_TAINT_ZONE_DEVICE	(1UL<<4)
-+#define SECTION_MAP_LAST_BIT		(1UL<<5)
-+#define SECTION_MAP_MASK		(~(SECTION_MAP_LAST_BIT-1))
-+#define SECTION_NID_SHIFT		3
- 
- static inline struct page *__section_mem_map_addr(struct mem_section *section)
- {
-@@ -1351,6 +1364,13 @@ static inline int online_section(struct
- 	return (section && (section->section_mem_map & SECTION_IS_ONLINE));
- }
- 
-+static inline int online_device_section(struct mem_section *section)
-+{
-+	unsigned long flags = SECTION_IS_ONLINE | SECTION_TAINT_ZONE_DEVICE;
-+
-+	return section && ((section->section_mem_map & flags) == flags);
-+}
-+
- static inline int online_section_nr(unsigned long nr)
- {
- 	return online_section(__nr_to_section(nr));
---- a/mm/memory_hotplug.c~mm-teach-pfn_to_online_page-about-zone_device-section-collisions
+  * Extended parameters for memory hotplug:
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
 +++ a/mm/memory_hotplug.c
-@@ -308,6 +308,7 @@ static int check_hotplug_memory_addressa
- struct page *pfn_to_online_page(unsigned long pfn)
- {
- 	unsigned long nr = pfn_to_section_nr(pfn);
-+	struct dev_pagemap *pgmap;
- 	struct mem_section *ms;
+@@ -1153,7 +1153,7 @@ int __ref add_memory_resource(int nid, s
+ 	 * In case we're allowed to merge the resource, flag it and trigger
+ 	 * merging now that adding succeeded.
+ 	 */
+-	if (mhp_flags & MEMHP_MERGE_RESOURCE)
++	if (mhp_flags & MHP_MERGE_RESOURCE)
+ 		merge_system_ram_resource(res);
  
- 	if (nr >= NR_MEM_SECTIONS)
-@@ -327,6 +328,22 @@ struct page *pfn_to_online_page(unsigned
- 	if (!pfn_section_valid(ms, pfn))
- 		return NULL;
- 
-+	if (!online_device_section(ms))
-+		return pfn_to_page(pfn);
-+
-+	/*
-+	 * Slowpath: when ZONE_DEVICE collides with
-+	 * ZONE_{NORMAL,MOVABLE} within the same section some pfns in
-+	 * the section may be 'offline' but 'valid'. Only
-+	 * get_dev_pagemap() can determine sub-section online status.
-+	 */
-+	pgmap = get_dev_pagemap(pfn, NULL);
-+	put_dev_pagemap(pgmap);
-+
-+	/* The presence of a pgmap indicates ZONE_DEVICE offline pfn */
-+	if (pgmap)
-+		return NULL;
-+
- 	return pfn_to_page(pfn);
- }
- EXPORT_SYMBOL_GPL(pfn_to_online_page);
-@@ -709,6 +726,14 @@ static void __meminit resize_pgdat_range
- 	pgdat->node_spanned_pages = max(start_pfn + nr_pages, old_end_pfn) - pgdat->node_start_pfn;
- 
- }
-+
-+static void section_taint_zone_device(unsigned long pfn)
-+{
-+	struct mem_section *ms = __pfn_to_section(pfn);
-+
-+	ms->section_mem_map |= SECTION_TAINT_ZONE_DEVICE;
-+}
-+
- /*
-  * Associate the pfn range with the given zone, initializing the memmaps
-  * and resizing the pgdat/zone data to span the added pages. After this
-@@ -739,6 +764,19 @@ void __ref move_pfn_range_to_zone(struct
- 	pgdat_resize_unlock(pgdat, &flags);
- 
- 	/*
-+	 * Subsection population requires care in pfn_to_online_page().
-+	 * Set the taint to enable the slow path detection of
-+	 * ZONE_DEVICE pages in an otherwise  ZONE_{NORMAL,MOVABLE}
-+	 * section.
-+	 */
-+	if (zone_is_zone_device(zone)) {
-+		if (!IS_ALIGNED(start_pfn, PAGES_PER_SECTION))
-+			section_taint_zone_device(start_pfn);
-+		if (!IS_ALIGNED(start_pfn + nr_pages, PAGES_PER_SECTION))
-+			section_taint_zone_device(start_pfn + nr_pages);
-+	}
-+
-+	/*
- 	 * TODO now we have a visible range of pages which are not associated
- 	 * with their zone properly. Not nice but set_pfnblock_flags_mask
- 	 * expects the zone spans the pfn range. All the pages in the range
+ 	/* online pages if requested */
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from david@redhat.com are
 
 
