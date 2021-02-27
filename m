@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FEB3C433E6
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D544C433E0
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 361CF64F37
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7EA264F3A
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229993AbhB0Ccl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:32:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52998 "EHLO mail.kernel.org"
+        id S230131AbhB0Ccm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:32:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53042 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230131AbhB0CcJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:32:09 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6A96764F3C;
-        Sat, 27 Feb 2021 02:31:28 +0000 (UTC)
+        id S230185AbhB0CcM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:32:12 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A31F164F43;
+        Sat, 27 Feb 2021 02:31:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393088;
-        bh=ef+jCq4xXLUqhy+Xq1OQC/1psDxLXEZfKU2AJv42hNA=;
+        s=korg; t=1614393091;
+        bh=Hre2ZPYg2GMJlDZl8bIaBSCTbUgFnBnRzvxi+liSGuI=;
         h=Date:From:To:Subject:From;
-        b=WYMAy84yHjepeQlLBqDwgTvPZCVrtTei4FJJH8YiJcvOLI0K2La+QwzttZteCOcr8
-         M7pguVXUb9DPdeG2L2b4k/A7/l1j3eCsB1zAkXdf9eypQYVQUnWMUQc/97YYoAcCdw
-         +kgEMuvS1HUPWw9KSnO3cptV0wi3wDGecbdUIXoI=
-Date:   Fri, 26 Feb 2021 18:31:28 -0800
+        b=SlPSZ+F4Hb81GQQjF70RUEgV66RfVGREjg6OGcb96Phg+u2xFyC4ulVyO7DxNttf/
+         SAfshN/FBzOWChSCRfnhEWff63CbLVazTZKeBHFuekyvkDNi82w0nGCPYHUioGbxYQ
+         /svAvjDpuYq3slslCCq/BGJxWNoua/Mtr0UQ3J2Y=
+Date:   Fri, 26 Feb 2021 18:31:30 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [merged] kasan-ensure-poisoning-size-alignment.patch
- removed from -mm tree
-Message-ID: <20210227023128.On36XWSfx%akpm@linux-foundation.org>
+Subject:  [merged]
+ arm64-kasan-simplify-and-inline-mte-functions.patch removed from -mm tree
+Message-ID: <20210227023130.M8Aksg5QJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,236 +47,275 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: ensure poisoning size alignment
+     Subject: arm64: kasan: simplify and inline MTE functions
 has been removed from the -mm tree.  Its filename was
-     kasan-ensure-poisoning-size-alignment.patch
+     arm64-kasan-simplify-and-inline-mte-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: ensure poisoning size alignment
+Subject: arm64: kasan: simplify and inline MTE functions
 
-A previous changes d99f6a10c161 ("kasan: don't round_up too much")
-attempted to simplify the code by adding a round_up(size) call into
-kasan_poison().  While this allows to have less round_up() calls around
-the code, this results in round_up() being called multiple times.
+This change provides a simpler implementation of mte_get_mem_tag(),
+mte_get_random_tag(), and mte_set_mem_tag_range().
 
-This patch removes round_up() of size from kasan_poison() and ensures that
-all callers round_up() the size explicitly.  This patch also adds
-WARN_ON() alignment checks for address and size to kasan_poison() and
-kasan_unpoison().
+Simplifications include removing system_supports_mte() checks as these
+functions are onlye called from KASAN runtime that had already checked
+system_supports_mte().  Besides that, size and address alignment checks
+are removed from mte_set_mem_tag_range(), as KASAN now does those.
 
-Link: https://lkml.kernel.org/r/3ffe8d4a246ae67a8b5e91f65bf98cd7cba9d7b9.1612546384.git.andreyknvl@google.com
+This change also moves these functions into the asm/mte-kasan.h header and
+implements mte_set_mem_tag_range() via inline assembly to avoid
+unnecessary functions calls.
+
+[vincenzo.frascino@arm.com: fix warning in mte_get_random_tag()]
+  Link: https://lkml.kernel.org/r/20210211152208.23811-1-vincenzo.frascino@arm.com
+Link: https://lkml.kernel.org/r/a26121b294fdf76e369cb7a74351d1c03a908930.1612546384.git.andreyknvl@google.com
+Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Peter Collingbourne <pcc@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |    9 ++++++---
- mm/kasan/kasan.h  |   33 ++++++++++++++++++++-------------
- mm/kasan/shadow.c |   37 ++++++++++++++++++++++---------------
- 3 files changed, 48 insertions(+), 31 deletions(-)
+ arch/arm64/include/asm/cache.h     |    1 
+ arch/arm64/include/asm/kasan.h     |    1 
+ arch/arm64/include/asm/mte-def.h   |    2 
+ arch/arm64/include/asm/mte-kasan.h |   65 +++++++++++++++++++++++----
+ arch/arm64/include/asm/mte.h       |    2 
+ arch/arm64/kernel/mte.c            |   46 -------------------
+ arch/arm64/lib/mte.S               |   16 ------
+ 7 files changed, 60 insertions(+), 73 deletions(-)
 
---- a/mm/kasan/common.c~kasan-ensure-poisoning-size-alignment
-+++ a/mm/kasan/common.c
-@@ -261,7 +261,8 @@ void __kasan_unpoison_object_data(struct
+--- a/arch/arm64/include/asm/cache.h~arm64-kasan-simplify-and-inline-mte-functions
++++ a/arch/arm64/include/asm/cache.h
+@@ -6,7 +6,6 @@
+ #define __ASM_CACHE_H
  
- void __kasan_poison_object_data(struct kmem_cache *cache, void *object)
- {
--	kasan_poison(object, cache->object_size, KASAN_KMALLOC_REDZONE);
-+	kasan_poison(object, round_up(cache->object_size, KASAN_GRANULE_SIZE),
-+			KASAN_KMALLOC_REDZONE);
- }
+ #include <asm/cputype.h>
+-#include <asm/mte-kasan.h>
  
+ #define CTR_L1IP_SHIFT		14
+ #define CTR_L1IP_MASK		3
+--- a/arch/arm64/include/asm/kasan.h~arm64-kasan-simplify-and-inline-mte-functions
++++ a/arch/arm64/include/asm/kasan.h
+@@ -6,6 +6,7 @@
+ 
+ #include <linux/linkage.h>
+ #include <asm/memory.h>
++#include <asm/mte-kasan.h>
+ #include <asm/pgtable-types.h>
+ 
+ #define arch_kasan_set_tag(addr, tag)	__tag_set(addr, tag)
+--- a/arch/arm64/include/asm/mte-def.h~arm64-kasan-simplify-and-inline-mte-functions
++++ a/arch/arm64/include/asm/mte-def.h
+@@ -11,4 +11,6 @@
+ #define MTE_TAG_SIZE		4
+ #define MTE_TAG_MASK		GENMASK((MTE_TAG_SHIFT + (MTE_TAG_SIZE - 1)), MTE_TAG_SHIFT)
+ 
++#define __MTE_PREAMBLE		ARM64_ASM_PREAMBLE ".arch_extension memtag\n"
++
+ #endif /* __ASM_MTE_DEF_H  */
+--- a/arch/arm64/include/asm/mte.h~arm64-kasan-simplify-and-inline-mte-functions
++++ a/arch/arm64/include/asm/mte.h
+@@ -8,8 +8,6 @@
+ #include <asm/compiler.h>
+ #include <asm/mte-def.h>
+ 
+-#define __MTE_PREAMBLE		ARM64_ASM_PREAMBLE ".arch_extension memtag\n"
+-
+ #ifndef __ASSEMBLY__
+ 
+ #include <linux/bitfield.h>
+--- a/arch/arm64/include/asm/mte-kasan.h~arm64-kasan-simplify-and-inline-mte-functions
++++ a/arch/arm64/include/asm/mte-kasan.h
+@@ -11,11 +11,14 @@
+ 
+ #include <linux/types.h>
+ 
++#ifdef CONFIG_ARM64_MTE
++
  /*
-@@ -348,7 +349,8 @@ static bool ____kasan_slab_free(struct k
- 		return true;
- 	}
+- * The functions below are meant to be used only for the
+- * KASAN_HW_TAGS interface defined in asm/memory.h.
++ * These functions are meant to be only used from KASAN runtime through
++ * the arch_*() interface defined in asm/memory.h.
++ * These functions don't include system_supports_mte() checks,
++ * as KASAN only calls them when MTE is supported and enabled.
+  */
+-#ifdef CONFIG_ARM64_MTE
  
--	kasan_poison(object, cache->object_size, KASAN_KMALLOC_FREE);
-+	kasan_poison(object, round_up(cache->object_size, KASAN_GRANULE_SIZE),
-+			KASAN_KMALLOC_FREE);
- 
- 	if ((IS_ENABLED(CONFIG_KASAN_GENERIC) && !quarantine))
- 		return false;
-@@ -490,7 +492,8 @@ static void *____kasan_kmalloc(struct km
- 	/* Poison the aligned part of the redzone. */
- 	redzone_start = round_up((unsigned long)(object + size),
- 				KASAN_GRANULE_SIZE);
--	redzone_end = (unsigned long)object + cache->object_size;
-+	redzone_end = round_up((unsigned long)(object + cache->object_size),
-+				KASAN_GRANULE_SIZE);
- 	kasan_poison((void *)redzone_start, redzone_end - redzone_start,
- 			   KASAN_KMALLOC_REDZONE);
- 
---- a/mm/kasan/kasan.h~kasan-ensure-poisoning-size-alignment
-+++ a/mm/kasan/kasan.h
-@@ -330,30 +330,37 @@ static inline u8 kasan_random_tag(void)
- 
- #ifdef CONFIG_KASAN_HW_TAGS
- 
--static inline void kasan_poison(const void *address, size_t size, u8 value)
-+static inline void kasan_poison(const void *addr, size_t size, u8 value)
+ static inline u8 mte_get_ptr_tag(void *ptr)
  {
--	address = kasan_reset_tag(address);
-+	addr = kasan_reset_tag(addr);
+@@ -25,9 +28,54 @@ static inline u8 mte_get_ptr_tag(void *p
+ 	return tag;
+ }
  
- 	/* Skip KFENCE memory if called explicitly outside of sl*b. */
--	if (is_kfence_address(address))
-+	if (is_kfence_address(addr))
- 		return;
- 
--	hw_set_mem_tag_range((void *)address,
--			round_up(size, KASAN_GRANULE_SIZE), value);
-+	if (WARN_ON((unsigned long)addr & KASAN_GRANULE_MASK))
-+		return;
-+	if (WARN_ON(size & KASAN_GRANULE_MASK))
+-u8 mte_get_mem_tag(void *addr);
+-u8 mte_get_random_tag(void);
+-void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag);
++/* Get allocation tag for the address. */
++static inline u8 mte_get_mem_tag(void *addr)
++{
++	asm(__MTE_PREAMBLE "ldg %0, [%0]"
++		: "+r" (addr));
++
++	return mte_get_ptr_tag(addr);
++}
++
++/* Generate a random tag. */
++static inline u8 mte_get_random_tag(void)
++{
++	void *addr;
++
++	asm(__MTE_PREAMBLE "irg %0, %0"
++		: "=r" (addr));
++
++	return mte_get_ptr_tag(addr);
++}
++
++/*
++ * Assign allocation tags for a region of memory based on the pointer tag.
++ * Note: The address must be non-NULL and MTE_GRANULE_SIZE aligned and
++ * size must be non-zero and MTE_GRANULE_SIZE aligned.
++ */
++static inline void mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
++{
++	u64 curr, end;
++
++	if (!size)
 +		return;
 +
-+	hw_set_mem_tag_range((void *)addr, size, value);
- }
- 
--static inline void kasan_unpoison(const void *address, size_t size)
-+static inline void kasan_unpoison(const void *addr, size_t size)
- {
--	u8 tag = get_tag(address);
-+	u8 tag = get_tag(addr);
- 
--	address = kasan_reset_tag(address);
-+	addr = kasan_reset_tag(addr);
- 
- 	/* Skip KFENCE memory if called explicitly outside of sl*b. */
--	if (is_kfence_address(address))
-+	if (is_kfence_address(addr))
-+		return;
++	curr = (u64)__tag_set(addr, tag);
++	end = curr + size;
 +
-+	if (WARN_ON((unsigned long)addr & KASAN_GRANULE_MASK))
- 		return;
-+	size = round_up(size, KASAN_GRANULE_SIZE);
- 
--	hw_set_mem_tag_range((void *)address,
--			round_up(size, KASAN_GRANULE_SIZE), tag);
-+	hw_set_mem_tag_range((void *)addr, size, tag);
- }
- 
- static inline bool kasan_byte_accessible(const void *addr)
-@@ -370,7 +377,7 @@ static inline bool kasan_byte_accessible
- /**
-  * kasan_poison - mark the memory range as unaccessible
-  * @addr - range start address, must be aligned to KASAN_GRANULE_SIZE
-- * @size - range size
-+ * @size - range size, must be aligned to KASAN_GRANULE_SIZE
-  * @value - value that's written to metadata for the range
-  *
-  * The size gets aligned to KASAN_GRANULE_SIZE before marking the range.
-@@ -380,7 +387,7 @@ void kasan_poison(const void *addr, size
- /**
-  * kasan_unpoison - mark the memory range as accessible
-  * @addr - range start address, must be aligned to KASAN_GRANULE_SIZE
-- * @size - range size
-+ * @size - range size, can be unaligned
-  *
-  * For the tag-based modes, the @size gets aligned to KASAN_GRANULE_SIZE before
-  * marking the range.
---- a/mm/kasan/shadow.c~kasan-ensure-poisoning-size-alignment
-+++ a/mm/kasan/shadow.c
-@@ -69,7 +69,7 @@ void *memcpy(void *dest, const void *src
- 	return __memcpy(dest, src, len);
- }
- 
--void kasan_poison(const void *address, size_t size, u8 value)
-+void kasan_poison(const void *addr, size_t size, u8 value)
- {
- 	void *shadow_start, *shadow_end;
- 
-@@ -78,55 +78,62 @@ void kasan_poison(const void *address, s
- 	 * some of the callers (e.g. kasan_poison_object_data) pass tagged
- 	 * addresses to this function.
- 	 */
--	address = kasan_reset_tag(address);
-+	addr = kasan_reset_tag(addr);
- 
- 	/* Skip KFENCE memory if called explicitly outside of sl*b. */
--	if (is_kfence_address(address))
-+	if (is_kfence_address(addr))
- 		return;
- 
--	size = round_up(size, KASAN_GRANULE_SIZE);
--	shadow_start = kasan_mem_to_shadow(address);
--	shadow_end = kasan_mem_to_shadow(address + size);
-+	if (WARN_ON((unsigned long)addr & KASAN_GRANULE_MASK))
-+		return;
-+	if (WARN_ON(size & KASAN_GRANULE_MASK))
-+		return;
++	do {
++		/*
++		 * 'asm volatile' is required to prevent the compiler to move
++		 * the statement outside of the loop.
++		 */
++		asm volatile(__MTE_PREAMBLE "stg %0, [%0]"
++			     :
++			     : "r" (curr)
++			     : "memory");
 +
-+	shadow_start = kasan_mem_to_shadow(addr);
-+	shadow_end = kasan_mem_to_shadow(addr + size);
++		curr += MTE_GRANULE_SIZE;
++	} while (curr != end);
++}
  
- 	__memset(shadow_start, value, shadow_end - shadow_start);
- }
- EXPORT_SYMBOL(kasan_poison);
- 
- #ifdef CONFIG_KASAN_GENERIC
--void kasan_poison_last_granule(const void *address, size_t size)
-+void kasan_poison_last_granule(const void *addr, size_t size)
+ void mte_enable_kernel(void);
+ void mte_init_tags(u64 max_tag);
+@@ -46,13 +94,14 @@ static inline u8 mte_get_mem_tag(void *a
  {
- 	if (size & KASAN_GRANULE_MASK) {
--		u8 *shadow = (u8 *)kasan_mem_to_shadow(address + size);
-+		u8 *shadow = (u8 *)kasan_mem_to_shadow(addr + size);
- 		*shadow = size & KASAN_GRANULE_MASK;
- 	}
+ 	return 0xFF;
  }
- #endif
- 
--void kasan_unpoison(const void *address, size_t size)
-+void kasan_unpoison(const void *addr, size_t size)
- {
--	u8 tag = get_tag(address);
-+	u8 tag = get_tag(addr);
- 
- 	/*
- 	 * Perform shadow offset calculation based on untagged address, as
- 	 * some of the callers (e.g. kasan_unpoison_object_data) pass tagged
- 	 * addresses to this function.
- 	 */
--	address = kasan_reset_tag(address);
-+	addr = kasan_reset_tag(addr);
- 
- 	/*
- 	 * Skip KFENCE memory if called explicitly outside of sl*b. Also note
- 	 * that calls to ksize(), where size is not a multiple of machine-word
- 	 * size, would otherwise poison the invalid portion of the word.
- 	 */
--	if (is_kfence_address(address))
-+	if (is_kfence_address(addr))
-+		return;
 +
-+	if (WARN_ON((unsigned long)addr & KASAN_GRANULE_MASK))
- 		return;
- 
--	/* Unpoison round_up(size, KASAN_GRANULE_SIZE) bytes. */
--	kasan_poison(address, size, tag);
-+	/* Unpoison all granules that cover the object. */
-+	kasan_poison(addr, round_up(size, KASAN_GRANULE_SIZE), tag);
- 
- 	/* Partially poison the last granule for the generic mode. */
- 	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
--		kasan_poison_last_granule(address, size);
-+		kasan_poison_last_granule(addr, size);
+ static inline u8 mte_get_random_tag(void)
+ {
+ 	return 0xFF;
+ }
+-static inline void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
++
++static inline void mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
+ {
+-	return addr;
  }
  
- #ifdef CONFIG_MEMORY_HOTPLUG
+ static inline void mte_enable_kernel(void)
+--- a/arch/arm64/kernel/mte.c~arm64-kasan-simplify-and-inline-mte-functions
++++ a/arch/arm64/kernel/mte.c
+@@ -19,7 +19,6 @@
+ #include <asm/barrier.h>
+ #include <asm/cpufeature.h>
+ #include <asm/mte.h>
+-#include <asm/mte-kasan.h>
+ #include <asm/ptrace.h>
+ #include <asm/sysreg.h>
+ 
+@@ -88,51 +87,6 @@ int memcmp_pages(struct page *page1, str
+ 	return ret;
+ }
+ 
+-u8 mte_get_mem_tag(void *addr)
+-{
+-	if (!system_supports_mte())
+-		return 0xFF;
+-
+-	asm(__MTE_PREAMBLE "ldg %0, [%0]"
+-	    : "+r" (addr));
+-
+-	return mte_get_ptr_tag(addr);
+-}
+-
+-u8 mte_get_random_tag(void)
+-{
+-	void *addr;
+-
+-	if (!system_supports_mte())
+-		return 0xFF;
+-
+-	asm(__MTE_PREAMBLE "irg %0, %0"
+-	    : "+r" (addr));
+-
+-	return mte_get_ptr_tag(addr);
+-}
+-
+-void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
+-{
+-	void *ptr = addr;
+-
+-	if ((!system_supports_mte()) || (size == 0))
+-		return addr;
+-
+-	/* Make sure that size is MTE granule aligned. */
+-	WARN_ON(size & (MTE_GRANULE_SIZE - 1));
+-
+-	/* Make sure that the address is MTE granule aligned. */
+-	WARN_ON((u64)addr & (MTE_GRANULE_SIZE - 1));
+-
+-	tag = 0xF0 | tag;
+-	ptr = (void *)__tag_set(ptr, tag);
+-
+-	mte_assign_mem_tag_range(ptr, size);
+-
+-	return ptr;
+-}
+-
+ void mte_init_tags(u64 max_tag)
+ {
+ 	static bool gcr_kernel_excl_initialized;
+--- a/arch/arm64/lib/mte.S~arm64-kasan-simplify-and-inline-mte-functions
++++ a/arch/arm64/lib/mte.S
+@@ -149,19 +149,3 @@ SYM_FUNC_START(mte_restore_page_tags)
+ 
+ 	ret
+ SYM_FUNC_END(mte_restore_page_tags)
+-
+-/*
+- * Assign allocation tags for a region of memory based on the pointer tag
+- *   x0 - source pointer
+- *   x1 - size
+- *
+- * Note: The address must be non-NULL and MTE_GRANULE_SIZE aligned and
+- * size must be non-zero and MTE_GRANULE_SIZE aligned.
+- */
+-SYM_FUNC_START(mte_assign_mem_tag_range)
+-1:	stg	x0, [x0]
+-	add	x0, x0, #MTE_GRANULE_SIZE
+-	subs	x1, x1, #MTE_GRANULE_SIZE
+-	b.gt	1b
+-	ret
+-SYM_FUNC_END(mte_assign_mem_tag_range)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
