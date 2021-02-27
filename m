@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0422BC433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FFDBC433DB
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C334364F43
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 193B064F44
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230107AbhB0CaM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230053AbhB0CaM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 26 Feb 2021 21:30:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51076 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51112 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230053AbhB0C3x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:29:53 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B0F864F34;
-        Sat, 27 Feb 2021 02:29:12 +0000 (UTC)
+        id S230045AbhB0CaC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:30:02 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7D90964F3A;
+        Sat, 27 Feb 2021 02:29:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614392952;
-        bh=zJjBtGpJQF1CJrg733WZ1tC6RgGaq3DTPp6SI+BsQRc=;
+        s=korg; t=1614392963;
+        bh=oS8/BcjABxANuciJP0pef2z98uQbico65PBEErTveD8=;
         h=Date:From:To:Subject:From;
-        b=sKUaLtCifJLR602lmMut2Jy+6gKGVafThMGu+8GwSpVtJCRgMFApvr3JT7jMBT1+z
-         qMvoAxVSAVZnvbtd6qCHYhiYLr+jiW0N89cHFY4Jan6+HdsElaOCzdWTq5sKDtf3t2
-         zdh+2NJsPb6RPRFgyCGi2iQHaO8XArXtr1/PAwYs=
-Date:   Fri, 26 Feb 2021 18:29:12 -0800
+        b=uei0au+CVXQpGz8UR7vZEddTId+rOpSKLaPgWgnAtMq4JAc0ArGrFppErYTXK2kA8
+         cFnpobKKqdnanVRw2x/EwKedkmUuz6gbD1hdVskuquyd2zB/Vx7uq6sVBadDmT3p9V
+         R+A7bTo0OJd6k8tyxdOkUDHopxhkFnyWX+oiHWV8=
+Date:   Fri, 26 Feb 2021 18:29:23 -0800
 From:   akpm@linux-foundation.org
-To:     cai@lca.pw, dan.j.williams@intel.com, david@redhat.com,
-        mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, osalvador@suse.de
-Subject:  [merged] mm-move-pfn_to_online_page-out-of-line.patch
- removed from -mm tree
-Message-ID: <20210227022912.hjq6LHyuK%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, david@redhat.com,
+        gregkh@linuxfoundation.org, mm-commits@vger.kernel.org,
+        rafael@kernel.org
+Subject:  [merged]
+ mm-memory_hotplug-rename-all-existing-memhp-into-mhp.patch removed from -mm
+ tree
+Message-ID: <20210227022923.1PwOlO9SO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,118 +45,138 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move pfn_to_online_page() out of line
+     Subject: mm/memory_hotplug: rename all existing 'memhp' into 'mhp'
 has been removed from the -mm tree.  Its filename was
-     mm-move-pfn_to_online_page-out-of-line.patch
+     mm-memory_hotplug-rename-all-existing-memhp-into-mhp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: move pfn_to_online_page() out of line
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/memory_hotplug: rename all existing 'memhp' into 'mhp'
 
-Patch series "mm: Fix pfn_to_online_page() with respect to ZONE_DEVICE", v4.
+This renames all 'memhp' instances to 'mhp' except for memhp_default_state
+for being a kernel command line option.  This is just a clean up and
+should not cause a functional change.  Let's make it consistent rater than
+mixing the two prefixes.  In preparation for more users of the 'mhp'
+terminology.
 
-A pfn-walker that uses pfn_to_online_page() may inadvertently translate a
-pfn as online and in the page allocator, when it is offline managed by a
-ZONE_DEVICE mapping (details in Patch 3: ("mm: Teach pfn_to_online_page()
-about ZONE_DEVICE section collisions")).
-
-The 2 proposals under consideration are teach pfn_to_online_page() to be
-precise in the presence of mixed-zone sections, or teach the memory-add
-code to drop the System RAM associated with ZONE_DEVICE collisions.  In
-order to not regress memory capacity by a few 10s to 100s of MiB the
-approach taken in this set is to add precision to pfn_to_online_page().
-
-In the course of validating pfn_to_online_page() a couple other fixes
-fell out:
-
-1/ soft_offline_page() fails to drop the reference taken in the
-   madvise(..., MADV_SOFT_OFFLINE) case.
-
-2/ memory_failure() uses get_dev_pagemap() to lookup ZONE_DEVICE pages,
-   however that mapping may contain data pages and metadata raw pfns.
-   Introduce pgmap_pfn_valid() to delineate the 2 types and fail the
-   handling of raw metadata pfns.
-
-
-This patch (of 4);
-
-pfn_to_online_page() is already too large to be a macro or an inline
-function.  In anticipation of further logic changes / growth, move it out
-of line.
-
-No functional change, just code movement.
-
-Link: https://lkml.kernel.org/r/161058499000.1840162.702316708443239771.stgit@dwillia2-desk3.amr.corp.intel.com
-Link: https://lkml.kernel.org/r/161058499608.1840162.10165648147615238793.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Michal Hocko <mhocko@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/1611554093-27316-1-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Qian Cai <cai@lca.pw>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |   17 +----------------
- mm/memory_hotplug.c            |   16 ++++++++++++++++
- 2 files changed, 17 insertions(+), 16 deletions(-)
+ drivers/base/memory.c          |   10 +++++-----
+ include/linux/memory_hotplug.h |    4 ++--
+ mm/memory_hotplug.c            |   12 ++++++------
+ 3 files changed, 13 insertions(+), 13 deletions(-)
 
---- a/include/linux/memory_hotplug.h~mm-move-pfn_to_online_page-out-of-line
-+++ a/include/linux/memory_hotplug.h
-@@ -16,22 +16,7 @@ struct resource;
- struct vmem_altmap;
+--- a/drivers/base/memory.c~mm-memory_hotplug-rename-all-existing-memhp-into-mhp
++++ a/drivers/base/memory.c
+@@ -35,7 +35,7 @@ static const char *const online_type_to_
+ 	[MMOP_ONLINE_MOVABLE] = "online_movable",
+ };
  
- #ifdef CONFIG_MEMORY_HOTPLUG
--/*
-- * Return page for the valid pfn only if the page is online. All pfn
-- * walkers which rely on the fully initialized page->flags and others
-- * should use this rather than pfn_valid && pfn_to_page
-- */
--#define pfn_to_online_page(pfn)					   \
--({								   \
--	struct page *___page = NULL;				   \
--	unsigned long ___pfn = pfn;				   \
--	unsigned long ___nr = pfn_to_section_nr(___pfn);	   \
--								   \
--	if (___nr < NR_MEM_SECTIONS && online_section_nr(___nr) && \
--	    pfn_valid_within(___pfn))				   \
--		___page = pfn_to_page(___pfn);			   \
--	___page;						   \
--})
-+struct page *pfn_to_online_page(unsigned long pfn);
+-int memhp_online_type_from_str(const char *str)
++int mhp_online_type_from_str(const char *str)
+ {
+ 	int i;
  
- /*
-  * Types for free bootmem stored in page->lru.next. These have to be in
---- a/mm/memory_hotplug.c~mm-move-pfn_to_online_page-out-of-line
-+++ a/mm/memory_hotplug.c
-@@ -301,6 +301,22 @@ static int check_hotplug_memory_addressa
+@@ -253,7 +253,7 @@ static int memory_subsys_offline(struct
+ static ssize_t state_store(struct device *dev, struct device_attribute *attr,
+ 			   const char *buf, size_t count)
+ {
+-	const int online_type = memhp_online_type_from_str(buf);
++	const int online_type = mhp_online_type_from_str(buf);
+ 	struct memory_block *mem = to_memory_block(dev);
+ 	int ret;
+ 
+@@ -387,19 +387,19 @@ static ssize_t auto_online_blocks_show(s
+ 				       struct device_attribute *attr, char *buf)
+ {
+ 	return sysfs_emit(buf, "%s\n",
+-			  online_type_to_str[memhp_default_online_type]);
++			  online_type_to_str[mhp_default_online_type]);
  }
  
- /*
-+ * Return page for the valid pfn only if the page is online. All pfn
-+ * walkers which rely on the fully initialized page->flags and others
-+ * should use this rather than pfn_valid && pfn_to_page
-+ */
-+struct page *pfn_to_online_page(unsigned long pfn)
-+{
-+	unsigned long nr = pfn_to_section_nr(pfn);
-+
-+	if (nr < NR_MEM_SECTIONS && online_section_nr(nr) &&
-+	    pfn_valid_within(pfn))
-+		return pfn_to_page(pfn);
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(pfn_to_online_page);
-+
-+/*
-  * Reasonably generic function for adding memory.  It is
-  * expected that archs that support memory hotplug will
-  * call this function after deciding the zone to which to
+ static ssize_t auto_online_blocks_store(struct device *dev,
+ 					struct device_attribute *attr,
+ 					const char *buf, size_t count)
+ {
+-	const int online_type = memhp_online_type_from_str(buf);
++	const int online_type = mhp_online_type_from_str(buf);
+ 
+ 	if (online_type < 0)
+ 		return -EINVAL;
+ 
+-	memhp_default_online_type = online_type;
++	mhp_default_online_type = online_type;
+ 	return count;
+ }
+ 
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-rename-all-existing-memhp-into-mhp
++++ a/include/linux/memory_hotplug.h
+@@ -116,10 +116,10 @@ extern int arch_add_memory(int nid, u64
+ 			   struct mhp_params *params);
+ extern u64 max_mem_size;
+ 
+-extern int memhp_online_type_from_str(const char *str);
++extern int mhp_online_type_from_str(const char *str);
+ 
+ /* Default online_type (MMOP_*) when new memory blocks are added. */
+-extern int memhp_default_online_type;
++extern int mhp_default_online_type;
+ /* If movable_node boot option specified */
+ extern bool movable_node_enabled;
+ static inline bool movable_node_is_enabled(void)
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-rename-all-existing-memhp-into-mhp
++++ a/mm/memory_hotplug.c
+@@ -67,17 +67,17 @@ void put_online_mems(void)
+ bool movable_node_enabled = false;
+ 
+ #ifndef CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
+-int memhp_default_online_type = MMOP_OFFLINE;
++int mhp_default_online_type = MMOP_OFFLINE;
+ #else
+-int memhp_default_online_type = MMOP_ONLINE;
++int mhp_default_online_type = MMOP_ONLINE;
+ #endif
+ 
+ static int __init setup_memhp_default_state(char *str)
+ {
+-	const int online_type = memhp_online_type_from_str(str);
++	const int online_type = mhp_online_type_from_str(str);
+ 
+ 	if (online_type >= 0)
+-		memhp_default_online_type = online_type;
++		mhp_default_online_type = online_type;
+ 
+ 	return 1;
+ }
+@@ -1076,7 +1076,7 @@ static int check_hotplug_memory_range(u6
+ 
+ static int online_memory_block(struct memory_block *mem, void *arg)
+ {
+-	mem->online_type = memhp_default_online_type;
++	mem->online_type = mhp_default_online_type;
+ 	return device_online(&mem->dev);
+ }
+ 
+@@ -1157,7 +1157,7 @@ int __ref add_memory_resource(int nid, s
+ 		merge_system_ram_resource(res);
+ 
+ 	/* online pages if requested */
+-	if (memhp_default_online_type != MMOP_OFFLINE)
++	if (mhp_default_online_type != MMOP_OFFLINE)
+ 		walk_memory_blocks(start, size, NULL, online_memory_block);
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
 
