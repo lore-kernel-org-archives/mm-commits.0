@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9A72C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66C9DC43381
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7FE0564F30
+	by mail.kernel.org (Postfix) with ESMTP id 392FF64F44
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230101AbhB0Caj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230102AbhB0Caj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 26 Feb 2021 21:30:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51480 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230104AbhB0CaK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:30:10 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 796A364F32;
-        Sat, 27 Feb 2021 02:29:06 +0000 (UTC)
+        id S230101AbhB0CaI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:30:08 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 921E764F1B;
+        Sat, 27 Feb 2021 02:28:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614392946;
-        bh=8lw8EEbpHCdO7TSbuM0XAewAxwMjeyWheJBe1X8tOrc=;
+        s=korg; t=1614392935;
+        bh=4DqDMUDbEqZrTKU1N2gBforfQhBEaDM8gWcu3zVQLhM=;
         h=Date:From:To:Subject:From;
-        b=ue/tmlIC0HRhbP0T/pFUYkCj+zCoq0uhMTv6SmhGd9rccUIyM/iLHE/twi2Ca0VMn
-         neTm+CTw2V0SYiitpEWESaabuMROv2No4WabP42EPILsqIUh5U01zlMrFCBKU933hY
-         +GzF0jp3RUT8llV8AOWssR8kujSIo5eKhcaTsl+8=
-Date:   Fri, 26 Feb 2021 18:29:06 -0800
+        b=GxuT6P72g6d2SA6JiCwXzrR3BVuOeXQpOttAtfj2ZLdEJDj7bB7FDTJ9EAjg+b1Gf
+         zF7mnIii9nLZ3Xlb3FEN6ox6kSHsqjFrSt7u7yjmDHtk4ZDdRNj/hJjvAHsNmz62rq
+         TcmDpAVrwjJ7VVB3nbcVDXOVV0Z6woaVfFHzoU38=
+Date:   Fri, 26 Feb 2021 18:28:55 -0800
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org
-Subject:  [merged]
- mm-vmstat-fix-nohz-wakeups-for-node-stat-changes.patch removed from -mm
- tree
-Message-ID: <20210227022906.4mX5-JJ7d%akpm@linux-foundation.org>
+To:     guro@fb.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, riel@surriel.com, rppt@linux.ibm.com,
+        vvghjk1234@gmail.com
+Subject:  [merged] mm-cma-allocate-cma-areas-bottom-up.patch
+ removed from -mm tree
+Message-ID: <20210227022855.Icw8COqT1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,81 +44,96 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmstat: fix NOHZ wakeups for node stat changes
+     Subject: mm: cma: allocate cma areas bottom-up
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-fix-nohz-wakeups-for-node-stat-changes.patch
+     mm-cma-allocate-cma-areas-bottom-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmstat: fix NOHZ wakeups for node stat changes
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: cma: allocate cma areas bottom-up
 
-On NOHZ, the periodic vmstat flushers on each CPU can go to sleep and
-won't wake up until stat changes are detected in the per-cpu deltas of the
-zone vmstat counters.
+Currently cma areas without a fixed base are allocated close to the end of
+the node.  This placement is sub-optimal because of compaction: it brings
+pages into the cma area.  In particular, it can bring in hot executable
+pages, even if there is a plenty of free memory on the machine.  This
+results in cma allocation failures.
 
-In commit 75ef71840539 ("mm, vmstat: add infrastructure for per-node
-vmstats") per-node counters were introduced, and subsequently most stats
-were moved from the zone to the node level.  However, the node counters
-weren't added to the NOHZ wakeup detection.
+Instead let's place cma areas close to the beginning of a node.  In this
+case the compaction will help to free cma areas, resulting in better cma
+allocation success rates.
 
-In theory this can cause per-cpu errors to remain in the user-reported
-stats indefinitely.  In practice this only affects a handful of sub
-counters (file_mapped, dirty and writeback e.g.) because other page state
-changes at the node level likely involve a change at the zone level as
-well (alloc and free, lru ops).  Also, nobody has complained.
+If there is enough memory let's try to allocate bottom-up starting with
+4GB to exclude any possible interference with DMA32.  On smaller machines
+or in a case of a failure, stick with the old behavior.
 
-Fix it up for completeness: wake up vmstat refreshing on node changes. 
-Also remove the BUILD_BUG_ONs that assert counter size; we haven't relied
-on it since we added sizeof() to the range calculation in commit
-13c9aaf7fa01 ("mm/vmstat.c: fix NUMA statistics updates").
+16GB vm, 2GB cma area:
+With this patch:
+[    0.000000] Command line: root=/dev/vda3 rootflags=subvol=/root systemd.unified_cgroup_hierarchy=1 enforcing=0 console=ttyS0,115200 hugetlb_cma=2G
+[    0.002928] hugetlb_cma: reserve 2048 MiB, up to 2048 MiB per node
+[    0.002930] cma: Reserved 2048 MiB at 0x0000000100000000
+[    0.002931] hugetlb_cma: reserved 2048 MiB on node 0
 
-Link: https://lkml.kernel.org/r/20210202184342.118513-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Without this patch:
+[    0.000000] Command line: root=/dev/vda3 rootflags=subvol=/root systemd.unified_cgroup_hierarchy=1 enforcing=0 console=ttyS0,115200 hugetlb_cma=2G
+[    0.002930] hugetlb_cma: reserve 2048 MiB, up to 2048 MiB per node
+[    0.002933] cma: Reserved 2048 MiB at 0x00000003c0000000
+[    0.002934] hugetlb_cma: reserved 2048 MiB on node 0
+
+v2:
+  - switched to memblock_set_bottom_up(true), by Mike
+  - start with 4GB, by Mike
+
+[guro@fb.com: whitespace fix, per Mike]
+  Link: https://lkml.kernel.org/r/20201221170551.GB3428478@carbon.DHCP.thefacebook.com
+[guro@fb.com: fix 32-bit warnings]
+  Link: https://lkml.kernel.org/r/20201223163537.GA4011967@carbon.DHCP.thefacebook.com
+[guro@fb.com: fix 32-bit systems]
+[akpm@linux-foundation.org: build fix]
+Link: https://lkml.kernel.org/r/20201217201214.3414100-1-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Wonhyuk Yang <vvghjk1234@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ mm/cma.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
---- a/mm/vmstat.c~mm-vmstat-fix-nohz-wakeups-for-node-stat-changes
-+++ a/mm/vmstat.c
-@@ -1894,16 +1894,12 @@ static void vmstat_update(struct work_st
-  */
- static bool need_update(int cpu)
- {
-+	pg_data_t *last_pgdat = NULL;
- 	struct zone *zone;
+--- a/mm/cma.c~mm-cma-allocate-cma-areas-bottom-up
++++ a/mm/cma.c
+@@ -336,6 +336,23 @@ int __init cma_declare_contiguous_nid(ph
+ 			limit = highmem_start;
+ 		}
  
- 	for_each_populated_zone(zone) {
- 		struct per_cpu_pageset *p = per_cpu_ptr(zone->pageset, cpu);
--
--		BUILD_BUG_ON(sizeof(p->vm_stat_diff[0]) != 1);
--#ifdef CONFIG_NUMA
--		BUILD_BUG_ON(sizeof(p->vm_numa_stat_diff[0]) != 2);
--#endif
--
-+		struct per_cpu_nodestat *n;
- 		/*
- 		 * The fast way of checking if there are any vmstat diffs.
- 		 */
-@@ -1915,6 +1911,13 @@ static bool need_update(int cpu)
- 			       sizeof(p->vm_numa_stat_diff[0])))
- 			return true;
- #endif
-+		if (last_pgdat == zone->zone_pgdat)
-+			continue;
-+		last_pgdat = zone->zone_pgdat;
-+		n = per_cpu_ptr(zone->zone_pgdat->per_cpu_nodestats, cpu);
-+		if (memchr_inv(n->vm_node_stat_diff, 0, NR_VM_NODE_STAT_ITEMS *
-+			       sizeof(n->vm_node_stat_diff[0])))
-+		    return true;
- 	}
- 	return false;
- }
++		/*
++		 * If there is enough memory, try a bottom-up allocation first.
++		 * It will place the new cma area close to the start of the node
++		 * and guarantee that the compaction is moving pages out of the
++		 * cma area and not into it.
++		 * Avoid using first 4GB to not interfere with constrained zones
++		 * like DMA/DMA32.
++		 */
++#ifdef CONFIG_PHYS_ADDR_T_64BIT
++		if (!memblock_bottom_up() && memblock_end >= SZ_4G + size) {
++			memblock_set_bottom_up(true);
++			addr = memblock_alloc_range_nid(size, alignment, SZ_4G,
++							limit, nid, true);
++			memblock_set_bottom_up(false);
++		}
++#endif
++
+ 		if (!addr) {
+ 			addr = memblock_alloc_range_nid(size, alignment, base,
+ 					limit, nid, true);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from guro@fb.com are
 
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 
