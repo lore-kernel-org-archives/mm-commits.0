@@ -2,189 +2,122 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.5 required=3.0 tests=BAYES_00,
+	DKIM_ADSP_CUSTOM_MED,DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,
+	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5D3AC433E6
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3C35C433DB
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 19:19:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE1BE64F24
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7FBDE64E2F
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 19:19:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230018AbhB0Cd6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:33:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52982 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230203AbhB0Cdf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:33:35 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A585F64F3C;
-        Sat, 27 Feb 2021 02:32:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393180;
-        bh=1Mr6VRJ9r6ULgliTr2l7ZkQqODmKjEGjM7AEExpavDw=;
-        h=Date:From:To:Subject:From;
-        b=pkx/2HeOBbHSKDaZHlvYp7Y0gkfu6p6WTMrK7ZBzV+CI4+asYwN2tHuInLY2Bnm/K
-         EjqLWfVUp10yI3lCmAU8VOk4zqPA9elhGx3htX/KXT00rDP8+nQR+O+7C36ai0O7h+
-         qcyV/MLzBm+YN0Vgr4rPch6CSk2wuGqix1FX/aaI=
-Date:   Fri, 26 Feb 2021 18:32:59 -0800
-From:   akpm@linux-foundation.org
-To:     ambrosehua@gmail.com, chenhc@lemote.com,
-        christophe.leroy@csgroup.eu, gaojuxin@loongson.cn,
-        huangpei@loongson.cn, jiaxun.yang@flygoat.com,
-        lixuefeng@loongson.cn, maobibo@loongson.cn,
-        mm-commits@vger.kernel.org, npiggin@gmail.com,
-        paulburton@kernel.org, tsbogend@alpha.franken.de,
-        yangtiezhu@loongson.cn, zhangfx@lemote.com
-Subject:  [merged]
- mips-make-userspace-mapping-young-by-default.patch removed from -mm tree
-Message-ID: <20210227023259.Xadd0ltCy%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S230315AbhB0TTi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 27 Feb 2021 14:19:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52722 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230310AbhB0TTY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Feb 2021 14:19:24 -0500
+Received: from mail-ot1-x335.google.com (mail-ot1-x335.google.com [IPv6:2607:f8b0:4864:20::335])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED437C06174A
+        for <mm-commits@vger.kernel.org>; Sat, 27 Feb 2021 11:18:43 -0800 (PST)
+Received: by mail-ot1-x335.google.com with SMTP id s3so12468046otg.5
+        for <mm-commits@vger.kernel.org>; Sat, 27 Feb 2021 11:18:43 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:reply-to:from:date:message-id
+         :subject:to:cc;
+        bh=VqdS6xACzBzd6KDD/RGmhLHONKmrDLV8J0nAE4zwfn0=;
+        b=WSeVSUA8r21Qb00WlkjxDaS4INz8XJ/cV9jOJpjuwzaa+CgGdJEpzgx1Pu4UTKkXr6
+         gkorfqaGRD+sLSdk3GnfAEgI6tiQc5GOL0LcBXUkqHZesECtRUF+N8I6k/SMG8n/T4yt
+         98cRTRGABzkod+mZsbotPqJnRy41pM20UuLTdAbYNxzCVKfbE9X+J8nWqs3K5ys+5dYs
+         M7i99GmjVLfxMUlPYn8JTnIMHHlsdvNIoFd12hv1EeUOyrd7p9P/uZOn+e7hKe+7X8Tr
+         pLBQe4BY0bCruvFurxv/HSnC84+ZspT+M8/pYdwpDEIP6jioU7JvRiZmAA67jwByckSQ
+         Gvjg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:reply-to
+         :from:date:message-id:subject:to:cc;
+        bh=VqdS6xACzBzd6KDD/RGmhLHONKmrDLV8J0nAE4zwfn0=;
+        b=X7vRG7oFkf7/PoT0ImWSlaO4hS+I5Waek/DWuDjhMq0efEkvVVp5i5NK37+AoGUXla
+         tO931ax7eM4jRw9XXVyh1qye/4D/AiHHQhIuScER5U8Ida+pEFgBI/Uh3LLSV6lfi24K
+         50MV37jcFcqDDGiLkEOe9CQAQxYEJmzivLNW36d8qnIp7JwOBetfsBt5fV62ylNoO34Z
+         nbM74C2Qvge8Vr+mBE4iogdZFdLpgCRHk3wXWouwE/HCqiIByOjiPjdVACC9kwtifYWk
+         yvY13B7hDqyk9GwAm2RMb4Sp3ZxjvfrCBi5ep5SFGi3qNOugu4x57K3PYS7u81571Hh7
+         3lMw==
+X-Gm-Message-State: AOAM533m98DZWbXOVtBtUl+Z92+GD2eDFtZ0CZJbFJQThCiQzSBNqU7b
+        qfOeozr1tHUD6xMNjzpYZ7JT3YFZRJ86eW/Ikw8=
+X-Google-Smtp-Source: ABdhPJyaiGgD7EBEhTc6khgRRxmdyh1i+qJZWpeqo90PVhaNHF3bozuUnZ8ZqlKWs4TG2iWidfdARHTF3Oo1pZGtEpM=
+X-Received: by 2002:a9d:7587:: with SMTP id s7mr7809988otk.114.1614453523399;
+ Sat, 27 Feb 2021 11:18:43 -0800 (PST)
+MIME-Version: 1.0
+References: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org> <20210226012114.nmlpmyIrt%akpm@linux-foundation.org>
+In-Reply-To: <20210226012114.nmlpmyIrt%akpm@linux-foundation.org>
+From:   "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
+Date:   Sat, 27 Feb 2021 20:18:32 +0100
+Message-ID: <CAKgNAkiVWvzQOwRGOdSoh8JY-DpxcF6pWdLWNK4RHFdN-d6=+w@mail.gmail.com>
+Subject: Re: [patch 091/118] MAINTAINERS: add uapi directories to API/ABI section
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     David Hildenbrand <david@redhat.com>,
+        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Vlastimil Babka <vbabka@suse.cz>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Hello,
 
-The patch titled
-     Subject: MIPS: make userspace mapping young by default
-has been removed from the -mm tree.  Its filename was
-     mips-make-userspace-mapping-young-by-default.patch
+On Fri, 26 Feb 2021 at 02:21, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> From: Vlastimil Babka <vbabka@suse.cz>
+> Subject: MAINTAINERS: add uapi directories to API/ABI section
+>
+> Let's add include/uapi/ and arch/*/include/uapi/ to API/ABI section, so
+> that for patches modifying them, get_maintainers.pl suggests CCing
+> linux-api@ so people don't forget.
+>
+> Link: https://lkml.kernel.org/r/20210217174745.13591-1-vbabka@suse.cz
+> Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+> Reported-by: David Hildenbrand <david@redhat.com>
+> Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>  MAINTAINERS |    2 ++
+>  1 file changed, 2 insertions(+)
+>
+> --- a/MAINTAINERS~maintainers-add-uapi-directories-to-api-abi-section
+> +++ a/MAINTAINERS
+> @@ -261,6 +261,8 @@ ABI/API
+>  L:     linux-api@vger.kernel.org
+>  F:     include/linux/syscalls.h
+>  F:     kernel/sys_ni.c
+> +F:     include/uapi/
+> +F:     arch/*/include/uapi/
+>
+>  ABIT UGURU 1,2 HARDWARE MONITOR DRIVER
+>  M:     Hans de Goede <hdegoede@redhat.com>
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Can we please NOT do this.
 
-------------------------------------------------------
-From: Huang Pei <huangpei@loongson.cn>
-Subject: MIPS: make userspace mapping young by default
+Please see commit b14fd334ff3dc47b31c3592c166af5ea42b204d3.
 
-MIPS page fault path(except huge page) takes 3 exceptions (1 TLB Miss + 2
-TLB Invalid), butthe second TLB Invalid exception is just triggered by
-__update_tlb from do_page_fault writing tlb without _PAGE_VALID set.  With
-this patch, user space mapping prot is made young by default (with both
-_PAGE_VALID and _PAGE_YOUNG set), and it only take 1 TLB Miss + 1 TLB
-Invalid exception
+In the past, include/uapi/ was listed as a file trigger, and the
+consequence was a lot of low signal noise on linux-api@, until finally
+I removed the trigger.
 
-Remove pte_sw_mkyoung without polluting MM code and make page fault delay
-of MIPS on par with other architecture
+Thanks,
 
-Link: https://lkml.kernel.org/r/20210204013942.8398-1-huangpei@loongson.cn
-Signed-off-by: Huang Pei <huangpei@loongson.cn>
-Reviewed-by: Nicholas Piggin <npiggin@gmail.com>
-Acked-by: <huangpei@loongson.cn>
-Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: <ambrosehua@gmail.com>
-Cc: Bibo Mao <maobibo@loongson.cn>
-Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
-Cc: Paul Burton <paulburton@kernel.org>
-Cc: Li Xuefeng <lixuefeng@loongson.cn>
-Cc: Yang Tiezhu <yangtiezhu@loongson.cn>
-Cc: Gao Juxin <gaojuxin@loongson.cn>
-Cc: Fuxin Zhang <zhangfx@lemote.com>
-Cc: Huacai Chen <chenhc@lemote.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/mips/mm/cache.c    |   30 ++++++++++++++++--------------
- include/linux/pgtable.h |    8 --------
- mm/memory.c             |    4 ----
- 3 files changed, 16 insertions(+), 26 deletions(-)
-
---- a/arch/mips/mm/cache.c~mips-make-userspace-mapping-young-by-default
-+++ a/arch/mips/mm/cache.c
-@@ -157,29 +157,31 @@ unsigned long _page_cachable_default;
- EXPORT_SYMBOL(_page_cachable_default);
- 
- #define PM(p)	__pgprot(_page_cachable_default | (p))
-+#define PVA(p)	PM(_PAGE_VALID | _PAGE_ACCESSED | (p))
- 
- static inline void setup_protection_map(void)
- {
- 	protection_map[0]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
--	protection_map[1]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
--	protection_map[2]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
--	protection_map[3]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
--	protection_map[4]  = PM(_PAGE_PRESENT);
--	protection_map[5]  = PM(_PAGE_PRESENT);
--	protection_map[6]  = PM(_PAGE_PRESENT);
--	protection_map[7]  = PM(_PAGE_PRESENT);
-+	protection_map[1]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
-+	protection_map[2]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
-+	protection_map[3]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
-+	protection_map[4]  = PVA(_PAGE_PRESENT);
-+	protection_map[5]  = PVA(_PAGE_PRESENT);
-+	protection_map[6]  = PVA(_PAGE_PRESENT);
-+	protection_map[7]  = PVA(_PAGE_PRESENT);
- 
- 	protection_map[8]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
--	protection_map[9]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
--	protection_map[10] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
-+	protection_map[9]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
-+	protection_map[10] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
- 				_PAGE_NO_READ);
--	protection_map[11] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
--	protection_map[12] = PM(_PAGE_PRESENT);
--	protection_map[13] = PM(_PAGE_PRESENT);
--	protection_map[14] = PM(_PAGE_PRESENT | _PAGE_WRITE);
--	protection_map[15] = PM(_PAGE_PRESENT | _PAGE_WRITE);
-+	protection_map[11] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
-+	protection_map[12] = PVA(_PAGE_PRESENT);
-+	protection_map[13] = PVA(_PAGE_PRESENT);
-+	protection_map[14] = PVA(_PAGE_PRESENT);
-+	protection_map[15] = PVA(_PAGE_PRESENT);
- }
- 
-+#undef _PVA
- #undef PM
- 
- void cpu_cache_init(void)
---- a/include/linux/pgtable.h~mips-make-userspace-mapping-young-by-default
-+++ a/include/linux/pgtable.h
-@@ -432,14 +432,6 @@ static inline void ptep_set_wrprotect(st
-  * To be differentiate with macro pte_mkyoung, this macro is used on platforms
-  * where software maintains page access bit.
-  */
--#ifndef pte_sw_mkyoung
--static inline pte_t pte_sw_mkyoung(pte_t pte)
--{
--	return pte;
--}
--#define pte_sw_mkyoung	pte_sw_mkyoung
--#endif
--
- #ifndef pte_savedwrite
- #define pte_savedwrite pte_write
- #endif
---- a/mm/memory.c~mips-make-userspace-mapping-young-by-default
-+++ a/mm/memory.c
-@@ -2902,7 +2902,6 @@ static vm_fault_t wp_page_copy(struct vm
- 		}
- 		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
- 		entry = mk_pte(new_page, vma->vm_page_prot);
--		entry = pte_sw_mkyoung(entry);
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
- 
- 		/*
-@@ -3560,7 +3559,6 @@ static vm_fault_t do_anonymous_page(stru
- 	__SetPageUptodate(page);
- 
- 	entry = mk_pte(page, vma->vm_page_prot);
--	entry = pte_sw_mkyoung(entry);
- 	if (vma->vm_flags & VM_WRITE)
- 		entry = pte_mkwrite(pte_mkdirty(entry));
- 
-@@ -3745,8 +3743,6 @@ void do_set_pte(struct vm_fault *vmf, st
- 
- 	if (prefault && arch_wants_old_prefaulted_pte())
- 		entry = pte_mkold(entry);
--	else
--		entry = pte_sw_mkyoung(entry);
- 
- 	if (write)
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
-_
-
-Patches currently in -mm which might be from huangpei@loongson.cn are
+Michael
 
 
+
+-- 
+Michael Kerrisk
+Linux man-pages maintainer; http://www.kernel.org/doc/man-pages/
+Linux/UNIX System Programming Training: http://man7.org/training/
