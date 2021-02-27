@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB84C433DB
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AF43C43381
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1616A64F35
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 155D764F3C
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229795AbhB0Ccp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:32:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51000 "EHLO mail.kernel.org"
+        id S230053AbhB0Ccq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:32:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51610 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229745AbhB0CcW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:32:22 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 847CF64F3F;
-        Sat, 27 Feb 2021 02:31:38 +0000 (UTC)
+        id S230113AbhB0Cci (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:32:38 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 96D0264F42;
+        Sat, 27 Feb 2021 02:31:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393098;
-        bh=pwGnp44yeRwETuj6Mh8N6Frz8h9UbGNpNGTe9x8VukM=;
+        s=korg; t=1614393102;
+        bh=6P+kw+5hKaAl1gYs/Hd7fQWUwNzNjoi/PeA0qMabg8s=;
         h=Date:From:To:Subject:From;
-        b=QF4qR/WZbrtBgHag5nJvmeRqUXVwk9/sxPN1Psy/4IHf4mMgukJ2gfeqZuv/2LGsY
-         BP+6KUDDoBVdwZujqIrXVDmaG0ayGPsm0+QUynIH41oU4pxGCpwTDHcJl9IE5MFfgt
-         JE0v+8DBwQbzNQ2CBF8tvyxHkDplqoVEGoQh79vw=
-Date:   Fri, 26 Feb 2021 18:31:38 -0800
+        b=P8+DUyIjh3GOJRHFEFFjUKvb7286R3wqom0XdINWZR3zhq8aOYbPYcDvxIh3LH3FZ
+         wmk8vdEHZxs25JwEzQU+SzssjF+TW2AmlRyiKTEVQnJdvYgIBw9LrjO5bU4wQ1wg7L
+         WlxRRUMfxBPVHkZFToB8Ya6pnOxpo03aTHDTH/ao=
+Date:   Fri, 26 Feb 2021 18:31:42 -0800
 From:   akpm@linux-foundation.org
-To:     gregkh@linuxfoundation.org, ink@jurassic.park.msu.ru,
-        keescook@chromium.org, mattst88@gmail.com,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org, rth@twiddle.net
-Subject:  [merged]
- alpha-remove-config_experimental-from-defconfigs.patch removed from -mm
- tree
-Message-ID: <20210227023138.i9KQa_i2k%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, hch@lst.de, josef@toxicpanda.com,
+        mm-commits@vger.kernel.org, vbabka@suse.cz,
+        viro@zeniv.linux.org.uk, willy@infradead.org
+Subject:  [merged] proc-use-vmalloc-for-our-kernel-buffer.patch
+ removed from -mm tree
+Message-ID: <20210227023142.hEGZkfS2y%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,42 +44,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alpha: remove CONFIG_EXPERIMENTAL from defconfigs
+     Subject: proc: use kvzalloc for our kernel buffer
 has been removed from the -mm tree.  Its filename was
-     alpha-remove-config_experimental-from-defconfigs.patch
+     proc-use-vmalloc-for-our-kernel-buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: alpha: remove CONFIG_EXPERIMENTAL from defconfigs
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: proc: use kvzalloc for our kernel buffer
 
-Since CONFIG_EXPERIMENTAL was removed in 2013, go ahead and drop it
-from any defconfig files.
+Since
 
-Link: https://lkml.kernel.org/r/20210115005956.29408-1-rdunlap@infradead.org
-Fixes: 3d374d09f16f ("final removal of CONFIG_EXPERIMENTAL")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+  sysctl: pass kernel pointers to ->proc_handler
+
+we have been pre-allocating a buffer to copy the data from the proc
+handlers into, and then copying that to userspace.  The problem is this
+just blindly kzalloc()'s the buffer size passed in from the read, which in
+the case of our 'cat' binary was 64kib.  Order-4 allocations are not
+awesome, and since we can potentially allocate up to our maximum order, so
+use kvzalloc for these buffers.
+
+[willy@infradead.org: changelog tweaks]
+Link: https://lkml.kernel.org/r/6345270a2c1160b89dd5e6715461f388176899d1.1612972413.git.josef@toxicpanda.com
+Fixes: 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+CC: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/configs/defconfig |    1 -
- 1 file changed, 1 deletion(-)
+ fs/proc/proc_sysctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/alpha/configs/defconfig~alpha-remove-config_experimental-from-defconfigs
-+++ a/arch/alpha/configs/defconfig
-@@ -1,4 +1,3 @@
--CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
+--- a/fs/proc/proc_sysctl.c~proc-use-vmalloc-for-our-kernel-buffer
++++ a/fs/proc/proc_sysctl.c
+@@ -571,7 +571,7 @@ static ssize_t proc_sys_call_handler(str
+ 	error = -ENOMEM;
+ 	if (count >= KMALLOC_MAX_SIZE)
+ 		goto out;
+-	kbuf = kzalloc(count + 1, GFP_KERNEL);
++	kbuf = kvzalloc(count + 1, GFP_KERNEL);
+ 	if (!kbuf)
+ 		goto out;
+ 
+@@ -600,7 +600,7 @@ static ssize_t proc_sys_call_handler(str
+ 
+ 	error = count;
+ out_free_buf:
+-	kfree(kbuf);
++	kvfree(kbuf);
+ out:
+ 	sysctl_head_finish(head);
+ 
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from josef@toxicpanda.com are
 
 
