@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45F5FC433E0
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03A10C433DB
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1736964F34
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C82CD64F33
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229912AbhB0Ccb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230001AbhB0Ccb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 26 Feb 2021 21:32:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52982 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51606 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230001AbhB0CcH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S229993AbhB0CcH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Fri, 26 Feb 2021 21:32:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 66DD564F37;
-        Sat, 27 Feb 2021 02:31:26 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6C86464F2A;
+        Sat, 27 Feb 2021 02:31:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393086;
-        bh=FGaT9JIH/FcKVpHajRMLLszLES9p2UjLwiGCUMq1018=;
+        s=korg; t=1614393092;
+        bh=AIudJjowXZBBBcXMYtGhWEaiUsbHkAGfltTX1VaSnV0=;
         h=Date:From:To:Subject:From;
-        b=BhReP7YdSlGQmoZj/uCC2xgQWlDToTKEC4IVQqMluhTO7Et/4sG5CjpGZmyCWOmfP
-         /WmcoR/d08/cwGI04kkVvp8g3OmThttQ9gPwSHtgFSB+rJfXVL/9nIbZSoS7V+OCNi
-         OlXko9h76Nf0Pb0SIZrcYRKteqHcSXRLlgl6jPL8=
-Date:   Fri, 26 Feb 2021 18:31:26 -0800
+        b=Me/lNtwdd0CMqB1Lu8hB/xuRJwz8qKRH0tvPxufEiyY39vTHsn41V50ZdD8W1q/SU
+         SX0YwQUkeACFOCxTN/BUH1hAbU+ePW/DC8a2OSgC7ngcUWPfoRE7PErFkUGy74vVWa
+         6OFO0AH2R2f58dF+ot4kJrRccIW9n6ZNpdiv5Oy4=
+Date:   Fri, 26 Feb 2021 18:31:32 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [merged] kasan-mm-optimize-krealloc-poisoning.patch
+Subject:  [merged] kasan-inline-hw_tags-helper-functions.patch
  removed from -mm tree
-Message-ID: <20210227023126.KY3ELdALm%akpm@linux-foundation.org>
+Message-ID: <20210227023132.d4JlIoXjL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,29 +47,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, mm: optimize krealloc poisoning
+     Subject: kasan: inline HW_TAGS helper functions
 has been removed from the -mm tree.  Its filename was
-     kasan-mm-optimize-krealloc-poisoning.patch
+     kasan-inline-hw_tags-helper-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, mm: optimize krealloc poisoning
+Subject: kasan: inline HW_TAGS helper functions
 
-Currently, krealloc() always calls ksize(), which unpoisons the whole
-object including the redzone.  This is inefficient, as kasan_krealloc()
-repoisons the redzone for objects that fit into the same buffer.
+Mark all static functions in common.c and kasan.h that are used for
+hardware tag-based KASAN as inline to avoid unnecessary function calls.
 
-This patch changes krealloc() instrumentation to use uninstrumented
-__ksize() that doesn't unpoison the memory.  Instead, kasan_kreallos() is
-changed to unpoison the memory excluding the redzone.
-
-For objects that don't fit into the old allocation, this patch disables
-KASAN accessibility checks when copying memory into a new object instead
-of unpoisoning it.
-
-Link: https://lkml.kernel.org/r/9bef90327c9cb109d736c40115684fd32f49e6b0.1612546384.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/2c94a2af0657f2b95b9337232339ff5ffa643ab5.1612546384.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -85,83 +76,52 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |   12 ++++++++++--
- mm/slab_common.c  |   20 ++++++++++++++------
- 2 files changed, 24 insertions(+), 8 deletions(-)
+ mm/kasan/common.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/mm/kasan/common.c~kasan-mm-optimize-krealloc-poisoning
+--- a/mm/kasan/common.c~kasan-inline-hw_tags-helper-functions
 +++ a/mm/kasan/common.c
-@@ -476,7 +476,7 @@ static void *____kasan_kmalloc(struct km
- 
- 	/*
- 	 * The object has already been unpoisoned by kasan_slab_alloc() for
--	 * kmalloc() or by ksize() for krealloc().
-+	 * kmalloc() or by kasan_krealloc() for krealloc().
- 	 */
- 
- 	/*
-@@ -526,7 +526,7 @@ void * __must_check __kasan_kmalloc_larg
- 
- 	/*
- 	 * The object has already been unpoisoned by kasan_alloc_pages() for
--	 * alloc_pages() or by ksize() for krealloc().
-+	 * alloc_pages() or by kasan_krealloc() for krealloc().
- 	 */
- 
- 	/*
-@@ -554,8 +554,16 @@ void * __must_check __kasan_krealloc(con
- 	if (unlikely(object == ZERO_SIZE_PTR))
- 		return (void *)object;
- 
-+	/*
-+	 * Unpoison the object's data.
-+	 * Part of it might already have been unpoisoned, but it's unknown
-+	 * how big that part is.
-+	 */
-+	kasan_unpoison(object, size);
-+
- 	page = virt_to_head_page(object);
- 
-+	/* Piggy-back on kmalloc() instrumentation to poison the redzone. */
- 	if (unlikely(!PageSlab(page)))
- 		return __kasan_kmalloc_large(object, size, flags);
- 	else
---- a/mm/slab_common.c~kasan-mm-optimize-krealloc-poisoning
-+++ a/mm/slab_common.c
-@@ -1136,19 +1136,27 @@ static __always_inline void *__do_kreall
- 	void *ret;
- 	size_t ks;
- 
--	if (likely(!ZERO_OR_NULL_PTR(p)) && !kasan_check_byte(p))
--		return NULL;
--
--	ks = ksize(p);
-+	/* Don't use instrumented ksize to allow precise KASAN poisoning. */
-+	if (likely(!ZERO_OR_NULL_PTR(p))) {
-+		if (!kasan_check_byte(p))
-+			return NULL;
-+		ks = kfence_ksize(p) ?: __ksize(p);
-+	} else
-+		ks = 0;
- 
-+	/* If the object still fits, repoison it precisely. */
- 	if (ks >= new_size) {
- 		p = kasan_krealloc((void *)p, new_size, flags);
- 		return (void *)p;
- 	}
- 
- 	ret = kmalloc_track_caller(new_size, flags);
--	if (ret && p)
--		memcpy(ret, p, ks);
-+	if (ret && p) {
-+		/* Disable KASAN checks as the object's redzone is accessed. */
-+		kasan_disable_current();
-+		memcpy(ret, kasan_reset_tag(p), ks);
-+		kasan_enable_current();
-+	}
- 
- 	return ret;
+@@ -279,7 +279,8 @@ void __kasan_poison_object_data(struct k
+  *    based on objects indexes, so that objects that are next to each other
+  *    get different tags.
+  */
+-static u8 assign_tag(struct kmem_cache *cache, const void *object, bool init)
++static inline u8 assign_tag(struct kmem_cache *cache,
++					const void *object, bool init)
+ {
+ 	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
+ 		return 0xff;
+@@ -321,8 +322,8 @@ void * __must_check __kasan_init_slab_ob
+ 	return (void *)object;
  }
+ 
+-static bool ____kasan_slab_free(struct kmem_cache *cache, void *object,
+-			      unsigned long ip, bool quarantine)
++static inline bool ____kasan_slab_free(struct kmem_cache *cache,
++				void *object, unsigned long ip, bool quarantine)
+ {
+ 	u8 tag;
+ 	void *tagged_object;
+@@ -366,7 +367,7 @@ bool __kasan_slab_free(struct kmem_cache
+ 	return ____kasan_slab_free(cache, object, ip, true);
+ }
+ 
+-static bool ____kasan_kfree_large(void *ptr, unsigned long ip)
++static inline bool ____kasan_kfree_large(void *ptr, unsigned long ip)
+ {
+ 	if (ptr != page_address(virt_to_head_page(ptr))) {
+ 		kasan_report_invalid_free(ptr, ip);
+@@ -461,8 +462,8 @@ void * __must_check __kasan_slab_alloc(s
+ 	return tagged_object;
+ }
+ 
+-static void *____kasan_kmalloc(struct kmem_cache *cache, const void *object,
+-					size_t size, gfp_t flags)
++static inline void *____kasan_kmalloc(struct kmem_cache *cache,
++				const void *object, size_t size, gfp_t flags)
+ {
+ 	unsigned long redzone_start;
+ 	unsigned long redzone_end;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
