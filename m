@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFDFCC433E6
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:29:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19715C433E9
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B020B64F36
+	by mail.kernel.org (Postfix) with ESMTP id D5FDD64F40
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:29:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230070AbhB0C36 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:29:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51074 "EHLO mail.kernel.org"
+        id S230040AbhB0C37 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:29:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51110 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230040AbhB0C3x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S230045AbhB0C3x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Fri, 26 Feb 2021 21:29:53 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7713364F33;
-        Sat, 27 Feb 2021 02:29:08 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8DB6564F36;
+        Sat, 27 Feb 2021 02:29:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614392948;
-        bh=f0ygv88PgY0VBrTJMUOYHLkH9uByq4m0dKL4uyzIm+Y=;
+        s=korg; t=1614392955;
+        bh=R9V+dE1AYYN8mSIKNQ1nVCaOAkR95DQqZuN7u21mFYQ=;
         h=Date:From:To:Subject:From;
-        b=C+bqvQRs50pX6vOhVUjvXmFbbwUNU+CnOb2Ry5dv7Ni4GFz5YBCd6I5iZQhQnq9AW
-         z+TDyu3wc0ws7HVdjcpYpAOX4cBOcZuIp8Mjg14YVkj/jHLpMW83lOVEvS8YveU7A2
-         1XUHRwk29/rbmi8iZfSmv5Wyz8hGigksfGSvOg+w=
-Date:   Fri, 26 Feb 2021 18:29:08 -0800
+        b=TI4klKgLvtK6R1EFS+01aqr22tEZMAoTYa5RelWHJkfhz3airmVLpyTI1zMmspJat
+         JQe6Hlt/dPB/vlMAuZkcxXaDiFUUAqpSOwGiASnZ8IlZb0679PQXfyD+M/0SwfWIVC
+         wCYn/AoUt8rPKt2Vt4u2wtBdhfvgwg+QlA3oPVzw=
+Date:   Fri, 26 Feb 2021 18:29:15 -0800
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To:     cai@lca.pw, dan.j.williams@intel.com, david@redhat.com,
+        mhocko@suse.com, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, osalvador@suse.de
 Subject:  [merged]
- mm-vmstat-add-some-comments-on-internal-storage-of-byte-items.patch removed
+ mm-teach-pfn_to_online_page-to-consider-subsection-validity.patch removed
  from -mm tree
-Message-ID: <20210227022908.EfGwOQhgq%akpm@linux-foundation.org>
+Message-ID: <20210227022915._P_dRSATX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,79 +45,75 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmstat: add some comments on internal storage of byte items
+     Subject: mm: teach pfn_to_online_page() to consider subsection validity
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-add-some-comments-on-internal-storage-of-byte-items.patch
+     mm-teach-pfn_to_online_page-to-consider-subsection-validity.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmstat: add some comments on internal storage of byte items
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: teach pfn_to_online_page() to consider subsection validity
 
-Byte-accounted items are used for slab object accounting at the cgroup
-level, because the objects in a slab page can belong to different cgroups.
-At the global level these items always change in multiples of whole slab
-pages.  The vmstat code exploits this and stores these items as pages
-internally, which allows for more compact per-cpu data.
+pfn_to_online_page is primarily used to filter out offline or fully
+uninitialized pages.  pfn_valid resp.  online_section_nr have a coarse
+per memory section granularity.  If a section shared with a partially
+offline memory (e.g.  part of ZONE_DEVICE) then pfn_to_online_page
+would lead to a false positive on some pfns.  Fix this by adding
+pfn_section_valid check which is subsection aware.
 
-This optimization isn't self-evident from the asserts and the division in
-the stat update functions.  Provide the reader with some context.
-
-Link: https://lkml.kernel.org/r/20210202184411.118614-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+[mhocko@kernel.org: changelog rewrite]
+Link: https://lkml.kernel.org/r/161058500148.1840162.4365921007820501696.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: b13bc35193d9 ("mm/hotplug: invalid PFNs from pfn_to_online_page()")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    6 ++++++
- mm/vmstat.c            |   12 ++++++++++++
- 2 files changed, 18 insertions(+)
+ mm/memory_hotplug.c |   23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
---- a/include/linux/vmstat.h~mm-vmstat-add-some-comments-on-internal-storage-of-byte-items
-+++ a/include/linux/vmstat.h
-@@ -313,6 +313,12 @@ static inline void __mod_node_page_state
- 			enum node_stat_item item, int delta)
+--- a/mm/memory_hotplug.c~mm-teach-pfn_to_online_page-to-consider-subsection-validity
++++ a/mm/memory_hotplug.c
+@@ -308,11 +308,26 @@ static int check_hotplug_memory_addressa
+ struct page *pfn_to_online_page(unsigned long pfn)
  {
- 	if (vmstat_item_in_bytes(item)) {
-+		/*
-+		 * Only cgroups use subpage accounting right now; at
-+		 * the global level, these items still change in
-+		 * multiples of whole pages. Store them as pages
-+		 * internally to keep the per-cpu counters compact.
-+		 */
- 		VM_WARN_ON_ONCE(delta & (PAGE_SIZE - 1));
- 		delta >>= PAGE_SHIFT;
- 	}
---- a/mm/vmstat.c~mm-vmstat-add-some-comments-on-internal-storage-of-byte-items
-+++ a/mm/vmstat.c
-@@ -342,6 +342,12 @@ void __mod_node_page_state(struct pglist
- 	long t;
+ 	unsigned long nr = pfn_to_section_nr(pfn);
++	struct mem_section *ms;
  
- 	if (vmstat_item_in_bytes(item)) {
-+		/*
-+		 * Only cgroups use subpage accounting right now; at
-+		 * the global level, these items still change in
-+		 * multiples of whole pages. Store them as pages
-+		 * internally to keep the per-cpu counters compact.
-+		 */
- 		VM_WARN_ON_ONCE(delta & (PAGE_SIZE - 1));
- 		delta >>= PAGE_SHIFT;
- 	}
-@@ -551,6 +557,12 @@ static inline void mod_node_state(struct
- 	long o, n, t, z;
+-	if (nr < NR_MEM_SECTIONS && online_section_nr(nr) &&
+-	    pfn_valid_within(pfn))
+-		return pfn_to_page(pfn);
+-	return NULL;
++	if (nr >= NR_MEM_SECTIONS)
++		return NULL;
++
++	ms = __nr_to_section(nr);
++	if (!online_section(ms))
++		return NULL;
++
++	/*
++	 * Save some code text when online_section() +
++	 * pfn_section_valid() are sufficient.
++	 */
++	if (IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID) && !pfn_valid(pfn))
++		return NULL;
++
++	if (!pfn_section_valid(ms, pfn))
++		return NULL;
++
++	return pfn_to_page(pfn);
+ }
+ EXPORT_SYMBOL_GPL(pfn_to_online_page);
  
- 	if (vmstat_item_in_bytes(item)) {
-+		/*
-+		 * Only cgroups use subpage accounting right now; at
-+		 * the global level, these items still change in
-+		 * multiples of whole pages. Store them as pages
-+		 * internally to keep the per-cpu counters compact.
-+		 */
- 		VM_WARN_ON_ONCE(delta & (PAGE_SIZE - 1));
- 		delta >>= PAGE_SHIFT;
- 	}
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
 
