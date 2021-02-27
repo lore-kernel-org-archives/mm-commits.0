@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D3B5C433E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB84C433DB
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 66CE964F38
+	by mail.kernel.org (Postfix) with ESMTP id 1616A64F35
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229745AbhB0Ccp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229795AbhB0Ccp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 26 Feb 2021 21:32:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51478 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51000 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230053AbhB0Cch (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:32:37 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7064D64F41;
-        Sat, 27 Feb 2021 02:31:40 +0000 (UTC)
+        id S229745AbhB0CcW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:32:22 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 847CF64F3F;
+        Sat, 27 Feb 2021 02:31:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393100;
-        bh=sGMgzhg02oGbnirXLNNwXvwBGCGRK7xdlYiSTIwOVT8=;
+        s=korg; t=1614393098;
+        bh=pwGnp44yeRwETuj6Mh8N6Frz8h9UbGNpNGTe9x8VukM=;
         h=Date:From:To:Subject:From;
-        b=MrrmKVe8OrOI03tFTt0+PWzwV+5Ts66g4fLS3dZF2Bpv4L8QLXri7eJk5EVWw3NCE
-         WRFvw3rD6sA0hIAVrzSemwUoYralGsTmSU87JAUAMxry8SC1dVbtFd7uGtbyGw8C75
-         ZSJh/iulYrSPN0YkAO5YCtfwuf91I9Rv8/3q02x0=
-Date:   Fri, 26 Feb 2021 18:31:40 -0800
+        b=QF4qR/WZbrtBgHag5nJvmeRqUXVwk9/sxPN1Psy/4IHf4mMgukJ2gfeqZuv/2LGsY
+         BP+6KUDDoBVdwZujqIrXVDmaG0ayGPsm0+QUynIH41oU4pxGCpwTDHcJl9IE5MFfgt
+         JE0v+8DBwQbzNQ2CBF8tvyxHkDplqoVEGoQh79vw=
+Date:   Fri, 26 Feb 2021 18:31:38 -0800
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, deller@gmx.de, mm-commits@vger.kernel.org
+To:     gregkh@linuxfoundation.org, ink@jurassic.park.msu.ru,
+        keescook@chromium.org, mattst88@gmail.com,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org, rth@twiddle.net
 Subject:  [merged]
- proc-wchan-use-printk-format-instead-of-lookup_symbol_name.patch removed
- from -mm tree
-Message-ID: <20210227023140.z77eA67g3%akpm@linux-foundation.org>
+ alpha-remove-config_experimental-from-defconfigs.patch removed from -mm
+ tree
+Message-ID: <20210227023138.i9KQa_i2k%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,70 +45,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc/wchan: use printk format instead of lookup_symbol_name()
+     Subject: alpha: remove CONFIG_EXPERIMENTAL from defconfigs
 has been removed from the -mm tree.  Its filename was
-     proc-wchan-use-printk-format-instead-of-lookup_symbol_name.patch
+     alpha-remove-config_experimental-from-defconfigs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Helge Deller <deller@gmx.de>
-Subject: proc/wchan: use printk format instead of lookup_symbol_name()
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: alpha: remove CONFIG_EXPERIMENTAL from defconfigs
 
-To resolve the symbol fuction name for wchan, use the printk format
-specifier %ps instead of manually looking up the symbol function name
-via lookup_symbol_name().
+Since CONFIG_EXPERIMENTAL was removed in 2013, go ahead and drop it
+from any defconfig files.
 
-Link: https://lkml.kernel.org/r/20201217165413.GA1959@ls3530.fritz.box
-Signed-off-by: Helge Deller <deller@gmx.de>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Link: https://lkml.kernel.org/r/20210115005956.29408-1-rdunlap@infradead.org
+Fixes: 3d374d09f16f ("final removal of CONFIG_EXPERIMENTAL")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   21 +++++++++------------
- 1 file changed, 9 insertions(+), 12 deletions(-)
+ arch/alpha/configs/defconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/fs/proc/base.c~proc-wchan-use-printk-format-instead-of-lookup_symbol_name
-+++ a/fs/proc/base.c
-@@ -67,7 +67,6 @@
- #include <linux/mm.h>
- #include <linux/swap.h>
- #include <linux/rcupdate.h>
--#include <linux/kallsyms.h>
- #include <linux/stacktrace.h>
- #include <linux/resource.h>
- #include <linux/module.h>
-@@ -386,19 +385,17 @@ static int proc_pid_wchan(struct seq_fil
- 			  struct pid *pid, struct task_struct *task)
- {
- 	unsigned long wchan;
--	char symname[KSYM_NAME_LEN];
- 
--	if (!ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS))
--		goto print0;
-+	if (ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS))
-+		wchan = get_wchan(task);
-+	else
-+		wchan = 0;
-+
-+	if (wchan)
-+		seq_printf(m, "%ps", (void *) wchan);
-+	else
-+		seq_putc(m, '0');
- 
--	wchan = get_wchan(task);
--	if (wchan && !lookup_symbol_name(wchan, symname)) {
--		seq_puts(m, symname);
--		return 0;
--	}
--
--print0:
--	seq_putc(m, '0');
- 	return 0;
- }
- #endif /* CONFIG_KALLSYMS */
+--- a/arch/alpha/configs/defconfig~alpha-remove-config_experimental-from-defconfigs
++++ a/arch/alpha/configs/defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_POSIX_MQUEUE=y
+ CONFIG_LOG_BUF_SHIFT=14
 _
 
-Patches currently in -mm which might be from deller@gmx.de are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 
