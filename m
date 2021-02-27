@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73345C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAF5FC433E0
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 200DB64F22
+	by mail.kernel.org (Postfix) with ESMTP id B1D3364F2D
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230045AbhB0Cam (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:30:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51110 "EHLO mail.kernel.org"
+        id S230112AbhB0Can (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:30:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51606 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230112AbhB0CaO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:30:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 781F564F29;
-        Sat, 27 Feb 2021 02:29:52 +0000 (UTC)
+        id S230124AbhB0CaS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:30:18 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 73C5764F35;
+        Sat, 27 Feb 2021 02:29:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614392992;
-        bh=mZO1YWNBG5uJhJ5UKxoBf30+TwqACTnNnuGqgtuk2oU=;
+        s=korg; t=1614392950;
+        bh=8JiaX1iSz8sTdueerpL9fGu612linTMpfg478YW5ZCk=;
         h=Date:From:To:Subject:From;
-        b=xxOi11k6eKfLoqGLvsVFabFqe/Af6gLbVxe2Uda+tdOzJythgnL2lJtWqUtApkBln
-         dOypByUXo+cky5ReLUe1fdFXzxA4VkFnaNKAnWJeC4s3W0n4ex/hFXqdl9cuc/RWOP
-         nIJv+sSQZRW0ZlD8nMGK7Gv7ZI/2Bkf5YeWOCwwQ=
-Date:   Fri, 26 Feb 2021 18:29:52 -0800
+        b=D8JRt8lhSz/7odTPi8PeNGZIZRqY4s57lOtnxU61er8NTxTtgLEAMroOy20JU3uM4
+         r8VF+9lb6J86OPTQHojglnXGhOj3Q2z9GO9ZYmZiCGf1A+YCcPG4dHHsoLpdiMmotD
+         zqdMQ+n16HN6UivTLv+CK4BHw313aiWY2uciFQyw=
+Date:   Fri, 26 Feb 2021 18:29:10 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org
+To:     benbjiang@tencent.com, cl@linux-foundation.org,
+        mm-commits@vger.kernel.org, robinlai@tencent.com
 Subject:  [merged]
- mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch removed from -mm
- tree
-Message-ID: <20210227022952.Mh5rtlLHC%akpm@linux-foundation.org>
+ mm-vmstatc-erase-latency-in-vmstat_shepherd.patch removed from -mm tree
+Message-ID: <20210227022910.LR89jTvMz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,39 +43,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: remove unneeded semicolon in page_not_mapped()
+     Subject: mm/vmstat.c: erase latency in vmstat_shepherd
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
+     mm-vmstatc-erase-latency-in-vmstat_shepherd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/rmap: remove unneeded semicolon in page_not_mapped()
+From: Jiang Biao <benbjiang@tencent.com>
+Subject: mm/vmstat.c: erase latency in vmstat_shepherd
 
-Remove extra semicolon without any functional change intended.
+Many 100us+ latencies have been deteceted in vmstat_shepherd() on CPX
+platform which has 208 logic cpus.  And vmstat_shepherd is queued every
+second, which could make the case worse.
 
-Link: https://lkml.kernel.org/r/20210127093425.39640-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Add schedule point in vmstat_shepherd() to erase the latency.
+
+Link: https://lkml.kernel.org/r/20210111035526.1511-1-benbjiang@tencent.com
+Signed-off-by: Jiang Biao <benbjiang@tencent.com>
+Reported-by: Bin Lai <robinlai@tencent.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmstat.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/rmap.c~mm-rmap-remove-unneeded-semicolon-in-page_not_mapped
-+++ a/mm/rmap.c
-@@ -1784,7 +1784,7 @@ bool try_to_unmap(struct page *page, enu
- static int page_not_mapped(struct page *page)
- {
- 	return !page_mapped(page);
--};
-+}
+--- a/mm/vmstat.c~mm-vmstatc-erase-latency-in-vmstat_shepherd
++++ a/mm/vmstat.c
+@@ -1980,6 +1980,8 @@ static void vmstat_shepherd(struct work_
  
- /**
-  * try_to_munlock - try to munlock a page
+ 		if (!delayed_work_pending(dw) && need_update(cpu))
+ 			queue_delayed_work_on(cpu, mm_percpu_wq, dw, 0);
++
++		cond_resched();
+ 	}
+ 	put_online_cpus();
+ 
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from benbjiang@tencent.com are
 
 
