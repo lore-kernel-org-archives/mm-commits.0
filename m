@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B7C8C433E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02208C433E6
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4BE7A64F21
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BCA6D64F24
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230153AbhB0CdZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:33:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52982 "EHLO mail.kernel.org"
+        id S230090AbhB0CdY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:33:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51606 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230206AbhB0Ccm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S230203AbhB0Ccm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Fri, 26 Feb 2021 21:32:42 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7086A64F4B;
-        Sat, 27 Feb 2021 02:32:12 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 75CCD64F29;
+        Sat, 27 Feb 2021 02:32:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393132;
-        bh=Lemc1XIsdGoftppBlBq0xP3R2hY1x/rqEq/J4bBnIyw=;
+        s=korg; t=1614393130;
+        bh=aF1CztGWGBO6MXLqsC5reqyFVkMZys0w3ciRCdN30S0=;
         h=Date:From:To:Subject:From;
-        b=qcED39Hi8mH+Foey4FMVsL8tgeZktZc4azJHat3inZqfW2xva+4/D3MBeSdZJngvp
-         8Jv1rkQ8tQFuFRNAHL8XWKMhLGSiMZV+JO3l2YPqA1shAnIf0UpcQq72F9V3TC62Cu
-         qj3ga04ClnGKjrr+lyMkjrM29E+ts9Do67ZX8rIE=
-Date:   Fri, 26 Feb 2021 18:32:12 -0800
+        b=2gCmNiER5zMS58AntJTvoAlxmJgJOoaZsuC/s0dmmZD4KGWT4uZDseWqFTCDhaUjc
+         KrpcPnSOUQfUgVeUBbQrWsRNGm13K6j0494QIr5vhgcQ6xOcB7idPRPRn/OW+f3JWM
+         TcAtY3SDOsUceGoKCxPl5ZYyqe2VacyT2vCihlEE=
+Date:   Fri, 26 Feb 2021 18:32:10 -0800
 From:   akpm@linux-foundation.org
-To:     geert+renesas@glider.be, mm-commits@vger.kernel.org
-Subject:  [merged] bitops-spelling-s-synomyn-synonym.patch removed
+To:     masahiroy@kernel.org, mm-commits@vger.kernel.org
+Subject:  [merged]
+ lib-cmdline-remove-an-unneeded-local-variable-in-next_arg.patch removed
  from -mm tree
-Message-ID: <20210227023212.k_FTevnmy%akpm@linux-foundation.org>
+Message-ID: <20210227023210.-VfQvbr8W%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,39 +43,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/bitops.h: spelling s/synomyn/synonym/
+     Subject: lib/cmdline: remove an unneeded local variable in next_arg()
 has been removed from the -mm tree.  Its filename was
-     bitops-spelling-s-synomyn-synonym.patch
+     lib-cmdline-remove-an-unneeded-local-variable-in-next_arg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: include/linux/bitops.h: spelling s/synomyn/synonym/
+From: Masahiro Yamada <masahiroy@kernel.org>
+Subject: lib/cmdline: remove an unneeded local variable in next_arg()
 
-Fix a misspelling of "synonym".
+The local variable 'next' is unneeded because you can simply advance the
+existing pointer 'args'.
 
-Link: https://lkml.kernel.org/r/20210108105305.2028120-1-geert+renesas@glider.be
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Link: https://lkml.kernel.org/r/20210201014707.3828753-1-masahiroy@kernel.org
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/cmdline.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/include/linux/bitops.h~bitops-spelling-s-synomyn-synonym
-+++ a/include/linux/bitops.h
-@@ -214,7 +214,7 @@ static inline int get_count_order_long(u
-  * __ffs64 - find first set bit in a 64 bit word
-  * @word: The 64 bit word
-  *
-- * On 64 bit arches this is a synomyn for __ffs
-+ * On 64 bit arches this is a synonym for __ffs
-  * The result is not defined if no bits are set, so check that @word
-  * is non-zero before calling this.
-  */
+--- a/lib/cmdline.c~lib-cmdline-remove-an-unneeded-local-variable-in-next_arg
++++ a/lib/cmdline.c
+@@ -228,7 +228,6 @@ char *next_arg(char *args, char **param,
+ {
+ 	unsigned int i, equals = 0;
+ 	int in_quote = 0, quoted = 0;
+-	char *next;
+ 
+ 	if (*args == '"') {
+ 		args++;
+@@ -266,10 +265,10 @@ char *next_arg(char *args, char **param,
+ 
+ 	if (args[i]) {
+ 		args[i] = '\0';
+-		next = args + i + 1;
++		args += i + 1;
+ 	} else
+-		next = args + i;
++		args += i;
+ 
+ 	/* Chew up trailing spaces. */
+-	return skip_spaces(next);
++	return skip_spaces(args);
+ }
 _
 
-Patches currently in -mm which might be from geert+renesas@glider.be are
+Patches currently in -mm which might be from masahiroy@kernel.org are
 
+init-kconfig-make-compile_test-depend-on-has_iomem.patch
 
