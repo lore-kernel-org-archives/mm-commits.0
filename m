@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19715C433E9
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0422BC433E0
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5FDD64F40
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:29:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C334364F43
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230040AbhB0C37 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:29:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51110 "EHLO mail.kernel.org"
+        id S230107AbhB0CaM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:30:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51076 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230045AbhB0C3x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S230053AbhB0C3x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Fri, 26 Feb 2021 21:29:53 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8DB6564F36;
-        Sat, 27 Feb 2021 02:29:15 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B0F864F34;
+        Sat, 27 Feb 2021 02:29:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614392955;
-        bh=R9V+dE1AYYN8mSIKNQ1nVCaOAkR95DQqZuN7u21mFYQ=;
+        s=korg; t=1614392952;
+        bh=zJjBtGpJQF1CJrg733WZ1tC6RgGaq3DTPp6SI+BsQRc=;
         h=Date:From:To:Subject:From;
-        b=TI4klKgLvtK6R1EFS+01aqr22tEZMAoTYa5RelWHJkfhz3airmVLpyTI1zMmspJat
-         JQe6Hlt/dPB/vlMAuZkcxXaDiFUUAqpSOwGiASnZ8IlZb0679PQXfyD+M/0SwfWIVC
-         wCYn/AoUt8rPKt2Vt4u2wtBdhfvgwg+QlA3oPVzw=
-Date:   Fri, 26 Feb 2021 18:29:15 -0800
+        b=sKUaLtCifJLR602lmMut2Jy+6gKGVafThMGu+8GwSpVtJCRgMFApvr3JT7jMBT1+z
+         qMvoAxVSAVZnvbtd6qCHYhiYLr+jiW0N89cHFY4Jan6+HdsElaOCzdWTq5sKDtf3t2
+         zdh+2NJsPb6RPRFgyCGi2iQHaO8XArXtr1/PAwYs=
+Date:   Fri, 26 Feb 2021 18:29:12 -0800
 From:   akpm@linux-foundation.org
 To:     cai@lca.pw, dan.j.williams@intel.com, david@redhat.com,
-        mhocko@suse.com, mm-commits@vger.kernel.org,
+        mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org,
         naoya.horiguchi@nec.com, osalvador@suse.de
-Subject:  [merged]
- mm-teach-pfn_to_online_page-to-consider-subsection-validity.patch removed
- from -mm tree
-Message-ID: <20210227022915._P_dRSATX%akpm@linux-foundation.org>
+Subject:  [merged] mm-move-pfn_to_online_page-out-of-line.patch
+ removed from -mm tree
+Message-ID: <20210227022912.hjq6LHyuK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,73 +44,116 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: teach pfn_to_online_page() to consider subsection validity
+     Subject: mm: move pfn_to_online_page() out of line
 has been removed from the -mm tree.  Its filename was
-     mm-teach-pfn_to_online_page-to-consider-subsection-validity.patch
+     mm-move-pfn_to_online_page-out-of-line.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: teach pfn_to_online_page() to consider subsection validity
+Subject: mm: move pfn_to_online_page() out of line
 
-pfn_to_online_page is primarily used to filter out offline or fully
-uninitialized pages.  pfn_valid resp.  online_section_nr have a coarse
-per memory section granularity.  If a section shared with a partially
-offline memory (e.g.  part of ZONE_DEVICE) then pfn_to_online_page
-would lead to a false positive on some pfns.  Fix this by adding
-pfn_section_valid check which is subsection aware.
+Patch series "mm: Fix pfn_to_online_page() with respect to ZONE_DEVICE", v4.
 
-[mhocko@kernel.org: changelog rewrite]
-Link: https://lkml.kernel.org/r/161058500148.1840162.4365921007820501696.stgit@dwillia2-desk3.amr.corp.intel.com
-Fixes: b13bc35193d9 ("mm/hotplug: invalid PFNs from pfn_to_online_page()")
+A pfn-walker that uses pfn_to_online_page() may inadvertently translate a
+pfn as online and in the page allocator, when it is offline managed by a
+ZONE_DEVICE mapping (details in Patch 3: ("mm: Teach pfn_to_online_page()
+about ZONE_DEVICE section collisions")).
+
+The 2 proposals under consideration are teach pfn_to_online_page() to be
+precise in the presence of mixed-zone sections, or teach the memory-add
+code to drop the System RAM associated with ZONE_DEVICE collisions.  In
+order to not regress memory capacity by a few 10s to 100s of MiB the
+approach taken in this set is to add precision to pfn_to_online_page().
+
+In the course of validating pfn_to_online_page() a couple other fixes
+fell out:
+
+1/ soft_offline_page() fails to drop the reference taken in the
+   madvise(..., MADV_SOFT_OFFLINE) case.
+
+2/ memory_failure() uses get_dev_pagemap() to lookup ZONE_DEVICE pages,
+   however that mapping may contain data pages and metadata raw pfns.
+   Introduce pgmap_pfn_valid() to delineate the 2 types and fail the
+   handling of raw metadata pfns.
+
+
+This patch (of 4);
+
+pfn_to_online_page() is already too large to be a macro or an inline
+function.  In anticipation of further logic changes / growth, move it out
+of line.
+
+No functional change, just code movement.
+
+Link: https://lkml.kernel.org/r/161058499000.1840162.702316708443239771.stgit@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/161058499608.1840162.10165648147615238793.stgit@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: David Hildenbrand <david@redhat.com>
+Reported-by: Michal Hocko <mhocko@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Qian Cai <cai@lca.pw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ include/linux/memory_hotplug.h |   17 +----------------
+ mm/memory_hotplug.c            |   16 ++++++++++++++++
+ 2 files changed, 17 insertions(+), 16 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-teach-pfn_to_online_page-to-consider-subsection-validity
+--- a/include/linux/memory_hotplug.h~mm-move-pfn_to_online_page-out-of-line
++++ a/include/linux/memory_hotplug.h
+@@ -16,22 +16,7 @@ struct resource;
+ struct vmem_altmap;
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-/*
+- * Return page for the valid pfn only if the page is online. All pfn
+- * walkers which rely on the fully initialized page->flags and others
+- * should use this rather than pfn_valid && pfn_to_page
+- */
+-#define pfn_to_online_page(pfn)					   \
+-({								   \
+-	struct page *___page = NULL;				   \
+-	unsigned long ___pfn = pfn;				   \
+-	unsigned long ___nr = pfn_to_section_nr(___pfn);	   \
+-								   \
+-	if (___nr < NR_MEM_SECTIONS && online_section_nr(___nr) && \
+-	    pfn_valid_within(___pfn))				   \
+-		___page = pfn_to_page(___pfn);			   \
+-	___page;						   \
+-})
++struct page *pfn_to_online_page(unsigned long pfn);
+ 
+ /*
+  * Types for free bootmem stored in page->lru.next. These have to be in
+--- a/mm/memory_hotplug.c~mm-move-pfn_to_online_page-out-of-line
 +++ a/mm/memory_hotplug.c
-@@ -308,11 +308,26 @@ static int check_hotplug_memory_addressa
- struct page *pfn_to_online_page(unsigned long pfn)
- {
- 	unsigned long nr = pfn_to_section_nr(pfn);
-+	struct mem_section *ms;
- 
--	if (nr < NR_MEM_SECTIONS && online_section_nr(nr) &&
--	    pfn_valid_within(pfn))
--		return pfn_to_page(pfn);
--	return NULL;
-+	if (nr >= NR_MEM_SECTIONS)
-+		return NULL;
-+
-+	ms = __nr_to_section(nr);
-+	if (!online_section(ms))
-+		return NULL;
-+
-+	/*
-+	 * Save some code text when online_section() +
-+	 * pfn_section_valid() are sufficient.
-+	 */
-+	if (IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID) && !pfn_valid(pfn))
-+		return NULL;
-+
-+	if (!pfn_section_valid(ms, pfn))
-+		return NULL;
-+
-+	return pfn_to_page(pfn);
+@@ -301,6 +301,22 @@ static int check_hotplug_memory_addressa
  }
- EXPORT_SYMBOL_GPL(pfn_to_online_page);
  
+ /*
++ * Return page for the valid pfn only if the page is online. All pfn
++ * walkers which rely on the fully initialized page->flags and others
++ * should use this rather than pfn_valid && pfn_to_page
++ */
++struct page *pfn_to_online_page(unsigned long pfn)
++{
++	unsigned long nr = pfn_to_section_nr(pfn);
++
++	if (nr < NR_MEM_SECTIONS && online_section_nr(nr) &&
++	    pfn_valid_within(pfn))
++		return pfn_to_page(pfn);
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(pfn_to_online_page);
++
++/*
+  * Reasonably generic function for adding memory.  It is
+  * expected that archs that support memory hotplug will
+  * call this function after deciding the zone to which to
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
