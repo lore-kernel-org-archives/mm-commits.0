@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72721C4332D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2140C43331
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:31:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 46F4564F38
+	by mail.kernel.org (Postfix) with ESMTP id 7BE2064F38
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:31:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230096AbhB0CbA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:31:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51212 "EHLO mail.kernel.org"
+        id S230190AbhB0CbC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:31:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51006 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230144AbhB0Caj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:30:39 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 790DE64F41;
-        Sat, 27 Feb 2021 02:30:09 +0000 (UTC)
+        id S230153AbhB0Cal (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:30:41 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6606464F3A;
+        Sat, 27 Feb 2021 02:30:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393009;
-        bh=2hqZeaFdvA9msr2BSOFc/2Iia4U8Z9mJqvPZA46j3OM=;
+        s=korg; t=1614393012;
+        bh=pa9y4p//CD2/l5Y2Y/pDqXQM5hYB/wHP/G4wqeUA98g=;
         h=Date:From:To:Subject:From;
-        b=oM2qo5/5M7mq4z715wadTQ8yzSF3JqGgC2I6TnymGzcBBdRZiB+sd2VGWFH4Llod0
-         BgTI5mCZidEBkwr4oTE+Tk+vlAM0Jy1vySK6pi/z52ShKQYGLj1BdFgRa2odbHFG1v
-         FY7+1gFCEMVnnykMrWKvqGWguF2RlWb6M6pFH7ww=
-Date:   Fri, 26 Feb 2021 18:30:09 -0800
+        b=WvW3b1UXpDm1LdmEV9LI3pVzqUgZSSbjJW7C4d8fZoq9R/J1dXuVmbE8Fz2Y+yM+T
+         a5cgo8kBJxeei+4ccQ9LlSdmKKnSnkWJdXMM8kH8yE0EQUTseVcKnoEaygOPnpg6lu
+         JygSoFyY4wvapNNkxI+G75WU5c/ZXwgydqqY5tCw=
+Date:   Fri, 26 Feb 2021 18:30:12 -0800
 From:   akpm@linux-foundation.org
-To:     bigeasy@linutronix.de, ddstreet@ieee.org, efault@gmx.de,
-        mm-commits@vger.kernel.org, sjenning@redhat.com,
-        song.bao.hua@hisilicon.com, tiantao6@hisilicon.com,
-        vitaly.wool@konsulko.com
+To:     linmiaohe@huawei.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com
 Subject:  [merged]
- mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold.patch removed from -mm
- tree
-Message-ID: <20210227023009.4bnF1GtFX%akpm@linux-foundation.org>
+ mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
+ removed from -mm tree
+Message-ID: <20210227023012._Qf4GAn9c%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,57 +44,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: set the sleep_mapped to true for zbud and z3fold
+     Subject: mm/zsmalloc.c: convert to use kmem_cache_zalloc in cache_alloc_zspage()
 has been removed from the -mm tree.  Its filename was
-     mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold.patch
+     mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tian Tao <tiantao6@hisilicon.com>
-Subject: mm: set the sleep_mapped to true for zbud and z3fold
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/zsmalloc.c: convert to use kmem_cache_zalloc in cache_alloc_zspage()
 
-zpool driver adds a flag to indicate whether the zpool driver can enter an
-atomic context after mapping.  This patch sets it true for z3fold and
-zbud.
+We always memset the zspage allocated via cache_alloc_zspage.  So it's
+more convenient to use kmem_cache_zalloc in cache_alloc_zspage than caller
+do it manually.
 
-Link: https://lkml.kernel.org/r/1611035683-12732-3-git-send-email-tiantao6@hisilicon.com
-Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
-Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
-Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Reported-by: Mike Galbraith <efault@gmx.de>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Barry Song <song.bao.hua@hisilicon.com>
+Link: https://lkml.kernel.org/r/20210114120032.25885-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    1 +
- mm/zbud.c   |    1 +
- 2 files changed, 2 insertions(+)
+ mm/zsmalloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/z3fold.c~mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold
-+++ a/mm/z3fold.c
-@@ -1771,6 +1771,7 @@ static u64 z3fold_zpool_total_size(void
+--- a/mm/zsmalloc.c~mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage
++++ a/mm/zsmalloc.c
+@@ -357,7 +357,7 @@ static void cache_free_handle(struct zs_
  
- static struct zpool_driver z3fold_zpool_driver = {
- 	.type =		"z3fold",
-+	.sleep_mapped = true,
- 	.owner =	THIS_MODULE,
- 	.create =	z3fold_zpool_create,
- 	.destroy =	z3fold_zpool_destroy,
---- a/mm/zbud.c~mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold
-+++ a/mm/zbud.c
-@@ -203,6 +203,7 @@ static u64 zbud_zpool_total_size(void *p
+ static struct zspage *cache_alloc_zspage(struct zs_pool *pool, gfp_t flags)
+ {
+-	return kmem_cache_alloc(pool->zspage_cachep,
++	return kmem_cache_zalloc(pool->zspage_cachep,
+ 			flags & ~(__GFP_HIGHMEM|__GFP_MOVABLE));
+ }
  
- static struct zpool_driver zbud_zpool_driver = {
- 	.type =		"zbud",
-+	.sleep_mapped = true,
- 	.owner =	THIS_MODULE,
- 	.create =	zbud_zpool_create,
- 	.destroy =	zbud_zpool_destroy,
+@@ -1064,7 +1064,6 @@ static struct zspage *alloc_zspage(struc
+ 	if (!zspage)
+ 		return NULL;
+ 
+-	memset(zspage, 0, sizeof(struct zspage));
+ 	zspage->magic = ZSPAGE_MAGIC;
+ 	migrate_lock_init(zspage);
+ 
 _
 
-Patches currently in -mm which might be from tiantao6@hisilicon.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
 
