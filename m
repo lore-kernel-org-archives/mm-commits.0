@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59341C433DB
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CE20C433E0
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3161964F3C
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 42D4264F3C
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230122AbhB0Ccs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:32:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52738 "EHLO mail.kernel.org"
+        id S230148AbhB0Ccu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:32:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52722 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230177AbhB0Cci (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S230139AbhB0Cci (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Fri, 26 Feb 2021 21:32:38 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8EF8864F47;
-        Sat, 27 Feb 2021 02:31:51 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7175D64F46;
+        Sat, 27 Feb 2021 02:31:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393111;
-        bh=jR2PGrohaZZYsxW2gjnxebGrygr0h0G5vLc27R0w1oc=;
+        s=korg; t=1614393109;
+        bh=0UBbRYlpiPdlJvQj92nL0DlweutjREbdPXc2WYRRluw=;
         h=Date:From:To:Subject:From;
-        b=tuXJY3sh5IEGmpYNSEJNC7y+UHUrFcFZzQS0pVLTUt1U+KuyX3g6e2HiGy/XPeiq/
-         350QUfThtwg/l6ECX5z8x/aniWhBXmjbAhjtPh78STLEfI2asEgJjuGLiyJl7LuUNu
-         gOTC4cNdp9feJmG5qzerMf6WkBlzWQmtgghzHEHQ=
-Date:   Fri, 26 Feb 2021 18:31:51 -0800
+        b=pjLwKVYUiRjUvh4WlEihM/JGDFAOvpaXXmPhcjjw/E7H4a4UcVNh0VfH2Ql6ZDOBR
+         3IzcGdMnQGlYR4/wubz7E5Neu0iRpUh6rmNR1abql4rOvCDXkhUAjcK2enMAxQ14FR
+         z8IHG/vc00WOlq/DMcMZ5b1XGJt7PEkQSvG1l2vo=
+Date:   Fri, 26 Feb 2021 18:31:49 -0800
 From:   akpm@linux-foundation.org
-To:     hubert.jasudowicz@gmail.com, mikelley@microsoft.com,
-        mm-commits@vger.kernel.org, mortonm@chromium.org,
-        peterz@infradead.org, thomascedeno@google.com, xiang@kernel.org
-Subject:  [merged]
- groups-use-flexible-array-member-in-struct-group_info.patch removed from
- -mm tree
-Message-ID: <20210227023151.iAr2IwILu%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, ojeda@kernel.org
+Subject:  [merged] treewide-update-my-contact-info.patch removed
+ from -mm tree
+Message-ID: <20210227023149.jyFnjJ0P2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,45 +45,239 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: groups: use flexible-array member in struct group_info
+     Subject: treewide: Miguel has moved
 has been removed from the -mm tree.  Its filename was
-     groups-use-flexible-array-member-in-struct-group_info.patch
+     treewide-update-my-contact-info.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Hubert Jasudowicz <hubert.jasudowicz@gmail.com>
-Subject: groups: use flexible-array member in struct group_info
+=46rom: Miguel Ojeda <ojeda@kernel.org>
+Subject: treewide: Miguel has moved
 
-Replace zero-size array with flexible array member, as recommended by
-the docs.
+Update contact info.
 
-Link: https://lkml.kernel.org/r/155995eed35c3c1bdcc56e69d8997c8e4c46740a.1611620846.git.hubert.jasudowicz@gmail.com
-Signed-off-by: Hubert Jasudowicz <hubert.jasudowicz@gmail.com>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
-Cc: Micah Morton <mortonm@chromium.org>
-Cc: Gao Xiang <xiang@kernel.org>
-Cc: Michael Kelley <mikelley@microsoft.com>
-Cc: Thomas Cedeno <thomascedeno@google.com>
+Link: https://lkml.kernel.org/r/20210206162524.GA11520@kernel.org
+Signed-off-by: Miguel Ojeda <ojeda@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cred.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .mailmap                                            |    1=20
+ CREDITS                                             |    9 ++-----
+ Documentation/admin-guide/auxdisplay/cfag12864b.rst |    2 -
+ Documentation/admin-guide/auxdisplay/ks0108.rst     |    2 -
+ MAINTAINERS                                         |   12 +++++-----
+ drivers/auxdisplay/cfag12864b.c                     |    4 +--
+ drivers/auxdisplay/cfag12864bfb.c                   |    4 +--
+ drivers/auxdisplay/ks0108.c                         |    4 +--
+ include/linux/cfag12864b.h                          |    2 -
+ include/linux/ks0108.h                              |    2 -
+ samples/auxdisplay/cfag12864b-example.c             |    2 -
+ 11 files changed, 21 insertions(+), 23 deletions(-)
 
---- a/include/linux/cred.h~groups-use-flexible-array-member-in-struct-group_info
-+++ a/include/linux/cred.h
-@@ -25,7 +25,7 @@ struct inode;
- struct group_info {
- 	atomic_t	usage;
- 	int		ngroups;
--	kgid_t		gid[0];
-+	kgid_t		gid[];
- } __randomize_layout;
- 
- /**
+--- a/CREDITS~treewide-update-my-contact-info
++++ a/CREDITS
+@@ -2841,14 +2841,11 @@ S: Subiaco, 6008
+ S: Perth, Western Australia
+ S: Australia
+=20
+-N: Miguel Ojeda Sandonis
+-E: miguel.ojeda.sandonis@gmail.com
+-W: http://miguelojeda.es
+-W: http://jair.lab.fi.uva.es/~migojed/
++N: Miguel Ojeda
++E: ojeda@kernel.org
++W: https://ojeda.dev
+ D: Author of the ks0108, cfag12864b and cfag12864bfb auxiliary display dri=
+vers.
+ D: Maintainer of the auxiliary display drivers tree (drivers/auxdisplay/*)
+-S: C/ Mieses 20, 9-B
+-S: Valladolid 47009
+ S: Spain
+=20
+ N: Peter Oruba
+--- a/Documentation/admin-guide/auxdisplay/cfag12864b.rst~treewide-update-m=
+y-contact-info
++++ a/Documentation/admin-guide/auxdisplay/cfag12864b.rst
+@@ -3,7 +3,7 @@ cfag12864b LCD Driver Documentation
+ =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=20
+ :License:		GPLv2
+-:Author & Maintainer:	Miguel Ojeda Sandonis
++:Author & Maintainer:	Miguel Ojeda <ojeda@kernel.org>
+ :Date:			2006-10-27
+=20
+=20
+--- a/Documentation/admin-guide/auxdisplay/ks0108.rst~treewide-update-my-co=
+ntact-info
++++ a/Documentation/admin-guide/auxdisplay/ks0108.rst
+@@ -3,7 +3,7 @@ ks0108 LCD Controller Driver Documentati
+ =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=20
+ :License:		GPLv2
+-:Author & Maintainer:	Miguel Ojeda Sandonis
++:Author & Maintainer:	Miguel Ojeda <ojeda@kernel.org>
+ :Date:			2006-10-27
+=20
+=20
+--- a/drivers/auxdisplay/cfag12864b.c~treewide-update-my-contact-info
++++ a/drivers/auxdisplay/cfag12864b.c
+@@ -5,7 +5,7 @@
+  * Description: cfag12864b LCD driver
+  *     Depends: ks0108
+  *
+- *      Author: Copyright (C) Miguel Ojeda Sandonis
++ *      Author: Copyright (C) Miguel Ojeda <ojeda@kernel.org>
+  *        Date: 2006-10-31
+  */
+=20
+@@ -376,5 +376,5 @@ module_init(cfag12864b_init);
+ module_exit(cfag12864b_exit);
+=20
+ MODULE_LICENSE("GPL v2");
+-MODULE_AUTHOR("Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>");
++MODULE_AUTHOR("Miguel Ojeda <ojeda@kernel.org>");
+ MODULE_DESCRIPTION("cfag12864b LCD driver");
+--- a/drivers/auxdisplay/cfag12864bfb.c~treewide-update-my-contact-info
++++ a/drivers/auxdisplay/cfag12864bfb.c
+@@ -5,7 +5,7 @@
+  * Description: cfag12864b LCD framebuffer driver
+  *     Depends: cfag12864b
+  *
+- *      Author: Copyright (C) Miguel Ojeda Sandonis
++ *      Author: Copyright (C) Miguel Ojeda <ojeda@kernel.org>
+  *        Date: 2006-10-31
+  */
+=20
+@@ -171,5 +171,5 @@ module_init(cfag12864bfb_init);
+ module_exit(cfag12864bfb_exit);
+=20
+ MODULE_LICENSE("GPL v2");
+-MODULE_AUTHOR("Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>");
++MODULE_AUTHOR("Miguel Ojeda <ojeda@kernel.org>");
+ MODULE_DESCRIPTION("cfag12864b LCD framebuffer driver");
+--- a/drivers/auxdisplay/ks0108.c~treewide-update-my-contact-info
++++ a/drivers/auxdisplay/ks0108.c
+@@ -5,7 +5,7 @@
+  * Description: ks0108 LCD Controller driver
+  *     Depends: parport
+  *
+- *      Author: Copyright (C) Miguel Ojeda Sandonis
++ *      Author: Copyright (C) Miguel Ojeda <ojeda@kernel.org>
+  *        Date: 2006-10-31
+  */
+=20
+@@ -182,6 +182,6 @@ module_init(ks0108_init);
+ module_exit(ks0108_exit);
+=20
+ MODULE_LICENSE("GPL v2");
+-MODULE_AUTHOR("Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>");
++MODULE_AUTHOR("Miguel Ojeda <ojeda@kernel.org>");
+ MODULE_DESCRIPTION("ks0108 LCD Controller driver");
+=20
+--- a/include/linux/cfag12864b.h~treewide-update-my-contact-info
++++ a/include/linux/cfag12864b.h
+@@ -4,7 +4,7 @@
+  *     Version: 0.1.0
+  * Description: cfag12864b LCD driver header
+  *
+- *      Author: Copyright (C) Miguel Ojeda Sandonis
++ *      Author: Copyright (C) Miguel Ojeda <ojeda@kernel.org>
+  *        Date: 2006-10-12
+  */
+=20
+--- a/include/linux/ks0108.h~treewide-update-my-contact-info
++++ a/include/linux/ks0108.h
+@@ -4,7 +4,7 @@
+  *     Version: 0.1.0
+  * Description: ks0108 LCD Controller driver header
+  *
+- *      Author: Copyright (C) Miguel Ojeda Sandonis
++ *      Author: Copyright (C) Miguel Ojeda <ojeda@kernel.org>
+  *        Date: 2006-10-31
+  */
+=20
+--- a/.mailmap~treewide-update-my-contact-info
++++ a/.mailmap
+@@ -237,6 +237,7 @@ Maxime Ripard <mripard@kernel.org> <maxi
+ Mayuresh Janorkar <mayur@ti.com>
+ Michael Buesch <m@bues.ch>
+ Michel D=C3=A4nzer <michel@tungstengraphics.com>
++Miguel Ojeda <ojeda@kernel.org> <miguel.ojeda.sandonis@gmail.com>
+ Mike Rapoport <rppt@kernel.org> <mike@compulab.co.il>
+ Mike Rapoport <rppt@kernel.org> <mike.rapoport@gmail.com>
+ Mike Rapoport <rppt@kernel.org> <rppt@linux.ibm.com>
+--- a/MAINTAINERS~treewide-update-my-contact-info
++++ a/MAINTAINERS
+@@ -2982,7 +2982,7 @@ F:	include/uapi/linux/audit.h
+ F:	kernel/audit*
+=20
+ AUXILIARY DISPLAY DRIVERS
+-M:	Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>
++M:	Miguel Ojeda <ojeda@kernel.org>
+ S:	Maintained
+ F:	drivers/auxdisplay/
+ F:	include/linux/cfag12864b.h
+@@ -4128,13 +4128,13 @@ F:	scripts/extract-cert.c
+ F:	scripts/sign-file.c
+=20
+ CFAG12864B LCD DRIVER
+-M:	Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>
++M:	Miguel Ojeda <ojeda@kernel.org>
+ S:	Maintained
+ F:	drivers/auxdisplay/cfag12864b.c
+ F:	include/linux/cfag12864b.h
+=20
+ CFAG12864BFB LCD FRAMEBUFFER DRIVER
+-M:	Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>
++M:	Miguel Ojeda <ojeda@kernel.org>
+ S:	Maintained
+ F:	drivers/auxdisplay/cfag12864bfb.c
+ F:	include/linux/cfag12864b.h
+@@ -4304,7 +4304,7 @@ S:	Supported
+ F:	drivers/infiniband/hw/usnic/
+=20
+ CLANG-FORMAT FILE
+-M:	Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
++M:	Miguel Ojeda <ojeda@kernel.org>
+ S:	Maintained
+ F:	.clang-format
+=20
+@@ -4444,7 +4444,7 @@ S:	Maintained
+ F:	drivers/platform/x86/compal-laptop.c
+=20
+ COMPILER ATTRIBUTES
+-M:	Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
++M:	Miguel Ojeda <ojeda@kernel.org>
+ S:	Maintained
+ F:	include/linux/compiler_attributes.h
+=20
+@@ -9939,7 +9939,7 @@ F:	include/linux/kprobes.h
+ F:	kernel/kprobes.c
+=20
+ KS0108 LCD CONTROLLER DRIVER
+-M:	Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>
++M:	Miguel Ojeda <ojeda@kernel.org>
+ S:	Maintained
+ F:	Documentation/admin-guide/auxdisplay/ks0108.rst
+ F:	drivers/auxdisplay/ks0108.c
+--- a/samples/auxdisplay/cfag12864b-example.c~treewide-update-my-contact-in=
+fo
++++ a/samples/auxdisplay/cfag12864b-example.c
+@@ -4,7 +4,7 @@
+  *     Version: 0.1.0
+  * Description: cfag12864b LCD userspace example program
+  *
+- *      Author: Copyright (C) Miguel Ojeda Sandonis
++ *      Author: Copyright (C) Miguel Ojeda <ojeda@kernel.org>
+  *        Date: 2006-10-31
+  */
+=20
 _
 
-Patches currently in -mm which might be from hubert.jasudowicz@gmail.com are
+Patches currently in -mm which might be from ojeda@kernel.org are
 
 
