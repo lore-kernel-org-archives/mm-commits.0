@@ -4,42 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CDB9C433E0
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 697D3C433DB
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F1A1164F1F
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 31D2764F24
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230165AbhB0Cdm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230169AbhB0Cdm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 26 Feb 2021 21:33:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52874 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52944 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230188AbhB0Cde (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:33:34 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CC3C564F37;
-        Sat, 27 Feb 2021 02:32:43 +0000 (UTC)
+        id S230195AbhB0Cdf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:33:35 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 97D3364F38;
+        Sat, 27 Feb 2021 02:32:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393164;
-        bh=djyQ1uwgBaYYpyDMHCoOvJgB99UvOEqnbgmsNKTyYWo=;
+        s=korg; t=1614393171;
+        bh=hpEL3qoEbvm5dNPYOQBIIEN72SsbtpkufDynsILd5KA=;
         h=Date:From:To:Subject:From;
-        b=LBDPCWMjsWlWNEoOp0+86KJckwomgSY4X2/3Fxmb6T9W3WwuFPF8bD85qxFNbbifJ
-         DFvsSnwsoA8JOC8GC6b7QJt5Hpy/TEY0MjmVUwcCl2wsWruGVC4lR4Tt12WdSXPfZY
-         xy7378iJBdl1jSx7Ulw+7TcJ+qCO8JcLp+OkHuWg=
-Date:   Fri, 26 Feb 2021 18:32:43 -0800
+        b=fFuh/K6rZ2MSL7Ue2uPsye7Gudz3RQfaK1U9xehmkWoalV1Hz4PHHmaZ7oDQ/z4Dd
+         LLSS2nNlq0IBsCWCHJuAeyuhYfMt31OUpOhLDXTOlYHzlVa2p691CUJ1oW1VoYUpGg
+         rLGoJ9BHmuI6hc4M6bfgB2cEHR0iphIpYp01C4cU=
+Date:   Fri, 26 Feb 2021 18:32:51 -0800
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, dave.hansen@linux.intel.com, davem@davemloft.net,
-        lucien.xin@gmail.com, luto@kernel.org, marcelo.leitner@gmail.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, neilb@suse.de,
-        nhorman@tuxdriver.com, peterz@infradead.org,
-        stable@vger.kernel.org, viro@zeniv.linux.org.uk,
-        vyasevich@gmail.com
+To:     daniel.thompson@linaro.org, dianders@chromium.org,
+        jason.wessel@windriver.com, mhiramat@kernel.org,
+        mm-commits@vger.kernel.org, peterz@infradead.org,
+        rostedt@goodmis.org, sumit.garg@linaro.org
 Subject:  [merged]
- seq_file-document-how-per-entry-resources-are-managed.patch removed from
- -mm tree
-Message-ID: <20210227023243.jxbUwwdO7%akpm@linux-foundation.org>
+ kgdb-fix-to-kill-breakpoints-on-initmem-after-boot.patch removed from -mm
+ tree
+Message-ID: <20210227023251.mVGBwa51P%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,91 +46,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: seq_file: document how per-entry resources are managed.
+     Subject: kgdb: fix to kill breakpoints on initmem after boot
 has been removed from the -mm tree.  Its filename was
-     seq_file-document-how-per-entry-resources-are-managed.patch
+     kgdb-fix-to-kill-breakpoints-on-initmem-after-boot.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: NeilBrown <neilb@suse.de>
-Subject: seq_file: document how per-entry resources are managed.
+From: Sumit Garg <sumit.garg@linaro.org>
+Subject: kgdb: fix to kill breakpoints on initmem after boot
 
-Patch series "Fix some seq_file users that were recently broken".
+Currently breakpoints in kernel .init.text section are not handled
+correctly while allowing to remove them even after corresponding pages
+have been freed.
 
-A recent change to seq_file broke some users which were using seq_file
-in a non-"standard" way ...  though the "standard" isn't documented, so
-they can be excused.  The result is a possible leak - of memory in one
-case, of references to a 'transport' in the other.
+Fix it via killing .init.text section breakpoints just prior to initmem
+pages being freed.
 
-These three patches:
- 1/ document and explain the problem
- 2/ fix the problem user in x86
- 3/ fix the problem user in net/sctp
+Doug: "HW breakpoints aren't handled by this patch but it's probably
+not such a big deal".
 
-
-This patch (of 3):
-
-Users of seq_file will sometimes find it convenient to take a resource,
-such as a lock or memory allocation, in the ->start or ->next operations. 
-These are per-entry resources, distinct from per-session resources which
-are taken in ->start and released in ->stop.
-
-The preferred management of these is release the resource on the
-subsequent call to ->next or ->stop.
-
-However prior to Commit 1f4aace60b0e ("fs/seq_file.c: simplify seq_file
-iteration code and interface") it happened that ->show would always be
-called after ->start or ->next, and a few users chose to release the
-resource in ->show.
-
-This is no longer reliable.  Since the mentioned commit, ->next will
-always come after a successful ->show (to ensure m->index is updated
-correctly), so the original ordering cannot be maintained.
-
-This patch updates the documentation to clearly state the required
-behaviour.  Other patches will fix the few problematic users.
-
-[akpm@linux-foundation.org: fix typo, per Willy]
-Link: https://lkml.kernel.org/r/161248518659.21478.2484341937387294998.stgit@noble1
-Link: https://lkml.kernel.org/r/161248539020.21478.3147971477400875336.stgit@noble1
-Fixes: 1f4aace60b0e ("fs/seq_file.c: simplify seq_file iteration code and interface")
-Signed-off-by: NeilBrown <neilb@suse.de>
-Cc: Xin Long <lucien.xin@gmail.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
+Link: https://lkml.kernel.org/r/20210224081652.587785-1-sumit.garg@linaro.org
+Signed-off-by: Sumit Garg <sumit.garg@linaro.org>
+Suggested-by: Doug Anderson <dianders@chromium.org>
+Acked-by: Doug Anderson <dianders@chromium.org>
+Acked-by: Daniel Thompson <daniel.thompson@linaro.org>
+Tested-by: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vlad Yasevich <vyasevich@gmail.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/seq_file.rst |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/kgdb.h      |    2 ++
+ init/main.c               |    1 +
+ kernel/debug/debug_core.c |   11 +++++++++++
+ 3 files changed, 14 insertions(+)
 
---- a/Documentation/filesystems/seq_file.rst~seq_file-document-how-per-entry-resources-are-managed
-+++ a/Documentation/filesystems/seq_file.rst
-@@ -217,6 +217,12 @@ between the calls to start() and stop(),
- is a reasonable thing to do. The seq_file code will also avoid taking any
- other locks while the iterator is active.
+--- a/include/linux/kgdb.h~kgdb-fix-to-kill-breakpoints-on-initmem-after-boot
++++ a/include/linux/kgdb.h
+@@ -359,9 +359,11 @@ extern atomic_t			kgdb_active;
+ extern bool dbg_is_early;
+ extern void __init dbg_late_init(void);
+ extern void kgdb_panic(const char *msg);
++extern void kgdb_free_init_mem(void);
+ #else /* ! CONFIG_KGDB */
+ #define in_dbg_master() (0)
+ #define dbg_late_init()
+ static inline void kgdb_panic(const char *msg) {}
++static inline void kgdb_free_init_mem(void) { }
+ #endif /* ! CONFIG_KGDB */
+ #endif /* _KGDB_H_ */
+--- a/init/main.c~kgdb-fix-to-kill-breakpoints-on-initmem-after-boot
++++ a/init/main.c
+@@ -1426,6 +1426,7 @@ static int __ref kernel_init(void *unuse
+ 	async_synchronize_full();
+ 	kprobe_free_init_mem();
+ 	ftrace_free_init_mem();
++	kgdb_free_init_mem();
+ 	free_initmem();
+ 	mark_readonly();
  
-+The iterater value returned by start() or next() is guaranteed to be
-+passed to a subsequent next() or stop() call.  This allows resources
-+such as locks that were taken to be reliably released.  There is *no*
-+guarantee that the iterator will be passed to show(), though in practice
-+it often will be.
+--- a/kernel/debug/debug_core.c~kgdb-fix-to-kill-breakpoints-on-initmem-after-boot
++++ a/kernel/debug/debug_core.c
+@@ -455,6 +455,17 @@ setundefined:
+ 	return 0;
+ }
+ 
++void kgdb_free_init_mem(void)
++{
++	int i;
 +
- 
- Formatted output
- ================
++	/* Clear init memory breakpoints. */
++	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++) {
++		if (init_section_contains((void *)kgdb_break[i].bpt_addr, 0))
++			kgdb_break[i].state = BP_UNDEFINED;
++	}
++}
++
+ #ifdef CONFIG_KGDB_KDB
+ void kdb_dump_stack_on_cpu(int cpu)
+ {
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from sumit.garg@linaro.org are
 
 
