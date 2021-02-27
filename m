@@ -7,43 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 504F5C43331
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62919C4332E
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:31:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3166964F46
+	by mail.kernel.org (Postfix) with ESMTP id 4488164F4B
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:31:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230132AbhB0CbT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:31:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51608 "EHLO mail.kernel.org"
+        id S230169AbhB0CbV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:31:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51112 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230183AbhB0Ca6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S230184AbhB0Ca6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Fri, 26 Feb 2021 21:30:58 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7E73A64F2B;
-        Sat, 27 Feb 2021 02:30:34 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A14A64F14;
+        Sat, 27 Feb 2021 02:30:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393035;
-        bh=xvax4gRuOsuwLi83uk0LMdz4CbqUjkwLT1n5aIIXr38=;
+        s=korg; t=1614393037;
+        bh=vg/Rv+JxJVC80ZQBxsE2LiiU9h/J/FTG89VCRiHMu74=;
         h=Date:From:To:Subject:From;
-        b=dnOh0av85673RGvVCr9QTx5F8fnRygTSwBQKmYdeSCE/r7qyEoNm/Ls5aVrwF9Niq
-         jsO5380p6USQjujVgdk8mYQLnnJ9wdMXfdWeCh+LVGqZtx7Xe3GT3umHS+ylHAvRSt
-         q50KCakweIaVb2t3H3IuDhKnDmjuSt9LsUmwwJlU=
-Date:   Fri, 26 Feb 2021 18:30:34 -0800
+        b=jWwUzSX1cUwSrcvpoJYBQP7eZ/OvEyAX087Ty/+2mXvEKELe/2covSO+77+tBwQR7
+         5ogyNowAgh+oNoLHs/evePMdKlLQxGFAPgeurBhUkmysfRnWg0NwtMNRn84nuBS29U
+         K+lFt2m2rVJmyyJzlqmM/8XMleA2aHZMpASQNCoQ=
+Date:   Fri, 26 Feb 2021 18:30:37 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com, bp@alien8.de,
-        catalin.marinas@arm.com, cl@linux.com, corbet@lwn.net,
-        dave.hansen@linux.intel.com, dvyukov@google.com,
-        edumazet@google.com, elver@google.com, glider@google.com,
-        gregkh@linuxfoundation.org, hdanton@sina.com, hpa@zytor.com,
-        iamjoonsoo.kim@lge.com, jannh@google.com, joern@purestorage.com,
-        keescook@chromium.org, luto@kernel.org, mark.rutland@arm.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, paulmck@kernel.org,
-        penberg@kernel.org, peterz@infradead.org, rientjes@google.com,
-        sjpark@amazon.de, tglx@linutronix.de, vbabka@suse.cz,
-        will@kernel.org
-Subject:  [merged] arm64-kfence-enable-kfence-for-arm64.patch
- removed from -mm tree
-Message-ID: <20210227023034.CI55w2OSF%akpm@linux-foundation.org>
+To:     dvyukov@google.com, elver@google.com, glider@google.com,
+        jannh@google.com, mark.rutland@arm.com, mm-commits@vger.kernel.org
+Subject:  [merged]
+ kfence-use-pt_regs-to-generate-stack-trace-on-faults.patch removed from -mm
+ tree
+Message-ID: <20210227023037.NIPFTl_Zn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,143 +44,289 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64, kfence: enable KFENCE for ARM64
+     Subject: kfence: use pt_regs to generate stack trace on faults
 has been removed from the -mm tree.  Its filename was
-     arm64-kfence-enable-kfence-for-arm64.patch
+     kfence-use-pt_regs-to-generate-stack-trace-on-faults.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: arm64, kfence: enable KFENCE for ARM64
+Subject: kfence: use pt_regs to generate stack trace on faults
 
-Add architecture specific implementation details for KFENCE and enable
-KFENCE for the arm64 architecture. In particular, this implements the
-required interface in <asm/kfence.h>.
+Instead of removing the fault handling portion of the stack trace based on
+the fault handler's name, just use struct pt_regs directly.
 
-KFENCE requires that attributes for pages from its memory pool can
-individually be set. Therefore, force the entire linear map to be mapped
-at page granularity. Doing so may result in extra memory allocated for
-page tables in case rodata=full is not set; however, currently
-CONFIG_RODATA_FULL_DEFAULT_ENABLED=y is the default, and the common case
-is therefore not affected by this change.
+Change kfence_handle_page_fault() to take a struct pt_regs, and plumb it
+through to kfence_report_error() for out-of-bounds, use-after-free, or
+invalid access errors, where pt_regs is used to generate the stack trace.
 
-[elver@google.com: add missing copyright and description header]
-  Link: https://lkml.kernel.org/r/20210118092159.145934-3-elver@google.com
-Link: https://lkml.kernel.org/r/20201103175841.3495947-4-elver@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
+If the kernel is a DEBUG_KERNEL, also show registers for more information.
+
+Link: https://lkml.kernel.org/r/20201105092133.2075331-1-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Co-developed-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Jann Horn <jannh@google.com>
-Reviewed-by: Mark Rutland <mark.rutland@arm.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Joern Engel <joern@purestorage.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: SeongJae Park <sjpark@amazon.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Suggested-by: Mark Rutland <mark.rutland@arm.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig              |    1 +
- arch/arm64/include/asm/kfence.h |   24 ++++++++++++++++++++++++
- arch/arm64/mm/fault.c           |    4 ++++
- arch/arm64/mm/mmu.c             |    8 +++++++-
- 4 files changed, 36 insertions(+), 1 deletion(-)
+ arch/arm64/include/asm/kfence.h |    2 
+ arch/arm64/mm/fault.c           |    2 
+ arch/x86/include/asm/kfence.h   |    6 --
+ arch/x86/mm/fault.c             |    2 
+ include/linux/kfence.h          |    5 +-
+ mm/kfence/core.c                |   10 ++--
+ mm/kfence/kfence.h              |    4 -
+ mm/kfence/report.c              |   63 +++++++++++++++++-------------
+ 8 files changed, 48 insertions(+), 46 deletions(-)
 
---- /dev/null
+--- a/arch/arm64/include/asm/kfence.h~kfence-use-pt_regs-to-generate-stack-trace-on-faults
 +++ a/arch/arm64/include/asm/kfence.h
-@@ -0,0 +1,24 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * arm64 KFENCE support.
-+ *
-+ * Copyright (C) 2020, Google LLC.
-+ */
-+
-+#ifndef __ASM_KFENCE_H
-+#define __ASM_KFENCE_H
-+
-+#include <asm/cacheflush.h>
-+
-+#define KFENCE_SKIP_ARCH_FAULT_HANDLER "el1_sync"
-+
-+static inline bool arch_kfence_init_pool(void) { return true; }
-+
-+static inline bool kfence_protect_page(unsigned long addr, bool protect)
-+{
-+	set_memory_valid(addr, 1, !protect);
-+
-+	return true;
-+}
-+
-+#endif /* __ASM_KFENCE_H */
---- a/arch/arm64/Kconfig~arm64-kfence-enable-kfence-for-arm64
-+++ a/arch/arm64/Kconfig
-@@ -140,6 +140,7 @@ config ARM64
- 	select HAVE_ARCH_KASAN if !(ARM64_16K_PAGES && ARM64_VA_BITS_48)
- 	select HAVE_ARCH_KASAN_SW_TAGS if HAVE_ARCH_KASAN
- 	select HAVE_ARCH_KASAN_HW_TAGS if (HAVE_ARCH_KASAN && ARM64_MTE)
-+	select HAVE_ARCH_KFENCE
- 	select HAVE_ARCH_KGDB
- 	select HAVE_ARCH_MMAP_RND_BITS
- 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
---- a/arch/arm64/mm/fault.c~arm64-kfence-enable-kfence-for-arm64
+@@ -10,8 +10,6 @@
+ 
+ #include <asm/cacheflush.h>
+ 
+-#define KFENCE_SKIP_ARCH_FAULT_HANDLER "el1_sync"
+-
+ static inline bool arch_kfence_init_pool(void) { return true; }
+ 
+ static inline bool kfence_protect_page(unsigned long addr, bool protect)
+--- a/arch/arm64/mm/fault.c~kfence-use-pt_regs-to-generate-stack-trace-on-faults
 +++ a/arch/arm64/mm/fault.c
-@@ -10,6 +10,7 @@
- #include <linux/acpi.h>
- #include <linux/bitfield.h>
- #include <linux/extable.h>
-+#include <linux/kfence.h>
- #include <linux/signal.h>
- #include <linux/mm.h>
- #include <linux/hardirq.h>
-@@ -389,6 +390,9 @@ static void __do_kernel_fault(unsigned l
+@@ -390,7 +390,7 @@ static void __do_kernel_fault(unsigned l
  	} else if (addr < PAGE_SIZE) {
  		msg = "NULL pointer dereference";
  	} else {
-+		if (kfence_handle_page_fault(addr))
-+			return;
-+
+-		if (kfence_handle_page_fault(addr))
++		if (kfence_handle_page_fault(addr, regs))
+ 			return;
+ 
  		msg = "paging request";
+--- a/arch/x86/include/asm/kfence.h~kfence-use-pt_regs-to-generate-stack-trace-on-faults
++++ a/arch/x86/include/asm/kfence.h
+@@ -16,12 +16,6 @@
+ #include <asm/set_memory.h>
+ #include <asm/tlbflush.h>
+ 
+-/*
+- * The page fault handler entry function, up to which the stack trace is
+- * truncated in reports.
+- */
+-#define KFENCE_SKIP_ARCH_FAULT_HANDLER "asm_exc_page_fault"
+-
+ /* Force 4K pages for __kfence_pool. */
+ static inline bool arch_kfence_init_pool(void)
+ {
+--- a/arch/x86/mm/fault.c~kfence-use-pt_regs-to-generate-stack-trace-on-faults
++++ a/arch/x86/mm/fault.c
+@@ -682,7 +682,7 @@ page_fault_oops(struct pt_regs *regs, un
+ 		efi_crash_gracefully_on_page_fault(address);
+ 
+ 	/* Only not-present faults should be handled by KFENCE. */
+-	if (!(error_code & X86_PF_PROT) && kfence_handle_page_fault(address))
++	if (!(error_code & X86_PF_PROT) && kfence_handle_page_fault(address, regs))
+ 		return;
+ 
+ oops:
+--- a/include/linux/kfence.h~kfence-use-pt_regs-to-generate-stack-trace-on-faults
++++ a/include/linux/kfence.h
+@@ -186,6 +186,7 @@ static __always_inline __must_check bool
+ /**
+  * kfence_handle_page_fault() - perform page fault handling for KFENCE pages
+  * @addr: faulting address
++ * @regs: current struct pt_regs (can be NULL, but shows full stack trace)
+  *
+  * Return:
+  * * false - address outside KFENCE pool,
+@@ -196,7 +197,7 @@ static __always_inline __must_check bool
+  * cases KFENCE prints an error message and marks the offending page as
+  * present, so that the kernel can proceed.
+  */
+-bool __must_check kfence_handle_page_fault(unsigned long addr);
++bool __must_check kfence_handle_page_fault(unsigned long addr, struct pt_regs *regs);
+ 
+ #else /* CONFIG_KFENCE */
+ 
+@@ -209,7 +210,7 @@ static inline size_t kfence_ksize(const
+ static inline void *kfence_object_start(const void *addr) { return NULL; }
+ static inline void __kfence_free(void *addr) { }
+ static inline bool __must_check kfence_free(void *addr) { return false; }
+-static inline bool __must_check kfence_handle_page_fault(unsigned long addr) { return false; }
++static inline bool __must_check kfence_handle_page_fault(unsigned long addr, struct pt_regs *regs) { return false; }
+ 
+ #endif
+ 
+--- a/mm/kfence/core.c~kfence-use-pt_regs-to-generate-stack-trace-on-faults
++++ a/mm/kfence/core.c
+@@ -216,7 +216,7 @@ static inline bool check_canary_byte(u8
+ 		return true;
+ 
+ 	atomic_long_inc(&counters[KFENCE_COUNTER_BUGS]);
+-	kfence_report_error((unsigned long)addr, addr_to_metadata((unsigned long)addr),
++	kfence_report_error((unsigned long)addr, NULL, addr_to_metadata((unsigned long)addr),
+ 			    KFENCE_ERROR_CORRUPTION);
+ 	return false;
+ }
+@@ -351,7 +351,7 @@ static void kfence_guarded_free(void *ad
+ 	if (meta->state != KFENCE_OBJECT_ALLOCATED || meta->addr != (unsigned long)addr) {
+ 		/* Invalid or double-free, bail out. */
+ 		atomic_long_inc(&counters[KFENCE_COUNTER_BUGS]);
+-		kfence_report_error((unsigned long)addr, meta, KFENCE_ERROR_INVALID_FREE);
++		kfence_report_error((unsigned long)addr, NULL, meta, KFENCE_ERROR_INVALID_FREE);
+ 		raw_spin_unlock_irqrestore(&meta->lock, flags);
+ 		return;
+ 	}
+@@ -766,7 +766,7 @@ void __kfence_free(void *addr)
+ 		kfence_guarded_free(addr, meta, false);
+ }
+ 
+-bool kfence_handle_page_fault(unsigned long addr)
++bool kfence_handle_page_fault(unsigned long addr, struct pt_regs *regs)
+ {
+ 	const int page_index = (addr - (unsigned long)__kfence_pool) / PAGE_SIZE;
+ 	struct kfence_metadata *to_report = NULL;
+@@ -829,11 +829,11 @@ bool kfence_handle_page_fault(unsigned l
+ 
+ out:
+ 	if (to_report) {
+-		kfence_report_error(addr, to_report, error_type);
++		kfence_report_error(addr, regs, to_report, error_type);
+ 		raw_spin_unlock_irqrestore(&to_report->lock, flags);
+ 	} else {
+ 		/* This may be a UAF or OOB access, but we can't be sure. */
+-		kfence_report_error(addr, NULL, KFENCE_ERROR_INVALID);
++		kfence_report_error(addr, regs, NULL, KFENCE_ERROR_INVALID);
  	}
  
---- a/arch/arm64/mm/mmu.c~arm64-kfence-enable-kfence-for-arm64
-+++ a/arch/arm64/mm/mmu.c
-@@ -1465,7 +1465,13 @@ int arch_add_memory(int nid, u64 start,
- 	int ret, flags = 0;
+ 	return kfence_unprotect(addr); /* Unprotect and let access proceed. */
+--- a/mm/kfence/kfence.h~kfence-use-pt_regs-to-generate-stack-trace-on-faults
++++ a/mm/kfence/kfence.h
+@@ -105,8 +105,8 @@ enum kfence_error_type {
+ 	KFENCE_ERROR_INVALID_FREE,	/* Invalid free. */
+ };
  
- 	VM_BUG_ON(!mhp_range_allowed(start, size, true));
--	if (rodata_full || debug_pagealloc_enabled())
+-void kfence_report_error(unsigned long address, const struct kfence_metadata *meta,
+-			 enum kfence_error_type type);
++void kfence_report_error(unsigned long address, struct pt_regs *regs,
++			 const struct kfence_metadata *meta, enum kfence_error_type type);
+ 
+ void kfence_print_object(struct seq_file *seq, const struct kfence_metadata *meta);
+ 
+--- a/mm/kfence/report.c~kfence-use-pt_regs-to-generate-stack-trace-on-faults
++++ a/mm/kfence/report.c
+@@ -10,6 +10,7 @@
+ #include <linux/kernel.h>
+ #include <linux/lockdep.h>
+ #include <linux/printk.h>
++#include <linux/sched/debug.h>
+ #include <linux/seq_file.h>
+ #include <linux/stacktrace.h>
+ #include <linux/string.h>
+@@ -41,7 +42,6 @@ static int get_stack_skipnr(const unsign
+ {
+ 	char buf[64];
+ 	int skipnr, fallback = 0;
+-	bool is_access_fault = false;
+ 
+ 	if (type) {
+ 		/* Depending on error type, find different stack entries. */
+@@ -49,8 +49,12 @@ static int get_stack_skipnr(const unsign
+ 		case KFENCE_ERROR_UAF:
+ 		case KFENCE_ERROR_OOB:
+ 		case KFENCE_ERROR_INVALID:
+-			is_access_fault = true;
+-			break;
++			/*
++			 * kfence_handle_page_fault() may be called with pt_regs
++			 * set to NULL; in that case we'll simply show the full
++			 * stack trace.
++			 */
++			return 0;
+ 		case KFENCE_ERROR_CORRUPTION:
+ 		case KFENCE_ERROR_INVALID_FREE:
+ 			break;
+@@ -60,26 +64,21 @@ static int get_stack_skipnr(const unsign
+ 	for (skipnr = 0; skipnr < num_entries; skipnr++) {
+ 		int len = scnprintf(buf, sizeof(buf), "%ps", (void *)stack_entries[skipnr]);
+ 
+-		if (is_access_fault) {
+-			if (!strncmp(buf, KFENCE_SKIP_ARCH_FAULT_HANDLER, len))
+-				goto found;
+-		} else {
+-			if (str_has_prefix(buf, "kfence_") || str_has_prefix(buf, "__kfence_") ||
+-			    !strncmp(buf, "__slab_free", len)) {
+-				/*
+-				 * In case of tail calls from any of the below
+-				 * to any of the above.
+-				 */
+-				fallback = skipnr + 1;
+-			}
+-
+-			/* Also the *_bulk() variants by only checking prefixes. */
+-			if (str_has_prefix(buf, "kfree") ||
+-			    str_has_prefix(buf, "kmem_cache_free") ||
+-			    str_has_prefix(buf, "__kmalloc") ||
+-			    str_has_prefix(buf, "kmem_cache_alloc"))
+-				goto found;
++		if (str_has_prefix(buf, "kfence_") || str_has_prefix(buf, "__kfence_") ||
++		    !strncmp(buf, "__slab_free", len)) {
++			/*
++			 * In case of tail calls from any of the below
++			 * to any of the above.
++			 */
++			fallback = skipnr + 1;
+ 		}
 +
-+	/*
-+	 * KFENCE requires linear map to be mapped at page granularity, so that
-+	 * it is possible to protect/unprotect single pages in the KFENCE pool.
-+	 */
-+	if (rodata_full || debug_pagealloc_enabled() ||
-+	    IS_ENABLED(CONFIG_KFENCE))
- 		flags = NO_BLOCK_MAPPINGS | NO_CONT_MAPPINGS;
++		/* Also the *_bulk() variants by only checking prefixes. */
++		if (str_has_prefix(buf, "kfree") ||
++		    str_has_prefix(buf, "kmem_cache_free") ||
++		    str_has_prefix(buf, "__kmalloc") ||
++		    str_has_prefix(buf, "kmem_cache_alloc"))
++			goto found;
+ 	}
+ 	if (fallback < num_entries)
+ 		return fallback;
+@@ -157,13 +156,20 @@ static void print_diff_canary(unsigned l
+ 	pr_cont(" ]");
+ }
  
- 	__create_pgd_mapping(swapper_pg_dir, start, __phys_to_virt(start),
+-void kfence_report_error(unsigned long address, const struct kfence_metadata *meta,
+-			 enum kfence_error_type type)
++void kfence_report_error(unsigned long address, struct pt_regs *regs,
++			 const struct kfence_metadata *meta, enum kfence_error_type type)
+ {
+ 	unsigned long stack_entries[KFENCE_STACK_DEPTH] = { 0 };
+-	int num_stack_entries = stack_trace_save(stack_entries, KFENCE_STACK_DEPTH, 1);
+-	int skipnr = get_stack_skipnr(stack_entries, num_stack_entries, &type);
+ 	const ptrdiff_t object_index = meta ? meta - kfence_metadata : -1;
++	int num_stack_entries;
++	int skipnr = 0;
++
++	if (regs) {
++		num_stack_entries = stack_trace_save_regs(regs, stack_entries, KFENCE_STACK_DEPTH, 0);
++	} else {
++		num_stack_entries = stack_trace_save(stack_entries, KFENCE_STACK_DEPTH, 1);
++		skipnr = get_stack_skipnr(stack_entries, num_stack_entries, &type);
++	}
+ 
+ 	/* Require non-NULL meta, except if KFENCE_ERROR_INVALID. */
+ 	if (WARN_ON(type != KFENCE_ERROR_INVALID && !meta))
+@@ -227,7 +233,10 @@ void kfence_report_error(unsigned long a
+ 
+ 	/* Print report footer. */
+ 	pr_err("\n");
+-	dump_stack_print_info(KERN_ERR);
++	if (IS_ENABLED(CONFIG_DEBUG_KERNEL) && regs)
++		show_regs(regs);
++	else
++		dump_stack_print_info(KERN_ERR);
+ 	pr_err("==================================================================\n");
+ 
+ 	lockdep_on();
 _
 
 Patches currently in -mm which might be from elver@google.com are
