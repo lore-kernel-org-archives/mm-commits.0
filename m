@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66C9DC43381
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67AB6C433E0
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 392FF64F44
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40DFB64F29
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:30:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230102AbhB0Caj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:30:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51462 "EHLO mail.kernel.org"
+        id S230104AbhB0Cak (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:30:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51074 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230101AbhB0CaI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:30:08 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 921E764F1B;
-        Sat, 27 Feb 2021 02:28:55 +0000 (UTC)
+        id S230045AbhB0CaO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:30:14 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 73F9364F14;
+        Sat, 27 Feb 2021 02:29:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614392935;
-        bh=4DqDMUDbEqZrTKU1N2gBforfQhBEaDM8gWcu3zVQLhM=;
+        s=korg; t=1614392990;
+        bh=VjFt+PBDDkZ7FGvs+Cqn8OfMBZktJOPhzx/92HIVsIA=;
         h=Date:From:To:Subject:From;
-        b=GxuT6P72g6d2SA6JiCwXzrR3BVuOeXQpOttAtfj2ZLdEJDj7bB7FDTJ9EAjg+b1Gf
-         zF7mnIii9nLZ3Xlb3FEN6ox6kSHsqjFrSt7u7yjmDHtk4ZDdRNj/hJjvAHsNmz62rq
-         TcmDpAVrwjJ7VVB3nbcVDXOVV0Z6woaVfFHzoU38=
-Date:   Fri, 26 Feb 2021 18:28:55 -0800
+        b=uVeorEarWLJSK4TkUoTtzlTxJWWhXgUxwxVpQy4XWr+Wx4YeFhORIuZqYpNzLmbGS
+         fG6XqpZyUXbbG7VhD13QRpEO5AeemO+KMENxzZo8YvRd7PJzXM9je7flnqP+bOy+Ir
+         IJ+O6en+MxDrcYUb+t1DHA3OkODq6C8syIvuI2Qs=
+Date:   Fri, 26 Feb 2021 18:29:50 -0800
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, riel@surriel.com, rppt@linux.ibm.com,
-        vvghjk1234@gmail.com
-Subject:  [merged] mm-cma-allocate-cma-areas-bottom-up.patch
- removed from -mm tree
-Message-ID: <20210227022855.Icw8COqT1%akpm@linux-foundation.org>
+To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org, riel@surriel.com
+Subject:  [merged]
+ mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch removed from -mm
+ tree
+Message-ID: <20210227022950.GoJVY9hqa%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,96 +43,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: allocate cma areas bottom-up
+     Subject: mm/rmap: correct some obsolete comments of anon_vma
 has been removed from the -mm tree.  Its filename was
-     mm-cma-allocate-cma-areas-bottom-up.patch
+     mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: cma: allocate cma areas bottom-up
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/rmap: correct some obsolete comments of anon_vma
 
-Currently cma areas without a fixed base are allocated close to the end of
-the node.  This placement is sub-optimal because of compaction: it brings
-pages into the cma area.  In particular, it can bring in hot executable
-pages, even if there is a plenty of free memory on the machine.  This
-results in cma allocation failures.
+commit 2b575eb64f7a ("mm: convert anon_vma->lock to a mutex") changed
+spinlock used to serialize access to vma list to mutex.  And further, the
+commit 5a505085f043 ("mm/rmap: Convert the struct anon_vma::mutex to an
+rwsem") converted the mutex to an rwsem for solving scalability problem. 
+So replace spinlock with rwsem to make comment uptodate.
 
-Instead let's place cma areas close to the beginning of a node.  In this
-case the compaction will help to free cma areas, resulting in better cma
-allocation success rates.
-
-If there is enough memory let's try to allocate bottom-up starting with
-4GB to exclude any possible interference with DMA32.  On smaller machines
-or in a case of a failure, stick with the old behavior.
-
-16GB vm, 2GB cma area:
-With this patch:
-[    0.000000] Command line: root=/dev/vda3 rootflags=subvol=/root systemd.unified_cgroup_hierarchy=1 enforcing=0 console=ttyS0,115200 hugetlb_cma=2G
-[    0.002928] hugetlb_cma: reserve 2048 MiB, up to 2048 MiB per node
-[    0.002930] cma: Reserved 2048 MiB at 0x0000000100000000
-[    0.002931] hugetlb_cma: reserved 2048 MiB on node 0
-
-Without this patch:
-[    0.000000] Command line: root=/dev/vda3 rootflags=subvol=/root systemd.unified_cgroup_hierarchy=1 enforcing=0 console=ttyS0,115200 hugetlb_cma=2G
-[    0.002930] hugetlb_cma: reserve 2048 MiB, up to 2048 MiB per node
-[    0.002933] cma: Reserved 2048 MiB at 0x00000003c0000000
-[    0.002934] hugetlb_cma: reserved 2048 MiB on node 0
-
-v2:
-  - switched to memblock_set_bottom_up(true), by Mike
-  - start with 4GB, by Mike
-
-[guro@fb.com: whitespace fix, per Mike]
-  Link: https://lkml.kernel.org/r/20201221170551.GB3428478@carbon.DHCP.thefacebook.com
-[guro@fb.com: fix 32-bit warnings]
-  Link: https://lkml.kernel.org/r/20201223163537.GA4011967@carbon.DHCP.thefacebook.com
-[guro@fb.com: fix 32-bit systems]
-[akpm@linux-foundation.org: build fix]
-Link: https://lkml.kernel.org/r/20201217201214.3414100-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Wonhyuk Yang <vvghjk1234@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lkml.kernel.org/r/20210123072459.25903-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Rik van Riel <riel@surriel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ mm/rmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/cma.c~mm-cma-allocate-cma-areas-bottom-up
-+++ a/mm/cma.c
-@@ -336,6 +336,23 @@ int __init cma_declare_contiguous_nid(ph
- 			limit = highmem_start;
- 		}
+--- a/mm/rmap.c~mm-rmap-correct-some-obsolete-comments-of-anon_vma
++++ a/mm/rmap.c
+@@ -168,7 +168,7 @@ static void anon_vma_chain_link(struct v
+  *
+  * Anon-vma allocations are very subtle, because we may have
+  * optimistically looked up an anon_vma in page_lock_anon_vma_read()
+- * and that may actually touch the spinlock even in the newly
++ * and that may actually touch the rwsem even in the newly
+  * allocated vma (it depends on RCU to make sure that the
+  * anon_vma isn't actually destroyed).
+  *
+@@ -359,7 +359,7 @@ int anon_vma_fork(struct vm_area_struct
+ 		goto out_error_free_anon_vma;
  
-+		/*
-+		 * If there is enough memory, try a bottom-up allocation first.
-+		 * It will place the new cma area close to the start of the node
-+		 * and guarantee that the compaction is moving pages out of the
-+		 * cma area and not into it.
-+		 * Avoid using first 4GB to not interfere with constrained zones
-+		 * like DMA/DMA32.
-+		 */
-+#ifdef CONFIG_PHYS_ADDR_T_64BIT
-+		if (!memblock_bottom_up() && memblock_end >= SZ_4G + size) {
-+			memblock_set_bottom_up(true);
-+			addr = memblock_alloc_range_nid(size, alignment, SZ_4G,
-+							limit, nid, true);
-+			memblock_set_bottom_up(false);
-+		}
-+#endif
-+
- 		if (!addr) {
- 			addr = memblock_alloc_range_nid(size, alignment, base,
- 					limit, nid, true);
+ 	/*
+-	 * The root anon_vma's spinlock is the lock actually used when we
++	 * The root anon_vma's rwsem is the lock actually used when we
+ 	 * lock any of the anon_vmas in this anon_vma tree.
+ 	 */
+ 	anon_vma->root = pvma->anon_vma->root;
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 
