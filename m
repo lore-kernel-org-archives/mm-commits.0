@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E17CC433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60F84C433E0
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:29:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3BFD264F3D
+	by mail.kernel.org (Postfix) with ESMTP id 22C4564F3E
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:29:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229993AbhB0C32 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230006AbhB0C32 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 26 Feb 2021 21:29:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51002 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51000 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229912AbhB0C31 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S229993AbhB0C31 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Fri, 26 Feb 2021 21:29:27 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8FF2464F21;
-        Sat, 27 Feb 2021 02:28:21 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 914A064F1F;
+        Sat, 27 Feb 2021 02:28:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614392901;
-        bh=IPyaboRfBkI3r76RQDbNwoy61wLe0WnfodyJ/m0fpHs=;
+        s=korg; t=1614392898;
+        bh=/ZkASQ3Ju/jX4thBKXFhYYAZi+MMEUdFfysRNVF8rsQ=;
         h=Date:From:To:Subject:From;
-        b=mZ6lXyArJh8fhCLHRoB33DWGnkoxOFm1RXGP33bKoW9TUgF4r9QPHFedTaSOA74mZ
-         vF/nxnuGSzfwwUwE/nMSx/J/B1XKjAZNsp7RnxBUVEVB1GPgnNABb3tdoDgH33huTY
-         13nZWdvgkattZsFTFyFrNrF2XciW58MBtvNsyZow=
-Date:   Fri, 26 Feb 2021 18:28:21 -0800
+        b=tBnMtkPmaml6le6AeUo5JXB0DceUF8cD8oVX/uijWHZM7vWmsT+VYup5epS5ixdSJ
+         Kj3wqMWDKGGjiwUWgrRenrzhrhjYuVUpGSNaRWcsqJM1M7YOlQ87i+FugOcmvaAfAt
+         SujuqsLQcoyG86tDzUs3Gay1f6khaUqykMUzlj8Q=
+Date:   Fri, 26 Feb 2021 18:28:18 -0800
 From:   akpm@linux-foundation.org
 To:     dchinner@redhat.com, hannes@cmpxchg.org, hch@lst.de,
         hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com,
         mm-commits@vger.kernel.org, william.kucharski@oracle.com,
         willy@infradead.org, yang.shi@linux.alibaba.com
-Subject:  [merged] mm-filemap-add-mapping_seek_hole_data.patch
+Subject:  [merged] mm-filemap-add-helper-for-finding-pages.patch
  removed from -mm tree
-Message-ID: <20210227022821.Zh96Y1oX7%akpm@linux-foundation.org>
+Message-ID: <20210227022818.R56k1HUSQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,227 +45,196 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: add mapping_seek_hole_data
+     Subject: mm/filemap: add helper for finding pages
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-add-mapping_seek_hole_data.patch
+     mm-filemap-add-helper-for-finding-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: add mapping_seek_hole_data
+Subject: mm/filemap: add helper for finding pages
 
-Rewrite shmem_seek_hole_data() and move it to filemap.c.
+There is a lot of common code in find_get_entries(),
+find_get_pages_range() and find_get_pages_range_tag().  Factor out
+find_get_entry() which simplifies all three functions.
 
-[willy@infradead.org: don't put an xa_is_value() page]
-  Link: https://lkml.kernel.org/r/20201124041507.28996-4-willy@infradead.org
-Link: https://lkml.kernel.org/r/20201112212641.27837-8-willy@infradead.org
+[willy@infradead.org: remove VM_BUG_ON_PAGE()]
+  Link: https://lkml.kernel.org/r/20201124041507.28996-2-willy@infradead.orgLink: https://lkml.kernel.org/r/20201112212641.27837-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Dave Chinner <dchinner@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +
- mm/filemap.c            |   76 ++++++++++++++++++++++++++++++++++++++
- mm/shmem.c              |   74 ++-----------------------------------
- 3 files changed, 82 insertions(+), 70 deletions(-)
+ mm/filemap.c |   97 +++++++++++++++++++++----------------------------
+ 1 file changed, 42 insertions(+), 55 deletions(-)
 
---- a/include/linux/pagemap.h~mm-filemap-add-mapping_seek_hole_data
-+++ a/include/linux/pagemap.h
-@@ -760,6 +760,8 @@ extern void __delete_from_page_cache(str
- void replace_page_cache_page(struct page *old, struct page *new);
- void delete_from_page_cache_batch(struct address_space *mapping,
- 				  struct pagevec *pvec);
-+loff_t mapping_seek_hole_data(struct address_space *, loff_t start, loff_t end,
-+		int whence);
- 
- /*
-  * Like add_to_page_cache_locked, but used to add newly allocated pages:
---- a/mm/filemap.c~mm-filemap-add-mapping_seek_hole_data
+--- a/mm/filemap.c~mm-filemap-add-helper-for-finding-pages
 +++ a/mm/filemap.c
-@@ -2553,6 +2553,82 @@ generic_file_read_iter(struct kiocb *ioc
+@@ -1825,6 +1825,42 @@ no_page:
  }
- EXPORT_SYMBOL(generic_file_read_iter);
+ EXPORT_SYMBOL(pagecache_get_page);
  
-+static inline bool page_seek_match(struct page *page, bool seek_data)
++static inline struct page *find_get_entry(struct xa_state *xas, pgoff_t max,
++		xa_mark_t mark)
 +{
-+	if (xa_is_value(page) || PageUptodate(page))
-+		return seek_data;
-+	return !seek_data;
-+}
-+
-+static inline
-+unsigned int seek_page_size(struct xa_state *xas, struct page *page)
-+{
-+	if (xa_is_value(page))
-+		return PAGE_SIZE << xa_get_order(xas->xa, xas->xa_index);
-+	return thp_size(page);
-+}
-+
-+/**
-+ * mapping_seek_hole_data - Seek for SEEK_DATA / SEEK_HOLE in the page cache.
-+ * @mapping: Address space to search.
-+ * @start: First byte to consider.
-+ * @end: Limit of search (exclusive).
-+ * @whence: Either SEEK_HOLE or SEEK_DATA.
-+ *
-+ * If the page cache knows which blocks contain holes and which blocks
-+ * contain data, your filesystem can use this function to implement
-+ * SEEK_HOLE and SEEK_DATA.  This is useful for filesystems which are
-+ * entirely memory-based such as tmpfs, and filesystems which support
-+ * unwritten extents.
-+ *
-+ * Return: The requested offset on successs, or -ENXIO if @whence specifies
-+ * SEEK_DATA and there is no data after @start.  There is an implicit hole
-+ * after @end - 1, so SEEK_HOLE returns @end if all the bytes between @start
-+ * and @end contain data.
-+ */
-+loff_t mapping_seek_hole_data(struct address_space *mapping, loff_t start,
-+		loff_t end, int whence)
-+{
-+	XA_STATE(xas, &mapping->i_pages, start >> PAGE_SHIFT);
-+	pgoff_t max = (end - 1) / PAGE_SIZE;
-+	bool seek_data = (whence == SEEK_DATA);
 +	struct page *page;
 +
-+	if (end <= start)
-+		return -ENXIO;
++retry:
++	if (mark == XA_PRESENT)
++		page = xas_find(xas, max);
++	else
++		page = xas_find_marked(xas, max, mark);
 +
-+	rcu_read_lock();
-+	while ((page = find_get_entry(&xas, max, XA_PRESENT))) {
-+		loff_t pos = xas.xa_index * PAGE_SIZE;
++	if (xas_retry(xas, page))
++		goto retry;
++	/*
++	 * A shadow entry of a recently evicted page, a swap
++	 * entry from shmem/tmpfs or a DAX entry.  Return it
++	 * without attempting to raise page count.
++	 */
++	if (!page || xa_is_value(page))
++		return page;
 +
-+		if (start < pos) {
-+			if (!seek_data)
-+				goto unlock;
-+			start = pos;
-+		}
++	if (!page_cache_get_speculative(page))
++		goto reset;
 +
-+		if (page_seek_match(page, seek_data))
-+			goto unlock;
-+		start = pos + seek_page_size(&xas, page);
-+		if (!xa_is_value(page))
-+			put_page(page);
-+	}
-+	rcu_read_unlock();
-+
-+	if (seek_data)
-+		return -ENXIO;
-+	goto out;
-+
-+unlock:
-+	rcu_read_unlock();
-+	if (!xa_is_value(page))
++	/* Has the page moved or been split? */
++	if (unlikely(page != xas_reload(xas))) {
 +		put_page(page);
-+out:
-+	if (start > end)
-+		return end;
-+	return start;
++		goto reset;
++	}
++
++	return page;
++reset:
++	xas_reset(xas);
++	goto retry;
 +}
 +
- #ifdef CONFIG_MMU
- #define MMAP_LOTSAMISS  (100)
- /*
---- a/mm/shmem.c~mm-filemap-add-mapping_seek_hole_data
-+++ a/mm/shmem.c
-@@ -2668,86 +2668,20 @@ static ssize_t shmem_file_read_iter(stru
- 	return retval ? retval : error;
- }
+ /**
+  * find_get_entries - gang pagecache lookup
+  * @mapping:	The address_space to search
+@@ -1864,42 +1900,21 @@ unsigned find_get_entries(struct address
+ 		return 0;
  
--/*
-- * llseek SEEK_DATA or SEEK_HOLE through the page cache.
-- */
--static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
--				    pgoff_t index, pgoff_t end, int whence)
--{
--	struct page *page;
--	struct pagevec pvec;
--	pgoff_t indices[PAGEVEC_SIZE];
--	bool done = false;
--	int i;
+ 	rcu_read_lock();
+-	xas_for_each(&xas, page, ULONG_MAX) {
+-		if (xas_retry(&xas, page))
+-			continue;
+-		/*
+-		 * A shadow entry of a recently evicted page, a swap
+-		 * entry from shmem/tmpfs or a DAX entry.  Return it
+-		 * without attempting to raise page count.
+-		 */
+-		if (xa_is_value(page))
+-			goto export;
 -
--	pagevec_init(&pvec);
--	pvec.nr = 1;		/* start small: we may be there already */
--	while (!done) {
--		pvec.nr = find_get_entries(mapping, index,
--					pvec.nr, pvec.pages, indices);
--		if (!pvec.nr) {
--			if (whence == SEEK_DATA)
--				index = end;
--			break;
--		}
--		for (i = 0; i < pvec.nr; i++, index++) {
--			if (index < indices[i]) {
--				if (whence == SEEK_HOLE) {
--					done = true;
--					break;
--				}
--				index = indices[i];
--			}
--			page = pvec.pages[i];
--			if (page && !xa_is_value(page)) {
--				if (!PageUptodate(page))
--					page = NULL;
--			}
--			if (index >= end ||
--			    (page && whence == SEEK_DATA) ||
--			    (!page && whence == SEEK_HOLE)) {
--				done = true;
--				break;
--			}
--		}
--		pagevec_remove_exceptionals(&pvec);
--		pagevec_release(&pvec);
--		pvec.nr = PAGEVEC_SIZE;
--		cond_resched();
--	}
--	return index;
--}
+-		if (!page_cache_get_speculative(page))
+-			goto retry;
 -
- static loff_t shmem_file_llseek(struct file *file, loff_t offset, int whence)
- {
- 	struct address_space *mapping = file->f_mapping;
- 	struct inode *inode = mapping->host;
--	pgoff_t start, end;
--	loff_t new_offset;
- 
- 	if (whence != SEEK_DATA && whence != SEEK_HOLE)
- 		return generic_file_llseek_size(file, offset, whence,
- 					MAX_LFS_FILESIZE, i_size_read(inode));
-+	if (offset < 0)
-+		return -ENXIO;
+-		/* Has the page moved or been split? */
+-		if (unlikely(page != xas_reload(&xas)))
+-			goto put_page;
+-
++	while ((page = find_get_entry(&xas, ULONG_MAX, XA_PRESENT))) {
+ 		/*
+ 		 * Terminate early on finding a THP, to allow the caller to
+ 		 * handle it all at once; but continue if this is hugetlbfs.
+ 		 */
+-		if (PageTransHuge(page) && !PageHuge(page)) {
++		if (!xa_is_value(page) && PageTransHuge(page) &&
++				!PageHuge(page)) {
+ 			page = find_subpage(page, xas.xa_index);
+ 			nr_entries = ret + 1;
+ 		}
+-export:
 +
- 	inode_lock(inode);
- 	/* We're holding i_mutex so we can access i_size directly */
+ 		indices[ret] = xas.xa_index;
+ 		entries[ret] = page;
+ 		if (++ret == nr_entries)
+ 			break;
+-		continue;
+-put_page:
+-		put_page(page);
+-retry:
+-		xas_reset(&xas);
+ 	}
+ 	rcu_read_unlock();
+ 	return ret;
+@@ -1938,30 +1953,16 @@ unsigned find_get_pages_range(struct add
+ 		return 0;
+ 
+ 	rcu_read_lock();
+-	xas_for_each(&xas, page, end) {
+-		if (xas_retry(&xas, page))
+-			continue;
++	while ((page = find_get_entry(&xas, end, XA_PRESENT))) {
+ 		/* Skip over shadow, swap and DAX entries */
+ 		if (xa_is_value(page))
+ 			continue;
+ 
+-		if (!page_cache_get_speculative(page))
+-			goto retry;
 -
--	if (offset < 0 || offset >= inode->i_size)
--		offset = -ENXIO;
--	else {
--		start = offset >> PAGE_SHIFT;
--		end = (inode->i_size + PAGE_SIZE - 1) >> PAGE_SHIFT;
--		new_offset = shmem_seek_hole_data(mapping, start, end, whence);
--		new_offset <<= PAGE_SHIFT;
--		if (new_offset > offset) {
--			if (new_offset < inode->i_size)
--				offset = new_offset;
--			else if (whence == SEEK_DATA)
--				offset = -ENXIO;
--			else
--				offset = inode->i_size;
--		}
--	}
+-		/* Has the page moved or been split? */
+-		if (unlikely(page != xas_reload(&xas)))
+-			goto put_page;
 -
-+	offset = mapping_seek_hole_data(mapping, offset, inode->i_size, whence);
- 	if (offset >= 0)
- 		offset = vfs_setpos(file, offset, MAX_LFS_FILESIZE);
- 	inode_unlock(inode);
+ 		pages[ret] = find_subpage(page, xas.xa_index);
+ 		if (++ret == nr_pages) {
+ 			*start = xas.xa_index + 1;
+ 			goto out;
+ 		}
+-		continue;
+-put_page:
+-		put_page(page);
+-retry:
+-		xas_reset(&xas);
+ 	}
+ 
+ 	/*
+@@ -2061,9 +2062,7 @@ unsigned find_get_pages_range_tag(struct
+ 		return 0;
+ 
+ 	rcu_read_lock();
+-	xas_for_each_marked(&xas, page, end, tag) {
+-		if (xas_retry(&xas, page))
+-			continue;
++	while ((page = find_get_entry(&xas, end, tag))) {
+ 		/*
+ 		 * Shadow entries should never be tagged, but this iteration
+ 		 * is lockless so there is a window for page reclaim to evict
+@@ -2072,23 +2071,11 @@ unsigned find_get_pages_range_tag(struct
+ 		if (xa_is_value(page))
+ 			continue;
+ 
+-		if (!page_cache_get_speculative(page))
+-			goto retry;
+-
+-		/* Has the page moved or been split? */
+-		if (unlikely(page != xas_reload(&xas)))
+-			goto put_page;
+-
+ 		pages[ret] = page;
+ 		if (++ret == nr_pages) {
+ 			*index = page->index + thp_nr_pages(page);
+ 			goto out;
+ 		}
+-		continue;
+-put_page:
+-		put_page(page);
+-retry:
+-		xas_reset(&xas);
+ 	}
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
