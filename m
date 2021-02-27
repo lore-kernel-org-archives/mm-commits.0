@@ -7,39 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4654C433E6
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D3B5C433E9
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADE4E64F38
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66CE964F38
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230185AbhB0Ccn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:32:43 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51712 "EHLO mail.kernel.org"
+        id S229745AbhB0Ccp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:32:45 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51478 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229795AbhB0CcW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:32:22 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6D96564F3D;
-        Sat, 27 Feb 2021 02:31:35 +0000 (UTC)
+        id S230053AbhB0Cch (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:32:37 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7064D64F41;
+        Sat, 27 Feb 2021 02:31:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393095;
-        bh=dNCXYYlrM1ZLueEfMwaqjfItJleTBWiwKc1B7MsWsb8=;
+        s=korg; t=1614393100;
+        bh=sGMgzhg02oGbnirXLNNwXvwBGCGRK7xdlYiSTIwOVT8=;
         h=Date:From:To:Subject:From;
-        b=ENZKer9EbwdoRZFwDnMWc/cg3M8hnB9Mw9gUI6ckrxpPHqXTt0PrYRpQ53qJdNHOC
-         lnH+Mler2UHtU9lJGySrUvD48sHT6ewOmxo1Hj9mXeglYQOcX0GFhzN9MIixRR1zTe
-         FS9WJ7zSL99MG9DrI1KCk+xtK+z2Rk/dry/0QFBM=
-Date:   Fri, 26 Feb 2021 18:31:35 -0800
+        b=MrrmKVe8OrOI03tFTt0+PWzwV+5Ts66g4fLS3dZF2Bpv4L8QLXri7eJk5EVWw3NCE
+         WRFvw3rD6sA0hIAVrzSemwUoYralGsTmSU87JAUAMxry8SC1dVbtFd7uGtbyGw8C75
+         ZSJh/iulYrSPN0YkAO5YCtfwuf91I9Rv8/3q02x0=
+Date:   Fri, 26 Feb 2021 18:31:40 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
-        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
-        dvyukov@google.com, elver@google.com, eugenis@google.com,
-        glider@google.com, kevin.brodsky@arm.com,
-        mm-commits@vger.kernel.org, pcc@google.com,
-        vincenzo.frascino@arm.com, will.deacon@arm.com
+To:     adobriyan@gmail.com, deller@gmx.de, mm-commits@vger.kernel.org
 Subject:  [merged]
- kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch removed from
- -mm tree
-Message-ID: <20210227023135.Lz9nynlXz%akpm@linux-foundation.org>
+ proc-wchan-use-printk-format-instead-of-lookup_symbol_name.patch removed
+ from -mm tree
+Message-ID: <20210227023140.z77eA67g3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,83 +43,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: clarify that only first bug is reported in HW_TAGS
+     Subject: proc/wchan: use printk format instead of lookup_symbol_name()
 has been removed from the -mm tree.  Its filename was
-     kasan-clarify-that-only-first-bug-is-reported-in-hw_tags.patch
+     proc-wchan-use-printk-format-instead-of-lookup_symbol_name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: clarify that only first bug is reported in HW_TAGS
+From: Helge Deller <deller@gmx.de>
+Subject: proc/wchan: use printk format instead of lookup_symbol_name()
 
-Hwardware tag-based KASAN only reports the first found bug. After that MTE
-tag checking gets disabled. Clarify this in comments and documentation.
+To resolve the symbol fuction name for wchan, use the printk format
+specifier %ps instead of manually looking up the symbol function name
+via lookup_symbol_name().
 
-Link: https://lkml.kernel.org/r/00383ba88a47c3f8342d12263c24bdf95527b07d.1612546384.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
+Link: https://lkml.kernel.org/r/20201217165413.GA1959@ls3530.fritz.box
+Signed-off-by: Helge Deller <deller@gmx.de>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |    8 ++++++--
- mm/kasan/hw_tags.c                |    2 +-
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ fs/proc/base.c |   21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-clarify-that-only-first-bug-is-reported-in-hw_tags
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -155,7 +155,7 @@ Boot parameters
- ~~~~~~~~~~~~~~~
+--- a/fs/proc/base.c~proc-wchan-use-printk-format-instead-of-lookup_symbol_name
++++ a/fs/proc/base.c
+@@ -67,7 +67,6 @@
+ #include <linux/mm.h>
+ #include <linux/swap.h>
+ #include <linux/rcupdate.h>
+-#include <linux/kallsyms.h>
+ #include <linux/stacktrace.h>
+ #include <linux/resource.h>
+ #include <linux/module.h>
+@@ -386,19 +385,17 @@ static int proc_pid_wchan(struct seq_fil
+ 			  struct pid *pid, struct task_struct *task)
+ {
+ 	unsigned long wchan;
+-	char symname[KSYM_NAME_LEN];
  
- Hardware tag-based KASAN mode (see the section about various modes below) is
--intended for use in production as a security mitigation. Therefore it supports
-+intended for use in production as a security mitigation. Therefore, it supports
- boot parameters that allow to disable KASAN competely or otherwise control
- particular KASAN features.
- 
-@@ -165,7 +165,8 @@ particular KASAN features.
-   traces collection (default: ``on``).
- 
- - ``kasan.fault=report`` or ``=panic`` controls whether to only print a KASAN
--  report or also panic the kernel (default: ``report``).
-+  report or also panic the kernel (default: ``report``). Note, that tag
-+  checking gets disabled after the first reported bug.
- 
- For developers
- ~~~~~~~~~~~~~~
-@@ -295,6 +296,9 @@ Note, that enabling CONFIG_KASAN_HW_TAGS
- enabled. Even when kasan.mode=off is provided, or when the hardware doesn't
- support MTE (but supports TBI).
- 
-+Hardware tag-based KASAN only reports the first found bug. After that MTE tag
-+checking gets disabled.
+-	if (!ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS))
+-		goto print0;
++	if (ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS))
++		wchan = get_wchan(task);
++	else
++		wchan = 0;
 +
- What memory accesses are sanitised by KASAN?
- --------------------------------------------
++	if (wchan)
++		seq_printf(m, "%ps", (void *) wchan);
++	else
++		seq_putc(m, '0');
  
---- a/mm/kasan/hw_tags.c~kasan-clarify-that-only-first-bug-is-reported-in-hw_tags
-+++ a/mm/kasan/hw_tags.c
-@@ -48,7 +48,7 @@ EXPORT_SYMBOL(kasan_flag_enabled);
- /* Whether to collect alloc/free stack traces. */
- DEFINE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
- 
--/* Whether panic or disable tag checking on fault. */
-+/* Whether to panic or print a report and disable tag checking on fault. */
- bool kasan_flag_panic __ro_after_init;
- 
- /* kasan=off/on */
+-	wchan = get_wchan(task);
+-	if (wchan && !lookup_symbol_name(wchan, symname)) {
+-		seq_puts(m, symname);
+-		return 0;
+-	}
+-
+-print0:
+-	seq_putc(m, '0');
+ 	return 0;
+ }
+ #endif /* CONFIG_KALLSYMS */
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from deller@gmx.de are
 
 
