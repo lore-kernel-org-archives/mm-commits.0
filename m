@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94B59C433DB
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B7C8C433E9
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A78364F14
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4BE7A64F21
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230102AbhB0CdU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:33:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52944 "EHLO mail.kernel.org"
+        id S230153AbhB0CdZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:33:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52982 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230202AbhB0Cck (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:32:40 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 89B8164F4D;
-        Sat, 27 Feb 2021 02:32:06 +0000 (UTC)
+        id S230206AbhB0Ccm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:32:42 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7086A64F4B;
+        Sat, 27 Feb 2021 02:32:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393126;
-        bh=ZsAnPiq2vndK/mBsmVTf2+iMxi1D65IWS5+qyr5gYok=;
+        s=korg; t=1614393132;
+        bh=Lemc1XIsdGoftppBlBq0xP3R2hY1x/rqEq/J4bBnIyw=;
         h=Date:From:To:Subject:From;
-        b=Af5xaVgfYL4fYOYTa1TYTf9Tnu2L4zzFbNzemBh7ehiLWZa85tNoWj25Hw60ii5xm
-         52N3nB+ccAce3GJCeERzBzedmE0IBre5l6HPsMtBmfoR4Hjh0TJEoxRmLkXYrxD2cV
-         708i3kiIxJum4Tpw6ZDHNMR3yeMZ3CzyLmOJA0sQ=
-Date:   Fri, 26 Feb 2021 18:32:06 -0800
+        b=qcED39Hi8mH+Foey4FMVsL8tgeZktZc4azJHat3inZqfW2xva+4/D3MBeSdZJngvp
+         8Jv1rkQ8tQFuFRNAHL8XWKMhLGSiMZV+JO3l2YPqA1shAnIf0UpcQq72F9V3TC62Cu
+         qj3ga04ClnGKjrr+lyMkjrM29E+ts9Do67ZX8rIE=
+Date:   Fri, 26 Feb 2021 18:32:12 -0800
 From:   akpm@linux-foundation.org
-To:     glider@google.com, minchan@kernel.org, mm-commits@vger.kernel.org,
-        vinmenon@codeaurora.org, vjitta@codeaurora.org, ylal@codeaurora.org
-Subject:  [merged]
- lib-stackdepot-add-support-to-disable-stack-depot.patch removed from -mm
- tree
-Message-ID: <20210227023206.Lt6xo70-O%akpm@linux-foundation.org>
+To:     geert+renesas@glider.be, mm-commits@vger.kernel.org
+Subject:  [merged] bitops-spelling-s-synomyn-synonym.patch removed
+ from -mm tree
+Message-ID: <20210227023212.k_FTevnmy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,150 +42,39 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: stackdepot: add support to disable stack depot
+     Subject: include/linux/bitops.h: spelling s/synomyn/synonym/
 has been removed from the -mm tree.  Its filename was
-     lib-stackdepot-add-support-to-disable-stack-depot.patch
+     bitops-spelling-s-synomyn-synonym.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vijayanand Jitta <vjitta@codeaurora.org>
-Subject: lib: stackdepot: add support to disable stack depot
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: include/linux/bitops.h: spelling s/synomyn/synonym/
 
-Add a kernel parameter stack_depot_disable to disable stack depot.  So
-that stack hash table doesn't consume any memory when stack depot is
-disabled.
+Fix a misspelling of "synonym".
 
-The use case is CONFIG_PAGE_OWNER without page_owner=on.  Without this
-patch, stackdepot will consume the memory for the hashtable.  By default,
-it's 8M which is never trivial.
-
-With this option, in CONFIG_PAGE_OWNER configured system, page_owner=off,
-stack_depot_disable in kernel command line, we could save the wasted
-memory for the hashtable.
-
-[akpm@linux-foundation.org: fix CONFIG_STACKDEPOT=n build]
-Link: https://lkml.kernel.org/r/1611749198-24316-2-git-send-email-vjitta@codeaurora.org
-Signed-off-by: Vinayak Menon <vinmenon@codeaurora.org>
-Signed-off-by: Vijayanand Jitta <vjitta@codeaurora.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Yogesh Lal <ylal@codeaurora.org>
+Link: https://lkml.kernel.org/r/20210108105305.2028120-1-geert+renesas@glider.be
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    6 ++
- include/linux/stackdepot.h                      |    9 +++
- init/main.c                                     |    2 
- lib/stackdepot.c                                |   32 ++++++++++++--
- 4 files changed, 45 insertions(+), 4 deletions(-)
+ include/linux/bitops.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~lib-stackdepot-add-support-to-disable-stack-depot
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -5182,6 +5182,12 @@
- 			growing up) the main stack are reserved for no other
- 			mapping. Default value is 256 pages.
- 
-+	stack_depot_disable= [KNL]
-+			Setting this to true through kernel command line will
-+			disable the stack depot thereby saving the static memory
-+			consumed by the stack hash table. By default this is set
-+			to false.
-+
- 	stacktrace	[FTRACE]
- 			Enabled the stack tracer on boot up.
- 
---- a/include/linux/stackdepot.h~lib-stackdepot-add-support-to-disable-stack-depot
-+++ a/include/linux/stackdepot.h
-@@ -21,4 +21,13 @@ unsigned int stack_depot_fetch(depot_sta
- 
- unsigned int filter_irq_stacks(unsigned long *entries, unsigned int nr_entries);
- 
-+#ifdef CONFIG_STACKDEPOT
-+int stack_depot_init(void);
-+#else
-+static inline int stack_depot_init(void)
-+{
-+	return 0;
-+}
-+#endif	/* CONFIG_STACKDEPOT */
-+
- #endif
---- a/init/main.c~lib-stackdepot-add-support-to-disable-stack-depot
-+++ a/init/main.c
-@@ -97,6 +97,7 @@
- #include <linux/mem_encrypt.h>
- #include <linux/kcsan.h>
- #include <linux/init_syscalls.h>
-+#include <linux/stackdepot.h>
- 
- #include <asm/io.h>
- #include <asm/bugs.h>
-@@ -827,6 +828,7 @@ static void __init mm_init(void)
- 	init_mem_debugging_and_hardening();
- 	kfence_alloc_pool();
- 	report_meminit();
-+	stack_depot_init();
- 	mem_init();
- 	/* page_owner must be initialized after buddy is ready */
- 	page_ext_init_flatmem_late();
---- a/lib/stackdepot.c~lib-stackdepot-add-support-to-disable-stack-depot
-+++ a/lib/stackdepot.c
-@@ -31,6 +31,7 @@
- #include <linux/stackdepot.h>
- #include <linux/string.h>
- #include <linux/types.h>
-+#include <linux/memblock.h>
- 
- #define DEPOT_STACK_BITS (sizeof(depot_stack_handle_t) * 8)
- 
-@@ -145,9 +146,32 @@ static struct stack_record *depot_alloc_
- #define STACK_HASH_MASK (STACK_HASH_SIZE - 1)
- #define STACK_HASH_SEED 0x9747b28c
- 
--static struct stack_record *stack_table[STACK_HASH_SIZE] = {
--	[0 ...	STACK_HASH_SIZE - 1] = NULL
--};
-+static bool stack_depot_disable;
-+static struct stack_record **stack_table;
-+
-+static int __init is_stack_depot_disabled(char *str)
-+{
-+	kstrtobool(str, &stack_depot_disable);
-+	if (stack_depot_disable) {
-+		pr_info("Stack Depot is disabled\n");
-+		stack_table = NULL;
-+	}
-+	return 0;
-+}
-+early_param("stack_depot_disable", is_stack_depot_disabled);
-+
-+int __init stack_depot_init(void)
-+{
-+	if (!stack_depot_disable) {
-+		size_t size = (STACK_HASH_SIZE * sizeof(struct stack_record *));
-+		int i;
-+
-+		stack_table = memblock_alloc(size, size);
-+		for (i = 0; i < STACK_HASH_SIZE;  i++)
-+			stack_table[i] = NULL;
-+	}
-+	return 0;
-+}
- 
- /* Calculate hash for a stack */
- static inline u32 hash_stack(unsigned long *entries, unsigned int size)
-@@ -241,7 +265,7 @@ depot_stack_handle_t stack_depot_save(un
- 	unsigned long flags;
- 	u32 hash;
- 
--	if (unlikely(nr_entries == 0))
-+	if (unlikely(nr_entries == 0) || stack_depot_disable)
- 		goto fast_exit;
- 
- 	hash = hash_stack(entries, nr_entries);
+--- a/include/linux/bitops.h~bitops-spelling-s-synomyn-synonym
++++ a/include/linux/bitops.h
+@@ -214,7 +214,7 @@ static inline int get_count_order_long(u
+  * __ffs64 - find first set bit in a 64 bit word
+  * @word: The 64 bit word
+  *
+- * On 64 bit arches this is a synomyn for __ffs
++ * On 64 bit arches this is a synonym for __ffs
+  * The result is not defined if no bits are set, so check that @word
+  * is non-zero before calling this.
+  */
 _
 
-Patches currently in -mm which might be from vjitta@codeaurora.org are
+Patches currently in -mm which might be from geert+renesas@glider.be are
 
 
