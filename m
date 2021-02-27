@@ -7,33 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6E12C433DB
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:31:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3466DC43381
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:31:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8DD6D64F3A
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:31:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 064A664F38
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:31:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230131AbhB0Caz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:30:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51112 "EHLO mail.kernel.org"
+        id S230140AbhB0Ca6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:30:58 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51000 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230132AbhB0Ca1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:30:27 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7131564F2F;
-        Sat, 27 Feb 2021 02:29:56 +0000 (UTC)
+        id S230141AbhB0Cai (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:30:38 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B839A64F33;
+        Sat, 27 Feb 2021 02:30:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614392996;
-        bh=Wxkt/F1f/t3ATuZRV1c87qEzOnzgU+djWo6SXlQlMYs=;
+        s=korg; t=1614393001;
+        bh=2y/yAzef0XQeAjuHv8jUj+q2/leGlZ0r8FS/35Kwsa0=;
         h=Date:From:To:Subject:From;
-        b=feu9sVFSp948pQwuuHFRy7k6fVmx3eV9GvZFTDx6xBBQ4rv228BetnPrSAKpWhOxq
-         HuBl+1jkJ7jCU6ahzC8EUzk+dvZUXoh2kVBBK/Jr2ZhfKX7H8MTSslGmRhs8zzg9Zv
-         oiuA0NZihqVIk9ZuL97LbeIAOa7QoSXWQzQ+FX7Y=
-Date:   Fri, 26 Feb 2021 18:29:56 -0800
+        b=jxzZPhjvQ/O3O1ABXjl4DR+20wOOHAckB1xXntLPISITr7N66HJIqIjF5wYk2HIMZ
+         0iBIufbZDD7i9XwaL9KuDiZdPLgWXBkioiVAUzt1SN6sYsCuzzA1glnApjlce5McbD
+         xbn7U1GgFPtHrmSGDSQO0/znHJxy1jUMBb1abs4w=
+Date:   Fri, 26 Feb 2021 18:30:00 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org
+To:     0x7f454c46@gmail.com, bgeffon@google.com, hannes@cmpxchg.org,
+        keescook@chromium.org, kirill.shutemov@linux.intel.com,
+        linmiaohe@huawei.com, louhongxiang@huawei.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        natechancellor@gmail.com, ndesaulniers@google.com,
+        richard.weiyang@linux.alibaba.com, sedat.dilek@gmail.com,
+        shakeelb@google.com, vbabka@suse.cz, walken@google.com
 Subject:  [merged]
- mm-rmap-use-page_not_mapped-in-try_to_unmap.patch removed from -mm tree
-Message-ID: <20210227022956.R811B7HsW%akpm@linux-foundation.org>
+ mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch removed from -mm
+ tree
+Message-ID: <20210227023000.05vS0ZjOx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,66 +49,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: use page_not_mapped in try_to_unmap()
+     Subject: mm/rmap: fix potential pte_unmap on an not mapped pte
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
+     mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/rmap: use page_not_mapped in try_to_unmap()
+Subject: mm/rmap: fix potential pte_unmap on an not mapped pte
 
-page_mapcount_is_zero() calculates accurately how many mappings a hugepage
-has in order to check against 0 only.  This is a waste of cpu time.  We
-can do this via page_not_mapped() to save some possible atomic_read
-cycles.  Remove the function page_mapcount_is_zero() as it's not used
-anymore and move page_not_mapped() above try_to_unmap() to avoid
-identifier undeclared compilation error.
+For PMD-mapped page (usually THP), pvmw->pte is NULL.  For PTE-mapped THP,
+pvmw->pte is mapped.  But for HugeTLB pages, pvmw->pte is not mapped and
+set to the relevant page table entry.  So in page_vma_mapped_walk_done(),
+we may do pte_unmap() for HugeTLB pte which is not mapped.  Fix this by
+checking pvmw->page against PageHuge before trying to do pte_unmap().
 
-Link: https://lkml.kernel.org/r/20210130084904.35307-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210127093349.39081-1-linmiaohe@huawei.com
+Fixes: ace71a19cec5 ("mm: introduce page_vma_mapped_walk()")
+Signed-off-by: Hongxiang Lou <louhongxiang@huawei.com>
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Brian Geffon <bgeffon@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ include/linux/rmap.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/rmap.c~mm-rmap-use-page_not_mapped-in-try_to_unmap
-+++ a/mm/rmap.c
-@@ -1736,9 +1736,9 @@ static bool invalid_migration_vma(struct
- 	return vma_is_temporary_stack(vma);
- }
+--- a/include/linux/rmap.h~mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte
++++ a/include/linux/rmap.h
+@@ -213,7 +213,8 @@ struct page_vma_mapped_walk {
  
--static int page_mapcount_is_zero(struct page *page)
-+static int page_not_mapped(struct page *page)
+ static inline void page_vma_mapped_walk_done(struct page_vma_mapped_walk *pvmw)
  {
--	return !total_mapcount(page);
-+	return !page_mapped(page);
- }
- 
- /**
-@@ -1756,7 +1756,7 @@ bool try_to_unmap(struct page *page, enu
- 	struct rmap_walk_control rwc = {
- 		.rmap_one = try_to_unmap_one,
- 		.arg = (void *)flags,
--		.done = page_mapcount_is_zero,
-+		.done = page_not_mapped,
- 		.anon_lock = page_lock_anon_vma_read,
- 	};
- 
-@@ -1780,11 +1780,6 @@ bool try_to_unmap(struct page *page, enu
- 	return !page_mapcount(page) ? true : false;
- }
- 
--static int page_not_mapped(struct page *page)
--{
--	return !page_mapped(page);
--}
--
- /**
-  * try_to_munlock - try to munlock a page
-  * @page: the page to be munlocked
+-	if (pvmw->pte)
++	/* HugeTLB pte is set to the relevant page table entry without pte_mapped. */
++	if (pvmw->pte && !PageHuge(pvmw->page))
+ 		pte_unmap(pvmw->pte);
+ 	if (pvmw->ptl)
+ 		spin_unlock(pvmw->ptl);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
