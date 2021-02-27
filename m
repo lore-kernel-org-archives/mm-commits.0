@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95F41C43381
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:29:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9609BC433DB
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:29:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 62AF764F40
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:29:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 414D264F29
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:29:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230019AbhB0C3t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:29:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51212 "EHLO mail.kernel.org"
+        id S230014AbhB0C3s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:29:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51214 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230008AbhB0C3n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S229795AbhB0C3n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Fri, 26 Feb 2021 21:29:43 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8F64964F27;
-        Sat, 27 Feb 2021 02:28:42 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A548864F2D;
+        Sat, 27 Feb 2021 02:28:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614392922;
-        bh=gXEsIzwDuXblN2Iqhdu2dMqvNM8R/tkdtKA4sgRumNU=;
+        s=korg; t=1614392926;
+        bh=mS45JGJsWUF3yseJ6RKIxGaL8L6QE8yKVcnZWHWbm8c=;
         h=Date:From:To:Subject:From;
-        b=0MVJBN8e9liX3+6tpS6906xd6D94Idgn/USA49n6KIcE/u1q/jieSV9umSALCG6+k
-         X5VzkMXFyyzFvImX56tX5nLNIGqUs/cq24vxriYElVNMKdOpxZfk+GLDYLCFgdqd6O
-         Y9fu7e2wLyWfh4FGVI9kt7waX7z12dOHuzk59N9w=
-Date:   Fri, 26 Feb 2021 18:28:42 -0800
+        b=mBwroOQDC1VZqoW1IbkBrunD3YGkVhlmVz1SThimxUgACei6jZ03+XV90RS0R7SSI
+         YRN2vpXSM7Enr+cgiNf6q9A3gJMtYAxpSFP2UOijP5OUy5k+YgJRUmiq9p4CJkhsxy
+         GJIsjYpY8K/IF0fqvdGSmkoxaXC+somiIOjDfC+o=
+Date:   Fri, 26 Feb 2021 18:28:45 -0800
 From:   akpm@linux-foundation.org
-To:     dchinner@redhat.com, hannes@cmpxchg.org, hch@lst.de,
-        hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com,
-        mm-commits@vger.kernel.org, william.kucharski@oracle.com,
-        willy@infradead.org, yang.shi@linux.alibaba.com
-Subject:  [merged] mm-remove-pagevec_lookup_entries.patch removed
- from -mm tree
-Message-ID: <20210227022842.zuPJLtS_f%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, hughd@google.com, mgorman@suse.de,
+        mhocko@suse.com, mm-commits@vger.kernel.org, riel@surriel.com,
+        vbabka@suse.cz, willy@infradead.org, xuyu@linux.alibaba.com
+Subject:  [merged] mmthpshmem-limit-shmem-thp-alloc-gfp_mask.patch
+ removed from -mm tree
+Message-ID: <20210227022845.gARX4-1Sd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,119 +44,155 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove pagevec_lookup_entries
+     Subject: mm,thp,shmem: limit shmem THP alloc gfp_mask
 has been removed from the -mm tree.  Its filename was
-     mm-remove-pagevec_lookup_entries.patch
+     mmthpshmem-limit-shmem-thp-alloc-gfp_mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove pagevec_lookup_entries
+From: Rik van Riel <riel@surriel.com>
+Subject: mm,thp,shmem: limit shmem THP alloc gfp_mask
 
-pagevec_lookup_entries() is now just a wrapper around find_get_entries()
-so remove it and convert all its callers.
+Patch series "mm,thp,shm: limit shmem THP alloc gfp_mask", v6.
 
-Link: https://lkml.kernel.org/r/20201112212641.27837-15-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <dchinner@redhat.com>
+The allocation flags of anonymous transparent huge pages can be controlled
+through the files in /sys/kernel/mm/transparent_hugepage/defrag, which can
+help the system from getting bogged down in the page reclaim and
+compaction code when many THPs are getting allocated simultaneously.
+
+However, the gfp_mask for shmem THP allocations were not limited by those
+configuration settings, and some workloads ended up with all CPUs stuck on
+the LRU lock in the page reclaim code, trying to allocate dozens of THPs
+simultaneously.
+
+This patch applies the same configurated limitation of THPs to shmem
+hugepage allocations, to prevent that from happening.
+
+This way a THP defrag setting of "never" or "defer+madvise" will result in
+quick allocation failures without direct reclaim when no 2MB free pages
+are available.
+
+With this patch applied, THP allocations for tmpfs will be a little more
+aggressive than today for files mmapped with MADV_HUGEPAGE, and a little
+less aggressive for files that are not mmapped or mapped without that
+flag.
+
+
+This patch (of 4):
+
+The allocation flags of anonymous transparent huge pages can be controlled
+through the files in /sys/kernel/mm/transparent_hugepage/defrag, which can
+help the system from getting bogged down in the page reclaim and
+compaction code when many THPs are getting allocated simultaneously.
+
+However, the gfp_mask for shmem THP allocations were not limited by those
+configuration settings, and some workloads ended up with all CPUs stuck on
+the LRU lock in the page reclaim code, trying to allocate dozens of THPs
+simultaneously.
+
+This patch applies the same configurated limitation of THPs to shmem
+hugepage allocations, to prevent that from happening.
+
+Controlling the gfp_mask of THP allocations through the knobs in sysfs
+allows users to determine the balance between how aggressively the system
+tries to allocate THPs at fault time, and how much the application may end
+up stalling attempting those allocations.
+
+This way a THP defrag setting of "never" or "defer+madvise" will result in
+quick allocation failures without direct reclaim when no 2MB free pages
+are available.
+
+With this patch applied, THP allocations for tmpfs will be a little more
+aggressive than today for files mmapped with MADV_HUGEPAGE, and a little
+less aggressive for files that are not mmapped or mapped without that
+flag.
+
+Link: https://lkml.kernel.org/r/20201124194925.623931-1-riel@surriel.com
+Link: https://lkml.kernel.org/r/20201124194925.623931-2-riel@surriel.com
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xu Yu <xuyu@linux.alibaba.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagevec.h |    3 ---
- mm/swap.c               |   36 ++----------------------------------
- mm/truncate.c           |    4 ++--
- 3 files changed, 4 insertions(+), 39 deletions(-)
+ include/linux/gfp.h |    2 ++
+ mm/huge_memory.c    |    6 +++---
+ mm/shmem.c          |    8 +++++---
+ 3 files changed, 10 insertions(+), 6 deletions(-)
 
---- a/include/linux/pagevec.h~mm-remove-pagevec_lookup_entries
-+++ a/include/linux/pagevec.h
-@@ -25,9 +25,6 @@ struct pagevec {
+--- a/include/linux/gfp.h~mmthpshmem-limit-shmem-thp-alloc-gfp_mask
++++ a/include/linux/gfp.h
+@@ -634,6 +634,8 @@ bool gfp_pfmemalloc_allowed(gfp_t gfp_ma
+ extern void pm_restrict_gfp_mask(void);
+ extern void pm_restore_gfp_mask(void);
  
- void __pagevec_release(struct pagevec *pvec);
- void __pagevec_lru_add(struct pagevec *pvec);
--unsigned pagevec_lookup_entries(struct pagevec *pvec,
--		struct address_space *mapping, pgoff_t start, pgoff_t end,
--		pgoff_t *indices);
- void pagevec_remove_exceptionals(struct pagevec *pvec);
- unsigned pagevec_lookup_range(struct pagevec *pvec,
- 			      struct address_space *mapping,
---- a/mm/swap.c~mm-remove-pagevec_lookup_entries
-+++ a/mm/swap.c
-@@ -1018,43 +1018,11 @@ void __pagevec_lru_add(struct pagevec *p
- }
- 
- /**
-- * pagevec_lookup_entries - gang pagecache lookup
-- * @pvec:	Where the resulting entries are placed
-- * @mapping:	The address_space to search
-- * @start:	The starting entry index
-- * @end:	The highest index to return (inclusive).
-- * @nr_entries:	The maximum number of pages
-- * @indices:	The cache indices corresponding to the entries in @pvec
-- *
-- * pagevec_lookup_entries() will search for and return a group of up
-- * to @nr_pages pages and shadow entries in the mapping.  All
-- * entries are placed in @pvec.  pagevec_lookup_entries() takes a
-- * reference against actual pages in @pvec.
-- *
-- * The search returns a group of mapping-contiguous entries with
-- * ascending indexes.  There may be holes in the indices due to
-- * not-present entries.
-- *
-- * Only one subpage of a Transparent Huge Page is returned in one call:
-- * allowing truncate_inode_pages_range() to evict the whole THP without
-- * cycling through a pagevec of extra references.
-- *
-- * pagevec_lookup_entries() returns the number of entries which were
-- * found.
-- */
--unsigned pagevec_lookup_entries(struct pagevec *pvec,
--		struct address_space *mapping, pgoff_t start, pgoff_t end,
--		pgoff_t *indices)
--{
--	return find_get_entries(mapping, start, end, pvec, indices);
--}
--
--/**
-  * pagevec_remove_exceptionals - pagevec exceptionals pruning
-  * @pvec:	The pagevec to prune
-  *
-- * pagevec_lookup_entries() fills both pages and exceptional radix
-- * tree entries into the pagevec.  This function prunes all
-+ * find_get_entries() fills both pages and XArray value entries (aka
-+ * exceptional entries) into the pagevec.  This function prunes all
-  * exceptionals from @pvec without leaving holes, so that it can be
-  * passed on to page-only pagevec operations.
++extern gfp_t vma_thp_gfp_mask(struct vm_area_struct *vma);
++
+ #ifdef CONFIG_PM_SLEEP
+ extern bool pm_suspended_storage(void);
+ #else
+--- a/mm/huge_memory.c~mmthpshmem-limit-shmem-thp-alloc-gfp_mask
++++ a/mm/huge_memory.c
+@@ -668,9 +668,9 @@ release:
+  *	    available
+  * never: never stall for any thp allocation
   */
---- a/mm/truncate.c~mm-remove-pagevec_lookup_entries
-+++ a/mm/truncate.c
-@@ -376,7 +376,7 @@ void truncate_inode_pages_range(struct a
- 	index = start;
- 	for ( ; ; ) {
- 		cond_resched();
--		if (!pagevec_lookup_entries(&pvec, mapping, index, end - 1,
-+		if (!find_get_entries(mapping, index, end - 1, &pvec,
- 				indices)) {
- 			/* If all gone from start onwards, we're done */
- 			if (index == start)
-@@ -638,7 +638,7 @@ int invalidate_inode_pages2_range(struct
+-static inline gfp_t alloc_hugepage_direct_gfpmask(struct vm_area_struct *vma)
++gfp_t vma_thp_gfp_mask(struct vm_area_struct *vma)
+ {
+-	const bool vma_madvised = !!(vma->vm_flags & VM_HUGEPAGE);
++	const bool vma_madvised = vma && (vma->vm_flags & VM_HUGEPAGE);
  
- 	pagevec_init(&pvec);
- 	index = start;
--	while (pagevec_lookup_entries(&pvec, mapping, index, end, indices)) {
-+	while (find_get_entries(mapping, index, end, &pvec, indices)) {
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
+ 	/* Always do synchronous compaction */
+ 	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags))
+@@ -762,7 +762,7 @@ vm_fault_t do_huge_pmd_anonymous_page(st
+ 		}
+ 		return ret;
+ 	}
+-	gfp = alloc_hugepage_direct_gfpmask(vma);
++	gfp = vma_thp_gfp_mask(vma);
+ 	page = alloc_hugepage_vma(gfp, vma, haddr, HPAGE_PMD_ORDER);
+ 	if (unlikely(!page)) {
+ 		count_vm_event(THP_FAULT_FALLBACK);
+--- a/mm/shmem.c~mmthpshmem-limit-shmem-thp-alloc-gfp_mask
++++ a/mm/shmem.c
+@@ -1519,8 +1519,8 @@ static struct page *shmem_alloc_hugepage
+ 		return NULL;
  
+ 	shmem_pseudo_vma_init(&pvma, info, hindex);
+-	page = alloc_pages_vma(gfp | __GFP_COMP | __GFP_NORETRY | __GFP_NOWARN,
+-			HPAGE_PMD_ORDER, &pvma, 0, numa_node_id(), true);
++	page = alloc_pages_vma(gfp, HPAGE_PMD_ORDER, &pvma, 0, numa_node_id(),
++			       true);
+ 	shmem_pseudo_vma_destroy(&pvma);
+ 	if (page)
+ 		prep_transhuge_page(page);
+@@ -1776,6 +1776,7 @@ static int shmem_getpage_gfp(struct inod
+ 	struct page *page;
+ 	enum sgp_type sgp_huge = sgp;
+ 	pgoff_t hindex = index;
++	gfp_t huge_gfp;
+ 	int error;
+ 	int once = 0;
+ 	int alloced = 0;
+@@ -1862,7 +1863,8 @@ repeat:
+ 	}
+ 
+ alloc_huge:
+-	page = shmem_alloc_and_acct_page(gfp, inode, index, true);
++	huge_gfp = vma_thp_gfp_mask(vma);
++	page = shmem_alloc_and_acct_page(huge_gfp, inode, index, true);
+ 	if (IS_ERR(page)) {
+ alloc_nohuge:
+ 		page = shmem_alloc_and_acct_page(gfp, inode,
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from riel@surriel.com are
 
 
