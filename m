@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44E25C4332B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72721C4332D
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:31:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24DD264F3A
+	by mail.kernel.org (Postfix) with ESMTP id 46F4564F38
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:31:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230141AbhB0CbA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230096AbhB0CbA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 26 Feb 2021 21:31:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51008 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230096AbhB0Caj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S230144AbhB0Caj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Fri, 26 Feb 2021 21:30:39 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BB7E164F36;
-        Sat, 27 Feb 2021 02:30:03 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 790DE64F41;
+        Sat, 27 Feb 2021 02:30:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393004;
-        bh=9/C6PeCrCoLZ+0io1FNiAgJ5NbzN5lXib43xGpLCECU=;
+        s=korg; t=1614393009;
+        bh=2hqZeaFdvA9msr2BSOFc/2Iia4U8Z9mJqvPZA46j3OM=;
         h=Date:From:To:Subject:From;
-        b=ybCoVMZc+PBgPkDI/Nq25FAId+CHY7b6iZtPvtOxigeTQSIowTSGLANhIyGu6UeW5
-         uuyw9qAKFT4vGcqzDsnrjWMM6KCWkdOJMpD3DoVWxwMF9vzhD4FJ1/kJvgKx1Y+NGS
-         MUhYc/67joH+VHYyE0U7udGTUtCiFrwveSuQRD9w=
-Date:   Fri, 26 Feb 2021 18:30:03 -0800
+        b=oM2qo5/5M7mq4z715wadTQ8yzSF3JqGgC2I6TnymGzcBBdRZiB+sd2VGWFH4Llod0
+         BgTI5mCZidEBkwr4oTE+Tk+vlAM0Jy1vySK6pi/z52ShKQYGLj1BdFgRa2odbHFG1v
+         FY7+1gFCEMVnnykMrWKvqGWguF2RlWb6M6pFH7ww=
+Date:   Fri, 26 Feb 2021 18:30:09 -0800
 From:   akpm@linux-foundation.org
-To:     ddstreet@ieee.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, sjenning@redhat.com,
-        sjennings@variantweb.net, vitaly.wool@konsulko.com,
-        weijie.yang@samsung.com
-Subject:  [merged] mm-zswap-clean-up-confusing-comment.patch
- removed from -mm tree
-Message-ID: <20210227023003.uBSW0Tdnl%akpm@linux-foundation.org>
+To:     bigeasy@linutronix.de, ddstreet@ieee.org, efault@gmx.de,
+        mm-commits@vger.kernel.org, sjenning@redhat.com,
+        song.bao.hua@hisilicon.com, tiantao6@hisilicon.com,
+        vitaly.wool@konsulko.com
+Subject:  [merged]
+ mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold.patch removed from -mm
+ tree
+Message-ID: <20210227023009.4bnF1GtFX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,50 +46,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: zswap: clean up confusing comment
+     Subject: mm: set the sleep_mapped to true for zbud and z3fold
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-clean-up-confusing-comment.patch
+     mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm: zswap: clean up confusing comment
+From: Tian Tao <tiantao6@hisilicon.com>
+Subject: mm: set the sleep_mapped to true for zbud and z3fold
 
-Correct wording and change one duplicated word (it) to "it is".
+zpool driver adds a flag to indicate whether the zpool driver can enter an
+atomic context after mapping.  This patch sets it true for z3fold and
+zbud.
 
-Link: https://lkml.kernel.org/r/20201221042848.13980-1-rdunlap@infradead.org
-Fixes: 0ab0abcf5115 ("mm/zswap: refactor the get/put routines")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Weijie Yang <weijie.yang@samsung.com>
-Cc: Seth Jennings <sjennings@variantweb.net>
+Link: https://lkml.kernel.org/r/1611035683-12732-3-git-send-email-tiantao6@hisilicon.com
+Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
+Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
+Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Reported-by: Mike Galbraith <efault@gmx.de>
 Cc: Seth Jennings <sjenning@redhat.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Barry Song <song.bao.hua@hisilicon.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/z3fold.c |    1 +
+ mm/zbud.c   |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/mm/zswap.c~mm-zswap-clean-up-confusing-comment
-+++ a/mm/zswap.c
-@@ -1022,10 +1022,10 @@ static int zswap_writeback_entry(struct
+--- a/mm/z3fold.c~mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold
++++ a/mm/z3fold.c
+@@ -1771,6 +1771,7 @@ static u64 z3fold_zpool_total_size(void
  
- 	/*
- 	* if we get here due to ZSWAP_SWAPCACHE_EXIST
--	* a load may happening concurrently
--	* it is safe and okay to not free the entry
-+	* a load may be happening concurrently.
-+	* it is safe and okay to not free the entry.
- 	* if we free the entry in the following put
--	* it it either okay to return !0
-+	* it is also okay to return !0
- 	*/
- fail:
- 	spin_lock(&tree->lock);
+ static struct zpool_driver z3fold_zpool_driver = {
+ 	.type =		"z3fold",
++	.sleep_mapped = true,
+ 	.owner =	THIS_MODULE,
+ 	.create =	z3fold_zpool_create,
+ 	.destroy =	z3fold_zpool_destroy,
+--- a/mm/zbud.c~mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold
++++ a/mm/zbud.c
+@@ -203,6 +203,7 @@ static u64 zbud_zpool_total_size(void *p
+ 
+ static struct zpool_driver zbud_zpool_driver = {
+ 	.type =		"zbud",
++	.sleep_mapped = true,
+ 	.owner =	THIS_MODULE,
+ 	.create =	zbud_zpool_create,
+ 	.destroy =	zbud_zpool_destroy,
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from tiantao6@hisilicon.com are
 
 
