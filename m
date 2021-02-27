@@ -7,43 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB982C433E0
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00C9FC433DB
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B1BD764F29
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF7D664F32
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229946AbhB0CcH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:32:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51712 "EHLO mail.kernel.org"
+        id S229863AbhB0CcX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:32:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51610 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230185AbhB0Ca7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:30:59 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8727464F29;
-        Sat, 27 Feb 2021 02:30:42 +0000 (UTC)
+        id S230139AbhB0Cbd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:31:33 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7275064F3A;
+        Sat, 27 Feb 2021 02:31:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393043;
-        bh=WUIHAWK9PGLZV5tE0S5csyN0N2g0FWbtkuF/OL9UkCo=;
+        s=korg; t=1614393077;
+        bh=KFKgNo7LSba61lJthFONaV9dTYSqtJVTxxI+fZ0WzXA=;
         h=Date:From:To:Subject:From;
-        b=D+K3eAkhS/5N7rtdKVCxlJpDKkuqQHHqV108I6puqQCYoMTIhJ1cn4ImLpZSsa5Ld
-         cs4yrXXzWgg6EHpffsx3tzNRl20rA+BBMsyRIFqw9hzd6b1GsNzoxxhH7MlES0OIKE
-         BVDEB2gdVAkmZwaWKyYs7y36Kd5yj65qG0qvHaBA=
-Date:   Fri, 26 Feb 2021 18:30:42 -0800
+        b=JSZXtC9lPTEwQ52rMAtepXjHPpI08iaC8/iWQk/CHgUOYN8zx3qzoFqyb+HRLyLPs
+         HZYp6Qu58Xiz7xIaf0h9qEixtulAk5p4xrDzM/f2Cv/T+O2x3kcMxZqQNTevSK0Li/
+         SLP+cmLW/B5M1LzyO84khPYi/dxtWat+o4jbteCw=
+Date:   Fri, 26 Feb 2021 18:31:17 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com, bp@alien8.de,
-        catalin.marinas@arm.com, cl@linux.com, corbet@lwn.net,
-        dave.hansen@linux.intel.com, dvyukov@google.com,
-        edumazet@google.com, elver@google.com, glider@google.com,
-        gregkh@linuxfoundation.org, hdanton@sina.com, hpa@zytor.com,
-        iamjoonsoo.kim@lge.com, jannh@google.com, joern@purestorage.com,
-        keescook@chromium.org, luto@kernel.org, mark.rutland@arm.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, paulmck@kernel.org,
-        penberg@kernel.org, peterz@infradead.org, rientjes@google.com,
-        sjpark@amazon.de, tglx@linutronix.de, vbabka@suse.cz,
-        will@kernel.org
-Subject:  [merged] mm-kfence-insert-kfence-hooks-for-slub.patch
- removed from -mm tree
-Message-ID: <20210227023042.MbwXDayx5%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
+        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
+        dvyukov@google.com, elver@google.com, eugenis@google.com,
+        glider@google.com, kevin.brodsky@arm.com,
+        mm-commits@vger.kernel.org, pcc@google.com,
+        vincenzo.frascino@arm.com, will.deacon@arm.com
+Subject:  [merged]
+ kasan-clean-up-setting-free-info-in-kasan_slab_free.patch removed from -mm
+ tree
+Message-ID: <20210227023117._P2mlJ6yk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,300 +48,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, kfence: insert KFENCE hooks for SLUB
+     Subject: kasan: clean up setting free info in kasan_slab_free
 has been removed from the -mm tree.  Its filename was
-     mm-kfence-insert-kfence-hooks-for-slub.patch
+     kasan-clean-up-setting-free-info-in-kasan_slab_free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: mm, kfence: insert KFENCE hooks for SLUB
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: clean up setting free info in kasan_slab_free
 
-Inserts KFENCE hooks into the SLUB allocator.
+Put kasan_stack_collection_enabled() check and kasan_set_free_info() calls
+next to each other.
 
-To pass the originally requested size to KFENCE, add an argument
-'orig_size' to slab_alloc*(). The additional argument is required to
-preserve the requested original size for kmalloc() allocations, which
-uses size classes (e.g. an allocation of 272 bytes will return an object
-of size 512). Therefore, kmem_cache::size does not represent the
-kmalloc-caller's requested size, and we must introduce the argument
-'orig_size' to propagate the originally requested size to KFENCE.
+The way this was previously implemented was a minor optimization that
+relied of the the fact that kasan_stack_collection_enabled() is always
+true for generic KASAN.  The confusion that this brings outweights saving
+a few instructions.
 
-Without the originally requested size, we would not be able to detect
-out-of-bounds accesses for objects placed at the end of a KFENCE object
-page if that object is not equal to the kmalloc-size class it was
-bucketed into.
-
-When KFENCE is disabled, there is no additional overhead, since
-slab_alloc*() functions are __always_inline.
-
-Link: https://lkml.kernel.org/r/20201103175841.3495947-6-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Jann Horn <jannh@google.com>
-Co-developed-by: Marco Elver <elver@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
+Link: https://lkml.kernel.org/r/f838e249be5ab5810bf54a36ef5072cfd80e2da7.1612546384.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Joern Engel <joern@purestorage.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: SeongJae Park <sjpark@amazon.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    3 +
- mm/kfence/core.c         |    2 +
- mm/slub.c                |   60 ++++++++++++++++++++++++++++---------
- 3 files changed, 51 insertions(+), 14 deletions(-)
+ mm/kasan/common.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/include/linux/slub_def.h~mm-kfence-insert-kfence-hooks-for-slub
-+++ a/include/linux/slub_def.h
-@@ -7,6 +7,7 @@
-  *
-  * (C) 2007 SGI, Christoph Lameter
-  */
-+#include <linux/kfence.h>
- #include <linux/kobject.h>
- #include <linux/reciprocal_div.h>
+--- a/mm/kasan/common.c~kasan-clean-up-setting-free-info-in-kasan_slab_free
++++ a/mm/kasan/common.c
+@@ -350,13 +350,11 @@ static bool ____kasan_slab_free(struct k
  
-@@ -185,6 +186,8 @@ static inline unsigned int __obj_to_inde
- static inline unsigned int obj_to_index(const struct kmem_cache *cache,
- 					const struct page *page, void *obj)
- {
-+	if (is_kfence_address(obj))
-+		return 0;
- 	return __obj_to_index(cache, page_address(page), obj);
+ 	kasan_poison(object, cache->object_size, KASAN_KMALLOC_FREE);
+ 
+-	if (!kasan_stack_collection_enabled())
+-		return false;
+-
+ 	if ((IS_ENABLED(CONFIG_KASAN_GENERIC) && !quarantine))
+ 		return false;
+ 
+-	kasan_set_free_info(cache, object, tag);
++	if (kasan_stack_collection_enabled())
++		kasan_set_free_info(cache, object, tag);
+ 
+ 	return kasan_quarantine_put(cache, object);
  }
- 
---- a/mm/kfence/core.c~mm-kfence-insert-kfence-hooks-for-slub
-+++ a/mm/kfence/core.c
-@@ -317,6 +317,8 @@ static void *kfence_guarded_alloc(struct
- 	/* Set required struct page fields. */
- 	page = virt_to_page(meta->addr);
- 	page->slab_cache = cache;
-+	if (IS_ENABLED(CONFIG_SLUB))
-+		page->objects = 1;
- 	if (IS_ENABLED(CONFIG_SLAB))
- 		page->s_mem = addr;
- 
---- a/mm/slub.c~mm-kfence-insert-kfence-hooks-for-slub
-+++ a/mm/slub.c
-@@ -27,6 +27,7 @@
- #include <linux/ctype.h>
- #include <linux/debugobjects.h>
- #include <linux/kallsyms.h>
-+#include <linux/kfence.h>
- #include <linux/memory.h>
- #include <linux/math64.h>
- #include <linux/fault-inject.h>
-@@ -1570,6 +1571,11 @@ static inline bool slab_free_freelist_ho
- 	void *old_tail = *tail ? *tail : *head;
- 	int rsize;
- 
-+	if (is_kfence_address(next)) {
-+		slab_free_hook(s, next);
-+		return true;
-+	}
-+
- 	/* Head and tail of the reconstructed freelist */
- 	*head = NULL;
- 	*tail = NULL;
-@@ -2809,7 +2815,7 @@ static __always_inline void maybe_wipe_o
-  * Otherwise we can simply pick the next object from the lockless free list.
-  */
- static __always_inline void *slab_alloc_node(struct kmem_cache *s,
--		gfp_t gfpflags, int node, unsigned long addr)
-+		gfp_t gfpflags, int node, unsigned long addr, size_t orig_size)
- {
- 	void *object;
- 	struct kmem_cache_cpu *c;
-@@ -2820,6 +2826,11 @@ static __always_inline void *slab_alloc_
- 	s = slab_pre_alloc_hook(s, &objcg, 1, gfpflags);
- 	if (!s)
- 		return NULL;
-+
-+	object = kfence_alloc(s, orig_size, gfpflags);
-+	if (unlikely(object))
-+		goto out;
-+
- redo:
- 	/*
- 	 * Must read kmem_cache cpu data via this cpu ptr. Preemption is
-@@ -2892,20 +2903,21 @@ redo:
- 	if (unlikely(slab_want_init_on_alloc(gfpflags, s)) && object)
- 		memset(kasan_reset_tag(object), 0, s->object_size);
- 
-+out:
- 	slab_post_alloc_hook(s, objcg, gfpflags, 1, &object);
- 
- 	return object;
- }
- 
- static __always_inline void *slab_alloc(struct kmem_cache *s,
--		gfp_t gfpflags, unsigned long addr)
-+		gfp_t gfpflags, unsigned long addr, size_t orig_size)
- {
--	return slab_alloc_node(s, gfpflags, NUMA_NO_NODE, addr);
-+	return slab_alloc_node(s, gfpflags, NUMA_NO_NODE, addr, orig_size);
- }
- 
- void *kmem_cache_alloc(struct kmem_cache *s, gfp_t gfpflags)
- {
--	void *ret = slab_alloc(s, gfpflags, _RET_IP_);
-+	void *ret = slab_alloc(s, gfpflags, _RET_IP_, s->object_size);
- 
- 	trace_kmem_cache_alloc(_RET_IP_, ret, s->object_size,
- 				s->size, gfpflags);
-@@ -2917,7 +2929,7 @@ EXPORT_SYMBOL(kmem_cache_alloc);
- #ifdef CONFIG_TRACING
- void *kmem_cache_alloc_trace(struct kmem_cache *s, gfp_t gfpflags, size_t size)
- {
--	void *ret = slab_alloc(s, gfpflags, _RET_IP_);
-+	void *ret = slab_alloc(s, gfpflags, _RET_IP_, size);
- 	trace_kmalloc(_RET_IP_, ret, size, s->size, gfpflags);
- 	ret = kasan_kmalloc(s, ret, size, gfpflags);
- 	return ret;
-@@ -2928,7 +2940,7 @@ EXPORT_SYMBOL(kmem_cache_alloc_trace);
- #ifdef CONFIG_NUMA
- void *kmem_cache_alloc_node(struct kmem_cache *s, gfp_t gfpflags, int node)
- {
--	void *ret = slab_alloc_node(s, gfpflags, node, _RET_IP_);
-+	void *ret = slab_alloc_node(s, gfpflags, node, _RET_IP_, s->object_size);
- 
- 	trace_kmem_cache_alloc_node(_RET_IP_, ret,
- 				    s->object_size, s->size, gfpflags, node);
-@@ -2942,7 +2954,7 @@ void *kmem_cache_alloc_node_trace(struct
- 				    gfp_t gfpflags,
- 				    int node, size_t size)
- {
--	void *ret = slab_alloc_node(s, gfpflags, node, _RET_IP_);
-+	void *ret = slab_alloc_node(s, gfpflags, node, _RET_IP_, size);
- 
- 	trace_kmalloc_node(_RET_IP_, ret,
- 			   size, s->size, gfpflags, node);
-@@ -2976,6 +2988,9 @@ static void __slab_free(struct kmem_cach
- 
- 	stat(s, FREE_SLOWPATH);
- 
-+	if (kfence_free(head))
-+		return;
-+
- 	if (kmem_cache_debug(s) &&
- 	    !free_debug_processing(s, page, head, tail, cnt, addr))
- 		return;
-@@ -3220,6 +3235,13 @@ int build_detached_freelist(struct kmem_
- 		df->s = cache_from_obj(s, object); /* Support for memcg */
- 	}
- 
-+	if (is_kfence_address(object)) {
-+		slab_free_hook(df->s, object);
-+		__kfence_free(object);
-+		p[size] = NULL; /* mark object processed */
-+		return size;
-+	}
-+
- 	/* Start new detached freelist */
- 	df->page = page;
- 	set_freepointer(df->s, object, NULL);
-@@ -3295,8 +3317,14 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 	c = this_cpu_ptr(s->cpu_slab);
- 
- 	for (i = 0; i < size; i++) {
--		void *object = c->freelist;
-+		void *object = kfence_alloc(s, s->object_size, flags);
- 
-+		if (unlikely(object)) {
-+			p[i] = object;
-+			continue;
-+		}
-+
-+		object = c->freelist;
- 		if (unlikely(!object)) {
- 			/*
- 			 * We may have removed an object from c->freelist using
-@@ -4021,7 +4049,7 @@ void *__kmalloc(size_t size, gfp_t flags
- 	if (unlikely(ZERO_OR_NULL_PTR(s)))
- 		return s;
- 
--	ret = slab_alloc(s, flags, _RET_IP_);
-+	ret = slab_alloc(s, flags, _RET_IP_, size);
- 
- 	trace_kmalloc(_RET_IP_, ret, size, s->size, flags);
- 
-@@ -4069,7 +4097,7 @@ void *__kmalloc_node(size_t size, gfp_t
- 	if (unlikely(ZERO_OR_NULL_PTR(s)))
- 		return s;
- 
--	ret = slab_alloc_node(s, flags, node, _RET_IP_);
-+	ret = slab_alloc_node(s, flags, node, _RET_IP_, size);
- 
- 	trace_kmalloc_node(_RET_IP_, ret, size, s->size, flags, node);
- 
-@@ -4095,6 +4123,7 @@ void __check_heap_object(const void *ptr
- 	struct kmem_cache *s;
- 	unsigned int offset;
- 	size_t object_size;
-+	bool is_kfence = is_kfence_address(ptr);
- 
- 	ptr = kasan_reset_tag(ptr);
- 
-@@ -4107,10 +4136,13 @@ void __check_heap_object(const void *ptr
- 			       to_user, 0, n);
- 
- 	/* Find offset within object. */
--	offset = (ptr - page_address(page)) % s->size;
-+	if (is_kfence)
-+		offset = ptr - kfence_object_start(ptr);
-+	else
-+		offset = (ptr - page_address(page)) % s->size;
- 
- 	/* Adjust for redzone and reject if within the redzone. */
--	if (kmem_cache_debug_flags(s, SLAB_RED_ZONE)) {
-+	if (!is_kfence && kmem_cache_debug_flags(s, SLAB_RED_ZONE)) {
- 		if (offset < s->red_left_pad)
- 			usercopy_abort("SLUB object in left red zone",
- 				       s->name, to_user, offset, n);
-@@ -4527,7 +4559,7 @@ void *__kmalloc_track_caller(size_t size
- 	if (unlikely(ZERO_OR_NULL_PTR(s)))
- 		return s;
- 
--	ret = slab_alloc(s, gfpflags, caller);
-+	ret = slab_alloc(s, gfpflags, caller, size);
- 
- 	/* Honor the call site pointer we received. */
- 	trace_kmalloc(caller, ret, size, s->size, gfpflags);
-@@ -4558,7 +4590,7 @@ void *__kmalloc_node_track_caller(size_t
- 	if (unlikely(ZERO_OR_NULL_PTR(s)))
- 		return s;
- 
--	ret = slab_alloc_node(s, gfpflags, node, caller);
-+	ret = slab_alloc_node(s, gfpflags, node, caller, size);
- 
- 	/* Honor the call site pointer we received. */
- 	trace_kmalloc_node(caller, ret, size, s->size, gfpflags, node);
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
 
