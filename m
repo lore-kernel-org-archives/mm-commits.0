@@ -7,43 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B24FBC433E0
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99F3EC4332B
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8733F64F32
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 798D364F31
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:32:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230008AbhB0CcX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:32:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51478 "EHLO mail.kernel.org"
+        id S230014AbhB0CcY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:32:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52722 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229863AbhB0CbO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:31:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F2E7B64F32;
-        Sat, 27 Feb 2021 02:30:57 +0000 (UTC)
+        id S230184AbhB0Cbm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:31:42 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8659864F35;
+        Sat, 27 Feb 2021 02:31:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393058;
-        bh=aYrKx/gMsgNVLDxTTA5q67GBMmslMiy6HdHI41Ee1Pk=;
+        s=korg; t=1614393061;
+        bh=fmfkJJ2DNu9u3DNo+0zXHomkkuKr1f0mnX/b1oztXJM=;
         h=Date:From:To:Subject:From;
-        b=SnedMJ+UWsM8toKCtq4tuSXKDSwSQYxpPejyef2Z2YtFzbnWpp/Hd//jSwvVJ7JWu
-         M9k+TSYnVmi8+pkyXQ1RWSHpC7me7lDSRq/nKZTAS5JEel5iJ4ZGIvYGqZ/GmVmq6X
-         H4hm1+tnA6D90exeEqoEn0Ziy7k76v1+mufxoTTQ=
-Date:   Fri, 26 Feb 2021 18:30:57 -0800
+        b=mhcvrf9CU8W+PJE6ILkfM3sxfEc756bIgyXZ/PgBXmkAIsBbbIFonM7Qz3Z/m7XDx
+         /iZey0o8llQwsUADcFhLCwkRHyq8nbtLBm5uuCYY02JP3ZidoQR6txUVmN5ZqYce2G
+         G3MuIyUfjKBvNQ0gRslRu7IST4DUgYX5O0BMeO6Y=
+Date:   Fri, 26 Feb 2021 18:31:01 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com, bp@alien8.de,
-        catalin.marinas@arm.com, cl@linux.com, corbet@lwn.net,
-        dave.hansen@linux.intel.com, dvyukov@google.com,
-        edumazet@google.com, elver@google.com, glider@google.com,
-        gregkh@linuxfoundation.org, hdanton@sina.com, hpa@zytor.com,
-        iamjoonsoo.kim@lge.com, jannh@google.com, joern@purestorage.com,
-        keescook@chromium.org, luto@kernel.org, mark.rutland@arm.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, paulmck@kernel.org,
-        penberg@kernel.org, peterz@infradead.org, rientjes@google.com,
-        sjpark@amazon.de, tglx@linutronix.de, vbabka@suse.cz,
-        will@kernel.org
-Subject:  [merged] maintainers-add-entry-for-kfence.patch removed
+To:     andreyknvl@google.com, dvyukov@google.com, elver@google.com,
+        glider@google.com, jannh@google.com, mm-commits@vger.kernel.org,
+        timur@kernel.org
+Subject:  [merged]
+ kfence-report-sensitive-information-based-on-no_hash_pointers.patch removed
  from -mm tree
-Message-ID: <20210227023057.uv6j8UD4a%akpm@linux-foundation.org>
+Message-ID: <20210227023101.rj_T0EAop%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,76 +45,188 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add entry for KFENCE
+     Subject: kfence: report sensitive information based on no_hash_pointers
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-entry-for-kfence.patch
+     kfence-report-sensitive-information-based-on-no_hash_pointers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: MAINTAINERS: add entry for KFENCE
+Subject: kfence: report sensitive information based on no_hash_pointers
 
-Add entry for KFENCE maintainers.
+We cannot rely on CONFIG_DEBUG_KERNEL to decide if we're running a "debug
+kernel" where we can safely show potentially sensitive information in the
+kernel log.
 
-Link: https://lkml.kernel.org/r/20201103175841.3495947-10-elver@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
+Instead, simply rely on the newly introduced "no_hash_pointers" to print
+unhashed kernel pointers, as well as decide if our reports can include
+other potentially sensitive information such as registers and corrupted
+bytes.
+
+Link: https://lkml.kernel.org/r/20210223082043.1972742-1-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: SeongJae Park <sjpark@amazon.de>
-Co-developed-by: Alexander Potapenko <glider@google.com>
+Cc: Timur Tabi <timur@kernel.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Joern Engel <joern@purestorage.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ Documentation/dev-tools/kfence.rst |    8 ++++----
+ mm/kfence/core.c                   |   10 +++-------
+ mm/kfence/kfence.h                 |    7 -------
+ mm/kfence/kfence_test.c            |    2 +-
+ mm/kfence/report.c                 |   18 ++++++++++--------
+ 5 files changed, 18 insertions(+), 27 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-entry-for-kfence
-+++ a/MAINTAINERS
-@@ -9867,6 +9867,18 @@ F:	include/linux/keyctl.h
- F:	include/uapi/linux/keyctl.h
- F:	security/keys/
+--- a/Documentation/dev-tools/kfence.rst~kfence-report-sensitive-information-based-on-no_hash_pointers
++++ a/Documentation/dev-tools/kfence.rst
+@@ -88,8 +88,8 @@ A typical out-of-bounds access looks lik
  
-+KFENCE
-+M:	Alexander Potapenko <glider@google.com>
-+M:	Marco Elver <elver@google.com>
-+R:	Dmitry Vyukov <dvyukov@google.com>
-+L:	kasan-dev@googlegroups.com
-+S:	Maintained
-+F:	Documentation/dev-tools/kfence.rst
-+F:	arch/*/include/asm/kfence.h
-+F:	include/linux/kfence.h
-+F:	lib/Kconfig.kfence
-+F:	mm/kfence/
+ The header of the report provides a short summary of the function involved in
+ the access. It is followed by more detailed information about the access and
+-its origin. Note that, real kernel addresses are only shown for
+-``CONFIG_DEBUG_KERNEL=y`` builds.
++its origin. Note that, real kernel addresses are only shown when using the
++kernel command line option ``no_hash_pointers``.
+ 
+ Use-after-free accesses are reported as::
+ 
+@@ -184,8 +184,8 @@ invalidly written bytes (offset from the
+ representation, '.' denote untouched bytes. In the example above ``0xac`` is
+ the value written to the invalid address at offset 0, and the remaining '.'
+ denote that no following bytes have been touched. Note that, real values are
+-only shown for ``CONFIG_DEBUG_KERNEL=y`` builds; to avoid information
+-disclosure for non-debug builds, '!' is used instead to denote invalidly
++only shown if the kernel was booted with ``no_hash_pointers``; to avoid
++information disclosure otherwise, '!' is used instead to denote invalidly
+ written bytes.
+ 
+ And finally, KFENCE may also report on invalid accesses to any protected page
+--- a/mm/kfence/core.c~kfence-report-sensitive-information-based-on-no_hash_pointers
++++ a/mm/kfence/core.c
+@@ -646,13 +646,9 @@ void __init kfence_init(void)
+ 
+ 	WRITE_ONCE(kfence_enabled, true);
+ 	schedule_delayed_work(&kfence_timer, 0);
+-	pr_info("initialized - using %lu bytes for %d objects", KFENCE_POOL_SIZE,
+-		CONFIG_KFENCE_NUM_OBJECTS);
+-	if (IS_ENABLED(CONFIG_DEBUG_KERNEL))
+-		pr_cont(" at 0x%px-0x%px\n", (void *)__kfence_pool,
+-			(void *)(__kfence_pool + KFENCE_POOL_SIZE));
+-	else
+-		pr_cont("\n");
++	pr_info("initialized - using %lu bytes for %d objects at 0x%p-0x%p\n", KFENCE_POOL_SIZE,
++		CONFIG_KFENCE_NUM_OBJECTS, (void *)__kfence_pool,
++		(void *)(__kfence_pool + KFENCE_POOL_SIZE));
+ }
+ 
+ void kfence_shutdown_cache(struct kmem_cache *s)
+--- a/mm/kfence/kfence.h~kfence-report-sensitive-information-based-on-no_hash_pointers
++++ a/mm/kfence/kfence.h
+@@ -16,13 +16,6 @@
+ 
+ #include "../slab.h" /* for struct kmem_cache */
+ 
+-/* For non-debug builds, avoid leaking kernel pointers into dmesg. */
+-#ifdef CONFIG_DEBUG_KERNEL
+-#define PTR_FMT "%px"
+-#else
+-#define PTR_FMT "%p"
+-#endif
+-
+ /*
+  * Get the canary byte pattern for @addr. Use a pattern that varies based on the
+  * lower 3 bits of the address, to detect memory corruptions with higher
+--- a/mm/kfence/kfence_test.c~kfence-report-sensitive-information-based-on-no_hash_pointers
++++ a/mm/kfence/kfence_test.c
+@@ -146,7 +146,7 @@ static bool report_matches(const struct
+ 		break;
+ 	}
+ 
+-	cur += scnprintf(cur, end - cur, " 0x" PTR_FMT, (void *)r->addr);
++	cur += scnprintf(cur, end - cur, " 0x%p", (void *)r->addr);
+ 
+ 	spin_lock_irqsave(&observed.lock, flags);
+ 	if (!report_available())
+--- a/mm/kfence/report.c~kfence-report-sensitive-information-based-on-no_hash_pointers
++++ a/mm/kfence/report.c
+@@ -19,6 +19,8 @@
+ 
+ #include "kfence.h"
+ 
++extern bool no_hash_pointers;
 +
- KFIFO
- M:	Stefani Seibold <stefani@seibold.net>
- S:	Maintained
+ /* Helper function to either print to a seq_file or to console. */
+ __printf(2, 3)
+ static void seq_con_printf(struct seq_file *seq, const char *fmt, ...)
+@@ -118,7 +120,7 @@ void kfence_print_object(struct seq_file
+ 	}
+ 
+ 	seq_con_printf(seq,
+-		       "kfence-#%zd [0x" PTR_FMT "-0x" PTR_FMT
++		       "kfence-#%zd [0x%p-0x%p"
+ 		       ", size=%d, cache=%s] allocated by task %d:\n",
+ 		       meta - kfence_metadata, (void *)start, (void *)(start + size - 1), size,
+ 		       (cache && cache->name) ? cache->name : "<destroyed>", meta->alloc_track.pid);
+@@ -148,7 +150,7 @@ static void print_diff_canary(unsigned l
+ 	for (cur = (const u8 *)address; cur < end; cur++) {
+ 		if (*cur == KFENCE_CANARY_PATTERN(cur))
+ 			pr_cont(" .");
+-		else if (IS_ENABLED(CONFIG_DEBUG_KERNEL))
++		else if (no_hash_pointers)
+ 			pr_cont(" 0x%02x", *cur);
+ 		else /* Do not leak kernel memory in non-debug builds. */
+ 			pr_cont(" !");
+@@ -201,7 +203,7 @@ void kfence_report_error(unsigned long a
+ 
+ 		pr_err("BUG: KFENCE: out-of-bounds %s in %pS\n\n", get_access_type(is_write),
+ 		       (void *)stack_entries[skipnr]);
+-		pr_err("Out-of-bounds %s at 0x" PTR_FMT " (%luB %s of kfence-#%zd):\n",
++		pr_err("Out-of-bounds %s at 0x%p (%luB %s of kfence-#%zd):\n",
+ 		       get_access_type(is_write), (void *)address,
+ 		       left_of_object ? meta->addr - address : address - meta->addr,
+ 		       left_of_object ? "left" : "right", object_index);
+@@ -210,24 +212,24 @@ void kfence_report_error(unsigned long a
+ 	case KFENCE_ERROR_UAF:
+ 		pr_err("BUG: KFENCE: use-after-free %s in %pS\n\n", get_access_type(is_write),
+ 		       (void *)stack_entries[skipnr]);
+-		pr_err("Use-after-free %s at 0x" PTR_FMT " (in kfence-#%zd):\n",
++		pr_err("Use-after-free %s at 0x%p (in kfence-#%zd):\n",
+ 		       get_access_type(is_write), (void *)address, object_index);
+ 		break;
+ 	case KFENCE_ERROR_CORRUPTION:
+ 		pr_err("BUG: KFENCE: memory corruption in %pS\n\n", (void *)stack_entries[skipnr]);
+-		pr_err("Corrupted memory at 0x" PTR_FMT " ", (void *)address);
++		pr_err("Corrupted memory at 0x%p ", (void *)address);
+ 		print_diff_canary(address, 16, meta);
+ 		pr_cont(" (in kfence-#%zd):\n", object_index);
+ 		break;
+ 	case KFENCE_ERROR_INVALID:
+ 		pr_err("BUG: KFENCE: invalid %s in %pS\n\n", get_access_type(is_write),
+ 		       (void *)stack_entries[skipnr]);
+-		pr_err("Invalid %s at 0x" PTR_FMT ":\n", get_access_type(is_write),
++		pr_err("Invalid %s at 0x%p:\n", get_access_type(is_write),
+ 		       (void *)address);
+ 		break;
+ 	case KFENCE_ERROR_INVALID_FREE:
+ 		pr_err("BUG: KFENCE: invalid free in %pS\n\n", (void *)stack_entries[skipnr]);
+-		pr_err("Invalid free of 0x" PTR_FMT " (in kfence-#%zd):\n", (void *)address,
++		pr_err("Invalid free of 0x%p (in kfence-#%zd):\n", (void *)address,
+ 		       object_index);
+ 		break;
+ 	}
+@@ -242,7 +244,7 @@ void kfence_report_error(unsigned long a
+ 
+ 	/* Print report footer. */
+ 	pr_err("\n");
+-	if (IS_ENABLED(CONFIG_DEBUG_KERNEL) && regs)
++	if (no_hash_pointers && regs)
+ 		show_regs(regs);
+ 	else
+ 		dump_stack_print_info(KERN_ERR);
 _
 
 Patches currently in -mm which might be from elver@google.com are
