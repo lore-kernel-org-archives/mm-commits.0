@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 697D3C433DB
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E31EAC433E6
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 31D2764F24
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B342964F13
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:33:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230169AbhB0Cdm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:33:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52944 "EHLO mail.kernel.org"
+        id S230175AbhB0Cdo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:33:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52926 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230195AbhB0Cdf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:33:35 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 97D3364F38;
-        Sat, 27 Feb 2021 02:32:51 +0000 (UTC)
+        id S230194AbhB0Cde (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:33:34 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 768E964F2F;
+        Sat, 27 Feb 2021 02:32:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614393171;
-        bh=hpEL3qoEbvm5dNPYOQBIIEN72SsbtpkufDynsILd5KA=;
+        s=korg; t=1614393169;
+        bh=M+Vr2vB2iMLqvIbSkyXYpi5T5GLTh0yLufkJIOdJisE=;
         h=Date:From:To:Subject:From;
-        b=fFuh/K6rZ2MSL7Ue2uPsye7Gudz3RQfaK1U9xehmkWoalV1Hz4PHHmaZ7oDQ/z4Dd
-         LLSS2nNlq0IBsCWCHJuAeyuhYfMt31OUpOhLDXTOlYHzlVa2p691CUJ1oW1VoYUpGg
-         rLGoJ9BHmuI6hc4M6bfgB2cEHR0iphIpYp01C4cU=
-Date:   Fri, 26 Feb 2021 18:32:51 -0800
+        b=OPJSRtutyYA/rtxO6sYO/W7dFW0TaKe6SebLY7oMuup+zRNX9YICDvnbxuoTpCeNQ
+         WlEopqCp5TxWwkPCbGWPEaAE60TNrQvasmP85OoqCLan5XA18bdkBrwRQx+8JKb8H/
+         q5S9U66KlTNjwI8/xZs01IoPBj+Tw92yYMwexKbw=
+Date:   Fri, 26 Feb 2021 18:32:49 -0800
 From:   akpm@linux-foundation.org
-To:     daniel.thompson@linaro.org, dianders@chromium.org,
-        jason.wessel@windriver.com, mhiramat@kernel.org,
-        mm-commits@vger.kernel.org, peterz@infradead.org,
-        rostedt@goodmis.org, sumit.garg@linaro.org
-Subject:  [merged]
- kgdb-fix-to-kill-breakpoints-on-initmem-after-boot.patch removed from -mm
- tree
-Message-ID: <20210227023251.mVGBwa51P%akpm@linux-foundation.org>
+To:     jan.kiszka@siemens.com, kbingham@kernel.org,
+        mm-commits@vger.kernel.org, prekageo@amazon.com
+Subject:  [merged] scripts-gdb-fix-list_for_each.patch removed from
+ -mm tree
+Message-ID: <20210227023249.TkWyrHdtM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,90 +43,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kgdb: fix to kill breakpoints on initmem after boot
+     Subject: scripts/gdb: fix list_for_each
 has been removed from the -mm tree.  Its filename was
-     kgdb-fix-to-kill-breakpoints-on-initmem-after-boot.patch
+     scripts-gdb-fix-list_for_each.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sumit Garg <sumit.garg@linaro.org>
-Subject: kgdb: fix to kill breakpoints on initmem after boot
+From: George Prekas <prekageo@amazon.com>
+Subject: scripts/gdb: fix list_for_each
 
-Currently breakpoints in kernel .init.text section are not handled
-correctly while allowing to remove them even after corresponding pages
-have been freed.
+If the list is uninitialized (next pointer is NULL), list_for_each gets
+stuck in an infinite loop. Print a message and treat list as empty.
 
-Fix it via killing .init.text section breakpoints just prior to initmem
-pages being freed.
-
-Doug: "HW breakpoints aren't handled by this patch but it's probably
-not such a big deal".
-
-Link: https://lkml.kernel.org/r/20210224081652.587785-1-sumit.garg@linaro.org
-Signed-off-by: Sumit Garg <sumit.garg@linaro.org>
-Suggested-by: Doug Anderson <dianders@chromium.org>
-Acked-by: Doug Anderson <dianders@chromium.org>
-Acked-by: Daniel Thompson <daniel.thompson@linaro.org>
-Tested-by: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/4ae23bb1-c333-f669-da2d-fa35c4f49018@amazon.com
+Signed-off-by: George Prekas <prekageo@amazon.com>
+Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kgdb.h      |    2 ++
- init/main.c               |    1 +
- kernel/debug/debug_core.c |   11 +++++++++++
- 3 files changed, 14 insertions(+)
+ scripts/gdb/linux/lists.py |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/include/linux/kgdb.h~kgdb-fix-to-kill-breakpoints-on-initmem-after-boot
-+++ a/include/linux/kgdb.h
-@@ -359,9 +359,11 @@ extern atomic_t			kgdb_active;
- extern bool dbg_is_early;
- extern void __init dbg_late_init(void);
- extern void kgdb_panic(const char *msg);
-+extern void kgdb_free_init_mem(void);
- #else /* ! CONFIG_KGDB */
- #define in_dbg_master() (0)
- #define dbg_late_init()
- static inline void kgdb_panic(const char *msg) {}
-+static inline void kgdb_free_init_mem(void) { }
- #endif /* ! CONFIG_KGDB */
- #endif /* _KGDB_H_ */
---- a/init/main.c~kgdb-fix-to-kill-breakpoints-on-initmem-after-boot
-+++ a/init/main.c
-@@ -1426,6 +1426,7 @@ static int __ref kernel_init(void *unuse
- 	async_synchronize_full();
- 	kprobe_free_init_mem();
- 	ftrace_free_init_mem();
-+	kgdb_free_init_mem();
- 	free_initmem();
- 	mark_readonly();
+--- a/scripts/gdb/linux/lists.py~scripts-gdb-fix-list_for_each
++++ a/scripts/gdb/linux/lists.py
+@@ -27,6 +27,11 @@ def list_for_each(head):
+         raise TypeError("Must be struct list_head not {}"
+                            .format(head.type))
  
---- a/kernel/debug/debug_core.c~kgdb-fix-to-kill-breakpoints-on-initmem-after-boot
-+++ a/kernel/debug/debug_core.c
-@@ -455,6 +455,17 @@ setundefined:
- 	return 0;
- }
- 
-+void kgdb_free_init_mem(void)
-+{
-+	int i;
++    if head['next'] == 0:
++        gdb.write("list_for_each: Uninitialized list '{}' treated as empty\n"
++                     .format(head.address))
++        return
 +
-+	/* Clear init memory breakpoints. */
-+	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++) {
-+		if (init_section_contains((void *)kgdb_break[i].bpt_addr, 0))
-+			kgdb_break[i].state = BP_UNDEFINED;
-+	}
-+}
-+
- #ifdef CONFIG_KGDB_KDB
- void kdb_dump_stack_on_cpu(int cpu)
- {
+     node = head['next'].dereference()
+     while node.address != head.address:
+         yield node.address
 _
 
-Patches currently in -mm which might be from sumit.garg@linaro.org are
+Patches currently in -mm which might be from prekageo@amazon.com are
 
 
