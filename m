@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F432C4332B
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:29:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95F41C43381
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:29:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EAB7564F40
+	by mail.kernel.org (Postfix) with ESMTP id 62AF764F40
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 02:29:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230049AbhB0C3u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Feb 2021 21:29:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51008 "EHLO mail.kernel.org"
+        id S230019AbhB0C3t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Feb 2021 21:29:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230045AbhB0C3o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Feb 2021 21:29:44 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8476364F31;
-        Sat, 27 Feb 2021 02:29:04 +0000 (UTC)
+        id S230008AbhB0C3n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Feb 2021 21:29:43 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8F64964F27;
+        Sat, 27 Feb 2021 02:28:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614392944;
-        bh=sAuPZL3qkKYocZrVfo5Jh5KY6oP1/ZZMlPDzZEi7KWE=;
+        s=korg; t=1614392922;
+        bh=gXEsIzwDuXblN2Iqhdu2dMqvNM8R/tkdtKA4sgRumNU=;
         h=Date:From:To:Subject:From;
-        b=I1jrFXaI9g9fmwPofoA5s8ibAmhDC3zk1WWuYcyviWOsueUNClCQwSZV1hAWZwv1z
-         awTh+zmvY1GDbhY4RLqUCiFSHlHqbXjyo3nT+8dacrIpCxsR46KGlm0KajkYNaxEYI
-         cjjOWWavcqKNdFZBfdyZpn0GABr5ywgNrnHqcT0k=
-Date:   Fri, 26 Feb 2021 18:29:04 -0800
+        b=0MVJBN8e9liX3+6tpS6906xd6D94Idgn/USA49n6KIcE/u1q/jieSV9umSALCG6+k
+         X5VzkMXFyyzFvImX56tX5nLNIGqUs/cq24vxriYElVNMKdOpxZfk+GLDYLCFgdqd6O
+         Y9fu7e2wLyWfh4FGVI9kt7waX7z12dOHuzk59N9w=
+Date:   Fri, 26 Feb 2021 18:28:42 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, georgi.djakov@linaro.org, minchan@kernel.org,
-        mm-commits@vger.kernel.org, pdaly@codeaurora.org,
-        rdunlap@infradead.org
-Subject:  [merged] mm-cma-print-region-name-on-failure.patch
- removed from -mm tree
-Message-ID: <20210227022904.2zynDhapc%akpm@linux-foundation.org>
+To:     dchinner@redhat.com, hannes@cmpxchg.org, hch@lst.de,
+        hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com,
+        mm-commits@vger.kernel.org, william.kucharski@oracle.com,
+        willy@infradead.org, yang.shi@linux.alibaba.com
+Subject:  [merged] mm-remove-pagevec_lookup_entries.patch removed
+ from -mm tree
+Message-ID: <20210227022842.zuPJLtS_f%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,49 +45,119 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: print region name on failure
+     Subject: mm: remove pagevec_lookup_entries
 has been removed from the -mm tree.  Its filename was
-     mm-cma-print-region-name-on-failure.patch
+     mm-remove-pagevec_lookup_entries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Patrick Daly <pdaly@codeaurora.org>
-Subject: mm: cma: print region name on failure
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: remove pagevec_lookup_entries
 
-Print the name of the CMA region for convenience.  This is useful
-information to have when cma_alloc() fails.
+pagevec_lookup_entries() is now just a wrapper around find_get_entries()
+so remove it and convert all its callers.
 
-[pdaly@codeaurora.org: print the "count" variable]
-  Link: https://lkml.kernel.org/r/20210209142414.12768-1-georgi.djakov@linaro.org
-Link: https://lkml.kernel.org/r/20210208115200.20286-1-georgi.djakov@linaro.org
-Signed-off-by: Patrick Daly <pdaly@codeaurora.org>
-Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: https://lkml.kernel.org/r/20201112212641.27837-15-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/pagevec.h |    3 ---
+ mm/swap.c               |   36 ++----------------------------------
+ mm/truncate.c           |    4 ++--
+ 3 files changed, 4 insertions(+), 39 deletions(-)
 
---- a/mm/cma.c~mm-cma-print-region-name-on-failure
-+++ a/mm/cma.c
-@@ -500,8 +500,8 @@ struct page *cma_alloc(struct cma *cma,
- 	}
+--- a/include/linux/pagevec.h~mm-remove-pagevec_lookup_entries
++++ a/include/linux/pagevec.h
+@@ -25,9 +25,6 @@ struct pagevec {
  
- 	if (ret && !no_warn) {
--		pr_err("%s: alloc failed, req-size: %zu pages, ret: %d\n",
--			__func__, count, ret);
-+		pr_err("%s: %s: alloc failed, req-size: %zu pages, ret: %d\n",
-+		       __func__, cma->name, count, ret);
- 		cma_debug_show_areas(cma);
- 	}
+ void __pagevec_release(struct pagevec *pvec);
+ void __pagevec_lru_add(struct pagevec *pvec);
+-unsigned pagevec_lookup_entries(struct pagevec *pvec,
+-		struct address_space *mapping, pgoff_t start, pgoff_t end,
+-		pgoff_t *indices);
+ void pagevec_remove_exceptionals(struct pagevec *pvec);
+ unsigned pagevec_lookup_range(struct pagevec *pvec,
+ 			      struct address_space *mapping,
+--- a/mm/swap.c~mm-remove-pagevec_lookup_entries
++++ a/mm/swap.c
+@@ -1018,43 +1018,11 @@ void __pagevec_lru_add(struct pagevec *p
+ }
+ 
+ /**
+- * pagevec_lookup_entries - gang pagecache lookup
+- * @pvec:	Where the resulting entries are placed
+- * @mapping:	The address_space to search
+- * @start:	The starting entry index
+- * @end:	The highest index to return (inclusive).
+- * @nr_entries:	The maximum number of pages
+- * @indices:	The cache indices corresponding to the entries in @pvec
+- *
+- * pagevec_lookup_entries() will search for and return a group of up
+- * to @nr_pages pages and shadow entries in the mapping.  All
+- * entries are placed in @pvec.  pagevec_lookup_entries() takes a
+- * reference against actual pages in @pvec.
+- *
+- * The search returns a group of mapping-contiguous entries with
+- * ascending indexes.  There may be holes in the indices due to
+- * not-present entries.
+- *
+- * Only one subpage of a Transparent Huge Page is returned in one call:
+- * allowing truncate_inode_pages_range() to evict the whole THP without
+- * cycling through a pagevec of extra references.
+- *
+- * pagevec_lookup_entries() returns the number of entries which were
+- * found.
+- */
+-unsigned pagevec_lookup_entries(struct pagevec *pvec,
+-		struct address_space *mapping, pgoff_t start, pgoff_t end,
+-		pgoff_t *indices)
+-{
+-	return find_get_entries(mapping, start, end, pvec, indices);
+-}
+-
+-/**
+  * pagevec_remove_exceptionals - pagevec exceptionals pruning
+  * @pvec:	The pagevec to prune
+  *
+- * pagevec_lookup_entries() fills both pages and exceptional radix
+- * tree entries into the pagevec.  This function prunes all
++ * find_get_entries() fills both pages and XArray value entries (aka
++ * exceptional entries) into the pagevec.  This function prunes all
+  * exceptionals from @pvec without leaving holes, so that it can be
+  * passed on to page-only pagevec operations.
+  */
+--- a/mm/truncate.c~mm-remove-pagevec_lookup_entries
++++ a/mm/truncate.c
+@@ -376,7 +376,7 @@ void truncate_inode_pages_range(struct a
+ 	index = start;
+ 	for ( ; ; ) {
+ 		cond_resched();
+-		if (!pagevec_lookup_entries(&pvec, mapping, index, end - 1,
++		if (!find_get_entries(mapping, index, end - 1, &pvec,
+ 				indices)) {
+ 			/* If all gone from start onwards, we're done */
+ 			if (index == start)
+@@ -638,7 +638,7 @@ int invalidate_inode_pages2_range(struct
+ 
+ 	pagevec_init(&pvec);
+ 	index = start;
+-	while (pagevec_lookup_entries(&pvec, mapping, index, end, indices)) {
++	while (find_get_entries(mapping, index, end, &pvec, indices)) {
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
  
 _
 
-Patches currently in -mm which might be from pdaly@codeaurora.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
