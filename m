@@ -2,122 +2,192 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.5 required=3.0 tests=BAYES_00,
-	DKIM_ADSP_CUSTOM_MED,DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,
-	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3C35C433DB
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 19:19:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D2A8C433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Feb 2021 17:48:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7FBDE64E2F
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Feb 2021 19:19:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E044764E74
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Feb 2021 17:48:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230315AbhB0TTi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 27 Feb 2021 14:19:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52722 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230310AbhB0TTY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Feb 2021 14:19:24 -0500
-Received: from mail-ot1-x335.google.com (mail-ot1-x335.google.com [IPv6:2607:f8b0:4864:20::335])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED437C06174A
-        for <mm-commits@vger.kernel.org>; Sat, 27 Feb 2021 11:18:43 -0800 (PST)
-Received: by mail-ot1-x335.google.com with SMTP id s3so12468046otg.5
-        for <mm-commits@vger.kernel.org>; Sat, 27 Feb 2021 11:18:43 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:reply-to:from:date:message-id
-         :subject:to:cc;
-        bh=VqdS6xACzBzd6KDD/RGmhLHONKmrDLV8J0nAE4zwfn0=;
-        b=WSeVSUA8r21Qb00WlkjxDaS4INz8XJ/cV9jOJpjuwzaa+CgGdJEpzgx1Pu4UTKkXr6
-         gkorfqaGRD+sLSdk3GnfAEgI6tiQc5GOL0LcBXUkqHZesECtRUF+N8I6k/SMG8n/T4yt
-         98cRTRGABzkod+mZsbotPqJnRy41pM20UuLTdAbYNxzCVKfbE9X+J8nWqs3K5ys+5dYs
-         M7i99GmjVLfxMUlPYn8JTnIMHHlsdvNIoFd12hv1EeUOyrd7p9P/uZOn+e7hKe+7X8Tr
-         pLBQe4BY0bCruvFurxv/HSnC84+ZspT+M8/pYdwpDEIP6jioU7JvRiZmAA67jwByckSQ
-         Gvjg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:reply-to
-         :from:date:message-id:subject:to:cc;
-        bh=VqdS6xACzBzd6KDD/RGmhLHONKmrDLV8J0nAE4zwfn0=;
-        b=X7vRG7oFkf7/PoT0ImWSlaO4hS+I5Waek/DWuDjhMq0efEkvVVp5i5NK37+AoGUXla
-         tO931ax7eM4jRw9XXVyh1qye/4D/AiHHQhIuScER5U8Ida+pEFgBI/Uh3LLSV6lfi24K
-         50MV37jcFcqDDGiLkEOe9CQAQxYEJmzivLNW36d8qnIp7JwOBetfsBt5fV62ylNoO34Z
-         nbM74C2Qvge8Vr+mBE4iogdZFdLpgCRHk3wXWouwE/HCqiIByOjiPjdVACC9kwtifYWk
-         yvY13B7hDqyk9GwAm2RMb4Sp3ZxjvfrCBi5ep5SFGi3qNOugu4x57K3PYS7u81571Hh7
-         3lMw==
-X-Gm-Message-State: AOAM533m98DZWbXOVtBtUl+Z92+GD2eDFtZ0CZJbFJQThCiQzSBNqU7b
-        qfOeozr1tHUD6xMNjzpYZ7JT3YFZRJ86eW/Ikw8=
-X-Google-Smtp-Source: ABdhPJyaiGgD7EBEhTc6khgRRxmdyh1i+qJZWpeqo90PVhaNHF3bozuUnZ8ZqlKWs4TG2iWidfdARHTF3Oo1pZGtEpM=
-X-Received: by 2002:a9d:7587:: with SMTP id s7mr7809988otk.114.1614453523399;
- Sat, 27 Feb 2021 11:18:43 -0800 (PST)
-MIME-Version: 1.0
-References: <20210225171452.713967e96554bb6a53e44a19@linux-foundation.org> <20210226012114.nmlpmyIrt%akpm@linux-foundation.org>
-In-Reply-To: <20210226012114.nmlpmyIrt%akpm@linux-foundation.org>
-From:   "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Date:   Sat, 27 Feb 2021 20:18:32 +0100
-Message-ID: <CAKgNAkiVWvzQOwRGOdSoh8JY-DpxcF6pWdLWNK4RHFdN-d6=+w@mail.gmail.com>
-Subject: Re: [patch 091/118] MAINTAINERS: add uapi directories to API/ABI section
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     David Hildenbrand <david@redhat.com>,
-        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Vlastimil Babka <vbabka@suse.cz>
-Content-Type: text/plain; charset="UTF-8"
+        id S231362AbhB1RsJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Feb 2021 12:48:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35932 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231351AbhB1RsC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Feb 2021 12:48:02 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5030564DF5;
+        Sun, 28 Feb 2021 17:47:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1614534441;
+        bh=5hIyw0FTwmg+AdOC6vskCRPajcMe8hLxImasOtUb5O8=;
+        h=Date:From:To:Subject:From;
+        b=bkcB1ISR/xfxLKil0TuHPOu879cIZ6qRVLNyR4ybDcE71hUG01S4i/I5KJ9bQ8xRo
+         DVGoiiPZM9y4O19S5bw+ICQjHgr/7GrbDOA4DkTihkoK8BGWAXYTz6IkY0MEaOxDfe
+         IiiOX0dnQDigPzyT4h4nGyDwAPdGjqLq92Lj2N/0=
+Date:   Sun, 28 Feb 2021 09:47:20 -0800
+From:   akpm@linux-foundation.org
+To:     akinobu.mita@gmail.com, john.ogness@linutronix.de,
+        keescook@chromium.org, mm-commits@vger.kernel.org,
+        pmladek@suse.com, roman.fietze@magna.com, rostedt@goodmis.org,
+        sergey.senozhatsky@gmail.com, timur@kernel.org
+Subject:  [obsolete]
+ lib-hexdump-introduce-dump_prefix_unhashed-for-unhashed-addresses.patch
+ removed from -mm tree
+Message-ID: <20210228174720.D0ySaeE-0%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hello,
 
-On Fri, 26 Feb 2021 at 02:21, Andrew Morton <akpm@linux-foundation.org> wrote:
->
-> From: Vlastimil Babka <vbabka@suse.cz>
-> Subject: MAINTAINERS: add uapi directories to API/ABI section
->
-> Let's add include/uapi/ and arch/*/include/uapi/ to API/ABI section, so
-> that for patches modifying them, get_maintainers.pl suggests CCing
-> linux-api@ so people don't forget.
->
-> Link: https://lkml.kernel.org/r/20210217174745.13591-1-vbabka@suse.cz
-> Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-> Reported-by: David Hildenbrand <david@redhat.com>
-> Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->  MAINTAINERS |    2 ++
->  1 file changed, 2 insertions(+)
->
-> --- a/MAINTAINERS~maintainers-add-uapi-directories-to-api-abi-section
-> +++ a/MAINTAINERS
-> @@ -261,6 +261,8 @@ ABI/API
->  L:     linux-api@vger.kernel.org
->  F:     include/linux/syscalls.h
->  F:     kernel/sys_ni.c
-> +F:     include/uapi/
-> +F:     arch/*/include/uapi/
->
->  ABIT UGURU 1,2 HARDWARE MONITOR DRIVER
->  M:     Hans de Goede <hdegoede@redhat.com>
+The patch titled
+     Subject: lib/hexdump: introduce DUMP_PREFIX_UNHASHED for unhashed addresses
+has been removed from the -mm tree.  Its filename was
+     lib-hexdump-introduce-dump_prefix_unhashed-for-unhashed-addresses.patch
 
-Can we please NOT do this.
+This patch was dropped because it is obsolete
 
-Please see commit b14fd334ff3dc47b31c3592c166af5ea42b204d3.
+------------------------------------------------------
+From: Timur Tabi <timur@kernel.org>
+Subject: lib/hexdump: introduce DUMP_PREFIX_UNHASHED for unhashed addresses
 
-In the past, include/uapi/ was listed as a file trigger, and the
-consequence was a lot of low signal noise on linux-api@, until finally
-I removed the trigger.
+Patch series "introduce DUMP_PREFIX_UNHASHED for hex dumps".
 
-Thanks,
+First patch updates print_hex_dump() and related functions to
+allow callers to print hex dumps with unhashed addresses.  It
+adds a new prefix type, so existing code is unchanged.
 
-Michael
+Second patch changes a page poising function to use the new address type. 
+This is an example of a change.
+
+Hashed addresses make very little sense for hex dumps, which print
+addresses in 16- or 32-byte increments.  Typical use-case is to correlate
+an addresses in between one of these increments with some other address,
+but that can't be done if the addresses are hashed.  I expect most
+developers to want to replace their usage of DUMP_PREFIX_ADDRESS with
+DUMP_PREFIX_UNHASHED, now that they have the opportunity.
 
 
+This patch (of 2):
 
--- 
-Michael Kerrisk
-Linux man-pages maintainer; http://www.kernel.org/doc/man-pages/
-Linux/UNIX System Programming Training: http://man7.org/training/
+Hashed addresses are useless in hexdumps unless you're comparing with
+other hashed addresses, which is unlikely.  However, there's no need to
+break existing code, so introduce a new prefix type that prints unhashed
+addresses.
+
+Link: https://lkml.kernel.org/r/20210116220950.47078-1-timur@kernel.org
+Link: https://lkml.kernel.org/r/20210116220950.47078-2-timur@kernel.org
+Signed-off-by: Timur Tabi <timur@kernel.org>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Roman Fietze <roman.fietze@magna.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/seq_file.c          |    3 +++
+ include/linux/printk.h |    8 +++++---
+ lib/hexdump.c          |    9 +++++++--
+ lib/seq_buf.c          |    9 +++++++--
+ 4 files changed, 22 insertions(+), 7 deletions(-)
+
+--- a/fs/seq_file.c~lib-hexdump-introduce-dump_prefix_unhashed-for-unhashed-addresses
++++ a/fs/seq_file.c
+@@ -864,6 +864,9 @@ void seq_hex_dump(struct seq_file *m, co
+ 		remaining -= rowsize;
+ 
+ 		switch (prefix_type) {
++		case DUMP_PREFIX_UNHASHED:
++			seq_printf(m, "%s%px: ", prefix_str, ptr + i);
++			break;
+ 		case DUMP_PREFIX_ADDRESS:
+ 			seq_printf(m, "%s%p: ", prefix_str, ptr + i);
+ 			break;
+--- a/include/linux/printk.h~lib-hexdump-introduce-dump_prefix_unhashed-for-unhashed-addresses
++++ a/include/linux/printk.h
+@@ -567,7 +567,8 @@ extern const struct file_operations kmsg
+ enum {
+ 	DUMP_PREFIX_NONE,
+ 	DUMP_PREFIX_ADDRESS,
+-	DUMP_PREFIX_OFFSET
++	DUMP_PREFIX_OFFSET,
++	DUMP_PREFIX_UNHASHED,
+ };
+ extern int hex_dump_to_buffer(const void *buf, size_t len, int rowsize,
+ 			      int groupsize, char *linebuf, size_t linebuflen,
+@@ -612,8 +613,9 @@ static inline void print_hex_dump_debug(
+  * print_hex_dump_bytes - shorthand form of print_hex_dump() with default params
+  * @prefix_str: string to prefix each line with;
+  *  caller supplies trailing spaces for alignment if desired
+- * @prefix_type: controls whether prefix of an offset, address, or none
+- *  is printed (%DUMP_PREFIX_OFFSET, %DUMP_PREFIX_ADDRESS, %DUMP_PREFIX_NONE)
++ * @prefix_type: controls whether prefix of an offset, hashed address,
++ *  unhashed address, or none is printed (%DUMP_PREFIX_OFFSET,
++ *  %DUMP_PREFIX_ADDRESS, %DUMP_PREFIX_UNHASHED, %DUMP_PREFIX_NONE)
+  * @buf: data blob to dump
+  * @len: number of bytes in the @buf
+  *
+--- a/lib/hexdump.c~lib-hexdump-introduce-dump_prefix_unhashed-for-unhashed-addresses
++++ a/lib/hexdump.c
+@@ -211,8 +211,9 @@ EXPORT_SYMBOL(hex_dump_to_buffer);
+  * @level: kernel log level (e.g. KERN_DEBUG)
+  * @prefix_str: string to prefix each line with;
+  *  caller supplies trailing spaces for alignment if desired
+- * @prefix_type: controls whether prefix of an offset, address, or none
+- *  is printed (%DUMP_PREFIX_OFFSET, %DUMP_PREFIX_ADDRESS, %DUMP_PREFIX_NONE)
++ * @prefix_type: controls whether prefix of an offset, hashed address,
++ *  unhashed address, or none is printed (%DUMP_PREFIX_OFFSET,
++ *  %DUMP_PREFIX_ADDRESS, %DUMP_PREFIX_UNHASHED, %DUMP_PREFIX_NONE)
+  * @rowsize: number of bytes to print per line; must be 16 or 32
+  * @groupsize: number of bytes to print at a time (1, 2, 4, 8; default = 1)
+  * @buf: data blob to dump
+@@ -256,6 +257,10 @@ void print_hex_dump(const char *level, c
+ 				   linebuf, sizeof(linebuf), ascii);
+ 
+ 		switch (prefix_type) {
++		case DUMP_PREFIX_UNHASHED:
++			printk("%s%s%px: %s\n",
++			       level, prefix_str, ptr + i, linebuf);
++			break;
+ 		case DUMP_PREFIX_ADDRESS:
+ 			printk("%s%s%p: %s\n",
+ 			       level, prefix_str, ptr + i, linebuf);
+--- a/lib/seq_buf.c~lib-hexdump-introduce-dump_prefix_unhashed-for-unhashed-addresses
++++ a/lib/seq_buf.c
+@@ -335,8 +335,9 @@ int seq_buf_to_user(struct seq_buf *s, c
+  * @s: seq_buf descriptor
+  * @prefix_str: string to prefix each line with;
+  *  caller supplies trailing spaces for alignment if desired
+- * @prefix_type: controls whether prefix of an offset, address, or none
+- *  is printed (%DUMP_PREFIX_OFFSET, %DUMP_PREFIX_ADDRESS, %DUMP_PREFIX_NONE)
++ * @prefix_type: controls whether prefix of an offset, hashed address,
++ *  unhashed address, or none is printed (%DUMP_PREFIX_OFFSET,
++ *  %DUMP_PREFIX_ADDRESS, %DUMP_PREFIX_UNHASHED, %DUMP_PREFIX_NONE)
+  * @rowsize: number of bytes to print per line; must be 16 or 32
+  * @groupsize: number of bytes to print at a time (1, 2, 4, 8; default = 1)
+  * @buf: data blob to dump
+@@ -374,6 +375,10 @@ int seq_buf_hex_dump(struct seq_buf *s,
+ 				   linebuf, sizeof(linebuf), ascii);
+ 
+ 		switch (prefix_type) {
++		case DUMP_PREFIX_UNHASHED:
++			ret = seq_buf_printf(s, "%s%px: %s\n",
++			       prefix_str, ptr + i, linebuf);
++			break;
+ 		case DUMP_PREFIX_ADDRESS:
+ 			ret = seq_buf_printf(s, "%s%p: %s\n",
+ 			       prefix_str, ptr + i, linebuf);
+_
+
+Patches currently in -mm which might be from timur@kernel.org are
+
+mm-page_poison-use-unhashed-address-in-hexdump-for-check_poison_mem.patch
+
