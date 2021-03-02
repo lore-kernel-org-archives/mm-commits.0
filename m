@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CD3CC433E0
-	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:32:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58F2EC433E6
+	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:32:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2C5E64E87
-	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:32:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 073CE64EE7
+	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:32:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344705AbhCCNYo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 08:24:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52812 "EHLO mail.kernel.org"
+        id S1359045AbhCCN00 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 08:26:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53812 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233706AbhCBXzA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Mar 2021 18:55:00 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DFC3A64F47;
-        Tue,  2 Mar 2021 23:43:53 +0000 (UTC)
+        id S231942AbhCBX5G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Mar 2021 18:57:06 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AF53C64F2B;
+        Tue,  2 Mar 2021 23:56:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614728634;
-        bh=1EVkfKcwCqKmPMjOMWsibwBcgWYEMBqSEgEfMf8so6g=;
+        s=korg; t=1614729380;
+        bh=v32TR4O5l72v9WdTlPfqswa2uy5+2Rbvewb7mPTNNps=;
         h=Date:From:To:Subject:From;
-        b=NR93xUBLxX8twK0RDumImHUK8/dBGy8AQwRaRxzpdc8m7sz/TjFx/9tqi6e77gKgC
-         Zg79Jo4y89COuTe4EMLOh8CbJUzvxiYK3Y0KImG827iI8a/tYkoJl7eaohSVRcuIfh
-         muTg0Q3qB1XrOvAC1e42Uoy7dAJkT8lBcLXAkfOk=
-Date:   Tue, 02 Mar 2021 15:43:53 -0800
+        b=G2subc9G0YgeQdU5eArSKIR3w4IgcrCwQzNUOAbICHrPRYLt6TZdjcOkvoMCAFzTx
+         kvC+gUO5LE3Dm+mNlr41r9kbBf02rTgZPSrE2X6WtsMRogDng8KAAi2YKAiwbAoJ0x
+         a2I8wANCemXChUQ3BQj+z4KHDwai5Xi4ePDQsKEw=
+Date:   Tue, 02 Mar 2021 15:56:20 -0800
 From:   akpm@linux-foundation.org
-To:     axboe@kernel.dk, jack@suse.cz, mm-commits@vger.kernel.org,
-        willy@infradead.org
-Subject:  +
- iomap-use-filemap_range_needs_writeback-for-o_direct-reads.patch added to
- -mm tree
-Message-ID: <20210302234353.mWAUhQbdY%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        wangqing@vivo.com
+Subject:  + mm-delete-bool-migrated.patch added to -mm tree
+Message-ID: <20210302235620.ru-4I2AGZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: iomap: use filemap_range_needs_writeback() for O_DIRECT reads
+     Subject: mm/memory.c: do_numa_page(): delete bool "migrated"
 has been added to the -mm tree.  Its filename is
-     iomap-use-filemap_range_needs_writeback-for-o_direct-reads.patch
+     mm-delete-bool-migrated.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/iomap-use-filemap_range_needs_writeback-for-o_direct-reads.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-delete-bool-migrated.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/iomap-use-filemap_range_needs_writeback-for-o_direct-reads.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-delete-bool-migrated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,76 +63,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jens Axboe <axboe@kernel.dk>
-Subject: iomap: use filemap_range_needs_writeback() for O_DIRECT reads
+From: Wang Qing <wangqing@vivo.com>
+Subject: mm/memory.c: do_numa_page(): delete bool "migrated"
 
-For reads, use the better variant of checking for the need to call
-filemap_write_and_wait_range() when doing O_DIRECT.  This avoids falling
-back to the slow path for IOCB_NOWAIT, if there are no pages to wait for
-(or write out).
+Smatch gives the warning:
+	do_numa_page() warn: assigning (-11) to unsigned variable 'migrated'
 
-Link: https://lkml.kernel.org/r/20210224164455.1096727-4-axboe@kernel.dk
-Signed-off-by: Jens Axboe <axboe@kernel.dk>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/1614603421-2681-1-git-send-email-wangqing@vivo.com
+Signed-off-by: Wang Qing <wangqing@vivo.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/iomap/direct-io.c |   24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ mm/memory.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/fs/iomap/direct-io.c~iomap-use-filemap_range_needs_writeback-for-o_direct-reads
-+++ a/fs/iomap/direct-io.c
-@@ -487,12 +487,28 @@ __iomap_dio_rw(struct kiocb *iocb, struc
- 		if (pos >= dio->i_size)
- 			goto out_free_dio;
- 
-+		if (iocb->ki_flags & IOCB_NOWAIT) {
-+			if (filemap_range_needs_writeback(mapping, pos, end)) {
-+				ret = -EAGAIN;
-+				goto out_free_dio;
-+			}
-+			iomap_flags |= IOMAP_NOWAIT;
-+		}
-+
- 		if (iter_is_iovec(iter))
- 			dio->flags |= IOMAP_DIO_DIRTY;
- 	} else {
- 		iomap_flags |= IOMAP_WRITE;
- 		dio->flags |= IOMAP_DIO_WRITE;
- 
-+		if (iocb->ki_flags & IOCB_NOWAIT) {
-+			if (filemap_range_has_page(mapping, pos, end)) {
-+				ret = -EAGAIN;
-+				goto out_free_dio;
-+			}
-+			iomap_flags |= IOMAP_NOWAIT;
-+		}
-+
- 		/* for data sync or sync, we need sync completion processing */
- 		if (iocb->ki_flags & IOCB_DSYNC)
- 			dio->flags |= IOMAP_DIO_NEED_SYNC;
-@@ -507,14 +523,6 @@ __iomap_dio_rw(struct kiocb *iocb, struc
- 			dio->flags |= IOMAP_DIO_WRITE_FUA;
+--- a/mm/memory.c~mm-delete-bool-migrated
++++ a/mm/memory.c
+@@ -4098,7 +4098,6 @@ static vm_fault_t do_numa_page(struct vm
+ 	int page_nid = NUMA_NO_NODE;
+ 	int last_cpupid;
+ 	int target_nid;
+-	bool migrated = false;
+ 	pte_t pte, old_pte;
+ 	bool was_writable = pte_savedwrite(vmf->orig_pte);
+ 	int flags = 0;
+@@ -4168,8 +4167,7 @@ static vm_fault_t do_numa_page(struct vm
  	}
  
--	if (iocb->ki_flags & IOCB_NOWAIT) {
--		if (filemap_range_has_page(mapping, pos, end)) {
--			ret = -EAGAIN;
--			goto out_free_dio;
--		}
--		iomap_flags |= IOMAP_NOWAIT;
--	}
--
- 	if (dio_flags & IOMAP_DIO_OVERWRITE_ONLY) {
- 		ret = -EAGAIN;
- 		if (pos >= dio->i_size || pos + count > dio->i_size)
+ 	/* Migrate to the requested node */
+-	migrated = migrate_misplaced_page(page, vma, target_nid);
+-	if (migrated) {
++	if (migrate_misplaced_page(page, vma, target_nid)) {
+ 		page_nid = target_nid;
+ 		flags |= TNF_MIGRATED;
+ 	} else
 _
 
-Patches currently in -mm which might be from axboe@kernel.dk are
+Patches currently in -mm which might be from wangqing@vivo.com are
 
-swap-fix-swapfile-read-write-offset.patch
-mm-provide-filemap_range_needs_writeback-helper.patch
-mm-use-filemap_range_needs_writeback-for-o_direct-reads.patch
-iomap-use-filemap_range_needs_writeback-for-o_direct-reads.patch
+mm-delete-bool-migrated.patch
 
