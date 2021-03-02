@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 519AEC433E0
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 21:11:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 991C4C433DB
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 21:11:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E77D564F1E
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 21:11:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 53F3264F21
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 21:11:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376689AbhCBU7C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 Mar 2021 15:59:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47136 "EHLO mail.kernel.org"
+        id S1381625AbhCBVAl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 Mar 2021 16:00:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47536 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S241397AbhCBA06 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Mar 2021 19:26:58 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 52DEA60232;
-        Tue,  2 Mar 2021 00:26:16 +0000 (UTC)
+        id S1345059AbhCBA1n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Mar 2021 19:27:43 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6ADBC61481;
+        Tue,  2 Mar 2021 00:26:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614644777;
-        bh=ceomooNp4nZQenTYqLM+M1B+OEqcH5JZoZZXqiVyMVY=;
+        s=korg; t=1614644795;
+        bh=zpeCk/ljQImtur6AupsViddpIFKwHdaUcFcc9wo9NMY=;
         h=Date:From:To:Subject:From;
-        b=QIK5L1TxKejfKWT9kNeTysdSiNzwdEuCHQ3zCFUzMGldnrz3tvqJFqKPC0W8kRdJd
-         RnYAsFDBBeiKtlWR3KMj+gd0UK9fV1cy9MKSWqBlmRx0ocH2q1QSQaFXlXjuRwdeMn
-         h7jsHUytiC8B4NOOq43UXzqQzyhaYniUxa2AQNkE=
-Date:   Mon, 01 Mar 2021 16:26:15 -0800
+        b=qCDjAQQU0WXP+0scFz2Di6tuFmERwJE97hlJNd41fwpU6iZqSoIetTDJqZLxKQNPL
+         bePQPNGAoqJyLt0LHFkgFax0p4RcuyKBwMmCJimNUVzp437eqjFHD701L5NMjpbFCu
+         tsACszPf4W08HUieceUedjswpraM3UWJDGKEJuCo=
+Date:   Mon, 01 Mar 2021 16:26:33 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, adobriyan@gmail.com, almasrymina@google.com,
         anshuman.khandual@arm.com, axelrasmussen@google.com,
@@ -43,9 +43,9 @@ To:     aarcange@redhat.com, adobriyan@gmail.com, almasrymina@google.com,
         vbabka@suse.cz, viro@zeniv.linux.org.uk, walken@google.com,
         willy@infradead.org, ying.huang@intel.com
 Subject:  +
- mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch added to -mm
- tree
-Message-ID: <20210302002615.NYsh_8SZh%akpm@linux-foundation.org>
+ userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
+ added to -mm tree
+Message-ID: <20210302002633.wfDm8qgxP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: move flush_hugetlb_tlb_range() into hugetlb.h
+     Subject: userfaultfd: hugetlbfs: only compile UFFD helpers if config enabled
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
+     userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,15 +75,30 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: move flush_hugetlb_tlb_range() into hugetlb.h
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: userfaultfd: hugetlbfs: only compile UFFD helpers if config enabled
 
-Prepare for it to be called outside of mm/hugetlb.c.
+For background, mm/userfaultfd.c provides a general mcopy_atomic
+implementation.  But some types of memory (i.e., hugetlb and shmem) need a
+slightly different implementation, so they provide their own helpers for
+this.  In other words, userfaultfd is the only caller of these functions.
 
-Link: https://lkml.kernel.org/r/20210218231204.15474-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
+This patch achieves two things:
+
+1. Don't spend time compiling code which will end up never being
+   referenced anyway (a small build time optimization).
+
+2. In patches later in this series, we extend the signature of these
+   helpers with UFFD-specific state (a mode enumeration).  Once this
+   happens, we *have to* either not compile the helpers, or
+   unconditionally define the UFFD-only state (which seems messier to me).
+   This includes the declarations in the headers, as otherwise they'd
+   yield warnings about implicitly defining the type of those arguments.
+
+Link: https://lkml.kernel.org/r/20210301222728.176417-4-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: Adam Ruprecht <ruprecht@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
@@ -116,48 +131,68 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    8 ++++++++
- mm/hugetlb.c            |    8 --------
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/hugetlb.h |    4 ++++
+ mm/hugetlb.c            |    2 ++
+ 2 files changed, 6 insertions(+)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh
+--- a/include/linux/hugetlb.h~userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled
 +++ a/include/linux/hugetlb.h
-@@ -1042,4 +1042,12 @@ static inline __init void hugetlb_cma_ch
- 
- bool want_pmd_share(struct vm_area_struct *vma, unsigned long addr);
- 
-+#ifndef __HAVE_ARCH_FLUSH_HUGETLB_TLB_RANGE
-+/*
-+ * ARCHes with special requirements for evicting HUGETLB backing TLB entries can
-+ * implement this.
-+ */
-+#define flush_hugetlb_tlb_range(vma, addr, end)	flush_tlb_range(vma, addr, end)
-+#endif
-+
- #endif /* _LINUX_HUGETLB_H */
---- a/mm/hugetlb.c~mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh
-+++ a/mm/hugetlb.c
-@@ -4916,14 +4916,6 @@ long follow_hugetlb_page(struct mm_struc
- 	return i ? i : err;
+@@ -134,11 +134,13 @@ void hugetlb_show_meminfo(void);
+ unsigned long hugetlb_total_pages(void);
+ vm_fault_t hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, unsigned int flags);
++#ifdef CONFIG_USERFAULTFD
+ int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm, pte_t *dst_pte,
+ 				struct vm_area_struct *dst_vma,
+ 				unsigned long dst_addr,
+ 				unsigned long src_addr,
+ 				struct page **pagep);
++#endif /* CONFIG_USERFAULTFD */
+ bool hugetlb_reserve_pages(struct inode *inode, long from, long to,
+ 						struct vm_area_struct *vma,
+ 						vm_flags_t vm_flags);
+@@ -310,6 +312,7 @@ static inline void hugetlb_free_pgd_rang
+ 	BUG();
  }
  
--#ifndef __HAVE_ARCH_FLUSH_HUGETLB_TLB_RANGE
--/*
-- * ARCHes with special requirements for evicting HUGETLB backing TLB entries can
-- * implement this.
-- */
--#define flush_hugetlb_tlb_range(vma, addr, end)	flush_tlb_range(vma, addr, end)
--#endif
--
- unsigned long hugetlb_change_protection(struct vm_area_struct *vma,
- 		unsigned long address, unsigned long end, pgprot_t newprot)
- {
++#ifdef CONFIG_USERFAULTFD
+ static inline int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm,
+ 						pte_t *dst_pte,
+ 						struct vm_area_struct *dst_vma,
+@@ -320,6 +323,7 @@ static inline int hugetlb_mcopy_atomic_p
+ 	BUG();
+ 	return 0;
+ }
++#endif /* CONFIG_USERFAULTFD */
+ 
+ static inline pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr,
+ 					unsigned long sz)
+--- a/mm/hugetlb.c~userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled
++++ a/mm/hugetlb.c
+@@ -4618,6 +4618,7 @@ out_mutex:
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_USERFAULTFD
+ /*
+  * Used by userfaultfd UFFDIO_COPY.  Based on mcopy_atomic_pte with
+  * modifications for huge pages.
+@@ -4748,6 +4749,7 @@ out_release_nounlock:
+ 	put_page(page);
+ 	goto out;
+ }
++#endif /* CONFIG_USERFAULTFD */
+ 
+ static void record_subpages_vmas(struct page *page, struct vm_area_struct *vma,
+ 				 int refs, struct page **pages,
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share.patch
-hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
-mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
-hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
+userfaultfd-add-minor-fault-registration-mode.patch
+userfaultfd-disable-huge-pmd-sharing-for-minor-registered-vmas.patch
+userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
+userfaultfd-add-uffdio_continue-ioctl.patch
+userfaultfd-update-documentation-to-describe-minor-fault-handling.patch
+userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch
 
