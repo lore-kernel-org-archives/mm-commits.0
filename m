@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79A98C433E0
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 21:11:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85FD0C433E0
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 21:12:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 288DC64F20
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 21:11:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 36DDC64F21
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 21:12:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350901AbhCBVAI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 Mar 2021 16:00:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47184 "EHLO mail.kernel.org"
+        id S1382323AbhCBVA7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 Mar 2021 16:00:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47538 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S241970AbhCBA1C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Mar 2021 19:27:02 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 55B246146B;
-        Tue,  2 Mar 2021 00:26:20 +0000 (UTC)
+        id S1345061AbhCBA1o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Mar 2021 19:27:44 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 858C5614A5;
+        Tue,  2 Mar 2021 00:26:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614644781;
-        bh=prOJ8K1Y07HlN7O49dqSmhzUh/6reV0oSh5++yk1WO8=;
+        s=korg; t=1614644800;
+        bh=GRsDe2Aik4ZjJu6YNBNzhbZO7F8TRxb6FKTzPTbeKe4=;
         h=Date:From:To:Subject:From;
-        b=txT2TXQW46DNSvaAC5xuQQDd1koxEoRSj2jy6lub0e2dyrAK2hylpBF4xIps20R9g
-         gy8KCDApsUgFnjR71W0E+h5a73pk3CE0JGcxuxWp9OZZN8MKKeekO7d5oXieXWxfyr
-         0OZ0sLLXOe6R2BtRVxW/CSGRy406iY8AwMBDo6Gw=
-Date:   Mon, 01 Mar 2021 16:26:19 -0800
+        b=hEwpiqaY3Z45eyYdaHWzruyRELAMNBhjNiG7Jg/vNrynssTDbyzSBkDPPiv/ZilLT
+         LUNVlUPz+U2xtY1Muu6/AwW1WPAK1f33R19Ih4HAkX+pVXrcnhc3TkavOJyJBReck8
+         QLXhu6xatxcTpZO3x8QkerKiHC7DlZ0Ig0gy4BY4=
+Date:   Mon, 01 Mar 2021 16:26:38 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, adobriyan@gmail.com, almasrymina@google.com,
         anshuman.khandual@arm.com, axelrasmussen@google.com,
@@ -42,10 +42,9 @@ To:     aarcange@redhat.com, adobriyan@gmail.com, almasrymina@google.com,
         shawn@anastas.io, shli@fb.com, steven.price@arm.com,
         vbabka@suse.cz, viro@zeniv.linux.org.uk, walken@google.com,
         willy@infradead.org, ying.huang@intel.com
-Subject:  +
- hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
- added to -mm tree
-Message-ID: <20210302002619.mU6XQiOyV%akpm@linux-foundation.org>
+Subject:  + userfaultfd-add-uffdio_continue-ioctl.patch added to
+ -mm tree
+Message-ID: <20210302002638.jAXl34MW2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb/userfaultfd: unshare all pmds for hugetlbfs when register wp
+     Subject: userfaultfd: add UFFDIO_CONTINUE ioctl
 has been added to the -mm tree.  Its filename is
-     hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
+     userfaultfd-add-uffdio_continue-ioctl.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-add-uffdio_continue-ioctl.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-add-uffdio_continue-ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,31 +74,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: hugetlb/userfaultfd: unshare all pmds for hugetlbfs when register wp
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: userfaultfd: add UFFDIO_CONTINUE ioctl
 
-Huge pmd sharing for hugetlbfs is racy with userfaultfd-wp because
-userfaultfd-wp is always based on pgtable entries, so they cannot be
-shared.
+This ioctl is how userspace ought to resolve "minor" userfaults. The
+idea is, userspace is notified that a minor fault has occurred. It might
+change the contents of the page using its second non-UFFD mapping, or
+not. Then, it calls UFFDIO_CONTINUE to tell the kernel "I have ensured
+the page contents are correct, carry on setting up the mapping".
 
-Walk the hugetlb range and unshare all such mappings if there is, right
-before UFFDIO_REGISTER will succeed and return to userspace.
+Note that it doesn't make much sense to use UFFDIO_{COPY,ZEROPAGE} for
+MINOR registered VMAs. ZEROPAGE maps the VMA to the zero page; but in
+the minor fault case, we already have some pre-existing underlying page.
+Likewise, UFFDIO_COPY isn't useful if we have a second non-UFFD mapping.
+We'd just use memcpy() or similar instead.
 
-This will pair with want_pmd_share() in hugetlb code so that huge pmd
-sharing is completely disabled for userfaultfd-wp registered range.
+It turns out hugetlb_mcopy_atomic_pte() already does very close to what
+we want, if an existing page is provided via `struct page **pagep`. We
+already special-case the behavior a bit for the UFFDIO_ZEROPAGE case, so
+just extend that design: add an enum for the three modes of operation,
+and make the small adjustments needed for the MCOPY_ATOMIC_CONTINUE
+case. (Basically, look up the existing page, and avoid adding the
+existing page to the page cache or calling set_page_huge_active() on
+it.)
 
-Link: https://lkml.kernel.org/r/20210218231206.15524-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20210301222728.176417-5-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: Adam Ruprecht <ruprecht@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Cannon Matthews <cannonmatthews@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -110,10 +115,14 @@ Cc: Huang Ying <ying.huang@intel.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: "Michal Koutn" <mkoutny@suse.com>
 Cc: Michel Lespinasse <walken@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Mina Almasry <almasrymina@google.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Oliver Upton <oupton@google.com>
@@ -125,116 +134,434 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c        |    4 ++
- include/linux/hugetlb.h |    3 ++
- mm/hugetlb.c            |   51 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 58 insertions(+)
+ fs/userfaultfd.c                 |   67 +++++++++++++++++++++++++++++
+ include/linux/hugetlb.h          |    3 +
+ include/linux/userfaultfd_k.h    |   18 +++++++
+ include/uapi/linux/userfaultfd.h |   21 ++++++++-
+ mm/hugetlb.c                     |   40 +++++++++++------
+ mm/userfaultfd.c                 |   37 +++++++++-------
+ 6 files changed, 156 insertions(+), 30 deletions(-)
 
---- a/fs/userfaultfd.c~hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp
+--- a/fs/userfaultfd.c~userfaultfd-add-uffdio_continue-ioctl
 +++ a/fs/userfaultfd.c
-@@ -15,6 +15,7 @@
- #include <linux/sched/signal.h>
- #include <linux/sched/mm.h>
- #include <linux/mm.h>
-+#include <linux/mmu_notifier.h>
- #include <linux/poll.h>
- #include <linux/slab.h>
- #include <linux/seq_file.h>
-@@ -1449,6 +1450,9 @@ static int userfaultfd_register(struct u
- 		vma->vm_flags = new_flags;
- 		vma->vm_userfaultfd_ctx.ctx = ctx;
+@@ -1487,6 +1487,10 @@ out_unlock:
+ 		if (!(uffdio_register.mode & UFFDIO_REGISTER_MODE_WP))
+ 			ioctls_out &= ~((__u64)1 << _UFFDIO_WRITEPROTECT);
  
-+		if (is_vm_hugetlb_page(vma) && uffd_disable_huge_pmd_share(vma))
-+			hugetlb_unshare_all_pmds(vma);
++		/* CONTINUE ioctl is only supported for MINOR ranges. */
++		if (!(uffdio_register.mode & UFFDIO_REGISTER_MODE_MINOR))
++			ioctls_out &= ~((__u64)1 << _UFFDIO_CONTINUE);
 +
- 	skip:
- 		prev = vma;
- 		start = vma->vm_end;
---- a/include/linux/hugetlb.h~hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp
-+++ a/include/linux/hugetlb.h
-@@ -188,6 +188,7 @@ unsigned long hugetlb_change_protection(
- 		unsigned long address, unsigned long end, pgprot_t newprot);
- 
- bool is_hugetlb_entry_migration(pte_t pte);
-+void hugetlb_unshare_all_pmds(struct vm_area_struct *vma);
- 
- #else /* !CONFIG_HUGETLB_PAGE */
- 
-@@ -369,6 +370,8 @@ static inline vm_fault_t hugetlb_fault(s
- 	return 0;
+ 		/*
+ 		 * Now that we scanned all vmas we can already tell
+ 		 * userland which ioctls methods are guaranteed to
+@@ -1840,6 +1844,66 @@ static int userfaultfd_writeprotect(stru
+ 	return ret;
  }
  
-+static inline void hugetlb_unshare_all_pmds(struct vm_area_struct *vma) { }
-+
- #endif /* !CONFIG_HUGETLB_PAGE */
- /*
-  * hugepages at page global directory. If arch support
---- a/mm/hugetlb.c~hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp
-+++ a/mm/hugetlb.c
-@@ -5597,6 +5597,57 @@ void move_hugetlb_state(struct page *old
- 	}
- }
- 
-+/*
-+ * This function will unconditionally remove all the shared pmd pgtable entries
-+ * within the specific vma for a hugetlbfs memory range.
-+ */
-+void hugetlb_unshare_all_pmds(struct vm_area_struct *vma)
++static int userfaultfd_continue(struct userfaultfd_ctx *ctx, unsigned long arg)
 +{
-+	struct hstate *h = hstate_vma(vma);
-+	unsigned long sz = huge_page_size(h);
-+	struct mm_struct *mm = vma->vm_mm;
-+	struct mmu_notifier_range range;
-+	unsigned long address, start, end;
-+	spinlock_t *ptl;
-+	pte_t *ptep;
++	__s64 ret;
++	struct uffdio_continue uffdio_continue;
++	struct uffdio_continue __user *user_uffdio_continue;
++	struct userfaultfd_wake_range range;
 +
-+	if (!(vma->vm_flags & VM_MAYSHARE))
-+		return;
++	user_uffdio_continue = (struct uffdio_continue __user *)arg;
 +
-+	start = ALIGN(vma->vm_start, PUD_SIZE);
-+	end = ALIGN_DOWN(vma->vm_end, PUD_SIZE);
++	ret = -EAGAIN;
++	if (READ_ONCE(ctx->mmap_changing))
++		goto out;
 +
-+	if (start >= end)
-+		return;
++	ret = -EFAULT;
++	if (copy_from_user(&uffdio_continue, user_uffdio_continue,
++			   /* don't copy the output fields */
++			   sizeof(uffdio_continue) - (sizeof(__s64))))
++		goto out;
 +
-+	/*
-+	 * No need to call adjust_range_if_pmd_sharing_possible(), because
-+	 * we have already done the PUD_SIZE alignment.
-+	 */
-+	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm,
-+				start, end);
-+	mmu_notifier_invalidate_range_start(&range);
-+	i_mmap_lock_write(vma->vm_file->f_mapping);
-+	for (address = start; address < end; address += PUD_SIZE) {
-+		unsigned long tmp = address;
++	ret = validate_range(ctx->mm, &uffdio_continue.range.start,
++			     uffdio_continue.range.len);
++	if (ret)
++		goto out;
 +
-+		ptep = huge_pte_offset(mm, address, sz);
-+		if (!ptep)
-+			continue;
-+		ptl = huge_pte_lock(h, mm, ptep);
-+		/* We don't want 'address' to be changed */
-+		huge_pmd_unshare(mm, vma, &tmp, ptep);
-+		spin_unlock(ptl);
++	ret = -EINVAL;
++	/* double check for wraparound just in case. */
++	if (uffdio_continue.range.start + uffdio_continue.range.len <=
++	    uffdio_continue.range.start) {
++		goto out;
 +	}
-+	flush_hugetlb_tlb_range(vma, start, end);
-+	i_mmap_unlock_write(vma->vm_file->f_mapping);
-+	/*
-+	 * No need to call mmu_notifier_invalidate_range(), see
-+	 * Documentation/vm/mmu_notifier.rst.
-+	 */
-+	mmu_notifier_invalidate_range_end(&range);
++	if (uffdio_continue.mode & ~UFFDIO_CONTINUE_MODE_DONTWAKE)
++		goto out;
++
++	if (mmget_not_zero(ctx->mm)) {
++		ret = mcopy_continue(ctx->mm, uffdio_continue.range.start,
++				     uffdio_continue.range.len,
++				     &ctx->mmap_changing);
++		mmput(ctx->mm);
++	} else {
++		return -ESRCH;
++	}
++
++	if (unlikely(put_user(ret, &user_uffdio_continue->mapped)))
++		return -EFAULT;
++	if (ret < 0)
++		goto out;
++
++	/* len == 0 would wake all */
++	BUG_ON(!ret);
++	range.len = ret;
++	if (!(uffdio_continue.mode & UFFDIO_CONTINUE_MODE_DONTWAKE)) {
++		range.start = uffdio_continue.range.start;
++		wake_userfault(ctx, &range);
++	}
++	ret = range.len == uffdio_continue.range.len ? 0 : -EAGAIN;
++
++out:
++	return ret;
 +}
 +
- #ifdef CONFIG_CMA
- static bool cma_reserve_called __initdata;
+ static inline unsigned int uffd_ctx_features(__u64 user_features)
+ {
+ 	/*
+@@ -1927,6 +1991,9 @@ static long userfaultfd_ioctl(struct fil
+ 	case UFFDIO_WRITEPROTECT:
+ 		ret = userfaultfd_writeprotect(ctx, arg);
+ 		break;
++	case UFFDIO_CONTINUE:
++		ret = userfaultfd_continue(ctx, arg);
++		break;
+ 	}
+ 	return ret;
+ }
+--- a/include/linux/hugetlb.h~userfaultfd-add-uffdio_continue-ioctl
++++ a/include/linux/hugetlb.h
+@@ -11,6 +11,7 @@
+ #include <linux/kref.h>
+ #include <linux/pgtable.h>
+ #include <linux/gfp.h>
++#include <linux/userfaultfd_k.h>
  
+ struct ctl_table;
+ struct user_struct;
+@@ -139,6 +140,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 				struct vm_area_struct *dst_vma,
+ 				unsigned long dst_addr,
+ 				unsigned long src_addr,
++				enum mcopy_atomic_mode mode,
+ 				struct page **pagep);
+ #endif /* CONFIG_USERFAULTFD */
+ bool hugetlb_reserve_pages(struct inode *inode, long from, long to,
+@@ -318,6 +320,7 @@ static inline int hugetlb_mcopy_atomic_p
+ 						struct vm_area_struct *dst_vma,
+ 						unsigned long dst_addr,
+ 						unsigned long src_addr,
++						enum mcopy_atomic_mode mode,
+ 						struct page **pagep)
+ {
+ 	BUG();
+--- a/include/linux/userfaultfd_k.h~userfaultfd-add-uffdio_continue-ioctl
++++ a/include/linux/userfaultfd_k.h
+@@ -37,6 +37,22 @@ extern int sysctl_unprivileged_userfault
+ 
+ extern vm_fault_t handle_userfault(struct vm_fault *vmf, unsigned long reason);
+ 
++/*
++ * The mode of operation for __mcopy_atomic and its helpers.
++ *
++ * This is almost an implementation detail (mcopy_atomic below doesn't take this
++ * as a parameter), but it's exposed here because memory-kind-specific
++ * implementations (e.g. hugetlbfs) need to know the mode of operation.
++ */
++enum mcopy_atomic_mode {
++	/* A normal copy_from_user into the destination range. */
++	MCOPY_ATOMIC_NORMAL,
++	/* Don't copy; map the destination range to the zero page. */
++	MCOPY_ATOMIC_ZEROPAGE,
++	/* Just install pte(s) with the existing page(s) in the page cache. */
++	MCOPY_ATOMIC_CONTINUE,
++};
++
+ extern ssize_t mcopy_atomic(struct mm_struct *dst_mm, unsigned long dst_start,
+ 			    unsigned long src_start, unsigned long len,
+ 			    bool *mmap_changing, __u64 mode);
+@@ -44,6 +60,8 @@ extern ssize_t mfill_zeropage(struct mm_
+ 			      unsigned long dst_start,
+ 			      unsigned long len,
+ 			      bool *mmap_changing);
++extern ssize_t mcopy_continue(struct mm_struct *dst_mm, unsigned long dst_start,
++			      unsigned long len, bool *mmap_changing);
+ extern int mwriteprotect_range(struct mm_struct *dst_mm,
+ 			       unsigned long start, unsigned long len,
+ 			       bool enable_wp, bool *mmap_changing);
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-add-uffdio_continue-ioctl
++++ a/include/uapi/linux/userfaultfd.h
+@@ -40,10 +40,12 @@
+ 	((__u64)1 << _UFFDIO_WAKE |		\
+ 	 (__u64)1 << _UFFDIO_COPY |		\
+ 	 (__u64)1 << _UFFDIO_ZEROPAGE |		\
+-	 (__u64)1 << _UFFDIO_WRITEPROTECT)
++	 (__u64)1 << _UFFDIO_WRITEPROTECT |	\
++	 (__u64)1 << _UFFDIO_CONTINUE)
+ #define UFFD_API_RANGE_IOCTLS_BASIC		\
+ 	((__u64)1 << _UFFDIO_WAKE |		\
+-	 (__u64)1 << _UFFDIO_COPY)
++	 (__u64)1 << _UFFDIO_COPY |		\
++	 (__u64)1 << _UFFDIO_CONTINUE)
+ 
+ /*
+  * Valid ioctl command number range with this API is from 0x00 to
+@@ -59,6 +61,7 @@
+ #define _UFFDIO_COPY			(0x03)
+ #define _UFFDIO_ZEROPAGE		(0x04)
+ #define _UFFDIO_WRITEPROTECT		(0x06)
++#define _UFFDIO_CONTINUE		(0x07)
+ #define _UFFDIO_API			(0x3F)
+ 
+ /* userfaultfd ioctl ids */
+@@ -77,6 +80,8 @@
+ 				      struct uffdio_zeropage)
+ #define UFFDIO_WRITEPROTECT	_IOWR(UFFDIO, _UFFDIO_WRITEPROTECT, \
+ 				      struct uffdio_writeprotect)
++#define UFFDIO_CONTINUE		_IOR(UFFDIO, _UFFDIO_CONTINUE,	\
++				     struct uffdio_continue)
+ 
+ /* read() structure */
+ struct uffd_msg {
+@@ -268,6 +273,18 @@ struct uffdio_writeprotect {
+ 	__u64 mode;
+ };
+ 
++struct uffdio_continue {
++	struct uffdio_range range;
++#define UFFDIO_CONTINUE_MODE_DONTWAKE		((__u64)1<<0)
++	__u64 mode;
++
++	/*
++	 * Fields below here are written by the ioctl and must be at the end:
++	 * the copy_from_user will not read past here.
++	 */
++	__s64 mapped;
++};
++
+ /*
+  * Flags for the userfaultfd(2) system call itself.
+  */
+--- a/mm/hugetlb.c~userfaultfd-add-uffdio_continue-ioctl
++++ a/mm/hugetlb.c
+@@ -39,7 +39,6 @@
+ #include <linux/hugetlb.h>
+ #include <linux/hugetlb_cgroup.h>
+ #include <linux/node.h>
+-#include <linux/userfaultfd_k.h>
+ #include <linux/page_owner.h>
+ #include "internal.h"
+ 
+@@ -4628,8 +4627,10 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 			    struct vm_area_struct *dst_vma,
+ 			    unsigned long dst_addr,
+ 			    unsigned long src_addr,
++			    enum mcopy_atomic_mode mode,
+ 			    struct page **pagep)
+ {
++	bool is_continue = (mode == MCOPY_ATOMIC_CONTINUE);
+ 	struct address_space *mapping;
+ 	pgoff_t idx;
+ 	unsigned long size;
+@@ -4639,8 +4640,17 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 	spinlock_t *ptl;
+ 	int ret;
+ 	struct page *page;
++	int writable;
+ 
+-	if (!*pagep) {
++	mapping = dst_vma->vm_file->f_mapping;
++	idx = vma_hugecache_offset(h, dst_vma, dst_addr);
++
++	if (is_continue) {
++		ret = -EFAULT;
++		page = find_lock_page(mapping, idx);
++		if (!page)
++			goto out;
++	} else if (!*pagep) {
+ 		ret = -ENOMEM;
+ 		page = alloc_huge_page(dst_vma, dst_addr, 0);
+ 		if (IS_ERR(page))
+@@ -4669,13 +4679,8 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 	 */
+ 	__SetPageUptodate(page);
+ 
+-	mapping = dst_vma->vm_file->f_mapping;
+-	idx = vma_hugecache_offset(h, dst_vma, dst_addr);
+-
+-	/*
+-	 * If shared, add to page cache
+-	 */
+-	if (vm_shared) {
++	/* Add shared, newly allocated pages to the page cache. */
++	if (vm_shared && !is_continue) {
+ 		size = i_size_read(mapping->host) >> huge_page_shift(h);
+ 		ret = -EFAULT;
+ 		if (idx >= size)
+@@ -4720,8 +4725,14 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 		hugepage_add_new_anon_rmap(page, dst_vma, dst_addr);
+ 	}
+ 
+-	_dst_pte = make_huge_pte(dst_vma, page, dst_vma->vm_flags & VM_WRITE);
+-	if (dst_vma->vm_flags & VM_WRITE)
++	/* For CONTINUE on a non-shared VMA, don't set VM_WRITE for CoW. */
++	if (is_continue && !vm_shared)
++		writable = 0;
++	else
++		writable = dst_vma->vm_flags & VM_WRITE;
++
++	_dst_pte = make_huge_pte(dst_vma, page, writable);
++	if (writable)
+ 		_dst_pte = huge_pte_mkdirty(_dst_pte);
+ 	_dst_pte = pte_mkyoung(_dst_pte);
+ 
+@@ -4735,15 +4746,16 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 	update_mmu_cache(dst_vma, dst_addr, dst_pte);
+ 
+ 	spin_unlock(ptl);
+-	SetHPageMigratable(page);
+-	if (vm_shared)
++	if (!is_continue)
++		SetHPageMigratable(page);
++	if (vm_shared || is_continue)
+ 		unlock_page(page);
+ 	ret = 0;
+ out:
+ 	return ret;
+ out_release_unlock:
+ 	spin_unlock(ptl);
+-	if (vm_shared)
++	if (vm_shared || is_continue)
+ 		unlock_page(page);
+ out_release_nounlock:
+ 	put_page(page);
+--- a/mm/userfaultfd.c~userfaultfd-add-uffdio_continue-ioctl
++++ a/mm/userfaultfd.c
+@@ -207,7 +207,7 @@ static __always_inline ssize_t __mcopy_a
+ 					      unsigned long dst_start,
+ 					      unsigned long src_start,
+ 					      unsigned long len,
+-					      bool zeropage)
++					      enum mcopy_atomic_mode mode)
+ {
+ 	int vm_alloc_shared = dst_vma->vm_flags & VM_SHARED;
+ 	int vm_shared = dst_vma->vm_flags & VM_SHARED;
+@@ -227,7 +227,7 @@ static __always_inline ssize_t __mcopy_a
+ 	 * by THP.  Since we can not reliably insert a zero page, this
+ 	 * feature is not supported.
+ 	 */
+-	if (zeropage) {
++	if (mode == MCOPY_ATOMIC_ZEROPAGE) {
+ 		mmap_read_unlock(dst_mm);
+ 		return -EINVAL;
+ 	}
+@@ -273,8 +273,6 @@ retry:
+ 	}
+ 
+ 	while (src_addr < src_start + len) {
+-		pte_t dst_pteval;
+-
+ 		BUG_ON(dst_addr >= dst_start + len);
+ 
+ 		/*
+@@ -297,16 +295,16 @@ retry:
+ 			goto out_unlock;
+ 		}
+ 
+-		err = -EEXIST;
+-		dst_pteval = huge_ptep_get(dst_pte);
+-		if (!huge_pte_none(dst_pteval)) {
++		if (mode != MCOPY_ATOMIC_CONTINUE &&
++		    !huge_pte_none(huge_ptep_get(dst_pte))) {
++			err = -EEXIST;
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 			i_mmap_unlock_read(mapping);
+ 			goto out_unlock;
+ 		}
+ 
+ 		err = hugetlb_mcopy_atomic_pte(dst_mm, dst_pte, dst_vma,
+-						dst_addr, src_addr, &page);
++					       dst_addr, src_addr, mode, &page);
+ 
+ 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 		i_mmap_unlock_read(mapping);
+@@ -408,7 +406,7 @@ extern ssize_t __mcopy_atomic_hugetlb(st
+ 				      unsigned long dst_start,
+ 				      unsigned long src_start,
+ 				      unsigned long len,
+-				      bool zeropage);
++				      enum mcopy_atomic_mode mode);
+ #endif /* CONFIG_HUGETLB_PAGE */
+ 
+ static __always_inline ssize_t mfill_atomic_pte(struct mm_struct *dst_mm,
+@@ -458,7 +456,7 @@ static __always_inline ssize_t __mcopy_a
+ 					      unsigned long dst_start,
+ 					      unsigned long src_start,
+ 					      unsigned long len,
+-					      bool zeropage,
++					      enum mcopy_atomic_mode mcopy_mode,
+ 					      bool *mmap_changing,
+ 					      __u64 mode)
+ {
+@@ -469,6 +467,7 @@ static __always_inline ssize_t __mcopy_a
+ 	long copied;
+ 	struct page *page;
+ 	bool wp_copy;
++	bool zeropage = (mcopy_mode == MCOPY_ATOMIC_ZEROPAGE);
+ 
+ 	/*
+ 	 * Sanitize the command parameters:
+@@ -527,10 +526,12 @@ retry:
+ 	 */
+ 	if (is_vm_hugetlb_page(dst_vma))
+ 		return  __mcopy_atomic_hugetlb(dst_mm, dst_vma, dst_start,
+-						src_start, len, zeropage);
++						src_start, len, mcopy_mode);
+ 
+ 	if (!vma_is_anonymous(dst_vma) && !vma_is_shmem(dst_vma))
+ 		goto out_unlock;
++	if (mcopy_mode == MCOPY_ATOMIC_CONTINUE)
++		goto out_unlock;
+ 
+ 	/*
+ 	 * Ensure the dst_vma has a anon_vma or this page
+@@ -626,14 +627,22 @@ ssize_t mcopy_atomic(struct mm_struct *d
+ 		     unsigned long src_start, unsigned long len,
+ 		     bool *mmap_changing, __u64 mode)
+ {
+-	return __mcopy_atomic(dst_mm, dst_start, src_start, len, false,
+-			      mmap_changing, mode);
++	return __mcopy_atomic(dst_mm, dst_start, src_start, len,
++			      MCOPY_ATOMIC_NORMAL, mmap_changing, mode);
+ }
+ 
+ ssize_t mfill_zeropage(struct mm_struct *dst_mm, unsigned long start,
+ 		       unsigned long len, bool *mmap_changing)
+ {
+-	return __mcopy_atomic(dst_mm, start, 0, len, true, mmap_changing, 0);
++	return __mcopy_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_ZEROPAGE,
++			      mmap_changing, 0);
++}
++
++ssize_t mcopy_continue(struct mm_struct *dst_mm, unsigned long start,
++		       unsigned long len, bool *mmap_changing)
++{
++	return __mcopy_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_CONTINUE,
++			      mmap_changing, 0);
+ }
+ 
+ int mwriteprotect_range(struct mm_struct *dst_mm, unsigned long start,
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share.patch
-hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
-mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
-hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
+userfaultfd-add-minor-fault-registration-mode.patch
+userfaultfd-disable-huge-pmd-sharing-for-minor-registered-vmas.patch
+userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
+userfaultfd-add-uffdio_continue-ioctl.patch
+userfaultfd-update-documentation-to-describe-minor-fault-handling.patch
+userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch
 
