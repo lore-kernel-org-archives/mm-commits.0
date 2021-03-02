@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 991C4C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79A98C433E0
 	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 21:11:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53F3264F21
+	by mail.kernel.org (Postfix) with ESMTP id 288DC64F20
 	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 21:11:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1381625AbhCBVAl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 Mar 2021 16:00:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47536 "EHLO mail.kernel.org"
+        id S1350901AbhCBVAI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 Mar 2021 16:00:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47184 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345059AbhCBA1n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Mar 2021 19:27:43 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6ADBC61481;
-        Tue,  2 Mar 2021 00:26:34 +0000 (UTC)
+        id S241970AbhCBA1C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Mar 2021 19:27:02 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 55B246146B;
+        Tue,  2 Mar 2021 00:26:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614644795;
-        bh=zpeCk/ljQImtur6AupsViddpIFKwHdaUcFcc9wo9NMY=;
+        s=korg; t=1614644781;
+        bh=prOJ8K1Y07HlN7O49dqSmhzUh/6reV0oSh5++yk1WO8=;
         h=Date:From:To:Subject:From;
-        b=qCDjAQQU0WXP+0scFz2Di6tuFmERwJE97hlJNd41fwpU6iZqSoIetTDJqZLxKQNPL
-         bePQPNGAoqJyLt0LHFkgFax0p4RcuyKBwMmCJimNUVzp437eqjFHD701L5NMjpbFCu
-         tsACszPf4W08HUieceUedjswpraM3UWJDGKEJuCo=
-Date:   Mon, 01 Mar 2021 16:26:33 -0800
+        b=txT2TXQW46DNSvaAC5xuQQDd1koxEoRSj2jy6lub0e2dyrAK2hylpBF4xIps20R9g
+         gy8KCDApsUgFnjR71W0E+h5a73pk3CE0JGcxuxWp9OZZN8MKKeekO7d5oXieXWxfyr
+         0OZ0sLLXOe6R2BtRVxW/CSGRy406iY8AwMBDo6Gw=
+Date:   Mon, 01 Mar 2021 16:26:19 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, adobriyan@gmail.com, almasrymina@google.com,
         anshuman.khandual@arm.com, axelrasmussen@google.com,
@@ -43,9 +43,9 @@ To:     aarcange@redhat.com, adobriyan@gmail.com, almasrymina@google.com,
         vbabka@suse.cz, viro@zeniv.linux.org.uk, walken@google.com,
         willy@infradead.org, ying.huang@intel.com
 Subject:  +
- userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
+ hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
  added to -mm tree
-Message-ID: <20210302002633.wfDm8qgxP%akpm@linux-foundation.org>
+Message-ID: <20210302002619.mU6XQiOyV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: hugetlbfs: only compile UFFD helpers if config enabled
+     Subject: hugetlb/userfaultfd: unshare all pmds for hugetlbfs when register wp
 has been added to the -mm tree.  Its filename is
-     userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
+     hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,34 +75,31 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd: hugetlbfs: only compile UFFD helpers if config enabled
+From: Peter Xu <peterx@redhat.com>
+Subject: hugetlb/userfaultfd: unshare all pmds for hugetlbfs when register wp
 
-For background, mm/userfaultfd.c provides a general mcopy_atomic
-implementation.  But some types of memory (i.e., hugetlb and shmem) need a
-slightly different implementation, so they provide their own helpers for
-this.  In other words, userfaultfd is the only caller of these functions.
+Huge pmd sharing for hugetlbfs is racy with userfaultfd-wp because
+userfaultfd-wp is always based on pgtable entries, so they cannot be
+shared.
 
-This patch achieves two things:
+Walk the hugetlb range and unshare all such mappings if there is, right
+before UFFDIO_REGISTER will succeed and return to userspace.
 
-1. Don't spend time compiling code which will end up never being
-   referenced anyway (a small build time optimization).
+This will pair with want_pmd_share() in hugetlb code so that huge pmd
+sharing is completely disabled for userfaultfd-wp registered range.
 
-2. In patches later in this series, we extend the signature of these
-   helpers with UFFD-specific state (a mode enumeration).  Once this
-   happens, we *have to* either not compile the helpers, or
-   unconditionally define the UFFD-only state (which seems messier to me).
-   This includes the declarations in the headers, as otherwise they'd
-   yield warnings about implicitly defining the type of those arguments.
-
-Link: https://lkml.kernel.org/r/20210301222728.176417-4-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Link: https://lkml.kernel.org/r/20210218231206.15524-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Adam Ruprecht <ruprecht@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Cannon Matthews <cannonmatthews@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -113,13 +110,10 @@ Cc: Huang Ying <ying.huang@intel.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: "Michal Koutn" <mkoutny@suse.com>
 Cc: Michel Lespinasse <walken@google.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Mina Almasry <almasrymina@google.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Oliver Upton <oupton@google.com>
@@ -131,68 +125,116 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    4 ++++
- mm/hugetlb.c            |    2 ++
- 2 files changed, 6 insertions(+)
+ fs/userfaultfd.c        |    4 ++
+ include/linux/hugetlb.h |    3 ++
+ mm/hugetlb.c            |   51 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 58 insertions(+)
 
---- a/include/linux/hugetlb.h~userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled
-+++ a/include/linux/hugetlb.h
-@@ -134,11 +134,13 @@ void hugetlb_show_meminfo(void);
- unsigned long hugetlb_total_pages(void);
- vm_fault_t hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 			unsigned long address, unsigned int flags);
-+#ifdef CONFIG_USERFAULTFD
- int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm, pte_t *dst_pte,
- 				struct vm_area_struct *dst_vma,
- 				unsigned long dst_addr,
- 				unsigned long src_addr,
- 				struct page **pagep);
-+#endif /* CONFIG_USERFAULTFD */
- bool hugetlb_reserve_pages(struct inode *inode, long from, long to,
- 						struct vm_area_struct *vma,
- 						vm_flags_t vm_flags);
-@@ -310,6 +312,7 @@ static inline void hugetlb_free_pgd_rang
- 	BUG();
- }
+--- a/fs/userfaultfd.c~hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp
++++ a/fs/userfaultfd.c
+@@ -15,6 +15,7 @@
+ #include <linux/sched/signal.h>
+ #include <linux/sched/mm.h>
+ #include <linux/mm.h>
++#include <linux/mmu_notifier.h>
+ #include <linux/poll.h>
+ #include <linux/slab.h>
+ #include <linux/seq_file.h>
+@@ -1449,6 +1450,9 @@ static int userfaultfd_register(struct u
+ 		vma->vm_flags = new_flags;
+ 		vma->vm_userfaultfd_ctx.ctx = ctx;
  
-+#ifdef CONFIG_USERFAULTFD
- static inline int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm,
- 						pte_t *dst_pte,
- 						struct vm_area_struct *dst_vma,
-@@ -320,6 +323,7 @@ static inline int hugetlb_mcopy_atomic_p
- 	BUG();
++		if (is_vm_hugetlb_page(vma) && uffd_disable_huge_pmd_share(vma))
++			hugetlb_unshare_all_pmds(vma);
++
+ 	skip:
+ 		prev = vma;
+ 		start = vma->vm_end;
+--- a/include/linux/hugetlb.h~hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp
++++ a/include/linux/hugetlb.h
+@@ -188,6 +188,7 @@ unsigned long hugetlb_change_protection(
+ 		unsigned long address, unsigned long end, pgprot_t newprot);
+ 
+ bool is_hugetlb_entry_migration(pte_t pte);
++void hugetlb_unshare_all_pmds(struct vm_area_struct *vma);
+ 
+ #else /* !CONFIG_HUGETLB_PAGE */
+ 
+@@ -369,6 +370,8 @@ static inline vm_fault_t hugetlb_fault(s
  	return 0;
  }
-+#endif /* CONFIG_USERFAULTFD */
  
- static inline pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr,
- 					unsigned long sz)
---- a/mm/hugetlb.c~userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled
-+++ a/mm/hugetlb.c
-@@ -4618,6 +4618,7 @@ out_mutex:
- 	return ret;
- }
- 
-+#ifdef CONFIG_USERFAULTFD
++static inline void hugetlb_unshare_all_pmds(struct vm_area_struct *vma) { }
++
+ #endif /* !CONFIG_HUGETLB_PAGE */
  /*
-  * Used by userfaultfd UFFDIO_COPY.  Based on mcopy_atomic_pte with
-  * modifications for huge pages.
-@@ -4748,6 +4749,7 @@ out_release_nounlock:
- 	put_page(page);
- 	goto out;
+  * hugepages at page global directory. If arch support
+--- a/mm/hugetlb.c~hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp
++++ a/mm/hugetlb.c
+@@ -5597,6 +5597,57 @@ void move_hugetlb_state(struct page *old
+ 	}
  }
-+#endif /* CONFIG_USERFAULTFD */
  
- static void record_subpages_vmas(struct page *page, struct vm_area_struct *vma,
- 				 int refs, struct page **pages,
++/*
++ * This function will unconditionally remove all the shared pmd pgtable entries
++ * within the specific vma for a hugetlbfs memory range.
++ */
++void hugetlb_unshare_all_pmds(struct vm_area_struct *vma)
++{
++	struct hstate *h = hstate_vma(vma);
++	unsigned long sz = huge_page_size(h);
++	struct mm_struct *mm = vma->vm_mm;
++	struct mmu_notifier_range range;
++	unsigned long address, start, end;
++	spinlock_t *ptl;
++	pte_t *ptep;
++
++	if (!(vma->vm_flags & VM_MAYSHARE))
++		return;
++
++	start = ALIGN(vma->vm_start, PUD_SIZE);
++	end = ALIGN_DOWN(vma->vm_end, PUD_SIZE);
++
++	if (start >= end)
++		return;
++
++	/*
++	 * No need to call adjust_range_if_pmd_sharing_possible(), because
++	 * we have already done the PUD_SIZE alignment.
++	 */
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm,
++				start, end);
++	mmu_notifier_invalidate_range_start(&range);
++	i_mmap_lock_write(vma->vm_file->f_mapping);
++	for (address = start; address < end; address += PUD_SIZE) {
++		unsigned long tmp = address;
++
++		ptep = huge_pte_offset(mm, address, sz);
++		if (!ptep)
++			continue;
++		ptl = huge_pte_lock(h, mm, ptep);
++		/* We don't want 'address' to be changed */
++		huge_pmd_unshare(mm, vma, &tmp, ptep);
++		spin_unlock(ptl);
++	}
++	flush_hugetlb_tlb_range(vma, start, end);
++	i_mmap_unlock_write(vma->vm_file->f_mapping);
++	/*
++	 * No need to call mmu_notifier_invalidate_range(), see
++	 * Documentation/vm/mmu_notifier.rst.
++	 */
++	mmu_notifier_invalidate_range_end(&range);
++}
++
+ #ifdef CONFIG_CMA
+ static bool cma_reserve_called __initdata;
+ 
 _
 
-Patches currently in -mm which might be from axelrasmussen@google.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-userfaultfd-add-minor-fault-registration-mode.patch
-userfaultfd-disable-huge-pmd-sharing-for-minor-registered-vmas.patch
-userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
-userfaultfd-add-uffdio_continue-ioctl.patch
-userfaultfd-update-documentation-to-describe-minor-fault-handling.patch
-userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch
+hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share.patch
+hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
+mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
+hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
 
