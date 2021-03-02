@@ -4,38 +4,44 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35DCCC433E0
-	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:23:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB4E1C433E0
+	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:23:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E57A464E02
-	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:23:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6606064E02
+	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:23:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231382AbhCCNVF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 08:21:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51026 "EHLO mail.kernel.org"
+        id S240050AbhCCNWW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 08:22:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51018 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233238AbhCBXwG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Mar 2021 18:52:06 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EAE7364F42;
-        Tue,  2 Mar 2021 23:43:50 +0000 (UTC)
+        id S233232AbhCBXwP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Mar 2021 18:52:15 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 457CB64F3F;
+        Tue,  2 Mar 2021 23:39:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614728631;
-        bh=1SlVK/NGorLIyVj22Rv0nDKN6NVCS1CaPiM+PAB534I=;
+        s=korg; t=1614728380;
+        bh=jlrawqYN6X2Qvus+o1ZZKlypYjfM7RAvtywPnzvh+ng=;
         h=Date:From:To:Subject:From;
-        b=jXxI3VGFv8cDFv4u+5HZXXi09dQngQfSN1/ifulIPtSzkLHZQgw6nOPYnG2wAjdS6
-         inmtBkSKa587q//dK45tH+FJCacsLTLW0ETNyhGUMTozbQlgSb9rZo/FOUCrk9qkzS
-         5wE1tWweUrkSyxzH2lEGECKSZZjDO+IQ8l4PderM=
-Date:   Tue, 02 Mar 2021 15:43:50 -0800
+        b=oYXo4JWDeFlOjGXUtyJPFktUEvCVf0iEZdPbck38ywPSuhPlJVGdTW9BnyptMmiGS
+         6HvX9alN8hv8EN2KLmkiAoS/MI7NbBfo25K65O8H1IatGFXNp2l1oSWguZGpVqDuoM
+         3Klm+1bL3RvZQrBgRN5OQOIdYiTlaonBJdnmr5dY=
+Date:   Tue, 02 Mar 2021 15:39:38 -0800
 From:   akpm@linux-foundation.org
-To:     axboe@kernel.dk, jack@suse.cz, mm-commits@vger.kernel.org,
-        willy@infradead.org
+To:     aarcange@redhat.com, almasrymina@google.com,
+        axelrasmussen@google.com, bgeffon@google.com,
+        cannonmatthews@google.com, dgilbert@redhat.com, hughd@google.com,
+        jglisse@redhat.com, joe@perches.com, lokeshgidra@google.com,
+        mm-commits@vger.kernel.org, oupton@google.com, peterx@redhat.com,
+        rientjes@google.com, rppt@linux.vnet.ibm.com, shli@fb.com,
+        shuah@kernel.org, viro@zeniv.linux.org.uk, walken@google.com,
+        wangqing@vivo.com
 Subject:  +
- mm-use-filemap_range_needs_writeback-for-o_direct-reads.patch added to -mm
- tree
-Message-ID: <20210302234350.n3j8cd8pj%akpm@linux-foundation.org>
+ userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
+ added to -mm tree
+Message-ID: <20210302233938.05a9fhf7e%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use filemap_range_needs_writeback() for O_DIRECT reads
+     Subject: userfaultfd/selftests: exercise minor fault handling shmem support
 has been added to the -mm tree.  Its filename is
-     mm-use-filemap_range_needs_writeback-for-o_direct-reads.patch
+     userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-use-filemap_range_needs_writeback-for-o_direct-reads.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-use-filemap_range_needs_writeback-for-o_direct-reads.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,43 +71,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jens Axboe <axboe@kernel.dk>
-Subject: mm: use filemap_range_needs_writeback() for O_DIRECT reads
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: userfaultfd/selftests: exercise minor fault handling shmem support
 
-For the generic page cache read helper, use the better variant of checking
-for the need to call filemap_write_and_wait_range() when doing O_DIRECT
-reads.  This avoids falling back to the slow path for IOCB_NOWAIT, if
-there are no pages to wait for (or write out).
+Enable test_uffdio_minor for test_type == TEST_SHMEM, and modify the test
+slightly to pass in / check for the right feature flags.
 
-Link: https://lkml.kernel.org/r/20210224164455.1096727-3-axboe@kernel.dk
-Signed-off-by: Jens Axboe <axboe@kernel.dk>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Link: https://lkml.kernel.org/r/20210302000133.272579-6-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Cannon Matthews <cannonmatthews@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Oliver Upton <oupton@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
---- a/mm/filemap.c~mm-use-filemap_range_needs_writeback-for-o_direct-reads
-+++ a/mm/filemap.c
-@@ -2614,8 +2614,8 @@ generic_file_read_iter(struct kiocb *ioc
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-exercise-minor-fault-handling-shmem-support
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -1410,7 +1410,7 @@ static int userfaultfd_minor_test(void)
+ 	void *expected_page;
+ 	char c;
+ 	struct uffd_stats stats = { 0 };
+-	uint64_t features = UFFD_FEATURE_MINOR_HUGETLBFS;
++	uint64_t req_features, features_out;
  
- 		size = i_size_read(inode);
- 		if (iocb->ki_flags & IOCB_NOWAIT) {
--			if (filemap_range_has_page(mapping, iocb->ki_pos,
--						   iocb->ki_pos + count - 1))
-+			if (filemap_range_needs_writeback(mapping, iocb->ki_pos,
-+						iocb->ki_pos + count - 1))
- 				return -EAGAIN;
- 		} else {
- 			retval = filemap_write_and_wait_range(mapping,
+ 	if (!test_uffdio_minor)
+ 		return 0;
+@@ -1418,10 +1418,18 @@ static int userfaultfd_minor_test(void)
+ 	printf("testing minor faults: ");
+ 	fflush(stdout);
+ 
+-	if (uffd_test_ctx_clear() || uffd_test_ctx_init_ext(&features))
++	if (test_type == TEST_HUGETLB)
++		req_features = UFFD_FEATURE_MINOR_HUGETLBFS;
++	else if (test_type == TEST_SHMEM)
++		req_features = UFFD_FEATURE_MINOR_SHMEM;
++	else
+ 		return 1;
+-	/* If kernel reports the feature isn't supported, skip the test. */
+-	if (!(features & UFFD_FEATURE_MINOR_HUGETLBFS)) {
++
++	features_out = req_features;
++	if (uffd_test_ctx_clear() || uffd_test_ctx_init_ext(&features_out))
++		return 1;
++	/* If kernel reports required features aren't supported, skip test. */
++	if ((features_out & req_features) != req_features) {
+ 		printf("skipping test due to lack of feature support\n");
+ 		fflush(stdout);
+ 		return 0;
+@@ -1431,7 +1439,7 @@ static int userfaultfd_minor_test(void)
+ 	uffdio_register.range.len = nr_pages * page_size;
+ 	uffdio_register.mode = UFFDIO_REGISTER_MODE_MINOR;
+ 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register)) {
+-		fprintf(stderr, "register failure\n");
++		perror("register failure");
+ 		exit(1);
+ 	}
+ 
+@@ -1695,6 +1703,7 @@ static void set_test_type(const char *ty
+ 		map_shared = true;
+ 		test_type = TEST_SHMEM;
+ 		uffd_test_ops = &shmem_uffd_test_ops;
++		test_uffdio_minor = true;
+ 	} else {
+ 		fprintf(stderr, "Unknown test type: %s\n", type); exit(1);
+ 	}
 _
 
-Patches currently in -mm which might be from axboe@kernel.dk are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-swap-fix-swapfile-read-write-offset.patch
-mm-provide-filemap_range_needs_writeback-helper.patch
-mm-use-filemap_range_needs_writeback-for-o_direct-reads.patch
-iomap-use-filemap_range_needs_writeback-for-o_direct-reads.patch
+userfaultfd-add-minor-fault-registration-mode.patch
+userfaultfd-disable-huge-pmd-sharing-for-minor-registered-vmas.patch
+userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
+userfaultfd-add-uffdio_continue-ioctl.patch
+userfaultfd-update-documentation-to-describe-minor-fault-handling.patch
+userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch
+userfaultfd-support-minor-fault-handling-for-shmem.patch
+userfaultfd-selftests-use-memfd_create-for-shmem-test-type.patch
+userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch
+userfaultfd-selftests-reinitialize-test-context-in-each-test.patch
+userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
 
