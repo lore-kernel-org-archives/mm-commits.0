@@ -4,31 +4,31 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB4E1C433E0
-	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:23:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42D04C433E0
+	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:23:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6606064E02
-	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:23:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0827A64EE6
+	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:23:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240050AbhCCNWW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 08:22:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51018 "EHLO mail.kernel.org"
+        id S241571AbhCCNWn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 08:22:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51024 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233232AbhCBXwP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S233228AbhCBXwP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 2 Mar 2021 18:52:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 457CB64F3F;
-        Tue,  2 Mar 2021 23:39:39 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4503864F3D;
+        Tue,  2 Mar 2021 23:39:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614728380;
-        bh=jlrawqYN6X2Qvus+o1ZZKlypYjfM7RAvtywPnzvh+ng=;
+        s=korg; t=1614728373;
+        bh=qjXK8TE8g4GyP0pSvh2g3+60TaSCIHEivKtHthcuA74=;
         h=Date:From:To:Subject:From;
-        b=oYXo4JWDeFlOjGXUtyJPFktUEvCVf0iEZdPbck38ywPSuhPlJVGdTW9BnyptMmiGS
-         6HvX9alN8hv8EN2KLmkiAoS/MI7NbBfo25K65O8H1IatGFXNp2l1oSWguZGpVqDuoM
-         3Klm+1bL3RvZQrBgRN5OQOIdYiTlaonBJdnmr5dY=
-Date:   Tue, 02 Mar 2021 15:39:38 -0800
+        b=NwpNovZ/t3X+yKPIbknSv8wkp+vW0SJe37+kaur0glwZtDUrjMtbVQ7UDCGQQDuhf
+         2y5A8/Gf9C0db76qFzEZDS9XFNjJz2fLZiH2WFZotxTAuH4bzcyGx+tUe3LTB8w4+m
+         sgswzVd6RlzQj2MQfAJfoADCo0XhVQSYLtK688go=
+Date:   Tue, 02 Mar 2021 15:39:30 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, almasrymina@google.com,
         axelrasmussen@google.com, bgeffon@google.com,
@@ -39,9 +39,9 @@ To:     aarcange@redhat.com, almasrymina@google.com,
         shuah@kernel.org, viro@zeniv.linux.org.uk, walken@google.com,
         wangqing@vivo.com
 Subject:  +
- userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
- added to -mm tree
-Message-ID: <20210302233938.05a9fhf7e%akpm@linux-foundation.org>
+ userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch added
+ to -mm tree
+Message-ID: <20210302233930.EAe7Ouyou%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/selftests: exercise minor fault handling shmem support
+     Subject: userfaultfd/selftests: create alias mappings in the shmem test
 has been added to the -mm tree.  Its filename is
-     userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
+     userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,12 +72,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/selftests: exercise minor fault handling shmem support
+Subject: userfaultfd/selftests: create alias mappings in the shmem test
 
-Enable test_uffdio_minor for test_type == TEST_SHMEM, and modify the test
-slightly to pass in / check for the right feature flags.
+Previously, we just allocated two shm areas: area_src and area_dst.  With
+this commit, change this so we also allocate area_src_alias, and
+area_dst_alias.
 
-Link: https://lkml.kernel.org/r/20210302000133.272579-6-axelrasmussen@google.com
+area_*_alias and area_* (respectively) point to the same underlying
+physical pages, but are different VMAs.  In a future commit in this
+series, we'll leverage this setup to exercise minor fault handling support
+for shmem, just like we do in the hugetlb_shared test.
+
+Link: https://lkml.kernel.org/r/20210302000133.272579-4-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -100,59 +106,67 @@ Cc: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   29 ++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-exercise-minor-fault-handling-shmem-support
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-create-alias-mappings-in-the-shmem-test
 +++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -1410,7 +1410,7 @@ static int userfaultfd_minor_test(void)
- 	void *expected_page;
- 	char c;
- 	struct uffd_stats stats = { 0 };
--	uint64_t features = UFFD_FEATURE_MINOR_HUGETLBFS;
-+	uint64_t req_features, features_out;
+@@ -298,8 +298,9 @@ static int shmem_release_pages(char *rel
  
- 	if (!test_uffdio_minor)
- 		return 0;
-@@ -1418,10 +1418,18 @@ static int userfaultfd_minor_test(void)
- 	printf("testing minor faults: ");
- 	fflush(stdout);
+ static void shmem_allocate_area(void **alloc_area)
+ {
+-	unsigned long offset =
+-		alloc_area == (void **)&area_src ? 0 : nr_pages * page_size;
++	void *area_alias = NULL;
++	bool is_src = alloc_area == (void **)&area_src;
++	unsigned long offset = is_src ? 0 : nr_pages * page_size;
  
--	if (uffd_test_ctx_clear() || uffd_test_ctx_init_ext(&features))
-+	if (test_type == TEST_HUGETLB)
-+		req_features = UFFD_FEATURE_MINOR_HUGETLBFS;
-+	else if (test_type == TEST_SHMEM)
-+		req_features = UFFD_FEATURE_MINOR_SHMEM;
-+	else
- 		return 1;
--	/* If kernel reports the feature isn't supported, skip the test. */
--	if (!(features & UFFD_FEATURE_MINOR_HUGETLBFS)) {
+ 	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
+ 			   MAP_SHARED, shm_fd, offset);
+@@ -308,12 +309,34 @@ static void shmem_allocate_area(void **a
+ 		goto fail;
+ 	}
+ 
++	area_alias = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
++			  MAP_SHARED, shm_fd, offset);
++	if (area_alias == MAP_FAILED) {
++		perror("mmap of memfd alias failed");
++		goto fail_munmap;
++	}
 +
-+	features_out = req_features;
-+	if (uffd_test_ctx_clear() || uffd_test_ctx_init_ext(&features_out))
-+		return 1;
-+	/* If kernel reports required features aren't supported, skip test. */
-+	if ((features_out & req_features) != req_features) {
- 		printf("skipping test due to lack of feature support\n");
- 		fflush(stdout);
- 		return 0;
-@@ -1431,7 +1439,7 @@ static int userfaultfd_minor_test(void)
- 	uffdio_register.range.len = nr_pages * page_size;
- 	uffdio_register.mode = UFFDIO_REGISTER_MODE_MINOR;
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register)) {
--		fprintf(stderr, "register failure\n");
-+		perror("register failure");
- 		exit(1);
- 	}
++	if (is_src)
++		area_src_alias = area_alias;
++	else
++		area_dst_alias = area_alias;
++
+ 	return;
  
-@@ -1695,6 +1703,7 @@ static void set_test_type(const char *ty
- 		map_shared = true;
- 		test_type = TEST_SHMEM;
- 		uffd_test_ops = &shmem_uffd_test_ops;
-+		test_uffdio_minor = true;
- 	} else {
- 		fprintf(stderr, "Unknown test type: %s\n", type); exit(1);
- 	}
++fail_munmap:
++	if (munmap(*alloc_area, nr_pages * page_size) < 0) {
++		perror("munmap of memfd failed\n");
++		exit(1);
++	}
+ fail:
+ 	*alloc_area = NULL;
+ }
+ 
++static void shmem_alias_mapping(__u64 *start, size_t len, unsigned long offset)
++{
++	*start = (unsigned long)area_dst_alias + offset;
++}
++
+ struct uffd_test_ops {
+ 	unsigned long expected_ioctls;
+ 	void (*allocate_area)(void **alloc_area);
+@@ -341,7 +364,7 @@ static struct uffd_test_ops shmem_uffd_t
+ 	.expected_ioctls = SHMEM_EXPECTED_IOCTLS,
+ 	.allocate_area	= shmem_allocate_area,
+ 	.release_pages	= shmem_release_pages,
+-	.alias_mapping = noop_alias_mapping,
++	.alias_mapping = shmem_alias_mapping,
+ };
+ 
+ static struct uffd_test_ops hugetlb_uffd_test_ops = {
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
