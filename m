@@ -7,45 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85602C433E6
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 21:12:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BD9EC433DB
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 23:36:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3ACF764F1E
-	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 21:12:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EDF6B64F39
+	for <mm-commits@archiver.kernel.org>; Tue,  2 Mar 2021 23:36:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383534AbhCBVEe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 Mar 2021 16:04:34 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47542 "EHLO mail.kernel.org"
+        id S230070AbhCBXee (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 Mar 2021 18:34:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39340 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345068AbhCBA1z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Mar 2021 19:27:55 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 57DBA6186A;
-        Tue,  2 Mar 2021 00:26:48 +0000 (UTC)
+        id S2361114AbhCBXZX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Mar 2021 18:25:23 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0C93764F32;
+        Tue,  2 Mar 2021 23:24:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614644809;
-        bh=jPlC0zFfY9UyKAKfE/LNiZmc+5TzvE+rVCg9LtJMKX4=;
+        s=korg; t=1614727482;
+        bh=rUH74RPxqp5qmngMmsLmE5yxVHOSEoW4+uUqe7IJdLM=;
         h=Date:From:To:Subject:From;
-        b=HFaICP5V38gX0e/qlPY09GLHhq2p3iEL+cx4EYAjePv+6epS1pD/FvSzP9JPhy8up
-         MDzhYpyQyHWVayVF3HmLgzTD/hNZPXI+Slaq6XpgI9J2w7SeySlyKLhtrmEwMcjWn7
-         F1TmDhPhMLGgdpVxKRNwD5hjeUIAdmTI8Vcffky8=
-Date:   Mon, 01 Mar 2021 16:26:47 -0800
+        b=0ntZLBVLoEnB/d7P630wSaTH/0VvO4DOvLsK/jLtTnwGVr+c+/Nb20mf3tOKPxwcB
+         uLvhe0KLnDdocP6WA24JSBQgNIjXqRK1WbTtVQjTPKQMePP0fzfG2OeRSGYla6Mg4J
+         5+tgaitMyWWJrxGpoem5xsb4YAb3snXdlD2sACSA=
+Date:   Tue, 02 Mar 2021 15:24:41 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, adobriyan@gmail.com, almasrymina@google.com,
-        anshuman.khandual@arm.com, axelrasmussen@google.com,
-        cannonmatthews@google.com, catalin.marinas@arm.com,
-        chinwen.chang@mediatek.com, dgilbert@redhat.com, jannh@google.com,
-        jglisse@redhat.com, kirill@shutemov.name, lokeshgidra@google.com,
-        mike.kravetz@oracle.com, mingo@redhat.com, mkoutny@suse.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
-        oupton@google.com, peterx@redhat.com, rientjes@google.com,
-        rostedt@goodmis.org, rppt@linux.vnet.ibm.com, ruprecht@google.com,
-        shawn@anastas.io, shli@fb.com, steven.price@arm.com,
-        vbabka@suse.cz, viro@zeniv.linux.org.uk, walken@google.com,
-        willy@infradead.org, ying.huang@intel.com
-Subject:  +
- userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch added
- to -mm tree
-Message-ID: <20210302002647.8XaYcS2va%akpm@linux-foundation.org>
+To:     axboe@kernel.dk, hch@lst.de, mm-commits@vger.kernel.org
+Subject:  + swap-fix-swapfile-read-write-offset.patch added to -mm
+ tree
+Message-ID: <20210302232441.wpJ0EuO_2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/selftests: add test exercising minor fault handling
+     Subject: swap: fix swapfile read/write offset
 has been added to the -mm tree.  Its filename is
-     userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch
+     swap-fix-swapfile-read-write-offset.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/swap-fix-swapfile-read-write-offset.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/swap-fix-swapfile-read-write-offset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,368 +63,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/selftests: add test exercising minor fault handling
+From: Jens Axboe <axboe@kernel.dk>
+Subject: swap: fix swapfile read/write offset
 
-Fix a dormant bug in userfaultfd_events_test(), where we did `return
-faulting_process(0)` instead of `exit(faulting_process(0))`.  This caused
-the forked process to keep running, trying to execute any further test
-cases after the events test in parallel with the "real" process.
+We're not factoring in the start of the file for where to write and read
+the swapfile, which leads to very unfortunate side effects of writing
+where we should not be...
 
-Add a simple test case which exercises minor faults. In short, it does
-the following:
-
-1. "Sets up" an area (area_dst) and a second shared mapping to the same
-   underlying pages (area_dst_alias).
-
-2. Register one of these areas with userfaultfd, in minor fault mode.
-
-3. Start a second thread to handle any minor faults.
-
-4. Populate the underlying pages with the non-UFFD-registered side of
-   the mapping. Basically, memset() each page with some arbitrary
-   contents.
-
-5. Then, using the UFFD-registered mapping, read all of the page
-   contents, asserting that the contents match expectations (we expect
-   the minor fault handling thread can modify the page contents before
-   resolving the fault).
-
-The minor fault handling thread, upon receiving an event, flips all the
-bits (~) in that page, just to prove that it can modify it in some
-arbitrary way.  Then it issues a UFFDIO_CONTINUE ioctl, to setup the
-mapping and resolve the fault.  The reading thread should wake up and see
-this modification.
-
-Currently the minor fault test is only enabled in hugetlb_shared mode, as
-this is the only configuration the kernel feature supports.
-
-Link: https://lkml.kernel.org/r/20210301222728.176417-7-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Adam Ruprecht <ruprecht@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Cannon Matthews <cannonmatthews@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Michal Koutn" <mkoutny@suse.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oliver Upton <oupton@google.com>
-Cc: Shaohua Li <shli@fb.com>
-Cc: Shawn Anastasio <shawn@anastas.io>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/6f9da9c6-c6c5-08fe-95ea-940954456c40@kernel.dk
+Fixes: 48d15436fde6 ("mm: remove get_swap_bio")
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |  164 ++++++++++++++++++++-
- 1 file changed, 158 insertions(+), 6 deletions(-)
+ include/linux/swap.h |    1 +
+ mm/page_io.c         |    5 -----
+ mm/swapfile.c        |   17 +++++++++++++++--
+ 3 files changed, 16 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-add-test-exercising-minor-fault-handling
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -81,6 +81,8 @@ static volatile bool test_uffdio_copy_ee
- static volatile bool test_uffdio_zeropage_eexist = true;
- /* Whether to test uffd write-protection */
- static bool test_uffdio_wp = false;
-+/* Whether to test uffd minor faults */
-+static bool test_uffdio_minor = false;
+--- a/include/linux/swap.h~swap-fix-swapfile-read-write-offset
++++ a/include/linux/swap.h
+@@ -485,6 +485,7 @@ struct backing_dev_info;
+ extern int init_swap_address_space(unsigned int type, unsigned long nr_pages);
+ extern void exit_swap_address_space(unsigned int type);
+ extern struct swap_info_struct *get_swap_device(swp_entry_t entry);
++sector_t swap_page_sector(struct page *page);
  
- static bool map_shared;
- static int huge_fd;
-@@ -96,6 +98,7 @@ struct uffd_stats {
- 	int cpu;
- 	unsigned long missing_faults;
- 	unsigned long wp_faults;
-+	unsigned long minor_faults;
- };
- 
- /* pthread_mutex_t starts at page offset 0 */
-@@ -153,17 +156,19 @@ static void uffd_stats_reset(struct uffd
- 		uffd_stats[i].cpu = i;
- 		uffd_stats[i].missing_faults = 0;
- 		uffd_stats[i].wp_faults = 0;
-+		uffd_stats[i].minor_faults = 0;
- 	}
- }
- 
- static void uffd_stats_report(struct uffd_stats *stats, int n_cpus)
+ static inline void put_swap_device(struct swap_info_struct *si)
  {
- 	int i;
--	unsigned long long miss_total = 0, wp_total = 0;
-+	unsigned long long miss_total = 0, wp_total = 0, minor_total = 0;
- 
- 	for (i = 0; i < n_cpus; i++) {
- 		miss_total += stats[i].missing_faults;
- 		wp_total += stats[i].wp_faults;
-+		minor_total += stats[i].minor_faults;
- 	}
- 
- 	printf("userfaults: %llu missing (", miss_total);
-@@ -172,6 +177,9 @@ static void uffd_stats_report(struct uff
- 	printf("\b), %llu wp (", wp_total);
- 	for (i = 0; i < n_cpus; i++)
- 		printf("%lu+", stats[i].wp_faults);
-+	printf("\b), %llu minor (", minor_total);
-+	for (i = 0; i < n_cpus; i++)
-+		printf("%lu+", stats[i].minor_faults);
- 	printf("\b)\n");
+--- a/mm/page_io.c~swap-fix-swapfile-read-write-offset
++++ a/mm/page_io.c
+@@ -254,11 +254,6 @@ out:
+ 	return ret;
  }
  
-@@ -328,7 +336,7 @@ static struct uffd_test_ops shmem_uffd_t
- };
- 
- static struct uffd_test_ops hugetlb_uffd_test_ops = {
--	.expected_ioctls = UFFD_API_RANGE_IOCTLS_BASIC,
-+	.expected_ioctls = UFFD_API_RANGE_IOCTLS_BASIC & ~(1 << _UFFDIO_CONTINUE),
- 	.allocate_area	= hugetlb_allocate_area,
- 	.release_pages	= hugetlb_release_pages,
- 	.alias_mapping = hugetlb_alias_mapping,
-@@ -362,6 +370,22 @@ static void wp_range(int ufd, __u64 star
- 	}
+-static sector_t swap_page_sector(struct page *page)
+-{
+-	return (sector_t)__page_file_index(page) << (PAGE_SHIFT - 9);
+-}
+-
+ static inline void count_swpout_vm_event(struct page *page)
+ {
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+--- a/mm/swapfile.c~swap-fix-swapfile-read-write-offset
++++ a/mm/swapfile.c
+@@ -199,8 +199,8 @@ static int discard_swap(struct swap_info
+ 	return err;		/* That will often be -EOPNOTSUPP */
  }
  
-+static void continue_range(int ufd, __u64 start, __u64 len)
+-static struct swap_extent *
+-offset_to_swap_extent(struct swap_info_struct *sis, unsigned long offset)
++struct swap_extent *offset_to_swap_extent(struct swap_info_struct *sis,
++					  unsigned long offset)
+ {
+ 	struct swap_extent *se;
+ 	struct rb_node *rb;
+@@ -1858,6 +1858,19 @@ sector_t swapdev_block(int type, pgoff_t
+ 	return se->start_block + (offset - se->start_page);
+ }
+ 
++sector_t swap_page_sector(struct page *page)
 +{
-+	struct uffdio_continue req;
++	struct swap_info_struct *sis = page_swap_info(page);
++	struct swap_extent *se;
++	sector_t sector;
++	pgoff_t offset;
 +
-+	req.range.start = start;
-+	req.range.len = len;
-+	req.mode = 0;
-+
-+	if (ioctl(ufd, UFFDIO_CONTINUE, &req)) {
-+		fprintf(stderr,
-+			"UFFDIO_CONTINUE failed for address 0x%" PRIx64 "\n",
-+			(uint64_t)start);
-+		exit(1);
-+	}
++	offset = __page_file_index(page);
++	se = offset_to_swap_extent(sis, offset);
++	sector = se->start_block + (offset - se->start_page);
++	return sector << (PAGE_SHIFT - 9);
 +}
 +
- static void *locking_thread(void *arg)
- {
- 	unsigned long cpu = (unsigned long) arg;
-@@ -569,8 +593,32 @@ static void uffd_handle_page_fault(struc
- 	}
- 
- 	if (msg->arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WP) {
-+		/* Write protect page faults */
- 		wp_range(uffd, msg->arg.pagefault.address, page_size, false);
- 		stats->wp_faults++;
-+	} else if (msg->arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_MINOR) {
-+		uint8_t *area;
-+		int b;
-+
-+		/*
-+		 * Minor page faults
-+		 *
-+		 * To prove we can modify the original range for testing
-+		 * purposes, we're going to bit flip this range before
-+		 * continuing.
-+		 *
-+		 * Note that this requires all minor page fault tests operate on
-+		 * area_dst (non-UFFD-registered) and area_dst_alias
-+		 * (UFFD-registered).
-+		 */
-+
-+		area = (uint8_t *)(area_dst +
-+				   ((char *)msg->arg.pagefault.address -
-+				    area_dst_alias));
-+		for (b = 0; b < page_size; ++b)
-+			area[b] = ~area[b];
-+		continue_range(uffd, msg->arg.pagefault.address, page_size);
-+		stats->minor_faults++;
- 	} else {
- 		/* Missing page faults */
- 		if (bounces & BOUNCE_VERIFY &&
-@@ -779,7 +827,7 @@ static int stress(struct uffd_stats *uff
- 	return 0;
- }
- 
--static int userfaultfd_open(int features)
-+static int userfaultfd_open_ext(uint64_t *features)
- {
- 	struct uffdio_api uffdio_api;
- 
-@@ -792,7 +840,7 @@ static int userfaultfd_open(int features
- 	uffd_flags = fcntl(uffd, F_GETFD, NULL);
- 
- 	uffdio_api.api = UFFD_API;
--	uffdio_api.features = features;
-+	uffdio_api.features = *features;
- 	if (ioctl(uffd, UFFDIO_API, &uffdio_api)) {
- 		fprintf(stderr, "UFFDIO_API failed.\nPlease make sure to "
- 			"run with either root or ptrace capability.\n");
-@@ -804,9 +852,15 @@ static int userfaultfd_open(int features
- 		return 1;
- 	}
- 
-+	*features = uffdio_api.features;
- 	return 0;
- }
- 
-+static int userfaultfd_open(uint64_t features)
-+{
-+	return userfaultfd_open_ext(&features);
-+}
-+
- sigjmp_buf jbuf, *sigbuf;
- 
- static void sighndl(int sig, siginfo_t *siginfo, void *ptr)
-@@ -1112,7 +1166,7 @@ static int userfaultfd_events_test(void)
- 	}
- 
- 	if (!pid)
--		return faulting_process(0);
-+		exit(faulting_process(0));
- 
- 	waitpid(pid, &err, 0);
- 	if (err) {
-@@ -1215,6 +1269,102 @@ static int userfaultfd_sig_test(void)
- 	return userfaults != 0;
- }
- 
-+static int userfaultfd_minor_test(void)
-+{
-+	struct uffdio_register uffdio_register;
-+	unsigned long expected_ioctls;
-+	unsigned long p;
-+	pthread_t uffd_mon;
-+	uint8_t expected_byte;
-+	void *expected_page;
-+	char c;
-+	struct uffd_stats stats = { 0 };
-+	uint64_t features = UFFD_FEATURE_MINOR_HUGETLBFS;
-+
-+	if (!test_uffdio_minor)
-+		return 0;
-+
-+	printf("testing minor faults: ");
-+	fflush(stdout);
-+
-+	if (uffd_test_ops->release_pages(area_dst))
-+		return 1;
-+
-+	if (userfaultfd_open_ext(&features))
-+		return 1;
-+	/* If kernel reports the feature isn't supported, skip the test. */
-+	if (!(features & UFFD_FEATURE_MINOR_HUGETLBFS)) {
-+		printf("skipping test due to lack of feature support\n");
-+		fflush(stdout);
-+		return 0;
-+	}
-+
-+	uffdio_register.range.start = (unsigned long)area_dst_alias;
-+	uffdio_register.range.len = nr_pages * page_size;
-+	uffdio_register.mode = UFFDIO_REGISTER_MODE_MINOR;
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register)) {
-+		fprintf(stderr, "register failure\n");
-+		exit(1);
-+	}
-+
-+	expected_ioctls = uffd_test_ops->expected_ioctls;
-+	expected_ioctls |= 1 << _UFFDIO_CONTINUE;
-+	if ((uffdio_register.ioctls & expected_ioctls) != expected_ioctls) {
-+		fprintf(stderr, "unexpected missing ioctl(s)\n");
-+		exit(1);
-+	}
-+
-+	/*
-+	 * After registering with UFFD, populate the non-UFFD-registered side of
-+	 * the shared mapping. This should *not* trigger any UFFD minor faults.
-+	 */
-+	for (p = 0; p < nr_pages; ++p) {
-+		memset(area_dst + (p * page_size), p % ((uint8_t)-1),
-+		       page_size);
-+	}
-+
-+	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats)) {
-+		perror("uffd_poll_thread create");
-+		exit(1);
-+	}
-+
-+	/*
-+	 * Read each of the pages back using the UFFD-registered mapping. We
-+	 * expect that the first time we touch a page, it will result in a minor
-+	 * fault. uffd_poll_thread will resolve the fault by bit-flipping the
-+	 * page's contents, and then issuing a CONTINUE ioctl.
-+	 */
-+
-+	if (posix_memalign(&expected_page, page_size, page_size)) {
-+		fprintf(stderr, "out of memory\n");
-+		return 1;
-+	}
-+
-+	for (p = 0; p < nr_pages; ++p) {
-+		expected_byte = ~((uint8_t)(p % ((uint8_t)-1)));
-+		memset(expected_page, expected_byte, page_size);
-+		if (my_bcmp(expected_page, area_dst_alias + (p * page_size),
-+			    page_size)) {
-+			fprintf(stderr,
-+				"unexpected page contents after minor fault\n");
-+			exit(1);
-+		}
-+	}
-+
-+	if (write(pipefd[1], &c, sizeof(c)) != sizeof(c)) {
-+		perror("pipe write");
-+		exit(1);
-+	}
-+	if (pthread_join(uffd_mon, NULL))
-+		return 1;
-+
-+	close(uffd);
-+
-+	uffd_stats_report(&stats, 1);
-+
-+	return stats.missing_faults != 0 || stats.minor_faults != nr_pages;
-+}
-+
- static int userfaultfd_stress(void)
- {
- 	void *area;
-@@ -1413,7 +1563,7 @@ static int userfaultfd_stress(void)
- 
- 	close(uffd);
- 	return userfaultfd_zeropage_test() || userfaultfd_sig_test()
--		|| userfaultfd_events_test();
-+		|| userfaultfd_events_test() || userfaultfd_minor_test();
- }
- 
  /*
-@@ -1454,6 +1604,8 @@ static void set_test_type(const char *ty
- 		map_shared = true;
- 		test_type = TEST_HUGETLB;
- 		uffd_test_ops = &hugetlb_uffd_test_ops;
-+		/* Minor faults require shared hugetlb; only enable here. */
-+		test_uffdio_minor = true;
- 	} else if (!strcmp(type, "shmem")) {
- 		map_shared = true;
- 		test_type = TEST_SHMEM;
+  * Return either the total number of swap pages of given type, or the number
+  * of free pages of that type (depending on @free)
 _
 
-Patches currently in -mm which might be from axelrasmussen@google.com are
+Patches currently in -mm which might be from axboe@kernel.dk are
 
-userfaultfd-add-minor-fault-registration-mode.patch
-userfaultfd-disable-huge-pmd-sharing-for-minor-registered-vmas.patch
-userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
-userfaultfd-add-uffdio_continue-ioctl.patch
-userfaultfd-update-documentation-to-describe-minor-fault-handling.patch
-userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch
+swap-fix-swapfile-read-write-offset.patch
 
