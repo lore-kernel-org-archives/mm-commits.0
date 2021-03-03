@@ -5,40 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B0DCC433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F368C4332D
 	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:33:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BEB4A64E02
-	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:33:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4037164E02
+	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:33:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1381334AbhCCNaL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 08:30:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60222 "EHLO mail.kernel.org"
+        id S1381688AbhCCNag (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 08:30:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46164 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232583AbhCCAMK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Mar 2021 19:12:10 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E7AA360234;
-        Wed,  3 Mar 2021 00:02:34 +0000 (UTC)
+        id S232253AbhCCAfw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Mar 2021 19:35:52 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B647B64FAB;
+        Wed,  3 Mar 2021 00:35:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614729755;
-        bh=n23iScjmE6AMQAJf8609TFlTdmMUMsDa04yAdGN7sY4=;
+        s=korg; t=1614731700;
+        bh=VyPUZIRlU8BQtBEJ3Go96hPQSAggN1n5NlI3M2NLO/w=;
         h=Date:From:To:Subject:From;
-        b=aycWdvSk1OC3vqcDyVisi8Nk2SENLEzO7Q1FgTptx7gtEb0/ymPqxN3O0NYHLngpJ
-         lpmivs3CPJvkapz1dluunZQxpE+K/NIplsGH7G2vkmmntRdwqcbSveegD7W4L1S8gX
-         U00GNNW2MJw8cng9e8i/EEWL8nqr24VuVGjDtano=
-Date:   Tue, 02 Mar 2021 16:02:34 -0800
+        b=PeWnCAgmdl4MgAc9Ta3CakmKfSb0cuN4OjtUGr77D7U1v/ezZvBccywG2f+BEy6Qe
+         VGRgAvH0/0imzeRLaeN1nBkI+LTzg3FYWkp9qQTJnfxluv5Ott0skDK8xE5ZmuKviF
+         wScTYtQBKyjmnS9h3khBUmQYiTz996LEkRUWt1ks=
+Date:   Tue, 02 Mar 2021 16:35:00 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org
-Subject:  +
- =?US-ASCII?Q?mm-hugetlb-remove-redundant-reservation-check-condition-in-a?=
- =?US-ASCII?Q?lloc=5Fhuge=5Fpage.patch?= added to -mm tree
-Message-ID: <20210303000234.WFozoLnBy%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
+        stable@vger.kernel.org
+Subject:  + squashfs-fix-xattr-id-and-id-lookup-sanity-checks.patch
+ added to -mm tree
+Message-ID: <20210303003500.c6fdpj8ep%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: remove redundant reservation check condition in alloc_huge_page()
+     Subject: squashfs: fix xattr id and id lookup sanity checks
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
+     squashfs-fix-xattr-id-and-id-lookup-sanity-checks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/squashfs-fix-xattr-id-and-id-lookup-sanity-checks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/squashfs-fix-xattr-id-and-id-lookup-sanity-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,45 +64,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: remove redundant reservation check condition in alloc_huge_page()
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: squashfs: fix xattr id and id lookup sanity checks
 
-vma_resv_map(vma) checks if a reserve map is associated with the vma.  The
-routine vma_needs_reservation() will check vma_resv_map(vma) and return 1
-if no reserv map is present.  map_chg is set to the return value of
-vma_needs_reservation().  Therefore, !vma_resv_map(vma) is redundant in
-the expression:
+The checks for maximum metadata block size is missing
+SQUASHFS_BLOCK_OFFSET (the two byte length count).
 
-	map_chg || avoid_reserve || !vma_resv_map(vma);
-
-Remove the redundant check.
-
-[Thanks Mike Kravetz for reshaping this commit message!]
-
-Link: https://lkml.kernel.org/r/20210301104726.45159-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/2069685113.2081245.1614583677427@webmail.123-reg.co.uk
+Fixes: f37aa4c7366e23f ("squashfs: add more sanity checks in id lookup")
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/squashfs/id.c       |    6 ++++--
+ fs/squashfs/xattr_id.c |    6 ++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page
-+++ a/mm/hugetlb.c
-@@ -2314,7 +2314,7 @@ struct page *alloc_huge_page(struct vm_a
+--- a/fs/squashfs/id.c~squashfs-fix-xattr-id-and-id-lookup-sanity-checks
++++ a/fs/squashfs/id.c
+@@ -97,14 +97,16 @@ __le64 *squashfs_read_id_index_table(str
+ 		start = le64_to_cpu(table[n]);
+ 		end = le64_to_cpu(table[n + 1]);
  
- 	/* If this allocation is not consuming a reservation, charge it now.
- 	 */
--	deferred_reserve = map_chg || avoid_reserve || !vma_resv_map(vma);
-+	deferred_reserve = map_chg || avoid_reserve;
- 	if (deferred_reserve) {
- 		ret = hugetlb_cgroup_charge_cgroup_rsvd(
- 			idx, pages_per_huge_page(h), &h_cg);
+-		if (start >= end || (end - start) > SQUASHFS_METADATA_SIZE) {
++		if (start >= end || (end - start) >
++				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
+ 			kfree(table);
+ 			return ERR_PTR(-EINVAL);
+ 		}
+ 	}
+ 
+ 	start = le64_to_cpu(table[indexes - 1]);
+-	if (start >= id_table_start || (id_table_start - start) > SQUASHFS_METADATA_SIZE) {
++	if (start >= id_table_start || (id_table_start - start) >
++				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
+ 		kfree(table);
+ 		return ERR_PTR(-EINVAL);
+ 	}
+--- a/fs/squashfs/xattr_id.c~squashfs-fix-xattr-id-and-id-lookup-sanity-checks
++++ a/fs/squashfs/xattr_id.c
+@@ -109,14 +109,16 @@ __le64 *squashfs_read_xattr_id_table(str
+ 		start = le64_to_cpu(table[n]);
+ 		end = le64_to_cpu(table[n + 1]);
+ 
+-		if (start >= end || (end - start) > SQUASHFS_METADATA_SIZE) {
++		if (start >= end || (end - start) >
++				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
+ 			kfree(table);
+ 			return ERR_PTR(-EINVAL);
+ 		}
+ 	}
+ 
+ 	start = le64_to_cpu(table[indexes - 1]);
+-	if (start >= table_start || (table_start - start) > SQUASHFS_METADATA_SIZE) {
++	if (start >= table_start || (table_start - start) >
++				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
+ 		kfree(table);
+ 		return ERR_PTR(-EINVAL);
+ 	}
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
-hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings.patch
-mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
+squashfs-fix-xattr-id-and-id-lookup-sanity-checks.patch
 
