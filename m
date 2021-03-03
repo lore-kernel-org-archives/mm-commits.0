@@ -4,38 +4,36 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9012C43332
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 377DDC433E9
 	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:33:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D36F64E02
-	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:33:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DED4864E87
+	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:33:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1381901AbhCCNao (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 08:30:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48950 "EHLO mail.kernel.org"
+        id S1381416AbhCCNaV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 08:30:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60348 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233283AbhCCAmM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Mar 2021 19:42:12 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CF7C064FA6;
-        Wed,  3 Mar 2021 00:41:26 +0000 (UTC)
+        id S233381AbhCCANI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Mar 2021 19:13:08 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F13C564F1C;
+        Wed,  3 Mar 2021 00:11:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614732087;
-        bh=8/yEeZMFQW1xSJUCIk0lY5Wnb4soYOl2pZG18Xn0CnU=;
+        s=korg; t=1614730296;
+        bh=ZheNazK0gXBxkhycgBsDfN2TOpwohnzazLB5KbHXJ+o=;
         h=Date:From:To:Subject:From;
-        b=TPpwqig3yyU9rYCsEr0CYM/IlJ1lE8+3jiDoxx1Q/YU0NJHuPzKT8TAv5iVv9PG+P
-         FvSStx2N71o9aJqrmipXvORcdXU30bY/59hump344Gj3eej0BGbNlDi6bBYX3Ogyxc
-         JNdC/6GTflur4o05Q4UQBNpzovAuGn78xiWI/6fA=
-Date:   Tue, 02 Mar 2021 16:41:26 -0800
+        b=bLfsha5tKIwWuv4loVneaonQFTpSbb6h/ye+kWY5Q7DaUosp0/TLbgmKLLrWpgK7h
+         37Hpk6/EK8gW9PSY5e23jpOzDUmouwWbRFSfAbT1jJzW/B1SgF1yt0a2NtjYoC89kM
+         th52SwzpjUqG2PakFVh5CkkziUePU280XzJWKu+4=
+Date:   Tue, 02 Mar 2021 16:11:35 -0800
 From:   akpm@linux-foundation.org
-To:     deller@gmx.de, liorribak@gmail.com, mm-commits@vger.kernel.org,
-        viro@zeniv.linux.org.uk
-Subject:  +
- binfmt_misc-fix-possible-deadlock-in-bm_register_write.patch added to -mm
- tree
-Message-ID: <20210303004126.GpV_085-4%akpm@linux-foundation.org>
+To:     hch@lst.de, kwankhede@nvidia.com, mm-commits@vger.kernel.org
+Subject:  + samples-vfio-mdev-mdpy-use-remap_vmalloc_range.patch
+ added to -mm tree
+Message-ID: <20210303001135.poYLLBLXH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: binfmt_misc: fix possible deadlock in bm_register_write
+     Subject: samples/vfio-mdev/mdpy: use remap_vmalloc_range
 has been added to the -mm tree.  Its filename is
-     binfmt_misc-fix-possible-deadlock-in-bm_register_write.patch
+     samples-vfio-mdev-mdpy-use-remap_vmalloc_range.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/binfmt_misc-fix-possible-deadlock-in-bm_register_write.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/samples-vfio-mdev-mdpy-use-remap_vmalloc_range.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/binfmt_misc-fix-possible-deadlock-in-bm_register_write.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/samples-vfio-mdev-mdpy-use-remap_vmalloc_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,118 +63,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lior Ribak <liorribak@gmail.com>
-Subject: binfmt_misc: fix possible deadlock in bm_register_write
+From: Christoph Hellwig <hch@lst.de>
+Subject: samples/vfio-mdev/mdpy: use remap_vmalloc_range
 
-There is a deadlock in bm_register_write:
+Patch series "remap_vmalloc_range cleanups".
 
-First, in the begining of the function, a lock is taken on the binfmt_misc
-root inode with inode_lock(d_inode(root)).
+This series removes an open coded instance of remap_vmalloc_range and
+removes the unused remap_vmalloc_range_partial export.
 
-Then, if the user used the MISC_FMT_OPEN_FILE flag, the function will call
-open_exec on the user-provided interpreter.
 
-open_exec will call a path lookup, and if the path lookup process includes
-the root of binfmt_misc, it will try to take a shared lock on its inode
-again, but it is already locked, and the code will get stuck in a deadlock
+This patch (of 2):
 
-To reproduce the bug:
-$ echo ":iiiii:E::ii::/proc/sys/fs/binfmt_misc/bla:F" > /proc/sys/fs/binfmt_misc/register
+Use remap_vmalloc_range instead of open coding it using
+remap_vmalloc_range_partial.
 
-backtrace of where the lock occurs (#5):
-0  schedule () at ./arch/x86/include/asm/current.h:15
-1  0xffffffff81b51237 in rwsem_down_read_slowpath (sem=0xffff888003b202e0, count=<optimized out>, state=state@entry=2) at kernel/locking/rwsem.c:992
-2  0xffffffff81b5150a in __down_read_common (state=2, sem=<optimized out>) at kernel/locking/rwsem.c:1213
-3  __down_read (sem=<optimized out>) at kernel/locking/rwsem.c:1222
-4  down_read (sem=<optimized out>) at kernel/locking/rwsem.c:1355
-5  0xffffffff811ee22a in inode_lock_shared (inode=<optimized out>) at ./include/linux/fs.h:783
-6  open_last_lookups (op=0xffffc9000022fe34, file=0xffff888004098600, nd=0xffffc9000022fd10) at fs/namei.c:3177
-7  path_openat (nd=nd@entry=0xffffc9000022fd10, op=op@entry=0xffffc9000022fe34, flags=flags@entry=65) at fs/namei.c:3366
-8  0xffffffff811efe1c in do_filp_open (dfd=<optimized out>, pathname=pathname@entry=0xffff8880031b9000, op=op@entry=0xffffc9000022fe34) at fs/namei.c:3396
-9  0xffffffff811e493f in do_open_execat (fd=fd@entry=-100, name=name@entry=0xffff8880031b9000, flags=<optimized out>, flags@entry=0) at fs/exec.c:913
-10 0xffffffff811e4a92 in open_exec (name=<optimized out>) at fs/exec.c:948
-11 0xffffffff8124aa84 in bm_register_write (file=<optimized out>, buffer=<optimized out>, count=19, ppos=<optimized out>) at fs/binfmt_misc.c:682
-12 0xffffffff811decd2 in vfs_write (file=file@entry=0xffff888004098500, buf=buf@entry=0xa758d0 ":iiiii:E::ii::i:CF
-", count=count@entry=19, pos=pos@entry=0xffffc9000022ff10) at fs/read_write.c:603
-13 0xffffffff811defda in ksys_write (fd=<optimized out>, buf=0xa758d0 ":iiiii:E::ii::i:CF
-", count=19) at fs/read_write.c:658
-14 0xffffffff81b49813 in do_syscall_64 (nr=<optimized out>, regs=0xffffc9000022ff58) at arch/x86/entry/common.c:46
-15 0xffffffff81c0007c in entry_SYSCALL_64 () at arch/x86/entry/entry_64.S:120
-
-To solve the issue, the open_exec call is moved to before the write
-lock is taken by bm_register_write
-
-Link: https://lkml.kernel.org/r/20210228224414.95962-1-liorribak@gmail.com
-Signed-off-by: Lior Ribak <liorribak@gmail.com>
-Acked-by: Helge Deller <deller@gmx.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: https://lkml.kernel.org/r/20210301082235.932968-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20210301082235.932968-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Kirti Wankhede <kwankhede@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |   29 ++++++++++++++---------------
- 1 file changed, 14 insertions(+), 15 deletions(-)
+ samples/vfio-mdev/mdpy.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/fs/binfmt_misc.c~binfmt_misc-fix-possible-deadlock-in-bm_register_write
-+++ a/fs/binfmt_misc.c
-@@ -649,12 +649,24 @@ static ssize_t bm_register_write(struct
- 	struct super_block *sb = file_inode(file)->i_sb;
- 	struct dentry *root = sb->s_root, *dentry;
- 	int err = 0;
-+	struct file *f = NULL;
+--- a/samples/vfio-mdev/mdpy.c~samples-vfio-mdev-mdpy-use-remap_vmalloc_range
++++ a/samples/vfio-mdev/mdpy.c
+@@ -417,9 +417,7 @@ static int mdpy_mmap(struct mdev_device
+ 	if ((vma->vm_flags & VM_SHARED) == 0)
+ 		return -EINVAL;
  
- 	e = create_entry(buffer, count);
+-	return remap_vmalloc_range_partial(vma, vma->vm_start,
+-					   mdev_state->memblk, 0,
+-					   vma->vm_end - vma->vm_start);
++	return remap_vmalloc_range(vma, mdev_state->memblk, 0);
+ }
  
- 	if (IS_ERR(e))
- 		return PTR_ERR(e);
- 
-+	if (e->flags & MISC_FMT_OPEN_FILE) {
-+		f = open_exec(e->interpreter);
-+		if (IS_ERR(f)) {
-+			pr_notice("register: failed to install interpreter file %s\n",
-+				 e->interpreter);
-+			kfree(e);
-+			return PTR_ERR(f);
-+		}
-+		e->interp_file = f;
-+	}
-+
- 	inode_lock(d_inode(root));
- 	dentry = lookup_one_len(e->name, root, strlen(e->name));
- 	err = PTR_ERR(dentry);
-@@ -678,21 +690,6 @@ static ssize_t bm_register_write(struct
- 		goto out2;
- 	}
- 
--	if (e->flags & MISC_FMT_OPEN_FILE) {
--		struct file *f;
--
--		f = open_exec(e->interpreter);
--		if (IS_ERR(f)) {
--			err = PTR_ERR(f);
--			pr_notice("register: failed to install interpreter file %s\n", e->interpreter);
--			simple_release_fs(&bm_mnt, &entry_count);
--			iput(inode);
--			inode = NULL;
--			goto out2;
--		}
--		e->interp_file = f;
--	}
--
- 	e->dentry = dget(dentry);
- 	inode->i_private = e;
- 	inode->i_fop = &bm_entry_operations;
-@@ -709,6 +706,8 @@ out:
- 	inode_unlock(d_inode(root));
- 
- 	if (err) {
-+		if (f)
-+			filp_close(f, NULL);
- 		kfree(e);
- 		return err;
- 	}
+ static int mdpy_get_region_info(struct mdev_device *mdev,
 _
 
-Patches currently in -mm which might be from liorribak@gmail.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-binfmt_misc-fix-possible-deadlock-in-bm_register_write.patch
+samples-vfio-mdev-mdpy-use-remap_vmalloc_range.patch
+mm-unexport-remap_vmalloc_range_partial.patch
 
