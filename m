@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 754E6C4321A
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 250B8C43332
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E64864F02
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0217D64E7C
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239353AbhCDA6y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:58:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39418 "EHLO mail.kernel.org"
+        id S236685AbhCDA6u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:58:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33278 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1354496AbhCDAJY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 19:09:24 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F3BB164F3F;
-        Thu,  4 Mar 2021 00:07:26 +0000 (UTC)
+        id S1353203AbhCDADp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 19:03:45 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B47A864F0D;
+        Wed,  3 Mar 2021 23:24:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614816447;
-        bh=wIu7yJ2HBvzM8EkUPSwNuz7x/51sQQJGlQOEAvlhhrk=;
+        s=korg; t=1614813900;
+        bh=F9Ajsmv7+gYte8s9Tww7+8ruuXeCoORFvc4/FXD1R14=;
         h=Date:From:To:Subject:From;
-        b=TyRCJzBGxQTlFf+sse0avtpLMIAJBj69WjgXHTrr9TrmTJjhch+f4vvlsURbd6VWh
-         ish47nIDGZJXNljGWxkYe3UGZ1WTow49HXyKZ4kX7nviyfHVzpsm0m60LbNFsUNpF1
-         iwCFEb/gs1OmCLjH8EyWkju2AR+/fsNStTUvlKf4=
-Date:   Wed, 03 Mar 2021 16:07:26 -0800
+        b=hub38i0JX1oemv07HggUFQ+i7XP00NNdM+zJbomvZncgTFdAGYk6rNmYSd/YnXNO+
+         vZv6TECRr5svEOASG+V2CT0/oA3nwYg+shVjYt6jD1F7cqimusiK2p2yXsDXj10n/F
+         qSsysiyjYs+GearRJmLFGKRLWJwPFDwb/ywJ+dYc=
+Date:   Wed, 03 Mar 2021 15:24:59 -0800
 From:   akpm@linux-foundation.org
-To:     mhocko@suse.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        vbabka@suse.cz, willy@infradead.org
-Subject:  +
- mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask.patch added
- to -mm tree
-Message-ID: <20210304000726.ooJzDMPQj%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, arnd@arndb.de, dvyukov@google.com,
+        glider@google.com, mm-commits@vger.kernel.org,
+        natechancellor@gmail.com, ryabinin.a.a@gmail.com,
+        walter-zh.wu@mediatek.com
+Subject:  + kasan-remove-redundant-config-option.patch added to -mm
+ tree
+Message-ID: <20210303232459.Jw3Aq7z7n%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: combine __alloc_pages and __alloc_pages_nodemask
+     Subject: kasan: remove redundant config option
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask.patch
+     kasan-remove-redundant-config-option.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-remove-redundant-config-option.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-remove-redundant-config-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,169 +66,189 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/page_alloc: combine __alloc_pages and __alloc_pages_nodemask
+From: Walter Wu <walter-zh.wu@mediatek.com>
+Subject: kasan: remove redundant config option
 
-There are only two callers of __alloc_pages() so prune the thicket of
-alloc_page variants by combining the two functions together.  Current
-callers of __alloc_pages() simply add an extra 'NULL' parameter and
-current callers of __alloc_pages_nodemask() call __alloc_pages() instead.
+CONFIG_KASAN_STACK and CONFIG_KASAN_STACK_ENABLE both enable KASAN stack
+instrumentation, but we should only need one config, so that we remove
+CONFIG_KASAN_STACK_ENABLE and make CONFIG_KASAN_STACK workable.  see [1].
 
-Link: https://lkml.kernel.org/r/20210225150642.2582252-4-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
+When enable KASAN stack instrumentation, then for gcc we could do no
+prompt and default value y, and for clang prompt and default value n.
+
+[1]: https://bugzilla.kernel.org/show_bug.cgi?id=210221
+
+Link: https://lkml.kernel.org/r/20210226012531.29231-1-walter-zh.wu@mediatek.com
+Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
+Suggested-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    2 +-
- include/linux/gfp.h                        |   13 +++----------
- mm/hugetlb.c                               |    2 +-
- mm/internal.h                              |    4 ++--
- mm/mempolicy.c                             |    6 +++---
- mm/migrate.c                               |    2 +-
- mm/page_alloc.c                            |    5 ++---
- 7 files changed, 13 insertions(+), 21 deletions(-)
+ arch/arm64/kernel/sleep.S        |    2 +-
+ arch/x86/kernel/acpi/wakeup_64.S |    2 +-
+ include/linux/kasan.h            |    2 +-
+ lib/Kconfig.kasan                |    8 ++------
+ mm/kasan/common.c                |    2 +-
+ mm/kasan/kasan.h                 |    2 +-
+ mm/kasan/report_generic.c        |    2 +-
+ scripts/Makefile.kasan           |   10 ++++++++--
+ security/Kconfig.hardening       |    4 ++--
+ 9 files changed, 18 insertions(+), 16 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -402,7 +402,7 @@ compact_fail
- 	but failed.
+--- a/arch/arm64/kernel/sleep.S~kasan-remove-redundant-config-option
++++ a/arch/arm64/kernel/sleep.S
+@@ -134,7 +134,7 @@ SYM_FUNC_START(_cpu_resume)
+ 	 */
+ 	bl	cpu_do_resume
  
- It is possible to establish how long the stalls were using the function
--tracer to record how long was spent in __alloc_pages_nodemask and
-+tracer to record how long was spent in __alloc_pages() and
- using the mm_page_alloc tracepoint to identify which allocations were
- for huge pages.
- 
---- a/include/linux/gfp.h~mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask
-+++ a/include/linux/gfp.h
-@@ -515,15 +515,8 @@ static inline int arch_make_page_accessi
- }
+-#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
++#if defined(CONFIG_KASAN) && defined(CONFIG_KASAN_STACK)
+ 	mov	x0, sp
+ 	bl	kasan_unpoison_task_stack_below
  #endif
+--- a/arch/x86/kernel/acpi/wakeup_64.S~kasan-remove-redundant-config-option
++++ a/arch/x86/kernel/acpi/wakeup_64.S
+@@ -115,7 +115,7 @@ SYM_FUNC_START(do_suspend_lowlevel)
+ 	movq	pt_regs_r14(%rax), %r14
+ 	movq	pt_regs_r15(%rax), %r15
  
--struct page *
--__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order, int preferred_nid,
--							nodemask_t *nodemask);
+-#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
++#if defined(CONFIG_KASAN) && defined(CONFIG_KASAN_STACK)
+ 	/*
+ 	 * The suspend path may have poisoned some areas deeper in the stack,
+ 	 * which we now need to unpoison.
+--- a/include/linux/kasan.h~kasan-remove-redundant-config-option
++++ a/include/linux/kasan.h
+@@ -330,7 +330,7 @@ static inline bool kasan_check_byte(cons
+ 
+ #endif /* CONFIG_KASAN */
+ 
+-#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
++#if defined(CONFIG_KASAN) && defined(CONFIG_KASAN_STACK)
+ void kasan_unpoison_task_stack(struct task_struct *task);
+ #else
+ static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
+--- a/lib/Kconfig.kasan~kasan-remove-redundant-config-option
++++ a/lib/Kconfig.kasan
+@@ -138,9 +138,10 @@ config KASAN_INLINE
+ 
+ endchoice
+ 
+-config KASAN_STACK_ENABLE
++config KASAN_STACK
+ 	bool "Enable stack instrumentation (unsafe)" if CC_IS_CLANG && !COMPILE_TEST
+ 	depends on KASAN_GENERIC || KASAN_SW_TAGS
++	default y if CC_IS_GCC
+ 	help
+ 	  The LLVM stack address sanitizer has a know problem that
+ 	  causes excessive stack usage in a lot of functions, see
+@@ -154,11 +155,6 @@ config KASAN_STACK_ENABLE
+ 	  CONFIG_COMPILE_TEST.	On gcc it is assumed to always be safe
+ 	  to use and enabled by default.
+ 
+-config KASAN_STACK
+-	int
+-	default 1 if KASAN_STACK_ENABLE || CC_IS_GCC
+-	default 0
 -
--static inline struct page *
--__alloc_pages(gfp_t gfp_mask, unsigned int order, int preferred_nid)
--{
--	return __alloc_pages_nodemask(gfp_mask, order, preferred_nid, NULL);
--}
-+struct page *__alloc_pages(gfp_t gfp, unsigned int order, int preferred_nid,
-+		nodemask_t *nodemask);
- 
- /*
-  * Allocate pages, preferring the node given as nid. The node must be valid and
-@@ -535,7 +528,7 @@ __alloc_pages_node(int nid, gfp_t gfp_ma
- 	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
- 	VM_WARN_ON((gfp_mask & __GFP_THISNODE) && !node_online(nid));
- 
--	return __alloc_pages(gfp_mask, order, nid);
-+	return __alloc_pages(gfp_mask, order, nid, NULL);
+ config KASAN_SW_TAGS_IDENTIFY
+ 	bool "Enable memory corruption identification"
+ 	depends on KASAN_SW_TAGS
+--- a/mm/kasan/common.c~kasan-remove-redundant-config-option
++++ a/mm/kasan/common.c
+@@ -63,7 +63,7 @@ void __kasan_unpoison_range(const void *
+ 	kasan_unpoison(address, size);
  }
  
- /*
---- a/mm/hugetlb.c~mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask
-+++ a/mm/hugetlb.c
-@@ -1614,7 +1614,7 @@ static struct page *alloc_buddy_huge_pag
- 		gfp_mask |= __GFP_RETRY_MAYFAIL;
- 	if (nid == NUMA_NO_NODE)
- 		nid = numa_mem_id();
--	page = __alloc_pages_nodemask(gfp_mask, order, nid, nmask);
-+	page = __alloc_pages(gfp_mask, order, nid, nmask);
- 	if (page)
- 		__count_vm_event(HTLB_BUDDY_PGALLOC);
- 	else
---- a/mm/internal.h~mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask
-+++ a/mm/internal.h
-@@ -126,10 +126,10 @@ extern pmd_t *mm_find_pmd(struct mm_stru
-  * family of functions.
-  *
-  * nodemask, migratetype and highest_zoneidx are initialized only once in
-- * __alloc_pages_nodemask() and then never change.
-+ * __alloc_pages() and then never change.
-  *
-  * zonelist, preferred_zone and highest_zoneidx are set first in
-- * __alloc_pages_nodemask() for the fast path, and might be later changed
-+ * __alloc_pages() for the fast path, and might be later changed
-  * in __alloc_pages_slowpath(). All other functions pass the whole structure
-  * by a const pointer.
-  */
---- a/mm/mempolicy.c~mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask
-+++ a/mm/mempolicy.c
-@@ -2140,7 +2140,7 @@ static struct page *alloc_page_interleav
+-#if CONFIG_KASAN_STACK
++#ifdef CONFIG_KASAN_STACK
+ /* Unpoison the entire stack for a task. */
+ void kasan_unpoison_task_stack(struct task_struct *task)
  {
- 	struct page *page;
+--- a/mm/kasan/kasan.h~kasan-remove-redundant-config-option
++++ a/mm/kasan/kasan.h
+@@ -231,7 +231,7 @@ void *kasan_find_first_bad_addr(void *ad
+ const char *kasan_get_bug_type(struct kasan_access_info *info);
+ void kasan_metadata_fetch_row(char *buffer, void *row);
  
--	page = __alloc_pages(gfp, order, nid);
-+	page = __alloc_pages(gfp, order, nid, NULL);
- 	/* skip NUMA_INTERLEAVE_HIT counter update if numa stats is disabled */
- 	if (!static_branch_likely(&vm_numa_stat_key))
- 		return page;
-@@ -2237,7 +2237,7 @@ alloc_pages_vma(gfp_t gfp, int order, st
- 
- 	nmask = policy_nodemask(gfp, pol);
- 	preferred_nid = policy_node(gfp, pol, node);
--	page = __alloc_pages_nodemask(gfp, order, preferred_nid, nmask);
-+	page = __alloc_pages(gfp, order, preferred_nid, nmask);
- 	mpol_cond_put(pol);
- out:
- 	return page;
-@@ -2274,7 +2274,7 @@ struct page *alloc_pages_current(gfp_t g
- 	if (pol->mode == MPOL_INTERLEAVE)
- 		page = alloc_page_interleave(gfp, order, interleave_nodes(pol));
- 	else
--		page = __alloc_pages_nodemask(gfp, order,
-+		page = __alloc_pages(gfp, order,
- 				policy_node(gfp, pol, numa_node_id()),
- 				policy_nodemask(gfp, pol));
- 
---- a/mm/migrate.c~mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask
-+++ a/mm/migrate.c
-@@ -1617,7 +1617,7 @@ struct page *alloc_migration_target(stru
- 	if (is_highmem_idx(zidx) || zidx == ZONE_MOVABLE)
- 		gfp_mask |= __GFP_HIGHMEM;
- 
--	new_page = __alloc_pages_nodemask(gfp_mask, order, nid, mtc->nmask);
-+	new_page = __alloc_pages(gfp_mask, order, nid, mtc->nmask);
- 
- 	if (new_page && PageTransHuge(new_page))
- 		prep_transhuge_page(new_page);
---- a/mm/page_alloc.c~mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask
-+++ a/mm/page_alloc.c
-@@ -4967,8 +4967,7 @@ static inline bool prepare_alloc_pages(g
- /*
-  * This is the 'heart' of the zoned buddy allocator.
-  */
--struct page *
--__alloc_pages_nodemask(gfp_t gfp, unsigned int order, int preferred_nid,
-+struct page *__alloc_pages(gfp_t gfp, unsigned int order, int preferred_nid,
- 							nodemask_t *nodemask)
- {
- 	struct page *page;
-@@ -5030,7 +5029,7 @@ out:
- 
- 	return page;
+-#if defined(CONFIG_KASAN_GENERIC) && CONFIG_KASAN_STACK
++#if defined(CONFIG_KASAN_GENERIC) && defined(CONFIG_KASAN_STACK)
+ void kasan_print_address_stack_frame(const void *addr);
+ #else
+ static inline void kasan_print_address_stack_frame(const void *addr) { }
+--- a/mm/kasan/report_generic.c~kasan-remove-redundant-config-option
++++ a/mm/kasan/report_generic.c
+@@ -128,7 +128,7 @@ void kasan_metadata_fetch_row(char *buff
+ 	memcpy(buffer, kasan_mem_to_shadow(row), META_BYTES_PER_ROW);
  }
--EXPORT_SYMBOL(__alloc_pages_nodemask);
-+EXPORT_SYMBOL(__alloc_pages);
  
- /*
-  * Common helper functions. Never use with __GFP_HIGHMEM because the returned
+-#if CONFIG_KASAN_STACK
++#ifdef CONFIG_KASAN_STACK
+ static bool __must_check tokenize_frame_descr(const char **frame_descr,
+ 					      char *token, size_t max_tok_len,
+ 					      unsigned long *value)
+--- a/scripts/Makefile.kasan~kasan-remove-redundant-config-option
++++ a/scripts/Makefile.kasan
+@@ -2,6 +2,12 @@
+ CFLAGS_KASAN_NOSANITIZE := -fno-builtin
+ KASAN_SHADOW_OFFSET ?= $(CONFIG_KASAN_SHADOW_OFFSET)
+ 
++ifdef CONFIG_KASAN_STACK
++	stack_enable := 1
++else
++	stack_enable := 0
++endif
++
+ ifdef CONFIG_KASAN_GENERIC
+ 
+ ifdef CONFIG_KASAN_INLINE
+@@ -27,7 +33,7 @@ else
+ 	CFLAGS_KASAN := $(CFLAGS_KASAN_SHADOW) \
+ 	 $(call cc-param,asan-globals=1) \
+ 	 $(call cc-param,asan-instrumentation-with-call-threshold=$(call_threshold)) \
+-	 $(call cc-param,asan-stack=$(CONFIG_KASAN_STACK)) \
++	 $(call cc-param,asan-stack=$(stack_enable)) \
+ 	 $(call cc-param,asan-instrument-allocas=1)
+ endif
+ 
+@@ -42,7 +48,7 @@ else
+ endif
+ 
+ CFLAGS_KASAN := -fsanitize=kernel-hwaddress \
+-		-mllvm -hwasan-instrument-stack=$(CONFIG_KASAN_STACK) \
++		-mllvm -hwasan-instrument-stack=$(stack_enable) \
+ 		-mllvm -hwasan-use-short-granules=0 \
+ 		$(instrumentation_flags)
+ 
+--- a/security/Kconfig.hardening~kasan-remove-redundant-config-option
++++ a/security/Kconfig.hardening
+@@ -64,7 +64,7 @@ choice
+ 	config GCC_PLUGIN_STRUCTLEAK_BYREF
+ 		bool "zero-init structs passed by reference (strong)"
+ 		depends on GCC_PLUGINS
+-		depends on !(KASAN && KASAN_STACK=1)
++		depends on !(KASAN && KASAN_STACK)
+ 		select GCC_PLUGIN_STRUCTLEAK
+ 		help
+ 		  Zero-initialize any structures on the stack that may
+@@ -82,7 +82,7 @@ choice
+ 	config GCC_PLUGIN_STRUCTLEAK_BYREF_ALL
+ 		bool "zero-init anything passed by reference (very strong)"
+ 		depends on GCC_PLUGINS
+-		depends on !(KASAN && KASAN_STACK=1)
++		depends on !(KASAN && KASAN_STACK)
+ 		select GCC_PLUGIN_STRUCTLEAK
+ 		help
+ 		  Zero-initialize any stack variables that may be passed
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
 
-mm-filemap-use-filemap_read_page-in-filemap_fault.patch
-mm-filemap-drop-check-for-truncated-page-after-i-o.patch
-mm-page_alloc-rename-alloc_mask-to-alloc_gfp.patch
-mm-page_alloc-rename-gfp_mask-to-gfp.patch
-mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask.patch
-mm-mempolicy-rename-alloc_pages_current-to-alloc_pages.patch
-mm-mempolicy-rewrite-alloc_pages-documentation.patch
-mm-mempolicy-rewrite-alloc_pages_vma-documentation.patch
-mm-mempolicy-fix-mpol_misplaced-kernel-doc.patch
+kasan-remove-redundant-config-option.patch
 
