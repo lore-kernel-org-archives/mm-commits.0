@@ -5,36 +5,40 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D16B9C433E9
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 222C6C4332D
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A91BC64EBD
+	by mail.kernel.org (Postfix) with ESMTP id E5E6F64EBD
 	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237490AbhCDA6q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S237517AbhCDA6q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 3 Mar 2021 19:58:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41852 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43718 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1449861AbhCCXBy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 18:01:54 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BDB0A64EF9;
-        Wed,  3 Mar 2021 23:01:12 +0000 (UTC)
+        id S245133AbhCCXGJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 18:06:09 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B777664F0A;
+        Wed,  3 Mar 2021 23:04:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614812473;
-        bh=09D8nEWb6PWGpNIGbX1gTxANz7puCl8E0RT+KrwHhsA=;
+        s=korg; t=1614812641;
+        bh=y56Tef6M/HP0OYwY83KU9xu+WI1PLL8ezELGAzx5/b0=;
         h=Date:From:To:Subject:From;
-        b=I6u07aBehBd1bqe8Q6PecLiAd2DPeVynZhhBLD+pkZU+KNZY0/Ch4s8oJm5W8obxx
-         7vjCxINoQWcKGiaEioA1UwglggjiixHPiXcvrF87FVeHj4uunr5mzlW592oAr+o9W8
-         zxFu1A9wQl971kPPJG/dfXA8yPyYLK+TdLA2wx0w=
-Date:   Wed, 03 Mar 2021 15:01:12 -0800
+        b=2l0tzIn0lkAbhQ7oOETLSx8RYylFMEoD5mkEKAvP7R/gG7I1FZo4w7mJDRkxEd8No
+         w0mkBH4Dypie/oJN6kZekal7dRtGz0SPGQQo44z6qSk/1Qi3pPxnkYZ07Z0FqBck1J
+         DCaCGj8QDVAo9SWdkBmgNwZ/7hYFCwRJ0Z0AbscY=
+Date:   Wed, 03 Mar 2021 15:04:00 -0800
 From:   akpm@linux-foundation.org
-To:     mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org,
-        osalvador@suse.de, vbabka@suse.cz
-Subject:  + mm-remove-lru_add_drain_all-in-alloc_contig_range.patch
+To:     fweimer@redhat.com, jannh@google.com, jeffv@google.com,
+        jmorris@namei.org, keescook@chromium.org, mhocko@suse.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com,
+        rientjes@google.com, shakeelb@google.com, stable@vger.kernel.org,
+        surenb@google.com, timmurray@google.com
+Subject:  +
+ mm-madvise-replace-ptrace-attach-requirement-for-process_madvise.patch
  added to -mm tree
-Message-ID: <20210303230112.sxLQLXDXF%akpm@linux-foundation.org>
+Message-ID: <20210303230400.6XXOzp3J5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove lru_add_drain_all in alloc_contig_range
+     Subject: mm/madvise: replace ptrace attach requirement for process_madvise
 has been added to the -mm tree.  Its filename is
-     mm-remove-lru_add_drain_all-in-alloc_contig_range.patch
+     mm-madvise-replace-ptrace-attach-requirement-for-process_madvise.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-lru_add_drain_all-in-alloc_contig_range.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-replace-ptrace-attach-requirement-for-process_madvise.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-lru_add_drain_all-in-alloc_contig_range.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-replace-ptrace-attach-requirement-for-process_madvise.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,45 +68,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: remove lru_add_drain_all in alloc_contig_range
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm/madvise: replace ptrace attach requirement for process_madvise
 
-__alloc_contig_migrate_range already has lru_add_drain_all call via
-migrate_prep.  It's necessary to move LRU taget pages into LRU list to be
-able to isolated.  However, lru_add_drain_all call after
-__alloc_contig_migrate_range is pointless since it has changed source page
-freeing from putback_lru_pages to put_page[1].
+process_madvise currently requires ptrace attach capability. 
+PTRACE_MODE_ATTACH gives one process complete control over another
+process.  It effectively removes the security boundary between the two
+processes (in one direction).  Granting ptrace attach capability even to a
+system process is considered dangerous since it creates an attack surface.
+This severely limits the usage of this API.
 
-This patch removes it.
+The operations process_madvise can perform do not affect the correctness
+of the operation of the target process; they only affect where the data is
+physically located (and therefore, how fast it can be accessed).  What we
+want is the ability for one process to influence another process in order
+to optimize performance across the entire system while leaving the
+security boundary intact.
 
-[1] c6c919eb90e0, ("mm: use put_page() to free page instead of putback_lru_page()"
+Replace PTRACE_MODE_ATTACH with a combination of PTRACE_MODE_READ and
+CAP_SYS_NICE.  PTRACE_MODE_READ to prevent leaking ASLR metadata and
+CAP_SYS_NICE for influencing process performance.
 
-Link: https://lkml.kernel.org/r/20210303204512.2863087-1-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20210303185807.2160264-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jeff Vander Stoep <jeffv@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tim Murray <timmurray@google.com>
+Cc: Florian Weimer <fweimer@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: <stable@vger.kernel.org>	[5.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/madvise.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-remove-lru_add_drain_all-in-alloc_contig_range
-+++ a/mm/page_alloc.c
-@@ -8597,8 +8597,6 @@ int alloc_contig_range(unsigned long sta
- 	 * isolated thus they won't get removed from buddy.
- 	 */
+--- a/mm/madvise.c~mm-madvise-replace-ptrace-attach-requirement-for-process_madvise
++++ a/mm/madvise.c
+@@ -1198,12 +1198,22 @@ SYSCALL_DEFINE5(process_madvise, int, pi
+ 		goto release_task;
+ 	}
  
--	lru_add_drain_all();
--
- 	order = 0;
- 	outer_start = start;
- 	while (!PageBuddy(pfn_to_page(outer_start))) {
+-	mm = mm_access(task, PTRACE_MODE_ATTACH_FSCREDS);
++	/* Require PTRACE_MODE_READ to avoid leaking ASLR metadata. */
++	mm = mm_access(task, PTRACE_MODE_READ_FSCREDS);
+ 	if (IS_ERR_OR_NULL(mm)) {
+ 		ret = IS_ERR(mm) ? PTR_ERR(mm) : -ESRCH;
+ 		goto release_task;
+ 	}
+ 
++	/*
++	 * Require CAP_SYS_NICE for influencing process performance. Note that
++	 * only non-destructive hints are currently supported.
++	 */
++	if (!capable(CAP_SYS_NICE)) {
++		ret = -EPERM;
++		goto release_mm;
++	}
++
+ 	total_len = iov_iter_count(&iter);
+ 
+ 	while (iov_iter_count(&iter)) {
+@@ -1218,6 +1228,7 @@ SYSCALL_DEFINE5(process_madvise, int, pi
+ 	if (ret == 0)
+ 		ret = total_len - iov_iter_count(&iter);
+ 
++release_mm:
+ 	mmput(mm);
+ release_task:
+ 	put_task_struct(task);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-remove-lru_add_drain_all-in-alloc_contig_range.patch
-mm-vmstat-add-cma-statistics.patch
+mm-madvise-replace-ptrace-attach-requirement-for-process_madvise.patch
 
