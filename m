@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3FC7C432C3
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC5EBC15507
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A82F564E76
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB5D064EC0
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346302AbhCDA7M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:59:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49888 "EHLO mail.kernel.org"
+        id S236665AbhCDA7P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:59:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36266 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1388596AbhCDA1H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 19:27:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C621C6023B;
-        Wed,  3 Mar 2021 23:08:03 +0000 (UTC)
+        id S1451449AbhCDAhF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 19:37:05 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AB69B64E28;
+        Wed,  3 Mar 2021 23:18:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614812884;
-        bh=bgrSqwcAG6GBPZdsZPvrCpfbKWFRVKuaLuPJEpIjzbw=;
+        s=korg; t=1614813482;
+        bh=5o4hC6x5kAQlohycvXomLELW7DKQtq5FxwIRbSC29VE=;
         h=Date:From:To:Subject:From;
-        b=fW2c+RwpgIv98V2CU0/KFmaD4MQdzSySwj1DqYd23GGSBYRarjQGLtf13uZjXNJ4T
-         sgc3DJM6pcLKjxeMSsjSixprmA/ZiAcEIheECOSW7c6aLrLD4eWBAH0qdB59RLix+a
-         GK2n1WXWmknaGPLIgDPz170yfSOIGFuk0T+sPhBk=
-Date:   Wed, 03 Mar 2021 15:08:03 -0800
+        b=Y75pRo2oJ5CxKpxkd6/qomFK7ao8KqHy3IA15DnjpglljCoriCmHaRPavJL182AlH
+         091pVadjOLcanaWp0JLfnCYV8sMu8IQa8Q0FFA+/ok+QsjU9KPk1ui6z82ZO/ddMXM
+         f7m+YBfNU2YMjAVCX8tSUgillP3ERvaLDWYOtV1g=
+Date:   Wed, 03 Mar 2021 15:18:02 -0800
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com,
-        songmuchun@bytedance.com
-Subject:  + mm-memcontrol-fix-kernel-stack-account.patch added to
- -mm tree
-Message-ID: <20210303230803.DGDdtDcHg%akpm@linux-foundation.org>
+To:     arnd@arndb.de, luc.vanoostenryck@gmail.com,
+        mm-commits@vger.kernel.org, ojeda@kernel.org
+Subject:  + sparse-can-do-constant-folding-of-__builtin_bswap.patch
+ added to -mm tree
+Message-ID: <20210303231802.-9GdDypMY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fix kernel stack account
+     Subject: include/linux/compiler-gcc.h: sparse can do constant folding of __builtin_bswap*()
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-fix-kernel-stack-account.patch
+     sparse-can-do-constant-folding-of-__builtin_bswap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-kernel-stack-account.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/sparse-can-do-constant-folding-of-__builtin_bswap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-kernel-stack-account.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/sparse-can-do-constant-folding-of-__builtin_bswap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,65 +64,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: fix kernel stack account
+From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Subject: include/linux/compiler-gcc.h: sparse can do constant folding of __builtin_bswap*()
 
-For simplification 991e7673859e ("mm: memcontrol: account kernel stack per
-node") has changed the per zone vmalloc backed stack pages accounting to
-per node.  By doing that we have lost a certain precision because those
-pages might live in different NUMA nodes.  In the end NR_KERNEL_STACK_KB
-exported to the userspace might be over estimated on some nodes while
-underestimated on others.  But this is not a real world problem, just a
-problem found by reading the code.  So there is no actual data to showing
-how much impact it has on users.
+Sparse can do constant folding of __builtin_bswap*() since 2017.  Also, a
+much recent version of Sparse is needed anyway, see commit 6ec4476ac825
+("Raise gcc version requirement to 4.9").
 
-This doesn't impose any real problem to correctnes of the kernel behavior
-as the counter is not used for any internal processing but it can cause
-some confusion to the userspace.
+So, remove the comment about sparse not being yet able to constant fold
+__builtin_bswap*() and remove the corresponding test of __CHECKER__.
 
-Address the problem by accounting each vmalloc backing page to its own
-node.
-
-Link: https://lkml.kernel.org/r/20210303151843.81156-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Roman Gushchin <guro@fb.com>
+Link: https://lkml.kernel.org/r/20210226092236.99369-1-luc.vanoostenryck@gmail.com
+Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Miguel Ojeda <ojeda@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ include/linux/compiler-gcc.h |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/kernel/fork.c~mm-memcontrol-fix-kernel-stack-account
-+++ a/kernel/fork.c
-@@ -379,14 +379,17 @@ static void account_kernel_stack(struct
- 	void *stack = task_stack_page(tsk);
- 	struct vm_struct *vm = task_stack_vm_area(tsk);
+--- a/include/linux/compiler-gcc.h~sparse-can-do-constant-folding-of-__builtin_bswap
++++ a/include/linux/compiler-gcc.h
+@@ -90,15 +90,11 @@
+  */
+ #define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
  
-+	if (vm) {
-+		int i;
+-/*
+- * sparse (__CHECKER__) pretends to be gcc, but can't do constant
+- * folding in __builtin_bswap*() (yet), so don't set these for it.
+- */
+-#if defined(CONFIG_ARCH_USE_BUILTIN_BSWAP) && !defined(__CHECKER__)
++#if defined(CONFIG_ARCH_USE_BUILTIN_BSWAP)
+ #define __HAVE_BUILTIN_BSWAP32__
+ #define __HAVE_BUILTIN_BSWAP64__
+ #define __HAVE_BUILTIN_BSWAP16__
+-#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP && !__CHECKER__ */
++#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
  
--	/* All stack pages are in the same node. */
--	if (vm)
--		mod_lruvec_page_state(vm->pages[0], NR_KERNEL_STACK_KB,
--				      account * (THREAD_SIZE / 1024));
--	else
-+		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++)
-+			mod_lruvec_page_state(vm->pages[i], NR_KERNEL_STACK_KB,
-+					      account * (PAGE_SIZE / 1024));
-+	} else {
-+		/* All stack pages are in the same node. */
- 		mod_lruvec_kmem_state(stack, NR_KERNEL_STACK_KB,
- 				      account * (THREAD_SIZE / 1024));
-+	}
- }
- 
- static int memcg_charge_kernel_stack(struct task_struct *tsk)
+ #if GCC_VERSION >= 70000
+ #define KASAN_ABI_VERSION 5
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from luc.vanoostenryck@gmail.com are
 
-mm-memcontrol-fix-kernel-stack-account.patch
+sparse-can-do-constant-folding-of-__builtin_bswap.patch
 
