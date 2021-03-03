@@ -5,36 +5,35 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F368C4332D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9409DC4332B
 	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:33:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4037164E02
+	by mail.kernel.org (Postfix) with ESMTP id 565A964E87
 	for <mm-commits@archiver.kernel.org>; Wed,  3 Mar 2021 13:33:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1381688AbhCCNag (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 08:30:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46164 "EHLO mail.kernel.org"
+        id S1381735AbhCCNaj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 08:30:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46490 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232253AbhCCAfw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Mar 2021 19:35:52 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B647B64FAB;
-        Wed,  3 Mar 2021 00:35:00 +0000 (UTC)
+        id S232552AbhCCAgo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Mar 2021 19:36:44 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B500164FB4;
+        Wed,  3 Mar 2021 00:35:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614731700;
-        bh=VyPUZIRlU8BQtBEJ3Go96hPQSAggN1n5NlI3M2NLO/w=;
+        s=korg; t=1614731747;
+        bh=vtaZNe5rh2ohqvH4MnwlhQTPLffyofmg3+qxmevVAuw=;
         h=Date:From:To:Subject:From;
-        b=PeWnCAgmdl4MgAc9Ta3CakmKfSb0cuN4OjtUGr77D7U1v/ezZvBccywG2f+BEy6Qe
-         VGRgAvH0/0imzeRLaeN1nBkI+LTzg3FYWkp9qQTJnfxluv5Ott0skDK8xE5ZmuKviF
-         wScTYtQBKyjmnS9h3khBUmQYiTz996LEkRUWt1ks=
-Date:   Tue, 02 Mar 2021 16:35:00 -0800
+        b=Ep8jqn0jZHvvM0MOzoYWyBJ1/ZQ2G+EAQTyu5rPKkCQPlfM5ClPTGe1xpiku9ujIC
+         ftS9x3JqEpn9U0Al3kpZhpKCW8HTSBX5PuH7Ngi5jhLGC3gnkiTjw0j73lFI/RLhYs
+         /NsIhc4N0mbNOiV7bZr27TuECGYc18U4PVY1lCXM=
+Date:   Tue, 02 Mar 2021 16:35:47 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
-        stable@vger.kernel.org
-Subject:  + squashfs-fix-xattr-id-and-id-lookup-sanity-checks.patch
+To:     mm-commits@vger.kernel.org, wangqing@vivo.com
+Subject:  + lib-fix-inconsistent-indenting-in-process_bit1.patch
  added to -mm tree
-Message-ID: <20210303003500.c6fdpj8ep%akpm@linux-foundation.org>
+Message-ID: <20210303003547.vT7KCmGCg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: squashfs: fix xattr id and id lookup sanity checks
+     Subject: lib: fix inconsistent indenting in process_bit1()
 has been added to the -mm tree.  Its filename is
-     squashfs-fix-xattr-id-and-id-lookup-sanity-checks.patch
+     lib-fix-inconsistent-indenting-in-process_bit1.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/squashfs-fix-xattr-id-and-id-lookup-sanity-checks.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-fix-inconsistent-indenting-in-process_bit1.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/squashfs-fix-xattr-id-and-id-lookup-sanity-checks.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-fix-inconsistent-indenting-in-process_bit1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,68 +63,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: squashfs: fix xattr id and id lookup sanity checks
+From: Wang Qing <wangqing@vivo.com>
+Subject: lib: fix inconsistent indenting in process_bit1()
 
-The checks for maximum metadata block size is missing
-SQUASHFS_BLOCK_OFFSET (the two byte length count).
+Smatch gives the warning:
+	lib/decompress_unlzma.c:395 process_bit1() warn: inconsistent indenting
 
-Link: https://lkml.kernel.org/r/2069685113.2081245.1614583677427@webmail.123-reg.co.uk
-Fixes: f37aa4c7366e23f ("squashfs: add more sanity checks in id lookup")
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/1614567775-4478-1-git-send-email-wangqing@vivo.com
+Signed-off-by: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/id.c       |    6 ++++--
- fs/squashfs/xattr_id.c |    6 ++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ lib/decompress_unlzma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/squashfs/id.c~squashfs-fix-xattr-id-and-id-lookup-sanity-checks
-+++ a/fs/squashfs/id.c
-@@ -97,14 +97,16 @@ __le64 *squashfs_read_id_index_table(str
- 		start = le64_to_cpu(table[n]);
- 		end = le64_to_cpu(table[n + 1]);
- 
--		if (start >= end || (end - start) > SQUASHFS_METADATA_SIZE) {
-+		if (start >= end || (end - start) >
-+				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
- 			kfree(table);
- 			return ERR_PTR(-EINVAL);
- 		}
- 	}
- 
- 	start = le64_to_cpu(table[indexes - 1]);
--	if (start >= id_table_start || (id_table_start - start) > SQUASHFS_METADATA_SIZE) {
-+	if (start >= id_table_start || (id_table_start - start) >
-+				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
- 		kfree(table);
- 		return ERR_PTR(-EINVAL);
- 	}
---- a/fs/squashfs/xattr_id.c~squashfs-fix-xattr-id-and-id-lookup-sanity-checks
-+++ a/fs/squashfs/xattr_id.c
-@@ -109,14 +109,16 @@ __le64 *squashfs_read_xattr_id_table(str
- 		start = le64_to_cpu(table[n]);
- 		end = le64_to_cpu(table[n + 1]);
- 
--		if (start >= end || (end - start) > SQUASHFS_METADATA_SIZE) {
-+		if (start >= end || (end - start) >
-+				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
- 			kfree(table);
- 			return ERR_PTR(-EINVAL);
- 		}
- 	}
- 
- 	start = le64_to_cpu(table[indexes - 1]);
--	if (start >= table_start || (table_start - start) > SQUASHFS_METADATA_SIZE) {
-+	if (start >= table_start || (table_start - start) >
-+				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
- 		kfree(table);
- 		return ERR_PTR(-EINVAL);
- 	}
+--- a/lib/decompress_unlzma.c~lib-fix-inconsistent-indenting-in-process_bit1
++++ a/lib/decompress_unlzma.c
+@@ -391,7 +391,7 @@ static inline int INIT process_bit0(stru
+ static inline int INIT process_bit1(struct writer *wr, struct rc *rc,
+ 					    struct cstate *cst, uint16_t *p,
+ 					    int pos_state, uint16_t *prob) {
+-  int offset;
++	int offset;
+ 	uint16_t *prob_len;
+ 	int num_bits;
+ 	int len;
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from wangqing@vivo.com are
 
-squashfs-fix-xattr-id-and-id-lookup-sanity-checks.patch
+mm-delete-bool-migrated.patch
+lib-fix-inconsistent-indenting-in-process_bit1.patch
 
