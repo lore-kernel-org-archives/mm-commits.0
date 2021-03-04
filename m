@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 602DDC43603
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09751C4160E
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A25064E7C
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C514064F4C
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238896AbhCDA6y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:58:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39422 "EHLO mail.kernel.org"
+        id S237570AbhCDA7Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:59:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1354495AbhCDAJY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 19:09:24 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DC47064E6F;
-        Thu,  4 Mar 2021 00:07:23 +0000 (UTC)
+        id S1452108AbhCDAir (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 19:38:47 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ADA7764E28;
+        Thu,  4 Mar 2021 00:38:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614816444;
-        bh=+uiaRKamYopDO2UumE0Ftm9qVGB10v3GuMPxvC85iKk=;
+        s=korg; t=1614818286;
+        bh=vQxN5JJQ2GNiKC6kKtUtO6Jh20tc7NKQY+vz1fBjHD0=;
         h=Date:From:To:Subject:From;
-        b=w/3kFNiFrSFUKrwZR+JSkv8l+nL2kPoXGP+EP9wMBrBY6DsevZFet3NfdoX5yxf4+
-         HFcbeSV1dASjGP+wSgzMIbN6sB7ve9ckiiWB2zobzt3+DIQQI2I2OZbxZgHSFWOfks
-         USBBS70Uf3me+e6O8B3rAu9+HPM49Yfnds6H5Ock=
-Date:   Wed, 03 Mar 2021 16:07:23 -0800
+        b=uNmorIV3lT+pxc5XyHrxRLT1tfs2CuKgC0h58DADTsHhimXOnQtk3SBU1EB5gOHvR
+         takimiXXOu4fLSTYW7c0LjRyPBC27J+e8RATrwWi7D3BBA5L8b//wp6WkJpuv0mABv
+         KI8qcEjCIK0CJevTv7qEyrBZnZNgeqFuW+sxbnJk=
+Date:   Wed, 03 Mar 2021 16:38:06 -0800
 From:   akpm@linux-foundation.org
-To:     mhocko@suse.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        vbabka@suse.cz, willy@infradead.org
-Subject:  + mm-page_alloc-rename-gfp_mask-to-gfp.patch added to -mm
+To:     jan.kiszka@siemens.com, johannes.berg@intel.com,
+        kbingham@kernel.org, mm-commits@vger.kernel.org
+Subject:  + gdb-lx-symbols-store-the-abspath.patch added to -mm
  tree
-Message-ID: <20210304000723.AocYunVME%akpm@linux-foundation.org>
+Message-ID: <20210304003806.V91rCoxcE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: rename gfp_mask to gfp
+     Subject: gdb: lx-symbols: store the abspath()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-rename-gfp_mask-to-gfp.patch
+     gdb-lx-symbols-store-the-abspath.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-rename-gfp_mask-to-gfp.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/gdb-lx-symbols-store-the-abspath.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-rename-gfp_mask-to-gfp.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/gdb-lx-symbols-store-the-abspath.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,91 +64,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/page_alloc: rename gfp_mask to gfp
+From: Johannes Berg <johannes.berg@intel.com>
+Subject: gdb: lx-symbols: store the abspath()
 
-Shorten some overly-long lines by renaming this identifier.
+If we store the relative path, the user might later cd to a different
+directory, and that would break the automatic symbol resolving that
+happens when a module is loaded into the target kernel.  Fix this by
+storing the abspath() of each path given, just like we already do for the
+cwd (os.getcwd() is absolute.)
 
-Link: https://lkml.kernel.org/r/20210225150642.2582252-3-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20201217091747.bf4332cf2b35.I10ebbdb7e9b80ab1a5cddebf53d073be8232d656@changeid
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ scripts/gdb/linux/symbols.py |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-rename-gfp_mask-to-gfp
-+++ a/mm/page_alloc.c
-@@ -4968,7 +4968,7 @@ static inline bool prepare_alloc_pages(g
-  * This is the 'heart' of the zoned buddy allocator.
-  */
- struct page *
--__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order, int preferred_nid,
-+__alloc_pages_nodemask(gfp_t gfp, unsigned int order, int preferred_nid,
- 							nodemask_t *nodemask)
- {
- 	struct page *page;
-@@ -4981,13 +4981,13 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	 * so bail out early if the request is out of bound.
- 	 */
- 	if (unlikely(order >= MAX_ORDER)) {
--		WARN_ON_ONCE(!(gfp_mask & __GFP_NOWARN));
-+		WARN_ON_ONCE(!(gfp & __GFP_NOWARN));
- 		return NULL;
- 	}
+--- a/scripts/gdb/linux/symbols.py~gdb-lx-symbols-store-the-abspath
++++ a/scripts/gdb/linux/symbols.py
+@@ -164,7 +164,8 @@ lx-symbols command."""
+             saved_state['breakpoint'].enabled = saved_state['enabled']
  
--	gfp_mask &= gfp_allowed_mask;
--	alloc_gfp = gfp_mask;
--	if (!prepare_alloc_pages(gfp_mask, order, preferred_nid, nodemask, &ac,
-+	gfp &= gfp_allowed_mask;
-+	alloc_gfp = gfp;
-+	if (!prepare_alloc_pages(gfp, order, preferred_nid, nodemask, &ac,
- 			&alloc_gfp, &alloc_flags))
- 		return NULL;
+     def invoke(self, arg, from_tty):
+-        self.module_paths = [os.path.expanduser(p) for p in arg.split()]
++        self.module_paths = [os.path.abspath(os.path.expanduser(p))
++                             for p in arg.split()]
+         self.module_paths.append(os.getcwd())
  
-@@ -4995,7 +4995,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	 * Forbid the first pass from falling back to types that fragment
- 	 * memory until all local zones are considered.
- 	 */
--	alloc_flags |= alloc_flags_nofragment(ac.preferred_zoneref->zone, gfp_mask);
-+	alloc_flags |= alloc_flags_nofragment(ac.preferred_zoneref->zone, gfp);
- 
- 	/* First allocation attempt */
- 	page = get_page_from_freelist(alloc_gfp, order, alloc_flags, &ac);
-@@ -5008,7 +5008,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	 * from a particular context which has been marked by
- 	 * memalloc_no{fs,io}_{save,restore}.
- 	 */
--	alloc_gfp = current_gfp_context(gfp_mask);
-+	alloc_gfp = current_gfp_context(gfp);
- 	ac.spread_dirty_pages = false;
- 
- 	/*
-@@ -5020,8 +5020,8 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	page = __alloc_pages_slowpath(alloc_gfp, order, &ac);
- 
- out:
--	if (memcg_kmem_enabled() && (gfp_mask & __GFP_ACCOUNT) && page &&
--	    unlikely(__memcg_kmem_charge_page(page, gfp_mask, order) != 0)) {
-+	if (memcg_kmem_enabled() && (gfp & __GFP_ACCOUNT) && page &&
-+	    unlikely(__memcg_kmem_charge_page(page, gfp, order) != 0)) {
- 		__free_pages(page, order);
- 		page = NULL;
- 	}
+         # enforce update
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from johannes.berg@intel.com are
 
-mm-filemap-use-filemap_read_page-in-filemap_fault.patch
-mm-filemap-drop-check-for-truncated-page-after-i-o.patch
-mm-page_alloc-rename-alloc_mask-to-alloc_gfp.patch
-mm-page_alloc-rename-gfp_mask-to-gfp.patch
-mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask.patch
-mm-mempolicy-rename-alloc_pages_current-to-alloc_pages.patch
-mm-mempolicy-rewrite-alloc_pages-documentation.patch
-mm-mempolicy-rewrite-alloc_pages_vma-documentation.patch
-mm-mempolicy-fix-mpol_misplaced-kernel-doc.patch
+gdb-lx-symbols-store-the-abspath.patch
 
