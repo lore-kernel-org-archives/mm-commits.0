@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC5EBC15507
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C783C43332
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:09:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB5D064EC0
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2893D64EFE
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:09:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236665AbhCDA7P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:59:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36266 "EHLO mail.kernel.org"
+        id S241283AbhCDA7B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:59:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1451449AbhCDAhF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 19:37:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AB69B64E28;
-        Wed,  3 Mar 2021 23:18:02 +0000 (UTC)
+        id S1354819AbhCDALM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 19:11:12 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A361064EE6;
+        Thu,  4 Mar 2021 00:10:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614813482;
-        bh=5o4hC6x5kAQlohycvXomLELW7DKQtq5FxwIRbSC29VE=;
+        s=korg; t=1614816629;
+        bh=csVE8mAC3g7P5J/h/WYAV+1m2fEOWM483OuhOoRtskM=;
         h=Date:From:To:Subject:From;
-        b=Y75pRo2oJ5CxKpxkd6/qomFK7ao8KqHy3IA15DnjpglljCoriCmHaRPavJL182AlH
-         091pVadjOLcanaWp0JLfnCYV8sMu8IQa8Q0FFA+/ok+QsjU9KPk1ui6z82ZO/ddMXM
-         f7m+YBfNU2YMjAVCX8tSUgillP3ERvaLDWYOtV1g=
-Date:   Wed, 03 Mar 2021 15:18:02 -0800
+        b=Ur7eyslRNPgqVIdWd8UTlT0iN9AoBI4otHxmYkoOHtUqjEtpi7U6A7NTJckl2UDO6
+         PeTjgr6larl2MQJ/tWOYYDP8uuhKjsTO5yuGpEysuphU9WFgFAhxlY7g9zhVUZNS0O
+         vbNvB4UHgoasQkFZHGX+xrWTcIZcpPNCE9PvZtR8=
+Date:   Wed, 03 Mar 2021 16:10:29 -0800
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, luc.vanoostenryck@gmail.com,
-        mm-commits@vger.kernel.org, ojeda@kernel.org
-Subject:  + sparse-can-do-constant-folding-of-__builtin_bswap.patch
+To:     daizhiyuan@phytium.com.cn, mm-commits@vger.kernel.org
+Subject:  + mm-memremap-fixes-improper-spdx-comment-style.patch
  added to -mm tree
-Message-ID: <20210303231802.-9GdDypMY%akpm@linux-foundation.org>
+Message-ID: <20210304001029.G5bmzqLHN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/compiler-gcc.h: sparse can do constant folding of __builtin_bswap*()
+     Subject: mm/memremap.c: fix improper SPDX comment style
 has been added to the -mm tree.  Its filename is
-     sparse-can-do-constant-folding-of-__builtin_bswap.patch
+     mm-memremap-fixes-improper-spdx-comment-style.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/sparse-can-do-constant-folding-of-__builtin_bswap.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memremap-fixes-improper-spdx-comment-style.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/sparse-can-do-constant-folding-of-__builtin_bswap.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memremap-fixes-improper-spdx-comment-style.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,49 +63,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Subject: include/linux/compiler-gcc.h: sparse can do constant folding of __builtin_bswap*()
+From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+Subject: mm/memremap.c: fix improper SPDX comment style
 
-Sparse can do constant folding of __builtin_bswap*() since 2017.  Also, a
-much recent version of Sparse is needed anyway, see commit 6ec4476ac825
-("Raise gcc version requirement to 4.9").
+Replace /* */ comment with //, fix SPDX comment style.
 
-So, remove the comment about sparse not being yet able to constant fold
-__builtin_bswap*() and remove the corresponding test of __CHECKER__.
+see: Documentation/process/license-rules.rst
 
-Link: https://lkml.kernel.org/r/20210226092236.99369-1-luc.vanoostenryck@gmail.com
-Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Miguel Ojeda <ojeda@kernel.org>
+Link: https://lkml.kernel.org/r/1614223348-15516-1-git-send-email-daizhiyuan@phytium.com.cn
+Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/memremap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/compiler-gcc.h~sparse-can-do-constant-folding-of-__builtin_bswap
-+++ a/include/linux/compiler-gcc.h
-@@ -90,15 +90,11 @@
-  */
- #define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
- 
--/*
-- * sparse (__CHECKER__) pretends to be gcc, but can't do constant
-- * folding in __builtin_bswap*() (yet), so don't set these for it.
-- */
--#if defined(CONFIG_ARCH_USE_BUILTIN_BSWAP) && !defined(__CHECKER__)
-+#if defined(CONFIG_ARCH_USE_BUILTIN_BSWAP)
- #define __HAVE_BUILTIN_BSWAP32__
- #define __HAVE_BUILTIN_BSWAP64__
- #define __HAVE_BUILTIN_BSWAP16__
--#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP && !__CHECKER__ */
-+#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
- 
- #if GCC_VERSION >= 70000
- #define KASAN_ABI_VERSION 5
+--- a/mm/memremap.c~mm-memremap-fixes-improper-spdx-comment-style
++++ a/mm/memremap.c
+@@ -1,4 +1,4 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
++// SPDX-License-Identifier: GPL-2.0
+ /* Copyright(c) 2015 Intel Corporation. All rights reserved. */
+ #include <linux/device.h>
+ #include <linux/io.h>
 _
 
-Patches currently in -mm which might be from luc.vanoostenryck@gmail.com are
+Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
 
-sparse-can-do-constant-folding-of-__builtin_bswap.patch
+mm-memremap-fixes-improper-spdx-comment-style.patch
+mm-swapfile-minor-coding-style-tweaks.patch
+mm-sparse-minor-coding-style-tweaks.patch
+mm-vmscan-minor-coding-style-tweaks.patch
+mm-compaction-minor-coding-style-tweaks.patch
+mm-oom_kill-minor-coding-style-tweaks.patch
+mm-shmem-minor-coding-style-tweaks.patch
+mm-page_alloc-minor-coding-style-tweaks.patch
+mm-filemap-minor-coding-style-tweaks.patch
+mm-zswap-switch-from-strlcpy-to-strscpy.patch
 
