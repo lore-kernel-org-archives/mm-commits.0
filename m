@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED1F2C433DB
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:16:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1415BC433E0
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:16:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD95A65041
+	by mail.kernel.org (Postfix) with ESMTP id CD2066505B
 	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:16:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232866AbhCDBQW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 20:16:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40472 "EHLO mail.kernel.org"
+        id S232288AbhCDBQX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 20:16:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40794 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232288AbhCDBQC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 20:16:02 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F320C64F65;
-        Thu,  4 Mar 2021 01:15:20 +0000 (UTC)
+        id S234475AbhCDBQF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 20:16:05 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CEDE964EAE;
+        Thu,  4 Mar 2021 01:15:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614820521;
-        bh=IBFDBzcDPn+Y0FbyZhQ3qqio8EDzI8VIX5afUJ84CWc=;
+        s=korg; t=1614820525;
+        bh=P4jANQPoYgcTSmS4U+e/amA6tO+6WEdGBjlKUWPb2Ow=;
         h=Date:From:To:Subject:From;
-        b=qhbMwZb05v/y8Dxp6Cn9hY9LFlcymU7P1X6dJYWTayMLwEKwHhvllPFjIcgCoWlIR
-         kRIH28O1TPuihBdoheN8gAEErXoAX8soFWUsQn6L7Xv2FOl8KIBlhqsmNMfahqIpyj
-         nWEBVXkhvFaz3slEka9HF/aBq2cMG5RpF9j75vqg=
-Date:   Wed, 03 Mar 2021 17:15:20 -0800
+        b=Y+m7PesGzovChAi7r9cKXD1F7g+Oq3KxPJ8WvkZp8MDlQbYhouiv4hjElXExE+71P
+         MTJL2txuGRQJYAstD4vkomJucsxQlrZgISQdRtX/9pdzrObBrQPXzoZcHB6PkOYpDI
+         nsb2nsBEEt63D7+4oxtl/i4QFoBh7J3OxUAh6HLQ=
+Date:   Wed, 03 Mar 2021 17:15:24 -0800
 From:   akpm@linux-foundation.org
 To:     daizhiyuan@phytium.com.cn, mm-commits@vger.kernel.org
-Subject:  + mm-mlock-minor-coding-style-tweaks.patch added to -mm
+Subject:  + mm-vmalloc-minor-coding-style-tweaks.patch added to -mm
  tree
-Message-ID: <20210304011520.-BXwFcgEk%akpm@linux-foundation.org>
+Message-ID: <20210304011524.qT8OoM26r%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mlock: minor coding style tweaks
+     Subject: mm/vmalloc: minor coding style tweaks
 has been added to the -mm tree.  Its filename is
-     mm-mlock-minor-coding-style-tweaks.patch
+     mm-vmalloc-minor-coding-style-tweaks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-minor-coding-style-tweaks.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-minor-coding-style-tweaks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-minor-coding-style-tweaks.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-minor-coding-style-tweaks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,39 +64,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
-Subject: mm/mlock: minor coding style tweaks
+Subject: mm/vmalloc: minor coding style tweaks
 
-Move the pointer location to fix coding style issues, improve code
-reading.
+Macros with complex values should be enclosed in parentheses.
 
-Link: https://lkml.kernel.org/r/1613956588-2453-1-git-send-email-daizhiyuan@phytium.com.cn
+Link: https://lkml.kernel.org/r/1613963379-15988-1-git-send-email-daizhiyuan@phytium.com.cn
 Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mlock.c~mm-mlock-minor-coding-style-tweaks
-+++ a/mm/mlock.c
-@@ -559,7 +559,7 @@ static int apply_vma_lock_flags(unsigned
- 				vm_flags_t flags)
- {
- 	unsigned long nstart, end, tmp;
--	struct vm_area_struct * vma, * prev;
-+	struct vm_area_struct *vma, *prev;
- 	int error;
- 
- 	VM_BUG_ON(offset_in_page(start));
-@@ -737,7 +737,7 @@ SYSCALL_DEFINE2(munlock, unsigned long,
+--- a/mm/vmalloc.c~mm-vmalloc-minor-coding-style-tweaks
++++ a/mm/vmalloc.c
+@@ -2739,7 +2739,7 @@ EXPORT_SYMBOL(vzalloc_node);
+  * 64b systems should always have either DMA or DMA32 zones. For others
+  * GFP_DMA32 should do the right thing and use the normal zone.
   */
- static int apply_mlockall_flags(int flags)
- {
--	struct vm_area_struct * vma, * prev = NULL;
-+	struct vm_area_struct *vma, *prev = NULL;
- 	vm_flags_t to_add = 0;
+-#define GFP_VMALLOC32 GFP_DMA32 | GFP_KERNEL
++#define GFP_VMALLOC32 (GFP_DMA32 | GFP_KERNEL)
+ #endif
  
- 	current->mm->def_flags &= VM_LOCKED_CLEAR_MASK;
+ /**
 _
 
 Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
