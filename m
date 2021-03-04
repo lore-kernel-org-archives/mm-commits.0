@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B47DC4332E
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D011C433E6
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2DDFD64EBD
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E5CA264EDF
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345203AbhCDA7L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:59:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37650 "EHLO mail.kernel.org"
+        id S240549AbhCDA67 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:58:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47822 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1447038AbhCDATp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 19:19:45 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A0F9D64F1D;
-        Wed,  3 Mar 2021 23:36:37 +0000 (UTC)
+        id S1379897AbhCDAK2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 19:10:28 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D184664F59;
+        Thu,  4 Mar 2021 00:09:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614814597;
-        bh=lCqM9tB0BHDKNgzQvjyc3447hilhHciN1csbuF5EjlQ=;
+        s=korg; t=1614816588;
+        bh=ktQrzpfn0tpyQQy/ZRgLdgBAPiFKBsZJPUzH3LeEt4M=;
         h=Date:From:To:Subject:From;
-        b=HG98ZnEDE5F9P9Gfn6FLsMAdbgZbqCZS2iRtox73sA2JrUdVrJzFiSqscILEleoch
-         NOsk7fN/XmIkD9qaxvIfENCvfFmjkhubmBfy280kYDs6qgV/5V9X2lI7iKG6QoVdMn
-         olLGf+NW4nHhfIAeZksp4QC7D6W4kWWTuvfkMRTs=
-Date:   Wed, 03 Mar 2021 15:36:37 -0800
+        b=qhQeXXgbgg0PW/5docm51saZdF/2m1CZRMpL0xbqcoxNHJ3GGB5yGq+C1NS9e6bUs
+         Jmk97v7ZVGbLAo23oXuLrEoVk5397V1dYxzxDvgRp5cJ1f0UmTgSP0nHgS1eMx7RJH
+         6+nRm07Tlbdkcuds9EajbDOdOVfAviCmpU7dmDkY=
+Date:   Wed, 03 Mar 2021 16:09:47 -0800
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, vbabka@suse.cz
-Subject:  [alternative-merged]
- mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
- removed from -mm tree
-Message-ID: <20210303233637.WUFnubkYV%akpm@linux-foundation.org>
+To:     daizhiyuan@phytium.com.cn, mm-commits@vger.kernel.org
+Subject:  + mm-compaction-minor-coding-style-tweaks.patch added to
+ -mm tree
+Message-ID: <20210304000947.h0LQUe9RZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,156 +42,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmstat: fix /proc/sys/vm/stat_refresh generating false warnings
-has been removed from the -mm tree.  Its filename was
-     mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+     Subject: mm/compaction: minor coding style tweaks
+has been added to the -mm tree.  Its filename is
+     mm-compaction-minor-coding-style-tweaks.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-minor-coding-style-tweaks.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-minor-coding-style-tweaks.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: vmstat: fix /proc/sys/vm/stat_refresh generating false warnings
+From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+Subject: mm/compaction: minor coding style tweaks
 
-I've noticed a number of warnings like "vmstat_refresh: nr_free_cma -5" or
-"vmstat_refresh: nr_zone_write_pending -11" on our production hosts.  The
-numbers of these warnings were relatively low and stable, so it didn't
-look like we are systematically leaking the counters.  The corresponding
-vmstat counters also looked sane.
+Add whitespace to fix coding style issues, improve code reading.
 
-These warnings are generated by the vmstat_refresh() function, which
-assumes that atomic zone and numa counters can't go below zero.  However,
-on a SMP machine it's not quite right: due to per-cpu caching it can in
-theory be as low as -(zone threshold) * NR_CPUs.
-
-For instance, let's say all cma pages are in use and NR_FREE_CMA_PAGES
-reached 0.  Then we've reclaimed a small number of cma pages on each CPU
-except CPU0, so that most percpu NR_FREE_CMA_PAGES counters are slightly
-positive (the atomic counter is still 0).  Then somebody on CPU0 consumes
-all these pages.  The number of pages can easily exceed the threshold and
-a negative value will be committed to the atomic counter.
-
-To fix the problem and avoid generating false warnings, let's just relax
-the condition and warn only if the value is less than minus the maximum
-theoretically possible drift value, which is 125 * number of online CPUs. 
-It will still allow to catch systematic leaks, but will not generate bogus
-warnings.
-
-[guro@fb.com: fix warnings]
-  Link: http://lkml.kernel.org/r/20200717174705.GA55916@carbon.DHCP.thefacebook.com
-[akpm@linux-foundation.org: comment MAX_THRESHOLD, per Michal]
-Link: http://lkml.kernel.org/r/20200714173920.3319063-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/1614228218-20770-1-git-send-email-daizhiyuan@phytium.com.cn
+Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |    4 +-
- mm/vmstat.c                             |   32 ++++++++++++++--------
- 2 files changed, 23 insertions(+), 13 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -824,8 +824,8 @@ e.g. cat /proc/sys/vm/stat_refresh /proc
- 
- As a side-effect, it also checks for negative totals (elsewhere reported
- as 0) and "fails" with EINVAL if any are found, with a warning in dmesg.
--(At time of writing, a few stats are known sometimes to be found negative,
--with no ill effects: errors and warnings on these stats are suppressed.)
-+(On a SMP machine some stats can temporarily become negative, with no ill
-+effects: errors and warnings on these stats are suppressed.)
- 
- 
- numa_stat
---- a/mm/vmstat.c~mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings
-+++ a/mm/vmstat.c
-@@ -167,8 +167,14 @@ EXPORT_SYMBOL(vm_zone_stat);
- EXPORT_SYMBOL(vm_numa_stat);
- EXPORT_SYMBOL(vm_node_stat);
- 
-+/* Maximum sync threshold for per-cpu vmstat counters */
- #ifdef CONFIG_SMP
-+#define MAX_THRESHOLD 125
-+#else
-+#define MAX_THRESHOLD 0
-+#endif
- 
-+#ifdef CONFIG_SMP
- int calculate_pressure_threshold(struct zone *zone)
- {
- 	int threshold;
-@@ -186,11 +192,9 @@ int calculate_pressure_threshold(struct
- 	threshold = max(1, (int)(watermark_distance / num_online_cpus()));
- 
- 	/*
--	 * Maximum threshold is 125
-+	 * Threshold is capped by MAX_THRESHOLD
- 	 */
--	threshold = min(125, threshold);
--
--	return threshold;
-+	return min(MAX_THRESHOLD, threshold);
- }
- 
- int calculate_normal_threshold(struct zone *zone)
-@@ -622,6 +626,7 @@ void dec_node_page_state(struct page *pa
- }
- EXPORT_SYMBOL(dec_node_page_state);
- #else
-+
- /*
-  * Use interrupt disable to serialize counter updates
+--- a/mm/compaction.c~mm-compaction-minor-coding-style-tweaks
++++ a/mm/compaction.c
+@@ -2844,7 +2844,7 @@ void wakeup_kcompactd(pg_data_t *pgdat,
   */
-@@ -1838,7 +1843,7 @@ static void refresh_vm_stats(struct work
- int vmstat_refresh(struct ctl_table *table, int write,
- 		   void *buffer, size_t *lenp, loff_t *ppos)
+ static int kcompactd(void *p)
  {
--	long val;
-+	long val, max_drift;
- 	int err;
- 	int i;
+-	pg_data_t *pgdat = (pg_data_t*)p;
++	pg_data_t *pgdat = (pg_data_t *)p;
+ 	struct task_struct *tsk = current;
+ 	unsigned int proactive_defer = 0;
  
-@@ -1849,17 +1854,22 @@ int vmstat_refresh(struct ctl_table *tab
- 	 * pages, immediately after running a test.  /proc/sys/vm/stat_refresh,
- 	 * which can equally be echo'ed to or cat'ted from (by root),
- 	 * can be used to update the stats just before reading them.
--	 *
--	 * Oh, and since global_zone_page_state() etc. are so careful to hide
--	 * transiently negative values, report an error here if any of
--	 * the stats is negative, so we know to go looking for imbalance.
- 	 */
- 	err = schedule_on_each_cpu(refresh_vm_stats);
- 	if (err)
- 		return err;
-+
-+	/*
-+	 * Since global_zone_page_state() etc. are so careful to hide
-+	 * transiently negative values, report an error here if any of
-+	 * the stats is negative and are less than the maximum drift value,
-+	 * so we know to go looking for imbalance.
-+	 */
-+	max_drift = num_online_cpus() * MAX_THRESHOLD;
-+
- 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++) {
- 		val = atomic_long_read(&vm_zone_stat[i]);
--		if (val < 0) {
-+		if (val < -max_drift) {
- 			pr_warn("%s: %s %ld\n",
- 				__func__, zone_stat_name(i), val);
- 			err = -EINVAL;
-@@ -1868,7 +1878,7 @@ int vmstat_refresh(struct ctl_table *tab
- #ifdef CONFIG_NUMA
- 	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++) {
- 		val = atomic_long_read(&vm_numa_stat[i]);
--		if (val < 0) {
-+		if (val < -max_drift) {
- 			pr_warn("%s: %s %ld\n",
- 				__func__, numa_stat_name(i), val);
- 			err = -EINVAL;
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
 
+mm-swapfile-minor-coding-style-tweaks.patch
+mm-sparse-minor-coding-style-tweaks.patch
+mm-vmscan-minor-coding-style-tweaks.patch
+mm-compaction-minor-coding-style-tweaks.patch
+mm-oom_kill-minor-coding-style-tweaks.patch
+mm-shmem-minor-coding-style-tweaks.patch
+mm-page_alloc-minor-coding-style-tweaks.patch
+mm-filemap-minor-coding-style-tweaks.patch
+mm-memremap-fixes-improper-spdx-comment-style.patch
+mm-zswap-switch-from-strlcpy-to-strscpy.patch
 
