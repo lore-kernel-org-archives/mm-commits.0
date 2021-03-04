@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2ECDEC1550E
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:09:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC231C4360C
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:16:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 023EA64EFD
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:09:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4DD465003
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:16:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345966AbhCDA7M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:59:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49168 "EHLO mail.kernel.org"
+        id S242005AbhCDBP7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 20:15:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36362 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1450170AbhCDA0Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 19:26:16 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AD62C64E56;
-        Thu,  4 Mar 2021 00:25:35 +0000 (UTC)
+        id S1346641AbhCDBNh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 20:13:37 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B604364ED4;
+        Thu,  4 Mar 2021 01:12:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614817535;
-        bh=cGbjyA66KLR1rbNftXJgBx+nsF00tYNhUdWnGdlPYrw=;
+        s=korg; t=1614820376;
+        bh=+HZDlaTru0bA6vsH/RSCVkwykBQzTmstKfBiT4LADj8=;
         h=Date:From:To:Subject:From;
-        b=amH1SQUMRbYffCBpOTzVpWJ9O36MDqUDHTSG2SeFSTloAe2kn3hkO9PryHi/WjD4D
-         c1iOuTIP+8zb5IQIyNlSYjBnmjh40n5qg3LitHCaunGm4XK3+iWgzrF2j+d2tVeWnA
-         YaUXU4YVj6xFLSilrD+T2ISUlFVW2rbMLS2RDSw8=
-Date:   Wed, 03 Mar 2021 16:25:35 -0800
+        b=VIRrmm60Zl3fc7ZOCqqEZksAMDl++uv1FueiSngKmAq4leIIgntDns9Tgqduw34PX
+         fpVyx17a/au77VSmiyaJn/Hql4lyRXg+J45Z99FwDqD7gNULH+xD2JeiP6kDj776r4
+         VHcsnOLfSsJ5vkQl4DntI9FNNEhHPEpOIeTGFeQk=
+Date:   Wed, 03 Mar 2021 17:12:56 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, hughd@google.com, Liam.Howlett@Oracle.com,
-        mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  + mm-mmap-dont-unlock-vmas-in-remap_file_pages.patch
- added to -mm tree
-Message-ID: <20210304002535.95GtdZn3S%akpm@linux-foundation.org>
+To:     masahiroy@kernel.org, mm-commits@vger.kernel.org
+Subject:  +
+ compat-remove-unneeded-declaration-from-compat_syscall_definex.patch added
+ to -mm tree
+Message-ID: <20210304011256.XlnCqe7-w%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: don't unlock VMAs in remap_file_pages()
+     Subject: include/linux/compat.h: remove unneeded declaration from COMPAT_SYSCALL_DEFINEx()
 has been added to the -mm tree.  Its filename is
-     mm-mmap-dont-unlock-vmas-in-remap_file_pages.patch
+     compat-remove-unneeded-declaration-from-compat_syscall_definex.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-dont-unlock-vmas-in-remap_file_pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/compat-remove-unneeded-declaration-from-compat_syscall_definex.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-dont-unlock-vmas-in-remap_file_pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/compat-remove-unneeded-declaration-from-compat_syscall_definex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,56 +64,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mm/mmap.c: don't unlock VMAs in remap_file_pages()
+From: Masahiro Yamada <masahiroy@kernel.org>
+Subject: include/linux/compat.h: remove unneeded declaration from COMPAT_SYSCALL_DEFINEx()
 
-Since this call uses MAP_FIXED, do_mmap() will munlock the necessary
-range.  There is also an error in the loop test expression which will
-evaluate as false and the loop body has never execute.
+compat_sys##name is declared twice, just one line below.
 
-Link: https://lkml.kernel.org/r/20210223235010.2296915-1-Liam.Howlett@Oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+With this removal SYSCALL_DEFINEx() (defined in <linux/syscalls.h>)
+and COMPAT_SYSCALL_DEFINEx() look symmetrical.
+
+Link: https://lkml.kernel.org/r/20210223114924.854794-1-masahiroy@kernel.org
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   18 +-----------------
- 1 file changed, 1 insertion(+), 17 deletions(-)
+ include/linux/compat.h |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/mmap.c~mm-mmap-dont-unlock-vmas-in-remap_file_pages
-+++ a/mm/mmap.c
-@@ -3038,25 +3038,9 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
- 
- 	flags &= MAP_NONBLOCK;
- 	flags |= MAP_SHARED | MAP_FIXED | MAP_POPULATE;
--	if (vma->vm_flags & VM_LOCKED) {
--		struct vm_area_struct *tmp;
-+	if (vma->vm_flags & VM_LOCKED)
- 		flags |= MAP_LOCKED;
- 
--		/* drop PG_Mlocked flag for over-mapped range */
--		for (tmp = vma; tmp->vm_start >= start + size;
--				tmp = tmp->vm_next) {
--			/*
--			 * Split pmd and munlock page on the border
--			 * of the range.
--			 */
--			vma_adjust_trans_huge(tmp, start, start + size, 0);
--
--			munlock_vma_pages_range(tmp,
--					max(tmp->vm_start, start),
--					min(tmp->vm_end, start + size));
--		}
--	}
--
- 	file = get_file(vma->vm_file);
- 	ret = do_mmap(vma->vm_file, start, size,
- 			prot, flags, pgoff, &populate, NULL);
+--- a/include/linux/compat.h~compat-remove-unneeded-declaration-from-compat_syscall_definex
++++ a/include/linux/compat.h
+@@ -75,7 +75,6 @@
+ 	__diag_push();								\
+ 	__diag_ignore(GCC, 8, "-Wattribute-alias",				\
+ 		      "Type aliasing is used to sanitize syscall arguments");\
+-	asmlinkage long compat_sys##name(__MAP(x,__SC_DECL,__VA_ARGS__));	\
+ 	asmlinkage long compat_sys##name(__MAP(x,__SC_DECL,__VA_ARGS__))	\
+ 		__attribute__((alias(__stringify(__se_compat_sys##name))));	\
+ 	ALLOW_ERROR_INJECTION(compat_sys##name, ERRNO);				\
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from masahiroy@kernel.org are
 
-mm-mmap-dont-unlock-vmas-in-remap_file_pages.patch
+init-kconfig-make-compile_test-depend-on-has_iomem.patch
+compat-remove-unneeded-declaration-from-compat_syscall_definex.patch
 
