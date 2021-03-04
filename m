@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DA7BC433E9
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:16:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A560C433DB
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:16:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EBDD565044
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:16:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08FDA64EDB
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:16:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232539AbhCDBQX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 20:16:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40624 "EHLO mail.kernel.org"
+        id S232885AbhCDBQY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 20:16:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40962 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237456AbhCDBQG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 20:16:06 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D99B164F81;
-        Thu,  4 Mar 2021 01:15:22 +0000 (UTC)
+        id S238363AbhCDBQJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 20:16:09 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E3CC864F74;
+        Thu,  4 Mar 2021 01:15:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614820523;
-        bh=zKxRjijUy8WOiFHOA6/q5rxODSM9MdYxgjuTYW/Dnzo=;
+        s=korg; t=1614820529;
+        bh=4AupjyWuH+ghxM2YgjVwv3SyLyQQQxPjhK7gsgw3xt0=;
         h=Date:From:To:Subject:From;
-        b=CqZWGFNPgUf8yGHaiceXzMUzBL209uz0zpAMNQIAIoooaWV3PDtzuHtyfAkK0Q5/R
-         WjuWAnLT1x0j88JRo0wb0lFYovLIpuWWbP6acfskPmHvZNjKc+fjP3RvPHHDzqYS5T
-         q8h+IT6DLVVmxbDKK3fqf0YpwOo1ZjkylAS+IlUo=
-Date:   Wed, 03 Mar 2021 17:15:22 -0800
+        b=ToSzOsHCBnX+qhGrUCnl9+j/l1KpAREjQH8XPrlzwQCPGZxJkygWIV8ejL+f+WLTU
+         sbB3u5cvSCG77d5jDt6zUnH1+Jlw7boT7MoPj7HWq55cpUFYCTr0HiZwwO8eRkhaFD
+         JwkJRZJzyMn+/p2rFBmCEcK61osepU3WHMBJYaaA=
+Date:   Wed, 03 Mar 2021 17:15:28 -0800
 From:   akpm@linux-foundation.org
 To:     daizhiyuan@phytium.com.cn, mm-commits@vger.kernel.org
-Subject:  + mm-frontswap-minor-coding-style-tweaks.patch added to
+Subject:  + mm-mempolicy-minor-coding-style-tweaks.patch added to
  -mm tree
-Message-ID: <20210304011522.YSb1J8YOQ%akpm@linux-foundation.org>
+Message-ID: <20210304011528.ry_zB8DW9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/frontswap: minor coding style tweaks
+     Subject: mm/mempolicy: minor coding style tweaks
 has been added to the -mm tree.  Its filename is
-     mm-frontswap-minor-coding-style-tweaks.patch
+     mm-mempolicy-minor-coding-style-tweaks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-frontswap-minor-coding-style-tweaks.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-minor-coding-style-tweaks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-frontswap-minor-coding-style-tweaks.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-minor-coding-style-tweaks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,46 +64,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
-Subject: mm/frontswap: minor coding style tweaks
+Subject: mm/mempolicy: minor coding style tweaks
 
-This patch move brace position to fix coding style issues,
-improve code reading.
+Add whitespace to fix coding style issues, improve code reading.
 
-Link: https://lkml.kernel.org/r/1613962668-15045-1-git-send-email-daizhiyuan@phytium.com.cn
+Link: https://lkml.kernel.org/r/1613972228-25501-1-git-send-email-daizhiyuan@phytium.com.cn
 Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/frontswap.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/mempolicy.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/frontswap.c~mm-frontswap-minor-coding-style-tweaks
-+++ a/mm/frontswap.c
-@@ -60,16 +60,20 @@ static u64 frontswap_succ_stores;
- static u64 frontswap_failed_stores;
- static u64 frontswap_invalidates;
+--- a/mm/mempolicy.c~mm-mempolicy-minor-coding-style-tweaks
++++ a/mm/mempolicy.c
+@@ -330,7 +330,7 @@ static void mpol_rebind_nodemask(struct
+ 	else if (pol->flags & MPOL_F_RELATIVE_NODES)
+ 		mpol_relative_nodemask(&tmp, &pol->w.user_nodemask, nodes);
+ 	else {
+-		nodes_remap(tmp, pol->v.nodes,pol->w.cpuset_mems_allowed,
++		nodes_remap(tmp, pol->v.nodes, pol->w.cpuset_mems_allowed,
+ 								*nodes);
+ 		pol->w.cpuset_mems_allowed = *nodes;
+ 	}
+@@ -1161,7 +1161,7 @@ int do_migrate_pages(struct mm_struct *m
  
--static inline void inc_frontswap_loads(void) {
-+static inline void inc_frontswap_loads(void)
-+{
- 	data_race(frontswap_loads++);
- }
--static inline void inc_frontswap_succ_stores(void) {
-+static inline void inc_frontswap_succ_stores(void)
-+{
- 	data_race(frontswap_succ_stores++);
- }
--static inline void inc_frontswap_failed_stores(void) {
-+static inline void inc_frontswap_failed_stores(void)
-+{
- 	data_race(frontswap_failed_stores++);
- }
--static inline void inc_frontswap_invalidates(void) {
-+static inline void inc_frontswap_invalidates(void)
-+{
- 	data_race(frontswap_invalidates++);
- }
- #else
+ 	tmp = *from;
+ 	while (!nodes_empty(tmp)) {
+-		int s,d;
++		int s, d;
+ 		int source = NUMA_NO_NODE;
+ 		int dest = 0;
+ 
 _
 
 Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
