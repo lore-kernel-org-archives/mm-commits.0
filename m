@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 913A1C15504
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E1C5C433E9
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 606FD64EC0
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0022A64E76
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232177AbhCDA7O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:59:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57486 "EHLO mail.kernel.org"
+        id S241102AbhCDA7B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:59:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48028 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1355608AbhCDAcG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 19:32:06 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B9AF764EDB;
-        Wed,  3 Mar 2021 23:12:03 +0000 (UTC)
+        id S1381718AbhCDAKj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 19:10:39 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C796064F8A;
+        Thu,  4 Mar 2021 00:09:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614813124;
-        bh=JbT+HA6oeK7pDPva/zM/ypHXIZXsvFFWNMiy51kNWfY=;
+        s=korg; t=1614816595;
+        bh=VM6g3Aw5qbJ7kG3CDzyrZFc8mpD9ewU7FqnvfdAv9PE=;
         h=Date:From:To:Subject:From;
-        b=c7TrD/1F/T+p07Cn9XLo6YcvXnOmB4ZPyEGxIXde2EoKLkXTb9LnGgBXptDkEdas3
-         HeTxq4oOgItyrgEM3NmhQThvGWHxJaSCR6tiLJ1BoWggaIYp7fnj7Ecvk16/LJhH74
-         vYKI+JOKhyIa4hlPmnpL/hBVNUrGdqilvqnbLL0o=
-Date:   Wed, 03 Mar 2021 15:12:03 -0800
+        b=cR93za6d0JVzQLRHrahktIV4flZThXSMx/wczHigUTSjTJLYMw9QtS+Fr91QaGvVN
+         zKur2qe+81mmq4KWC570tSyVkFY9hOmNWOSlysWlVdjnjy719IrIJg5pUGmfG3ZjGH
+         PG/BXWOYfc+WxELo3Dkj620mHznUhFQV7XZ0LleM=
+Date:   Wed, 03 Mar 2021 16:09:55 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, christophe.leroy@csgroup.eu,
-        dvyukov@google.com, elver@google.com, glider@google.com,
-        jannh@google.com, mm-commits@vger.kernel.org
-Subject:  + kfence-fix-printk-format-for-ptrdiff_t.patch added to
- -mm tree
-Message-ID: <20210303231203.d4m554F5t%akpm@linux-foundation.org>
+To:     daizhiyuan@phytium.com.cn, mm-commits@vger.kernel.org
+Subject:  + mm-filemap-minor-coding-style-tweaks.patch added to -mm
+ tree
+Message-ID: <20210304000955.vowk65BZG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: fix printk format for ptrdiff_t
+     Subject: mm/filemap: minor coding style tweaks
 has been added to the -mm tree.  Its filename is
-     kfence-fix-printk-format-for-ptrdiff_t.patch
+     mm-filemap-minor-coding-style-tweaks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kfence-fix-printk-format-for-ptrdiff_t.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-minor-coding-style-tweaks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-fix-printk-format-for-ptrdiff_t.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-minor-coding-style-tweaks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,81 +63,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: fix printk format for ptrdiff_t
+From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+Subject: mm/filemap: minor coding style tweaks
 
-Use %td for ptrdiff_t.
+Delete whitespace to fix coding style issues, improve code reading.
 
-Link: https://lkml.kernel.org/r/3abbe4c9-16ad-c168-a90f-087978ccd8f7@csgroup.eu
-Link: https://lkml.kernel.org/r/20210303121157.3430807-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Link: https://lkml.kernel.org/r/1614228936-22337-1-git-send-email-daizhiyuan@phytium.com.cn
+Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/report.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/filemap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/kfence/report.c~kfence-fix-printk-format-for-ptrdiff_t
-+++ a/mm/kfence/report.c
-@@ -116,12 +116,12 @@ void kfence_print_object(struct seq_file
- 	lockdep_assert_held(&meta->lock);
+--- a/mm/filemap.c~mm-filemap-minor-coding-style-tweaks
++++ a/mm/filemap.c
+@@ -3215,7 +3215,7 @@ const struct vm_operations_struct generi
  
- 	if (meta->state == KFENCE_OBJECT_UNUSED) {
--		seq_con_printf(seq, "kfence-#%zd unused\n", meta - kfence_metadata);
-+		seq_con_printf(seq, "kfence-#%td unused\n", meta - kfence_metadata);
- 		return;
- 	}
+ /* This is used for a general mmap of a disk file */
  
- 	seq_con_printf(seq,
--		       "kfence-#%zd [0x%p-0x%p"
-+		       "kfence-#%td [0x%p-0x%p"
- 		       ", size=%d, cache=%s] allocated by task %d:\n",
- 		       meta - kfence_metadata, (void *)start, (void *)(start + size - 1), size,
- 		       (cache && cache->name) ? cache->name : "<destroyed>", meta->alloc_track.pid);
-@@ -204,7 +204,7 @@ void kfence_report_error(unsigned long a
+-int generic_file_mmap(struct file * file, struct vm_area_struct * vma)
++int generic_file_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct address_space *mapping = file->f_mapping;
  
- 		pr_err("BUG: KFENCE: out-of-bounds %s in %pS\n\n", get_access_type(is_write),
- 		       (void *)stack_entries[skipnr]);
--		pr_err("Out-of-bounds %s at 0x%p (%luB %s of kfence-#%zd):\n",
-+		pr_err("Out-of-bounds %s at 0x%p (%luB %s of kfence-#%td):\n",
- 		       get_access_type(is_write), (void *)address,
- 		       left_of_object ? meta->addr - address : address - meta->addr,
- 		       left_of_object ? "left" : "right", object_index);
-@@ -213,14 +213,14 @@ void kfence_report_error(unsigned long a
- 	case KFENCE_ERROR_UAF:
- 		pr_err("BUG: KFENCE: use-after-free %s in %pS\n\n", get_access_type(is_write),
- 		       (void *)stack_entries[skipnr]);
--		pr_err("Use-after-free %s at 0x%p (in kfence-#%zd):\n",
-+		pr_err("Use-after-free %s at 0x%p (in kfence-#%td):\n",
- 		       get_access_type(is_write), (void *)address, object_index);
- 		break;
- 	case KFENCE_ERROR_CORRUPTION:
- 		pr_err("BUG: KFENCE: memory corruption in %pS\n\n", (void *)stack_entries[skipnr]);
- 		pr_err("Corrupted memory at 0x%p ", (void *)address);
- 		print_diff_canary(address, 16, meta);
--		pr_cont(" (in kfence-#%zd):\n", object_index);
-+		pr_cont(" (in kfence-#%td):\n", object_index);
- 		break;
- 	case KFENCE_ERROR_INVALID:
- 		pr_err("BUG: KFENCE: invalid %s in %pS\n\n", get_access_type(is_write),
-@@ -230,7 +230,7 @@ void kfence_report_error(unsigned long a
- 		break;
- 	case KFENCE_ERROR_INVALID_FREE:
- 		pr_err("BUG: KFENCE: invalid free in %pS\n\n", (void *)stack_entries[skipnr]);
--		pr_err("Invalid free of 0x%p (in kfence-#%zd):\n", (void *)address,
-+		pr_err("Invalid free of 0x%p (in kfence-#%td):\n", (void *)address,
- 		       object_index);
- 		break;
- 	}
+@@ -3240,11 +3240,11 @@ vm_fault_t filemap_page_mkwrite(struct v
+ {
+ 	return VM_FAULT_SIGBUS;
+ }
+-int generic_file_mmap(struct file * file, struct vm_area_struct * vma)
++int generic_file_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	return -ENOSYS;
+ }
+-int generic_file_readonly_mmap(struct file * file, struct vm_area_struct * vma)
++int generic_file_readonly_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	return -ENOSYS;
+ }
+@@ -3672,7 +3672,7 @@ EXPORT_SYMBOL(generic_perform_write);
+ ssize_t __generic_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ {
+ 	struct file *file = iocb->ki_filp;
+-	struct address_space * mapping = file->f_mapping;
++	struct address_space *mapping = file->f_mapping;
+ 	struct inode 	*inode = mapping->host;
+ 	ssize_t		written = 0;
+ 	ssize_t		err;
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
 
-kfence-fix-printk-format-for-ptrdiff_t.patch
+mm-swapfile-minor-coding-style-tweaks.patch
+mm-sparse-minor-coding-style-tweaks.patch
+mm-vmscan-minor-coding-style-tweaks.patch
+mm-compaction-minor-coding-style-tweaks.patch
+mm-oom_kill-minor-coding-style-tweaks.patch
+mm-shmem-minor-coding-style-tweaks.patch
+mm-page_alloc-minor-coding-style-tweaks.patch
+mm-filemap-minor-coding-style-tweaks.patch
+mm-memremap-fixes-improper-spdx-comment-style.patch
+mm-zswap-switch-from-strlcpy-to-strscpy.patch
 
