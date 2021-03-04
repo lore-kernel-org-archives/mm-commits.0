@@ -7,37 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76553C15503
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2A06C4361B
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4682864EC0
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F81564E7C
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345924AbhCDA7M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:59:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48844 "EHLO mail.kernel.org"
+        id S240806AbhCDA7A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:59:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47938 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1448502AbhCDAZz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 19:25:55 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DCE0A64EFE;
-        Thu,  4 Mar 2021 00:23:44 +0000 (UTC)
+        id S1381385AbhCDAKd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 19:10:33 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9688E64F9B;
+        Thu,  4 Mar 2021 00:09:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614817425;
-        bh=AeiWY6K2zcYicdRHfUntZJpTD1OdyJojRahTJxq1Tsk=;
+        s=korg; t=1614816591;
+        bh=vxN9A/tT25/e+BHQiUDQsS726RpUDPxiOY30FzjJj50=;
         h=Date:From:To:Subject:From;
-        b=VIspzADM3KW7J9N77l2+ot/u0mB9/BTA0gSutIzmaVPXaK9yUq4rBfeEPA35uZsxb
-         ckNnxrGqkwT4a5jZ669qjA98UbI2mS9btGg/OngbOXchNGVW69bHY+QlQ4LKHXMhd5
-         YfNy1MRiSgYcD6SW5JGliHFTyNxmy1AfXKrO3iJk=
-Date:   Wed, 03 Mar 2021 16:23:44 -0800
+        b=cgdBQUFPJVlIeyrx5R1gD2klQtpgbSV9rOVbTDiVvS2+iRn3Iw/OmldKpBnH95cBN
+         FDzrI+EakBcEjizY4BU0DV1wIhsEsHmqEuO/0JVn1HgpKgjwZe1O4ylthR5l6PvsDi
+         QObSrON7wEQGhNqBfWS5LLPnmaQY2ZlAObjZDWkw=
+Date:   Wed, 03 Mar 2021 16:09:51 -0800
 From:   akpm@linux-foundation.org
-To:     abaci@linux.alibaba.com, gechangwei@live.cn, ghe@suse.com,
-        jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
-        junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org,
-        piaojun@huawei.com, yang.lee@linux.alibaba.com
-Subject:  +
- ocfs2-replace-define_simple_attribute-with-define_debugfs_attribute.patch
- added to -mm tree
-Message-ID: <20210304002344.GhW01B34Y%akpm@linux-foundation.org>
+To:     daizhiyuan@phytium.com.cn, mm-commits@vger.kernel.org
+Subject:  + mm-shmem-minor-coding-style-tweaks.patch added to -mm
+ tree
+Message-ID: <20210304000951.VDN8gK0Tv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: replace DEFINE_SIMPLE_ATTRIBUTE with DEFINE_DEBUGFS_ATTRIBUTE
+     Subject: mm/shmem: minor coding style tweaks
 has been added to the -mm tree.  Its filename is
-     ocfs2-replace-define_simple_attribute-with-define_debugfs_attribute.patch
+     mm-shmem-minor-coding-style-tweaks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-replace-define_simple_attribute-with-define_debugfs_attribute.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-minor-coding-style-tweaks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-replace-define_simple_attribute-with-define_debugfs_attribute.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-minor-coding-style-tweaks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,43 +63,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Li <yang.lee@linux.alibaba.com>
-Subject: ocfs2: replace DEFINE_SIMPLE_ATTRIBUTE with DEFINE_DEBUGFS_ATTRIBUTE
+From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+Subject: mm/shmem: minor coding style tweaks
 
-Fix the following coccicheck warning:
-./fs/ocfs2/blockcheck.c:232:0-23: WARNING: blockcheck_fops should be
-defined with DEFINE_DEBUGFS_ATTRIBUTE
+Add whitespace to fix coding style issues, improve code reading.
 
-Link: https://lkml.kernel.org/r/1614155230-57292-1-git-send-email-yang.lee@linux.alibaba.com
-Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/1614228504-21491-1-git-send-email-daizhiyuan@phytium.com.cn
+Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/blockcheck.c |    2 +-
+ mm/shmem.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/blockcheck.c~ocfs2-replace-define_simple_attribute-with-define_debugfs_attribute
-+++ a/fs/ocfs2/blockcheck.c
-@@ -229,7 +229,7 @@ static int blockcheck_u64_get(void *data
- 	*val = *(u64 *)data;
- 	return 0;
- }
--DEFINE_SIMPLE_ATTRIBUTE(blockcheck_fops, blockcheck_u64_get, NULL, "%llu\n");
-+DEFINE_DEBUGFS_ATTRIBUTE(blockcheck_fops, blockcheck_u64_get, NULL, "%llu\n");
+--- a/mm/shmem.c~mm-shmem-minor-coding-style-tweaks
++++ a/mm/shmem.c
+@@ -3499,7 +3499,7 @@ static int shmem_parse_options(struct fs
+ 			}
+ 		}
+ 		if (*this_char) {
+-			char *value = strchr(this_char,'=');
++			char *value = strchr(this_char, '=');
+ 			size_t len = 0;
+ 			int err;
  
- static void ocfs2_blockcheck_debug_remove(struct ocfs2_blockcheck_stats *stats)
- {
 _
 
-Patches currently in -mm which might be from yang.lee@linux.alibaba.com are
+Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
 
-ocfs2-replace-define_simple_attribute-with-define_debugfs_attribute.patch
+mm-swapfile-minor-coding-style-tweaks.patch
+mm-sparse-minor-coding-style-tweaks.patch
+mm-vmscan-minor-coding-style-tweaks.patch
+mm-compaction-minor-coding-style-tweaks.patch
+mm-oom_kill-minor-coding-style-tweaks.patch
+mm-shmem-minor-coding-style-tweaks.patch
+mm-page_alloc-minor-coding-style-tweaks.patch
+mm-filemap-minor-coding-style-tweaks.patch
+mm-memremap-fixes-improper-spdx-comment-style.patch
+mm-zswap-switch-from-strlcpy-to-strscpy.patch
 
