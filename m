@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FE4DC43333
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23674C15500
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1AEC464EC0
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E385164EC0
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237990AbhCDA6x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:58:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39438 "EHLO mail.kernel.org"
+        id S243093AbhCDA7D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:59:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51226 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1354497AbhCDAJY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 19:09:24 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E624764F60;
-        Thu,  4 Mar 2021 00:07:37 +0000 (UTC)
+        id S1388386AbhCDAML (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 19:12:11 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AF9A464E56;
+        Thu,  4 Mar 2021 00:11:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614816458;
-        bh=S1v8kDnfya0BQkUNYJz3muk6AOWjMTC3Cg3Rg8QZeYE=;
+        s=korg; t=1614816690;
+        bh=joqxziRSKououaVn5A5ydf/aMnYc+p0S/n51+o8Sf3I=;
         h=Date:From:To:Subject:From;
-        b=1uPzIgvSeyISzaDpjpNs7/Zh2wQ6yoFdIUlUVaWWAGdKthJDLpWLZJ7TlWfO/lWCg
-         VFSWOpr0L/6VjG9AKGfLHWdJ/uqa4r8rSnbWAS1chXpr7hZm4sYYgBI/in/cRI6QnX
-         AtJWZiMbSnKJ6NKV8EwJr6mAxz1Yu9KEiiYAfY0g=
-Date:   Wed, 03 Mar 2021 16:07:37 -0800
+        b=Pmt+tsCdcZQ33Hy1fBrApj/bWj9gHpE7ExHt+awaVfRfaD6UDVj0ftfs2eopnGY5l
+         FPDqRBVFXtxUcpdv9Po/wIM/Ar+8tfotFGPCRLavllbvlK4Q5Wq3lvYVOydoDGF3YM
+         pJSHSeJBvZFnwJvkFTohRN8Lgl5kV81M1y8hOo5U=
+Date:   Wed, 03 Mar 2021 16:11:30 -0800
 From:   akpm@linux-foundation.org
-To:     mhocko@suse.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        vbabka@suse.cz, willy@infradead.org
-Subject:  + mm-mempolicy-fix-mpol_misplaced-kernel-doc.patch added
- to -mm tree
-Message-ID: <20210304000737.yThLyDlMI%akpm@linux-foundation.org>
+To:     daizhiyuan@phytium.com.cn, ddstreet@ieee.org,
+        mm-commits@vger.kernel.org, sjenning@redhat.com,
+        vitaly.wool@konsulko.com
+Subject:  + mm-zswap-switch-from-strlcpy-to-strscpy.patch added to
+ -mm tree
+Message-ID: <20210304001130.HeOO-qbXy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: fix mpol_misplaced kernel-doc
+     Subject: mm/zswap.c: switch from strlcpy to strscpy
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-fix-mpol_misplaced-kernel-doc.patch
+     mm-zswap-switch-from-strlcpy-to-strscpy.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-fix-mpol_misplaced-kernel-doc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-switch-from-strlcpy-to-strscpy.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-fix-mpol_misplaced-kernel-doc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-switch-from-strlcpy-to-strscpy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,64 +65,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/mempolicy: fix mpol_misplaced kernel-doc
+From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+Subject: mm/zswap.c: switch from strlcpy to strscpy
 
-Sphinx interprets the Return section as a list and complains about it. 
-Turn it into a sentence and move it to the end of the kernel-doc to fit
-the kernel-doc style.
+strlcpy is marked as deprecated in Documentation/process/deprecated.rst,
+and there is no functional difference when the caller expects truncation
+(when not checking the return value).  strscpy is relatively better as it
+also avoids scanning the whole source string.
 
-Link: https://lkml.kernel.org/r/20210225150642.2582252-8-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/1614227981-20367-1-git-send-email-daizhiyuan@phytium.com.cn
+Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/mm-api.rst |    1 +
- mm/mempolicy.c                    |   11 ++++-------
- 2 files changed, 5 insertions(+), 7 deletions(-)
+ mm/zswap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/core-api/mm-api.rst~mm-mempolicy-fix-mpol_misplaced-kernel-doc
-+++ a/Documentation/core-api/mm-api.rst
-@@ -92,3 +92,4 @@ More Memory Management Functions
-    :export:
+--- a/mm/zswap.c~mm-zswap-switch-from-strlcpy-to-strscpy
++++ a/mm/zswap.c
+@@ -614,7 +614,7 @@ static struct zswap_pool *zswap_pool_cre
+ 	}
+ 	pr_debug("using %s zpool\n", zpool_get_type(pool->zpool));
  
- .. kernel-doc:: mm/page_alloc.c
-+.. kernel-doc:: mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-fix-mpol_misplaced-kernel-doc
-+++ a/mm/mempolicy.c
-@@ -2448,14 +2448,11 @@ static void sp_free(struct sp_node *n)
-  * @addr: virtual address where page mapped
-  *
-  * Lookup current policy node id for vma,addr and "compare to" page's
-- * node id.
-- *
-- * Returns:
-- *	-1	- not misplaced, page is in the right node
-- *	node	- node id where the page should be
-- *
-- * Policy determination "mimics" alloc_page_vma().
-+ * node id.  Policy determination "mimics" alloc_page_vma().
-  * Called from fault path where we know the vma and faulting address.
-+ *
-+ * Return: -1 if the page is in a node that is valid for this policy, or a
-+ * suitable node ID to allocate a replacement page from.
-  */
- int mpol_misplaced(struct page *page, struct vm_area_struct *vma, unsigned long addr)
- {
+-	strlcpy(pool->tfm_name, compressor, sizeof(pool->tfm_name));
++	strscpy(pool->tfm_name, compressor, sizeof(pool->tfm_name));
+ 
+ 	pool->acomp_ctx = alloc_percpu(*pool->acomp_ctx);
+ 	if (!pool->acomp_ctx) {
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
 
-mm-filemap-use-filemap_read_page-in-filemap_fault.patch
-mm-filemap-drop-check-for-truncated-page-after-i-o.patch
-mm-page_alloc-rename-alloc_mask-to-alloc_gfp.patch
-mm-page_alloc-rename-gfp_mask-to-gfp.patch
-mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask.patch
-mm-mempolicy-rename-alloc_pages_current-to-alloc_pages.patch
-mm-mempolicy-rewrite-alloc_pages-documentation.patch
-mm-mempolicy-rewrite-alloc_pages_vma-documentation.patch
-mm-mempolicy-fix-mpol_misplaced-kernel-doc.patch
+mm-memremap-fixes-improper-spdx-comment-style.patch
+mm-zswap-switch-from-strlcpy-to-strscpy.patch
+mm-swapfile-minor-coding-style-tweaks.patch
+mm-sparse-minor-coding-style-tweaks.patch
+mm-vmscan-minor-coding-style-tweaks.patch
+mm-compaction-minor-coding-style-tweaks.patch
+mm-oom_kill-minor-coding-style-tweaks.patch
+mm-shmem-minor-coding-style-tweaks.patch
+mm-page_alloc-minor-coding-style-tweaks.patch
+mm-filemap-minor-coding-style-tweaks.patch
 
