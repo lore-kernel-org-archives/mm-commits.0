@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C131C4161F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5992C15505
 	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:09:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4742964EEC
+	by mail.kernel.org (Postfix) with ESMTP id 9BB8D64EFD
 	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:09:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241802AbhCDA7B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:59:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39418 "EHLO mail.kernel.org"
+        id S1346275AbhCDA7M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:59:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48836 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1382298AbhCDALk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 19:11:40 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D096364F11;
-        Wed,  3 Mar 2021 23:16:20 +0000 (UTC)
+        id S1450984AbhCDA0w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 19:26:52 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AAA2D64E5F;
+        Thu,  4 Mar 2021 00:26:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614813381;
-        bh=XJdbOF+7FCJbj2cA0xHe+uqOD4eyXN3oZGevUwLibQA=;
+        s=korg; t=1614817597;
+        bh=tYAkjVsNaq2zTbcWyT1QuyjzU2L8lfSNk2khiszQaW0=;
         h=Date:From:To:Subject:From;
-        b=kVQhjzFyYXytBZyfBPmlGJRxBU9T9g5el+FEIwBq2gY2yj3KJL9LDdzZUpoH2n/ib
-         Xgbpm8nBNAJ3Gtu7I+35J91/UaLLBmrHdAWYtgOcxOStiEDLdRgAPvgZ/WMsLlLYal
-         1sSpq6PCL19Y4R5qH4I5SaZWFT8PBIKiWEQyD4Rs=
-Date:   Wed, 03 Mar 2021 15:16:20 -0800
+        b=iXAkpU0NhqyKE3dXv3zAET+/kfNhi6MXmVAtyL/hAlSknt6GZxFCqYaE5X+AN/JtT
+         tDWk8UPy9eHXOl56s4oITB1q8cPjNzbhlO9WsmDTK8CKDFjFd9i6b8MTDctIbSiiWi
+         2qE5IllhvQNJO2ObZgSsPXghFaFNbrqPIdS8Q0As=
+Date:   Wed, 03 Mar 2021 16:26:36 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org, yuzhao@google.com
-Subject:  + mm-clean-up-include-linux-page-flags-layouth.patch
- added to -mm tree
-Message-ID: <20210303231620.AsGuXThO6%akpm@linux-foundation.org>
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, shakeelb@google.com
+Subject:  + memcg-cleanup-root-memcg-checks.patch added to -mm tree
+Message-ID: <20210304002636.aaTaCim1L%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/page-flags-layout.h: cleanups
+     Subject: memcg: cleanup root memcg checks
 has been added to the -mm tree.  Its filename is
-     mm-clean-up-include-linux-page-flags-layouth.patch
+     memcg-cleanup-root-memcg-checks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-clean-up-include-linux-page-flags-layouth.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memcg-cleanup-root-memcg-checks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-clean-up-include-linux-page-flags-layouth.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-cleanup-root-memcg-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,142 +63,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: include/linux/page-flags-layout.h: cleanups
+From: Shakeel Butt <shakeelb@google.com>
+Subject: memcg: cleanup root memcg checks
 
-Tidy things up and delete comments stating the obvious with typos or
-making no sense.
+Replace the implicit checking of root memcg with explicit root memcg
+checking i.e.  !css->parent with mem_cgroup_is_root().
 
-Link: https://lkml.kernel.org/r/20210303071609.797782-2-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20210223205625.2792891-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags-layout.h |   62 +++++++++++++---------------
- mm/mm_init.c                      |    4 -
- 2 files changed, 29 insertions(+), 37 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/page-flags-layout.h~mm-clean-up-include-linux-page-flags-layouth
-+++ a/include/linux/page-flags-layout.h
-@@ -21,16 +21,17 @@
- #elif MAX_NR_ZONES <= 8
- #define ZONES_SHIFT 3
- #else
--#error ZONES_SHIFT -- too many zones configured adjust calculation
-+#error ZONES_SHIFT "Too many zones configured"
- #endif
+--- a/mm/memcontrol.c~memcg-cleanup-root-memcg-checks
++++ a/mm/memcontrol.c
+@@ -4140,7 +4140,7 @@ static int mem_cgroup_swappiness_write(s
+ 	if (val > 100)
+ 		return -EINVAL;
  
-+#define ZONES_WIDTH		ZONES_SHIFT
-+
- #ifdef CONFIG_SPARSEMEM
- #include <asm/sparsemem.h>
--
--/* SECTION_SHIFT	#bits space required to store a section # */
- #define SECTIONS_SHIFT	(MAX_PHYSMEM_BITS - SECTION_SIZE_BITS)
--
--#endif /* CONFIG_SPARSEMEM */
-+#else
-+#define SECTIONS_SHIFT	0
-+#endif
+-	if (css->parent)
++	if (!mem_cgroup_is_root(memcg))
+ 		memcg->swappiness = val;
+ 	else
+ 		vm_swappiness = val;
+@@ -4490,7 +4490,7 @@ static int mem_cgroup_oom_control_write(
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
  
- #ifndef BUILD_VDSO32_64
- /*
-@@ -54,17 +55,28 @@
- #define SECTIONS_WIDTH		0
- #endif
+ 	/* cannot set to root cgroup and only 0 and 1 are allowed */
+-	if (!css->parent || !((val == 0) || (val == 1)))
++	if (mem_cgroup_is_root(memcg) || !((val == 0) || (val == 1)))
+ 		return -EINVAL;
  
--#define ZONES_WIDTH		ZONES_SHIFT
--
--#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= BITS_PER_LONG - NR_PAGEFLAGS
-+#if ZONES_WIDTH + SECTIONS_WIDTH + NODES_SHIFT <= BITS_PER_LONG - NR_PAGEFLAGS
- #define NODES_WIDTH		NODES_SHIFT
--#else
--#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+#elif defined(CONFIG_SPARSEMEM_VMEMMAP)
- #error "Vmemmap: No space for nodes field in page flags"
--#endif
-+#else
- #define NODES_WIDTH		0
- #endif
- 
-+/*
-+ * Note that this #define MUST have a value so that it can be tested with
-+ * the IS_ENABLED() macro.
-+ */
-+#if NODES_SHIFT != 0 && NODES_WIDTH == 0
-+#define NODE_NOT_IN_PAGE_FLAGS	1
-+#endif
-+
-+#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
-+#define KASAN_TAG_WIDTH 8
-+#else
-+#define KASAN_TAG_WIDTH 0
-+#endif
-+
- #ifdef CONFIG_NUMA_BALANCING
- #define LAST__PID_SHIFT 8
- #define LAST__PID_MASK  ((1 << LAST__PID_SHIFT)-1)
-@@ -77,36 +89,20 @@
- #define LAST_CPUPID_SHIFT 0
- #endif
- 
--#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
--#define KASAN_TAG_WIDTH 8
--#else
--#define KASAN_TAG_WIDTH 0
--#endif
--
--#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_WIDTH+LAST_CPUPID_SHIFT+KASAN_TAG_WIDTH \
-+#if ZONES_WIDTH + SECTIONS_WIDTH + NODES_WIDTH + KASAN_TAG_WIDTH + LAST_CPUPID_SHIFT \
- 	<= BITS_PER_LONG - NR_PAGEFLAGS
- #define LAST_CPUPID_WIDTH LAST_CPUPID_SHIFT
- #else
- #define LAST_CPUPID_WIDTH 0
- #endif
- 
--#if SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH+LAST_CPUPID_WIDTH+KASAN_TAG_WIDTH \
--	> BITS_PER_LONG - NR_PAGEFLAGS
--#error "Not enough bits in page flags"
--#endif
--
--/*
-- * We are going to use the flags for the page to node mapping if its in
-- * there.  This includes the case where there is no node, so it is implicit.
-- * Note that this #define MUST have a value so that it can be tested with
-- * the IS_ENABLED() macro.
-- */
--#if !(NODES_WIDTH > 0 || NODES_SHIFT == 0)
--#define NODE_NOT_IN_PAGE_FLAGS 1
-+#if LAST_CPUPID_SHIFT != 0 && LAST_CPUPID_WIDTH == 0
-+#define LAST_CPUPID_NOT_IN_PAGE_FLAGS
- #endif
- 
--#if defined(CONFIG_NUMA_BALANCING) && LAST_CPUPID_WIDTH == 0
--#define LAST_CPUPID_NOT_IN_PAGE_FLAGS
-+#if ZONES_WIDTH + SECTIONS_WIDTH + NODES_WIDTH + KASAN_TAG_WIDTH + LAST_CPUPID_WIDTH \
-+	> BITS_PER_LONG - NR_PAGEFLAGS
-+#error "Not enough bits in page flags"
- #endif
- 
- #endif
---- a/mm/mm_init.c~mm-clean-up-include-linux-page-flags-layouth
-+++ a/mm/mm_init.c
-@@ -19,10 +19,6 @@
- #ifdef CONFIG_DEBUG_MEMORY_INIT
- int __meminitdata mminit_loglevel;
- 
--#ifndef SECTIONS_SHIFT
--#define SECTIONS_SHIFT	0
--#endif
--
- /* The zonelists are simply reported, validation is manual. */
- void __init mminit_verify_zonelist(void)
- {
+ 	memcg->oom_kill_disable = val;
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-mm-correctly-determine-last_cpupid_width.patch
-mm-clean-up-include-linux-page-flags-layouth.patch
+memcg-cleanup-root-memcg-checks.patch
 
