@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 446F2C433E6
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:20:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B15BEC433E0
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:20:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E8ABD64FCC
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:20:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C22564F8E
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:20:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235560AbhCDBT4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 20:19:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50778 "EHLO mail.kernel.org"
+        id S236284AbhCDBUh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 20:20:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52348 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240839AbhCDBTP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 20:19:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B1F206513A;
-        Thu,  4 Mar 2021 01:18:33 +0000 (UTC)
+        id S234191AbhCDBUD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 20:20:03 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AFD8564F3A;
+        Thu,  4 Mar 2021 01:19:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614820713;
-        bh=uDLq6vy7ex8Co4MpJ5WGyhyVXXf/RUWDz4KQ45jCMtk=;
+        s=korg; t=1614820762;
+        bh=82uPjIauYCa1IseF73oLlpxKcH0lu/ETcKWLqH55Umo=;
         h=Date:From:To:Subject:From;
-        b=0SgLiM6Xc38IgiJIDvBmA0eA1ft+vOkOymDP/ks0Om2Us82tx9kk43jbnNul1uMbJ
-         NdhEDx4+Vltz2zcdzhnfgHh9qBN4dPWP0MeQHq4+51XdEwOKR6X8MgSUTNGbRzQTLh
-         YfNjHvN+16mmDFIj6yzZWcYiLbN/IfthQcP1Nd0A=
-Date:   Wed, 03 Mar 2021 17:18:33 -0800
+        b=yMBYZ32rm1FuD8cAutdX+gZUm0f5DQQQol3LJlHc1eMNgFSZIQn7DQnSywxfyXexT
+         dXixxL+v6ZCV1vuO0kA2LLsoILkjTk+EnYEAIbH6zt7TGX2Qtk2Tg2aJapTT/c9JcP
+         a+7QrnYWzprWbcBUjcJtUc9RTNCCO8wPoySxMvbI=
+Date:   Wed, 03 Mar 2021 17:19:22 -0800
 From:   akpm@linux-foundation.org
 To:     daizhiyuan@phytium.com.cn, mm-commits@vger.kernel.org
-Subject:  + mm-dmapool-switch-from-strlcpy-to-strscpy.patch added
- to -mm tree
-Message-ID: <20210304011833.MFCJxANHV%akpm@linux-foundation.org>
+Subject:  +
+ mm-interval_tree-add-comments-to-improve-code-reading.patch added to -mm
+ tree
+Message-ID: <20210304011922.4jmtCHAii%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/dmapool: switch from strlcpy to strscpy
+     Subject: mm/interval_tree: add comments to improve code readability
 has been added to the -mm tree.  Its filename is
-     mm-dmapool-switch-from-strlcpy-to-strscpy.patch
+     mm-interval_tree-add-comments-to-improve-code-reading.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-dmapool-switch-from-strlcpy-to-strscpy.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-interval_tree-add-comments-to-improve-code-reading.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-dmapool-switch-from-strlcpy-to-strscpy.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-interval_tree-add-comments-to-improve-code-reading.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,37 +65,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
-Subject: mm/dmapool: switch from strlcpy to strscpy
+Subject: mm/interval_tree: add comments to improve code readability
 
-strlcpy is marked as deprecated in Documentation/process/deprecated.rst,
-and there is no functional difference when the caller expects truncation
-(when not checking the return value). strscpy is relatively better as it
-also avoids scanning the whole source string.
+Add a comment explaining the value of the ISSTATIC parameter, Inform the
+reader that this is not a coding style issue.
 
-Link: https://lkml.kernel.org/r/1613962050-14188-1-git-send-email-daizhiyuan@phytium.com.cn
+Link: https://lkml.kernel.org/r/1613964695-17614-1-git-send-email-daizhiyuan@phytium.com.cn
 Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/dmapool.c |    2 +-
+ mm/interval_tree.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/dmapool.c~mm-dmapool-switch-from-strlcpy-to-strscpy
-+++ a/mm/dmapool.c
-@@ -157,7 +157,7 @@ struct dma_pool *dma_pool_create(const c
- 	if (!retval)
- 		return retval;
+--- a/mm/interval_tree.c~mm-interval_tree-add-comments-to-improve-code-reading
++++ a/mm/interval_tree.c
+@@ -22,7 +22,7 @@ static inline unsigned long vma_last_pgo
  
--	strlcpy(retval->name, name, sizeof(retval->name));
-+	strscpy(retval->name, name, sizeof(retval->name));
+ INTERVAL_TREE_DEFINE(struct vm_area_struct, shared.rb,
+ 		     unsigned long, shared.rb_subtree_last,
+-		     vma_start_pgoff, vma_last_pgoff,, vma_interval_tree)
++		     vma_start_pgoff, vma_last_pgoff, /* empty */, vma_interval_tree)
  
- 	retval->dev = dev;
- 
+ /* Insert node immediately after prev in the interval tree */
+ void vma_interval_tree_insert_after(struct vm_area_struct *node,
 _
 
 Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
 
 mm-memremap-fixes-improper-spdx-comment-style.patch
+mm-interval_tree-add-comments-to-improve-code-reading.patch
 mm-dmapool-switch-from-strlcpy-to-strscpy.patch
 mm-zswap-switch-from-strlcpy-to-strscpy.patch
 mm-swapfile-minor-coding-style-tweaks.patch
