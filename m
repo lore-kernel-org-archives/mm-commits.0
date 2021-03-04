@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC600C433DB
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:21:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B8BDC433DB
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:25:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C3F7665250
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:21:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EFA15654BC
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:25:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234301AbhCDBVs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 20:21:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53644 "EHLO mail.kernel.org"
+        id S243076AbhCDBZF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 20:25:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37134 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236327AbhCDBUq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 20:20:46 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A38D464F7E;
-        Thu,  4 Mar 2021 01:20:05 +0000 (UTC)
+        id S241893AbhCDBZB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 20:25:01 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E96A964F41;
+        Thu,  4 Mar 2021 01:24:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614820805;
-        bh=JGe2TZr6iw6TC51V93y4pAtElxu1FJMj2Z4+5wyGsW8=;
+        s=korg; t=1614821061;
+        bh=w1kQRLQox8mrXjqHBWlkCfIfBRSpbR131oejX65uO9k=;
         h=Date:From:To:Subject:From;
-        b=zDCBqMJpLWXer9rjgtEHqV6dFhENJiAjRvw2DG6dgzmQtC9hORhElE0ejC4PQhXct
-         7oDKqGoAnFdrxZGVHBHHtEcOHrKizdFpA4T8+95TL4e1rqjFyYIXh4AcIEIVyxdXzA
-         vOeJfeout+cCVWsSO7WWl/Asvh3bjmk4Us4Gl8fw=
-Date:   Wed, 03 Mar 2021 17:20:05 -0800
+        b=lPbOKFrWa/7qd3BmPJpaWsDWNNOSHSDz7vsqMza9mkb69wRVO30l25bZ02j22qRTy
+         r10+OnxFTZ53Qo2QBwKeXaH039g9CJyUNxSBJ8cOHp5JFHDTPGCKC3GXoUdS3MTSEs
+         fIWyTU20XZG23STo84stnDfJkT8j165MxaGXbsgc=
+Date:   Wed, 03 Mar 2021 17:24:20 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, daizhiyuan@phytium.com.cn, glider@google.com,
-        mm-commits@vger.kernel.org
-Subject:  + mm-kasan-switch-from-strlcpy-to-strscpy.patch added to
- -mm tree
-Message-ID: <20210304012005.OeZ73_PzO%akpm@linux-foundation.org>
+To:     glaubitz@physik.fu-berlin.de, ldv@altlinux.org,
+        mm-commits@vger.kernel.org, oleg@redhat.com, slyfox@gentoo.org
+Subject:  +
+ ia64-fix-ia64_syscall_get_set_arguments-for-break-based-syscalls.patch
+ added to -mm tree
+Message-ID: <20210304012420.e0cIi7IF1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kasan: switch from strlcpy to strscpy
+     Subject: ia64: fix ia64_syscall_get_set_arguments() for break-based syscalls
 has been added to the -mm tree.  Its filename is
-     mm-kasan-switch-from-strlcpy-to-strscpy.patch
+     ia64-fix-ia64_syscall_get_set_arguments-for-break-based-syscalls.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-kasan-switch-from-strlcpy-to-strscpy.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ia64-fix-ia64_syscall_get_set_arguments-for-break-based-syscalls.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kasan-switch-from-strlcpy-to-strscpy.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-fix-ia64_syscall_get_set_arguments-for-break-based-syscalls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,56 +65,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
-Subject: mm/kasan: switch from strlcpy to strscpy
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Subject: ia64: fix ia64_syscall_get_set_arguments() for break-based syscalls
 
-strlcpy is marked as deprecated in Documentation/process/deprecated.rst,
-and there is no functional difference when the caller expects truncation
-(when not checking the return value).  strscpy is relatively better as it
-also avoids scanning the whole source string.
+In https://bugs.gentoo.org/769614 Dmitry noticed that
+`ptrace(PTRACE_GET_SYSCALL_INFO)` does not work for syscalls called via
+glibc's syscall() wrapper.
 
-Link: https://lkml.kernel.org/r/1613970647-23272-1-git-send-email-daizhiyuan@phytium.com.cn
-Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
-Acked-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+ia64 has two ways to call syscalls from userspace: via `break` and via
+`eps` instructions.
+
+The difference is in stack layout:
+
+1. `eps` creates simple stack frame: no locals, in{0..7} == out{0..8}
+2. `break` uses userspace stack frame: may be locals (glibc provides
+   one), in{0..7} == out{0..8}.
+
+Both work fine in syscall handling cde itself.
+
+But `ptrace(PTRACE_GET_SYSCALL_INFO)` uses unwind mechanism to
+re-extract syscall arguments but it does not account for locals.
+
+The change always skips locals registers. It should not change `eps`
+path as kernel's handler already enforces locals=0 and fixes `break`.
+
+Tested on v5.10 on rx3600 machine (ia64 9040 CPU).
+
+Link: https://lkml.kernel.org/r/20210221002554.333076-1-slyfox@gentoo.org
+Link: https://bugs.gentoo.org/769614
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Reported-by: Dmitry V. Levin <ldv@altlinux.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report_generic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/kernel/ptrace.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
---- a/mm/kasan/report_generic.c~mm-kasan-switch-from-strlcpy-to-strscpy
-+++ a/mm/kasan/report_generic.c
-@@ -148,7 +148,7 @@ static bool __must_check tokenize_frame_
- 		}
+--- a/arch/ia64/kernel/ptrace.c~ia64-fix-ia64_syscall_get_set_arguments-for-break-based-syscalls
++++ a/arch/ia64/kernel/ptrace.c
+@@ -2013,27 +2013,39 @@ static void syscall_get_set_args_cb(stru
+ {
+ 	struct syscall_get_set_args *args = data;
+ 	struct pt_regs *pt = args->regs;
+-	unsigned long *krbs, cfm, ndirty;
++	unsigned long *krbs, cfm, ndirty, nlocals, nouts;
+ 	int i, count;
  
- 		/* Copy token (+ 1 byte for '\0'). */
--		strlcpy(token, *frame_descr, tok_len + 1);
-+		strscpy(token, *frame_descr, tok_len + 1);
+ 	if (unw_unwind_to_user(info) < 0)
+ 		return;
+ 
++	/*
++	 * We get here via a few paths:
++	 * - break instruction: cfm is shared with caller.
++	 *   syscall args are in out= regs, locals are non-empty.
++	 * - epsinstruction: cfm is set by br.call
++	 *   locals don't exist.
++	 *
++	 * For both cases argguments are reachable in cfm.sof - cfm.sol.
++	 * CFM: [ ... | sor: 17..14 | sol : 13..7 | sof : 6..0 ]
++	 */
+ 	cfm = pt->cr_ifs;
++	nlocals = (cfm >> 7) & 0x7f; /* aka sol */
++	nouts = (cfm & 0x7f) - nlocals; /* aka sof - sol */
+ 	krbs = (unsigned long *)info->task + IA64_RBS_OFFSET/8;
+ 	ndirty = ia64_rse_num_regs(krbs, krbs + (pt->loadrs >> 19));
+ 
+ 	count = 0;
+ 	if (in_syscall(pt))
+-		count = min_t(int, args->n, cfm & 0x7f);
++		count = min_t(int, args->n, nouts);
+ 
++	/* Iterate over outs. */
+ 	for (i = 0; i < count; i++) {
++		int j = ndirty + nlocals + i + args->i;
+ 		if (args->rw)
+-			*ia64_rse_skip_regs(krbs, ndirty + i + args->i) =
+-				args->args[i];
++			*ia64_rse_skip_regs(krbs, j) = args->args[i];
+ 		else
+-			args->args[i] = *ia64_rse_skip_regs(krbs,
+-				ndirty + i + args->i);
++			args->args[i] = *ia64_rse_skip_regs(krbs, j);
  	}
  
- 	/* Advance frame_descr past separator. */
+ 	if (!args->rw) {
 _
 
-Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
+Patches currently in -mm which might be from slyfox@gentoo.org are
 
-mm-memremap-fixes-improper-spdx-comment-style.patch
-mm-interval_tree-add-comments-to-improve-code-reading.patch
-mm-dmapool-switch-from-strlcpy-to-strscpy.patch
-mm-kasan-switch-from-strlcpy-to-strscpy.patch
-mm-zswap-switch-from-strlcpy-to-strscpy.patch
-mm-swapfile-minor-coding-style-tweaks.patch
-mm-sparse-minor-coding-style-tweaks.patch
-mm-vmscan-minor-coding-style-tweaks.patch
-mm-compaction-minor-coding-style-tweaks.patch
-mm-oom_kill-minor-coding-style-tweaks.patch
-mm-shmem-minor-coding-style-tweaks.patch
-mm-page_alloc-minor-coding-style-tweaks.patch
-mm-filemap-minor-coding-style-tweaks.patch
-mm-mlock-minor-coding-style-tweaks.patch
-mm-frontswap-minor-coding-style-tweaks.patch
-mm-vmalloc-minor-coding-style-tweaks.patch
-mm-memory_hotplug-minor-coding-style-tweaks.patch
-mm-mempolicy-minor-coding-style-tweaks.patch
-mm-mempool-minor-coding-style-tweaks.patch
+ia64-fix-ia64_syscall_get_set_arguments-for-break-based-syscalls.patch
+ia64-fix-ptraceptrace_syscall_info_exit-sign.patch
 
