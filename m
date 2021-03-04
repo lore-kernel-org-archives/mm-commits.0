@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30BE2C4332E
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55E36C432C3
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16CD764EC0
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DC6664EBD
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237556AbhCDA6r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:58:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45376 "EHLO mail.kernel.org"
+        id S238351AbhCDA6x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:58:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39424 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1352570AbhCCXHr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 18:07:47 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EE04D64EF9;
-        Wed,  3 Mar 2021 23:06:21 +0000 (UTC)
+        id S1354499AbhCDAJY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 19:09:24 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D460164F1A;
+        Thu,  4 Mar 2021 00:07:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614812782;
-        bh=7i0KKzWNUBFjfF+WUScylI2sao98Hb0NvM4hKsmPTcc=;
+        s=korg; t=1614816456;
+        bh=LaSc+MjujariQmweavtE7oR1ftk7ZNyooiVNbHH3LNE=;
         h=Date:From:To:Subject:From;
-        b=nhwbk/l99zND4binfQBmED4YXk7GxvAaCGTakIBLCBM85A1AymrUUEYjQqVIV0A0z
-         x02OITczQIKlB2pB2A0hH7ickHWGULfJpFK+ONUIN6wDWmGmNIvCM7xTj8Qhvg5/NK
-         9EyVxqOBe4pm04iaay/BpO00djtPSwH8ygRRwGlo=
-Date:   Wed, 03 Mar 2021 15:06:21 -0800
+        b=06tFIiGAelZ0OtMeJQQThVZthk/02VpgrRFaLWwZ3jwFPpqnmEOMoafVyXcEI++NC
+         SeWmaqcGTbE2HyE5u8kCcdoCPbPZ+t8b1HVa63Iun0B5wVc0g1yunzRqT20C6wqWip
+         5NEpjaUZMSjaMTgMn3dUMY9/YVS1P47RLkMvh92c=
+Date:   Wed, 03 Mar 2021 16:07:35 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, axelrasmussen@google.com, bgeffon@google.com,
-        hughd@google.com, kirill@shutemov.name, lokeshgidra@google.com,
-        luto@amacapital.net, minchan@kernel.org,
-        mm-commits@vger.kernel.org, mst@redhat.com, peterx@redhat.com,
-        rppt@linux.vnet.ibm.com, sonnyrao@google.com, vbabka@suse.cz
-Subject:  + mm-allow-shmem-mappings-with-mremap_dontunmap.patch
- added to -mm tree
-Message-ID: <20210303230621.DGeICL84h%akpm@linux-foundation.org>
+To:     mhocko@suse.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        vbabka@suse.cz, willy@infradead.org
+Subject:  +
+ mm-mempolicy-rewrite-alloc_pages_vma-documentation.patch added to -mm tree
+Message-ID: <20210304000735.W5X1Zlr6v%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: allow shmem mappings with MREMAP_DONTUNMAP
+     Subject: mm/mempolicy: rewrite alloc_pages_vma documentation
 has been added to the -mm tree.  Its filename is
-     mm-allow-shmem-mappings-with-mremap_dontunmap.patch
+     mm-mempolicy-rewrite-alloc_pages_vma-documentation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-allow-shmem-mappings-with-mremap_dontunmap.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-rewrite-alloc_pages_vma-documentation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-allow-shmem-mappings-with-mremap_dontunmap.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-rewrite-alloc_pages_vma-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,74 +64,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Brian Geffon <bgeffon@google.com>
-Subject: mm: allow shmem mappings with MREMAP_DONTUNMAP
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/mempolicy: rewrite alloc_pages_vma documentation
 
-Currently MREMAP_DONTUNMAP only accepts private anonymous mappings.  This
-change will widen the support to include shmem mappings.  The primary use
-case is to support MREMAP_DONTUNMAP on mappings which may have been
-created from a memfd.
+The current formatting doesn't quite work with kernel-doc.
 
-Lokesh Gidra who works on the Android JVM, provided an explanation of how
-such a feature will improve Android JVM garbage collection: "Android is
-developing a new garbage collector (GC), based on userfaultfd.  The
-garbage collector will use userfaultfd (uffd) on the java heap during
-compaction.  On accessing any uncompacted page, the application threads
-will find it missing, at which point the thread will create the compacted
-page and then use UFFDIO_COPY ioctl to get it mapped and then resume
-execution.  Before starting this compaction, in a stop-the-world pause the
-heap will be mremap(MREMAP_DONTUNMAP) so that the java heap is ready to
-receive UFFD_EVENT_PAGEFAULT events after resuming execution.
-
-To speedup mremap operations, pagetable movement was optimized by moving
-PUD entries instead of PTE entries [1].  It was necessary as mremap of
-even modest sized memory ranges also took several milliseconds, and
-stopping the application for that long isn't acceptable in response-time
-sensitive cases.  With UFFDIO_CONTINUE feature [2], it will be even more
-efficient to implement this GC, particularly the 'non-moveable' portions
-of the heap.  It will also help in reducing the need to copy (UFFDIO_COPY)
-the pages.  However, for this to work, the java heap has to be on a
-'shared' vma.  Currently MREMAP_DONTUNMAP only supports private anonymous
-mappings, this patch will enable using UFFDIO_CONTINUE for the new
-userfaultfd-based heap compaction."
-
-[1] https://lore.kernel.org/linux-mm/20201215030730.NC3CU98e4%25akpm@linux-foundation.org/
-[2] https://lore.kernel.org/linux-mm/20210302000133.272579-1-axelrasmussen@google.com/
-Link: https://lkml.kernel.org/r/20210303175235.3308220-1-bgeffon@google.com
-Signed-off-by: Brian Geffon <bgeffon@google.com>
-Tested-by: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Michael S . Tsirkin" <mst@redhat.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
+Link: https://lkml.kernel.org/r/20210225150642.2582252-7-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Sonny Rao <sonnyrao@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/mempolicy.c |   34 +++++++++++++---------------------
+ 1 file changed, 13 insertions(+), 21 deletions(-)
 
---- a/mm/mremap.c~mm-allow-shmem-mappings-with-mremap_dontunmap
-+++ a/mm/mremap.c
-@@ -653,8 +653,7 @@ static struct vm_area_struct *vma_to_res
- 		return ERR_PTR(-EINVAL);
- 	}
+--- a/mm/mempolicy.c~mm-mempolicy-rewrite-alloc_pages_vma-documentation
++++ a/mm/mempolicy.c
+@@ -2153,30 +2153,22 @@ static struct page *alloc_page_interleav
+ }
  
--	if (flags & MREMAP_DONTUNMAP && (!vma_is_anonymous(vma) ||
--			vma->vm_flags & VM_SHARED))
-+	if (flags & MREMAP_DONTUNMAP && !(vma_is_anonymous(vma) || vma_is_shmem(vma)))
- 		return ERR_PTR(-EINVAL);
- 
- 	if (is_vm_hugetlb_page(vma))
+ /**
+- * 	alloc_pages_vma	- Allocate a page for a VMA.
++ * alloc_pages_vma - Allocate a page for a VMA.
++ * @gfp: GFP flags.
++ * @order: Order of the GFP allocation.
++ * @vma: Pointer to VMA or NULL if not available.
++ * @addr: Virtual address of the allocation.  Must be inside @vma.
++ * @node: Which node to prefer for allocation (modulo policy).
++ * @hugepage: For hugepages try only the preferred node if possible.
+  *
+- * 	@gfp:
+- *      %GFP_USER    user allocation.
+- *      %GFP_KERNEL  kernel allocations,
+- *      %GFP_HIGHMEM highmem/user allocations,
+- *      %GFP_FS      allocation should not call back into a file system.
+- *      %GFP_ATOMIC  don't sleep.
++ * Allocate a page for a specific address in @vma, using the appropriate
++ * NUMA policy.  When @vma is not NULL the caller must hold the mmap_lock
++ * of the mm_struct of the VMA to prevent it from going away.  Should be
++ * used for all allocations for pages that will be mapped into user space.
+  *
+- *	@order:Order of the GFP allocation.
+- * 	@vma:  Pointer to VMA or NULL if not available.
+- *	@addr: Virtual Address of the allocation. Must be inside the VMA.
+- *	@node: Which node to prefer for allocation (modulo policy).
+- *	@hugepage: for hugepages try only the preferred node if possible
+- *
+- * 	This function allocates a page from the kernel page pool and applies
+- *	a NUMA policy associated with the VMA or the current process.
+- *	When VMA is not NULL caller must read-lock the mmap_lock of the
+- *	mm_struct of the VMA to prevent it from going away. Should be used for
+- *	all allocations for pages that will be mapped into user space. Returns
+- *	NULL when no page can be allocated.
++ * Return: The page on success or NULL if allocation fails.
+  */
+-struct page *
+-alloc_pages_vma(gfp_t gfp, int order, struct vm_area_struct *vma,
++struct page *alloc_pages_vma(gfp_t gfp, int order, struct vm_area_struct *vma,
+ 		unsigned long addr, int node, bool hugepage)
+ {
+ 	struct mempolicy *pol;
 _
 
-Patches currently in -mm which might be from bgeffon@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-allow-shmem-mappings-with-mremap_dontunmap.patch
+mm-filemap-use-filemap_read_page-in-filemap_fault.patch
+mm-filemap-drop-check-for-truncated-page-after-i-o.patch
+mm-page_alloc-rename-alloc_mask-to-alloc_gfp.patch
+mm-page_alloc-rename-gfp_mask-to-gfp.patch
+mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask.patch
+mm-mempolicy-rename-alloc_pages_current-to-alloc_pages.patch
+mm-mempolicy-rewrite-alloc_pages-documentation.patch
+mm-mempolicy-rewrite-alloc_pages_vma-documentation.patch
+mm-mempolicy-fix-mpol_misplaced-kernel-doc.patch
 
