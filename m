@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D6B8C43381
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 602DDC43603
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 282EF64EE1
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A25064E7C
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239979AbhCDA64 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:58:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47646 "EHLO mail.kernel.org"
+        id S238896AbhCDA6y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:58:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39422 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1379070AbhCDAKX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 19:10:23 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0058B64F38;
-        Thu,  4 Mar 2021 00:09:41 +0000 (UTC)
+        id S1354495AbhCDAJY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 19:09:24 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DC47064E6F;
+        Thu,  4 Mar 2021 00:07:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614816582;
-        bh=Qa3tUFmtKZh8Qz+vutBBFhJqO2EEv5o/rtprUCVcDSw=;
+        s=korg; t=1614816444;
+        bh=+uiaRKamYopDO2UumE0Ftm9qVGB10v3GuMPxvC85iKk=;
         h=Date:From:To:Subject:From;
-        b=LHfq2kpp7vtaFRLf2iBeKyJb3udcQo2zDTWZSkPumOy6pdyLDRKp9KB4T1idwXHUN
-         onTJ2uwxkXeOE+4g1jAce6tV8vu7oZbMwrYQVGt4sytY3RVWW3hbxJdePpimuA6fn2
-         PQ45kmIrkvWxD0p3w+HXSOtlQZYj08OYyejocNv0=
-Date:   Wed, 03 Mar 2021 16:09:41 -0800
+        b=w/3kFNiFrSFUKrwZR+JSkv8l+nL2kPoXGP+EP9wMBrBY6DsevZFet3NfdoX5yxf4+
+         HFcbeSV1dASjGP+wSgzMIbN6sB7ve9ckiiWB2zobzt3+DIQQI2I2OZbxZgHSFWOfks
+         USBBS70Uf3me+e6O8B3rAu9+HPM49Yfnds6H5Ock=
+Date:   Wed, 03 Mar 2021 16:07:23 -0800
 From:   akpm@linux-foundation.org
-To:     daizhiyuan@phytium.com.cn, mm-commits@vger.kernel.org
-Subject:  + mm-swapfile-minor-coding-style-tweaks.patch added to
- -mm tree
-Message-ID: <20210304000941.SWJxjoX-1%akpm@linux-foundation.org>
+To:     mhocko@suse.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        vbabka@suse.cz, willy@infradead.org
+Subject:  + mm-page_alloc-rename-gfp_mask-to-gfp.patch added to -mm
+ tree
+Message-ID: <20210304000723.AocYunVME%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swapfile: minor coding style tweaks
+     Subject: mm/page_alloc: rename gfp_mask to gfp
 has been added to the -mm tree.  Its filename is
-     mm-swapfile-minor-coding-style-tweaks.patch
+     mm-page_alloc-rename-gfp_mask-to-gfp.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-swapfile-minor-coding-style-tweaks.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-rename-gfp_mask-to-gfp.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfile-minor-coding-style-tweaks.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-rename-gfp_mask-to-gfp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,51 +64,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
-Subject: mm/swapfile: minor coding style tweaks
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/page_alloc: rename gfp_mask to gfp
 
-Add whitespace to fix coding style issues, improve code reading.
+Shorten some overly-long lines by renaming this identifier.
 
-Link: https://lkml.kernel.org/r/1614223624-16055-1-git-send-email-daizhiyuan@phytium.com.cn
-Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+Link: https://lkml.kernel.org/r/20210225150642.2582252-3-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfile-minor-coding-style-tweaks
-+++ a/mm/swapfile.c
-@@ -2780,7 +2780,7 @@ static int swap_show(struct seq_file *sw
- 	unsigned int bytes, inuse;
- 
- 	if (si == SEQ_START_TOKEN) {
--		seq_puts(swap,"Filename\t\t\t\tType\t\tSize\t\tUsed\t\tPriority\n");
-+		seq_puts(swap, "Filename\t\t\t\tType\t\tSize\t\tUsed\t\tPriority\n");
- 		return 0;
+--- a/mm/page_alloc.c~mm-page_alloc-rename-gfp_mask-to-gfp
++++ a/mm/page_alloc.c
+@@ -4968,7 +4968,7 @@ static inline bool prepare_alloc_pages(g
+  * This is the 'heart' of the zoned buddy allocator.
+  */
+ struct page *
+-__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order, int preferred_nid,
++__alloc_pages_nodemask(gfp_t gfp, unsigned int order, int preferred_nid,
+ 							nodemask_t *nodemask)
+ {
+ 	struct page *page;
+@@ -4981,13 +4981,13 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	 * so bail out early if the request is out of bound.
+ 	 */
+ 	if (unlikely(order >= MAX_ORDER)) {
+-		WARN_ON_ONCE(!(gfp_mask & __GFP_NOWARN));
++		WARN_ON_ONCE(!(gfp & __GFP_NOWARN));
+ 		return NULL;
  	}
  
-@@ -3284,7 +3284,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 					 sizeof(long),
- 					 GFP_KERNEL);
+-	gfp_mask &= gfp_allowed_mask;
+-	alloc_gfp = gfp_mask;
+-	if (!prepare_alloc_pages(gfp_mask, order, preferred_nid, nodemask, &ac,
++	gfp &= gfp_allowed_mask;
++	alloc_gfp = gfp;
++	if (!prepare_alloc_pages(gfp, order, preferred_nid, nodemask, &ac,
+ 			&alloc_gfp, &alloc_flags))
+ 		return NULL;
  
--	if (p->bdev &&(swap_flags & SWAP_FLAG_DISCARD) && swap_discardable(p)) {
-+	if (p->bdev && (swap_flags & SWAP_FLAG_DISCARD) && swap_discardable(p)) {
- 		/*
- 		 * When discard is enabled for swap with no particular
- 		 * policy flagged, we set all swap discard flags here in
+@@ -4995,7 +4995,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	 * Forbid the first pass from falling back to types that fragment
+ 	 * memory until all local zones are considered.
+ 	 */
+-	alloc_flags |= alloc_flags_nofragment(ac.preferred_zoneref->zone, gfp_mask);
++	alloc_flags |= alloc_flags_nofragment(ac.preferred_zoneref->zone, gfp);
+ 
+ 	/* First allocation attempt */
+ 	page = get_page_from_freelist(alloc_gfp, order, alloc_flags, &ac);
+@@ -5008,7 +5008,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	 * from a particular context which has been marked by
+ 	 * memalloc_no{fs,io}_{save,restore}.
+ 	 */
+-	alloc_gfp = current_gfp_context(gfp_mask);
++	alloc_gfp = current_gfp_context(gfp);
+ 	ac.spread_dirty_pages = false;
+ 
+ 	/*
+@@ -5020,8 +5020,8 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	page = __alloc_pages_slowpath(alloc_gfp, order, &ac);
+ 
+ out:
+-	if (memcg_kmem_enabled() && (gfp_mask & __GFP_ACCOUNT) && page &&
+-	    unlikely(__memcg_kmem_charge_page(page, gfp_mask, order) != 0)) {
++	if (memcg_kmem_enabled() && (gfp & __GFP_ACCOUNT) && page &&
++	    unlikely(__memcg_kmem_charge_page(page, gfp, order) != 0)) {
+ 		__free_pages(page, order);
+ 		page = NULL;
+ 	}
 _
 
-Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-swapfile-minor-coding-style-tweaks.patch
-mm-sparse-minor-coding-style-tweaks.patch
-mm-vmscan-minor-coding-style-tweaks.patch
-mm-compaction-minor-coding-style-tweaks.patch
-mm-oom_kill-minor-coding-style-tweaks.patch
-mm-shmem-minor-coding-style-tweaks.patch
-mm-page_alloc-minor-coding-style-tweaks.patch
-mm-filemap-minor-coding-style-tweaks.patch
-mm-memremap-fixes-improper-spdx-comment-style.patch
-mm-zswap-switch-from-strlcpy-to-strscpy.patch
+mm-filemap-use-filemap_read_page-in-filemap_fault.patch
+mm-filemap-drop-check-for-truncated-page-after-i-o.patch
+mm-page_alloc-rename-alloc_mask-to-alloc_gfp.patch
+mm-page_alloc-rename-gfp_mask-to-gfp.patch
+mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask.patch
+mm-mempolicy-rename-alloc_pages_current-to-alloc_pages.patch
+mm-mempolicy-rewrite-alloc_pages-documentation.patch
+mm-mempolicy-rewrite-alloc_pages_vma-documentation.patch
+mm-mempolicy-fix-mpol_misplaced-kernel-doc.patch
 
