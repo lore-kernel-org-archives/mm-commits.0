@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F27DC43331
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 551F5C4332D
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5175964F34
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B90064EC3
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 00:59:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245517AbhCDA7E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 19:59:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60150 "EHLO mail.kernel.org"
+        id S240833AbhCDA7A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Mar 2021 19:59:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47978 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1346977AbhCDARF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 19:17:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E286E64F25;
-        Wed,  3 Mar 2021 23:38:30 +0000 (UTC)
+        id S1381685AbhCDAKe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Mar 2021 19:10:34 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 98BC364F3A;
+        Thu,  4 Mar 2021 00:09:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614814711;
-        bh=EwEqcLxt8IuUOStIHZhvRQDsfrcPtPBHU+9Lq5+25Vg=;
+        s=korg; t=1614816593;
+        bh=ss5vjizGvQu28wAfCZF96G+iiY99AQIp1vM66fkhPBQ=;
         h=Date:From:To:Subject:From;
-        b=jEy676JNlb6MQUDbCJStUOmUus4mv6meoh0wTnPe69zaUmdxsMTPRH7teVvWT5wb3
-         GSOAKQOKtlkZVA5MkfV+zGph4n42S19r0QHLUDSPhQTSfqt4181YbAY+WaVV8tqFcM
-         ZHLLfeBZzTV2637veZdXpFU3FzI8JPLiWAb6mp7c=
-Date:   Wed, 03 Mar 2021 15:38:30 -0800
+        b=df79B4dQdd4ypzbXK192hL/JDOv3n45EvCWT5qZrRYYT66W9iaeAheSkyCwN6UIkj
+         JQScqXmb8zfWBQhVjBmjHHkpPpKAUz3LAMCxeClWqrZipOHT251ULEiyxS1jFS2q6R
+         UmJK/LVak71KZi35MxcQxvT+3toTrfkSDepeaYaY=
+Date:   Wed, 03 Mar 2021 16:09:53 -0800
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, hughd@google.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, vbabka@suse.cz
-Subject:  + mm-no-more-einval-from-proc-sys-vm-stat_refresh.patch
- added to -mm tree
-Message-ID: <20210303233830.-XapGhhcE%akpm@linux-foundation.org>
+To:     daizhiyuan@phytium.com.cn, mm-commits@vger.kernel.org
+Subject:  + mm-page_alloc-minor-coding-style-tweaks.patch added to
+ -mm tree
+Message-ID: <20210304000953.MiNe82TeT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: no more EINVAL from /proc/sys/vm/stat_refresh
+     Subject: mm/page_alloc: minor coding style tweaks
 has been added to the -mm tree.  Its filename is
-     mm-no-more-einval-from-proc-sys-vm-stat_refresh.patch
+     mm-page_alloc-minor-coding-style-tweaks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-no-more-einval-from-proc-sys-vm-stat_refresh.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-minor-coding-style-tweaks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-no-more-einval-from-proc-sys-vm-stat_refresh.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-minor-coding-style-tweaks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,63 +63,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: no more EINVAL from /proc/sys/vm/stat_refresh
+From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+Subject: mm/page_alloc: minor coding style tweaks
 
-EINVAL was good for drawing the refresher's attention to a warning in
-dmesg, but became very tiresome when running test suites scripted with
-"set -e": an underflow from a bug in one feature would cause unrelated
-tests much later to fail, just because their /proc/sys/vm/stat_refresh
-touch failed with that error.  Stop doing that.
+Add whitespace to fix coding style issues, improve code reading.
 
-Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2102251510410.13363@eggly.anvils
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/1614228613-21754-1-git-send-email-daizhiyuan@phytium.com.cn
+Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmstat.c~mm-no-more-einval-from-proc-sys-vm-stat_refresh
-+++ a/mm/vmstat.c
-@@ -1862,7 +1862,6 @@ int vmstat_refresh(struct ctl_table *tab
- 		if (val < 0) {
- 			pr_warn("%s: %s %ld\n",
- 				__func__, zone_stat_name(i), val);
--			err = -EINVAL;
- 		}
- 	}
- #ifdef CONFIG_NUMA
-@@ -1871,7 +1870,6 @@ int vmstat_refresh(struct ctl_table *tab
- 		if (val < 0) {
- 			pr_warn("%s: %s %ld\n",
- 				__func__, numa_stat_name(i), val);
--			err = -EINVAL;
- 		}
- 	}
- #endif
-@@ -1880,11 +1878,8 @@ int vmstat_refresh(struct ctl_table *tab
- 		if (val < 0) {
- 			pr_warn("%s: %s %ld\n",
- 				__func__, node_stat_name(i), val);
--			err = -EINVAL;
- 		}
- 	}
--	if (err)
--		return err;
- 	if (write)
- 		*ppos += *lenp;
- 	else
+--- a/mm/page_alloc.c~mm-page_alloc-minor-coding-style-tweaks
++++ a/mm/page_alloc.c
+@@ -8582,7 +8582,7 @@ int alloc_contig_range(unsigned long sta
+ 	ret = __alloc_contig_migrate_range(&cc, start, end);
+ 	if (ret && ret != -EBUSY)
+ 		goto done;
+-	ret =0;
++	ret = 0;
+ 
+ 	/*
+ 	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
 
-mm-restore-node-stat-checking-in-proc-sys-vm-stat_refresh.patch
-mm-no-more-einval-from-proc-sys-vm-stat_refresh.patch
-mm-proc-sys-vm-stat_refresh-skip-checking-known-negative-stats.patch
-mm-proc-sys-vm-stat_refresh-stop-checking-monotonic-numa-stats.patch
+mm-swapfile-minor-coding-style-tweaks.patch
+mm-sparse-minor-coding-style-tweaks.patch
+mm-vmscan-minor-coding-style-tweaks.patch
+mm-compaction-minor-coding-style-tweaks.patch
+mm-oom_kill-minor-coding-style-tweaks.patch
+mm-shmem-minor-coding-style-tweaks.patch
+mm-page_alloc-minor-coding-style-tweaks.patch
+mm-filemap-minor-coding-style-tweaks.patch
+mm-memremap-fixes-improper-spdx-comment-style.patch
+mm-zswap-switch-from-strlcpy-to-strscpy.patch
 
