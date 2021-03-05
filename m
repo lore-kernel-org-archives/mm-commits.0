@@ -7,42 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62746C433DB
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:49:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3951C433DB
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:53:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F3DD6500E
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:49:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B9DF36500D
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:53:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229512AbhCEBt0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 4 Mar 2021 20:49:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53894 "EHLO mail.kernel.org"
+        id S229749AbhCEBxl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 4 Mar 2021 20:53:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54450 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229436AbhCEBt0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Mar 2021 20:49:26 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 90C896500C;
-        Fri,  5 Mar 2021 01:49:25 +0000 (UTC)
+        id S229478AbhCEBxl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Mar 2021 20:53:41 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4CF8C64E68;
+        Fri,  5 Mar 2021 01:53:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614908966;
-        bh=bzPBkcGBE+ojVBJFF9dsRIZwceAzEcsRQBFXrWNndxI=;
+        s=korg; t=1614909219;
+        bh=Z9sEH7dhtRioXiE5+uOLrxv7x50q9xQ63zpAx2PnSCQ=;
         h=Date:From:To:Subject:From;
-        b=i0Eq3RYBAH6QlSisXJDceJYgF1GWVtf59xmATEfmBtHTS2L0x/fusPnevEvgpiNjs
-         pEWr8Lah4VlJ1peIgVfl/nJQIsML3GqXUkKhTwZepGx2CbxfIRBlkSYbSWrYFyeHD9
-         qS+wbuQjSe62w0MwLq/1oijXC65jYOylKoE8PcRM=
-Date:   Thu, 04 Mar 2021 17:49:24 -0800
+        b=mX77FXMWHNOf/rfIt2KcDvQpWX20bXDHcHk7rIx51xPgZvwnV6gKwy7BMoGgpY7Cg
+         5c536SMc1WDsHPpV0nceWePgos8pxfgQzolIg5VPPIPLWjZHBPwZM/RItu77ojad2p
+         CPiN70LsrPNEyDwL+kUnQQ9vx+MIkhmSIZig+Mb0=
+Date:   Thu, 04 Mar 2021 17:53:38 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, luto@kernel.org, mike.kravetz@oracle.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org, namit@vmware.com,
-        peterx@redhat.com, peterz@infradead.org, rppt@linux.vnet.ibm.com,
-        stable@vger.kernel.org, will@kernel.org, xemul@openvz.org,
-        yuzhao@google.com
+To:     chenweilong@huawei.com, dingtianhong@huawei.com,
+        guohanjun@huawei.com, hannes@cmpxchg.org, hughd@google.com,
+        kirill.shutemov@linux.intel.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, npiggin@gmail.com,
+        rui.xiang@huawei.com, shakeelb@google.com,
+        wangkefeng.wang@huawei.com, zhouguanghui1@huawei.com,
+        ziy@nvidia.com
 Subject:  +
- mm-userfaultfd-fix-memory-corruption-due-to-writeprotect.patch added to -mm
- tree
-Message-ID: <20210305014924.v3_zhhr2b%akpm@linux-foundation.org>
+ mm-memcg-rename-mem_cgroup_split_huge_fixup-to-split_page_memcg.patch added
+ to -mm tree
+Message-ID: <20210305015338.JxQnY5Pil%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,16 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/userfaultfd: fix memory corruption due to writeprotect
+     Subject: mm/memcg: rename mem_cgroup_split_huge_fixup to split_page_memcg
 has been added to the -mm tree.  Its filename is
-     mm-userfaultfd-fix-memory-corruption-due-to-writeprotect.patch
+     mm-memcg-rename-mem_cgroup_split_huge_fixup-to-split_page_memcg.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-userfaultfd-fix-memory-cor=
-ruption-due-to-writeprotect.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-rename-mem_cgroup_split_huge_fixup-to-split_page_memcg.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-userfaultfd-fix-memory-cor=
-ruption-due-to-writeprotect.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-rename-mem_cgroup_split_huge_fixup-to-split_page_memcg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,136 +64,114 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Nadav Amit <namit@vmware.com>
-Subject: mm/userfaultfd: fix memory corruption due to writeprotect
+From: Zhou Guanghui <zhouguanghui1@huawei.com>
+Subject: mm/memcg: rename mem_cgroup_split_huge_fixup to split_page_memcg
 
-Userfaultfd self-test fails occasionally, indicating a memory corruption.
+Rename mem_cgroup_split_huge_fixup to split_page_memcg and explicitly pass
+in page number argument.
 
-Analyzing this problem indicates that there is a real bug since mmap_lock
-is only taken for read in mwriteprotect_range() and defers flushes, and
-since there is insufficient consideration of concurrent deferred TLB
-flushes in wp_page_copy().  Although the PTE is flushed from the TLBs in
-wp_page_copy(), this flush takes place after the copy has already been
-performed, and therefore changes of the page are possible between the time
-of the copy and the time in which the PTE is flushed.
+In this way, the interface name is more common and can be used by
+potential users.  In addition, the complete info(memcg and flag) of the
+memcg needs to be set to the tail pages.
 
-To make matters worse, memory-unprotection using userfaultfd also poses a
-problem.  Although memory unprotection is logically a promotion of PTE
-permissions, and therefore should not require a TLB flush, the current
-userrfaultfd code might actually cause a demotion of the architectural PTE
-permission: when userfaultfd_writeprotect() unprotects memory region, it
-unintentionally *clears* the RW-bit if it was already set.  Note that this
-unprotecting a PTE that is not write-protected is a valid use-case: the
-userfaultfd monitor might ask to unprotect a region that holds both
-write-protected and write-unprotected PTEs.
-
-The scenario that happens in selftests/vm/userfaultfd is as follows:
-
-cpu0				cpu1			cpu2
-----				----			----
-							[ Writable PTE
-							  cached in TLB ]
-userfaultfd_writeprotect()
-[ write-*unprotect* ]
-mwriteprotect_range()
-mmap_read_lock()
-change_protection()
-
-change_protection_range()
-...
-change_pte_range()
-[ *clear* =E2=80=9Cwrite=E2=80=9D-bit ]
-[ defer TLB flushes ]
-				[ page-fault ]
-				...
-				wp_page_copy()
-				 cow_user_page()
-				  [ copy page ]
-							[ write to old
-							  page ]
-				...
-				 set_pte_at_notify()
-
-A similar scenario can happen:
-
-cpu0		cpu1		cpu2		cpu3
-----		----		----		----
-						[ Writable PTE
-				  		  cached in TLB ]
-userfaultfd_writeprotect()
-[ write-protect ]
-[ deferred TLB flush ]
-		userfaultfd_writeprotect()
-		[ write-unprotect ]
-		[ deferred TLB flush]
-				[ page-fault ]
-				wp_page_copy()
-				 cow_user_page()
-				 [ copy page ]
-				 ...		[ write to page ]
-				set_pte_at_notify()
-
-This race exists since commit 292924b26024 ("userfaultfd: wp: apply
-_PAGE_UFFD_WP bit").  Yet, as Yu Zhao pointed, these races became apparent
-since commit 09854ba94c6a ("mm: do_wp_page() simplification") which made
-wp_page_copy() more likely to take place, specifically if page_count(page)
-> 1.
-
-To resolve the aforementioned races, check whether there are pending
-flushes on uffd-write-protected VMAs, and if there are, perform a flush
-before doing the COW.
-
-Further optimizations will follow to avoid during uffd-write-unprotect
-unnecassary PTE write-protection and TLB flushes.
-
-Link: https://lkml.kernel.org/r/20210304095423.3825684-1-namit@vmware.com
-Fixes: 09854ba94c6a ("mm: do_wp_page() simplification")
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Suggested-by: Yu Zhao <yuzhao@google.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Tested-by: Peter Xu <peterx@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: <stable@vger.kernel.org>	[5.9+]
+Link: https://lkml.kernel.org/r/20210304074053.65527-2-zhouguanghui1@huawei.com
+Signed-off-by: Zhou Guanghui <zhouguanghui1@huawei.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Tianhong Ding <dingtianhong@huawei.com>
+Cc: Weilong Chen <chenweilong@huawei.com>
+Cc: Rui Xiang <rui.xiang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/memcontrol.h |    6 ++----
+ mm/huge_memory.c           |    2 +-
+ mm/memcontrol.c            |   15 ++++++---------
+ 3 files changed, 9 insertions(+), 14 deletions(-)
 
---- a/mm/memory.c~mm-userfaultfd-fix-memory-corruption-due-to-writeprotect
-+++ a/mm/memory.c
-@@ -3103,6 +3103,14 @@ static vm_fault_t do_wp_page(struct vm_f
- 		return handle_userfault(vmf, VM_UFFD_WP);
- 	}
-=20
-+	/*
-+	 * Userfaultfd write-protect can defer flushes. Ensure the TLB
-+	 * is flushed in this case before copying.
-+	 */
-+	if (unlikely(userfaultfd_wp(vmf->vma) &&
-+		     mm_tlb_flush_pending(vmf->vma->vm_mm)))
-+		flush_tlb_page(vmf->vma, vmf->address);
-+
- 	vmf->page =3D vm_normal_page(vma, vmf->address, vmf->orig_pte);
- 	if (!vmf->page) {
- 		/*
+--- a/include/linux/memcontrol.h~mm-memcg-rename-mem_cgroup_split_huge_fixup-to-split_page_memcg
++++ a/include/linux/memcontrol.h
+@@ -1061,9 +1061,7 @@ static inline void memcg_memory_event_mm
+ 	rcu_read_unlock();
+ }
+ 
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-void mem_cgroup_split_huge_fixup(struct page *head);
+-#endif
++void split_page_memcg(struct page *head, unsigned int nr);
+ 
+ #else /* CONFIG_MEMCG */
+ 
+@@ -1400,7 +1398,7 @@ unsigned long mem_cgroup_soft_limit_recl
+ 	return 0;
+ }
+ 
+-static inline void mem_cgroup_split_huge_fixup(struct page *head)
++static inline void split_page_memcg(struct page *head, unsigned int nr)
+ {
+ }
+ 
+--- a/mm/huge_memory.c~mm-memcg-rename-mem_cgroup_split_huge_fixup-to-split_page_memcg
++++ a/mm/huge_memory.c
+@@ -2471,7 +2471,7 @@ static void __split_huge_page(struct pag
+ 	int i;
+ 
+ 	/* complete memcg works before add pages to LRU */
+-	mem_cgroup_split_huge_fixup(head);
++	split_page_memcg(head, nr);
+ 
+ 	if (PageAnon(head) && PageSwapCache(head)) {
+ 		swp_entry_t entry = { .val = page_private(head) };
+--- a/mm/memcontrol.c~mm-memcg-rename-mem_cgroup_split_huge_fixup-to-split_page_memcg
++++ a/mm/memcontrol.c
+@@ -3284,24 +3284,21 @@ void obj_cgroup_uncharge(struct obj_cgro
+ 
+ #endif /* CONFIG_MEMCG_KMEM */
+ 
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /*
+- * Because page_memcg(head) is not set on compound tails, set it now.
++ * Because page_memcg(head) is not set on tails, set it now.
+  */
+-void mem_cgroup_split_huge_fixup(struct page *head)
++void split_page_memcg(struct page *head, unsigned int nr)
+ {
+ 	struct mem_cgroup *memcg = page_memcg(head);
+ 	int i;
+ 
+-	if (mem_cgroup_disabled())
++	if (mem_cgroup_disabled() || !memcg)
+ 		return;
+ 
+-	for (i = 1; i < HPAGE_PMD_NR; i++) {
+-		css_get(&memcg->css);
+-		head[i].memcg_data = (unsigned long)memcg;
+-	}
++	for (i = 1; i < nr; i++)
++		head[i].memcg_data = head->memcg_data;
++	css_get_many(&memcg->css, nr - 1);
+ }
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ #ifdef CONFIG_MEMCG_SWAP
+ /**
 _
 
-Patches currently in -mm which might be from namit@vmware.com are
+Patches currently in -mm which might be from zhouguanghui1@huawei.com are
 
-mm-userfaultfd-fix-memory-corruption-due-to-writeprotect.patch
+mm-memcg-rename-mem_cgroup_split_huge_fixup-to-split_page_memcg.patch
+mm-memcg-set-memcg-when-split-page.patch
 
