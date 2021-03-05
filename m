@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83817C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:41:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0020EC433E6
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:46:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 517E26500A
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:41:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F8E56500D
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:46:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229458AbhCEBl0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 4 Mar 2021 20:41:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52490 "EHLO mail.kernel.org"
+        id S229505AbhCEBqe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 4 Mar 2021 20:46:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53626 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229436AbhCEBlZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Mar 2021 20:41:25 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C88F765009;
-        Fri,  5 Mar 2021 01:41:24 +0000 (UTC)
+        id S229601AbhCEBqd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Mar 2021 20:46:33 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BDD9C65009;
+        Fri,  5 Mar 2021 01:46:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614908485;
-        bh=dN86OeZi6LmOoZ36KCFyBwQg7Dfhrjm+C2OCXSdv9O0=;
+        s=korg; t=1614908792;
+        bh=RBIY3teTZ0yTEc4QZALrPcbK9HNJ8f1OG4uKzLXHuiU=;
         h=Date:From:To:Subject:From;
-        b=Knshsh4GHKyu3kdSIf7z2taQp1PLKlueGvzMEKYCLYiP357OOJ2FcaiGUjF5FoSOY
-         SrQnAh7hPD3szLgsxqFmTyjRliBMctxrTm2alGHL0Nk+xc/iAuwg/j0TKYKUVvX5A5
-         5dl0NnY4svVn5fwN3S70nPmFMyU0Puz/0BOzTD1c=
-Date:   Thu, 04 Mar 2021 17:41:24 -0800
+        b=Cx1u4zdTJuFxsHiSf8Q7S9CLcv7EnVtrYGfh5+4AUKAXLgHqC2G0LfBz23AklOhvj
+         ppwaqVkflNx3YCunpP/AuQEpPfIIsaRCRm7Pis2VpNJzcDdMhXGI2zDHYIDdTUozZm
+         qrPNVRL/meKRQ//G/upCGL0QpHfUeu8pHUVX3brQ=
+Date:   Thu, 04 Mar 2021 17:46:31 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, christophe.leroy@csgroup.eu,
-        dvyukov@google.com, elver@google.com, glider@google.com,
-        jannh@google.com, mm-commits@vger.kernel.org
-Subject:  +
- kfence-fix-reports-if-constant-function-prefixes-exist.patch added to -mm
+To:     dalias@libc.org, mm-commits@vger.kernel.org, ysato@users.osdn.me,
+        zhang.yunkai@zte.com.cn
+Subject:  + sh-remove-duplicate-include-in-tlbh.patch added to -mm
  tree
-Message-ID: <20210305014124.Bq7xlxklf%akpm@linux-foundation.org>
+Message-ID: <20210305014631.NN3xNV9pI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: fix reports if constant function prefixes exist
+     Subject: arch/sh/include/asm/tlb.h: remove duplicate include
 has been added to the -mm tree.  Its filename is
-     kfence-fix-reports-if-constant-function-prefixes-exist.patch
+     sh-remove-duplicate-include-in-tlbh.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kfence-fix-reports-if-constant-function-prefixes-exist.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/sh-remove-duplicate-include-in-tlbh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-fix-reports-if-constant-function-prefixes-exist.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/sh-remove-duplicate-include-in-tlbh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,74 +64,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: fix reports if constant function prefixes exist
+From: Zhang Yunkai <zhang.yunkai@zte.com.cn>
+Subject: arch/sh/include/asm/tlb.h: remove duplicate include
 
-Some architectures prefix all functions with a constant string ('.' on
-ppc64).  Add ARCH_FUNC_PREFIX, which may optionally be defined in
-<asm/kfence.h>, so that get_stack_skipnr() can work properly.
+'asm-generic/tlb.h' included in 'asm/tlb.h' is duplicated.
 
-Link: https://lkml.kernel.org/r/f036c53d-7e81-763c-47f4-6024c6c5f058@csgroup.eu
-Link: https://lkml.kernel.org/r/20210304144000.1148590-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Tested-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Jann Horn <jannh@google.com>
+Link: https://lkml.kernel.org/r/20210304132020.196811-1-zhang.yunkai@zte.com.cn
+Signed-off-by: Zhang Yunkai <zhang.yunkai@zte.com.cn>
+Cc: Yoshinori Sato <ysato@users.osdn.me>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Zhang Yunkai <zhang.yunkai@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/report.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ arch/sh/include/asm/tlb.h |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
---- a/mm/kfence/report.c~kfence-fix-reports-if-constant-function-prefixes-exist
-+++ a/mm/kfence/report.c
-@@ -20,6 +20,11 @@
+--- a/arch/sh/include/asm/tlb.h~sh-remove-duplicate-include-in-tlbh
++++ a/arch/sh/include/asm/tlb.h
+@@ -4,12 +4,11 @@
  
- #include "kfence.h"
+ #ifndef __ASSEMBLY__
+ #include <linux/pagemap.h>
++#include <asm-generic/tlb.h>
  
-+/* May be overridden by <asm/kfence.h>. */
-+#ifndef ARCH_FUNC_PREFIX
-+#define ARCH_FUNC_PREFIX ""
-+#endif
-+
- extern bool no_hash_pointers;
+ #ifdef CONFIG_MMU
+ #include <linux/swap.h>
  
- /* Helper function to either print to a seq_file or to console. */
-@@ -67,8 +72,9 @@ static int get_stack_skipnr(const unsign
- 	for (skipnr = 0; skipnr < num_entries; skipnr++) {
- 		int len = scnprintf(buf, sizeof(buf), "%ps", (void *)stack_entries[skipnr]);
- 
--		if (str_has_prefix(buf, "kfence_") || str_has_prefix(buf, "__kfence_") ||
--		    !strncmp(buf, "__slab_free", len)) {
-+		if (str_has_prefix(buf, ARCH_FUNC_PREFIX "kfence_") ||
-+		    str_has_prefix(buf, ARCH_FUNC_PREFIX "__kfence_") ||
-+		    !strncmp(buf, ARCH_FUNC_PREFIX "__slab_free", len)) {
- 			/*
- 			 * In case of tail calls from any of the below
- 			 * to any of the above.
-@@ -77,10 +83,10 @@ static int get_stack_skipnr(const unsign
- 		}
- 
- 		/* Also the *_bulk() variants by only checking prefixes. */
--		if (str_has_prefix(buf, "kfree") ||
--		    str_has_prefix(buf, "kmem_cache_free") ||
--		    str_has_prefix(buf, "__kmalloc") ||
--		    str_has_prefix(buf, "kmem_cache_alloc"))
-+		if (str_has_prefix(buf, ARCH_FUNC_PREFIX "kfree") ||
-+		    str_has_prefix(buf, ARCH_FUNC_PREFIX "kmem_cache_free") ||
-+		    str_has_prefix(buf, ARCH_FUNC_PREFIX "__kmalloc") ||
-+		    str_has_prefix(buf, ARCH_FUNC_PREFIX "kmem_cache_alloc"))
- 			goto found;
- 	}
- 	if (fallback < num_entries)
+-#include <asm-generic/tlb.h>
+-
+ #if defined(CONFIG_CPU_SH4)
+ extern void tlb_wire_entry(struct vm_area_struct *, unsigned long, pte_t);
+ extern void tlb_unwire_entry(void);
+@@ -24,12 +23,7 @@ static inline void tlb_unwire_entry(void
+ {
+ 	BUG();
+ }
+-#endif
+-
+-#else /* CONFIG_MMU */
+-
+-#include <asm-generic/tlb.h>
+-
++#endif /* CONFIG_CPU_SH4 */
+ #endif /* CONFIG_MMU */
+ #endif /* __ASSEMBLY__ */
+ #endif /* __ASM_SH_TLB_H */
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from zhang.yunkai@zte.com.cn are
 
-kfence-fix-printk-format-for-ptrdiff_t.patch
-kfence-slab-fix-cache_alloc_debugcheck_after-for-bulk-allocations.patch
-kfence-fix-reports-if-constant-function-prefixes-exist.patch
+module-remove-duplicate-include-in-arch-ia64-kernel-heads.patch
+sh-remove-duplicate-include-in-tlbh.patch
 
