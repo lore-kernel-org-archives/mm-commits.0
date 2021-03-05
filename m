@@ -4,39 +4,45 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 555B9C433DB
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:47:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62746C433DB
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:49:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 28A146500C
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:47:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F3DD6500E
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:49:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229650AbhCEBrf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 4 Mar 2021 20:47:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53756 "EHLO mail.kernel.org"
+        id S229512AbhCEBt0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 4 Mar 2021 20:49:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53894 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229601AbhCEBrf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Mar 2021 20:47:35 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ADFD465005;
-        Fri,  5 Mar 2021 01:47:33 +0000 (UTC)
+        id S229436AbhCEBt0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Mar 2021 20:49:26 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 90C896500C;
+        Fri,  5 Mar 2021 01:49:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614908853;
-        bh=N4r7RpR2NTiLXQ9Ou9nSbiVO//c3Tgz37fjG5bajchI=;
+        s=korg; t=1614908966;
+        bh=bzPBkcGBE+ojVBJFF9dsRIZwceAzEcsRQBFXrWNndxI=;
         h=Date:From:To:Subject:From;
-        b=Zq7KFJFrtYQUbpQigiGvobita+8y+Kos6i/78AYpgD921xCak+OWC2xoj6ykYUKSV
-         Cbrps0Z6BewvDlVhfc1kx5ojRsZjEMcaQTWS5Fq4dXkg3gUnh2mGUn2zJhC2RWTvL1
-         nNL5+xBPsuOlmoMg5mBZ6w/Pynh8SAo7uH7YKOl0=
-Date:   Thu, 04 Mar 2021 17:47:33 -0800
+        b=i0Eq3RYBAH6QlSisXJDceJYgF1GWVtf59xmATEfmBtHTS2L0x/fusPnevEvgpiNjs
+         pEWr8Lah4VlJ1peIgVfl/nJQIsML3GqXUkKhTwZepGx2CbxfIRBlkSYbSWrYFyeHD9
+         qS+wbuQjSe62w0MwLq/1oijXC65jYOylKoE8PcRM=
+Date:   Thu, 04 Mar 2021 17:49:24 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, pintu.ping@gmail.com,
-        pintu@codeaurora.org, vbabka@suse.cz
+To:     aarcange@redhat.com, luto@kernel.org, mike.kravetz@oracle.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org, namit@vmware.com,
+        peterx@redhat.com, peterz@infradead.org, rppt@linux.vnet.ibm.com,
+        stable@vger.kernel.org, will@kernel.org, xemul@openvz.org,
+        yuzhao@google.com
 Subject:  +
- mm-compaction-remove-unused-variable-sysctl_compact_memory.patch added to
- -mm tree
-Message-ID: <20210305014733.AV2eSkrxP%akpm@linux-foundation.org>
+ mm-userfaultfd-fix-memory-corruption-due-to-writeprotect.patch added to -mm
+ tree
+Message-ID: <20210305014924.v3_zhhr2b%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +50,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: remove unused variable sysctl_compact_memory
+     Subject: mm/userfaultfd: fix memory corruption due to writeprotect
 has been added to the -mm tree.  Its filename is
-     mm-compaction-remove-unused-variable-sysctl_compact_memory.patch
+     mm-userfaultfd-fix-memory-corruption-due-to-writeprotect.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-remove-unused-variable-sysctl_compact_memory.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-userfaultfd-fix-memory-cor=
+ruption-due-to-writeprotect.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-remove-unused-variable-sysctl_compact_memory.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-userfaultfd-fix-memory-cor=
+ruption-due-to-writeprotect.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,71 +67,136 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pintu Kumar <pintu@codeaurora.org>
-Subject: mm/compaction: remove unused variable sysctl_compact_memory
+=46rom: Nadav Amit <namit@vmware.com>
+Subject: mm/userfaultfd: fix memory corruption due to writeprotect
 
-The sysctl_compact_memory is mostly unused in mm/compaction.c
-It just acts as a place holder for sysctl to store .data.
+Userfaultfd self-test fails occasionally, indicating a memory corruption.
 
-But the .data itself is not needed here.
-So we can get ride of this variable completely and make .data as NULL.
-This will also eliminate the extern declaration from header file.
-No functionality is broken or changed this way.
+Analyzing this problem indicates that there is a real bug since mmap_lock
+is only taken for read in mwriteprotect_range() and defers flushes, and
+since there is insufficient consideration of concurrent deferred TLB
+flushes in wp_page_copy().  Although the PTE is flushed from the TLBs in
+wp_page_copy(), this flush takes place after the copy has already been
+performed, and therefore changes of the page are possible between the time
+of the copy and the time in which the PTE is flushed.
 
-Link: https://lkml.kernel.org/r/1614852224-14671-1-git-send-email-pintu@codeaurora.org
-Signed-off-by: Pintu Kumar <pintu@codeaurora.org>
-Signed-off-by: Pintu Agarwal <pintu.ping@gmail.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+To make matters worse, memory-unprotection using userfaultfd also poses a
+problem.  Although memory unprotection is logically a promotion of PTE
+permissions, and therefore should not require a TLB flush, the current
+userrfaultfd code might actually cause a demotion of the architectural PTE
+permission: when userfaultfd_writeprotect() unprotects memory region, it
+unintentionally *clears* the RW-bit if it was already set.  Note that this
+unprotecting a PTE that is not write-protected is a valid use-case: the
+userfaultfd monitor might ask to unprotect a region that holds both
+write-protected and write-unprotected PTEs.
+
+The scenario that happens in selftests/vm/userfaultfd is as follows:
+
+cpu0				cpu1			cpu2
+----				----			----
+							[ Writable PTE
+							  cached in TLB ]
+userfaultfd_writeprotect()
+[ write-*unprotect* ]
+mwriteprotect_range()
+mmap_read_lock()
+change_protection()
+
+change_protection_range()
+...
+change_pte_range()
+[ *clear* =E2=80=9Cwrite=E2=80=9D-bit ]
+[ defer TLB flushes ]
+				[ page-fault ]
+				...
+				wp_page_copy()
+				 cow_user_page()
+				  [ copy page ]
+							[ write to old
+							  page ]
+				...
+				 set_pte_at_notify()
+
+A similar scenario can happen:
+
+cpu0		cpu1		cpu2		cpu3
+----		----		----		----
+						[ Writable PTE
+				  		  cached in TLB ]
+userfaultfd_writeprotect()
+[ write-protect ]
+[ deferred TLB flush ]
+		userfaultfd_writeprotect()
+		[ write-unprotect ]
+		[ deferred TLB flush]
+				[ page-fault ]
+				wp_page_copy()
+				 cow_user_page()
+				 [ copy page ]
+				 ...		[ write to page ]
+				set_pte_at_notify()
+
+This race exists since commit 292924b26024 ("userfaultfd: wp: apply
+_PAGE_UFFD_WP bit").  Yet, as Yu Zhao pointed, these races became apparent
+since commit 09854ba94c6a ("mm: do_wp_page() simplification") which made
+wp_page_copy() more likely to take place, specifically if page_count(page)
+> 1.
+
+To resolve the aforementioned races, check whether there are pending
+flushes on uffd-write-protected VMAs, and if there are, perform a flush
+before doing the COW.
+
+Further optimizations will follow to avoid during uffd-write-unprotect
+unnecassary PTE write-protection and TLB flushes.
+
+Link: https://lkml.kernel.org/r/20210304095423.3825684-1-namit@vmware.com
+Fixes: 09854ba94c6a ("mm: do_wp_page() simplification")
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Suggested-by: Yu Zhao <yuzhao@google.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Tested-by: Peter Xu <peterx@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: <stable@vger.kernel.org>	[5.9+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    1 -
- kernel/sysctl.c            |    2 +-
- mm/compaction.c            |    3 ---
- 3 files changed, 1 insertion(+), 5 deletions(-)
+ mm/memory.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/include/linux/compaction.h~mm-compaction-remove-unused-variable-sysctl_compact_memory
-+++ a/include/linux/compaction.h
-@@ -81,7 +81,6 @@ static inline unsigned long compact_gap(
- }
- 
- #ifdef CONFIG_COMPACTION
--extern int sysctl_compact_memory;
- extern unsigned int sysctl_compaction_proactiveness;
- extern int sysctl_compaction_handler(struct ctl_table *table, int write,
- 			void *buffer, size_t *length, loff_t *ppos);
---- a/kernel/sysctl.c~mm-compaction-remove-unused-variable-sysctl_compact_memory
-+++ a/kernel/sysctl.c
-@@ -2856,7 +2856,7 @@ static struct ctl_table vm_table[] = {
- #ifdef CONFIG_COMPACTION
- 	{
- 		.procname	= "compact_memory",
--		.data		= &sysctl_compact_memory,
-+		.data		= NULL,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0200,
- 		.proc_handler	= sysctl_compaction_handler,
---- a/mm/compaction.c~mm-compaction-remove-unused-variable-sysctl_compact_memory
-+++ a/mm/compaction.c
-@@ -2657,9 +2657,6 @@ static void compact_nodes(void)
- 		compact_node(nid);
- }
- 
--/* The written value is actually unused, all memory is compacted */
--int sysctl_compact_memory;
--
- /*
-  * Tunable for proactive compaction. It determines how
-  * aggressively the kernel should compact memory in the
+--- a/mm/memory.c~mm-userfaultfd-fix-memory-corruption-due-to-writeprotect
++++ a/mm/memory.c
+@@ -3103,6 +3103,14 @@ static vm_fault_t do_wp_page(struct vm_f
+ 		return handle_userfault(vmf, VM_UFFD_WP);
+ 	}
+=20
++	/*
++	 * Userfaultfd write-protect can defer flushes. Ensure the TLB
++	 * is flushed in this case before copying.
++	 */
++	if (unlikely(userfaultfd_wp(vmf->vma) &&
++		     mm_tlb_flush_pending(vmf->vma->vm_mm)))
++		flush_tlb_page(vmf->vma, vmf->address);
++
+ 	vmf->page =3D vm_normal_page(vma, vmf->address, vmf->orig_pte);
+ 	if (!vmf->page) {
+ 		/*
 _
 
-Patches currently in -mm which might be from pintu@codeaurora.org are
+Patches currently in -mm which might be from namit@vmware.com are
 
-mm-compaction-remove-unused-variable-sysctl_compact_memory.patch
+mm-userfaultfd-fix-memory-corruption-due-to-writeprotect.patch
 
