@@ -4,37 +4,42 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EA16C433DB
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:54:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B220C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:55:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 46C7C65005
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:54:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F22365005
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:55:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229609AbhCEBya (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 4 Mar 2021 20:54:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54614 "EHLO mail.kernel.org"
+        id S229517AbhCEBz4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 4 Mar 2021 20:55:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55006 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229478AbhCEBy3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Mar 2021 20:54:29 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8D5B064F79;
-        Fri,  5 Mar 2021 01:54:29 +0000 (UTC)
+        id S229458AbhCEBz4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Mar 2021 20:55:56 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C2B4E64F79;
+        Fri,  5 Mar 2021 01:55:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614909269;
-        bh=UKhrS67QZ+wpF7Tg5ZLTEByl+AvbGgt6x8mTg1sEPgU=;
+        s=korg; t=1614909355;
+        bh=2D+dSTXuYdp7wZj3ePrEsDXxt1gxeHc9DX4GF0DK6CM=;
         h=Date:From:To:Subject:From;
-        b=d8g2/Kw1dG90BXTmHPv/8XaF5cHhDbA4jPrUnjUu89M8IkpxcCgEctthx5bk4n5xE
-         rNm6dXrmMnGwLe16IPu+VvqPC+XTTsdiwKJ8rNBFBXgugAVlQY7tRVJ7SjbVkXH5nF
-         y00TPMr0U8xMRrf9h4Nm3cq7fIKGPo4dppCEVzLs=
-Date:   Thu, 04 Mar 2021 17:54:29 -0800
+        b=0TkXOsRudh3i++ZFYZ3OjxePyuHwJDxa2AiUNC9+wwYgbRhBAwPy0OhhGI1UmnjAV
+         SlJCLNz1C5WVoJWULm4TQ3HSA6AZ9rk2J6lRMEN0SLotz+MFvebt3v6N+6n4hyYJRP
+         Uh7e12PbWcAlDlcDz3jAP2DKrqJuyocz7NYvN6JQ=
+Date:   Thu, 04 Mar 2021 17:55:54 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, zuoqilin@yulong.com
-Subject:  + scripts-spellingtxt-add-diabled-typo.patch added to -mm
- tree
-Message-ID: <20210305015429.vXgq9y4mW%akpm@linux-foundation.org>
+To:     aneesh.kumar@linux.vnet.ibm.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, stable@vger.kernel.org, tony.luck@intel.com
+Subject:  +
+ =?US-ASCII?Q?mm-hwpoison-do-not-lock-page-again-when-me=5Fhuge=5Fpage-suc?=
+ =?US-ASCII?Q?cessfully-recovers.patch?= added to -mm tree
+Message-ID: <20210305015554.gEJGOznd-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: Add "diabled" typo
+     Subject: mm, hwpoison: do not lock page again when me_huge_page() successfully recovers
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-diabled-typo.patch
+     mm-hwpoison-do-not-lock-page-again-when-me_huge_page-successfully-recovers.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-diabled-typo.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-do-not-lock-page-again-when-me_huge_page-successfully-recovers.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-diabled-typo.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-do-not-lock-page-again-when-me_huge_page-successfully-recovers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,32 +68,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: zuoqilin <zuoqilin@yulong.com>
-Subject: scripts/spelling.txt: Add "diabled" typo
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm, hwpoison: do not lock page again when me_huge_page() successfully recovers
 
-Increase "diabled" spelling error check.
+Currently me_huge_page() temporary unlocks page to perform some actions
+then locks it again later.  My testcase (which calls hard-offline on some
+tail page in a hugetlb, then accesses the address of the hugetlb range)
+showed that page allocation code detects the page lock on buddy page and
+printed out "BUG: Bad page state" message.  PG_hwpoison does not prevent
+it because PG_hwpoison flag is set on any subpage of the hugetlb page but
+the 2nd page lock is on the head page.
 
-Link: https://lkml.kernel.org/r/20210304070106.2313-1-zuoqilin1@163.com
-Signed-off-by: zuoqilin <zuoqilin@yulong.com>
+This patch suggests to drop the 2nd page lock to fix the issue.
+
+Link: https://lkml.kernel.org/r/20210304064437.962442-1-nao.horiguchi@gmail.com
+Fixes: commit 78bb920344b8 ("mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error")
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memory-failure.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/scripts/spelling.txt~scripts-spellingtxt-add-diabled-typo
-+++ a/scripts/spelling.txt
-@@ -470,6 +470,7 @@ devided||divided
- deviece||device
- devision||division
- diable||disable
-+diabled||disabled
- dicline||decline
- dictionnary||dictionary
- didnt||didn't
+--- a/mm/memory-failure.c~mm-hwpoison-do-not-lock-page-again-when-me_huge_page-successfully-recovers
++++ a/mm/memory-failure.c
+@@ -834,7 +834,6 @@ static int me_huge_page(struct page *p,
+ 			page_ref_inc(p);
+ 			res = MF_RECOVERED;
+ 		}
+-		lock_page(hpage);
+ 	}
+ 
+ 	return res;
+@@ -1290,7 +1289,8 @@ static int memory_failure_hugetlb(unsign
+ 
+ 	res = identify_page_state(pfn, p, page_flags);
+ out:
+-	unlock_page(head);
++	if (PageLocked(head))
++		unlock_page(head);
+ 	return res;
+ }
+ 
 _
 
-Patches currently in -mm which might be from zuoqilin@yulong.com are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-scripts-spellingtxt-add-diabled-typo.patch
+mm-hwpoison-do-not-lock-page-again-when-me_huge_page-successfully-recovers.patch
 
