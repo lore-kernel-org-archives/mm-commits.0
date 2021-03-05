@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B052C433DB
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 02:21:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFF37C433DB
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 02:21:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 20DC86500D
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 02:21:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7E626500F
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 02:21:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229516AbhCECVa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 4 Mar 2021 21:21:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59358 "EHLO mail.kernel.org"
+        id S229562AbhCECVe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 4 Mar 2021 21:21:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59424 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229436AbhCECVa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Mar 2021 21:21:30 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 28E2864FDB;
-        Fri,  5 Mar 2021 02:21:28 +0000 (UTC)
+        id S229523AbhCECVe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Mar 2021 21:21:34 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 369DE64FED;
+        Fri,  5 Mar 2021 02:21:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614910889;
-        bh=LcpIkoGZqgub7P+9pTOdj2f9VpWt7pfX4+qoNNMb7V0=;
+        s=korg; t=1614910893;
+        bh=QfMJsYwmb6YqSJC0DtACLMmgPt4xgALJMguF5vViJDE=;
         h=Date:From:To:Subject:From;
-        b=mEgCbXvABsVYLae/LMgqcOun5kjyohDOGt2cDamIeC+ezf5aGGkKCEm4hw0WHO2gC
-         igoNNMXep8llBc5ZQ/h4XGvX+QLPl1F0XL2lEtrS4zM4iNn38IcgL8DqspB5vev3qb
-         xOTYhR6Z8r/LtBwaPflfuNBrQzOvYX8dKH6Z6Dzo=
-Date:   Thu, 04 Mar 2021 18:21:27 -0800
+        b=lHFfZQ+Gb2ARPFquuodsmQ10tP5vh/n0rlJ1EvOKZOKpBrmOaOPG4Rxx0gTkCOxHO
+         v4vNE03c3+q6pHehm8rKHuoLhGzdObZsyE/hdGBhlJlylj6/7yWSP2Bcuy2RXaQ8oi
+         xA5GEcM6AeUD0kjbACQ4JgSD1v0B4SEibPO9McMM=
+Date:   Thu, 04 Mar 2021 18:21:31 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, adobriyan@gmail.com, airlied@linux.ie,
         daniel@ffwll.ch, david@gibson.dropbear.id.au, galpress@amazon.com,
@@ -38,9 +38,9 @@ To:     aarcange@redhat.com, adobriyan@gmail.com, airlied@linux.ie,
         mm-commits@vger.kernel.org, peterx@redhat.com,
         rppt@linux.vnet.ibm.com, sroland@vmware.com, willy@infradead.org,
         wzam@amazon.com
-Subject:  + mm-use-is_cow_mapping-across-tree-where-proper.patch
+Subject:  + hugetlb-do-early-cow-when-page-pinned-on-src-mm.patch
  added to -mm tree
-Message-ID: <20210305022127.VX4LOxKsQ%akpm@linux-foundation.org>
+Message-ID: <20210305022131.ZxL0PQymU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use is_cow_mapping() across tree where proper
+     Subject: hugetlb: do early cow when page pinned on src mm
 has been added to the -mm tree.  Its filename is
-     mm-use-is_cow_mapping-across-tree-where-proper.patch
+     hugetlb-do-early-cow-when-page-pinned-on-src-mm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-use-is_cow_mapping-across-tree-where-proper.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-do-early-cow-when-page-pinned-on-src-mm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-use-is_cow_mapping-across-tree-where-proper.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-do-early-cow-when-page-pinned-on-src-mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,22 +71,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm: use is_cow_mapping() across tree where proper
+Subject: hugetlb: do early cow when page pinned on src mm
 
-After is_cow_mapping() is exported in mm.h, replace some manual checks
-elsewhere throughout the tree but start to use the new helper.
+This is the last missing piece of the COW-during-fork effort when there're
+pinned pages found.  One can reference 70e806e4e645 ("mm: Do early cow for
+pinned pages during fork() for ptes", 2020-09-27) for more information,
+since we do similar things here rather than pte this time, but just for
+hugetlb.
 
-Link: https://lkml.kernel.org/r/20210217233547.93892-5-peterx@redhat.com
+Note that after Jason's recent work on 57efa1fe5957 ("mm/gup: prevent
+gup_fast from racing with COW during fork", 2020-12-15) which is safer and
+easier to understand, we're safe now within the whole copy_page_range()
+against gup-fast, we don't need the wr-protect trick that proposed in
+70e806e4e645 anymore.
+
+Link: https://lkml.kernel.org/r/20210217233547.93892-6-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: VMware Graphics <linux-graphics-maintainer@vmware.com>
-Cc: Roland Scheidegger <sroland@vmware.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
 Cc: David Gibson <david@gibson.dropbear.id.au>
 Cc: Gal Pressman <galpress@amazon.com>
 Cc: Jan Kara <jack@suse.cz>
@@ -96,77 +103,120 @@ Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Roland Scheidegger <sroland@vmware.com>
+Cc: VMware Graphics <linux-graphics-maintainer@vmware.com>
 Cc: Wei Zhang <wzam@amazon.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/vmwgfx/vmwgfx_page_dirty.c |    4 +---
- drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c   |    2 +-
- fs/proc/task_mmu.c                         |    2 --
- mm/hugetlb.c                               |    4 +---
- 4 files changed, 3 insertions(+), 9 deletions(-)
+ mm/hugetlb.c |   66 ++++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 62 insertions(+), 4 deletions(-)
 
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_page_dirty.c~mm-use-is_cow_mapping-across-tree-where-proper
-+++ a/drivers/gpu/drm/vmwgfx/vmwgfx_page_dirty.c
-@@ -500,8 +500,6 @@ vm_fault_t vmw_bo_vm_huge_fault(struct v
- 	vm_fault_t ret;
- 	pgoff_t fault_page_size;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
--	bool is_cow_mapping =
--		(vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
- 
- 	switch (pe_size) {
- 	case PE_SIZE_PMD:
-@@ -518,7 +516,7 @@ vm_fault_t vmw_bo_vm_huge_fault(struct v
- 	}
- 
- 	/* Always do write dirty-tracking and COW on PTE level. */
--	if (write && (READ_ONCE(vbo->dirty) || is_cow_mapping))
-+	if (write && (READ_ONCE(vbo->dirty) || is_cow_mapping(vma->vm_flags)))
- 		return VM_FAULT_FALLBACK;
- 
- 	ret = ttm_bo_vm_reserve(bo, vmf);
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c~mm-use-is_cow_mapping-across-tree-where-proper
-+++ a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c
-@@ -49,7 +49,7 @@ int vmw_mmap(struct file *filp, struct v
- 	vma->vm_ops = &vmw_vm_ops;
- 
- 	/* Use VM_PFNMAP rather than VM_MIXEDMAP if not a COW mapping */
--	if ((vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) != VM_MAYWRITE)
-+	if (!is_cow_mapping(vma->vm_flags))
- 		vma->vm_flags = (vma->vm_flags & ~VM_MIXEDMAP) | VM_PFNMAP;
- 
- 	return 0;
---- a/fs/proc/task_mmu.c~mm-use-is_cow_mapping-across-tree-where-proper
-+++ a/fs/proc/task_mmu.c
-@@ -1036,8 +1036,6 @@ struct clear_refs_private {
- 
- #ifdef CONFIG_MEM_SOFT_DIRTY
- 
--#define is_cow_mapping(flags) (((flags) & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE)
--
- static inline bool pte_is_pinned(struct vm_area_struct *vma, unsigned long addr, pte_t pte)
- {
- 	struct page *page;
---- a/mm/hugetlb.c~mm-use-is_cow_mapping-across-tree-where-proper
+--- a/mm/hugetlb.c~hugetlb-do-early-cow-when-page-pinned-on-src-mm
 +++ a/mm/hugetlb.c
-@@ -3756,15 +3756,13 @@ int copy_hugetlb_page_range(struct mm_st
- 	pte_t *src_pte, *dst_pte, entry, dst_entry;
- 	struct page *ptepage;
- 	unsigned long addr;
--	int cow;
-+	bool cow = is_cow_mapping(vma->vm_flags);
+@@ -3750,6 +3750,18 @@ static bool is_hugetlb_entry_hwpoisoned(
+ 		return false;
+ }
+ 
++static void
++hugetlb_install_page(struct vm_area_struct *vma, pte_t *ptep, unsigned long addr,
++		     struct page *new_page)
++{
++	__SetPageUptodate(new_page);
++	set_huge_pte_at(vma->vm_mm, addr, ptep, make_huge_pte(vma, new_page, 1));
++	hugepage_add_new_anon_rmap(new_page, vma, addr);
++	hugetlb_count_add(pages_per_huge_page(hstate_vma(vma)), vma->vm_mm);
++	ClearHPageRestoreReserve(new_page);
++	SetHPageMigratable(new_page);
++}
++
+ int copy_hugetlb_page_range(struct mm_struct *dst, struct mm_struct *src,
+ 			    struct vm_area_struct *vma)
+ {
+@@ -3759,6 +3771,7 @@ int copy_hugetlb_page_range(struct mm_st
+ 	bool cow = is_cow_mapping(vma->vm_flags);
  	struct hstate *h = hstate_vma(vma);
  	unsigned long sz = huge_page_size(h);
++	unsigned long npages = pages_per_huge_page(h);
  	struct address_space *mapping = vma->vm_file->f_mapping;
  	struct mmu_notifier_range range;
  	int ret = 0;
- 
--	cow = (vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
--
- 	if (cow) {
- 		mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, src,
- 					vma->vm_start,
+@@ -3807,6 +3820,7 @@ int copy_hugetlb_page_range(struct mm_st
+ 		spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
+ 		entry = huge_ptep_get(src_pte);
+ 		dst_entry = huge_ptep_get(dst_pte);
++again:
+ 		if (huge_pte_none(entry) || !huge_pte_none(dst_entry)) {
+ 			/*
+ 			 * Skip if src entry none.  Also, skip in the
+@@ -3830,6 +3844,52 @@ int copy_hugetlb_page_range(struct mm_st
+ 			}
+ 			set_huge_swap_pte_at(dst, addr, dst_pte, entry, sz);
+ 		} else {
++			entry = huge_ptep_get(src_pte);
++			ptepage = pte_page(entry);
++			get_page(ptepage);
++
++			/*
++			 * This is a rare case where we see pinned hugetlb
++			 * pages while they're prone to COW.  We need to do the
++			 * COW earlier during fork.
++			 *
++			 * When pre-allocating the page or copying data, we
++			 * need to be without the pgtable locks since we could
++			 * sleep during the process.
++			 */
++			if (unlikely(page_needs_cow_for_dma(vma, ptepage))) {
++				pte_t src_pte_old = entry;
++				struct page *new;
++
++				spin_unlock(src_ptl);
++				spin_unlock(dst_ptl);
++				/* Do not use reserve as it's private owned */
++				new = alloc_huge_page(vma, addr, 1);
++				if (IS_ERR(new)) {
++					put_page(ptepage);
++					ret = PTR_ERR(new);
++					break;
++				}
++				copy_user_huge_page(new, ptepage, addr, vma,
++						    npages);
++				put_page(ptepage);
++
++				/* Install the new huge page if src pte stable */
++				dst_ptl = huge_pte_lock(h, dst, dst_pte);
++				src_ptl = huge_pte_lockptr(h, src, src_pte);
++				spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
++				entry = huge_ptep_get(src_pte);
++				if (!pte_same(src_pte_old, entry)) {
++					put_page(new);
++					/* dst_entry won't change as in child */
++					goto again;
++				}
++				hugetlb_install_page(vma, dst_pte, addr, new);
++				spin_unlock(src_ptl);
++				spin_unlock(dst_ptl);
++				continue;
++			}
++
+ 			if (cow) {
+ 				/*
+ 				 * No need to notify as we are downgrading page
+@@ -3840,12 +3900,10 @@ int copy_hugetlb_page_range(struct mm_st
+ 				 */
+ 				huge_ptep_set_wrprotect(src, addr, src_pte);
+ 			}
+-			entry = huge_ptep_get(src_pte);
+-			ptepage = pte_page(entry);
+-			get_page(ptepage);
++
+ 			page_dup_rmap(ptepage, true);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
+-			hugetlb_count_add(pages_per_huge_page(h), dst);
++			hugetlb_count_add(npages, dst);
+ 		}
+ 		spin_unlock(src_ptl);
+ 		spin_unlock(dst_ptl);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
