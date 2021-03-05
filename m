@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F051C433E0
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:33:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59F98C433DB
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:32:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 050156521A
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Mar 2021 01:33:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A2186500D
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 01:32:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231314AbhCDBdS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Mar 2021 20:33:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58730 "EHLO mail.kernel.org"
+        id S229601AbhCEBcZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 4 Mar 2021 20:32:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49866 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236099AbhCDBWU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Mar 2021 20:22:20 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AB19F64FFF;
-        Thu,  4 Mar 2021 01:21:38 +0000 (UTC)
+        id S229464AbhCEBcZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Mar 2021 20:32:25 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BC79964E6B;
+        Fri,  5 Mar 2021 01:32:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614820898;
-        bh=f/agl8CFX2JVPdOwFHmsbY6bhYo5UGPobtH/kMn1KfA=;
+        s=korg; t=1614907945;
+        bh=Gf+u7HI3OJSD3mS8ek2+MlqGYw4Oja0hHMD17sb3GDU=;
         h=Date:From:To:Subject:From;
-        b=aJM5jmp64rWhgjdE/l6KVDy47JA8YKhWweEti0JDP7FPYwDHfKj3ZOYj26NjZAflt
-         82XaNXmMBv6MlTqdye2sm16NMQaVvK3y5cEnKn4FDE60AdaWHwUUR0QKmRZV/l3WuU
-         w+ewslJ8M/NMoEG43tGFVWDcjBdEVW1nIqQ8UBVQ=
-Date:   Wed, 03 Mar 2021 17:21:38 -0800
+        b=KX6MlBTEJryld9Kfy4KQmlsTfFg4LeDT4yLS33cv8bzzjp44PWGxE97JWttjES0Ln
+         6NbXWJkF6eaJ/M3l8XZyRM+TkTHmia5pWsadUk9B+LfdnwRL8S68bWXcvp8Jv+12Sc
+         LIRE7/rqqjH5ikbnk7QyNFedF5Hh9bkp0fZBIfLo=
+Date:   Thu, 04 Mar 2021 17:32:24 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        willy@infradead.org
-Subject:  + mm-use-rcu_dereference-in-in_vfork.patch added to -mm
- tree
-Message-ID: <20210304012138.3baFrM7Fw%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, dvyukov@google.com, elver@google.com,
+        glider@google.com, jannh@google.com, mm-commits@vger.kernel.org
+Subject:  +
+ kfence-slab-fix-cache_alloc_debugcheck_after-for-bulk-allocations.patch
+ added to -mm tree
+Message-ID: <20210305013224.QgV9sJkRk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/sched/mm.h: use rcu_dereference in in_vfork()
+     Subject: kfence, slab: fix cache_alloc_debugcheck_after() for bulk allocations
 has been added to the -mm tree.  Its filename is
-     mm-use-rcu_dereference-in-in_vfork.patch
+     kfence-slab-fix-cache_alloc_debugcheck_after-for-bulk-allocations.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-use-rcu_dereference-in-in_vfork.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kfence-slab-fix-cache_alloc_debugcheck_after-for-bulk-allocations.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-use-rcu_dereference-in-in_vfork.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-slab-fix-cache_alloc_debugcheck_after-for-bulk-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,49 +65,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: include/linux/sched/mm.h: use rcu_dereference in in_vfork()
+From: Marco Elver <elver@google.com>
+Subject: kfence, slab: fix cache_alloc_debugcheck_after() for bulk allocations
 
-Fix a sparse warning by using rcu_dereference().  Technically this is a
-bug and a sufficiently aggressive compiler could reload the `real_parent'
-pointer outside the protection of the rcu lock (and access freed memory),
-but I think it's pretty unlikely to happen.
+cache_alloc_debugcheck_after() performs checks on an object, including
+adjusting the returned pointer.  None of this should apply to KFENCE
+objects.  While for non-bulk allocations, the checks are skipped when we
+allocate via KFENCE, for bulk allocations cache_alloc_debugcheck_after()
+is called via cache_alloc_debugcheck_after_bulk().
 
-Link: https://lkml.kernel.org/r/20210221194207.1351703-1-willy@infradead.org
-Fixes: b18dc5f291c0 ("mm, oom: skip vforked tasks from being selected")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Fix it by skipping cache_alloc_debugcheck_after() for KFENCE objects.
+
+Link: https://lkml.kernel.org/r/20210304205256.2162309-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/mm.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/sched/mm.h~mm-use-rcu_dereference-in-in_vfork
-+++ a/include/linux/sched/mm.h
-@@ -140,7 +140,8 @@ static inline bool in_vfork(struct task_
- 	 * another oom-unkillable task does this it should blame itself.
- 	 */
- 	rcu_read_lock();
--	ret = tsk->vfork_done && tsk->real_parent->mm == tsk->mm;
-+	ret = tsk->vfork_done &&
-+			rcu_dereference(tsk->real_parent)->mm == tsk->mm;
- 	rcu_read_unlock();
- 
- 	return ret;
+--- a/mm/slab.c~kfence-slab-fix-cache_alloc_debugcheck_after-for-bulk-allocations
++++ a/mm/slab.c
+@@ -2992,7 +2992,7 @@ static void *cache_alloc_debugcheck_afte
+ 				gfp_t flags, void *objp, unsigned long caller)
+ {
+ 	WARN_ON_ONCE(cachep->ctor && (flags & __GFP_ZERO));
+-	if (!objp)
++	if (!objp || is_kfence_address(objp))
+ 		return objp;
+ 	if (cachep->flags & SLAB_POISON) {
+ 		check_poison_obj(cachep, objp);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from elver@google.com are
 
-mm-use-rcu_dereference-in-in_vfork.patch
-mm-filemap-use-filemap_read_page-in-filemap_fault.patch
-mm-filemap-drop-check-for-truncated-page-after-i-o.patch
-mm-page_alloc-rename-alloc_mask-to-alloc_gfp.patch
-mm-page_alloc-rename-gfp_mask-to-gfp.patch
-mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask.patch
-mm-mempolicy-rename-alloc_pages_current-to-alloc_pages.patch
-mm-mempolicy-rewrite-alloc_pages-documentation.patch
-mm-mempolicy-rewrite-alloc_pages_vma-documentation.patch
-mm-mempolicy-fix-mpol_misplaced-kernel-doc.patch
+kfence-fix-printk-format-for-ptrdiff_t.patch
+kfence-slab-fix-cache_alloc_debugcheck_after-for-bulk-allocations.patch
 
