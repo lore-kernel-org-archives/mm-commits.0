@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2418FC433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 02:21:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B052C433DB
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 02:21:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E7D5364FEF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 02:21:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20DC86500D
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Mar 2021 02:21:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229478AbhCECV0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 4 Mar 2021 21:21:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59296 "EHLO mail.kernel.org"
+        id S229516AbhCECVa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 4 Mar 2021 21:21:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59358 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229436AbhCECV0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Mar 2021 21:21:26 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4A4F96500D;
-        Fri,  5 Mar 2021 02:21:24 +0000 (UTC)
+        id S229436AbhCECVa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Mar 2021 21:21:30 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 28E2864FDB;
+        Fri,  5 Mar 2021 02:21:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614910885;
-        bh=+M9wswncNbyyUlZDl/lMdqNyGyJJrSgJddc/dTg0GyU=;
+        s=korg; t=1614910889;
+        bh=LcpIkoGZqgub7P+9pTOdj2f9VpWt7pfX4+qoNNMb7V0=;
         h=Date:From:To:Subject:From;
-        b=j4o0zNJmLHdMuOr7wDyQ75RjYkKJAsaKbMDlHDRxM6Bq5oiOEcwdZmD9QjP+704U/
-         VmpduY1FaSMBPGKQ4n8W7d0D81WccVTZY0BxAt5ClT2HZcWE3QSpyQMNdchhKNR/yu
-         f8MUeG1pLzwzzM85443Knn0q8tw0ESpYBLiCdp6U=
-Date:   Thu, 04 Mar 2021 18:21:23 -0800
+        b=mEgCbXvABsVYLae/LMgqcOun5kjyohDOGt2cDamIeC+ezf5aGGkKCEm4hw0WHO2gC
+         igoNNMXep8llBc5ZQ/h4XGvX+QLPl1F0XL2lEtrS4zM4iNn38IcgL8DqspB5vev3qb
+         xOTYhR6Z8r/LtBwaPflfuNBrQzOvYX8dKH6Z6Dzo=
+Date:   Thu, 04 Mar 2021 18:21:27 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, adobriyan@gmail.com, airlied@linux.ie,
         daniel@ffwll.ch, david@gibson.dropbear.id.au, galpress@amazon.com,
@@ -38,10 +38,9 @@ To:     aarcange@redhat.com, adobriyan@gmail.com, airlied@linux.ie,
         mm-commits@vger.kernel.org, peterx@redhat.com,
         rppt@linux.vnet.ibm.com, sroland@vmware.com, willy@infradead.org,
         wzam@amazon.com
-Subject:  +
- mm-introduce-page_needs_cow_for_dma-for-deciding-whether-cow.patch added to
- -mm tree
-Message-ID: <20210305022123.QflvdCIVm%akpm@linux-foundation.org>
+Subject:  + mm-use-is_cow_mapping-across-tree-where-proper.patch
+ added to -mm tree
+Message-ID: <20210305022127.VX4LOxKsQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce page_needs_cow_for_dma() for deciding whether cow
+     Subject: mm: use is_cow_mapping() across tree where proper
 has been added to the -mm tree.  Its filename is
-     mm-introduce-page_needs_cow_for_dma-for-deciding-whether-cow.patch
+     mm-use-is_cow_mapping-across-tree-where-proper.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-page_needs_cow_for_dma-for-deciding-whether-cow.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-use-is_cow_mapping-across-tree-where-proper.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-page_needs_cow_for_dma-for-deciding-whether-cow.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-use-is_cow_mapping-across-tree-where-proper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,27 +71,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm: introduce page_needs_cow_for_dma() for deciding whether cow
+Subject: mm: use is_cow_mapping() across tree where proper
 
-We've got quite a few places (pte, pmd, pud) that explicitly checked
-against whether we should break the cow right now during fork().  It's
-easier to provide a helper, especially before we work the same thing on
-hugetlbfs.
+After is_cow_mapping() is exported in mm.h, replace some manual checks
+elsewhere throughout the tree but start to use the new helper.
 
-Since we'll reference is_cow_mapping() in mm.h, move it there too. 
-Actually it suites mm.h more since internal.h is mm/ only, but mm.h is
-exported to the whole kernel.  With that we should expect another patch to
-use is_cow_mapping() whenever we can across the kernel since we do use it
-quite a lot but it's always done with raw code against VM_* flags.
-
-Link: https://lkml.kernel.org/r/20210217233547.93892-4-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20210217233547.93892-5-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: VMware Graphics <linux-graphics-maintainer@vmware.com>
+Cc: Roland Scheidegger <sroland@vmware.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: David Airlie <airlied@linux.ie>
 Cc: David Gibson <david@gibson.dropbear.id.au>
 Cc: Gal Pressman <galpress@amazon.com>
 Cc: Jan Kara <jack@suse.cz>
@@ -101,114 +95,78 @@ Cc: Kirill Shutemov <kirill@shutemov.name>
 Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Roland Scheidegger <sroland@vmware.com>
-Cc: VMware Graphics <linux-graphics-maintainer@vmware.com>
 Cc: Wei Zhang <wzam@amazon.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   21 +++++++++++++++++++++
- mm/huge_memory.c   |    8 ++------
- mm/internal.h      |    5 -----
- mm/memory.c        |    8 +-------
- 4 files changed, 24 insertions(+), 18 deletions(-)
+ drivers/gpu/drm/vmwgfx/vmwgfx_page_dirty.c |    4 +---
+ drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c   |    2 +-
+ fs/proc/task_mmu.c                         |    2 --
+ mm/hugetlb.c                               |    4 +---
+ 4 files changed, 3 insertions(+), 9 deletions(-)
 
---- a/include/linux/mm.h~mm-introduce-page_needs_cow_for_dma-for-deciding-whether-cow
-+++ a/include/linux/mm.h
-@@ -1300,6 +1300,27 @@ static inline bool page_maybe_dma_pinned
- 		GUP_PIN_COUNTING_BIAS;
- }
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_page_dirty.c~mm-use-is_cow_mapping-across-tree-where-proper
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_page_dirty.c
+@@ -500,8 +500,6 @@ vm_fault_t vmw_bo_vm_huge_fault(struct v
+ 	vm_fault_t ret;
+ 	pgoff_t fault_page_size;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+-	bool is_cow_mapping =
+-		(vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
  
-+static inline bool is_cow_mapping(vm_flags_t flags)
-+{
-+	return (flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
-+}
-+
-+/*
-+ * This should most likely only be called during fork() to see whether we
-+ * should break the cow immediately for a page on the src mm.
-+ */
-+static inline bool page_needs_cow_for_dma(struct vm_area_struct *vma,
-+					  struct page *page)
-+{
-+	if (!is_cow_mapping(vma->vm_flags))
-+		return false;
-+
-+	if (!atomic_read(&vma->vm_mm->has_pinned))
-+		return false;
-+
-+	return page_maybe_dma_pinned(page);
-+}
-+
- #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- #define SECTION_IN_PAGE_FLAGS
- #endif
---- a/mm/huge_memory.c~mm-introduce-page_needs_cow_for_dma-for-deciding-whether-cow
-+++ a/mm/huge_memory.c
-@@ -1100,9 +1100,7 @@ int copy_huge_pmd(struct mm_struct *dst_
- 	 * best effort that the pinned pages won't be replaced by another
- 	 * random page during the coming copy-on-write.
- 	 */
--	if (unlikely(is_cow_mapping(vma->vm_flags) &&
--		     atomic_read(&src_mm->has_pinned) &&
--		     page_maybe_dma_pinned(src_page))) {
-+	if (unlikely(page_needs_cow_for_dma(vma, src_page))) {
- 		pte_free(dst_mm, pgtable);
- 		spin_unlock(src_ptl);
- 		spin_unlock(dst_ptl);
-@@ -1214,9 +1212,7 @@ int copy_huge_pud(struct mm_struct *dst_
+ 	switch (pe_size) {
+ 	case PE_SIZE_PMD:
+@@ -518,7 +516,7 @@ vm_fault_t vmw_bo_vm_huge_fault(struct v
  	}
  
- 	/* Please refer to comments in copy_huge_pmd() */
--	if (unlikely(is_cow_mapping(vma->vm_flags) &&
--		     atomic_read(&src_mm->has_pinned) &&
--		     page_maybe_dma_pinned(pud_page(pud)))) {
-+	if (unlikely(page_needs_cow_for_dma(vma, pud_page(pud)))) {
- 		spin_unlock(src_ptl);
- 		spin_unlock(dst_ptl);
- 		__split_huge_pud(vma, src_pud, addr);
---- a/mm/internal.h~mm-introduce-page_needs_cow_for_dma-for-deciding-whether-cow
-+++ a/mm/internal.h
-@@ -296,11 +296,6 @@ static inline unsigned int buddy_order(s
-  */
- #define buddy_order_unsafe(page)	READ_ONCE(page_private(page))
+ 	/* Always do write dirty-tracking and COW on PTE level. */
+-	if (write && (READ_ONCE(vbo->dirty) || is_cow_mapping))
++	if (write && (READ_ONCE(vbo->dirty) || is_cow_mapping(vma->vm_flags)))
+ 		return VM_FAULT_FALLBACK;
  
--static inline bool is_cow_mapping(vm_flags_t flags)
--{
--	return (flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
--}
+ 	ret = ttm_bo_vm_reserve(bo, vmf);
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c~mm-use-is_cow_mapping-across-tree-where-proper
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c
+@@ -49,7 +49,7 @@ int vmw_mmap(struct file *filp, struct v
+ 	vma->vm_ops = &vmw_vm_ops;
+ 
+ 	/* Use VM_PFNMAP rather than VM_MIXEDMAP if not a COW mapping */
+-	if ((vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) != VM_MAYWRITE)
++	if (!is_cow_mapping(vma->vm_flags))
+ 		vma->vm_flags = (vma->vm_flags & ~VM_MIXEDMAP) | VM_PFNMAP;
+ 
+ 	return 0;
+--- a/fs/proc/task_mmu.c~mm-use-is_cow_mapping-across-tree-where-proper
++++ a/fs/proc/task_mmu.c
+@@ -1036,8 +1036,6 @@ struct clear_refs_private {
+ 
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+ 
+-#define is_cow_mapping(flags) (((flags) & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE)
 -
- /*
-  * These three helpers classifies VMAs for virtual memory accounting.
-  */
---- a/mm/memory.c~mm-introduce-page_needs_cow_for_dma-for-deciding-whether-cow
-+++ a/mm/memory.c
-@@ -809,12 +809,8 @@ copy_present_page(struct vm_area_struct
- 		  pte_t *dst_pte, pte_t *src_pte, unsigned long addr, int *rss,
- 		  struct page **prealloc, pte_t pte, struct page *page)
+ static inline bool pte_is_pinned(struct vm_area_struct *vma, unsigned long addr, pte_t pte)
  {
--	struct mm_struct *src_mm = src_vma->vm_mm;
- 	struct page *new_page;
+ 	struct page *page;
+--- a/mm/hugetlb.c~mm-use-is_cow_mapping-across-tree-where-proper
++++ a/mm/hugetlb.c
+@@ -3756,15 +3756,13 @@ int copy_hugetlb_page_range(struct mm_st
+ 	pte_t *src_pte, *dst_pte, entry, dst_entry;
+ 	struct page *ptepage;
+ 	unsigned long addr;
+-	int cow;
++	bool cow = is_cow_mapping(vma->vm_flags);
+ 	struct hstate *h = hstate_vma(vma);
+ 	unsigned long sz = huge_page_size(h);
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	struct mmu_notifier_range range;
+ 	int ret = 0;
  
--	if (!is_cow_mapping(src_vma->vm_flags))
--		return 1;
+-	cow = (vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
 -
- 	/*
- 	 * What we want to do is to check whether this page may
- 	 * have been pinned by the parent process.  If so,
-@@ -828,9 +824,7 @@ copy_present_page(struct vm_area_struct
- 	 * the page count. That might give false positives for
- 	 * for pinning, but it will work correctly.
- 	 */
--	if (likely(!atomic_read(&src_mm->has_pinned)))
--		return 1;
--	if (likely(!page_maybe_dma_pinned(page)))
-+	if (likely(!page_needs_cow_for_dma(src_vma, page)))
- 		return 1;
- 
- 	new_page = *prealloc;
+ 	if (cow) {
+ 		mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, src,
+ 					vma->vm_start,
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
