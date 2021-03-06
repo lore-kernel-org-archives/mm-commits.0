@@ -7,39 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC858C433E6
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Mar 2021 00:52:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2939FC433DB
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Mar 2021 00:59:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8EC1965068
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Mar 2021 00:52:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D06246507C
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Mar 2021 00:59:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229791AbhCFAwL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Mar 2021 19:52:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40454 "EHLO mail.kernel.org"
+        id S229651AbhCFA70 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Mar 2021 19:59:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41902 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229679AbhCFAvl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Mar 2021 19:51:41 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4957B6508C;
-        Sat,  6 Mar 2021 00:51:40 +0000 (UTC)
+        id S229976AbhCFA7E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Mar 2021 19:59:04 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C466F64FCF;
+        Sat,  6 Mar 2021 00:59:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1614991901;
-        bh=idxvNXIvHmXXDVIV3uZNNgB88gFxUYzDAbi5ZUXtirY=;
+        s=korg; t=1614992344;
+        bh=MpEk3l37A53eDnuvMGFyyxESns2RsrjVvFRj6LFwjac=;
         h=Date:From:To:Subject:From;
-        b=ZiKb5C6M7sra/ZMpvztzsnkYIZljYaowEJsE/9vDWRLCvRuhX+Wzvn76S2Qju+8K6
-         2DYxQK5GriJZIN24igh7pINYAulVRBej5ro2X92jiX/g04ddGgqFNO35WaUIvepM2L
-         OF1Q2HHXnH3+r5KrxlziGx1qUVrcXSUfQEKZeSqY=
-Date:   Fri, 05 Mar 2021 16:51:39 -0800
+        b=vCWSN9fXY2OjY6xtNZdMsJGha56JFLLvniM5oEzsuXOv9Z60D24PoAeBjAofrRTSs
+         7zCIF6DchCMyAq5cWZTNk5UGNP5IITFEYY5sAdp1DWHFaH5Mb2WXN66ACyXoMS1Ezk
+         sSY9lHBrZemEXYm4Z9uUYLcOP34l9ruEHJ8igWAM=
+Date:   Fri, 05 Mar 2021 16:59:03 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
-        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
-        dvyukov@google.com, elver@google.com, eugenis@google.com,
-        glider@google.com, hch@infradead.org, kevin.brodsky@arm.com,
-        mm-commits@vger.kernel.org, pcc@google.com,
-        vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  +
- mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch added to -mm
- tree
-Message-ID: <20210306005139.udVpVhRNt%akpm@linux-foundation.org>
+To:     dave.hansen@linux.intel.com, hannes@cmpxchg.org, mingo@redhat.com,
+        mm-commits@vger.kernel.org, saravanand@fb.com, tj@kernel.org
+Subject:  + x86-mm-tracking-linear-mapping-split-events.patch added
+ to -mm tree
+Message-ID: <20210306005903.gfH_h8jk7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, kasan: don't poison boot memory with tag-based modes
+     Subject: x86/mm: track linear mapping split events
 has been added to the -mm tree.  Its filename is
-     mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
+     x86-mm-tracking-linear-mapping-split-events.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-mm-tracking-linear-mapping-split-events.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-tracking-linear-mapping-split-events.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,181 +64,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: mm, kasan: don't poison boot memory with tag-based modes
+From: Saravanan D <saravanand@fb.com>
+Subject: x86/mm: track linear mapping split events
 
-During boot, all non-reserved memblock memory is exposed to page_alloc via
-memblock_free_pages->__free_pages_core().  This results in
-kasan_free_pages() being called, which poisons that memory.
+To help with debugging the sluggishness caused by TLB miss/reload, we
+introduce monotonic hugepage [direct mapped] split event counts since
+system state: SYSTEM_RUNNING to be displayed as part of /proc/vmstat in
+x86 servers
 
-Poisoning all that memory lengthens boot time.  The most noticeable effect
-is observed with the HW_TAGS mode.  A boot-time impact may potentially
-also affect systems with large amount of RAM.
+The lifetime split event information will be displayed at the bottom of
+/proc/vmstat
+....
+swap_ra 0
+swap_ra_hit 0
+direct_map_level2_splits 94
+direct_map_level3_splits 4
+nr_unstable 0
+....
 
-This patch changes the tag-based modes to not poison the memory during the
-memblock->page_alloc transition.
+One of the many lasting sources of direct hugepage splits is kernel
+tracing (kprobes, tracepoints).
 
-An exception is made for KASAN_GENERIC.  Since it marks all new memory as
-accessible, not poisoning the memory released from memblock will lead to
-KASAN missing invalid boot-time accesses to that memory.
+Note that the kernel's code segment [512 MB] points to the same physical
+addresses that have been already mapped in the kernel's direct mapping
+range.
 
-With KASAN_SW_TAGS, as it uses the invalid 0xFE tag as the default tag for
-all memory, it won't miss bad boot-time accesses even if the poisoning of
-memblock memory is removed.
+Source : Documentation/x86/x86_64/mm.rst
 
-With KASAN_HW_TAGS, the default memory tags values are unspecified. 
-Therefore, if memblock poisoning is removed, this KASAN mode will miss the
-mentioned type of boot-time bugs with a 1/16 probability.  This is taken
-as an acceptable trafe-off.
+When we enable kernel tracing, the kernel has to modify
+attributes/permissions of the text segment hugepages that are direct
+mapped causing them to split.
 
-Internally, the poisoning is removed as follows.  __free_pages_core() is
-used when exposing fresh memory during system boot and when onlining
-memory during hotplug.  This patch adds a new FPI_SKIP_KASAN_POISON flag
-and passes it to __free_pages_ok() through free_pages_prepare() from
-__free_pages_core().  If FPI_SKIP_KASAN_POISON is set, kasan_free_pages()
-is not called.
+Kernel's direct mapped hugepages do not coalesce back after split and
+remain in place for the remainder of the lifetime.
 
-All memory allocated normally when the boot is over keeps getting poisoned
-as usual.
+An instance of direct page splits when we turn on dynamic kernel tracing
+....
+cat /proc/vmstat | grep -i direct_map_level
+direct_map_level2_splits 784
+direct_map_level3_splits 12
+bpftrace -e 'tracepoint:raw_syscalls:sys_enter { @ [pid, comm] =
+count(); }'
+cat /proc/vmstat | grep -i
+direct_map_level
+direct_map_level2_splits 789
+direct_map_level3_splits 12
+....
 
-Link: https://lkml.kernel.org/r/a0570dc1e3a8f39a55aa343a1fc08cd5c2d4cad6.1613692950.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Link: https://lkml.kernel.org/r/20210218235744.1040634-1-saravanand@fb.com
+Signed-off-by: Saravanan D <saravanand@fb.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   45 ++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 34 insertions(+), 11 deletions(-)
+ arch/x86/mm/pat/set_memory.c  |    8 ++++++++
+ include/linux/vm_event_item.h |    4 ++++
+ mm/vmstat.c                   |    4 ++++
+ 3 files changed, 16 insertions(+)
 
---- a/mm/page_alloc.c~mm-kasan-dont-poison-boot-memory-with-tag-based-modes
-+++ a/mm/page_alloc.c
-@@ -108,6 +108,17 @@ typedef int __bitwise fpi_t;
-  */
- #define FPI_TO_TAIL		((__force fpi_t)BIT(1))
+--- a/arch/x86/mm/pat/set_memory.c~x86-mm-tracking-linear-mapping-split-events
++++ a/arch/x86/mm/pat/set_memory.c
+@@ -16,6 +16,8 @@
+ #include <linux/pci.h>
+ #include <linux/vmalloc.h>
+ #include <linux/libnvdimm.h>
++#include <linux/vmstat.h>
++#include <linux/kernel.h>
  
-+/*
-+ * Don't poison memory with KASAN (only for the tag-based modes).
-+ * During boot, all non-reserved memblock memory is exposed to page_alloc.
-+ * Poisoning all that memory lengthens boot time, especially on systems with
-+ * large amount of RAM. This flag is used to skip that poisoning.
-+ * This is only done for the tag-based KASAN modes, as those are able to
-+ * detect memory corruptions with the memory tags assigned by default.
-+ * All memory allocated normally after boot gets poisoned as usual.
-+ */
-+#define FPI_SKIP_KASAN_POISON	((__force fpi_t)BIT(2))
-+
- /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
- static DEFINE_MUTEX(pcp_batch_high_lock);
- #define MIN_PERCPU_PAGELIST_FRACTION	(8)
-@@ -384,10 +395,15 @@ static DEFINE_STATIC_KEY_TRUE(deferred_p
-  * on-demand allocation and then freed again before the deferred pages
-  * initialization is done, but this is not likely to happen.
-  */
--static inline void kasan_free_nondeferred_pages(struct page *page, int order)
-+static inline void kasan_free_nondeferred_pages(struct page *page, int order,
-+							fpi_t fpi_flags)
- {
--	if (!static_branch_unlikely(&deferred_pages))
--		kasan_free_pages(page, order);
-+	if (static_branch_unlikely(&deferred_pages))
-+		return;
-+	if (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
-+			(fpi_flags & FPI_SKIP_KASAN_POISON))
-+		return;
-+	kasan_free_pages(page, order);
- }
- 
- /* Returns true if the struct page for the pfn is uninitialised */
-@@ -438,7 +454,14 @@ defer_init(int nid, unsigned long pfn, u
- 	return false;
- }
- #else
--#define kasan_free_nondeferred_pages(p, o)	kasan_free_pages(p, o)
-+static inline void kasan_free_nondeferred_pages(struct page *page, int order,
-+							fpi_t fpi_flags)
-+{
-+	if (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
-+			(fpi_flags & FPI_SKIP_KASAN_POISON))
-+		return;
-+	kasan_free_pages(page, order);
-+}
- 
- static inline bool early_page_uninitialised(unsigned long pfn)
- {
-@@ -1216,7 +1239,7 @@ static void kernel_init_free_pages(struc
- }
- 
- static __always_inline bool free_pages_prepare(struct page *page,
--					unsigned int order, bool check_free)
-+			unsigned int order, bool check_free, fpi_t fpi_flags)
- {
- 	int bad = 0;
- 
-@@ -1285,7 +1308,7 @@ static __always_inline bool free_pages_p
- 	 * With hardware tag-based KASAN, memory tags must be set before the
- 	 * page becomes unavailable via debug_pagealloc or arch_free_page.
- 	 */
--	kasan_free_nondeferred_pages(page, order);
-+	kasan_free_nondeferred_pages(page, order, fpi_flags);
- 
- 	/*
- 	 * arch_free_page() can make the page's contents inaccessible.  s390
-@@ -1307,7 +1330,7 @@ static __always_inline bool free_pages_p
-  */
- static bool free_pcp_prepare(struct page *page)
- {
--	return free_pages_prepare(page, 0, true);
-+	return free_pages_prepare(page, 0, true, FPI_NONE);
- }
- 
- static bool bulkfree_pcp_prepare(struct page *page)
-@@ -1327,9 +1350,9 @@ static bool bulkfree_pcp_prepare(struct
- static bool free_pcp_prepare(struct page *page)
- {
- 	if (debug_pagealloc_enabled_static())
--		return free_pages_prepare(page, 0, true);
-+		return free_pages_prepare(page, 0, true, FPI_NONE);
- 	else
--		return free_pages_prepare(page, 0, false);
-+		return free_pages_prepare(page, 0, false, FPI_NONE);
- }
- 
- static bool bulkfree_pcp_prepare(struct page *page)
-@@ -1537,7 +1560,7 @@ static void __free_pages_ok(struct page
- 	int migratetype;
- 	unsigned long pfn = page_to_pfn(page);
- 
--	if (!free_pages_prepare(page, order, true))
-+	if (!free_pages_prepare(page, order, true, fpi_flags))
+ #include <asm/e820/api.h>
+ #include <asm/processor.h>
+@@ -91,6 +93,12 @@ static void split_page_count(int level)
  		return;
  
- 	migratetype = get_pfnblock_migratetype(page, pfn);
-@@ -1574,7 +1597,7 @@ void __free_pages_core(struct page *page
- 	 * Bypass PCP and place fresh pages right to the tail, primarily
- 	 * relevant for memory onlining.
- 	 */
--	__free_pages_ok(page, order, FPI_TO_TAIL);
-+	__free_pages_ok(page, order, FPI_TO_TAIL | FPI_SKIP_KASAN_POISON);
+ 	direct_pages_count[level]--;
++	if (system_state == SYSTEM_RUNNING) {
++		if (level == PG_LEVEL_2M)
++			count_vm_event(DIRECT_MAP_LEVEL2_SPLIT);
++		else if (level == PG_LEVEL_1G)
++			count_vm_event(DIRECT_MAP_LEVEL3_SPLIT);
++	}
+ 	direct_pages_count[level - 1] += PTRS_PER_PTE;
  }
  
- #ifdef CONFIG_NEED_MULTIPLE_NODES
+--- a/include/linux/vm_event_item.h~x86-mm-tracking-linear-mapping-split-events
++++ a/include/linux/vm_event_item.h
+@@ -125,6 +125,10 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		SWAP_RA,
+ 		SWAP_RA_HIT,
+ #endif
++#ifdef CONFIG_X86
++		DIRECT_MAP_LEVEL2_SPLIT,
++		DIRECT_MAP_LEVEL3_SPLIT,
++#endif
+ 		NR_VM_EVENT_ITEMS
+ };
+ 
+--- a/mm/vmstat.c~x86-mm-tracking-linear-mapping-split-events
++++ a/mm/vmstat.c
+@@ -1369,6 +1369,10 @@ const char * const vmstat_text[] = {
+ 	"swap_ra",
+ 	"swap_ra_hit",
+ #endif
++#ifdef CONFIG_X86
++	"direct_map_level2_splits",
++	"direct_map_level3_splits",
++#endif
+ #endif /* CONFIG_VM_EVENT_COUNTERS || CONFIG_MEMCG */
+ };
+ #endif /* CONFIG_PROC_FS || CONFIG_SYSFS || CONFIG_NUMA || CONFIG_MEMCG */
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from saravanand@fb.com are
 
-kasan-mm-fix-crash-with-hw_tags-and-debug_pagealloc.patch
-kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch
-mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
+x86-mm-tracking-linear-mapping-split-events.patch
 
