@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA8BCC433E6
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:42:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43D4DC433DB
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:48:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6D9565299
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:42:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 140E965252
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:48:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229971AbhCHWl5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Mar 2021 17:41:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59586 "EHLO mail.kernel.org"
+        id S229821AbhCHWsB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Mar 2021 17:48:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60214 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229655AbhCHWlZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 17:41:25 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D402A60295;
-        Mon,  8 Mar 2021 22:41:24 +0000 (UTC)
+        id S230122AbhCHWrq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 17:47:46 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B916D65252;
+        Mon,  8 Mar 2021 22:47:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615243285;
-        bh=bv89EwR2GgyCnOhLplDn6gO2Hzw18cgTenKnJztGKVw=;
+        s=korg; t=1615243665;
+        bh=bXUE/9tlMMPDUkcNAAeqdFno+ucweT9+t4VdAedyqQ8=;
         h=Date:From:To:Subject:From;
-        b=p2RNfkPLO0uJHqmFgpw+6T3YJL7cMjDa7QyQ9K141rvdv83tLnAQqcfcLjYm+q7e4
-         pTdVg/2yJAC5z5i1e5+k3CGh5B+5OAur9W/YqEq4+hs9by9gps6S3fTVddedM1YvPf
-         FTxCYUEX/0f+vVPltdrV0pjVVE6Q6AgZ+OKF+2BU=
-Date:   Mon, 08 Mar 2021 14:41:24 -0800
+        b=dNGQw8lnuAZxR8+ZGEj9hUbVbC9RBqUTfny6Mj/B5UIkqfBKr5prj9tD1A7uu8qmN
+         o08nc1q7KzWb3lBlAxlKBVYzgcHKa9DlaSzINDTKaXANXVlkA0aYYYcSvvaJqXYMV1
+         9zMUDLSI62wGlnL+86htp2o/zUoo/5WqllY4L3Tg=
+Date:   Mon, 08 Mar 2021 14:47:45 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, joe@perches.com,
-        mm-commits@vger.kernel.org
-Subject:  + mm-reduce-mem_dump_obj-object-size.patch added to -mm
- tree
-Message-ID: <20210308224124.UuKysvc25%akpm@linux-foundation.org>
+To:     charante@codeaurora.org, mm-commits@vger.kernel.org,
+        rientjes@google.com, vbabka@suse.cz
+Subject:  + mm-compaction-update-the-compact-events-properly.patch
+ added to -mm tree
+Message-ID: <20210308224745.LrpoxdnBG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/util.c: reduce mem_dump_obj() object size
+     Subject: mm: compaction: update the COMPACT[STALL|FAIL] events properly
 has been added to the -mm tree.  Its filename is
-     mm-reduce-mem_dump_obj-object-size.patch
+     mm-compaction-update-the-compact-events-properly.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-reduce-mem_dump_obj-object-size.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-update-the-compact-events-properly.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-reduce-mem_dump_obj-object-size.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-update-the-compact-events-properly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,66 +64,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: mm/util.c: reduce mem_dump_obj() object size
+From: Charan Teja Reddy <charante@codeaurora.org>
+Subject: mm: compaction: update the COMPACT[STALL|FAIL] events properly
 
-Simplify the code by using a temporary and reduce the object size by using
-a single call to pr_cont().  Reverse a test and unindent a block too.
+By definition, COMPACT[STALL|FAIL] events needs to be counted when there
+is 'At least in one zone compaction wasn't deferred or skipped from the
+direct compaction'.  And when compaction is skipped or deferred,
+COMPACT_SKIPPED will be returned but it will still go and update these
+compaction events which is wrong in the sense that COMPACT[STALL|FAIL] is
+counted without even trying the compaction.
 
-$ size mm/util.o* (defconfig x86-64)
-   text	   data	    bss	    dec	    hex	filename
-   7419	    372	     40	   7831	   1e97	mm/util.o.new
-   7477	    372	     40	   7889	   1ed1	mm/util.o.old
+Correct this by skipping the counting of these events when COMPACT_SKIPPED
+is returned for compaction.  This indirectly also avoid the unnecessary
+try into the get_page_from_freelist() when compaction is not even tried.
 
-Link: https://lkml.kernel.org/r/a6e105886338f68afd35f7a13d73bcf06b0cc732.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+There is a corner case where compaction is skipped but still count
+COMPACTSTALL event, which is that IRQ came and freed the page and the same
+is captured in capture_control.
+
+Link: https://lkml.kernel.org/r/1613151184-21213-1-git-send-email-charante@codeaurora.org
+Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ mm/compaction.c |    8 ++++++++
+ mm/page_alloc.c |    2 ++
+ 2 files changed, 10 insertions(+)
 
---- a/mm/util.c~mm-reduce-mem_dump_obj-object-size
-+++ a/mm/util.c
-@@ -996,20 +996,24 @@ int __weak memcmp_pages(struct page *pag
-  */
- void mem_dump_obj(void *object)
- {
-+	const char *type;
-+
- 	if (kmem_valid_obj(object)) {
- 		kmem_dump_obj(object);
- 		return;
- 	}
-+
- 	if (vmalloc_dump_obj(object))
- 		return;
--	if (!virt_addr_valid(object)) {
--		if (object == NULL)
--			pr_cont(" NULL pointer.\n");
--		else if (object == ZERO_SIZE_PTR)
--			pr_cont(" zero-size pointer.\n");
--		else
--			pr_cont(" non-paged memory.\n");
--		return;
--	}
--	pr_cont(" non-slab/vmalloc memory.\n");
-+
-+	if (virt_addr_valid(object))
-+		type = "non-slab/vmalloc memory";
-+	else if (object == NULL)
-+		type = "NULL pointer";
-+	else if (object == ZERO_SIZE_PTR)
-+		type = "zero-size pointer";
-+	else
-+		type = "non-paged memory";
-+
-+	pr_cont(" %s\n", type);
+--- a/mm/compaction.c~mm-compaction-update-the-compact-events-properly
++++ a/mm/compaction.c
+@@ -2494,6 +2494,14 @@ static enum compact_result compact_zone_
+ 	 */
+ 	WRITE_ONCE(current->capture_control, NULL);
+ 	*capture = READ_ONCE(capc.page);
++	/*
++	 * Technically, it is also possible that compaction is skipped but
++	 * the page is still captured out of luck(IRQ came and freed the page).
++	 * Returning COMPACT_SUCCESS in such cases helps in properly accounting
++	 * the COMPACT[STALL|FAIL] when compaction is skipped.
++	 */
++	if (*capture)
++		ret = COMPACT_SUCCESS;
+ 
+ 	return ret;
  }
+--- a/mm/page_alloc.c~mm-compaction-update-the-compact-events-properly
++++ a/mm/page_alloc.c
+@@ -4181,6 +4181,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+ 	psi_memstall_leave(&pflags);
+ 
++	if (*compact_result == COMPACT_SKIPPED)
++		return NULL;
+ 	/*
+ 	 * At least in one zone compaction wasn't deferred or skipped, so let's
+ 	 * count a compaction stall
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from charante@codeaurora.org are
 
-mm-reduce-mem_dump_obj-object-size.patch
+mm-compaction-update-the-compact-events-properly.patch
 
