@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E63E3C4361A
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79737C433E0
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A88B86516F
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4AD3B6518C
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231408AbhCHVa6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Mar 2021 16:30:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47340 "EHLO mail.kernel.org"
+        id S231139AbhCHVb2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Mar 2021 16:31:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47572 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231139AbhCHVat (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 16:30:49 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 31E7A65191;
-        Mon,  8 Mar 2021 21:30:48 +0000 (UTC)
+        id S231129AbhCHVbC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 16:31:02 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6A98365171;
+        Mon,  8 Mar 2021 21:31:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615239049;
-        bh=s2tzPBSxYnW5MYtgmkpKFZuFjz/jyjiPzKLJXtvTL3U=;
+        s=korg; t=1615239062;
+        bh=YamaaTT/3J1ZRZUp3lFgSNsmfTDt+CizlkrggZBTDrE=;
         h=Date:From:To:Subject:From;
-        b=llWeBc+IK0sGR8Us8rAIxzkkylPay+ISnb+ebhdTnbcu5X/pORX4hc+o0BtEW/fLV
-         AKv49dMrGKGOgHpymyYurE6OezadtdBwUVJ7UaGx5QDj/IYdAuN4k9/lPulS4GdBFS
-         dge9VBRiw2mbfCpVgBFNMqipE14izRgwGdEOWhXE=
-Date:   Mon, 08 Mar 2021 13:30:47 -0800
+        b=pyJNwv+7Mb6vBRs2YVbD5xPLM5869BvpkzDFICwXt6ggXQZ7y8+ULdXoUUySIm/zc
+         9yfR73tlzRliO8norlQRzzKki7X6m73io7nTTK2tC99No8AJrRKXyvJ/m+sOHi9Z2u
+         vZk04mrUe+DDWPG7NFyoF2ElC4qOnAUw5VyptfXY=
+Date:   Mon, 08 Mar 2021 13:31:00 -0800
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -39,10 +39,12 @@ To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
         tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
 Subject:  +
- memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning.patch
- added to -mm tree
-Message-ID: <20210308213047.ZieKCww3o%akpm@linux-foundation.org>
+ =?US-ASCII?Q?selftests-vm-gup=5Ftest-test-faulting-in-kernel-and-verify-?=
+ =?US-ASCII?Q?pinnable-pages.patch?= added to -mm tree
+Message-ID: <20210308213100.J9R9MajtL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug.rst: add a note about ZONE_MOVABLE and page pinning
+     Subject: selftests/vm: gup_test: test faulting in kernel, and verify pinnable pages
 has been added to the -mm tree.  Its filename is
-     memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning.patch
+     selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,26 +74,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: memory-hotplug.rst: add a note about ZONE_MOVABLE and page pinning
+Subject: selftests/vm: gup_test: test faulting in kernel, and verify pinnable pages
 
-Document the special handling of page pinning when ZONE_MOVABLE present.
+When pages are pinned they can be faulted in userland and migrated, and
+they can be faulted right in kernel without migration.
 
-Link: https://lkml.kernel.org/r/20210215161349.246722-11-pasha.tatashin@soleen.com
+In either case, the pinned pages must end-up being pinnable (not movable).
+
+Add a new test to gup_test, to help verify that the gup/pup
+(get_user_pages() / pin_user_pages()) behavior with respect to pinnable
+and movable pages is reasonable and correct.  Specifically, provide a way
+to:
+
+1) Verify that only "pinnable" pages are pinned.  This is checked
+   automatically for you.
+
+2) Verify that gup/pup performance is reasonable.  This requires
+   comparing benchmarks between doing gup/pup on pages that have been
+   pre-faulted in from user space, vs.  doing gup/pup on pages that are
+   not faulted in until gup/pup time (via FOLL_TOUCH).  This decision is
+   controlled with the new -z command line option.
+
+Link: https://lkml.kernel.org/r/20210215161349.246722-15-pasha.tatashin@soleen.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: James Morris <jmorris@namei.org>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -102,27 +121,81 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/memory-hotplug.rst |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/gup_test.c                         |    6 ++++++
+ tools/testing/selftests/vm/gup_test.c |   23 +++++++++++++++++++----
+ 2 files changed, 25 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/mm/memory-hotplug.rst~memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning
-+++ a/Documentation/admin-guide/mm/memory-hotplug.rst
-@@ -357,6 +357,15 @@ creates ZONE_MOVABLE as following.
-    Unfortunately, there is no information to show which memory block belongs
-    to ZONE_MOVABLE. This is TBD.
+--- a/mm/gup_test.c~selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages
++++ a/mm/gup_test.c
+@@ -52,6 +52,12 @@ static void verify_dma_pinned(unsigned i
  
-+.. note::
-+   Techniques that rely on long-term pinnings of memory (especially, RDMA and
-+   vfio) are fundamentally problematic with ZONE_MOVABLE and, therefore, memory
-+   hot remove. Pinned pages cannot reside on ZONE_MOVABLE, to guarantee that
-+   memory can still get hot removed - be aware that pinning can fail even if
-+   there is plenty of free memory in ZONE_MOVABLE. In addition, using
-+   ZONE_MOVABLE might make page pinning more expensive, because pages have to be
-+   migrated off that zone first.
-+
- .. _memory_hotplug_how_to_offline_memory:
+ 				dump_page(page, "gup_test failure");
+ 				break;
++			} else if (cmd == PIN_LONGTERM_BENCHMARK &&
++				WARN(!is_pinnable_page(page),
++				     "pages[%lu] is NOT pinnable but pinned\n",
++				     i)) {
++				dump_page(page, "gup_test failure");
++				break;
+ 			}
+ 		}
+ 		break;
+--- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages
++++ a/tools/testing/selftests/vm/gup_test.c
+@@ -13,6 +13,7 @@
  
- How to offline memory
+ /* Just the flags we need, copied from mm.h: */
+ #define FOLL_WRITE	0x01	/* check pte is writable */
++#define FOLL_TOUCH	0x02	/* mark page accessed */
+ 
+ static char *cmd_to_str(unsigned long cmd)
+ {
+@@ -39,11 +40,11 @@ int main(int argc, char **argv)
+ 	unsigned long size = 128 * MB;
+ 	int i, fd, filed, opt, nr_pages = 1, thp = -1, repeats = 1, write = 1;
+ 	unsigned long cmd = GUP_FAST_BENCHMARK;
+-	int flags = MAP_PRIVATE;
++	int flags = MAP_PRIVATE, touch = 0;
+ 	char *file = "/dev/zero";
+ 	char *p;
+ 
+-	while ((opt = getopt(argc, argv, "m:r:n:F:f:abctTLUuwWSHp")) != -1) {
++	while ((opt = getopt(argc, argv, "m:r:n:F:f:abctTLUuwWSHpz")) != -1) {
+ 		switch (opt) {
+ 		case 'a':
+ 			cmd = PIN_FAST_BENCHMARK;
+@@ -110,6 +111,10 @@ int main(int argc, char **argv)
+ 		case 'H':
+ 			flags |= (MAP_HUGETLB | MAP_ANONYMOUS);
+ 			break;
++		case 'z':
++			/* fault pages in gup, do not fault in userland */
++			touch = 1;
++			break;
+ 		default:
+ 			return -1;
+ 		}
+@@ -167,8 +172,18 @@ int main(int argc, char **argv)
+ 	else if (thp == 0)
+ 		madvise(p, size, MADV_NOHUGEPAGE);
+ 
+-	for (; (unsigned long)p < gup.addr + size; p += PAGE_SIZE)
+-		p[0] = 0;
++	/*
++	 * FOLL_TOUCH, in gup_test, is used as an either/or case: either
++	 * fault pages in from the kernel via FOLL_TOUCH, or fault them
++	 * in here, from user space. This allows comparison of performance
++	 * between those two cases.
++	 */
++	if (touch) {
++		gup.gup_flags |= FOLL_TOUCH;
++	} else {
++		for (; (unsigned long)p < gup.addr + size; p += PAGE_SIZE)
++			p[0] = 0;
++	}
+ 
+ 	/* Only report timing information on the *_BENCHMARK commands: */
+ 	if ((cmd == PIN_FAST_BENCHMARK) || (cmd == GUP_FAST_BENCHMARK) ||
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
