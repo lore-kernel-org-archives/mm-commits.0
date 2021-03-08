@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39286C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BCF0C433E6
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EF41F6518C
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E65C651C5
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229775AbhCHVaV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Mar 2021 16:30:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46850 "EHLO mail.kernel.org"
+        id S229972AbhCHVaW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Mar 2021 16:30:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46942 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229471AbhCHVaN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 16:30:13 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 643146516C;
-        Mon,  8 Mar 2021 21:30:12 +0000 (UTC)
+        id S229637AbhCHVaV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 16:30:21 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F03F465173;
+        Mon,  8 Mar 2021 21:30:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615239013;
-        bh=uRIto3HOWX7RlO+9usWq/iyG20P7TUqs7DbOdCxRNLc=;
+        s=korg; t=1615239021;
+        bh=pIFMV3J8crHQ049TG4GRNBCKHQ12nCHfdTl+RqG1AA4=;
         h=Date:From:To:Subject:From;
-        b=FUJ+omzlsjPRB6aQnzeMcrQ4x0XwMXE6NF77nhv1zKgoWnRnwNVtEkhE748YKv3Jo
-         /bC43KPkIaprb1xJ0Ic2qHL22UR9LXRIyCVFRbWflYR+NevDoxy6XwOxEX1sqDj2vG
-         aVU7bcBOv2i0y5RjQTurHGjN+YPGa96AyTK8jgfY=
-Date:   Mon, 08 Mar 2021 13:30:11 -0800
+        b=eXi0RylBXAJG2oWyxLvfzpmdENi6v1EII1fpekhExMoW1Td8/0adagNIZ+GG6pSs1
+         F0Ilw3Tj0NNdCLtKGYGsWwhdppX9p0m3VAuFlPWn42HhcxDyNq0cwvk6IS1vMUlKP0
+         rthaRy0+KOwwu9CvT/6OE2b99kgn/VjTGd5qQ9ws=
+Date:   Mon, 08 Mar 2021 13:30:19 -0800
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -38,9 +38,9 @@ To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         pasha.tatashin@soleen.com, peterz@infradead.org,
         rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
         tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
-Subject:  +
- mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch added to -mm tree
-Message-ID: <20210308213011.K4m8g1nhe%akpm@linux-foundation.org>
+Subject:  + mm-gup-return-an-error-on-migration-failure.patch added
+ to -mm tree
+Message-ID: <20210308213019.HfPlmXzUr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: don't pin migrated cma pages in movable zone
+     Subject: mm/gup: return an error on migration failure
 has been added to the -mm tree.  Its filename is
-     mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
+     mm-gup-return-an-error-on-migration-failure.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-return-an-error-on-migration-failure.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-return-an-error-on-migration-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,82 +71,89 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: mm/gup: don't pin migrated cma pages in movable zone
+Subject: mm/gup: return an error on migration failure
 
-Patch series "prohibit pinning pages in ZONE_MOVABLE", v11.
+When migration failure occurs, we still pin pages, which means
+that we may pin CMA movable pages which should never be the case.
 
-When page is pinned it cannot be moved and its physical address stays
-the same until pages is unpinned.
+Instead return an error without pinning pages when migration failure
+happens.
 
-This is useful functionality to allows userland to implementation DMA
-access. For example, it is used by vfio in vfio_pin_pages().
+No need to retry migrating, because migrate_pages() already retries
+10 times.
 
-However, this functionality breaks memory hotplug/hotremove assumptions
-that pages in ZONE_MOVABLE can always be migrated.
-
-This patch series fixes this issue by forcing new allocations during
-page pinning to omit ZONE_MOVABLE, and also to migrate any existing
-pages from ZONE_MOVABLE during pinning.
-
-It uses the same scheme logic that is currently used by CMA, and extends
-the functionality for all allocations.
-
-For more information read the discussion [1] about this problem.
-[1] https://lore.kernel.org/lkml/CA+CK2bBffHBxjmb9jmSKacm0fJMinyt3Nhk8Nx6iudcQSj80_w@mail.gmail.com
-
-
-This patch (of 14):
-
-In order not to fragment CMA the pinned pages are migrated.  However, they
-are migrated to ZONE_MOVABLE, which also should not have pinned pages.
-
-Remove __GFP_MOVABLE, so pages can be migrated to zones where pinning is
-allowed.
-
-Link: https://lkml.kernel.org/r/20210215161349.246722-1-pasha.tatashin@soleen.com
-Link: https://lkml.kernel.org/r/20210215161349.246722-2-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20210215161349.246722-4-pasha.tatashin@soleen.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Sasha Levin <sashal@kernel.org>
-Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: James Morris <jmorris@namei.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
---- a/mm/gup.c~mm-gup-dont-pin-migrated-cma-pages-in-movable-zone
+--- a/mm/gup.c~mm-gup-return-an-error-on-migration-failure
 +++ a/mm/gup.c
-@@ -1555,7 +1555,7 @@ static long check_and_migrate_cma_pages(
+@@ -1549,7 +1549,6 @@ static long check_and_migrate_cma_pages(
+ {
+ 	unsigned long i;
+ 	bool drain_allow = true;
+-	bool migrate_allow = true;
+ 	LIST_HEAD(cma_page_list);
  	long ret = nr_pages;
- 	struct migration_target_control mtc = {
- 		.nid = NUMA_NO_NODE,
--		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_NOWARN,
-+		.gfp_mask = GFP_USER | __GFP_NOWARN,
- 	};
+ 	struct page *prev_head, *head;
+@@ -1600,17 +1599,15 @@ check_again:
+ 			for (i = 0; i < nr_pages; i++)
+ 				put_page(pages[i]);
  
- check_again:
+-		if (migrate_pages(&cma_page_list, alloc_migration_target, NULL,
+-			(unsigned long)&mtc, MIGRATE_SYNC, MR_CONTIG_RANGE)) {
+-			/*
+-			 * some of the pages failed migration. Do get_user_pages
+-			 * without migration.
+-			 */
+-			migrate_allow = false;
+-
++		ret = migrate_pages(&cma_page_list, alloc_migration_target,
++				    NULL, (unsigned long)&mtc, MIGRATE_SYNC,
++				    MR_CONTIG_RANGE);
++		if (ret) {
+ 			if (!list_empty(&cma_page_list))
+ 				putback_movable_pages(&cma_page_list);
++			return ret > 0 ? -ENOMEM : ret;
+ 		}
++
+ 		/*
+ 		 * We did migrate all the pages, Try to get the page references
+ 		 * again migrating any new CMA pages which we failed to isolate
+@@ -1620,7 +1617,7 @@ check_again:
+ 						   pages, vmas, NULL,
+ 						   gup_flags);
+ 
+-		if ((ret > 0) && migrate_allow) {
++		if (ret > 0) {
+ 			nr_pages = ret;
+ 			drain_allow = true;
+ 			goto check_again;
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
