@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B299C4332B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E766AC43332
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6DE366516C
+	by mail.kernel.org (Postfix) with ESMTP id A4DEF65173
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231231AbhCHVaz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Mar 2021 16:30:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46990 "EHLO mail.kernel.org"
+        id S231301AbhCHVa4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Mar 2021 16:30:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47082 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229446AbhCHVaY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 16:30:24 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0243865182;
-        Mon,  8 Mar 2021 21:30:22 +0000 (UTC)
+        id S230385AbhCHVac (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 16:30:32 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1748D65171;
+        Mon,  8 Mar 2021 21:30:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615239023;
-        bh=BG6L51mnozzYUj4B+vKIdoNRes5u2Q2h/XQOFGlz6fI=;
+        s=korg; t=1615239032;
+        bh=0reK4EPVuP/6RG2PSInRg5KghrHVqbCV+jTZd1Go/4c=;
         h=Date:From:To:Subject:From;
-        b=fMKWjKYgsGE/+EUkMm/JG+b+BGxGKny90rNkpTwwqwmgSDaa2sSyS1duLs2qp6Hlp
-         aEAD2dZIaUvTA+aecLIsnQANNYDaY3HWiSLLy0FM65y0onFgj9KLuHkmYVzIc4R/yH
-         MkDp6sDzhNecRWuOh/K7A2kPZzsx0BHwR7nZ9S6Y=
-Date:   Mon, 08 Mar 2021 13:30:22 -0800
+        b=MnR/WyM/Nnk4ZEfBl+BULIRKlnCIPsJrrFBkbdNMPYCJIDJq9dk45fLMPan3I4pFK
+         8nXs0SY+dN7IMaZacmwXKlTImKfv6pmrwLT3k39zpSNCCnEuWi3kbXFpZfY0+GNVdQ
+         FY/u9UHP+xac3SbF1ZFNPoVaKlgqob0fBNC12GWc=
+Date:   Mon, 08 Mar 2021 13:30:30 -0800
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -38,9 +38,9 @@ To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         pasha.tatashin@soleen.com, peterz@infradead.org,
         rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
         tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
-Subject:  + mm-gup-check-for-isolation-errors.patch added to -mm
- tree
-Message-ID: <20210308213022.M98StD9O0%akpm@linux-foundation.org>
+Subject:  + mm-apply-per-task-gfp-constraints-in-fast-path.patch
+ added to -mm tree
+Message-ID: <20210308213030.8yyWiv5IW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: check for isolation errors
+     Subject: mm: apply per-task gfp constraints in fast path
 has been added to the -mm tree.  Its filename is
-     mm-gup-check-for-isolation-errors.patch
+     mm-apply-per-task-gfp-constraints-in-fast-path.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-check-for-isolation-errors.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-apply-per-task-gfp-constraints-in-fast-path.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-check-for-isolation-errors.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-apply-per-task-gfp-constraints-in-fast-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,33 +71,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: mm/gup: check for isolation errors
+Subject: mm: apply per-task gfp constraints in fast path
 
-It is still possible that we pin movable CMA pages if there are isolation
-errors and cma_page_list stays empty when we check again.
+Function current_gfp_context() is called after fast path.  However, soon
+we will add more constraints which will also limit zones based on context.
+Move this call into fast path, and apply the correct constraints for all
+allocations.
 
-Check for isolation errors, and return success only when there are no
-isolation errors, and cma_page_list is empty after checking.
+Also update .reclaim_idx based on value returned by current_gfp_context()
+because it soon will modify the allowed zones.
 
-Because isolation errors are transient, we retry indefinitely.
+Note:
+With this patch we will do one extra current->flags load during fast path,
+but we already load current->flags in fast-path:
 
-Link: https://lkml.kernel.org/r/20210215161349.246722-5-pasha.tatashin@soleen.com
-Fixes: 9a4e9f3b2d73 ("mm: update get_user_pages_longterm to migrate pages allocated from CMA region")
+__alloc_pages_nodemask()
+ prepare_alloc_pages()
+  current_alloc_flags(gfp_mask, *alloc_flags);
+
+Later, when we add the zone constrain logic to current_gfp_context() we
+will be able to remove current->flags load from current_alloc_flags, and
+therefore return fast-path to the current performance level.
+
+Link: https://lkml.kernel.org/r/20210215161349.246722-7-pasha.tatashin@soleen.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Suggested-by: Michal Hocko <mhocko@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: James Morris <jmorris@namei.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -108,111 +119,40 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   60 ++++++++++++++++++++++++++++++-----------------------
- 1 file changed, 34 insertions(+), 26 deletions(-)
+ mm/page_alloc.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/mm/gup.c~mm-gup-check-for-isolation-errors
-+++ a/mm/gup.c
-@@ -1547,8 +1547,8 @@ static long check_and_migrate_cma_pages(
- 					struct vm_area_struct **vmas,
- 					unsigned int gup_flags)
- {
--	unsigned long i;
--	bool drain_allow = true;
-+	unsigned long i, isolation_error_count;
-+	bool drain_allow;
- 	LIST_HEAD(cma_page_list);
- 	long ret = nr_pages;
- 	struct page *prev_head, *head;
-@@ -1559,6 +1559,8 @@ static long check_and_migrate_cma_pages(
- 
- check_again:
- 	prev_head = NULL;
-+	isolation_error_count = 0;
-+	drain_allow = true;
- 	for (i = 0; i < nr_pages; i++) {
- 		head = compound_head(pages[i]);
- 		if (head == prev_head)
-@@ -1570,25 +1572,35 @@ check_again:
- 		 * of the CMA zone if possible.
- 		 */
- 		if (is_migrate_cma_page(head)) {
--			if (PageHuge(head))
--				isolate_huge_page(head, &cma_page_list);
--			else {
-+			if (PageHuge(head)) {
-+				if (!isolate_huge_page(head, &cma_page_list))
-+					isolation_error_count++;
-+			} else {
- 				if (!PageLRU(head) && drain_allow) {
- 					lru_add_drain_all();
- 					drain_allow = false;
- 				}
- 
--				if (!isolate_lru_page(head)) {
--					list_add_tail(&head->lru, &cma_page_list);
--					mod_node_page_state(page_pgdat(head),
--							    NR_ISOLATED_ANON +
--							    page_is_file_lru(head),
--							    thp_nr_pages(head));
-+				if (isolate_lru_page(head)) {
-+					isolation_error_count++;
-+					continue;
- 				}
-+				list_add_tail(&head->lru, &cma_page_list);
-+				mod_node_page_state(page_pgdat(head),
-+						    NR_ISOLATED_ANON +
-+						    page_is_file_lru(head),
-+						    thp_nr_pages(head));
- 			}
- 		}
+--- a/mm/page_alloc.c~mm-apply-per-task-gfp-constraints-in-fast-path
++++ a/mm/page_alloc.c
+@@ -5009,6 +5009,13 @@ struct page *__alloc_pages(gfp_t gfp, un
  	}
  
+ 	gfp &= gfp_allowed_mask;
 +	/*
-+	 * If list is empty, and no isolation errors, means that all pages are
-+	 * in the correct zone.
++	 * Apply scoped allocation constraints. This is mainly about GFP_NOFS
++	 * resp. GFP_NOIO which has to be inherited for all allocation requests
++	 * from a particular context which has been marked by
++	 * memalloc_no{fs,io}_{save,restore}.
 +	 */
-+	if (list_empty(&cma_page_list) && !isolation_error_count)
-+		return ret;
-+
- 	if (!list_empty(&cma_page_list)) {
- 		/*
- 		 * drop the above get_user_pages reference.
-@@ -1608,23 +1620,19 @@ check_again:
- 			return ret > 0 ? -ENOMEM : ret;
- 		}
++	gfp = current_gfp_context(gfp);
+ 	alloc_gfp = gfp;
+ 	if (!prepare_alloc_pages(gfp, order, preferred_nid, nodemask, &ac,
+ 			&alloc_gfp, &alloc_flags))
+@@ -5025,13 +5032,7 @@ struct page *__alloc_pages(gfp_t gfp, un
+ 	if (likely(page))
+ 		goto out;
  
--		/*
--		 * We did migrate all the pages, Try to get the page references
--		 * again migrating any new CMA pages which we failed to isolate
--		 * earlier.
--		 */
--		ret = __get_user_pages_locked(mm, start, nr_pages,
--						   pages, vmas, NULL,
--						   gup_flags);
--
--		if (ret > 0) {
--			nr_pages = ret;
--			drain_allow = true;
--			goto check_again;
--		}
-+		/* We unpinned pages before migration, pin them again */
-+		ret = __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
-+					      NULL, gup_flags);
-+		if (ret <= 0)
-+			return ret;
-+		nr_pages = ret;
- 	}
+-	/*
+-	 * Apply scoped allocation constraints. This is mainly about GFP_NOFS
+-	 * resp. GFP_NOIO which has to be inherited for all allocation requests
+-	 * from a particular context which has been marked by
+-	 * memalloc_no{fs,io}_{save,restore}.
+-	 */
+-	alloc_gfp = current_gfp_context(gfp);
++	alloc_gfp = gfp;
+ 	ac.spread_dirty_pages = false;
  
--	return ret;
-+	/*
-+	 * check again because pages were unpinned, and we also might have
-+	 * had isolation errors and need more pages to migrate.
-+	 */
-+	goto check_again;
- }
- #else
- static long check_and_migrate_cma_pages(struct mm_struct *mm,
+ 	/*
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
