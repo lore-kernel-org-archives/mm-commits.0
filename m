@@ -7,38 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83A30C433E0
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:53:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99E98C433E0
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:54:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58C8C65290
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:53:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 68409650DF
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:54:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230342AbhCHWwp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Mar 2021 17:52:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60648 "EHLO mail.kernel.org"
+        id S229821AbhCHWyZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Mar 2021 17:54:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60876 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230457AbhCHWwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 17:52:35 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CD02865290;
-        Mon,  8 Mar 2021 22:52:34 +0000 (UTC)
+        id S229627AbhCHWyL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 17:54:11 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BA4F365173;
+        Mon,  8 Mar 2021 22:54:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615243955;
-        bh=gqIJx5W6qyPQ9Xe5OI0TQTSCCGNTPIt34S6crD2kZ0s=;
+        s=korg; t=1615244050;
+        bh=DjgekrxBStaQB/V5HTy/BNJUaQmykdPs5Z0JE8pZTnk=;
         h=Date:From:To:Subject:From;
-        b=ILVFUFVewP3IRrk17Xs6IQ4Vb9/YuSgL9DYieVuphVBFUnY8h21aVy7u3kT7VRKhU
-         uO/a1KEfIgevF1x6FTIAR+yhOUnMAqNcMQQAGziNETKxfq+Efr0WmM8+tbbEayrGTL
-         H7qxsnfQMw3Oi3oz7TorJFhLg9jpp9HcuHmPXM6Y=
-Date:   Mon, 08 Mar 2021 14:52:34 -0800
+        b=BdS13W4yxDGDhkHwmj0n0+BgnotNI/O28g1q9WUDI+21ODu+M0gXO3VOLOU/H9g6X
+         XQzIixoWsXVV9Qij0JMmgaGyRTNIbf4lnLCkOuNYwSbqvC5fj9N4iRELGamaGx1dZw
+         KzPovlv0jeERMRWjECTA07B3TSR+np4lX8oXyJdU=
+Date:   Mon, 08 Mar 2021 14:54:10 -0800
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com
+To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 Subject:  +
- =?US-ASCII?Q?mm-page-writeback-simplify-memcg-handling-in-test=5Fclear=5F?=
- =?US-ASCII?Q?page=5Fwriteback.patch?= added to -mm tree
-Message-ID: <20210308225234.x8cjw894l%akpm@linux-foundation.org>
+ mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch added to -mm
+ tree
+Message-ID: <20210308225410.aiUXrC5wF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page-writeback: simplify memcg handling in test_clear_page_writeback()
+     Subject: mm/huge_memory.c: remove unnecessary local variable ret2
 has been added to the -mm tree.  Its filename is
-     mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback.patch
+     mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,222 +65,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page-writeback: simplify memcg handling in test_clear_page_writeback()
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/huge_memory.c: remove unnecessary local variable ret2
 
-Page writeback doesn't hold a page reference, which allows truncate to
-free a page the second PageWriteback is cleared.  This used to require
-special attention in test_clear_page_writeback(), where we had to be
-careful not to rely on the unstable page->memcg binding and look up all
-the necessary information before clearing the writeback flag.
+There is no need to use a new local variable ret2 to get the return value
+of handle_userfault(). Use ret directly to make code more succinct.
 
-Since commit 073861ed77b6 ("mm: fix VM_BUG_ON(PageTail) and
-BUG_ON(PageWriteback)") test_clear_page_writeback() is called with an
-explicit reference on the page, and this dance is no longer needed.
-
-Use unlock_page_memcg() and dec_lruvec_page_state() directly.
-
-This removes the last user of the lock_page_memcg() return value, change
-it to void.  Touch up the comments in there as well.  This also removes
-the last extern user of __unlock_page_memcg(), make it static.  Further,
-it removes the last user of dec_lruvec_state(), delete it, along with a
-few other unused helpers.
-
-Link: https://lkml.kernel.org/r/YCQbYAWg4nvBFL6h@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
+Link: https://lkml.kernel.org/r/20210210072409.60587-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   10 +--------
- include/linux/vmstat.h     |   24 ++---------------------
- mm/memcontrol.c            |   36 ++++++++++-------------------------
- mm/page-writeback.c        |    9 ++------
- 4 files changed, 19 insertions(+), 60 deletions(-)
+ mm/huge_memory.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback
-+++ a/include/linux/memcontrol.h
-@@ -867,8 +867,7 @@ void mem_cgroup_print_oom_group(struct m
- extern bool cgroup_memory_noswap;
- #endif
+--- a/mm/huge_memory.c~mm-huge_memoryc-remove-unnecessary-local-variable-ret2
++++ a/mm/huge_memory.c
+@@ -624,14 +624,12 @@ static vm_fault_t __do_huge_pmd_anonymou
  
--struct mem_cgroup *lock_page_memcg(struct page *page);
--void __unlock_page_memcg(struct mem_cgroup *memcg);
-+void lock_page_memcg(struct page *page);
- void unlock_page_memcg(struct page *page);
- 
- /*
-@@ -1291,12 +1290,7 @@ mem_cgroup_print_oom_meminfo(struct mem_
- {
- }
- 
--static inline struct mem_cgroup *lock_page_memcg(struct page *page)
--{
--	return NULL;
--}
+ 		/* Deliver the page fault to userland */
+ 		if (userfaultfd_missing(vma)) {
+-			vm_fault_t ret2;
 -
--static inline void __unlock_page_memcg(struct mem_cgroup *memcg)
-+static inline void lock_page_memcg(struct page *page)
- {
- }
+ 			spin_unlock(vmf->ptl);
+ 			put_page(page);
+ 			pte_free(vma->vm_mm, pgtable);
+-			ret2 = handle_userfault(vmf, VM_UFFD_MISSING);
+-			VM_BUG_ON(ret2 & VM_FAULT_FALLBACK);
+-			return ret2;
++			ret = handle_userfault(vmf, VM_UFFD_MISSING);
++			VM_BUG_ON(ret & VM_FAULT_FALLBACK);
++			return ret;
+ 		}
  
---- a/include/linux/vmstat.h~mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback
-+++ a/include/linux/vmstat.h
-@@ -512,16 +512,10 @@ static inline void mod_lruvec_page_state
- 
- #endif /* CONFIG_MEMCG */
- 
--static inline void __inc_lruvec_state(struct lruvec *lruvec,
--				      enum node_stat_item idx)
--{
--	__mod_lruvec_state(lruvec, idx, 1);
--}
--
--static inline void __dec_lruvec_state(struct lruvec *lruvec,
--				      enum node_stat_item idx)
-+static inline void inc_lruvec_state(struct lruvec *lruvec,
-+				    enum node_stat_item idx)
- {
--	__mod_lruvec_state(lruvec, idx, -1);
-+	mod_lruvec_state(lruvec, idx, 1);
- }
- 
- static inline void __inc_lruvec_page_state(struct page *page,
-@@ -536,18 +530,6 @@ static inline void __dec_lruvec_page_sta
- 	__mod_lruvec_page_state(page, idx, -1);
- }
- 
--static inline void inc_lruvec_state(struct lruvec *lruvec,
--				    enum node_stat_item idx)
--{
--	mod_lruvec_state(lruvec, idx, 1);
--}
--
--static inline void dec_lruvec_state(struct lruvec *lruvec,
--				    enum node_stat_item idx)
--{
--	mod_lruvec_state(lruvec, idx, -1);
--}
--
- static inline void inc_lruvec_page_state(struct page *page,
- 					 enum node_stat_item idx)
- {
---- a/mm/memcontrol.c~mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback
-+++ a/mm/memcontrol.c
-@@ -2118,11 +2118,10 @@ void mem_cgroup_print_oom_group(struct m
-  * This function protects unlocked LRU pages from being moved to
-  * another cgroup.
-  *
-- * It ensures lifetime of the returned memcg. Caller is responsible
-- * for the lifetime of the page; __unlock_page_memcg() is available
-- * when @page might get freed inside the locked section.
-+ * It ensures lifetime of the locked memcg. Caller is responsible
-+ * for the lifetime of the page.
-  */
--struct mem_cgroup *lock_page_memcg(struct page *page)
-+void lock_page_memcg(struct page *page)
- {
- 	struct page *head = compound_head(page); /* rmap on tail pages */
- 	struct mem_cgroup *memcg;
-@@ -2132,21 +2131,15 @@ struct mem_cgroup *lock_page_memcg(struc
- 	 * The RCU lock is held throughout the transaction.  The fast
- 	 * path can get away without acquiring the memcg->move_lock
- 	 * because page moving starts with an RCU grace period.
--	 *
--	 * The RCU lock also protects the memcg from being freed when
--	 * the page state that is going to change is the only thing
--	 * preventing the page itself from being freed. E.g. writeback
--	 * doesn't hold a page reference and relies on PG_writeback to
--	 * keep off truncation, migration and so forth.
-          */
- 	rcu_read_lock();
- 
- 	if (mem_cgroup_disabled())
--		return NULL;
-+		return;
- again:
- 	memcg = page_memcg(head);
- 	if (unlikely(!memcg))
--		return NULL;
-+		return;
- 
- #ifdef CONFIG_PROVE_LOCKING
- 	local_irq_save(flags);
-@@ -2155,7 +2148,7 @@ again:
- #endif
- 
- 	if (atomic_read(&memcg->moving_account) <= 0)
--		return memcg;
-+		return;
- 
- 	spin_lock_irqsave(&memcg->move_lock, flags);
- 	if (memcg != page_memcg(head)) {
-@@ -2164,24 +2157,17 @@ again:
- 	}
- 
- 	/*
--	 * When charge migration first begins, we can have locked and
--	 * unlocked page stat updates happening concurrently.  Track
--	 * the task who has the lock for unlock_page_memcg().
-+	 * When charge migration first begins, we can have multiple
-+	 * critical sections holding the fast-path RCU lock and one
-+	 * holding the slowpath move_lock. Track the task who has the
-+	 * move_lock for unlock_page_memcg().
- 	 */
- 	memcg->move_lock_task = current;
- 	memcg->move_lock_flags = flags;
--
--	return memcg;
- }
- EXPORT_SYMBOL(lock_page_memcg);
- 
--/**
-- * __unlock_page_memcg - unlock and unpin a memcg
-- * @memcg: the memcg
-- *
-- * Unlock and unpin a memcg returned by lock_page_memcg().
-- */
--void __unlock_page_memcg(struct mem_cgroup *memcg)
-+static void __unlock_page_memcg(struct mem_cgroup *memcg)
- {
- 	if (memcg && memcg->move_lock_task == current) {
- 		unsigned long flags = memcg->move_lock_flags;
---- a/mm/page-writeback.c~mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback
-+++ a/mm/page-writeback.c
-@@ -2722,12 +2722,9 @@ EXPORT_SYMBOL(clear_page_dirty_for_io);
- int test_clear_page_writeback(struct page *page)
- {
- 	struct address_space *mapping = page_mapping(page);
--	struct mem_cgroup *memcg;
--	struct lruvec *lruvec;
- 	int ret;
- 
--	memcg = lock_page_memcg(page);
--	lruvec = mem_cgroup_page_lruvec(page, page_pgdat(page));
-+	lock_page_memcg(page);
- 	if (mapping && mapping_use_writeback_tags(mapping)) {
- 		struct inode *inode = mapping->host;
- 		struct backing_dev_info *bdi = inode_to_bdi(inode);
-@@ -2755,11 +2752,11 @@ int test_clear_page_writeback(struct pag
- 		ret = TestClearPageWriteback(page);
- 	}
- 	if (ret) {
--		dec_lruvec_state(lruvec, NR_WRITEBACK);
-+		dec_lruvec_page_state(page, NR_WRITEBACK);
- 		dec_zone_page_state(page, NR_ZONE_WRITE_PENDING);
- 		inc_node_page_state(page, NR_WRITTEN);
- 	}
--	__unlock_page_memcg(memcg);
-+	unlock_page_memcg(page);
- 	return ret;
- }
- 
+ 		entry = mk_huge_pmd(page, vma->vm_page_prot);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback.patch
+hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings.patch
+mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
+mm-hugetlb-use-some-helper-functions-to-cleanup-code.patch
+mm-hugetlb-optimize-the-surplus-state-transfer-code-in-move_hugetlb_state.patch
+hugetlb_cgroup-remove-unnecessary-vm_bug_on_page-in-hugetlb_cgroup_migrate.patch
+mm-hugetlb-simplify-the-code-when-alloc_huge_page-failed-in-hugetlb_no_page.patch
+mm-hugetlb-avoid-calculating-fault_mutex_hash-in-truncate_op-case.patch
+khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps.patch
+khugepaged-reuse-the-smp_wmb-inside-__setpageuptodate.patch
+khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
+khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate.patch
+mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
 
