@@ -7,38 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 867F0C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E98E3C4332D
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:03:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58917652B5
+	by mail.kernel.org (Postfix) with ESMTP id C4155652B8
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:03:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229637AbhCHVCd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Mar 2021 16:02:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43104 "EHLO mail.kernel.org"
+        id S230373AbhCHVCc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Mar 2021 16:02:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43058 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229730AbhCHVCa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 16:02:30 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D8AB1652AC;
-        Mon,  8 Mar 2021 21:02:29 +0000 (UTC)
+        id S230342AbhCHVCZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 16:02:25 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 095876529C;
+        Mon,  8 Mar 2021 21:02:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615237350;
-        bh=XxnjVBU8MdBkqgv70/JjPjN7W3AoNDNBChroXk27UKs=;
+        s=korg; t=1615237344;
+        bh=EBKFusctrMJBMjV7YM3ep4H9Ftu80xPzGdwYEVaz/tw=;
         h=Date:From:To:Subject:From;
-        b=JDtYVgTi/msybznb436d+8bz68bsD8rw7tWNLnb6wE2z943sKOuBV7JlLTn/S5Ikc
-         TYHK89lfMnOLD4KUfCe9yHEE424F2yqmGLN7EqEi07U42kfC+ohxckrFwmn8UHtOe/
-         YR4/Pvo3zQRdoE1O+Jtcs8e8ERQ69E6HT8Xm88+k=
-Date:   Mon, 08 Mar 2021 13:02:29 -0800
+        b=GjFXO4LcaoUSq049WQYZToNrO1xY3SuXSjEU27NY/FpcpoH30Abtq9MgAoug5Cf7e
+         WH9Y/CPvHL9vJdKYS64FchJFWXn1ODJPv3dDvVHKQdeqGemFpW/n4RKnLtYllHPgfS
+         Uvw1/zPC1NSsk5MgZvcr8D5mIHVl9vrt+d+OCcwg=
+Date:   Mon, 08 Mar 2021 13:02:23 -0800
 From:   akpm@linux-foundation.org
 To:     dan.carpenter@oracle.com, ebru.akagunduz@gmail.com,
         kirill.shutemov@linux.intel.com, linmiaohe@huawei.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         riel@redhat.com
 Subject:  +
- khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
- added to -mm tree
-Message-ID: <20210308210229.p0CEVdFhy%akpm@linux-foundation.org>
+ =?US-ASCII?Q?khugepaged-remove-unneeded-return-value-of-khugepaged=5Fco?=
+ =?US-ASCII?Q?llapse=5Fpte=5Fmapped=5Fthps.patch?= added to -mm tree
+Message-ID: <20210308210223.YwtlULhaF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: use helper khugepaged_test_exit() in __khugepaged_enter()
+     Subject: khugepaged: remove unneeded return value of khugepaged_collapse_pte_mapped_thps()
 has been added to the -mm tree.  Its filename is
-     khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
+     khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,36 +70,75 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: khugepaged: use helper khugepaged_test_exit() in __khugepaged_enter()
+Subject: khugepaged: remove unneeded return value of khugepaged_collapse_pte_mapped_thps()
 
-Commit 4d45e75a9955 ("mm: remove the now-unnecessary mmget_still_valid()
-hack") have made khugepaged_test_exit() suitable for check mm->mm_users
-against 0.  Use this helper here.
+Patch series "Cleanup and fixup for khugepaged", v2.
 
-Link: https://lkml.kernel.org/r/20210306032947.35921-4-linmiaohe@huawei.com
+This series contains cleanups to remove unneeded return value, use helper
+function and so on.  And there is one fix to correct the wrong result
+value for trace_mm_collapse_huge_page_isolate().
+
+
+This patch (of 4):
+
+The return value of khugepaged_collapse_pte_mapped_thps() is never checked
+since it's introduced.  We should remove such unneeded return value.
+
+Link: https://lkml.kernel.org/r/20210306032947.35921-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210306032947.35921-2-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/khugepaged.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter
+--- a/mm/khugepaged.c~khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps
 +++ a/mm/khugepaged.c
-@@ -481,7 +481,7 @@ int __khugepaged_enter(struct mm_struct
- 		return -ENOMEM;
+@@ -1533,16 +1533,16 @@ abort:
+ 	goto drop_hpage;
+ }
  
- 	/* __khugepaged_exit() must not run from under us */
--	VM_BUG_ON_MM(atomic_read(&mm->mm_users) == 0, mm);
-+	VM_BUG_ON_MM(khugepaged_test_exit(mm), mm);
- 	if (unlikely(test_and_set_bit(MMF_VM_HUGEPAGE, &mm->flags))) {
- 		free_mm_slot(mm_slot);
- 		return 0;
+-static int khugepaged_collapse_pte_mapped_thps(struct mm_slot *mm_slot)
++static void khugepaged_collapse_pte_mapped_thps(struct mm_slot *mm_slot)
+ {
+ 	struct mm_struct *mm = mm_slot->mm;
+ 	int i;
+ 
+ 	if (likely(mm_slot->nr_pte_mapped_thp == 0))
+-		return 0;
++		return;
+ 
+ 	if (!mmap_write_trylock(mm))
+-		return -EBUSY;
++		return;
+ 
+ 	if (unlikely(khugepaged_test_exit(mm)))
+ 		goto out;
+@@ -1553,7 +1553,6 @@ static int khugepaged_collapse_pte_mappe
+ out:
+ 	mm_slot->nr_pte_mapped_thp = 0;
+ 	mmap_write_unlock(mm);
+-	return 0;
+ }
+ 
+ static void retract_page_tables(struct address_space *mapping, pgoff_t pgoff)
+@@ -2057,9 +2056,8 @@ static void khugepaged_scan_file(struct
+ 	BUILD_BUG();
+ }
+ 
+-static int khugepaged_collapse_pte_mapped_thps(struct mm_slot *mm_slot)
++static void khugepaged_collapse_pte_mapped_thps(struct mm_slot *mm_slot)
+ {
+-	return 0;
+ }
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
