@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E2CBC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9958C43381
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 20:12:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5376365274
+	by mail.kernel.org (Postfix) with ESMTP id 9679565274
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 20:12:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231335AbhCHULf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Mar 2021 15:11:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57038 "EHLO mail.kernel.org"
+        id S231532AbhCHULh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Mar 2021 15:11:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57438 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231631AbhCHULC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 15:11:02 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5E03D65290;
-        Mon,  8 Mar 2021 20:11:00 +0000 (UTC)
+        id S232040AbhCHULS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 15:11:18 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3B5EE652B8;
+        Mon,  8 Mar 2021 20:11:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615234261;
-        bh=CMy8rVrJn/c3M/7KRBi2oRY8AEOQwhZvJdnn7cHKC+M=;
+        s=korg; t=1615234278;
+        bh=3YaH7IMRIem3JepuosDtJdrpQ0ijMUZGaE2yNg3tM9k=;
         h=Date:From:To:Subject:From;
-        b=mlKmBzcodQYIUJbRFJOivWW7h6n+sFgHwSmEOiwEeYNTzraFOeTUlb6IWTVQgRlc8
-         uutPlZETRtX5D7GAgQVHvrYdt7x+n85C9Zs5NU+bsTUu3gNMIlwyescIlcl+6T2ow+
-         bzcK4mg/0YZur+UQQedo6IZeqTIvYtsCrSSzlOTM=
-Date:   Mon, 08 Mar 2021 12:10:59 -0800
+        b=iSujYDI0ZCOcE07AQCuAP1/vwRImKHfcF5VQ8vZ4DoP+/lZ5MtM3xg0nE7Z/8SBE0
+         zNfL+s8/nM64QEJ/xbm28DKc2/t29Wv5NzUjkGrIzfucAHMZLXymkF66+Jw+t0maME
+         kFFBOT6+vvaFLEpBmwOyQFnSCUkZTYY+mUOTIXEc=
+Date:   Mon, 08 Mar 2021 12:11:16 -0800
 From:   akpm@linux-foundation.org
 To:     almasrymina@google.com, anshuman.khandual@arm.com,
         bodeddub@amazon.com, bp@alien8.de, bsingharora@gmail.com,
@@ -44,9 +44,9 @@ To:     almasrymina@google.com, anshuman.khandual@arm.com,
         song.bao.hua@hisilicon.com, songmuchun@bytedance.com,
         tglx@linutronix.de, viro@zeniv.linux.org.uk, willy@infradead.org
 Subject:  +
- mm-hugetlb-set-the-pagehwpoison-to-the-raw-error-page.patch added to -mm
- tree
-Message-ID: <20210308201059.y5iSwy1o-%akpm@linux-foundation.org>
+ mm-hugetlb-optimize-the-code-with-the-help-of-the-compiler.patch added to
+ -mm tree
+Message-ID: <20210308201116.DHuMoqigK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: set the PageHWPoison to the raw error page
+     Subject: mm: hugetlb: optimize the code with the help of the compiler
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-set-the-pagehwpoison-to-the-raw-error-page.patch
+     mm-hugetlb-optimize-the-code-with-the-help-of-the-compiler.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-set-the-pagehwpoison-to-the-raw-error-page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-optimize-the-code-with-the-help-of-the-compiler.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-set-the-pagehwpoison-to-the-raw-error-page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-optimize-the-code-with-the-help-of-the-compiler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,19 +77,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb: set the PageHWPoison to the raw error page
+Subject: mm: hugetlb: optimize the code with the help of the compiler
 
-Because we reuse the first tail vmemmap page frame and remap it with
-read-only, we cannot set the PageHWPosion on some tail pages.  So we can
-use the head[4].private (There are at least 128 struct page structures
-associated with the optimized HugeTLB page, so using head[4].private is
-safe) to record the real error page index and set the raw error page
-PageHWPoison later.
+When the "struct page size" crosses page boundaries we cannot make use of
+this feature.  Let free_vmemmap_pages_per_hpage() return zero if that is
+the case, most of the functions can be optimized away.
 
-Link: https://lkml.kernel.org/r/20210308102807.59745-6-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20210308102807.59745-10-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: David Rientjes <rientjes@google.com>
 Tested-by: Chen Huang <chenhuang5@huawei.com>
 Tested-by: Bodeddula Balasubramaniam <bodeddub@amazon.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -100,6 +97,7 @@ Cc: Barry Song <song.bao.hua@hisilicon.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
@@ -107,7 +105,6 @@ Cc: Joerg Roedel <jroedel@suse.de>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mina Almasry <almasrymina@google.com>
@@ -122,119 +119,54 @@ Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   80 ++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 72 insertions(+), 8 deletions(-)
+ include/linux/hugetlb.h |    3 ++-
+ mm/hugetlb_vmemmap.c    |    7 +++++++
+ mm/hugetlb_vmemmap.h    |    6 ++++++
+ 3 files changed, 15 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-set-the-pagehwpoison-to-the-raw-error-page
-+++ a/mm/hugetlb.c
-@@ -1329,6 +1329,74 @@ static inline void destroy_compound_giga
- 						unsigned int order) { }
- #endif
+--- a/include/linux/hugetlb.h~mm-hugetlb-optimize-the-code-with-the-help-of-the-compiler
++++ a/include/linux/hugetlb.h
+@@ -894,7 +894,8 @@ extern bool hugetlb_free_vmemmap_enabled
  
-+#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
-+static inline void hwpoison_subpage_deliver(struct hstate *h, struct page *head)
-+{
-+	struct page *page;
-+
-+	if (!PageHWPoison(head) || !free_vmemmap_pages_per_hpage(h))
-+		return;
-+
-+	page = head + page_private(head + 4);
-+
-+	/*
-+	 * Move PageHWPoison flag from head page to the raw error page,
-+	 * which makes any subpages rather than the error page reusable.
-+	 */
-+	if (page != head) {
-+		SetPageHWPoison(page);
-+		ClearPageHWPoison(head);
-+	}
-+}
-+
-+static inline void hwpoison_subpage_set(struct hstate *h, struct page *head,
-+					struct page *page)
-+{
-+	if (!PageHWPoison(head))
-+		return;
-+
-+	if (free_vmemmap_pages_per_hpage(h)) {
-+		set_page_private(head + 4, page - head);
-+	} else if (page != head) {
-+		/*
-+		 * Move PageHWPoison flag from head page to the raw error page,
-+		 * which makes any subpages rather than the error page reusable.
-+		 */
-+		SetPageHWPoison(page);
-+		ClearPageHWPoison(head);
-+	}
-+}
-+
-+static inline void hwpoison_subpage_clear(struct hstate *h, struct page *head)
-+{
-+	if (!PageHWPoison(head) || !free_vmemmap_pages_per_hpage(h))
-+		return;
-+
-+	set_page_private(head + 4, 0);
-+}
-+#else
-+static inline void hwpoison_subpage_deliver(struct hstate *h, struct page *head)
-+{
-+}
-+
-+static inline void hwpoison_subpage_set(struct hstate *h, struct page *head,
-+					struct page *page)
-+{
-+	if (PageHWPoison(head) && page != head) {
-+		/*
-+		 * Move PageHWPoison flag from head page to the raw error page,
-+		 * which makes any subpages rather than the error page reusable.
-+		 */
-+		SetPageHWPoison(page);
-+		ClearPageHWPoison(head);
-+	}
-+}
-+
-+static inline void hwpoison_subpage_clear(struct hstate *h, struct page *head)
-+{
-+}
-+#endif
-+
- static int update_and_free_page(struct hstate *h, struct page *page)
- 	__releases(&hugetlb_lock) __acquires(&hugetlb_lock)
+ static inline bool is_hugetlb_free_vmemmap_enabled(void)
  {
-@@ -1382,6 +1450,8 @@ static int update_and_free_page(struct h
- 		return -ENOMEM;
- 	}
+-	return hugetlb_free_vmemmap_enabled;
++	return hugetlb_free_vmemmap_enabled &&
++	       is_power_of_2(sizeof(struct page));
+ }
+ #else
+ static inline bool is_hugetlb_free_vmemmap_enabled(void)
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb-optimize-the-code-with-the-help-of-the-compiler
++++ a/mm/hugetlb_vmemmap.c
+@@ -265,6 +265,13 @@ void __init hugetlb_vmemmap_init(struct
+ 	BUILD_BUG_ON(__NR_USED_SUBPAGE >=
+ 		     RESERVE_VMEMMAP_SIZE / sizeof(struct page));
  
-+	hwpoison_subpage_deliver(h, page);
++	/*
++	 * The compiler can help us to optimize this function to null
++	 * when the size of the struct page is not power of 2.
++	 */
++	if (!is_power_of_2(sizeof(struct page)))
++		return;
 +
- 	for (i = 0; i < pages_per_huge_page(h);
- 	     i++, subpage = mem_map_next(subpage, page, i)) {
- 		subpage->flags &= ~(1 << PG_locked | 1 << PG_error |
-@@ -1827,14 +1897,7 @@ retry:
- 			goto retry;
- 		}
+ 	if (!hugetlb_free_vmemmap_enabled)
+ 		return;
  
--		/*
--		 * Move PageHWPoison flag from head page to the raw error page,
--		 * which makes any subpages rather than the error page reusable.
--		 */
--		if (PageHWPoison(head) && page != head) {
--			SetPageHWPoison(page);
--			ClearPageHWPoison(head);
--		}
-+		hwpoison_subpage_set(h, head, page);
- 		list_del(&head->lru);
- 		h->free_huge_pages--;
- 		h->free_huge_pages_node[nid]--;
-@@ -1844,6 +1907,7 @@ retry:
- 			h->surplus_huge_pages--;
- 			h->surplus_huge_pages_node[nid]--;
- 			h->max_huge_pages++;
-+			hwpoison_subpage_clear(h, head);
- 		}
- 	}
- out:
+--- a/mm/hugetlb_vmemmap.h~mm-hugetlb-optimize-the-code-with-the-help-of-the-compiler
++++ a/mm/hugetlb_vmemmap.h
+@@ -21,6 +21,12 @@ void hugetlb_vmemmap_init(struct hstate
+  */
+ static inline unsigned int free_vmemmap_pages_per_hpage(struct hstate *h)
+ {
++	/*
++	 * This check aims to let the compiler help us optimize the code as
++	 * much as possible.
++	 */
++	if (!is_power_of_2(sizeof(struct page)))
++		return 0;
+ 	return h->nr_free_vmemmap_pages;
+ }
+ #else
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
