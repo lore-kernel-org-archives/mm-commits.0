@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43D4DC433DB
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:48:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83A30C433E0
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:53:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 140E965252
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:48:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58C8C65290
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:53:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229821AbhCHWsB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Mar 2021 17:48:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60214 "EHLO mail.kernel.org"
+        id S230342AbhCHWwp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Mar 2021 17:52:45 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60648 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230122AbhCHWrq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 17:47:46 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B916D65252;
-        Mon,  8 Mar 2021 22:47:45 +0000 (UTC)
+        id S230457AbhCHWwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 17:52:35 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CD02865290;
+        Mon,  8 Mar 2021 22:52:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615243665;
-        bh=bXUE/9tlMMPDUkcNAAeqdFno+ucweT9+t4VdAedyqQ8=;
+        s=korg; t=1615243955;
+        bh=gqIJx5W6qyPQ9Xe5OI0TQTSCCGNTPIt34S6crD2kZ0s=;
         h=Date:From:To:Subject:From;
-        b=dNGQw8lnuAZxR8+ZGEj9hUbVbC9RBqUTfny6Mj/B5UIkqfBKr5prj9tD1A7uu8qmN
-         o08nc1q7KzWb3lBlAxlKBVYzgcHKa9DlaSzINDTKaXANXVlkA0aYYYcSvvaJqXYMV1
-         9zMUDLSI62wGlnL+86htp2o/zUoo/5WqllY4L3Tg=
-Date:   Mon, 08 Mar 2021 14:47:45 -0800
+        b=ILVFUFVewP3IRrk17Xs6IQ4Vb9/YuSgL9DYieVuphVBFUnY8h21aVy7u3kT7VRKhU
+         uO/a1KEfIgevF1x6FTIAR+yhOUnMAqNcMQQAGziNETKxfq+Efr0WmM8+tbbEayrGTL
+         H7qxsnfQMw3Oi3oz7TorJFhLg9jpp9HcuHmPXM6Y=
+Date:   Mon, 08 Mar 2021 14:52:34 -0800
 From:   akpm@linux-foundation.org
-To:     charante@codeaurora.org, mm-commits@vger.kernel.org,
-        rientjes@google.com, vbabka@suse.cz
-Subject:  + mm-compaction-update-the-compact-events-properly.patch
- added to -mm tree
-Message-ID: <20210308224745.LrpoxdnBG%akpm@linux-foundation.org>
+To:     guro@fb.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, shakeelb@google.com
+Subject:  +
+ =?US-ASCII?Q?mm-page-writeback-simplify-memcg-handling-in-test=5Fclear=5F?=
+ =?US-ASCII?Q?page=5Fwriteback.patch?= added to -mm tree
+Message-ID: <20210308225234.x8cjw894l%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: compaction: update the COMPACT[STALL|FAIL] events properly
+     Subject: mm: page-writeback: simplify memcg handling in test_clear_page_writeback()
 has been added to the -mm tree.  Its filename is
-     mm-compaction-update-the-compact-events-properly.patch
+     mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-update-the-compact-events-properly.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-update-the-compact-events-properly.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,66 +67,222 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Charan Teja Reddy <charante@codeaurora.org>
-Subject: mm: compaction: update the COMPACT[STALL|FAIL] events properly
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page-writeback: simplify memcg handling in test_clear_page_writeback()
 
-By definition, COMPACT[STALL|FAIL] events needs to be counted when there
-is 'At least in one zone compaction wasn't deferred or skipped from the
-direct compaction'.  And when compaction is skipped or deferred,
-COMPACT_SKIPPED will be returned but it will still go and update these
-compaction events which is wrong in the sense that COMPACT[STALL|FAIL] is
-counted without even trying the compaction.
+Page writeback doesn't hold a page reference, which allows truncate to
+free a page the second PageWriteback is cleared.  This used to require
+special attention in test_clear_page_writeback(), where we had to be
+careful not to rely on the unstable page->memcg binding and look up all
+the necessary information before clearing the writeback flag.
 
-Correct this by skipping the counting of these events when COMPACT_SKIPPED
-is returned for compaction.  This indirectly also avoid the unnecessary
-try into the get_page_from_freelist() when compaction is not even tried.
+Since commit 073861ed77b6 ("mm: fix VM_BUG_ON(PageTail) and
+BUG_ON(PageWriteback)") test_clear_page_writeback() is called with an
+explicit reference on the page, and this dance is no longer needed.
 
-There is a corner case where compaction is skipped but still count
-COMPACTSTALL event, which is that IRQ came and freed the page and the same
-is captured in capture_control.
+Use unlock_page_memcg() and dec_lruvec_page_state() directly.
 
-Link: https://lkml.kernel.org/r/1613151184-21213-1-git-send-email-charante@codeaurora.org
-Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
+This removes the last user of the lock_page_memcg() return value, change
+it to void.  Touch up the comments in there as well.  This also removes
+the last extern user of __unlock_page_memcg(), make it static.  Further,
+it removes the last user of dec_lruvec_state(), delete it, along with a
+few other unused helpers.
+
+Link: https://lkml.kernel.org/r/YCQbYAWg4nvBFL6h@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    8 ++++++++
- mm/page_alloc.c |    2 ++
- 2 files changed, 10 insertions(+)
+ include/linux/memcontrol.h |   10 +--------
+ include/linux/vmstat.h     |   24 ++---------------------
+ mm/memcontrol.c            |   36 ++++++++++-------------------------
+ mm/page-writeback.c        |    9 ++------
+ 4 files changed, 19 insertions(+), 60 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-update-the-compact-events-properly
-+++ a/mm/compaction.c
-@@ -2494,6 +2494,14 @@ static enum compact_result compact_zone_
- 	 */
- 	WRITE_ONCE(current->capture_control, NULL);
- 	*capture = READ_ONCE(capc.page);
-+	/*
-+	 * Technically, it is also possible that compaction is skipped but
-+	 * the page is still captured out of luck(IRQ came and freed the page).
-+	 * Returning COMPACT_SUCCESS in such cases helps in properly accounting
-+	 * the COMPACT[STALL|FAIL] when compaction is skipped.
-+	 */
-+	if (*capture)
-+		ret = COMPACT_SUCCESS;
+--- a/include/linux/memcontrol.h~mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback
++++ a/include/linux/memcontrol.h
+@@ -867,8 +867,7 @@ void mem_cgroup_print_oom_group(struct m
+ extern bool cgroup_memory_noswap;
+ #endif
  
+-struct mem_cgroup *lock_page_memcg(struct page *page);
+-void __unlock_page_memcg(struct mem_cgroup *memcg);
++void lock_page_memcg(struct page *page);
+ void unlock_page_memcg(struct page *page);
+ 
+ /*
+@@ -1291,12 +1290,7 @@ mem_cgroup_print_oom_meminfo(struct mem_
+ {
+ }
+ 
+-static inline struct mem_cgroup *lock_page_memcg(struct page *page)
+-{
+-	return NULL;
+-}
+-
+-static inline void __unlock_page_memcg(struct mem_cgroup *memcg)
++static inline void lock_page_memcg(struct page *page)
+ {
+ }
+ 
+--- a/include/linux/vmstat.h~mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback
++++ a/include/linux/vmstat.h
+@@ -512,16 +512,10 @@ static inline void mod_lruvec_page_state
+ 
+ #endif /* CONFIG_MEMCG */
+ 
+-static inline void __inc_lruvec_state(struct lruvec *lruvec,
+-				      enum node_stat_item idx)
+-{
+-	__mod_lruvec_state(lruvec, idx, 1);
+-}
+-
+-static inline void __dec_lruvec_state(struct lruvec *lruvec,
+-				      enum node_stat_item idx)
++static inline void inc_lruvec_state(struct lruvec *lruvec,
++				    enum node_stat_item idx)
+ {
+-	__mod_lruvec_state(lruvec, idx, -1);
++	mod_lruvec_state(lruvec, idx, 1);
+ }
+ 
+ static inline void __inc_lruvec_page_state(struct page *page,
+@@ -536,18 +530,6 @@ static inline void __dec_lruvec_page_sta
+ 	__mod_lruvec_page_state(page, idx, -1);
+ }
+ 
+-static inline void inc_lruvec_state(struct lruvec *lruvec,
+-				    enum node_stat_item idx)
+-{
+-	mod_lruvec_state(lruvec, idx, 1);
+-}
+-
+-static inline void dec_lruvec_state(struct lruvec *lruvec,
+-				    enum node_stat_item idx)
+-{
+-	mod_lruvec_state(lruvec, idx, -1);
+-}
+-
+ static inline void inc_lruvec_page_state(struct page *page,
+ 					 enum node_stat_item idx)
+ {
+--- a/mm/memcontrol.c~mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback
++++ a/mm/memcontrol.c
+@@ -2118,11 +2118,10 @@ void mem_cgroup_print_oom_group(struct m
+  * This function protects unlocked LRU pages from being moved to
+  * another cgroup.
+  *
+- * It ensures lifetime of the returned memcg. Caller is responsible
+- * for the lifetime of the page; __unlock_page_memcg() is available
+- * when @page might get freed inside the locked section.
++ * It ensures lifetime of the locked memcg. Caller is responsible
++ * for the lifetime of the page.
+  */
+-struct mem_cgroup *lock_page_memcg(struct page *page)
++void lock_page_memcg(struct page *page)
+ {
+ 	struct page *head = compound_head(page); /* rmap on tail pages */
+ 	struct mem_cgroup *memcg;
+@@ -2132,21 +2131,15 @@ struct mem_cgroup *lock_page_memcg(struc
+ 	 * The RCU lock is held throughout the transaction.  The fast
+ 	 * path can get away without acquiring the memcg->move_lock
+ 	 * because page moving starts with an RCU grace period.
+-	 *
+-	 * The RCU lock also protects the memcg from being freed when
+-	 * the page state that is going to change is the only thing
+-	 * preventing the page itself from being freed. E.g. writeback
+-	 * doesn't hold a page reference and relies on PG_writeback to
+-	 * keep off truncation, migration and so forth.
+          */
+ 	rcu_read_lock();
+ 
+ 	if (mem_cgroup_disabled())
+-		return NULL;
++		return;
+ again:
+ 	memcg = page_memcg(head);
+ 	if (unlikely(!memcg))
+-		return NULL;
++		return;
+ 
+ #ifdef CONFIG_PROVE_LOCKING
+ 	local_irq_save(flags);
+@@ -2155,7 +2148,7 @@ again:
+ #endif
+ 
+ 	if (atomic_read(&memcg->moving_account) <= 0)
+-		return memcg;
++		return;
+ 
+ 	spin_lock_irqsave(&memcg->move_lock, flags);
+ 	if (memcg != page_memcg(head)) {
+@@ -2164,24 +2157,17 @@ again:
+ 	}
+ 
+ 	/*
+-	 * When charge migration first begins, we can have locked and
+-	 * unlocked page stat updates happening concurrently.  Track
+-	 * the task who has the lock for unlock_page_memcg().
++	 * When charge migration first begins, we can have multiple
++	 * critical sections holding the fast-path RCU lock and one
++	 * holding the slowpath move_lock. Track the task who has the
++	 * move_lock for unlock_page_memcg().
+ 	 */
+ 	memcg->move_lock_task = current;
+ 	memcg->move_lock_flags = flags;
+-
+-	return memcg;
+ }
+ EXPORT_SYMBOL(lock_page_memcg);
+ 
+-/**
+- * __unlock_page_memcg - unlock and unpin a memcg
+- * @memcg: the memcg
+- *
+- * Unlock and unpin a memcg returned by lock_page_memcg().
+- */
+-void __unlock_page_memcg(struct mem_cgroup *memcg)
++static void __unlock_page_memcg(struct mem_cgroup *memcg)
+ {
+ 	if (memcg && memcg->move_lock_task == current) {
+ 		unsigned long flags = memcg->move_lock_flags;
+--- a/mm/page-writeback.c~mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback
++++ a/mm/page-writeback.c
+@@ -2722,12 +2722,9 @@ EXPORT_SYMBOL(clear_page_dirty_for_io);
+ int test_clear_page_writeback(struct page *page)
+ {
+ 	struct address_space *mapping = page_mapping(page);
+-	struct mem_cgroup *memcg;
+-	struct lruvec *lruvec;
+ 	int ret;
+ 
+-	memcg = lock_page_memcg(page);
+-	lruvec = mem_cgroup_page_lruvec(page, page_pgdat(page));
++	lock_page_memcg(page);
+ 	if (mapping && mapping_use_writeback_tags(mapping)) {
+ 		struct inode *inode = mapping->host;
+ 		struct backing_dev_info *bdi = inode_to_bdi(inode);
+@@ -2755,11 +2752,11 @@ int test_clear_page_writeback(struct pag
+ 		ret = TestClearPageWriteback(page);
+ 	}
+ 	if (ret) {
+-		dec_lruvec_state(lruvec, NR_WRITEBACK);
++		dec_lruvec_page_state(page, NR_WRITEBACK);
+ 		dec_zone_page_state(page, NR_ZONE_WRITE_PENDING);
+ 		inc_node_page_state(page, NR_WRITTEN);
+ 	}
+-	__unlock_page_memcg(memcg);
++	unlock_page_memcg(page);
  	return ret;
  }
---- a/mm/page_alloc.c~mm-compaction-update-the-compact-events-properly
-+++ a/mm/page_alloc.c
-@@ -4181,6 +4181,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	memalloc_noreclaim_restore(noreclaim_flag);
- 	psi_memstall_leave(&pflags);
  
-+	if (*compact_result == COMPACT_SKIPPED)
-+		return NULL;
- 	/*
- 	 * At least in one zone compaction wasn't deferred or skipped, so let's
- 	 * count a compaction stall
 _
 
-Patches currently in -mm which might be from charante@codeaurora.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-compaction-update-the-compact-events-properly.patch
+mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback.patch
 
