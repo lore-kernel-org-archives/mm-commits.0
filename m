@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E766AC43332
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF896C43331
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A4DEF65173
+	by mail.kernel.org (Postfix) with ESMTP id BD2C5652AD
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231301AbhCHVa4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Mar 2021 16:30:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47082 "EHLO mail.kernel.org"
+        id S230458AbhCHVa6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Mar 2021 16:30:58 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47292 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230385AbhCHVac (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 16:30:32 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1748D65171;
-        Mon,  8 Mar 2021 21:30:31 +0000 (UTC)
+        id S230460AbhCHVap (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 16:30:45 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DAD466516C;
+        Mon,  8 Mar 2021 21:30:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615239032;
-        bh=0reK4EPVuP/6RG2PSInRg5KghrHVqbCV+jTZd1Go/4c=;
+        s=korg; t=1615239044;
+        bh=amkMbJKle0aMe1wR3zKAGn2XqkOHyQSpQbOsS3fFI8Y=;
         h=Date:From:To:Subject:From;
-        b=MnR/WyM/Nnk4ZEfBl+BULIRKlnCIPsJrrFBkbdNMPYCJIDJq9dk45fLMPan3I4pFK
-         8nXs0SY+dN7IMaZacmwXKlTImKfv6pmrwLT3k39zpSNCCnEuWi3kbXFpZfY0+GNVdQ
-         FY/u9UHP+xac3SbF1ZFNPoVaKlgqob0fBNC12GWc=
-Date:   Mon, 08 Mar 2021 13:30:30 -0800
+        b=CtMNGIJP4c2c/AQArJcrKzikLX4jNpO2+m9ufUYyKML5zapvqrKdMtt0TWSaEJ+R/
+         l1BzgbHg2IMEhZ/5mNeDI2BiyjG9sbqZ1bPyAwNpElGUa8NZeoyr5odCz53RLbTftr
+         eEzWpkVxd8XNVJzVmIQ9IYUHiyywyV/rcM1Grrp8=
+Date:   Mon, 08 Mar 2021 13:30:43 -0800
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -38,9 +38,9 @@ To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         pasha.tatashin@soleen.com, peterz@infradead.org,
         rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
         tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
-Subject:  + mm-apply-per-task-gfp-constraints-in-fast-path.patch
+Subject:  + mm-gup-migrate-pinned-pages-out-of-movable-zone.patch
  added to -mm tree
-Message-ID: <20210308213030.8yyWiv5IW%akpm@linux-foundation.org>
+Message-ID: <20210308213043.MoOj5_Wup%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: apply per-task gfp constraints in fast path
+     Subject: mm/gup: migrate pinned pages out of movable zone
 has been added to the -mm tree.  Its filename is
-     mm-apply-per-task-gfp-constraints-in-fast-path.patch
+     mm-gup-migrate-pinned-pages-out-of-movable-zone.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-apply-per-task-gfp-constraints-in-fast-path.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-migrate-pinned-pages-out-of-movable-zone.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-apply-per-task-gfp-constraints-in-fast-path.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-migrate-pinned-pages-out-of-movable-zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,32 +71,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: mm: apply per-task gfp constraints in fast path
+Subject: mm/gup: migrate pinned pages out of movable zone
 
-Function current_gfp_context() is called after fast path.  However, soon
-we will add more constraints which will also limit zones based on context.
-Move this call into fast path, and apply the correct constraints for all
-allocations.
+We should not pin pages in ZONE_MOVABLE.  Currently, we do not pin only
+movable CMA pages.  Generalize the function that migrates CMA pages to
+migrate all movable pages.  Use is_pinnable_page() to check which pages
+need to be migrated
 
-Also update .reclaim_idx based on value returned by current_gfp_context()
-because it soon will modify the allowed zones.
-
-Note:
-With this patch we will do one extra current->flags load during fast path,
-but we already load current->flags in fast-path:
-
-__alloc_pages_nodemask()
- prepare_alloc_pages()
-  current_alloc_flags(gfp_mask, *alloc_flags);
-
-Later, when we add the zone constrain logic to current_gfp_context() we
-will be able to remove current->flags load from current_alloc_flags, and
-therefore return fast-path to the current performance level.
-
-Link: https://lkml.kernel.org/r/20210215161349.246722-7-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20210215161349.246722-10-pasha.tatashin@soleen.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Suggested-by: Michal Hocko <mhocko@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -105,10 +89,11 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: James Morris <jmorris@namei.org>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -119,40 +104,190 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ include/linux/migrate.h        |    1 
+ include/linux/mmzone.h         |    9 +++-
+ include/trace/events/migrate.h |    3 -
+ mm/gup.c                       |   67 +++++++++++++++----------------
+ 4 files changed, 44 insertions(+), 36 deletions(-)
 
---- a/mm/page_alloc.c~mm-apply-per-task-gfp-constraints-in-fast-path
-+++ a/mm/page_alloc.c
-@@ -5009,6 +5009,13 @@ struct page *__alloc_pages(gfp_t gfp, un
+--- a/include/linux/migrate.h~mm-gup-migrate-pinned-pages-out-of-movable-zone
++++ a/include/linux/migrate.h
+@@ -27,6 +27,7 @@ enum migrate_reason {
+ 	MR_MEMPOLICY_MBIND,
+ 	MR_NUMA_MISPLACED,
+ 	MR_CONTIG_RANGE,
++	MR_LONGTERM_PIN,
+ 	MR_TYPES
+ };
+ 
+--- a/include/linux/mmzone.h~mm-gup-migrate-pinned-pages-out-of-movable-zone
++++ a/include/linux/mmzone.h
+@@ -407,8 +407,13 @@ enum zone_type {
+ 	 * to increase the number of THP/huge pages. Notable special cases are:
+ 	 *
+ 	 * 1. Pinned pages: (long-term) pinning of movable pages might
+-	 *    essentially turn such pages unmovable. Memory offlining might
+-	 *    retry a long time.
++	 *    essentially turn such pages unmovable. Therefore, we do not allow
++	 *    pinning long-term pages in ZONE_MOVABLE. When pages are pinned and
++	 *    faulted, they come from the right zone right away. However, it is
++	 *    still possible that address space already has pages in
++	 *    ZONE_MOVABLE at the time when pages are pinned (i.e. user has
++	 *    touches that memory before pinning). In such case we migrate them
++	 *    to a different zone. When migration fails - pinning fails.
+ 	 * 2. memblock allocations: kernelcore/movablecore setups might create
+ 	 *    situations where ZONE_MOVABLE contains unmovable allocations
+ 	 *    after boot. Memory offlining and allocations fail early.
+--- a/include/trace/events/migrate.h~mm-gup-migrate-pinned-pages-out-of-movable-zone
++++ a/include/trace/events/migrate.h
+@@ -20,7 +20,8 @@
+ 	EM( MR_SYSCALL,		"syscall_or_cpuset")		\
+ 	EM( MR_MEMPOLICY_MBIND,	"mempolicy_mbind")		\
+ 	EM( MR_NUMA_MISPLACED,	"numa_misplaced")		\
+-	EMe(MR_CONTIG_RANGE,	"contig_range")
++	EM( MR_CONTIG_RANGE,	"contig_range")			\
++	EMe(MR_LONGTERM_PIN,	"longterm_pin")
+ 
+ /*
+  * First define the enums in the above macros to be exported to userspace
+--- a/mm/gup.c~mm-gup-migrate-pinned-pages-out-of-movable-zone
++++ a/mm/gup.c
+@@ -87,11 +87,12 @@ __maybe_unused struct page *try_grab_com
+ 		int orig_refs = refs;
+ 
+ 		/*
+-		 * Can't do FOLL_LONGTERM + FOLL_PIN with CMA in the gup fast
+-		 * path, so fail and let the caller fall back to the slow path.
++		 * Can't do FOLL_LONGTERM + FOLL_PIN gup fast path if not in a
++		 * right zone, so fail and let the caller fall back to the slow
++		 * path.
+ 		 */
+-		if (unlikely(flags & FOLL_LONGTERM) &&
+-				is_migrate_cma_page(page))
++		if (unlikely((flags & FOLL_LONGTERM) &&
++			     !is_pinnable_page(page)))
+ 			return NULL;
+ 
+ 		/*
+@@ -1539,17 +1540,17 @@ struct page *get_dump_page(unsigned long
+ }
+ #endif /* CONFIG_ELF_CORE */
+ 
+-#ifdef CONFIG_CMA
+-static long check_and_migrate_cma_pages(struct mm_struct *mm,
+-					unsigned long start,
+-					unsigned long nr_pages,
+-					struct page **pages,
+-					struct vm_area_struct **vmas,
+-					unsigned int gup_flags)
++#ifdef CONFIG_MIGRATION
++static long check_and_migrate_movable_pages(struct mm_struct *mm,
++					    unsigned long start,
++					    unsigned long nr_pages,
++					    struct page **pages,
++					    struct vm_area_struct **vmas,
++					    unsigned int gup_flags)
+ {
+ 	unsigned long i, isolation_error_count;
+ 	bool drain_allow;
+-	LIST_HEAD(cma_page_list);
++	LIST_HEAD(movable_page_list);
+ 	long ret = nr_pages;
+ 	struct page *prev_head, *head;
+ 	struct migration_target_control mtc = {
+@@ -1567,13 +1568,12 @@ check_again:
+ 			continue;
+ 		prev_head = head;
+ 		/*
+-		 * If we get a page from the CMA zone, since we are going to
+-		 * be pinning these entries, we might as well move them out
+-		 * of the CMA zone if possible.
++		 * If we get a movable page, since we are going to be pinning
++		 * these entries, try to move them out if possible.
+ 		 */
+-		if (is_migrate_cma_page(head)) {
++		if (!is_pinnable_page(head)) {
+ 			if (PageHuge(head)) {
+-				if (!isolate_huge_page(head, &cma_page_list))
++				if (!isolate_huge_page(head, &movable_page_list))
+ 					isolation_error_count++;
+ 			} else {
+ 				if (!PageLRU(head) && drain_allow) {
+@@ -1585,7 +1585,7 @@ check_again:
+ 					isolation_error_count++;
+ 					continue;
+ 				}
+-				list_add_tail(&head->lru, &cma_page_list);
++				list_add_tail(&head->lru, &movable_page_list);
+ 				mod_node_page_state(page_pgdat(head),
+ 						    NR_ISOLATED_ANON +
+ 						    page_is_file_lru(head),
+@@ -1598,10 +1598,10 @@ check_again:
+ 	 * If list is empty, and no isolation errors, means that all pages are
+ 	 * in the correct zone.
+ 	 */
+-	if (list_empty(&cma_page_list) && !isolation_error_count)
++	if (list_empty(&movable_page_list) && !isolation_error_count)
+ 		return ret;
+ 
+-	if (!list_empty(&cma_page_list)) {
++	if (!list_empty(&movable_page_list)) {
+ 		/*
+ 		 * drop the above get_user_pages reference.
+ 		 */
+@@ -1611,12 +1611,12 @@ check_again:
+ 			for (i = 0; i < nr_pages; i++)
+ 				put_page(pages[i]);
+ 
+-		ret = migrate_pages(&cma_page_list, alloc_migration_target,
++		ret = migrate_pages(&movable_page_list, alloc_migration_target,
+ 				    NULL, (unsigned long)&mtc, MIGRATE_SYNC,
+-				    MR_CONTIG_RANGE);
++				    MR_LONGTERM_PIN);
+ 		if (ret) {
+-			if (!list_empty(&cma_page_list))
+-				putback_movable_pages(&cma_page_list);
++			if (!list_empty(&movable_page_list))
++				putback_movable_pages(&movable_page_list);
+ 			return ret > 0 ? -ENOMEM : ret;
+ 		}
+ 
+@@ -1635,16 +1635,16 @@ check_again:
+ 	goto check_again;
+ }
+ #else
+-static long check_and_migrate_cma_pages(struct mm_struct *mm,
+-					unsigned long start,
+-					unsigned long nr_pages,
+-					struct page **pages,
+-					struct vm_area_struct **vmas,
+-					unsigned int gup_flags)
++static long check_and_migrate_movable_pages(struct mm_struct *mm,
++					    unsigned long start,
++					    unsigned long nr_pages,
++					    struct page **pages,
++					    struct vm_area_struct **vmas,
++					    unsigned int gup_flags)
+ {
+ 	return nr_pages;
+ }
+-#endif /* CONFIG_CMA */
++#endif /* CONFIG_MIGRATION */
+ 
+ /*
+  * __gup_longterm_locked() is a wrapper for __get_user_pages_locked which
+@@ -1668,8 +1668,9 @@ static long __gup_longterm_locked(struct
+ 
+ 	if (gup_flags & FOLL_LONGTERM) {
+ 		if (rc > 0)
+-			rc = check_and_migrate_cma_pages(mm, start, rc, pages,
+-							 vmas, gup_flags);
++			rc = check_and_migrate_movable_pages(mm, start, rc,
++							     pages, vmas,
++							     gup_flags);
+ 		memalloc_pin_restore(flags);
  	}
- 
- 	gfp &= gfp_allowed_mask;
-+	/*
-+	 * Apply scoped allocation constraints. This is mainly about GFP_NOFS
-+	 * resp. GFP_NOIO which has to be inherited for all allocation requests
-+	 * from a particular context which has been marked by
-+	 * memalloc_no{fs,io}_{save,restore}.
-+	 */
-+	gfp = current_gfp_context(gfp);
- 	alloc_gfp = gfp;
- 	if (!prepare_alloc_pages(gfp, order, preferred_nid, nodemask, &ac,
- 			&alloc_gfp, &alloc_flags))
-@@ -5025,13 +5032,7 @@ struct page *__alloc_pages(gfp_t gfp, un
- 	if (likely(page))
- 		goto out;
- 
--	/*
--	 * Apply scoped allocation constraints. This is mainly about GFP_NOFS
--	 * resp. GFP_NOIO which has to be inherited for all allocation requests
--	 * from a particular context which has been marked by
--	 * memalloc_no{fs,io}_{save,restore}.
--	 */
--	alloc_gfp = current_gfp_context(gfp);
-+	alloc_gfp = gfp;
- 	ac.spread_dirty_pages = false;
- 
- 	/*
+ 	return rc;
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
