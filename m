@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16571C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39286C433E0
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA63165173
+	by mail.kernel.org (Postfix) with ESMTP id EF41F6518C
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229938AbhCHVaV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229775AbhCHVaV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 8 Mar 2021 16:30:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46896 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229575AbhCHVaS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 16:30:18 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3A3406516F;
-        Mon,  8 Mar 2021 21:30:16 +0000 (UTC)
+        id S229471AbhCHVaN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 16:30:13 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 643146516C;
+        Mon,  8 Mar 2021 21:30:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615239017;
-        bh=t3/qYIVPiCmpOYg7/F6lh2AiGG6EKMJoaY7ixEUmAn8=;
+        s=korg; t=1615239013;
+        bh=uRIto3HOWX7RlO+9usWq/iyG20P7TUqs7DbOdCxRNLc=;
         h=Date:From:To:Subject:From;
-        b=LxZnApNWQVxB4bdnhzRj4tKU78gBac8k5AiBMtTKj19pnE3XRu7SxPF4kbNMF+AGC
-         HBp6WbsuheiM8XmCBFwCK1DvhGo9WQ7le0NDwrQ/ZJ2Xowr33I8kWPeucp1R0HyW7r
-         PXB2IoJDmR7Q5yHeJdqYdSzHzF2p6D8I8kHGio14=
-Date:   Mon, 08 Mar 2021 13:30:15 -0800
+        b=FUJ+omzlsjPRB6aQnzeMcrQ4x0XwMXE6NF77nhv1zKgoWnRnwNVtEkhE748YKv3Jo
+         /bC43KPkIaprb1xJ0Ic2qHL22UR9LXRIyCVFRbWflYR+NevDoxy6XwOxEX1sqDj2vG
+         aVU7bcBOv2i0y5RjQTurHGjN+YPGa96AyTK8jgfY=
+Date:   Mon, 08 Mar 2021 13:30:11 -0800
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -39,9 +39,8 @@ To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
         tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
 Subject:  +
- mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch added
- to -mm tree
-Message-ID: <20210308213015.fkKCSjiLT%akpm@linux-foundation.org>
+ mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch added to -mm tree
+Message-ID: <20210308213011.K4m8g1nhe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: check every subpage of a compound page during isolation
+     Subject: mm/gup: don't pin migrated cma pages in movable zone
 has been added to the -mm tree.  Its filename is
-     mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch
+     mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,101 +71,82 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: mm/gup: check every subpage of a compound page during isolation
+Subject: mm/gup: don't pin migrated cma pages in movable zone
 
-When pages are isolated in check_and_migrate_movable_pages() we skip
-compound number of pages at a time.  However, as Jason noted, it is not
-necessary correct that pages[i] corresponds to the pages that we skipped. 
-This is because it is possible that the addresses in this range had
-split_huge_pmd()/split_huge_pud(), and these functions do not update the
-compound page metadata.
+Patch series "prohibit pinning pages in ZONE_MOVABLE", v11.
 
-The problem can be reproduced if something like this occurs:
+When page is pinned it cannot be moved and its physical address stays
+the same until pages is unpinned.
 
-1. User faulted huge pages.
-2. split_huge_pmd() was called for some reason
-3. User has unmapped some sub-pages in the range
-4. User tries to longterm pin the addresses.
+This is useful functionality to allows userland to implementation DMA
+access. For example, it is used by vfio in vfio_pin_pages().
 
-The resulting pages[i] might end-up having pages which are not compound
-size page aligned.
+However, this functionality breaks memory hotplug/hotremove assumptions
+that pages in ZONE_MOVABLE can always be migrated.
 
-Link: https://lkml.kernel.org/r/20210215161349.246722-3-pasha.tatashin@soleen.com
-Fixes: aa712399c1e8 ("mm/gup: speed up check_and_migrate_cma_pages() on huge page")
+This patch series fixes this issue by forcing new allocations during
+page pinning to omit ZONE_MOVABLE, and also to migrate any existing
+pages from ZONE_MOVABLE during pinning.
+
+It uses the same scheme logic that is currently used by CMA, and extends
+the functionality for all allocations.
+
+For more information read the discussion [1] about this problem.
+[1] https://lore.kernel.org/lkml/CA+CK2bBffHBxjmb9jmSKacm0fJMinyt3Nhk8Nx6iudcQSj80_w@mail.gmail.com
+
+
+This patch (of 14):
+
+In order not to fragment CMA the pinned pages are migrated.  However, they
+are migrated to ZONE_MOVABLE, which also should not have pinned pages.
+
+Remove __GFP_MOVABLE, so pages can be migrated to zones where pinning is
+allowed.
+
+Link: https://lkml.kernel.org/r/20210215161349.246722-1-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20210215161349.246722-2-pasha.tatashin@soleen.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reported-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: James Morris <jmorris@namei.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sasha Levin <sashal@kernel.org>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ mm/gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gup-check-every-subpage-of-a-compound-page-during-isolation
+--- a/mm/gup.c~mm-gup-dont-pin-migrated-cma-pages-in-movable-zone
 +++ a/mm/gup.c
-@@ -1548,26 +1548,23 @@ static long check_and_migrate_cma_pages(
- 					unsigned int gup_flags)
- {
- 	unsigned long i;
--	unsigned long step;
- 	bool drain_allow = true;
- 	bool migrate_allow = true;
- 	LIST_HEAD(cma_page_list);
+@@ -1555,7 +1555,7 @@ static long check_and_migrate_cma_pages(
  	long ret = nr_pages;
-+	struct page *prev_head, *head;
  	struct migration_target_control mtc = {
  		.nid = NUMA_NO_NODE,
- 		.gfp_mask = GFP_USER | __GFP_NOWARN,
+-		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_NOWARN,
++		.gfp_mask = GFP_USER | __GFP_NOWARN,
  	};
  
  check_again:
--	for (i = 0; i < nr_pages;) {
--
--		struct page *head = compound_head(pages[i]);
--
--		/*
--		 * gup may start from a tail page. Advance step by the left
--		 * part.
--		 */
--		step = compound_nr(head) - (pages[i] - head);
-+	prev_head = NULL;
-+	for (i = 0; i < nr_pages; i++) {
-+		head = compound_head(pages[i]);
-+		if (head == prev_head)
-+			continue;
-+		prev_head = head;
- 		/*
- 		 * If we get a page from the CMA zone, since we are going to
- 		 * be pinning these entries, we might as well move them out
-@@ -1591,8 +1588,6 @@ check_again:
- 				}
- 			}
- 		}
--
--		i += step;
- 	}
- 
- 	if (!list_empty(&cma_page_list)) {
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
