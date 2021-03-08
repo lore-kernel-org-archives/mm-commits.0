@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30771C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42F8FC433E6
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 23:09:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0508A65295
+	by mail.kernel.org (Postfix) with ESMTP id 13B9E652A4
 	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 23:09:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229627AbhCHXI5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Mar 2021 18:08:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34276 "EHLO mail.kernel.org"
+        id S231126AbhCHXI6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Mar 2021 18:08:58 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34320 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231126AbhCHXI2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 18:08:28 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1295765295;
-        Mon,  8 Mar 2021 23:08:28 +0000 (UTC)
+        id S231254AbhCHXIe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 18:08:34 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EF8EB64FB8;
+        Mon,  8 Mar 2021 23:08:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615244908;
-        bh=d/XbS8d4Ixwgko5p6QSdZr2NV7ZqcxdLazu8Nf4LJyQ=;
+        s=korg; t=1615244914;
+        bh=dqosl3Rz4pZB316fyQQy8FV0cbtFD8Mmhx5D1UER0N0=;
         h=Date:From:To:Subject:From;
-        b=yj2jPVZYrdaRMuQSLKzvg6mqldDPISecxRNj7F5uDguAZBuLj+cQqq6iLESqNV69H
-         J356ej6bppalusckKnN9yLWPAw488R79lDkYRbxcUrCuxPwce8f1sKHEi1AH6cd/97
-         oaEAucpUz6ghvy4HCFB/9loOT8pjZ8Xm8nRVmScY=
-Date:   Mon, 08 Mar 2021 15:08:27 -0800
+        b=oFdU411PkzAhCu00a0WQsOd1rQrXH2r65LY/F8wqkMjsYAN7hxV7o96aCEWHfUNCT
+         p9mBasw1P5jOxffKzdNSfctLFQDsc/Pnaw61mHPZ+ti2KpxOgT4nFjZcnAGq9f4r+T
+         kwY+/wm0g96s7OUmjCYClCSEECO3FAAkxQ8RMQQM=
+Date:   Mon, 08 Mar 2021 15:08:33 -0800
 From:   akpm@linux-foundation.org
 To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mkoutny@suse.com,
         mm-commits@vger.kernel.org, shakeelb@google.com, tj@kernel.org
-Subject:  +
- cgroup-rstat-punt-root-level-optimization-to-individual-controllers.patch
+Subject:  + mm-memcontrol-consolidate-lruvec-stat-flushing.patch
  added to -mm tree
-Message-ID: <20210308230827.1xbalW4As%akpm@linux-foundation.org>
+Message-ID: <20210308230833.HjmWIu6oC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -47,18 +46,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup: rstat: punt root-level optimization to individual con=
-trollers
+     Subject: mm: memcontrol: consolidate lruvec stat flushing
 has been added to the -mm tree.  Its filename is
-     cgroup-rstat-punt-root-level-optimization-to-individual-controllers.pa=
-tch
+     mm-memcontrol-consolidate-lruvec-stat-flushing.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/cgroup-rstat-punt-root-level-=
-optimization-to-individual-controllers.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-consolidate-lru=
+vec-stat-flushing.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/cgroup-rstat-punt-root-level-=
-optimization-to-individual-controllers.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-consolidate-lru=
+vec-stat-flushing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,206 +71,139 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Johannes Weiner <hannes@cmpxchg.org>
-Subject: cgroup: rstat: punt root-level optimization to individual controll=
-ers
+Subject: mm: memcontrol: consolidate lruvec stat flushing
 
-Current users of the rstat code can source root-level statistics from the
-native counters of their respective subsystem, allowing them to forego
-aggregation at the root level.  This optimization is currently implemented
-inside the generic rstat code, which doesn't track the root cgroup and
-doesn't invoke the subsystem flush callbacks on it.
+There are two functions to flush the per-cpu data of an lruvec into the
+rest of the cgroup tree: when the cgroup is being freed, and when a CPU
+disappears during hotplug.  The difference is whether all CPUs or just one
+is being collected, but the rest of the flushing code is the same.  Merge
+them into one function and share the common code.
 
-However, the memory controller cannot do this optimization, because
-cgroup1 breaks out memory specifically for the local level, including at
-the root level.  In preparation for the memory controller switching to
-rstat, move the optimization from rstat core to the controllers.
-
-Afterwards, rstat will always track the root cgroup for changes and invoke
-the subsystem callbacks on it; and it's up to the subsystem to
-special-case and skip aggregation of the root cgroup if it can source this
-information through other, cheaper means.
-
-This is the case for the io controller and the cgroup base stats.  In
-their respective flush callbacks, check whether the parent is the root
-cgroup, and if so, skip the unnecessary upward propagation.
-
-The extra cost of tracking the root cgroup is negligible: on stat changes,
-we actually remove a branch that checks for the root.  The queueing for a
-flush touches only per-cpu data, and only the first stat change since a
-flush requires a (per-cpu) lock.
-
-Link: https://lkml.kernel.org/r/20210209163304.77088-6-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20210209163304.77088-8-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Roman Gushchin <guro@fb.com>
 Cc: Michal Koutn=C3=BD <mkoutny@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-cgroup.c    |   17 +++++++----
- kernel/cgroup/rstat.c |   59 +++++++++++++++++++++++-----------------
- 2 files changed, 46 insertions(+), 30 deletions(-)
+ mm/memcontrol.c |   76 +++++++++++++++++-----------------------------
+ 1 file changed, 29 insertions(+), 47 deletions(-)
 
---- a/block/blk-cgroup.c~cgroup-rstat-punt-root-level-optimization-to-indiv=
-idual-controllers
-+++ a/block/blk-cgroup.c
-@@ -764,6 +764,10 @@ static void blkcg_rstat_flush(struct cgr
- 	struct blkcg *blkcg =3D css_to_blkcg(css);
- 	struct blkcg_gq *blkg;
-=20
-+	/* Root-level stats are sourced from system-wide IO stats */
-+	if (!cgroup_parent(css->cgroup))
-+		return;
-+
- 	rcu_read_lock();
-=20
- 	hlist_for_each_entry_rcu(blkg, &blkcg->blkg_list, blkcg_node) {
-@@ -786,8 +790,8 @@ static void blkcg_rstat_flush(struct cgr
- 		blkg_iostat_add(&bisc->last, &delta);
- 		u64_stats_update_end(&blkg->iostat.sync);
-=20
--		/* propagate global delta to parent */
--		if (parent) {
-+		/* propagate global delta to parent (unless that's root) */
-+		if (parent && parent->parent) {
- 			u64_stats_update_begin(&parent->iostat.sync);
- 			blkg_iostat_set(&delta, &blkg->iostat.cur);
- 			blkg_iostat_sub(&delta, &blkg->iostat.last);
-@@ -801,10 +805,11 @@ static void blkcg_rstat_flush(struct cgr
+--- a/mm/memcontrol.c~mm-memcontrol-consolidate-lruvec-stat-flushing
++++ a/mm/memcontrol.c
+@@ -2369,6 +2369,29 @@ static void drain_all_stock(struct mem_c
+ 	mutex_unlock(&percpu_charge_mutex);
  }
 =20
- /*
-- * The rstat algorithms intentionally don't handle the root cgroup to avoid
-- * incurring overhead when no cgroups are defined. For that reason,
-- * cgroup_rstat_flush in blkcg_print_stat does not actually fill out the
-- * iostat in the root cgroup's blkcg_gq.
-+ * We source root cgroup stats from the system-wide stats to avoid
-+ * tracking the same information twice and incurring overhead when no
-+ * cgroups are defined. For that reason, cgroup_rstat_flush in
-+ * blkcg_print_stat does not actually fill out the iostat in the root
-+ * cgroup's blkcg_gq.
-  *
-  * However, we would like to re-use the printing code between the root and
-  * non-root cgroups to the extent possible. For that reason, we simulate
---- a/kernel/cgroup/rstat.c~cgroup-rstat-punt-root-level-optimization-to-in=
-dividual-controllers
-+++ a/kernel/cgroup/rstat.c
-@@ -25,13 +25,8 @@ static struct cgroup_rstat_cpu *cgroup_r
- void cgroup_rstat_updated(struct cgroup *cgrp, int cpu)
- {
- 	raw_spinlock_t *cpu_lock =3D per_cpu_ptr(&cgroup_rstat_cpu_lock, cpu);
--	struct cgroup *parent;
- 	unsigned long flags;
-=20
--	/* nothing to do for root */
--	if (!cgroup_parent(cgrp))
--		return;
--
- 	/*
- 	 * Speculative already-on-list test. This may race leading to
- 	 * temporary inaccuracies, which is fine.
-@@ -46,10 +41,10 @@ void cgroup_rstat_updated(struct cgroup
- 	raw_spin_lock_irqsave(cpu_lock, flags);
-=20
- 	/* put @cgrp and all ancestors on the corresponding updated lists */
--	for (parent =3D cgroup_parent(cgrp); parent;
--	     cgrp =3D parent, parent =3D cgroup_parent(cgrp)) {
-+	while (true) {
- 		struct cgroup_rstat_cpu *rstatc =3D cgroup_rstat_cpu(cgrp, cpu);
--		struct cgroup_rstat_cpu *prstatc =3D cgroup_rstat_cpu(parent, cpu);
-+		struct cgroup *parent =3D cgroup_parent(cgrp);
-+		struct cgroup_rstat_cpu *prstatc;
-=20
- 		/*
- 		 * Both additions and removals are bottom-up.  If a cgroup
-@@ -58,8 +53,17 @@ void cgroup_rstat_updated(struct cgroup
- 		if (rstatc->updated_next)
- 			break;
-=20
-+		/* Root has no parent to link it to, but mark it busy */
-+		if (!parent) {
-+			rstatc->updated_next =3D cgrp;
-+			break;
++static void memcg_flush_lruvec_page_state(struct mem_cgroup *memcg, int cp=
+u)
++{
++	int nid;
++
++	for_each_node(nid) {
++		struct mem_cgroup_per_node *pn =3D memcg->nodeinfo[nid];
++		unsigned long stat[NR_VM_NODE_STAT_ITEMS];
++		struct batched_lruvec_stat *lstatc;
++		int i;
++
++		lstatc =3D per_cpu_ptr(pn->lruvec_stat_cpu, cpu);
++		for (i =3D 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
++			stat[i] =3D lstatc->count[i];
++			lstatc->count[i] =3D 0;
 +		}
 +
-+		prstatc =3D cgroup_rstat_cpu(parent, cpu);
- 		rstatc->updated_next =3D prstatc->updated_children;
- 		prstatc->updated_children =3D cgrp;
++		do {
++			for (i =3D 0; i < NR_VM_NODE_STAT_ITEMS; i++)
++				atomic_long_add(stat[i], &pn->lruvec_stat[i]);
++		} while ((pn =3D parent_nodeinfo(pn, nid)));
++	}
++}
 +
-+		cgrp =3D parent;
- 	}
-=20
- 	raw_spin_unlock_irqrestore(cpu_lock, flags);
-@@ -113,23 +117,26 @@ static struct cgroup *cgroup_rstat_cpu_p
- 	 */
- 	if (rstatc->updated_next) {
- 		struct cgroup *parent =3D cgroup_parent(pos);
--		struct cgroup_rstat_cpu *prstatc =3D cgroup_rstat_cpu(parent, cpu);
--		struct cgroup_rstat_cpu *nrstatc;
--		struct cgroup **nextp;
--
--		nextp =3D &prstatc->updated_children;
--		while (true) {
--			nrstatc =3D cgroup_rstat_cpu(*nextp, cpu);
--			if (*nextp =3D=3D pos)
--				break;
-=20
--			WARN_ON_ONCE(*nextp =3D=3D parent);
--			nextp =3D &nrstatc->updated_next;
-+		if (parent) {
-+			struct cgroup_rstat_cpu *prstatc;
-+			struct cgroup **nextp;
-+
-+			prstatc =3D cgroup_rstat_cpu(parent, cpu);
-+			nextp =3D &prstatc->updated_children;
-+			while (true) {
-+				struct cgroup_rstat_cpu *nrstatc;
-+
-+				nrstatc =3D cgroup_rstat_cpu(*nextp, cpu);
-+				if (*nextp =3D=3D pos)
-+					break;
-+				WARN_ON_ONCE(*nextp =3D=3D parent);
-+				nextp =3D &nrstatc->updated_next;
-+			}
-+			*nextp =3D rstatc->updated_next;
- 		}
-=20
--		*nextp =3D rstatc->updated_next;
- 		rstatc->updated_next =3D NULL;
--
- 		return pos;
- 	}
-=20
-@@ -309,11 +316,15 @@ static void cgroup_base_stat_sub(struct
-=20
- static void cgroup_base_stat_flush(struct cgroup *cgrp, int cpu)
+ static int memcg_hotplug_cpu_dead(unsigned int cpu)
  {
--	struct cgroup *parent =3D cgroup_parent(cgrp);
- 	struct cgroup_rstat_cpu *rstatc =3D cgroup_rstat_cpu(cgrp, cpu);
-+	struct cgroup *parent =3D cgroup_parent(cgrp);
- 	struct cgroup_base_stat cur, delta;
- 	unsigned seq;
+ 	struct memcg_stock_pcp *stock;
+@@ -2377,31 +2400,8 @@ static int memcg_hotplug_cpu_dead(unsign
+ 	stock =3D &per_cpu(memcg_stock, cpu);
+ 	drain_stock(stock);
 =20
-+	/* Root-level stats are sourced from system-wide CPU stats */
-+	if (!parent)
-+		return;
+-	for_each_mem_cgroup(memcg) {
+-		int i;
+-
+-		for (i =3D 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
+-			int nid;
+-
+-			for_each_node(nid) {
+-				struct batched_lruvec_stat *lstatc;
+-				struct mem_cgroup_per_node *pn;
+-				long x;
+-
+-				pn =3D memcg->nodeinfo[nid];
+-				lstatc =3D per_cpu_ptr(pn->lruvec_stat_cpu, cpu);
+-
+-				x =3D lstatc->count[i];
+-				lstatc->count[i] =3D 0;
+-
+-				if (x) {
+-					do {
+-						atomic_long_add(x, &pn->lruvec_stat[i]);
+-					} while ((pn =3D parent_nodeinfo(pn, nid)));
+-				}
+-			}
+-		}
+-	}
++	for_each_mem_cgroup(memcg)
++		memcg_flush_lruvec_page_state(memcg, cpu);
+=20
+ 	return 0;
+ }
+@@ -3588,27 +3588,6 @@ static u64 mem_cgroup_read_u64(struct cg
+ 	}
+ }
+=20
+-static void memcg_flush_lruvec_page_state(struct mem_cgroup *memcg)
+-{
+-	int node;
+-
+-	for_each_node(node) {
+-		struct mem_cgroup_per_node *pn =3D memcg->nodeinfo[node];
+-		unsigned long stat[NR_VM_NODE_STAT_ITEMS] =3D { 0 };
+-		struct mem_cgroup_per_node *pi;
+-		int cpu, i;
+-
+-		for_each_online_cpu(cpu)
+-			for (i =3D 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+-				stat[i] +=3D per_cpu(
+-					pn->lruvec_stat_cpu->count[i], cpu);
+-
+-		for (pi =3D pn; pi; pi =3D parent_nodeinfo(pi, node))
+-			for (i =3D 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+-				atomic_long_add(stat[i], &pi->lruvec_stat[i]);
+-	}
+-}
+-
+ #ifdef CONFIG_MEMCG_KMEM
+ static int memcg_online_kmem(struct mem_cgroup *memcg)
+ {
+@@ -5144,12 +5123,15 @@ static void __mem_cgroup_free(struct mem
+=20
+ static void mem_cgroup_free(struct mem_cgroup *memcg)
+ {
++	int cpu;
 +
- 	/* fetch the current per-cpu values */
- 	do {
- 		seq =3D __u64_stats_fetch_begin(&rstatc->bsync);
-@@ -326,8 +337,8 @@ static void cgroup_base_stat_flush(struc
- 	cgroup_base_stat_add(&cgrp->bstat, &delta);
- 	cgroup_base_stat_add(&rstatc->last_bstat, &delta);
+ 	memcg_wb_domain_exit(memcg);
+ 	/*
+ 	 * Flush percpu lruvec stats to guarantee the value
+ 	 * correctness on parent's and all ancestor levels.
+ 	 */
+-	memcg_flush_lruvec_page_state(memcg);
++	for_each_online_cpu(cpu)
++		memcg_flush_lruvec_page_state(memcg, cpu);
+ 	__mem_cgroup_free(memcg);
+ }
 =20
--	/* propagate global delta to parent */
--	if (parent) {
-+	/* propagate global delta to parent (unless that's root) */
-+	if (cgroup_parent(parent)) {
- 		delta =3D cgrp->bstat;
- 		cgroup_base_stat_sub(&delta, &cgrp->last_bstat);
- 		cgroup_base_stat_add(&parent->bstat, &delta);
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
