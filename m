@@ -7,40 +7,42 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AC4FC433DB
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:03:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16571C433DB
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F11B0652B5
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:03:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA63165173
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 21:31:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229757AbhCHVDG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Mar 2021 16:03:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43134 "EHLO mail.kernel.org"
+        id S229938AbhCHVaV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Mar 2021 16:30:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46896 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229972AbhCHVCd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 16:02:33 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D2895652B1;
-        Mon,  8 Mar 2021 21:02:32 +0000 (UTC)
+        id S229575AbhCHVaS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 16:30:18 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3A3406516F;
+        Mon,  8 Mar 2021 21:30:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615237353;
-        bh=QQMLvtYG7ES8S+wa6Iq9ETy2t6yMzwsrAhGnQ4dB7jo=;
+        s=korg; t=1615239017;
+        bh=t3/qYIVPiCmpOYg7/F6lh2AiGG6EKMJoaY7ixEUmAn8=;
         h=Date:From:To:Subject:From;
-        b=e7kPbgP/6sRI1lgpnVyP2wUedgf4gRdZ+RoZDM5e8abAzCy3g7hOWgbd85i5M2on8
-         sSym2jOyeTcjZ5NsLzgI45vHLwCXBIkqtt0lWUaLlHykENUTq/LoBWD3hpAyph95C9
-         9Hc86tJuxKGcZVjAcVDrlQl6tnj9ZKZpmzoVlRWY=
-Date:   Mon, 08 Mar 2021 13:02:32 -0800
+        b=LxZnApNWQVxB4bdnhzRj4tKU78gBac8k5AiBMtTKj19pnE3XRu7SxPF4kbNMF+AGC
+         HBp6WbsuheiM8XmCBFwCK1DvhGo9WQ7le0NDwrQ/ZJ2Xowr33I8kWPeucp1R0HyW7r
+         PXB2IoJDmR7Q5yHeJdqYdSzHzF2p6D8I8kHGio14=
+Date:   Mon, 08 Mar 2021 13:30:15 -0800
 From:   akpm@linux-foundation.org
-To:     dan.carpenter@oracle.com, ebru.akagunduz@gmail.com,
-        kirill.shutemov@linux.intel.com, linmiaohe@huawei.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        riel@redhat.com
+To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
+        ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
+        jhubbard@nvidia.com, jmorris@namei.org, mgorman@suse.de,
+        mhocko@kernel.org, mhocko@suse.com, mike.kravetz@oracle.com,
+        mingo@redhat.com, mm-commits@vger.kernel.org, osalvador@suse.de,
+        pasha.tatashin@soleen.com, peterz@infradead.org,
+        rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
+        tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
 Subject:  +
- =?US-ASCII?Q?khugepaged-fix-wrong-result-value-for-trace=5Fmm=5Fcollapse?=
- =?US-ASCII?Q?=5Fhuge=5Fpage=5Fisolate.patch?= added to -mm tree
-Message-ID: <20210308210232.fvwDKwbT-%akpm@linux-foundation.org>
+ mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch added
+ to -mm tree
+Message-ID: <20210308213015.fkKCSjiLT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: fix wrong result value for trace_mm_collapse_huge_page_isolate()
+     Subject: mm/gup: check every subpage of a compound page during isolation
 has been added to the -mm tree.  Its filename is
-     khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate.patch
+     mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,69 +71,118 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: khugepaged: fix wrong result value for trace_mm_collapse_huge_page_isolate()
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Subject: mm/gup: check every subpage of a compound page during isolation
 
-In writable and !referenced case, the result value should be
-SCAN_LACK_REFERENCED_PAGE for trace_mm_collapse_huge_page_isolate()
-instead of default 0 (SCAN_FAIL) here.
+When pages are isolated in check_and_migrate_movable_pages() we skip
+compound number of pages at a time.  However, as Jason noted, it is not
+necessary correct that pages[i] corresponds to the pages that we skipped. 
+This is because it is possible that the addresses in this range had
+split_huge_pmd()/split_huge_pud(), and these functions do not update the
+compound page metadata.
 
-Link: https://lkml.kernel.org/r/20210306032947.35921-5-linmiaohe@huawei.com
-Fixes: 7d2eba0557c1 ("mm: add tracepoint for scanning pages")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+The problem can be reproduced if something like this occurs:
+
+1. User faulted huge pages.
+2. split_huge_pmd() was called for some reason
+3. User has unmapped some sub-pages in the range
+4. User tries to longterm pin the addresses.
+
+The resulting pages[i] might end-up having pages which are not compound
+size page aligned.
+
+Link: https://lkml.kernel.org/r/20210215161349.246722-3-pasha.tatashin@soleen.com
+Fixes: aa712399c1e8 ("mm/gup: speed up check_and_migrate_cma_pages() on huge page")
+Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Reported-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/gup.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate
-+++ a/mm/khugepaged.c
-@@ -716,17 +716,17 @@ next:
- 		if (pte_write(pteval))
- 			writable = true;
- 	}
--	if (likely(writable)) {
--		if (likely(referenced)) {
--			result = SCAN_SUCCEED;
--			trace_mm_collapse_huge_page_isolate(page, none_or_zero,
--							    referenced, writable, result);
--			return 1;
--		}
--	} else {
-+
-+	if (unlikely(!writable)) {
- 		result = SCAN_PAGE_RO;
-+	} else if (unlikely(!referenced)) {
-+		result = SCAN_LACK_REFERENCED_PAGE;
-+	} else {
-+		result = SCAN_SUCCEED;
-+		trace_mm_collapse_huge_page_isolate(page, none_or_zero,
-+						    referenced, writable, result);
-+		return 1;
- 	}
+--- a/mm/gup.c~mm-gup-check-every-subpage-of-a-compound-page-during-isolation
++++ a/mm/gup.c
+@@ -1548,26 +1548,23 @@ static long check_and_migrate_cma_pages(
+ 					unsigned int gup_flags)
+ {
+ 	unsigned long i;
+-	unsigned long step;
+ 	bool drain_allow = true;
+ 	bool migrate_allow = true;
+ 	LIST_HEAD(cma_page_list);
+ 	long ret = nr_pages;
++	struct page *prev_head, *head;
+ 	struct migration_target_control mtc = {
+ 		.nid = NUMA_NO_NODE,
+ 		.gfp_mask = GFP_USER | __GFP_NOWARN,
+ 	};
+ 
+ check_again:
+-	for (i = 0; i < nr_pages;) {
 -
- out:
- 	release_pte_pages(pte, _pte, compound_pagelist);
- 	trace_mm_collapse_huge_page_isolate(page, none_or_zero,
+-		struct page *head = compound_head(pages[i]);
+-
+-		/*
+-		 * gup may start from a tail page. Advance step by the left
+-		 * part.
+-		 */
+-		step = compound_nr(head) - (pages[i] - head);
++	prev_head = NULL;
++	for (i = 0; i < nr_pages; i++) {
++		head = compound_head(pages[i]);
++		if (head == prev_head)
++			continue;
++		prev_head = head;
+ 		/*
+ 		 * If we get a page from the CMA zone, since we are going to
+ 		 * be pinning these entries, we might as well move them out
+@@ -1591,8 +1588,6 @@ check_again:
+ 				}
+ 			}
+ 		}
+-
+-		i += step;
+ 	}
+ 
+ 	if (!list_empty(&cma_page_list)) {
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings.patch
-mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
-mm-hugetlb-use-some-helper-functions-to-cleanup-code.patch
-mm-hugetlb-optimize-the-surplus-state-transfer-code-in-move_hugetlb_state.patch
-hugetlb_cgroup-remove-unnecessary-vm_bug_on_page-in-hugetlb_cgroup_migrate.patch
-mm-hugetlb-simplify-the-code-when-alloc_huge_page-failed-in-hugetlb_no_page.patch
-mm-hugetlb-avoid-calculating-fault_mutex_hash-in-truncate_op-case.patch
-khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps.patch
-khugepaged-reuse-the-smp_wmb-inside-__setpageuptodate.patch
-khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
-khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate.patch
+mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
+mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch
+mm-gup-return-an-error-on-migration-failure.patch
+mm-gup-check-for-isolation-errors.patch
+mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin.patch
+mm-apply-per-task-gfp-constraints-in-fast-path.patch
+mm-honor-pf_memalloc_pin-for-all-movable-pages.patch
+mm-gup-do-not-migrate-zero-page.patch
+mm-gup-migrate-pinned-pages-out-of-movable-zone.patch
+memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning.patch
+mm-gup-change-index-type-to-long-as-it-counts-pages.patch
+mm-gup-longterm-pin-migration-cleanup.patch
+selftests-vm-gup_test-fix-test-flag.patch
+selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages.patch
 
