@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99E98C433E0
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:54:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B06FC433DB
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:57:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 68409650DF
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:54:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2503C65173
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Mar 2021 22:57:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229821AbhCHWyZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Mar 2021 17:54:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60876 "EHLO mail.kernel.org"
+        id S231408AbhCHW4l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Mar 2021 17:56:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32848 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229627AbhCHWyL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 17:54:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BA4F365173;
-        Mon,  8 Mar 2021 22:54:10 +0000 (UTC)
+        id S231254AbhCHW4N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 17:56:13 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B4143650DF;
+        Mon,  8 Mar 2021 22:56:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615244050;
-        bh=DjgekrxBStaQB/V5HTy/BNJUaQmykdPs5Z0JE8pZTnk=;
+        s=korg; t=1615244172;
+        bh=i+L3cG+aSEZWAdDxbWXwgOrcKhG39nvt2CvhND8EGXw=;
         h=Date:From:To:Subject:From;
-        b=BdS13W4yxDGDhkHwmj0n0+BgnotNI/O28g1q9WUDI+21ODu+M0gXO3VOLOU/H9g6X
-         XQzIixoWsXVV9Qij0JMmgaGyRTNIbf4lnLCkOuNYwSbqvC5fj9N4iRELGamaGx1dZw
-         KzPovlv0jeERMRWjECTA07B3TSR+np4lX8oXyJdU=
-Date:   Mon, 08 Mar 2021 14:54:10 -0800
+        b=aZ3Pua1CCwytsVUSJ+Eo+pGXLNXjlPcVRduk/p5a6VBDbUdQ47mt6x5IFxJM5LliO
+         5fnedB0FdJmOoz3uHnOPNKqSyLi6W95q39mFOVgwi1TEGa2c3GWwC+aUlFS9mhSOVp
+         f6BDw79fjglP2hAQJXGaJpvoMoW/GZJyUtXLA628=
+Date:   Mon, 08 Mar 2021 14:56:12 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org
+To:     mm-commits@vger.kernel.org, serapheim.dimitro@delphix.com,
+        serapheim@delphix.com, urezki@gmail.com
 Subject:  +
- mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch added to -mm
+ mm-vmalloc-use-rb_tree-instead-of-list-for-vread-lookups.patch added to -mm
  tree
-Message-ID: <20210308225410.aiUXrC5wF%akpm@linux-foundation.org>
+Message-ID: <20210308225612.WCrZXAGm5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: remove unnecessary local variable ret2
+     Subject: mm/vmalloc: use rb_tree instead of list for vread() lookups
 has been added to the -mm tree.  Its filename is
-     mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
+     mm-vmalloc-use-rb_tree-instead-of-list-for-vread-lookups.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-use-rb_tree-instead-of-list-for-vread-lookups.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-use-rb_tree-instead-of-list-for-vread-lookups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,56 +65,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory.c: remove unnecessary local variable ret2
+From: Serapheim Dimitropoulos <serapheim.dimitro@delphix.com>
+Subject: mm/vmalloc: use rb_tree instead of list for vread() lookups
 
-There is no need to use a new local variable ret2 to get the return value
-of handle_userfault(). Use ret directly to make code more succinct.
+vread() has been linearly searching vmap_area_list for looking up vmalloc
+areas to read from.  These same areas are also tracked by a rb_tree
+(vmap_area_root) which offers logarithmic lookup.
 
-Link: https://lkml.kernel.org/r/20210210072409.60587-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+This patch modifies vread() to use the rb_tree structure instead of the
+list and the speedup for heavy /proc/kcore readers can be pretty
+significant.  Below are the wall clock measurements of a Python
+application that leverages the drgn debugging library to read and
+interpret data read from /proc/kcore.
+
+Before the patch:
+-----
+$ time sudo sdb -e 'dbuf | head 3000 | wc'
+(unsigned long)3000
+
+real	0m22.446s
+user	0m2.321s
+sys	0m20.690s
+-----
+
+With the patch:
+-----
+$ time sudo sdb -e 'dbuf | head 3000 | wc'
+(unsigned long)3000
+
+real	0m2.104s
+user	0m2.043s
+sys	0m0.921s
+-----
+
+Link: https://lkml.kernel.org/r/20210209190253.108763-1-serapheim@delphix.com
+Signed-off-by: Serapheim Dimitropoulos <serapheim@delphix.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/vmalloc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-remove-unnecessary-local-variable-ret2
-+++ a/mm/huge_memory.c
-@@ -624,14 +624,12 @@ static vm_fault_t __do_huge_pmd_anonymou
+--- a/mm/vmalloc.c~mm-vmalloc-use-rb_tree-instead-of-list-for-vread-lookups
++++ a/mm/vmalloc.c
+@@ -2894,7 +2894,10 @@ long vread(char *buf, char *addr, unsign
+ 		count = -(unsigned long) addr;
  
- 		/* Deliver the page fault to userland */
- 		if (userfaultfd_missing(vma)) {
--			vm_fault_t ret2;
--
- 			spin_unlock(vmf->ptl);
- 			put_page(page);
- 			pte_free(vma->vm_mm, pgtable);
--			ret2 = handle_userfault(vmf, VM_UFFD_MISSING);
--			VM_BUG_ON(ret2 & VM_FAULT_FALLBACK);
--			return ret2;
-+			ret = handle_userfault(vmf, VM_UFFD_MISSING);
-+			VM_BUG_ON(ret & VM_FAULT_FALLBACK);
-+			return ret;
- 		}
+ 	spin_lock(&vmap_area_lock);
+-	list_for_each_entry(va, &vmap_area_list, list) {
++	va = __find_vmap_area((unsigned long)addr);
++	if (!va)
++		goto finished;
++	list_for_each_entry_from(va, &vmap_area_list, list) {
+ 		if (!count)
+ 			break;
  
- 		entry = mk_huge_pmd(page, vma->vm_page_prot);
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from serapheim.dimitro@delphix.com are
 
-hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings.patch
-mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
-mm-hugetlb-use-some-helper-functions-to-cleanup-code.patch
-mm-hugetlb-optimize-the-surplus-state-transfer-code-in-move_hugetlb_state.patch
-hugetlb_cgroup-remove-unnecessary-vm_bug_on_page-in-hugetlb_cgroup_migrate.patch
-mm-hugetlb-simplify-the-code-when-alloc_huge_page-failed-in-hugetlb_no_page.patch
-mm-hugetlb-avoid-calculating-fault_mutex_hash-in-truncate_op-case.patch
-khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps.patch
-khugepaged-reuse-the-smp_wmb-inside-__setpageuptodate.patch
-khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
-khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate.patch
-mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
+mm-vmalloc-use-rb_tree-instead-of-list-for-vread-lookups.patch
 
