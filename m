@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A32E1C433E0
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Mar 2021 04:06:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A44CC433E0
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Mar 2021 04:57:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6BA586528A
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Mar 2021 04:06:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 432C665092
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Mar 2021 04:57:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229611AbhCIEF3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Mar 2021 23:05:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56098 "EHLO mail.kernel.org"
+        id S229704AbhCIE5N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Mar 2021 23:57:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34218 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229697AbhCIEFV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Mar 2021 23:05:21 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 596E265273;
-        Tue,  9 Mar 2021 04:05:21 +0000 (UTC)
+        id S229599AbhCIE4t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Mar 2021 23:56:49 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C821365244;
+        Tue,  9 Mar 2021 04:56:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615262721;
-        bh=3qC1LhFH9UnNeJuBI38Q7FmYklCpGayO8zxjll32rrc=;
+        s=korg; t=1615265809;
+        bh=Zee+UiM6cSkKKUqSn34Ot8JbYXZmuI9XwzXmx9oQLfg=;
         h=Date:From:To:Subject:From;
-        b=1DQyj93WPHdl99bM+eKFXFggKm5/C5Rf/EAj364L0aI1Bfa2JZm9xtKS6fbd4YFOv
-         /ftxE3j77tYLxTI3S4OfOTKLQnB+yk5mcRMyhq45Um6sd7+n2+K6AfN2WIsfO5wwUL
-         CpuheCmIZ/WduO+VEPddkbvvAKzT9e38rvJTfv10=
-Date:   Mon, 08 Mar 2021 20:05:21 -0800
+        b=ydBhrfm5HhhJY0sZp5uLg1tGj6eApgts04UJQ+RDTqAqI5Up/YgaYZC9qlCLnKS+R
+         dMyLOMLXw7fYxjLPAcORbpki3arn3mlDMn+1KZ5znNPlUYcBgI59PIhuGsPkDVDXtd
+         8XDMjLjT8JtxgXqgJoeGyezX8WXFbCWbnj3IMDD4=
+Date:   Mon, 08 Mar 2021 20:56:48 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Message-ID: <20210309040521.8f5cN2toN%akpm@linux-foundation.org>
+To:     gregkh@linuxfoundation.org, jhubbard@nvidia.com,
+        joaodias@google.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, surenb@google.com, willy@infradead.org
+Subject:  [to-be-updated] mm-cma-support-sysfs.patch removed from
+ -mm tree
+Message-ID: <20210309045648.vT-ol2x5Z%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,268 +44,300 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm: cma: support sysfs
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     mm-cma-support-sysfs.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: cma: support sysfs
 
+Since CMA is getting used more widely, it's more important to
+keep monitoring CMA statistics for system health since it's
+directly related to user experience.
+
+This patch introduces sysfs statistics for CMA, in order to provide
+some basic monitoring of the CMA allocator.
+
+ * the number of CMA page allocation attempts
+ * the number of CMA page allocation failures
+
+These two values allow the user to calcuate the allocation
+failure rate for each CMA area.
+
+e.g.)
+  /sys/kernel/mm/cma/WIFI/cma_alloc_pages_[attempts|fails]
+  /sys/kernel/mm/cma/SENSOR/cma_alloc_pages_[attempts|fails]
+  /sys/kernel/mm/cma/BLUETOOTH/cma_alloc_pages_[attempts|fails]
+
+The cma_stat was intentionally allocated by dynamic allocation
+to harmonize with kobject lifetime management.
+https://lore.kernel.org/linux-mm/YCOAmXqt6dZkCQYs@kroah.com/
+
+Link: https://lkml.kernel.org/r/20210304161704.3056806-1-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: John Dias <joaodias@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/pm/swsmu/smu11/smu_v11_0.c |    3 -
- drivers/tty/hvc/hvcs.c                         |   15 ------
- fs/btrfs/delayed-inode.c                       |   14 -----
- fs/io-wq.c                                     |   28 -----------
- fs/io_uring.c                                  |   36 ---------------
- 5 files changed, 96 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-cma |   25 +++
+ mm/Kconfig                                    |    7 +
+ mm/Makefile                                   |    1 
+ mm/cma.c                                      |    8 -
+ mm/cma.h                                      |   18 ++
+ mm/cma_sysfs.c                                |  110 ++++++++++++++++
+ 6 files changed, 167 insertions(+), 2 deletions(-)
 
---- a/drivers/gpu/drm/amd/pm/swsmu/smu11/smu_v11_0.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/pm/swsmu/smu11/smu_v11_0.c
-@@ -77,12 +77,9 @@ MODULE_FIRMWARE("amdgpu/dimgrey_cavefish
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-cma
+@@ -0,0 +1,25 @@
++What:		/sys/kernel/mm/cma/
++Date:		Feb 2021
++Contact:	Minchan Kim <minchan@kernel.org>
++Description:
++		/sys/kernel/mm/cma/ contains a subdirectory for each CMA
++		heap name (also sometimes called CMA areas).
++
++		Each CMA heap subdirectory (that is, each
++		/sys/kernel/mm/cma/<cma-heap-name> directory) contains the
++		following items:
++
++			cma_alloc_pages_attempts
++			cma_alloc_pages_fails
++
++What:		/sys/kernel/mm/cma/<cma-heap-name>/cma_alloc_pages_attempts
++Date:		Feb 2021
++Contact:	Minchan Kim <minchan@kernel.org>
++Description:
++		the number of pages CMA API tried to allocate
++
++What:		/sys/kernel/mm/cma/<cma-heap-name>/cma_alloc_pages_fails
++Date:		Feb 2021
++Contact:	Minchan Kim <minchan@kernel.org>
++Description:
++		the number of pages CMA API failed to allocate
+--- a/mm/cma.c~mm-cma-support-sysfs
++++ a/mm/cma.c
+@@ -435,18 +435,19 @@ struct page *cma_alloc(struct cma *cma,
+ 	int ret = -ENOMEM;
  
- #define mmTHM_BACO_CNTL_ARCT			0xA7
- #define mmTHM_BACO_CNTL_ARCT_BASE_IDX		0
--<<<<<<< HEAD
+ 	if (!cma || !cma->count || !cma->bitmap)
+-		goto out;
++		goto out_fail;
  
- static int link_width[] = {0, 1, 2, 4, 8, 12, 16};
- static int link_speed[] = {25, 50, 80, 160};
--=======
-->>>>>>> linux-next/akpm-base
+ 	pr_debug("%s(cma %p, count %zu, align %d)\n", __func__, (void *)cma,
+ 		 count, align);
  
- int smu_v11_0_init_microcode(struct smu_context *smu)
- {
---- a/drivers/tty/hvc/hvcs.c~linux-next-git-rejects
-+++ a/drivers/tty/hvc/hvcs.c
-@@ -295,21 +295,6 @@ static int hvcs_rescan_devices_list(void
+ 	if (!count)
+-		goto out;
++		goto out_fail;
  
- static void hvcs_partner_free(struct hvcs_struct *hvcsd);
+ 	mask = cma_bitmap_aligned_mask(cma, align);
+ 	offset = cma_bitmap_aligned_offset(cma, align);
+ 	bitmap_maxno = cma_bitmap_maxno(cma);
+ 	bitmap_count = cma_bitmap_pages_to_bits(cma, count);
++	cma_sysfs_alloc_count(cma, count);
  
--<<<<<<< HEAD
--static int hvcs_enable_device(struct hvcs_struct *hvcsd,
--		uint32_t unit_address, unsigned int irq, struct vio_dev *dev);
--
--static int hvcs_open(struct tty_struct *tty, struct file *filp);
--static void hvcs_close(struct tty_struct *tty, struct file *filp);
--static void hvcs_hangup(struct tty_struct * tty);
--
--static int hvcs_probe(struct vio_dev *dev,
--		const struct vio_device_id *id);
--static int hvcs_remove(struct vio_dev *dev);
--static int __init hvcs_module_init(void);
--static void __exit hvcs_module_exit(void);
--=======
-->>>>>>> linux-next/akpm-base
- static int hvcs_initialize(void);
- 
- #define HVCS_SCHED_READ	0x00000001
---- a/fs/btrfs/delayed-inode.c~linux-next-git-rejects
-+++ a/fs/btrfs/delayed-inode.c
-@@ -636,22 +636,8 @@ static int btrfs_delayed_inode_reserve_m
- 		ASSERT(ret == 0 || ret == -ENOSPC);
- 		if (ret)
- 			btrfs_qgroup_free_meta_prealloc(root, num_bytes);
--<<<<<<< HEAD
--		}
--		if (!ret) {
--			node->bytes_reserved = num_bytes;
--			trace_btrfs_space_reservation(fs_info,
--						      "delayed_inode",
--						      btrfs_ino(inode),
--						      num_bytes, 1);
--		} else {
--			btrfs_qgroup_free_meta_prealloc(root, num_bytes);
--		}
--		return ret;
--=======
- 	} else {
- 		ret = btrfs_block_rsv_migrate(src_rsv, dst_rsv, num_bytes, true);
-->>>>>>> linux-next/akpm-base
+ 	if (bitmap_count > bitmap_maxno)
+ 		goto out;
+@@ -504,6 +505,9 @@ struct page *cma_alloc(struct cma *cma,
+ 		       __func__, cma->name, count, ret);
+ 		cma_debug_show_areas(cma);
  	}
++out_fail:
++	if (!page)
++		cma_sysfs_fail_count(cma, count);
  
- 	if (!ret) {
---- a/fs/io_uring.c~linux-next-git-rejects
-+++ a/fs/io_uring.c
-@@ -6732,17 +6732,8 @@ static int io_sq_thread(void *data)
- 	 * park if necessary. The ordering with the park bit and the lock
- 	 * ensures that we catch this reliably.
- 	 */
--<<<<<<< HEAD
--	if (!mutex_trylock(&sqd->lock)) {
--		if (io_sq_thread_should_park(sqd))
--			io_sq_thread_parkme(sqd);
--		mutex_lock(&sqd->lock);
--	}
--
--=======
- 	complete(&sqd->completion);
- 	mutex_lock(&sqd->lock);
-->>>>>>> linux-next/akpm-base
- 	sqd->thread = NULL;
- 	list_for_each_entry(ctx, &sqd->ctx_list, sqd_list) {
- 		ctx->sqo_exec = 1;
-@@ -7800,20 +7791,12 @@ static int io_sq_thread_fork(struct io_s
- 	int ret;
+ 	pr_debug("%s(): returned %p\n", __func__, page);
+ out:
+--- a/mm/cma.h~mm-cma-support-sysfs
++++ a/mm/cma.h
+@@ -3,6 +3,14 @@
+ #define __MM_CMA_H__
  
- 	clear_bit(IO_SQ_THREAD_SHOULD_STOP, &sqd->state);
--<<<<<<< HEAD
--	reinit_completion(&sqd->parked);
--=======
- 	reinit_completion(&sqd->completion);
-->>>>>>> linux-next/akpm-base
- 	ctx->sqo_exec = 0;
- 	sqd->task_pid = current->pid;
- 	tsk = create_io_thread(io_sq_thread, sqd, NUMA_NO_NODE);
- 	if (IS_ERR(tsk))
--<<<<<<< HEAD
--		return PTR_ERR(tsk);
--=======
- 		return ret;
-->>>>>>> linux-next/akpm-base
- 	ret = io_uring_alloc_task_context(tsk, ctx);
- 	if (ret)
- 		set_bit(IO_SQ_THREAD_SHOULD_STOP, &sqd->state);
-@@ -7885,15 +7868,8 @@ static int io_sq_offload_create(struct i
+ #include <linux/debugfs.h>
++#include <linux/kobject.h>
++
++struct cma_stat {
++	spinlock_t lock;
++	unsigned long pages_attempts;	/* the number of CMA page allocation attempts */
++	unsigned long pages_fails;	/* the number of CMA page allocation failures */
++	struct kobject kobj;
++};
  
- 		sqd->task_pid = current->pid;
- 		tsk = create_io_thread(io_sq_thread, sqd, NUMA_NO_NODE);
--<<<<<<< HEAD
--		if (IS_ERR(tsk)) {
--			ret = PTR_ERR(tsk);
--			goto err;
--		}
--=======
- 		if (IS_ERR(tsk))
- 			goto err;
-->>>>>>> linux-next/akpm-base
- 		ret = io_uring_alloc_task_context(tsk, ctx);
- 		if (ret)
- 			set_bit(IO_SQ_THREAD_SHOULD_STOP, &sqd->state);
-@@ -8700,14 +8676,11 @@ static void io_uring_cancel_task_request
- 		if (ctx->flags & IORING_SETUP_R_DISABLED) {
- 			io_sq_offload_start(ctx);
- 			return;
--<<<<<<< HEAD
--=======
- 		}
- 		did_park = io_sq_thread_park(ctx->sq_data);
- 		if (did_park) {
- 			task = ctx->sq_data->thread;
- 			atomic_inc(&task->io_uring->in_idle);
-->>>>>>> linux-next/akpm-base
- 		}
- 		io_sq_thread_park(ctx->sq_data);
- 		task = ctx->sq_data->thread;
-@@ -8824,25 +8797,16 @@ static void io_uring_cancel_sqpoll(struc
+ struct cma {
+ 	unsigned long   base_pfn;
+@@ -16,6 +24,9 @@ struct cma {
+ 	struct debugfs_u32_array dfs_bitmap;
+ #endif
+ 	char name[CMA_MAX_NAME];
++#ifdef CONFIG_CMA_SYSFS
++	struct cma_stat	*stat;
++#endif
+ };
  
- 	if (!sqd)
- 		return;
--<<<<<<< HEAD
--	io_sq_thread_park(sqd);
--	if (!sqd->thread || !sqd->thread->io_uring) {
--		io_sq_thread_unpark(sqd);
--=======
- 	if (!io_sq_thread_park(sqd))
-->>>>>>> linux-next/akpm-base
- 		return;
- 	}
- 	tctx = ctx->sq_data->thread->io_uring;
--<<<<<<< HEAD
--=======
- 	/* can happen on fork/alloc failure, just ignore that state */
- 	if (!tctx) {
- 		io_sq_thread_unpark(sqd);
- 		return;
- 	}
- 
-->>>>>>> linux-next/akpm-base
- 	atomic_inc(&tctx->in_idle);
- 	do {
- 		/* read completions before cancelations */
---- a/fs/io-wq.c~linux-next-git-rejects
-+++ a/fs/io-wq.c
-@@ -481,12 +481,6 @@ static int io_wqe_worker(void *data)
- 	struct io_wqe *wqe = worker->wqe;
- 	struct io_wq *wq = wqe->wq;
- 	char buf[TASK_COMM_LEN];
--<<<<<<< HEAD
--
--	worker->flags |= (IO_WORKER_F_UP | IO_WORKER_F_RUNNING);
--	io_wqe_inc_running(worker);
--=======
-->>>>>>> linux-next/akpm-base
- 
- 	sprintf(buf, "iou-wrk-%d", wq->task_pid);
- 	set_task_comm(current, buf);
-@@ -592,14 +586,6 @@ static bool create_io_worker(struct io_w
- 		return false;
- 	}
- 
--<<<<<<< HEAD
--	tsk->pf_io_worker = worker;
--	worker->task = tsk;
--	set_cpus_allowed_ptr(tsk, cpumask_of_node(wqe->node));
--	tsk->flags |= PF_NOFREEZE | PF_NO_SETAFFINITY;
--
--=======
-->>>>>>> linux-next/akpm-base
- 	raw_spin_lock_irq(&wqe->lock);
- 	hlist_nulls_add_head_rcu(&worker->nulls_node, &wqe->free_list);
- 	list_add_tail_rcu(&worker->all_list, &wqe->all_list);
-@@ -610,8 +596,6 @@ static bool create_io_worker(struct io_w
- 		worker->flags |= IO_WORKER_F_FIXED;
- 	acct->nr_workers++;
- 	raw_spin_unlock_irq(&wqe->lock);
--<<<<<<< HEAD
--=======
- 
- 	worker->flags |= (IO_WORKER_F_UP | IO_WORKER_F_RUNNING);
- 	io_wqe_inc_running(worker);
-@@ -619,7 +603,6 @@ static bool create_io_worker(struct io_w
- 	worker->task = tsk;
- 	set_cpus_allowed_ptr(tsk, cpumask_of_node(wqe->node));
- 	tsk->flags |= PF_NOFREEZE | PF_NO_SETAFFINITY;
-->>>>>>> linux-next/akpm-base
- 	wake_up_new_task(tsk);
- 	return true;
+ extern struct cma cma_areas[MAX_CMA_AREAS];
+@@ -26,4 +37,11 @@ static inline unsigned long cma_bitmap_m
+ 	return cma->count >> cma->order_per_bit;
  }
-@@ -742,14 +725,6 @@ static int io_wq_manager(void *data)
- 	if (atomic_read(&wq->worker_refs))
- 		wait_for_completion(&wq->worker_done);
  
--<<<<<<< HEAD
--	spin_lock_irq(&wq->hash->wait.lock);
--	for_each_node(node)
--		list_del_init(&wq->wqes[node]->wait.entry);
--	spin_unlock_irq(&wq->hash->wait.lock);
--
--=======
-->>>>>>> linux-next/akpm-base
- 	io_wq_cancel_pending(wq);
- 	complete(&wq->exited);
- 	do_exit(0);
-@@ -1077,11 +1052,8 @@ static void io_wq_destroy(struct io_wq *
++#ifdef CONFIG_CMA_SYSFS
++void cma_sysfs_alloc_count(struct cma *cma, size_t count);
++void cma_sysfs_fail_count(struct cma *cma, size_t count);
++#else
++static inline void cma_sysfs_alloc_count(struct cma *cma, size_t count) {};
++static inline void cma_sysfs_fail_count(struct cma *cma, size_t count) {};
++#endif
+ #endif
+--- /dev/null
++++ a/mm/cma_sysfs.c
+@@ -0,0 +1,110 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * CMA SysFS Interface
++ *
++ * Copyright (c) 2021 Minchan Kim <minchan@kernel.org>
++ */
++
++#include <linux/cma.h>
++#include <linux/kernel.h>
++#include <linux/slab.h>
++
++#include "cma.h"
++
++static struct cma_stat *cma_stats;
++
++void cma_sysfs_alloc_count(struct cma *cma, size_t count)
++{
++	spin_lock(&cma->stat->lock);
++	cma->stat->pages_attempts += count;
++	spin_unlock(&cma->stat->lock);
++}
++
++void cma_sysfs_fail_count(struct cma *cma, size_t count)
++{
++	spin_lock(&cma->stat->lock);
++	cma->stat->pages_fails += count;
++	spin_unlock(&cma->stat->lock);
++}
++
++#define CMA_ATTR_RO(_name) \
++	static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
++
++static struct kobject *cma_kobj;
++
++static ssize_t cma_alloc_pages_attempts_show(struct kobject *kobj,
++			struct kobj_attribute *attr, char *buf)
++{
++	struct cma_stat *stat = container_of(kobj, struct cma_stat, kobj);
++
++	return sysfs_emit(buf, "%lu\n", stat->pages_attempts);
++}
++CMA_ATTR_RO(cma_alloc_pages_attempts);
++
++static ssize_t cma_alloc_pages_fails_show(struct kobject *kobj,
++			struct kobj_attribute *attr, char *buf)
++{
++	struct cma_stat *stat = container_of(kobj, struct cma_stat, kobj);
++
++	return sysfs_emit(buf, "%lu\n", stat->pages_fails);
++}
++CMA_ATTR_RO(cma_alloc_pages_fails);
++
++static void cma_kobj_release(struct kobject *kobj)
++{
++	struct cma_stat *stat = container_of(kobj, struct cma_stat, kobj);
++
++	kfree(stat);
++}
++
++static struct attribute *cma_attrs[] = {
++	&cma_alloc_pages_attempts_attr.attr,
++	&cma_alloc_pages_fails_attr.attr,
++	NULL,
++};
++ATTRIBUTE_GROUPS(cma);
++
++static struct kobj_type cma_ktype = {
++	.release = cma_kobj_release,
++	.sysfs_ops = &kobj_sysfs_ops,
++	.default_groups = cma_groups
++};
++
++static int __init cma_sysfs_init(void)
++{
++	int i = 0;
++	struct cma *cma;
++
++	cma_kobj = kobject_create_and_add("cma", mm_kobj);
++	if (!cma_kobj)
++		return -ENOMEM;
++
++	cma_stats = kmalloc_array(cma_area_count, sizeof(struct cma_stat),
++				GFP_KERNEL|__GFP_ZERO);
++	if (!cma_stats)
++		goto out;
++
++	do {
++		cma = &cma_areas[i];
++		cma->stat = &cma_stats[i];
++		spin_lock_init(&cma->stat->lock);
++		if (kobject_init_and_add(&cma->stat->kobj, &cma_ktype,
++					cma_kobj, "%s", cma->name)) {
++			kobject_put(&cma->stat->kobj);
++			goto out;
++		}
++	} while (++i < cma_area_count);
++
++	return 0;
++out:
++	while (--i >= 0) {
++		cma = &cma_areas[i];
++		kobject_put(&cma->stat->kobj);
++	}
++
++	kfree(cma_stats);
++	kobject_put(cma_kobj);
++
++	return -ENOMEM;
++}
++subsys_initcall(cma_sysfs_init);
+--- a/mm/Kconfig~mm-cma-support-sysfs
++++ a/mm/Kconfig
+@@ -520,6 +520,13 @@ config CMA_DEBUGFS
+ 	help
+ 	  Turns on the DebugFS interface for CMA.
  
- 	for_each_node(node) {
- 		struct io_wqe *wqe = wq->wqes[node];
--<<<<<<< HEAD
--=======
- 
- 		list_del_init(&wqe->wait.entry);
-->>>>>>> linux-next/akpm-base
- 		WARN_ON_ONCE(!wq_list_empty(&wqe->work_list));
- 		kfree(wqe);
- 	}
++config CMA_SYSFS
++	bool "CMA information through sysfs interface"
++	depends on CMA && SYSFS
++	help
++	  This option exposes some sysfs attributes to get information
++	  from CMA.
++
+ config CMA_AREAS
+ 	int "Maximum count of the CMA areas"
+ 	depends on CMA
+--- a/mm/Makefile~mm-cma-support-sysfs
++++ a/mm/Makefile
+@@ -111,6 +111,7 @@ obj-$(CONFIG_CMA)	+= cma.o
+ obj-$(CONFIG_MEMORY_BALLOON) += balloon_compaction.o
+ obj-$(CONFIG_PAGE_EXTENSION) += page_ext.o
+ obj-$(CONFIG_CMA_DEBUGFS) += cma_debug.o
++obj-$(CONFIG_CMA_SYSFS) += cma_sysfs.o
+ obj-$(CONFIG_USERFAULTFD) += userfaultfd.o
+ obj-$(CONFIG_IDLE_PAGE_TRACKING) += page_idle.o
+ obj-$(CONFIG_DEBUG_PAGE_REF) += debug_page_ref.o
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-page_allocc-refactor-initialization-of-struct-page-for-holes-in-memory-layout-fix.patch
-mm.patch
-mm-memcontrol-switch-to-rstat-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-remove-lru_add_drain_all-in-alloc_contig_range.patch
+mm-vmstat-add-cma-statistics.patch
 
