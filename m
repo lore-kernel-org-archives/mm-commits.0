@@ -7,38 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AAA9C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 10 Mar 2021 17:13:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A950EC433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 10 Mar 2021 20:26:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D380764FD2
-	for <mm-commits@archiver.kernel.org>; Wed, 10 Mar 2021 17:13:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66DB864FCA
+	for <mm-commits@archiver.kernel.org>; Wed, 10 Mar 2021 20:26:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229851AbhCJRNC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Mar 2021 12:13:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45902 "EHLO mail.kernel.org"
+        id S231694AbhCJUZ3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Mar 2021 15:25:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56412 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230270AbhCJRMu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Mar 2021 12:12:50 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CC82064F9A;
-        Wed, 10 Mar 2021 17:12:49 +0000 (UTC)
+        id S231550AbhCJUZA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Mar 2021 15:25:00 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C08A564FCA;
+        Wed, 10 Mar 2021 20:24:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615396370;
-        bh=eGMh4rBwZhMDLXuePGV9sFj2UfbeHNUaeGf2v20z0tc=;
+        s=korg; t=1615407900;
+        bh=MhdXdarHssYOFrA9N93/OPvJxY8rZWfwHZG21eipGU0=;
         h=Date:From:To:Subject:From;
-        b=JvN9dQnE8zVxm/7EAMR3FeTxEO1+qW51j62SCnpYH6jJYBVtdxVQsvGvko7e0IXS/
-         9fDQnUPI8QA5ujSofBlSNWdScM7bwe/xjSwjtiQZFO5r7J+hQLBSkMWyi6hKxGHbBH
-         Ga96uEqICMPJY2k0TuswyjBaQJqGBLQcHQ+KuNOs=
-Date:   Wed, 10 Mar 2021 09:12:49 -0800
+        b=Amh45Itu80gnp/gU2thLf7+iQzI4R2oAfG3DdXNB21yN8KvcsURsD4d2l56v44rIb
+         yTNvneNGwYImH3Mt6ymsSfk9LeRvldBfp6CvWD+w/FRLYIaGzFy4nMkTMN0mpGdjqQ
+         PPNgNI+MnrVbOjqHa1OrBVvSAEeDgGe1Tk4tU4AU=
+Date:   Wed, 10 Mar 2021 12:24:59 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        songmuchun@bytedance.com
+To:     axelrasmussen@google.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
+        peterx@redhat.com
 Subject:  +
- =?US-ASCII?Q?mm-memory=5Fhotplug-factor-out-bootmem-core-functions-to-boo?=
- =?US-ASCII?Q?tmem=5Finfoc-fix.patch?= added to -mm tree
-Message-ID: <20210310171249.308-VJZFi%akpm@linux-foundation.org>
+ hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix.patch
+ added to -mm tree
+Message-ID: <20210310202459.czoA3UEwR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc-fix
+     Subject: mm/hugetlb: fix build with !ARCH_WANT_HUGE_PMD_SHARE
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc-fix.patch
+     hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,33 +66,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc-fix
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/hugetlb: fix build with !ARCH_WANT_HUGE_PMD_SHARE
 
-arch/sparc/mm/init_64.c needs bootmem_info.h
+want_pmd_share() is undefined with !ARCH_WANT_HUGE_PMD_SHARE since it's
+put by accident into a "#ifdef ARCH_WANT_HUGE_PMD_SHARE" block.  Moving it
+out won't work either since vma_shareable() is only defined within the
+block.  Define it for !ARCH_WANT_HUGE_PMD_SHARE instead.
 
-Link: https://lkml.kernel.org/r/20210310145514.3f3743fe@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20210310185359.88297-1-peterx@redhat.com
+Fixes: 5b109cc1cdcc ("hugetlb/userfaultfd: forbid huge pmd sharing when uffd enabled")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/mm/init_64.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/hugetlb.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/arch/sparc/mm/init_64.c~mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc-fix
-+++ a/arch/sparc/mm/init_64.c
-@@ -27,6 +27,7 @@
- #include <linux/percpu.h>
- #include <linux/mmzone.h>
- #include <linux/gfp.h>
-+#include <linux/bootmem_info.h>
+--- a/mm/hugetlb.c~hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix
++++ a/mm/hugetlb.c
+@@ -5329,9 +5329,6 @@ static bool vma_shareable(struct vm_area
  
- #include <asm/head.h>
- #include <asm/page.h>
+ bool want_pmd_share(struct vm_area_struct *vma, unsigned long addr)
+ {
+-#ifndef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
+-	return false;
+-#endif
+ #ifdef CONFIG_USERFAULTFD
+ 	if (uffd_disable_huge_pmd_share(vma))
+ 		return false;
+@@ -5476,6 +5473,11 @@ void adjust_range_if_pmd_sharing_possibl
+ 				unsigned long *start, unsigned long *end)
+ {
+ }
++
++bool want_pmd_share(struct vm_area_struct *vma, unsigned long addr)
++{
++	return false;
++}
+ #endif /* CONFIG_ARCH_WANT_HUGE_PMD_SHARE */
+ 
+ #ifdef CONFIG_ARCH_WANT_GENERAL_HUGETLB
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc-fix.patch
+hugetlb-dedup-the-code-to-add-a-new-file_region.patch
+hugetlg-break-earlier-in-add_reservation_in_range-when-we-can.patch
+mm-introduce-page_needs_cow_for_dma-for-deciding-whether-cow.patch
+mm-use-is_cow_mapping-across-tree-where-proper.patch
+hugetlb-do-early-cow-when-page-pinned-on-src-mm.patch
+hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share.patch
+hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share-fix.patch
+hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
+hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix.patch
+mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
+hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
 
