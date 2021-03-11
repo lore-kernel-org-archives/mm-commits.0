@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E027C4332E
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 20:38:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43FFFC4321A
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 20:38:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6FA9164F87
+	by mail.kernel.org (Postfix) with ESMTP id F1BBC64F93
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 20:38:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230231AbhCKUhq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Mar 2021 15:37:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53450 "EHLO mail.kernel.org"
+        id S230233AbhCKUhr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Mar 2021 15:37:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53488 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230259AbhCKUhf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Mar 2021 15:37:35 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 14C4C64F87;
-        Thu, 11 Mar 2021 20:37:35 +0000 (UTC)
+        id S230386AbhCKUhi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Mar 2021 15:37:38 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E6EF164F8B;
+        Thu, 11 Mar 2021 20:37:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615495055;
-        bh=be5N73JfW9K30UHw86+hkZBZjqdqDdPUaYqTKKjYYoU=;
+        s=korg; t=1615495058;
+        bh=cA4XTEpUIoHoe2kBg/6vCs9FRHvzkPSyArNJoGnJaK8=;
         h=Date:From:To:Subject:From;
-        b=gsR40Il0tyUoyt/s5N86Mw1A3o3wcROkQAa4BZHcitok2x5iq3w3wh1exW2TMU8sa
-         I2KIRF0mQ+6lyiKN/6dQTuLh1bkpRgM8Y19AAeLP23VHBch1FIAZUjo5f/7ROveblf
-         cuB3yAeUbhr7UuWXfOA55NVOtWz8Sdl8GYGnqo0I=
-Date:   Thu, 11 Mar 2021 12:37:34 -0800
+        b=j2Omffces2weDesRnjSKk2fRzTC36Ixgy7Ck930+l3DTAkqZEpb9oIecAdcGseNYH
+         sv4sG6Wi1sNVyTKUcA3xUY1XobKLPeuKPjisQ1lRWKN8nUeJaSFWvv2IA/kA85RHkQ
+         /iNvwu4GGu18GxsZzRkCiP/RWXlYmX63KW/YIfJs=
+Date:   Thu, 11 Mar 2021 12:37:37 -0800
 From:   akpm@linux-foundation.org
 To:     david@fromorbit.com, guro@fb.com, hannes@cmpxchg.org,
         ktkhai@virtuozzo.com, mhocko@suse.com, mm-commits@vger.kernel.org,
         shakeelb@google.com, shy828301@gmail.com, vbabka@suse.cz
-Subject:  +
- mm-vmscan-use-a-new-flag-to-indicate-shrinker-is-registered.patch added to
- -mm tree
-Message-ID: <20210311203734.WjUdnfnaF%akpm@linux-foundation.org>
+Subject:  + mm-vmscan-add-per-memcg-shrinker-nr_deferred.patch
+ added to -mm tree
+Message-ID: <20210311203737.6V5qMHgF_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: use a new flag to indicate shrinker is registered
+     Subject: mm: vmscan: add per memcg shrinker nr_deferred
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-use-a-new-flag-to-indicate-shrinker-is-registered.patch
+     mm-vmscan-add-per-memcg-shrinker-nr_deferred.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-use-a-new-flag-to-indicate-shrinker-is-registered.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-add-per-memcg-shrinker-nr_deferred.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-use-a-new-flag-to-indicate-shrinker-is-registered.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-add-per-memcg-shrinker-nr_deferred.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,150 +66,218 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: vmscan: use a new flag to indicate shrinker is registered
+Subject: mm: vmscan: add per memcg shrinker nr_deferred
 
-Currently registered shrinker is indicated by non-NULL
-shrinker->nr_deferred.  This approach is fine with nr_deferred at the
-shrinker level, but the following patches will move MEMCG_AWARE shrinkers'
-nr_deferred to memcg level, so their shrinker->nr_deferred would always be
-NULL.  This would prevent the shrinkers from unregistering correctly.
+Currently the number of deferred objects are per shrinker, but some slabs,
+for example, vfs inode/dentry cache are per memcg, this would result in
+poor isolation among memcgs.
 
-Remove SHRINKER_REGISTERING since we could check if shrinker is registered
-successfully by the new flag.
+The deferred objects typically are generated by __GFP_NOFS allocations,
+one memcg with excessive __GFP_NOFS allocations may blow up deferred
+objects, then other innocent memcgs may suffer from over shrink, excessive
+reclaim latency, etc.
 
-Link: https://lkml.kernel.org/r/20210311190845.9708-9-shy828301@gmail.com
+For example, two workloads run in memcgA and memcgB respectively, workload
+in B is vfs heavy workload.  Workload in A generates excessive deferred
+objects, then B's vfs cache might be hit heavily (drop half of caches) by
+B's limit reclaim or global reclaim.
+
+We observed this hit in our production environment which was running vfs
+heavy workload shown as the below tracing log:
+
+<...>-409454 [016] .... 28286961.747146: mm_shrink_slab_start: super_cache_scan+0x0/0x1a0 ffff9a83046f3458:
+nid: 1 objects to shrink 3641681686040 gfp_flags GFP_HIGHUSER_MOVABLE|__GFP_ZERO pgs_scanned 1 lru_pgs 15721
+cache items 246404277 delta 31345 total_scan 123202138
+<...>-409454 [022] .... 28287105.928018: mm_shrink_slab_end: super_cache_scan+0x0/0x1a0 ffff9a83046f3458:
+nid: 1 unused scan count 3641681686040 new scan count 3641798379189 total_scan 602
+last shrinker return val 123186855
+
+The vfs cache and page cache ratio was 10:1 on this machine, and half of
+caches were dropped.  This also resulted in significant amount of page
+caches were dropped due to inodes eviction.
+
+Make nr_deferred per memcg for memcg aware shrinkers would solve the
+unfairness and bring better isolation.
+
+The following patch will add nr_deferred to parent memcg when memcg
+offline.  To preserve nr_deferred when reparenting memcgs to root, root
+memcg needs shrinker_info allocated too.
+
+When memcg is not enabled (!CONFIG_MEMCG or memcg disabled), the
+shrinker's nr_deferred would be used.  And non memcg aware shrinkers use
+shrinker's nr_deferred all the time.
+
+Link: https://lkml.kernel.org/r/20210311190845.9708-10-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Kirill Tkhai <ktkhai@virtuozzo.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shrinker.h |    7 +++---
- mm/vmscan.c              |   40 +++++++++++++------------------------
- 2 files changed, 19 insertions(+), 28 deletions(-)
+ include/linux/memcontrol.h |    7 ++--
+ mm/vmscan.c                |   60 ++++++++++++++++++++++++-----------
+ 2 files changed, 46 insertions(+), 21 deletions(-)
 
---- a/include/linux/shrinker.h~mm-vmscan-use-a-new-flag-to-indicate-shrinker-is-registered
-+++ a/include/linux/shrinker.h
-@@ -79,13 +79,14 @@ struct shrinker {
- #define DEFAULT_SEEKS 2 /* A good number if you don't know better. */
+--- a/include/linux/memcontrol.h~mm-vmscan-add-per-memcg-shrinker-nr_deferred
++++ a/include/linux/memcontrol.h
+@@ -114,12 +114,13 @@ struct batched_lruvec_stat {
+ };
  
- /* Flags */
--#define SHRINKER_NUMA_AWARE	(1 << 0)
--#define SHRINKER_MEMCG_AWARE	(1 << 1)
-+#define SHRINKER_REGISTERED	(1 << 0)
-+#define SHRINKER_NUMA_AWARE	(1 << 1)
-+#define SHRINKER_MEMCG_AWARE	(1 << 2)
  /*
-  * It just makes sense when the shrinker is also MEMCG_AWARE for now,
-  * non-MEMCG_AWARE shrinker should not have this flag set.
+- * Bitmap of shrinker::id corresponding to memcg-aware shrinkers,
+- * which have elements charged to this memcg.
++ * Bitmap and deferred work of shrinker::id corresponding to memcg-aware
++ * shrinkers, which have elements charged to this memcg.
   */
--#define SHRINKER_NONSLAB	(1 << 2)
-+#define SHRINKER_NONSLAB	(1 << 3)
+ struct shrinker_info {
+ 	struct rcu_head rcu;
+-	unsigned long map[];
++	atomic_long_t *nr_deferred;
++	unsigned long *map;
+ };
  
- extern int prealloc_shrinker(struct shrinker *shrinker);
- extern void register_shrinker_prepared(struct shrinker *shrinker);
---- a/mm/vmscan.c~mm-vmscan-use-a-new-flag-to-indicate-shrinker-is-registered
+ /*
+--- a/mm/vmscan.c~mm-vmscan-add-per-memcg-shrinker-nr_deferred
 +++ a/mm/vmscan.c
-@@ -316,19 +316,6 @@ void set_shrinker_bit(struct mem_cgroup
- 	}
+@@ -187,11 +187,17 @@ static DECLARE_RWSEM(shrinker_rwsem);
+ #ifdef CONFIG_MEMCG
+ static int shrinker_nr_max;
+ 
++/* The shrinker_info is expanded in a batch of BITS_PER_LONG */
+ static inline int shrinker_map_size(int nr_items)
+ {
+ 	return (DIV_ROUND_UP(nr_items, BITS_PER_LONG) * sizeof(unsigned long));
  }
  
--/*
-- * We allow subsystems to populate their shrinker-related
-- * LRU lists before register_shrinker_prepared() is called
-- * for the shrinker, since we don't want to impose
-- * restrictions on their internal registration order.
-- * In this case shrink_slab_memcg() may find corresponding
-- * bit is set in the shrinkers map.
-- *
-- * This value is used by the function to detect registering
-- * shrinkers and to skip do_shrink_slab() calls for them.
-- */
--#define SHRINKER_REGISTERING ((struct shrinker *)~0UL)
++static inline int shrinker_defer_size(int nr_items)
++{
++	return (round_up(nr_items, BITS_PER_LONG) * sizeof(atomic_long_t));
++}
++
+ static struct shrinker_info *shrinker_info_protected(struct mem_cgroup *memcg,
+ 						     int nid)
+ {
+@@ -200,11 +206,13 @@ static struct shrinker_info *shrinker_in
+ }
+ 
+ static int expand_one_shrinker_info(struct mem_cgroup *memcg,
+-				    int size, int old_size)
++				    int map_size, int defer_size,
++				    int old_map_size, int old_defer_size)
+ {
+ 	struct shrinker_info *new, *old;
+ 	struct mem_cgroup_per_node *pn;
+ 	int nid;
++	int size = map_size + defer_size;
+ 
+ 	for_each_node(nid) {
+ 		pn = memcg->nodeinfo[nid];
+@@ -217,9 +225,16 @@ static int expand_one_shrinker_info(stru
+ 		if (!new)
+ 			return -ENOMEM;
+ 
+-		/* Set all old bits, clear all new bits */
+-		memset(new->map, (int)0xff, old_size);
+-		memset((void *)new->map + old_size, 0, size - old_size);
++		new->nr_deferred = (atomic_long_t *)(new + 1);
++		new->map = (void *)new->nr_deferred + defer_size;
++
++		/* map: set all old bits, clear all new bits */
++		memset(new->map, (int)0xff, old_map_size);
++		memset((void *)new->map + old_map_size, 0, map_size - old_map_size);
++		/* nr_deferred: copy old values, clear all new values */
++		memcpy(new->nr_deferred, old->nr_deferred, old_defer_size);
++		memset((void *)new->nr_deferred + old_defer_size, 0,
++		       defer_size - old_defer_size);
+ 
+ 		rcu_assign_pointer(pn->shrinker_info, new);
+ 		kvfree_rcu(old, rcu);
+@@ -234,9 +249,6 @@ void free_shrinker_info(struct mem_cgrou
+ 	struct shrinker_info *info;
+ 	int nid;
+ 
+-	if (mem_cgroup_is_root(memcg))
+-		return;
 -
- static DEFINE_IDR(shrinker_idr);
- 
- static int prealloc_memcg_shrinker(struct shrinker *shrinker)
-@@ -337,7 +324,7 @@ static int prealloc_memcg_shrinker(struc
- 
- 	down_write(&shrinker_rwsem);
- 	/* This may call shrinker, so it must use down_read_trylock() */
--	id = idr_alloc(&shrinker_idr, SHRINKER_REGISTERING, 0, 0, GFP_KERNEL);
-+	id = idr_alloc(&shrinker_idr, shrinker, 0, 0, GFP_KERNEL);
- 	if (id < 0)
- 		goto unlock;
- 
-@@ -360,9 +347,9 @@ static void unregister_memcg_shrinker(st
- 
- 	BUG_ON(id < 0);
- 
--	down_write(&shrinker_rwsem);
-+	lockdep_assert_held(&shrinker_rwsem);
-+
- 	idr_remove(&shrinker_idr, id);
--	up_write(&shrinker_rwsem);
- }
- 
- static bool cgroup_reclaim(struct scan_control *sc)
-@@ -490,8 +477,11 @@ void free_prealloced_shrinker(struct shr
- 	if (!shrinker->nr_deferred)
- 		return;
- 
--	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
-+	if (shrinker->flags & SHRINKER_MEMCG_AWARE) {
-+		down_write(&shrinker_rwsem);
- 		unregister_memcg_shrinker(shrinker);
-+		up_write(&shrinker_rwsem);
-+	}
- 
- 	kfree(shrinker->nr_deferred);
- 	shrinker->nr_deferred = NULL;
-@@ -501,10 +491,7 @@ void register_shrinker_prepared(struct s
+ 	for_each_node(nid) {
+ 		pn = memcg->nodeinfo[nid];
+ 		info = shrinker_info_protected(memcg, nid);
+@@ -249,12 +261,12 @@ int alloc_shrinker_info(struct mem_cgrou
  {
+ 	struct shrinker_info *info;
+ 	int nid, size, ret = 0;
+-
+-	if (mem_cgroup_is_root(memcg))
+-		return 0;
++	int map_size, defer_size = 0;
+ 
  	down_write(&shrinker_rwsem);
- 	list_add_tail(&shrinker->list, &shrinker_list);
--#ifdef CONFIG_MEMCG
--	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
--		idr_replace(&shrinker_idr, shrinker, shrinker->id);
--#endif
-+	shrinker->flags |= SHRINKER_REGISTERED;
+-	size = shrinker_map_size(shrinker_nr_max);
++	map_size = shrinker_map_size(shrinker_nr_max);
++	defer_size = shrinker_defer_size(shrinker_nr_max);
++	size = map_size + defer_size;
+ 	for_each_node(nid) {
+ 		info = kvzalloc_node(sizeof(*info) + size, GFP_KERNEL, nid);
+ 		if (!info) {
+@@ -262,6 +274,8 @@ int alloc_shrinker_info(struct mem_cgrou
+ 			ret = -ENOMEM;
+ 			break;
+ 		}
++		info->nr_deferred = (atomic_long_t *)(info + 1);
++		info->map = (void *)info->nr_deferred + defer_size;
+ 		rcu_assign_pointer(memcg->nodeinfo[nid]->shrinker_info, info);
+ 	}
  	up_write(&shrinker_rwsem);
+@@ -269,15 +283,21 @@ int alloc_shrinker_info(struct mem_cgrou
+ 	return ret;
  }
  
-@@ -524,13 +511,16 @@ EXPORT_SYMBOL(register_shrinker);
-  */
- void unregister_shrinker(struct shrinker *shrinker)
++static inline bool need_expand(int nr_max)
++{
++	return round_up(nr_max, BITS_PER_LONG) >
++	       round_up(shrinker_nr_max, BITS_PER_LONG);
++}
++
+ static int expand_shrinker_info(int new_id)
  {
--	if (!shrinker->nr_deferred)
-+	if (!(shrinker->flags & SHRINKER_REGISTERED))
- 		return;
--	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
--		unregister_memcg_shrinker(shrinker);
-+
- 	down_write(&shrinker_rwsem);
- 	list_del(&shrinker->list);
-+	shrinker->flags &= ~SHRINKER_REGISTERED;
-+	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
-+		unregister_memcg_shrinker(shrinker);
- 	up_write(&shrinker_rwsem);
-+
- 	kfree(shrinker->nr_deferred);
- 	shrinker->nr_deferred = NULL;
- }
-@@ -695,7 +685,7 @@ static unsigned long shrink_slab_memcg(g
- 		struct shrinker *shrinker;
+-	int size, old_size, ret = 0;
++	int ret = 0;
+ 	int new_nr_max = new_id + 1;
++	int map_size, defer_size = 0;
++	int old_map_size, old_defer_size = 0;
+ 	struct mem_cgroup *memcg;
  
- 		shrinker = idr_find(&shrinker_idr, i);
--		if (unlikely(!shrinker || shrinker == SHRINKER_REGISTERING)) {
-+		if (unlikely(!shrinker || !(shrinker->flags & SHRINKER_REGISTERED))) {
- 			if (!shrinker)
- 				clear_bit(i, info->map);
- 			continue;
+-	size = shrinker_map_size(new_nr_max);
+-	old_size = shrinker_map_size(shrinker_nr_max);
+-	if (size <= old_size)
++	if (!need_expand(new_nr_max))
+ 		goto out;
+ 
+ 	if (!root_mem_cgroup)
+@@ -285,11 +305,15 @@ static int expand_shrinker_info(int new_
+ 
+ 	lockdep_assert_held(&shrinker_rwsem);
+ 
++	map_size = shrinker_map_size(new_nr_max);
++	defer_size = shrinker_defer_size(new_nr_max);
++	old_map_size = shrinker_map_size(shrinker_nr_max);
++	old_defer_size = shrinker_defer_size(shrinker_nr_max);
++
+ 	memcg = mem_cgroup_iter(NULL, NULL, NULL);
+ 	do {
+-		if (mem_cgroup_is_root(memcg))
+-			continue;
+-		ret = expand_one_shrinker_info(memcg, size, old_size);
++		ret = expand_one_shrinker_info(memcg, map_size, defer_size,
++					       old_map_size, old_defer_size);
+ 		if (ret) {
+ 			mem_cgroup_iter_break(NULL, memcg);
+ 			goto out;
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
