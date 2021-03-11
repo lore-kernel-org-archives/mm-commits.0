@@ -7,39 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 436C0C4332D
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 21:23:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4FADC433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 21:29:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1900064F9A
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 21:23:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2C9364F86
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 21:29:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229607AbhCKVW3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Mar 2021 16:22:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42004 "EHLO mail.kernel.org"
+        id S229490AbhCKV2g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Mar 2021 16:28:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42658 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230341AbhCKVWG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Mar 2021 16:22:06 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 263AE64F95;
-        Thu, 11 Mar 2021 21:22:05 +0000 (UTC)
+        id S229468AbhCKV2E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Mar 2021 16:28:04 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DD40164F9F;
+        Thu, 11 Mar 2021 21:28:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615497725;
-        bh=1KBn+/tzwpK0c8ijLkSaK5iP3v7+rvech44ribcGVU8=;
+        s=korg; t=1615498084;
+        bh=np/xVaML3/Aie3Hu0WPd7l+keMdnBN1dWi06YsuxogI=;
         h=Date:From:To:Subject:From;
-        b=vlg4j8eH/TifqbxUiY1FqFlsr6jpSuLcvymbA4sCU2pX/fNxW9sQouOYvcOx+5s/6
-         A4nZfho+GMEjkrwMzRJxGVmmDEbe1yrqjxu61566qYI0ucBIqRgXwXwUQuB9Xld5pH
-         q0lI6RmiIGc/L4sERuDZYVmLkJGRDY6WyAqynJyA=
-Date:   Thu, 11 Mar 2021 13:22:04 -0800
+        b=lojCg3ZcSaVrZCbC78jaWCWJXIy3Ap41xNgvGwcJuS6fIJEFadGXWYFjGwxYbknNK
+         Lz18TeATrB0PFG0ZQLswlYpjMLLumg+TtZiyynrZbSfav9mVP/ESfQmUJkJoMPOL7v
+         QO3dnWTMXtyqVAAWCEtf+SDmoPaNQefhBmTRAp9U=
+Date:   Thu, 11 Mar 2021 13:28:03 -0800
 From:   akpm@linux-foundation.org
-To:     loberman@redhat.com, mhocko@suse.com, mingo@kernel.org,
-        mm-commits@vger.kernel.org, peterz@infradead.org, pmladek@suse.com,
-        tglx@linutronix.de, vincent.whitchurch@axis.com
-Subject:  +
- =?US-ASCII?Q?watchdog-softlockup-remove-logic-that-tried-to-prevent-re?=
- =?US-ASCII?Q?peated-reports.patch?= added to -mm tree
-Message-ID: <20210311212204.YEXSD0Z2T%akpm@linux-foundation.org>
+To:     david@redhat.com, mm-commits@vger.kernel.org,
+        songqiang@uniontech.com
+Subject:  + mm-highmemc-fix-coding-style-issue.patch added to -mm
+ tree
+Message-ID: <20210311212803.zmu_PoDUE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog/softlockup: remove logic that tried to prevent repeated reports
+     Subject: mm/highmem.c: fix coding style issue
 has been added to the -mm tree.  Its filename is
-     watchdog-softlockup-remove-logic-that-tried-to-prevent-repeated-reports.patch
+     mm-highmemc-fix-coding-style-issue.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/watchdog-softlockup-remove-logic-that-tried-to-prevent-repeated-reports.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-highmemc-fix-coding-style-issue.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/watchdog-softlockup-remove-logic-that-tried-to-prevent-repeated-reports.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-highmemc-fix-coding-style-issue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,111 +64,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: watchdog/softlockup: remove logic that tried to prevent repeated reports
+From: songqiang <songqiang@uniontech.com>
+Subject: mm/highmem.c: fix coding style issue
 
-The softlockup detector does some gymnastic with the variable
-soft_watchdog_warn.  It was added by the commit 58687acba59266735ad
-("lockup_detector: Combine nmi_watchdog and softlockup detector").
+Delete/add some blank lines and some blank spaces
 
-The purpose is not completely clear.  There are the following clues.  They
-describe the situation how it looked after the above mentioned commit:
-
-  1. The variable was checked with a comment "only warn once".
-
-  2. The variable was set when softlockup was reported. It was cleared
-     only when the CPU was not longer in the softlockup state.
-
-  3. watchdog_touch_ts was not explicitly updated when the softlockup
-     was reported. Without this variable, the report would normally
-     be printed again during every following watchdog_timer_fn()
-     invocation.
-
-The logic has got even more tangled up by the commit ed235875e2ca98
-("kernel/watchdog.c: print traces for all cpus on lockup detection"). 
-After this commit, soft_watchdog_warn is set only when
-softlockup_all_cpu_backtrace is enabled.  But multiple reports from all
-CPUs are prevented by a new variable soft_lockup_nmi_warn.
-
-Conclusion:
-
-The variable probably never worked as intended.  In each case, it has not
-worked last many years because the softlockup was reported repeatedly
-after the full period defined by watchdog_thresh.
-
-The reason is that watchdog gets touched in many known slow paths, for
-example, in printk_stack_address().  This code is called also when
-printing the softlockup report.  It means that the watchdog timestamp gets
-updated after each report.
-
-Solution:
-
-Simply remove the logic. People want the periodic report anyway.
-
-Link: https://lkml.kernel.org/r/20210311122130.6788-5-pmladek@suse.com
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Laurence Oberman <loberman@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Link: https://lkml.kernel.org/r/20210311095015.14277-1-songqiang@uniontech.com
+Signed-off-by: songqiang <songqiang@uniontech.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+ mm/highmem.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---- a/kernel/watchdog.c~watchdog-softlockup-remove-logic-that-tried-to-prevent-repeated-reports
-+++ a/kernel/watchdog.c
-@@ -179,7 +179,6 @@ static DEFINE_PER_CPU(unsigned long, wat
- static DEFINE_PER_CPU(unsigned long, watchdog_report_ts);
- static DEFINE_PER_CPU(struct hrtimer, watchdog_hrtimer);
- static DEFINE_PER_CPU(bool, softlockup_touch_sync);
--static DEFINE_PER_CPU(bool, soft_watchdog_warn);
- static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts);
- static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts_saved);
- static unsigned long soft_lockup_nmi_warn;
-@@ -410,19 +409,12 @@ static enum hrtimer_restart watchdog_tim
- 		if (kvm_check_and_clear_guest_paused())
- 			return HRTIMER_RESTART;
+--- a/mm/highmem.c~mm-highmemc-fix-coding-style-issue
++++ a/mm/highmem.c
+@@ -104,7 +104,7 @@ static inline wait_queue_head_t *get_pkm
+ atomic_long_t _totalhigh_pages __read_mostly;
+ EXPORT_SYMBOL(_totalhigh_pages);
  
--		/* only warn once */
--		if (__this_cpu_read(soft_watchdog_warn) == true)
--			return HRTIMER_RESTART;
--
- 		if (softlockup_all_cpu_backtrace) {
- 			/* Prevent multiple soft-lockup reports if one cpu is already
- 			 * engaged in dumping cpu back traces
- 			 */
--			if (test_and_set_bit(0, &soft_lockup_nmi_warn)) {
--				/* Someone else will report us. Let's give up */
--				__this_cpu_write(soft_watchdog_warn, true);
-+			if (test_and_set_bit(0, &soft_lockup_nmi_warn))
- 				return HRTIMER_RESTART;
--			}
- 		}
+-unsigned int __nr_free_highpages (void)
++unsigned int __nr_free_highpages(void)
+ {
+ 	struct zone *zone;
+ 	unsigned int pages = 0;
+@@ -120,7 +120,7 @@ unsigned int __nr_free_highpages (void)
+ static int pkmap_count[LAST_PKMAP];
+ static  __cacheline_aligned_in_smp DEFINE_SPINLOCK(kmap_lock);
  
- 		/* Start period for the next softlockup warning. */
-@@ -452,9 +444,7 @@ static enum hrtimer_restart watchdog_tim
- 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
- 		if (softlockup_panic)
- 			panic("softlockup: hung tasks");
--		__this_cpu_write(soft_watchdog_warn, true);
--	} else
--		__this_cpu_write(soft_watchdog_warn, false);
-+	}
+-pte_t * pkmap_page_table;
++pte_t *pkmap_page_table;
  
- 	return HRTIMER_RESTART;
+ /*
+  * Most architectures have no use for kmap_high_get(), so let's abstract
+@@ -147,6 +147,7 @@ struct page *__kmap_to_page(void *vaddr)
+ 
+ 	if (addr >= PKMAP_ADDR(0) && addr < PKMAP_ADDR(LAST_PKMAP)) {
+ 		int i = PKMAP_NR(addr);
++
+ 		return pte_page(pkmap_page_table[i]);
+ 	}
+ 
+@@ -278,9 +279,8 @@ void *kmap_high(struct page *page)
+ 	pkmap_count[PKMAP_NR(vaddr)]++;
+ 	BUG_ON(pkmap_count[PKMAP_NR(vaddr)] < 2);
+ 	unlock_kmap();
+-	return (void*) vaddr;
++	return (void *) vaddr;
  }
+-
+ EXPORT_SYMBOL(kmap_high);
+ 
+ #ifdef ARCH_NEEDS_KMAP_HIGH_GET
+@@ -305,7 +305,7 @@ void *kmap_high_get(struct page *page)
+ 		pkmap_count[PKMAP_NR(vaddr)]++;
+ 	}
+ 	unlock_kmap_any(flags);
+-	return (void*) vaddr;
++	return (void *) vaddr;
+ }
+ #endif
+ 
+@@ -737,7 +737,6 @@ done:
+ 	spin_unlock_irqrestore(&pas->lock, flags);
+ 	return ret;
+ }
+-
+ EXPORT_SYMBOL(page_address);
+ 
+ /**
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from songqiang@uniontech.com are
 
-watchdog-rename-__touch_watchdog-to-a-better-descriptive-name.patch
-watchdog-explicitly-update-timestamp-when-reporting-softlockup.patch
-watchdog-softlockup-report-the-overall-time-of-softlockups.patch
-watchdog-softlockup-remove-logic-that-tried-to-prevent-repeated-reports.patch
-watchdog-fix-barriers-when-printing-backtraces-from-all-cpus.patch
-watchdog-cleanup-handling-of-false-positives.patch
+mm-highmemc-fix-coding-style-issue.patch
 
