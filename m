@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1239BC433E6
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 00:51:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2838C433E9
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 00:51:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D483464FCE
+	by mail.kernel.org (Postfix) with ESMTP id B31C764FCD
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 00:51:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229655AbhCKAvO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Mar 2021 19:51:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54898 "EHLO mail.kernel.org"
+        id S229691AbhCKAvP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Mar 2021 19:51:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54922 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229808AbhCKAvC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Mar 2021 19:51:02 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0A71564F7B;
-        Thu, 11 Mar 2021 00:51:01 +0000 (UTC)
+        id S229813AbhCKAvF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Mar 2021 19:51:05 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 066FA64FC0;
+        Thu, 11 Mar 2021 00:51:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615423862;
-        bh=tmR1sOEmw0C/ThgCLAgH6DoHa4IopPXNoI6vFPGuA7g=;
+        s=korg; t=1615423865;
+        bh=XoJ32CQ6s+2wytkG8HWlUG2rj/LWK3Nsipvz6mZrqbY=;
         h=Date:From:To:Subject:From;
-        b=JGMuYXxMaB8HcpQBVm0kT5piFCBL3cFhNjtBCU9leLP7m6D3GEk8MGznQHvCs1lDu
-         KZcLSpmgs1Jcf9xqcyMHACZPuLBmxgNJh+9Gu1kAi6Ny5b4aOFUiM2fUfGholgug7U
-         gUJKoUkTLf1fGVz9yZFATvdJUZso/5ysluhd/keY=
-Date:   Wed, 10 Mar 2021 16:51:01 -0800
+        b=GVIsysK8v0HcVlGoNd6RGhNuf34A7kqzwAAkQFlCqq0cCVFdGGEZTE8TDN4XnbtmU
+         1lpqrPBa6wG2B8Ns2LiczhDuMMQoUC1vxUqD+mjDYk7aZvgIMgBgTM+xWTL6kBB/dZ
+         te2omUsNWoftOYlK3MmuLtlPNDyjGPRZIEoyX+dw=
+Date:   Wed, 10 Mar 2021 16:51:04 -0800
 From:   akpm@linux-foundation.org
 To:     anshuman.khandual@arm.com, david@redhat.com, mhocko@kernel.org,
         mm-commits@vger.kernel.org, osalvador@suse.de,
         pasha.tatashin@soleen.com, vbabka@suse.cz
 Subject:  +
- mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
- added to -mm tree
-Message-ID: <20210311005101.HzOWKK_RF%akpm@linux-foundation.org>
+ x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch added to -mm
+ tree
+Message-ID: <20210311005104.Yqa6nSjec%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,memory_hotplug: add kernel boot option to enable memmap_on_memory
+     Subject: x86/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
 has been added to the -mm tree.  Its filename is
-     mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
+     x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,17 +67,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,memory_hotplug: add kernel boot option to enable memmap_on_memory
+Subject: x86/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
 
-Self stored memmap leads to a sparse memory situation which is unsuitable
-for workloads that requires large contiguous memory chunks, so make this
-an opt-in which needs to be explicitly enabled.
+Enable x86_64 platform to use the MHP_MEMMAP_ON_MEMORY feature.
 
-To control this, let memory_hotplug have its own memory space, as
-suggested by David, so we can add memory_hotplug.memmap_on_memory
-parameter.
-
-Link: https://lkml.kernel.org/r/20210309175546.5877-4-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20210309175546.5877-5-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -87,79 +81,21 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |   16 ++++++++++++++
- mm/Makefile                                     |    5 +++-
- mm/memory_hotplug.c                             |   10 +++++++-
- 3 files changed, 29 insertions(+), 2 deletions(-)
+ arch/x86/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -2808,6 +2808,22 @@
- 			seconds.  Use this parameter to check at some
- 			other rate.  0 disables periodic checking.
+--- a/arch/x86/Kconfig~x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable
++++ a/arch/x86/Kconfig
+@@ -2434,6 +2434,9 @@ config ARCH_ENABLE_MEMORY_HOTREMOVE
+ 	def_bool y
+ 	depends on MEMORY_HOTPLUG
  
-+	memory_hotplug.memmap_on_memory
-+			[KNL,X86,ARM] Boolean flag to enable this feature.
-+			Format: {on | off (default)}
-+			When enabled, memory to build the pages tables for the
-+			memmap array describing the hot-added range will be taken
-+			from the range itself, so the memmap page tables will be
-+			self-hosted.
-+			Since only single memory device ranges are supported at
-+			the moment, this option is disabled by default because
-+			it might have an impact on workloads that needs large
-+			contiguous memory chunks.
-+			The state of the flag can be read in
-+			/sys/module/memory_hotplug/parameters/memmap_on_memory.
-+			Note that even when enabled, there are a few cases where
-+			the feature is not effective.
++config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
++	def_bool y
 +
- 	memtest=	[KNL,X86,ARM,PPC] Enable memtest
- 			Format: <integer>
- 			default : 0 <disable>
---- a/mm/Makefile~mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory
-+++ a/mm/Makefile
-@@ -58,9 +58,13 @@ obj-y			:= filemap.o mempool.o oom_kill.
- page-alloc-y := page_alloc.o
- page-alloc-$(CONFIG_SHUFFLE_PAGE_ALLOCATOR) += shuffle.o
- 
-+# Give 'memory_hotplug' its own module-parameter namespace
-+memory-hotplug-$(CONFIG_MEMORY_HOTPLUG) += memory_hotplug.o
-+
- obj-y += page-alloc.o
- obj-y += init-mm.o
- obj-y += memblock.o
-+obj-y += $(memory-hotplug-y)
- 
- ifdef CONFIG_MMU
- 	obj-$(CONFIG_ADVISE_SYSCALLS)	+= madvise.o
-@@ -85,7 +89,6 @@ obj-$(CONFIG_KASAN)	+= kasan/
- obj-$(CONFIG_KFENCE) += kfence/
- obj-$(CONFIG_FAILSLAB) += failslab.o
- obj-$(CONFIG_HAVE_BOOTMEM_INFO_NODE) += bootmem_info.o
--obj-$(CONFIG_MEMORY_HOTPLUG) += memory_hotplug.o
- obj-$(CONFIG_MEMTEST)		+= memtest.o
- obj-$(CONFIG_MIGRATION) += migrate.o
- obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o khugepaged.o
---- a/mm/memory_hotplug.c~mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory
-+++ a/mm/memory_hotplug.c
-@@ -42,7 +42,15 @@
- #include "internal.h"
- #include "shuffle.h"
- 
--static bool memmap_on_memory;
-+
-+/*
-+ * memory_hotplug.memmap_on_memory parameter
-+ */
-+static bool memmap_on_memory __ro_after_init;
-+#ifdef CONFIG_MHP_MEMMAP_ON_MEMORY
-+module_param(memmap_on_memory, bool, 0444);
-+MODULE_PARM_DESC(memmap_on_memory, "Enable memmap on memory for memory hotplug");
-+#endif
- 
- /*
-  * online_page_callback contains pointer to current page onlining function.
+ config USE_PERCPU_NUMA_NODE_ID
+ 	def_bool y
+ 	depends on NUMA
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
