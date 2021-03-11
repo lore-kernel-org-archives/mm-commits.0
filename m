@@ -7,38 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEB4EC433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 05:35:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CE3EC433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 18:47:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CF5E64FC9
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 05:35:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0978364FE0
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 18:47:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229649AbhCKFfD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Mar 2021 00:35:03 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37866 "EHLO mail.kernel.org"
+        id S229784AbhCKSql (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Mar 2021 13:46:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36550 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229515AbhCKFe6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Mar 2021 00:34:58 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D97FA64FC4;
-        Thu, 11 Mar 2021 05:34:57 +0000 (UTC)
+        id S229468AbhCKSqW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Mar 2021 13:46:22 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EF1F364FD4;
+        Thu, 11 Mar 2021 18:46:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615440898;
-        bh=tYbGBflmGNkr4uRaaPnw0H6m5cchdyt5LQ3gjaIHBbA=;
+        s=korg; t=1615488382;
+        bh=ydNO+cNAkTiKyGY/Sn8yNFsp/JF/pg/rr3EIc9USL5s=;
         h=Date:From:To:Subject:From;
-        b=Jabc/h4yD67Gelt1cHsLN3kAAXlQ8W1dtzgtkEYpm+YuEGRnqmzfUaaWdJKaMl6WF
-         g/X01YLSlL2oU2jDMt7PvfUQ4nffj2AZDJt3oRnbF1PhHjFXN61Gml9hnzNnnehiFv
-         dibzcggijfqodSTkQU6dXCN8qK3pi91s5ydFUENE=
-Date:   Wed, 10 Mar 2021 21:34:57 -0800
+        b=jP80QHIS1XpzItgV3RspEUAZXNXtf0XX4cA7YKm6KaEPRzfkVduS2TwkOhC696HGq
+         +qyd4ObmD45wkw7acrn1u2U/mpMO+u4FYaMls1NYGk5USZP5WzAqcCEiw3v7sTnRIT
+         hhvqL1etEeD1YPp5+3QmJRO0oZq3XWIcOnt7kbAo=
+Date:   Thu, 11 Mar 2021 10:46:21 -0800
 From:   akpm@linux-foundation.org
-To:     baijiaju1990@gmail.com, bhe@redhat.com, mm-commits@vger.kernel.org,
-        oslab@tsinghua.edu.cn
+To:     anshuman.khandual@arm.com, david@redhat.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, osalvador@suse.de,
+        pasha.tatashin@soleen.com, vbabka@suse.cz
 Subject:  +
- =?US-ASCII?Q?kernel-kexec=5Ffile-fix-error-return-code-of-kexec=5Fcalcu?=
- =?US-ASCII?Q?late=5Fstore=5Fdigests.patch?= added to -mm tree
-Message-ID: <20210311053457.wMRYFsdTc%akpm@linux-foundation.org>
+ arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch added to -mm
+ tree
+Message-ID: <20210311184621.DTz1h9CMG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel: kexec_file: fix error return code of kexec_calculate_store_digests()
+     Subject: arm64/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
 has been added to the -mm tree.  Its filename is
-     kernel-kexec_file-fix-error-return-code-of-kexec_calculate_store_digests.patch
+     arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kernel-kexec_file-fix-error-return-code-of-kexec_calculate_store_digests.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-kexec_file-fix-error-return-code-of-kexec_calculate_store_digests.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,41 +66,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jia-Ju Bai <baijiaju1990@gmail.com>
-Subject: kernel: kexec_file: fix error return code of kexec_calculate_store_digests()
+From: Oscar Salvador <osalvador@suse.de>
+Subject: arm64/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
 
-When vzalloc() returns NULL to sha_regions, no error return code of
-kexec_calculate_store_digests() is assigned.  To fix this bug, ret is
-assigned with -ENOMEM in this case.
+Enable arm64 platform to use the MHP_MEMMAP_ON_MEMORY feature.
 
-Link: https://lkml.kernel.org/r/20210309083904.24321-1-baijiaju1990@gmail.com
-Fixes: a43cac0d9dc2 ("kexec: split kexec_file syscall code to kexec_file.c")
-Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
-Reported-by: TOTE Robot <oslab@tsinghua.edu.cn>
-Acked-by: Baoquan He <bhe@redhat.com>
+Link: https://lkml.kernel.org/r/20210309175546.5877-6-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_file.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/arm64/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/kernel/kexec_file.c~kernel-kexec_file-fix-error-return-code-of-kexec_calculate_store_digests
-+++ a/kernel/kexec_file.c
-@@ -740,8 +740,10 @@ static int kexec_calculate_store_digests
+--- a/arch/arm64/Kconfig~arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable
++++ a/arch/arm64/Kconfig
+@@ -310,6 +310,9 @@ config ARCH_ENABLE_MEMORY_HOTPLUG
+ config ARCH_ENABLE_MEMORY_HOTREMOVE
+ 	def_bool y
  
- 	sha_region_sz = KEXEC_SEGMENT_MAX * sizeof(struct kexec_sha_region);
- 	sha_regions = vzalloc(sha_region_sz);
--	if (!sha_regions)
-+	if (!sha_regions) {
-+		ret = -ENOMEM;
- 		goto out_free_desc;
-+	}
- 
- 	desc->tfm   = tfm;
++config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
++	def_bool y
++
+ config SMP
+ 	def_bool y
  
 _
 
-Patches currently in -mm which might be from baijiaju1990@gmail.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-kernel-kexec_file-fix-error-return-code-of-kexec_calculate_store_digests.patch
+x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
+x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
+x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
+x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
+mmmemory_hotplug-allocate-memmap-from-the-added-memory-range.patch
+acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
+mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
+x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
