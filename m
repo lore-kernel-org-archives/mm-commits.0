@@ -7,39 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72B37C4332D
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 22:45:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76C58C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 23:18:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 466A864F9F
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 22:45:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 36F8A64F93
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 23:18:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229564AbhCKWpS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Mar 2021 17:45:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34550 "EHLO mail.kernel.org"
+        id S230406AbhCKXSR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Mar 2021 18:18:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53160 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229667AbhCKWpR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Mar 2021 17:45:17 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3BBD864F26;
-        Thu, 11 Mar 2021 22:45:16 +0000 (UTC)
+        id S230445AbhCKXRu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Mar 2021 18:17:50 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E194264F9A;
+        Thu, 11 Mar 2021 23:17:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615502717;
-        bh=t8MhDPZL51TMHrRPyEf2xFl1yagAlxRw4JLHyrEwzB0=;
+        s=korg; t=1615504670;
+        bh=L4g2tHWxj45VAgfEKkO9hteXq5h9SVoaylBXsiIoAME=;
         h=Date:From:To:Subject:From;
-        b=UZwgJhk0p8Ncbec43nyR2ExTBUWMItZ8yEDl49bmOStjyax6gM9qVhf4T1C+8PMM4
-         tS30dHSlsJ14xWyBQGZhN4v4b4jtkQ1XJVldA+bxYQbbA3yTZYGlpl5GGux5b2mDpO
-         cykDQie9XHu3uuO7zfb8qkN9x1HS2Bqa5TDA7G+U=
-Date:   Thu, 11 Mar 2021 14:45:15 -0800
+        b=kJtUqArQKveDqIjsoDd/brfVplykvOD9Q2WAgKUv+KhQs9MA5T7KDqMuLidKQbzx+
+         JDXz71s0gXk86o2d+J7KGDqQG9T63uz87UDQITERr0QRAWnuK73yoDgESPPN467JLg
+         R/M1kAdjRYtUEQGav/U34rKwsKSjae8GtHkjH2WQ=
+Date:   Thu, 11 Mar 2021 15:17:49 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
-        Branislav.Rankov@arm.com, catalin.marinas@arm.com, cl@linux.com,
-        dvyukov@google.com, elver@google.com, eugenis@google.com,
-        glider@google.com, iamjoonsoo.kim@lge.com, kevin.brodsky@arm.com,
-        mm-commits@vger.kernel.org, pcc@google.com, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz, vincenzo.frascino@arm.com,
-        will.deacon@arm.com
-Subject:  + kasan-mm-integrate-slab-init_on_free-with-hw_tags.patch
+To:     baolin.wang@linux.alibaba.com, david@redhat.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org
+Subject:  + mm-cma-use-pr_err_ratelimited-for-cma-warning.patch
  added to -mm tree
-Message-ID: <20210311224515.YychRNGhC%akpm@linux-foundation.org>
+Message-ID: <20210311231749.FdQ2KILk1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, mm: integrate slab init_on_free with HW_TAGS
+     Subject: mm: cma: use pr_err_ratelimited for CMA warning
 has been added to the -mm tree.  Its filename is
-     kasan-mm-integrate-slab-init_on_free-with-hw_tags.patch
+     mm-cma-use-pr_err_ratelimited-for-cma-warning.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-mm-integrate-slab-init_on_free-with-hw_tags.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-use-pr_err_ratelimited-for-cma-warning.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-mm-integrate-slab-init_on_free-with-hw_tags.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-use-pr_err_ratelimited-for-cma-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,253 +64,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, mm: integrate slab init_on_free with HW_TAGS
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: cma: use pr_err_ratelimited for CMA warning
 
-This change uses the previously added memory initialization feature of
-HW_TAGS KASAN routines for slab memory when init_on_free is enabled.
+If we did not reserve extra CMA memory, the log buffer can be easily
+filled up by CMA failure warning when the devices calling
+dmam_alloc_coherent() to alloc DMA memory.  Thus we can use
+pr_err_ratelimited() instead to reduce the duplicate CMA warning.
 
-With this change, memory initialization memset() is no longer called when
-both HW_TAGS KASAN and init_on_free are enabled.  Instead, memory is
-initialized in KASAN runtime.
-
-For SLUB, the memory initialization memset() is moved into
-slab_free_hook() that currently directly follows the initialization loop. 
-A new argument is added to slab_free_hook() that indicates whether to
-initialize the memory or not.
-
-To avoid discrepancies with which memory gets initialized that can be
-caused by future changes, both KASAN hook and initialization memset() are
-put together and a warning comment is added.
-
-Combining setting allocation tags with memory initialization improves
-HW_TAGS KASAN performance when init_on_free is enabled.
-
-Link: https://lkml.kernel.org/r/190fd15c1886654afdec0d19ebebd5ade665b601.1615296150.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will.deacon@arm.com>
+Link: https://lkml.kernel.org/r/ce2251ef49e1727a9a40531d1996660b05462bd2.1615279825.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   10 +++++----
- mm/kasan/common.c     |   13 ++++++------
- mm/slab.c             |   15 ++++++++++---
- mm/slub.c             |   43 ++++++++++++++++++++++------------------
- 4 files changed, 48 insertions(+), 33 deletions(-)
+ mm/cma.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/kasan.h~kasan-mm-integrate-slab-init_on_free-with-hw_tags
-+++ a/include/linux/kasan.h
-@@ -203,11 +203,13 @@ static __always_inline void * __must_che
- 	return (void *)object;
- }
- 
--bool __kasan_slab_free(struct kmem_cache *s, void *object, unsigned long ip);
--static __always_inline bool kasan_slab_free(struct kmem_cache *s, void *object)
-+bool __kasan_slab_free(struct kmem_cache *s, void *object,
-+			unsigned long ip, bool init);
-+static __always_inline bool kasan_slab_free(struct kmem_cache *s,
-+						void *object, bool init)
- {
- 	if (kasan_enabled())
--		return __kasan_slab_free(s, object, _RET_IP_);
-+		return __kasan_slab_free(s, object, _RET_IP_, init);
- 	return false;
- }
- 
-@@ -313,7 +315,7 @@ static inline void *kasan_init_slab_obj(
- {
- 	return (void *)object;
- }
--static inline bool kasan_slab_free(struct kmem_cache *s, void *object)
-+static inline bool kasan_slab_free(struct kmem_cache *s, void *object, bool init)
- {
- 	return false;
- }
---- a/mm/kasan/common.c~kasan-mm-integrate-slab-init_on_free-with-hw_tags
-+++ a/mm/kasan/common.c
-@@ -322,8 +322,8 @@ void * __must_check __kasan_init_slab_ob
- 	return (void *)object;
- }
- 
--static inline bool ____kasan_slab_free(struct kmem_cache *cache,
--				void *object, unsigned long ip, bool quarantine)
-+static inline bool ____kasan_slab_free(struct kmem_cache *cache, void *object,
-+				unsigned long ip, bool quarantine, bool init)
- {
- 	u8 tag;
- 	void *tagged_object;
-@@ -351,7 +351,7 @@ static inline bool ____kasan_slab_free(s
+--- a/mm/cma.c~mm-cma-use-pr_err_ratelimited-for-cma-warning
++++ a/mm/cma.c
+@@ -500,8 +500,8 @@ struct page *cma_alloc(struct cma *cma,
  	}
  
- 	kasan_poison(object, round_up(cache->object_size, KASAN_GRANULE_SIZE),
--			KASAN_KMALLOC_FREE, false);
-+			KASAN_KMALLOC_FREE, init);
- 
- 	if ((IS_ENABLED(CONFIG_KASAN_GENERIC) && !quarantine))
- 		return false;
-@@ -362,9 +362,10 @@ static inline bool ____kasan_slab_free(s
- 	return kasan_quarantine_put(cache, object);
- }
- 
--bool __kasan_slab_free(struct kmem_cache *cache, void *object, unsigned long ip)
-+bool __kasan_slab_free(struct kmem_cache *cache, void *object,
-+				unsigned long ip, bool init)
- {
--	return ____kasan_slab_free(cache, object, ip, true);
-+	return ____kasan_slab_free(cache, object, ip, true, init);
- }
- 
- static inline bool ____kasan_kfree_large(void *ptr, unsigned long ip)
-@@ -409,7 +410,7 @@ void __kasan_slab_free_mempool(void *ptr
- 			return;
- 		kasan_poison(ptr, page_size(page), KASAN_FREE_PAGE, false);
- 	} else {
--		____kasan_slab_free(page->slab_cache, ptr, ip, false);
-+		____kasan_slab_free(page->slab_cache, ptr, ip, false, false);
- 	}
- }
- 
---- a/mm/slab.c~kasan-mm-integrate-slab-init_on_free-with-hw_tags
-+++ a/mm/slab.c
-@@ -3425,17 +3425,24 @@ free_done:
- static __always_inline void __cache_free(struct kmem_cache *cachep, void *objp,
- 					 unsigned long caller)
- {
-+	bool init;
-+
- 	if (is_kfence_address(objp)) {
- 		kmemleak_free_recursive(objp, cachep->flags);
- 		__kfence_free(objp);
- 		return;
+ 	if (ret && !no_warn) {
+-		pr_err("%s: %s: alloc failed, req-size: %zu pages, ret: %d\n",
+-		       __func__, cma->name, count, ret);
++		pr_err_ratelimited("%s: %s: alloc failed, req-size: %zu pages, ret: %d\n",
++				   __func__, cma->name, count, ret);
+ 		cma_debug_show_areas(cma);
  	}
  
--	if (unlikely(slab_want_init_on_free(cachep)))
-+	/*
-+	 * As memory initialization might be integrated into KASAN,
-+	 * kasan_slab_free and initialization memset must be
-+	 * kept together to avoid discrepancies in behavior.
-+	 */
-+	init = slab_want_init_on_free(cachep);
-+	if (init && !kasan_has_integrated_init())
- 		memset(objp, 0, cachep->object_size);
--
--	/* Put the object into the quarantine, don't touch it for now. */
--	if (kasan_slab_free(cachep, objp))
-+	/* KASAN might put objp into memory quarantine, delaying its reuse. */
-+	if (kasan_slab_free(cachep, objp, init))
- 		return;
- 
- 	/* Use KCSAN to help debug racy use-after-free. */
---- a/mm/slub.c~kasan-mm-integrate-slab-init_on_free-with-hw_tags
-+++ a/mm/slub.c
-@@ -1532,7 +1532,8 @@ static __always_inline void kfree_hook(v
- 	kasan_kfree_large(x);
- }
- 
--static __always_inline bool slab_free_hook(struct kmem_cache *s, void *x)
-+static __always_inline bool slab_free_hook(struct kmem_cache *s,
-+						void *x, bool init)
- {
- 	kmemleak_free_recursive(x, s->flags);
- 
-@@ -1558,8 +1559,25 @@ static __always_inline bool slab_free_ho
- 		__kcsan_check_access(x, s->object_size,
- 				     KCSAN_ACCESS_WRITE | KCSAN_ACCESS_ASSERT);
- 
--	/* KASAN might put x into memory quarantine, delaying its reuse */
--	return kasan_slab_free(s, x);
-+	/*
-+	 * As memory initialization might be integrated into KASAN,
-+	 * kasan_slab_free and initialization memset's must be
-+	 * kept together to avoid discrepancies in behavior.
-+	 *
-+	 * The initialization memset's clear the object and the metadata,
-+	 * but don't touch the SLAB redzone.
-+	 */
-+	if (init) {
-+		int rsize;
-+
-+		if (!kasan_has_integrated_init())
-+			memset(kasan_reset_tag(x), 0, s->object_size);
-+		rsize = (s->flags & SLAB_RED_ZONE) ? s->red_left_pad : 0;
-+		memset((char *)kasan_reset_tag(x) + s->inuse, 0,
-+		       s->size - s->inuse - rsize);
-+	}
-+	/* KASAN might put x into memory quarantine, delaying its reuse. */
-+	return kasan_slab_free(s, x, init);
- }
- 
- static inline bool slab_free_freelist_hook(struct kmem_cache *s,
-@@ -1569,10 +1587,9 @@ static inline bool slab_free_freelist_ho
- 	void *object;
- 	void *next = *head;
- 	void *old_tail = *tail ? *tail : *head;
--	int rsize;
- 
- 	if (is_kfence_address(next)) {
--		slab_free_hook(s, next);
-+		slab_free_hook(s, next, false);
- 		return true;
- 	}
- 
-@@ -1584,20 +1601,8 @@ static inline bool slab_free_freelist_ho
- 		object = next;
- 		next = get_freepointer(s, object);
- 
--		if (slab_want_init_on_free(s)) {
--			/*
--			 * Clear the object and the metadata, but don't touch
--			 * the redzone.
--			 */
--			memset(kasan_reset_tag(object), 0, s->object_size);
--			rsize = (s->flags & SLAB_RED_ZONE) ? s->red_left_pad
--							   : 0;
--			memset((char *)kasan_reset_tag(object) + s->inuse, 0,
--			       s->size - s->inuse - rsize);
--
--		}
- 		/* If object's reuse doesn't have to be delayed */
--		if (!slab_free_hook(s, object)) {
-+		if (!slab_free_hook(s, object, slab_want_init_on_free(s))) {
- 			/* Move object to the new freelist */
- 			set_freepointer(s, object, *head);
- 			*head = object;
-@@ -3278,7 +3283,7 @@ int build_detached_freelist(struct kmem_
- 	}
- 
- 	if (is_kfence_address(object)) {
--		slab_free_hook(df->s, object);
-+		slab_free_hook(df->s, object, false);
- 		__kfence_free(object);
- 		p[size] = NULL; /* mark object processed */
- 		return size;
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-kasan-mm-fix-crash-with-hw_tags-and-debug_pagealloc.patch
-kasan-fix-kasan_stack-dependency-for-hw_tags.patch
-kasan-fix-per-page-tags-for-non-page_alloc-pages.patch
-kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch
-mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
-arm64-kasan-allow-to-init-memory-when-setting-tags.patch
-kasan-init-memory-in-kasan_unpoison-for-hw_tags.patch
-kasan-mm-integrate-page_alloc-init-with-hw_tags.patch
-kasan-mm-integrate-slab-init_on_alloc-with-hw_tags.patch
-kasan-mm-integrate-slab-init_on_free-with-hw_tags.patch
+mm-cma-use-pr_err_ratelimited-for-cma-warning.patch
 
