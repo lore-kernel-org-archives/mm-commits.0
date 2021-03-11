@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 334ABC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73D20C433E0
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 20:38:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB12964F88
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 20:38:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3256664F8D
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 20:38:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230386AbhCKUiQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Mar 2021 15:38:16 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53548 "EHLO mail.kernel.org"
+        id S230000AbhCKUiS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Mar 2021 15:38:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53576 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230000AbhCKUhq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Mar 2021 15:37:46 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2CE8464F8B;
-        Thu, 11 Mar 2021 20:37:45 +0000 (UTC)
+        id S230372AbhCKUht (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Mar 2021 15:37:49 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3593364F87;
+        Thu, 11 Mar 2021 20:37:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615495065;
-        bh=sQM4WwL9UMu2bnl4s73QSd/tGak6KmkMZwuA+MJST1s=;
+        s=korg; t=1615495068;
+        bh=a491prOBe1j0kzmeng1HjUYnoZzdt+sEB8nl5H9S0LM=;
         h=Date:From:To:Subject:From;
-        b=UckZJiRqNjMcXg/n24v0q4OYYyizXaPbJyJTR//A6EfJJ4fslTYtg2du+SO7yRjPi
-         ysPNpC+gydei+3+tFrK75eFKRfFWxm5D/PUAIudMr9DD4C4Y9KVcLULnbRXBgrG57z
-         vUABO1cspg6sSuuRG4i+Z8FOoZm4sYVtLvgRlfX0=
-Date:   Thu, 11 Mar 2021 12:37:44 -0800
+        b=LDzv7hQBxUsSKIhYf9y4D7soT8IVZAzwlp/o52s8AtPp8jQMMQOdqERT7wgXlAqIO
+         gK+DcxrsQNrtsPL3beZIOeLqBSl5HGfLqeXQ3R95t5/+lxV8rRycIU0secuFCFYHRX
+         k8n2/aHthbXgd+IuTcgkhAgxlFnyZ6ahnst8uFAU=
+Date:   Thu, 11 Mar 2021 12:37:47 -0800
 From:   akpm@linux-foundation.org
 To:     david@fromorbit.com, guro@fb.com, hannes@cmpxchg.org,
         ktkhai@virtuozzo.com, mhocko@suse.com, mm-commits@vger.kernel.org,
         shakeelb@google.com, shy828301@gmail.com, vbabka@suse.cz
 Subject:  +
- =?US-ASCII?Q?mm-vmscan-dont-need-allocate-shrinker-nr=5Fdeferred-for-mem?=
- =?US-ASCII?Q?cg-aware-shrinkers.patch?= added to -mm tree
-Message-ID: <20210311203744.2Hgs4p1EM%akpm@linux-foundation.org>
+ mm-memcontrol-reparent-nr_deferred-when-memcg-offline.patch added to -mm
+ tree
+Message-ID: <20210311203747.7IJ5gV4S8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: don't need allocate shrinker->nr_deferred for memcg aware shrinkers
+     Subject: mm: memcontrol: reparent nr_deferred when memcg offline
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-dont-need-allocate-shrinker-nr_deferred-for-memcg-aware-shrinkers.patch
+     mm-memcontrol-reparent-nr_deferred-when-memcg-offline.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-dont-need-allocate-shrinker-nr_deferred-for-memcg-aware-shrinkers.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-reparent-nr_deferred-when-memcg-offline.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-dont-need-allocate-shrinker-nr_deferred-for-memcg-aware-shrinkers.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-reparent-nr_deferred-when-memcg-offline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,20 +67,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: vmscan: don't need allocate shrinker->nr_deferred for memcg aware shrinkers
+Subject: mm: memcontrol: reparent nr_deferred when memcg offline
 
-Now nr_deferred is available on per memcg level for memcg aware shrinkers,
-so don't need allocate shrinker->nr_deferred for such shrinkers anymore.
+Now shrinker's nr_deferred is per memcg for memcg aware shrinkers, add to
+parent's corresponding nr_deferred when memcg offline.
 
-The prealloc_memcg_shrinker() would return -ENOSYS if !CONFIG_MEMCG or
-memcg is disabled by kernel command line, then shrinker's
-SHRINKER_MEMCG_AWARE flag would be cleared.  This makes the implementation
-of this patch simpler.
-
-Link: https://lkml.kernel.org/r/20210311190845.9708-12-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20210311190845.9708-13-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Kirill Tkhai <ktkhai@virtuozzo.com>
+Acked-by: Kirill Tkhai <ktkhai@virtuozzo.com>
 Acked-by: Roman Gushchin <guro@fb.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Dave Chinner <david@fromorbit.com>
@@ -91,80 +84,64 @@ Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
+ include/linux/memcontrol.h |    1 +
+ mm/memcontrol.c            |    1 +
+ mm/vmscan.c                |   24 ++++++++++++++++++++++++
+ 3 files changed, 26 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-dont-need-allocate-shrinker-nr_deferred-for-memcg-aware-shrinkers
-+++ a/mm/vmscan.c
-@@ -346,6 +346,9 @@ static int prealloc_memcg_shrinker(struc
- {
- 	int id, ret = -ENOMEM;
- 
-+	if (mem_cgroup_disabled())
-+		return -ENOSYS;
-+
- 	down_write(&shrinker_rwsem);
- 	/* This may call shrinker, so it must use down_read_trylock() */
- 	id = idr_alloc(&shrinker_idr, shrinker, 0, 0, GFP_KERNEL);
-@@ -425,7 +428,7 @@ static bool writeback_throttling_sane(st
+--- a/include/linux/memcontrol.h~mm-memcontrol-reparent-nr_deferred-when-memcg-offline
++++ a/include/linux/memcontrol.h
+@@ -1537,6 +1537,7 @@ static inline bool mem_cgroup_under_sock
+ int alloc_shrinker_info(struct mem_cgroup *memcg);
+ void free_shrinker_info(struct mem_cgroup *memcg);
+ void set_shrinker_bit(struct mem_cgroup *memcg, int nid, int shrinker_id);
++void reparent_shrinker_deferred(struct mem_cgroup *memcg);
  #else
- static int prealloc_memcg_shrinker(struct shrinker *shrinker)
- {
--	return 0;
-+	return -ENOSYS;
+ #define mem_cgroup_sockets_enabled 0
+ static inline void mem_cgroup_sk_alloc(struct sock *sk) { };
+--- a/mm/memcontrol.c~mm-memcontrol-reparent-nr_deferred-when-memcg-offline
++++ a/mm/memcontrol.c
+@@ -5167,6 +5167,7 @@ static void mem_cgroup_css_offline(struc
+ 	page_counter_set_low(&memcg->memory, 0);
+ 
+ 	memcg_offline_kmem(memcg);
++	reparent_shrinker_deferred(memcg);
+ 	wb_memcg_offline(memcg);
+ 
+ 	drain_all_stock(memcg);
+--- a/mm/vmscan.c~mm-memcontrol-reparent-nr_deferred-when-memcg-offline
++++ a/mm/vmscan.c
+@@ -397,6 +397,30 @@ static long add_nr_deferred_memcg(long n
+ 	return atomic_long_add_return(nr, &info->nr_deferred[shrinker->id]);
  }
  
- static void unregister_memcg_shrinker(struct shrinker *shrinker)
-@@ -537,8 +540,18 @@ static unsigned long lruvec_lru_size(str
-  */
- int prealloc_shrinker(struct shrinker *shrinker)
- {
--	unsigned int size = sizeof(*shrinker->nr_deferred);
-+	unsigned int size;
-+	int err;
++void reparent_shrinker_deferred(struct mem_cgroup *memcg)
++{
++	int i, nid;
++	long nr;
++	struct mem_cgroup *parent;
++	struct shrinker_info *child_info, *parent_info;
 +
-+	if (shrinker->flags & SHRINKER_MEMCG_AWARE) {
-+		err = prealloc_memcg_shrinker(shrinker);
-+		if (err != -ENOSYS)
-+			return err;
- 
-+		shrinker->flags &= ~SHRINKER_MEMCG_AWARE;
++	parent = parent_mem_cgroup(memcg);
++	if (!parent)
++		parent = root_mem_cgroup;
++
++	/* Prevent from concurrent shrinker_info expand */
++	down_read(&shrinker_rwsem);
++	for_each_node(nid) {
++		child_info = shrinker_info_protected(memcg, nid);
++		parent_info = shrinker_info_protected(parent, nid);
++		for (i = 0; i < shrinker_nr_max; i++) {
++			nr = atomic_long_read(&child_info->nr_deferred[i]);
++			atomic_long_add(nr, &parent_info->nr_deferred[i]);
++		}
 +	}
++	up_read(&shrinker_rwsem);
++}
 +
-+	size = sizeof(*shrinker->nr_deferred);
- 	if (shrinker->flags & SHRINKER_NUMA_AWARE)
- 		size *= nr_node_ids;
- 
-@@ -546,28 +559,16 @@ int prealloc_shrinker(struct shrinker *s
- 	if (!shrinker->nr_deferred)
- 		return -ENOMEM;
- 
--	if (shrinker->flags & SHRINKER_MEMCG_AWARE) {
--		if (prealloc_memcg_shrinker(shrinker))
--			goto free_deferred;
--	}
--
- 	return 0;
--
--free_deferred:
--	kfree(shrinker->nr_deferred);
--	shrinker->nr_deferred = NULL;
--	return -ENOMEM;
- }
- 
- void free_prealloced_shrinker(struct shrinker *shrinker)
+ static bool cgroup_reclaim(struct scan_control *sc)
  {
--	if (!shrinker->nr_deferred)
--		return;
--
- 	if (shrinker->flags & SHRINKER_MEMCG_AWARE) {
- 		down_write(&shrinker_rwsem);
- 		unregister_memcg_shrinker(shrinker);
- 		up_write(&shrinker_rwsem);
-+		return;
- 	}
- 
- 	kfree(shrinker->nr_deferred);
+ 	return sc->target_mem_cgroup;
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
