@@ -2,204 +2,92 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD047C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 00:26:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59D3EC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 00:31:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A2FB64FAE
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 00:26:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F2BE64FC4
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 00:31:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229570AbhCKAZw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Mar 2021 19:25:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49718 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229469AbhCKAZc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Mar 2021 19:25:32 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CFC8964F60;
-        Thu, 11 Mar 2021 00:25:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615422332;
-        bh=BjP0NMS/N5voMb6whxUxadfTBFyzoFiSQbWinDTIaDY=;
-        h=Date:From:To:Subject:From;
-        b=v4SgBGXD0r9pA91c0YMVv9n/Uflo47ygm7bQdJg7Y/Yk3iiyMtZ7wDCC4XjXWZvt9
-         ukq/pA8n085wDS/oERjPC2kL2KzNG3rsFmT41/HKfH044N/bl5DVSqkFqD/3a4sKU3
-         M0lRsonCb7rp/xZ5j+SIwX0Pmy+bC6pDjuVoU55U=
-Date:   Wed, 10 Mar 2021 16:25:31 -0800
-From:   akpm@linux-foundation.org
-To:     axboe@kernel.dk, colyli@suse.de, dan.j.williams@intel.com,
-        hch@lst.de, martin.petersen@oracle.com, mm-commits@vger.kernel.org,
-        william.kucharski@oracle.com, willy@infradead.org
-Subject:  + include-remove-pagemaph-from-blkdevh.patch added to -mm
- tree
-Message-ID: <20210311002531.di33dDfoX%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S229821AbhCKAat (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Mar 2021 19:30:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48784 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229791AbhCKAa3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Mar 2021 19:30:29 -0500
+Received: from mail-qt1-x831.google.com (mail-qt1-x831.google.com [IPv6:2607:f8b0:4864:20::831])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4268BC061760
+        for <mm-commits@vger.kernel.org>; Wed, 10 Mar 2021 16:30:28 -0800 (PST)
+Received: by mail-qt1-x831.google.com with SMTP id v3so86526qtw.4
+        for <mm-commits@vger.kernel.org>; Wed, 10 Mar 2021 16:30:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=Mmc0RuUOlCFvulxidW/k2Ie5WhinDkDwZmLnUv3DwVg=;
+        b=K0TTKTAUf0dPXP7nNJPS8qIcDoLTv9HQdRbLC+7/Z+r2605f+QGmAlJn2t2I8oopeX
+         OtiBwgihuy2tjV3b/2DIBXC1x2SygPnjSJXMAWUl8yDCJMXpZwv21X1KcsKplLRkalKF
+         +ioL1l1XxeQvA7ntGR/s0XSTA2XdQQjXnaOChWHNZWYRU94RW6c+ze8qDOjTp4D5+u96
+         Kblc1Aonn001vYVB8/11jA2OGx7n99poT2/P0iQZmENXZ1IvGZUt61y9MJY6atQxWY1Y
+         kMye4b4xWX9qfFf+pFW4vgokxZKm3MrFzdRkFu5E+MdBepzIHVakZ4GAsfB0jfkkSSqF
+         wavw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=Mmc0RuUOlCFvulxidW/k2Ie5WhinDkDwZmLnUv3DwVg=;
+        b=ooHNavhcicWZVa7BbzZYmOEYOO5pxyHVi6xvfiUIekHzXjDrLOjZFDC0UbJzlsNWJr
+         Zl5gJbb50/9BhrP+NyCZ+hT9wXXRoWRrXGXtziaYfDFqwCs9ghfiOH2CVGIiV2tIaHfV
+         uNMmkJ2R5WeAl0kvI+YW6Xc8UbHWymasEii1Cg1P3QiL/Ou/KKizNtDDTWqr9OnKx0oO
+         mN1mPHclRwgkTMR0/qTtmI7efMiiYIg5l+Dy0wZlCdLyo2+cfP3QzVeL8D1JXwSDup4L
+         177r5UuL6muKWy17xHachj29mRAnG4DQJuJtPAdeuFfrzg/IXH+xPwCliLJqRx75jgjc
+         Cxhw==
+X-Gm-Message-State: AOAM530cxuaQkTSruhScR9kWzQToK7BtEjH1xO/mH8hwdWlkROvqWnJs
+        JwfxYoCjLTH6d2CzYdGCVkmCUBAYQVLIfw==
+X-Google-Smtp-Source: ABdhPJy/HscA2IVpxWWAjD5lhf70Ts/MUuwJKSD65SIfCEGU3adAV+25h6xuHbsrx6TTpui9/qcQxA==
+X-Received: by 2002:ac8:5a15:: with SMTP id n21mr5278107qta.85.1615422627496;
+        Wed, 10 Mar 2021 16:30:27 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-142-162-115-133.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.115.133])
+        by smtp.gmail.com with ESMTPSA id j2sm707607qkk.96.2021.03.10.16.30.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 10 Mar 2021 16:30:27 -0800 (PST)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1lK9De-00Ayzo-Kd; Wed, 10 Mar 2021 20:30:26 -0400
+Date:   Wed, 10 Mar 2021 20:30:26 -0400
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     akpm@linux-foundation.org
+Cc:     aarcange@redhat.com, bgardon@google.com, dimitri.sivanich@hpe.com,
+        hannes@cmpxchg.org, jglisse@redhat.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, rientjes@google.com, seanjc@google.com,
+        stable@vger.kernel.org
+Subject: Re: +
+ mm-oom_kill-ensure-mmu-notifier-range_end-is-paired-with-range_start.patch
+ added to -mm tree
+Message-ID: <20210311003026.GR444867@ziepe.ca>
+References: <20210311000616.GIEHU6C1Q%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210311000616.GIEHU6C1Q%akpm@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: include: remove pagemap.h from blkdev.h
-has been added to the -mm tree.  Its filename is
-     include-remove-pagemaph-from-blkdevh.patch
+On Wed, Mar 10, 2021 at 04:06:16PM -0800, akpm@linux-foundation.org wrote:
+> 
+> The patch titled
+>      Subject: mm/oom_kill: ensure MMU notifier range_end() is paired with range_start()
+> has been added to the -mm tree.  Its filename is
+>      mm-oom_kill-ensure-mmu-notifier-range_end-is-paired-with-range_start.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/include-remove-pagemaph-from-blkdevh.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/include-remove-pagemaph-from-blkdevh.patch
+Let's please wait till the discussion settles, to my mind this patch is not
+an improvement.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: include: remove pagemap.h from blkdev.h
-
-My UEK-derived config has 1030 files depending on pagemap.h before this
-change.  Afterwards, just 326 files need to be rebuilt when I touch
-pagemap.h.  I think blkdev.h is probably included too widely, but
-untangling that dependency is harder and this solves my problem.  x86
-allmodconfig builds, but there may be implicit include problems on other
-architectures.
-
-Link: https://lkml.kernel.org/r/20210309195747.283796-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Dan Williams <dan.j.williams@intel.com>		[nvdimm]
-Acked-by: Jens Axboe <axboe@kernel.dk>				[block]
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Coly Li <colyli@suse.de>				[bcache]
-Acked-by: Martin K. Petersen <martin.petersen@oracle.com>	[scsi]
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- block/blk-settings.c      |    1 +
- drivers/block/brd.c       |    1 +
- drivers/block/loop.c      |    1 +
- drivers/md/bcache/super.c |    1 +
- drivers/nvdimm/btt.c      |    1 +
- drivers/nvdimm/pmem.c     |    1 +
- drivers/scsi/scsicam.c    |    1 +
- include/linux/blkdev.h    |    1 -
- include/linux/swap.h      |    1 +
- 9 files changed, 8 insertions(+), 1 deletion(-)
-
---- a/block/blk-settings.c~include-remove-pagemaph-from-blkdevh
-+++ a/block/blk-settings.c
-@@ -7,6 +7,7 @@
- #include <linux/init.h>
- #include <linux/bio.h>
- #include <linux/blkdev.h>
-+#include <linux/pagemap.h>
- #include <linux/memblock.h>	/* for max_pfn/max_low_pfn */
- #include <linux/gcd.h>
- #include <linux/lcm.h>
---- a/drivers/block/brd.c~include-remove-pagemaph-from-blkdevh
-+++ a/drivers/block/brd.c
-@@ -18,6 +18,7 @@
- #include <linux/bio.h>
- #include <linux/highmem.h>
- #include <linux/mutex.h>
-+#include <linux/pagemap.h>
- #include <linux/radix-tree.h>
- #include <linux/fs.h>
- #include <linux/slab.h>
---- a/drivers/block/loop.c~include-remove-pagemaph-from-blkdevh
-+++ a/drivers/block/loop.c
-@@ -53,6 +53,7 @@
- #include <linux/moduleparam.h>
- #include <linux/sched.h>
- #include <linux/fs.h>
-+#include <linux/pagemap.h>
- #include <linux/file.h>
- #include <linux/stat.h>
- #include <linux/errno.h>
---- a/drivers/md/bcache/super.c~include-remove-pagemaph-from-blkdevh
-+++ a/drivers/md/bcache/super.c
-@@ -16,6 +16,7 @@
- #include "features.h"
- 
- #include <linux/blkdev.h>
-+#include <linux/pagemap.h>
- #include <linux/debugfs.h>
- #include <linux/genhd.h>
- #include <linux/idr.h>
---- a/drivers/nvdimm/btt.c~include-remove-pagemaph-from-blkdevh
-+++ a/drivers/nvdimm/btt.c
-@@ -6,6 +6,7 @@
- #include <linux/highmem.h>
- #include <linux/debugfs.h>
- #include <linux/blkdev.h>
-+#include <linux/pagemap.h>
- #include <linux/module.h>
- #include <linux/device.h>
- #include <linux/mutex.h>
---- a/drivers/nvdimm/pmem.c~include-remove-pagemaph-from-blkdevh
-+++ a/drivers/nvdimm/pmem.c
-@@ -8,6 +8,7 @@
-  */
- 
- #include <linux/blkdev.h>
-+#include <linux/pagemap.h>
- #include <linux/hdreg.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
---- a/drivers/scsi/scsicam.c~include-remove-pagemaph-from-blkdevh
-+++ a/drivers/scsi/scsicam.c
-@@ -17,6 +17,7 @@
- #include <linux/genhd.h>
- #include <linux/kernel.h>
- #include <linux/blkdev.h>
-+#include <linux/pagemap.h>
- #include <linux/msdos_partition.h>
- #include <asm/unaligned.h>
- 
---- a/include/linux/blkdev.h~include-remove-pagemaph-from-blkdevh
-+++ a/include/linux/blkdev.h
-@@ -11,7 +11,6 @@
- #include <linux/minmax.h>
- #include <linux/timer.h>
- #include <linux/workqueue.h>
--#include <linux/pagemap.h>
- #include <linux/backing-dev-defs.h>
- #include <linux/wait.h>
- #include <linux/mempool.h>
---- a/include/linux/swap.h~include-remove-pagemaph-from-blkdevh
-+++ a/include/linux/swap.h
-@@ -10,6 +10,7 @@
- #include <linux/sched.h>
- #include <linux/node.h>
- #include <linux/fs.h>
-+#include <linux/pagemap.h>
- #include <linux/atomic.h>
- #include <linux/page-flags.h>
- #include <uapi/linux/mempolicy.h>
-_
-
-Patches currently in -mm which might be from willy@infradead.org are
-
-mm-use-rcu_dereference-in-in_vfork.patch
-mm-filemap-use-filemap_read_page-in-filemap_fault.patch
-mm-filemap-drop-check-for-truncated-page-after-i-o.patch
-mm-page_alloc-rename-alloc_mask-to-alloc_gfp.patch
-mm-page_alloc-rename-gfp_mask-to-gfp.patch
-mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask.patch
-mm-mempolicy-rename-alloc_pages_current-to-alloc_pages.patch
-mm-mempolicy-rewrite-alloc_pages-documentation.patch
-mm-mempolicy-rewrite-alloc_pages_vma-documentation.patch
-mm-mempolicy-fix-mpol_misplaced-kernel-doc.patch
-include-remove-pagemaph-from-blkdevh.patch
-
+Thanks,
+Jason
