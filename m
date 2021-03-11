@@ -4,40 +4,44 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23039C43381
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 00:51:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41D23C433E9
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 05:18:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E62AA64FC4
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 00:51:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F398E64FD8
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 05:18:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229614AbhCKAvO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Mar 2021 19:51:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54864 "EHLO mail.kernel.org"
+        id S229530AbhCKFSD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Mar 2021 00:18:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229718AbhCKAu7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Mar 2021 19:50:59 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0A18864FBA;
-        Thu, 11 Mar 2021 00:50:58 +0000 (UTC)
+        id S229524AbhCKFRc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Mar 2021 00:17:32 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9EA0064FB2;
+        Thu, 11 Mar 2021 05:17:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615423859;
-        bh=SWF3uKFaaR84TNHwX9FVLe5utwVfXMvUVWu7yGha66k=;
+        s=korg; t=1615439852;
+        bh=i2wnZn+TLN66XaB+Hfofd6iulLmtZbVkNv7cU+k4qA8=;
         h=Date:From:To:Subject:From;
-        b=qGgPMrwHIR7NQUulW7WROFhzSrUMUMc9G+fj0vVAqeOSbxp3yOx3rVimcMP6/h5Qc
-         NLRXF8kOf5JlvPLk0lfd1ItEZJExLDX5nNHkxWWQHO2LU1SDJmWK34KRrQBbtgUUVe
-         G6KhuTCNJNF1K4gMHz/gRKViiMDGRT6mmAQ966/k=
-Date:   Wed, 10 Mar 2021 16:50:58 -0800
+        b=MUj6x55iGAqEdGhuCAzi7FYw4i/ffVYIBzjfNdOxTKCUZw9vQL9BVyUVqMrsRIIY6
+         yJWIdmuP6A6U8yXJHjRCIam1kUzBdRULCpq0JxWcRALD3D8ilaA8jQZuiL0gzmqFdT
+         wd845dzgxF8TYofh5qgCEQemdG3cO8NCMAi51K0E=
+Date:   Wed, 10 Mar 2021 21:17:31 -0800
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, david@redhat.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, osalvador@suse.de,
-        pasha.tatashin@soleen.com, vbabka@suse.cz
-Subject:  +
- acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch added to
- -mm tree
-Message-ID: <20210311005058.SoQ4HzpBO%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, bgardon@google.com, dimitri.sivanich@hpe.com,
+        hannes@cmpxchg.org, jgg@ziepe.ca, jglisse@redhat.com,
+        mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com,
+        seanjc@google.com, stable@vger.kernel.org
+Subject:  [to-be-updated]
+ mm-oom_kill-ensure-mmu-notifier-range_end-is-paired-with-range_start.patch
+ removed from -mm tree
+Message-ID: <20210311051731.mjKIcbvQp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,81 +49,86 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: acpi,memhotplug: enable MHP_MEMMAP_ON_MEMORY when supported
-has been added to the -mm tree.  Its filename is
-     acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
+     Subject: mm/oom_kill: ensure MMU notifier range_end() is paired with r=
+ange_start()
+has been removed from the -mm tree.  Its filename was
+     mm-oom_kill-ensure-mmu-notifier-range_end-is-paired-with-range_start.p=
+atch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: acpi,memhotplug: enable MHP_MEMMAP_ON_MEMORY when supported
+=46rom: Sean Christopherson <seanjc@google.com>
+Subject: mm/oom_kill: ensure MMU notifier range_end() is paired with range_=
+start()
 
-Let the caller check whether it can pass MHP_MEMMAP_ON_MEMORY by checking
-mhp_supports_memmap_on_memory().  MHP_MEMMAP_ON_MEMORY can only be set in
-case ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE is enabled, the architecture
-supports altmap, and the range to be added spans a single memory block.
+Invoke the MMU notifier's .invalidate_range_end() callbacks even if one of
+the .invalidate_range_start() callbacks failed.  If there are multiple
+notifiers, the notifier that did not fail may have performed actions in
+its ...start() that it expects to unwind via ...end().  Per the
+mmu_notifier_ops documentation, ...start() and ...end() must be paired.
 
-Link: https://lkml.kernel.org/r/20210309175546.5877-3-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The only in-kernel usage that is fatally broken is the SGI UV GRU driver,
+which effectively blocks and sleeps fault handlers during ...start(), and
+unblocks/wakes the handlers during ...end().  But, the only users that can
+fail ...start() are the i915 and Nouveau drivers, which are unlikely to
+collide with the SGI driver.
+
+KVM is the only other user of ...end(), and while KVM also blocks fault
+handlers in ...start(), the fault handlers do not sleep and originate in
+killable ioctl() calls.  So while it's possible for the i915 and Nouveau
+drivers to collide with KVM, the bug is benign for KVM since the process
+is dying and KVM's guest is about to be terminated.
+
+So, as of today, the bug is likely benign.  But, that may not always be
+true, e.g.  there is a potential use case for blocking memslot updates in
+KVM while an invalidation is in-progress, and failure to unblock would
+result in said updates being blocked indefinitely and hanging.
+
+Found by inspection.  Verified by adding a second notifier in KVM that
+periodically returns -EAGAIN on non-blockable ranges, triggering OOM, and
+observing that KVM exits with an elevated notifier count.
+
+Link: https://lkml.kernel.org/r/20210310213117.1444147-1-seanjc@google.com
+Fixes: 93065ac753e4 ("mm, oom: distinguish blockable mode for mmu notifiers=
+")
+Signed-off-by: Sean Christopherson <seanjc@google.com>
+Reviewed-by: Ben Gardon <bgardon@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dimitri Sivanich <dimitri.sivanich@hpe.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/acpi_memhotplug.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/drivers/acpi/acpi_memhotplug.c~acpimemhotplug-enable-mhp_memmap_on_memory-when-supported
-+++ a/drivers/acpi/acpi_memhotplug.c
-@@ -171,6 +171,7 @@ static int acpi_memory_enable_device(str
- 	acpi_handle handle = mem_device->device->handle;
- 	int result, num_enabled = 0;
- 	struct acpi_memory_info *info;
-+	mhp_t mhp_flags = MHP_NONE;
- 	int node;
- 
- 	node = acpi_get_node(handle);
-@@ -194,8 +195,10 @@ static int acpi_memory_enable_device(str
- 		if (node < 0)
- 			node = memory_add_physaddr_to_nid(info->start_addr);
- 
-+		if (mhp_supports_memmap_on_memory(info->length))
-+			mhp_flags |= MHP_MEMMAP_ON_MEMORY;
- 		result = __add_memory(node, info->start_addr, info->length,
--				      MHP_NONE);
-+				      mhp_flags);
- 
- 		/*
- 		 * If the memory block has been used by the kernel, add_memory()
+--- a/mm/oom_kill.c~mm-oom_kill-ensure-mmu-notifier-range_end-is-paired-wit=
+h-range_start
++++ a/mm/oom_kill.c
+@@ -546,12 +546,10 @@ bool __oom_reap_task_mm(struct mm_struct
+ 						vma, mm, vma->vm_start,
+ 						vma->vm_end);
+ 			tlb_gather_mmu(&tlb, mm);
+-			if (mmu_notifier_invalidate_range_start_nonblock(&range)) {
+-				tlb_finish_mmu(&tlb);
++			if (!mmu_notifier_invalidate_range_start_nonblock(&range))
++				unmap_page_range(&tlb, vma, range.start, range.end, NULL);
++			else
+ 				ret =3D false;
+-				continue;
+-			}
+-			unmap_page_range(&tlb, vma, range.start, range.end, NULL);
+ 			mmu_notifier_invalidate_range_end(&range);
+ 			tlb_finish_mmu(&tlb);
+ 		}
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from seanjc@google.com are
 
-x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
-x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
-x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
-x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
-mmmemory_hotplug-allocate-memmap-from-the-added-memory-range.patch
-acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
-mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
-x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
-arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
