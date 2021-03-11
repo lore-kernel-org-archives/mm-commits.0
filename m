@@ -2,92 +2,129 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59D3EC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 00:31:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CCA9C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 00:44:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0F2BE64FC4
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 00:31:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 123A264FCA
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 00:44:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229821AbhCKAat (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Mar 2021 19:30:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48784 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229791AbhCKAa3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Mar 2021 19:30:29 -0500
-Received: from mail-qt1-x831.google.com (mail-qt1-x831.google.com [IPv6:2607:f8b0:4864:20::831])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4268BC061760
-        for <mm-commits@vger.kernel.org>; Wed, 10 Mar 2021 16:30:28 -0800 (PST)
-Received: by mail-qt1-x831.google.com with SMTP id v3so86526qtw.4
-        for <mm-commits@vger.kernel.org>; Wed, 10 Mar 2021 16:30:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=Mmc0RuUOlCFvulxidW/k2Ie5WhinDkDwZmLnUv3DwVg=;
-        b=K0TTKTAUf0dPXP7nNJPS8qIcDoLTv9HQdRbLC+7/Z+r2605f+QGmAlJn2t2I8oopeX
-         OtiBwgihuy2tjV3b/2DIBXC1x2SygPnjSJXMAWUl8yDCJMXpZwv21X1KcsKplLRkalKF
-         +ioL1l1XxeQvA7ntGR/s0XSTA2XdQQjXnaOChWHNZWYRU94RW6c+ze8qDOjTp4D5+u96
-         Kblc1Aonn001vYVB8/11jA2OGx7n99poT2/P0iQZmENXZ1IvGZUt61y9MJY6atQxWY1Y
-         kMye4b4xWX9qfFf+pFW4vgokxZKm3MrFzdRkFu5E+MdBepzIHVakZ4GAsfB0jfkkSSqF
-         wavw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=Mmc0RuUOlCFvulxidW/k2Ie5WhinDkDwZmLnUv3DwVg=;
-        b=ooHNavhcicWZVa7BbzZYmOEYOO5pxyHVi6xvfiUIekHzXjDrLOjZFDC0UbJzlsNWJr
-         Zl5gJbb50/9BhrP+NyCZ+hT9wXXRoWRrXGXtziaYfDFqwCs9ghfiOH2CVGIiV2tIaHfV
-         uNMmkJ2R5WeAl0kvI+YW6Xc8UbHWymasEii1Cg1P3QiL/Ou/KKizNtDDTWqr9OnKx0oO
-         mN1mPHclRwgkTMR0/qTtmI7efMiiYIg5l+Dy0wZlCdLyo2+cfP3QzVeL8D1JXwSDup4L
-         177r5UuL6muKWy17xHachj29mRAnG4DQJuJtPAdeuFfrzg/IXH+xPwCliLJqRx75jgjc
-         Cxhw==
-X-Gm-Message-State: AOAM530cxuaQkTSruhScR9kWzQToK7BtEjH1xO/mH8hwdWlkROvqWnJs
-        JwfxYoCjLTH6d2CzYdGCVkmCUBAYQVLIfw==
-X-Google-Smtp-Source: ABdhPJy/HscA2IVpxWWAjD5lhf70Ts/MUuwJKSD65SIfCEGU3adAV+25h6xuHbsrx6TTpui9/qcQxA==
-X-Received: by 2002:ac8:5a15:: with SMTP id n21mr5278107qta.85.1615422627496;
-        Wed, 10 Mar 2021 16:30:27 -0800 (PST)
-Received: from ziepe.ca (hlfxns017vw-142-162-115-133.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.115.133])
-        by smtp.gmail.com with ESMTPSA id j2sm707607qkk.96.2021.03.10.16.30.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 10 Mar 2021 16:30:27 -0800 (PST)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1lK9De-00Ayzo-Kd; Wed, 10 Mar 2021 20:30:26 -0400
-Date:   Wed, 10 Mar 2021 20:30:26 -0400
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     akpm@linux-foundation.org
-Cc:     aarcange@redhat.com, bgardon@google.com, dimitri.sivanich@hpe.com,
-        hannes@cmpxchg.org, jglisse@redhat.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, rientjes@google.com, seanjc@google.com,
-        stable@vger.kernel.org
-Subject: Re: +
- mm-oom_kill-ensure-mmu-notifier-range_end-is-paired-with-range_start.patch
- added to -mm tree
-Message-ID: <20210311003026.GR444867@ziepe.ca>
-References: <20210311000616.GIEHU6C1Q%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210311000616.GIEHU6C1Q%akpm@linux-foundation.org>
+        id S229520AbhCKAoJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Mar 2021 19:44:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53296 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229599AbhCKAnh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Mar 2021 19:43:37 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E4E3A64FC4;
+        Thu, 11 Mar 2021 00:43:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1615423417;
+        bh=o5tOXYOjrTvZd0NSy3TdqCZnE2isFQwX+4g907uqcbg=;
+        h=Date:From:To:Subject:From;
+        b=OC3dlzTGhySpO8wABu92q/CX3OZxW6HAfKyq6qkuOUtk7z0N/zkR3jE2VJ8KVuPh1
+         tEVKfdeVqnKoFsivGeg7ORRPnUF7wpD5gE1o1WshgfyUpJ+3MW/ecjDWim6zMdP+VX
+         x69alcawiadm8KRvMMAtgrH7VuzVvLElVYG8oCfY=
+Date:   Wed, 10 Mar 2021 16:43:36 -0800
+From:   akpm@linux-foundation.org
+To:     aarcange@redhat.com, axelrasmussen@google.com,
+        mm-commits@vger.kernel.org, nadav.amit@gmail.com, peterx@redhat.com
+Subject:  + userfaultfd-selftests-use-user-mode-only.patch added to
+ -mm tree
+Message-ID: <20210311004336.kziMRhUUS%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-On Wed, Mar 10, 2021 at 04:06:16PM -0800, akpm@linux-foundation.org wrote:
-> 
-> The patch titled
->      Subject: mm/oom_kill: ensure MMU notifier range_end() is paired with range_start()
-> has been added to the -mm tree.  Its filename is
->      mm-oom_kill-ensure-mmu-notifier-range_end-is-paired-with-range_start.patch
+The patch titled
+     Subject: userfaultfd/selftests: use user mode only
+has been added to the -mm tree.  Its filename is
+     userfaultfd-selftests-use-user-mode-only.patch
 
-Let's please wait till the discussion settles, to my mind this patch is not
-an improvement.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-use-user-mode-only.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-use-user-mode-only.patch
 
-Thanks,
-Jason
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Peter Xu <peterx@redhat.com>
+Subject: userfaultfd/selftests: use user mode only
+
+Patch series "userfaultfd/selftests: A few cleanups".
+
+I wanted to cleanup userfaultfd.c fault handling for a long time.  If it's
+not cleaned, when the new code grows the file it'll also grow the size
+that needs to be cleaned...  This is my attempt to cleanup the userfaultfd
+selftest on fault handling, to use an err() macro instead of either
+fprintf() or perror() then another exit() call.
+
+The huge cleanup is done in the last patch.  The first 4 patches are some
+other standalone cleanups for the same file, so I put them together.
+
+
+This patch (of 5):
+
+Userfaultfd selftest does not need to handle kernel initiated fault.  Set
+user mode so it can be run even if unprivileged_userfaultfd=0 (which is
+the default).
+
+Link: https://lkml.kernel.org/r/20210310004511.51996-2-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/vm/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-use-user-mode-only
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -381,7 +381,7 @@ static int userfaultfd_open(uint64_t *fe
+ {
+ 	struct uffdio_api uffdio_api;
+ 
+-	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
++	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY);
+ 	if (uffd < 0) {
+ 		fprintf(stderr,
+ 			"userfaultfd syscall not available in this kernel\n");
+_
+
+Patches currently in -mm which might be from peterx@redhat.com are
+
+hugetlb-dedup-the-code-to-add-a-new-file_region.patch
+hugetlg-break-earlier-in-add_reservation_in_range-when-we-can.patch
+mm-introduce-page_needs_cow_for_dma-for-deciding-whether-cow.patch
+mm-use-is_cow_mapping-across-tree-where-proper.patch
+hugetlb-do-early-cow-when-page-pinned-on-src-mm.patch
+hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share.patch
+hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share-fix.patch
+hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
+hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix.patch
+mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
+hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
+userfaultfd-selftests-use-user-mode-only.patch
+userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch
+userfaultfd-selftests-dropping-verify-check-in-locking_thread.patch
+userfaultfd-selftests-only-dump-counts-if-mode-enabled.patch
+userfaultfd-selftests-unify-error-handling.patch
+
