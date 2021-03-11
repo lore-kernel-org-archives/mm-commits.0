@@ -4,39 +4,35 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CE3EC433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 18:47:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B7E5C433E9
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 18:52:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0978364FE0
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 18:47:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4D3965002
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 18:52:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229784AbhCKSql (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Mar 2021 13:46:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36550 "EHLO mail.kernel.org"
+        id S229674AbhCKSv3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Mar 2021 13:51:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37350 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229468AbhCKSqW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Mar 2021 13:46:22 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EF1F364FD4;
-        Thu, 11 Mar 2021 18:46:21 +0000 (UTC)
+        id S229459AbhCKSvI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Mar 2021 13:51:08 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C4CE264FDD;
+        Thu, 11 Mar 2021 18:51:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615488382;
-        bh=ydNO+cNAkTiKyGY/Sn8yNFsp/JF/pg/rr3EIc9USL5s=;
+        s=korg; t=1615488668;
+        bh=o1wpbSLPHVbkeB4n9ttBqvLUnVmM8K/TEqoy8AILiGI=;
         h=Date:From:To:Subject:From;
-        b=jP80QHIS1XpzItgV3RspEUAZXNXtf0XX4cA7YKm6KaEPRzfkVduS2TwkOhC696HGq
-         +qyd4ObmD45wkw7acrn1u2U/mpMO+u4FYaMls1NYGk5USZP5WzAqcCEiw3v7sTnRIT
-         hhvqL1etEeD1YPp5+3QmJRO0oZq3XWIcOnt7kbAo=
-Date:   Thu, 11 Mar 2021 10:46:21 -0800
+        b=odiqzwgpc+pUflK2xXhbsLIpOFd9TgHgoxHOJIQ3wkB2KOY/mAnEgTz4ooK8I8fwD
+         X97G8WsnZvYVwC095HUFuoJPHOCTm2LDdR63RiY9oyBjbOZKOcFEHW0ugwQSngIkAc
+         Q3wFgKeF0eKU4TrUULY4oAn6z0nfHtIEos5RiHYU=
+Date:   Thu, 11 Mar 2021 10:51:07 -0800
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, david@redhat.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, osalvador@suse.de,
-        pasha.tatashin@soleen.com, vbabka@suse.cz
-Subject:  +
- arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch added to -mm
- tree
-Message-ID: <20210311184621.DTz1h9CMG%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-rejects.patch added to -mm tree
+Message-ID: <20210311185107.ETlpQXJIW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
+     Subject: linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+     linux-next-rejects.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,47 +62,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: arm64/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-Enable arm64 platform to use the MHP_MEMMAP_ON_MEMORY feature.
-
-Link: https://lkml.kernel.org/r/20210309175546.5877-6-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm64/Kconfig~arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable
-+++ a/arch/arm64/Kconfig
-@@ -310,6 +310,9 @@ config ARCH_ENABLE_MEMORY_HOTPLUG
- config ARCH_ENABLE_MEMORY_HOTREMOVE
- 	def_bool y
- 
-+config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
-+	def_bool y
-+
- config SMP
- 	def_bool y
- 
+--- a/mm/memory_hotplug.c~linux-next-rejects
++++ a/mm/memory_hotplug.c
+@@ -1017,7 +1017,7 @@ bool mhp_supports_memmap_on_memory(unsig
+  */
+ int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+ {
+-	struct mhp_params params = { .pgprot = PAGE_KERNEL };
++	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
+ 	struct vmem_altmap mhp_altmap = {};
+ 	u64 start, size;
+ 	bool new_node = false;
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
-x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
-x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
-x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
-mmmemory_hotplug-allocate-memmap-from-the-added-memory-range.patch
-acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
-mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
-x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
-arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+mm-page_allocc-refactor-initialization-of-struct-page-for-holes-in-memory-layout-fix.patch
+mm.patch
+mm-memcontrol-switch-to-rstat-fix.patch
+mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
