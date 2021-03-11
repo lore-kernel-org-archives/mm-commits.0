@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39059C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2AF7C433E9
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 21:23:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DCD7B64F9A
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 21:23:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 782E064FAA
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 21:23:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230417AbhCKVW2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230386AbhCKVW2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 11 Mar 2021 16:22:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41944 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41908 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229468AbhCKVV6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Mar 2021 16:21:58 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1DB6764F84;
-        Thu, 11 Mar 2021 21:21:58 +0000 (UTC)
+        id S229555AbhCKVVz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Mar 2021 16:21:55 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D237664F8F;
+        Thu, 11 Mar 2021 21:21:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615497718;
-        bh=CLluJBg2diH1ZlI/2paHHu0bCOW5GeF0zrO1fAm0UkI=;
+        s=korg; t=1615497715;
+        bh=N2Xbm5fB9vYCvj/L8skIUaPe5u4cdg9xCfrwTRW99gQ=;
         h=Date:From:To:Subject:From;
-        b=XFka7KX357mBho0qmGLiEnZtVdMGUWLL7ciyapIKCGSGlhJ+SQLZ0BfEuPaeF4ni3
-         N7/NpzS9nQgBd0EviaqYgF5Rewt6o0tINUYhsHJa7u0syp7KieEPcIOuWmA/p0zcBa
-         TcdsR02c0BoFV7VCmEBJ6eKli/ywYR2R2+Sv/68E=
-Date:   Thu, 11 Mar 2021 13:21:57 -0800
+        b=X557HDox0i4azWV3Lv8Za4/VBmvwvCpLNAe0O+84/sOfTkWjpYGLnaGGq/oIFdrHw
+         5W1zL7EQDERHKeo2Rc22305REf7ZNqHcWASr47KyhZP/Y5BobfqKGAEpR9tQoHLi0+
+         4CA2y1kpccnnUvFm99FzrZCj6B6AmH1F/Sm5TTAA=
+Date:   Thu, 11 Mar 2021 13:21:53 -0800
 From:   akpm@linux-foundation.org
 To:     loberman@redhat.com, mhocko@suse.com, mingo@kernel.org,
         mm-commits@vger.kernel.org, peterz@infradead.org, pmladek@suse.com,
         tglx@linutronix.de, vincent.whitchurch@axis.com
 Subject:  +
- watchdog-explicitly-update-timestamp-when-reporting-softlockup.patch added
+ watchdog-rename-__touch_watchdog-to-a-better-descriptive-name.patch added
  to -mm tree
-Message-ID: <20210311212157.w3rI8EYsE%akpm@linux-foundation.org>
+Message-ID: <20210311212153.WJ-qcOOXX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: explicitly update timestamp when reporting softlockup
+     Subject: watchdog: rename __touch_watchdog() to a better descriptive name
 has been added to the -mm tree.  Its filename is
-     watchdog-explicitly-update-timestamp-when-reporting-softlockup.patch
+     watchdog-rename-__touch_watchdog-to-a-better-descriptive-name.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/watchdog-explicitly-update-timestamp-when-reporting-softlockup.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/watchdog-rename-__touch_watchdog-to-a-better-descriptive-name.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/watchdog-explicitly-update-timestamp-when-reporting-softlockup.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/watchdog-rename-__touch_watchdog-to-a-better-descriptive-name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,50 +67,97 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Petr Mladek <pmladek@suse.com>
-Subject: watchdog: explicitly update timestamp when reporting softlockup
+Subject: watchdog: rename __touch_watchdog() to a better descriptive name
 
-The softlockup situation might stay for a long time or even forever.  When
-it happens, the softlockup debug messages are printed in regular intervals
-defined by get_softlockup_thresh().
+Patch series "watchdog/softlockup: Report overall time and some cleanup", v2.
 
-There is a mystery.  The repeated message is printed after the full
-interval that is defined by get_softlockup_thresh().  But the timer
-callback is called more often as defined by sample_period.  The code looks
-like the soflockup should get reported in every sample_period when it was
-once behind the thresh.
+I dug deep into the softlockup watchdog history when time permitted this
+year.  And reworked the patchset that fixed timestamps and cleaned up the
+code[2].
 
-It works only by chance.  The watchdog is touched when printing the stall
-report, for example, in printk_stack_address().
+I split it into very small steps and did even more code clean up.  The
+result looks quite strightforward and I am pretty confident with the
+changes.
 
-Make the behavior clear and predictable by explicitly updating the
-timestamp in watchdog_timer_fn() when the report gets printed.
+[1] v2: https://lore.kernel.org/r/20201210160038.31441-1-pmladek@suse.com
+[2] v1: https://lore.kernel.org/r/20191024114928.15377-1-pmladek@suse.com
 
-Link: https://lkml.kernel.org/r/20210311122130.6788-3-pmladek@suse.com
+
+This patch (of 6):
+
+There are many touch_*watchdog() functions.  They are called in situations
+where the watchdog could report false positives or create unnecessary
+noise.  For example, when CPU is entering idle mode, a virtual machine is
+stopped, or a lot of messages are printed in the atomic context.
+
+These functions set SOFTLOCKUP_RESET instead of a real timestamp.  It
+allows to call them even in a context where jiffies might be outdated. 
+For example, in an atomic context.
+
+The real timestamp is set by __touch_watchdog() that is called from the
+watchdog timer callback.
+
+Rename this callback to update_touch_ts().  It better describes the effect
+and clearly distinguish is from the other touch_*watchdog() functions.
+
+Another motivation is that two timestamps are going to be used.  One will
+be used for the total softlockup time.  The other will be used to measure
+time since the last report.  The new function name will help to
+distinguish which timestamp is being updated.
+
+Link: https://lkml.kernel.org/r/20210311122130.6788-1-pmladek@suse.com
+Link: https://lkml.kernel.org/r/20210311122130.6788-2-pmladek@suse.com
 Signed-off-by: Petr Mladek <pmladek@suse.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Laurence Oberman <loberman@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Laurence Oberman <loberman@redhat.com>
 Cc: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/watchdog.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/kernel/watchdog.c~watchdog-explicitly-update-timestamp-when-reporting-softlockup
+--- a/kernel/watchdog.c~watchdog-rename-__touch_watchdog-to-a-better-descriptive-name
 +++ a/kernel/watchdog.c
-@@ -409,6 +409,9 @@ static enum hrtimer_restart watchdog_tim
- 			}
- 		}
+@@ -236,7 +236,7 @@ static void set_sample_period(void)
+ }
  
-+		/* Start period for the next softlockup warning. */
+ /* Commands for resetting the watchdog */
+-static void __touch_watchdog(void)
++static void update_touch_ts(void)
+ {
+ 	__this_cpu_write(watchdog_touch_ts, get_timestamp());
+ }
+@@ -331,7 +331,7 @@ static DEFINE_PER_CPU(struct cpu_stop_wo
+  */
+ static int softlockup_fn(void *data)
+ {
+-	__touch_watchdog();
++	update_touch_ts();
+ 	complete(this_cpu_ptr(&softlockup_completion));
+ 
+ 	return 0;
+@@ -374,7 +374,7 @@ static enum hrtimer_restart watchdog_tim
+ 
+ 		/* Clear the guest paused flag on watchdog reset */
+ 		kvm_check_and_clear_guest_paused();
+-		__touch_watchdog();
 +		update_touch_ts();
-+
- 		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
- 			smp_processor_id(), duration,
- 			current->comm, task_pid_nr(current));
+ 		return HRTIMER_RESTART;
+ 	}
+ 
+@@ -460,7 +460,7 @@ static void watchdog_enable(unsigned int
+ 		      HRTIMER_MODE_REL_PINNED_HARD);
+ 
+ 	/* Initialize timestamp */
+-	__touch_watchdog();
++	update_touch_ts();
+ 	/* Enable the perf event */
+ 	if (watchdog_enabled & NMI_WATCHDOG_ENABLED)
+ 		watchdog_nmi_enable(cpu);
 _
 
 Patches currently in -mm which might be from pmladek@suse.com are
