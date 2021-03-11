@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B587C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 21:45:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AE9EC433E9
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 21:50:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 56AAF64F8E
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 21:45:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5620764F8F
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 21:50:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230431AbhCKVod (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Mar 2021 16:44:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46076 "EHLO mail.kernel.org"
+        id S231168AbhCKVt4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Mar 2021 16:49:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47000 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229809AbhCKVoX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Mar 2021 16:44:23 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3F63864EFE;
-        Thu, 11 Mar 2021 21:44:22 +0000 (UTC)
+        id S231248AbhCKVto (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Mar 2021 16:49:44 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D1CAB64DBA;
+        Thu, 11 Mar 2021 21:49:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615499062;
-        bh=hcJaxq+w6THZmzHFMJdJVtwkOkjWWRNCqUjGpGuweN8=;
+        s=korg; t=1615499384;
+        bh=ZHN9Dgp5hLwYNPhw+ImTg2rOfDXtXiSRKK5+SBRQEPs=;
         h=Date:From:To:Subject:From;
-        b=SJcXU3HASLbU4/pRKFObab1pUwfL8Vf/Dtq6uuRBR37KfE66VZRoPALNMTQKVlBER
-         UvM/5rT/Q0yGdkZCtUZoiUTNQtW/wkE3u4K76cwRxPn21DTX4Z3GIjU4DlJZLs2VGg
-         oyBsFVUoygAJPqLVeMam5tT0jRjFScPLX6kzdwT8=
-Date:   Thu, 11 Mar 2021 13:44:21 -0800
+        b=spSfavfkg061IOg0Zp10ei0ugJ5wujHx2nDI/5+pgk8sJwKWwI1b+Tob+vxzg/EC2
+         t9JlTMBHybe0FGxN/FolYpbk4MoxtEzcXaQqzSf9+sQd7y6vTNd/FHP1dLJNJwG078
+         97j913KQ78OVbTH9Ie6BSRgrsqEKcaCjK9/oTXow=
+Date:   Thu, 11 Mar 2021 13:49:43 -0800
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.vnet.ibm.com, hughd@google.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, osalvador@suse.de, tony.luck@intel.com,
-        willy@infradead.org
-Subject:  [to-be-updated]
- mm-hwpoison-enable-error-handling-on-shmem-thp.patch removed from -mm tree
-Message-ID: <20210311214421.oHFJ4pr7U%akpm@linux-foundation.org>
+To:     glaubitz@physik.fu-berlin.de, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, unixbhaskar@gmail.com
+Subject:  + ia64-kernel-few-typos-fixed-in-the-file-fsyss.patch
+ added to -mm tree
+Message-ID: <20210311214943.u2Efa22w7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,93 +43,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hwpoison: enable error handling on shmem thp
-has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-enable-error-handling-on-shmem-thp.patch
+     Subject: arch/ia64/kernel/fsys.S: fix typos
+has been added to the -mm tree.  Its filename is
+     ia64-kernel-few-typos-fixed-in-the-file-fsyss.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/ia64-kernel-few-typos-fixed-in-the-file-fsyss.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-kernel-few-typos-fixed-in-the-file-fsyss.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm, hwpoison: enable error handling on shmem thp
+From: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Subject: arch/ia64/kernel/fsys.S: fix typos
 
-Currently hwpoison code checks PageAnon() for thp and refuses to handle
-errors on non-anonymous thps (just for historical reason).  We now support
-non-anonymou thp like shmem one, so this patch suggests to enable to
-handle shmem thps.  Fortunately, we already have can_split_huge_page() to
-check if a give thp is splittable, so this patch relies on it.
+Mundane spelling fixes.
 
-Link: https://lkml.kernel.org/r/20210209062128.453814-1-nao.horiguchi@gmail.com
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/20210311061058.29492-1-unixbhaskar@gmail.com
+Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   34 +++++++++-------------------------
- 1 file changed, 9 insertions(+), 25 deletions(-)
+ arch/ia64/kernel/fsys.S |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-enable-error-handling-on-shmem-thp
-+++ a/mm/memory-failure.c
-@@ -959,20 +959,6 @@ static int __get_hwpoison_page(struct pa
- {
- 	struct page *head = compound_head(page);
- 
--	if (!PageHuge(head) && PageTransHuge(head)) {
--		/*
--		 * Non anonymous thp exists only in allocation/free time. We
--		 * can't handle such a case correctly, so let's give it up.
--		 * This should be better than triggering BUG_ON when kernel
--		 * tries to touch the "partially handled" page.
--		 */
--		if (!PageAnon(head)) {
--			pr_err("Memory failure: %#lx: non anonymous thp\n",
--				page_to_pfn(page));
--			return 0;
--		}
--	}
--
- 	if (get_page_unless_zero(head)) {
- 		if (head == compound_head(page))
- 			return 1;
-@@ -1200,21 +1186,19 @@ static int identify_page_state(unsigned
- 
- static int try_to_split_thp_page(struct page *page, const char *msg)
- {
--	lock_page(page);
--	if (!PageAnon(page) || unlikely(split_huge_page(page))) {
--		unsigned long pfn = page_to_pfn(page);
-+	struct page *head;
- 
-+	lock_page(page);
-+	head = compound_head(page);
-+	if (PageTransHuge(head) && can_split_huge_page(head, NULL) &&
-+	    !split_huge_page(page)) {
- 		unlock_page(page);
--		if (!PageAnon(page))
--			pr_info("%s: %#lx: non anonymous thp\n", msg, pfn);
--		else
--			pr_info("%s: %#lx: thp split failed\n", msg, pfn);
--		put_page(page);
--		return -EBUSY;
-+		return 0;
- 	}
-+	pr_info("%s: %#lx: thp split failed\n", msg, page_to_pfn(page));
- 	unlock_page(page);
--
--	return 0;
-+	put_page(page);
-+	return -EBUSY;
- }
- 
- static int memory_failure_hugetlb(unsigned long pfn, int flags)
+--- a/arch/ia64/kernel/fsys.S~ia64-kernel-few-typos-fixed-in-the-file-fsyss
++++ a/arch/ia64/kernel/fsys.S
+@@ -172,7 +172,7 @@ ENTRY(fsys_gettimeofday)
+ 	// r25 = itc_lastcycle value
+ 	// r26 = address clocksource cycle_last
+ 	// r27 = (not used)
+-	// r28 = sequence number at the beginning of critcal section
++	// r28 = sequence number at the beginning of critical section
+ 	// r29 = address of itc_jitter
+ 	// r30 = time processing flags / memory address
+ 	// r31 = pointer to result
+@@ -432,7 +432,7 @@ GLOBAL_ENTRY(fsys_bubble_down)
+ 	 *	- r29: psr
+ 	 *
+ 	 * We used to clear some PSR bits here but that requires slow
+-	 * serialization.  Fortuntely, that isn't really necessary.
++	 * serialization.  Fortunately, that isn't really necessary.
+ 	 * The rationale is as follows: we used to clear bits
+ 	 * ~PSR_PRESERVED_BITS in PSR.L.  Since
+ 	 * PSR_PRESERVED_BITS==PSR.{UP,MFL,MFH,PK,DT,PP,SP,RT,IC}, we
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from unixbhaskar@gmail.com are
 
-mm-hwpoison-do-not-lock-page-again-when-me_huge_page-successfully-recovers.patch
+ia64-kernel-few-typos-fixed-in-the-file-fsyss.patch
+lib-fix-a-typo-in-the-file-bchc.patch
 
