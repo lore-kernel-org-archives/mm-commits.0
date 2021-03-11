@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7275AC4332B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59534C4332D
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 20:38:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4DE8C64FA8
+	by mail.kernel.org (Postfix) with ESMTP id 3648E64FA3
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 20:38:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230408AbhCKUhp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229774AbhCKUhp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 11 Mar 2021 15:37:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53288 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53324 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229774AbhCKUhU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Mar 2021 15:37:20 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 24FA764F87;
-        Thu, 11 Mar 2021 20:37:19 +0000 (UTC)
+        id S230000AbhCKUhX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Mar 2021 15:37:23 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2AF2064F8C;
+        Thu, 11 Mar 2021 20:37:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615495039;
-        bh=pRzs0t4TNPHAzalF/gRBRoIlDZdASNWpvD/OIIvD4vE=;
+        s=korg; t=1615495042;
+        bh=jGC0w2/YN8Hve8bE9+VxhswmWiVOmIvX+0rjAf6rG3M=;
         h=Date:From:To:Subject:From;
-        b=x13xHEvoeYd+E866eTZB5sZSbvUEwGGO4/h/MwK9tgvZWunoRjXJR5Zrrt/httEiB
-         jYSv+rNWvQq+aO0aOf4rmBvobJ0hcvWdID/MSEI4xGg8zCQ/IAWgAwZ1I29eFdNnXa
-         SO2k7NrvnuOxv0HyNPBaQUGq+Cy5nSXs8bx/R3M8=
-Date:   Thu, 11 Mar 2021 12:37:18 -0800
+        b=hXFZsLFdz32iWiESAlIVlAdTDYCelLkWhe9hoAzjHiRzMXA0BruXN8jkwb3xITFb8
+         UQe51k9I6v7pPfmlNO3q4/zi1YlxJotYreyEiDz0rLdym8gjNXLHmWA0VnYoPh6BsI
+         +fsKGHR8E1cG3aM3tZIrop7C2SJVixOD4jF32S04=
+Date:   Thu, 11 Mar 2021 12:37:21 -0800
 From:   akpm@linux-foundation.org
 To:     david@fromorbit.com, guro@fb.com, hannes@cmpxchg.org,
         ktkhai@virtuozzo.com, mhocko@suse.com, mm-commits@vger.kernel.org,
         shakeelb@google.com, shy828301@gmail.com, vbabka@suse.cz
-Subject:  +
- mm-vmscan-use-shrinker_rwsem-to-protect-shrinker_maps-allocation.patch
- added to -mm tree
-Message-ID: <20210311203718.gSj9_hBnV%akpm@linux-foundation.org>
+Subject:  + mm-vmscan-remove-memcg_shrinker_map_size.patch added to
+ -mm tree
+Message-ID: <20210311203721.4NBwG9MdH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: use shrinker_rwsem to protect shrinker_maps allocation
+     Subject: mm: vmscan: remove memcg_shrinker_map_size
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-use-shrinker_rwsem-to-protect-shrinker_maps-allocation.patch
+     mm-vmscan-remove-memcg_shrinker_map_size.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-use-shrinker_rwsem-to-protect-shrinker_maps-allocation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-remove-memcg_shrinker_map_size.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-use-shrinker_rwsem-to-protect-shrinker_maps-allocation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-remove-memcg_shrinker_map_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,32 +66,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: vmscan: use shrinker_rwsem to protect shrinker_maps allocation
+Subject: mm: vmscan: remove memcg_shrinker_map_size
 
-Since memcg_shrinker_map_size just can be changed under holding
-shrinker_rwsem exclusively, the read side can be protected by holding read
-lock, so it sounds superfluous to have a dedicated mutex.
+Both memcg_shrinker_map_size and shrinker_nr_max is maintained, but
+actually the map size can be calculated via shrinker_nr_max, so it seems
+unnecessary to keep both.  Remove memcg_shrinker_map_size since
+shrinker_nr_max is also used by iterating the bit map.
 
-Kirill Tkhai suggested use write lock since:
-
-  * We want the assignment to shrinker_maps is visible for shrink_slab_memcg().
-  * The rcu_dereference_protected() dereferrencing in shrink_slab_memcg(), but
-    in case of we use READ lock in alloc_shrinker_maps(), the dereferrencing
-    is not actually protected.
-  * READ lock makes alloc_shrinker_info() racy against memory allocation fail.
-    alloc_shrinker_info()->free_shrinker_info() may free memory right after
-    shrink_slab_memcg() dereferenced it. You may say
-    shrink_slab_memcg()->mem_cgroup_online() protects us from it? Yes, sure,
-    but this is not the thing we want to remember in the future, since this
-    spreads modularity.
-
-And a test with heavy paging workload didn't show write lock makes things worse.
-
-Link: https://lkml.kernel.org/r/20210311190845.9708-4-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20210311190845.9708-5-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Kirill Tkhai <ktkhai@virtuozzo.com>
 Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -100,76 +85,77 @@ Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ mm/vmscan.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-use-shrinker_rwsem-to-protect-shrinker_maps-allocation
+--- a/mm/vmscan.c~mm-vmscan-remove-memcg_shrinker_map_size
 +++ a/mm/vmscan.c
-@@ -187,7 +187,6 @@ static DECLARE_RWSEM(shrinker_rwsem);
- #ifdef CONFIG_MEMCG
+@@ -185,8 +185,12 @@ static LIST_HEAD(shrinker_list);
+ static DECLARE_RWSEM(shrinker_rwsem);
  
- static int memcg_shrinker_map_size;
--static DEFINE_MUTEX(memcg_shrinker_map_mutex);
+ #ifdef CONFIG_MEMCG
++static int shrinker_nr_max;
+ 
+-static int memcg_shrinker_map_size;
++static inline int shrinker_map_size(int nr_items)
++{
++	return (DIV_ROUND_UP(nr_items, BITS_PER_LONG) * sizeof(unsigned long));
++}
  
  static void free_shrinker_map_rcu(struct rcu_head *head)
  {
-@@ -201,8 +200,6 @@ static int expand_one_shrinker_map(struc
- 	struct mem_cgroup_per_node *pn;
- 	int nid;
- 
--	lockdep_assert_held(&memcg_shrinker_map_mutex);
--
- 	for_each_node(nid) {
- 		pn = memcg->nodeinfo[nid];
- 		old = rcu_dereference_protected(pn->shrinker_map, true);
-@@ -250,7 +247,7 @@ int alloc_shrinker_maps(struct mem_cgrou
- 	if (mem_cgroup_is_root(memcg))
+@@ -248,7 +252,7 @@ int alloc_shrinker_maps(struct mem_cgrou
  		return 0;
  
--	mutex_lock(&memcg_shrinker_map_mutex);
-+	down_write(&shrinker_rwsem);
- 	size = memcg_shrinker_map_size;
+ 	down_write(&shrinker_rwsem);
+-	size = memcg_shrinker_map_size;
++	size = shrinker_map_size(shrinker_nr_max);
  	for_each_node(nid) {
  		map = kvzalloc_node(sizeof(*map) + size, GFP_KERNEL, nid);
-@@ -261,7 +258,7 @@ int alloc_shrinker_maps(struct mem_cgrou
- 		}
- 		rcu_assign_pointer(memcg->nodeinfo[nid]->shrinker_map, map);
- 	}
--	mutex_unlock(&memcg_shrinker_map_mutex);
-+	up_write(&shrinker_rwsem);
+ 		if (!map) {
+@@ -266,12 +270,13 @@ int alloc_shrinker_maps(struct mem_cgrou
+ static int expand_shrinker_maps(int new_id)
+ {
+ 	int size, old_size, ret = 0;
++	int new_nr_max = new_id + 1;
+ 	struct mem_cgroup *memcg;
  
- 	return ret;
- }
-@@ -276,9 +273,10 @@ static int expand_shrinker_maps(int new_
+-	size = DIV_ROUND_UP(new_id + 1, BITS_PER_LONG) * sizeof(unsigned long);
+-	old_size = memcg_shrinker_map_size;
++	size = shrinker_map_size(new_nr_max);
++	old_size = shrinker_map_size(shrinker_nr_max);
  	if (size <= old_size)
- 		return 0;
- 
--	mutex_lock(&memcg_shrinker_map_mutex);
- 	if (!root_mem_cgroup)
--		goto unlock;
+-		return 0;
 +		goto out;
-+
-+	lockdep_assert_held(&shrinker_rwsem);
  
- 	memcg = mem_cgroup_iter(NULL, NULL, NULL);
- 	do {
-@@ -287,13 +285,13 @@ static int expand_shrinker_maps(int new_
- 		ret = expand_one_shrinker_map(memcg, size, old_size);
- 		if (ret) {
- 			mem_cgroup_iter_break(NULL, memcg);
--			goto unlock;
-+			goto out;
- 		}
+ 	if (!root_mem_cgroup)
+ 		goto out;
+@@ -290,7 +295,7 @@ static int expand_shrinker_maps(int new_
  	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)) != NULL);
--unlock:
-+out:
+ out:
  	if (!ret)
- 		memcg_shrinker_map_size = size;
--	mutex_unlock(&memcg_shrinker_map_mutex);
-+
+-		memcg_shrinker_map_size = size;
++		shrinker_nr_max = new_nr_max;
+ 
  	return ret;
  }
+@@ -323,7 +328,6 @@ void set_shrinker_bit(struct mem_cgroup
+ #define SHRINKER_REGISTERING ((struct shrinker *)~0UL)
  
+ static DEFINE_IDR(shrinker_idr);
+-static int shrinker_nr_max;
+ 
+ static int prealloc_memcg_shrinker(struct shrinker *shrinker)
+ {
+@@ -340,8 +344,6 @@ static int prealloc_memcg_shrinker(struc
+ 			idr_remove(&shrinker_idr, id);
+ 			goto unlock;
+ 		}
+-
+-		shrinker_nr_max = id + 1;
+ 	}
+ 	shrinker->id = id;
+ 	ret = 0;
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
