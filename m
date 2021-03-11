@@ -4,44 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26105C433E6
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 20:56:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90D87C433E6
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 21:05:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D81FE64F8B
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 20:56:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 46F1564F8D
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Mar 2021 21:05:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230286AbhCKUzh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Mar 2021 15:55:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56950 "EHLO mail.kernel.org"
+        id S230231AbhCKVFL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Mar 2021 16:05:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59042 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229900AbhCKUzc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Mar 2021 15:55:32 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1456864F88;
-        Thu, 11 Mar 2021 20:55:31 +0000 (UTC)
+        id S230286AbhCKVEx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Mar 2021 16:04:53 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 05F4964E44;
+        Thu, 11 Mar 2021 21:04:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615496132;
-        bh=dnjQBY3USZHTKFKxLEavowBMTkiUnSiRMefxt1MVWp4=;
+        s=korg; t=1615496693;
+        bh=BnZtHqbYhnjCvyuU65Fe8YZ8d8O9tNVUwsPTETY4qfA=;
         h=Date:From:To:Subject:From;
-        b=f+Y2WF0qFsESBPdbMqTNjKW+gSKc6v9dZRG5fSPNA3JyyirQlA2KmcKgFTir/dCAt
-         LYyzWQxipS//dibnYRu/Hdwxzqh93U0KJ0S16xBTqF7d0LRePjB0MiMgcIq9Z6NYA9
-         41lAYgYgUo+yrFqnaaphWzo9l2Gu09MXesYblO+s=
-Date:   Thu, 11 Mar 2021 12:55:30 -0800
+        b=Len2cMOa19YQ/m9CzR1S2zqt/+Zb0bSG9xMylM3ZFrd929QsiLaTKG+pNtUH7yubg
+         V8lv6j+9bAV5GNLlWIZ6VMUrx4SpKbzNO/2A0vS3M7QzozOyDA6ZXCniVhcZavBwdv
+         AFILrKH5zWeV93oKhhfhRQpqF+WOgLphXdcx3hEI=
+Date:   Thu, 11 Mar 2021 13:04:52 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, bgardon@google.com, dimitri.sivanich@hpe.com,
-        hannes@cmpxchg.org, jgg@ziepe.ca, jglisse@redhat.com,
-        mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com,
-        seanjc@google.com, stable@vger.kernel.org
+To:     chaitanya.kulkarni@wdc.com, clm@fb.com, dsterba@suse.com,
+        ira.weiny@intel.com, josef@toxicpanda.com,
+        mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
 Subject:  +
- mm-mmu_notifiers-esnure-range_end-is-paired-with-range_start.patch added to
- -mm tree
-Message-ID: <20210311205530.-OFwWXE16%akpm@linux-foundation.org>
+ mm-highmem-convert-memzero_page-to-kmap_local_page.patch added to -mm tree
+Message-ID: <20210311210452.aXOnV7oGW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,17 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmu_notifiers: ensure range_end() is paired with range_sta=
-rt()
+     Subject: mm/highmem: convert memzero_page() to kmap_local_page()
 has been added to the -mm tree.  Its filename is
-     mm-mmu_notifiers-esnure-range_end-is-paired-with-range_start.patch
+     mm-highmem-convert-memzero_page-to-kmap_local_page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmu_notifiers-esnure-range=
-_end-is-paired-with-range_start.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-highmem-convert-memzero_page-to-kmap_local_page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmu_notifiers-esnure-range=
-_end-is-paired-with-range_start.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-highmem-convert-memzero_page-to-kmap_local_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,128 +59,51 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Sean Christopherson <seanjc@google.com>
-Subject: mm/mmu_notifiers: ensure range_end() is paired with range_start()
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: mm/highmem: convert memzero_page() to kmap_local_page()
 
-If one or more notifiers fails .invalidate_range_start(), invoke
-.invalidate_range_end() for "all" notifiers.  If there are multiple
-notifiers, those that did not fail are expecting _start() and _end() to be
-paired, e.g.  KVM's mmu_notifier_count would become imbalanced.  Disallow
-notifiers that can fail _start() from implementing _end() so that it's
-unnecessary to either track which notifiers rejected _start(), or had
-already succeeded prior to a failed _start().
+The memset() does not need to be performed atomically.  Use
+kmap_local_page() which will improved performance for this call.
 
-Note, the existing behavior of calling _start() on all notifiers even
-after a previous notifier failed _start() was an unintented "feature".=20
-Make it canon now that the behavior is depended on for correctness.
-
-As of today, the bug is likely benign:
-
-  1. The only caller of the non-blocking notifier is OOM kill.
-  2. The only notifiers that can fail _start() are the i915 and Nouveau
-     drivers.
-  3. The only notifiers that utilize _end() are the SGI UV GRU driver
-     and KVM.
-  4. The GRU driver will never coincide with the i195/Nouveau drivers.
-  5. An imbalanced kvm->mmu_notifier_count only causes soft lockup in the
-     _guest_, and the guest is already doomed due to being an OOM victim.
-
-Fix the bug now to play nice with future usage, e.g.  KVM has a potential
-use case for blocking memslot updates in KVM while an invalidation is
-in-progress, and failure to unblock would result in said updates being
-blocked indefinitely and hanging.
-
-Found by inspection.  Verified by adding a second notifier in KVM that
-periodically returns -EAGAIN on non-blockable ranges, triggering OOM, and
-observing that KVM exits with an elevated notifier count.
-
-Link: https://lkml.kernel.org/r/20210311180057.1582638-1-seanjc@google.com
-Fixes: 93065ac753e4 ("mm, oom: distinguish blockable mode for mmu notifiers=
-")
-Signed-off-by: Sean Christopherson <seanjc@google.com>
-Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ben Gardon <bgardon@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dimitri Sivanich <dimitri.sivanich@hpe.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210309212137.2610186-3-ira.weiny@intel.com
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Cc: Chaitanya Kulkarni <chaitanya.kulkarni@wdc.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Chris Mason <clm@fb.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |   10 +++++-----
- mm/mmu_notifier.c            |   23 +++++++++++++++++++++++
- 2 files changed, 28 insertions(+), 5 deletions(-)
+ include/linux/highmem.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/mmu_notifier.h~mm-mmu_notifiers-esnure-range_end-is-pai=
-red-with-range_start
-+++ a/include/linux/mmu_notifier.h
-@@ -169,11 +169,11 @@ struct mmu_notifier_ops {
- 	 * the last refcount is dropped.
- 	 *
- 	 * If blockable argument is set to false then the callback cannot
--	 * sleep and has to return with -EAGAIN. 0 should be returned
--	 * otherwise. Please note that if invalidate_range_start approves
--	 * a non-blocking behavior then the same applies to
--	 * invalidate_range_end.
--	 *
-+	 * sleep and has to return with -EAGAIN if sleeping would be required.
-+	 * 0 should be returned otherwise. Please note that notifiers that can
-+	 * fail invalidate_range_start are not allowed to implement
-+	 * invalidate_range_end, as there is no mechanism for informing the
-+	 * notifier that its start failed.
- 	 */
- 	int (*invalidate_range_start)(struct mmu_notifier *subscription,
- 				      const struct mmu_notifier_range *range);
---- a/mm/mmu_notifier.c~mm-mmu_notifiers-esnure-range_end-is-paired-with-ra=
-nge_start
-+++ a/mm/mmu_notifier.c
-@@ -501,10 +501,33 @@ static int mn_hlist_invalidate_range_sta
- 						"");
- 				WARN_ON(mmu_notifier_range_blockable(range) ||
- 					_ret !=3D -EAGAIN);
-+				/*
-+				 * We call all the notifiers on any EAGAIN,
-+				 * there is no way for a notifier to know if
-+				 * its start method failed, thus a start that
-+				 * does EAGAIN can't also do end.
-+				 */
-+				WARN_ON(ops->invalidate_range_end);
- 				ret =3D _ret;
- 			}
- 		}
- 	}
-+
-+	if (ret) {
-+		/*
-+		 * Must be non-blocking to get here.  If there are multiple
-+		 * notifiers and one or more failed start, any that succeeded
-+		 * start are expecting their end to be called.  Do so now.
-+		 */
-+		hlist_for_each_entry_rcu(subscription, &subscriptions->list,
-+					 hlist, srcu_read_lock_held(&srcu)) {
-+			if (!subscription->ops->invalidate_range_end)
-+				continue;
-+
-+			subscription->ops->invalidate_range_end(subscription,
-+								range);
-+		}
-+	}
- 	srcu_read_unlock(&srcu, id);
-=20
- 	return ret;
+--- a/include/linux/highmem.h~mm-highmem-convert-memzero_page-to-kmap_local_page
++++ a/include/linux/highmem.h
+@@ -334,9 +334,9 @@ static inline void memcpy_to_page(struct
+ 
+ static inline void memzero_page(struct page *page, size_t offset, size_t len)
+ {
+-	char *addr = kmap_atomic(page);
++	char *addr = kmap_local_page(page);
+ 	memset(addr + offset, 0, len);
+-	kunmap_atomic(addr);
++	kunmap_local(addr);
+ }
+ 
+ #endif /* _LINUX_HIGHMEM_H */
 _
 
-Patches currently in -mm which might be from seanjc@google.com are
+Patches currently in -mm which might be from ira.weiny@intel.com are
 
-mm-mmu_notifiers-esnure-range_end-is-paired-with-range_start.patch
+iov_iter-lift-memzero_page-to-highmemh.patch
+mm-highmem-convert-memzero_page-to-kmap_local_page.patch
+btrfs-use-memzero_page-instead-of-open-coded-kmap-pattern.patch
+mm-highmem-remove-deprecated-kmap_atomic.patch
 
