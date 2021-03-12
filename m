@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09521C4332B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DD04C43331
 	for <mm-commits@archiver.kernel.org>; Fri, 12 Mar 2021 18:37:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4F3864F69
-	for <mm-commits@archiver.kernel.org>; Fri, 12 Mar 2021 18:37:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 19F9464F5D
+	for <mm-commits@archiver.kernel.org>; Fri, 12 Mar 2021 18:37:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233814AbhCLSgk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 Mar 2021 13:36:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43950 "EHLO mail.kernel.org"
+        id S233659AbhCLSgi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 Mar 2021 13:36:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43918 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233846AbhCLSgR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 12 Mar 2021 13:36:17 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E0C6F64F5D;
-        Fri, 12 Mar 2021 18:36:16 +0000 (UTC)
+        id S233823AbhCLSgL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 12 Mar 2021 13:36:11 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DEC4664F5D;
+        Fri, 12 Mar 2021 18:36:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615574177;
-        bh=4gjBYxasksoSoQ8CWixv3RmIfiKXXdwuAjhUy0RWjpg=;
+        s=korg; t=1615574171;
+        bh=j1IQF1rTKOvpnoP0XTJo9Ds972rTNftOL3Y9jBgES3w=;
         h=Date:From:To:Subject:From;
-        b=z3KrUaEuo8K4V7wxmXXdB7e8NTfsQ5KKSViGef+Jl1Xgev+xP7TQtrPDTneIhQB9g
-         y3wGWZPfkC6g5JgdzhgDjvZ3h2cLCYbASHss+gxRLbHdlpVhX7KpK40Fmx0csg46wN
-         FwOLgnNqmuNAKQsRC4OTgl4RUKecwrRtHC8gtNDM=
-Date:   Fri, 12 Mar 2021 10:36:16 -0800
+        b=Ah6kiLyQ2cV93XIrJf9SMCJGAbs0i8FMJoYlOPF1h2I8EYdnSz5HgMcfwFkoLj5ar
+         rIIqzlwP4l64EjftpCxzMJclYsxB5d5QMhozliFXDaX2mbOnm05492P0KIfKeTzFBG
+         2FPSnz7eM0pA0t/JYdts02Sb7zK93QjkQuI6WxLw=
+Date:   Fri, 12 Mar 2021 10:36:10 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com,
         elver@google.com, glider@google.com, mm-commits@vger.kernel.org
-Subject:  + kasan-docs-update-shadow-memory-section.patch added to
- -mm tree
-Message-ID: <20210312183616.vZ_e1qSKm%akpm@linux-foundation.org>
+Subject:  +
+ kasan-docs-update-sw_tags-implementation-details-section.patch added to -mm
+ tree
+Message-ID: <20210312183610.DVvK6QA9A%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: docs: update shadow memory section
+     Subject: kasan: docs: update SW_TAGS implementation details section
 has been added to the -mm tree.  Its filename is
-     kasan-docs-update-shadow-memory-section.patch
+     kasan-docs-update-sw_tags-implementation-details-section.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-docs-update-shadow-memory-section.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-docs-update-sw_tags-implementation-details-section.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-docs-update-shadow-memory-section.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-docs-update-sw_tags-implementation-details-section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,16 +66,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: docs: update shadow memory section
+Subject: kasan: docs: update SW_TAGS implementation details section
 
-Update the "Shadow memory" section in KASAN documentation:
+Update the "Implementation details" section for SW_TAGS KASAN:
 
-- Rearrange the introduction paragraph do it doesn't give a
-  "KASAN has an issue" impression.
-- Update the list of architectures with vmalloc support.
+- Clarify the introduction sentence.
 - Punctuation, readability, and other minor clean-ups.
 
-Link: https://lkml.kernel.org/r/00f8c38b0fd5290a3f4dced04eaba41383e67e14.1615559068.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/69b9b2e49d8cf789358fa24558be3fc0ce4ee32c.1615559068.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -83,72 +82,69 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   31 ++++++++++++----------------
- 1 file changed, 14 insertions(+), 17 deletions(-)
+ Documentation/dev-tools/kasan.rst |   39 +++++++++++++---------------
+ 1 file changed, 19 insertions(+), 20 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-shadow-memory-section
+--- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-sw_tags-implementation-details-section
 +++ a/Documentation/dev-tools/kasan.rst
-@@ -304,14 +304,11 @@ checking gets disabled.
- Shadow memory
- -------------
+@@ -235,38 +235,37 @@ quarantine (see mm/kasan/quarantine.c fo
+ Software tag-based KASAN
+ ~~~~~~~~~~~~~~~~~~~~~~~~
  
--The kernel maps memory in a number of different parts of the address
--space. This poses something of a problem for KASAN, which requires
--that all addresses accessed by instrumented code have a valid shadow
--region.
+-Software tag-based KASAN requires software memory tagging support in the form
+-of HWASan-like compiler instrumentation (see HWASan documentation for details).
 -
--The range of kernel virtual addresses is large: there is not enough
--real memory to support a real shadow region for every address that
--could be accessed by the kernel.
-+The kernel maps memory in several different parts of the address space.
-+The range of kernel virtual addresses is large: there is not enough real
-+memory to support a real shadow region for every address that could be
-+accessed by the kernel. Therefore, KASAN only maps real shadow for certain
-+parts of the address space.
+-Software tag-based KASAN is currently only implemented for arm64 architecture.
++Software tag-based KASAN uses a software memory tagging approach to checking
++access validity. It is currently only implemented for the arm64 architecture.
  
- Default behaviour
- ~~~~~~~~~~~~~~~~~
-@@ -323,10 +320,9 @@ page is mapped over the shadow area. Thi
- declares all memory accesses as permitted.
+ Software tag-based KASAN uses the Top Byte Ignore (TBI) feature of arm64 CPUs
+-to store a pointer tag in the top byte of kernel pointers. Like generic KASAN
+-it uses shadow memory to store memory tags associated with each 16-byte memory
+-cell (therefore it dedicates 1/16th of the kernel memory for shadow memory).
++to store a pointer tag in the top byte of kernel pointers. It uses shadow memory
++to store memory tags associated with each 16-byte memory cell (therefore, it
++dedicates 1/16th of the kernel memory for shadow memory).
  
- This presents a problem for modules: they do not live in the linear
--mapping, but in a dedicated module space. By hooking in to the module
--allocator, KASAN can temporarily map real shadow memory to cover
--them. This allows detection of invalid accesses to module globals, for
--example.
-+mapping but in a dedicated module space. By hooking into the module
-+allocator, KASAN temporarily maps real shadow memory to cover them.
-+This allows detection of invalid accesses to module globals, for example.
+-On each memory allocation software tag-based KASAN generates a random tag, tags
+-the allocated memory with this tag, and embeds this tag into the returned
++On each memory allocation, software tag-based KASAN generates a random tag, tags
++the allocated memory with this tag, and embeds the same tag into the returned
+ pointer.
  
- This also creates an incompatibility with ``VMAP_STACK``: if the stack
- lives in vmalloc space, it will be shadowed by the read-only page, and
-@@ -337,9 +333,10 @@ CONFIG_KASAN_VMALLOC
- ~~~~~~~~~~~~~~~~~~~~
+ Software tag-based KASAN uses compile-time instrumentation to insert checks
+-before each memory access. These checks make sure that tag of the memory that
+-is being accessed is equal to tag of the pointer that is used to access this
+-memory. In case of a tag mismatch software tag-based KASAN prints a bug report.
++before each memory access. These checks make sure that the tag of the memory
++that is being accessed is equal to the tag of the pointer that is used to access
++this memory. In case of a tag mismatch, software tag-based KASAN prints a bug
++report.
  
- With ``CONFIG_KASAN_VMALLOC``, KASAN can cover vmalloc space at the
--cost of greater memory usage. Currently this is only supported on x86.
-+cost of greater memory usage. Currently, this is supported on x86,
-+riscv, s390, and powerpc.
+-Software tag-based KASAN also has two instrumentation modes (outline, that
+-emits callbacks to check memory accesses; and inline, that performs the shadow
++Software tag-based KASAN also has two instrumentation modes (outline, which
++emits callbacks to check memory accesses; and inline, which performs the shadow
+ memory checks inline). With outline instrumentation mode, a bug report is
+-simply printed from the function that performs the access check. With inline
+-instrumentation a brk instruction is emitted by the compiler, and a dedicated
+-brk handler is used to print bug reports.
++printed from the function that performs the access check. With inline
++instrumentation, a ``brk`` instruction is emitted by the compiler, and a
++dedicated ``brk`` handler is used to print bug reports.
  
--This works by hooking into vmalloc and vmap, and dynamically
-+This works by hooking into vmalloc and vmap and dynamically
- allocating real shadow memory to back the mappings.
+ Software tag-based KASAN uses 0xFF as a match-all pointer tag (accesses through
+-pointers with 0xFF pointer tag aren't checked). The value 0xFE is currently
++pointers with the 0xFF pointer tag are not checked). The value 0xFE is currently
+ reserved to tag freed memory regions.
  
- Most mappings in vmalloc space are small, requiring less than a full
-@@ -358,10 +355,10 @@ memory.
+-Software tag-based KASAN currently only supports tagging of
+-kmem_cache_alloc/kmalloc and page_alloc memory.
++Software tag-based KASAN currently only supports tagging of slab and page_alloc
++memory.
  
- To avoid the difficulties around swapping mappings around, KASAN expects
- that the part of the shadow region that covers the vmalloc space will
--not be covered by the early shadow page, but will be left
--unmapped. This will require changes in arch-specific code.
-+not be covered by the early shadow page but will be left unmapped.
-+This will require changes in arch-specific code.
- 
--This allows ``VMAP_STACK`` support on x86, and can simplify support of
-+This allows ``VMAP_STACK`` support on x86 and can simplify support of
- architectures that do not have a fixed module region.
- 
- For developers
+ Hardware tag-based KASAN
+ ~~~~~~~~~~~~~~~~~~~~~~~~
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
