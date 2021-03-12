@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D567EC433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6BCAC433E9
 	for <mm-commits@archiver.kernel.org>; Fri, 12 Mar 2021 18:37:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 96CCC64F70
+	by mail.kernel.org (Postfix) with ESMTP id B882E64F72
 	for <mm-commits@archiver.kernel.org>; Fri, 12 Mar 2021 18:37:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233859AbhCLSgh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 Mar 2021 13:36:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43886 "EHLO mail.kernel.org"
+        id S233633AbhCLSgi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 Mar 2021 13:36:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43900 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233580AbhCLSgH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 12 Mar 2021 13:36:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E1A4464F6A;
-        Fri, 12 Mar 2021 18:36:06 +0000 (UTC)
+        id S233814AbhCLSgJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 12 Mar 2021 13:36:09 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E006364DEC;
+        Fri, 12 Mar 2021 18:36:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615574167;
-        bh=X9AcSgjYdXeeJUkECrakxmTd2QzjcdWdOBGe8mIZAT8=;
+        s=korg; t=1615574169;
+        bh=npUX6DuOe6e+ux1TE7oqvoiKOxAHNOz7f21QQ7S9C+U=;
         h=Date:From:To:Subject:From;
-        b=H66cy+tdSo7s+mNplY1pUcJvO+Gy1i2jxZUIvkYNvk2ZBiC0wqyKg0ZIG8eUYc9V7
-         U40erW+XaLfJeIOVIUAOJQX/xUrT3sHNxoO+5+TsIpF3dpIdtX6bxiKoP6/ERMCrKT
-         9W1qjSU1P0x/n50tWkRSZ1XD4I1/gtB08YeFam6Y=
-Date:   Fri, 12 Mar 2021 10:36:06 -0800
+        b=yc80s3qpfsujYq8v8D7Vzy3qR9atepQqJ7WeIMSdg6zZX1gxRPtYiN7ZA6rZ30ruz
+         CJX8XGwB5ZF+AVUn33+qVECbdIRy/fWptiU7tO1NSAdMN7QzJtXJKgmF82pYnlbZZW
+         qedZMcpjxLi64etZjvbnz5MU/4kTAPqzbc09zPAc=
+Date:   Fri, 12 Mar 2021 10:36:08 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com,
         elver@google.com, glider@google.com, mm-commits@vger.kernel.org
-Subject:  + kasan-docs-update-boot-parameters-section.patch added
- to -mm tree
-Message-ID: <20210312183606.lbMDhSVks%akpm@linux-foundation.org>
+Subject:  +
+ kasan-docs-update-generic-implementation-details-section.patch added to -mm
+ tree
+Message-ID: <20210312183608.t-eMwh1r6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: docs: update boot parameters section
+     Subject: kasan: docs: update GENERIC implementation details section
 has been added to the -mm tree.  Its filename is
-     kasan-docs-update-boot-parameters-section.patch
+     kasan-docs-update-generic-implementation-details-section.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-docs-update-boot-parameters-section.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-docs-update-generic-implementation-details-section.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-docs-update-boot-parameters-section.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-docs-update-generic-implementation-details-section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,16 +66,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: docs: update boot parameters section
+Subject: kasan: docs: update GENERIC implementation details section
 
-Update the "Boot parameters" section in KASAN documentation:
+Update the "Implementation details" section for generic KASAN:
 
-- Mention panic_on_warn.
-- Mention kasan_multi_shot and its interaction with panic_on_warn.
-- Clarify kasan.fault=panic interaction with panic_on_warn.
-- A readability clean-up.
+- Don't mention kmemcheck, it's not present in the kernel anymore.
+- Don't mention GCC as the only supported compiler.
+- Update kasan_mem_to_shadow() definition to match actual code.
+- Punctuation, readability, and other minor clean-ups.
 
-Link: https://lkml.kernel.org/r/01364952f15789948f0627d6733b5cdf5209f83a.1615559068.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/f2f35fdab701f8c709f63d328f98aec2982c8acc.1615559068.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -83,41 +84,62 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ Documentation/dev-tools/kasan.rst |   29 +++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-boot-parameters-section
+--- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-generic-implementation-details-section
 +++ a/Documentation/dev-tools/kasan.rst
-@@ -174,10 +174,16 @@ call_rcu() and workqueue queuing.
- Boot parameters
- ~~~~~~~~~~~~~~~
+@@ -200,12 +200,11 @@ Implementation details
+ Generic KASAN
+ ~~~~~~~~~~~~~
  
-+KASAN is affected by the generic ``panic_on_warn`` command line parameter.
-+When it is enabled, KASAN panics the kernel after printing a bug report.
+-From a high level perspective, KASAN's approach to memory error detection is
+-similar to that of kmemcheck: use shadow memory to record whether each byte of
+-memory is safe to access, and use compile-time instrumentation to insert checks
+-of shadow memory on each memory access.
++Software KASAN modes use shadow memory to record whether each byte of memory is
++safe to access and use compile-time instrumentation to insert shadow memory
++checks before each memory access.
+ 
+-Generic KASAN dedicates 1/8th of kernel memory to its shadow memory (e.g. 16TB
++Generic KASAN dedicates 1/8th of kernel memory to its shadow memory (16TB
+ to cover 128TB on x86_64) and uses direct mapping with a scale and offset to
+ translate a memory address to its corresponding shadow address.
+ 
+@@ -214,23 +213,23 @@ address::
+ 
+     static inline void *kasan_mem_to_shadow(const void *addr)
+     {
+-	return ((unsigned long)addr >> KASAN_SHADOW_SCALE_SHIFT)
++	return (void *)((unsigned long)addr >> KASAN_SHADOW_SCALE_SHIFT)
+ 		+ KASAN_SHADOW_OFFSET;
+     }
+ 
+ where ``KASAN_SHADOW_SCALE_SHIFT = 3``.
+ 
+ Compile-time instrumentation is used to insert memory access checks. Compiler
+-inserts function calls (__asan_load*(addr), __asan_store*(addr)) before each
+-memory access of size 1, 2, 4, 8 or 16. These functions check whether memory
+-access is valid or not by checking corresponding shadow memory.
+-
+-GCC 5.0 has possibility to perform inline instrumentation. Instead of making
+-function calls GCC directly inserts the code to check the shadow memory.
+-This option significantly enlarges kernel but it gives x1.1-x2 performance
+-boost over outline instrumented kernel.
++inserts function calls (``__asan_load*(addr)``, ``__asan_store*(addr)``) before
++each memory access of size 1, 2, 4, 8, or 16. These functions check whether
++memory accesses are valid or not by checking corresponding shadow memory.
 +
-+By default, KASAN prints a bug report only for the first invalid memory access.
-+With ``kasan_multi_shot``, KASAN prints a report on every invalid access. This
-+effectively disables ``panic_on_warn`` for KASAN reports.
-+
- Hardware tag-based KASAN mode (see the section about various modes below) is
- intended for use in production as a security mitigation. Therefore, it supports
--boot parameters that allow to disable KASAN competely or otherwise control
--particular KASAN features.
-+boot parameters that allow disabling KASAN or controlling its features.
++With inline instrumentation, instead of making function calls, the compiler
++directly inserts the code to check shadow memory. This option significantly
++enlarges the kernel, but it gives an x1.1-x2 performance boost over the
++outline-instrumented kernel.
  
- - ``kasan=off`` or ``=on`` controls whether KASAN is enabled (default: ``on``).
+-Generic KASAN is the only mode that delays the reuse of freed object via
++Generic KASAN is the only mode that delays the reuse of freed objects via
+ quarantine (see mm/kasan/quarantine.c for implementation).
  
-@@ -185,8 +191,8 @@ particular KASAN features.
-   traces collection (default: ``on``).
- 
- - ``kasan.fault=report`` or ``=panic`` controls whether to only print a KASAN
--  report or also panic the kernel (default: ``report``). Note, that tag
--  checking gets disabled after the first reported bug.
-+  report or also panic the kernel (default: ``report``). The panic happens even
-+  if ``kasan_multi_shot`` is enabled.
- 
- Implementation details
- ----------------------
+ Software tag-based KASAN
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
