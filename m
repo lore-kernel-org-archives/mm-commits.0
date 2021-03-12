@@ -7,36 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F495C433DB
-	for <mm-commits@archiver.kernel.org>; Fri, 12 Mar 2021 18:32:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C57FC433DB
+	for <mm-commits@archiver.kernel.org>; Fri, 12 Mar 2021 18:36:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5238D64F73
-	for <mm-commits@archiver.kernel.org>; Fri, 12 Mar 2021 18:32:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6048C64F5D
+	for <mm-commits@archiver.kernel.org>; Fri, 12 Mar 2021 18:36:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232741AbhCLSbt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 Mar 2021 13:31:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42778 "EHLO mail.kernel.org"
+        id S233178AbhCLSgG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 Mar 2021 13:36:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43728 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233222AbhCLSbk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 12 Mar 2021 13:31:40 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B11D564F69;
-        Fri, 12 Mar 2021 18:31:39 +0000 (UTC)
+        id S233603AbhCLSf6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 12 Mar 2021 13:35:58 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ED2C964F5D;
+        Fri, 12 Mar 2021 18:35:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615573900;
-        bh=X8G+Bak9/6OTW+S8stABkMsg2KqPOVhnMht7iKvuARc=;
+        s=korg; t=1615574158;
+        bh=7Jhc7b3U/GYLzelPikmv527lomuj4PbKYw7E9BMfiQY=;
         h=Date:From:To:Subject:From;
-        b=KZhZplGXwX1mc/NmqHu7OltsRhQawb1sqBMPM6Ue+3hSDwS1ccrGkL9L3L+1vG80V
-         5gbvW41hfLGj6DI6/8I8FX4v2i6LvCM1VI43MZEboc6KbAdGVs+zQdPwJ6AnEUpucZ
-         uPeSZspJ4KRiCWxY0gGGYzENkBrpD0NzqrJsirBE=
-Date:   Fri, 12 Mar 2021 10:31:39 -0800
+        b=iEj1KeMWKVU6mb/cljJ6Y++jbMGTFczqldhCFLujBF7z+W7Zqz3DfcSOHqttes7Iw
+         uofkucgIr7ecPnNW1ZUQGdKSD9HZV0OmbjcVDK0EJdpxkLucRLSdQxFkWCymSRG2nD
+         xUv+IK98Gmykpof9yl4GUsdE6xeCXuwNwduT4j7s=
+Date:   Fri, 12 Mar 2021 10:35:57 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, andreyknvl@google.com, arnd@arndb.de,
-        dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org,
-        natechancellor@gmail.com, ryabinin.a.a@gmail.com,
-        walter-zh.wu@mediatek.com
-Subject:  + kasan-remove-redundant-config-option-fix.patch added to
- -mm tree
-Message-ID: <20210312183139.v7M5UPlut%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com,
+        elver@google.com, glider@google.com, mm-commits@vger.kernel.org
+Subject:  + kasan-docs-clean-up-sections.patch added to -mm tree
+Message-ID: <20210312183557.hUXAKtKys%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-remove-redundant-config-option-fix
+     Subject: kasan: docs: clean up sections
 has been added to the -mm tree.  Its filename is
-     kasan-remove-redundant-config-option-fix.patch
+     kasan-docs-clean-up-sections.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-remove-redundant-config-option-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-docs-clean-up-sections.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-remove-redundant-config-option-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-docs-clean-up-sections.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,49 +63,153 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kasan-remove-redundant-config-option-fix
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: docs: clean up sections
 
-fix merge snafu
+Update KASAN documentation:
 
+- Give some sections clearer names.
+- Remove unneeded subsections in the "Tests" section.
+- Move the "For developers" section and split into subsections.
+
+Link: https://lkml.kernel.org/r/c2bbb56eaea80ad484f0ee85bb71959a3a63f1d7.1615559068.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Walter Wu <walter-zh.wu@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kasan |    6 ------
- 1 file changed, 6 deletions(-)
+ Documentation/dev-tools/kasan.rst |   54 ++++++++++++++--------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
 
---- a/lib/Kconfig.kasan~kasan-remove-redundant-config-option-fix
-+++ a/lib/Kconfig.kasan
-@@ -155,12 +155,6 @@ config KASAN_STACK
- 	  CONFIG_COMPILE_TEST.	On gcc it is assumed to always be safe
- 	  to use and enabled by default.
+--- a/Documentation/dev-tools/kasan.rst~kasan-docs-clean-up-sections
++++ a/Documentation/dev-tools/kasan.rst
+@@ -168,24 +168,6 @@ particular KASAN features.
+   report or also panic the kernel (default: ``report``). Note, that tag
+   checking gets disabled after the first reported bug.
  
--config KASAN_STACK
--	bool
--	depends on KASAN_GENERIC || KASAN_SW_TAGS
--	default 1 if KASAN_STACK_ENABLE || CC_IS_GCC
--	default 0
+-For developers
+-~~~~~~~~~~~~~~
 -
- config KASAN_SW_TAGS_IDENTIFY
- 	bool "Enable memory corruption identification"
- 	depends on KASAN_SW_TAGS
+-Software KASAN modes use compiler instrumentation to insert validity checks.
+-Such instrumentation might be incompatible with some part of the kernel, and
+-therefore needs to be disabled. To disable instrumentation for specific files
+-or directories, add a line similar to the following to the respective kernel
+-Makefile:
+-
+-- For a single file (e.g. main.o)::
+-
+-    KASAN_SANITIZE_main.o := n
+-
+-- For all files in one directory::
+-
+-    KASAN_SANITIZE := n
+-
+-
+ Implementation details
+ ----------------------
+ 
+@@ -299,8 +281,8 @@ support MTE (but supports TBI).
+ Hardware tag-based KASAN only reports the first found bug. After that MTE tag
+ checking gets disabled.
+ 
+-What memory accesses are sanitised by KASAN?
+---------------------------------------------
++Shadow memory
++-------------
+ 
+ The kernel maps memory in a number of different parts of the address
+ space. This poses something of a problem for KASAN, which requires
+@@ -311,8 +293,8 @@ The range of kernel virtual addresses is
+ real memory to support a real shadow region for every address that
+ could be accessed by the kernel.
+ 
+-By default
+-~~~~~~~~~~
++Default behaviour
++~~~~~~~~~~~~~~~~~
+ 
+ By default, architectures only map real memory over the shadow region
+ for the linear mapping (and potentially other small areas). For all
+@@ -362,8 +344,29 @@ unmapped. This will require changes in a
+ This allows ``VMAP_STACK`` support on x86, and can simplify support of
+ architectures that do not have a fixed module region.
+ 
+-CONFIG_KASAN_KUNIT_TEST and CONFIG_KASAN_MODULE_TEST
+-----------------------------------------------------
++For developers
++--------------
++
++Ignoring accesses
++~~~~~~~~~~~~~~~~~
++
++Software KASAN modes use compiler instrumentation to insert validity checks.
++Such instrumentation might be incompatible with some part of the kernel, and
++therefore needs to be disabled. To disable instrumentation for specific files
++or directories, add a line similar to the following to the respective kernel
++Makefile:
++
++- For a single file (e.g. main.o)::
++
++    KASAN_SANITIZE_main.o := n
++
++- For all files in one directory::
++
++    KASAN_SANITIZE := n
++
++
++Tests
++~~~~~
+ 
+ KASAN tests consist of two parts:
+ 
+@@ -409,21 +412,18 @@ Or, if one of the tests failed::
+ There are a few ways to run KUnit-compatible KASAN tests.
+ 
+ 1. Loadable module
+-~~~~~~~~~~~~~~~~~~
+ 
+ With ``CONFIG_KUNIT`` enabled, ``CONFIG_KASAN_KUNIT_TEST`` can be built as
+ a loadable module and run on any architecture that supports KASAN by loading
+ the module with insmod or modprobe. The module is called ``test_kasan``.
+ 
+ 2. Built-In
+-~~~~~~~~~~~
+ 
+ With ``CONFIG_KUNIT`` built-in, ``CONFIG_KASAN_KUNIT_TEST`` can be built-in
+ on any architecure that supports KASAN. These and any other KUnit tests enabled
+ will run and print the results at boot as a late-init call.
+ 
+ 3. Using kunit_tool
+-~~~~~~~~~~~~~~~~~~~
+ 
+ With ``CONFIG_KUNIT`` and ``CONFIG_KASAN_KUNIT_TEST`` built-in, it's also
+ possible use ``kunit_tool`` to see the results of these and other KUnit tests
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-page_allocc-refactor-initialization-of-struct-page-for-holes-in-memory-layout-fix.patch
-mm.patch
-mm-memcontrol-switch-to-rstat-fix.patch
-kasan-remove-redundant-config-option-fix.patch
-mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+kasan-mm-fix-crash-with-hw_tags-and-debug_pagealloc.patch
+kasan-fix-kasan_stack-dependency-for-hw_tags.patch
+kasan-fix-per-page-tags-for-non-page_alloc-pages.patch
+kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch
+mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
+arm64-kasan-allow-to-init-memory-when-setting-tags.patch
+kasan-init-memory-in-kasan_unpoison-for-hw_tags.patch
+kasan-mm-integrate-page_alloc-init-with-hw_tags.patch
+kasan-mm-integrate-slab-init_on_alloc-with-hw_tags.patch
+kasan-mm-integrate-slab-init_on_free-with-hw_tags.patch
+kasan-docs-clean-up-sections.patch
+kasan-docs-update-overview-section.patch
+kasan-docs-update-usage-section.patch
+kasan-docs-update-error-reports-section.patch
+kasan-docs-update-boot-parameters-section.patch
+kasan-docs-update-generic-implementation-details-section.patch
+kasan-docs-update-sw_tags-implementation-details-section.patch
+kasan-docs-update-hw_tags-implementation-details-section.patch
+kasan-docs-update-shadow-memory-section.patch
+kasan-docs-update-ignoring-accesses-section.patch
+kasan-docs-update-tests-section.patch
 
