@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF44BC43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D567EC433E6
 	for <mm-commits@archiver.kernel.org>; Fri, 12 Mar 2021 18:37:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D624964F77
+	by mail.kernel.org (Postfix) with ESMTP id 96CCC64F70
 	for <mm-commits@archiver.kernel.org>; Fri, 12 Mar 2021 18:37:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233815AbhCLSgk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 Mar 2021 13:36:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43976 "EHLO mail.kernel.org"
+        id S233859AbhCLSgh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 Mar 2021 13:36:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43886 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233554AbhCLSgT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 12 Mar 2021 13:36:19 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E3FE664F69;
-        Fri, 12 Mar 2021 18:36:18 +0000 (UTC)
+        id S233580AbhCLSgH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 12 Mar 2021 13:36:07 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E1A4464F6A;
+        Fri, 12 Mar 2021 18:36:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615574179;
-        bh=S3Jl28OZTDWKPeFq/XvyobRjYoqmvBpCuIpCkxRJ+MU=;
+        s=korg; t=1615574167;
+        bh=X9AcSgjYdXeeJUkECrakxmTd2QzjcdWdOBGe8mIZAT8=;
         h=Date:From:To:Subject:From;
-        b=BQmR2v+3hYoEj5p0oa/apJjbeqUv7gXfxgGwB0+7DvJH8O72pH8VqWFyiREQHhUaY
-         1NwJTURoOnnli7jmI6htDZ+KeQBC9SI7rIEuHWGJl4cbcX35a0vVzcfChcZ5P+6OJP
-         p9grPR5i6nAdwFLT9LX2DnsodJyJmiDID6b4dZBs=
-Date:   Fri, 12 Mar 2021 10:36:18 -0800
+        b=H66cy+tdSo7s+mNplY1pUcJvO+Gy1i2jxZUIvkYNvk2ZBiC0wqyKg0ZIG8eUYc9V7
+         U40erW+XaLfJeIOVIUAOJQX/xUrT3sHNxoO+5+TsIpF3dpIdtX6bxiKoP6/ERMCrKT
+         9W1qjSU1P0x/n50tWkRSZ1XD4I1/gtB08YeFam6Y=
+Date:   Fri, 12 Mar 2021 10:36:06 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com,
         elver@google.com, glider@google.com, mm-commits@vger.kernel.org
-Subject:  + kasan-docs-update-ignoring-accesses-section.patch added
+Subject:  + kasan-docs-update-boot-parameters-section.patch added
  to -mm tree
-Message-ID: <20210312183618.wottRzX3n%akpm@linux-foundation.org>
+Message-ID: <20210312183606.lbMDhSVks%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: docs: update ignoring accesses section
+     Subject: kasan: docs: update boot parameters section
 has been added to the -mm tree.  Its filename is
-     kasan-docs-update-ignoring-accesses-section.patch
+     kasan-docs-update-boot-parameters-section.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-docs-update-ignoring-accesses-section.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-docs-update-boot-parameters-section.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-docs-update-ignoring-accesses-section.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-docs-update-boot-parameters-section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,16 +65,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: docs: update ignoring accesses section
+Subject: kasan: docs: update boot parameters section
 
-Update the "Ignoring accesses" section in KASAN documentation:
+Update the "Boot parameters" section in KASAN documentation:
 
-- Mention __no_sanitize_address/noinstr.
-- Mention kasan_disable/enable_current().
-- Mention kasan_reset_tag()/page_kasan_tag_reset().
-- Readability and punctuation clean-ups.
+- Mention panic_on_warn.
+- Mention kasan_multi_shot and its interaction with panic_on_warn.
+- Clarify kasan.fault=panic interaction with panic_on_warn.
+- A readability clean-up.
 
-Link: https://lkml.kernel.org/r/4531ba5f3eca61f6aade863c136778cc8c807a64.1615559068.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/01364952f15789948f0627d6733b5cdf5209f83a.1615559068.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -83,61 +83,41 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   34 ++++++++++++++++++++++++----
- 1 file changed, 30 insertions(+), 4 deletions(-)
+ Documentation/dev-tools/kasan.rst |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-ignoring-accesses-section
+--- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-boot-parameters-section
 +++ a/Documentation/dev-tools/kasan.rst
-@@ -368,12 +368,18 @@ Ignoring accesses
- ~~~~~~~~~~~~~~~~~
+@@ -174,10 +174,16 @@ call_rcu() and workqueue queuing.
+ Boot parameters
+ ~~~~~~~~~~~~~~~
  
- Software KASAN modes use compiler instrumentation to insert validity checks.
--Such instrumentation might be incompatible with some part of the kernel, and
--therefore needs to be disabled. To disable instrumentation for specific files
--or directories, add a line similar to the following to the respective kernel
-+Such instrumentation might be incompatible with some parts of the kernel, and
-+therefore needs to be disabled.
++KASAN is affected by the generic ``panic_on_warn`` command line parameter.
++When it is enabled, KASAN panics the kernel after printing a bug report.
 +
-+Other parts of the kernel might access metadata for allocated objects.
-+Normally, KASAN detects and reports such accesses, but in some cases (e.g.,
-+in memory allocators), these accesses are valid.
++By default, KASAN prints a bug report only for the first invalid memory access.
++With ``kasan_multi_shot``, KASAN prints a report on every invalid access. This
++effectively disables ``panic_on_warn`` for KASAN reports.
 +
-+For software KASAN modes, to disable instrumentation for a specific file or
-+directory, add a ``KASAN_SANITIZE`` annotation to the respective kernel
- Makefile:
+ Hardware tag-based KASAN mode (see the section about various modes below) is
+ intended for use in production as a security mitigation. Therefore, it supports
+-boot parameters that allow to disable KASAN competely or otherwise control
+-particular KASAN features.
++boot parameters that allow disabling KASAN or controlling its features.
  
--- For a single file (e.g. main.o)::
-+- For a single file (e.g., main.o)::
+ - ``kasan=off`` or ``=on`` controls whether KASAN is enabled (default: ``on``).
  
-     KASAN_SANITIZE_main.o := n
+@@ -185,8 +191,8 @@ particular KASAN features.
+   traces collection (default: ``on``).
  
-@@ -381,6 +387,26 @@ Makefile:
+ - ``kasan.fault=report`` or ``=panic`` controls whether to only print a KASAN
+-  report or also panic the kernel (default: ``report``). Note, that tag
+-  checking gets disabled after the first reported bug.
++  report or also panic the kernel (default: ``report``). The panic happens even
++  if ``kasan_multi_shot`` is enabled.
  
-     KASAN_SANITIZE := n
- 
-+For software KASAN modes, to disable instrumentation on a per-function basis,
-+use the KASAN-specific ``__no_sanitize_address`` function attribute or the
-+generic ``noinstr`` one.
-+
-+Note that disabling compiler instrumentation (either on a per-file or a
-+per-function basis) makes KASAN ignore the accesses that happen directly in
-+that code for software KASAN modes. It does not help when the accesses happen
-+indirectly (through calls to instrumented functions) or with the hardware
-+tag-based mode that does not use compiler instrumentation.
-+
-+For software KASAN modes, to disable KASAN reports in a part of the kernel code
-+for the current task, annotate this part of the code with a
-+``kasan_disable_current()``/``kasan_enable_current()`` section. This also
-+disables the reports for indirect accesses that happen through function calls.
-+
-+For tag-based KASAN modes (include the hardware one), to disable access
-+checking, use ``kasan_reset_tag()`` or ``page_kasan_tag_reset()``. Note that
-+temporarily disabling access checking via ``page_kasan_tag_reset()`` requires
-+saving and restoring the per-page KASAN tag via
-+``page_kasan_tag``/``page_kasan_tag_set``.
- 
- Tests
- ~~~~~
+ Implementation details
+ ----------------------
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
