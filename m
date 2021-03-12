@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CD3DC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF44BC43381
 	for <mm-commits@archiver.kernel.org>; Fri, 12 Mar 2021 18:37:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6F9F564F66
+	by mail.kernel.org (Postfix) with ESMTP id D624964F77
 	for <mm-commits@archiver.kernel.org>; Fri, 12 Mar 2021 18:37:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233580AbhCLSgh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 Mar 2021 13:36:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43776 "EHLO mail.kernel.org"
+        id S233815AbhCLSgk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 Mar 2021 13:36:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233844AbhCLSgF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 12 Mar 2021 13:36:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E15A364F66;
-        Fri, 12 Mar 2021 18:36:04 +0000 (UTC)
+        id S233554AbhCLSgT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 12 Mar 2021 13:36:19 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E3FE664F69;
+        Fri, 12 Mar 2021 18:36:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615574165;
-        bh=X4YdHMOAMQDwSJES7E/YqIj+XsP8idk9o4+GPW+yPtg=;
+        s=korg; t=1615574179;
+        bh=S3Jl28OZTDWKPeFq/XvyobRjYoqmvBpCuIpCkxRJ+MU=;
         h=Date:From:To:Subject:From;
-        b=zj/DUBIUlX1H9hYwnppnAKpIUMMwOIyZr7z4bMdQzFNDvmpFYl6j6DFnZR6NEx5V3
-         adnvmtIjtIKvEX4Ux814wZes99QZWaocfeogq8NJrOSu6qLTBssCU57hs5fydmZ2YA
-         xY4m2gxpXwmIzHkSucipNFvpad2KOqkY8W+LAjlc=
-Date:   Fri, 12 Mar 2021 10:36:04 -0800
+        b=BQmR2v+3hYoEj5p0oa/apJjbeqUv7gXfxgGwB0+7DvJH8O72pH8VqWFyiREQHhUaY
+         1NwJTURoOnnli7jmI6htDZ+KeQBC9SI7rIEuHWGJl4cbcX35a0vVzcfChcZ5P+6OJP
+         p9grPR5i6nAdwFLT9LX2DnsodJyJmiDID6b4dZBs=
+Date:   Fri, 12 Mar 2021 10:36:18 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com,
         elver@google.com, glider@google.com, mm-commits@vger.kernel.org
-Subject:  + kasan-docs-update-error-reports-section.patch added to
- -mm tree
-Message-ID: <20210312183604.1fdcqwRGP%akpm@linux-foundation.org>
+Subject:  + kasan-docs-update-ignoring-accesses-section.patch added
+ to -mm tree
+Message-ID: <20210312183618.wottRzX3n%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: docs: update error reports section
+     Subject: kasan: docs: update ignoring accesses section
 has been added to the -mm tree.  Its filename is
-     kasan-docs-update-error-reports-section.patch
+     kasan-docs-update-ignoring-accesses-section.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-docs-update-error-reports-section.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-docs-update-ignoring-accesses-section.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-docs-update-error-reports-section.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-docs-update-ignoring-accesses-section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,16 +65,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: docs: update error reports section
+Subject: kasan: docs: update ignoring accesses section
 
-Update the "Error reports" section in KASAN documentation:
+Update the "Ignoring accesses" section in KASAN documentation:
 
-- Mention that bug titles are best-effort.
-- Move and reword the part about auxiliary stacks from
-  "Implementation details".
-- Punctuation, readability, and other minor clean-ups.
+- Mention __no_sanitize_address/noinstr.
+- Mention kasan_disable/enable_current().
+- Mention kasan_reset_tag()/page_kasan_tag_reset().
+- Readability and punctuation clean-ups.
 
-Link: https://lkml.kernel.org/r/3531e8fe6972cf39d1954e3643237b19eb21227e.1615559068.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/4531ba5f3eca61f6aade863c136778cc8c807a64.1615559068.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -83,90 +83,61 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   46 +++++++++++++++-------------
- 1 file changed, 26 insertions(+), 20 deletions(-)
+ Documentation/dev-tools/kasan.rst |   34 ++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-error-reports-section
+--- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-ignoring-accesses-section
 +++ a/Documentation/dev-tools/kasan.rst
-@@ -60,7 +60,7 @@ physical pages, enable ``CONFIG_PAGE_OWN
- Error reports
- ~~~~~~~~~~~~~
+@@ -368,12 +368,18 @@ Ignoring accesses
+ ~~~~~~~~~~~~~~~~~
  
--A typical out-of-bounds access generic KASAN report looks like this::
-+A typical KASAN report looks like this::
- 
-     ==================================================================
-     BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [test_kasan]
-@@ -133,33 +133,43 @@ A typical out-of-bounds access generic K
-      ffff8801f44ec400: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
-     ==================================================================
- 
--The header of the report provides a short summary of what kind of bug happened
--and what kind of access caused it. It's followed by a stack trace of the bad
--access, a stack trace of where the accessed memory was allocated (in case bad
--access happens on a slab object), and a stack trace of where the object was
--freed (in case of a use-after-free bug report). Next comes a description of
--the accessed slab object and information about the accessed memory page.
-+The report header summarizes what kind of bug happened and what kind of access
-+caused it. It is followed by a stack trace of the bad access, a stack trace of
-+where the accessed memory was allocated (in case a slab object was accessed),
-+and a stack trace of where the object was freed (in case of a use-after-free
-+bug report). Next comes a description of the accessed slab object and the
-+information about the accessed memory page.
- 
--In the last section the report shows memory state around the accessed address.
--Internally KASAN tracks memory state separately for each memory granule, which
-+In the end, the report shows the memory state around the accessed address.
-+Internally, KASAN tracks memory state separately for each memory granule, which
- is either 8 or 16 aligned bytes depending on KASAN mode. Each number in the
- memory state section of the report shows the state of one of the memory
- granules that surround the accessed address.
- 
--For generic KASAN the size of each memory granule is 8. The state of each
-+For generic KASAN, the size of each memory granule is 8. The state of each
- granule is encoded in one shadow byte. Those 8 bytes can be accessible,
--partially accessible, freed or be a part of a redzone. KASAN uses the following
--encoding for each shadow byte: 0 means that all 8 bytes of the corresponding
-+partially accessible, freed, or be a part of a redzone. KASAN uses the following
-+encoding for each shadow byte: 00 means that all 8 bytes of the corresponding
- memory region are accessible; number N (1 <= N <= 7) means that the first N
- bytes are accessible, and other (8 - N) bytes are not; any negative value
- indicates that the entire 8-byte word is inaccessible. KASAN uses different
- negative values to distinguish between different kinds of inaccessible memory
- like redzones or freed memory (see mm/kasan/kasan.h).
- 
--In the report above the arrows point to the shadow byte 03, which means that
--the accessed address is partially accessible. For tag-based KASAN modes this
--last report section shows the memory tags around the accessed address
--(see the `Implementation details`_ section).
-+In the report above, the arrow points to the shadow byte ``03``, which means
-+that the accessed address is partially accessible.
+ Software KASAN modes use compiler instrumentation to insert validity checks.
+-Such instrumentation might be incompatible with some part of the kernel, and
+-therefore needs to be disabled. To disable instrumentation for specific files
+-or directories, add a line similar to the following to the respective kernel
++Such instrumentation might be incompatible with some parts of the kernel, and
++therefore needs to be disabled.
 +
-+For tag-based KASAN modes, this last report section shows the memory tags around
-+the accessed address (see the `Implementation details`_ section).
++Other parts of the kernel might access metadata for allocated objects.
++Normally, KASAN detects and reports such accesses, but in some cases (e.g.,
++in memory allocators), these accesses are valid.
 +
-+Note that KASAN bug titles (like ``slab-out-of-bounds`` or ``use-after-free``)
-+are best-effort: KASAN prints the most probable bug type based on the limited
-+information it has. The actual type of the bug might be different.
++For software KASAN modes, to disable instrumentation for a specific file or
++directory, add a ``KASAN_SANITIZE`` annotation to the respective kernel
+ Makefile:
+ 
+-- For a single file (e.g. main.o)::
++- For a single file (e.g., main.o)::
+ 
+     KASAN_SANITIZE_main.o := n
+ 
+@@ -381,6 +387,26 @@ Makefile:
+ 
+     KASAN_SANITIZE := n
+ 
++For software KASAN modes, to disable instrumentation on a per-function basis,
++use the KASAN-specific ``__no_sanitize_address`` function attribute or the
++generic ``noinstr`` one.
 +
-+Generic KASAN also reports up to two auxiliary call stack traces. These stack
-+traces point to places in code that interacted with the object but that are not
-+directly present in the bad access stack trace. Currently, this includes
-+call_rcu() and workqueue queuing.
++Note that disabling compiler instrumentation (either on a per-file or a
++per-function basis) makes KASAN ignore the accesses that happen directly in
++that code for software KASAN modes. It does not help when the accesses happen
++indirectly (through calls to instrumented functions) or with the hardware
++tag-based mode that does not use compiler instrumentation.
++
++For software KASAN modes, to disable KASAN reports in a part of the kernel code
++for the current task, annotate this part of the code with a
++``kasan_disable_current()``/``kasan_enable_current()`` section. This also
++disables the reports for indirect accesses that happen through function calls.
++
++For tag-based KASAN modes (include the hardware one), to disable access
++checking, use ``kasan_reset_tag()`` or ``page_kasan_tag_reset()``. Note that
++temporarily disabling access checking via ``page_kasan_tag_reset()`` requires
++saving and restoring the per-page KASAN tag via
++``page_kasan_tag``/``page_kasan_tag_set``.
  
- Boot parameters
- ~~~~~~~~~~~~~~~
-@@ -214,10 +224,6 @@ function calls GCC directly inserts the
- This option significantly enlarges kernel but it gives x1.1-x2 performance
- boost over outline instrumented kernel.
- 
--Generic KASAN also reports the last 2 call stacks to creation of work that
--potentially has access to an object. Call stacks for the following are shown:
--call_rcu() and workqueue queuing.
--
- Generic KASAN is the only mode that delays the reuse of freed object via
- quarantine (see mm/kasan/quarantine.c for implementation).
- 
+ Tests
+ ~~~~~
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
