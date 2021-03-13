@@ -7,38 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06D95C4321A
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:08:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ED65C433E0
+	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:09:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D701764FC4
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:08:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F55464FB9
+	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:09:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232242AbhCMFIP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 13 Mar 2021 00:08:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42136 "EHLO mail.kernel.org"
+        id S232023AbhCMFIo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 13 Mar 2021 00:08:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42352 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232018AbhCMFII (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 13 Mar 2021 00:08:08 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 40CB564F9F;
-        Sat, 13 Mar 2021 05:08:07 +0000 (UTC)
+        id S232316AbhCMFIV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 13 Mar 2021 00:08:21 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3913D64FA7;
+        Sat, 13 Mar 2021 05:08:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615612087;
-        bh=oFkGicWgNPYPGg9DjaeEP/qDqRxtBkw4IS4j+oKsFHQ=;
+        s=korg; t=1615612101;
+        bh=xGzWrpNlMUt9/MxfPRiV1rbhDkPL83KBiXbTDs5FvRc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Z1cS1rVtJoYywnjjYdqvEqXRJbleFXXQtBsNuqV49teb7sJtC77JjzgMsoqt0Wqr2
-         B7uLKl59dSqbUUvKfR4twR2OwdcUAejrabcu465Dx0z8X4MALVng/6DwVjKn2sGTX+
-         aWeEqpcs1KfEhH5Tvs2SyZ+mlD50DQxyy2uOPoJM=
-Date:   Fri, 12 Mar 2021 21:08:06 -0800
+        b=oyCWy5BtIuP8SrDRyMS9Q3U7qARGltEYhCMxM3sXdJPIRKywtxfoJ5UaRp4uEEOfH
+         05BT48E/7ZBxRlWaC2j07QtWog2vtw35uZ1IvCmt0sXZ70feDoK1X5zcuTHGNAFvSg
+         MmTfrDm2D6NxQtD8CEYSRx5fpbeWcM2gfMwx/Nh0=
+Date:   Fri, 12 Mar 2021 21:08:20 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, fweimer@redhat.com, jannh@google.com,
-        jeffv@google.com, jmorris@namei.org, keescook@chromium.org,
-        linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, oleg@redhat.com, rientjes@google.com,
-        shakeelb@google.com, stable@vger.kernel.org, surenb@google.com,
-        timmurray@google.com, torvalds@linux-foundation.org
-Subject:  [patch 19/29] mm/madvise: replace ptrace attach
- requirement for process_madvise
-Message-ID: <20210313050806.o83g5fWX9%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com,
+        linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, osalvador@suse.de, stable@vger.kernel.org,
+        tony.luck@intel.com, torvalds@linux-foundation.org
+Subject:  [patch 23/29] mm, hwpoison: do not lock page again when
+ me_huge_page() successfully recovers
+Message-ID: <20210313050820.EoPGLS3gj%akpm@linux-foundation.org>
 In-Reply-To: <20210312210632.9b7d62973d72a56fb13c7a03@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,79 +44,54 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/madvise: replace ptrace attach requirement for process_madvise
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm, hwpoison: do not lock page again when me_huge_page() successfully recovers
 
-process_madvise currently requires ptrace attach capability. 
-PTRACE_MODE_ATTACH gives one process complete control over another
-process.  It effectively removes the security boundary between the two
-processes (in one direction).  Granting ptrace attach capability even to a
-system process is considered dangerous since it creates an attack surface.
-This severely limits the usage of this API.
+Currently me_huge_page() temporary unlocks page to perform some actions
+then locks it again later.  My testcase (which calls hard-offline on
+some tail page in a hugetlb, then accesses the address of the hugetlb
+range) showed that page allocation code detects this page lock on buddy
+page and printed out "BUG: Bad page state" message.
 
-The operations process_madvise can perform do not affect the correctness
-of the operation of the target process; they only affect where the data is
-physically located (and therefore, how fast it can be accessed).  What we
-want is the ability for one process to influence another process in order
-to optimize performance across the entire system while leaving the
-security boundary intact.
+check_new_page_bad() does not consider a page with __PG_HWPOISON as bad
+page, so this flag works as kind of filter, but this filtering doesn't
+work in this case because the "bad page" is not the actual hwpoisoned
+page.
 
-Replace PTRACE_MODE_ATTACH with a combination of PTRACE_MODE_READ and
-CAP_SYS_NICE.  PTRACE_MODE_READ to prevent leaking ASLR metadata and
-CAP_SYS_NICE for influencing process performance.
+This patch suggests to drop the 2nd page lock to fix the issue.
 
-Link: https://lkml.kernel.org/r/20210303185807.2160264-1-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jeff Vander Stoep <jeffv@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tim Murray <timmurray@google.com>
-Cc: Florian Weimer <fweimer@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: <stable@vger.kernel.org>	[5.10+]
+Link: https://lkml.kernel.org/r/20210304064437.962442-1-nao.horiguchi@gmail.com
+Fixes: commit 78bb920344b8 ("mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error")
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ mm/memory-failure.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-replace-ptrace-attach-requirement-for-process_madvise
-+++ a/mm/madvise.c
-@@ -1198,12 +1198,22 @@ SYSCALL_DEFINE5(process_madvise, int, pi
- 		goto release_task;
+--- a/mm/memory-failure.c~mm-hwpoison-do-not-lock-page-again-when-me_huge_page-successfully-recovers
++++ a/mm/memory-failure.c
+@@ -834,7 +834,6 @@ static int me_huge_page(struct page *p,
+ 			page_ref_inc(p);
+ 			res = MF_RECOVERED;
+ 		}
+-		lock_page(hpage);
  	}
  
--	mm = mm_access(task, PTRACE_MODE_ATTACH_FSCREDS);
-+	/* Require PTRACE_MODE_READ to avoid leaking ASLR metadata. */
-+	mm = mm_access(task, PTRACE_MODE_READ_FSCREDS);
- 	if (IS_ERR_OR_NULL(mm)) {
- 		ret = IS_ERR(mm) ? PTR_ERR(mm) : -ESRCH;
- 		goto release_task;
- 	}
+ 	return res;
+@@ -1290,7 +1289,8 @@ static int memory_failure_hugetlb(unsign
  
-+	/*
-+	 * Require CAP_SYS_NICE for influencing process performance. Note that
-+	 * only non-destructive hints are currently supported.
-+	 */
-+	if (!capable(CAP_SYS_NICE)) {
-+		ret = -EPERM;
-+		goto release_mm;
-+	}
-+
- 	total_len = iov_iter_count(&iter);
+ 	res = identify_page_state(pfn, p, page_flags);
+ out:
+-	unlock_page(head);
++	if (PageLocked(head))
++		unlock_page(head);
+ 	return res;
+ }
  
- 	while (iov_iter_count(&iter)) {
-@@ -1218,6 +1228,7 @@ SYSCALL_DEFINE5(process_madvise, int, pi
- 	if (ret == 0)
- 		ret = total_len - iov_iter_count(&iter);
- 
-+release_mm:
- 	mmput(mm);
- release_task:
- 	put_task_struct(task);
 _
