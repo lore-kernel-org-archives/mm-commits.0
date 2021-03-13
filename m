@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07CE1C43332
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:09:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3387C43331
+	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:09:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C3A7664FA8
+	by mail.kernel.org (Postfix) with ESMTP id ADCC564FB9
 	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:09:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231280AbhCMFIr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 13 Mar 2021 00:08:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42568 "EHLO mail.kernel.org"
+        id S232705AbhCMFIp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 13 Mar 2021 00:08:45 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42388 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232431AbhCMFIj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 13 Mar 2021 00:08:39 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9765464F9E;
-        Sat, 13 Mar 2021 05:08:38 +0000 (UTC)
+        id S232331AbhCMFIY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 13 Mar 2021 00:08:24 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5C12664F9E;
+        Sat, 13 Mar 2021 05:08:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615612118;
-        bh=TaxE/KGyWhstjGhOfVZASTWuhokBSyHjrCxNHx602qk=;
+        s=korg; t=1615612104;
+        bh=5mLHUU9b2YImANmGuzLvSfnLAlNoOpLVKTjxeBWkygA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=APXjg6ds2UHPXz0cq0YOo3PDAI8q+M2WHFRSFxoFDfHSl3BxYsZqPUEIJVwzBU2b2
-         fodT7iDZRClponM9vEBAOS7vsZlKl9mSYJtNV6Dr9li+yI5ML0ij0llTQ7LyKRynlO
-         sks5Yo7hD9LMp0HZRrj1mrOWBkzWd7LME03kPQgk=
-Date:   Fri, 12 Mar 2021 21:08:38 -0800
+        b=ldHctswqieBy9UCrKL6oUmz18kKtpKtytw50j4StHuFm1vN8smxF1qborlMb/zLDN
+         Z1FlGszaNHEjNEy31X1f5nPKc8VjsKDa9YRQ7AI8RhOf2Ld1e8RwER/cCUlGkUCa1x
+         QeNyCQ2hy8jnkzTZX7BBQO5sLqrRs7pXdptxgo9w=
+Date:   Fri, 12 Mar 2021 21:08:23 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, colin.king@canonical.com,
-        joaodias@google.com, linux-mm@kvack.org, minchan@kernel.org,
-        mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com,
-        stable@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 28/29] zram: fix return value on writeback_store
-Message-ID: <20210313050838.RTs56zfiV%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, glaubitz@physik.fu-berlin.de,
+        ldv@altlinux.org, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        oleg@redhat.com, slyfox@gentoo.org, torvalds@linux-foundation.org
+Subject:  [patch 24/29] ia64: fix ia64_syscall_get_set_arguments()
+ for break-based syscalls
+Message-ID: <20210313050823.BBn7BJYnY%akpm@linux-foundation.org>
 In-Reply-To: <20210312210632.9b7d62973d72a56fb13c7a03@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,57 +43,90 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: fix return value on writeback_store
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Subject: ia64: fix ia64_syscall_get_set_arguments() for break-based syscalls
 
-writeback_store's return value is overwritten by submit_bio_wait's return
-value.  Thus, writeback_store will return zero since there was no IO
-error.  In the end, write syscall from userspace will see the zero as
-return value, which could make the process stall to keep trying the write
-until it will succeed.
+In https://bugs.gentoo.org/769614 Dmitry noticed that
+`ptrace(PTRACE_GET_SYSCALL_INFO)` does not work for syscalls called via
+glibc's syscall() wrapper.
 
-Link: https://lkml.kernel.org/r/20210312173949.2197662-1-minchan@kernel.org
-Fixes: 3b82a051c101("drivers/block/zram/zram_drv.c: fix error return codes not being returned in writeback_store")
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: John Dias <joaodias@google.com>
-Cc: <stable@vger.kernel.org>
+ia64 has two ways to call syscalls from userspace: via `break` and via
+`eps` instructions.
+
+The difference is in stack layout:
+
+1. `eps` creates simple stack frame: no locals, in{0..7} == out{0..8}
+2. `break` uses userspace stack frame: may be locals (glibc provides
+   one), in{0..7} == out{0..8}.
+
+Both work fine in syscall handling cde itself.
+
+But `ptrace(PTRACE_GET_SYSCALL_INFO)` uses unwind mechanism to
+re-extract syscall arguments but it does not account for locals.
+
+The change always skips locals registers. It should not change `eps`
+path as kernel's handler already enforces locals=0 and fixes `break`.
+
+Tested on v5.10 on rx3600 machine (ia64 9040 CPU).
+
+Link: https://lkml.kernel.org/r/20210221002554.333076-1-slyfox@gentoo.org
+Link: https://bugs.gentoo.org/769614
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Reported-by: Dmitry V. Levin <ldv@altlinux.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ arch/ia64/kernel/ptrace.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-return-value-on-writeback_store
-+++ a/drivers/block/zram/zram_drv.c
-@@ -627,7 +627,7 @@ static ssize_t writeback_store(struct de
- 	struct bio_vec bio_vec;
- 	struct page *page;
- 	ssize_t ret = len;
--	int mode;
-+	int mode, err;
- 	unsigned long blk_idx = 0;
+--- a/arch/ia64/kernel/ptrace.c~ia64-fix-ia64_syscall_get_set_arguments-for-break-based-syscalls
++++ a/arch/ia64/kernel/ptrace.c
+@@ -2013,27 +2013,39 @@ static void syscall_get_set_args_cb(stru
+ {
+ 	struct syscall_get_set_args *args = data;
+ 	struct pt_regs *pt = args->regs;
+-	unsigned long *krbs, cfm, ndirty;
++	unsigned long *krbs, cfm, ndirty, nlocals, nouts;
+ 	int i, count;
  
- 	if (sysfs_streq(buf, "idle"))
-@@ -728,12 +728,17 @@ static ssize_t writeback_store(struct de
- 		 * XXX: A single page IO would be inefficient for write
- 		 * but it would be not bad as starter.
- 		 */
--		ret = submit_bio_wait(&bio);
--		if (ret) {
-+		err = submit_bio_wait(&bio);
-+		if (err) {
- 			zram_slot_lock(zram, index);
- 			zram_clear_flag(zram, index, ZRAM_UNDER_WB);
- 			zram_clear_flag(zram, index, ZRAM_IDLE);
- 			zram_slot_unlock(zram, index);
-+			/*
-+			 * Return last IO error unless every IO were
-+			 * not suceeded.
-+			 */
-+			ret = err;
- 			continue;
- 		}
+ 	if (unw_unwind_to_user(info) < 0)
+ 		return;
  
++	/*
++	 * We get here via a few paths:
++	 * - break instruction: cfm is shared with caller.
++	 *   syscall args are in out= regs, locals are non-empty.
++	 * - epsinstruction: cfm is set by br.call
++	 *   locals don't exist.
++	 *
++	 * For both cases argguments are reachable in cfm.sof - cfm.sol.
++	 * CFM: [ ... | sor: 17..14 | sol : 13..7 | sof : 6..0 ]
++	 */
+ 	cfm = pt->cr_ifs;
++	nlocals = (cfm >> 7) & 0x7f; /* aka sol */
++	nouts = (cfm & 0x7f) - nlocals; /* aka sof - sol */
+ 	krbs = (unsigned long *)info->task + IA64_RBS_OFFSET/8;
+ 	ndirty = ia64_rse_num_regs(krbs, krbs + (pt->loadrs >> 19));
+ 
+ 	count = 0;
+ 	if (in_syscall(pt))
+-		count = min_t(int, args->n, cfm & 0x7f);
++		count = min_t(int, args->n, nouts);
+ 
++	/* Iterate over outs. */
+ 	for (i = 0; i < count; i++) {
++		int j = ndirty + nlocals + i + args->i;
+ 		if (args->rw)
+-			*ia64_rse_skip_regs(krbs, ndirty + i + args->i) =
+-				args->args[i];
++			*ia64_rse_skip_regs(krbs, j) = args->args[i];
+ 		else
+-			args->args[i] = *ia64_rse_skip_regs(krbs,
+-				ndirty + i + args->i);
++			args->args[i] = *ia64_rse_skip_regs(krbs, j);
+ 	}
+ 
+ 	if (!args->rw) {
 _
