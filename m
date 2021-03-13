@@ -7,42 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 814D9C43331
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AF00C43332
 	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:08:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6B15864FC4
+	by mail.kernel.org (Postfix) with ESMTP id 82ECA64E46
 	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:08:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231383AbhCMFIM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 13 Mar 2021 00:08:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41944 "EHLO mail.kernel.org"
+        id S231906AbhCMFIN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 13 Mar 2021 00:08:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42072 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231723AbhCMFHs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 13 Mar 2021 00:07:48 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B141064F91;
-        Sat, 13 Mar 2021 05:07:47 +0000 (UTC)
+        id S231907AbhCMFIB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 13 Mar 2021 00:08:01 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0D4E764FA6;
+        Sat, 13 Mar 2021 05:08:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615612068;
-        bh=KKTkhef31fR4JMNYj70z9BZaxZrdISCGvo1YJFQCLDg=;
+        s=korg; t=1615612081;
+        bh=joNJg+0dHUJyz1YqDGMRiNySMPy+VmAyeXm7RIh6QhE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=gH1W4eakRO5NY2uDhlwpxuufWQwrrK7IH/nD/EGCMCuw7tsta/mdN84TX6MNP1dms
-         XVnrGhprRxoWdAEO1mjE9CwjwbictbpJZNmN/+wzCPTyxmhGy7zVfuwRVLJJhZqbK0
-         V5624aMI46v3Yf3672kV1Y/pmLNYC0BzCMnnrtFE=
-Date:   Fri, 12 Mar 2021 21:07:47 -0800
+        b=cLdSwL0xWfJnPuWr/ATw/tTnwiMlgPQNzvai9P9gJuT3qmUBXsVYYxtTIhdUaMBTn
+         lYbYoTWAtPzrDzNWWDjhgtW+ZS6Sm+WPgFgBDLo+AtKY3Wy0oBHYDTMZSZmKMtifgf
+         COd6U64amKeOdHzaPBnlfexVhYvgwhaa9q8oMkaU=
+Date:   Fri, 12 Mar 2021 21:08:00 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, aou@eecs.berkeley.edu, arnd@arndb.de,
-        deanbo422@gmail.com, elver@google.com, green.hu@gmail.com,
-        guoren@kernel.org, keescook@chromium.org, linux-mm@kvack.org,
-        luc.vanoostenryck@gmail.com, masahiroy@kernel.org,
-        mm-commits@vger.kernel.org, nathan@kernel.org,
-        ndesaulniers@google.com, nickhu@andestech.com,
-        nivedita@alum.mit.edu, ojeda@kernel.org, palmer@dabbelt.com,
-        paul.walmsley@sifive.com, rdunlap@infradead.org,
-        samitolvanen@google.com, stable@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 14/29] linux/compiler-clang.h: define
- HAVE_BUILTIN_BSWAP*
-Message-ID: <20210313050747.ZSth0fs8-%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        christophe.leroy@csgroup.eu, dvyukov@google.com, elver@google.com,
+        glider@google.com, jannh@google.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 17/29] kfence: fix reports if constant function
+ prefixes exist
+Message-ID: <20210313050800.1-PnnqvXv%akpm@linux-foundation.org>
 In-Reply-To: <20210312210632.9b7d62973d72a56fb13c7a03@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -50,77 +44,67 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: linux/compiler-clang.h: define HAVE_BUILTIN_BSWAP*
+From: Marco Elver <elver@google.com>
+Subject: kfence: fix reports if constant function prefixes exist
 
-Separating compiler-clang.h from compiler-gcc.h inadventently dropped the
-definitions of the three HAVE_BUILTIN_BSWAP macros, which requires falling
-back to the open-coded version and hoping that the compiler detects it.
+Some architectures prefix all functions with a constant string ('.' on
+ppc64).  Add ARCH_FUNC_PREFIX, which may optionally be defined in
+<asm/kfence.h>, so that get_stack_skipnr() can work properly.
 
-Since all versions of clang support the __builtin_bswap interfaces, add
-back the flags and have the headers pick these up automatically.
-
-This results in a 4% improvement of compilation speed for arm defconfig.
-
-Note: it might also be worth revisiting which architectures set
-CONFIG_ARCH_USE_BUILTIN_BSWAP for one compiler or the other, today this is
-set on six architectures (arm32, csky, mips, powerpc, s390, x86), while
-another ten architectures define custom helpers (alpha, arc, ia64, m68k,
-mips, nios2, parisc, sh, sparc, xtensa), and the rest (arm64, h8300,
-hexagon, microblaze, nds32, openrisc, riscv) just get the unoptimized
-version and rely on the compiler to detect it.
-
-A long time ago, the compiler builtins were architecture specific, but
-nowadays, all compilers that are able to build the kernel have correct
-implementations of them, though some may not be as optimized as the inline
-asm versions.
-
-The patch that dropped the optimization landed in v4.19, so as discussed
-it would be fairly safe to backport this revert to stable kernels to the
-4.19/5.4/5.10 stable kernels, but there is a remaining risk for
-regressions, and it has no known side-effects besides compile speed.
-
-Link: https://lkml.kernel.org/r/20210226161151.2629097-1-arnd@kernel.org
-Link: https://lore.kernel.org/lkml/20210225164513.3667778-1-arnd@kernel.org/
-Fixes: 815f0ddb346c ("include/linux/compiler*.h: make compiler-*.h mutually exclusive")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Nathan Chancellor <nathan@kernel.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Acked-by: Miguel Ojeda <ojeda@kernel.org>
-Acked-by: Nick Desaulniers <ndesaulniers@google.com>
-Acked-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nick Hu <nickhu@andestech.com>
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Vincent Chen <deanbo422@gmail.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Arvind Sankar <nivedita@alum.mit.edu>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/f036c53d-7e81-763c-47f4-6024c6c5f058@csgroup.eu
+Link: https://lkml.kernel.org/r/20210304144000.1148590-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Reported-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Tested-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-clang.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/kfence/report.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
---- a/include/linux/compiler-clang.h~linux-compiler-clangh-define-have_builtin_bswap
-+++ a/include/linux/compiler-clang.h
-@@ -31,6 +31,12 @@
- #define __no_sanitize_thread
- #endif
+--- a/mm/kfence/report.c~kfence-fix-reports-if-constant-function-prefixes-exist
++++ a/mm/kfence/report.c
+@@ -20,6 +20,11 @@
  
-+#if defined(CONFIG_ARCH_USE_BUILTIN_BSWAP)
-+#define __HAVE_BUILTIN_BSWAP32__
-+#define __HAVE_BUILTIN_BSWAP64__
-+#define __HAVE_BUILTIN_BSWAP16__
-+#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
+ #include "kfence.h"
+ 
++/* May be overridden by <asm/kfence.h>. */
++#ifndef ARCH_FUNC_PREFIX
++#define ARCH_FUNC_PREFIX ""
++#endif
 +
- #if __has_feature(undefined_behavior_sanitizer)
- /* GCC does not have __SANITIZE_UNDEFINED__ */
- #define __no_sanitize_undefined \
+ extern bool no_hash_pointers;
+ 
+ /* Helper function to either print to a seq_file or to console. */
+@@ -67,8 +72,9 @@ static int get_stack_skipnr(const unsign
+ 	for (skipnr = 0; skipnr < num_entries; skipnr++) {
+ 		int len = scnprintf(buf, sizeof(buf), "%ps", (void *)stack_entries[skipnr]);
+ 
+-		if (str_has_prefix(buf, "kfence_") || str_has_prefix(buf, "__kfence_") ||
+-		    !strncmp(buf, "__slab_free", len)) {
++		if (str_has_prefix(buf, ARCH_FUNC_PREFIX "kfence_") ||
++		    str_has_prefix(buf, ARCH_FUNC_PREFIX "__kfence_") ||
++		    !strncmp(buf, ARCH_FUNC_PREFIX "__slab_free", len)) {
+ 			/*
+ 			 * In case of tail calls from any of the below
+ 			 * to any of the above.
+@@ -77,10 +83,10 @@ static int get_stack_skipnr(const unsign
+ 		}
+ 
+ 		/* Also the *_bulk() variants by only checking prefixes. */
+-		if (str_has_prefix(buf, "kfree") ||
+-		    str_has_prefix(buf, "kmem_cache_free") ||
+-		    str_has_prefix(buf, "__kmalloc") ||
+-		    str_has_prefix(buf, "kmem_cache_alloc"))
++		if (str_has_prefix(buf, ARCH_FUNC_PREFIX "kfree") ||
++		    str_has_prefix(buf, ARCH_FUNC_PREFIX "kmem_cache_free") ||
++		    str_has_prefix(buf, ARCH_FUNC_PREFIX "__kmalloc") ||
++		    str_has_prefix(buf, ARCH_FUNC_PREFIX "kmem_cache_alloc"))
+ 			goto found;
+ 	}
+ 	if (fallback < num_entries)
 _
