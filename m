@@ -5,43 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6859C432C3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CE06C433E9
 	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:08:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C30A864FA8
+	by mail.kernel.org (Postfix) with ESMTP id 1DD0964FB2
 	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:08:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230470AbhCMFHl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 13 Mar 2021 00:07:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41720 "EHLO mail.kernel.org"
+        id S230073AbhCMFHj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 13 Mar 2021 00:07:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41494 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231287AbhCMFHb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 13 Mar 2021 00:07:31 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 76CEC64F76;
-        Sat, 13 Mar 2021 05:07:30 +0000 (UTC)
+        id S230349AbhCMFHQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 13 Mar 2021 00:07:16 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E839164F8E;
+        Sat, 13 Mar 2021 05:07:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615612051;
-        bh=IASDC8XCwtvh4EEtihusCACenzqfWNZuOdpNep7rxe0=;
+        s=korg; t=1615612036;
+        bh=mYx7MMzzJBF4Ub8ji9m9ernyQMZahSWn3jAx5UDgxwM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=0cdDo5VSiVpo9iZManhSTRvUn764IM5E5zUIgmnjOm9Vuk1jrI8vnOsVdwaQx9boM
-         8ZNz2nYTBUCZ85htj4+F8qhAPosy+WVCZvt/vLpFULN1dg4myhbvn67v7A7VCmUN6b
-         nDgJB1Ew09ZUcnbpIpPM3x5FsBUHNVIuGni+8Q6E=
-Date:   Fri, 12 Mar 2021 21:07:30 -0800
+        b=cBrkFWvxRymQSju/BIsxCIa/gMAtgqmyomzBASmgM+d8HKkePZZ0ruaLanYOVArxN
+         4AzEwszxDbUyS7eJov1+BQKHMEn5mXxp3iX+gb6YQbFPiu7q6x0o+5xm0eOAIktZR7
+         KAmii/b4nUCEq4/msQayLSz5w5RRdiEqt6dwHcsc=
+Date:   Fri, 12 Mar 2021 21:07:15 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, adobriyan@gmail.com, airlied@linux.ie,
-        akpm@linux-foundation.org, daniel@ffwll.ch,
-        david@gibson.dropbear.id.au, galpress@amazon.com, hch@lst.de,
-        jack@suse.cz, jannh@google.com, jgg@ziepe.ca, kirill@shutemov.name,
-        ktkhai@virtuozzo.com, linmiaohe@huawei.com,
-        linux-graphics-maintainer@vmware.com, linux-mm@kvack.org,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        peterx@redhat.com, rppt@linux.vnet.ibm.com, sroland@vmware.com,
-        torvalds@linux-foundation.org, willy@infradead.org, wzam@amazon.com
-Subject:  [patch 09/29] mm: use is_cow_mapping() across tree where
- proper
-Message-ID: <20210313050730.fugYt4h8C%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, fenghua.yu@intel.com,
+        jacob.jun.pan@intel.com, jean-philippe@linaro.org,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        tony.luck@intel.com, torvalds@linux-foundation.org
+Subject:  [patch 05/29] mm/fork: clear PASID for new mm
+Message-ID: <20210313050715.M6patTVza%akpm@linux-foundation.org>
 In-Reply-To: <20210312210632.9b7d62973d72a56fb13c7a03@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -49,101 +43,64 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Peter Xu <peterx@redhat.com>
-Subject: mm: use is_cow_mapping() across tree where proper
+From: Fenghua Yu <fenghua.yu@intel.com>
+Subject: mm/fork: clear PASID for new mm
 
-After is_cow_mapping() is exported in mm.h, replace some manual checks
-elsewhere throughout the tree but start to use the new helper.
+When a new mm is created, its PASID should be cleared, i.e.  the PASID is
+initialized to its init state 0 on both ARM and X86.
 
-Link: https://lkml.kernel.org/r/20210217233547.93892-5-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: VMware Graphics <linux-graphics-maintainer@vmware.com>
-Cc: Roland Scheidegger <sroland@vmware.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Gal Pressman <galpress@amazon.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kirill Shutemov <kirill@shutemov.name>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Wei Zhang <wzam@amazon.com>
+This patch was part of the series introducing mm->pasid, but got lost
+along the way [1].  It still makes sense to have it, because each address
+space has a different PASID.  And the IOMMU code in
+iommu_sva_alloc_pasid() expects the pasid field of a new mm struct to be
+cleared.
+
+[1] https://lore.kernel.org/linux-iommu/YDgh53AcQHT+T3L0@otcwcpicx3.sc.intel.com/
+
+Link: https://lkml.kernel.org/r/20210302103837.2562625-1-jean-philippe@linaro.org
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
+Reviewed-by: Tony Luck <tony.luck@intel.com>
+Cc: Jacob Pan <jacob.jun.pan@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/vmwgfx/vmwgfx_page_dirty.c |    4 +---
- drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c   |    2 +-
- fs/proc/task_mmu.c                         |    2 --
- mm/hugetlb.c                               |    4 +---
- 4 files changed, 3 insertions(+), 9 deletions(-)
+ include/linux/mm_types.h |    1 +
+ kernel/fork.c            |    8 ++++++++
+ 2 files changed, 9 insertions(+)
 
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_page_dirty.c~mm-use-is_cow_mapping-across-tree-where-proper
-+++ a/drivers/gpu/drm/vmwgfx/vmwgfx_page_dirty.c
-@@ -500,8 +500,6 @@ vm_fault_t vmw_bo_vm_huge_fault(struct v
- 	vm_fault_t ret;
- 	pgoff_t fault_page_size;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
--	bool is_cow_mapping =
--		(vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
+--- a/include/linux/mm_types.h~mm-fork-clear-pasid-for-new-mm
++++ a/include/linux/mm_types.h
+@@ -23,6 +23,7 @@
+ #endif
+ #define AT_VECTOR_SIZE (2*(AT_VECTOR_SIZE_ARCH + AT_VECTOR_SIZE_BASE + 1))
  
- 	switch (pe_size) {
- 	case PE_SIZE_PMD:
-@@ -518,7 +516,7 @@ vm_fault_t vmw_bo_vm_huge_fault(struct v
- 	}
++#define INIT_PASID	0
  
- 	/* Always do write dirty-tracking and COW on PTE level. */
--	if (write && (READ_ONCE(vbo->dirty) || is_cow_mapping))
-+	if (write && (READ_ONCE(vbo->dirty) || is_cow_mapping(vma->vm_flags)))
- 		return VM_FAULT_FALLBACK;
+ struct address_space;
+ struct mem_cgroup;
+--- a/kernel/fork.c~mm-fork-clear-pasid-for-new-mm
++++ a/kernel/fork.c
+@@ -994,6 +994,13 @@ static void mm_init_owner(struct mm_stru
+ #endif
+ }
  
- 	ret = ttm_bo_vm_reserve(bo, vmf);
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c~mm-use-is_cow_mapping-across-tree-where-proper
-+++ a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c
-@@ -49,7 +49,7 @@ int vmw_mmap(struct file *filp, struct v
- 	vma->vm_ops = &vmw_vm_ops;
- 
- 	/* Use VM_PFNMAP rather than VM_MIXEDMAP if not a COW mapping */
--	if ((vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) != VM_MAYWRITE)
-+	if (!is_cow_mapping(vma->vm_flags))
- 		vma->vm_flags = (vma->vm_flags & ~VM_MIXEDMAP) | VM_PFNMAP;
- 
- 	return 0;
---- a/fs/proc/task_mmu.c~mm-use-is_cow_mapping-across-tree-where-proper
-+++ a/fs/proc/task_mmu.c
-@@ -1036,8 +1036,6 @@ struct clear_refs_private {
- 
- #ifdef CONFIG_MEM_SOFT_DIRTY
- 
--#define is_cow_mapping(flags) (((flags) & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE)
--
- static inline bool pte_is_pinned(struct vm_area_struct *vma, unsigned long addr, pte_t pte)
++static void mm_init_pasid(struct mm_struct *mm)
++{
++#ifdef CONFIG_IOMMU_SUPPORT
++	mm->pasid = INIT_PASID;
++#endif
++}
++
+ static void mm_init_uprobes_state(struct mm_struct *mm)
  {
- 	struct page *page;
---- a/mm/hugetlb.c~mm-use-is_cow_mapping-across-tree-where-proper
-+++ a/mm/hugetlb.c
-@@ -3734,15 +3734,13 @@ int copy_hugetlb_page_range(struct mm_st
- 	pte_t *src_pte, *dst_pte, entry, dst_entry;
- 	struct page *ptepage;
- 	unsigned long addr;
--	int cow;
-+	bool cow = is_cow_mapping(vma->vm_flags);
- 	struct hstate *h = hstate_vma(vma);
- 	unsigned long sz = huge_page_size(h);
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	struct mmu_notifier_range range;
- 	int ret = 0;
- 
--	cow = (vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
--
- 	if (cow) {
- 		mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, src,
- 					vma->vm_start,
+ #ifdef CONFIG_UPROBES
+@@ -1024,6 +1031,7 @@ static struct mm_struct *mm_init(struct
+ 	mm_init_cpumask(mm);
+ 	mm_init_aio(mm);
+ 	mm_init_owner(mm, p);
++	mm_init_pasid(mm);
+ 	RCU_INIT_POINTER(mm->exe_file, NULL);
+ 	mmu_notifier_subscriptions_init(mm);
+ 	init_tlb_flush_pending(mm);
 _
