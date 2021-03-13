@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A1E8C433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53C7DC433E9
 	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:08:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E8C3364FB5
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:08:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 26CE564FCE
+	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:08:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230441AbhCMFIM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232180AbhCMFIM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 13 Mar 2021 00:08:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41916 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41882 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231383AbhCMFHp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 13 Mar 2021 00:07:45 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8123164F94;
-        Sat, 13 Mar 2021 05:07:44 +0000 (UTC)
+        id S230441AbhCMFHm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 13 Mar 2021 00:07:42 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6CC5264F90;
+        Sat, 13 Mar 2021 05:07:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615612064;
-        bh=w2PFJ+IWtWXABLgdaeiVIyx3jhKcHvFY5oq604YvHDs=;
+        s=korg; t=1615612061;
+        bh=Ilh21OVyvFr0B5NZVnY+FinM1N+HNc2mploCjMNqv/s=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=YtBycZ1HD1rTh5DEE79W4h/vcztzXeZg2yERHKQlRXffYPI/aZQefn/Tq6YSfPzQ/
-         P1R4wtsbjjK4C2lONJap3B3N0rAjrcaB7/TLLY1fTZbopmQC6WrEbllrGKD4gOT7/k
-         Tcb2nI+9xI/T0aDFLZRie1lx6FhQqa/DXaxFXDxU=
-Date:   Fri, 12 Mar 2021 21:07:44 -0800
+        b=brhHQKbRg8n0639jxb3P792lSqiY4AbU0nvCPb8biDjI1SaZ0RUCr3jvOQ88hilFC
+         cjxcYiIYWClYZAopnpQrEXYyv8JARXjrpf9WPM+Cqbp4ptM5fDbYfKEBC595nPo5XJ
+         hyZo58dcIOI5VsGO4YmdejYEgzwZIs/EXZTGcny0=
+Date:   Fri, 12 Mar 2021 21:07:41 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, mtk.manpages@gmail.com,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 13/29] MAINTAINERS: exclude uapi directories in
- API/ABI section
-Message-ID: <20210313050744.Av1odencQ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, deller@gmx.de, linux-mm@kvack.org,
+        liorribak@gmail.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, torvalds@linux-foundation.org,
+        viro@zeniv.linux.org.uk
+Subject:  [patch 12/29] binfmt_misc: fix possible deadlock in
+ bm_register_write
+Message-ID: <20210313050741.ypAY0ENiS%akpm@linux-foundation.org>
 In-Reply-To: <20210312210632.9b7d62973d72a56fb13c7a03@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,41 +44,115 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: MAINTAINERS: exclude uapi directories in API/ABI section
+From: Lior Ribak <liorribak@gmail.com>
+Subject: binfmt_misc: fix possible deadlock in bm_register_write
 
-Commit 7b4693e644cb ("MAINTAINERS: add uapi directories to API/ABI
-section") added include/uapi/ and arch/*/include/uapi/ so that patches
-modifying them CC linux-api.  However that was already done in the past
-and resulted in too much noise and thus later removed, as explained in
-b14fd334ff3d ("MAINTAINERS: trim the file triggers for ABI/API")
+There is a deadlock in bm_register_write:
 
-To prevent another round of addition and removal in the future, change the
-entries to X: (explicit exclusion) for documentation purposes, although
-they are not subdirectories of broader included directories, as there is
-apparently no defined way to add plain comments in subsystem sections.
+First, in the begining of the function, a lock is taken on the binfmt_misc
+root inode with inode_lock(d_inode(root)).
 
-Link: https://lkml.kernel.org/r/20210301100255.25229-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Michael Kerrisk (man-pages) <mtk.manpages@gmail.com>
-Acked-by: Michael Kerrisk (man-pages) <mtk.manpages@gmail.com>
+Then, if the user used the MISC_FMT_OPEN_FILE flag, the function will call
+open_exec on the user-provided interpreter.
+
+open_exec will call a path lookup, and if the path lookup process includes
+the root of binfmt_misc, it will try to take a shared lock on its inode
+again, but it is already locked, and the code will get stuck in a deadlock
+
+To reproduce the bug:
+$ echo ":iiiii:E::ii::/proc/sys/fs/binfmt_misc/bla:F" > /proc/sys/fs/binfmt_misc/register
+
+backtrace of where the lock occurs (#5):
+0  schedule () at ./arch/x86/include/asm/current.h:15
+1  0xffffffff81b51237 in rwsem_down_read_slowpath (sem=0xffff888003b202e0, count=<optimized out>, state=state@entry=2) at kernel/locking/rwsem.c:992
+2  0xffffffff81b5150a in __down_read_common (state=2, sem=<optimized out>) at kernel/locking/rwsem.c:1213
+3  __down_read (sem=<optimized out>) at kernel/locking/rwsem.c:1222
+4  down_read (sem=<optimized out>) at kernel/locking/rwsem.c:1355
+5  0xffffffff811ee22a in inode_lock_shared (inode=<optimized out>) at ./include/linux/fs.h:783
+6  open_last_lookups (op=0xffffc9000022fe34, file=0xffff888004098600, nd=0xffffc9000022fd10) at fs/namei.c:3177
+7  path_openat (nd=nd@entry=0xffffc9000022fd10, op=op@entry=0xffffc9000022fe34, flags=flags@entry=65) at fs/namei.c:3366
+8  0xffffffff811efe1c in do_filp_open (dfd=<optimized out>, pathname=pathname@entry=0xffff8880031b9000, op=op@entry=0xffffc9000022fe34) at fs/namei.c:3396
+9  0xffffffff811e493f in do_open_execat (fd=fd@entry=-100, name=name@entry=0xffff8880031b9000, flags=<optimized out>, flags@entry=0) at fs/exec.c:913
+10 0xffffffff811e4a92 in open_exec (name=<optimized out>) at fs/exec.c:948
+11 0xffffffff8124aa84 in bm_register_write (file=<optimized out>, buffer=<optimized out>, count=19, ppos=<optimized out>) at fs/binfmt_misc.c:682
+12 0xffffffff811decd2 in vfs_write (file=file@entry=0xffff888004098500, buf=buf@entry=0xa758d0 ":iiiii:E::ii::i:CF
+", count=count@entry=19, pos=pos@entry=0xffffc9000022ff10) at fs/read_write.c:603
+13 0xffffffff811defda in ksys_write (fd=<optimized out>, buf=0xa758d0 ":iiiii:E::ii::i:CF
+", count=19) at fs/read_write.c:658
+14 0xffffffff81b49813 in do_syscall_64 (nr=<optimized out>, regs=0xffffc9000022ff58) at arch/x86/entry/common.c:46
+15 0xffffffff81c0007c in entry_SYSCALL_64 () at arch/x86/entry/entry_64.S:120
+
+To solve the issue, the open_exec call is moved to before the write
+lock is taken by bm_register_write
+
+Link: https://lkml.kernel.org/r/20210228224414.95962-1-liorribak@gmail.com
+Fixes: 948b701a607f1 ("binfmt_misc: add persistent opened binary handler for containers")
+Signed-off-by: Lior Ribak <liorribak@gmail.com>
+Acked-by: Helge Deller <deller@gmx.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_misc.c |   29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
---- a/MAINTAINERS~maintainers-exclude-uapi-directories-in-api-abi-section
-+++ a/MAINTAINERS
-@@ -261,8 +261,8 @@ ABI/API
- L:	linux-api@vger.kernel.org
- F:	include/linux/syscalls.h
- F:	kernel/sys_ni.c
--F:	include/uapi/
--F:	arch/*/include/uapi/
-+X:	include/uapi/
-+X:	arch/*/include/uapi/
+--- a/fs/binfmt_misc.c~binfmt_misc-fix-possible-deadlock-in-bm_register_write
++++ a/fs/binfmt_misc.c
+@@ -649,12 +649,24 @@ static ssize_t bm_register_write(struct
+ 	struct super_block *sb = file_inode(file)->i_sb;
+ 	struct dentry *root = sb->s_root, *dentry;
+ 	int err = 0;
++	struct file *f = NULL;
  
- ABIT UGURU 1,2 HARDWARE MONITOR DRIVER
- M:	Hans de Goede <hdegoede@redhat.com>
+ 	e = create_entry(buffer, count);
+ 
+ 	if (IS_ERR(e))
+ 		return PTR_ERR(e);
+ 
++	if (e->flags & MISC_FMT_OPEN_FILE) {
++		f = open_exec(e->interpreter);
++		if (IS_ERR(f)) {
++			pr_notice("register: failed to install interpreter file %s\n",
++				 e->interpreter);
++			kfree(e);
++			return PTR_ERR(f);
++		}
++		e->interp_file = f;
++	}
++
+ 	inode_lock(d_inode(root));
+ 	dentry = lookup_one_len(e->name, root, strlen(e->name));
+ 	err = PTR_ERR(dentry);
+@@ -678,21 +690,6 @@ static ssize_t bm_register_write(struct
+ 		goto out2;
+ 	}
+ 
+-	if (e->flags & MISC_FMT_OPEN_FILE) {
+-		struct file *f;
+-
+-		f = open_exec(e->interpreter);
+-		if (IS_ERR(f)) {
+-			err = PTR_ERR(f);
+-			pr_notice("register: failed to install interpreter file %s\n", e->interpreter);
+-			simple_release_fs(&bm_mnt, &entry_count);
+-			iput(inode);
+-			inode = NULL;
+-			goto out2;
+-		}
+-		e->interp_file = f;
+-	}
+-
+ 	e->dentry = dget(dentry);
+ 	inode->i_private = e;
+ 	inode->i_fop = &bm_entry_operations;
+@@ -709,6 +706,8 @@ out:
+ 	inode_unlock(d_inode(root));
+ 
+ 	if (err) {
++		if (f)
++			filp_close(f, NULL);
+ 		kfree(e);
+ 		return err;
+ 	}
 _
