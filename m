@@ -7,166 +7,93 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85B0EC433E9
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:09:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07CE1C43332
+	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:09:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C81864FB5
+	by mail.kernel.org (Postfix) with ESMTP id C3A7664FA8
 	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:09:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232594AbhCMFIo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 13 Mar 2021 00:08:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42304 "EHLO mail.kernel.org"
+        id S231280AbhCMFIr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 13 Mar 2021 00:08:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42568 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232023AbhCMFIS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 13 Mar 2021 00:08:18 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CBB6164F9F;
-        Sat, 13 Mar 2021 05:08:17 +0000 (UTC)
+        id S232431AbhCMFIj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 13 Mar 2021 00:08:39 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9765464F9E;
+        Sat, 13 Mar 2021 05:08:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615612098;
-        bh=b3F1VoctMIJHcIs8Gdx70me1T9qaO6qMZ/xsIutgeXc=;
+        s=korg; t=1615612118;
+        bh=TaxE/KGyWhstjGhOfVZASTWuhokBSyHjrCxNHx602qk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=2qsyFxzrjPvtGVjjXxvygGkWPdND6T2p6di8jHvzKxr74lgGOZ18khu/1wU1wrGmw
-         VzzMp8x70DaeJbxV2ft2/4VVgqhM2sUteGeciRB8LoG0WeB4VBJUFZzNsMH3IaDK+8
-         ZPGiGZYQyXbBlqwHrA2pGHmvI3+tjkTzGauJnyyY=
-Date:   Fri, 12 Mar 2021 21:08:17 -0800
+        b=APXjg6ds2UHPXz0cq0YOo3PDAI8q+M2WHFRSFxoFDfHSl3BxYsZqPUEIJVwzBU2b2
+         fodT7iDZRClponM9vEBAOS7vsZlKl9mSYJtNV6Dr9li+yI5ML0ij0llTQ7LyKRynlO
+         sks5Yo7hD9LMp0HZRrj1mrOWBkzWd7LME03kPQgk=
+Date:   Fri, 12 Mar 2021 21:08:38 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, akpm@linux-foundation.org, linux-mm@kvack.org,
-        luto@kernel.org, mike.kravetz@oracle.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, namit@vmware.com, peterx@redhat.com,
-        peterz@infradead.org, rppt@linux.vnet.ibm.com,
-        stable@vger.kernel.org, torvalds@linux-foundation.org,
-        will@kernel.org, xemul@openvz.org, yuzhao@google.com
-Subject:  [patch 22/29] mm/userfaultfd: fix memory corruption due
- to writeprotect
-Message-ID: <20210313050817.0WOtpAOpA%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, colin.king@canonical.com,
+        joaodias@google.com, linux-mm@kvack.org, minchan@kernel.org,
+        mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com,
+        stable@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 28/29] zram: fix return value on writeback_store
+Message-ID: <20210313050838.RTs56zfiV%akpm@linux-foundation.org>
 In-Reply-To: <20210312210632.9b7d62973d72a56fb13c7a03@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: Nadav Amit <namit@vmware.com>
-Subject: mm/userfaultfd: fix memory corruption due to writeprotect
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: fix return value on writeback_store
 
-Userfaultfd self-test fails occasionally, indicating a memory corruption.
+writeback_store's return value is overwritten by submit_bio_wait's return
+value.  Thus, writeback_store will return zero since there was no IO
+error.  In the end, write syscall from userspace will see the zero as
+return value, which could make the process stall to keep trying the write
+until it will succeed.
 
-Analyzing this problem indicates that there is a real bug since mmap_lock
-is only taken for read in mwriteprotect_range() and defers flushes, and
-since there is insufficient consideration of concurrent deferred TLB
-flushes in wp_page_copy().  Although the PTE is flushed from the TLBs in
-wp_page_copy(), this flush takes place after the copy has already been
-performed, and therefore changes of the page are possible between the time
-of the copy and the time in which the PTE is flushed.
-
-To make matters worse, memory-unprotection using userfaultfd also poses a
-problem.  Although memory unprotection is logically a promotion of PTE
-permissions, and therefore should not require a TLB flush, the current
-userrfaultfd code might actually cause a demotion of the architectural PTE
-permission: when userfaultfd_writeprotect() unprotects memory region, it
-unintentionally *clears* the RW-bit if it was already set.  Note that this
-unprotecting a PTE that is not write-protected is a valid use-case: the
-userfaultfd monitor might ask to unprotect a region that holds both
-write-protected and write-unprotected PTEs.
-
-The scenario that happens in selftests/vm/userfaultfd is as follows:
-
-cpu0				cpu1			cpu2
-----				----			----
-							[ Writable PTE
-							  cached in TLB ]
-userfaultfd_writeprotect()
-[ write-*unprotect* ]
-mwriteprotect_range()
-mmap_read_lock()
-change_protection()
-
-change_protection_range()
-...
-change_pte_range()
-[ *clear* =E2=80=9Cwrite=E2=80=9D-bit ]
-[ defer TLB flushes ]
-				[ page-fault ]
-				...
-				wp_page_copy()
-				 cow_user_page()
-				  [ copy page ]
-							[ write to old
-							  page ]
-				...
-				 set_pte_at_notify()
-
-A similar scenario can happen:
-
-cpu0		cpu1		cpu2		cpu3
-----		----		----		----
-						[ Writable PTE
-				  		  cached in TLB ]
-userfaultfd_writeprotect()
-[ write-protect ]
-[ deferred TLB flush ]
-		userfaultfd_writeprotect()
-		[ write-unprotect ]
-		[ deferred TLB flush]
-				[ page-fault ]
-				wp_page_copy()
-				 cow_user_page()
-				 [ copy page ]
-				 ...		[ write to page ]
-				set_pte_at_notify()
-
-This race exists since commit 292924b26024 ("userfaultfd: wp: apply
-_PAGE_UFFD_WP bit").  Yet, as Yu Zhao pointed, these races became apparent
-since commit 09854ba94c6a ("mm: do_wp_page() simplification") which made
-wp_page_copy() more likely to take place, specifically if page_count(page)
-> 1.
-
-To resolve the aforementioned races, check whether there are pending
-flushes on uffd-write-protected VMAs, and if there are, perform a flush
-before doing the COW.
-
-Further optimizations will follow to avoid during uffd-write-unprotect
-unnecassary PTE write-protection and TLB flushes.
-
-Link: https://lkml.kernel.org/r/20210304095423.3825684-1-namit@vmware.com
-Fixes: 09854ba94c6a ("mm: do_wp_page() simplification")
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Suggested-by: Yu Zhao <yuzhao@google.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Tested-by: Peter Xu <peterx@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: <stable@vger.kernel.org>	[5.9+]
+Link: https://lkml.kernel.org/r/20210312173949.2197662-1-minchan@kernel.org
+Fixes: 3b82a051c101("drivers/block/zram/zram_drv.c: fix error return codes not being returned in writeback_store")
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: John Dias <joaodias@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/block/zram/zram_drv.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-userfaultfd-fix-memory-corruption-due-to-writeprotect
-+++ a/mm/memory.c
-@@ -3097,6 +3097,14 @@ static vm_fault_t do_wp_page(struct vm_f
- 		return handle_userfault(vmf, VM_UFFD_WP);
- 	}
-=20
-+	/*
-+	 * Userfaultfd write-protect can defer flushes. Ensure the TLB
-+	 * is flushed in this case before copying.
-+	 */
-+	if (unlikely(userfaultfd_wp(vmf->vma) &&
-+		     mm_tlb_flush_pending(vmf->vma->vm_mm)))
-+		flush_tlb_page(vmf->vma, vmf->address);
-+
- 	vmf->page =3D vm_normal_page(vma, vmf->address, vmf->orig_pte);
- 	if (!vmf->page) {
- 		/*
+--- a/drivers/block/zram/zram_drv.c~zram-fix-return-value-on-writeback_store
++++ a/drivers/block/zram/zram_drv.c
+@@ -627,7 +627,7 @@ static ssize_t writeback_store(struct de
+ 	struct bio_vec bio_vec;
+ 	struct page *page;
+ 	ssize_t ret = len;
+-	int mode;
++	int mode, err;
+ 	unsigned long blk_idx = 0;
+ 
+ 	if (sysfs_streq(buf, "idle"))
+@@ -728,12 +728,17 @@ static ssize_t writeback_store(struct de
+ 		 * XXX: A single page IO would be inefficient for write
+ 		 * but it would be not bad as starter.
+ 		 */
+-		ret = submit_bio_wait(&bio);
+-		if (ret) {
++		err = submit_bio_wait(&bio);
++		if (err) {
+ 			zram_slot_lock(zram, index);
+ 			zram_clear_flag(zram, index, ZRAM_UNDER_WB);
+ 			zram_clear_flag(zram, index, ZRAM_IDLE);
+ 			zram_slot_unlock(zram, index);
++			/*
++			 * Return last IO error unless every IO were
++			 * not suceeded.
++			 */
++			ret = err;
+ 			continue;
+ 		}
+ 
 _
