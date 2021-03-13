@@ -2,95 +2,189 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74EA3C4360C
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:09:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D87B4C433E6
+	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 19:24:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 56E3064FDC
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:09:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B694F64ED1
+	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 19:24:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232401AbhCMFIr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 13 Mar 2021 00:08:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42630 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232440AbhCMFIm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 13 Mar 2021 00:08:42 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B708564FA7;
-        Sat, 13 Mar 2021 05:08:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615612122;
-        bh=Jp1b5qEapWDbCGjBEiqEpW0Pxh4Nci8/KiOnVdR/LAo=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=fZLsxydd0FjlsBjFS1AgOzYfYLu8Cwok6LaYuwVQOscLRS2BsZ6MVrVFbpUDWhJ+Q
-         zrK+btgn7ObROCH1MyGhqjnpE6Jfi0eoPsZP5zgB6BFkQExWMs0G+sAk8fhLqixjN1
-         gg6T3FAr0t+728Tx9relwCerGvlOKoqfXjE1vjUE=
-Date:   Fri, 12 Mar 2021 21:08:41 -0800
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, amosbianchi@google.com,
-        joaodias@google.com, linux-mm@kvack.org, minchan@kernel.org,
-        mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com,
-        stable@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 29/29] zram: fix broken page writeback
-Message-ID: <20210313050841.HjY9UHuIF%akpm@linux-foundation.org>
-In-Reply-To: <20210312210632.9b7d62973d72a56fb13c7a03@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S234343AbhCMTYI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 13 Mar 2021 14:24:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35712 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233635AbhCMTYA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 13 Mar 2021 14:24:00 -0500
+Received: from mail-lj1-x230.google.com (mail-lj1-x230.google.com [IPv6:2a00:1450:4864:20::230])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58BDCC061574
+        for <mm-commits@vger.kernel.org>; Sat, 13 Mar 2021 11:24:00 -0800 (PST)
+Received: by mail-lj1-x230.google.com with SMTP id a1so11493497ljp.2
+        for <mm-commits@vger.kernel.org>; Sat, 13 Mar 2021 11:24:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=fkMUwflg0okgtiiFHyBwNautlkx4oxTesZnPR+Zbdm0=;
+        b=bSs9U8+fE70nTPl25+3Ah15euLoLlf6KJftxZU0Bk7mfBawqk4ClAgFvihRohYSlmf
+         Q8cF7V7jozp1ZSnDK19SRHNVt+iv9oUAO1jA+nrFirHrwpiRa8mdMZuuUFq7BPWS87Wd
+         gxP/e6JcYnycxahzA1sONPqIC7MV8++JX76Kg=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=fkMUwflg0okgtiiFHyBwNautlkx4oxTesZnPR+Zbdm0=;
+        b=dNOHU+CFoyhV0VD9r62xx89kjFbgWQ7hQIgt1nud/jXKjiVnbKJrzXoax09PXYhcAY
+         +TYzZ+lryCjA57WK8qtrutb3o0tMiYeXKPMjRjURfzGJ+/4GVZJW+yFHgVNgGlipz0uh
+         zMZNhN4iGCMOJEBM8zSYBh35DMP7Wz9bDUIb1KFV131nLRMyOHlOL08FDBPEGi7TaLFo
+         uPVZmCyv4rD32OXe+EhGlXA/1jBSRk4q4YLTLGVoTA6f9G7G0Dv9LEuAvGYYZlYEEP4t
+         sj8H0yhrgoeIdpXLRPc4i/pXJWHO2wdhcmMryqa+AsroKDOWMufH5RBuOZ2wL8Pb93bp
+         xQ0w==
+X-Gm-Message-State: AOAM533wdNUSk7sSKxS01rLgxrlnHoWdzqwMx6XfEaqiq/4E32TbKKgs
+        v1EfdeON+1EymBeiT8sMQJUPEpWby18uRA==
+X-Google-Smtp-Source: ABdhPJzIGp4qnFh02gQj3h5WyT/sIBrvb/c96/sH7n7ttWwGYdBLEB2oZFOAqeMx4KdIrioZ1Ef1Zw==
+X-Received: by 2002:a2e:9bd0:: with SMTP id w16mr5858963ljj.465.1615663438263;
+        Sat, 13 Mar 2021 11:23:58 -0800 (PST)
+Received: from mail-lf1-f51.google.com (mail-lf1-f51.google.com. [209.85.167.51])
+        by smtp.gmail.com with ESMTPSA id i21sm2065300lfe.102.2021.03.13.11.23.57
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 13 Mar 2021 11:23:57 -0800 (PST)
+Received: by mail-lf1-f51.google.com with SMTP id v2so37699345lft.9
+        for <mm-commits@vger.kernel.org>; Sat, 13 Mar 2021 11:23:57 -0800 (PST)
+X-Received: by 2002:a05:6512:33cc:: with SMTP id d12mr3118409lfg.487.1615663436752;
+ Sat, 13 Mar 2021 11:23:56 -0800 (PST)
+MIME-Version: 1.0
+References: <20210312210632.9b7d62973d72a56fb13c7a03@linux-foundation.org> <20210313050820.EoPGLS3gj%akpm@linux-foundation.org>
+In-Reply-To: <20210313050820.EoPGLS3gj%akpm@linux-foundation.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Sat, 13 Mar 2021 11:23:40 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wht_gk_d9k+NZs7eJvBeLOQT4xGcykgaCRHuiQ+LbReRw@mail.gmail.com>
+Message-ID: <CAHk-=wht_gk_d9k+NZs7eJvBeLOQT4xGcykgaCRHuiQ+LbReRw@mail.gmail.com>
+Subject: Re: [patch 23/29] mm, hwpoison: do not lock page again when
+ me_huge_page() successfully recovers
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     aneesh.kumar@linux.vnet.ibm.com, Linux-MM <linux-mm@kvack.org>,
+        Michal Hocko <mhocko@kernel.org>, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, Oscar Salvador <osalvador@suse.de>,
+        stable <stable@vger.kernel.org>, Tony Luck <tony.luck@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: fix broken page writeback
+On Fri, Mar 12, 2021 at 9:08 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+> Subject: mm, hwpoison: do not lock page again when me_huge_page() successfully recovers
 
-commit 0d8359620d9b ("zram: support page writeback") introduced two
-problems.  It overwrites writeback_store's return value as kstrtol's
-return value, which makes return value zero so user could see zero as
-return value of write syscall even though it wrote data successfully.
+This patch can not possibly be correct, and is dangerous and very very wrong.
 
-It also breaks index value in the loop in that it doesn't increase the
-index any longer.  It means it can write only first starting block index
-so user couldn't write all idle pages in the zram so lose memory saving
-chance.
+>  out:
+> -       unlock_page(head);
+> +       if (PageLocked(head))
+> +               unlock_page(head);
 
-This patch fixes those issues.
+You absolutely CANNOT do things like this. It is fundamentally insane.
 
-Link: https://lkml.kernel.org/r/20210312173949.2197662-2-minchan@kernel.org
-Fixes: 0d8359620d9b("zram: support page writeback")
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Amos Bianchi <amosbianchi@google.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: John Dias <joaodias@google.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+You have two situations:
 
- drivers/block/zram/zram_drv.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ (a) you know you locked the page.
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-broken-page-writeback
-+++ a/drivers/block/zram/zram_drv.c
-@@ -638,8 +638,8 @@ static ssize_t writeback_store(struct de
- 		if (strncmp(buf, PAGE_WB_SIG, sizeof(PAGE_WB_SIG) - 1))
- 			return -EINVAL;
- 
--		ret = kstrtol(buf + sizeof(PAGE_WB_SIG) - 1, 10, &index);
--		if (ret || index >= nr_pages)
-+		if (kstrtol(buf + sizeof(PAGE_WB_SIG) - 1, 10, &index) ||
-+				index >= nr_pages)
- 			return -EINVAL;
- 
- 		nr_pages = 1;
-@@ -663,7 +663,7 @@ static ssize_t writeback_store(struct de
- 		goto release_init_lock;
- 	}
- 
--	while (nr_pages--) {
-+	for (; nr_pages != 0; index++, nr_pages--) {
- 		struct bio_vec bvec;
- 
- 		bvec.bv_page = page;
-_
+     In this case an unconditional "unlock_page()" is the only correct
+thing to do.
+
+ (b) you don't know whether you maybe unlocked it again.
+
+     In this case SOMEBODY ELSE might have locked the page, and you
+doing "if it's locked, then unlock it" is pure and utter drivel, and
+fundamentally and seriously wrong. You're unlocking SOMEBODY ELSES
+lock, after having already unlocked your own once.
+
+Now, it is possible that this kind of pattern could be ok if you
+absolutely 100% know - and it is obvious from the code - that you are
+the only thread that can possibly access the page. But if that is the
+case, then the page should never have been locked in the first place,
+because that would be an insane and pointless operation, since the
+whole - and only - point of locking is to enforce some kind of
+exclusivity - and if exclusivity is explicit in the code-path, then
+locking the page is pointless.
+
+And yes, in this case I can see a remote theoretical model: "all good
+cases keep the page locked, and the only trhing that unlocks the page
+also guarantees nothing else can possiblly see it".
+
+But no. I don't actually believe this is fuaranteed to the case here,
+and even if it were, I don't think this is a code sequence we can or
+should accept.
+
+End result: there is no possible situation that I can think of where the above
+
+       if (PageLocked(head))
+               unlock_page(head);
+
+kind of sequence can EVER possibly be correct, and it shows a complete
+disregard of everything that locking is all about.
+
+Now, the memory error handling may be so special that this effectively
+"works" in practice, but there is no way I can apply such a
+fundamentally broken patch.
+
+I see two options:
+
+ - make the result of identify_page_state() *tell* you whether the
+page was already unlocked (and then make the unlock conditional on
+*that*)
+
+   This is valid, because now you removed that whole "somebody else
+might have transferred the lock" issue: you know you already unlocked
+the page based on the return value, so you don't unlock it again.
+That's perfectly valid.
+
+ - probably better: make identify_page_state() itself always unlock
+the page, and turn the two different code sequences that currently do
+
+        res = identify_page_state(pfn, p, page_flags);
+  out:
+        unlock_page(head);
+        return res;
+
+into just doing
+
+        return identify_page_state(pfn, p, page_flags);
+  out:
+        unlock_page(head);
+        return -EBUSY;
+
+instead, and move that now pointless "res" variable into the only
+if-statement that actually uses it (for other things entirely! It
+should be a "enum mf_result" there!)
+
+And yes, that second (and imho better) rule means that now
+{page_action()" itself needs to be the thing that unlocks the page,
+and that in turn might be done a few different ways:
+
+ (a) either add a separate "MF_UNLOCKED" state bit to the possible
+return codes and make that me_huge_page() that unlocks the page set
+that bit (NOTE! It still needs to also return either MF_FAILED or
+MF_RECOVERED, so this "MF_UNLOCKED" bit really should be a separate
+bitmask entirely from the other MF_xyz bits)
+
+ (b) make the rule be that *all* the ->action() functions need to just
+unlock the page.
+
+( suspect (b) is the better model to aim for, because honestly, static
+code rules for locking are basically almost always superior to dynamic
+"based on this flag" locking rules. You can in theory actually have
+static tooling check that the locking nests correctly with the
+unlocking that way (and it's just conceptually simpler to have a hard
+rule about "this function always unlocks the page").
+
+But that existing patch is *so* fundamentally wrong that I cannot
+possibly apply it, and I feel bad about the fact that it has made it
+all the way to me with sign-offs and reviewed-by's and everything.
+
+                  Linus
