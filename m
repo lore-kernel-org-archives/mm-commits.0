@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F478C433E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82525C43381
 	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:07:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3521264F91
+	by mail.kernel.org (Postfix) with ESMTP id 59CE364F90
 	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:07:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229852AbhCMFHG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229968AbhCMFHG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 13 Mar 2021 00:07:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41300 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41350 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230309AbhCMFHC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 13 Mar 2021 00:07:02 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0942F64F76;
-        Sat, 13 Mar 2021 05:07:02 +0000 (UTC)
+        id S230470AbhCMFHG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 13 Mar 2021 00:07:06 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5F54364F89;
+        Sat, 13 Mar 2021 05:07:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615612022;
-        bh=Raf/ac2LPL74b8yFGB0EqVe/YQ66tZ6NDHEmil1VZb8=;
+        s=korg; t=1615612025;
+        bh=TTj6lXXkWzaMWdKUQAO+CYzYch6Pp8jnVErDDfL6Vvo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=q0XWTx2A2GZyo4CdMhYmocXI/jsehFIUKqRnmDxEsDkrlq2/DiH6tCI6n1aoXNSsd
-         TLbp0foDTWe3NEaNQRNdKg8DAZUDkDTp8ZIEFM/qQlhXG5qDAjHFKkymtMBIniimOk
-         i0EUfeO9vjenC41WgLEtNZKSqw5i7Jj8xApPWSAI=
-Date:   Fri, 12 Mar 2021 21:07:01 -0800
+        b=adsBidQhhLa6qb3mKmPPYYYfe/EwJ29ELO3W4HtNFouXxkQL51cWwqzB04EA1o+22
+         4CsTXeUoULkil8prkkuxormgkzfbDJfPzb5/Dtabl2hBkjXg3EofwyJ2afY/XQ6Sc8
+         h87yb2jIP2e8Z/h4ffRX9/Pfu11VFsk1S/sFwBVQ=
+Date:   Fri, 12 Mar 2021 21:07:04 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, arnd@arndb.de, aslan@fb.com,
-        bhe@redhat.com, david@redhat.com, faiyazm@codeaurora.org,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, nathan@kernel.org,
-        ndesaulniers@google.com, rppt@linux.ibm.com,
-        torvalds@linux-foundation.org, tsbogend@alpha.franken.de
-Subject:  [patch 01/29] memblock: fix section mismatch warning
-Message-ID: <20210313050701.ETLGdrycV%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, arnd@arndb.de, bigeasy@linutronix.de,
+        bristot@redhat.com, linux-mm@kvack.org, mingo@kernel.org,
+        mm-commits@vger.kernel.org, nathan@kernel.org,
+        ndesaulniers@google.com, paulmck@kernel.org, peterz@infradead.org,
+        prarit@redhat.com, tglx@linutronix.de,
+        torvalds@linux-foundation.org, valentin.schneider@arm.com
+Subject:  [patch 02/29] stop_machine: mark helpers __always_inline
+Message-ID: <20210313050704.ipgTt9ff3%akpm@linux-foundation.org>
 In-Reply-To: <20210312210632.9b7d62973d72a56fb13c7a03@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,66 +46,74 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: memblock: fix section mismatch warning
+Subject: stop_machine: mark helpers __always_inline
 
-The inlining logic in clang-13 is rewritten to often not inline some
-functions that were inlined by all earlier compilers.
+With clang-13, some functions only get partially inlined, with a
+specialized version referring to a global variable.  This triggers a
+harmless build-time check for the intel-rng driver:
 
-In case of the memblock interfaces, this exposed a harmless bug of a
-missing __init annotation:
+WARNING: modpost: drivers/char/hw_random/intel-rng.o(.text+0xe): Section mismatch in reference from the function stop_machine() to the function .init.text:intel_rng_hw_init()
+The function stop_machine() references
+the function __init intel_rng_hw_init().
+This is often because stop_machine lacks a __init
+annotation or the annotation of intel_rng_hw_init is wrong.
 
-WARNING: modpost: vmlinux.o(.text+0x507c0a): Section mismatch in reference from the function memblock_bottom_up() to the variable .meminit.data:memblock
-The function memblock_bottom_up() references
-the variable __meminitdata memblock.
-This is often because memblock_bottom_up lacks a __meminitdata
-annotation or the annotation of memblock is wrong.
+In this instance, an easy workaround is to force the stop_machine()
+function to be inline, along with related interfaces that did not show the
+same behavior at the moment, but theoretically could.
 
-Interestingly, these annotations were present originally, but got removed
-with the explanation that the __init annotation prevents the function from
-getting inlined.  I checked this again and found that while this is the
-case with clang, gcc (version 7 through 10, did not test others) does
-inline the functions regardless.
+The combination of the two patches listed below triggers the behavior in
+clang-13, but individually these commits are correct.
 
-As the previous change was apparently intended to help the clang builds,
-reverting it to help the newer clang versions seems appropriate as well. 
-gcc builds don't seem to care either way.
-
-Link: https://lkml.kernel.org/r/20210225133808.2188581-1-arnd@kernel.org
-Fixes: 5bdba520c1b3 ("mm: memblock: drop __init from memblock functions to make it inline")
-Reference: 2cfb3665e864 ("include/linux/memblock.h: add __init to memblock_set_bottom_up()")
+Link: https://lkml.kernel.org/r/20210225130153.1956990-1-arnd@kernel.org
+Fixes: fe5595c07400 ("stop_machine: Provide stop_machine_cpuslocked()")
+Fixes: ee527cd3a20c ("Use stop_machine_run in the Intel RNG driver")
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Faiyaz Mohammed <faiyazm@codeaurora.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Aslan Bakirov <aslan@fb.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Valentin Schneider <valentin.schneider@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/stop_machine.h |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/include/linux/memblock.h~memblock-fix-section-mismatch-warning
-+++ a/include/linux/memblock.h
-@@ -460,7 +460,7 @@ static inline void memblock_free_late(ph
- /*
-  * Set the allocation direction to bottom-up or top-down.
-  */
--static inline void memblock_set_bottom_up(bool enable)
-+static inline __init void memblock_set_bottom_up(bool enable)
+--- a/include/linux/stop_machine.h~stop_machine-mark-helpers-__always_inline
++++ a/include/linux/stop_machine.h
+@@ -128,7 +128,7 @@ int stop_machine_from_inactive_cpu(cpu_s
+ 				   const struct cpumask *cpus);
+ #else	/* CONFIG_SMP || CONFIG_HOTPLUG_CPU */
+ 
+-static inline int stop_machine_cpuslocked(cpu_stop_fn_t fn, void *data,
++static __always_inline int stop_machine_cpuslocked(cpu_stop_fn_t fn, void *data,
+ 					  const struct cpumask *cpus)
  {
- 	memblock.bottom_up = enable;
+ 	unsigned long flags;
+@@ -139,14 +139,15 @@ static inline int stop_machine_cpuslocke
+ 	return ret;
  }
-@@ -470,7 +470,7 @@ static inline void memblock_set_bottom_u
-  * if this is true, that said, memblock will allocate memory
-  * in bottom-up direction.
-  */
--static inline bool memblock_bottom_up(void)
-+static inline __init bool memblock_bottom_up(void)
+ 
+-static inline int stop_machine(cpu_stop_fn_t fn, void *data,
+-			       const struct cpumask *cpus)
++static __always_inline int
++stop_machine(cpu_stop_fn_t fn, void *data, const struct cpumask *cpus)
  {
- 	return memblock.bottom_up;
+ 	return stop_machine_cpuslocked(fn, data, cpus);
+ }
+ 
+-static inline int stop_machine_from_inactive_cpu(cpu_stop_fn_t fn, void *data,
+-						 const struct cpumask *cpus)
++static __always_inline int
++stop_machine_from_inactive_cpu(cpu_stop_fn_t fn, void *data,
++			       const struct cpumask *cpus)
+ {
+ 	return stop_machine(fn, data, cpus);
  }
 _
