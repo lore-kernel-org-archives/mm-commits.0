@@ -7,36 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ED65C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7663C43381
 	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:09:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F55464FB9
+	by mail.kernel.org (Postfix) with ESMTP id 6F46464FB9
 	for <mm-commits@archiver.kernel.org>; Sat, 13 Mar 2021 05:09:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232023AbhCMFIo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229968AbhCMFIo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 13 Mar 2021 00:08:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42352 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42270 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232316AbhCMFIV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 13 Mar 2021 00:08:21 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3913D64FA7;
-        Sat, 13 Mar 2021 05:08:21 +0000 (UTC)
+        id S231938AbhCMFIP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 13 Mar 2021 00:08:15 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 36B6164FA7;
+        Sat, 13 Mar 2021 05:08:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615612101;
-        bh=xGzWrpNlMUt9/MxfPRiV1rbhDkPL83KBiXbTDs5FvRc=;
+        s=korg; t=1615612094;
+        bh=zK+h7VijOFJSPX1xiKzXdTpB0F2ONaCHKR8zs3+pwpI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=oyCWy5BtIuP8SrDRyMS9Q3U7qARGltEYhCMxM3sXdJPIRKywtxfoJ5UaRp4uEEOfH
-         05BT48E/7ZBxRlWaC2j07QtWog2vtw35uZ1IvCmt0sXZ70feDoK1X5zcuTHGNAFvSg
-         MmTfrDm2D6NxQtD8CEYSRx5fpbeWcM2gfMwx/Nh0=
-Date:   Fri, 12 Mar 2021 21:08:20 -0800
+        b=rfgrpHBbGtvQhmyBGO6jJv+u3sy9urBSspIgLK54eWMs9OcHDA8jhqJHiTaq6KUgm
+         EM5Wac31xfUM9PwWMNxvjVwEKkFod+16PdYSqwjBEQsZGcCNo0ftzqwoT0dbNo8GU9
+         OKg6wL2cNxSAFBTzypSAuIGFsPHEzOEHL99jVaNA=
+Date:   Fri, 12 Mar 2021 21:08:13 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com,
-        linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, osalvador@suse.de, stable@vger.kernel.org,
-        tony.luck@intel.com, torvalds@linux-foundation.org
-Subject:  [patch 23/29] mm, hwpoison: do not lock page again when
- me_huge_page() successfully recovers
-Message-ID: <20210313050820.EoPGLS3gj%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
+        catalin.marinas@arm.com, dvyukov@google.com, elver@google.com,
+        eugenis@google.com, glider@google.com, kevin.brodsky@arm.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
+        stable@vger.kernel.org, torvalds@linux-foundation.org,
+        vincenzo.frascino@arm.com, will.deacon@arm.com
+Subject:  [patch 21/29] kasan: fix KASAN_STACK dependency for
+ HW_TAGS
+Message-ID: <20210313050813.Gybpfo-3O%akpm@linux-foundation.org>
 In-Reply-To: <20210312210632.9b7d62973d72a56fb13c7a03@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,54 +47,49 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm, hwpoison: do not lock page again when me_huge_page() successfully recovers
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: fix KASAN_STACK dependency for HW_TAGS
 
-Currently me_huge_page() temporary unlocks page to perform some actions
-then locks it again later.  My testcase (which calls hard-offline on
-some tail page in a hugetlb, then accesses the address of the hugetlb
-range) showed that page allocation code detects this page lock on buddy
-page and printed out "BUG: Bad page state" message.
+There's a runtime failure when running HW_TAGS-enabled kernel built with
+GCC on hardware that doesn't support MTE.  GCC-built kernels always have
+CONFIG_KASAN_STACK enabled, even though stack instrumentation isn't
+supported by HW_TAGS.  Having that config enabled causes KASAN to issue
+MTE-only instructions to unpoison kernel stacks, which causes the failure.
 
-check_new_page_bad() does not consider a page with __PG_HWPOISON as bad
-page, so this flag works as kind of filter, but this filtering doesn't
-work in this case because the "bad page" is not the actual hwpoisoned
-page.
+Fix the issue by disallowing CONFIG_KASAN_STACK when HW_TAGS is used.
 
-This patch suggests to drop the 2nd page lock to fix the issue.
+(The commit that introduced CONFIG_KASAN_HW_TAGS specified proper
+ dependency for CONFIG_KASAN_STACK_ENABLE but not for CONFIG_KASAN_STACK.)
 
-Link: https://lkml.kernel.org/r/20210304064437.962442-1-nao.horiguchi@gmail.com
-Fixes: commit 78bb920344b8 ("mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Link: https://lkml.kernel.org/r/59e75426241dbb5611277758c8d4d6f5f9298dac.1615215441.git.andreyknvl@google.com
+Fixes: 6a63a63ff1ac ("kasan: introduce CONFIG_KASAN_HW_TAGS")
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reported-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: <stable@vger.kernel.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/Kconfig.kasan |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memory-failure.c~mm-hwpoison-do-not-lock-page-again-when-me_huge_page-successfully-recovers
-+++ a/mm/memory-failure.c
-@@ -834,7 +834,6 @@ static int me_huge_page(struct page *p,
- 			page_ref_inc(p);
- 			res = MF_RECOVERED;
- 		}
--		lock_page(hpage);
- 	}
+--- a/lib/Kconfig.kasan~kasan-fix-kasan_stack-dependency-for-hw_tags
++++ a/lib/Kconfig.kasan
+@@ -156,6 +156,7 @@ config KASAN_STACK_ENABLE
  
- 	return res;
-@@ -1290,7 +1289,8 @@ static int memory_failure_hugetlb(unsign
- 
- 	res = identify_page_state(pfn, p, page_flags);
- out:
--	unlock_page(head);
-+	if (PageLocked(head))
-+		unlock_page(head);
- 	return res;
- }
+ config KASAN_STACK
+ 	int
++	depends on KASAN_GENERIC || KASAN_SW_TAGS
+ 	default 1 if KASAN_STACK_ENABLE || CC_IS_GCC
+ 	default 0
  
 _
