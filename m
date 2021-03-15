@@ -5,37 +5,44 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 627F6C4161F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 749E4C28E86
 	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3672664F07
+	by mail.kernel.org (Postfix) with ESMTP id 52D5964F21
 	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233621AbhCORtL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231696AbhCORtL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 15 Mar 2021 13:49:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44256 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44186 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236830AbhCORsq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 13:48:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A401764E27;
-        Mon, 15 Mar 2021 17:48:45 +0000 (UTC)
+        id S236568AbhCORsn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 13:48:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D533764F5B;
+        Mon, 15 Mar 2021 17:48:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615830525;
-        bh=9Xf+ZOoz3nny5gxfpeLt0x1N6VQAWoxxIv/hCUA8fcw=;
+        s=korg; t=1615830520;
+        bh=eCQgNydi5ZQxBjMS2fyYTn2ZrA/o6A9I8QZjTWlYx9k=;
         h=Date:From:To:Subject:From;
-        b=O1hj7eiY8sDoE27h3OexyyEf63JPxepFJ9pWnlP3iyBj1aI0li14pShYsXhZxn099
-         MqJ9T9AcBjho1/zsCVWHW5NRgzM7gNyhHXhBFq7ca40xAdmqjEuSySZuXD2QWlJ/Gd
-         BN2bFMgNoCoxW/VFa3ZnDBbRMmDX6r/xftoGZto8=
-Date:   Mon, 15 Mar 2021 10:48:45 -0700
+        b=GwpThDINkiwKPOCY2UdKmmDGZHjcIvUPRILY6FrNdZO09M7yVrHNEZCLxNDdeZB/3
+         rEhN+ivRto9I0IenO524unPzpz2E4+S1ElaYR0qhmQqgRWaHkB7mSHDggO7iRgvoIf
+         cO7tgsu/59TlsvQy7u69rwpVu8nTkfgMOO8fpCJ0=
+Date:   Mon, 15 Mar 2021 10:48:39 -0700
 From:   akpm@linux-foundation.org
-To:     glaubitz@physik.fu-berlin.de, ldv@altlinux.org,
-        mm-commits@vger.kernel.org, oleg@redhat.com, slyfox@gentoo.org
+To:     aarcange@redhat.com, luto@kernel.org, mike.kravetz@oracle.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org, namit@vmware.com,
+        peterx@redhat.com, peterz@infradead.org, rppt@linux.vnet.ibm.com,
+        stable@vger.kernel.org, will@kernel.org, xemul@openvz.org,
+        yuzhao@google.com
 Subject:  [merged]
- ia64-fix-ptraceptrace_syscall_info_exit-sign.patch removed from -mm tree
-Message-ID: <20210315174845.jcA8s8_wA%akpm@linux-foundation.org>
+ mm-userfaultfd-fix-memory-corruption-due-to-writeprotect.patch removed from
+ -mm tree
+Message-ID: <20210315174839.VoNmtO0F9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,75 +50,136 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: fix ptrace(PTRACE_SYSCALL_INFO_EXIT) sign
+     Subject: mm/userfaultfd: fix memory corruption due to writeprotect
 has been removed from the -mm tree.  Its filename was
-     ia64-fix-ptraceptrace_syscall_info_exit-sign.patch
+     mm-userfaultfd-fix-memory-corruption-due-to-writeprotect.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: ia64: fix ptrace(PTRACE_SYSCALL_INFO_EXIT) sign
+=46rom: Nadav Amit <namit@vmware.com>
+Subject: mm/userfaultfd: fix memory corruption due to writeprotect
 
-In https://bugs.gentoo.org/769614 Dmitry noticed that
-`ptrace(PTRACE_GET_SYSCALL_INFO)` does not return error sign properly.
+Userfaultfd self-test fails occasionally, indicating a memory corruption.
 
-The bug is in mismatch between get/set errors:
+Analyzing this problem indicates that there is a real bug since mmap_lock
+is only taken for read in mwriteprotect_range() and defers flushes, and
+since there is insufficient consideration of concurrent deferred TLB
+flushes in wp_page_copy().  Although the PTE is flushed from the TLBs in
+wp_page_copy(), this flush takes place after the copy has already been
+performed, and therefore changes of the page are possible between the time
+of the copy and the time in which the PTE is flushed.
 
-static inline long syscall_get_error(struct task_struct *task,
-                                     struct pt_regs *regs)
-{
-        return regs->r10 == -1 ? regs->r8:0;
-}
+To make matters worse, memory-unprotection using userfaultfd also poses a
+problem.  Although memory unprotection is logically a promotion of PTE
+permissions, and therefore should not require a TLB flush, the current
+userrfaultfd code might actually cause a demotion of the architectural PTE
+permission: when userfaultfd_writeprotect() unprotects memory region, it
+unintentionally *clears* the RW-bit if it was already set.  Note that this
+unprotecting a PTE that is not write-protected is a valid use-case: the
+userfaultfd monitor might ask to unprotect a region that holds both
+write-protected and write-unprotected PTEs.
 
-static inline long syscall_get_return_value(struct task_struct *task,
-                                            struct pt_regs *regs)
-{
-        return regs->r8;
-}
+The scenario that happens in selftests/vm/userfaultfd is as follows:
 
-static inline void syscall_set_return_value(struct task_struct *task,
-                                            struct pt_regs *regs,
-                                            int error, long val)
-{
-        if (error) {
-                /* error < 0, but ia64 uses > 0 return value */
-                regs->r8 = -error;
-                regs->r10 = -1;
-        } else {
-                regs->r8 = val;
-                regs->r10 = 0;
-        }
-}
+cpu0				cpu1			cpu2
+----				----			----
+							[ Writable PTE
+							  cached in TLB ]
+userfaultfd_writeprotect()
+[ write-*unprotect* ]
+mwriteprotect_range()
+mmap_read_lock()
+change_protection()
 
-Tested on v5.10 on rx3600 machine (ia64 9040 CPU).
+change_protection_range()
+...
+change_pte_range()
+[ *clear* =E2=80=9Cwrite=E2=80=9D-bit ]
+[ defer TLB flushes ]
+				[ page-fault ]
+				...
+				wp_page_copy()
+				 cow_user_page()
+				  [ copy page ]
+							[ write to old
+							  page ]
+				...
+				 set_pte_at_notify()
 
-Link: https://lkml.kernel.org/r/20210221002554.333076-2-slyfox@gentoo.org
-Link: https://bugs.gentoo.org/769614
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
-Reported-by: Dmitry V. Levin <ldv@altlinux.org>
-Reviewed-by: Dmitry V. Levin <ldv@altlinux.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
+A similar scenario can happen:
+
+cpu0		cpu1		cpu2		cpu3
+----		----		----		----
+						[ Writable PTE
+				  		  cached in TLB ]
+userfaultfd_writeprotect()
+[ write-protect ]
+[ deferred TLB flush ]
+		userfaultfd_writeprotect()
+		[ write-unprotect ]
+		[ deferred TLB flush]
+				[ page-fault ]
+				wp_page_copy()
+				 cow_user_page()
+				 [ copy page ]
+				 ...		[ write to page ]
+				set_pte_at_notify()
+
+This race exists since commit 292924b26024 ("userfaultfd: wp: apply
+_PAGE_UFFD_WP bit").  Yet, as Yu Zhao pointed, these races became apparent
+since commit 09854ba94c6a ("mm: do_wp_page() simplification") which made
+wp_page_copy() more likely to take place, specifically if page_count(page)
+> 1.
+
+To resolve the aforementioned races, check whether there are pending
+flushes on uffd-write-protected VMAs, and if there are, perform a flush
+before doing the COW.
+
+Further optimizations will follow to avoid during uffd-write-unprotect
+unnecassary PTE write-protection and TLB flushes.
+
+Link: https://lkml.kernel.org/r/20210304095423.3825684-1-namit@vmware.com
+Fixes: 09854ba94c6a ("mm: do_wp_page() simplification")
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Suggested-by: Yu Zhao <yuzhao@google.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Tested-by: Peter Xu <peterx@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: <stable@vger.kernel.org>	[5.9+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/syscall.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/arch/ia64/include/asm/syscall.h~ia64-fix-ptraceptrace_syscall_info_exit-sign
-+++ a/arch/ia64/include/asm/syscall.h
-@@ -32,7 +32,7 @@ static inline void syscall_rollback(stru
- static inline long syscall_get_error(struct task_struct *task,
- 				     struct pt_regs *regs)
- {
--	return regs->r10 == -1 ? regs->r8:0;
-+	return regs->r10 == -1 ? -regs->r8:0;
- }
- 
- static inline long syscall_get_return_value(struct task_struct *task,
+--- a/mm/memory.c~mm-userfaultfd-fix-memory-corruption-due-to-writeprotect
++++ a/mm/memory.c
+@@ -3097,6 +3097,14 @@ static vm_fault_t do_wp_page(struct vm_f
+ 		return handle_userfault(vmf, VM_UFFD_WP);
+ 	}
+=20
++	/*
++	 * Userfaultfd write-protect can defer flushes. Ensure the TLB
++	 * is flushed in this case before copying.
++	 */
++	if (unlikely(userfaultfd_wp(vmf->vma) &&
++		     mm_tlb_flush_pending(vmf->vma->vm_mm)))
++		flush_tlb_page(vmf->vma, vmf->address);
++
+ 	vmf->page =3D vm_normal_page(vma, vmf->address, vmf->orig_pte);
+ 	if (!vmf->page) {
+ 		/*
 _
 
-Patches currently in -mm which might be from slyfox@gentoo.org are
+Patches currently in -mm which might be from namit@vmware.com are
 
 
