@@ -7,43 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D21FC43142
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E488C41518
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF7C164F10
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38B0964F10
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231434AbhCOR4P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 13:56:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44184 "EHLO mail.kernel.org"
+        id S231802AbhCOR4S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 13:56:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234889AbhCORsm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 13:48:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C737764F10;
-        Mon, 15 Mar 2021 17:47:50 +0000 (UTC)
+        id S236538AbhCORsn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 13:48:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A3FCA64F50;
+        Mon, 15 Mar 2021 17:48:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615830471;
-        bh=NaE41y79ZWRo1rUoExuK5ZE+Nq7BXabH1ehK7riR4sY=;
+        s=korg; t=1615830512;
+        bh=PvDGtByI6GZ42Czv5iQvtECeFXQOOsK5aiYjXtAkxAc=;
         h=Date:From:To:Subject:From;
-        b=GwenHxk7GwUmh/CKMtmPKbZaIw5DL4NEALKMoVzmsl1zazW5qE5Z7JKzL8r6MQaiz
-         9eBRJnVKKQLodmDql6aZTmfhzFoyrCnev6KPN3FL2ySZ+zCEgIyDBQpeGizCgNf9Pb
-         o4dpPdG7LOxazQ9g/TDdT4WwJ949J7xAucqYpsc8=
-Date:   Mon, 15 Mar 2021 10:47:50 -0700
+        b=RVg4aXqwoHq4qBBx4sjapOTwRik/uFPsAHEzudLE6ptGFwW9G7YGQRNhw9zxUW61v
+         uERoaLRKWYtDYPK3zijCLHoTeHa2k7PcNnANxgMNKt3y1gPbfYULnoaGU8pVV/7Rl/
+         KPksktGyj+aMgCPNYdzVB3jtEMjUBgQCPPVXoAME=
+Date:   Mon, 15 Mar 2021 10:48:31 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, bhe@redhat.com, bp@alien8.de, cai@lca.pw,
-        chris@chris-wilson.co.uk, david@redhat.com, hpa@zytor.com,
-        lma@semihalf.com, mgorman@suse.de, mhocko@kernel.org,
-        mingo@redhat.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        stable@vger.kernel.org, tglx@linutronix.de,
-        tomi.p.sarvela@intel.com, vbabka@suse.cz
+To:     fweimer@redhat.com, jannh@google.com, jeffv@google.com,
+        jmorris@namei.org, keescook@chromium.org, mhocko@suse.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com,
+        rientjes@google.com, shakeelb@google.com, stable@vger.kernel.org,
+        surenb@google.com, timmurray@google.com
 Subject:  [merged]
- =?US-ASCII?Q?mm-page=5Fallocc-refactor-initialization-of-struct-page-for-?=
- =?US-ASCII?Q?holes-in-memory-layout.patch?= removed from -mm tree
-Message-ID: <20210315174750.gcxQqEMxg%akpm@linux-foundation.org>
+ mm-madvise-replace-ptrace-attach-requirement-for-process_madvise.patch
+ removed from -mm tree
+Message-ID: <20210315174831.Q2zUmWyps%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,295 +47,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: refactor initialization of struct page for h=
-oles in memory layout
+     Subject: mm/madvise: replace ptrace attach requirement for process_madvise
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-refactor-initialization-of-struct-page-for-holes-in-mem=
-ory-layout.patch
+     mm-madvise-replace-ptrace-attach-requirement-for-process_madvise.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm/page_alloc.c: refactor initialization of struct page for holes =
-in memory layout
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm/madvise: replace ptrace attach requirement for process_madvise
 
-There could be struct pages that are not backed by actual physical memory.
-This can happen when the actual memory bank is not a multiple of
-SECTION_SIZE or when an architecture does not register memory holes
-reserved by the firmware as memblock.memory.
+process_madvise currently requires ptrace attach capability. 
+PTRACE_MODE_ATTACH gives one process complete control over another
+process.  It effectively removes the security boundary between the two
+processes (in one direction).  Granting ptrace attach capability even to a
+system process is considered dangerous since it creates an attack surface.
+This severely limits the usage of this API.
 
-Such pages are currently initialized using init_unavailable_mem() function
-that iterates through PFNs in holes in memblock.memory and if there is a
-struct page corresponding to a PFN, the fields of this page are set to
-default values and it is marked as Reserved.
+The operations process_madvise can perform do not affect the correctness
+of the operation of the target process; they only affect where the data is
+physically located (and therefore, how fast it can be accessed).  What we
+want is the ability for one process to influence another process in order
+to optimize performance across the entire system while leaving the
+security boundary intact.
 
-init_unavailable_mem() does not take into account zone and node the page
-belongs to and sets both zone and node links in struct page to zero.
+Replace PTRACE_MODE_ATTACH with a combination of PTRACE_MODE_READ and
+CAP_SYS_NICE.  PTRACE_MODE_READ to prevent leaking ASLR metadata and
+CAP_SYS_NICE for influencing process performance.
 
-Before commit 73a6e474cb37 ("mm: memmap_init: iterate over memblock
-regions rather that check each PFN") the holes inside a zone were
-re-initialized during memmap_init() and got their zone/node links right.=20
-However, after that commit nothing updates the struct pages representing
-such holes.
-
-On a system that has firmware reserved holes in a zone above ZONE_DMA, for
-instance in a configuration below:
-
-	# grep -A1 E820 /proc/iomem
-	7a17b000-7a216fff : Unknown E820 type
-	7a217000-7bffffff : System RAM
-
-unset zone link in struct page will trigger
-
-	VM_BUG_ON_PAGE(!zone_spans_pfn(page_zone(page), pfn), page);
-
-in set_pfnblock_flags_mask() when called with a struct page from a range
-other than E820_TYPE_RAM because there are pages in the range of
-ZONE_DMA32 but the unset zone link in struct page makes them appear as a
-part of ZONE_DMA.
-
-Interleave initialization of the unavailable pages with the normal
-initialization of memory map, so that zone and node information will be
-properly set on struct pages that are not backed by the actual memory.
-
-With this change the pages for holes inside a zone will get proper
-zone/node links and the pages that are not spanned by any node will get
-links to the adjacent zone/node.  The holes between nodes will be
-prepended to the zone/node above the hole and the trailing pages in the
-last section that will be appended to the zone/node below.
-
-[akpm@linux-foundation.org: don't initialize static to zero, use %llu for u=
-64]
-Link: https://lkml.kernel.org/r/20210225224351.7356-2-rppt@kernel.org
-Fixes: 73a6e474cb37 ("mm: memmap_init: iterate over memblock regions rather=
- that check each PFN")
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reported-by: Qian Cai <cai@lca.pw>
-Reported-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: =C5=81ukasz Majczak <lma@semihalf.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Sarvela, Tomi P" <tomi.p.sarvela@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210303185807.2160264-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jeff Vander Stoep <jeffv@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tim Murray <timmurray@google.com>
+Cc: Florian Weimer <fweimer@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: <stable@vger.kernel.org>	[5.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  158 +++++++++++++++++++++-------------------------
- 1 file changed, 75 insertions(+), 83 deletions(-)
+ mm/madvise.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_allocc-refactor-initialization-of-struct-page=
--for-holes-in-memory-layout
-+++ a/mm/page_alloc.c
-@@ -6259,12 +6259,65 @@ static void __meminit zone_init_free_lis
+--- a/mm/madvise.c~mm-madvise-replace-ptrace-attach-requirement-for-process_madvise
++++ a/mm/madvise.c
+@@ -1198,12 +1198,22 @@ SYSCALL_DEFINE5(process_madvise, int, pi
+ 		goto release_task;
  	}
- }
-=20
-+#if !defined(CONFIG_FLAT_NODE_MEM_MAP)
-+/*
-+ * Only struct pages that correspond to ranges defined by memblock.memory
-+ * are zeroed and initialized by going through __init_single_page() during
-+ * memmap_init_zone().
-+ *
-+ * But, there could be struct pages that correspond to holes in
-+ * memblock.memory. This can happen because of the following reasons:
-+ * - physical memory bank size is not necessarily the exact multiple of the
-+ *   arbitrary section size
-+ * - early reserved memory may not be listed in memblock.memory
-+ * - memory layouts defined with memmap=3D kernel parameter may not align
-+ *   nicely with memmap sections
-+ *
-+ * Explicitly initialize those struct pages so that:
-+ * - PG_Reserved is set
-+ * - zone and node links point to zone and node that span the page if the
-+ *   hole is in the middle of a zone
-+ * - zone and node links point to adjacent zone/node if the hole falls on
-+ *   the zone boundary; the pages in such holes will be prepended to the
-+ *   zone/node above the hole except for the trailing pages in the last
-+ *   section that will be appended to the zone/node below.
-+ */
-+static u64 __meminit init_unavailable_range(unsigned long spfn,
-+					    unsigned long epfn,
-+					    int zone, int node)
-+{
-+	unsigned long pfn;
-+	u64 pgcnt =3D 0;
-+
-+	for (pfn =3D spfn; pfn < epfn; pfn++) {
-+		if (!pfn_valid(ALIGN_DOWN(pfn, pageblock_nr_pages))) {
-+			pfn =3D ALIGN_DOWN(pfn, pageblock_nr_pages)
-+				+ pageblock_nr_pages - 1;
-+			continue;
-+		}
-+		__init_single_page(pfn_to_page(pfn), pfn, zone, node);
-+		__SetPageReserved(pfn_to_page(pfn));
-+		pgcnt++;
+ 
+-	mm = mm_access(task, PTRACE_MODE_ATTACH_FSCREDS);
++	/* Require PTRACE_MODE_READ to avoid leaking ASLR metadata. */
++	mm = mm_access(task, PTRACE_MODE_READ_FSCREDS);
+ 	if (IS_ERR_OR_NULL(mm)) {
+ 		ret = IS_ERR(mm) ? PTR_ERR(mm) : -ESRCH;
+ 		goto release_task;
+ 	}
+ 
++	/*
++	 * Require CAP_SYS_NICE for influencing process performance. Note that
++	 * only non-destructive hints are currently supported.
++	 */
++	if (!capable(CAP_SYS_NICE)) {
++		ret = -EPERM;
++		goto release_mm;
 +	}
 +
-+	return pgcnt;
-+}
-+#else
-+static inline u64 init_unavailable_range(unsigned long spfn, unsigned long=
- epfn,
-+					 int zone, int node)
-+{
-+	return 0;
-+}
-+#endif
-+
- void __meminit __weak memmap_init_zone(struct zone *zone)
- {
- 	unsigned long zone_start_pfn =3D zone->zone_start_pfn;
- 	unsigned long zone_end_pfn =3D zone_start_pfn + zone->spanned_pages;
- 	int i, nid =3D zone_to_nid(zone), zone_id =3D zone_idx(zone);
-+	static unsigned long hole_pfn;
- 	unsigned long start_pfn, end_pfn;
-+	u64 pgcnt =3D 0;
-=20
- 	for_each_mem_pfn_range(i, nid, &start_pfn, &end_pfn, NULL) {
- 		start_pfn =3D clamp(start_pfn, zone_start_pfn, zone_end_pfn);
-@@ -6274,7 +6327,29 @@ void __meminit __weak memmap_init_zone(s
- 			memmap_init_range(end_pfn - start_pfn, nid,
- 					zone_id, start_pfn, zone_end_pfn,
- 					MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
-+
-+		if (hole_pfn < start_pfn)
-+			pgcnt +=3D init_unavailable_range(hole_pfn, start_pfn,
-+							zone_id, nid);
-+		hole_pfn =3D end_pfn;
- 	}
-+
-+#ifdef CONFIG_SPARSEMEM
-+	/*
-+	 * Initialize the hole in the range [zone_end_pfn, section_end].
-+	 * If zone boundary falls in the middle of a section, this hole
-+	 * will be re-initialized during the call to this function for the
-+	 * higher zone.
-+	 */
-+	end_pfn =3D round_up(zone_end_pfn, PAGES_PER_SECTION);
-+	if (hole_pfn < end_pfn)
-+		pgcnt +=3D init_unavailable_range(hole_pfn, end_pfn,
-+						zone_id, nid);
-+#endif
-+
-+	if (pgcnt)
-+		pr_info("  %s zone: %llu pages in unavailable ranges\n",
-+			zone->name, pgcnt);
- }
-=20
- static int zone_batchsize(struct zone *zone)
-@@ -7071,88 +7146,6 @@ void __init free_area_init_memoryless_no
- 	free_area_init_node(nid);
- }
-=20
--#if !defined(CONFIG_FLAT_NODE_MEM_MAP)
--/*
-- * Initialize all valid struct pages in the range [spfn, epfn) and mark th=
-em
-- * PageReserved(). Return the number of struct pages that were initialized.
-- */
--static u64 __init init_unavailable_range(unsigned long spfn, unsigned long=
- epfn)
--{
--	unsigned long pfn;
--	u64 pgcnt =3D 0;
--
--	for (pfn =3D spfn; pfn < epfn; pfn++) {
--		if (!pfn_valid(ALIGN_DOWN(pfn, pageblock_nr_pages))) {
--			pfn =3D ALIGN_DOWN(pfn, pageblock_nr_pages)
--				+ pageblock_nr_pages - 1;
--			continue;
--		}
--		/*
--		 * Use a fake node/zone (0) for now. Some of these pages
--		 * (in memblock.reserved but not in memblock.memory) will
--		 * get re-initialized via reserve_bootmem_region() later.
--		 */
--		__init_single_page(pfn_to_page(pfn), pfn, 0, 0);
--		__SetPageReserved(pfn_to_page(pfn));
--		pgcnt++;
--	}
--
--	return pgcnt;
--}
--
--/*
-- * Only struct pages that are backed by physical memory are zeroed and
-- * initialized by going through __init_single_page(). But, there are some
-- * struct pages which are reserved in memblock allocator and their fields
-- * may be accessed (for example page_to_pfn() on some configuration access=
-es
-- * flags). We must explicitly initialize those struct pages.
-- *
-- * This function also addresses a similar issue where struct pages are left
-- * uninitialized because the physical address range is not covered by
-- * memblock.memory or memblock.reserved. That could happen when memblock
-- * layout is manually configured via memmap=3D, or when the highest physic=
-al
-- * address (max_pfn) does not end on a section boundary.
-- */
--static void __init init_unavailable_mem(void)
--{
--	phys_addr_t start, end;
--	u64 i, pgcnt;
--	phys_addr_t next =3D 0;
--
--	/*
--	 * Loop through unavailable ranges not covered by memblock.memory.
--	 */
--	pgcnt =3D 0;
--	for_each_mem_range(i, &start, &end) {
--		if (next < start)
--			pgcnt +=3D init_unavailable_range(PFN_DOWN(next),
--							PFN_UP(start));
--		next =3D end;
--	}
--
--	/*
--	 * Early sections always have a fully populated memmap for the whole
--	 * section - see pfn_valid(). If the last section has holes at the
--	 * end and that section is marked "online", the memmap will be
--	 * considered initialized. Make sure that memmap has a well defined
--	 * state.
--	 */
--	pgcnt +=3D init_unavailable_range(PFN_DOWN(next),
--					round_up(max_pfn, PAGES_PER_SECTION));
--
--	/*
--	 * Struct pages that do not have backing memory. This could be because
--	 * firmware is using some of this memory, or for some other reasons.
--	 */
--	if (pgcnt)
--		pr_info("Zeroed struct page in unavailable ranges: %lld pages", pgcnt);
--}
--#else
--static inline void __init init_unavailable_mem(void)
--{
--}
--#endif /* !CONFIG_FLAT_NODE_MEM_MAP */
--
- #if MAX_NUMNODES > 1
- /*
-  * Figure out the number of possible node ids.
-@@ -7576,7 +7569,6 @@ void __init free_area_init(unsigned long
- 	/* Initialise every node */
- 	mminit_verify_pageflags_layout();
- 	setup_nr_node_ids();
--	init_unavailable_mem();
- 	for_each_online_node(nid) {
- 		pg_data_t *pgdat =3D NODE_DATA(nid);
- 		free_area_init_node(nid);
+ 	total_len = iov_iter_count(&iter);
+ 
+ 	while (iov_iter_count(&iter)) {
+@@ -1218,6 +1228,7 @@ SYSCALL_DEFINE5(process_madvise, int, pi
+ 	if (ret == 0)
+ 		ret = total_len - iov_iter_count(&iter);
+ 
++release_mm:
+ 	mmput(mm);
+ release_task:
+ 	put_task_struct(task);
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from surenb@google.com are
 
 
