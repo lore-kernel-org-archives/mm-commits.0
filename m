@@ -5,37 +5,35 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9CBBC2BA1A
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FB2EC43381
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F75564F26
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2BBE664F0D
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229830AbhCORtP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 13:49:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44382 "EHLO mail.kernel.org"
+        id S229955AbhCOR4E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 13:56:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230486AbhCORs6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 13:48:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 90EBD64F0C;
-        Mon, 15 Mar 2021 17:48:57 +0000 (UTC)
+        id S232191AbhCORsj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 13:48:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6411564EED;
+        Mon, 15 Mar 2021 17:47:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615830537;
-        bh=z/Y0MKdJM/BQPpwWNoDpnL+jg5jhuvyQmBG3e1il/dY=;
+        s=korg; t=1615830456;
+        bh=ZtQ+1sbHVr+1ngmA/b0+LEABMWqdjMAUukhwQ1XXvP4=;
         h=Date:From:To:Subject:From;
-        b=Ed8uSkUb0+/hNl+TgVj9GdpzskQFtgrE1LYzh0QDdDQQcogNw5cZB+EBnaZWdocxh
-         7EHAVkI72oUG+TiGneJNMnytXJjujafg8j+e6ZS54gvUB/Nx7M/VDy6z5kMiRJ1dNN
-         kJQWujxrYxNCr3elvOBGAQl6I/U11AGTxaOqG3fY=
-Date:   Mon, 15 Mar 2021 10:48:57 -0700
+        b=foLxW094sxAx7yrnpzD/f0f52bTFcZ9tO1VxcZcm+9y+Eo/8yAoN5S7ek5l1wPm1A
+         NLGCV4PbTcevKwbbdMEK6Z/j4gfOKC94DKTe2/rpImIbdITFJIGe/OmTltwD1rKKKU
+         Dh3DLziD2t+/BtmGsTbQM4YQerCNStrSRRxAvmeM=
+Date:   Mon, 15 Mar 2021 10:47:35 -0700
 From:   akpm@linux-foundation.org
-To:     amosbianchi@google.com, joaodias@google.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com,
-        stable@vger.kernel.org
-Subject:  [merged] zram-fix-broken-page-writeback.patch removed
- from -mm tree
-Message-ID: <20210315174857.BOpyj3psx%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Message-ID: <20210315174735.DYAW1qkKQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,69 +42,92 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: fix broken page writeback
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     zram-fix-broken-page-writeback.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: fix broken page writeback
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-commit 0d8359620d9b ("zram: support page writeback") introduced two
-problems.  It overwrites writeback_store's return value as kstrtol's
-return value, which makes return value zero so user could see zero as
-return value of write syscall even though it wrote data successfully.
-
-It also breaks index value in the loop in that it doesn't increase the
-index any longer.  It means it can write only first starting block index
-so user couldn't write all idle pages in the zram so lose memory saving
-chance.
-
-This patch fixes those issues.
-
-Link: https://lkml.kernel.org/r/20210312173949.2197662-2-minchan@kernel.org
-Fixes: 0d8359620d9b("zram: support page writeback")
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Amos Bianchi <amosbianchi@google.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: John Dias <joaodias@google.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/amd/pm/powerplay/hwmgr/vega10_hwmgr.c |    3 ---
+ drivers/gpu/drm/amd/pm/powerplay/hwmgr/vega12_hwmgr.c |    3 ---
+ drivers/gpu/drm/amd/pm/powerplay/hwmgr/vega20_hwmgr.c |    7 -------
+ 3 files changed, 13 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-broken-page-writeback
-+++ a/drivers/block/zram/zram_drv.c
-@@ -638,8 +638,8 @@ static ssize_t writeback_store(struct de
- 		if (strncmp(buf, PAGE_WB_SIG, sizeof(PAGE_WB_SIG) - 1))
- 			return -EINVAL;
- 
--		ret = kstrtol(buf + sizeof(PAGE_WB_SIG) - 1, 10, &index);
--		if (ret || index >= nr_pages)
-+		if (kstrtol(buf + sizeof(PAGE_WB_SIG) - 1, 10, &index) ||
-+				index >= nr_pages)
- 			return -EINVAL;
- 
- 		nr_pages = 1;
-@@ -663,7 +663,7 @@ static ssize_t writeback_store(struct de
- 		goto release_init_lock;
+--- a/drivers/gpu/drm/amd/pm/powerplay/hwmgr/vega10_hwmgr.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/pm/powerplay/hwmgr/vega10_hwmgr.c
+@@ -1546,8 +1546,6 @@ static int vega10_override_pcie_paramete
+ 			pp_table->PcieLaneCount[i] = pcie_width;
  	}
  
--	while (nr_pages--) {
-+	for (; nr_pages != 0; index++, nr_pages--) {
- 		struct bio_vec bvec;
+-<<<<<<< HEAD
+-=======
+ 	if (data->registry_data.pcie_dpm_key_disabled) {
+ 		for (i = 0; i < NUM_LINK_LEVELS; i++) {
+ 			pp_table->PcieGenSpeed[i] = pcie_gen;
+@@ -1555,7 +1553,6 @@ static int vega10_override_pcie_paramete
+ 		}
+ 	}
  
- 		bvec.bv_page = page;
+->>>>>>> linux-next/akpm-base
+ 	return 0;
+ }
+ 
+--- a/drivers/gpu/drm/amd/pm/powerplay/hwmgr/vega12_hwmgr.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/pm/powerplay/hwmgr/vega12_hwmgr.c
+@@ -540,8 +540,6 @@ static int vega12_override_pcie_paramete
+ 		pp_table->PcieLaneCount[i] = pcie_width_arg;
+ 	}
+ 
+-<<<<<<< HEAD
+-=======
+ 	/* override to the highest if it's disabled from ppfeaturmask */
+ 	if (data->registry_data.pcie_dpm_key_disabled) {
+ 		for (i = 0; i < NUM_LINK_LEVELS; i++) {
+@@ -565,7 +563,6 @@ static int vega12_override_pcie_paramete
+ 		data->smu_features[GNLD_DPM_LINK].enabled = false;
+ 		data->smu_features[GNLD_DPM_LINK].supported = false;
+ 	}
+->>>>>>> linux-next/akpm-base
+ 	return 0;
+ }
+ 
+--- a/drivers/gpu/drm/amd/pm/powerplay/hwmgr/vega20_hwmgr.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/pm/powerplay/hwmgr/vega20_hwmgr.c
+@@ -879,12 +879,6 @@ static int vega20_override_pcie_paramete
+ 				"[OverridePcieParameters] Attempt to override pcie params failed!",
+ 				return ret);
+ 		}
+-<<<<<<< HEAD
+-
+-		/* update the pptable */
+-		pp_table->PcieGenSpeed[i] = pcie_gen_arg;
+-		pp_table->PcieLaneCount[i] = pcie_width_arg;
+-=======
+ 
+ 		/* update the pptable */
+ 		pp_table->PcieGenSpeed[i] = pcie_gen_arg;
+@@ -913,7 +907,6 @@ static int vega20_override_pcie_paramete
+ 				return ret);
+ 		data->smu_features[GNLD_DPM_LINK].enabled = false;
+ 		data->smu_features[GNLD_DPM_LINK].supported = false;
+->>>>>>> linux-next/akpm-base
+ 	}
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-remove-lru_add_drain_all-in-alloc_contig_range.patch
-mm-page_alloc-dump-migrate-failed-pages.patch
-mm-vmstat-add-cma-statistics.patch
-mm-cma-support-sysfs.patch
+mm.patch
+mm-memcontrol-switch-to-rstat-fix.patch
+kasan-remove-redundant-config-option-fix.patch
+mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
