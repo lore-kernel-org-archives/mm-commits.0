@@ -5,42 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32B0FC28E86
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4047C28E85
 	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F0A0364F23
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B34F64F10
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231656AbhCOR4N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 13:56:13 -0400
+        id S231679AbhCOR4Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 13:56:16 -0400
 Received: from mail.kernel.org ([198.145.29.99]:44190 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236502AbhCORsm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 13:48:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C68EA64F38;
-        Mon, 15 Mar 2021 17:48:18 +0000 (UTC)
+        id S236583AbhCORsn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 13:48:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A2EA64EED;
+        Mon, 15 Mar 2021 17:48:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615830499;
-        bh=La0k6mXiBq4v1eGGNkR102cawZAbudeEJTNqKuXcXSU=;
+        s=korg; t=1615830522;
+        bh=u6bzjGqk+p8QVDSksPD4MKTaA8dwxdrGcZ5w1Ncb1yk=;
         h=Date:From:To:Subject:From;
-        b=UZyiCcqMuplsqIOPtlKxGAEYqtE3WoLkaQcY2rMgzyKcK9MNkNsnO/5+MTbUMi8nz
-         bnuB8RwbeBoUcAAZDEcBsCqJvwVTHNUNJmr6wub9yhhjb38AdWPIrk1FIELkag2rzf
-         /C+SG3MvyqLT8mWRIfMlDUQQgKmn8+1AEBVuoTRA=
-Date:   Mon, 15 Mar 2021 10:48:18 -0700
+        b=vC5R4DSN+NEQf+DWU3XNX7c5t3o47NNUih1Y9wrs5+USGiyJCy6P6WFaaFHmZTzl3
+         BkZZZqubcJV6nMJNwdCJGgmkgm/6QQ5GbflRf1UKFTG6W+SwEO4Ubm3VhpSB2lnP7x
+         tMLVQAeymUN7lEuJVEc1lBgw0B+ocBxBYEBB07Eo=
+Date:   Mon, 15 Mar 2021 10:48:42 -0700
 From:   akpm@linux-foundation.org
-To:     aou@eecs.berkeley.edu, arnd@arndb.de, deanbo422@gmail.com,
-        elver@google.com, green.hu@gmail.com, guoren@kernel.org,
-        keescook@chromium.org, luc.vanoostenryck@gmail.com,
-        masahiroy@kernel.org, mm-commits@vger.kernel.org,
-        nathan@kernel.org, ndesaulniers@google.com, nickhu@andestech.com,
-        nivedita@alum.mit.edu, ojeda@kernel.org, palmer@dabbelt.com,
-        paul.walmsley@sifive.com, rdunlap@infradead.org,
-        samitolvanen@google.com, stable@vger.kernel.org
+To:     glaubitz@physik.fu-berlin.de, ldv@altlinux.org,
+        mm-commits@vger.kernel.org, oleg@redhat.com, slyfox@gentoo.org
 Subject:  [merged]
- linux-compiler-clangh-define-have_builtin_bswap.patch removed from -mm tree
-Message-ID: <20210315174818.oB6_t9ZNg%akpm@linux-foundation.org>
+ ia64-fix-ia64_syscall_get_set_arguments-for-break-based-syscalls.patch
+ removed from -mm tree
+Message-ID: <20210315174842.h0PgtX79P%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,88 +44,101 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/compiler-clang.h: define HAVE_BUILTIN_BSWAP*
+     Subject: ia64: fix ia64_syscall_get_set_arguments() for break-based syscalls
 has been removed from the -mm tree.  Its filename was
-     linux-compiler-clangh-define-have_builtin_bswap.patch
+     ia64-fix-ia64_syscall_get_set_arguments-for-break-based-syscalls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: linux/compiler-clang.h: define HAVE_BUILTIN_BSWAP*
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Subject: ia64: fix ia64_syscall_get_set_arguments() for break-based syscalls
 
-Separating compiler-clang.h from compiler-gcc.h inadventently dropped the
-definitions of the three HAVE_BUILTIN_BSWAP macros, which requires falling
-back to the open-coded version and hoping that the compiler detects it.
+In https://bugs.gentoo.org/769614 Dmitry noticed that
+`ptrace(PTRACE_GET_SYSCALL_INFO)` does not work for syscalls called via
+glibc's syscall() wrapper.
 
-Since all versions of clang support the __builtin_bswap interfaces, add
-back the flags and have the headers pick these up automatically.
+ia64 has two ways to call syscalls from userspace: via `break` and via
+`eps` instructions.
 
-This results in a 4% improvement of compilation speed for arm defconfig.
+The difference is in stack layout:
 
-Note: it might also be worth revisiting which architectures set
-CONFIG_ARCH_USE_BUILTIN_BSWAP for one compiler or the other, today this is
-set on six architectures (arm32, csky, mips, powerpc, s390, x86), while
-another ten architectures define custom helpers (alpha, arc, ia64, m68k,
-mips, nios2, parisc, sh, sparc, xtensa), and the rest (arm64, h8300,
-hexagon, microblaze, nds32, openrisc, riscv) just get the unoptimized
-version and rely on the compiler to detect it.
+1. `eps` creates simple stack frame: no locals, in{0..7} == out{0..8}
+2. `break` uses userspace stack frame: may be locals (glibc provides
+   one), in{0..7} == out{0..8}.
 
-A long time ago, the compiler builtins were architecture specific, but
-nowadays, all compilers that are able to build the kernel have correct
-implementations of them, though some may not be as optimized as the inline
-asm versions.
+Both work fine in syscall handling cde itself.
 
-The patch that dropped the optimization landed in v4.19, so as discussed
-it would be fairly safe to backport this revert to stable kernels to the
-4.19/5.4/5.10 stable kernels, but there is a remaining risk for
-regressions, and it has no known side-effects besides compile speed.
+But `ptrace(PTRACE_GET_SYSCALL_INFO)` uses unwind mechanism to
+re-extract syscall arguments but it does not account for locals.
 
-Link: https://lkml.kernel.org/r/20210226161151.2629097-1-arnd@kernel.org
-Link: https://lore.kernel.org/lkml/20210225164513.3667778-1-arnd@kernel.org/
-Fixes: 815f0ddb346c ("include/linux/compiler*.h: make compiler-*.h mutually exclusive")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Nathan Chancellor <nathan@kernel.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Acked-by: Miguel Ojeda <ojeda@kernel.org>
-Acked-by: Nick Desaulniers <ndesaulniers@google.com>
-Acked-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nick Hu <nickhu@andestech.com>
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Vincent Chen <deanbo422@gmail.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Arvind Sankar <nivedita@alum.mit.edu>
-Cc: <stable@vger.kernel.org>
+The change always skips locals registers. It should not change `eps`
+path as kernel's handler already enforces locals=0 and fixes `break`.
+
+Tested on v5.10 on rx3600 machine (ia64 9040 CPU).
+
+Link: https://lkml.kernel.org/r/20210221002554.333076-1-slyfox@gentoo.org
+Link: https://bugs.gentoo.org/769614
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Reported-by: Dmitry V. Levin <ldv@altlinux.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-clang.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/ia64/kernel/ptrace.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
---- a/include/linux/compiler-clang.h~linux-compiler-clangh-define-have_builtin_bswap
-+++ a/include/linux/compiler-clang.h
-@@ -31,6 +31,12 @@
- #define __no_sanitize_thread
- #endif
+--- a/arch/ia64/kernel/ptrace.c~ia64-fix-ia64_syscall_get_set_arguments-for-break-based-syscalls
++++ a/arch/ia64/kernel/ptrace.c
+@@ -2013,27 +2013,39 @@ static void syscall_get_set_args_cb(stru
+ {
+ 	struct syscall_get_set_args *args = data;
+ 	struct pt_regs *pt = args->regs;
+-	unsigned long *krbs, cfm, ndirty;
++	unsigned long *krbs, cfm, ndirty, nlocals, nouts;
+ 	int i, count;
  
-+#if defined(CONFIG_ARCH_USE_BUILTIN_BSWAP)
-+#define __HAVE_BUILTIN_BSWAP32__
-+#define __HAVE_BUILTIN_BSWAP64__
-+#define __HAVE_BUILTIN_BSWAP16__
-+#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
-+
- #if __has_feature(undefined_behavior_sanitizer)
- /* GCC does not have __SANITIZE_UNDEFINED__ */
- #define __no_sanitize_undefined \
+ 	if (unw_unwind_to_user(info) < 0)
+ 		return;
+ 
++	/*
++	 * We get here via a few paths:
++	 * - break instruction: cfm is shared with caller.
++	 *   syscall args are in out= regs, locals are non-empty.
++	 * - epsinstruction: cfm is set by br.call
++	 *   locals don't exist.
++	 *
++	 * For both cases argguments are reachable in cfm.sof - cfm.sol.
++	 * CFM: [ ... | sor: 17..14 | sol : 13..7 | sof : 6..0 ]
++	 */
+ 	cfm = pt->cr_ifs;
++	nlocals = (cfm >> 7) & 0x7f; /* aka sol */
++	nouts = (cfm & 0x7f) - nlocals; /* aka sof - sol */
+ 	krbs = (unsigned long *)info->task + IA64_RBS_OFFSET/8;
+ 	ndirty = ia64_rse_num_regs(krbs, krbs + (pt->loadrs >> 19));
+ 
+ 	count = 0;
+ 	if (in_syscall(pt))
+-		count = min_t(int, args->n, cfm & 0x7f);
++		count = min_t(int, args->n, nouts);
+ 
++	/* Iterate over outs. */
+ 	for (i = 0; i < count; i++) {
++		int j = ndirty + nlocals + i + args->i;
+ 		if (args->rw)
+-			*ia64_rse_skip_regs(krbs, ndirty + i + args->i) =
+-				args->args[i];
++			*ia64_rse_skip_regs(krbs, j) = args->args[i];
+ 		else
+-			args->args[i] = *ia64_rse_skip_regs(krbs,
+-				ndirty + i + args->i);
++			args->args[i] = *ia64_rse_skip_regs(krbs, j);
+ 	}
+ 
+ 	if (!args->rw) {
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from slyfox@gentoo.org are
 
 
