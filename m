@@ -5,36 +5,41 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49557C4161F
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8EFDC433DB
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 29ED564F10
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEA6F64F0D
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230517AbhCOR4F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 13:56:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44194 "EHLO mail.kernel.org"
+        id S231528AbhCOR4H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 13:56:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44182 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235176AbhCORsl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 13:48:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6602264F35;
-        Mon, 15 Mar 2021 17:48:11 +0000 (UTC)
+        id S236552AbhCORsm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 13:48:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BBC1764F3A;
+        Mon, 15 Mar 2021 17:48:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615830491;
-        bh=Za5FJrC5XJjx1EhsNVNwN2gc896tka38APOU8lSAYuc=;
+        s=korg; t=1615830515;
+        bh=hSgBwnWXm8tUzyv7EdEws2TpMZWaFvYVeijdNqc+4FY=;
         h=Date:From:To:Subject:From;
-        b=HSBt49FNaodh10Y0luXDJW4cC/QCU3AC7Nl/SqnI6EFOgM8jgAiiXxO5xN6cfa9c2
-         CNmfGYXxdhraBqJnFNEN/BIyiMZ+sdpkxMphnz2H7ktiTyXODlbt/zyKrTaWv8eiVU
-         i9mQtIQb8bpi5yJaPk3Fgp6EjyBZnkbIGBwSmDwc=
-Date:   Mon, 15 Mar 2021 10:48:11 -0700
+        b=y2NbyDCaMQJErYg7CFjFoBNkIyS3EUrFcx1JpLgmzpwF9kv1WXLbTzxJvdnug2EIs
+         X0zJY2aOIjmwtImGtJoFpTUqoVVwFNrX8ksJKbG2LIbVPUdesRT8hBPG7pH470hmAd
+         8iS5+OteT1wwGCSc+/SrXBkaoNakTzGU2IiPwSOI=
+Date:   Mon, 15 Mar 2021 10:48:34 -0700
 From:   akpm@linux-foundation.org
-To:     hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, willy@infradead.org
-Subject:  [merged] fix-zero_user_segments-with-start-end.patch
- removed from -mm tree
-Message-ID: <20210315174811.0ZPS0UJYN%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
+        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
+        dvyukov@google.com, elver@google.com, eugenis@google.com,
+        glider@google.com, hch@infradead.org, kevin.brodsky@arm.com,
+        mm-commits@vger.kernel.org, pcc@google.com, stable@vger.kernel.org,
+        vincenzo.frascino@arm.com, will.deacon@arm.com
+Subject:  [merged]
+ kasan-mm-fix-crash-with-hw_tags-and-debug_pagealloc.patch removed from -mm
+ tree
+Message-ID: <20210315174834.c9ExIqJ3U%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,85 +48,92 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/highmem.c: fix zero_user_segments() with start > end
+     Subject: kasan, mm: fix crash with HW_TAGS and DEBUG_PAGEALLOC
 has been removed from the -mm tree.  Its filename was
-     fix-zero_user_segments-with-start-end.patch
+     kasan-mm-fix-crash-with-hw_tags-and-debug_pagealloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Subject: mm/highmem.c: fix zero_user_segments() with start > end
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan, mm: fix crash with HW_TAGS and DEBUG_PAGEALLOC
 
-zero_user_segments() is used from __block_write_begin_int(), for example
-like the following
+Currently, kasan_free_nondeferred_pages()->kasan_free_pages() is called
+after debug_pagealloc_unmap_pages(). This causes a crash when
+debug_pagealloc is enabled, as HW_TAGS KASAN can't set tags on an
+unmapped page.
 
-	zero_user_segments(page, 4096, 1024, 512, 918)
+This patch puts kasan_free_nondeferred_pages() before
+debug_pagealloc_unmap_pages() and arch_free_page(), which can also make
+the page unavailable.
 
-But new the zero_user_segments() implementation for for HIGHMEM +
-TRANSPARENT_HUGEPAGE doesn't handle "start > end" case correctly, and hits
-BUG_ON().  (we can fix __block_write_begin_int() instead though, it is the
-old and multiple usage)
-
-Also it calls kmap_atomic() unnecessarily while start == end == 0.
-
-Link: https://lkml.kernel.org/r/87v9ab60r4.fsf@mail.parknet.co.jp
-Fixes: 0060ef3b4e6d ("mm: support THPs in zero_user_segments")
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/24cd7db274090f0e5bc3adcdc7399243668e3171.1614987311.git.andreyknvl@google.com
+Fixes: 94ab5b61ee16 ("kasan, arm64: enable CONFIG_KASAN_HW_TAGS")
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/mm/highmem.c~fix-zero_user_segments-with-start-end
-+++ a/mm/highmem.c
-@@ -368,20 +368,24 @@ void zero_user_segments(struct page *pag
+--- a/mm/page_alloc.c~kasan-mm-fix-crash-with-hw_tags-and-debug_pagealloc
++++ a/mm/page_alloc.c
+@@ -1282,6 +1282,12 @@ static __always_inline bool free_pages_p
+ 	kernel_poison_pages(page, 1 << order);
  
- 	BUG_ON(end1 > page_size(page) || end2 > page_size(page));
- 
-+	if (start1 >= end1)
-+		start1 = end1 = 0;
-+	if (start2 >= end2)
-+		start2 = end2 = 0;
+ 	/*
++	 * With hardware tag-based KASAN, memory tags must be set before the
++	 * page becomes unavailable via debug_pagealloc or arch_free_page.
++	 */
++	kasan_free_nondeferred_pages(page, order);
 +
- 	for (i = 0; i < compound_nr(page); i++) {
- 		void *kaddr = NULL;
++	/*
+ 	 * arch_free_page() can make the page's contents inaccessible.  s390
+ 	 * does this.  So nothing which can access the page's contents should
+ 	 * happen after this.
+@@ -1290,8 +1296,6 @@ static __always_inline bool free_pages_p
  
--		if (start1 < PAGE_SIZE || start2 < PAGE_SIZE)
--			kaddr = kmap_atomic(page + i);
+ 	debug_pagealloc_unmap_pages(page, 1 << order);
+ 
+-	kasan_free_nondeferred_pages(page, order);
 -
- 		if (start1 >= PAGE_SIZE) {
- 			start1 -= PAGE_SIZE;
- 			end1 -= PAGE_SIZE;
- 		} else {
- 			unsigned this_end = min_t(unsigned, end1, PAGE_SIZE);
+ 	return true;
+ }
  
--			if (end1 > start1)
-+			if (end1 > start1) {
-+				kaddr = kmap_atomic(page + i);
- 				memset(kaddr + start1, 0, this_end - start1);
-+			}
- 			end1 -= this_end;
- 			start1 = 0;
- 		}
-@@ -392,8 +396,11 @@ void zero_user_segments(struct page *pag
- 		} else {
- 			unsigned this_end = min_t(unsigned, end2, PAGE_SIZE);
- 
--			if (end2 > start2)
-+			if (end2 > start2) {
-+				if (!kaddr)
-+					kaddr = kmap_atomic(page + i);
- 				memset(kaddr + start2, 0, this_end - start2);
-+			}
- 			end2 -= this_end;
- 			start2 = 0;
- 		}
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
+kasan-fix-per-page-tags-for-non-page_alloc-pages.patch
+kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch
+mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
+arm64-kasan-allow-to-init-memory-when-setting-tags.patch
+kasan-init-memory-in-kasan_unpoison-for-hw_tags.patch
+kasan-mm-integrate-page_alloc-init-with-hw_tags.patch
+kasan-mm-integrate-slab-init_on_alloc-with-hw_tags.patch
+kasan-mm-integrate-slab-init_on_free-with-hw_tags.patch
+kasan-docs-clean-up-sections.patch
+kasan-docs-update-overview-section.patch
+kasan-docs-update-usage-section.patch
+kasan-docs-update-error-reports-section.patch
+kasan-docs-update-boot-parameters-section.patch
+kasan-docs-update-generic-implementation-details-section.patch
+kasan-docs-update-sw_tags-implementation-details-section.patch
+kasan-docs-update-hw_tags-implementation-details-section.patch
+kasan-docs-update-shadow-memory-section.patch
+kasan-docs-update-ignoring-accesses-section.patch
+kasan-docs-update-tests-section.patch
 
