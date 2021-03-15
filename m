@@ -7,33 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AB41C433DB
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 23:04:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2CB6C433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 23:12:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5745664F5C
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 23:04:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 742C764F64
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 23:12:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232474AbhCOXEC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 19:04:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46412 "EHLO mail.kernel.org"
+        id S231875AbhCOXLa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 19:11:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47974 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232528AbhCOXD3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 19:03:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E61CE64E07;
-        Mon, 15 Mar 2021 23:03:28 +0000 (UTC)
+        id S233454AbhCOXLU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 19:11:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5F02C64DF4;
+        Mon, 15 Mar 2021 23:11:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615849409;
-        bh=tO7nNICmccs5yb+KOp67GDUhHv3wDUTJlLks1ekxtuw=;
+        s=korg; t=1615849879;
+        bh=f/E4ZTnmWPU57G8+xVHhcLAsxbSk6DlARncfTuNOEuk=;
         h=Date:From:To:Subject:From;
-        b=iIAAWS9AMD/DmRD6rEtThEz2mwsw1WgCAZzDrIMDBceENNA01bWPgD7y8NR8uTBOH
-         dXaQAiLFZoeY5eFr5HVbzm208oOa82rfkuVVKG+eNdtIIkuHTH7ATn4DbBYFQHBTSo
-         ZKSBaQbYlQgoKH9UekYGNGp9PQnUPdbYx5XXpRQ8=
-Date:   Mon, 15 Mar 2021 16:03:28 -0700
+        b=EkyppyzJ9uhVmvuHUd06wFMVjVJS2jxRcd+mhkbxhrKv20xxaslisqQ/6mOfHv/kv
+         AuYIpVJuvnCRA+ggnnmJBjf8Vg9khM092SPn1EoN2eORgFdct0JYNCCfEC/XVHGc02
+         WnVKlOGRW1G5ECasLVmivnSrScEVDYErN8CNPjJI=
+Date:   Mon, 15 Mar 2021 16:11:18 -0700
 From:   akpm@linux-foundation.org
-To:     johannes.berg@intel.com, mm-commits@vger.kernel.org,
-        oberpar@linux.ibm.com
-Subject:  + gcov-use-kvmalloc.patch added to -mm tree
-Message-ID: <20210315230328.EcGm9_w-F%akpm@linux-foundation.org>
+To:     cl@linux.com, guro@fb.com, iamjoonsoo.kim@lge.com,
+        jnwang@linux.alibaba.com, khlebnikov@yandex-team.ru,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, sming56@gmail.com, vbabka@suse.cz,
+        wenyang@linux.alibaba.com, willy@infradead.org,
+        xlpang@linux.alibaba.com
+Subject:  [nacked]
+ mm-slub-introduce-two-counters-for-partial-objects.patch removed from -mm
+ tree
+Message-ID: <20210315231118.tt3ANLfsm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,147 +48,221 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gcov: use kvmalloc()
-has been added to the -mm tree.  Its filename is
-     gcov-use-kvmalloc.patch
+     Subject: mm/slub: introduce two counters for partial objects
+has been removed from the -mm tree.  Its filename was
+     mm-slub-introduce-two-counters-for-partial-objects.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/gcov-use-kvmalloc.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/gcov-use-kvmalloc.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Johannes Berg <johannes.berg@intel.com>
-Subject: gcov: use kvmalloc()
+From: Xunlei Pang <xlpang@linux.alibaba.com>
+Subject: mm/slub: introduce two counters for partial objects
 
-Using vmalloc() in gcov is really quite wasteful, many of the objects
-allocated are really small (e.g.  I've seen 24 bytes.) Use kvmalloc() to
-automatically pick the better of kmalloc() or vmalloc() depending on the
-size.
+Patch series "mm/slub: Fix count_partial() problem", v3.
 
-Link: https://lkml.kernel.org/r/20210315235453.799e7a9d627d.I741d0db096c6f312910f7f1bcdfde0fda20801a4@changeid
-Signed-off-by: Johannes Berg <johannes.berg@intel.com>
-Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
+count_partial() can hold the n->list_lock spinlock for quite a long time,
+which makes much trouble to the system.  This series eliminates this
+problem.
+
+
+This patch (of 4):
+
+The node list_lock in count_partial() spends long time iterating in case
+of large amount of partial page lists, which can cause thunder herd effect
+to the list_lock contention.
+
+We have HSF RT(High-speed Service Framework Response-Time) monitors, the
+RT figures fluctuated randomly, then we deployed a tool detecting "irq
+off" and "preempt off" to dump the culprit's calltrace, capturing the
+list_lock cost nearly 100ms with irq off issued by "ss", this also caused
+network timeouts.
+
+This patch introduces two counters to maintain the actual number of
+partial objects dynamically instead of iterating the partial page lists
+with list_lock held.
+
+New counters of kmem_cache_node: partial_free_objs, partial_total_objs. 
+The main operations are under list_lock in slow path, its performance
+impact should be minimal except the __slab_free() path which will be
+addressed later.
+
+Link: https://lkml.kernel.org/r/1615303512-35058-1-git-send-email-xlpang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/1615303512-35058-2-git-send-email-xlpang@linux.alibaba.com
+Signed-off-by: Xunlei Pang <xlpang@linux.alibaba.com>
+Tested-by: James Wang <jnwang@linux.alibaba.com>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Shu Ming <sming56@gmail.com>
+Cc: Wen Yang <wenyang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/clang.c   |   10 +++++-----
- kernel/gcov/fs.c      |    6 +++---
- kernel/gcov/gcc_4_7.c |    6 +++---
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ mm/slab.h |    4 ++++
+ mm/slub.c |   46 +++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 49 insertions(+), 1 deletion(-)
 
---- a/kernel/gcov/clang.c~gcov-use-kvmalloc
-+++ a/kernel/gcov/clang.c
-@@ -49,7 +49,7 @@
- #include <linux/printk.h>
- #include <linux/ratelimit.h>
- #include <linux/slab.h>
--#include <linux/vmalloc.h>
-+#include <linux/mm.h>
- #include "gcov.h"
- 
- typedef void (*llvm_gcov_callback)(void);
-@@ -292,13 +292,13 @@ void gcov_info_add(struct gcov_info *dst
- static struct gcov_fn_info *gcov_fn_info_dup(struct gcov_fn_info *fn)
- {
- 	size_t cv_size; /* counter values size */
--	struct gcov_fn_info *fn_dup = kmemdup(fn, sizeof(*fn),
--			GFP_KERNEL);
-+	struct gcov_fn_info *fn_dup = kmemdup(fn, sizeof(*fn), GFP_KERNEL);
-+
- 	if (!fn_dup)
- 		return NULL;
- 	INIT_LIST_HEAD(&fn_dup->head);
- 	cv_size = fn->num_counters * sizeof(fn->counters[0]);
--	fn_dup->counters = vmalloc(cv_size);
-+	fn_dup->counters = kvmalloc(cv_size, GFP_KERNEL);
- 	if (!fn_dup->counters) {
- 		kfree(fn_dup);
- 		return NULL;
-@@ -351,7 +351,7 @@ void gcov_info_free(struct gcov_info *in
- 	struct gcov_fn_info *fn, *tmp;
- 
- 	list_for_each_entry_safe(fn, tmp, &info->functions, head) {
--		vfree(fn->counters);
-+		kvfree(fn->counters);
- 		list_del(&fn->head);
- 		kfree(fn);
- 	}
---- a/kernel/gcov/fs.c~gcov-use-kvmalloc
-+++ a/kernel/gcov/fs.c
-@@ -26,7 +26,7 @@
- #include <linux/slab.h>
- #include <linux/mutex.h>
- #include <linux/seq_file.h>
--#include <linux/vmalloc.h>
-+#include <linux/mm.h>
- #include "gcov.h"
- 
- /**
-@@ -116,7 +116,7 @@ static struct gcov_iterator *gcov_iter_n
- 	/* Dry-run to get the actual buffer size. */
- 	size = convert_to_gcda(NULL, info);
- 
--	iter = vmalloc(struct_size(iter, buffer, size));
-+	iter = kvmalloc(struct_size(iter, buffer, size), GFP_KERNEL);
- 	if (!iter)
- 		return NULL;
- 
-@@ -134,7 +134,7 @@ static struct gcov_iterator *gcov_iter_n
+--- a/mm/slab.h~mm-slub-introduce-two-counters-for-partial-objects
++++ a/mm/slab.h
+@@ -547,6 +547,10 @@ struct kmem_cache_node {
+ #ifdef CONFIG_SLUB
+ 	unsigned long nr_partial;
+ 	struct list_head partial;
++#if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SYSFS)
++	atomic_long_t partial_free_objs;
++	unsigned long partial_total_objs;
++#endif
+ #ifdef CONFIG_SLUB_DEBUG
+ 	atomic_long_t nr_slabs;
+ 	atomic_long_t total_objects;
+--- a/mm/slub.c~mm-slub-introduce-two-counters-for-partial-objects
++++ a/mm/slub.c
+@@ -1890,10 +1890,31 @@ static void discard_slab(struct kmem_cac
+ /*
+  * Management of partially allocated slabs.
   */
- static void gcov_iter_free(struct gcov_iterator *iter)
++#if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SYSFS)
++static inline void
++__update_partial_free(struct kmem_cache_node *n, long delta)
++{
++	atomic_long_add(delta, &n->partial_free_objs);
++}
++
++static inline void
++__update_partial_total(struct kmem_cache_node *n, long delta)
++{
++	n->partial_total_objs += delta;
++}
++#else
++static inline void
++__update_partial_free(struct kmem_cache_node *n, long delta) { }
++
++static inline void
++__update_partial_total(struct kmem_cache_node *n, long delta) { }
++#endif
++
+ static inline void
+ __add_partial(struct kmem_cache_node *n, struct page *page, int tail)
  {
--	vfree(iter);
-+	kvfree(iter);
+ 	n->nr_partial++;
++	__update_partial_total(n, page->objects);
+ 	if (tail == DEACTIVATE_TO_TAIL)
+ 		list_add_tail(&page->slab_list, &n->partial);
+ 	else
+@@ -1913,6 +1934,7 @@ static inline void remove_partial(struct
+ 	lockdep_assert_held(&n->list_lock);
+ 	list_del(&page->slab_list);
+ 	n->nr_partial--;
++	__update_partial_total(n, -page->objects);
  }
  
- /**
---- a/kernel/gcov/gcc_4_7.c~gcov-use-kvmalloc
-+++ a/kernel/gcov/gcc_4_7.c
-@@ -15,7 +15,7 @@
- #include <linux/errno.h>
- #include <linux/slab.h>
- #include <linux/string.h>
--#include <linux/vmalloc.h>
-+#include <linux/mm.h>
- #include "gcov.h"
+ /*
+@@ -1957,6 +1979,7 @@ static inline void *acquire_slab(struct
+ 		return NULL;
  
- #if (__GNUC__ >= 10)
-@@ -309,7 +309,7 @@ struct gcov_info *gcov_info_dup(struct g
+ 	remove_partial(n, page);
++	__update_partial_free(n, -*objects);
+ 	WARN_ON(!freelist);
+ 	return freelist;
+ }
+@@ -2286,8 +2309,11 @@ redo:
+ 				"unfreezing slab"))
+ 		goto redo;
  
- 			cv_size = sizeof(gcov_type) * sci_ptr->num;
+-	if (lock)
++	if (lock) {
++		if (m == M_PARTIAL)
++			__update_partial_free(n, new.objects - new.inuse);
+ 		spin_unlock(&n->list_lock);
++	}
  
--			dci_ptr->values = vmalloc(cv_size);
-+			dci_ptr->values = kvmalloc(cv_size, GFP_KERNEL);
- 
- 			if (!dci_ptr->values)
- 				goto err_free;
-@@ -351,7 +351,7 @@ void gcov_info_free(struct gcov_info *in
- 		ci_ptr = info->functions[fi_idx]->ctrs;
- 
- 		for (ct_idx = 0; ct_idx < active; ct_idx++, ci_ptr++)
--			vfree(ci_ptr->values);
-+			kvfree(ci_ptr->values);
- 
- 		kfree(info->functions[fi_idx]);
+ 	if (m == M_PARTIAL)
+ 		stat(s, tail);
+@@ -2353,6 +2379,7 @@ static void unfreeze_partials(struct kme
+ 			discard_page = page;
+ 		} else {
+ 			add_partial(n, page, DEACTIVATE_TO_TAIL);
++			__update_partial_free(n, new.objects - new.inuse);
+ 			stat(s, FREE_ADD_PARTIAL);
+ 		}
  	}
+@@ -3039,6 +3066,13 @@ static void __slab_free(struct kmem_cach
+ 		head, new.counters,
+ 		"__slab_free"));
+ 
++	if (!was_frozen && prior) {
++		if (n)
++			__update_partial_free(n, cnt);
++		else
++			__update_partial_free(get_node(s, page_to_nid(page)), cnt);
++	}
++
+ 	if (likely(!n)) {
+ 
+ 		if (likely(was_frozen)) {
+@@ -3069,6 +3103,7 @@ static void __slab_free(struct kmem_cach
+ 	if (!kmem_cache_has_cpu_partial(s) && unlikely(!prior)) {
+ 		remove_full(s, n, page);
+ 		add_partial(n, page, DEACTIVATE_TO_TAIL);
++		__update_partial_free(n, cnt);
+ 		stat(s, FREE_ADD_PARTIAL);
+ 	}
+ 	spin_unlock_irqrestore(&n->list_lock, flags);
+@@ -3080,6 +3115,7 @@ slab_empty:
+ 		 * Slab on the partial list.
+ 		 */
+ 		remove_partial(n, page);
++		__update_partial_free(n, -page->objects);
+ 		stat(s, FREE_REMOVE_PARTIAL);
+ 	} else {
+ 		/* Slab must be on the full list */
+@@ -3520,6 +3556,10 @@ init_kmem_cache_node(struct kmem_cache_n
+ 	n->nr_partial = 0;
+ 	spin_lock_init(&n->list_lock);
+ 	INIT_LIST_HEAD(&n->partial);
++#if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SYSFS)
++	atomic_long_set(&n->partial_free_objs, 0);
++	n->partial_total_objs = 0;
++#endif
+ #ifdef CONFIG_SLUB_DEBUG
+ 	atomic_long_set(&n->nr_slabs, 0);
+ 	atomic_long_set(&n->total_objects, 0);
+@@ -3592,6 +3632,7 @@ static void early_kmem_cache_node_alloc(
+ 	 * initialized and there is no concurrent access.
+ 	 */
+ 	__add_partial(n, page, DEACTIVATE_TO_HEAD);
++	__update_partial_free(n, page->objects - page->inuse);
+ }
+ 
+ static void free_kmem_cache_nodes(struct kmem_cache *s)
+@@ -3922,6 +3963,7 @@ static void free_partial(struct kmem_cac
+ 	list_for_each_entry_safe(page, h, &n->partial, slab_list) {
+ 		if (!page->inuse) {
+ 			remove_partial(n, page);
++			__update_partial_free(n, -page->objects);
+ 			list_add(&page->slab_list, &discard);
+ 		} else {
+ 			list_slab_objects(s, page,
+@@ -4263,6 +4305,8 @@ int __kmem_cache_shrink(struct kmem_cach
+ 			if (free == page->objects) {
+ 				list_move(&page->slab_list, &discard);
+ 				n->nr_partial--;
++				__update_partial_free(n, -free);
++				__update_partial_total(n, -free);
+ 			} else if (free <= SHRINK_PROMOTE_MAX)
+ 				list_move(&page->slab_list, promote + free - 1);
+ 		}
 _
 
-Patches currently in -mm which might be from johannes.berg@intel.com are
+Patches currently in -mm which might be from xlpang@linux.alibaba.com are
 
-gcov-combine-common-code.patch
-gcov-simplify-buffer-allocation.patch
-gcov-use-kvmalloc.patch
-gdb-lx-symbols-store-the-abspath.patch
+mm-slub-get-rid-of-count_partial.patch
+percpu-export-per_cpu_sum.patch
+mm-slub-use-percpu-partial-free-counter.patch
 
