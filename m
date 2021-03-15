@@ -5,37 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0E60C2BA19
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A990EC4360C
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9899764F35
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7EE4864F60
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233632AbhCORtM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 13:49:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44362 "EHLO mail.kernel.org"
+        id S231503AbhCORtL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 13:49:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44196 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231679AbhCORsz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 13:48:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8EE5361477;
-        Mon, 15 Mar 2021 17:48:54 +0000 (UTC)
+        id S236569AbhCORsm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 13:48:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8019264F4D;
+        Mon, 15 Mar 2021 17:48:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615830534;
-        bh=54kf42kgr9QJUvKILj8TNAzqErhIfrtk72x5Q/lPCq0=;
+        s=korg; t=1615830509;
+        bh=zyccEAX+bq8/e9mNJyZB/2j9xBcYk1FcE5eNEgcMPXc=;
         h=Date:From:To:Subject:From;
-        b=KVNsOhAXckt8f25xYtKCZw2SqFKzklJGJeDRy0BAyWXEkmahOlEihvfsSYq/MHUlc
-         IXUindPbF4Gi8em1mSmEzRLfZ5r+VHtI2h0lel+yESs2dcnpl+nuRri6vF6y21yyYX
-         kFsFkyGXBihWS76QyifGs+pmtOgKeZY08/ec0hYc=
-Date:   Mon, 15 Mar 2021 10:48:54 -0700
+        b=pSQgHspI4rbRuv6KsBcyJIJ8iXiFLo+J+mLXddLHH9xpwDQeytzp6tN9q7FaT4PMi
+         U5OhcF2XB1Vt1ujy0wWQX6q4Vro0zk80xIBxXRgwvY1l/vRp2LmuCDGaPFtLDLqoyF
+         AH95MnEcCC9vgVjsvefdL2WzKnJylrA4MGBh9JeM=
+Date:   Mon, 15 Mar 2021 10:48:29 -0700
 From:   akpm@linux-foundation.org
-To:     colin.king@canonical.com, joaodias@google.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com,
-        stable@vger.kernel.org
-Subject:  [merged] zram-fix-return-value-on-writeback_store.patch
- removed from -mm tree
-Message-ID: <20210315174854.YqhEpEjZ7%akpm@linux-foundation.org>
+To:     linmiaohe@huawei.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        willy@infradead.org
+Subject:  [merged] mm-use-rcu_dereference-in-in_vfork.patch removed
+ from -mm tree
+Message-ID: <20210315174829.Bvqhcci_7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,72 +43,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: fix return value on writeback_store
+     Subject: include/linux/sched/mm.h: use rcu_dereference in in_vfork()
 has been removed from the -mm tree.  Its filename was
-     zram-fix-return-value-on-writeback_store.patch
+     mm-use-rcu_dereference-in-in_vfork.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: fix return value on writeback_store
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: include/linux/sched/mm.h: use rcu_dereference in in_vfork()
 
-writeback_store's return value is overwritten by submit_bio_wait's return
-value.  Thus, writeback_store will return zero since there was no IO
-error.  In the end, write syscall from userspace will see the zero as
-return value, which could make the process stall to keep trying the write
-until it will succeed.
+Fix a sparse warning by using rcu_dereference().  Technically this is a
+bug and a sufficiently aggressive compiler could reload the `real_parent'
+pointer outside the protection of the rcu lock (and access freed memory),
+but I think it's pretty unlikely to happen.
 
-Link: https://lkml.kernel.org/r/20210312173949.2197662-1-minchan@kernel.org
-Fixes: 3b82a051c101("drivers/block/zram/zram_drv.c: fix error return codes not being returned in writeback_store")
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: John Dias <joaodias@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210221194207.1351703-1-willy@infradead.org
+Fixes: b18dc5f291c0 ("mm, oom: skip vforked tasks from being selected")
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ include/linux/sched/mm.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-return-value-on-writeback_store
-+++ a/drivers/block/zram/zram_drv.c
-@@ -627,7 +627,7 @@ static ssize_t writeback_store(struct de
- 	struct bio_vec bio_vec;
- 	struct page *page;
- 	ssize_t ret = len;
--	int mode;
-+	int mode, err;
- 	unsigned long blk_idx = 0;
+--- a/include/linux/sched/mm.h~mm-use-rcu_dereference-in-in_vfork
++++ a/include/linux/sched/mm.h
+@@ -140,7 +140,8 @@ static inline bool in_vfork(struct task_
+ 	 * another oom-unkillable task does this it should blame itself.
+ 	 */
+ 	rcu_read_lock();
+-	ret = tsk->vfork_done && tsk->real_parent->mm == tsk->mm;
++	ret = tsk->vfork_done &&
++			rcu_dereference(tsk->real_parent)->mm == tsk->mm;
+ 	rcu_read_unlock();
  
- 	if (sysfs_streq(buf, "idle"))
-@@ -728,12 +728,17 @@ static ssize_t writeback_store(struct de
- 		 * XXX: A single page IO would be inefficient for write
- 		 * but it would be not bad as starter.
- 		 */
--		ret = submit_bio_wait(&bio);
--		if (ret) {
-+		err = submit_bio_wait(&bio);
-+		if (err) {
- 			zram_slot_lock(zram, index);
- 			zram_clear_flag(zram, index, ZRAM_UNDER_WB);
- 			zram_clear_flag(zram, index, ZRAM_IDLE);
- 			zram_slot_unlock(zram, index);
-+			/*
-+			 * Return last IO error unless every IO were
-+			 * not suceeded.
-+			 */
-+			ret = err;
- 			continue;
- 		}
- 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-remove-lru_add_drain_all-in-alloc_contig_range.patch
-mm-page_alloc-dump-migrate-failed-pages.patch
-mm-vmstat-add-cma-statistics.patch
-mm-cma-support-sysfs.patch
+mm-filemap-use-filemap_read_page-in-filemap_fault.patch
+mm-filemap-drop-check-for-truncated-page-after-i-o.patch
+mm-page_alloc-rename-alloc_mask-to-alloc_gfp.patch
+mm-page_alloc-rename-gfp_mask-to-gfp.patch
+mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask.patch
+mm-mempolicy-rename-alloc_pages_current-to-alloc_pages.patch
+mm-mempolicy-rewrite-alloc_pages-documentation.patch
+mm-mempolicy-rewrite-alloc_pages_vma-documentation.patch
+mm-mempolicy-fix-mpol_misplaced-kernel-doc.patch
+include-remove-pagemaph-from-blkdevh.patch
 
