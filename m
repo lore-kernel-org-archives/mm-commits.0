@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E488C41518
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10349C2BA13
 	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 38B0964F10
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF78864F19
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231802AbhCOR4S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 13:56:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44198 "EHLO mail.kernel.org"
+        id S231778AbhCOR4R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 13:56:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44180 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236538AbhCORsn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S236550AbhCORsn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 15 Mar 2021 13:48:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A3FCA64F50;
-        Mon, 15 Mar 2021 17:48:31 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C4C5C64F58;
+        Mon, 15 Mar 2021 17:48:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615830512;
-        bh=PvDGtByI6GZ42Czv5iQvtECeFXQOOsK5aiYjXtAkxAc=;
+        s=korg; t=1615830517;
+        bh=p3GeSzMUy9sipGaHkGayXlliieXen41G/6ysFvV0sfQ=;
         h=Date:From:To:Subject:From;
-        b=RVg4aXqwoHq4qBBx4sjapOTwRik/uFPsAHEzudLE6ptGFwW9G7YGQRNhw9zxUW61v
-         uERoaLRKWYtDYPK3zijCLHoTeHa2k7PcNnANxgMNKt3y1gPbfYULnoaGU8pVV/7Rl/
-         KPksktGyj+aMgCPNYdzVB3jtEMjUBgQCPPVXoAME=
-Date:   Mon, 15 Mar 2021 10:48:31 -0700
+        b=xcqWv5RJbeL8uYn7mccP1muwG3rZE+8rAyWeataBNXp6YQYxh919qv/kKvkGIGMxM
+         cR9VkZ6wlzArggfeZmv1cM4wshMqp8thLpNdupkuXA0+ehsov9219Ay3fszAsay0w5
+         gyeDcGk9RUua9DG/gJd7J2t1psKHny07gieHpshU=
+Date:   Mon, 15 Mar 2021 10:48:36 -0700
 From:   akpm@linux-foundation.org
-To:     fweimer@redhat.com, jannh@google.com, jeffv@google.com,
-        jmorris@namei.org, keescook@chromium.org, mhocko@suse.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com,
-        rientjes@google.com, shakeelb@google.com, stable@vger.kernel.org,
-        surenb@google.com, timmurray@google.com
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
+        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
+        dvyukov@google.com, elver@google.com, eugenis@google.com,
+        glider@google.com, kevin.brodsky@arm.com,
+        mm-commits@vger.kernel.org, pcc@google.com, stable@vger.kernel.org,
+        vincenzo.frascino@arm.com, will.deacon@arm.com
 Subject:  [merged]
- mm-madvise-replace-ptrace-attach-requirement-for-process_madvise.patch
- removed from -mm tree
-Message-ID: <20210315174831.Q2zUmWyps%akpm@linux-foundation.org>
+ kasan-fix-kasan_stack-dependency-for-hw_tags.patch removed from -mm tree
+Message-ID: <20210315174836.crh9O6pxI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,90 +47,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/madvise: replace ptrace attach requirement for process_madvise
+     Subject: kasan: fix KASAN_STACK dependency for HW_TAGS
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-replace-ptrace-attach-requirement-for-process_madvise.patch
+     kasan-fix-kasan_stack-dependency-for-hw_tags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/madvise: replace ptrace attach requirement for process_madvise
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: fix KASAN_STACK dependency for HW_TAGS
 
-process_madvise currently requires ptrace attach capability. 
-PTRACE_MODE_ATTACH gives one process complete control over another
-process.  It effectively removes the security boundary between the two
-processes (in one direction).  Granting ptrace attach capability even to a
-system process is considered dangerous since it creates an attack surface.
-This severely limits the usage of this API.
+There's a runtime failure when running HW_TAGS-enabled kernel built with
+GCC on hardware that doesn't support MTE.  GCC-built kernels always have
+CONFIG_KASAN_STACK enabled, even though stack instrumentation isn't
+supported by HW_TAGS.  Having that config enabled causes KASAN to issue
+MTE-only instructions to unpoison kernel stacks, which causes the failure.
 
-The operations process_madvise can perform do not affect the correctness
-of the operation of the target process; they only affect where the data is
-physically located (and therefore, how fast it can be accessed).  What we
-want is the ability for one process to influence another process in order
-to optimize performance across the entire system while leaving the
-security boundary intact.
+Fix the issue by disallowing CONFIG_KASAN_STACK when HW_TAGS is used.
 
-Replace PTRACE_MODE_ATTACH with a combination of PTRACE_MODE_READ and
-CAP_SYS_NICE.  PTRACE_MODE_READ to prevent leaking ASLR metadata and
-CAP_SYS_NICE for influencing process performance.
+(The commit that introduced CONFIG_KASAN_HW_TAGS specified proper
+ dependency for CONFIG_KASAN_STACK_ENABLE but not for CONFIG_KASAN_STACK.)
 
-Link: https://lkml.kernel.org/r/20210303185807.2160264-1-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jeff Vander Stoep <jeffv@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tim Murray <timmurray@google.com>
-Cc: Florian Weimer <fweimer@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: <stable@vger.kernel.org>	[5.10+]
+Link: https://lkml.kernel.org/r/59e75426241dbb5611277758c8d4d6f5f9298dac.1615215441.git.andreyknvl@google.com
+Fixes: 6a63a63ff1ac ("kasan: introduce CONFIG_KASAN_HW_TAGS")
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reported-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: <stable@vger.kernel.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ lib/Kconfig.kasan |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/madvise.c~mm-madvise-replace-ptrace-attach-requirement-for-process_madvise
-+++ a/mm/madvise.c
-@@ -1198,12 +1198,22 @@ SYSCALL_DEFINE5(process_madvise, int, pi
- 		goto release_task;
- 	}
+--- a/lib/Kconfig.kasan~kasan-fix-kasan_stack-dependency-for-hw_tags
++++ a/lib/Kconfig.kasan
+@@ -156,6 +156,7 @@ config KASAN_STACK_ENABLE
  
--	mm = mm_access(task, PTRACE_MODE_ATTACH_FSCREDS);
-+	/* Require PTRACE_MODE_READ to avoid leaking ASLR metadata. */
-+	mm = mm_access(task, PTRACE_MODE_READ_FSCREDS);
- 	if (IS_ERR_OR_NULL(mm)) {
- 		ret = IS_ERR(mm) ? PTR_ERR(mm) : -ESRCH;
- 		goto release_task;
- 	}
+ config KASAN_STACK
+ 	int
++	depends on KASAN_GENERIC || KASAN_SW_TAGS
+ 	default 1 if KASAN_STACK_ENABLE || CC_IS_GCC
+ 	default 0
  
-+	/*
-+	 * Require CAP_SYS_NICE for influencing process performance. Note that
-+	 * only non-destructive hints are currently supported.
-+	 */
-+	if (!capable(CAP_SYS_NICE)) {
-+		ret = -EPERM;
-+		goto release_mm;
-+	}
-+
- 	total_len = iov_iter_count(&iter);
- 
- 	while (iov_iter_count(&iter)) {
-@@ -1218,6 +1228,7 @@ SYSCALL_DEFINE5(process_madvise, int, pi
- 	if (ret == 0)
- 		ret = total_len - iov_iter_count(&iter);
- 
-+release_mm:
- 	mmput(mm);
- release_task:
- 	put_task_struct(task);
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
+kasan-fix-per-page-tags-for-non-page_alloc-pages.patch
+kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch
+mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
+arm64-kasan-allow-to-init-memory-when-setting-tags.patch
+kasan-init-memory-in-kasan_unpoison-for-hw_tags.patch
+kasan-mm-integrate-page_alloc-init-with-hw_tags.patch
+kasan-mm-integrate-slab-init_on_alloc-with-hw_tags.patch
+kasan-mm-integrate-slab-init_on_free-with-hw_tags.patch
+kasan-docs-clean-up-sections.patch
+kasan-docs-update-overview-section.patch
+kasan-docs-update-usage-section.patch
+kasan-docs-update-error-reports-section.patch
+kasan-docs-update-boot-parameters-section.patch
+kasan-docs-update-generic-implementation-details-section.patch
+kasan-docs-update-sw_tags-implementation-details-section.patch
+kasan-docs-update-hw_tags-implementation-details-section.patch
+kasan-docs-update-shadow-memory-section.patch
+kasan-docs-update-ignoring-accesses-section.patch
+kasan-docs-update-tests-section.patch
 
