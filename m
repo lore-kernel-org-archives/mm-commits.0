@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9CC4C433DB
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 21:11:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C48BC433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 21:20:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91A2A64F26
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 21:11:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 608ED64EB9
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 21:20:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232573AbhCOVK4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 17:10:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53728 "EHLO mail.kernel.org"
+        id S230112AbhCOVUA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 17:20:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54664 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234115AbhCOVK1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 17:10:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ECE6B64F0F;
-        Mon, 15 Mar 2021 21:10:26 +0000 (UTC)
+        id S232025AbhCOVTq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 17:19:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F07B664E31;
+        Mon, 15 Mar 2021 21:19:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615842627;
-        bh=kYR4XvybmtIJm6QDF5NOjE01YFFNonlMlToFKA8XyHM=;
+        s=korg; t=1615843186;
+        bh=RxC9ntwbi/6O9juC9gHS4SlP5rg9QXnmt6VCvRAoAV8=;
         h=Date:From:To:Subject:From;
-        b=GzqH4+gL9yYhFDoc5r0pVEm4Kj3tyAJassHq5m3VD+D+3SfA7AhvHdHsrUMWwhzWH
-         TQ36vOM6hHLhv+6BDPPagnMlyCBMJjWbz7JYXC0VMZRSbdVfzKvwde49EqZhyjIn8d
-         Bp9+PN8Gw/NCFZfqWFCTeD5aZLtD13A6u1FlBjFg=
-Date:   Mon, 15 Mar 2021 14:10:26 -0700
+        b=PwubWPzInVlAOmtWA9Mym0mNWKptBBINlCuAjF7Rg2hWiVGL6WhFwvWcFsuQ3ktnU
+         mLv3pXy5yRVmbKx0xmTVUPcKG1XbyDotkWaalMIeqCLigaScZiLQH7ZIjLL7gOmHiK
+         bsFl9NK+TCA00jnY+rnM9eIUfQwaIBGQ34v8/EjQ=
+Date:   Mon, 15 Mar 2021 14:19:45 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, slyfox@gentoo.org
-Subject:  + ia64-mca-allocate-early-mca-with-gfp_atomic.patch added
- to -mm tree
-Message-ID: <20210315211026.P2jHG2m4p%akpm@linux-foundation.org>
+To:     christian@brauner.io, ebiederm@xmission.com,
+        jnewsome@torproject.org, mm-commits@vger.kernel.org,
+        oleg@redhat.com
+Subject:  [to-be-updated]
+ do_wait-make-pidtype_pid-case-o1-instead-of-on.patch removed from -mm tree
+Message-ID: <20210315211945.TL5e8UrCt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,79 +44,128 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: mca: allocate early mca with GFP_ATOMIC
-has been added to the -mm tree.  Its filename is
-     ia64-mca-allocate-early-mca-with-gfp_atomic.patch
+     Subject: kernel/exit.c: do_wait: make PIDTYPE_PID case O(1) instead of O(n)
+has been removed from the -mm tree.  Its filename was
+     do_wait-make-pidtype_pid-case-o1-instead-of-on.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ia64-mca-allocate-early-mca-with-gfp_atomic.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-mca-allocate-early-mca-with-gfp_atomic.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: ia64: mca: allocate early mca with GFP_ATOMIC
+From: Jim Newsome <jnewsome@torproject.org>
+Subject: kernel/exit.c: do_wait: make PIDTYPE_PID case O(1) instead of O(n)
 
-The sleep warning happens at early boot right at secondary CPU activation
-bootup:
+do_wait is an internal function used to implement waitpid, waitid, wait4,
+etc.  To handle the general case, it does an O(n) linear scan of the
+thread group's children and tracees.
 
-    smp: Bringing up secondary CPUs ...
-    BUG: sleeping function called from invalid context at mm/page_alloc.c:4942
-    in_atomic(): 0, irqs_disabled(): 1, non_block: 0, pid: 0, name: swapper/1
-    CPU: 1 PID: 0 Comm: swapper/1 Not tainted 5.12.0-rc2-00007-g79e228d0b611-dirty #99
+This patch adds a special-case when waiting on a pid to skip these scans
+and instead do an O(1) lookup.  This improves performance when waiting on
+a pid from a thread group with many children and/or tracees.
 
-    Call Trace:
-     [<a000000100014d10>] show_stack+0x90/0xc0
-     [<a000000101111d90>] dump_stack+0x150/0x1c0
-     [<a0000001000cbec0>] ___might_sleep+0x1c0/0x2a0
-     [<a0000001000cc040>] __might_sleep+0xa0/0x160
-     [<a000000100399960>] __alloc_pages_nodemask+0x1a0/0x600
-     [<a0000001003b71b0>] alloc_page_interleave+0x30/0x1c0
-     [<a0000001003b9b60>] alloc_pages_current+0x2c0/0x340
-     [<a00000010038c270>] __get_free_pages+0x30/0xa0
-     [<a000000100044730>] ia64_mca_cpu_init+0x2d0/0x3a0
-     [<a000000100023430>] cpu_init+0x8b0/0x1440
-     [<a000000100054680>] start_secondary+0x60/0x700
-     [<a00000010111e1d0>] start_ap+0x750/0x780
-    Fixed BSP b0 value from CPU 1
-
-As I understand interrupts are not enabled yet and system has a lot of
-memory.  There is little chance to sleep and switch to GFP_ATOMIC should
-be a no-op.
-
-Link: https://lkml.kernel.org/r/20210315085045.204414-1-slyfox@gentoo.org
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Link: https://lkml.kernel.org/r/20210312173855.24843-1-jnewsome@torproject.org
+Signed-off-by: James Newsome <jnewsome@torproject.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: "Eric W . Biederman" <ebiederm@xmission.com>
+Cc: Christian Brauner <christian@brauner.io>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/mca.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/exit.c |   69 +++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 59 insertions(+), 10 deletions(-)
 
---- a/arch/ia64/kernel/mca.c~ia64-mca-allocate-early-mca-with-gfp_atomic
-+++ a/arch/ia64/kernel/mca.c
-@@ -1824,7 +1824,7 @@ ia64_mca_cpu_init(void *cpu_data)
- 			data = mca_bootmem();
- 			first_time = 0;
- 		} else
--			data = (void *)__get_free_pages(GFP_KERNEL,
-+			data = (void *)__get_free_pages(GFP_ATOMIC,
- 							get_order(sz));
- 		if (!data)
- 			panic("Could not allocate MCA memory for cpu %d\n",
+--- a/kernel/exit.c~do_wait-make-pidtype_pid-case-o1-instead-of-on
++++ a/kernel/exit.c
+@@ -1439,9 +1439,50 @@ void __wake_up_parent(struct task_struct
+ 			   TASK_INTERRUPTIBLE, p);
+ }
+ 
++static bool is_effectively_child(struct wait_opts *wo, bool ptrace,
++				 struct task_struct *target)
++{
++	struct task_struct *parent =
++		!ptrace ? target->real_parent : target->parent;
++
++	return current == parent || (!(wo->wo_flags & __WNOTHREAD) &&
++				     same_thread_group(current, parent));
++}
++
++/*
++ * Optimization for waiting on PIDTYPE_PID. No need to iterate through child
++ * and tracee lists to find the target task.
++ */
++static int do_wait_pid(struct wait_opts *wo)
++{
++	bool ptrace;
++	struct task_struct *target;
++	int retval;
++
++	target = pid_task(wo->wo_pid, PIDTYPE_PID);
++	if (!target)
++		return 0;
++
++	ptrace = false;
++	if (thread_group_leader(target) &&
++	    is_effectively_child(wo, ptrace, target)) {
++		retval = wait_consider_task(wo, ptrace, target);
++		if (retval)
++			return retval;
++	}
++
++	ptrace = true;
++	if (target->ptrace && is_effectively_child(wo, ptrace, target)) {
++		retval = wait_consider_task(wo, ptrace, target);
++		if (retval)
++			return retval;
++	}
++
++	return 0;
++}
++
+ static long do_wait(struct wait_opts *wo)
+ {
+-	struct task_struct *tsk;
+ 	int retval;
+ 
+ 	trace_sched_process_wait(wo->wo_pid);
+@@ -1463,19 +1504,27 @@ repeat:
+ 
+ 	set_current_state(TASK_INTERRUPTIBLE);
+ 	read_lock(&tasklist_lock);
+-	tsk = current;
+-	do {
+-		retval = do_wait_thread(wo, tsk);
+-		if (retval)
+-			goto end;
+ 
+-		retval = ptrace_do_wait(wo, tsk);
++	if (wo->wo_type == PIDTYPE_PID) {
++		retval = do_wait_pid(wo);
+ 		if (retval)
+ 			goto end;
++	} else {
++		struct task_struct *tsk = current;
+ 
+-		if (wo->wo_flags & __WNOTHREAD)
+-			break;
+-	} while_each_thread(current, tsk);
++		do {
++			retval = do_wait_thread(wo, tsk);
++			if (retval)
++				goto end;
++
++			retval = ptrace_do_wait(wo, tsk);
++			if (retval)
++				goto end;
++
++			if (wo->wo_flags & __WNOTHREAD)
++				break;
++		} while_each_thread(current, tsk);
++	}
+ 	read_unlock(&tasklist_lock);
+ 
+ notask:
 _
 
-Patches currently in -mm which might be from slyfox@gentoo.org are
+Patches currently in -mm which might be from jnewsome@torproject.org are
 
-ia64-mca-allocate-early-mca-with-gfp_atomic.patch
 
