@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9834DC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 22:50:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED432C433DB
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 22:57:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6C21D64F64
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 22:50:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B892C64F51
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 22:57:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229873AbhCOWuK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 18:50:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45200 "EHLO mail.kernel.org"
+        id S229787AbhCOW5G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 18:57:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45754 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229792AbhCOWtn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 18:49:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4008864F5E;
-        Mon, 15 Mar 2021 22:49:42 +0000 (UTC)
+        id S230047AbhCOW4m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 18:56:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9618E64F42;
+        Mon, 15 Mar 2021 22:56:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615848582;
-        bh=dgrzTEWR4Hrf64O+cZZjcAIikcOXRnIg5Sue9RAqDpE=;
+        s=korg; t=1615849001;
+        bh=cop5uoy9ffcnLOjHFICJDpDxdiqgGV1NI7FKQIP0Bgc=;
         h=Date:From:To:Subject:From;
-        b=SoGdwZu7sv+3s81CdIMw6bVQPfJlPXlxv0uGK00azlshBHq9RooaCHr4YI2Ue7PNj
-         2AkuFRePTSmq0A9/J1KZAz/ntgqMO5OHPxQWrWBICQoV+otwXTMn1Is4IiHUktWtBZ
-         vHsfQ35UFTCan/s6M+QBDC/yW1IdwAouibl2V9AQ=
-Date:   Mon, 15 Mar 2021 15:49:41 -0700
+        b=f2nUZ2wef2L+eDsJ0xjWj4LVIU7zD3H/meNsvwJrLfkhI9Q4n8810AmpOwfez19KE
+         IU61yrhrKZOxlkJVCkIGyu6d95Sb7CPhld5apDDAp104uF+TUCiuIk3nVWdIMy4dNd
+         CUfaMCuBqUj8BpmMnkUPCPXEbBbPIuUaAB5l7X4o=
+Date:   Mon, 15 Mar 2021 15:56:41 -0700
 From:   akpm@linux-foundation.org
-To:     bp@alien8.de, corbet@lwn.net, gregkh@linuxfoundation.org,
-        jeyu@kernel.org, linux@rasmusvillemoes.dk, mcgrof@kernel.org,
-        mm-commits@vger.kernel.org, ndesaulniers@google.com, tiwai@suse.de
-Subject:  + init-initramfsc-do-unpacking-asynchronously.patch added
- to -mm tree
-Message-ID: <20210315224941.CO1EiuVyE%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, ovidiu.panait@windriver.com,
+        rostedt@goodmis.org
+Subject:  + mm-tracing-improve-rss_stat-tracepoint-message.patch
+ added to -mm tree
+Message-ID: <20210315225641.2CFcwTysf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init/initramfs.c: do unpacking asynchronously
+     Subject: mm, tracing: improve rss_stat tracepoint message
 has been added to the -mm tree.  Its filename is
-     init-initramfsc-do-unpacking-asynchronously.patch
+     mm-tracing-improve-rss_stat-tracepoint-message.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/init-initramfsc-do-unpacking-asynchronously.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-tracing-improve-rss_stat-tracepoint-message.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/init-initramfsc-do-unpacking-asynchronously.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-tracing-improve-rss_stat-tracepoint-message.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,251 +64,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: init/initramfs.c: do unpacking asynchronously
+From: Ovidiu Panait <ovidiu.panait@windriver.com>
+Subject: mm, tracing: improve rss_stat tracepoint message
 
-Patch series "background initramfs unpacking, and CONFIG_MODPROBE_PATH", v3.
+Adjust the rss_stat tracepoint to print the name of the resident page type
+that got updated (e.g. MM_ANONPAGES/MM_FILEPAGES), rather than the numeric
+index corresponding to it (the __entry->member value):
 
-These two patches are independent, but better-together.
+Before this patch:
+------------------
+rss_stat: mm_id=1216113068 curr=0 member=1 size=28672B
+rss_stat: mm_id=1216113068 curr=0 member=1 size=0B
+rss_stat: mm_id=534402304 curr=1 member=0 size=188416B
+rss_stat: mm_id=534402304 curr=1 member=1 size=40960B
 
-The second is a rather trivial patch that simply allows the developer to
-change "/sbin/modprobe" to something else - e.g.  the empty string, so
-that all request_module() during early boot return -ENOENT early, without
-even spawning a usermode helper, needlessly synchronizing with the
-initramfs unpacking.
+After this patch:
+-----------------
+rss_stat: mm_id=1726253524 curr=1 type=MM_ANONPAGES size=40960B
+rss_stat: mm_id=1726253524 curr=1 type=MM_FILEPAGES size=663552B
+rss_stat: mm_id=1726253524 curr=1 type=MM_ANONPAGES size=65536B
+rss_stat: mm_id=1726253524 curr=1 type=MM_FILEPAGES size=647168B
 
-The first patch delegates decompressing the initramfs to a worker thread,
-allowing do_initcalls() in main.c to proceed to the device_ and late_
-initcalls without waiting for that decompression (and populating of
-rootfs) to finish.  Obviously, some of those later calls may rely on the
-initramfs being available, so I've added synchronization points in the
-firmware loader and usermodehelper paths - there might be other places
-that would need this, but so far no one has been able to think of any
-places I have missed.
+Use TRACE_DEFINE_ENUM()/__print_symbolic() logic to map the enum values to
+the strings they represent, so that userspace tools can also parse the raw
+data correctly.
 
-There's not much to win if most of the functionality needed during boot is
-only available as modules.  But systems with a custom-made .config and
-initramfs can boot faster, partly due to utilizing more than one cpu
-earlier, partly by avoiding known-futile modprobe calls (which would still
-trigger synchronization with the initramfs unpacking, thus eliminating
-most of the first benefit).
-
-
-This patch (of 2):
-
-Most of the boot process doesn't actually need anything from the
-initramfs, until of course PID1 is to be executed.  So instead of doing
-the decompressing and populating of the initramfs synchronously in
-populate_rootfs() itself, push that off to a worker thread.
-
-This is primarily motivated by an embedded ppc target, where unpacking
-even the rather modest sized initramfs takes 0.6 seconds, which is long
-enough that the external watchdog becomes unhappy that it doesn't get
-attention soon enough.  By doing the initramfs decompression in a worker
-thread, we get to do the device_initcalls and hence start petting the
-watchdog much sooner.
-
-Normal desktops might benefit as well.  On my mostly stock Ubuntu kernel,
-my initramfs is a 26M xz-compressed blob, decompressing to around 126M. 
-That takes almost two seconds:
-
-[    0.201454] Trying to unpack rootfs image as initramfs...
-[    1.976633] Freeing initrd memory: 29416K
-
-Before this patch, these lines occur consecutively in dmesg.  With this
-patch, the timestamps on these two lines is roughly the same as above, but
-with 172 lines inbetween - so more than one cpu has been kept busy doing
-work that would otherwise only happen after the populate_rootfs()
-finished.
-
-Should one of the initcalls done after rootfs_initcall time (i.e., device_
-and late_ initcalls) need something from the initramfs (say, a kernel
-module or a firmware blob), it will simply wait for the initramfs
-unpacking to be done before proceeding, which should in theory make this
-completely safe.
-
-But if some driver pokes around in the filesystem directly and not via one
-of the official kernel interfaces (i.e.  request_firmware*(),
-call_usermodehelper*) that theory may not hold - also, I certainly might
-have missed a spot when sprinkling wait_for_initramfs().  So there is an
-escape hatch in the form of an initramfs_async= command line parameter.
-
-Link: https://lkml.kernel.org/r/20210313212528.2956377-1-linux@rasmusvillemoes.dk
-Link: https://lkml.kernel.org/r/20210313212528.2956377-2-linux@rasmusvillemoes.dk
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Jessica Yu <jeyu@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+Link: https://lkml.kernel.org/r/20210310162305.4862-1-ovidiu.panait@windriver.com
+Signed-off-by: Ovidiu Panait <ovidiu.panait@windriver.com>
+Suggested-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |   12 ++++
- drivers/base/firmware_loader/main.c             |    2 
- include/linux/initrd.h                          |    2 
- init/initramfs.c                                |   38 +++++++++++++-
- init/main.c                                     |    1 
- kernel/umh.c                                    |    2 
- 6 files changed, 56 insertions(+), 1 deletion(-)
+ include/trace/events/kmem.h |   24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~init-initramfsc-do-unpacking-asynchronously
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1848,6 +1848,18 @@
- 			initcall functions.  Useful for debugging built-in
- 			modules and initcalls.
- 
-+	initramfs_async= [KNL]
-+			Format: <bool>
-+			Default: 1
-+			This parameter controls whether the initramfs
-+			image is unpacked asynchronously, concurrently
-+			with devices being probed and
-+			initialized. This should normally just work,
-+			but as a debugging aid, one can get the
-+			historical behaviour of the initramfs
-+			unpacking being completed before device_ and
-+			late_ initcalls.
-+
- 	initrd=		[BOOT] Specify the location of the initial ramdisk
- 
- 	initrdmem=	[KNL] Specify a physical address and size from which to
---- a/drivers/base/firmware_loader/main.c~init-initramfsc-do-unpacking-asynchronously
-+++ a/drivers/base/firmware_loader/main.c
-@@ -15,6 +15,7 @@
- #include <linux/kernel_read_file.h>
- #include <linux/module.h>
- #include <linux/init.h>
-+#include <linux/initrd.h>
- #include <linux/timer.h>
- #include <linux/vmalloc.h>
- #include <linux/interrupt.h>
-@@ -504,6 +505,7 @@ fw_get_filesystem_firmware(struct device
- 	if (!path)
- 		return -ENOMEM;
- 
-+	wait_for_initramfs();
- 	for (i = 0; i < ARRAY_SIZE(fw_path); i++) {
- 		size_t file_size = 0;
- 		size_t *file_size_ptr = NULL;
---- a/include/linux/initrd.h~init-initramfsc-do-unpacking-asynchronously
-+++ a/include/linux/initrd.h
-@@ -20,8 +20,10 @@ extern void free_initrd_mem(unsigned lon
- 
- #ifdef CONFIG_BLK_DEV_INITRD
- extern void __init reserve_initrd_mem(void);
-+extern void wait_for_initramfs(void);
- #else
- static inline void __init reserve_initrd_mem(void) {}
-+static inline void wait_for_initramfs(void) {}
+--- a/include/trace/events/kmem.h~mm-tracing-improve-rss_stat-tracepoint-message
++++ a/include/trace/events/kmem.h
+@@ -343,6 +343,26 @@ static unsigned int __maybe_unused mm_pt
+ #define __PTR_TO_HASHVAL
  #endif
  
- extern phys_addr_t phys_initrd_start;
---- a/init/initramfs.c~init-initramfsc-do-unpacking-asynchronously
-+++ a/init/initramfs.c
-@@ -1,5 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/init.h>
-+#include <linux/async.h>
- #include <linux/fs.h>
- #include <linux/slab.h>
- #include <linux/types.h>
-@@ -541,6 +542,14 @@ static int __init keepinitrd_setup(char
- __setup("keepinitrd", keepinitrd_setup);
- #endif
- 
-+static bool __initdata initramfs_async = true;
-+static int __init initramfs_async_setup(char *str)
-+{
-+	strtobool(str, &initramfs_async);
-+	return 1;
-+}
-+__setup("initramfs_async=", initramfs_async_setup);
++#define TRACE_MM_PAGES		\
++	EM(MM_FILEPAGES)	\
++	EM(MM_ANONPAGES)	\
++	EM(MM_SWAPENTS)		\
++	EMe(MM_SHMEMPAGES)
 +
- extern char __initramfs_start[];
- extern unsigned long __initramfs_size;
- #include <linux/initrd.h>
-@@ -658,7 +667,7 @@ static void __init populate_initrd_image
- }
- #endif /* CONFIG_BLK_DEV_RAM */
- 
--static int __init populate_rootfs(void)
-+static void __init do_populate_rootfs(void *unused, async_cookie_t cookie)
- {
- 	/* Load the built in initramfs */
- 	char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);
-@@ -693,6 +702,33 @@ done:
- 	initrd_end = 0;
- 
- 	flush_delayed_fput();
-+}
++#undef EM
++#undef EMe
 +
-+static ASYNC_DOMAIN_EXCLUSIVE(initramfs_domain);
-+static async_cookie_t initramfs_cookie;
++#define EM(a)	TRACE_DEFINE_ENUM(a);
++#define EMe(a)	TRACE_DEFINE_ENUM(a);
 +
-+void wait_for_initramfs(void)
-+{
-+	if (!initramfs_cookie) {
-+		/*
-+		 * Something before rootfs_initcall wants to access
-+		 * the filesystem/initramfs. Probably a bug. Make a
-+		 * note, avoid deadlocking the machine, and let the
-+		 * caller's access fail as it used to.
-+		 */
-+		pr_warn_once("wait_for_initramfs() called before rootfs_initcalls\n");
-+		return;
-+	}
-+	async_synchronize_cookie_domain(initramfs_cookie + 1, &initramfs_domain);
-+}
-+EXPORT_SYMBOL_GPL(wait_for_initramfs);
++TRACE_MM_PAGES
 +
-+static int __init populate_rootfs(void)
-+{
-+	initramfs_cookie = async_schedule_domain(do_populate_rootfs, NULL,
-+						 &initramfs_domain);
-+	if (!initramfs_async)
-+		wait_for_initramfs();
- 	return 0;
- }
- rootfs_initcall(populate_rootfs);
---- a/init/main.c~init-initramfsc-do-unpacking-asynchronously
-+++ a/init/main.c
-@@ -1538,6 +1538,7 @@ static noinline void __init kernel_init_
++#undef EM
++#undef EMe
++
++#define EM(a)	{ a, #a },
++#define EMe(a)	{ a, #a }
++
+ TRACE_EVENT(rss_stat,
  
- 	kunit_run_all_tests();
+ 	TP_PROTO(struct mm_struct *mm,
+@@ -365,10 +385,10 @@ TRACE_EVENT(rss_stat,
+ 		__entry->size = (count << PAGE_SHIFT);
+ 	),
  
-+	wait_for_initramfs();
- 	console_on_rootfs();
- 
- 	/*
---- a/kernel/umh.c~init-initramfsc-do-unpacking-asynchronously
-+++ a/kernel/umh.c
-@@ -27,6 +27,7 @@
- #include <linux/ptrace.h>
- #include <linux/async.h>
- #include <linux/uaccess.h>
-+#include <linux/initrd.h>
- 
- #include <trace/events/module.h>
- 
-@@ -107,6 +108,7 @@ static int call_usermodehelper_exec_asyn
- 
- 	commit_creds(new);
- 
-+	wait_for_initramfs();
- 	retval = kernel_execve(sub_info->path,
- 			       (const char *const *)sub_info->argv,
- 			       (const char *const *)sub_info->envp);
+-	TP_printk("mm_id=%u curr=%d member=%d size=%ldB",
++	TP_printk("mm_id=%u curr=%d type=%s size=%ldB",
+ 		__entry->mm_id,
+ 		__entry->curr,
+-		__entry->member,
++		__print_symbolic(__entry->member, TRACE_MM_PAGES),
+ 		__entry->size)
+ 	);
+ #endif /* _TRACE_KMEM_H */
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from ovidiu.panait@windriver.com are
 
-kernel-asyncc-fix-pr_debug-statement.patch
-kernel-credc-make-init_groups-static.patch
-kernel-asyncc-stop-guarding-pr_debug-statements.patch
-kernel-asyncc-remove-async_unregister_domain.patch
-init-initramfsc-do-unpacking-asynchronously.patch
-modules-add-config_modprobe_path.patch
+mm-tracing-improve-rss_stat-tracepoint-message.patch
 
