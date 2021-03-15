@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30D62C433E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FD46C433E6
 	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 23:27:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B57064F5E
+	by mail.kernel.org (Postfix) with ESMTP id 1F9E064F60
 	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 23:27:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229775AbhCOX03 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230187AbhCOX03 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 15 Mar 2021 19:26:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49706 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49680 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230289AbhCOX0T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 19:26:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 00ADE64F06;
-        Mon, 15 Mar 2021 23:26:17 +0000 (UTC)
+        id S230160AbhCOX0O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 19:26:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3C52A64F52;
+        Mon, 15 Mar 2021 23:26:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615850778;
-        bh=rUyXX+lbTgx9RtMRQptb1FrFbH2AjVctlBrc8PB4qXY=;
+        s=korg; t=1615850774;
+        bh=Aal3ecCjLfyc9LOTnlHssJuSYvWMzTYqF9kdhBC4MLs=;
         h=Date:From:To:Subject:From;
-        b=b2YDwjKWduzhoxax8WbWjq0zC8bz6gRIbeRkqOPibh3nmulP1AaY2HO5wzEBzDvlF
-         9FMRYket3LCkoI6glXGAwpPKzeyUmEYfyS5c9oyfPuABrt+W/tSU0plGUuAqOpMVbU
-         V1MGSvFjaPHG9JhtwKgBXBAKKa7cYq/20Fl/urbU=
-Date:   Mon, 15 Mar 2021 16:26:17 -0700
+        b=rcZb3gn2jMyuetToNkyEcOrXTydqDk9224czSFSUXgLunGND4BQYVgtW1szgtPJp2
+         8pOwXA3Pi2QfPTrxmTtuicaZQVZ5+kCd8dkUyl0dFwrfUyvKwGHCuql/xUgpKalGG+
+         uESWQ86+/VHVN0uoFNU7kB1wp2uLbD13LlUjsK9M=
+Date:   Mon, 15 Mar 2021 16:26:13 -0700
 From:   akpm@linux-foundation.org
 To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org,
         vishal.l.verma@intel.com, willy@infradead.org
-Subject:  + mm-stop-accounting-shadow-entries.patch added to -mm
+Subject:  + mm-introduce-and-use-mapping_empty.patch added to -mm
  tree
-Message-ID: <20210315232617.LvI2o94m3%akpm@linux-foundation.org>
+Message-ID: <20210315232613.KN0wzqkPn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: stop accounting shadow entries
+     Subject: mm: introduce and use mapping_empty
 has been added to the -mm tree.  Its filename is
-     mm-stop-accounting-shadow-entries.patch
+     mm-introduce-and-use-mapping_empty.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-stop-accounting-shadow-entries.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-and-use-mapping_empty.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-stop-accounting-shadow-entries.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-and-use-mapping_empty.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,100 +65,139 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: stop accounting shadow entries
+Subject: mm: introduce and use mapping_empty
 
-We no longer need to keep track of how many shadow entries are present in
-a mapping.  This saves a few writes to the inode and memory barriers.
+Patch series "Remove nrexceptional tracking", v2.
 
-Link: https://lkml.kernel.org/r/20201026151849.24232-3-willy@infradead.org
+We actually use nrexceptional for very little these days.  It's a minor
+pain to keep in sync with nrpages, but the pain becomes much bigger with
+the THP patches because we don't know how many indices a shadow entry
+occupies.  It's easier to just remove it than keep it accurate.
+
+Also, we save 8 bytes per inode which is nothing to sneeze at; on my
+laptop, it would improve shmem_inode_cache from 22 to 23 objects per
+16kB, and inode_cache from 26 to 27 objects.  Combined, that saves
+a megabyte of memory from a combined usage of 25MB for both caches.
+Unfortunately, ext4 doesn't cross a magic boundary, so it doesn't save
+any memory for ext4.
+
+
+This patch (of 4):
+
+Instead of checking the two counters (nrpages and nrexceptional), we can
+just check whether i_pages is empty.
+
+Link: https://lkml.kernel.org/r/20201026151849.24232-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20201026151849.24232-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Tested-by: Vishal Verma <vishal.l.verma@intel.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c    |   13 -------------
- mm/swap_state.c |    4 ----
- mm/truncate.c   |    1 -
- mm/workingset.c |    1 -
- 4 files changed, 19 deletions(-)
+ fs/block_dev.c          |    2 +-
+ fs/dax.c                |    2 +-
+ fs/gfs2/glock.c         |    3 +--
+ include/linux/pagemap.h |    5 +++++
+ mm/truncate.c           |   18 +++---------------
+ 5 files changed, 11 insertions(+), 19 deletions(-)
 
---- a/mm/filemap.c~mm-stop-accounting-shadow-entries
-+++ a/mm/filemap.c
-@@ -142,17 +142,6 @@ static void page_cache_delete(struct add
+--- a/fs/block_dev.c~mm-introduce-and-use-mapping_empty
++++ a/fs/block_dev.c
+@@ -79,7 +79,7 @@ static void kill_bdev(struct block_devic
+ {
+ 	struct address_space *mapping = bdev->bd_inode->i_mapping;
  
- 	page->mapping = NULL;
- 	/* Leave page->index set: truncation lookup relies upon it */
--
--	if (shadow) {
--		mapping->nrexceptional += nr;
--		/*
--		 * Make sure the nrexceptional update is committed before
--		 * the nrpages update so that final truncate racing
--		 * with reclaim does not see both counters 0 at the
--		 * same time and miss a shadow entry.
--		 */
--		smp_wmb();
--	}
- 	mapping->nrpages -= nr;
- }
- 
-@@ -925,8 +914,6 @@ noinline int __add_to_page_cache_locked(
- 		if (xas_error(&xas))
- 			goto unlock;
- 
--		if (old)
--			mapping->nrexceptional--;
- 		mapping->nrpages++;
- 
- 		/* hugetlb pages do not participate in page cache accounting */
---- a/mm/swap_state.c~mm-stop-accounting-shadow-entries
-+++ a/mm/swap_state.c
-@@ -132,7 +132,6 @@ int add_to_swap_cache(struct page *page,
- 			xas_store(&xas, page);
- 			xas_next(&xas);
- 		}
--		address_space->nrexceptional -= nr_shadows;
- 		address_space->nrpages += nr;
- 		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, nr);
- 		__mod_lruvec_page_state(page, NR_SWAPCACHE, nr);
-@@ -172,8 +171,6 @@ void __delete_from_swap_cache(struct pag
- 		xas_next(&xas);
- 	}
- 	ClearPageSwapCache(page);
--	if (shadow)
--		address_space->nrexceptional += nr;
- 	address_space->nrpages -= nr;
- 	__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, -nr);
- 	__mod_lruvec_page_state(page, NR_SWAPCACHE, -nr);
-@@ -275,7 +272,6 @@ void clear_shadow_from_swap_cache(int ty
- 			xas_store(&xas, NULL);
- 			nr_shadows++;
- 		}
--		address_space->nrexceptional -= nr_shadows;
- 		xa_unlock_irq(&address_space->i_pages);
- 
- 		/* search the next swapcache until we meet end */
---- a/mm/truncate.c~mm-stop-accounting-shadow-entries
-+++ a/mm/truncate.c
-@@ -40,7 +40,6 @@ static inline void __clear_shadow_entry(
- 	if (xas_load(&xas) != entry)
+-	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
++	if (mapping_empty(mapping))
  		return;
- 	xas_store(&xas, NULL);
--	mapping->nrexceptional--;
- }
  
- static void clear_shadow_entry(struct address_space *mapping, pgoff_t index,
---- a/mm/workingset.c~mm-stop-accounting-shadow-entries
-+++ a/mm/workingset.c
-@@ -554,7 +554,6 @@ static enum lru_status shadow_lru_isolat
- 		goto out_invalid;
- 	if (WARN_ON_ONCE(node->count != node->nr_values))
- 		goto out_invalid;
--	mapping->nrexceptional -= node->nr_values;
- 	xa_delete_node(node, workingset_update_node);
- 	__inc_lruvec_kmem_state(node, WORKINGSET_NODERECLAIM);
+ 	invalidate_bh_lrus();
+--- a/fs/dax.c~mm-introduce-and-use-mapping_empty
++++ a/fs/dax.c
+@@ -965,7 +965,7 @@ int dax_writeback_mapping_range(struct a
+ 	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
+ 		return -EIO;
  
+-	if (!mapping->nrexceptional || wbc->sync_mode != WB_SYNC_ALL)
++	if (mapping_empty(mapping) || wbc->sync_mode != WB_SYNC_ALL)
+ 		return 0;
+ 
+ 	trace_dax_writeback_range(inode, xas.xa_index, end_index);
+--- a/fs/gfs2/glock.c~mm-introduce-and-use-mapping_empty
++++ a/fs/gfs2/glock.c
+@@ -273,8 +273,7 @@ static void __gfs2_glock_put(struct gfs2
+ 	if (mapping) {
+ 		truncate_inode_pages_final(mapping);
+ 		if (!gfs2_withdrawn(sdp))
+-			GLOCK_BUG_ON(gl, mapping->nrpages ||
+-				     mapping->nrexceptional);
++			GLOCK_BUG_ON(gl, !mapping_empty(mapping));
+ 	}
+ 	trace_gfs2_glock_put(gl);
+ 	sdp->sd_lockstruct.ls_ops->lm_put_lock(gl);
+--- a/include/linux/pagemap.h~mm-introduce-and-use-mapping_empty
++++ a/include/linux/pagemap.h
+@@ -18,6 +18,11 @@
+ 
+ struct pagevec;
+ 
++static inline bool mapping_empty(struct address_space *mapping)
++{
++	return xa_empty(&mapping->i_pages);
++}
++
+ /*
+  * Bits in mapping->flags.
+  */
+--- a/mm/truncate.c~mm-introduce-and-use-mapping_empty
++++ a/mm/truncate.c
+@@ -295,7 +295,7 @@ void truncate_inode_pages_range(struct a
+ 	pgoff_t		index;
+ 	int		i;
+ 
+-	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
++	if (mapping_empty(mapping))
+ 		goto out;
+ 
+ 	/* Offsets within partial pages */
+@@ -440,9 +440,6 @@ EXPORT_SYMBOL(truncate_inode_pages);
+  */
+ void truncate_inode_pages_final(struct address_space *mapping)
+ {
+-	unsigned long nrexceptional;
+-	unsigned long nrpages;
+-
+ 	/*
+ 	 * Page reclaim can not participate in regular inode lifetime
+ 	 * management (can't call iput()) and thus can race with the
+@@ -452,16 +449,7 @@ void truncate_inode_pages_final(struct a
+ 	 */
+ 	mapping_set_exiting(mapping);
+ 
+-	/*
+-	 * When reclaim installs eviction entries, it increases
+-	 * nrexceptional first, then decreases nrpages.  Make sure we see
+-	 * this in the right order or we might miss an entry.
+-	 */
+-	nrpages = mapping->nrpages;
+-	smp_rmb();
+-	nrexceptional = mapping->nrexceptional;
+-
+-	if (nrpages || nrexceptional) {
++	if (!mapping_empty(mapping)) {
+ 		/*
+ 		 * As truncation uses a lockless tree lookup, cycle
+ 		 * the tree lock to make sure any ongoing tree
+@@ -633,7 +621,7 @@ int invalidate_inode_pages2_range(struct
+ 	int ret2 = 0;
+ 	int did_range_unmap = 0;
+ 
+-	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
++	if (mapping_empty(mapping))
+ 		goto out;
+ 
+ 	pagevec_init(&pvec);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
