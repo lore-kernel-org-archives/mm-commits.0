@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C75BC43603
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6853CC43619
 	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3F93A64F09
+	by mail.kernel.org (Postfix) with ESMTP id 5038364EED
 	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231794AbhCORtJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 13:49:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44192 "EHLO mail.kernel.org"
+        id S233273AbhCORtK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 13:49:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44194 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234391AbhCORsm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S236547AbhCORsm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 15 Mar 2021 13:48:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8BB9064F40;
-        Mon, 15 Mar 2021 17:48:26 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 890E564F4A;
+        Mon, 15 Mar 2021 17:48:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615830506;
-        bh=ipEpBiilQZobMFqP/CY/E1NYZ8gW5XJPcX4kuA2Xitc=;
+        s=korg; t=1615830503;
+        bh=LEOUsDOvgDPuEFUbgfTHl0I29peU695MhdjCwfSv1ow=;
         h=Date:From:To:Subject:From;
-        b=PcMpSviEcAz7k3y86JWlW5DM0rFPz4xF4hISisfA8Sr3gKq6KULzgmP4ojzd6leA0
-         13oX4OhYAt0vJgJZ49Uokh0tv5QsXTZLjdAmgmvWVCo/fiiMdAfSq65OtkZy7X1cCq
-         Z8A9HDXi6UJWV8mlTPulCoA9Gw+r35SAqRy45Ai8=
-Date:   Mon, 15 Mar 2021 10:48:26 -0700
+        b=MfLxs06yjm+mRPMB4xmNtgyzpDVXxoJxRPUW/frc9bpzDzBpmH5YMWiWhe2knbTu+
+         TiXagFGLpKmXPN69RbpWIA4JDMvH5oG6JQD/Gh/sVmA04nBKlSMwhhVXelFBbtAum+
+         QysXUEeAZe9SkYfiqby7euwcpOzL3Qs6IC59+qVw=
+Date:   Mon, 15 Mar 2021 10:48:23 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, christophe.leroy@csgroup.eu,
-        dvyukov@google.com, elver@google.com, glider@google.com,
-        jannh@google.com, mm-commits@vger.kernel.org
+To:     andreyknvl@google.com, dvyukov@google.com, elver@google.com,
+        glider@google.com, jannh@google.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- kfence-fix-reports-if-constant-function-prefixes-exist.patch removed from
- -mm tree
-Message-ID: <20210315174826.1YlRYy89n%akpm@linux-foundation.org>
+ kfence-slab-fix-cache_alloc_debugcheck_after-for-bulk-allocations.patch
+ removed from -mm tree
+Message-ID: <20210315174823.8y5KUf5x9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,25 +44,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: fix reports if constant function prefixes exist
+     Subject: kfence, slab: fix cache_alloc_debugcheck_after() for bulk allocations
 has been removed from the -mm tree.  Its filename was
-     kfence-fix-reports-if-constant-function-prefixes-exist.patch
+     kfence-slab-fix-cache_alloc_debugcheck_after-for-bulk-allocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: kfence: fix reports if constant function prefixes exist
+Subject: kfence, slab: fix cache_alloc_debugcheck_after() for bulk allocations
 
-Some architectures prefix all functions with a constant string ('.' on
-ppc64).  Add ARCH_FUNC_PREFIX, which may optionally be defined in
-<asm/kfence.h>, so that get_stack_skipnr() can work properly.
+cache_alloc_debugcheck_after() performs checks on an object, including
+adjusting the returned pointer.  None of this should apply to KFENCE
+objects.  While for non-bulk allocations, the checks are skipped when we
+allocate via KFENCE, for bulk allocations cache_alloc_debugcheck_after()
+is called via cache_alloc_debugcheck_after_bulk().
 
-Link: https://lkml.kernel.org/r/f036c53d-7e81-763c-47f4-6024c6c5f058@csgroup.eu
-Link: https://lkml.kernel.org/r/20210304144000.1148590-1-elver@google.com
+Fix it by skipping cache_alloc_debugcheck_after() for KFENCE objects.
+
+Link: https://lkml.kernel.org/r/20210304205256.2162309-1-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Tested-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Andrey Konovalov <andreyknvl@google.com>
@@ -71,50 +71,20 @@ Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/report.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kfence/report.c~kfence-fix-reports-if-constant-function-prefixes-exist
-+++ a/mm/kfence/report.c
-@@ -20,6 +20,11 @@
- 
- #include "kfence.h"
- 
-+/* May be overridden by <asm/kfence.h>. */
-+#ifndef ARCH_FUNC_PREFIX
-+#define ARCH_FUNC_PREFIX ""
-+#endif
-+
- extern bool no_hash_pointers;
- 
- /* Helper function to either print to a seq_file or to console. */
-@@ -67,8 +72,9 @@ static int get_stack_skipnr(const unsign
- 	for (skipnr = 0; skipnr < num_entries; skipnr++) {
- 		int len = scnprintf(buf, sizeof(buf), "%ps", (void *)stack_entries[skipnr]);
- 
--		if (str_has_prefix(buf, "kfence_") || str_has_prefix(buf, "__kfence_") ||
--		    !strncmp(buf, "__slab_free", len)) {
-+		if (str_has_prefix(buf, ARCH_FUNC_PREFIX "kfence_") ||
-+		    str_has_prefix(buf, ARCH_FUNC_PREFIX "__kfence_") ||
-+		    !strncmp(buf, ARCH_FUNC_PREFIX "__slab_free", len)) {
- 			/*
- 			 * In case of tail calls from any of the below
- 			 * to any of the above.
-@@ -77,10 +83,10 @@ static int get_stack_skipnr(const unsign
- 		}
- 
- 		/* Also the *_bulk() variants by only checking prefixes. */
--		if (str_has_prefix(buf, "kfree") ||
--		    str_has_prefix(buf, "kmem_cache_free") ||
--		    str_has_prefix(buf, "__kmalloc") ||
--		    str_has_prefix(buf, "kmem_cache_alloc"))
-+		if (str_has_prefix(buf, ARCH_FUNC_PREFIX "kfree") ||
-+		    str_has_prefix(buf, ARCH_FUNC_PREFIX "kmem_cache_free") ||
-+		    str_has_prefix(buf, ARCH_FUNC_PREFIX "__kmalloc") ||
-+		    str_has_prefix(buf, ARCH_FUNC_PREFIX "kmem_cache_alloc"))
- 			goto found;
- 	}
- 	if (fallback < num_entries)
+--- a/mm/slab.c~kfence-slab-fix-cache_alloc_debugcheck_after-for-bulk-allocations
++++ a/mm/slab.c
+@@ -2992,7 +2992,7 @@ static void *cache_alloc_debugcheck_afte
+ 				gfp_t flags, void *objp, unsigned long caller)
+ {
+ 	WARN_ON_ONCE(cachep->ctor && (flags & __GFP_ZERO));
+-	if (!objp)
++	if (!objp || is_kfence_address(objp))
+ 		return objp;
+ 	if (cachep->flags & SLAB_POISON) {
+ 		check_poison_obj(cachep, objp);
 _
 
 Patches currently in -mm which might be from elver@google.com are
