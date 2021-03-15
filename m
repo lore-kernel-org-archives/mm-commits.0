@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B7FBC43381
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 23:12:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FCDFC433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 23:12:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E175664F67
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 23:12:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44D2364F64
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 23:12:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233456AbhCOXLc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 19:11:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48040 "EHLO mail.kernel.org"
+        id S231324AbhCOXMC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 19:12:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48074 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233472AbhCOXL0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 19:11:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A6A5A64F67;
-        Mon, 15 Mar 2021 23:11:25 +0000 (UTC)
+        id S233477AbhCOXL3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 19:11:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BE92764F6B;
+        Mon, 15 Mar 2021 23:11:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615849886;
-        bh=uVXYG0jyhMMEVV0Sa3S4tuMbeUwzf2Ah+2uoEvD6SEk=;
+        s=korg; t=1615849889;
+        bh=s5XSHhuam6esp1hoDfSRMtb3CPDXeUpphnhIb7eRJFM=;
         h=Date:From:To:Subject:From;
-        b=iWCaedzoSurRq7oDnu60idVr1US5/FEDNdRzCr6WYGXx6cdHXUVU5lsz+t0ah1WAL
-         5zJ/MI0p5HrWb8Lr+x9/I0eE1xPDcRL4JMNv9od3OwXEy4LwGMVWKaYX0rf841orLd
-         btxEQkBWuN3J+my6Bhndf8rZE50fORopI3sbi7Uo=
-Date:   Mon, 15 Mar 2021 16:11:25 -0700
+        b=1Dy9duxKOXnNg4NhOp5LgELdoyj9FkvBoHmz4wbn4EehBdTihSidSRu2JcM/1ircM
+         B3v2vQifBw8Jj2l2KtBkb2Wq8XD78FFqFZF1qfhnRkpnSdvvSE1ilHDPF+dHjrqQtc
+         NJ0fiMf3coxCfAlzd3yV29gugDsnZU2q6SqXmDpU=
+Date:   Mon, 15 Mar 2021 16:11:28 -0700
 From:   akpm@linux-foundation.org
 To:     cl@linux.com, guro@fb.com, iamjoonsoo.kim@lge.com,
         jnwang@linux.alibaba.com, khlebnikov@yandex-team.ru,
@@ -36,9 +36,9 @@ To:     cl@linux.com, guro@fb.com, iamjoonsoo.kim@lge.com,
         rientjes@google.com, sming56@gmail.com, vbabka@suse.cz,
         wenyang@linux.alibaba.com, willy@infradead.org,
         xlpang@linux.alibaba.com
-Subject:  [nacked] percpu-export-per_cpu_sum.patch removed from -mm
- tree
-Message-ID: <20210315231125.vShSK1Lps%akpm@linux-foundation.org>
+Subject:  [nacked] mm-slub-use-percpu-partial-free-counter.patch
+ removed from -mm tree
+Message-ID: <20210315231128.UeWDuqBQN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,27 +47,32 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: percpu: export per_cpu_sum()
+     Subject: mm/slub: use percpu partial free counter
 has been removed from the -mm tree.  Its filename was
-     percpu-export-per_cpu_sum.patch
+     mm-slub-use-percpu-partial-free-counter.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Xunlei Pang <xlpang@linux.alibaba.com>
-Subject: percpu: export per_cpu_sum()
+Subject: mm/slub: use percpu partial free counter
 
-per_cpu_sum() is useful, and deserves to be exported.
+The only concern of introducing partial counter is that, partial_free_objs
+may cause cache and atomic operation contention in case of same SLUB
+concurrent __slab_free().
 
-Link: https://lkml.kernel.org/r/1615303512-35058-4-git-send-email-xlpang@linux.alibaba.com
+This patch changes it to be a percpu counter, also replace the counter
+variables to avoid cacheline issues.
+
+Link: https://lkml.kernel.org/r/1615303512-35058-5-git-send-email-xlpang@linux.alibaba.com
 Signed-off-by: Xunlei Pang <xlpang@linux.alibaba.com>
 Tested-by: James Wang <jnwang@linux.alibaba.com>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Roman Gushchin <guro@fb.com>
 Cc: Shu Ming <sming56@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -75,51 +80,125 @@ Cc: Wen Yang <wenyang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu-defs.h   |   10 ++++++++++
- kernel/locking/percpu-rwsem.c |   10 ----------
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ mm/slab.h |    6 ++++--
+ mm/slub.c |   30 +++++++++++++++++++++++-------
+ 2 files changed, 27 insertions(+), 9 deletions(-)
 
---- a/include/linux/percpu-defs.h~percpu-export-per_cpu_sum
-+++ a/include/linux/percpu-defs.h
-@@ -220,6 +220,16 @@ do {									\
- 	(void)__vpp_verify;						\
- } while (0)
+--- a/mm/slab.h~mm-slub-use-percpu-partial-free-counter
++++ a/mm/slab.h
+@@ -546,16 +546,18 @@ struct kmem_cache_node {
  
-+#define per_cpu_sum(var)						\
-+({									\
-+	typeof(var) __sum = 0;						\
-+	int cpu;							\
-+	compiletime_assert_atomic_type(__sum);				\
-+	for_each_possible_cpu(cpu)					\
-+		__sum += per_cpu(var, cpu);				\
-+	__sum;								\
-+})
-+
- #ifdef CONFIG_SMP
+ #ifdef CONFIG_SLUB
+ 	unsigned long nr_partial;
+-	struct list_head partial;
+ #if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SYSFS)
+-	atomic_long_t partial_free_objs;
+ 	unsigned long partial_total_objs;
+ #endif
++	struct list_head partial;
+ #ifdef CONFIG_SLUB_DEBUG
+ 	atomic_long_t nr_slabs;
+ 	atomic_long_t total_objects;
+ 	struct list_head full;
+ #endif
++#if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SYSFS)
++	unsigned long __percpu *partial_free_objs;
++#endif
+ #endif
  
- /*
---- a/kernel/locking/percpu-rwsem.c~percpu-export-per_cpu_sum
-+++ a/kernel/locking/percpu-rwsem.c
-@@ -178,16 +178,6 @@ bool __percpu_down_read(struct percpu_rw
+ };
+--- a/mm/slub.c~mm-slub-use-percpu-partial-free-counter
++++ a/mm/slub.c
+@@ -1894,7 +1894,7 @@ static void discard_slab(struct kmem_cac
+ static inline void
+ __update_partial_free(struct kmem_cache_node *n, long delta)
+ {
+-	atomic_long_add(delta, &n->partial_free_objs);
++	this_cpu_add(*n->partial_free_objs, delta);
  }
- EXPORT_SYMBOL_GPL(__percpu_down_read);
  
--#define per_cpu_sum(var)						\
--({									\
--	typeof(var) __sum = 0;						\
--	int cpu;							\
--	compiletime_assert_atomic_type(__sum);				\
--	for_each_possible_cpu(cpu)					\
--		__sum += per_cpu(var, cpu);				\
--	__sum;								\
--})
--
- /*
-  * Return true if the modular sum of the sem->read_count per-CPU variable is
-  * zero.  If this sum is zero, then it is stable due to the fact that if any
+ static inline void
+@@ -2548,11 +2548,16 @@ static unsigned long partial_counter(str
+ 	unsigned long ret = 0;
+ 
+ 	if (item == PARTIAL_FREE) {
+-		ret = atomic_long_read(&n->partial_free_objs);
++		ret = per_cpu_sum(*n->partial_free_objs);
++		if ((long)ret < 0)
++			ret = 0;
+ 	} else if (item == PARTIAL_TOTAL) {
+ 		ret = n->partial_total_objs;
+ 	} else if (item == PARTIAL_INUSE) {
+-		ret = n->partial_total_objs - atomic_long_read(&n->partial_free_objs);
++		ret = per_cpu_sum(*n->partial_free_objs);
++		if ((long)ret < 0)
++			ret = 0;
++		ret = n->partial_total_objs - ret;
+ 		if ((long)ret < 0)
+ 			ret = 0;
+ 	}
+@@ -3552,14 +3557,16 @@ static inline int calculate_order(unsign
+ 	return -ENOSYS;
+ }
+ 
+-static void
++static int
+ init_kmem_cache_node(struct kmem_cache_node *n)
+ {
+ 	n->nr_partial = 0;
+ 	spin_lock_init(&n->list_lock);
+ 	INIT_LIST_HEAD(&n->partial);
+ #if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SYSFS)
+-	atomic_long_set(&n->partial_free_objs, 0);
++	n->partial_free_objs = alloc_percpu(unsigned long);
++	if (!n->partial_free_objs)
++		return -ENOMEM;
+ 	n->partial_total_objs = 0;
+ #endif
+ #ifdef CONFIG_SLUB_DEBUG
+@@ -3567,6 +3574,8 @@ init_kmem_cache_node(struct kmem_cache_n
+ 	atomic_long_set(&n->total_objects, 0);
+ 	INIT_LIST_HEAD(&n->full);
+ #endif
++
++	return 0;
+ }
+ 
+ static inline int alloc_kmem_cache_cpus(struct kmem_cache *s)
+@@ -3626,7 +3635,7 @@ static void early_kmem_cache_node_alloc(
+ 	page->inuse = 1;
+ 	page->frozen = 0;
+ 	kmem_cache_node->node[node] = n;
+-	init_kmem_cache_node(n);
++	BUG_ON(init_kmem_cache_node(n) < 0);
+ 	inc_slabs_node(kmem_cache_node, node, page->objects);
+ 
+ 	/*
+@@ -3644,6 +3653,9 @@ static void free_kmem_cache_nodes(struct
+ 
+ 	for_each_kmem_cache_node(s, node, n) {
+ 		s->node[node] = NULL;
++#if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SYSFS)
++		free_percpu(n->partial_free_objs);
++#endif
+ 		kmem_cache_free(kmem_cache_node, n);
+ 	}
+ }
+@@ -3674,7 +3686,11 @@ static int init_kmem_cache_nodes(struct
+ 			return 0;
+ 		}
+ 
+-		init_kmem_cache_node(n);
++		if (init_kmem_cache_node(n) < 0) {
++			free_kmem_cache_nodes(s);
++			return 0;
++		}
++
+ 		s->node[node] = n;
+ 	}
+ 	return 1;
 _
 
 Patches currently in -mm which might be from xlpang@linux.alibaba.com are
 
-mm-slub-use-percpu-partial-free-counter.patch
 
