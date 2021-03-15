@@ -7,34 +7,46 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94CDCC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 20:18:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CE36C433E6
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 20:49:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 611C464F4D
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 20:18:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58A3864F42
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 20:49:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230443AbhCOUSF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 16:18:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47186 "EHLO mail.kernel.org"
+        id S231241AbhCOUsa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 16:48:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230410AbhCOUR7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 16:17:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DD94564F10;
-        Mon, 15 Mar 2021 20:17:58 +0000 (UTC)
+        id S231573AbhCOUsG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 16:48:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5D70464F0C;
+        Mon, 15 Mar 2021 20:48:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615839479;
-        bh=5oYR4/okKQJGHdIaCl/kN9ptVfD/YoN0suboyWfZvFw=;
+        s=korg; t=1615841286;
+        bh=YAu9lfEvYnUBoFSXVUyDeZeYP+a4/PRau+ARYgsp4Qc=;
         h=Date:From:To:Subject:From;
-        b=Pg9Pkl04wgPbTTGbHD5OCms7JbgvezVu/O1BL6ZC9GxOIf9rUBE5+mEeb4gUicWFP
-         8GxDaCIuQ2vV7Kun+D+pENaV/s2K6nOJ5djr0MEHln0/VcmPOs3bLNJx6hIXmikLMV
-         azMCHPtpgA5mgCUJt8Y2iKDEF0LIUEf9UQPpaPQI=
-Date:   Mon, 15 Mar 2021 13:17:58 -0700
+        b=FKtygMZBFzpY75GlUAJ59D9iWY2KftLKHymIuLXvdrZcD3U26p6012+5syjmJPJ9q
+         5rYJkltJpiEq7p1B8IzN52vptrRFOuVVW0QLzo6GCZK7R6la8q+sBjksSJRVZg6UZn
+         Uf4whNM0ux7frAMcOr8H6qSGHzhWkzrp28AwQ1/4=
+Date:   Mon, 15 Mar 2021 13:48:04 -0700
 From:   akpm@linux-foundation.org
-To:     lkp@intel.com, mm-commits@vger.kernel.org, rong.a.chen@intel.com,
-        shuah@kernel.org
-Subject:  + selftests-vm-fix-out-of-tree-build.patch added to -mm
- tree
-Message-ID: <20210315201758.YBaE3Tyw6%akpm@linux-foundation.org>
+To:     almasrymina@google.com, anshuman.khandual@arm.com,
+        bodeddub@amazon.com, bp@alien8.de, bsingharora@gmail.com,
+        chenhuang5@huawei.com, corbet@lwn.net, dave.hansen@linux.intel.com,
+        david@redhat.com, hpa@zytor.com, joao.m.martins@oracle.com,
+        jroedel@suse.de, linmiaohe@huawei.com, luto@kernel.org,
+        mchehab+huawei@kernel.org, mhocko@suse.com,
+        mike.kravetz@oracle.com, mingo@redhat.com,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        oneukum@suse.com, osalvador@suse.de, paulmck@kernel.org,
+        pawan.kumar.gupta@linux.intel.com, peterz@infradead.org,
+        rdunlap@infradead.org, rientjes@google.com,
+        song.bao.hua@hisilicon.com, songmuchun@bytedance.com,
+        tglx@linutronix.de, viro@zeniv.linux.org.uk, willy@infradead.org
+Subject:  +
+ mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch added to
+ -mm tree
+Message-ID: <20210315204804.WXdRZbepJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: fix out-of-tree build
+     Subject: mm: hugetlb: introduce a new config HUGETLB_PAGE_FREE_VMEMMAP
 has been added to the -mm tree.  Its filename is
-     selftests-vm-fix-out-of-tree-build.patch
+     mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-fix-out-of-tree-build.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-fix-out-of-tree-build.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,46 +76,107 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rong Chen <rong.a.chen@intel.com>
-Subject: selftests/vm: fix out-of-tree build
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: hugetlb: introduce a new config HUGETLB_PAGE_FREE_VMEMMAP
 
-When building out-of-tree, attempting to make target from $(OUTPUT) directory:
+The option HUGETLB_PAGE_FREE_VMEMMAP allows for the freeing of some
+vmemmap pages associated with pre-allocated HugeTLB pages.  For example,
+on X86_64 6 vmemmap pages of size 4KB each can be saved for each 2MB
+HugeTLB page.  4094 vmemmap pages of size 4KB each can be saved for each
+1GB HugeTLB page.
 
-  make[1]: *** No rule to make target '$(OUTPUT)/protection_keys.c', needed by '$(OUTPUT)/protection_keys_32'.
+When a HugeTLB page is allocated or freed, the vmemmap array representing
+the range associated with the page will need to be remapped.  When a page
+is allocated, vmemmap pages are freed after remapping.  When a page is
+freed, previously discarded vmemmap pages must be allocated before
+remapping.
 
-Link: https://lkml.kernel.org/r/20210315094700.522753-1-rong.a.chen@intel.com
-Signed-off-by: Rong Chen <rong.a.chen@intel.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Shuah Khan <shuah@kernel.org>
+The config option is introduced early so that supporting code can be
+written to depend on the option.  The initial version of the code only
+provides support for x86-64.
+
+If config HAVE_BOOTMEM_INFO_NODE is enabled, the freeing vmemmap page code
+denpend on it to free vmemmap pages.  Otherwise, just use
+free_reserved_page() to free vmemmmap pages.  The routine
+register_page_bootmem_info() is used to register bootmem info.  Therefore,
+make sure register_page_bootmem_info is enabled if
+HUGETLB_PAGE_FREE_VMEMMAP is defined.
+
+Link: https://lkml.kernel.org/r/20210315092015.35396-3-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Tested-by: Chen Huang <chenhuang5@huawei.com>
+Tested-by: Bodeddula Balasubramaniam <bodeddub@amazon.com>
+Reviewed-by: Balbir Singh <bsingharora@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Barry Song <song.bao.hua@hisilicon.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Joerg Roedel <jroedel@suse.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Oliver Neukum <oneukum@suse.com>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/mm/init_64.c |    2 +-
+ fs/Kconfig            |    5 +++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-fix-out-of-tree-build
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -101,7 +101,7 @@ endef
- ifeq ($(CAN_BUILD_I386),1)
- $(BINARIES_32): CFLAGS += -m32
- $(BINARIES_32): LDLIBS += -lrt -ldl -lm
--$(BINARIES_32): %_32: %.c
-+$(BINARIES_32): $(OUTPUT)/%_32: %.c
- 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
- $(foreach t,$(TARGETS),$(eval $(call gen-target-rule-32,$(t))))
- endif
-@@ -109,7 +109,7 @@ endif
- ifeq ($(CAN_BUILD_X86_64),1)
- $(BINARIES_64): CFLAGS += -m64
- $(BINARIES_64): LDLIBS += -lrt -ldl
--$(BINARIES_64): %_64: %.c
-+$(BINARIES_64): $(OUTPUT)/%_64: %.c
- 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
- $(foreach t,$(TARGETS),$(eval $(call gen-target-rule-64,$(t))))
- endif
+--- a/arch/x86/mm/init_64.c~mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap
++++ a/arch/x86/mm/init_64.c
+@@ -1269,7 +1269,7 @@ static struct kcore_list kcore_vsyscall;
+ 
+ static void __init register_page_bootmem_info(void)
+ {
+-#ifdef CONFIG_NUMA
++#if defined(CONFIG_NUMA) || defined(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP)
+ 	int i;
+ 
+ 	for_each_online_node(i)
+--- a/fs/Kconfig~mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap
++++ a/fs/Kconfig
+@@ -236,6 +236,11 @@ config HUGETLBFS
+ config HUGETLB_PAGE
+ 	def_bool HUGETLBFS
+ 
++config HUGETLB_PAGE_FREE_VMEMMAP
++	def_bool HUGETLB_PAGE
++	depends on X86_64
++	depends on SPARSEMEM_VMEMMAP
++
+ config MEMFD_CREATE
+ 	def_bool TMPFS || HUGETLBFS
+ 
 _
 
-Patches currently in -mm which might be from rong.a.chen@intel.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-selftests-vm-fix-out-of-tree-build.patch
+mm-memcontrol-fix-kernel-stack-account.patch
+mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc.patch
+mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch
+mm-hugetlb-gather-discrete-indexes-of-tail-page.patch
+mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
+mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
+mm-hugetlb-set-the-pagehwpoison-to-the-raw-error-page.patch
+mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap.patch
+mm-hugetlb-introduce-nr_free_vmemmap_pages-in-the-struct-hstate.patch
 
