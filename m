@@ -5,43 +5,42 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D86DDC43331
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B6B8C2BA13
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B6DEE64F10
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C9D364F35
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231473AbhCORtI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 13:49:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44186 "EHLO mail.kernel.org"
+        id S233624AbhCORtM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 13:49:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44274 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234953AbhCORsm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 13:48:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BE61264F19;
-        Mon, 15 Mar 2021 17:47:59 +0000 (UTC)
+        id S237213AbhCORst (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 13:48:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A7B7264F07;
+        Mon, 15 Mar 2021 17:48:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615830480;
-        bh=Hd8hA5I3f8qgL8MTQxdzKWg3/eSOr0hkKeM0Vi48wHA=;
+        s=korg; t=1615830529;
+        bh=Re0/mlvUgRwYeG+u2dvNfKtdx7dNoSOhRBet1PdIV5Y=;
         h=Date:From:To:Subject:From;
-        b=ZPwULmJfC1HvrX7nfKthxSItTXarZkF7h8Lqk0Zdfd9XEaFgq+UWTWQ9h0O6FaYSn
-         SyDMvY6exfA5kNt0B9gvw8n/N7ps20cfT6Wa2tb9rKbZGBe2/+W//pwplz2xrRdlCi
-         E9dikLTGlRGyewy21TNUWqnq6KhJxa3KhvrZAhrA=
-Date:   Mon, 15 Mar 2021 10:47:59 -0700
+        b=ASt5X4025E5z7+Q1r50knkreOnNcXvXbgF2P8Mlwzehva2T23kGKnV4X/jLmTdY5P
+         h8g5hF9pPH4Z5JsqeQGLgFioSy4+zXyKHplOnlPpgaSKexN4rv7b+cvSEhFQE9swAz
+         Pz6fJ+aljiBdpqHxfChesFFBbi34J5tVkpHGqLDU=
+Date:   Mon, 15 Mar 2021 10:48:48 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, adobriyan@gmail.com, airlied@linux.ie,
-        daniel@ffwll.ch, david@gibson.dropbear.id.au, galpress@amazon.com,
-        hch@lst.de, jack@suse.cz, jannh@google.com, jgg@ziepe.ca,
-        kirill@shutemov.name, ktkhai@virtuozzo.com, linmiaohe@huawei.com,
-        linux-graphics-maintainer@vmware.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, peterx@redhat.com,
-        rppt@linux.vnet.ibm.com, sroland@vmware.com, willy@infradead.org,
-        wzam@amazon.com
+To:     chenweilong@huawei.com, dingtianhong@huawei.com,
+        guohanjun@huawei.com, hannes@cmpxchg.org, hughd@google.com,
+        kirill.shutemov@linux.intel.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, npiggin@gmail.com,
+        rui.xiang@huawei.com, shakeelb@google.com, stable@vger.kernel.org,
+        wangkefeng.wang@huawei.com, zhouguanghui1@huawei.com,
+        ziy@nvidia.com
 Subject:  [merged]
- hugetlg-break-earlier-in-add_reservation_in_range-when-we-can.patch removed
- from -mm tree
-Message-ID: <20210315174759.qwYJxhEb1%akpm@linux-foundation.org>
+ mm-memcg-rename-mem_cgroup_split_huge_fixup-to-split_page_memcg.patch
+ removed from -mm tree
+Message-ID: <20210315174848.UqwGSbPhq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,78 +49,114 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: break earlier in add_reservation_in_range() when we can
+     Subject: mm/memcg: rename mem_cgroup_split_huge_fixup to split_page_memcg and add nr_pages argument
 has been removed from the -mm tree.  Its filename was
-     hugetlg-break-earlier-in-add_reservation_in_range-when-we-can.patch
+     mm-memcg-rename-mem_cgroup_split_huge_fixup-to-split_page_memcg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: hugetlb: break earlier in add_reservation_in_range() when we can
+From: Zhou Guanghui <zhouguanghui1@huawei.com>
+Subject: mm/memcg: rename mem_cgroup_split_huge_fixup to split_page_memcg and add nr_pages argument
 
-All the regions maintained in hugetlb reserved map is inclusive on "from"
-but exclusive on "to".  We can break earlier even if rg->from==t because
-it already means no possible intersection.
+Rename mem_cgroup_split_huge_fixup to split_page_memcg and explicitly pass
+in page number argument.
 
-This does not need a Fixes in all cases because when it happens
-(rg->from==t) we'll not break out of the loop while we should, however the
-next thing we'd do is still add the last file_region we'd need and quit
-the loop in the next round.  So this change is not a bugfix (since the old
-code should still run okay iiuc), but we'd better still touch it up to
-make it logically sane.
+In this way, the interface name is more common and can be used by
+potential users.  In addition, the complete info(memcg and flag) of the
+memcg needs to be set to the tail pages.
 
-Link: https://lkml.kernel.org/r/20210217233547.93892-3-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: David Airlie <airlied@linux.ie>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Gal Pressman <galpress@amazon.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Kirill Shutemov <kirill@shutemov.name>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Roland Scheidegger <sroland@vmware.com>
-Cc: VMware Graphics <linux-graphics-maintainer@vmware.com>
-Cc: Wei Zhang <wzam@amazon.com>
+Link: https://lkml.kernel.org/r/20210304074053.65527-2-zhouguanghui1@huawei.com
+Signed-off-by: Zhou Guanghui <zhouguanghui1@huawei.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Tianhong Ding <dingtianhong@huawei.com>
+Cc: Weilong Chen <chenweilong@huawei.com>
+Cc: Rui Xiang <rui.xiang@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |    6 ++----
+ mm/huge_memory.c           |    2 +-
+ mm/memcontrol.c            |   15 ++++++---------
+ 3 files changed, 9 insertions(+), 14 deletions(-)
 
---- a/mm/hugetlb.c~hugetlg-break-earlier-in-add_reservation_in_range-when-we-can
-+++ a/mm/hugetlb.c
-@@ -387,7 +387,7 @@ static long add_reservation_in_range(str
- 		/* When we find a region that starts beyond our range, we've
- 		 * finished.
- 		 */
--		if (rg->from > t)
-+		if (rg->from >= t)
- 			break;
+--- a/include/linux/memcontrol.h~mm-memcg-rename-mem_cgroup_split_huge_fixup-to-split_page_memcg
++++ a/include/linux/memcontrol.h
+@@ -1061,9 +1061,7 @@ static inline void memcg_memory_event_mm
+ 	rcu_read_unlock();
+ }
  
- 		/* Add an entry for last_accounted_offset -> rg->from, and
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-void mem_cgroup_split_huge_fixup(struct page *head);
+-#endif
++void split_page_memcg(struct page *head, unsigned int nr);
+ 
+ #else /* CONFIG_MEMCG */
+ 
+@@ -1400,7 +1398,7 @@ unsigned long mem_cgroup_soft_limit_recl
+ 	return 0;
+ }
+ 
+-static inline void mem_cgroup_split_huge_fixup(struct page *head)
++static inline void split_page_memcg(struct page *head, unsigned int nr)
+ {
+ }
+ 
+--- a/mm/huge_memory.c~mm-memcg-rename-mem_cgroup_split_huge_fixup-to-split_page_memcg
++++ a/mm/huge_memory.c
+@@ -2467,7 +2467,7 @@ static void __split_huge_page(struct pag
+ 	int i;
+ 
+ 	/* complete memcg works before add pages to LRU */
+-	mem_cgroup_split_huge_fixup(head);
++	split_page_memcg(head, nr);
+ 
+ 	if (PageAnon(head) && PageSwapCache(head)) {
+ 		swp_entry_t entry = { .val = page_private(head) };
+--- a/mm/memcontrol.c~mm-memcg-rename-mem_cgroup_split_huge_fixup-to-split_page_memcg
++++ a/mm/memcontrol.c
+@@ -3287,24 +3287,21 @@ void obj_cgroup_uncharge(struct obj_cgro
+ 
+ #endif /* CONFIG_MEMCG_KMEM */
+ 
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /*
+- * Because page_memcg(head) is not set on compound tails, set it now.
++ * Because page_memcg(head) is not set on tails, set it now.
+  */
+-void mem_cgroup_split_huge_fixup(struct page *head)
++void split_page_memcg(struct page *head, unsigned int nr)
+ {
+ 	struct mem_cgroup *memcg = page_memcg(head);
+ 	int i;
+ 
+-	if (mem_cgroup_disabled())
++	if (mem_cgroup_disabled() || !memcg)
+ 		return;
+ 
+-	for (i = 1; i < HPAGE_PMD_NR; i++) {
+-		css_get(&memcg->css);
+-		head[i].memcg_data = (unsigned long)memcg;
+-	}
++	for (i = 1; i < nr; i++)
++		head[i].memcg_data = head->memcg_data;
++	css_get_many(&memcg->css, nr - 1);
+ }
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ #ifdef CONFIG_MEMCG_SWAP
+ /**
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from zhouguanghui1@huawei.com are
 
-hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share.patch
-hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share-fix.patch
-hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
-hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix.patch
-mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
-hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
-userfaultfd-selftests-use-user-mode-only.patch
-userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch
-userfaultfd-selftests-dropping-verify-check-in-locking_thread.patch
-userfaultfd-selftests-only-dump-counts-if-mode-enabled.patch
-userfaultfd-selftests-unify-error-handling.patch
 
