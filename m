@@ -2,41 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74D88C433E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD9F4C4332D
 	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 43D3764EED
+	by mail.kernel.org (Postfix) with ESMTP id A56E864EED
 	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:49:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231772AbhCORtI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232196AbhCORtI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 15 Mar 2021 13:49:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43552 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44182 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232142AbhCORsk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 13:48:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B465D64F09;
-        Mon, 15 Mar 2021 17:47:44 +0000 (UTC)
+        id S234935AbhCORsm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 13:48:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DC0B564F18;
+        Mon, 15 Mar 2021 17:47:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615830465;
-        bh=xSNemhJaDJ2+hlqUg9qw4Cm0vAWBhn33gyfalHcw5ag=;
+        s=korg; t=1615830477;
+        bh=x7//+Le+Sor0ocMyscy42am57iDVLnfkbDi0nbwJpOc=;
         h=Date:From:To:Subject:From;
-        b=DR8d6QhjRehBilamMCrmFK9rOPqiPm8v95sI+pFzKOCfrc3CkXrJCHBpaqLnsb6NY
-         s97sGpU86PpmMOPhbvuVrXPVOr0THnATMMzA9msHch1q5CMzPj4rPMGf2oOPKjtXtz
-         /Ad4dhNIM8H6dDFxMXNXJjXzcq8Fk6CpyF591HjQ=
-Date:   Mon, 15 Mar 2021 10:47:44 -0700
+        b=sB6IHrN7GpI5GLAbnImbX5QDXz2P8ZiDy2Zz6BEKIUEBt1oL2/hv2zdDVtPjRzXZ4
+         eBLz2a4jYpuHRVQuhP1rjwEDAGPKvlWSpVquSKKHF+fi/ROzGQPn/uWRNtSNKQrTAR
+         0bOjXPjpzyb58voYsYAxyoAV1WMrrRFYJyqubOVk=
+Date:   Mon, 15 Mar 2021 10:47:56 -0700
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, bigeasy@linutronix.de, bristot@redhat.com,
-        mingo@kernel.org, mm-commits@vger.kernel.org, nathan@kernel.org,
-        ndesaulniers@google.com, paulmck@kernel.org, peterz@infradead.org,
-        prarit@redhat.com, tglx@linutronix.de, valentin.schneider@arm.com
-Subject:  [merged] stop_machine-mark-helpers-__always_inline.patch
- removed from -mm tree
-Message-ID: <20210315174744.eX34FUza7%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, adobriyan@gmail.com, airlied@linux.ie,
+        daniel@ffwll.ch, david@gibson.dropbear.id.au, galpress@amazon.com,
+        hch@lst.de, jack@suse.cz, jannh@google.com, jgg@ziepe.ca,
+        kirill@shutemov.name, ktkhai@virtuozzo.com, linmiaohe@huawei.com,
+        linux-graphics-maintainer@vmware.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, peterx@redhat.com,
+        rppt@linux.vnet.ibm.com, sroland@vmware.com, willy@infradead.org,
+        wzam@amazon.com
+Subject:  [merged]
+ hugetlb-dedup-the-code-to-add-a-new-file_region.patch removed from -mm tree
+Message-ID: <20210315174756.Xf6t5eCY8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,86 +49,166 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: stop_machine: mark helpers __always_inline
+     Subject: hugetlb: dedup the code to add a new file_region
 has been removed from the -mm tree.  Its filename was
-     stop_machine-mark-helpers-__always_inline.patch
+     hugetlb-dedup-the-code-to-add-a-new-file_region.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: stop_machine: mark helpers __always_inline
+From: Peter Xu <peterx@redhat.com>
+Subject: hugetlb: dedup the code to add a new file_region
 
-With clang-13, some functions only get partially inlined, with a
-specialized version referring to a global variable.  This triggers a
-harmless build-time check for the intel-rng driver:
+Patch series "mm/hugetlb: Early cow on fork, and a few cleanups", v5.
 
-WARNING: modpost: drivers/char/hw_random/intel-rng.o(.text+0xe): Section mismatch in reference from the function stop_machine() to the function .init.text:intel_rng_hw_init()
-The function stop_machine() references
-the function __init intel_rng_hw_init().
-This is often because stop_machine lacks a __init
-annotation or the annotation of intel_rng_hw_init is wrong.
+As reported by Gal [1], we still miss the code clip to handle early cow
+for hugetlb case, which is true.  Again, it still feels odd to fork()
+after using a few huge pages, especially if they're privately mapped to
+me..  However I do agree with Gal and Jason in that we should still have
+that since that'll complete the early cow on fork effort at least, and
+it'll still fix issues where buffers are not well under control and not
+easy to apply MADV_DONTFORK.
 
-In this instance, an easy workaround is to force the stop_machine()
-function to be inline, along with related interfaces that did not show the
-same behavior at the moment, but theoretically could.
+The first two patches (1-2) are some cleanups I noticed when reading into
+the hugetlb reserve map code.  I think it's good to have but they're not
+necessary for fixing the fork issue.
 
-The combination of the two patches listed below triggers the behavior in
-clang-13, but individually these commits are correct.
+The last two patches (3-4) are the real fix.
 
-Link: https://lkml.kernel.org/r/20210225130153.1956990-1-arnd@kernel.org
-Fixes: fe5595c07400 ("stop_machine: Provide stop_machine_cpuslocked()")
-Fixes: ee527cd3a20c ("Use stop_machine_run in the Intel RNG driver")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Valentin Schneider <valentin.schneider@arm.com>
+I tested this with a fork() after some vfio-pci assignment, so I'm pretty
+sure the page copy path could trigger well (page will be accounted right
+after the fork()), but I didn't do data check since the card I assigned is
+some random nic.
+
+  https://github.com/xzpeter/linux/tree/fork-cow-pin-huge
+
+[1] https://lore.kernel.org/lkml/27564187-4a08-f187-5a84-3df50009f6ca@amazon.com/
+
+Introduce hugetlb_resv_map_add() helper to add a new file_region rather
+than duplication the similar code twice in add_reservation_in_range().
+
+Link: https://lkml.kernel.org/r/20210217233547.93892-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20210217233547.93892-2-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Gal Pressman <galpress@amazon.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Wei Zhang <wzam@amazon.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Kirill Shutemov <kirill@shutemov.name>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Roland Scheidegger <sroland@vmware.com>
+Cc: VMware Graphics <linux-graphics-maintainer@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stop_machine.h |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/hugetlb.c |   51 +++++++++++++++++++++++++------------------------
+ 1 file changed, 27 insertions(+), 24 deletions(-)
 
---- a/include/linux/stop_machine.h~stop_machine-mark-helpers-__always_inline
-+++ a/include/linux/stop_machine.h
-@@ -128,7 +128,7 @@ int stop_machine_from_inactive_cpu(cpu_s
- 				   const struct cpumask *cpus);
- #else	/* CONFIG_SMP || CONFIG_HOTPLUG_CPU */
- 
--static inline int stop_machine_cpuslocked(cpu_stop_fn_t fn, void *data,
-+static __always_inline int stop_machine_cpuslocked(cpu_stop_fn_t fn, void *data,
- 					  const struct cpumask *cpus)
- {
- 	unsigned long flags;
-@@ -139,14 +139,15 @@ static inline int stop_machine_cpuslocke
- 	return ret;
+--- a/mm/hugetlb.c~hugetlb-dedup-the-code-to-add-a-new-file_region
++++ a/mm/hugetlb.c
+@@ -331,6 +331,24 @@ static void coalesce_file_region(struct
+ 	}
  }
  
--static inline int stop_machine(cpu_stop_fn_t fn, void *data,
--			       const struct cpumask *cpus)
-+static __always_inline int
-+stop_machine(cpu_stop_fn_t fn, void *data, const struct cpumask *cpus)
- {
- 	return stop_machine_cpuslocked(fn, data, cpus);
- }
++static inline long
++hugetlb_resv_map_add(struct resv_map *map, struct file_region *rg, long from,
++		     long to, struct hstate *h, struct hugetlb_cgroup *cg,
++		     long *regions_needed)
++{
++	struct file_region *nrg;
++
++	if (!regions_needed) {
++		nrg = get_file_region_entry_from_cache(map, from, to);
++		record_hugetlb_cgroup_uncharge_info(cg, h, map, nrg);
++		list_add(&nrg->link, rg->link.prev);
++		coalesce_file_region(map, nrg);
++	} else
++		*regions_needed += 1;
++
++	return to - from;
++}
++
+ /*
+  * Must be called with resv->lock held.
+  *
+@@ -346,7 +364,7 @@ static long add_reservation_in_range(str
+ 	long add = 0;
+ 	struct list_head *head = &resv->regions;
+ 	long last_accounted_offset = f;
+-	struct file_region *rg = NULL, *trg = NULL, *nrg = NULL;
++	struct file_region *rg = NULL, *trg = NULL;
  
--static inline int stop_machine_from_inactive_cpu(cpu_stop_fn_t fn, void *data,
--						 const struct cpumask *cpus)
-+static __always_inline int
-+stop_machine_from_inactive_cpu(cpu_stop_fn_t fn, void *data,
-+			       const struct cpumask *cpus)
- {
- 	return stop_machine(fn, data, cpus);
- }
+ 	if (regions_needed)
+ 		*regions_needed = 0;
+@@ -375,18 +393,11 @@ static long add_reservation_in_range(str
+ 		/* Add an entry for last_accounted_offset -> rg->from, and
+ 		 * update last_accounted_offset.
+ 		 */
+-		if (rg->from > last_accounted_offset) {
+-			add += rg->from - last_accounted_offset;
+-			if (!regions_needed) {
+-				nrg = get_file_region_entry_from_cache(
+-					resv, last_accounted_offset, rg->from);
+-				record_hugetlb_cgroup_uncharge_info(h_cg, h,
+-								    resv, nrg);
+-				list_add(&nrg->link, rg->link.prev);
+-				coalesce_file_region(resv, nrg);
+-			} else
+-				*regions_needed += 1;
+-		}
++		if (rg->from > last_accounted_offset)
++			add += hugetlb_resv_map_add(resv, rg,
++						    last_accounted_offset,
++						    rg->from, h, h_cg,
++						    regions_needed);
+ 
+ 		last_accounted_offset = rg->to;
+ 	}
+@@ -394,17 +405,9 @@ static long add_reservation_in_range(str
+ 	/* Handle the case where our range extends beyond
+ 	 * last_accounted_offset.
+ 	 */
+-	if (last_accounted_offset < t) {
+-		add += t - last_accounted_offset;
+-		if (!regions_needed) {
+-			nrg = get_file_region_entry_from_cache(
+-				resv, last_accounted_offset, t);
+-			record_hugetlb_cgroup_uncharge_info(h_cg, h, resv, nrg);
+-			list_add(&nrg->link, rg->link.prev);
+-			coalesce_file_region(resv, nrg);
+-		} else
+-			*regions_needed += 1;
+-	}
++	if (last_accounted_offset < t)
++		add += hugetlb_resv_map_add(resv, rg, last_accounted_offset,
++					    t, h, h_cg, regions_needed);
+ 
+ 	VM_BUG_ON(add < 0);
+ 	return add;
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from peterx@redhat.com are
 
+hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share.patch
+hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share-fix.patch
+hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
+hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix.patch
+mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
+hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
+userfaultfd-selftests-use-user-mode-only.patch
+userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch
+userfaultfd-selftests-dropping-verify-check-in-locking_thread.patch
+userfaultfd-selftests-only-dump-counts-if-mode-enabled.patch
+userfaultfd-selftests-unify-error-handling.patch
 
