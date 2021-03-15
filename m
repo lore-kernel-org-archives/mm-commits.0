@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4047C28E85
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0308CC433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B34F64F10
+	by mail.kernel.org (Postfix) with ESMTP id D8D8664F3A
 	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231679AbhCOR4Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 13:56:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44190 "EHLO mail.kernel.org"
+        id S230245AbhCOR4E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 13:56:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43600 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236583AbhCORsn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 13:48:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A2EA64EED;
-        Mon, 15 Mar 2021 17:48:42 +0000 (UTC)
+        id S232143AbhCORsj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Mar 2021 13:48:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CADDC64F0D;
+        Mon, 15 Mar 2021 17:47:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615830522;
-        bh=u6bzjGqk+p8QVDSksPD4MKTaA8dwxdrGcZ5w1Ncb1yk=;
+        s=korg; t=1615830468;
+        bh=+5wm3Wb0UUAcmej+sxf7vZTD1Ah61+Z84WXLbZ4H4eI=;
         h=Date:From:To:Subject:From;
-        b=vC5R4DSN+NEQf+DWU3XNX7c5t3o47NNUih1Y9wrs5+USGiyJCy6P6WFaaFHmZTzl3
-         BkZZZqubcJV6nMJNwdCJGgmkgm/6QQ5GbflRf1UKFTG6W+SwEO4Ubm3VhpSB2lnP7x
-         tMLVQAeymUN7lEuJVEc1lBgw0B+ocBxBYEBB07Eo=
-Date:   Mon, 15 Mar 2021 10:48:42 -0700
+        b=PSrv3QML3tr3dn08FFqOc4ezKEiKxcVtDDa6oFdj9rgbQTFLd2mQmSXTJf/Q8NNwt
+         ZcyfxUbL7jTIjmEFYfNIKhvOFICQ634V23R/LpBtWGrXbcOByKPbYVeT4bXN6reQug
+         8vQXSdBBP25Gm63xjUKjFPe2uXjiR7HynMaYhjMY=
+Date:   Mon, 15 Mar 2021 10:47:47 -0700
 From:   akpm@linux-foundation.org
-To:     glaubitz@physik.fu-berlin.de, ldv@altlinux.org,
-        mm-commits@vger.kernel.org, oleg@redhat.com, slyfox@gentoo.org
+To:     arnd@kernel.org, daniel@iogearbox.net, hannes@cmpxchg.org,
+        hca@linux.ibm.com, keescook@chromium.org, kpsingh@google.com,
+        linux@roeck-us.net, lkml@metux.net, masahiroy@kernel.org,
+        mm-commits@vger.kernel.org, nathan@kernel.org, qperret@google.com,
+        terrelln@fb.com, valentin.schneider@arm.com
 Subject:  [merged]
- ia64-fix-ia64_syscall_get_set_arguments-for-break-based-syscalls.patch
- removed from -mm tree
-Message-ID: <20210315174842.h0PgtX79P%akpm@linux-foundation.org>
+ init-kconfig-make-compile_test-depend-on-has_iomem.patch removed from -mm
+ tree
+Message-ID: <20210315174747.fGyt23ary%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,101 +47,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: fix ia64_syscall_get_set_arguments() for break-based syscalls
+     Subject: init/Kconfig: make COMPILE_TEST depend on HAS_IOMEM
 has been removed from the -mm tree.  Its filename was
-     ia64-fix-ia64_syscall_get_set_arguments-for-break-based-syscalls.patch
+     init-kconfig-make-compile_test-depend-on-has_iomem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: ia64: fix ia64_syscall_get_set_arguments() for break-based syscalls
+From: Masahiro Yamada <masahiroy@kernel.org>
+Subject: init/Kconfig: make COMPILE_TEST depend on HAS_IOMEM
 
-In https://bugs.gentoo.org/769614 Dmitry noticed that
-`ptrace(PTRACE_GET_SYSCALL_INFO)` does not work for syscalls called via
-glibc's syscall() wrapper.
+I read the commit log of the following two:
 
-ia64 has two ways to call syscalls from userspace: via `break` and via
-`eps` instructions.
+- bc083a64b6c0 ("init/Kconfig: make COMPILE_TEST depend on !UML")
+- 334ef6ed06fa ("init/Kconfig: make COMPILE_TEST depend on !S390")
 
-The difference is in stack layout:
+Both are talking about HAS_IOMEM dependency missing in many drivers.
 
-1. `eps` creates simple stack frame: no locals, in{0..7} == out{0..8}
-2. `break` uses userspace stack frame: may be locals (glibc provides
-   one), in{0..7} == out{0..8}.
+So, 'depends on HAS_IOMEM' seems the direct, sensible solution to me.
 
-Both work fine in syscall handling cde itself.
+This does not change the behavior of UML. UML still cannot enable
+COMPILE_TEST because it does not provide HAS_IOMEM.
 
-But `ptrace(PTRACE_GET_SYSCALL_INFO)` uses unwind mechanism to
-re-extract syscall arguments but it does not account for locals.
+The current dependency for S390 is too strong. Under the condition of
+CONFIG_PCI=y, S390 provides HAS_IOMEM, hence can enable COMPILE_TEST.
 
-The change always skips locals registers. It should not change `eps`
-path as kernel's handler already enforces locals=0 and fixes `break`.
+I also removed the meaningless 'default n'.
 
-Tested on v5.10 on rx3600 machine (ia64 9040 CPU).
-
-Link: https://lkml.kernel.org/r/20210221002554.333076-1-slyfox@gentoo.org
-Link: https://bugs.gentoo.org/769614
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
-Reported-by: Dmitry V. Levin <ldv@altlinux.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Link: https://lkml.kernel.org/r/20210224140809.1067582-1-masahiroy@kernel.org
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Arnd Bergmann <arnd@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KP Singh <kpsingh@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Terrell <terrelln@fb.com>
+Cc: Quentin Perret <qperret@google.com>
+Cc: Valentin Schneider <valentin.schneider@arm.com>
+Cc: "Enrico Weigelt, metux IT consult" <lkml@metux.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/ptrace.c |   24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ init/Kconfig |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/arch/ia64/kernel/ptrace.c~ia64-fix-ia64_syscall_get_set_arguments-for-break-based-syscalls
-+++ a/arch/ia64/kernel/ptrace.c
-@@ -2013,27 +2013,39 @@ static void syscall_get_set_args_cb(stru
- {
- 	struct syscall_get_set_args *args = data;
- 	struct pt_regs *pt = args->regs;
--	unsigned long *krbs, cfm, ndirty;
-+	unsigned long *krbs, cfm, ndirty, nlocals, nouts;
- 	int i, count;
+--- a/init/Kconfig~init-kconfig-make-compile_test-depend-on-has_iomem
++++ a/init/Kconfig
+@@ -119,8 +119,7 @@ config INIT_ENV_ARG_LIMIT
  
- 	if (unw_unwind_to_user(info) < 0)
- 		return;
- 
-+	/*
-+	 * We get here via a few paths:
-+	 * - break instruction: cfm is shared with caller.
-+	 *   syscall args are in out= regs, locals are non-empty.
-+	 * - epsinstruction: cfm is set by br.call
-+	 *   locals don't exist.
-+	 *
-+	 * For both cases argguments are reachable in cfm.sof - cfm.sol.
-+	 * CFM: [ ... | sor: 17..14 | sol : 13..7 | sof : 6..0 ]
-+	 */
- 	cfm = pt->cr_ifs;
-+	nlocals = (cfm >> 7) & 0x7f; /* aka sol */
-+	nouts = (cfm & 0x7f) - nlocals; /* aka sof - sol */
- 	krbs = (unsigned long *)info->task + IA64_RBS_OFFSET/8;
- 	ndirty = ia64_rse_num_regs(krbs, krbs + (pt->loadrs >> 19));
- 
- 	count = 0;
- 	if (in_syscall(pt))
--		count = min_t(int, args->n, cfm & 0x7f);
-+		count = min_t(int, args->n, nouts);
- 
-+	/* Iterate over outs. */
- 	for (i = 0; i < count; i++) {
-+		int j = ndirty + nlocals + i + args->i;
- 		if (args->rw)
--			*ia64_rse_skip_regs(krbs, ndirty + i + args->i) =
--				args->args[i];
-+			*ia64_rse_skip_regs(krbs, j) = args->args[i];
- 		else
--			args->args[i] = *ia64_rse_skip_regs(krbs,
--				ndirty + i + args->i);
-+			args->args[i] = *ia64_rse_skip_regs(krbs, j);
- 	}
- 
- 	if (!args->rw) {
+ config COMPILE_TEST
+ 	bool "Compile also drivers which will not load"
+-	depends on !UML && !S390
+-	default n
++	depends on HAS_IOMEM
+ 	help
+ 	  Some drivers can be compiled on a different platform than they are
+ 	  intended to be run on. Despite they cannot be loaded there (or even
 _
 
-Patches currently in -mm which might be from slyfox@gentoo.org are
+Patches currently in -mm which might be from masahiroy@kernel.org are
 
+compat-remove-unneeded-declaration-from-compat_syscall_definex.patch
 
