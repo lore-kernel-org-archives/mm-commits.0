@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A592DC43331
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08029C43332
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8844964F07
+	by mail.kernel.org (Postfix) with ESMTP id B35AD64F0D
 	for <mm-commits@archiver.kernel.org>; Mon, 15 Mar 2021 17:56:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231195AbhCOR4F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 13:56:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44198 "EHLO mail.kernel.org"
+        id S231301AbhCOR4G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Mar 2021 13:56:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44180 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236133AbhCORsl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234879AbhCORsl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 15 Mar 2021 13:48:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 954C864F39;
-        Mon, 15 Mar 2021 17:48:15 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 857C764F17;
+        Mon, 15 Mar 2021 17:47:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615830495;
-        bh=KccAoHKq1xDWvm98Syg0B/cG6EDNQUL/ZK57GFcECLs=;
+        s=korg; t=1615830473;
+        bh=V8Zy264lWL/cpssBrdYERMET7SQHTrfK3aC74GimljY=;
         h=Date:From:To:Subject:From;
-        b=OdY3cMOXeAV/HH5QpB+Vxvhrh8n90domjTL1NXoGakPGaXupCP7+oXHeGf8Zp2xTQ
-         g5QYgcIGp0X6+m2viLB4A/gAa6Zz6Y9DTPGuDLikXyssTAnMIr9JaDVvD/mhETcU53
-         UAiF9spocke1Vewlv4O6a3/TeFef4dzWF9bT8CHE=
-Date:   Mon, 15 Mar 2021 10:48:15 -0700
+        b=yZ5mOaCKDRStMksT2xZIkJkgAfcDIS2Fi0IXEkJtdrK3bk/6IJCNq7wGqdY8IMcs0
+         GZZqyd4mDSiJd+0ZqGzB52Qd7LHRvDLgm/bgZ7+xK6JmyiUzxeA0H9XM+caCX1NK+6
+         jsoNDdwqH6bTZV6jupo4043Ay0SAXUilqlIhaVuI=
+Date:   Mon, 15 Mar 2021 10:47:53 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, mtk.manpages@gmail.com, vbabka@suse.cz
-Subject:  [merged]
- maintainers-exclude-uapi-directories-in-api-abi-section.patch removed from
- -mm tree
-Message-ID: <20210315174815.zeJjnsdQc%akpm@linux-foundation.org>
+To:     fenghua.yu@intel.com, jacob.jun.pan@intel.com,
+        jean-philippe@linaro.org, mm-commits@vger.kernel.org,
+        tony.luck@intel.com
+Subject:  [merged] mm-fork-clear-pasid-for-new-mm.patch removed
+ from -mm tree
+Message-ID: <20210315174753.YeUWTdISc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,52 +44,75 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: exclude uapi directories in API/ABI section
+     Subject: mm/fork: clear PASID for new mm
 has been removed from the -mm tree.  Its filename was
-     maintainers-exclude-uapi-directories-in-api-abi-section.patch
+     mm-fork-clear-pasid-for-new-mm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: MAINTAINERS: exclude uapi directories in API/ABI section
+From: Fenghua Yu <fenghua.yu@intel.com>
+Subject: mm/fork: clear PASID for new mm
 
-Commit 7b4693e644cb ("MAINTAINERS: add uapi directories to API/ABI
-section") added include/uapi/ and arch/*/include/uapi/ so that patches
-modifying them CC linux-api.  However that was already done in the past
-and resulted in too much noise and thus later removed, as explained in
-b14fd334ff3d ("MAINTAINERS: trim the file triggers for ABI/API")
+When a new mm is created, its PASID should be cleared, i.e.  the PASID is
+initialized to its init state 0 on both ARM and X86.
 
-To prevent another round of addition and removal in the future, change the
-entries to X: (explicit exclusion) for documentation purposes, although
-they are not subdirectories of broader included directories, as there is
-apparently no defined way to add plain comments in subsystem sections.
+This patch was part of the series introducing mm->pasid, but got lost
+along the way [1].  It still makes sense to have it, because each address
+space has a different PASID.  And the IOMMU code in
+iommu_sva_alloc_pasid() expects the pasid field of a new mm struct to be
+cleared.
 
-Link: https://lkml.kernel.org/r/20210301100255.25229-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Michael Kerrisk (man-pages) <mtk.manpages@gmail.com>
-Acked-by: Michael Kerrisk (man-pages) <mtk.manpages@gmail.com>
+[1] https://lore.kernel.org/linux-iommu/YDgh53AcQHT+T3L0@otcwcpicx3.sc.intel.com/
+
+Link: https://lkml.kernel.org/r/20210302103837.2562625-1-jean-philippe@linaro.org
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Signed-off-by: Jean-Philippe Brucker <jean-philippe@linaro.org>
+Reviewed-by: Tony Luck <tony.luck@intel.com>
+Cc: Jacob Pan <jacob.jun.pan@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm_types.h |    1 +
+ kernel/fork.c            |    8 ++++++++
+ 2 files changed, 9 insertions(+)
 
---- a/MAINTAINERS~maintainers-exclude-uapi-directories-in-api-abi-section
-+++ a/MAINTAINERS
-@@ -261,8 +261,8 @@ ABI/API
- L:	linux-api@vger.kernel.org
- F:	include/linux/syscalls.h
- F:	kernel/sys_ni.c
--F:	include/uapi/
--F:	arch/*/include/uapi/
-+X:	include/uapi/
-+X:	arch/*/include/uapi/
+--- a/include/linux/mm_types.h~mm-fork-clear-pasid-for-new-mm
++++ a/include/linux/mm_types.h
+@@ -23,6 +23,7 @@
+ #endif
+ #define AT_VECTOR_SIZE (2*(AT_VECTOR_SIZE_ARCH + AT_VECTOR_SIZE_BASE + 1))
  
- ABIT UGURU 1,2 HARDWARE MONITOR DRIVER
- M:	Hans de Goede <hdegoede@redhat.com>
++#define INIT_PASID	0
+ 
+ struct address_space;
+ struct mem_cgroup;
+--- a/kernel/fork.c~mm-fork-clear-pasid-for-new-mm
++++ a/kernel/fork.c
+@@ -994,6 +994,13 @@ static void mm_init_owner(struct mm_stru
+ #endif
+ }
+ 
++static void mm_init_pasid(struct mm_struct *mm)
++{
++#ifdef CONFIG_IOMMU_SUPPORT
++	mm->pasid = INIT_PASID;
++#endif
++}
++
+ static void mm_init_uprobes_state(struct mm_struct *mm)
+ {
+ #ifdef CONFIG_UPROBES
+@@ -1024,6 +1031,7 @@ static struct mm_struct *mm_init(struct
+ 	mm_init_cpumask(mm);
+ 	mm_init_aio(mm);
+ 	mm_init_owner(mm, p);
++	mm_init_pasid(mm);
+ 	RCU_INIT_POINTER(mm->exe_file, NULL);
+ 	mmu_notifier_subscriptions_init(mm);
+ 	init_tlb_flush_pending(mm);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from fenghua.yu@intel.com are
 
 
