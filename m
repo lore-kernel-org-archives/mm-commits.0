@@ -2,346 +2,568 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B9CEC433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Mar 2021 03:40:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DFD6C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Mar 2021 10:25:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D218A65037
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Mar 2021 03:40:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5524365024
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Mar 2021 10:25:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234799AbhCPDje (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Mar 2021 23:39:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51284 "EHLO mail.kernel.org"
+        id S236196AbhCPKZI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 16 Mar 2021 06:25:08 -0400
+Received: from mx2.suse.de ([195.135.220.15]:41694 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233371AbhCPDjD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Mar 2021 23:39:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5CE1F6501D;
-        Tue, 16 Mar 2021 03:39:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1615865942;
-        bh=aDxjmb/Yra0eZ/I+42Y0k2ruoic2qRGjxfY+d84S6KQ=;
-        h=Date:From:To:Subject:From;
-        b=MjGngVAwe0VGgI4akDwBS/3F1HypbjX5GAIQb4w4lOBDJ7fsvJqJuhFszqGO4ykrF
-         QF7bLsZSwKki5t6z1hQ3aWRSXNhYDKcJp63upkAvKF2IN+aCyW89MH66LtYOj5rTrV
-         HeKucVeZfRO6p1eO4zaTt741xlfoyScself638Vw=
-Date:   Mon, 15 Mar 2021 20:39:01 -0700
-From:   akpm@linux-foundation.org
-To:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-Subject:  mmotm 2021-03-15-20-38 uploaded
-Message-ID: <20210316033901.qJL7wWCP9%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S236678AbhCPKYy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 16 Mar 2021 06:24:54 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1615890292; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=E7Soa5V5EgZSMQnkSI8dnfzWNJo0sYMM8U88GpaiihU=;
+        b=tzDZsaCthrc0yGzsR0qF6wWjrAXe/XK4Ut/Er0IJ4tgLH/9fOAjK+oNz7nSYHmk1cxzkbs
+        HLSgenhJw27W7hi7Sj43nOYhJjlSkUEE7A1uPRWw+ebM2ZbZrBggXlkOpShgjI0VCrlqVx
+        Zwt5giErLUc1xlq0XVjZyU+XwWuv7Us=
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id 70EEEAC5C;
+        Tue, 16 Mar 2021 10:24:52 +0000 (UTC)
+Date:   Tue, 16 Mar 2021 11:24:44 +0100
+From:   Michal Hocko <mhocko@suse.com>
+To:     akpm@linux-foundation.org
+Cc:     almasrymina@google.com, anshuman.khandual@arm.com,
+        bodeddub@amazon.com, bp@alien8.de, bsingharora@gmail.com,
+        chenhuang5@huawei.com, corbet@lwn.net, dave.hansen@linux.intel.com,
+        david@redhat.com, hpa@zytor.com, joao.m.martins@oracle.com,
+        jroedel@suse.de, linmiaohe@huawei.com, luto@kernel.org,
+        mchehab+huawei@kernel.org, mike.kravetz@oracle.com,
+        mingo@redhat.com, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, oneukum@suse.com, osalvador@suse.de,
+        paulmck@kernel.org, pawan.kumar.gupta@linux.intel.com,
+        peterz@infradead.org, rdunlap@infradead.org, rientjes@google.com,
+        song.bao.hua@hisilicon.com, songmuchun@bytedance.com,
+        tglx@linutronix.de, viro@zeniv.linux.org.uk, willy@infradead.org
+Subject: Re: +
+ mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
+ added to -mm tree
+Message-ID: <YFCHbGtshunwQxyc@dhcp22.suse.cz>
+References: <20210315204819.8xAywsXO5%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210315204819.8xAywsXO5%akpm@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The mm-of-the-moment snapshot 2021-03-15-20-38 has been uploaded to
+Andrew,
+this patchset is still not ready for mmotm. Hugetlb freeing path needs a
+major surgery because it can be called from atomic contexts and a simple
+fix http://lkml.kernel.org/r/20210311021321.127500-1-mike.kravetz@oracle.com
+has been nacked by Peter. Until this is handled properly this has to
+wait and build on top.
 
-   https://www.ozlabs.org/~akpm/mmotm/
+On Mon 15-03-21 13:48:19, Andrew Morton wrote:
+> From: Muchun Song <songmuchun@bytedance.com>
+> Subject: mm: hugetlb: alloc the vmemmap pages associated with each HugeTLB page
+> 
+> When we free a HugeTLB page to the buddy allocator, we need to allocate
+> the vmemmap pages associated with it.  However, we may not be able to
+> allocate the vmemmap pages when the system is under memory pressure.  In
+> this case, we just refuse to free the HugeTLB page.  This changes behavior
+> in some corner cases as listed below:
+> 
+>  1) Failing to free a huge page triggered by the user (decrease nr_pages).
+> 
+>     User needs to try again later.
+> 
+>  2) Failing to free a surplus huge page when freed by the application.
+> 
+>     Try again later when freeing a huge page next time.
+> 
+>  3) Failing to dissolve a free huge page on ZONE_MOVABLE via
+>     offline_pages().
+> 
+>     This can happen when we have plenty of ZONE_MOVABLE memory, but
+>     not enough kernel memory to allocate vmemmmap pages.  We may even
+>     be able to migrate huge page contents, but will not be able to
+>     dissolve the source huge page.  This will prevent an offline
+>     operation and is unfortunate as memory offlining is expected to
+>     succeed on movable zones.  Users that depend on memory hotplug
+>     to succeed for movable zones should carefully consider whether the
+>     memory savings gained from this feature are worth the risk of
+>     possibly not being able to offline memory in certain situations.
+> 
+>  4) Failing to dissolve a huge page on CMA/ZONE_MOVABLE via
+>     alloc_contig_range() - once we have that handling in place. Mainly
+>     affects CMA and virtio-mem.
+> 
+>     Similar to 3). virito-mem will handle migration errors gracefully.
+>     CMA might be able to fallback on other free areas within the CMA
+>     region.
+> 
+> Vmemmap pages are allocated from the page freeing context.  In order for
+> those allocations to be not disruptive (e.g.  trigger oom killer)
+> __GFP_NORETRY is used.  hugetlb_lock is dropped for the allocation because
+> a non sleeping allocation would be too fragile and it could fail too
+> easily under memory pressure.  GFP_ATOMIC or other modes to access memory
+> reserves is not used because we want to prevent consuming reserves under
+> heavy hugetlb freeing.
+> 
+> Link: https://lkml.kernel.org/r/20210315092015.35396-6-songmuchun@bytedance.com
+> Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+> Tested-by: Chen Huang <chenhuang5@huawei.com>
+> Tested-by: Bodeddula Balasubramaniam <bodeddub@amazon.com>
+> Reviewed-by: Oscar Salvador <osalvador@suse.de>
+> Cc: Al Viro <viro@zeniv.linux.org.uk>
+> Cc: Andy Lutomirski <luto@kernel.org>
+> Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+> Cc: Balbir Singh <bsingharora@gmail.com>
+> Cc: Barry Song <song.bao.hua@hisilicon.com>
+> Cc: Borislav Petkov <bp@alien8.de>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: David Rientjes <rientjes@google.com>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: Joao Martins <joao.m.martins@oracle.com>
+> Cc: Joerg Roedel <jroedel@suse.de>
+> Cc: Jonathan Corbet <corbet@lwn.net>
+> Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+> Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+> Cc: Miaohe Lin <linmiaohe@huawei.com>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: Mike Kravetz <mike.kravetz@oracle.com>
+> Cc: Mina Almasry <almasrymina@google.com>
+> Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+> Cc: Oliver Neukum <oneukum@suse.com>
+> Cc: "Paul E. McKenney" <paulmck@kernel.org>
+> Cc: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Randy Dunlap <rdunlap@infradead.org>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  Documentation/admin-guide/mm/hugetlbpage.rst    |    8 +
+>  Documentation/admin-guide/mm/memory-hotplug.rst |   13 ++
+>  include/linux/mm.h                              |    2 
+>  mm/hugetlb.c                                    |   76 +++++++++++---
+>  mm/hugetlb_vmemmap.c                            |   43 +++++--
+>  mm/hugetlb_vmemmap.h                            |   23 ++++
+>  mm/sparse-vmemmap.c                             |   75 +++++++++++++
+>  7 files changed, 211 insertions(+), 29 deletions(-)
+> 
+> --- a/Documentation/admin-guide/mm/hugetlbpage.rst~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
+> +++ a/Documentation/admin-guide/mm/hugetlbpage.rst
+> @@ -60,6 +60,10 @@ HugePages_Surp
+>          the pool above the value in ``/proc/sys/vm/nr_hugepages``. The
+>          maximum number of surplus huge pages is controlled by
+>          ``/proc/sys/vm/nr_overcommit_hugepages``.
+> +	Note: When the feature of freeing unused vmemmap pages associated
+> +	with each hugetlb page is enabled, the number of surplus huge pages
+> +	may be temporarily larger than the maximum number of surplus huge
+> +	pages when the system is under memory pressure.
+>  Hugepagesize
+>  	is the default hugepage size (in Kb).
+>  Hugetlb
+> @@ -80,6 +84,10 @@ returned to the huge page pool when free
+>  privileges can dynamically allocate more or free some persistent huge pages
+>  by increasing or decreasing the value of ``nr_hugepages``.
+>  
+> +Note: When the feature of freeing unused vmemmap pages associated with each
+> +hugetlb page is enabled, we can fail to free the huge pages triggered by
+> +the user when ths system is under memory pressure.  Please try again later.
+> +
+>  Pages that are used as huge pages are reserved inside the kernel and cannot
+>  be used for other purposes.  Huge pages cannot be swapped out under
+>  memory pressure.
+> --- a/Documentation/admin-guide/mm/memory-hotplug.rst~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
+> +++ a/Documentation/admin-guide/mm/memory-hotplug.rst
+> @@ -357,6 +357,19 @@ creates ZONE_MOVABLE as following.
+>     Unfortunately, there is no information to show which memory block belongs
+>     to ZONE_MOVABLE. This is TBD.
+>  
+> +   Memory offlining can fail when dissolving a free huge page on ZONE_MOVABLE
+> +   and the feature of freeing unused vmemmap pages associated with each hugetlb
+> +   page is enabled.
+> +
+> +   This can happen when we have plenty of ZONE_MOVABLE memory, but not enough
+> +   kernel memory to allocate vmemmmap pages.  We may even be able to migrate
+> +   huge page contents, but will not be able to dissolve the source huge page.
+> +   This will prevent an offline operation and is unfortunate as memory offlining
+> +   is expected to succeed on movable zones.  Users that depend on memory hotplug
+> +   to succeed for movable zones should carefully consider whether the memory
+> +   savings gained from this feature are worth the risk of possibly not being
+> +   able to offline memory in certain situations.
+> +
+>  .. _memory_hotplug_how_to_offline_memory:
+>  
+>  How to offline memory
+> --- a/include/linux/mm.h~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
+> +++ a/include/linux/mm.h
+> @@ -3006,6 +3006,8 @@ static inline void print_vma_addr(char *
+>  
+>  void vmemmap_remap_free(unsigned long start, unsigned long end,
+>  			unsigned long reuse);
+> +int vmemmap_remap_alloc(unsigned long start, unsigned long end,
+> +			unsigned long reuse, gfp_t gfp_mask);
+>  
+>  void *sparse_buffer_alloc(unsigned long size);
+>  struct page * __populate_section_memmap(unsigned long pfn,
+> --- a/mm/hugetlb.c~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
+> +++ a/mm/hugetlb.c
+> @@ -1329,16 +1329,53 @@ static inline void destroy_compound_giga
+>  						unsigned int order) { }
+>  #endif
+>  
+> -static void update_and_free_page(struct hstate *h, struct page *page)
+> +static int update_and_free_page_surplus(struct hstate *h, struct page *page,
+> +					bool acct_surplus)
+> +	__releases(&hugetlb_lock) __acquires(&hugetlb_lock)
+>  {
+>  	int i;
+>  	struct page *subpage = page;
+> +	int nid = page_to_nid(page);
+>  
+>  	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
+> -		return;
+> +		return 0;
+>  
+>  	h->nr_huge_pages--;
+> -	h->nr_huge_pages_node[page_to_nid(page)]--;
+> +	h->nr_huge_pages_node[nid]--;
+> +
+> +	/*
+> +	 * If the vmemmap pages associated with the HugeTLB page can be
+> +	 * optimized, we might block in alloc_huge_page_vmemmap(), so
+> +	 * drop the hugetlb_lock.
+> +	 */
+> +	if (free_vmemmap_pages_per_hpage(h))
+> +		spin_unlock(&hugetlb_lock);
+> +
+> +	if (alloc_huge_page_vmemmap(h, page)) {
+> +		spin_lock(&hugetlb_lock);
+> +		INIT_LIST_HEAD(&page->lru);
+> +		h->nr_huge_pages++;
+> +		h->nr_huge_pages_node[nid]++;
+> +
+> +		/*
+> +		 * If we cannot allocate vmemmap pages, just refuse to free the
+> +		 * page and put the page back on the hugetlb free list and treat
+> +		 * as a surplus page.
+> +		 */
+> +		if (acct_surplus) {
+> +			h->surplus_huge_pages++;
+> +			h->surplus_huge_pages_node[nid]++;
+> +		}
+> +
+> +		arch_clear_hugepage_flags(page);
+> +		enqueue_huge_page(h, page);
+> +
+> +		return -ENOMEM;
+> +	}
+> +
+> +	if (free_vmemmap_pages_per_hpage(h))
+> +		spin_lock(&hugetlb_lock);
+> +
+>  	for (i = 0; i < pages_per_huge_page(h);
+>  	     i++, subpage = mem_map_next(subpage, page, i)) {
+>  		subpage->flags &= ~(1 << PG_locked | 1 << PG_error |
+> @@ -1362,6 +1399,13 @@ static void update_and_free_page(struct
+>  	} else {
+>  		__free_pages(page, huge_page_order(h));
+>  	}
+> +
+> +	return 0;
+> +}
+> +
+> +static inline int update_and_free_page(struct hstate *h, struct page *page)
+> +{
+> +	return update_and_free_page_surplus(h, page, true);
+>  }
+>  
+>  struct hstate *size_to_hstate(unsigned long size)
+> @@ -1429,9 +1473,9 @@ static void __free_huge_page(struct page
+>  	} else if (h->surplus_huge_pages_node[nid]) {
+>  		/* remove the page from active list */
+>  		list_del(&page->lru);
+> -		update_and_free_page(h, page);
+>  		h->surplus_huge_pages--;
+>  		h->surplus_huge_pages_node[nid]--;
+> +		update_and_free_page(h, page);
+>  	} else {
+>  		arch_clear_hugepage_flags(page);
+>  		enqueue_huge_page(h, page);
+> @@ -1472,7 +1516,7 @@ void free_huge_page(struct page *page)
+>  	/*
+>  	 * Defer freeing if in non-task context to avoid hugetlb_lock deadlock.
+>  	 */
+> -	if (!in_task()) {
+> +	if (in_atomic()) {
+>  		/*
+>  		 * Only call schedule_work() if hpage_freelist is previously
+>  		 * empty. Otherwise, schedule_work() had been called but the
+> @@ -1719,14 +1763,14 @@ static int free_pool_huge_page(struct hs
+>  				list_entry(h->hugepage_freelists[node].next,
+>  					  struct page, lru);
+>  			list_del(&page->lru);
+> +			ClearHPageFreed(page);
+>  			h->free_huge_pages--;
+>  			h->free_huge_pages_node[node]--;
+>  			if (acct_surplus) {
+>  				h->surplus_huge_pages--;
+>  				h->surplus_huge_pages_node[node]--;
+>  			}
+> -			update_and_free_page(h, page);
+> -			ret = 1;
+> +			ret = !update_and_free_page(h, page);
+>  			break;
+>  		}
+>  	}
+> @@ -1739,10 +1783,14 @@ static int free_pool_huge_page(struct hs
+>   * nothing for in-use hugepages and non-hugepages.
+>   * This function returns values like below:
+>   *
+> - *  -EBUSY: failed to dissolved free hugepages or the hugepage is in-use
+> - *          (allocated or reserved.)
+> - *       0: successfully dissolved free hugepages or the page is not a
+> - *          hugepage (considered as already dissolved)
+> + *  -ENOMEM: failed to allocate vmemmap pages to free the freed hugepages
+> + *           when the system is under memory pressure and the feature of
+> + *           freeing unused vmemmap pages associated with each hugetlb page
+> + *           is enabled.
+> + *  -EBUSY:  failed to dissolved free hugepages or the hugepage is in-use
+> + *           (allocated or reserved.)
+> + *       0:  successfully dissolved free hugepages or the page is not a
+> + *           hugepage (considered as already dissolved)
+>   */
+>  int dissolve_free_huge_page(struct page *page)
+>  {
+> @@ -1794,11 +1842,13 @@ retry:
+>  			ClearPageHWPoison(head);
+>  		}
+>  		list_del(&head->lru);
+> +		ClearHPageFreed(page);
+>  		h->free_huge_pages--;
+>  		h->free_huge_pages_node[nid]--;
+>  		h->max_huge_pages--;
+> -		update_and_free_page(h, head);
+> -		rc = 0;
+> +		rc = update_and_free_page_surplus(h, head, false);
+> +		if (rc)
+> +			h->max_huge_pages++;
+>  	}
+>  out:
+>  	spin_unlock(&hugetlb_lock);
+> --- a/mm/hugetlb_vmemmap.c~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
+> +++ a/mm/hugetlb_vmemmap.c
+> @@ -18,10 +18,9 @@
+>   * 4096 base pages. For each base page, there is a corresponding page struct.
+>   *
+>   * Within the HugeTLB subsystem, only the first 4 page structs are used to
+> - * contain unique information about a HugeTLB page. HUGETLB_CGROUP_MIN_ORDER
+> - * provides this upper limit. The only 'useful' information in the remaining
+> - * page structs is the compound_head field, and this field is the same for all
+> - * tail pages.
+> + * contain unique information about a HugeTLB page. __NR_USED_SUBPAGE provides
+> + * this upper limit. The only 'useful' information in the remaining page structs
+> + * is the compound_head field, and this field is the same for all tail pages.
+>   *
+>   * By removing redundant page structs for HugeTLB pages, memory can be returned
+>   * to the buddy allocator for other uses.
+> @@ -181,21 +180,35 @@
+>  #define RESERVE_VMEMMAP_NR		2U
+>  #define RESERVE_VMEMMAP_SIZE		(RESERVE_VMEMMAP_NR << PAGE_SHIFT)
+>  
+> -/*
+> - * How many vmemmap pages associated with a HugeTLB page that can be freed
+> - * to the buddy allocator.
+> - *
+> - * Todo: Returns zero for now, which means the feature is disabled. We will
+> - * enable it once all the infrastructure is there.
+> - */
+> -static inline unsigned int free_vmemmap_pages_per_hpage(struct hstate *h)
+> +static inline unsigned long free_vmemmap_pages_size_per_hpage(struct hstate *h)
+>  {
+> -	return 0;
+> +	return (unsigned long)free_vmemmap_pages_per_hpage(h) << PAGE_SHIFT;
+>  }
+>  
+> -static inline unsigned long free_vmemmap_pages_size_per_hpage(struct hstate *h)
+> +/*
+> + * Previously discarded vmemmap pages will be allocated and remapping
+> + * after this function returns.
+> + */
+> +int alloc_huge_page_vmemmap(struct hstate *h, struct page *head)
+>  {
+> -	return (unsigned long)free_vmemmap_pages_per_hpage(h) << PAGE_SHIFT;
+> +	unsigned long vmemmap_addr = (unsigned long)head;
+> +	unsigned long vmemmap_end, vmemmap_reuse;
+> +
+> +	if (!free_vmemmap_pages_per_hpage(h))
+> +		return 0;
+> +
+> +	vmemmap_addr += RESERVE_VMEMMAP_SIZE;
+> +	vmemmap_end = vmemmap_addr + free_vmemmap_pages_size_per_hpage(h);
+> +	vmemmap_reuse = vmemmap_addr - PAGE_SIZE;
+> +	/*
+> +	 * The pages which the vmemmap virtual address range [@vmemmap_addr,
+> +	 * @vmemmap_end) are mapped to are freed to the buddy allocator, and
+> +	 * the range is mapped to the page which @vmemmap_reuse is mapped to.
+> +	 * When a HugeTLB page is freed to the buddy allocator, previously
+> +	 * discarded vmemmap pages must be allocated and remapping.
+> +	 */
+> +	return vmemmap_remap_alloc(vmemmap_addr, vmemmap_end, vmemmap_reuse,
+> +				   GFP_KERNEL | __GFP_NORETRY | __GFP_THISNODE);
+>  }
+>  
+>  void free_huge_page_vmemmap(struct hstate *h, struct page *head)
+> --- a/mm/hugetlb_vmemmap.h~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
+> +++ a/mm/hugetlb_vmemmap.h
+> @@ -11,10 +11,33 @@
+>  #include <linux/hugetlb.h>
+>  
+>  #ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
+> +int alloc_huge_page_vmemmap(struct hstate *h, struct page *head);
+>  void free_huge_page_vmemmap(struct hstate *h, struct page *head);
+> +
+> +/*
+> + * How many vmemmap pages associated with a HugeTLB page that can be freed
+> + * to the buddy allocator.
+> + *
+> + * Todo: Returns zero for now, which means the feature is disabled. We will
+> + * enable it once all the infrastructure is there.
+> + */
+> +static inline unsigned int free_vmemmap_pages_per_hpage(struct hstate *h)
+> +{
+> +	return 0;
+> +}
+>  #else
+> +static inline int alloc_huge_page_vmemmap(struct hstate *h, struct page *head)
+> +{
+> +	return 0;
+> +}
+> +
+>  static inline void free_huge_page_vmemmap(struct hstate *h, struct page *head)
+>  {
+>  }
+> +
+> +static inline unsigned int free_vmemmap_pages_per_hpage(struct hstate *h)
+> +{
+> +	return 0;
+> +}
+>  #endif /* CONFIG_HUGETLB_PAGE_FREE_VMEMMAP */
+>  #endif /* _LINUX_HUGETLB_VMEMMAP_H */
+> --- a/mm/sparse-vmemmap.c~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
+> +++ a/mm/sparse-vmemmap.c
+> @@ -40,7 +40,8 @@
+>   * @remap_pte:		called for each lowest-level entry (PTE).
+>   * @reuse_page:		the page which is reused for the tail vmemmap pages.
+>   * @reuse_addr:		the virtual address of the @reuse_page page.
+> - * @vmemmap_pages:	the list head of the vmemmap pages that can be freed.
+> + * @vmemmap_pages:	the list head of the vmemmap pages that can be freed
+> + *			or is mapped from.
+>   */
+>  struct vmemmap_remap_walk {
+>  	void (*remap_pte)(pte_t *pte, unsigned long addr,
+> @@ -224,6 +225,78 @@ void vmemmap_remap_free(unsigned long st
+>  	free_vmemmap_page_list(&vmemmap_pages);
+>  }
+>  
+> +static void vmemmap_restore_pte(pte_t *pte, unsigned long addr,
+> +				struct vmemmap_remap_walk *walk)
+> +{
+> +	pgprot_t pgprot = PAGE_KERNEL;
+> +	struct page *page;
+> +	void *to;
+> +
+> +	BUG_ON(pte_page(*pte) != walk->reuse_page);
+> +
+> +	page = list_first_entry(walk->vmemmap_pages, struct page, lru);
+> +	list_del(&page->lru);
+> +	to = page_to_virt(page);
+> +	copy_page(to, (void *)walk->reuse_addr);
+> +
+> +	set_pte_at(&init_mm, addr, pte, mk_pte(page, pgprot));
+> +}
+> +
+> +static int alloc_vmemmap_page_list(unsigned long start, unsigned long end,
+> +				   gfp_t gfp_mask, struct list_head *list)
+> +{
+> +	unsigned long nr_pages = (end - start) >> PAGE_SHIFT;
+> +	int nid = page_to_nid((struct page *)start);
+> +	struct page *page, *next;
+> +
+> +	while (nr_pages--) {
+> +		page = alloc_pages_node(nid, gfp_mask, 0);
+> +		if (!page)
+> +			goto out;
+> +		list_add_tail(&page->lru, list);
+> +	}
+> +
+> +	return 0;
+> +out:
+> +	list_for_each_entry_safe(page, next, list, lru)
+> +		__free_pages(page, 0);
+> +	return -ENOMEM;
+> +}
+> +
+> +/**
+> + * vmemmap_remap_alloc - remap the vmemmap virtual address range [@start, end)
+> + *			 to the page which is from the @vmemmap_pages
+> + *			 respectively.
+> + * @start:	start address of the vmemmap virtual address range that we want
+> + *		to remap.
+> + * @end:	end address of the vmemmap virtual address range that we want to
+> + *		remap.
+> + * @reuse:	reuse address.
+> + * @gpf_mask:	GFP flag for allocating vmemmap pages.
+> + */
+> +int vmemmap_remap_alloc(unsigned long start, unsigned long end,
+> +			unsigned long reuse, gfp_t gfp_mask)
+> +{
+> +	LIST_HEAD(vmemmap_pages);
+> +	struct vmemmap_remap_walk walk = {
+> +		.remap_pte	= vmemmap_restore_pte,
+> +		.reuse_addr	= reuse,
+> +		.vmemmap_pages	= &vmemmap_pages,
+> +	};
+> +
+> +	/* See the comment in the vmemmap_remap_free(). */
+> +	BUG_ON(start - reuse != PAGE_SIZE);
+> +
+> +	might_sleep_if(gfpflags_allow_blocking(gfp_mask));
+> +
+> +	if (alloc_vmemmap_page_list(start, end, gfp_mask, &vmemmap_pages))
+> +		return -ENOMEM;
+> +
+> +	vmemmap_remap_range(reuse, end, &walk);
+> +
+> +	return 0;
+> +}
+> +
+>  /*
+>   * Allocate a block of memory to be used to back the virtual memory map
+>   * or to back the page tables that are used to create the mapping.
+> _
+> 
+> Patches currently in -mm which might be from songmuchun@bytedance.com are
+> 
+> mm-memcontrol-fix-kernel-stack-account.patch
+> mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc.patch
+> mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch
+> mm-hugetlb-gather-discrete-indexes-of-tail-page.patch
+> mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
+> mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
+> mm-hugetlb-set-the-pagehwpoison-to-the-raw-error-page.patch
+> mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap.patch
+> mm-hugetlb-introduce-nr_free_vmemmap_pages-in-the-struct-hstate.patch
 
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-https://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (5.x
-or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-https://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
-
-	https://github.com/hnaz/linux-mm
-
-The directory https://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
-
-A git copy of this tree is also available at
-
-	https://github.com/hnaz/linux-mm
-
-
-
-This mmotm tree contains the following patches against 5.12-rc3:
-(patches marked "*" will be included in linux-next)
-
-* hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings.patch
-* kasan-fix-per-page-tags-for-non-page_alloc-pages.patch
-* mm-mmu_notifiers-esnure-range_end-is-paired-with-range_start.patch
-* selftests-vm-fix-out-of-tree-build.patch
-* z3fold-prevent-reclaim-free-race-for-headless-pages.patch
-* squashfs-fix-inode-lookup-sanity-checks.patch
-* squashfs-fix-xattr-id-and-id-lookup-sanity-checks.patch
-* ia64-mca-allocate-early-mca-with-gfp_atomic.patch
-* ia64-fix-format-strings-for-err_inject.patch
-* gcov-fix-clang-11-support.patch
-* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
-* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
-* module-remove-duplicate-include-in-arch-ia64-kernel-heads.patch
-* ia64-kernel-few-typos-fixed-in-the-file-fsyss.patch
-* ia64-include-asm-minor-typo-fixes-in-the-file-pgtableh.patch
-* sparse-can-do-constant-folding-of-__builtin_bswap.patch
-* scripts-spellingtxt-add-overlfow.patch
-* scripts-spellingtxt-add-diabled-typo.patch
-* scripts-spellingtxt-add-overflw.patch
-* sh-remove-duplicate-include-in-tlbh.patch
-* ocfs2-replace-define_simple_attribute-with-define_debugfs_attribute.patch
-* ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
-* ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
-* watchdog-rename-__touch_watchdog-to-a-better-descriptive-name.patch
-* watchdog-explicitly-update-timestamp-when-reporting-softlockup.patch
-* watchdog-softlockup-report-the-overall-time-of-softlockups.patch
-* watchdog-softlockup-remove-logic-that-tried-to-prevent-repeated-reports.patch
-* watchdog-fix-barriers-when-printing-backtraces-from-all-cpus.patch
-* watchdog-cleanup-handling-of-false-positives.patch
-  mm.patch
-* mm-slub-enable-slub_debug-static-key-when-creating-cache-with-explicit-debug-flags.patch
-* mm-page_owner-record-the-timestamp-of-all-pages-during-free.patch
-* mm-provide-filemap_range_needs_writeback-helper.patch
-* mm-use-filemap_range_needs_writeback-for-o_direct-reads.patch
-* iomap-use-filemap_range_needs_writeback-for-o_direct-reads.patch
-* mm-filemap-use-filemap_read_page-in-filemap_fault.patch
-* mm-filemap-drop-check-for-truncated-page-after-i-o.patch
-* mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback.patch
-* mm-introduce-and-use-mapping_empty.patch
-* mm-stop-accounting-shadow-entries.patch
-* dax-account-dax-entries-as-nrpages.patch
-* mm-remove-nrexceptional-from-inode.patch
-* mm-msync-exit-early-when-the-flags-is-an-ms_async-and-start-vm_start.patch
-* mm-memremap-fixes-improper-spdx-comment-style.patch
-* mm-memcontrol-fix-kernel-stack-account.patch
-* memcg-cleanup-root-memcg-checks.patch
-* memcg-enable-memcg-oom-kill-for-__gfp_nofail.patch
-* memcg-charge-before-adding-to-swapcache-on-swapin.patch
-* mm-memcontrol-fix-cpuhotplug-statistics-flushing.patch
-* mm-memcontrol-kill-mem_cgroup_nodeinfo.patch
-* mm-memcontrol-privatize-memcg_page_state-query-functions.patch
-* cgroup-rstat-support-cgroup1.patch
-* cgroup-rstat-punt-root-level-optimization-to-individual-controllers.patch
-* mm-memcontrol-switch-to-rstat.patch
-* mm-memcontrol-switch-to-rstat-fix.patch
-* mm-memcontrol-switch-to-rstat-fix-2.patch
-* mm-memcontrol-consolidate-lruvec-stat-flushing.patch
-* kselftests-cgroup-update-kmem-test-for-new-vmstat-implementation.patch
-* mm-delete-bool-migrated.patch
-* mm-interval_tree-add-comments-to-improve-code-reading.patch
-* x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
-* x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
-* x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
-* x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
-* mm-tracing-improve-rss_stat-tracepoint-message.patch
-* mm-allow-shmem-mappings-with-mremap_dontunmap.patch
-* mm-dmapool-switch-from-strlcpy-to-strscpy.patch
-* samples-vfio-mdev-mdpy-use-remap_vmalloc_range.patch
-* mm-unexport-remap_vmalloc_range_partial.patch
-* mm-vmalloc-use-rb_tree-instead-of-list-for-vread-lookups.patch
-* kasan-remove-redundant-config-option.patch
-* kasan-remove-redundant-config-option-fix.patch
-* mm-kasan-switch-from-strlcpy-to-strscpy.patch
-* kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch
-* mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
-* arm64-kasan-allow-to-init-memory-when-setting-tags.patch
-* kasan-init-memory-in-kasan_unpoison-for-hw_tags.patch
-* kasan-mm-integrate-page_alloc-init-with-hw_tags.patch
-* kasan-mm-integrate-slab-init_on_alloc-with-hw_tags.patch
-* kasan-mm-integrate-slab-init_on_free-with-hw_tags.patch
-* kasan-docs-clean-up-sections.patch
-* kasan-docs-update-overview-section.patch
-* kasan-docs-update-usage-section.patch
-* kasan-docs-update-error-reports-section.patch
-* kasan-docs-update-boot-parameters-section.patch
-* kasan-docs-update-generic-implementation-details-section.patch
-* kasan-docs-update-sw_tags-implementation-details-section.patch
-* kasan-docs-update-hw_tags-implementation-details-section.patch
-* kasan-docs-update-shadow-memory-section.patch
-* kasan-docs-update-ignoring-accesses-section.patch
-* kasan-docs-update-tests-section.patch
-* mm-page_alloc-drop-pr_info_ratelimited-in-alloc_contig_range.patch
-* mm-remove-lru_add_drain_all-in-alloc_contig_range.patch
-* mm-correctly-determine-last_cpupid_width.patch
-* mm-clean-up-include-linux-page-flags-layouth.patch
-* mm-page_alloc-rename-alloc_mask-to-alloc_gfp.patch
-* mm-page_alloc-rename-gfp_mask-to-gfp.patch
-* mm-page_alloc-combine-__alloc_pages-and-__alloc_pages_nodemask.patch
-* mm-mempolicy-rename-alloc_pages_current-to-alloc_pages.patch
-* mm-mempolicy-rewrite-alloc_pages-documentation.patch
-* mm-mempolicy-rewrite-alloc_pages_vma-documentation.patch
-* mm-mempolicy-fix-mpol_misplaced-kernel-doc.patch
-* mm-page_alloc-dump-migrate-failed-pages.patch
-* mm-remove-default-discontigmem_manual.patch
-* hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share.patch
-* hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share-fix.patch
-* hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
-* hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix.patch
-* mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
-* hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
-* mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
-* mm-generalize-hugetlb_page_size_variable.patch
-* mm-hugetlb-use-some-helper-functions-to-cleanup-code.patch
-* mm-hugetlb-optimize-the-surplus-state-transfer-code-in-move_hugetlb_state.patch
-* hugetlb_cgroup-remove-unnecessary-vm_bug_on_page-in-hugetlb_cgroup_migrate.patch
-* mm-hugetlb-simplify-the-code-when-alloc_huge_page-failed-in-hugetlb_no_page.patch
-* mm-hugetlb-avoid-calculating-fault_mutex_hash-in-truncate_op-case.patch
-* khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps.patch
-* khugepaged-reuse-the-smp_wmb-inside-__setpageuptodate.patch
-* khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
-* khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate.patch
-* mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
-* mm-huge_memory-a-new-debugfs-interface-for-splitting-thp-tests.patch
-* mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc.patch
-* mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch
-* mm-hugetlb-gather-discrete-indexes-of-tail-page.patch
-* mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
-* mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
-* mm-hugetlb-set-the-pagehwpoison-to-the-raw-error-page.patch
-* mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap.patch
-* mm-hugetlb-introduce-nr_free_vmemmap_pages-in-the-struct-hstate.patch
-* userfaultfd-add-minor-fault-registration-mode.patch
-* userfaultfd-disable-huge-pmd-sharing-for-minor-registered-vmas.patch
-* userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
-* userfaultfd-add-uffdio_continue-ioctl.patch
-* userfaultfd-update-documentation-to-describe-minor-fault-handling.patch
-* userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch
-* userfaultfd-support-minor-fault-handling-for-shmem.patch
-* userfaultfd-support-minor-fault-handling-for-shmem-fix.patch
-* userfaultfd-selftests-use-memfd_create-for-shmem-test-type.patch
-* userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch
-* userfaultfd-selftests-reinitialize-test-context-in-each-test.patch
-* userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
-* userfaultfd-selftests-use-user-mode-only.patch
-* userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch
-* userfaultfd-selftests-dropping-verify-check-in-locking_thread.patch
-* userfaultfd-selftests-only-dump-counts-if-mode-enabled.patch
-* userfaultfd-selftests-unify-error-handling.patch
-* mm-vmscan-move-reclaim-bits-to-uapi-header.patch
-* mm-vmscan-replace-implicit-reclaim_zone-checks-with-explicit-checks.patch
-* mm-vmscan-use-nid-from-shrink_control-for-tracepoint.patch
-* mm-vmscan-consolidate-shrinker_maps-handling-code.patch
-* mm-vmscan-use-shrinker_rwsem-to-protect-shrinker_maps-allocation.patch
-* mm-vmscan-remove-memcg_shrinker_map_size.patch
-* mm-vmscan-use-kvfree_rcu-instead-of-call_rcu.patch
-* mm-memcontrol-rename-shrinker_map-to-shrinker_info.patch
-* mm-vmscan-add-shrinker_info_protected-helper.patch
-* mm-vmscan-use-a-new-flag-to-indicate-shrinker-is-registered.patch
-* mm-vmscan-add-per-memcg-shrinker-nr_deferred.patch
-* mm-vmscan-use-per-memcg-nr_deferred-of-shrinker.patch
-* mm-vmscan-dont-need-allocate-shrinker-nr_deferred-for-memcg-aware-shrinkers.patch
-* mm-memcontrol-reparent-nr_deferred-when-memcg-offline.patch
-* mm-vmscan-shrink-deferred-objects-proportional-to-priority.patch
-* mm-compaction-remove-unused-variable-sysctl_compact_memory.patch
-* mm-compaction-update-the-compact-events-properly.patch
-* mm-vmstat-add-cma-statistics.patch
-* mm-cma-use-pr_err_ratelimited-for-cma-warning.patch
-* mm-cma-support-sysfs.patch
-* mm-restore-node-stat-checking-in-proc-sys-vm-stat_refresh.patch
-* mm-no-more-einval-from-proc-sys-vm-stat_refresh.patch
-* mm-proc-sys-vm-stat_refresh-skip-checking-known-negative-stats.patch
-* mm-proc-sys-vm-stat_refresh-stop-checking-monotonic-numa-stats.patch
-* x86-mm-tracking-linear-mapping-split-events.patch
-* mm-mmap-dont-unlock-vmas-in-remap_file_pages.patch
-* mm-reduce-mem_dump_obj-object-size.patch
-* mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
-* mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch
-* mm-gup-return-an-error-on-migration-failure.patch
-* mm-gup-check-for-isolation-errors.patch
-* mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin.patch
-* mm-apply-per-task-gfp-constraints-in-fast-path.patch
-* mm-honor-pf_memalloc_pin-for-all-movable-pages.patch
-* mm-gup-do-not-migrate-zero-page.patch
-* mm-gup-migrate-pinned-pages-out-of-movable-zone.patch
-* memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning.patch
-* mm-gup-change-index-type-to-long-as-it-counts-pages.patch
-* mm-gup-longterm-pin-migration-cleanup.patch
-* selftests-vm-gup_test-fix-test-flag.patch
-* selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages.patch
-* mmmemory_hotplug-allocate-memmap-from-the-added-memory-range.patch
-* mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
-* acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
-* mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
-* x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
-* arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
-* mm-zswap-switch-from-strlcpy-to-strscpy.patch
-* iov_iter-lift-memzero_page-to-highmemh.patch
-* btrfs-use-memzero_page-instead-of-open-coded-kmap-pattern.patch
-* mm-highmemc-fix-coding-style-issue.patch
-* mm-highmem-remove-deprecated-kmap_atomic.patch
-* mm-mempool-minor-coding-style-tweaks.patch
-* mm-swapfile-minor-coding-style-tweaks.patch
-* mm-sparse-minor-coding-style-tweaks.patch
-* mm-vmscan-minor-coding-style-tweaks.patch
-* mm-compaction-minor-coding-style-tweaks.patch
-* mm-oom_kill-minor-coding-style-tweaks.patch
-* mm-shmem-minor-coding-style-tweaks.patch
-* mm-page_alloc-minor-coding-style-tweaks.patch
-* mm-filemap-minor-coding-style-tweaks.patch
-* mm-mlock-minor-coding-style-tweaks.patch
-* mm-frontswap-minor-coding-style-tweaks.patch
-* mm-vmalloc-minor-coding-style-tweaks.patch
-* mm-memory_hotplug-minor-coding-style-tweaks.patch
-* mm-mempolicy-minor-coding-style-tweaks.patch
-* mm-process_vm_access-remove-duplicate-include.patch
-* kfence-zero-guard-page-after-out-of-bounds-access.patch
-* info-task-hung-in-generic_file_write_iter.patch
-* info-task-hung-in-generic_file_write-fix.patch
-* kernel-hung_taskc-monitor-killed-tasks.patch
-* procfs-allow-reading-fdinfo-with-ptrace_mode_read.patch
-* procfs-dmabuf-add-inode-number-to-proc-fdinfo.patch
-* proc-sysctl-fix-function-name-error-in-comments.patch
-* proc-sysctl-make-protected_-world-readable.patch
-* include-remove-pagemaph-from-blkdevh.patch
-* kernel-asyncc-fix-pr_debug-statement.patch
-* kernel-credc-make-init_groups-static.patch
-* umh-fix-some-spelling-mistakes.patch
-* lib-fix-a-typo-in-the-file-bchc.patch
-* lib-fix-inconsistent-indenting-in-process_bit1.patch
-* lib-fix-typo-in-function-description.patch
-* compat-remove-unneeded-declaration-from-compat_syscall_definex.patch
-* fs-fat-fix-spelling-typo-of-values.patch
-* do_wait-make-pidtype_pid-case-o1-instead-of-on.patch
-* simplify-copy_mm.patch
-* kernel-crash_core-add-crashkernel=auto-for-vmcore-creation.patch
-* kexec-add-kexec-reboot-string.patch
-* kernel-kexec_file-fix-error-return-code-of-kexec_calculate_store_digests.patch
-* gcov-clang-drop-support-for-clang-10-and-older.patch
-* gcov-combine-common-code.patch
-* gcov-simplify-buffer-allocation.patch
-* gcov-use-kvmalloc.patch
-* aio-simplify-read_events.patch
-* gdb-lx-symbols-store-the-abspath.patch
-* scripts-gdb-document-lx_current-is-only-supported-by-x86.patch
-* scripts-gdb-add-lx_current-support-for-arm64.patch
-* kernel-asyncc-stop-guarding-pr_debug-statements.patch
-* kernel-asyncc-remove-async_unregister_domain.patch
-* init-initramfsc-do-unpacking-asynchronously.patch
-* modules-add-config_modprobe_path.patch
-  linux-next.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  mutex-subsystem-synchro-test-module.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  workaround-for-a-pci-restoring-bug.patch
+-- 
+Michal Hocko
+SUSE Labs
