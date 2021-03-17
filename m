@@ -7,38 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F83CC433E9
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 23:04:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D98DC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 23:04:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4396464F68
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 23:04:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A82A64E77
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 23:04:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229874AbhCQXDd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 19:03:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40786 "EHLO mail.kernel.org"
+        id S229784AbhCQXEG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 19:04:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41010 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229930AbhCQXDY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 19:03:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4F3EB64F2B;
-        Wed, 17 Mar 2021 23:03:23 +0000 (UTC)
+        id S229898AbhCQXDj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 19:03:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 16D4064F33;
+        Wed, 17 Mar 2021 23:03:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616022204;
-        bh=q35OP8Eb8aUsmez0Wohwi6rAb1PentpXm+BK+6xsDv0=;
+        s=korg; t=1616022218;
+        bh=klyd0BiyjeCn8QRiBgBqNh0Z7ESBuWjYLi7+G9dA2DU=;
         h=Date:From:To:Subject:From;
-        b=P6AAsSQJWXoXaAp4/LDQZrlCZq+1NmaTn7+IubdN79DBKBEAES5Je122rYrRQZU+J
-         gttYBh4F3Gmjqdk6TNmi7ZX8uanlH+dzmijIo2UZNYfhwVe6gTcEvFIbl5Jua7aZDQ
-         GAsZ5QiaWnsl3NGW0evMFo56//KJjjFEu7K/fR7w=
-Date:   Wed, 17 Mar 2021 16:03:22 -0700
+        b=0SAgyorRA18vUWgUBPmq591p4UQnr5EBxLry2LHTemWgNSLbc9EGi7lzlnG2Ss0dD
+         L/F8U/rkUIWYdsLtPC2g5HPyomv4GeOBkSe+X0mgomA6hTrYksgda3DK6ZKm7U0+lJ
+         Kj+tiSJjtRMIvSavOOZDBx3SJOKTwneH/BWqrRcw=
+Date:   Wed, 17 Mar 2021 16:03:37 -0700
 From:   akpm@linux-foundation.org
 To:     bp@alien8.de, catalin.marinas@arm.com, dingtianhong@huawei.com,
         hch@lst.de, hpa@zytor.com, linmiaohe@huawei.com,
         linux@armlinux.org.uk, mingo@redhat.com,
         mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
         tglx@linutronix.de, urezki@gmail.com, will@kernel.org
-Subject:  +
- arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch added to
- -mm tree
-Message-ID: <20210317230322.x1alnq-am%akpm@linux-foundation.org>
+Subject:  + mm-ioremap-rename-ioremap__range-to-vmap__range.patch
+ added to -mm tree
+Message-ID: <20210317230337.FRQRX1SJK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: mm: add missing pud_page define to 2-level page tables
+     Subject: mm/ioremap: rename ioremap_*_range to vmap_*_range
 has been added to the -mm tree.  Its filename is
-     arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch
+     mm-ioremap-rename-ioremap__range-to-vmap__range.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-ioremap-rename-ioremap__range-to-vmap__range.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-ioremap-rename-ioremap__range-to-vmap__range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,61 +68,194 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Nicholas Piggin <npiggin@gmail.com>
-Subject: ARM: mm: add missing pud_page define to 2-level page tables
+Subject: mm/ioremap: rename ioremap_*_range to vmap_*_range
 
-Patch series "huge vmalloc mappings", v13.
+This will be used as a generic kernel virtual mapping function, so re-name
+it in preparation.
 
-
-This patch (of 14):
-
-ARM uses its own PMD folding scheme which is missing pud_page which should
-just pass through to pmd_page.  Move this from the 3-level page table to
-common header.
-
-Link: https://lkml.kernel.org/r/20210317062402.533919-2-npiggin@gmail.com
+Link: https://lkml.kernel.org/r/20210317062402.533919-6-npiggin@gmail.com
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Ding Tianhong <dingtianhong@huawei.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ding Tianhong <dingtianhong@huawei.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Russell King <linux@armlinux.org.uk>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/pgtable-3level.h |    2 --
- arch/arm/include/asm/pgtable.h        |    3 +++
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ mm/ioremap.c |   64 +++++++++++++++++++++++++------------------------
+ 1 file changed, 33 insertions(+), 31 deletions(-)
 
---- a/arch/arm/include/asm/pgtable-3level.h~arm-mm-add-missing-pud_page-define-to-2-level-page-tables
-+++ a/arch/arm/include/asm/pgtable-3level.h
-@@ -186,8 +186,6 @@ static inline pte_t pte_mkspecial(pte_t
+--- a/mm/ioremap.c~mm-ioremap-rename-ioremap__range-to-vmap__range
++++ a/mm/ioremap.c
+@@ -61,9 +61,9 @@ static inline int ioremap_pud_enabled(vo
+ static inline int ioremap_pmd_enabled(void) { return 0; }
+ #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
  
- #define pmd_write(pmd)		(pmd_isclear((pmd), L_PMD_SECT_RDONLY))
- #define pmd_dirty(pmd)		(pmd_isset((pmd), L_PMD_SECT_DIRTY))
--#define pud_page(pud)		pmd_page(__pmd(pud_val(pud)))
--#define pud_write(pud)		pmd_write(__pmd(pud_val(pud)))
+-static int ioremap_pte_range(pmd_t *pmd, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
+-		pgtbl_mod_mask *mask)
++static int vmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
++			phys_addr_t phys_addr, pgprot_t prot,
++			pgtbl_mod_mask *mask)
+ {
+ 	pte_t *pte;
+ 	u64 pfn;
+@@ -81,9 +81,8 @@ static int ioremap_pte_range(pmd_t *pmd,
+ 	return 0;
+ }
  
- #define pmd_hugewillfault(pmd)	(!pmd_young(pmd) || !pmd_write(pmd))
- #define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
---- a/arch/arm/include/asm/pgtable.h~arm-mm-add-missing-pud_page-define-to-2-level-page-tables
-+++ a/arch/arm/include/asm/pgtable.h
-@@ -166,6 +166,9 @@ extern struct page *empty_zero_page;
+-static int ioremap_try_huge_pmd(pmd_t *pmd, unsigned long addr,
+-				unsigned long end, phys_addr_t phys_addr,
+-				pgprot_t prot)
++static int vmap_try_huge_pmd(pmd_t *pmd, unsigned long addr, unsigned long end,
++			phys_addr_t phys_addr, pgprot_t prot)
+ {
+ 	if (!ioremap_pmd_enabled())
+ 		return 0;
+@@ -103,9 +102,9 @@ static int ioremap_try_huge_pmd(pmd_t *p
+ 	return pmd_set_huge(pmd, phys_addr, prot);
+ }
  
- extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
+-static inline int ioremap_pmd_range(pud_t *pud, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
+-		pgtbl_mod_mask *mask)
++static int vmap_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
++			phys_addr_t phys_addr, pgprot_t prot,
++			pgtbl_mod_mask *mask)
+ {
+ 	pmd_t *pmd;
+ 	unsigned long next;
+@@ -116,20 +115,19 @@ static inline int ioremap_pmd_range(pud_
+ 	do {
+ 		next = pmd_addr_end(addr, end);
  
-+#define pud_page(pud)		pmd_page(__pmd(pud_val(pud)))
-+#define pud_write(pud)		pmd_write(__pmd(pud_val(pud)))
+-		if (ioremap_try_huge_pmd(pmd, addr, next, phys_addr, prot)) {
++		if (vmap_try_huge_pmd(pmd, addr, next, phys_addr, prot)) {
+ 			*mask |= PGTBL_PMD_MODIFIED;
+ 			continue;
+ 		}
+ 
+-		if (ioremap_pte_range(pmd, addr, next, phys_addr, prot, mask))
++		if (vmap_pte_range(pmd, addr, next, phys_addr, prot, mask))
+ 			return -ENOMEM;
+ 	} while (pmd++, phys_addr += (next - addr), addr = next, addr != end);
+ 	return 0;
+ }
+ 
+-static int ioremap_try_huge_pud(pud_t *pud, unsigned long addr,
+-				unsigned long end, phys_addr_t phys_addr,
+-				pgprot_t prot)
++static int vmap_try_huge_pud(pud_t *pud, unsigned long addr, unsigned long end,
++			phys_addr_t phys_addr, pgprot_t prot)
+ {
+ 	if (!ioremap_pud_enabled())
+ 		return 0;
+@@ -149,9 +147,9 @@ static int ioremap_try_huge_pud(pud_t *p
+ 	return pud_set_huge(pud, phys_addr, prot);
+ }
+ 
+-static inline int ioremap_pud_range(p4d_t *p4d, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
+-		pgtbl_mod_mask *mask)
++static int vmap_pud_range(p4d_t *p4d, unsigned long addr, unsigned long end,
++			phys_addr_t phys_addr, pgprot_t prot,
++			pgtbl_mod_mask *mask)
+ {
+ 	pud_t *pud;
+ 	unsigned long next;
+@@ -162,20 +160,19 @@ static inline int ioremap_pud_range(p4d_
+ 	do {
+ 		next = pud_addr_end(addr, end);
+ 
+-		if (ioremap_try_huge_pud(pud, addr, next, phys_addr, prot)) {
++		if (vmap_try_huge_pud(pud, addr, next, phys_addr, prot)) {
+ 			*mask |= PGTBL_PUD_MODIFIED;
+ 			continue;
+ 		}
+ 
+-		if (ioremap_pmd_range(pud, addr, next, phys_addr, prot, mask))
++		if (vmap_pmd_range(pud, addr, next, phys_addr, prot, mask))
+ 			return -ENOMEM;
+ 	} while (pud++, phys_addr += (next - addr), addr = next, addr != end);
+ 	return 0;
+ }
+ 
+-static int ioremap_try_huge_p4d(p4d_t *p4d, unsigned long addr,
+-				unsigned long end, phys_addr_t phys_addr,
+-				pgprot_t prot)
++static int vmap_try_huge_p4d(p4d_t *p4d, unsigned long addr, unsigned long end,
++			phys_addr_t phys_addr, pgprot_t prot)
+ {
+ 	if (!ioremap_p4d_enabled())
+ 		return 0;
+@@ -195,9 +192,9 @@ static int ioremap_try_huge_p4d(p4d_t *p
+ 	return p4d_set_huge(p4d, phys_addr, prot);
+ }
+ 
+-static inline int ioremap_p4d_range(pgd_t *pgd, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
+-		pgtbl_mod_mask *mask)
++static int vmap_p4d_range(pgd_t *pgd, unsigned long addr, unsigned long end,
++			phys_addr_t phys_addr, pgprot_t prot,
++			pgtbl_mod_mask *mask)
+ {
+ 	p4d_t *p4d;
+ 	unsigned long next;
+@@ -208,19 +205,19 @@ static inline int ioremap_p4d_range(pgd_
+ 	do {
+ 		next = p4d_addr_end(addr, end);
+ 
+-		if (ioremap_try_huge_p4d(p4d, addr, next, phys_addr, prot)) {
++		if (vmap_try_huge_p4d(p4d, addr, next, phys_addr, prot)) {
+ 			*mask |= PGTBL_P4D_MODIFIED;
+ 			continue;
+ 		}
+ 
+-		if (ioremap_pud_range(p4d, addr, next, phys_addr, prot, mask))
++		if (vmap_pud_range(p4d, addr, next, phys_addr, prot, mask))
+ 			return -ENOMEM;
+ 	} while (p4d++, phys_addr += (next - addr), addr = next, addr != end);
+ 	return 0;
+ }
+ 
+-int ioremap_page_range(unsigned long addr,
+-		       unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
++static int vmap_range(unsigned long addr, unsigned long end,
++			phys_addr_t phys_addr, pgprot_t prot)
+ {
+ 	pgd_t *pgd;
+ 	unsigned long start;
+@@ -235,8 +232,7 @@ int ioremap_page_range(unsigned long add
+ 	pgd = pgd_offset_k(addr);
+ 	do {
+ 		next = pgd_addr_end(addr, end);
+-		err = ioremap_p4d_range(pgd, addr, next, phys_addr, prot,
+-					&mask);
++		err = vmap_p4d_range(pgd, addr, next, phys_addr, prot, &mask);
+ 		if (err)
+ 			break;
+ 	} while (pgd++, phys_addr += (next - addr), addr = next, addr != end);
+@@ -249,6 +245,12 @@ int ioremap_page_range(unsigned long add
+ 	return err;
+ }
+ 
++int ioremap_page_range(unsigned long addr,
++		       unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
++{
++	return vmap_range(addr, end, phys_addr, prot);
++}
 +
- #define pmd_none(pmd)		(!pmd_val(pmd))
- 
- static inline pte_t *pmd_page_vaddr(pmd_t pmd)
+ #ifdef CONFIG_GENERIC_IOREMAP
+ void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot)
+ {
 _
 
 Patches currently in -mm which might be from npiggin@gmail.com are
