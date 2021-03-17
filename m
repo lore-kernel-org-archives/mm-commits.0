@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 573D1C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:34:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45750C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:35:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0CF9564EFD
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:34:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0641B64F2A
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:35:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229866AbhCQWd2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 18:33:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59454 "EHLO mail.kernel.org"
+        id S229866AbhCQWfF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 18:35:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60004 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229545AbhCQWdB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 18:33:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C896464F2A;
-        Wed, 17 Mar 2021 22:33:00 +0000 (UTC)
+        id S229841AbhCQWe7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 18:34:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EB37664EFD;
+        Wed, 17 Mar 2021 22:34:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616020381;
-        bh=QpRyt7uQeHK814r6WntnHQWc5szcG9ov4LFy44Ju0ug=;
+        s=korg; t=1616020499;
+        bh=j68621DGMdXrBTuswXnBKy9296jR+7yLl2PME39PDAQ=;
         h=Date:From:To:Subject:From;
-        b=B3FEH7QEmmKusVy5/BGUeWxPnk0N+Tqif/nStjD068pRAKqaCxUSi4LCmydr3eehi
-         9rO0URqgjI0s/3m+HnqitVgY5RxmHokoMSPqhqJUIpx61sEELp0Y7N/1AIHw6auX7+
-         1bJBkQ2m+Jay9geeb4RgB2U64GLpMYAmBJ+s38LY=
-Date:   Wed, 17 Mar 2021 15:33:00 -0700
+        b=SWaQZ3Ejso8+RuUpFXHHEtaYDO5JkdkW4Aa86WCMcRVOytlNhvpRd73wrwSu8bQyG
+         h/m6e90fOQEzeI/60QRIrAecwsd8l4P7tS20TIYqHiqh4SVxjdjvNaR60MTbPzUS1n
+         BIAlFOTCzebKyL0EET/geseI+yjI8gKgxlF87O8E=
+Date:   Wed, 17 Mar 2021 15:34:58 -0700
 From:   akpm@linux-foundation.org
-To:     colin.king@canonical.com, mm-commits@vger.kernel.org
-Subject:  + mm-slab-fix-spelling-mistake-disired-desired.patch
- added to -mm tree
-Message-ID: <20210317223300.hOo6Ya9_l%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
+        elver@google.com, glider@google.com, jannh@google.com,
+        lhenriques@suse.de, mm-commits@vger.kernel.org
+Subject:  + kfence-make-compatible-with-kmemleak.patch added to -mm
+ tree
+Message-ID: <20210317223458.-JlP-ZvpH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab.c: fix spelling mistake "disired" -> "desired"
+     Subject: kfence: make compatible with kmemleak
 has been added to the -mm tree.  Its filename is
-     mm-slab-fix-spelling-mistake-disired-desired.patch
+     kfence-make-compatible-with-kmemleak.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slab-fix-spelling-mistake-disired-desired.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kfence-make-compatible-with-kmemleak.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-fix-spelling-mistake-disired-desired.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-make-compatible-with-kmemleak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,33 +65,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: mm/slab.c: fix spelling mistake "disired" -> "desired"
+From: Marco Elver <elver@google.com>
+Subject: kfence: make compatible with kmemleak
 
-There is a spelling mistake in a comment. Fix it.
+Because memblock allocations are registered with kmemleak, the KFENCE pool
+was seen by kmemleak as one large object.  Later allocations through
+kfence_alloc() that were registered with kmemleak via
+slab_post_alloc_hook() would then overlap and trigger a warning. 
+Therefore, once the pool is initialized, we can remove (free) it from
+kmemleak again, since it should be treated as allocator-internal and be
+seen as "free memory".
 
-Link: https://lkml.kernel.org/r/20210317094158.5762-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+The second problem is that kmemleak is passed the rounded size, and not
+the originally requested size, which is also the size of KFENCE objects. 
+To avoid kmemleak scanning past the end of an object and trigger a KFENCE
+out-of-bounds error, fix the size if it is a KFENCE object.
+
+For simplicity, to avoid a call to kfence_ksize() in
+slab_post_alloc_hook() (and avoid new IS_ENABLED(CONFIG_DEBUG_KMEMLEAK)
+guard), just call kfence_ksize() in mm/kmemleak.c:create_object().
+
+Link: https://lkml.kernel.org/r/20210317084740.3099921-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Reported-by: Luis Henriques <lhenriques@suse.de>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Tested-by: Luis Henriques <lhenriques@suse.de>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kfence/core.c |    9 +++++++++
+ mm/kmemleak.c    |    3 ++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
---- a/mm/slab.c~mm-slab-fix-spelling-mistake-disired-desired
-+++ a/mm/slab.c
-@@ -2284,7 +2284,7 @@ void __kmem_cache_release(struct kmem_ca
-  * Because if it is the case, that means we defer the creation of
-  * the kmalloc_{dma,}_cache of size sizeof(slab descriptor) to this point.
-  * And we eventually call down to __kmem_cache_create(), which
-- * in turn looks up in the kmalloc_{dma,}_caches for the disired-size one.
-+ * in turn looks up in the kmalloc_{dma,}_caches for the desired-size one.
-  * This is a "chicken-and-egg" problem.
-  *
-  * So the off-slab slab descriptor shall come from the kmalloc_{dma,}_caches,
+--- a/mm/kfence/core.c~kfence-make-compatible-with-kmemleak
++++ a/mm/kfence/core.c
+@@ -12,6 +12,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/kcsan-checks.h>
+ #include <linux/kfence.h>
++#include <linux/kmemleak.h>
+ #include <linux/list.h>
+ #include <linux/lockdep.h>
+ #include <linux/memblock.h>
+@@ -480,6 +481,14 @@ static bool __init kfence_init_pool(void
+ 		addr += 2 * PAGE_SIZE;
+ 	}
+ 
++	/*
++	 * The pool is live and will never be deallocated from this point on.
++	 * Remove the pool object from the kmemleak object tree, as it would
++	 * otherwise overlap with allocations returned by kfence_alloc(), which
++	 * are registered with kmemleak through the slab post-alloc hook.
++	 */
++	kmemleak_free(__kfence_pool);
++
+ 	return true;
+ 
+ err:
+--- a/mm/kmemleak.c~kfence-make-compatible-with-kmemleak
++++ a/mm/kmemleak.c
+@@ -97,6 +97,7 @@
+ #include <linux/atomic.h>
+ 
+ #include <linux/kasan.h>
++#include <linux/kfence.h>
+ #include <linux/kmemleak.h>
+ #include <linux/memory_hotplug.h>
+ 
+@@ -589,7 +590,7 @@ static struct kmemleak_object *create_ob
+ 	atomic_set(&object->use_count, 1);
+ 	object->flags = OBJECT_ALLOCATED;
+ 	object->pointer = ptr;
+-	object->size = size;
++	object->size = kfence_ksize((void *)ptr) ?: size;
+ 	object->excess_ref = 0;
+ 	object->min_count = min_count;
+ 	object->count = 0;			/* white color initially */
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from elver@google.com are
 
-mm-slab-fix-spelling-mistake-disired-desired.patch
+kfence-make-compatible-with-kmemleak.patch
+kfence-zero-guard-page-after-out-of-bounds-access.patch
 
