@@ -2,154 +2,174 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D75BC433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 09:15:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D0C9C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 17:10:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BB9764F42
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 09:15:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3BECB64E61
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 17:10:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229745AbhCQJPC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 05:15:02 -0400
-Received: from mx2.suse.de ([195.135.220.15]:46724 "EHLO mx2.suse.de"
+        id S229866AbhCQRKD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 13:10:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42874 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231296AbhCQJO3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 05:14:29 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1615972467; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=6DzbtkdTehSb8kglQ8YDBaz+nDj7PayBgDLEbSJj+a0=;
-        b=ZqAXGMW0Jbv0pPKN0XpRizuCKwvG0dfth+6jR2bLsHZMOy9SrgpdrZTsPreflUWQlKtBrY
-        Nt5e1Z2i7TlUe0DGvBOHpgjQ0nb15y+LU/00fZKa++mLR3G6ejK9U+Psg/+SV6OKulKssO
-        Y21CzC3gwJKl7ihqcEcuSDxiiXdHC1o=
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id C0B7CAC1F;
-        Wed, 17 Mar 2021 09:14:27 +0000 (UTC)
-Date:   Wed, 17 Mar 2021 10:14:27 +0100
-From:   Petr Mladek <pmladek@suse.com>
-To:     Peter Zijlstra <peterz@infradead.org>, akpm@linux-foundation.org
-Cc:     loberman@redhat.com, mhocko@suse.com, mingo@kernel.org,
-        mm-commits@vger.kernel.org, tglx@linutronix.de,
-        vincent.whitchurch@axis.com
-Subject: Re: +
- watchdog-fix-barriers-when-printing-backtraces-from-all-cpus.patch added to
- -mm tree
-Message-ID: <YFHIc+Q42bKcuWFY@alley>
-References: <20210311212207.2aUhwqqUh%akpm@linux-foundation.org>
- <YFCbHVcvyyGFFp7g@hirez.programming.kicks-ass.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YFCbHVcvyyGFFp7g@hirez.programming.kicks-ass.net>
+        id S229796AbhCQRJp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 13:09:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A695B64EE7;
+        Wed, 17 Mar 2021 17:09:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1616000984;
+        bh=ijeOpcXbEpHtHBtLf1MhuBSaeyrIQhea+WYxGoOAQIA=;
+        h=Date:From:To:Subject:From;
+        b=WrVcBfxBqBooH7OzFEmMK9pA3XZhj/0lwf3UnRym0I7fU26UFdT6pOjjhTl1D9u50
+         7PqP3xP3XPBlSR5j1q7CGm7GVESn5HY3dC6O5zdTjBSGgpTBArQ7+cD97wbACg4nYy
+         esgtzwGJRvZ3gpyeIMb5f2Hf9IwU0aGvQyK+RSNU=
+Date:   Wed, 17 Mar 2021 10:09:44 -0700
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Message-ID: <20210317170944.tfwkeo5_j%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue 2021-03-16 12:48:45, Peter Zijlstra wrote:
-> On Thu, Mar 11, 2021 at 01:22:07PM -0800, akpm@linux-foundation.org wrote:
-> > --- a/kernel/watchdog.c~watchdog-fix-barriers-when-printing-backtraces-from-all-cpus
-> > +++ a/kernel/watchdog.c
-> > @@ -409,12 +409,18 @@ static enum hrtimer_restart watchdog_tim
-> >  		if (kvm_check_and_clear_guest_paused())
-> >  			return HRTIMER_RESTART;
-> >  
-> > +		/*
-> > +		 * Prevent multiple soft-lockup reports if one cpu is already
-> > +		 * engaged in dumping all cpu back traces.
-> > +		 */
-> >  		if (softlockup_all_cpu_backtrace) {
-> > -			/* Prevent multiple soft-lockup reports if one cpu is already
-> > -			 * engaged in dumping cpu back traces
-> > -			 */
-> >  			if (test_and_set_bit(0, &soft_lockup_nmi_warn))
-> >  				return HRTIMER_RESTART;
-> > +			/*
-> > +			 * Make sure that reports are serialized. Start
-> > +			 * printing after getting the exclusive rights.
-> > +			 */
-> > +			smp_mb__after_atomic();
-> 
-> test_and_set_bit() is a value returning atomic and therefore already
-> implies a full smp_mb() on both ends.
 
-Still learning.
+The patch titled
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-> >  		}
-> >  
-> >  		/* Start period for the next softlockup warning. */
-> > @@ -431,14 +437,14 @@ static enum hrtimer_restart watchdog_tim
-> >  			dump_stack();
-> >  
-> >  		if (softlockup_all_cpu_backtrace) {
-> > -			/* Avoid generating two back traces for current
-> > -			 * given that one is already made above
-> > -			 */
-> >  			trigger_allbutself_cpu_backtrace();
-> > -
-> > +			/*
-> > +			 * Make sure that everything is printed before
-> > +			 * another CPU is allowed to report lockup again.
-> > +			 */
-> 
-> This is not something smp_mb() ensures. smp_mb() is only concerned with
-> memory access ordering, not completion, and certainly not some random
-> IO.
+This patch was dropped because it is obsolete
 
-> IOW, that comment is complete bollocks.
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-The problem is the comment.
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-trigger_allbutself_cpu_backtrace() waits until all the NMI handlers
-confirm that they printed the backtrace. The generic implemetation
-even does clear_bit_unlock(0, &backtrace_flag), see
-nmi_trigger_cpumask_backtrace().
+ fs/nfsd/nfs4state.c                     |    4 --
+ include/linux/sunrpc/svc_rdma.h         |    4 --
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |   37 ----------------------
+ 3 files changed, 45 deletions(-)
 
-> > +			smp_mb__before_atomic();
-> > +			/* Allow a further report. */
-> >  			clear_bit(0, &soft_lockup_nmi_warn);
-> 
-> 
-> That said, this looks like a test-and-set lock and clear_bit unlock like
-> situation. In fact it doesn't seem to use anything other than bit0 of
-> that word.
+--- a/fs/nfsd/nfs4state.c~linux-next-git-rejects
++++ a/fs/nfsd/nfs4state.c
+@@ -5382,11 +5382,7 @@ nfs4_laundromat(struct nfsd_net *nn)
+ 	idr_for_each_entry(&nn->s2s_cp_stateids, cps_t, i) {
+ 		cps = container_of(cps_t, struct nfs4_cpntf_state, cp_stateid);
+ 		if (cps->cp_stateid.sc_type == NFS4_COPYNOTIFY_STID &&
+-<<<<<<< HEAD
+-				cps->cpntf_time < cutoff)
+-=======
+ 				state_expired(&lt, cps->cpntf_time))
+->>>>>>> linux-next/akpm-base
+ 			_free_cpntf_state_locked(nn, cps);
+ 	}
+ 	spin_unlock(&nn->s2s_cp_lock);
+--- a/include/linux/sunrpc/svc_rdma.h~linux-next-git-rejects
++++ a/include/linux/sunrpc/svc_rdma.h
+@@ -106,10 +106,6 @@ struct svcxprt_rdma {
+ 
+ 	wait_queue_head_t    sc_send_wait;	/* SQ exhaustion waitlist */
+ 	unsigned long	     sc_flags;
+-<<<<<<< HEAD
+-	struct list_head     sc_read_complete_q;
+-=======
+->>>>>>> linux-next/akpm-base
+ 	struct work_struct   sc_work;
+ 
+ 	struct llist_head    sc_recv_ctxts;
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c~linux-next-git-rejects
++++ a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -263,30 +263,6 @@ static int __svc_rdma_post_recv(struct s
+ {
+ 	int ret;
+ 
+-<<<<<<< HEAD
+-	trace_svcrdma_post_recv(ctxt);
+-	ret = ib_post_recv(rdma->sc_qp, &ctxt->rc_recv_wr, NULL);
+-	if (ret)
+-		goto err_post;
+-	return 0;
+-
+-err_post:
+-	trace_svcrdma_rq_post_err(rdma, ret);
+-	svc_rdma_recv_ctxt_put(rdma, ctxt);
+-	return ret;
+-}
+-
+-static int svc_rdma_post_recv(struct svcxprt_rdma *rdma)
+-{
+-	struct svc_rdma_recv_ctxt *ctxt;
+-
+-	if (test_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags))
+-		return 0;
+-	ctxt = svc_rdma_recv_ctxt_get(rdma);
+-	if (!ctxt)
+-		return -ENOMEM;
+-	return __svc_rdma_post_recv(rdma, ctxt);
+-=======
+ 	if (test_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags))
+ 		return false;
+ 
+@@ -321,7 +297,6 @@ err_free:
+ 	/* Since we're destroying the xprt, no need to reset
+ 	 * sc_pending_recvs. */
+ 	return false;
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ /**
+@@ -369,10 +344,6 @@ static void svc_rdma_wc_receive(struct i
+ 	if (wc->status != IB_WC_SUCCESS)
+ 		goto flushed;
+ 
+-<<<<<<< HEAD
+-	if (svc_rdma_post_recv(rdma))
+-		goto post_err;
+-=======
+ 	/* If receive posting fails, the connection is about to be
+ 	 * lost anyway. The server will not be able to send a reply
+ 	 * for this RPC, and the client will retransmit this RPC
+@@ -385,7 +356,6 @@ static void svc_rdma_wc_receive(struct i
+ 	if (rdma->sc_pending_recvs < rdma->sc_max_requests)
+ 		if (!svc_rdma_refresh_recvs(rdma, rdma->sc_recv_batch, false))
+ 			goto flushed;
+->>>>>>> linux-next/akpm-base
+ 
+ 	/* All wc fields are now known to be valid */
+ 	ctxt->rc_byte_len = wc->byte_len;
+@@ -400,15 +370,8 @@ static void svc_rdma_wc_receive(struct i
+ 	return;
+ 
+ flushed:
+-<<<<<<< HEAD
+-post_err:
+-	svc_rdma_recv_ctxt_put(rdma, ctxt);
+-	set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
+-	svc_xprt_enqueue(&rdma->sc_xprt);
+-=======
+ 	svc_rdma_recv_ctxt_put(rdma, ctxt);
+ 	svc_xprt_deferred_close(&rdma->sc_xprt);
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ /**
+_
 
-Exactly, they prevent mixing two reports. It consists of more pieces.
-The simplified would code looks like:
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-		if (test_and_set_bit_lock())
-			return;
+mm.patch
+mm-memcontrol-switch-to-rstat-fix.patch
+kasan-remove-redundant-config-option-fix.patch
+mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
-		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",...)
-		print_modules();
-		print_irqtrace_events(current);
-		if (regs)
-			show_regs(regs);
-		else
-			dump_stack();
-
-		trigger_allbutself_cpu_backtrace();
-
-			clear_bit(0, &soft_lockup_nmi_warn);
-			/* Barrier to sync with other cpus */
-			smp_mb__after_atomic();
-		}
-
-		clear_bit_unlock().
-
-> FWIW we have test_and_set_bit_lock() / clear_bit_unlock().
-
-Thanks for hint. I am going to update the patch.
-
-IMHO, the best solution would be to use test_and_set_bit_lock()
-and remove the confusing comment.
-
-Andrew, should I send the entire patchset or just fixup of this patch?
-
-Best Regards,
-Petr
