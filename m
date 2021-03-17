@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE44DC433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:32:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 573D1C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:34:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 82C2764EFD
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:32:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CF9564EFD
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:34:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229602AbhCQWcY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 18:32:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59152 "EHLO mail.kernel.org"
+        id S229866AbhCQWd2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 18:33:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229814AbhCQWcK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 18:32:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F38D764F2A;
-        Wed, 17 Mar 2021 22:32:09 +0000 (UTC)
+        id S229545AbhCQWdB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 18:33:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C896464F2A;
+        Wed, 17 Mar 2021 22:33:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616020330;
-        bh=Kn/eymcY4JzN+yIWUMNytTjw/c1HM4bc1zDiWEBCeD8=;
+        s=korg; t=1616020381;
+        bh=QpRyt7uQeHK814r6WntnHQWc5szcG9ov4LFy44Ju0ug=;
         h=Date:From:To:Subject:From;
-        b=yEhCfHBOAEMVGJFAGG+aJxPZXR7R8Vw10kNrbJGxNorn57di9yGNVixX5Mg+w3CYQ
-         xmy5PhacXRmfo+H7y8IX3M19fY3lmdjzJgnH/6Hpukf4gIO4GTV6svcgdTTVveX3TV
-         mltwWgIIRvmIcCj1KhI4u2p58bnFYQHVHU6u/mWE=
-Date:   Wed, 17 Mar 2021 15:32:09 -0700
+        b=B3FEH7QEmmKusVy5/BGUeWxPnk0N+Tqif/nStjD068pRAKqaCxUSi4LCmydr3eehi
+         9rO0URqgjI0s/3m+HnqitVgY5RxmHokoMSPqhqJUIpx61sEELp0Y7N/1AIHw6auX7+
+         1bJBkQ2m+Jay9geeb4RgB2U64GLpMYAmBJ+s38LY=
+Date:   Wed, 17 Mar 2021 15:33:00 -0700
 From:   akpm@linux-foundation.org
-To:     caoxiaofeng@yulong.com, cxfcosmos@gmail.com,
-        mm-commits@vger.kernel.org
-Subject:  + kernel-user_namespace-fix-typo-issue.patch added to -mm
- tree
-Message-ID: <20210317223209.aaC-JB8Zx%akpm@linux-foundation.org>
+To:     colin.king@canonical.com, mm-commits@vger.kernel.org
+Subject:  + mm-slab-fix-spelling-mistake-disired-desired.patch
+ added to -mm tree
+Message-ID: <20210317223300.hOo6Ya9_l%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/user_namespace.c: fix typos
+     Subject: mm/slab.c: fix spelling mistake "disired" -> "desired"
 has been added to the -mm tree.  Its filename is
-     kernel-user_namespace-fix-typo-issue.patch
+     mm-slab-fix-spelling-mistake-disired-desired.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kernel-user_namespace-fix-typo-issue.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slab-fix-spelling-mistake-disired-desired.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-user_namespace-fix-typo-issue.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-fix-spelling-mistake-disired-desired.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,53 +63,33 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiaofeng Cao <cxfcosmos@gmail.com>
-Subject: kernel/user_namespace.c: fix typos
+From: Colin Ian King <colin.king@canonical.com>
+Subject: mm/slab.c: fix spelling mistake "disired" -> "desired"
 
-change 'verifing' to 'verifying'
-change 'certaint' to 'certain'
-change 'approprpiate' to 'appropriate'
+There is a spelling mistake in a comment. Fix it.
 
-Link: https://lkml.kernel.org/r/20210317100129.12440-1-caoxiaofeng@yulong.com
-Signed-off-by: Xiaofeng Cao <caoxiaofeng@yulong.com>
+Link: https://lkml.kernel.org/r/20210317094158.5762-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user_namespace.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/user_namespace.c~kernel-user_namespace-fix-typo-issue
-+++ a/kernel/user_namespace.c
-@@ -85,7 +85,7 @@ int create_user_ns(struct cred *new)
- 	/*
- 	 * Verify that we can not violate the policy of which files
- 	 * may be accessed that is specified by the root directory,
--	 * by verifing that the root directory is at the root of the
-+	 * by verifying that the root directory is at the root of the
- 	 * mount namespace which allows all files to be accessed.
- 	 */
- 	ret = -EPERM;
-@@ -959,7 +959,7 @@ static ssize_t map_write(struct file *fi
- 			goto out;
- 		ret = -EINVAL;
- 	}
--	/* Be very certaint the new map actually exists */
-+	/* Be very certain the new map actually exists */
- 	if (new_map.nr_extents == 0)
- 		goto out;
- 
-@@ -1110,7 +1110,7 @@ static bool new_idmap_permitted(const st
- 
- 	/* Allow the specified ids if we have the appropriate capability
- 	 * (CAP_SETUID or CAP_SETGID) over the parent user namespace.
--	 * And the opener of the id file also had the approprpiate capability.
-+	 * And the opener of the id file also has the appropriate capability.
- 	 */
- 	if (ns_capable(ns->parent, cap_setid) &&
- 	    file_ns_capable(file, ns->parent, cap_setid))
+--- a/mm/slab.c~mm-slab-fix-spelling-mistake-disired-desired
++++ a/mm/slab.c
+@@ -2284,7 +2284,7 @@ void __kmem_cache_release(struct kmem_ca
+  * Because if it is the case, that means we defer the creation of
+  * the kmalloc_{dma,}_cache of size sizeof(slab descriptor) to this point.
+  * And we eventually call down to __kmem_cache_create(), which
+- * in turn looks up in the kmalloc_{dma,}_caches for the disired-size one.
++ * in turn looks up in the kmalloc_{dma,}_caches for the desired-size one.
+  * This is a "chicken-and-egg" problem.
+  *
+  * So the off-slab slab descriptor shall come from the kmalloc_{dma,}_caches,
 _
 
-Patches currently in -mm which might be from cxfcosmos@gmail.com are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
-kernel-user_namespace-fix-typo-issue.patch
+mm-slab-fix-spelling-mistake-disired-desired.patch
 
