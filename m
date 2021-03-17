@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D0C9C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 17:10:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19F7EC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:16:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3BECB64E61
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 17:10:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B19AC64F53
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:15:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229866AbhCQRKD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 13:10:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42874 "EHLO mail.kernel.org"
+        id S229809AbhCQWP1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 18:15:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52532 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229796AbhCQRJp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 13:09:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A695B64EE7;
-        Wed, 17 Mar 2021 17:09:44 +0000 (UTC)
+        id S230341AbhCQWPX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 18:15:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1205964F2A;
+        Wed, 17 Mar 2021 22:15:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616000984;
-        bh=ijeOpcXbEpHtHBtLf1MhuBSaeyrIQhea+WYxGoOAQIA=;
+        s=korg; t=1616019323;
+        bh=3fn1mf3VV0hl0vUpUi1Pxy/D08NoTTUUhQj4hHSAqHk=;
         h=Date:From:To:Subject:From;
-        b=WrVcBfxBqBooH7OzFEmMK9pA3XZhj/0lwf3UnRym0I7fU26UFdT6pOjjhTl1D9u50
-         7PqP3xP3XPBlSR5j1q7CGm7GVESn5HY3dC6O5zdTjBSGgpTBArQ7+cD97wbACg4nYy
-         esgtzwGJRvZ3gpyeIMb5f2Hf9IwU0aGvQyK+RSNU=
-Date:   Wed, 17 Mar 2021 10:09:44 -0700
+        b=gTDKUsuo2FlMHV7T003xR/iIW0Jxa9FEWysq/zY5CwdrXj3hGMmh0S4Sijy2mvcDI
+         usPsV8W1dqZM1b/VrqdMLgMakJFey3wo5wyDkX0Kx2YwXlfLhLnhOISsTDOE3ZFegN
+         INhEugWroca+Vpv8vquNdRqZtSy+dpFg13lsWaiU=
+Date:   Wed, 17 Mar 2021 15:15:22 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Message-ID: <20210317170944.tfwkeo5_j%akpm@linux-foundation.org>
+To:     lkp@intel.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com
+Subject:  +
+ riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+ added to -mm tree
+Message-ID: <20210317221522.I8iVkz__K%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,134 +43,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: riscv/Kconfig: make direct map manipulation options depend on MMU
+has been added to the -mm tree.  Its filename is
+     riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: riscv/Kconfig: make direct map manipulation options depend on MMU
 
+ARCH_HAS_SET_DIRECT_MAP and ARCH_HAS_SET_MEMORY configuration options have
+no meaning when CONFIG_MMU is disabled and there is no point to enable
+them for the nommu case.
+
+Add an explicit dependency on MMU for these options.
+
+Link: https://lkml.kernel.org/r/20210303162209.8609-4-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4state.c                     |    4 --
- include/linux/sunrpc/svc_rdma.h         |    4 --
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |   37 ----------------------
- 3 files changed, 45 deletions(-)
+ arch/riscv/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/nfsd/nfs4state.c~linux-next-git-rejects
-+++ a/fs/nfsd/nfs4state.c
-@@ -5382,11 +5382,7 @@ nfs4_laundromat(struct nfsd_net *nn)
- 	idr_for_each_entry(&nn->s2s_cp_stateids, cps_t, i) {
- 		cps = container_of(cps_t, struct nfs4_cpntf_state, cp_stateid);
- 		if (cps->cp_stateid.sc_type == NFS4_COPYNOTIFY_STID &&
--<<<<<<< HEAD
--				cps->cpntf_time < cutoff)
--=======
- 				state_expired(&lt, cps->cpntf_time))
-->>>>>>> linux-next/akpm-base
- 			_free_cpntf_state_locked(nn, cps);
- 	}
- 	spin_unlock(&nn->s2s_cp_lock);
---- a/include/linux/sunrpc/svc_rdma.h~linux-next-git-rejects
-+++ a/include/linux/sunrpc/svc_rdma.h
-@@ -106,10 +106,6 @@ struct svcxprt_rdma {
- 
- 	wait_queue_head_t    sc_send_wait;	/* SQ exhaustion waitlist */
- 	unsigned long	     sc_flags;
--<<<<<<< HEAD
--	struct list_head     sc_read_complete_q;
--=======
-->>>>>>> linux-next/akpm-base
- 	struct work_struct   sc_work;
- 
- 	struct llist_head    sc_recv_ctxts;
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c~linux-next-git-rejects
-+++ a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -263,30 +263,6 @@ static int __svc_rdma_post_recv(struct s
- {
- 	int ret;
- 
--<<<<<<< HEAD
--	trace_svcrdma_post_recv(ctxt);
--	ret = ib_post_recv(rdma->sc_qp, &ctxt->rc_recv_wr, NULL);
--	if (ret)
--		goto err_post;
--	return 0;
--
--err_post:
--	trace_svcrdma_rq_post_err(rdma, ret);
--	svc_rdma_recv_ctxt_put(rdma, ctxt);
--	return ret;
--}
--
--static int svc_rdma_post_recv(struct svcxprt_rdma *rdma)
--{
--	struct svc_rdma_recv_ctxt *ctxt;
--
--	if (test_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags))
--		return 0;
--	ctxt = svc_rdma_recv_ctxt_get(rdma);
--	if (!ctxt)
--		return -ENOMEM;
--	return __svc_rdma_post_recv(rdma, ctxt);
--=======
- 	if (test_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags))
- 		return false;
- 
-@@ -321,7 +297,6 @@ err_free:
- 	/* Since we're destroying the xprt, no need to reset
- 	 * sc_pending_recvs. */
- 	return false;
-->>>>>>> linux-next/akpm-base
- }
- 
- /**
-@@ -369,10 +344,6 @@ static void svc_rdma_wc_receive(struct i
- 	if (wc->status != IB_WC_SUCCESS)
- 		goto flushed;
- 
--<<<<<<< HEAD
--	if (svc_rdma_post_recv(rdma))
--		goto post_err;
--=======
- 	/* If receive posting fails, the connection is about to be
- 	 * lost anyway. The server will not be able to send a reply
- 	 * for this RPC, and the client will retransmit this RPC
-@@ -385,7 +356,6 @@ static void svc_rdma_wc_receive(struct i
- 	if (rdma->sc_pending_recvs < rdma->sc_max_requests)
- 		if (!svc_rdma_refresh_recvs(rdma, rdma->sc_recv_batch, false))
- 			goto flushed;
-->>>>>>> linux-next/akpm-base
- 
- 	/* All wc fields are now known to be valid */
- 	ctxt->rc_byte_len = wc->byte_len;
-@@ -400,15 +370,8 @@ static void svc_rdma_wc_receive(struct i
- 	return;
- 
- flushed:
--<<<<<<< HEAD
--post_err:
--	svc_rdma_recv_ctxt_put(rdma, ctxt);
--	set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
--	svc_xprt_enqueue(&rdma->sc_xprt);
--=======
- 	svc_rdma_recv_ctxt_put(rdma, ctxt);
- 	svc_xprt_deferred_close(&rdma->sc_xprt);
-->>>>>>> linux-next/akpm-base
- }
- 
- /**
+--- a/arch/riscv/Kconfig~riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu
++++ a/arch/riscv/Kconfig
+@@ -26,8 +26,8 @@ config RISCV
+ 	select ARCH_HAS_KCOV
+ 	select ARCH_HAS_MMIOWB
+ 	select ARCH_HAS_PTE_SPECIAL
+-	select ARCH_HAS_SET_DIRECT_MAP
+-	select ARCH_HAS_SET_MEMORY
++	select ARCH_HAS_SET_DIRECT_MAP if MMU
++	select ARCH_HAS_SET_MEMORY if MMU
+ 	select ARCH_HAS_STRICT_KERNEL_RWX if MMU
+ 	select ARCH_OPTIONAL_KERNEL_RWX if ARCH_HAS_STRICT_KERNEL_RWX
+ 	select ARCH_OPTIONAL_KERNEL_RWX_DEFAULT
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm.patch
-mm-memcontrol-switch-to-rstat-fix.patch
-kasan-remove-redundant-config-option-fix.patch
-mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-add-definition-of-pmd_page_order.patch
+mmap-make-mlock_future_check-global.patch
+riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
