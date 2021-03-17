@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6914C43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6A9BC433E9
 	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:16:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 80B3264F45
+	by mail.kernel.org (Postfix) with ESMTP id A2EAE64F62
 	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:16:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230036AbhCQWP7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 18:15:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52570 "EHLO mail.kernel.org"
+        id S230145AbhCQWQA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 18:16:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52854 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229944AbhCQWP2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 18:15:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 98B6E64F2A;
-        Wed, 17 Mar 2021 22:15:26 +0000 (UTC)
+        id S230221AbhCQWPs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 18:15:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9BC5D64F38;
+        Wed, 17 Mar 2021 22:15:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616019328;
-        bh=8fUbT3oRlN4N/4EVGlR3Z3ATrhd5A788lVKonNyEubQ=;
+        s=korg; t=1616019348;
+        bh=I4By7A5Mo+E1NdkumAMwYbFsJpwvqmePdwuaDy9WDoY=;
         h=Date:From:To:Subject:From;
-        b=M+9YvVeu04YT51o/lRBI6IFNIh1Xt4I99IV3bldFwzJ6pat8pzKrhoYHvskTqDgZq
-         6VAsG5PQpyTQQQMrC0oRc7TTjo4JAps8gSEVIZwhz1/5WN+xmmp5H/7FBm3dJh+vPc
-         5vgnTa37U7OpleiD7f0cWZnZ62eOPWP/zH1Ec8G8=
-Date:   Wed, 17 Mar 2021 15:15:25 -0700
+        b=YaC9ZDdNtHGCs+M98DhZm8uZ7w7BAofgck8+PRDUb0CWZyyOwbzgXNyK/yDxE32je
+         Ni2vDH1MRbRa3kdMI928JNU1lDjllqr2/DQHED3uhGLlwn9twQvueoe91Pjiot4Qcs
+         Z5ZdU5JmCczES402H07xKSsXg6eCrYqQcYu0XhcM=
+Date:   Wed, 17 Mar 2021 15:15:45 -0700
 From:   akpm@linux-foundation.org
 To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
         dan.j.williams@intel.com, dave.hansen@linux.intel.com,
@@ -43,9 +43,9 @@ To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
         tglx@linutronix.de, tycho@tycho.ws, viro@zeniv.linux.org.uk,
         will@kernel.org, willy@infradead.org
 Subject:  +
- set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch added to
+ pm-hibernate-disable-when-there-are-active-secretmem-users.patch added to
  -mm tree
-Message-ID: <20210317221525.M-bOzM7J-%akpm@linux-foundation.org>
+Message-ID: <20210317221545.1GjMMPYOP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: set_memory: allow set_direct_map_*_noflush() for multiple pages
+     Subject: PM: hibernate: disable when there are active secretmem users
 has been added to the -mm tree.  Its filename is
-     set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+     pm-hibernate-disable-when-there-are-active-secretmem-users.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/pm-hibernate-disable-when-there-are-active-secretmem-users.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/pm-hibernate-disable-when-there-are-active-secretmem-users.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,22 +76,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: set_memory: allow set_direct_map_*_noflush() for multiple pages
+Subject: PM: hibernate: disable when there are active secretmem users
 
-The underlying implementations of set_direct_map_invalid_noflush() and
-set_direct_map_default_noflush() allow updating multiple contiguous pages
-at once.
+It is unsafe to allow saving of secretmem areas to the hibernation
+snapshot as they would be visible after the resume and this essentially
+will defeat the purpose of secret memory mappings.
 
-Add numpages parameter to set_direct_map_*_noflush() to expose this
-ability with these APIs.
+Prevent hibernation whenever there are active secret memory users.
 
-Link: https://lkml.kernel.org/r/20210303162209.8609-5-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210303162209.8609-8-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christopher Lameter <cl@linux.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -119,205 +118,99 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/cacheflush.h |    4 ++--
- arch/arm64/mm/pageattr.c            |   10 ++++++----
- arch/riscv/include/asm/set_memory.h |    4 ++--
- arch/riscv/mm/pageattr.c            |    8 ++++----
- arch/x86/include/asm/set_memory.h   |    4 ++--
- arch/x86/mm/pat/set_memory.c        |    8 ++++----
- include/linux/set_memory.h          |    4 ++--
- kernel/power/snapshot.c             |    4 ++--
- mm/vmalloc.c                        |    5 +++--
- 9 files changed, 27 insertions(+), 24 deletions(-)
+ include/linux/secretmem.h |    6 ++++++
+ kernel/power/hibernate.c  |    5 ++++-
+ mm/secretmem.c            |   15 +++++++++++++++
+ 3 files changed, 25 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/include/asm/cacheflush.h~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/arch/arm64/include/asm/cacheflush.h
-@@ -133,8 +133,8 @@ static __always_inline void __flush_icac
+--- a/include/linux/secretmem.h~pm-hibernate-disable-when-there-are-active-secretmem-users
++++ a/include/linux/secretmem.h
+@@ -6,6 +6,7 @@
  
- int set_memory_valid(unsigned long addr, int numpages, int enable);
+ bool vma_is_secretmem(struct vm_area_struct *vma);
+ bool page_is_secretmem(struct page *page);
++bool secretmem_active(void);
  
--int set_direct_map_invalid_noflush(struct page *page);
--int set_direct_map_default_noflush(struct page *page);
-+int set_direct_map_invalid_noflush(struct page *page, int numpages);
-+int set_direct_map_default_noflush(struct page *page, int numpages);
- bool kernel_page_present(struct page *page);
+ #else
  
- #include <asm-generic/cacheflush.h>
---- a/arch/arm64/mm/pageattr.c~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/arch/arm64/mm/pageattr.c
-@@ -148,34 +148,36 @@ int set_memory_valid(unsigned long addr,
- 					__pgprot(PTE_VALID));
- }
- 
--int set_direct_map_invalid_noflush(struct page *page)
-+int set_direct_map_invalid_noflush(struct page *page, int numpages)
+@@ -18,6 +19,11 @@ static inline bool page_is_secretmem(str
  {
- 	struct page_change_data data = {
- 		.set_mask = __pgprot(0),
- 		.clear_mask = __pgprot(PTE_VALID),
- 	};
-+	unsigned long size = PAGE_SIZE * numpages;
- 
- 	if (!debug_pagealloc_enabled() && !rodata_full)
- 		return 0;
- 
- 	return apply_to_page_range(&init_mm,
- 				   (unsigned long)page_address(page),
--				   PAGE_SIZE, change_page_range, &data);
-+				   size, change_page_range, &data);
+ 	return false;
  }
++
++static inline bool secretmem_active(void)
++{
++	return false;
++}
  
--int set_direct_map_default_noflush(struct page *page)
-+int set_direct_map_default_noflush(struct page *page, int numpages)
+ #endif /* CONFIG_SECRETMEM */
+ 
+--- a/kernel/power/hibernate.c~pm-hibernate-disable-when-there-are-active-secretmem-users
++++ a/kernel/power/hibernate.c
+@@ -31,6 +31,7 @@
+ #include <linux/genhd.h>
+ #include <linux/ktime.h>
+ #include <linux/security.h>
++#include <linux/secretmem.h>
+ #include <trace/events/power.h>
+ 
+ #include "power.h"
+@@ -81,7 +82,9 @@ void hibernate_release(void)
+ 
+ bool hibernation_available(void)
  {
- 	struct page_change_data data = {
- 		.set_mask = __pgprot(PTE_VALID | PTE_WRITE),
- 		.clear_mask = __pgprot(PTE_RDONLY),
- 	};
-+	unsigned long size = PAGE_SIZE * numpages;
- 
- 	if (!debug_pagealloc_enabled() && !rodata_full)
- 		return 0;
- 
- 	return apply_to_page_range(&init_mm,
- 				   (unsigned long)page_address(page),
--				   PAGE_SIZE, change_page_range, &data);
-+				   size, change_page_range, &data);
+-	return nohibernate == 0 && !security_locked_down(LOCKDOWN_HIBERNATION);
++	return nohibernate == 0 &&
++		!security_locked_down(LOCKDOWN_HIBERNATION) &&
++		!secretmem_active();
  }
  
- #ifdef CONFIG_DEBUG_PAGEALLOC
---- a/arch/riscv/include/asm/set_memory.h~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/arch/riscv/include/asm/set_memory.h
-@@ -26,8 +26,8 @@ static inline void protect_kernel_text_d
- static inline int set_memory_rw_nx(unsigned long addr, int numpages) { return 0; }
- #endif
+ /**
+--- a/mm/secretmem.c~pm-hibernate-disable-when-there-are-active-secretmem-users
++++ a/mm/secretmem.c
+@@ -40,6 +40,13 @@ module_param_named(enable, secretmem_ena
+ MODULE_PARM_DESC(secretmem_enable,
+ 		 "Enable secretmem and memfd_secret(2) system call");
  
--int set_direct_map_invalid_noflush(struct page *page);
--int set_direct_map_default_noflush(struct page *page);
-+int set_direct_map_invalid_noflush(struct page *page, int numpages);
-+int set_direct_map_default_noflush(struct page *page, int numpages);
- bool kernel_page_present(struct page *page);
- 
- #endif /* __ASSEMBLY__ */
---- a/arch/riscv/mm/pageattr.c~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/arch/riscv/mm/pageattr.c
-@@ -156,11 +156,11 @@ int set_memory_nx(unsigned long addr, in
- 	return __set_memory(addr, numpages, __pgprot(0), __pgprot(_PAGE_EXEC));
- }
- 
--int set_direct_map_invalid_noflush(struct page *page)
-+int set_direct_map_invalid_noflush(struct page *page, int numpages)
++static atomic_t secretmem_users;
++
++bool secretmem_active(void)
++{
++	return !!atomic_read(&secretmem_users);
++}
++
+ static vm_fault_t secretmem_fault(struct vm_fault *vmf)
  {
- 	int ret;
- 	unsigned long start = (unsigned long)page_address(page);
--	unsigned long end = start + PAGE_SIZE;
-+	unsigned long end = start + PAGE_SIZE * numpages;
- 	struct pageattr_masks masks = {
- 		.set_mask = __pgprot(0),
- 		.clear_mask = __pgprot(_PAGE_PRESENT)
-@@ -173,11 +173,11 @@ int set_direct_map_invalid_noflush(struc
- 	return ret;
+ 	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+@@ -94,6 +101,12 @@ static const struct vm_operations_struct
+ 	.fault = secretmem_fault,
+ };
+ 
++static int secretmem_release(struct inode *inode, struct file *file)
++{
++	atomic_dec(&secretmem_users);
++	return 0;
++}
++
+ static int secretmem_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	unsigned long len = vma->vm_end - vma->vm_start;
+@@ -116,6 +129,7 @@ bool vma_is_secretmem(struct vm_area_str
  }
  
--int set_direct_map_default_noflush(struct page *page)
-+int set_direct_map_default_noflush(struct page *page, int numpages)
- {
- 	int ret;
- 	unsigned long start = (unsigned long)page_address(page);
--	unsigned long end = start + PAGE_SIZE;
-+	unsigned long end = start + PAGE_SIZE * numpages;
- 	struct pageattr_masks masks = {
- 		.set_mask = PAGE_KERNEL,
- 		.clear_mask = __pgprot(0)
---- a/arch/x86/include/asm/set_memory.h~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/arch/x86/include/asm/set_memory.h
-@@ -80,8 +80,8 @@ int set_pages_wb(struct page *page, int
- int set_pages_ro(struct page *page, int numpages);
- int set_pages_rw(struct page *page, int numpages);
+ static const struct file_operations secretmem_fops = {
++	.release	= secretmem_release,
+ 	.mmap		= secretmem_mmap,
+ };
  
--int set_direct_map_invalid_noflush(struct page *page);
--int set_direct_map_default_noflush(struct page *page);
-+int set_direct_map_invalid_noflush(struct page *page, int numpages);
-+int set_direct_map_default_noflush(struct page *page, int numpages);
- bool kernel_page_present(struct page *page);
+@@ -212,6 +226,7 @@ SYSCALL_DEFINE1(memfd_secret, unsigned l
+ 	file->f_flags |= O_LARGEFILE;
  
- extern int kernel_set_to_readonly;
---- a/arch/x86/mm/pat/set_memory.c~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/arch/x86/mm/pat/set_memory.c
-@@ -2192,14 +2192,14 @@ static int __set_pages_np(struct page *p
- 	return __change_page_attr_set_clr(&cpa, 0);
- }
+ 	fd_install(fd, file);
++	atomic_inc(&secretmem_users);
+ 	return fd;
  
--int set_direct_map_invalid_noflush(struct page *page)
-+int set_direct_map_invalid_noflush(struct page *page, int numpages)
- {
--	return __set_pages_np(page, 1);
-+	return __set_pages_np(page, numpages);
- }
- 
--int set_direct_map_default_noflush(struct page *page)
-+int set_direct_map_default_noflush(struct page *page, int numpages)
- {
--	return __set_pages_p(page, 1);
-+	return __set_pages_p(page, numpages);
- }
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
---- a/include/linux/set_memory.h~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/include/linux/set_memory.h
-@@ -15,11 +15,11 @@ static inline int set_memory_nx(unsigned
- #endif
- 
- #ifndef CONFIG_ARCH_HAS_SET_DIRECT_MAP
--static inline int set_direct_map_invalid_noflush(struct page *page)
-+static inline int set_direct_map_invalid_noflush(struct page *page, int numpages)
- {
- 	return 0;
- }
--static inline int set_direct_map_default_noflush(struct page *page)
-+static inline int set_direct_map_default_noflush(struct page *page, int numpages)
- {
- 	return 0;
- }
---- a/kernel/power/snapshot.c~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/kernel/power/snapshot.c
-@@ -86,7 +86,7 @@ static inline void hibernate_restore_unp
- static inline void hibernate_map_page(struct page *page)
- {
- 	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
--		int ret = set_direct_map_default_noflush(page);
-+		int ret = set_direct_map_default_noflush(page, 1);
- 
- 		if (ret)
- 			pr_warn_once("Failed to remap page\n");
-@@ -99,7 +99,7 @@ static inline void hibernate_unmap_page(
- {
- 	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
- 		unsigned long addr = (unsigned long)page_address(page);
--		int ret  = set_direct_map_invalid_noflush(page);
-+		int ret = set_direct_map_invalid_noflush(page, 1);
- 
- 		if (ret)
- 			pr_warn_once("Failed to remap page\n");
---- a/mm/vmalloc.c~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/mm/vmalloc.c
-@@ -2195,13 +2195,14 @@ struct vm_struct *remove_vm_area(const v
- }
- 
- static inline void set_area_direct_map(const struct vm_struct *area,
--				       int (*set_direct_map)(struct page *page))
-+				       int (*set_direct_map)(struct page *page,
-+							     int numpages))
- {
- 	int i;
- 
- 	for (i = 0; i < area->nr_pages; i++)
- 		if (page_address(area->pages[i]))
--			set_direct_map(area->pages[i]);
-+			set_direct_map(area->pages[i], 1);
- }
- 
- /* Handle removing and resetting vm mappings related to the vm_struct. */
+ err_put_fd:
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
