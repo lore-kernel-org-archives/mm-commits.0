@@ -2,49 +2,50 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61751C433E6
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:16:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E0E7C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:16:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D80A64F5E
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:15:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D977264F45
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 22:16:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229549AbhCQWP1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 18:15:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52394 "EHLO mail.kernel.org"
+        id S230032AbhCQWQA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 18:16:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52756 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230330AbhCQWPR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 18:15:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1C21E64F18;
-        Wed, 17 Mar 2021 22:15:14 +0000 (UTC)
+        id S230196AbhCQWPm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 18:15:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 84AA364F33;
+        Wed, 17 Mar 2021 22:15:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616019316;
-        bh=ihk5AIsrQnwgOCNfB8cAVpGn1PrLIbOL3j4EE96RvoE=;
+        s=korg; t=1616019342;
+        bh=PjwLzmjzUWZMOVbi1557IQ9pUOCcDkJWP1YLoU9zZfs=;
         h=Date:From:To:Subject:From;
-        b=xupGhPA7QHD2+KcMWpdf7iMzbvGjDpEK9W4OEo/V4L7cTGqOHf1a3DrOOSViuHo2Z
-         TOkmS57ecdzRQTEuq5OvjVt/zybYBzLv2X/71BJoVWqoAQpeWlkyW8TSD6DXfxnlWP
-         o68TFc8Q/IU2A1QdeaCX2ryG1X6p+BmHBbSvYDgE=
-Date:   Wed, 17 Mar 2021 15:15:12 -0700
+        b=JvGfdpEONzHxTWp93YbS6Kra67HoQY5iBDRtOEDBpHha0JiS3WxOnutUaIwZtauKD
+         S9GNbeP+dZRTRbv+UzI7aixjACow/wQKYB4evhWBhtWPI89NR5gfGyvQANUaOzXQTG
+         w9InJvrP9JZdA73Ri7eimXsSuGkBlpb51kelynMY=
+Date:   Wed, 17 Mar 2021 15:15:39 -0700
 From:   akpm@linux-foundation.org
 To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
         dan.j.williams@intel.com, dave.hansen@linux.intel.com,
-        david@redhat.com, elena.reshetova@intel.com, guro@fb.com,
-        hagen@jauu.net, hpa@zytor.com, jejb@linux.ibm.com,
-        kirill@shutemov.name, luto@kernel.org, mark.rutland@arm.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org,
-        mtk.manpages@gmail.com, palmer@dabbelt.com,
-        palmerdabbelt@google.com, paul.walmsley@sifive.com,
-        peterz@infradead.org, rick.p.edgecombe@intel.com,
-        rppt@linux.ibm.com, shakeelb@google.com, shuah@kernel.org,
-        tglx@linutronix.de, tycho@tycho.ws, viro@zeniv.linux.org.uk,
-        will@kernel.org, willy@infradead.org
-Subject:  + mm-add-definition-of-pmd_page_order.patch added to -mm
- tree
-Message-ID: <20210317221512.A39Ft3LQk%akpm@linux-foundation.org>
+        elena.reshetova@intel.com, guro@fb.com, hagen@jauu.net,
+        hpa@zytor.com, jejb@linux.ibm.com, kirill@shutemov.name,
+        luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mtk.manpages@gmail.com,
+        palmer@dabbelt.com, palmerdabbelt@google.com,
+        paul.walmsley@sifive.com, peterz@infradead.org,
+        rick.p.edgecombe@intel.com, rppt@linux.ibm.com,
+        shakeelb@google.com, shuah@kernel.org, tglx@linutronix.de,
+        tycho@tycho.ws, viro@zeniv.linux.org.uk, will@kernel.org,
+        willy@infradead.org
+Subject:  +
+ mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+ added to -mm tree
+Message-ID: <20210317221539.FE_gSHXN9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add definition of PMD_PAGE_ORDER
+     Subject: mm: introduce memfd_secret system call to create "secret" memory areas
 has been added to the -mm tree.  Its filename is
-     mm-add-definition-of-pmd_page_order.patch
+     mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-definition-of-pmd_page_order.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-definition-of-pmd_page_order.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,49 +76,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm: add definition of PMD_PAGE_ORDER
+Subject: mm: introduce memfd_secret system call to create "secret" memory areas
 
-Patch series "mm: introduce memfd_secret system call to create "secret" memory areas", v18.
+Introduce "memfd_secret" system call with the ability to create memory
+areas visible only in the context of the owning process and not mapped not
+only to other processes but in the kernel page tables as well.
 
-This is an implementation of "secret" mappings backed by a file
-descriptor.
+The secretmem feature is off by default and the user must explicitly
+enable it at the boot time.
 
-The file descriptor backing secret memory mappings is created using a
-dedicated memfd_secret system call The desired protection mode for the
-memory is configured using flags parameter of the system call.  The mmap()
-of the file descriptor created with memfd_secret() will create a "secret"
-memory mapping.  The pages in that mapping will be marked as not present
-in the direct map and will be present only in the page table of the owning
-mm.
+Once secretmem is enabled, the user will be able to create a file
+descriptor using the memfd_secret() system call.  The memory areas created
+by mmap() calls from this file descriptor will be unmapped from the kernel
+direct map and they will be only mapped in the page table of the processes
+that have access to the file descriptor.
 
-Although normally Linux userspace mappings are protected from other users,
-such secret mappings are useful for environments where a hostile tenant is
-trying to trick the kernel into giving them access to other tenants
-mappings.
+The file descriptor based memory has several advantages over the
+"traditional" mm interfaces, such as mlock(), mprotect(), madvise().  File
+descriptor approach allows explict and controlled sharing of the memory
+areas, it allows to seal the operations.  Besides, file descriptor based
+memory paves the way for VMMs to remove the secret memory range from the
+userpace hipervisor process, for instance QEMU.  Andy Lutomirski says:
 
-Additionally, in the future the secret mappings may be used as a mean to
-protect guest memory in a virtual machine host.
+  "Getting fd-backed memory into a guest will take some possibly major
+  work in the kernel, but getting vma-backed memory into a guest without
+  mapping it in the host user address space seems much, much worse."
 
-For demonstration of secret memory usage we've created a userspace library
+memfd_secret() is made a dedicated system call rather than an extention to
+memfd_create() because it's purpose is to allow the user to create more
+secure memory mappings rather than to simply allow file based access to
+the memory.  Nowadays a new system call cost is negligible while it is way
+simpler for userspace to deal with a clear-cut system calls than with a
+multiplexer or an overloaded syscall.  Moreover, the initial
+implementation of memfd_secret() is completely distinct from
+memfd_create() so there is no much sense in overloading memfd_create()
+to begin with.  If there will be a need for code sharing between these
+implementation it can be easily achieved without a need to adjust user
+visible APIs.
 
-https://git.kernel.org/pub/scm/linux/kernel/git/jejb/secret-memory-preloader.git
+The secret memory remains accessible in the process context using uaccess
+primitives, but it is not exposed to the kernel otherwise; secret memory
+areas are removed from the direct map and functions in the
+follow_page()/get_user_page() family will refuse to return a page that
+belongs to the secret memory area.
 
-that does two things: the first is act as a preloader for openssl to
-redirect all the OPENSSL_malloc calls to secret memory meaning any secret
-keys get automatically protected this way and the other thing it does is
-expose the API to the user who needs it.  We anticipate that a lot of the
-use cases would be like the openssl one: many toolkits that deal with
-secret keys already have special handling for the memory to try to give
-them greater protection, so this would simply be pluggable into the
-toolkits without any need for user application modification.
-
-Hiding secret memory mappings behind an anonymous file allows usage of the
-page cache for tracking pages allocated for the "secret" mappings as well
-as using address_space_operations for e.g.  page migration callbacks.
-
-The anonymous file may be also used implicitly, like hugetlb files, to
-implement mmap(MAP_SECRET) and use the secret memory areas with "native"
-mm ABIs in the future.
+Once there will be a use case that will require exposing secretmem to the
+kernel it will be an opt-in request in the system call flags so that user
+would have to decide what data can be exposed to the kernel.
 
 Removing of the pages from the direct map may cause its fragmentation on
 architectures that use large pages to map the physical memory which
@@ -130,26 +135,37 @@ evidence that it must be the only choice".  Hence, it is sufficient to
 have secretmem disabled by default with the ability of a system
 administrator to enable it at boot time.
 
-In addition, there is also a long term goal to improve management of the
-direct map.
+Pages in the secretmem regions are unevictable and unmovable to avoid
+accidental exposure of the sensitive data via swap or during page
+migration.
+
+Since the secretmem mappings are locked in memory they cannot exceed
+RLIMIT_MEMLOCK.  Since these mappings are already locked independently
+from mlock(), an attempt to mlock()/munlock() secretmem range would fail
+and mlockall()/munlockall() will ignore secretmem mappings.
+
+However, unlike mlock()ed memory, secretmem currently behaves more like
+long-term GUP: secretmem mappings are unmovable mappings directly consumed
+by user space.  With default limits, there is no excessive use of
+secretmem and it poses no real problem in combination with
+ZONE_MOVABLE/CMA, but in the future this should be addressed to allow
+balanced use of large amounts of secretmem along with ZONE_MOVABLE/CMA.
+
+A page that was a part of the secret memory area is cleared when it is
+freed to ensure the data is not exposed to the next user of that page.
+
+The following example demonstrates creation of a secret mapping (error
+handling is omitted):
+
+	fd = memfd_secret(0);
+	ftruncate(fd, MAP_SIZE);
+	ptr = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE,
+		   MAP_SHARED, fd, 0);
 
 [1] https://lore.kernel.org/linux-mm/213b4567-46ce-f116-9cdf-bbd0c884eb3c@linux.intel.com/
-
-
-This patch (of 9):
-
-The definition of PMD_PAGE_ORDER denoting the number of base pages in the
-second-level leaf page is already used by DAX and maybe handy in other
-cases as well.
-
-Several architectures already have definition of PMD_ORDER as the size of
-second level page table, so to avoid conflict with these definitions use
-PMD_PAGE_ORDER name and update DAX respectively.
-
-Link: https://lkml.kernel.org/r/20210303162209.8609-1-rppt@kernel.org
-Link: https://lkml.kernel.org/r/20210303162209.8609-2-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210303162209.8609-7-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Hagen Paul Pfeifer <hagen@jauu.net>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -167,6 +183,7 @@ Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Palmer Dabbelt <palmerdabbelt@google.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
@@ -176,75 +193,391 @@ Cc: Shuah Khan <shuah@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tycho Andersen <tycho@tycho.ws>
 Cc: Will Deacon <will@kernel.org>
-Cc: Hagen Paul Pfeifer <hagen@jauu.net>
-Cc: Palmer Dabbelt <palmerdabbelt@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c                |   11 ++++-------
- include/linux/pgtable.h |    3 +++
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/secretmem.h  |   24 +++
+ include/uapi/linux/magic.h |    1 
+ kernel/sys_ni.c            |    2 
+ mm/Kconfig                 |    3 
+ mm/Makefile                |    1 
+ mm/gup.c                   |   10 +
+ mm/mlock.c                 |    3 
+ mm/secretmem.c             |  246 +++++++++++++++++++++++++++++++++++
+ 8 files changed, 289 insertions(+), 1 deletion(-)
 
---- a/fs/dax.c~mm-add-definition-of-pmd_page_order
-+++ a/fs/dax.c
-@@ -49,9 +49,6 @@ static inline unsigned int pe_order(enum
- #define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
- #define PG_PMD_NR	(PMD_SIZE >> PAGE_SHIFT)
- 
--/* The order of a PMD entry */
--#define PMD_ORDER	(PMD_SHIFT - PAGE_SHIFT)
--
- static wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
- 
- static int __init init_dax_wait_table(void)
-@@ -98,7 +95,7 @@ static bool dax_is_locked(void *entry)
- static unsigned int dax_entry_order(void *entry)
- {
- 	if (xa_to_value(entry) & DAX_PMD)
--		return PMD_ORDER;
-+		return PMD_PAGE_ORDER;
- 	return 0;
- }
- 
-@@ -1471,7 +1468,7 @@ static vm_fault_t dax_iomap_pmd_fault(st
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct address_space *mapping = vma->vm_file->f_mapping;
--	XA_STATE_ORDER(xas, &mapping->i_pages, vmf->pgoff, PMD_ORDER);
-+	XA_STATE_ORDER(xas, &mapping->i_pages, vmf->pgoff, PMD_PAGE_ORDER);
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	bool sync;
-@@ -1530,7 +1527,7 @@ static vm_fault_t dax_iomap_pmd_fault(st
- 	 * entry is already in the array, for instance), it will return
- 	 * VM_FAULT_FALLBACK.
- 	 */
--	entry = grab_mapping_entry(&xas, mapping, PMD_ORDER);
-+	entry = grab_mapping_entry(&xas, mapping, PMD_PAGE_ORDER);
- 	if (xa_is_internal(entry)) {
- 		result = xa_to_internal(entry);
- 		goto fallback;
-@@ -1696,7 +1693,7 @@ dax_insert_pfn_mkwrite(struct vm_fault *
- 	if (order == 0)
- 		ret = vmf_insert_mixed_mkwrite(vmf->vma, vmf->address, pfn);
- #ifdef CONFIG_FS_DAX_PMD
--	else if (order == PMD_ORDER)
-+	else if (order == PMD_PAGE_ORDER)
- 		ret = vmf_insert_pfn_pmd(vmf, pfn, FAULT_FLAG_WRITE);
- #endif
- 	else
---- a/include/linux/pgtable.h~mm-add-definition-of-pmd_page_order
-+++ a/include/linux/pgtable.h
-@@ -28,6 +28,9 @@
- #define USER_PGTABLES_CEILING	0UL
- #endif
- 
-+/* Number of base pages in a second level leaf page */
-+#define PMD_PAGE_ORDER	(PMD_SHIFT - PAGE_SHIFT)
+--- /dev/null
++++ a/include/linux/secretmem.h
+@@ -0,0 +1,24 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _LINUX_SECRETMEM_H
++#define _LINUX_SECRETMEM_H
 +
++#ifdef CONFIG_SECRETMEM
++
++bool vma_is_secretmem(struct vm_area_struct *vma);
++bool page_is_secretmem(struct page *page);
++
++#else
++
++static inline bool vma_is_secretmem(struct vm_area_struct *vma)
++{
++	return false;
++}
++
++static inline bool page_is_secretmem(struct page *page)
++{
++	return false;
++}
++
++#endif /* CONFIG_SECRETMEM */
++
++#endif /* _LINUX_SECRETMEM_H */
+--- a/include/uapi/linux/magic.h~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas
++++ a/include/uapi/linux/magic.h
+@@ -97,5 +97,6 @@
+ #define DEVMEM_MAGIC		0x454d444d	/* "DMEM" */
+ #define Z3FOLD_MAGIC		0x33
+ #define PPC_CMM_MAGIC		0xc7571590
++#define SECRETMEM_MAGIC		0x5345434d	/* "SECM" */
+ 
+ #endif /* __LINUX_MAGIC_H__ */
+--- a/kernel/sys_ni.c~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas
++++ a/kernel/sys_ni.c
+@@ -353,6 +353,8 @@ COND_SYSCALL(pkey_mprotect);
+ COND_SYSCALL(pkey_alloc);
+ COND_SYSCALL(pkey_free);
+ 
++/* memfd_secret */
++COND_SYSCALL(memfd_secret);
+ 
  /*
-  * A page table page can be thought of an array like this: pXd_t[PTRS_PER_PxD]
-  *
+  * Architecture specific weak syscall entries.
+--- a/mm/gup.c~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas
++++ a/mm/gup.c
+@@ -10,6 +10,7 @@
+ #include <linux/rmap.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
++#include <linux/secretmem.h>
+ 
+ #include <linux/sched/signal.h>
+ #include <linux/rwsem.h>
+@@ -759,6 +760,9 @@ struct page *follow_page(struct vm_area_
+ 	struct follow_page_context ctx = { NULL };
+ 	struct page *page;
+ 
++	if (vma_is_secretmem(vma))
++		return NULL;
++
+ 	page = follow_page_mask(vma, address, foll_flags, &ctx);
+ 	if (ctx.pgmap)
+ 		put_dev_pagemap(ctx.pgmap);
+@@ -892,6 +896,9 @@ static int check_vma_flags(struct vm_are
+ 	if ((gup_flags & FOLL_LONGTERM) && vma_is_fsdax(vma))
+ 		return -EOPNOTSUPP;
+ 
++	if (vma_is_secretmem(vma))
++		return -EFAULT;
++
+ 	if (write) {
+ 		if (!(vm_flags & VM_WRITE)) {
+ 			if (!(gup_flags & FOLL_FORCE))
+@@ -2012,6 +2019,9 @@ static int gup_pte_range(pmd_t pmd, unsi
+ 		VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
+ 		page = pte_page(pte);
+ 
++		if (page_is_secretmem(page))
++			goto pte_unmap;
++
+ 		head = try_grab_compound_head(page, 1, flags);
+ 		if (!head)
+ 			goto pte_unmap;
+--- a/mm/Kconfig~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas
++++ a/mm/Kconfig
+@@ -890,4 +890,7 @@ config MAPPING_DIRTY_HELPERS
+ config KMAP_LOCAL
+ 	bool
+ 
++config SECRETMEM
++	def_bool ARCH_HAS_SET_DIRECT_MAP && !EMBEDDED
++
+ endmenu
+--- a/mm/Makefile~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas
++++ a/mm/Makefile
+@@ -126,3 +126,4 @@ obj-$(CONFIG_MEMFD_CREATE) += memfd.o
+ obj-$(CONFIG_MAPPING_DIRTY_HELPERS) += mapping_dirty_helpers.o
+ obj-$(CONFIG_PTDUMP_CORE) += ptdump.o
+ obj-$(CONFIG_PAGE_REPORTING) += page_reporting.o
++obj-$(CONFIG_SECRETMEM) += secretmem.o
+--- a/mm/mlock.c~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas
++++ a/mm/mlock.c
+@@ -23,6 +23,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/memcontrol.h>
+ #include <linux/mm_inline.h>
++#include <linux/secretmem.h>
+ 
+ #include "internal.h"
+ 
+@@ -503,7 +504,7 @@ static int mlock_fixup(struct vm_area_st
+ 
+ 	if (newflags == vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
+ 	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm) ||
+-	    vma_is_dax(vma))
++	    vma_is_dax(vma) || vma_is_secretmem(vma))
+ 		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
+ 		goto out;
+ 
+--- /dev/null
++++ a/mm/secretmem.c
+@@ -0,0 +1,246 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright IBM Corporation, 2021
++ *
++ * Author: Mike Rapoport <rppt@linux.ibm.com>
++ */
++
++#include <linux/mm.h>
++#include <linux/fs.h>
++#include <linux/swap.h>
++#include <linux/mount.h>
++#include <linux/memfd.h>
++#include <linux/bitops.h>
++#include <linux/printk.h>
++#include <linux/pagemap.h>
++#include <linux/syscalls.h>
++#include <linux/pseudo_fs.h>
++#include <linux/secretmem.h>
++#include <linux/set_memory.h>
++#include <linux/sched/signal.h>
++
++#include <uapi/linux/magic.h>
++
++#include <asm/tlbflush.h>
++
++#include "internal.h"
++
++#undef pr_fmt
++#define pr_fmt(fmt) "secretmem: " fmt
++
++/*
++ * Define mode and flag masks to allow validation of the system call
++ * parameters.
++ */
++#define SECRETMEM_MODE_MASK	(0x0)
++#define SECRETMEM_FLAGS_MASK	SECRETMEM_MODE_MASK
++
++static bool secretmem_enable __ro_after_init;
++module_param_named(enable, secretmem_enable, bool, 0400);
++MODULE_PARM_DESC(secretmem_enable,
++		 "Enable secretmem and memfd_secret(2) system call");
++
++static vm_fault_t secretmem_fault(struct vm_fault *vmf)
++{
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
++	struct inode *inode = file_inode(vmf->vma->vm_file);
++	pgoff_t offset = vmf->pgoff;
++	gfp_t gfp = vmf->gfp_mask;
++	unsigned long addr;
++	struct page *page;
++	int err;
++
++	if (((loff_t)vmf->pgoff << PAGE_SHIFT) >= i_size_read(inode))
++		return vmf_error(-EINVAL);
++
++retry:
++	page = find_lock_page(mapping, offset);
++	if (!page) {
++		page = alloc_page(gfp | __GFP_ZERO);
++		if (!page)
++			return VM_FAULT_OOM;
++
++		err = set_direct_map_invalid_noflush(page, 1);
++		if (err) {
++			put_page(page);
++			return vmf_error(err);
++		}
++
++		__SetPageUptodate(page);
++		err = add_to_page_cache_lru(page, mapping, offset, gfp);
++		if (unlikely(err)) {
++			put_page(page);
++			/*
++			 * If a split of large page was required, it
++			 * already happened when we marked the page invalid
++			 * which guarantees that this call won't fail
++			 */
++			set_direct_map_default_noflush(page, 1);
++			if (err == -EEXIST)
++				goto retry;
++
++			return vmf_error(err);
++		}
++
++		addr = (unsigned long)page_address(page);
++		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
++	}
++
++	vmf->page = page;
++	return VM_FAULT_LOCKED;
++}
++
++static const struct vm_operations_struct secretmem_vm_ops = {
++	.fault = secretmem_fault,
++};
++
++static int secretmem_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	unsigned long len = vma->vm_end - vma->vm_start;
++
++	if ((vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) == 0)
++		return -EINVAL;
++
++	if (mlock_future_check(vma->vm_mm, vma->vm_flags | VM_LOCKED, len))
++		return -EAGAIN;
++
++	vma->vm_flags |= VM_LOCKED | VM_DONTDUMP;
++	vma->vm_ops = &secretmem_vm_ops;
++
++	return 0;
++}
++
++bool vma_is_secretmem(struct vm_area_struct *vma)
++{
++	return vma->vm_ops == &secretmem_vm_ops;
++}
++
++static const struct file_operations secretmem_fops = {
++	.mmap		= secretmem_mmap,
++};
++
++static bool secretmem_isolate_page(struct page *page, isolate_mode_t mode)
++{
++	return false;
++}
++
++static int secretmem_migratepage(struct address_space *mapping,
++				 struct page *newpage, struct page *page,
++				 enum migrate_mode mode)
++{
++	return -EBUSY;
++}
++
++static void secretmem_freepage(struct page *page)
++{
++	set_direct_map_default_noflush(page, 1);
++	clear_highpage(page);
++}
++
++static const struct address_space_operations secretmem_aops = {
++	.freepage	= secretmem_freepage,
++	.migratepage	= secretmem_migratepage,
++	.isolate_page	= secretmem_isolate_page,
++};
++
++bool page_is_secretmem(struct page *page)
++{
++	struct address_space *mapping = page_mapping(page);
++
++	if (!mapping)
++		return false;
++
++	return mapping->a_ops == &secretmem_aops;
++}
++
++static struct vfsmount *secretmem_mnt;
++
++static struct file *secretmem_file_create(unsigned long flags)
++{
++	struct file *file = ERR_PTR(-ENOMEM);
++	struct inode *inode;
++
++	inode = alloc_anon_inode(secretmem_mnt->mnt_sb);
++	if (IS_ERR(inode))
++		return ERR_CAST(inode);
++
++	file = alloc_file_pseudo(inode, secretmem_mnt, "secretmem",
++				 O_RDWR, &secretmem_fops);
++	if (IS_ERR(file))
++		goto err_free_inode;
++
++	mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
++	mapping_set_unevictable(inode->i_mapping);
++
++	inode->i_mapping->a_ops = &secretmem_aops;
++
++	/* pretend we are a normal file with zero size */
++	inode->i_mode |= S_IFREG;
++	inode->i_size = 0;
++
++	return file;
++
++err_free_inode:
++	iput(inode);
++	return file;
++}
++
++SYSCALL_DEFINE1(memfd_secret, unsigned long, flags)
++{
++	struct file *file;
++	int fd, err;
++
++	/* make sure local flags do not confict with global fcntl.h */
++	BUILD_BUG_ON(SECRETMEM_FLAGS_MASK & O_CLOEXEC);
++
++	if (!secretmem_enable)
++		return -ENOSYS;
++
++	if (flags & ~(SECRETMEM_FLAGS_MASK | O_CLOEXEC))
++		return -EINVAL;
++
++	fd = get_unused_fd_flags(flags & O_CLOEXEC);
++	if (fd < 0)
++		return fd;
++
++	file = secretmem_file_create(flags);
++	if (IS_ERR(file)) {
++		err = PTR_ERR(file);
++		goto err_put_fd;
++	}
++
++	file->f_flags |= O_LARGEFILE;
++
++	fd_install(fd, file);
++	return fd;
++
++err_put_fd:
++	put_unused_fd(fd);
++	return err;
++}
++
++static int secretmem_init_fs_context(struct fs_context *fc)
++{
++	return init_pseudo(fc, SECRETMEM_MAGIC) ? 0 : -ENOMEM;
++}
++
++static struct file_system_type secretmem_fs = {
++	.name		= "secretmem",
++	.init_fs_context = secretmem_init_fs_context,
++	.kill_sb	= kill_anon_super,
++};
++
++static int secretmem_init(void)
++{
++	int ret = 0;
++
++	if (!secretmem_enable)
++		return ret;
++
++	secretmem_mnt = kern_mount(&secretmem_fs);
++	if (IS_ERR(secretmem_mnt))
++		ret = PTR_ERR(secretmem_mnt);
++
++	return ret;
++}
++fs_initcall(secretmem_init);
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
