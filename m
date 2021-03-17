@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CA6CC433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F83CC433E9
 	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 23:04:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6050564F65
+	by mail.kernel.org (Postfix) with ESMTP id 4396464F68
 	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 23:04:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229723AbhCQXDd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229874AbhCQXDd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 17 Mar 2021 19:03:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40888 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40786 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229943AbhCQXDc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 19:03:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 38DEE64D9F;
-        Wed, 17 Mar 2021 23:03:31 +0000 (UTC)
+        id S229930AbhCQXDY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 19:03:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4F3EB64F2B;
+        Wed, 17 Mar 2021 23:03:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616022211;
-        bh=hDFG1zUDEFWcWRmIROkS65RdJrPnV+Ffl39zKkBu7ps=;
+        s=korg; t=1616022204;
+        bh=q35OP8Eb8aUsmez0Wohwi6rAb1PentpXm+BK+6xsDv0=;
         h=Date:From:To:Subject:From;
-        b=FVNf9cXhWPXvHgUmCHOkWD1ceSZ6CAt5kKwMbqtq0e3RZBLe/3BmVG2k1lyiKYvRU
-         cno6FAFbxte5P/C5HGycmWnDL5OtOQc4k6qcU0EXNAUf8YeGzx/XBZXxMV2QNBewNs
-         hx4lfjXtv48Cg5ut4J3o/vQ8wJ2WT2kJ7Mv3+xgA=
-Date:   Wed, 17 Mar 2021 16:03:30 -0700
+        b=P6AAsSQJWXoXaAp4/LDQZrlCZq+1NmaTn7+IubdN79DBKBEAES5Je122rYrRQZU+J
+         gttYBh4F3Gmjqdk6TNmi7ZX8uanlH+dzmijIo2UZNYfhwVe6gTcEvFIbl5Jua7aZDQ
+         GAsZ5QiaWnsl3NGW0evMFo56//KJjjFEu7K/fR7w=
+Date:   Wed, 17 Mar 2021 16:03:22 -0700
 From:   akpm@linux-foundation.org
 To:     bp@alien8.de, catalin.marinas@arm.com, dingtianhong@huawei.com,
         hch@lst.de, hpa@zytor.com, linmiaohe@huawei.com,
@@ -36,9 +36,9 @@ To:     bp@alien8.de, catalin.marinas@arm.com, dingtianhong@huawei.com,
         mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
         tglx@linutronix.de, urezki@gmail.com, will@kernel.org
 Subject:  +
- mm-apply_to_pte_range-warn-and-fail-if-a-large-pte-is-encountered.patch
- added to -mm tree
-Message-ID: <20210317230330.hlGrm_k_3%akpm@linux-foundation.org>
+ arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch added to
+ -mm tree
+Message-ID: <20210317230322.x1alnq-am%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: apply_to_pte_range warn and fail if a large pte is encountered
+     Subject: ARM: mm: add missing pud_page define to 2-level page tables
 has been added to the -mm tree.  Its filename is
-     mm-apply_to_pte_range-warn-and-fail-if-a-large-pte-is-encountered.patch
+     arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-apply_to_pte_range-warn-and-fail-if-a-large-pte-is-encountered.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-apply_to_pte_range-warn-and-fail-if-a-large-pte-is-encountered.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,135 +69,61 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Nicholas Piggin <npiggin@gmail.com>
-Subject: mm: apply_to_pte_range warn and fail if a large pte is encountered
+Subject: ARM: mm: add missing pud_page define to 2-level page tables
 
-apply_to_pte_range might mistake a large pte for bad, or treat it as a
-page table, resulting in a crash or corruption.  Add a test to warn and
-return error if large entries are found.
+Patch series "huge vmalloc mappings", v13.
 
-Link: https://lkml.kernel.org/r/20210317062402.533919-4-npiggin@gmail.com
+
+This patch (of 14):
+
+ARM uses its own PMD folding scheme which is missing pud_page which should
+just pass through to pmd_page.  Move this from the 3-level page table to
+common header.
+
+Link: https://lkml.kernel.org/r/20210317062402.533919-2-npiggin@gmail.com
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Ding Tianhong <dingtianhong@huawei.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ding Tianhong <dingtianhong@huawei.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Russell King <linux@armlinux.org.uk>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   66 +++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 49 insertions(+), 17 deletions(-)
+ arch/arm/include/asm/pgtable-3level.h |    2 --
+ arch/arm/include/asm/pgtable.h        |    3 +++
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/memory.c~mm-apply_to_pte_range-warn-and-fail-if-a-large-pte-is-encountered
-+++ a/mm/memory.c
-@@ -2446,13 +2446,21 @@ static int apply_to_pmd_range(struct mm_
- 	}
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (create || !pmd_none_or_clear_bad(pmd)) {
--			err = apply_to_pte_range(mm, pmd, addr, next, fn, data,
--						 create, mask);
--			if (err)
--				break;
-+		if (pmd_none(*pmd) && !create)
-+			continue;
-+		if (WARN_ON_ONCE(pmd_leaf(*pmd)))
-+			return -EINVAL;
-+		if (!pmd_none(*pmd) && WARN_ON_ONCE(pmd_bad(*pmd))) {
-+			if (!create)
-+				continue;
-+			pmd_clear_bad(pmd);
- 		}
-+		err = apply_to_pte_range(mm, pmd, addr, next,
-+					 fn, data, create, mask);
-+		if (err)
-+			break;
- 	} while (pmd++, addr = next, addr != end);
-+
- 	return err;
- }
+--- a/arch/arm/include/asm/pgtable-3level.h~arm-mm-add-missing-pud_page-define-to-2-level-page-tables
++++ a/arch/arm/include/asm/pgtable-3level.h
+@@ -186,8 +186,6 @@ static inline pte_t pte_mkspecial(pte_t
  
-@@ -2474,13 +2482,21 @@ static int apply_to_pud_range(struct mm_
- 	}
- 	do {
- 		next = pud_addr_end(addr, end);
--		if (create || !pud_none_or_clear_bad(pud)) {
--			err = apply_to_pmd_range(mm, pud, addr, next, fn, data,
--						 create, mask);
--			if (err)
--				break;
-+		if (pud_none(*pud) && !create)
-+			continue;
-+		if (WARN_ON_ONCE(pud_leaf(*pud)))
-+			return -EINVAL;
-+		if (!pud_none(*pud) && WARN_ON_ONCE(pud_bad(*pud))) {
-+			if (!create)
-+				continue;
-+			pud_clear_bad(pud);
- 		}
-+		err = apply_to_pmd_range(mm, pud, addr, next,
-+					 fn, data, create, mask);
-+		if (err)
-+			break;
- 	} while (pud++, addr = next, addr != end);
-+
- 	return err;
- }
+ #define pmd_write(pmd)		(pmd_isclear((pmd), L_PMD_SECT_RDONLY))
+ #define pmd_dirty(pmd)		(pmd_isset((pmd), L_PMD_SECT_DIRTY))
+-#define pud_page(pud)		pmd_page(__pmd(pud_val(pud)))
+-#define pud_write(pud)		pmd_write(__pmd(pud_val(pud)))
  
-@@ -2502,13 +2518,21 @@ static int apply_to_p4d_range(struct mm_
- 	}
- 	do {
- 		next = p4d_addr_end(addr, end);
--		if (create || !p4d_none_or_clear_bad(p4d)) {
--			err = apply_to_pud_range(mm, p4d, addr, next, fn, data,
--						 create, mask);
--			if (err)
--				break;
-+		if (p4d_none(*p4d) && !create)
-+			continue;
-+		if (WARN_ON_ONCE(p4d_leaf(*p4d)))
-+			return -EINVAL;
-+		if (!p4d_none(*p4d) && WARN_ON_ONCE(p4d_bad(*p4d))) {
-+			if (!create)
-+				continue;
-+			p4d_clear_bad(p4d);
- 		}
-+		err = apply_to_pud_range(mm, p4d, addr, next,
-+					 fn, data, create, mask);
-+		if (err)
-+			break;
- 	} while (p4d++, addr = next, addr != end);
-+
- 	return err;
- }
+ #define pmd_hugewillfault(pmd)	(!pmd_young(pmd) || !pmd_write(pmd))
+ #define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
+--- a/arch/arm/include/asm/pgtable.h~arm-mm-add-missing-pud_page-define-to-2-level-page-tables
++++ a/arch/arm/include/asm/pgtable.h
+@@ -166,6 +166,9 @@ extern struct page *empty_zero_page;
  
-@@ -2528,9 +2552,17 @@ static int __apply_to_page_range(struct
- 	pgd = pgd_offset(mm, addr);
- 	do {
- 		next = pgd_addr_end(addr, end);
--		if (!create && pgd_none_or_clear_bad(pgd))
-+		if (pgd_none(*pgd) && !create)
- 			continue;
--		err = apply_to_p4d_range(mm, pgd, addr, next, fn, data, create, &mask);
-+		if (WARN_ON_ONCE(pgd_leaf(*pgd)))
-+			return -EINVAL;
-+		if (!pgd_none(*pgd) && WARN_ON_ONCE(pgd_bad(*pgd))) {
-+			if (!create)
-+				continue;
-+			pgd_clear_bad(pgd);
-+		}
-+		err = apply_to_p4d_range(mm, pgd, addr, next,
-+					 fn, data, create, &mask);
- 		if (err)
- 			break;
- 	} while (pgd++, addr = next, addr != end);
+ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
+ 
++#define pud_page(pud)		pmd_page(__pmd(pud_val(pud)))
++#define pud_write(pud)		pmd_write(__pmd(pud_val(pud)))
++
+ #define pmd_none(pmd)		(!pmd_val(pmd))
+ 
+ static inline pte_t *pmd_page_vaddr(pmd_t pmd)
 _
 
 Patches currently in -mm which might be from npiggin@gmail.com are
