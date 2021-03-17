@@ -7,38 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F00D4C4332B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C665EC4332D
 	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 23:04:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7B7B64E77
+	by mail.kernel.org (Postfix) with ESMTP id 9000464E77
 	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 23:04:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229903AbhCQXEI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 19:04:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41276 "EHLO mail.kernel.org"
+        id S229745AbhCQXEG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 19:04:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40956 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229933AbhCQXD4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 19:03:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E85C64E42;
-        Wed, 17 Mar 2021 23:03:55 +0000 (UTC)
+        id S229784AbhCQXDf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 19:03:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1EFC064F38;
+        Wed, 17 Mar 2021 23:03:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616022236;
-        bh=gWJ4mNoab1ujv0BZOwMGPih+emAJtnDYblWuND6vhV0=;
+        s=korg; t=1616022214;
+        bh=OSTYFfoqvfIs+k7tJ9Vt46VeOGWgqx4FrnLSMyUtApY=;
         h=Date:From:To:Subject:From;
-        b=Re9oiscyAYIOHt19AGzp0plGP+EQ/EpRfAZpHw23yc0SdmbdfpSX82gxhkzpqqv3f
-         OXwriKq9aZS5Vj4xHNUXZCuJlRYfdVnL2g6/AHap6ndnIIx6OoHjGV8emEW2Tk8WgT
-         Q56B/Gz0kmgQrZbI2Sgw6096O6wQbb+7ivy8vBcM=
-Date:   Wed, 17 Mar 2021 16:03:54 -0700
+        b=de/XFvhu5SOLjhhaQ+vT2ar6st6TZ4EoY2nxwSL2rrEDyo28bSMOZl+8cCzXMTs+h
+         wqKoE3Q58R7oDbgDn87sYbF6kgE0rCdv9IElQ9u25viLjvL8os3xWavDT5bXPWZjj7
+         GCvee5G0mMs6BLn+u5j6nuF3xivEPCGr5nevK1MQ=
+Date:   Wed, 17 Mar 2021 16:03:33 -0700
 From:   akpm@linux-foundation.org
 To:     bp@alien8.de, catalin.marinas@arm.com, dingtianhong@huawei.com,
         hch@lst.de, hpa@zytor.com, linmiaohe@huawei.com,
         linux@armlinux.org.uk, mingo@redhat.com,
         mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
         tglx@linutronix.de, urezki@gmail.com, will@kernel.org
-Subject:  +
- mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions.patch added to
- -mm tree
-Message-ID: <20210317230354.1R8apONYa%akpm@linux-foundation.org>
+Subject:  + mm-vmalloc-rename-vmap__range-vmap_pages__range.patch
+ added to -mm tree
+Message-ID: <20210317230333.nqOtq7WXy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: provide fallback arch huge vmap support functions
+     Subject: mm/vmalloc: rename vmap_*_range vmap_pages_*_range
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions.patch
+     mm-vmalloc-rename-vmap__range-vmap_pages__range.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-rename-vmap__range-vmap_pages__range.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-rename-vmap__range-vmap_pages__range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,20 +68,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Nicholas Piggin <npiggin@gmail.com>
-Subject: mm/vmalloc: provide fallback arch huge vmap support functions
+Subject: mm/vmalloc: rename vmap_*_range vmap_pages_*_range
 
-If an architecture doesn't support a particular page table level as a huge
-vmap page size then allow it to skip defining the support query function.
+The vmalloc mapper operates on a struct page * array rather than a linear
+physical address, re-name it to make this distinction clear.
 
-Link: https://lkml.kernel.org/r/20210317062402.533919-11-npiggin@gmail.com
+Link: https://lkml.kernel.org/r/20210317062402.533919-5-npiggin@gmail.com
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Suggested-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Ding Tianhong <dingtianhong@huawei.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -91,133 +90,79 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/vmalloc.h   |    7 +++----
- arch/powerpc/include/asm/vmalloc.h |    7 +++----
- arch/x86/include/asm/vmalloc.h     |   13 +++++--------
- include/linux/vmalloc.h            |   24 ++++++++++++++++++++----
- 4 files changed, 31 insertions(+), 20 deletions(-)
+ mm/vmalloc.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/arch/arm64/include/asm/vmalloc.h~mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions
-+++ a/arch/arm64/include/asm/vmalloc.h
-@@ -4,11 +4,8 @@
- #include <asm/page.h>
- 
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
--static inline bool arch_vmap_p4d_supported(pgprot_t prot)
--{
--	return false;
--}
- 
-+#define arch_vmap_pud_supported arch_vmap_pud_supported
- static inline bool arch_vmap_pud_supported(pgprot_t prot)
- {
- 	/*
-@@ -19,11 +16,13 @@ static inline bool arch_vmap_pud_support
- 	       !IS_ENABLED(CONFIG_PTDUMP_DEBUGFS);
+--- a/mm/vmalloc.c~mm-vmalloc-rename-vmap__range-vmap_pages__range
++++ a/mm/vmalloc.c
+@@ -189,7 +189,7 @@ void unmap_kernel_range_noflush(unsigned
+ 		arch_sync_kernel_mappings(start, end);
  }
  
-+#define arch_vmap_pmd_supported arch_vmap_pmd_supported
- static inline bool arch_vmap_pmd_supported(pgprot_t prot)
+-static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
++static int vmap_pages_pte_range(pmd_t *pmd, unsigned long addr,
+ 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
+ 		pgtbl_mod_mask *mask)
  {
- 	/* See arch_vmap_pud_supported() */
- 	return !IS_ENABLED(CONFIG_PTDUMP_DEBUGFS);
- }
-+
- #endif
- 
- #endif /* _ASM_ARM64_VMALLOC_H */
---- a/arch/powerpc/include/asm/vmalloc.h~mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions
-+++ a/arch/powerpc/include/asm/vmalloc.h
-@@ -5,21 +5,20 @@
- #include <asm/page.h>
- 
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
--static inline bool arch_vmap_p4d_supported(pgprot_t prot)
--{
--	return false;
--}
- 
-+#define arch_vmap_pud_supported arch_vmap_pud_supported
- static inline bool arch_vmap_pud_supported(pgprot_t prot)
- {
- 	/* HPT does not cope with large pages in the vmalloc area */
- 	return radix_enabled();
+@@ -217,7 +217,7 @@ static int vmap_pte_range(pmd_t *pmd, un
+ 	return 0;
  }
  
-+#define arch_vmap_pmd_supported arch_vmap_pmd_supported
- static inline bool arch_vmap_pmd_supported(pgprot_t prot)
+-static int vmap_pmd_range(pud_t *pud, unsigned long addr,
++static int vmap_pages_pmd_range(pud_t *pud, unsigned long addr,
+ 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
+ 		pgtbl_mod_mask *mask)
  {
- 	return radix_enabled();
+@@ -229,13 +229,13 @@ static int vmap_pmd_range(pud_t *pud, un
+ 		return -ENOMEM;
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+-		if (vmap_pte_range(pmd, addr, next, prot, pages, nr, mask))
++		if (vmap_pages_pte_range(pmd, addr, next, prot, pages, nr, mask))
+ 			return -ENOMEM;
+ 	} while (pmd++, addr = next, addr != end);
+ 	return 0;
  }
-+
- #endif
  
- #endif /* _ASM_POWERPC_VMALLOC_H */
---- a/arch/x86/include/asm/vmalloc.h~mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions
-+++ a/arch/x86/include/asm/vmalloc.h
-@@ -6,24 +6,21 @@
- #include <asm/pgtable_areas.h>
- 
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
--static inline bool arch_vmap_p4d_supported(pgprot_t prot)
--{
--	return false;
--}
- 
-+#ifdef CONFIG_X86_64
-+#define arch_vmap_pud_supported arch_vmap_pud_supported
- static inline bool arch_vmap_pud_supported(pgprot_t prot)
+-static int vmap_pud_range(p4d_t *p4d, unsigned long addr,
++static int vmap_pages_pud_range(p4d_t *p4d, unsigned long addr,
+ 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
+ 		pgtbl_mod_mask *mask)
  {
--#ifdef CONFIG_X86_64
- 	return boot_cpu_has(X86_FEATURE_GBPAGES);
--#else
--	return false;
--#endif
+@@ -247,13 +247,13 @@ static int vmap_pud_range(p4d_t *p4d, un
+ 		return -ENOMEM;
+ 	do {
+ 		next = pud_addr_end(addr, end);
+-		if (vmap_pmd_range(pud, addr, next, prot, pages, nr, mask))
++		if (vmap_pages_pmd_range(pud, addr, next, prot, pages, nr, mask))
+ 			return -ENOMEM;
+ 	} while (pud++, addr = next, addr != end);
+ 	return 0;
  }
-+#endif
  
-+#define arch_vmap_pmd_supported arch_vmap_pmd_supported
- static inline bool arch_vmap_pmd_supported(pgprot_t prot)
+-static int vmap_p4d_range(pgd_t *pgd, unsigned long addr,
++static int vmap_pages_p4d_range(pgd_t *pgd, unsigned long addr,
+ 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
+ 		pgtbl_mod_mask *mask)
  {
- 	return boot_cpu_has(X86_FEATURE_PSE);
- }
-+
- #endif
- 
- #endif /* _ASM_X86_VMALLOC_H */
---- a/include/linux/vmalloc.h~mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions
-+++ a/include/linux/vmalloc.h
-@@ -78,10 +78,26 @@ struct vmap_area {
- 	};
- };
- 
--#ifndef CONFIG_HAVE_ARCH_HUGE_VMAP
--static inline bool arch_vmap_p4d_supported(pgprot_t prot) { return false; }
--static inline bool arch_vmap_pud_supported(pgprot_t prot) { return false; }
--static inline bool arch_vmap_pmd_supported(pgprot_t prot) { return false; }
-+/* archs that select HAVE_ARCH_HUGE_VMAP should override one or more of these */
-+#ifndef arch_vmap_p4d_supported
-+static inline bool arch_vmap_p4d_supported(pgprot_t prot)
-+{
-+	return false;
-+}
-+#endif
-+
-+#ifndef arch_vmap_pud_supported
-+static inline bool arch_vmap_pud_supported(pgprot_t prot)
-+{
-+	return false;
-+}
-+#endif
-+
-+#ifndef arch_vmap_pmd_supported
-+static inline bool arch_vmap_pmd_supported(pgprot_t prot)
-+{
-+	return false;
-+}
- #endif
- 
- /*
+@@ -265,7 +265,7 @@ static int vmap_p4d_range(pgd_t *pgd, un
+ 		return -ENOMEM;
+ 	do {
+ 		next = p4d_addr_end(addr, end);
+-		if (vmap_pud_range(p4d, addr, next, prot, pages, nr, mask))
++		if (vmap_pages_pud_range(p4d, addr, next, prot, pages, nr, mask))
+ 			return -ENOMEM;
+ 	} while (p4d++, addr = next, addr != end);
+ 	return 0;
+@@ -306,7 +306,7 @@ int map_kernel_range_noflush(unsigned lo
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_bad(*pgd))
+ 			mask |= PGTBL_PGD_MODIFIED;
+-		err = vmap_p4d_range(pgd, addr, next, prot, pages, &nr, &mask);
++		err = vmap_pages_p4d_range(pgd, addr, next, prot, pages, &nr, &mask);
+ 		if (err)
+ 			return err;
+ 	} while (pgd++, addr = next, addr != end);
 _
 
 Patches currently in -mm which might be from npiggin@gmail.com are
