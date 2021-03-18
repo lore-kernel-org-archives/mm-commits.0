@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51F08C433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F9F0C433E0
 	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:52:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 094F464F30
+	by mail.kernel.org (Postfix) with ESMTP id CDE2A64F10
 	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:52:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230246AbhCRAvg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 20:51:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47418 "EHLO mail.kernel.org"
+        id S230215AbhCRAvf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 20:51:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47324 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229880AbhCRAvU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 20:51:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4BBBE64F3B;
-        Thu, 18 Mar 2021 00:51:19 +0000 (UTC)
+        id S230157AbhCRAvM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 20:51:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 754D364F10;
+        Thu, 18 Mar 2021 00:51:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616028680;
-        bh=8pt0gmYEOoal/aUxp6YVJihisoDout9Sh38Z6CSlkLM=;
+        s=korg; t=1616028672;
+        bh=jhClUIwsO/i97yIk7RPVPCCQ24q6SlqN+ScQm6w/rOE=;
         h=Date:From:To:Subject:From;
-        b=nx6AwQcgo6SqBw119Sz5uf0HIL00q867B2BlM1f2g6AnRJai7h0ZM7QSvf2QaJj7L
-         WFxGgxoK1WrMo1p6331WOPJWvCt6dw5rBHbtmDjQt1RYZoNnkerBhPIbc9TOu076XR
-         /3QbylvmuPjfnrgCgwNyuUI1Lzsim/cfgpTlYGZM=
-Date:   Wed, 17 Mar 2021 17:51:18 -0700
+        b=ewdt5Lapn2/5kT52f5GPZx9exoHMGqTvNi9fea89rkmELRGR2NzfjG2p6x2Picx8s
+         KFoJTlxelCPjHpNPp1GPI6Ib7ne83PeMaANTek5kgU+rlE8tckHLdhKvmqn+8ccMIq
+         NcAArBFLVnNTfglVGhOzm3KuOd61FNTR20Tjah1c=
+Date:   Wed, 17 Mar 2021 17:51:10 -0700
 From:   akpm@linux-foundation.org
 To:     0x7f454c46@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com,
         linux@armlinux.org.uk, maninder1.s@samsung.com,
@@ -36,8 +36,9 @@ To:     0x7f454c46@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com,
         rientjes@google.com, v.narang@samsung.com, vbabka@suse.cz,
         viro@zeniv.linux.org.uk
 Subject:  +
- arm-print-alloc-free-paths-for-address-in-registers.patch added to -mm tree
-Message-ID: <20210318005118.DWq1AmVkJ%akpm@linux-foundation.org>
+ mm-slub-fixing-backtrace-of-objects-because-of-redzone-adjustment.patch
+ added to -mm tree
+Message-ID: <20210318005110.imWI-Lyl6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: print alloc free paths for address in registers
+     Subject: mm/slub: fix backtrace of objects because of redzone adjustment
 has been added to the -mm tree.  Its filename is
-     arm-print-alloc-free-paths-for-address-in-registers.patch
+     mm-slub-fixing-backtrace-of-objects-because-of-redzone-adjustment.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm-print-alloc-free-paths-for-address-in-registers.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fixing-backtrace-of-objects-because-of-redzone-adjustment.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm-print-alloc-free-paths-for-address-in-registers.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fixing-backtrace-of-objects-because-of-redzone-adjustment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,109 +69,77 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Maninder Singh <maninder1.s@samsung.com>
-Subject: arm: print alloc free paths for address in registers
+Subject: mm/slub: fix backtrace of objects because of redzone adjustment
 
-In case of a use after free kernel oops, the freeing path of the object is
-required to debug futher.  In most of cases the object address is present
-in one of the registers.
+Fix commit 8e7f37f2aaa5 ("mm: Add mem_dump_obj() to print source of memory
+block")
 
-Thus check the register's address and if it belongs to slab, print its
-alloc and free path.
+With the current code the backtrace of an allocated object is wrong:
 
-e.g.  in the below issue register r6 belongs to slab, and a use after free
-issue occurred on one of its dereferenced values:
+/ # cat /proc/meminfo
+[   14.969843]  slab kmalloc-64 start c8ab0140 data offset 64 pointer offset 0 size 64 allocated at 0x6b6b6b6b
+[   14.970635]     0x6b6b6b6b
+[   14.970794]     0x6b6b6b6b
+[   14.970932]     0x6b6b6b6b
+[   14.971077]     0x6b6b6b6b
+[   14.971202]     0x6b6b6b6b
+[   14.971317]     0x6b6b6b6b
+[   14.971423]     0x6b6b6b6b
+[   14.971635]     0x6b6b6b6b
+[   14.971740]     0x6b6b6b6b
+[   14.971871]     0x6b6b6b6b
+[   14.972229]     0x6b6b6b6b
+[   14.972363]     0x6b6b6b6b
+[   14.972505]     0xa56b6b6b
+[   14.972631]     0xbbbbbbbb
+[   14.972734]     0xc8ab0400
+[   14.972891]     meminfo_proc_show+0x40/0x4fc
 
-[   20.182197] Unable to handle kernel paging request at virtual address 6b6b6b6f
-....
-[   20.185035] pc : [<c0538afc>]    lr : [<c0465674>]    psr: 60000013
-[   20.185271] sp : c8927d40  ip : ffffefff  fp : c8aa8020
-[   20.185462] r10: c8927e10  r9 : 00000001  r8 : 00400cc0
-[   20.185674] r7 : 00000000  r6 : c8ab0180  r5 : c1804a80  r4 : c8aa8008
-[   20.185924] r3 : c1a5661c  r2 : 00000000  r1 : 6b6b6b6b  r0 : c139bf48
-.....
-[   20.191499] Register r6 information: slab kmalloc-64 start c8ab0140 data offset 64 pointer offset 0 size 64 allocated at meminfo_proc_show+0x40/0x4fc
-[   20.192078]     meminfo_proc_show+0x40/0x4fc
-[   20.192263]     seq_read_iter+0x18c/0x4c4
-[   20.192430]     proc_reg_read_iter+0x84/0xac
-[   20.192617]     generic_file_splice_read+0xe8/0x17c
-[   20.192816]     splice_direct_to_actor+0xb8/0x290
-[   20.193008]     do_splice_direct+0xa0/0xe0
-[   20.193185]     do_sendfile+0x2d0/0x438
-[   20.193345]     sys_sendfile64+0x12c/0x140
-[   20.193523]     ret_fast_syscall+0x0/0x58
-[   20.193695]     0xbeeacde4
-[   20.193822]  Free path:
-[   20.193935]     meminfo_proc_show+0x5c/0x4fc
-[   20.194115]     seq_read_iter+0x18c/0x4c4
-[   20.194285]     proc_reg_read_iter+0x84/0xac
-[   20.194475]     generic_file_splice_read+0xe8/0x17c
-[   20.194685]     splice_direct_to_actor+0xb8/0x290
-[   20.194870]     do_splice_direct+0xa0/0xe0
-[   20.195014]     do_sendfile+0x2d0/0x438
-[   20.195174]     sys_sendfile64+0x12c/0x140
-[   20.195336]     ret_fast_syscall+0x0/0x58
-[   20.195491]     0xbeeacde4
+Because the red zone was not adjusted from the object address.  after
+adding this fixup for redzone, the backtrace is correct:
 
-Link: https://lkml.kernel.org/r/1615891032-29160-3-git-send-email-maninder1.s@samsung.com
-Co-developed-by: Vaneet Narang <v.narang@samsung.com>
+/ # cat /proc/meminfo
+[   14.870782]  slab kmalloc-64 start c8ab0140 data offset 64 pointer offset 128 size 64 allocated at meminfo_proc_show+0x40/0x4f4
+[   14.871817]     meminfo_proc_show+0x40/0x4f4
+[   14.872035]     seq_read_iter+0x18c/0x4c4
+[   14.872229]     proc_reg_read_iter+0x84/0xac
+[   14.872433]     generic_file_splice_read+0xe8/0x17c
+[   14.872621]     splice_direct_to_actor+0xb8/0x290
+[   14.872747]     do_splice_direct+0xa0/0xe0
+[   14.872896]     do_sendfile+0x2d0/0x438
+[   14.873044]     sys_sendfile64+0x12c/0x140
+[   14.873229]     ret_fast_syscall+0x0/0x58
+[   14.873372]     0xbe861de4
+
+Link: https://lkml.kernel.org/r/1615891032-29160-1-git-send-email-maninder1.s@samsung.com
+Fixes: 8e7f37f2aaa5 ("mm: Add mem_dump_obj() to print source of memory
 Signed-off-by: Vaneet Narang <v.narang@samsung.com>
 Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
+Acked-by: Paul E. McKenney <paulmck@kernel.org>
 Cc: Russell King <linux@armlinux.org.uk>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/bug.h |    1 +
- arch/arm/kernel/process.c  |   11 +++++++++++
- arch/arm/kernel/traps.c    |    1 +
- 3 files changed, 13 insertions(+)
+ mm/slub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/arm/include/asm/bug.h~arm-print-alloc-free-paths-for-address-in-registers
-+++ a/arch/arm/include/asm/bug.h
-@@ -88,5 +88,6 @@ extern asmlinkage void c_backtrace(unsig
- struct mm_struct;
- void show_pte(const char *lvl, struct mm_struct *mm, unsigned long addr);
- extern void __show_regs(struct pt_regs *);
-+extern void __show_regs_alloc_free(struct pt_regs *regs);
- 
- #endif
---- a/arch/arm/kernel/process.c~arm-print-alloc-free-paths-for-address-in-registers
-+++ a/arch/arm/kernel/process.c
-@@ -92,6 +92,17 @@ void arch_cpu_idle_exit(void)
- 	ledtrig_cpu(CPU_LED_IDLE_END);
- }
- 
-+void __show_regs_alloc_free(struct pt_regs *regs)
-+{
-+	int i;
-+
-+	/* check for r0 - r12 only */
-+	for (i = 0; i < 13; i++) {
-+		pr_alert("Register r%d information:", i);
-+		mem_dump_obj((void *)regs->uregs[i]);
-+	}
-+}
-+
- void __show_regs(struct pt_regs *regs)
- {
- 	unsigned long flags;
---- a/arch/arm/kernel/traps.c~arm-print-alloc-free-paths-for-address-in-registers
-+++ a/arch/arm/kernel/traps.c
-@@ -287,6 +287,7 @@ static int __die(const char *str, int er
- 
- 	print_modules();
- 	__show_regs(regs);
-+	__show_regs_alloc_free(regs);
- 	pr_emerg("Process %.*s (pid: %d, stack limit = 0x%p)\n",
- 		 TASK_COMM_LEN, tsk->comm, task_pid_nr(tsk), end_of_stack(tsk));
- 
+--- a/mm/slub.c~mm-slub-fixing-backtrace-of-objects-because-of-redzone-adjustment
++++ a/mm/slub.c
+@@ -3991,6 +3991,7 @@ void kmem_obj_info(struct kmem_obj_info
+ 	    !(s->flags & SLAB_STORE_USER))
+ 		return;
+ #ifdef CONFIG_SLUB_DEBUG
++	objp = fixup_red_left(s, objp);
+ 	trackp = get_track(s, objp, TRACK_ALLOC);
+ 	kpp->kp_ret = (void *)trackp->addr;
+ #ifdef CONFIG_STACKTRACE
 _
 
 Patches currently in -mm which might be from maninder1.s@samsung.com are
