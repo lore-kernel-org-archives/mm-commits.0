@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31058C43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A80DC433E9
 	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:53:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D576564F45
+	by mail.kernel.org (Postfix) with ESMTP id A60FA64F3B
 	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:53:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229766AbhCRAwi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 20:52:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47952 "EHLO mail.kernel.org"
+        id S229769AbhCRAwj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 20:52:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48026 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229721AbhCRAwV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 20:52:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8DC0F64F3B;
-        Thu, 18 Mar 2021 00:52:19 +0000 (UTC)
+        id S230434AbhCRAw0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 20:52:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BFEFA64F41;
+        Thu, 18 Mar 2021 00:52:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616028741;
-        bh=KxpSFxj3tukZw1ecFU6AJsCUNE5XcP4zQYGF8aOtTgc=;
+        s=korg; t=1616028745;
+        bh=+esUVhtfeotuB1+WM2+PB+K8Kwly3v3Xoah9sX3oKC0=;
         h=Date:From:To:Subject:From;
-        b=0MG7E4SzGU9iaYOiNQkcCEGJ0iSvMj9QUqG39+rHyd1LRVVq0sX0dgmrbcjU3IjBM
-         nkLjBZYz0uJyuEPbTa3vw8eEMH1Ezir3bhNiQIW0sMBH7oa4tVamz0wBNGTKI/T2mJ
-         Y1RtZcL3CLgw7UQ1SQKUvKvVLEX0pN6N2rv+UkJU=
-Date:   Wed, 17 Mar 2021 17:52:18 -0700
+        b=y2kPbpKF5abDBiY03QY+0vD17FuwVV9Ir0s2W0AhD3VHvEIjRNbTO5WmKNkdLh3ow
+         0DFWpeqO3S97C4/VexvgJtpCuqaawN9aoKx6iTA2MlyrXa3rvx46h+3m6gCnUVowcu
+         ogGzLF1dVporxlgDsIXhw1PNauwGlpYfuH9exedo=
+Date:   Wed, 17 Mar 2021 17:52:22 -0700
 From:   akpm@linux-foundation.org
 To:     almasrymina@google.com, anshuman.khandual@arm.com,
         bodeddub@amazon.com, bp@alien8.de, bsingharora@gmail.com,
@@ -44,9 +44,8 @@ To:     almasrymina@google.com, anshuman.khandual@arm.com,
         song.bao.hua@hisilicon.com, songmuchun@bytedance.com,
         tglx@linutronix.de, viro@zeniv.linux.org.uk, willy@infradead.org
 Subject:  [to-be-updated]
- mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch removed
- from -mm tree
-Message-ID: <20210318005218.Nn5jcNo_5%akpm@linux-foundation.org>
+ mm-hugetlb-gather-discrete-indexes-of-tail-page.patch removed from -mm tree
+Message-ID: <20210318005222.qqTNX7U7c%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,50 +54,34 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: introduce a new config HUGETLB_PAGE_FREE_VMEMMAP
+     Subject: mm: hugetlb: gather discrete indexes of tail page
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch
+     mm-hugetlb-gather-discrete-indexes-of-tail-page.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb: introduce a new config HUGETLB_PAGE_FREE_VMEMMAP
+Subject: mm: hugetlb: gather discrete indexes of tail page
 
-The option HUGETLB_PAGE_FREE_VMEMMAP allows for the freeing of some
-vmemmap pages associated with pre-allocated HugeTLB pages.  For example,
-on X86_64 6 vmemmap pages of size 4KB each can be saved for each 2MB
-HugeTLB page.  4094 vmemmap pages of size 4KB each can be saved for each
-1GB HugeTLB page.
+For HugeTLB page, there are more metadata to save in the struct page.  But
+the head struct page cannot meet our needs, so we have to abuse other tail
+struct page to store the metadata.  In order to avoid conflicts caused by
+subsequent use of more tail struct pages, we can gather these discrete
+indexes of tail struct page.  In this case, it will be easier to add a new
+tail page index later.
 
-When a HugeTLB page is allocated or freed, the vmemmap array representing
-the range associated with the page will need to be remapped.  When a page
-is allocated, vmemmap pages are freed after remapping.  When a page is
-freed, previously discarded vmemmap pages must be allocated before
-remapping.
-
-The config option is introduced early so that supporting code can be
-written to depend on the option.  The initial version of the code only
-provides support for x86-64.
-
-If config HAVE_BOOTMEM_INFO_NODE is enabled, the freeing vmemmap page code
-denpend on it to free vmemmap pages.  Otherwise, just use
-free_reserved_page() to free vmemmmap pages.  The routine
-register_page_bootmem_info() is used to register bootmem info.  Therefore,
-make sure register_page_bootmem_info is enabled if
-HUGETLB_PAGE_FREE_VMEMMAP is defined.
-
-Link: https://lkml.kernel.org/r/20210315092015.35396-3-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20210315092015.35396-4-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Tested-by: Chen Huang <chenhuang5@huawei.com>
 Tested-by: Bodeddula Balasubramaniam <bodeddub@amazon.com>
-Reviewed-by: Balbir Singh <bsingharora@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Barry Song <song.bao.hua@hisilicon.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -111,7 +94,7 @@ Cc: Joerg Roedel <jroedel@suse.de>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mina Almasry <almasrymina@google.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Oliver Neukum <oneukum@suse.com>
@@ -123,41 +106,106 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    2 +-
- fs/Kconfig            |    5 +++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ include/linux/hugetlb.h        |   21 +++++++++++++++++++--
+ include/linux/hugetlb_cgroup.h |   19 +++++++++++--------
+ 2 files changed, 30 insertions(+), 10 deletions(-)
 
---- a/arch/x86/mm/init_64.c~mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap
-+++ a/arch/x86/mm/init_64.c
-@@ -1269,7 +1269,7 @@ static struct kcore_list kcore_vsyscall;
+--- a/include/linux/hugetlb_cgroup.h~mm-hugetlb-gather-discrete-indexes-of-tail-page
++++ a/include/linux/hugetlb_cgroup.h
+@@ -21,15 +21,16 @@ struct hugetlb_cgroup;
+ struct resv_map;
+ struct file_region;
  
- static void __init register_page_bootmem_info(void)
- {
--#ifdef CONFIG_NUMA
-+#if defined(CONFIG_NUMA) || defined(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP)
- 	int i;
++#ifdef CONFIG_CGROUP_HUGETLB
+ /*
+  * Minimum page order trackable by hugetlb cgroup.
+  * At least 4 pages are necessary for all the tracking information.
+- * The second tail page (hpage[2]) is the fault usage cgroup.
+- * The third tail page (hpage[3]) is the reservation usage cgroup.
++ * The second tail page (hpage[SUBPAGE_INDEX_CGROUP]) is the fault
++ * usage cgroup. The third tail page (hpage[SUBPAGE_INDEX_CGROUP_RSVD])
++ * is the reservation usage cgroup.
+  */
+-#define HUGETLB_CGROUP_MIN_ORDER	2
++#define HUGETLB_CGROUP_MIN_ORDER order_base_2(__MAX_CGROUP_SUBPAGE_INDEX + 1)
  
- 	for_each_online_node(i)
---- a/fs/Kconfig~mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap
-+++ a/fs/Kconfig
-@@ -236,6 +236,11 @@ config HUGETLBFS
- config HUGETLB_PAGE
- 	def_bool HUGETLBFS
+-#ifdef CONFIG_CGROUP_HUGETLB
+ enum hugetlb_memory_event {
+ 	HUGETLB_MAX,
+ 	HUGETLB_NR_MEMORY_EVENTS,
+@@ -66,9 +67,9 @@ __hugetlb_cgroup_from_page(struct page *
+ 	if (compound_order(page) < HUGETLB_CGROUP_MIN_ORDER)
+ 		return NULL;
+ 	if (rsvd)
+-		return (struct hugetlb_cgroup *)page[3].private;
++		return (void *)page_private(page + SUBPAGE_INDEX_CGROUP_RSVD);
+ 	else
+-		return (struct hugetlb_cgroup *)page[2].private;
++		return (void *)page_private(page + SUBPAGE_INDEX_CGROUP);
+ }
  
-+config HUGETLB_PAGE_FREE_VMEMMAP
-+	def_bool HUGETLB_PAGE
-+	depends on X86_64
-+	depends on SPARSEMEM_VMEMMAP
+ static inline struct hugetlb_cgroup *hugetlb_cgroup_from_page(struct page *page)
+@@ -90,9 +91,11 @@ static inline int __set_hugetlb_cgroup(s
+ 	if (compound_order(page) < HUGETLB_CGROUP_MIN_ORDER)
+ 		return -1;
+ 	if (rsvd)
+-		page[3].private = (unsigned long)h_cg;
++		set_page_private(page + SUBPAGE_INDEX_CGROUP_RSVD,
++				 (unsigned long)h_cg);
+ 	else
+-		page[2].private = (unsigned long)h_cg;
++		set_page_private(page + SUBPAGE_INDEX_CGROUP,
++				 (unsigned long)h_cg);
+ 	return 0;
+ }
+ 
+--- a/include/linux/hugetlb.h~mm-hugetlb-gather-discrete-indexes-of-tail-page
++++ a/include/linux/hugetlb.h
+@@ -28,6 +28,23 @@ typedef struct { unsigned long pd; } hug
+ #include <linux/shm.h>
+ #include <asm/tlbflush.h>
+ 
++/*
++ * For HugeTLB page, there are more metadata to save in the struct page. But
++ * the head struct page cannot meet our needs, so we have to abuse other tail
++ * struct page to store the metadata. In order to avoid conflicts caused by
++ * subsequent use of more tail struct pages, we gather these discrete indexes
++ * of tail struct page here.
++ */
++enum {
++	SUBPAGE_INDEX_SUBPOOL = 1,	/* reuse page->private */
++#ifdef CONFIG_CGROUP_HUGETLB
++	SUBPAGE_INDEX_CGROUP,		/* reuse page->private */
++	SUBPAGE_INDEX_CGROUP_RSVD,	/* reuse page->private */
++	__MAX_CGROUP_SUBPAGE_INDEX = SUBPAGE_INDEX_CGROUP_RSVD,
++#endif
++	__NR_USED_SUBPAGE,
++};
 +
- config MEMFD_CREATE
- 	def_bool TMPFS || HUGETLBFS
+ struct hugepage_subpool {
+ 	spinlock_t lock;
+ 	long count;
+@@ -618,13 +635,13 @@ extern unsigned int default_hstate_idx;
+  */
+ static inline struct hugepage_subpool *hugetlb_page_subpool(struct page *hpage)
+ {
+-	return (struct hugepage_subpool *)(hpage+1)->private;
++	return (void *)page_private(hpage + SUBPAGE_INDEX_SUBPOOL);
+ }
  
+ static inline void hugetlb_set_page_subpool(struct page *hpage,
+ 					struct hugepage_subpool *subpool)
+ {
+-	set_page_private(hpage+1, (unsigned long)subpool);
++	set_page_private(hpage + SUBPAGE_INDEX_SUBPOOL, (unsigned long)subpool);
+ }
+ 
+ static inline struct hstate *hstate_file(struct file *f)
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 mm-memcontrol-fix-kernel-stack-account.patch
-mm-hugetlb-gather-discrete-indexes-of-tail-page.patch
 mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
 mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
 mm-hugetlb-set-the-pagehwpoison-to-the-raw-error-page.patch
