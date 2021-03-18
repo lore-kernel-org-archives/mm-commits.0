@@ -2,223 +2,152 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5153C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:57:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17123C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 01:06:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9736C64EEE
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:57:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB12064F38
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 01:06:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229921AbhCRA5H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 20:57:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49786 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229720AbhCRA4y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 20:56:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1B99764EED;
-        Thu, 18 Mar 2021 00:56:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616029014;
-        bh=W0N+Ub4YS/OB1QehpxADkbyZSKaZOoyGl21/R2hJA9k=;
-        h=Date:From:To:Subject:From;
-        b=yr46QTD13eKD+B8nYF83owCt8pynQy1s0Mz9Inh2SEVaz4LphIIoCh1o46PK0QksD
-         KJEDM/aqiC4teENz0Z8B9YmD/iEqrC07C69+I6cYlzF+dO7GCjnNTpCyjpYyjYNlWs
-         iR6mfvaU7jfpYfNbAH2ClzGSg5l2+58Id2jj4WU4=
-Date:   Wed, 17 Mar 2021 17:56:53 -0700
-From:   akpm@linux-foundation.org
-To:     krzysztof.kozlowski@canonical.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, tglx@linutronix.de
-Subject:  + genirq-fix-language-typos.patch added to -mm tree
-Message-ID: <20210318005653.YRSp8WcUW%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S229880AbhCRBFt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 21:05:49 -0400
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:19090 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229769AbhCRBFm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 21:05:42 -0400
+Received: from pps.filterd (m0187473.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 12I12gC0004348;
+        Wed, 17 Mar 2021 21:04:45 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
+ from : reply-to : to : cc : date : in-reply-to : references : content-type
+ : mime-version : content-transfer-encoding; s=pp1;
+ bh=WGsANUFrUE/AfQaqL+QlP8WOsIB7PLnp5G7cxYViNXk=;
+ b=a+17qe+I80grIZ6IF9UT9bBe7d5Q7af+ya+jYsYHL4m8rIA2Ky3lfXL/1nFBTMHY3nGf
+ 4TmyTA4EmVNVH7puQVrG9Dau+0dLe/+l4JLr+8eg7H33pHBfxGq66njkAULUvc8aIcE7
+ 8EBwEBxJdFstaEiiu862CkHvqyFek8knlkEsvSDiB8Uut2wBmuhN7ZYh21LgEETIPXJM
+ YWF5N8UlZ0x3PI7jJ8qhSDPvdqXh1F2UOJxUn+rTF9fl+7xZu4VfRH4QzyvA3e9xkhuJ
+ i0lQfFsInKE+s3IwVsbC7IdgJXkaJ+abjwhIEJrMLOqvAu7pIt4khZG+lMubRf+vE6Dv Ew== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 37bnrec95n-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 17 Mar 2021 21:04:45 -0400
+Received: from m0187473.ppops.net (m0187473.ppops.net [127.0.0.1])
+        by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 12I12nM5004813;
+        Wed, 17 Mar 2021 21:04:44 -0400
+Received: from ppma04wdc.us.ibm.com (1a.90.2fa9.ip4.static.sl-reverse.com [169.47.144.26])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 37bnrec954-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 17 Mar 2021 21:04:44 -0400
+Received: from pps.filterd (ppma04wdc.us.ibm.com [127.0.0.1])
+        by ppma04wdc.us.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 12I11r4U032098;
+        Thu, 18 Mar 2021 01:04:43 GMT
+Received: from b03cxnp08025.gho.boulder.ibm.com (b03cxnp08025.gho.boulder.ibm.com [9.17.130.17])
+        by ppma04wdc.us.ibm.com with ESMTP id 378n19b13s-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 18 Mar 2021 01:04:43 +0000
+Received: from b03ledav004.gho.boulder.ibm.com (b03ledav004.gho.boulder.ibm.com [9.17.130.235])
+        by b03cxnp08025.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 12I14grF31588830
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 18 Mar 2021 01:04:42 GMT
+Received: from b03ledav004.gho.boulder.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 050337805E;
+        Thu, 18 Mar 2021 01:04:42 +0000 (GMT)
+Received: from b03ledav004.gho.boulder.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id B3C0D78060;
+        Thu, 18 Mar 2021 01:04:36 +0000 (GMT)
+Received: from jarvis.int.hansenpartnership.com (unknown [9.80.237.238])
+        by b03ledav004.gho.boulder.ibm.com (Postfix) with ESMTP;
+        Thu, 18 Mar 2021 01:04:36 +0000 (GMT)
+Message-ID: <328fc22782a1964933796017c4d7787e2b522d6e.camel@linux.ibm.com>
+Subject: Re: + mm-add-definition-of-pmd_page_order.patch added to -mm tree
+From:   James Bottomley <jejb@linux.ibm.com>
+To:     Matthew Wilcox <willy@infradead.org>
+Cc:     akpm@linux-foundation.org, arnd@arndb.de, bp@alien8.de,
+        catalin.marinas@arm.com, cl@linux.com, dan.j.williams@intel.com,
+        dave.hansen@linux.intel.com, david@redhat.com,
+        elena.reshetova@intel.com, guro@fb.com, hagen@jauu.net,
+        hpa@zytor.com, kirill@shutemov.name, luto@kernel.org,
+        mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org,
+        mtk.manpages@gmail.com, palmer@dabbelt.com,
+        palmerdabbelt@google.com, paul.walmsley@sifive.com,
+        peterz@infradead.org, rick.p.edgecombe@intel.com,
+        rppt@linux.ibm.com, shakeelb@google.com, shuah@kernel.org,
+        tglx@linutronix.de, tycho@tycho.ws, viro@zeniv.linux.org.uk,
+        will@kernel.org
+Date:   Wed, 17 Mar 2021 18:04:35 -0700
+In-Reply-To: <20210318001538.GI3420@casper.infradead.org>
+References: <20210317221512.A39Ft3LQk%akpm@linux-foundation.org>
+         <20210317225402.GH3420@casper.infradead.org>
+         <42da5805da8dad56818d2047b2e64c20ec7d030d.camel@linux.ibm.com>
+         <20210318001538.GI3420@casper.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.34.4 
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.761
+ definitions=2021-03-17_16:2021-03-17,2021-03-17 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
+ mlxlogscore=533 phishscore=0 impostorscore=0 mlxscore=0 spamscore=0
+ clxscore=1015 bulkscore=0 suspectscore=0 priorityscore=1501 adultscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2103180005
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Thu, 2021-03-18 at 00:15 +0000, Matthew Wilcox wrote:
+> On Wed, Mar 17, 2021 at 04:19:06PM -0700, James Bottomley wrote:
+> > On Wed, 2021-03-17 at 22:54 +0000, Matthew Wilcox wrote:
+> > > On Wed, Mar 17, 2021 at 03:15:12PM -0700, 
+> > > akpm@linux-foundation.org
+> > > wrote:
+> > > > Several architectures already have definition of PMD_ORDER as
+> > > > the size of second level page table, so to avoid conflict with
+> > > > these definitions use PMD_PAGE_ORDER name and update DAX
+> > > > respectively.
+> > > 
+> > > I thought I NACKed this patch already?
+> > 
+> > I don't think anyone understands why.  DAX won't build on several
+> > architectures, including parisc, because of this existing symbol
+> > clash.
+> > 
+> > > The architectures should be updated to not use
+> > > PMD_ORDER.  PMD_ORDER is clearly the right name for what is now
+> > > PMD_PAGE_ORDER.  The architectures should be using
+> > > PMD_ALLOC_ORDER or some such.
+> 
+> https://lore.kernel.org/linux-fsdevel/20201204034843.GM11935@casper.infradead.org/
+> was where I said what I wanted.
 
-The patch titled
-     Subject: kernel/irq/: fix language typos
-has been added to the -mm tree.  Its filename is
-     genirq-fix-language-typos.patch
+Well that's nothing to do with this patch.  This patch is just trying
+to extract the DAX definition up into a global header. 
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/genirq-fix-language-typos.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/genirq-fix-language-typos.patch
+Could we agree on PAGE_PMD_ORDER since the hugepage equivalent is
+called HPAGE_PMD_ORDER?  That would at least make the naming consistent
+and also solve the symbol clash ... then we can separately argue who
+wants to go and ask all the architectures to rename their PMD_ORDER
+definitions.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+> > Well I had a patch renaming the dax specific one to DAX_PMD_ORDER
+> > which you also didn't like.  Why don't you just propose the patch
+> > you do like because this is a build failure on several
+> > architectures currently.
+> > 
+> > I don't really care what colour the bike shed is ... I do care that
+> > my builds fail.
+> 
+> I was expecting you to do the rename, since it's inconveniencing you.
+> It doesn't cause me any trouble at all.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+I fixed it by not building dax in the default parisc configs.
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+James
 
-------------------------------------------------------
-From: Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>
-Subject: kernel/irq/: fix language typos
-
-Fix some language typos and misspellings in comments.  No functional
-changes.
-
-Link: https://lkml.kernel.org/r/20210316100205.23492-1-krzysztof.kozlowski@canonical.com
-Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- kernel/irq/chip.c      |    6 +++---
- kernel/irq/ipi.c       |    2 +-
- kernel/irq/manage.c    |    6 +++---
- kernel/irq/matrix.c    |    2 +-
- kernel/irq/migration.c |    2 +-
- kernel/irq/resend.c    |    2 +-
- kernel/irq/timings.c   |    6 +++---
- 7 files changed, 13 insertions(+), 13 deletions(-)
-
---- a/kernel/irq/chip.c~genirq-fix-language-typos
-+++ a/kernel/irq/chip.c
-@@ -761,7 +761,7 @@ EXPORT_SYMBOL_GPL(handle_fasteoi_nmi);
-  *	handle_edge_irq - edge type IRQ handler
-  *	@desc:	the interrupt description structure for this irq
-  *
-- *	Interrupt occures on the falling and/or rising edge of a hardware
-+ *	Interrupt occurs on the falling and/or rising edge of a hardware
-  *	signal. The occurrence is latched into the irq controller hardware
-  *	and must be acked in order to be reenabled. After the ack another
-  *	interrupt can happen on the same source even before the first one
-@@ -1419,7 +1419,7 @@ EXPORT_SYMBOL_GPL(irq_chip_eoi_parent);
-  * @dest:	The affinity mask to set
-  * @force:	Flag to enforce setting (disable online checks)
-  *
-- * Conditinal, as the underlying parent chip might not implement it.
-+ * Conditional, as the underlying parent chip might not implement it.
-  */
- int irq_chip_set_affinity_parent(struct irq_data *data,
- 				 const struct cpumask *dest, bool force)
-@@ -1531,7 +1531,7 @@ EXPORT_SYMBOL_GPL(irq_chip_release_resou
- #endif
- 
- /**
-- * irq_chip_compose_msi_msg - Componse msi message for a irq chip
-+ * irq_chip_compose_msi_msg - Compose msi message for a irq chip
-  * @data:	Pointer to interrupt specific data
-  * @msg:	Pointer to the MSI message
-  *
---- a/kernel/irq/ipi.c~genirq-fix-language-typos
-+++ a/kernel/irq/ipi.c
-@@ -107,7 +107,7 @@ free_descs:
-  * @irq:	linux irq number to be destroyed
-  * @dest:	cpumask of cpus which should have the IPI removed
-  *
-- * The IPIs allocated with irq_reserve_ipi() are retuerned to the system
-+ * The IPIs allocated with irq_reserve_ipi() are returned to the system
-  * destroying all virqs associated with them.
-  *
-  * Return 0 on success or error code on failure.
---- a/kernel/irq/manage.c~genirq-fix-language-typos
-+++ a/kernel/irq/manage.c
-@@ -179,7 +179,7 @@ bool irq_can_set_affinity_usr(unsigned i
- 
- /**
-  *	irq_set_thread_affinity - Notify irq threads to adjust affinity
-- *	@desc:		irq descriptor which has affitnity changed
-+ *	@desc:		irq descriptor which has affinity changed
-  *
-  *	We just set IRQTF_AFFINITY and delegate the affinity setting
-  *	to the interrupt thread itself. We can not call
-@@ -1153,7 +1153,7 @@ irq_forced_thread_fn(struct irq_desc *de
- 
- /*
-  * Interrupts explicitly requested as threaded interrupts want to be
-- * preemtible - many of them need to sleep and wait for slow busses to
-+ * preemptible - many of them need to sleep and wait for slow busses to
-  * complete.
-  */
- static irqreturn_t irq_thread_fn(struct irq_desc *desc,
-@@ -2742,7 +2742,7 @@ int __irq_get_irqchip_state(struct irq_d
-  *	irq_get_irqchip_state - returns the irqchip state of a interrupt.
-  *	@irq: Interrupt line that is forwarded to a VM
-  *	@which: One of IRQCHIP_STATE_* the caller wants to know about
-- *	@state: a pointer to a boolean where the state is to be storeed
-+ *	@state: a pointer to a boolean where the state is to be stored
-  *
-  *	This call snapshots the internal irqchip state of an
-  *	interrupt, returning into @state the bit corresponding to
---- a/kernel/irq/matrix.c~genirq-fix-language-typos
-+++ a/kernel/irq/matrix.c
-@@ -356,7 +356,7 @@ void irq_matrix_reserve(struct irq_matri
-  * irq_matrix_remove_reserved - Remove interrupt reservation
-  * @m:		Matrix pointer
-  *
-- * This is merily a book keeping call. It decrements the number of globally
-+ * This is merely a book keeping call. It decrements the number of globally
-  * reserved interrupt bits. This is used to undo irq_matrix_reserve() when the
-  * interrupt was never in use and a real vector allocated, which undid the
-  * reservation.
---- a/kernel/irq/migration.c~genirq-fix-language-typos
-+++ a/kernel/irq/migration.c
-@@ -7,7 +7,7 @@
- 
- /**
-  * irq_fixup_move_pending - Cleanup irq move pending from a dying CPU
-- * @desc:		Interrupt descpriptor to clean up
-+ * @desc:		Interrupt descriptor to clean up
-  * @force_clear:	If set clear the move pending bit unconditionally.
-  *			If not set, clear it only when the dying CPU is the
-  *			last one in the pending mask.
---- a/kernel/irq/resend.c~genirq-fix-language-typos
-+++ a/kernel/irq/resend.c
-@@ -128,7 +128,7 @@ int check_irq_resend(struct irq_desc *de
- 	if (!try_retrigger(desc))
- 		err = irq_sw_resend(desc);
- 
--	/* If the retrigger was successfull, mark it with the REPLAY bit */
-+	/* If the retrigger was successful, mark it with the REPLAY bit */
- 	if (!err)
- 		desc->istate |= IRQS_REPLAY;
- 	return err;
---- a/kernel/irq/timings.c~genirq-fix-language-typos
-+++ a/kernel/irq/timings.c
-@@ -84,7 +84,7 @@ void irq_timings_disable(void)
-  * 2. Log interval
-  *
-  * We saw the irq timings allow to compute the interval of the
-- * occurrences for a specific interrupt. We can reasonibly assume the
-+ * occurrences for a specific interrupt. We can reasonably assume the
-  * longer is the interval, the higher is the error for the next event
-  * and we can consider storing those interval values into an array
-  * where each slot in the array correspond to an interval at the power
-@@ -416,7 +416,7 @@ static u64 __irq_timings_next_event(stru
- 	 * Copy the content of the circular buffer into another buffer
- 	 * in order to linearize the buffer instead of dealing with
- 	 * wrapping indexes and shifted array which will be prone to
--	 * error and extremelly difficult to debug.
-+	 * error and extremely difficult to debug.
- 	 */
- 	for (i = 0; i < count; i++) {
- 		int index = (start + i) & IRQ_TIMINGS_MASK;
-@@ -514,7 +514,7 @@ static inline void irq_timings_store(int
-  *      If more than the array size interrupts happened during the
-  *      last busy/idle cycle, the index wrapped up and we have to
-  *      begin with the next element in the array which is the last one
-- *      in the sequence, otherwise it is a the index 0.
-+ *      in the sequence, otherwise it is at the index 0.
-  *
-  * - have an indication of the interrupts activity on this CPU
-  *   (eg. irq/sec)
-_
-
-Patches currently in -mm which might be from krzysztof.kozlowski@canonical.com are
-
-genirq-fix-language-typos.patch
 
