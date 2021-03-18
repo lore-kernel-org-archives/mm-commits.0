@@ -4,39 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73341C433E6
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 23:55:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB4E4C433E9
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:16:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3FC9964F45
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Mar 2021 23:55:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C35B64F2B
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:16:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230129AbhCQXzN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 19:55:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39410 "EHLO mail.kernel.org"
+        id S229880AbhCRAPk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 20:15:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57556 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230051AbhCQXym (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 19:54:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1171A64F24;
-        Wed, 17 Mar 2021 23:54:42 +0000 (UTC)
+        id S229613AbhCRAPX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 20:15:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1BA7564F26;
+        Thu, 18 Mar 2021 00:15:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616025282;
-        bh=fVEQi6T9kg+nNRFKLt+te4bAbqOIlzUf8tCb8jnLB4M=;
+        s=korg; t=1616026521;
+        bh=MgYcRYGO2M5IhL5SsQoS+biMqXLSkMXTflWEFspByIg=;
         h=Date:From:To:Subject:From;
-        b=R1mK5T2D7a5Qijs72PXChgRyC4oSlH7hwv7Hs4kI+RUubXAdev7rV26CnV3fytT7C
-         Gs98/rdPUHpH1ZEnvRyMTrmVfvBLYOgpEJR+2vRpqv8k0qJOQftwFrDOQLBH0bmg3r
-         468yj5fzqCkBZxXfEL1sf2i+GI86LJSDftJK9vNw=
-Date:   Wed, 17 Mar 2021 16:54:41 -0700
+        b=kVExCSWvhsXMgtMvd9E4DRy8E2iRQAu7KW6bsbew59LK2sncddenwpJ7bJg7TBdnD
+         UjqaDX4IgKiuaySIGysOF5nTE/ppnrC8Lyf+Wkxj/+SmKnle7qoDdjHwgdjHL3LKX6
+         rwCCznxFOKLpJuNmk5lTiiU5K3UCUR9D19sIBy4E=
+Date:   Wed, 17 Mar 2021 17:15:20 -0700
 From:   akpm@linux-foundation.org
-To:     dledford@redhat.com, hch@infradead.org, jgg@nvidia.com,
-        jhubbard@nvidia.com, joao.m.martins@oracle.com,
-        mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  +
- mm-gup-add-a-range-variant-of-unpin_user_pages_dirty_lock.patch added to
- -mm tree
-Message-ID: <20210317235441.HBYVZsPaf%akpm@linux-foundation.org>
+To:     arnd@arndb.de, david@redhat.com, lkp@intel.com,
+        mm-commits@vger.kernel.org, ndesaulniers@google.com,
+        rppt@linux.ibm.com
+Subject:  + memblock-fix-section-mismatch-warning-again.patch added
+ to -mm tree
+Message-ID: <20210318001520.XabflQiq1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: add a range variant of unpin_user_pages_dirty_lock()
+     Subject: mm: memblock: fix section mismatch warning again
 has been added to the -mm tree.  Its filename is
-     mm-gup-add-a-range-variant-of-unpin_user_pages_dirty_lock.patch
+     memblock-fix-section-mismatch-warning-again.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-add-a-range-variant-of-unpin_user_pages_dirty_lock.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memblock-fix-section-mismatch-warning-again.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-add-a-range-variant-of-unpin_user_pages_dirty_lock.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memblock-fix-section-mismatch-warning-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,130 +65,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/gup: add a range variant of unpin_user_pages_dirty_lock()
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mm: memblock: fix section mismatch warning again
 
-Add an unpin_user_page_range_dirty_lock() API which takes a starting page
-and how many consecutive pages we want to unpin and optionally dirty.
+Commit 34dc2efb39a2 ("memblock: fix section mismatch warning") marked
+memblock_bottom_up() and memblock_set_bottom_up() as __init, but they
+could be referenced from non-init functions like
+memblock_find_in_range_node() on architectures that enable
+CONFIG_ARCH_KEEP_MEMBLOCK.
 
-To that end, define another iterator for_each_compound_range() that
-operates in page ranges as opposed to page array.
+For such builds kernel test robot reports: All warnings (new ones prefixed
+by >>, old ones prefixed by <<):
 
-For users (like RDMA mr_dereg) where each sg represents a contiguous set
-of pages, we're able to more efficiently unpin pages without having to
-supply an array of pages much of what happens today with
-unpin_user_pages().
+>> WARNING: modpost: vmlinux.o(.text+0x74fea4): Section mismatch in reference from the function memblock_find_in_range_node() to the function .init.text:memblock_bottom_up()
+The function memblock_find_in_range_node() references
+the function __init memblock_bottom_up().
+This is often because memblock_find_in_range_node lacks a __init
+annotation or the annotation of memblock_bottom_up is wrong.
 
-Link: https://lkml.kernel.org/r/20210212130843.13865-4-joao.m.martins@oracle.com
-Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Replace __init annotations with __init_memblock annotations so that the
+appropriate section will be selected depending on
+CONFIG_ARCH_KEEP_MEMBLOCK.
+
+Link: https://lore.kernel.org/lkml/202103160133.UzhgY0wt-lkp@intel.com
+Link: https://lkml.kernel.org/r/20210316171347.14084-1-rppt@kernel.org
+Fixes: 34dc2efb39a2 ("memblock: fix section mismatch warning")
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Reported-by: kernel test robot <lkp@intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +
- mm/gup.c           |   62 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+)
+ include/linux/memblock.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-gup-add-a-range-variant-of-unpin_user_pages_dirty_lock
-+++ a/include/linux/mm.h
-@@ -1255,6 +1255,8 @@ static inline void put_page(struct page
- void unpin_user_page(struct page *page);
- void unpin_user_pages_dirty_lock(struct page **pages, unsigned long npages,
- 				 bool make_dirty);
-+void unpin_user_page_range_dirty_lock(struct page *page, unsigned long npages,
-+				      bool make_dirty);
- void unpin_user_pages(struct page **pages, unsigned long npages);
- 
- /**
---- a/mm/gup.c~mm-gup-add-a-range-variant-of-unpin_user_pages_dirty_lock
-+++ a/mm/gup.c
-@@ -213,6 +213,32 @@ void unpin_user_page(struct page *page)
+--- a/include/linux/memblock.h~memblock-fix-section-mismatch-warning-again
++++ a/include/linux/memblock.h
+@@ -460,7 +460,7 @@ static inline void memblock_free_late(ph
+ /*
+  * Set the allocation direction to bottom-up or top-down.
+  */
+-static inline __init void memblock_set_bottom_up(bool enable)
++static inline __init_memblock void memblock_set_bottom_up(bool enable)
+ {
+ 	memblock.bottom_up = enable;
  }
- EXPORT_SYMBOL(unpin_user_page);
- 
-+static inline void compound_range_next(unsigned long i, unsigned long npages,
-+				       struct page **list, struct page **head,
-+				       unsigned int *ntails)
-+{
-+	struct page *next, *page;
-+	unsigned int nr = 1;
-+
-+	if (i >= npages)
-+		return;
-+
-+	next = *list + i;
-+	page = compound_head(next);
-+	if (PageCompound(page) && compound_order(page) >= 1)
-+		nr = min_t(unsigned int,
-+			   page + compound_nr(page) - next, npages - i);
-+
-+	*head = page;
-+	*ntails = nr;
-+}
-+
-+#define for_each_compound_range(__i, __list, __npages, __head, __ntails) \
-+	for (__i = 0, \
-+	     compound_range_next(__i, __npages, __list, &(__head), &(__ntails)); \
-+	     __i < __npages; __i += __ntails, \
-+	     compound_range_next(__i, __npages, __list, &(__head), &(__ntails)))
-+
- static inline void compound_next(unsigned long i, unsigned long npages,
- 				 struct page **list, struct page **head,
- 				 unsigned int *ntails)
-@@ -302,6 +328,42 @@ void unpin_user_pages_dirty_lock(struct
- EXPORT_SYMBOL(unpin_user_pages_dirty_lock);
- 
- /**
-+ * unpin_user_page_range_dirty_lock() - release and optionally dirty
-+ * gup-pinned page range
-+ *
-+ * @page:  the starting page of a range maybe marked dirty, and definitely released.
-+ * @npages: number of consecutive pages to release.
-+ * @make_dirty: whether to mark the pages dirty
-+ *
-+ * "gup-pinned page range" refers to a range of pages that has had one of the
-+ * pin_user_pages() variants called on that page.
-+ *
-+ * For the page ranges defined by [page .. page+npages], make that range (or
-+ * its head pages, if a compound page) dirty, if @make_dirty is true, and if the
-+ * page range was previously listed as clean.
-+ *
-+ * set_page_dirty_lock() is used internally. If instead, set_page_dirty() is
-+ * required, then the caller should a) verify that this is really correct,
-+ * because _lock() is usually required, and b) hand code it:
-+ * set_page_dirty_lock(), unpin_user_page().
-+ *
-+ */
-+void unpin_user_page_range_dirty_lock(struct page *page, unsigned long npages,
-+				      bool make_dirty)
-+{
-+	unsigned long index;
-+	struct page *head;
-+	unsigned int ntails;
-+
-+	for_each_compound_range(index, &page, npages, head, ntails) {
-+		if (make_dirty && !PageDirty(head))
-+			set_page_dirty_lock(head);
-+		put_compound_head(head, ntails, FOLL_PIN);
-+	}
-+}
-+EXPORT_SYMBOL(unpin_user_page_range_dirty_lock);
-+
-+/**
-  * unpin_user_pages() - release an array of gup-pinned pages.
-  * @pages:  array of pages to be marked dirty and released.
-  * @npages: number of pages in the @pages array.
+@@ -470,7 +470,7 @@ static inline __init void memblock_set_b
+  * if this is true, that said, memblock will allocate memory
+  * in bottom-up direction.
+  */
+-static inline __init bool memblock_bottom_up(void)
++static inline __init_memblock bool memblock_bottom_up(void)
+ {
+ 	return memblock.bottom_up;
+ }
 _
 
-Patches currently in -mm which might be from joao.m.martins@oracle.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-gup-add-compound-page-list-iterator.patch
-mm-gup-decrement-head-page-once-for-group-of-subpages.patch
-mm-gup-add-a-range-variant-of-unpin_user_pages_dirty_lock.patch
-rdma-umem-batch-page-unpin-in-__ib_umem_release.patch
+memblock-fix-section-mismatch-warning-again.patch
+mm-add-definition-of-pmd_page_order.patch
+mmap-make-mlock_future_check-global.patch
+riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
