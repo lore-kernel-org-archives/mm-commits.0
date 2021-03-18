@@ -7,33 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2308CC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:44:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51F08C433E6
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:52:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D065664F3B
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:44:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 094F464F30
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:52:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230020AbhCRAny (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 20:43:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44776 "EHLO mail.kernel.org"
+        id S230246AbhCRAvg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 20:51:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47418 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230001AbhCRAnZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 20:43:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EC4DD64F2B;
-        Thu, 18 Mar 2021 00:43:24 +0000 (UTC)
+        id S229880AbhCRAvU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 20:51:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4BBBE64F3B;
+        Thu, 18 Mar 2021 00:51:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616028205;
-        bh=79zr2fI9KmohA6aEAxEuCqc76c5qPovhmILL4aW6I+w=;
+        s=korg; t=1616028680;
+        bh=8pt0gmYEOoal/aUxp6YVJihisoDout9Sh38Z6CSlkLM=;
         h=Date:From:To:Subject:From;
-        b=Uv62AwA92mgaX1EdJ3k07ntqdUWevfVoHfOE6e/stsGmseCIlIbmjmVAouesCHO1C
-         rYPV4bfx/PatJ8RXeqbkgAnLmVrme3+/TdDEmQDF4aOhWqi8RNlqPSk+yQvI+IV1HS
-         0keCtk4WCStE7QHg5ty0G2QlXiYQw+boO5izbLgY=
-Date:   Wed, 17 Mar 2021 17:43:24 -0700
+        b=nx6AwQcgo6SqBw119Sz5uf0HIL00q867B2BlM1f2g6AnRJai7h0ZM7QSvf2QaJj7L
+         WFxGgxoK1WrMo1p6331WOPJWvCt6dw5rBHbtmDjQt1RYZoNnkerBhPIbc9TOu076XR
+         /3QbylvmuPjfnrgCgwNyuUI1Lzsim/cfgpTlYGZM=
+Date:   Wed, 17 Mar 2021 17:51:18 -0700
 From:   akpm@linux-foundation.org
-To:     caoxiaofeng@yulong.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org
-Subject:  + kernel-sys-fix-typo-issue.patch added to -mm tree
-Message-ID: <20210318004324.XIQk051QP%akpm@linux-foundation.org>
+To:     0x7f454c46@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com,
+        linux@armlinux.org.uk, maninder1.s@samsung.com,
+        mm-commits@vger.kernel.org, paulmck@kernel.org, penberg@kernel.org,
+        rientjes@google.com, v.narang@samsung.com, vbabka@suse.cz,
+        viro@zeniv.linux.org.uk
+Subject:  +
+ arm-print-alloc-free-paths-for-address-in-registers.patch added to -mm tree
+Message-ID: <20210318005118.DWq1AmVkJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/sys.c: fix typo
+     Subject: arm: print alloc free paths for address in registers
 has been added to the -mm tree.  Its filename is
-     kernel-sys-fix-typo-issue.patch
+     arm-print-alloc-free-paths-for-address-in-registers.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kernel-sys-fix-typo-issue.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm-print-alloc-free-paths-for-address-in-registers.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-sys-fix-typo-issue.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm-print-alloc-free-paths-for-address-in-registers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,85 +67,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiaofeng Cao <caoxiaofeng@yulong.com>
-Subject: kernel/sys.c: fix typo
+From: Maninder Singh <maninder1.s@samsung.com>
+Subject: arm: print alloc free paths for address in registers
 
-change 'infite'     to 'infinite'
-change 'concurent'  to 'concurrent'
-change 'memvers'    to 'members'
-change 'decendants' to 'descendants'
-change 'argumets'   to 'arguments'
+In case of a use after free kernel oops, the freeing path of the object is
+required to debug futher.  In most of cases the object address is present
+in one of the registers.
 
-Link: https://lkml.kernel.org/r/20210316112904.10661-1-cxfcosmos@gmail.com
-Signed-off-by: Xiaofeng Cao <caoxiaofeng@yulong.com>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Thus check the register's address and if it belongs to slab, print its
+alloc and free path.
+
+e.g.  in the below issue register r6 belongs to slab, and a use after free
+issue occurred on one of its dereferenced values:
+
+[   20.182197] Unable to handle kernel paging request at virtual address 6b6b6b6f
+....
+[   20.185035] pc : [<c0538afc>]    lr : [<c0465674>]    psr: 60000013
+[   20.185271] sp : c8927d40  ip : ffffefff  fp : c8aa8020
+[   20.185462] r10: c8927e10  r9 : 00000001  r8 : 00400cc0
+[   20.185674] r7 : 00000000  r6 : c8ab0180  r5 : c1804a80  r4 : c8aa8008
+[   20.185924] r3 : c1a5661c  r2 : 00000000  r1 : 6b6b6b6b  r0 : c139bf48
+.....
+[   20.191499] Register r6 information: slab kmalloc-64 start c8ab0140 data offset 64 pointer offset 0 size 64 allocated at meminfo_proc_show+0x40/0x4fc
+[   20.192078]     meminfo_proc_show+0x40/0x4fc
+[   20.192263]     seq_read_iter+0x18c/0x4c4
+[   20.192430]     proc_reg_read_iter+0x84/0xac
+[   20.192617]     generic_file_splice_read+0xe8/0x17c
+[   20.192816]     splice_direct_to_actor+0xb8/0x290
+[   20.193008]     do_splice_direct+0xa0/0xe0
+[   20.193185]     do_sendfile+0x2d0/0x438
+[   20.193345]     sys_sendfile64+0x12c/0x140
+[   20.193523]     ret_fast_syscall+0x0/0x58
+[   20.193695]     0xbeeacde4
+[   20.193822]  Free path:
+[   20.193935]     meminfo_proc_show+0x5c/0x4fc
+[   20.194115]     seq_read_iter+0x18c/0x4c4
+[   20.194285]     proc_reg_read_iter+0x84/0xac
+[   20.194475]     generic_file_splice_read+0xe8/0x17c
+[   20.194685]     splice_direct_to_actor+0xb8/0x290
+[   20.194870]     do_splice_direct+0xa0/0xe0
+[   20.195014]     do_sendfile+0x2d0/0x438
+[   20.195174]     sys_sendfile64+0x12c/0x140
+[   20.195336]     ret_fast_syscall+0x0/0x58
+[   20.195491]     0xbeeacde4
+
+Link: https://lkml.kernel.org/r/1615891032-29160-3-git-send-email-maninder1.s@samsung.com
+Co-developed-by: Vaneet Narang <v.narang@samsung.com>
+Signed-off-by: Vaneet Narang <v.narang@samsung.com>
+Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/arm/include/asm/bug.h |    1 +
+ arch/arm/kernel/process.c  |   11 +++++++++++
+ arch/arm/kernel/traps.c    |    1 +
+ 3 files changed, 13 insertions(+)
 
---- a/kernel/sys.c~kernel-sys-fix-typo-issue
-+++ a/kernel/sys.c
-@@ -1584,7 +1584,7 @@ int do_prlimit(struct task_struct *tsk,
+--- a/arch/arm/include/asm/bug.h~arm-print-alloc-free-paths-for-address-in-registers
++++ a/arch/arm/include/asm/bug.h
+@@ -88,5 +88,6 @@ extern asmlinkage void c_backtrace(unsig
+ struct mm_struct;
+ void show_pte(const char *lvl, struct mm_struct *mm, unsigned long addr);
+ extern void __show_regs(struct pt_regs *);
++extern void __show_regs_alloc_free(struct pt_regs *regs);
  
- 	/*
- 	 * RLIMIT_CPU handling. Arm the posix CPU timer if the limit is not
--	 * infite. In case of RLIM_INFINITY the posix CPU timer code
-+	 * infinite. In case of RLIM_INFINITY the posix CPU timer code
- 	 * ignores the rlimit.
- 	 */
- 	 if (!retval && new_rlim && resource == RLIMIT_CPU &&
-@@ -2023,7 +2023,7 @@ static int prctl_set_mm_map(int opt, con
- 	}
+ #endif
+--- a/arch/arm/kernel/process.c~arm-print-alloc-free-paths-for-address-in-registers
++++ a/arch/arm/kernel/process.c
+@@ -92,6 +92,17 @@ void arch_cpu_idle_exit(void)
+ 	ledtrig_cpu(CPU_LED_IDLE_END);
+ }
  
- 	/*
--	 * arg_lock protects concurent updates but we still need mmap_lock for
-+	 * arg_lock protects concurrent updates but we still need mmap_lock for
- 	 * read to exclude races with sys_brk.
- 	 */
- 	mmap_read_lock(mm);
-@@ -2035,7 +2035,7 @@ static int prctl_set_mm_map(int opt, con
- 	 * output in procfs mostly, except
- 	 *
- 	 *  - @start_brk/@brk which are used in do_brk_flags but kernel lookups
--	 *    for VMAs when updating these memvers so anything wrong written
-+	 *    for VMAs when updating these members so anything wrong written
- 	 *    here cause kernel to swear at userspace program but won't lead
- 	 *    to any problem in kernel itself
- 	 */
-@@ -2137,7 +2137,7 @@ static int prctl_set_mm(int opt, unsigne
- 	error = -EINVAL;
- 
- 	/*
--	 * arg_lock protects concurent updates of arg boundaries, we need
-+	 * arg_lock protects concurrent updates of arg boundaries, we need
- 	 * mmap_lock for a) concurrent sys_brk, b) finding VMA for addr
- 	 * validation.
- 	 */
-@@ -2204,7 +2204,7 @@ static int prctl_set_mm(int opt, unsigne
- 	 * If command line arguments and environment
- 	 * are placed somewhere else on stack, we can
- 	 * set them up here, ARG_START/END to setup
--	 * command line argumets and ENV_START/END
-+	 * command line arguments and ENV_START/END
- 	 * for environment.
- 	 */
- 	case PR_SET_MM_START_STACK:
-@@ -2252,8 +2252,8 @@ static int prctl_get_tid_address(struct
- static int propagate_has_child_subreaper(struct task_struct *p, void *data)
++void __show_regs_alloc_free(struct pt_regs *regs)
++{
++	int i;
++
++	/* check for r0 - r12 only */
++	for (i = 0; i < 13; i++) {
++		pr_alert("Register r%d information:", i);
++		mem_dump_obj((void *)regs->uregs[i]);
++	}
++}
++
+ void __show_regs(struct pt_regs *regs)
  {
- 	/*
--	 * If task has has_child_subreaper - all its decendants
--	 * already have these flag too and new decendants will
-+	 * If task has has_child_subreaper - all its descendants
-+	 * already have these flag too and new descendants will
- 	 * inherit it on fork, skip them.
- 	 *
- 	 * If we've found child_reaper - skip descendants in
+ 	unsigned long flags;
+--- a/arch/arm/kernel/traps.c~arm-print-alloc-free-paths-for-address-in-registers
++++ a/arch/arm/kernel/traps.c
+@@ -287,6 +287,7 @@ static int __die(const char *str, int er
+ 
+ 	print_modules();
+ 	__show_regs(regs);
++	__show_regs_alloc_free(regs);
+ 	pr_emerg("Process %.*s (pid: %d, stack limit = 0x%p)\n",
+ 		 TASK_COMM_LEN, tsk->comm, task_pid_nr(tsk), end_of_stack(tsk));
+ 
 _
 
-Patches currently in -mm which might be from caoxiaofeng@yulong.com are
+Patches currently in -mm which might be from maninder1.s@samsung.com are
 
-kernel-sys-fix-typo-issue.patch
+mm-slub-fixing-backtrace-of-objects-because-of-redzone-adjustment.patch
+mm-slub-add-support-for-free-path-information-of-an-object.patch
+arm-print-alloc-free-paths-for-address-in-registers.patch
 
