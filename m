@@ -2,92 +2,182 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36572C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:17:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 862C6C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:42:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D642A64F26
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:17:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F4F664F3B
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 00:42:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229949AbhCRARU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 20:17:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40830 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230119AbhCRARM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Mar 2021 20:17:12 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6BCEC06174A
-        for <mm-commits@vger.kernel.org>; Wed, 17 Mar 2021 17:17:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=lif+v0yHkV6xRw9T4mgxqZSAri1CRvC2yk/GyFhNt/c=; b=p1x3RwKh+UufHQei5P+IwcoFFa
-        dzvBiCJMnkOq1lP6Rl661HbDG4BSllAqwhi/l0EcS2QDJVYVF06NprQwGp2O23lzO5DWfYZIAG5ud
-        2i0ZcsEZpXIpHKsrFdmsxm5X9s5/3ORJKQn83EwUr3McEqcbaHI2pYMKjW9uVQZYE5UkLBbiA4td5
-        PvHU5x/MJiIdEic3vr+0fN3lN3N5qNorNHHrONeNrAVr/wXVXMOT+EDgVEjck7U/Ew88ZrK2m3cgJ
-        80+O6DdJpD/8eedLvaRyTfalACNAnbAKQYGhCVxmYQr09I1srsJk52c3dd77R0LePUm5WOG/0j2K5
-        a8sfyhYg==;
-Received: from willy by casper.infradead.org with local (Exim 4.94 #2 (Red Hat Linux))
-        id 1lMgKA-002IRH-OK; Thu, 18 Mar 2021 00:15:48 +0000
-Date:   Thu, 18 Mar 2021 00:15:38 +0000
-From:   Matthew Wilcox <willy@infradead.org>
-To:     James Bottomley <jejb@linux.ibm.com>
-Cc:     akpm@linux-foundation.org, arnd@arndb.de, bp@alien8.de,
-        catalin.marinas@arm.com, cl@linux.com, dan.j.williams@intel.com,
-        dave.hansen@linux.intel.com, david@redhat.com,
-        elena.reshetova@intel.com, guro@fb.com, hagen@jauu.net,
-        hpa@zytor.com, kirill@shutemov.name, luto@kernel.org,
-        mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org,
-        mtk.manpages@gmail.com, palmer@dabbelt.com,
-        palmerdabbelt@google.com, paul.walmsley@sifive.com,
-        peterz@infradead.org, rick.p.edgecombe@intel.com,
-        rppt@linux.ibm.com, shakeelb@google.com, shuah@kernel.org,
-        tglx@linutronix.de, tycho@tycho.ws, viro@zeniv.linux.org.uk,
-        will@kernel.org
-Subject: Re: + mm-add-definition-of-pmd_page_order.patch added to -mm tree
-Message-ID: <20210318001538.GI3420@casper.infradead.org>
-References: <20210317221512.A39Ft3LQk%akpm@linux-foundation.org>
- <20210317225402.GH3420@casper.infradead.org>
- <42da5805da8dad56818d2047b2e64c20ec7d030d.camel@linux.ibm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <42da5805da8dad56818d2047b2e64c20ec7d030d.camel@linux.ibm.com>
+        id S229921AbhCRAlq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 20:41:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44188 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230337AbhCRAlm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 20:41:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1E7EF64F30;
+        Thu, 18 Mar 2021 00:41:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1616028101;
+        bh=aZ38bLGeY77OPTJ5pf0RU5Vk89wlfY076b1M0s3UFps=;
+        h=Date:From:To:Subject:From;
+        b=tnY+bwJntOdrwPtglFwnqrMHU4yoRHhcrWTVWeI2pPL72Fm0e/G95uAq0g2HPQe61
+         hXHyKkfomCOXkSEtjYOVEOxdrkU0fqo1klyzUh/m/mxQhLRpmmJgkTvatRtAkXdmTR
+         CAxoQTXRtOnVu1MldPPWeNkplFpuFHfLo4agmCn8=
+Date:   Wed, 17 Mar 2021 17:41:40 -0700
+From:   akpm@linux-foundation.org
+To:     cl@linux.com, glittao@gmail.com, iamjoonsoo.kim@lge.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, vbabka@suse.cz
+Subject:  + slub-remove-resiliency_test-function.patch added to -mm
+ tree
+Message-ID: <20210318004140.miry5AF1b%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, Mar 17, 2021 at 04:19:06PM -0700, James Bottomley wrote:
-> On Wed, 2021-03-17 at 22:54 +0000, Matthew Wilcox wrote:
-> > On Wed, Mar 17, 2021 at 03:15:12PM -0700, akpm@linux-foundation.org
-> > wrote:
-> > > Several architectures already have definition of PMD_ORDER as the
-> > > size of second level page table, so to avoid conflict with these
-> > > definitions use PMD_PAGE_ORDER name and update DAX respectively.
-> > 
-> > I thought I NACKed this patch already?
-> 
-> I don't think anyone understands why.  DAX won't build on several
-> architectures, including parisc, because of this existing symbol clash.
-> 
-> > The architectures should be updated to not use PMD_ORDER.  PMD_ORDER
-> > is clearly the right name for what is now PMD_PAGE_ORDER.  The
-> > architectures should be using PMD_ALLOC_ORDER or some such.
 
-https://lore.kernel.org/linux-fsdevel/20201204034843.GM11935@casper.infradead.org/
-was where I said what I wanted.
+The patch titled
+     Subject: slub: remove resiliency_test() function
+has been added to the -mm tree.  Its filename is
+     slub-remove-resiliency_test-function.patch
 
-> Well I had a patch renaming the dax specific one to DAX_PMD_ORDER which
-> you also didn't like.  Why don't you just propose the patch you do like
-> because this is a build failure on several architectures currently.
-> 
-> I don't really care what colour the bike shed is ... I do care that my
-> builds fail.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/slub-remove-resiliency_test-function.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/slub-remove-resiliency_test-function.patch
 
-I was expecting you to do the rename, since it's inconveniencing you.
-It doesn't cause me any trouble at all.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Oliver Glitta <glittao@gmail.com>
+Subject: slub: remove resiliency_test() function
+
+Function resiliency_test() is hidden behind #ifdef SLUB_RESILIENCY_TEST
+that is not part of Kconfig, so nobody runs it.
+
+This function is replaced with kselftest for SLUB added by the previous
+patch "selftests: add a kselftest for SLUB debugging functionality".
+
+Link: https://lkml.kernel.org/r/20210316124118.6874-2-glittao@gmail.com
+Signed-off-by: Oliver Glitta <glittao@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/slub.c |   64 ----------------------------------------------------
+ 1 file changed, 64 deletions(-)
+
+--- a/mm/slub.c~slub-remove-resiliency_test-function
++++ a/mm/slub.c
+@@ -153,9 +153,6 @@ static inline bool kmem_cache_has_cpu_pa
+  * - Variable sizing of the per node arrays
+  */
+ 
+-/* Enable to test recovery from slab corruption on boot */
+-#undef SLUB_RESILIENCY_TEST
+-
+ /* Enable to log cmpxchg failures */
+ #undef SLUB_DEBUG_CMPXCHG
+ 
+@@ -4919,66 +4916,6 @@ static int list_locations(struct kmem_ca
+ }
+ #endif	/* CONFIG_SLUB_DEBUG */
+ 
+-#ifdef SLUB_RESILIENCY_TEST
+-static void __init resiliency_test(void)
+-{
+-	u8 *p;
+-	int type = KMALLOC_NORMAL;
+-
+-	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 16 || KMALLOC_SHIFT_HIGH < 10);
+-
+-	pr_err("SLUB resiliency testing\n");
+-	pr_err("-----------------------\n");
+-	pr_err("A. Corruption after allocation\n");
+-
+-	p = kzalloc(16, GFP_KERNEL);
+-	p[16] = 0x12;
+-	pr_err("\n1. kmalloc-16: Clobber Redzone/next pointer 0x12->0x%p\n\n",
+-	       p + 16);
+-
+-	validate_slab_cache(kmalloc_caches[type][4]);
+-
+-	/* Hmmm... The next two are dangerous */
+-	p = kzalloc(32, GFP_KERNEL);
+-	p[32 + sizeof(void *)] = 0x34;
+-	pr_err("\n2. kmalloc-32: Clobber next pointer/next slab 0x34 -> -0x%p\n",
+-	       p);
+-	pr_err("If allocated object is overwritten then not detectable\n\n");
+-
+-	validate_slab_cache(kmalloc_caches[type][5]);
+-	p = kzalloc(64, GFP_KERNEL);
+-	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
+-	*p = 0x56;
+-	pr_err("\n3. kmalloc-64: corrupting random byte 0x56->0x%p\n",
+-	       p);
+-	pr_err("If allocated object is overwritten then not detectable\n\n");
+-	validate_slab_cache(kmalloc_caches[type][6]);
+-
+-	pr_err("\nB. Corruption after free\n");
+-	p = kzalloc(128, GFP_KERNEL);
+-	kfree(p);
+-	*p = 0x78;
+-	pr_err("1. kmalloc-128: Clobber first word 0x78->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches[type][7]);
+-
+-	p = kzalloc(256, GFP_KERNEL);
+-	kfree(p);
+-	p[50] = 0x9a;
+-	pr_err("\n2. kmalloc-256: Clobber 50th byte 0x9a->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches[type][8]);
+-
+-	p = kzalloc(512, GFP_KERNEL);
+-	kfree(p);
+-	p[512] = 0xab;
+-	pr_err("\n3. kmalloc-512: Clobber redzone 0xab->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches[type][9]);
+-}
+-#else
+-#ifdef CONFIG_SYSFS
+-static void resiliency_test(void) {};
+-#endif
+-#endif	/* SLUB_RESILIENCY_TEST */
+-
+ #ifdef CONFIG_SYSFS
+ enum slab_stat_type {
+ 	SL_ALL,			/* All slabs */
+@@ -5828,7 +5765,6 @@ static int __init slab_sysfs_init(void)
+ 	}
+ 
+ 	mutex_unlock(&slab_mutex);
+-	resiliency_test();
+ 	return 0;
+ }
+ 
+_
+
+Patches currently in -mm which might be from glittao@gmail.com are
+
+selftests-add-a-kselftest-for-slub-debugging-functionality.patch
+slub-remove-resiliency_test-function.patch
+
