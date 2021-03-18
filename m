@@ -5,39 +5,42 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55F3FC433E6
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 03:10:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4011C433E9
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 03:12:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0404564E31
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 03:10:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7F9EE64F33
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 03:12:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229934AbhCRDJ7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Mar 2021 23:09:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46530 "EHLO mail.kernel.org"
+        id S229880AbhCRDMK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Mar 2021 23:12:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47308 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229702AbhCRDJ1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Mar 2021 23:09:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6129D64E31;
-        Thu, 18 Mar 2021 03:09:26 +0000 (UTC)
+        id S230226AbhCRDMB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Mar 2021 23:12:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3A93764EED;
+        Thu, 18 Mar 2021 03:11:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616036966;
-        bh=h90sW2kc8v4klIEqGtvcbHuFqFfdVaKOchxZ0Mpdfcg=;
+        s=korg; t=1616037109;
+        bh=2pzQy79hR4wFUXzO4EX8JiZmJ6WObZ7/dhz1YgeYCWc=;
         h=Date:From:To:Subject:From;
-        b=BnL9OmChH6ZZsep5IIi+Ea8wa1sJu1N6xcKjvQBe8LsEYi5A0g/aQKu3BaRYHARIB
-         /a64m3G3XRbPQcurzLMloeN+qpl7iWaYMTRK1RVW3/tmo9bTeIiwLLjqftZWe6Zimx
-         SaWBehpx3vA7DHgb1XuRNUKOU9o3M7uEi6GPKAYM=
-Date:   Wed, 17 Mar 2021 20:09:25 -0700
+        b=rxo3Lekc4yGjGfDLaqp9q8bBZc5tQw5FfoV2GcMQc1qjuI+qurhBwihL/A6byMp6/
+         W38nnUYeRKZztNerwPdXNL1b6mgWyRK501dLHKqelGPQqn6qP/4ZW4bnFNfppks4Sz
+         4J2IEV2iaIorKMN5SIVCtxksS4PLELSTyzlsJClk=
+Date:   Wed, 17 Mar 2021 20:11:48 -0700
 From:   akpm@linux-foundation.org
-To:     borntraeger@de.ibm.com, guro@fb.com, hannes@cmpxchg.org,
-        hca@linux.ibm.com, hughd@google.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        shakeelb@google.com
-Subject:  + memcg-charge-before-adding-to-swapcache-on-swapin.patch
- added to -mm tree
-Message-ID: <20210318030925.Ip6zmzhnt%akpm@linux-foundation.org>
+To:     almasrymina@google.com, aneesh.kumar@linux.vnet.ibm.com,
+        linmiaohe@huawei.com, liwp.linux@gmail.com, lkp@intel.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org
+Subject:  +
+ =?US-ASCII?Q?hugetlb=5Fcgroup-fix-imbalanced-css=5Fget-and-css=5Fput-p?=
+ =?US-ASCII?Q?air-for-shared-mappings-v3.patch?= added to -mm tree
+Message-ID: <20210318031148.B3PWbGSo4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: charge before adding to swapcache on swapin
+     Subject: hugetlb_cgroup: fix imbalanced css_get and css_put pair for shared mappings
 has been added to the -mm tree.  Its filename is
-     memcg-charge-before-adding-to-swapcache-on-swapin.patch
+     hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings-v3.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memcg-charge-before-adding-to-swapcache-on-swapin.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings-v3.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-charge-before-adding-to-swapcache-on-swapin.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,301 +69,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: memcg: charge before adding to swapcache on swapin
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: hugetlb_cgroup: fix imbalanced css_get and css_put pair for shared mappings
 
-Currently the kernel adds the page, allocated for swapin, to the swapcache
-before charging the page.  This is fine but now we want a per-memcg
-swapcache stat which is essential for folks who wants to transparently
-migrate from cgroup v1's memsw to cgroup v2's memory and swap counters. 
-In addition charging a page before exposing it to other parts of the
-kernel is a step in the right direction.
+reshape some comments, per Mike
 
-To correctly maintain the per-memcg swapcache stat, this patch has adopted
-to charge the page before adding it to swapcache.  One challenge in this
-option is the failure case of add_to_swap_cache() on which we need to undo
-the mem_cgroup_charge().  Specifically undoing mem_cgroup_uncharge_swap()
-is not simple.
-
-To resolve the issue, this patch decouples the charging for swapin pages
-from mem_cgroup_charge().  Two new functions are introduced,
-mem_cgroup_swapin_charge_page() for just charging the swapin page and
-mem_cgroup_swapin_uncharge_swap() for uncharging the swap slot once the
-page has been successfully added to the swapcache.
-
-Link: https://lkml.kernel.org/r/20210305212639.775498-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Link: https://lkml.kernel.org/r/20210316023002.53921-1-linmiaohe@huawei.com
+Fixes: 075a61d07a8e ("hugetlb_cgroup: add accounting for shared mappings")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reported-by: kernel test robot <lkp@intel.com> (auto build test ERROR)
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Wanpeng Li <liwp.linux@gmail.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   13 +++
- mm/memcontrol.c            |  119 ++++++++++++++++++++++-------------
- mm/memory.c                |   12 ---
- mm/swap_state.c            |   13 +--
- 4 files changed, 97 insertions(+), 60 deletions(-)
+ mm/hugetlb.c        |   13 ++++++-------
+ mm/hugetlb_cgroup.c |    3 +--
+ 2 files changed, 7 insertions(+), 9 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-charge-before-adding-to-swapcache-on-swapin
-+++ a/include/linux/memcontrol.h
-@@ -609,6 +609,9 @@ static inline bool mem_cgroup_below_min(
- }
- 
- int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask);
-+int mem_cgroup_swapin_charge_page(struct page *page, struct mm_struct *mm,
-+				  gfp_t gfp, swp_entry_t entry);
-+void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry);
- 
- void mem_cgroup_uncharge(struct page *page);
- void mem_cgroup_uncharge_list(struct list_head *page_list);
-@@ -1112,6 +1115,16 @@ static inline int mem_cgroup_charge(stru
- 	return 0;
- }
- 
-+static inline int mem_cgroup_swapin_charge_page(struct page *page,
-+			struct mm_struct *mm, gfp_t gfp, swp_entry_t entry)
-+{
-+	return 0;
-+}
-+
-+static inline void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry)
-+{
-+}
-+
- static inline void mem_cgroup_uncharge(struct page *page)
- {
- }
---- a/mm/memcontrol.c~memcg-charge-before-adding-to-swapcache-on-swapin
-+++ a/mm/memcontrol.c
-@@ -6644,6 +6644,27 @@ void mem_cgroup_calculate_protection(str
- 			atomic_long_read(&parent->memory.children_low_usage)));
- }
- 
-+static int __mem_cgroup_charge(struct page *page, struct mem_cgroup *memcg,
-+			       gfp_t gfp)
-+{
-+	unsigned int nr_pages = thp_nr_pages(page);
-+	int ret;
-+
-+	ret = try_charge(memcg, gfp, nr_pages);
-+	if (ret)
-+		goto out;
-+
-+	css_get(&memcg->css);
-+	commit_charge(page, memcg);
-+
-+	local_irq_disable();
-+	mem_cgroup_charge_statistics(memcg, page, nr_pages);
-+	memcg_check_events(memcg, page);
-+	local_irq_enable();
-+out:
-+	return ret;
-+}
-+
- /**
-  * mem_cgroup_charge - charge a newly allocated page to a cgroup
-  * @page: page to charge
-@@ -6653,55 +6674,71 @@ void mem_cgroup_calculate_protection(str
-  * Try to charge @page to the memcg that @mm belongs to, reclaiming
-  * pages according to @gfp_mask if necessary.
-  *
-+ * Do not use this for pages allocated for swapin.
-+ *
-  * Returns 0 on success. Otherwise, an error code is returned.
-  */
- int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask)
- {
--	unsigned int nr_pages = thp_nr_pages(page);
--	struct mem_cgroup *memcg = NULL;
--	int ret = 0;
-+	struct mem_cgroup *memcg;
-+	int ret;
- 
- 	if (mem_cgroup_disabled())
--		goto out;
-+		return 0;
- 
--	if (PageSwapCache(page)) {
--		swp_entry_t ent = { .val = page_private(page), };
--		unsigned short id;
-+	memcg = get_mem_cgroup_from_mm(mm);
-+	ret = __mem_cgroup_charge(page, memcg, gfp_mask);
-+	css_put(&memcg->css);
- 
--		/*
--		 * Every swap fault against a single page tries to charge the
--		 * page, bail as early as possible.  shmem_unuse() encounters
--		 * already charged pages, too.  page and memcg binding is
--		 * protected by the page lock, which serializes swap cache
--		 * removal, which in turn serializes uncharging.
--		 */
--		VM_BUG_ON_PAGE(!PageLocked(page), page);
--		if (page_memcg(compound_head(page)))
--			goto out;
--
--		id = lookup_swap_cgroup_id(ent);
--		rcu_read_lock();
--		memcg = mem_cgroup_from_id(id);
--		if (memcg && !css_tryget_online(&memcg->css))
--			memcg = NULL;
--		rcu_read_unlock();
--	}
-+	return ret;
-+}
- 
--	if (!memcg)
--		memcg = get_mem_cgroup_from_mm(mm);
-+/**
-+ * mem_cgroup_swapin_charge_page - charge a newly allocated page for swapin
-+ * @page: page to charge
-+ * @mm: mm context of the victim
-+ * @gfp: reclaim mode
-+ * @entry: swap entry for which the page is allocated
-+ *
-+ * This function charges a page allocated for swapin. Please call this before
-+ * adding the page to the swapcache.
-+ *
-+ * Returns 0 on success. Otherwise, an error code is returned.
-+ */
-+int mem_cgroup_swapin_charge_page(struct page *page, struct mm_struct *mm,
-+				  gfp_t gfp, swp_entry_t entry)
-+{
-+	struct mem_cgroup *memcg;
-+	unsigned short id;
-+	int ret;
- 
--	ret = try_charge(memcg, gfp_mask, nr_pages);
--	if (ret)
--		goto out_put;
-+	if (mem_cgroup_disabled())
-+		return 0;
- 
--	css_get(&memcg->css);
--	commit_charge(page, memcg);
-+	id = lookup_swap_cgroup_id(entry);
-+	rcu_read_lock();
-+	memcg = mem_cgroup_from_id(id);
-+	if (!memcg || !css_tryget_online(&memcg->css))
-+		memcg = get_mem_cgroup_from_mm(mm);
-+	rcu_read_unlock();
- 
--	local_irq_disable();
--	mem_cgroup_charge_statistics(memcg, page, nr_pages);
--	memcg_check_events(memcg, page);
--	local_irq_enable();
-+	ret = __mem_cgroup_charge(page, memcg, gfp);
- 
-+	css_put(&memcg->css);
-+	return ret;
-+}
-+
-+/*
-+ * mem_cgroup_swapin_uncharge_swap - uncharge swap slot
-+ * @entry: swap entry for which the page is charged
-+ *
-+ * Call this function after successfully adding the charged page to swapcache.
-+ *
-+ * Note: This function assumes the page for which swap slot is being uncharged
-+ * is order 0 page.
-+ */
-+void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry)
-+{
- 	/*
- 	 * Cgroup1's unified memory+swap counter has been charged with the
- 	 * new swapcache page, finish the transfer by uncharging the swap
-@@ -6714,20 +6751,14 @@ int mem_cgroup_charge(struct page *page,
- 	 * correspond 1:1 to page and swap slot lifetimes: we charge the
- 	 * page to memory here, and uncharge swap when the slot is freed.
- 	 */
--	if (do_memsw_account() && PageSwapCache(page)) {
--		swp_entry_t entry = { .val = page_private(page) };
-+	if (!mem_cgroup_disabled() && do_memsw_account()) {
+--- a/mm/hugetlb.c~hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings-v3
++++ a/mm/hugetlb.c
+@@ -281,13 +281,12 @@ static void record_hugetlb_cgroup_unchar
+ 			&h_cg->rsvd_hugepage[hstate_index(h)];
+ 		nrg->css = &h_cg->css;
  		/*
- 		 * The swap entry might not get freed for a long time,
- 		 * let's not wait for it.  The page already received a
- 		 * memory+swap charge, drop the swap entry duplicate.
+-		 * The caller (hugetlb_reserve_pages now) will only hold one
+-		 * h_cg->css reference for the whole contiguous reservation
+-		 * region. But this area might be scattered when there are
+-		 * already some file_regions reside in it. As a result, many
+-		 * file_regions may share only one h_cg->css reference. In
+-		 * order to ensure that one file_region must hold and only
+-		 * hold one h_cg->css reference, we should do css_get for
++		 * The caller will hold exactly one h_cg->css reference for the
++		 * whole contiguous reservation region. But this area might be
++		 * scattered when there are already some file_regions reside in
++		 * it. As a result, many file_regions may share only one css
++		 * reference. In order to ensure that one file_region must hold
++		 * exactly one h_cg->css reference, we should do css_get for
+ 		 * each file_region and leave the reference held by caller
+ 		 * untouched.
  		 */
--		mem_cgroup_uncharge_swap(entry, nr_pages);
-+		mem_cgroup_uncharge_swap(entry, 1);
- 	}
--
--out_put:
--	css_put(&memcg->css);
--out:
--	return ret;
- }
- 
- struct uncharge_gather {
---- a/mm/memory.c~memcg-charge-before-adding-to-swapcache-on-swapin
-+++ a/mm/memory.c
-@@ -3309,21 +3309,15 @@ vm_fault_t do_swap_page(struct vm_fault
- 			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma,
- 							vmf->address);
- 			if (page) {
--				int err;
--
- 				__SetPageLocked(page);
- 				__SetPageSwapBacked(page);
--				set_page_private(page, entry.val);
- 
--				/* Tell memcg to use swap ownership records */
--				SetPageSwapCache(page);
--				err = mem_cgroup_charge(page, vma->vm_mm,
--							GFP_KERNEL);
--				ClearPageSwapCache(page);
--				if (err) {
-+				if (mem_cgroup_swapin_charge_page(page,
-+					vma->vm_mm, GFP_KERNEL, entry)) {
- 					ret = VM_FAULT_OOM;
- 					goto out_page;
- 				}
-+				mem_cgroup_swapin_uncharge_swap(entry);
- 
- 				shadow = get_shadow_from_swap_cache(entry);
- 				if (shadow)
---- a/mm/swap_state.c~memcg-charge-before-adding-to-swapcache-on-swapin
-+++ a/mm/swap_state.c
-@@ -493,16 +493,14 @@ struct page *__read_swap_cache_async(swp
- 	__SetPageLocked(page);
- 	__SetPageSwapBacked(page);
- 
--	/* May fail (-ENOMEM) if XArray node allocation failed. */
--	if (add_to_swap_cache(page, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow)) {
--		put_swap_page(page, entry);
-+	if (mem_cgroup_swapin_charge_page(page, NULL, gfp_mask, entry))
- 		goto fail_unlock;
--	}
- 
--	if (mem_cgroup_charge(page, NULL, gfp_mask)) {
--		delete_from_swap_cache(page);
-+	/* May fail (-ENOMEM) if XArray node allocation failed. */
-+	if (add_to_swap_cache(page, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
- 		goto fail_unlock;
--	}
-+
-+	mem_cgroup_swapin_uncharge_swap(entry);
- 
- 	if (shadow)
- 		workingset_refault(page, shadow);
-@@ -513,6 +511,7 @@ struct page *__read_swap_cache_async(swp
- 	return page;
- 
- fail_unlock:
-+	put_swap_page(page, entry);
- 	unlock_page(page);
- 	put_page(page);
- 	return NULL;
+--- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings-v3
++++ a/mm/hugetlb_cgroup.c
+@@ -403,8 +403,7 @@ void hugetlb_cgroup_uncharge_file_region
+ 				      nr_pages * resv->pages_per_hpage);
+ 		/*
+ 		 * Only do css_put(rg->css) when we delete the entire region
+-		 * because one file_region must hold and only hold one rg->css
+-		 * reference.
++		 * because one file_region must hold exactly one css reference.
+ 		 */
+ 		if (region_del)
+ 			css_put(rg->css);
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-memcg-cleanup-root-memcg-checks.patch
-memcg-enable-memcg-oom-kill-for-__gfp_nofail.patch
-memcg-charge-before-adding-to-swapcache-on-swapin.patch
-memcg-charge-before-adding-to-swapcache-on-swapin-fix.patch
+hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings.patch
+hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings-v3.patch
+mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
+mm-hugetlb-use-some-helper-functions-to-cleanup-code.patch
+mm-hugetlb-optimize-the-surplus-state-transfer-code-in-move_hugetlb_state.patch
+hugetlb_cgroup-remove-unnecessary-vm_bug_on_page-in-hugetlb_cgroup_migrate.patch
+mm-hugetlb-simplify-the-code-when-alloc_huge_page-failed-in-hugetlb_no_page.patch
+mm-hugetlb-avoid-calculating-fault_mutex_hash-in-truncate_op-case.patch
+khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps.patch
+khugepaged-reuse-the-smp_wmb-inside-__setpageuptodate.patch
+khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
+khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate.patch
+mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
 
