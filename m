@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30616C433E4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 256BCC433E1
 	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 23:16:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F10B461994
+	by mail.kernel.org (Postfix) with ESMTP id E0DB461991
 	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 23:16:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229524AbhCSXPe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Mar 2021 19:15:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38790 "EHLO mail.kernel.org"
+        id S229564AbhCSXPf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Mar 2021 19:15:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229564AbhCSXPN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 19 Mar 2021 19:15:13 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 350EC61986;
-        Fri, 19 Mar 2021 23:15:13 +0000 (UTC)
+        id S229600AbhCSXPP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 19 Mar 2021 19:15:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 706D561988;
+        Fri, 19 Mar 2021 23:15:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616195713;
-        bh=QT8gtsLG3/s3InGCjh6+nfelTX5CyuC0DuVrjWHcXD0=;
+        s=korg; t=1616195714;
+        bh=VLtERw1o70L2lrgW39Ff3BBsE5Vxj/ytCQ0V41SbNA4=;
         h=Date:From:To:Subject:From;
-        b=WjoM1ISCKDbAXDd+SKc0HDHStn2UGrWBFLAwa9qYUglBFniX1N8fB5WEgbEVsEaS6
-         mie4iwbXP0lbuQf3LZux2e9/uLC1wTPO+7rtG4DmnesfzjHaNUdShwZmlklmNxyprr
-         x22Xys2Tha7GQPd7N8QenqBexmsFTSv1Z5b63S0A=
-Date:   Fri, 19 Mar 2021 16:15:12 -0700
+        b=mA9oC8ZHSobfZqcKzfpHIy/lnVCBWGw1b8tXzLgkalpZAt1mTuIMItctKK2TKMJft
+         GMi4feEwEDjNKkNr4oSzC8qHRY8c/ze5FzwzadVr2otRpAsXDzMKExi04tC7t8BgYx
+         HQm1lsY98mMa0akbMrGz9xKlFbULi8HYCBTHe9eQ=
+Date:   Fri, 19 Mar 2021 16:15:14 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, linmiaohe@huawei.com,
         mm-commits@vger.kernel.org, peterx@redhat.com,
@@ -37,9 +37,9 @@ To:     aneesh.kumar@linux.ibm.com, linmiaohe@huawei.com,
         william.kucharski@oracle.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, yulei.kernel@gmail.com, ziy@nvidia.com
 Subject:  +
- mm-huge_memoryc-rework-the-function-vma_adjust_trans_huge.patch added to
+ mm-huge_memoryc-use-helper-function-migration_entry_to_page.patch added to
  -mm tree
-Message-ID: <20210319231512.u3sqdTQqn%akpm@linux-foundation.org>
+Message-ID: <20210319231514.DUd7-5Fq7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: rework the function vma_adjust_trans_huge()
+     Subject: mm/huge_memory.c: use helper function migration_entry_to_page()
 has been added to the -mm tree.  Its filename is
-     mm-huge_memoryc-rework-the-function-vma_adjust_trans_huge.patch
+     mm-huge_memoryc-use-helper-function-migration_entry_to_page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-rework-the-function-vma_adjust_trans_huge.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-use-helper-function-migration_entry_to_page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-rework-the-function-vma_adjust_trans_huge.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-use-helper-function-migration_entry_to_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,109 +70,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory.c: rework the function vma_adjust_trans_huge()
+Subject: mm/huge_memory.c: use helper function migration_entry_to_page()
 
-Patch series "Some cleanups for huge_memory", v3.
+It's more recommended to use helper function migration_entry_to_page() to
+get the page via migration entry.  We can also enjoy the PageLocked()
+check there.
 
-This series contains cleanups to rework some function logics to make it
-more readable, use helper function and so on.  More details can be found
-in the respective changelogs.
-
-
-This patch (of 6):
-
-The current implementation of vma_adjust_trans_huge() contains some
-duplicated codes.  Add helper function to get rid of these codes to make
-it more succinct.
-
-Link: https://lkml.kernel.org/r/20210318122722.13135-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210318122722.13135-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210318122722.13135-7-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: yuleixzhang <yulei.kernel@gmail.com>
-Cc: Michel Lespinasse <walken@google.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michel Lespinasse <walken@google.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
 Cc: Thomas Hellstrm (Intel) <thomas_os@shipmail.org>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: yuleixzhang <yulei.kernel@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   44 +++++++++++++++++++-------------------------
- 1 file changed, 19 insertions(+), 25 deletions(-)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-rework-the-function-vma_adjust_trans_huge
+--- a/mm/huge_memory.c~mm-huge_memoryc-use-helper-function-migration_entry_to_page
 +++ a/mm/huge_memory.c
-@@ -2314,44 +2314,38 @@ void split_huge_pmd_address(struct vm_ar
- 	__split_huge_pmd(vma, pmd, address, freeze, page);
- }
+@@ -1706,7 +1706,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
  
-+static inline void split_huge_pmd_if_needed(struct vm_area_struct *vma, unsigned long address)
-+{
-+	/*
-+	 * If the new address isn't hpage aligned and it could previously
-+	 * contain an hugepage: check if we need to split an huge pmd.
-+	 */
-+	if (!IS_ALIGNED(address, HPAGE_PMD_SIZE) &&
-+	    range_in_vma(vma, ALIGN_DOWN(address, HPAGE_PMD_SIZE),
-+			 ALIGN(address, HPAGE_PMD_SIZE)))
-+		split_huge_pmd_address(vma, address, false, NULL);
-+}
-+
- void vma_adjust_trans_huge(struct vm_area_struct *vma,
- 			     unsigned long start,
- 			     unsigned long end,
- 			     long adjust_next)
- {
--	/*
--	 * If the new start address isn't hpage aligned and it could
--	 * previously contain an hugepage: check if we need to split
--	 * an huge pmd.
--	 */
--	if (start & ~HPAGE_PMD_MASK &&
--	    (start & HPAGE_PMD_MASK) >= vma->vm_start &&
--	    (start & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= vma->vm_end)
--		split_huge_pmd_address(vma, start, false, NULL);
-+	/* Check if we need to split start first. */
-+	split_huge_pmd_if_needed(vma, start);
+ 			VM_BUG_ON(!is_pmd_migration_entry(orig_pmd));
+ 			entry = pmd_to_swp_entry(orig_pmd);
+-			page = pfn_to_page(swp_offset(entry));
++			page = migration_entry_to_page(entry);
+ 			flush_needed = 0;
+ 		} else
+ 			WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
+@@ -2114,7 +2114,7 @@ static void __split_huge_pmd_locked(stru
+ 		swp_entry_t entry;
  
--	/*
--	 * If the new end address isn't hpage aligned and it could
--	 * previously contain an hugepage: check if we need to split
--	 * an huge pmd.
--	 */
--	if (end & ~HPAGE_PMD_MASK &&
--	    (end & HPAGE_PMD_MASK) >= vma->vm_start &&
--	    (end & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= vma->vm_end)
--		split_huge_pmd_address(vma, end, false, NULL);
-+	/* Check if we need to split end next. */
-+	split_huge_pmd_if_needed(vma, end);
- 
- 	/*
--	 * If we're also updating the vma->vm_next->vm_start, if the new
--	 * vm_next->vm_start isn't hpage aligned and it could previously
--	 * contain an hugepage: check if we need to split an huge pmd.
-+	 * If we're also updating the vma->vm_next->vm_start,
-+	 * check if we need to split it.
- 	 */
- 	if (adjust_next > 0) {
- 		struct vm_area_struct *next = vma->vm_next;
- 		unsigned long nstart = next->vm_start;
- 		nstart += adjust_next;
--		if (nstart & ~HPAGE_PMD_MASK &&
--		    (nstart & HPAGE_PMD_MASK) >= next->vm_start &&
--		    (nstart & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= next->vm_end)
--			split_huge_pmd_address(next, nstart, false, NULL);
-+		split_huge_pmd_if_needed(next, nstart);
- 	}
- }
- 
+ 		entry = pmd_to_swp_entry(old_pmd);
+-		page = pfn_to_page(swp_offset(entry));
++		page = migration_entry_to_page(entry);
+ 		write = is_write_migration_entry(entry);
+ 		young = false;
+ 		soft_dirty = pmd_swp_soft_dirty(old_pmd);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
