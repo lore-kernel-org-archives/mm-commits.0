@@ -4,35 +4,36 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 367C9C433E6
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 23:48:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93725C433DB
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 10:51:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D86F164F45
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Mar 2021 23:48:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 643AA64F1C
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 10:51:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230368AbhCRXsI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 18 Mar 2021 19:48:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36900 "EHLO mail.kernel.org"
+        id S229785AbhCSKvI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Mar 2021 06:51:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52250 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230483AbhCRXri (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 18 Mar 2021 19:47:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 24E7264E81;
-        Thu, 18 Mar 2021 23:47:37 +0000 (UTC)
+        id S229978AbhCSKuz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 19 Mar 2021 06:50:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EF8FA64EFC;
+        Fri, 19 Mar 2021 10:50:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616111257;
-        bh=66erDiEHgsxGzCN5Lmtal/sBZDrFVe5o5h02pz+ySJ0=;
+        s=korg; t=1616151055;
+        bh=Pr45y6cfXenajK8a4WGCxzt1fKQi5BzXGC1t0D0Bz3U=;
         h=Date:From:To:Subject:From;
-        b=18AffOSf123UbJibYtvHj92rWRxSRMRIwiX5Yx7DGatbL7k6UbX7ybpmNYdIt8TxU
-         ZrcQjzWZQ6ajAGdNkCtUQq7U23CFeRZlVrgwcfZeOnDJcNUgOwOrltBVzi/cwE+nDS
-         HR4W3TGtjQlIsOIIb+fpyclLmhD/qLcKoUVWGm+g=
-Date:   Thu, 18 Mar 2021 16:47:36 -0700
+        b=a73wGrbMxFil5JZjRnoaqTq7RcE0HzW7nHJ6NGGks0bzgmspuL5O9lVR2hf/udmLb
+         AnIvLbcUlnzCR/ROLCzRi7/xTjxhmwBR4aMF95rWGH9AlJbVhlkwgzOj1iKj/440It
+         Vpm9fetEYZnUdX4MRd9WwxtA2lSujJq14n30/GpY=
+Date:   Fri, 19 Mar 2021 03:50:54 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20210318234736.ExCHUlzws%akpm@linux-foundation.org>
+Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Message-ID: <20210319105054.pkcw6ZphP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,24 +43,10 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      linux-next-git-rejects.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -424,5 +411,4 @@ kasan-remove-redundant-config-option-fix.patch
 mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
 linux-next-rejects.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
 
