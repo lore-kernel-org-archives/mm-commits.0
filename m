@@ -4,37 +4,37 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBF44C433C1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2269C433E1
 	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 16:48:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 99D4261980
+	by mail.kernel.org (Postfix) with ESMTP id BED076197D
 	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 16:48:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230055AbhCSQsJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230129AbhCSQsJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 19 Mar 2021 12:48:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58660 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58644 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230129AbhCSQri (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 19 Mar 2021 12:47:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4826A6192D;
-        Fri, 19 Mar 2021 16:47:38 +0000 (UTC)
+        id S230096AbhCSQrh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 19 Mar 2021 12:47:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 515E161963;
+        Fri, 19 Mar 2021 16:47:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616172458;
-        bh=Udp4Egir5quZgWENgWe8zdz0XnZf5uBfPuGEpgIntY8=;
+        s=korg; t=1616172457;
+        bh=kEgPy9mPZ+g1yDd2O3t2Of1qxm2xCgExkqxPABCQWPs=;
         h=Date:From:To:Subject:From;
-        b=uwBD1Up+42O5vh1zIePePIZqbQY41Bw5yuOTeo22I8ghbl8Th6pJ2sk7poIzfHCNP
-         jVLmg4L9kgtZSjKffMVCX9p/YELWKtNidlSyXOpYJAUV35g3f2t9lCvfrdXgzN5ieQ
-         THGpd83oO3oc6j6gIxIHZYzENCITmO1tcHqIxipE=
-Date:   Fri, 19 Mar 2021 09:47:37 -0700
+        b=kpAFTmXV1Jxpz+rOqe/nVes1Bxuv39kQxoI/K9eWMW95R6VP2DFugtac2YNj2VrLR
+         arwmVf9Fl0daq/oA5ubVVBdco5WW3pQ/QT80G+qLhgcBdwvvM4eSCfdiA9ny2l+0LG
+         LsNobl195WVGPxCfCJLAPScnkM5+nggli3LE4Y8U=
+Date:   Fri, 19 Mar 2021 09:47:36 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, peterz@infradead.org, pmladek@suse.com
+To:     david@redhat.com, mm-commits@vger.kernel.org, osalvador@suse.de
 Subject:  +
- watchdog-fix-barriers-when-printing-backtraces-from-all-cpus-fix.patch
- added to -mm tree
-Message-ID: <20210319164737.1zavpPmSV%akpm@linux-foundation.org>
+ x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch added to -mm
+ tree
+Message-ID: <20210319164736.wzqslePqb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: use bit lock operations to prevent multiple soft-lockup reports
+     Subject: x86/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
 has been added to the -mm tree.  Its filename is
-     watchdog-fix-barriers-when-printing-backtraces-from-all-cpus-fix.patch
+     x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/watchdog-fix-barriers-when-printing-backtraces-from-all-cpus-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/watchdog-fix-barriers-when-printing-backtraces-from-all-cpus-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,66 +64,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: watchdog: use bit lock operations to prevent multiple soft-lockup reports
+From: Oscar Salvador <osalvador@suse.de>
+Subject: x86/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
 
-Use bit_lock operation to prevent multiple soft-lockups reports when one
-CPU already triggered dumping backtraces from all CPUs.
+Enable x86_64 platform to use the MHP_MEMMAP_ON_MEMORY feature.
 
-It allows to remove the explicit memory barriers and misleading
-comments.
-
-Link: https://lkml.kernel.org/r/YFSVsLGVWMXTvlbk@alley
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20210319092635.6214-5-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ arch/x86/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/kernel/watchdog.c~watchdog-fix-barriers-when-printing-backtraces-from-all-cpus-fix
-+++ a/kernel/watchdog.c
-@@ -414,13 +414,8 @@ static enum hrtimer_restart watchdog_tim
- 		 * engaged in dumping all cpu back traces.
- 		 */
- 		if (softlockup_all_cpu_backtrace) {
--			if (test_and_set_bit(0, &soft_lockup_nmi_warn))
-+			if (test_and_set_bit_lock(0, &soft_lockup_nmi_warn))
- 				return HRTIMER_RESTART;
--			/*
--			 * Make sure that reports are serialized. Start
--			 * printing after getting the exclusive rights.
--			 */
--			smp_mb__after_atomic();
- 		}
+--- a/arch/x86/Kconfig~x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable
++++ a/arch/x86/Kconfig
+@@ -2434,6 +2434,9 @@ config ARCH_ENABLE_MEMORY_HOTREMOVE
+ 	def_bool y
+ 	depends on MEMORY_HOTPLUG
  
- 		/* Start period for the next softlockup warning. */
-@@ -438,13 +433,7 @@ static enum hrtimer_restart watchdog_tim
- 
- 		if (softlockup_all_cpu_backtrace) {
- 			trigger_allbutself_cpu_backtrace();
--			/*
--			 * Make sure that everything is printed before
--			 * another CPU is allowed to report lockup again.
--			 */
--			smp_mb__before_atomic();
--			/* Allow a further report. */
--			clear_bit(0, &soft_lockup_nmi_warn);
-+			clear_bit_unlock(0, &soft_lockup_nmi_warn);
- 		}
- 
- 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
++config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
++	def_bool y
++
+ config USE_PERCPU_NUMA_NODE_ID
+ 	def_bool y
+ 	depends on NUMA
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-watchdog-rename-__touch_watchdog-to-a-better-descriptive-name.patch
-watchdog-explicitly-update-timestamp-when-reporting-softlockup.patch
-watchdog-softlockup-report-the-overall-time-of-softlockups.patch
-watchdog-softlockup-remove-logic-that-tried-to-prevent-repeated-reports.patch
-watchdog-fix-barriers-when-printing-backtraces-from-all-cpus.patch
-watchdog-fix-barriers-when-printing-backtraces-from-all-cpus-fix.patch
-watchdog-cleanup-handling-of-false-positives.patch
+x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
+x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
+x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
+x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
+mmpage_alloc-bail-out-earlier-on-enomem-in-alloc_contig_migrate_range.patch
+mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes.patch
+mm-make-alloc_contig_range-handle-free-hugetlb-pages.patch
+mm-make-alloc_contig_range-handle-in-use-hugetlb-pages.patch
+mmpage_alloc-drop-unnecessary-checks-from-pfn_range_valid_contig.patch
+mmmemory_hotplug-allocate-memmap-from-the-added-memory-range.patch
+acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
+mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
+x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
