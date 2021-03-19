@@ -4,31 +4,31 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3733C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00B32C433E0
 	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 23:16:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A0336198B
+	by mail.kernel.org (Postfix) with ESMTP id ACF256198A
 	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 23:16:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229512AbhCSXPd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229469AbhCSXPd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 19 Mar 2021 19:15:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38622 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38714 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229447AbhCSXPJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 19 Mar 2021 19:15:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 481156196D;
-        Fri, 19 Mar 2021 23:15:08 +0000 (UTC)
+        id S229519AbhCSXPL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 19 Mar 2021 19:15:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B46F26197F;
+        Fri, 19 Mar 2021 23:15:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616195708;
-        bh=vJEQRXsz9WJ2wKwMbHpDQo13kJal0/wSlXWpyeaSqsQ=;
+        s=korg; t=1616195711;
+        bh=bnDzgBvdc7ycORl5pVd2dRsWkuaf3AaOrdy8HTewqF0=;
         h=Date:From:To:Subject:From;
-        b=0YlJe/EBTXyB9WZH9xSAQ/JaCAlbGgpCC4tpS0WlrPskry7bnYjLe/K0iiEhZBTxA
-         VIQ81sw6TtcELAKVEgfnikrA66OCXD70ilbzvJs7fdjgv6Lx/zDV6ylmyICwDSQVJt
-         gJYVcTQnXGGbW+GzK5YD2OLB2Y9fSvr1S7auf/no=
-Date:   Fri, 19 Mar 2021 16:15:07 -0700
+        b=rpq8ScFuJGbtIwLpw3TettsXo1JpgOjZET84cu3549L4/mwh/YfoouU45qstrUYAQ
+         umG/infanAYBoNSF2Qrps2086SRsbgM1vPax3RMLpXXri8YH7IVEdLVPUFxDAMJEpE
+         ZLSPKrnq/MzBxvSa7Gk+5RdCiAmYlOVjWGLfkc44=
+Date:   Fri, 19 Mar 2021 16:15:10 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, linmiaohe@huawei.com,
         mm-commits@vger.kernel.org, peterx@redhat.com,
@@ -37,9 +37,12 @@ To:     aneesh.kumar@linux.ibm.com, linmiaohe@huawei.com,
         william.kucharski@oracle.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, yulei.kernel@gmail.com, ziy@nvidia.com
 Subject:  +
- mm-huge_memoryc-make-get_huge_zero_page-return-bool.patch added to -mm tree
-Message-ID: <20210319231507.ilhBWEJYn%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-huge=5Fmemoryc-remove-unused-macro-transparent=5Fhugep?=
+ =?US-ASCII?Q?age=5Fdebug=5Fcow=5Fflag.patch?= added to -mm tree
+Message-ID: <20210319231510.QwEjFtPJh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: make get_huge_zero_page() return bool
+     Subject: mm/huge_memory.c: remove unused macro TRANSPARENT_HUGEPAGE_DEBUG_COW_FLAG
 has been added to the -mm tree.  Its filename is
-     mm-huge_memoryc-make-get_huge_zero_page-return-bool.patch
+     mm-huge_memoryc-remove-unused-macro-transparent_hugepage_debug_cow_flag.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-make-get_huge_zero_page-return-bool.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-remove-unused-macro-transparent_hugepage_debug_cow_flag.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-make-get_huge_zero_page-return-bool.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-remove-unused-macro-transparent_hugepage_debug_cow_flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,16 +72,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory.c: make get_huge_zero_page() return bool
+Subject: mm/huge_memory.c: remove unused macro TRANSPARENT_HUGEPAGE_DEBUG_COW_FLAG
 
-It's guaranteed that huge_zero_page will not be NULL if huge_zero_refcount
-is increased successfully.  When READ_ONCE(huge_zero_page) is returned,
-there must be a huge_zero_page and it can be replaced with returning
-'true' when we do not care about the value of huge_zero_page.  We can thus
-make it return bool to save READ_ONCE cpu cycles as the return value is
-just used to check if huge_zero_page exists.
+Commit 4958e4d86ecb ("mm: thp: remove debug_cow switch") forgot to remove
+TRANSPARENT_HUGEPAGE_DEBUG_COW_FLAG macro.  Remove it here.
 
-Link: https://lkml.kernel.org/r/20210318122722.13135-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210318122722.13135-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Peter Xu <peterx@redhat.com>
@@ -95,42 +94,21 @@ Cc: yuleixzhang <yulei.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/huge_mm.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-make-get_huge_zero_page-return-bool
-+++ a/mm/huge_memory.c
-@@ -78,18 +78,18 @@ bool transparent_hugepage_enabled(struct
- 	return false;
- }
+--- a/include/linux/huge_mm.h~mm-huge_memoryc-remove-unused-macro-transparent_hugepage_debug_cow_flag
++++ a/include/linux/huge_mm.h
+@@ -87,9 +87,6 @@ enum transparent_hugepage_flag {
+ 	TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG,
+ 	TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG,
+ 	TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG,
+-#ifdef CONFIG_DEBUG_VM
+-	TRANSPARENT_HUGEPAGE_DEBUG_COW_FLAG,
+-#endif
+ };
  
--static struct page *get_huge_zero_page(void)
-+static bool get_huge_zero_page(void)
- {
- 	struct page *zero_page;
- retry:
- 	if (likely(atomic_inc_not_zero(&huge_zero_refcount)))
--		return READ_ONCE(huge_zero_page);
-+		return true;
- 
- 	zero_page = alloc_pages((GFP_TRANSHUGE | __GFP_ZERO) & ~__GFP_MOVABLE,
- 			HPAGE_PMD_ORDER);
- 	if (!zero_page) {
- 		count_vm_event(THP_ZERO_PAGE_ALLOC_FAILED);
--		return NULL;
-+		return false;
- 	}
- 	count_vm_event(THP_ZERO_PAGE_ALLOC);
- 	preempt_disable();
-@@ -102,7 +102,7 @@ retry:
- 	/* We take additional reference here. It will be put back by shrinker */
- 	atomic_set(&huge_zero_refcount, 2);
- 	preempt_enable();
--	return READ_ONCE(huge_zero_page);
-+	return true;
- }
- 
- static void put_huge_zero_page(void)
+ struct kobject;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
