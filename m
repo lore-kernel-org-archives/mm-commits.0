@@ -4,40 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A8DBC433C1
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 22:43:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED6D9C433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 22:47:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1CEC61982
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 22:43:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B96E661986
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 22:47:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230285AbhCSWnG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Mar 2021 18:43:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57010 "EHLO mail.kernel.org"
+        id S230186AbhCSWqv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Mar 2021 18:46:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59216 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230229AbhCSWm6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 19 Mar 2021 18:42:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3DF9A6197B;
-        Fri, 19 Mar 2021 22:42:57 +0000 (UTC)
+        id S230384AbhCSWqk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 19 Mar 2021 18:46:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2169561970;
+        Fri, 19 Mar 2021 22:46:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616193777;
-        bh=ALhx260WoY4xhOyyUYcqs413YHVoZs+l/6ae5hZKU6E=;
+        s=korg; t=1616194000;
+        bh=SGIhtEKBv9W+C7byHDxoG8MN1S0rNsfk+YiySwtqzrk=;
         h=Date:From:To:Subject:From;
-        b=v/majUZyP70aaNPNkrJYLei/aeNkAv0ewMtHRftlvVpUQvMDV8uau77ora0TLr7Ao
-         kHu4o3sK9TOGBPUa+5ELUotkfhStS98pOnxvqkirJI4iCk1hSgeTcn1TRsp1uyYPV3
-         FC15cGvPzJDSMimZyugz6JImLO7Y8IJzaRrwnYTw=
-Date:   Fri, 19 Mar 2021 15:42:56 -0700
+        b=CO4f1XMqtSeGlbDy570ht8L4cGW9h52Xd3ury71upT+JkFWSuNc1xfpqn1nuuHKea
+         2xSbTJp063fFWD6BdInslAElDUUUQBBYeeIURqDVLZ8MgICc0EVxSkAkovaaHqpKcu
+         CFKc/ljgUJX2Q15iBBSF+SFkyXHPVNiYPrPme+Ds=
+Date:   Fri, 19 Mar 2021 15:46:39 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, jhubbard@nvidia.com,
         kirill.shutemov@linux.intel.com, mika.penttila@nextfour.com,
-        mm-commits@vger.kernel.org, sandipan@linux.ibm.com,
-        shuah@kernel.org, shy828301@gmail.com, ziy@nvidia.com
-Subject:  [to-be-updated]
- mm-huge_memory-a-new-debugfs-interface-for-splitting-thp-tests.patch
- removed from -mm tree
-Message-ID: <20210319224256.HHzMoUl8s%akpm@linux-foundation.org>
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        sandipan@linux.ibm.com, shuah@kernel.org, shy828301@gmail.com,
+        ziy@nvidia.com
+Subject:  +
+ mm-huge_memory-a-new-debugfs-interface-for-splitting-thp-tests.patch added
+ to -mm tree
+Message-ID: <20210319224639.lsKDWAQ47%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,48 +47,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: huge_memory: a new debugfs interface for splitting THP tests.
-has been removed from the -mm tree.  Its filename was
+     Subject: mm: huge_memory: a new debugfs interface for splitting THP tests
+has been added to the -mm tree.  Its filename is
      mm-huge_memory-a-new-debugfs-interface-for-splitting-thp-tests.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memory-a-new-debugfs-interface-for-splitting-thp-tests.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memory-a-new-debugfs-interface-for-splitting-thp-tests.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm: huge_memory: a new debugfs interface for splitting THP tests.
+Subject: mm: huge_memory: a new debugfs interface for splitting THP tests
 
-We do not have a direct user interface of splitting the compound page
+We did not have a direct user interface for splitting the compound page
 backing a THP and there is no need unless we want to expose the THP
 implementation details to users.  Make <debugfs>/split_huge_pages accept a
 new command to do that.
 
 By writing "<pid>,<vaddr_start>,<vaddr_end>" to
 <debugfs>/split_huge_pages, THPs within the given virtual address range
-from the process with the given pid are split. It is used to test
-split_huge_page function. In addition, a selftest program is added to
-tools/testing/selftests/vm to utilize the interface by splitting
-PMD THPs and PTE-mapped THPs.
+from the process with the given pid are split.  It is used to test
+split_huge_page function.  In addition, a selftest program is added to
+tools/testing/selftests/vm to utilize the interface by splitting PMD THPs
+and PTE-mapped THPs.
 
 This does not change the old behavior, i.e., writing 1 to the interface to
 split all THPs in the system.
 
-Link: https://lkml.kernel.org/r/20210312005712.116888-1-zi.yan@sent.com
+Link: https://lkml.kernel.org/r/20210319005219.13595-1-zi.yan@sent.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Sandipan Das <sandipan@linux.ibm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Yang Shi <shy828301@gmail.com>
 Cc: Mika Penttila <mika.penttila@nextfour.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c                                  |  122 ++++
+ mm/huge_memory.c                                  |  143 +++++
  tools/testing/selftests/vm/.gitignore             |    1 
  tools/testing/selftests/vm/Makefile               |    1 
- tools/testing/selftests/vm/split_huge_page_test.c |  313 ++++++++++++
- 4 files changed, 430 insertions(+), 7 deletions(-)
+ tools/testing/selftests/vm/split_huge_page_test.c |  318 ++++++++++++
+ 4 files changed, 456 insertions(+), 7 deletions(-)
 
 --- a/mm/huge_memory.c~mm-huge_memory-a-new-debugfs-interface-for-splitting-thp-tests
 +++ a/mm/huge_memory.c
@@ -99,7 +116,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  #include <linux/sched/coredump.h>
  #include <linux/sched/numa_balancing.h>
  #include <linux/highmem.h>
-@@ -2922,16 +2923,13 @@ static struct shrinker deferred_split_sh
+@@ -2934,16 +2935,14 @@ static struct shrinker deferred_split_sh
  };
  
  #ifdef CONFIG_DEBUG_FS
@@ -114,54 +131,28 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	if (val != 1)
 -		return -EINVAL;
 -
++	pr_info("Split all THPs\n");
  	for_each_populated_zone(zone) {
  		max_zone_pfn = zone_end_pfn(zone);
  		for (pfn = zone->zone_start_pfn; pfn < max_zone_pfn; pfn++) {
-@@ -2959,11 +2957,121 @@ next:
+@@ -2971,11 +2970,141 @@ next:
  	}
  
  	pr_info("%lu of %lu THP split\n", split, total);
 +}
-+
-+static ssize_t split_huge_pages_write(struct file *file, const char __user *buf,
-+				size_t count, loff_t *ppops)
+ 
+-	return 0;
++static int split_huge_pages_pid(int pid, unsigned long vaddr_start,
++				unsigned long vaddr_end)
 +{
-+	static DEFINE_MUTEX(mutex);
-+	ssize_t ret;
-+	char input_buf[80]; /* hold pid, start_vaddr, end_vaddr */
-+	int pid;
-+	unsigned long vaddr_start, vaddr_end, addr;
++	int ret = 0;
 +	struct task_struct *task;
 +	struct mm_struct *mm;
 +	unsigned long total = 0, split = 0;
-+
-+	ret = mutex_lock_interruptible(&mutex);
-+	if (ret)
-+		return ret;
-+
-+	ret = -EFAULT;
-+
-+	memset(input_buf, 0, 80);
-+	if (copy_from_user(input_buf, buf, min_t(size_t, count, 80)))
-+		goto out;
-+
-+	input_buf[79] = '\0';
-+	ret = sscanf(input_buf, "%d,0x%lx,0x%lx", &pid, &vaddr_start, &vaddr_end);
-+	if (ret == 1 && pid == 1) {
-+		split_huge_pages_all();
-+		ret = strlen(input_buf);
-+		goto out;
-+	} else if (ret != 3) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
++	unsigned long addr;
 +
 +	vaddr_start &= PAGE_MASK;
 +	vaddr_end &= PAGE_MASK;
-+
-+	ret = strlen(input_buf);
-+	pr_debug("split huge pages in pid: %d, vaddr: [%lx - %lx]\n",
-+		 pid, vaddr_start, vaddr_end);
 +
 +	/* Find the task_struct from pid */
 +	rcu_read_lock();
@@ -183,6 +174,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		goto out;
 +	}
 +
++	pr_info("Split huge pages in pid: %d, vaddr: [0x%lx - 0x%lx]\n",
++		 pid, vaddr_start, vaddr_end);
++
 +	mmap_read_lock(mm);
 +	/*
 +	 * always increase addr by PAGE_SIZE, since we could have a PTE page
@@ -196,43 +190,87 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		if (!vma || addr < vma->vm_start)
 +			break;
 +
++		/* skip special VMA and hugetlb VMA */
++		if (vma_is_special_huge(vma) || is_vm_hugetlb_page(vma)) {
++			addr = vma->vm_end;
++			continue;
++		}
++
 +		/* FOLL_DUMP to ignore special (like zero) pages */
 +		follflags = FOLL_GET | FOLL_DUMP;
 +		page = follow_page(vma, addr, follflags);
 +
 +		if (IS_ERR(page))
-+			break;
++			continue;
 +		if (!page)
-+			break;
++			continue;
 +
 +		if (!is_transparent_hugepage(page))
-+			continue;
++			goto next;
 +
 +		total++;
 +		if (!can_split_huge_page(compound_head(page), NULL))
-+			continue;
++			goto next;
 +
 +		if (!trylock_page(page))
-+			continue;
++			goto next;
 +
 +		if (!split_huge_page(page))
 +			split++;
 +
 +		unlock_page(page);
++next:
 +		put_page(page);
 +	}
 +	mmap_read_unlock(mm);
 +	mmput(mm);
 +
-+	pr_debug("%lu of %lu THP split\n", split, total);
++	pr_info("%lu of %lu THP split\n", split, total);
++
 +out:
-+	mutex_unlock(&mutex);
 +	return ret;
- 
--	return 0;
  }
 -DEFINE_DEBUGFS_ATTRIBUTE(split_huge_pages_fops, NULL, split_huge_pages_set,
 -		"%llu\n");
++
++static ssize_t split_huge_pages_write(struct file *file, const char __user *buf,
++				size_t count, loff_t *ppops)
++{
++	static DEFINE_MUTEX(split_debug_mutex);
++	ssize_t ret;
++	char input_buf[80]; /* hold pid, start_vaddr, end_vaddr */
++	int pid;
++	unsigned long vaddr_start, vaddr_end;
++
++	ret = mutex_lock_interruptible(&split_debug_mutex);
++	if (ret)
++		return ret;
++
++	ret = -EFAULT;
++
++	memset(input_buf, 0, 80);
++	if (copy_from_user(input_buf, buf, min_t(size_t, count, 80)))
++		goto out;
++
++	input_buf[79] = '\0';
++	ret = sscanf(input_buf, "%d,0x%lx,0x%lx", &pid, &vaddr_start, &vaddr_end);
++	if (ret == 1 && pid == 1) {
++		split_huge_pages_all();
++		ret = strlen(input_buf);
++		goto out;
++	} else if (ret != 3) {
++		ret = -EINVAL;
++		goto out;
++	}
++
++	ret = split_huge_pages_pid(pid, vaddr_start, vaddr_end);
++	if (!ret)
++		ret = strlen(input_buf);
++out:
++	mutex_unlock(&split_debug_mutex);
++	return ret;
++
++}
 +
 +static const struct file_operations split_huge_pages_fops = {
 +	.owner	 = THIS_MODULE,
@@ -261,7 +299,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  CAN_BUILD_I386 := $(shell ./../x86/check_cc.sh $(CC) ../x86/trivial_32bit_program.c -m32)
 --- /dev/null
 +++ a/tools/testing/selftests/vm/split_huge_page_test.c
-@@ -0,0 +1,313 @@
+@@ -0,0 +1,318 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * A test of splitting PMD THPs and PTE-mapped THPs from a specified virtual
@@ -430,6 +468,11 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +
 +	one_page = memalign(pmd_pagesize, len);
 +
++	if (!one_page) {
++		printf("Fail to allocate memory\n");
++		exit(EXIT_FAILURE);
++	}
++
 +	madvise(one_page, len, MADV_HUGEPAGE);
 +
 +	for (i = 0; i < len; i++)
@@ -437,7 +480,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +
 +	thp_size = check_huge(one_page);
 +	if (!thp_size) {
-+		printf("No THP is allocatd");
++		printf("No THP is allocated\n");
 +		exit(EXIT_FAILURE);
 +	}
 +
@@ -501,7 +544,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +
 +	thp_size = check_huge(one_page);
 +	if (!thp_size) {
-+		printf("No THP is allocatd");
++		printf("No THP is allocated\n");
 +		exit(EXIT_FAILURE);
 +	}
 +
@@ -579,4 +622,6 @@ _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
 
+mm-huge_memory-a-new-debugfs-interface-for-splitting-thp-tests.patch
+mm-huge_memory-debugfs-for-file-backed-thp-split.patch
 
