@@ -4,40 +4,42 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76689C433E4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9709FC433E5
 	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 16:15:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 422866198F
+	by mail.kernel.org (Postfix) with ESMTP id 8462361999
 	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 16:15:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230224AbhCSQOv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Mar 2021 12:14:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33822 "EHLO mail.kernel.org"
+        id S230484AbhCSQOw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Mar 2021 12:14:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33912 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230525AbhCSQOa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 19 Mar 2021 12:14:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C362061981;
-        Fri, 19 Mar 2021 16:14:29 +0000 (UTC)
+        id S231126AbhCSQOd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 19 Mar 2021 12:14:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CEF5261984;
+        Fri, 19 Mar 2021 16:14:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616170470;
-        bh=27hNXyzNLb0AcAWdRtbmNQWEkFA4uO+5+xnV702O6u8=;
+        s=korg; t=1616170473;
+        bh=ZXv+zf7I6Mj2mmEas/IZLYCC9WnVA37G2bEjhBKFl9E=;
         h=Date:From:To:Subject:From;
-        b=PFvlEdX+Ie29pnVJkGCYFDZWxy9OPion00seZ/ezEgusphHc9BRsT424taAgUFzlt
-         +g1sp0Yo0yHi+ewkWQKfcF0vC5KDvj3KL5EINDAXsf+KHGFCdnUbIZBbPIQdLgrBGt
-         plA3oegqaV8kql7RM3USpjQrGNOqOy8RrwcNrJFo=
-Date:   Fri, 19 Mar 2021 09:14:29 -0700
+        b=e2TRmPvpq5kZ4DxHKxJ8NLP7MKRk5OA1Vh9sGuy0EA5xz3I0RfYtU5lEdnyY9xl1u
+         1w0ivZAMYWJtEBa04j5WQqLG9Fsgw6MmYGXCB225LyKwWNutwh0SeurU5v3AnYudYu
+         kn4ZlayS6MsvlY3ZcLnjjTJbc/mXyru/d1N1eFVs=
+Date:   Fri, 19 Mar 2021 09:14:32 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org, osalvador@suse.de,
-        songmuchun@bytedance.com, vbabka@suse.cz
+To:     aarcange@redhat.com, axelrasmussen@google.com,
+        minhquangbui99@gmail.com, mm-commits@vger.kernel.org,
+        peterx@redhat.com
 Subject:  +
- mm-make-alloc_contig_range-handle-in-use-hugetlb-pages.patch added to -mm
- tree
-Message-ID: <20210319161429.34vs6l2Ny%akpm@linux-foundation.org>
+ =?US-ASCII?Q?userfaultfd-write-protect-when-virtual-memory-range-has-n?=
+ =?US-ASCII?Q?o-page-table-entry.patch?= added to -mm tree
+Message-ID: <20210319161432.lKb2CxRTw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make alloc_contig_range handle in-use hugetlb pages
+     Subject: userfaultfd: write protect when virtual memory range has no page table entry
 has been added to the -mm tree.  Its filename is
-     mm-make-alloc_contig_range-handle-in-use-hugetlb-pages.patch
+     userfaultfd-write-protect-when-virtual-memory-range-has-no-page-table-entry.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-make-alloc_contig_range-handle-in-use-hugetlb-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-write-protect-when-virtual-memory-range-has-no-page-table-entry.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-make-alloc_contig_range-handle-in-use-hugetlb-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-write-protect-when-virtual-memory-range-has-no-page-table-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,170 +68,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm: make alloc_contig_range handle in-use hugetlb pages
+From: Bui Quang Minh <minhquangbui99@gmail.com>
+Subject: userfaultfd: write protect when virtual memory range has no page table entry
 
-alloc_contig_range() will fail if it finds a HugeTLB page within the
-range, without a chance to handle them.  Since HugeTLB pages can be
-migrated as any LRU or Movable page, it does not make sense to bail out
-without trying.  Enable the interface to recognize in-use HugeTLB pages so
-we can migrate them, and have much better chances to succeed the call.
+userfaultfd_writeprotect() use change_protection() to clear write bit in
+page table entries (pte/pmd).  So, later write to this virtual address
+range causes a page fault, which is then handled by userspace program. 
+However, change_protection() has no effect when there is no page table
+entries associated with that virtual memory range (a newly mapped memory
+range).  As a result, later access to that memory range causes allocating
+a page table entry with write bit still set (due to VM_WRITE flag in
+vma->vm_flags).
 
-Link: https://lkml.kernel.org/r/20210319132004.4341-5-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Add checks for VM_UFFD_WP in vma->vm_flags when allocating new page table
+entry in missing page table entry page fault path.
+
+Link: https://lkml.kernel.org/r/20210319152428.52683-1-minhquangbui99@gmail.com
+Signed-off-by: Bui Quang Minh <minhquangbui99@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 +++--
- mm/compaction.c         |   12 +++++++++++-
- mm/hugetlb.c            |   22 ++++++++++++++++------
- mm/vmscan.c             |    5 +++--
- 4 files changed, 33 insertions(+), 11 deletions(-)
+ mm/huge_memory.c |   12 ++++++++++++
+ mm/memory.c      |   10 ++++++++++
+ 2 files changed, 22 insertions(+)
 
---- a/include/linux/hugetlb.h~mm-make-alloc_contig_range-handle-in-use-hugetlb-pages
-+++ a/include/linux/hugetlb.h
-@@ -587,7 +587,7 @@ struct huge_bootmem_page {
- 	struct hstate *hstate;
- };
+--- a/mm/huge_memory.c~userfaultfd-write-protect-when-virtual-memory-range-has-no-page-table-entry
++++ a/mm/huge_memory.c
+@@ -636,6 +636,11 @@ static vm_fault_t __do_huge_pmd_anonymou
  
--int isolate_or_dissolve_huge_page(struct page *page);
-+int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list);
- struct page *alloc_huge_page(struct vm_area_struct *vma,
- 				unsigned long addr, int avoid_reserve);
- struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
-@@ -870,7 +870,8 @@ static inline void huge_ptep_modify_prot
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
- 
--static inline int isolate_or_dissolve_huge_page(struct page *page)
-+static inline int isolate_or_dissolve_huge_page(struct page *page,
-+						struct list_head *list)
- {
- 	return -ENOMEM;
- }
---- a/mm/compaction.c~mm-make-alloc_contig_range-handle-in-use-hugetlb-pages
-+++ a/mm/compaction.c
-@@ -909,7 +909,7 @@ isolate_migratepages_block(struct compac
- 		}
- 
- 		if (PageHuge(page) && cc->alloc_contig) {
--			ret = isolate_or_dissolve_huge_page(page);
-+			ret = isolate_or_dissolve_huge_page(page, &cc->migratepages);
- 
- 			/*
- 			 * Fail isolation in case isolate_or_dissolve_huge_page
-@@ -926,6 +926,15 @@ isolate_migratepages_block(struct compac
- 				goto isolate_fail;
- 			}
- 
-+			if (PageHuge(page)) {
-+				/*
-+				 * Hugepage was successfully isolated and placed
-+				 * on the cc->migratepages list.
-+				 */
-+				low_pfn += compound_nr(page) - 1;
-+				goto isolate_success_no_list;
-+			}
+ 		entry = mk_huge_pmd(page, vma->vm_page_prot);
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
++		if (userfaultfd_wp(vma)) {
++			entry = pmd_wrprotect(entry);
++			entry = pmd_mkuffd_wp(entry);
++		}
 +
- 			/*
- 			 * Ok, the hugepage was dissolved. Now these pages are
- 			 * Buddy and cannot be re-allocated because they are
-@@ -1067,6 +1076,7 @@ isolate_migratepages_block(struct compac
+ 		page_add_new_anon_rmap(page, vma, haddr, true);
+ 		lru_cache_add_inactive_or_unevictable(page, vma);
+ 		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
+@@ -643,6 +648,13 @@ static vm_fault_t __do_huge_pmd_anonymou
+ 		update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
+ 		add_mm_counter(vma->vm_mm, MM_ANONPAGES, HPAGE_PMD_NR);
+ 		mm_inc_nr_ptes(vma->vm_mm);
++
++		if (userfaultfd_huge_pmd_wp(vma, *vmf->pmd)) {
++			spin_unlock(vmf->ptl);
++			count_vm_event(THP_FAULT_ALLOC);
++			count_memcg_event_mm(vma->vm_mm, THP_FAULT_ALLOC);
++			return handle_userfault(vmf, VM_UFFD_WP);
++		}
+ 		spin_unlock(vmf->ptl);
+ 		count_vm_event(THP_FAULT_ALLOC);
+ 		count_memcg_event_mm(vma->vm_mm, THP_FAULT_ALLOC);
+--- a/mm/memory.c~userfaultfd-write-protect-when-virtual-memory-range-has-no-page-table-entry
++++ a/mm/memory.c
+@@ -3564,6 +3564,11 @@ static vm_fault_t do_anonymous_page(stru
+ 	if (vma->vm_flags & VM_WRITE)
+ 		entry = pte_mkwrite(pte_mkdirty(entry));
  
- isolate_success:
- 		list_add(&page->lru, &cc->migratepages);
-+isolate_success_no_list:
- 		cc->nr_migratepages += compound_nr(page);
- 		nr_isolated += compound_nr(page);
++	if (userfaultfd_wp(vma)) {
++		entry = pte_wrprotect(entry);
++		entry = pte_mkuffd_wp(entry);
++	}
++
+ 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, vmf->address,
+ 			&vmf->ptl);
+ 	if (!pte_none(*vmf->pte)) {
+@@ -3590,6 +3595,11 @@ setpte:
  
---- a/mm/hugetlb.c~mm-make-alloc_contig_range-handle-in-use-hugetlb-pages
-+++ a/mm/hugetlb.c
-@@ -2278,7 +2278,8 @@ static void restore_reserve_on_error(str
-  * Returns 0 on success, otherwise negated error.
-  */
- 
--static int alloc_and_dissolve_huge_page(struct hstate *h, struct page *old_page)
-+static int alloc_and_dissolve_huge_page(struct hstate *h, struct page *old_page,
-+					struct list_head *list)
- {
- 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
- 	int nid = page_to_nid(old_page);
-@@ -2308,11 +2309,14 @@ retry:
- 		goto unlock;
- 	} else if (page_count(old_page)) {
- 		/*
--		 * Someone has grabbed the page, fail for now.
-+		 * Someone has grabbed the page, try to isolate it here.
-+		 * Fail with -EBUSY if not possible.
- 		 */
--		ret = -EBUSY;
- 		update_and_free_page(h, new_page);
--		goto unlock;
-+		spin_unlock(&hugetlb_lock);
-+		if (!isolate_huge_page(old_page, list))
-+			ret = -EBUSY;
-+		return ret;
- 	} else if (!HPageFreed(old_page)) {
- 		/*
- 		 * Page's refcount is 0 but it has not been enqueued in the
-@@ -2340,10 +2344,11 @@ unlock:
+ 	/* No need to invalidate - it was non-present before */
+ 	update_mmu_cache(vma, vmf->address, vmf->pte);
++
++	if (userfaultfd_pte_wp(vma, *vmf->pte)) {
++		pte_unmap_unlock(vmf->pte, vmf->ptl);
++		return handle_userfault(vmf, VM_UFFD_WP);
++	}
+ unlock:
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
  	return ret;
- }
- 
--int isolate_or_dissolve_huge_page(struct page *page)
-+int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list)
- {
- 	struct hstate *h;
- 	struct page *head;
-+	int ret = -EBUSY;
- 
- 	/*
- 	 * The page might have been dissolved from under our feet, so make sure
-@@ -2368,7 +2373,12 @@ int isolate_or_dissolve_huge_page(struct
- 	if (hstate_is_gigantic(h))
- 		return -ENOMEM;
- 
--	return alloc_and_dissolve_huge_page(h, head);
-+	if (page_count(head) && isolate_huge_page(head, list))
-+		ret = 0;
-+	else if (!page_count(head))
-+		ret = alloc_and_dissolve_huge_page(h, head, list);
-+
-+	return ret;
- }
- 
- struct page *alloc_huge_page(struct vm_area_struct *vma,
---- a/mm/vmscan.c~mm-make-alloc_contig_range-handle-in-use-hugetlb-pages
-+++ a/mm/vmscan.c
-@@ -1507,8 +1507,9 @@ unsigned int reclaim_clean_pages_from_li
- 	LIST_HEAD(clean_pages);
- 
- 	list_for_each_entry_safe(page, next, page_list, lru) {
--		if (page_is_file_lru(page) && !PageDirty(page) &&
--		    !__PageMovable(page) && !PageUnevictable(page)) {
-+		if (!PageHuge(page) && page_is_file_lru(page) &&
-+		    !PageDirty(page) && !__PageMovable(page) &&
-+		    !PageUnevictable(page)) {
- 			ClearPageActive(page);
- 			list_move(&page->lru, &clean_pages);
- 		}
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from minhquangbui99@gmail.com are
 
-x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
-x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
-x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
-x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
-mmpage_alloc-bail-out-earlier-on-enomem-in-alloc_contig_migrate_range.patch
-mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes.patch
-mm-make-alloc_contig_range-handle-free-hugetlb-pages.patch
-mm-make-alloc_contig_range-handle-in-use-hugetlb-pages.patch
-mmpage_alloc-drop-unnecessary-checks-from-pfn_range_valid_contig.patch
+userfaultfd-write-protect-when-virtual-memory-range-has-no-page-table-entry.patch
 
