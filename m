@@ -4,36 +4,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B201C433C1
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 22:08:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A7D9C433C1
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 22:11:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4FFFC61976
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 22:08:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B80026197A
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 22:11:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230186AbhCSWH4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Mar 2021 18:07:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49654 "EHLO mail.kernel.org"
+        id S230473AbhCSWLJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Mar 2021 18:11:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50326 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230273AbhCSWHt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 19 Mar 2021 18:07:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4868C61975;
-        Fri, 19 Mar 2021 22:07:49 +0000 (UTC)
+        id S230281AbhCSWKm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 19 Mar 2021 18:10:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9381361978;
+        Fri, 19 Mar 2021 22:10:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616191669;
-        bh=Yh1yVOqXFlA7FAdun/NuiD38Xf11stR4PlHV+k3/IBU=;
+        s=korg; t=1616191841;
+        bh=cNmkpDumQ8VNSZjwgMnUYiNtHKNkcvL05VFA0KbOYSU=;
         h=Date:From:To:Subject:From;
-        b=b1f3t9QGH5DwWE/ksA2rgTPjhp898biQvJD1clrUEiSNwaf4bwKUjQieptnY6KeoT
-         68KbWNnKyowrI1iAn2IcUy7EXPPkXkEGsTKxnCd1ytSpyqSooeX9C2ZLPJ5PneEaki
-         p8Y5uEH9CgtzvhLOUdnYOvZDgpjik+NDDtjnlDfg=
-Date:   Fri, 19 Mar 2021 15:07:48 -0700
+        b=AePBrDd0qZRnSWI8vsjFn/Qqkan037eHMk8mVE+8n/boBSUJTEBB6mcb08v/3/Vh6
+         mIV/r15aAPcbutOfRPBWrN1RhffgYtitmELAugh+yuCbN4855Vm0U0LGlbnQJ9lIOw
+         WPrDj+/JA617z6Yodph6i0pgfZYPxpywfIkyuhMM=
+Date:   Fri, 19 Mar 2021 15:10:41 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, unixbhaskar@gmail.com
-Subject:  + mm-kmemleak-fix-a-typo.patch added to -mm tree
-Message-ID: <20210319220748.VAMDaoRkC%akpm@linux-foundation.org>
+To:     aquini@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, vbabka@suse.cz
+Subject:  +
+ =?US-ASCII?Q?mm-slab=5Fcommon-provide-slab=5Fmerge-option-for-is=5Fenabl?=
+ =?US-ASCII?Q?edconfig=5Fslab=5Fmerge=5Fdefault-builds.patch?= added to -mm
+ tree
+Message-ID: <20210319221041.OamnEBlFM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kmemleak.c: fix a typo
+     Subject: mm/slab_common: provide "slab_merge" option for !IS_ENABLED(CONFIG_SLAB_MERGE_DEFAULT) builds
 has been added to the -mm tree.  Its filename is
-     mm-kmemleak-fix-a-typo.patch
+     mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-fix-a-typo.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-fix-a-typo.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,38 +69,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Subject: mm/kmemleak.c: fix a typo
+From: Rafael Aquini <aquini@redhat.com>
+Subject: mm/slab_common: provide "slab_merge" option for !IS_ENABLED(CONFIG_SLAB_MERGE_DEFAULT) builds
 
-s/interruptable/interruptible/
+This is a minor addition to the allocator setup options to provide a
+simple way to on demand enable back cache merging for builds that by
+default run with CONFIG_SLAB_MERGE_DEFAULT not set.
 
-Link: https://lkml.kernel.org/r/20210319214140.23304-1-unixbhaskar@gmail.com
-Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Link: https://lkml.kernel.org/r/20210319194506.200159-1-aquini@redhat.com
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/kernel-parameters.txt |    7 +++++++
+ mm/slab_common.c                                |    8 ++++++++
+ 2 files changed, 15 insertions(+)
 
---- a/mm/kmemleak.c~mm-kmemleak-fix-a-typo
-+++ a/mm/kmemleak.c
-@@ -1203,7 +1203,7 @@ static void update_refs(struct kmemleak_
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -4877,6 +4877,10 @@
+ 
+ 	slram=		[HW,MTD]
+ 
++	slab_merge	[MM]
++			Enable merging of slabs with similar size when the
++			kernel is built without CONFIG_SLAB_MERGE_DEFAULT.
++
+ 	slab_nomerge	[MM]
+ 			Disable merging of slabs with similar size. May be
+ 			necessary if there is some reason to distinguish
+@@ -4924,6 +4928,9 @@
+ 			lower than slub_max_order.
+ 			For more information see Documentation/vm/slub.rst.
+ 
++	slub_merge	[MM, SLUB]
++			Same with slab_merge.
++
+ 	slub_nomerge	[MM, SLUB]
+ 			Same with slab_nomerge. This is supported for legacy.
+ 			See slab_nomerge for more information.
+--- a/mm/slab_common.c~mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds
++++ a/mm/slab_common.c
+@@ -71,11 +71,19 @@ static int __init setup_slab_nomerge(cha
+ 	return 1;
  }
  
++static int __init setup_slab_merge(char *str)
++{
++	slab_nomerge = false;
++	return 1;
++}
++
+ #ifdef CONFIG_SLUB
+ __setup_param("slub_nomerge", slub_nomerge, setup_slab_nomerge, 0);
++__setup_param("slub_merge", slub_merge, setup_slab_merge, 0);
+ #endif
+ 
+ __setup("slab_nomerge", setup_slab_nomerge);
++__setup("slab_merge", setup_slab_merge);
+ 
  /*
-- * Memory scanning is a long process and it needs to be interruptable. This
-+ * Memory scanning is a long process and it needs to be interruptible. This
-  * function checks whether such interrupt condition occurred.
-  */
- static int scan_should_stop(void)
+  * Determine the size of a slab object
 _
 
-Patches currently in -mm which might be from unixbhaskar@gmail.com are
+Patches currently in -mm which might be from aquini@redhat.com are
 
-ia64-kernel-few-typos-fixed-in-the-file-fsyss.patch
-ia64-include-asm-minor-typo-fixes-in-the-file-pgtableh.patch
-mm-kmemleak-fix-a-typo.patch
-mm-typo-fix-in-the-file-utilc.patch
-kernel-fix-a-typo-in-the-file-upc.patch
-lib-fix-a-typo-in-the-file-bchc.patch
+mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds.patch
 
