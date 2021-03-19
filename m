@@ -7,40 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A7D9C433C1
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 22:11:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B674C433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 22:15:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B80026197A
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 22:11:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39A2961990
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Mar 2021 22:15:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230473AbhCSWLJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Mar 2021 18:11:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50326 "EHLO mail.kernel.org"
+        id S230186AbhCSWP0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Mar 2021 18:15:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52230 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230281AbhCSWKm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 19 Mar 2021 18:10:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9381361978;
-        Fri, 19 Mar 2021 22:10:41 +0000 (UTC)
+        id S230273AbhCSWPO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 19 Mar 2021 18:15:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F3B1C61921;
+        Fri, 19 Mar 2021 22:15:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616191841;
-        bh=cNmkpDumQ8VNSZjwgMnUYiNtHKNkcvL05VFA0KbOYSU=;
+        s=korg; t=1616192114;
+        bh=l8QamMKTEfI7aBfiDQg+kRKZXEW8O4jutBSiJa3Xirs=;
         h=Date:From:To:Subject:From;
-        b=AePBrDd0qZRnSWI8vsjFn/Qqkan037eHMk8mVE+8n/boBSUJTEBB6mcb08v/3/Vh6
-         mIV/r15aAPcbutOfRPBWrN1RhffgYtitmELAugh+yuCbN4855Vm0U0LGlbnQJ9lIOw
-         WPrDj+/JA617z6Yodph6i0pgfZYPxpywfIkyuhMM=
-Date:   Fri, 19 Mar 2021 15:10:41 -0700
+        b=uZxsJR5UMyyVCcetZh/ornkwPqSge0pbvrfeeGHb5Nz+URbsTASAYL3tOHA+On60S
+         4LB8PbL6M+7EOOp0OypshZYP1tAZwG8zwWBOovlTueC/A2jT6oLSn9ox/q18XsPTHT
+         bgyK/rv73zZE6kPQ+DaYSBXTuyflTLpq/aJSOeAM=
+Date:   Fri, 19 Mar 2021 15:15:13 -0700
 From:   akpm@linux-foundation.org
-To:     aquini@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz
-Subject:  +
- =?US-ASCII?Q?mm-slab=5Fcommon-provide-slab=5Fmerge-option-for-is=5Fenabl?=
- =?US-ASCII?Q?edconfig=5Fslab=5Fmerge=5Fdefault-builds.patch?= added to -mm
- tree
-Message-ID: <20210319221041.OamnEBlFM%akpm@linux-foundation.org>
+To:     anton@enomsg.org, bhe@redhat.com, bhsharma@redhat.com,
+        ccross@android.com, ebiederm@xmission.com, jmorris@namei.org,
+        keescook@chromium.org, mm-commits@vger.kernel.org,
+        pasha.tatashin@soleen.com, pmladek@suse.com, sashal@kernel.org,
+        tony.luck@intel.com, tyhicks@linux.microsoft.com
+Subject:  + kexec-dump-kmessage-before-machine_kexec.patch added to
+ -mm tree
+Message-ID: <20210319221513.OiCJXX0tr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab_common: provide "slab_merge" option for !IS_ENABLED(CONFIG_SLAB_MERGE_DEFAULT) builds
+     Subject: kexec: dump kmessage before machine_kexec
 has been added to the -mm tree.  Its filename is
-     mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds.patch
+     kexec-dump-kmessage-before-machine_kexec.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kexec-dump-kmessage-before-machine_kexec.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kexec-dump-kmessage-before-machine_kexec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,75 +67,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rafael Aquini <aquini@redhat.com>
-Subject: mm/slab_common: provide "slab_merge" option for !IS_ENABLED(CONFIG_SLAB_MERGE_DEFAULT) builds
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Subject: kexec: dump kmessage before machine_kexec
 
-This is a minor addition to the allocator setup options to provide a
-simple way to on demand enable back cache merging for builds that by
-default run with CONFIG_SLAB_MERGE_DEFAULT not set.
+kmsg_dump(KMSG_DUMP_SHUTDOWN) is called before
+machine_restart(), machine_halt(), machine_power_off(), the only one that
+is missing is  machine_kexec().
 
-Link: https://lkml.kernel.org/r/20210319194506.200159-1-aquini@redhat.com
-Signed-off-by: Rafael Aquini <aquini@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The dmesg output that it contains can be used to study the shutdown
+performance of both kernel and systemd during kexec reboot.
+
+Here is example of dmesg data collected after kexec:
+
+root@dplat-cp22:~# cat /sys/fs/pstore/dmesg-ramoops-0 | tail
+...
+<6>[   70.914592] psci: CPU3 killed (polled 0 ms)
+<5>[   70.915705] CPU4: shutdown
+<6>[   70.916643] psci: CPU4 killed (polled 4 ms)
+<5>[   70.917715] CPU5: shutdown
+<6>[   70.918725] psci: CPU5 killed (polled 0 ms)
+<5>[   70.919704] CPU6: shutdown
+<6>[   70.920726] psci: CPU6 killed (polled 4 ms)
+<5>[   70.921642] CPU7: shutdown
+<6>[   70.922650] psci: CPU7 killed (polled 0 ms)
+
+Link: https://lkml.kernel.org/r/20210319192326.146000-2-pasha.tatashin@soleen.com
+Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Reviewed-by: Bhupesh Sharma <bhsharma@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Tyler Hicks <tyhicks@linux.microsoft.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Anton Vorontsov <anton@enomsg.org>
+Cc: Colin Cross <ccross@android.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    7 +++++++
- mm/slab_common.c                                |    8 ++++++++
- 2 files changed, 15 insertions(+)
+ kernel/kexec_core.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -4877,6 +4877,10 @@
+--- a/kernel/kexec_core.c~kexec-dump-kmessage-before-machine_kexec
++++ a/kernel/kexec_core.c
+@@ -37,6 +37,7 @@
+ #include <linux/compiler.h>
+ #include <linux/hugetlb.h>
+ #include <linux/objtool.h>
++#include <linux/kmsg_dump.h>
  
- 	slram=		[HW,MTD]
+ #include <asm/page.h>
+ #include <asm/sections.h>
+@@ -1179,6 +1180,7 @@ int kernel_kexec(void)
+ 		machine_shutdown();
+ 	}
  
-+	slab_merge	[MM]
-+			Enable merging of slabs with similar size when the
-+			kernel is built without CONFIG_SLAB_MERGE_DEFAULT.
-+
- 	slab_nomerge	[MM]
- 			Disable merging of slabs with similar size. May be
- 			necessary if there is some reason to distinguish
-@@ -4924,6 +4928,9 @@
- 			lower than slub_max_order.
- 			For more information see Documentation/vm/slub.rst.
++	kmsg_dump(KMSG_DUMP_SHUTDOWN);
+ 	machine_kexec(kexec_image);
  
-+	slub_merge	[MM, SLUB]
-+			Same with slab_merge.
-+
- 	slub_nomerge	[MM, SLUB]
- 			Same with slab_nomerge. This is supported for legacy.
- 			See slab_nomerge for more information.
---- a/mm/slab_common.c~mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds
-+++ a/mm/slab_common.c
-@@ -71,11 +71,19 @@ static int __init setup_slab_nomerge(cha
- 	return 1;
- }
- 
-+static int __init setup_slab_merge(char *str)
-+{
-+	slab_nomerge = false;
-+	return 1;
-+}
-+
- #ifdef CONFIG_SLUB
- __setup_param("slub_nomerge", slub_nomerge, setup_slab_nomerge, 0);
-+__setup_param("slub_merge", slub_merge, setup_slab_merge, 0);
- #endif
- 
- __setup("slab_nomerge", setup_slab_nomerge);
-+__setup("slab_merge", setup_slab_merge);
- 
- /*
-  * Determine the size of a slab object
+ #ifdef CONFIG_KEXEC_JUMP
 _
 
-Patches currently in -mm which might be from aquini@redhat.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds.patch
+mm-gup-dont-pin-migrated-cma-pages-in-movable-zone.patch
+mm-gup-check-every-subpage-of-a-compound-page-during-isolation.patch
+mm-gup-return-an-error-on-migration-failure.patch
+mm-gup-check-for-isolation-errors.patch
+mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin.patch
+mm-apply-per-task-gfp-constraints-in-fast-path.patch
+mm-honor-pf_memalloc_pin-for-all-movable-pages.patch
+mm-gup-do-not-migrate-zero-page.patch
+mm-gup-migrate-pinned-pages-out-of-movable-zone.patch
+memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning.patch
+mm-gup-change-index-type-to-long-as-it-counts-pages.patch
+mm-gup-longterm-pin-migration-cleanup.patch
+selftests-vm-gup_test-fix-test-flag.patch
+selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages.patch
+kexec-dump-kmessage-before-machine_kexec.patch
 
