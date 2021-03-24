@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B37CC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 18:58:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2C98C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 19:32:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9E1161A17
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 18:58:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C99B61A17
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 19:32:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237629AbhCXS5u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Mar 2021 14:57:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56768 "EHLO mail.kernel.org"
+        id S237869AbhCXTbd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Mar 2021 15:31:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38326 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237604AbhCXS5b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Mar 2021 14:57:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8FDEF619EC;
-        Wed, 24 Mar 2021 18:57:31 +0000 (UTC)
+        id S237855AbhCXTbc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Mar 2021 15:31:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C64A61A17;
+        Wed, 24 Mar 2021 19:31:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616612251;
-        bh=jQzGKL9I9rW2zbiy/mz354szE7BM50kn6MpPj4bMw3c=;
+        s=korg; t=1616614291;
+        bh=rouS8/Vqd4NzBFTZcsYzxEOv/+DpFXKReRV8MnmzIS8=;
         h=Date:From:To:Subject:From;
-        b=oeIQ21s0zFNuz6ryGq5doNo2c7euD67WvBe/Djr1jTEI2aB21XKrxRFljbdG5Mz96
-         s2HyKhT+xwD4i3SkjrXp/DzPSsTOT0iqK0Sxbdd9E2UvU6EAs8AHEa0hNrX1X6B3Cf
-         5zSqySKXH5S32IpAXL9mKbBPvYhZh7bz2SM0ZQS0=
-Date:   Wed, 24 Mar 2021 11:57:31 -0700
+        b=LQTIt+vv9rnTputy40DZEufJoc9EfBcGh/67mktCS/1njK1JE61idU+smRaV7qri4
+         0gBGuXoqDyw6q8tHzOkX4M4CZptJZ1hRFeqFW3UHrdhDNQcIwayP6Mp8jqhLePl3Km
+         s5yi7tSB9RDax1q3gwJtuXR6q5VGi7d7dPfA6XIg=
+Date:   Wed, 24 Mar 2021 12:31:31 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, zhongjiang-ali@linux.alibaba.com
-Subject:  +
- mm-page_owner-remove-unused-parameter-in-__set_page_owner_handle.patch added
- to -mm tree
-Message-ID: <20210324185731.bWeGV%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, joseph.qi@linux.alibaba.com,
+        unixbhaskar@gmail.com
+Subject:  + ocfs2-fix-a-typo.patch added to -mm tree
+Message-ID: <20210324193131.0xNeb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_owner: remove unused parameter in __set_page_owner_handle
+     Subject: ocfs2: fix a typo
 has been added to the -mm tree.  Its filename is
-     mm-page_owner-remove-unused-parameter-in-__set_page_owner_handle.patch
+     ocfs2-fix-a-typo.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-remove-unused-parameter-in-__set_page_owner_handle.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-a-typo.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-remove-unused-parameter-in-__set_page_owner_handle.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-a-typo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,57 +63,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: zhongjiang-ali <zhongjiang-ali@linux.alibaba.com>
-Subject: mm, page_owner: remove unused parameter in __set_page_owner_handle
+From: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Subject: ocfs2: fix a typo
 
-Since commit 5556cfe8d994 ("mm, page_owner: fix off-by-one error in
-__set_page_owner_handle()") introduced, the parameter 'page' will not
-used, hence it need to be removed.
+s/cluter/cluster/
 
-Link: https://lkml.kernel.org/r/1616602022-43545-1-git-send-email-zhongjiang-ali@linux.alibaba.com
-Signed-off-by: zhongjiang-ali <zhongjiang-ali@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20210324072931.5056-1-unixbhaskar@gmail.com
+Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/ocfs2/stackglue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_owner.c~mm-page_owner-remove-unused-parameter-in-__set_page_owner_handle
-+++ a/mm/page_owner.c
-@@ -165,9 +165,9 @@ void __reset_page_owner(struct page *pag
- 	}
+--- a/fs/ocfs2/stackglue.c~ocfs2-fix-a-typo
++++ a/fs/ocfs2/stackglue.c
+@@ -731,7 +731,7 @@ static void __exit ocfs2_stack_glue_exit
  }
  
--static inline void __set_page_owner_handle(struct page *page,
--	struct page_ext *page_ext, depot_stack_handle_t handle,
--	unsigned int order, gfp_t gfp_mask)
-+static inline void __set_page_owner_handle(struct page_ext *page_ext,
-+					depot_stack_handle_t handle,
-+					unsigned int order, gfp_t gfp_mask)
- {
- 	struct page_owner *page_owner;
- 	int i;
-@@ -197,7 +197,7 @@ noinline void __set_page_owner(struct pa
- 		return;
- 
- 	handle = save_stack(gfp_mask);
--	__set_page_owner_handle(page, page_ext, handle, order, gfp_mask);
-+	__set_page_owner_handle(page_ext, handle, order, gfp_mask);
- }
- 
- void __set_page_owner_migrate_reason(struct page *page, int reason)
-@@ -616,7 +616,7 @@ static void init_pages_in_zone(pg_data_t
- 				continue;
- 
- 			/* Found early allocated page */
--			__set_page_owner_handle(page, page_ext, early_handle,
-+			__set_page_owner_handle(page_ext, early_handle,
- 						0, 0);
- 			count++;
- 		}
+ MODULE_AUTHOR("Oracle");
+-MODULE_DESCRIPTION("ocfs2 cluter stack glue layer");
++MODULE_DESCRIPTION("ocfs2 cluster stack glue layer");
+ MODULE_LICENSE("GPL");
+ module_init(ocfs2_stack_glue_init);
+ module_exit(ocfs2_stack_glue_exit);
 _
 
-Patches currently in -mm which might be from zhongjiang-ali@linux.alibaba.com are
+Patches currently in -mm which might be from unixbhaskar@gmail.com are
 
-mm-page_owner-remove-unused-parameter-in-__set_page_owner_handle.patch
+ia64-kernel-few-typos-fixed-in-the-file-fsyss.patch
+ia64-include-asm-minor-typo-fixes-in-the-file-pgtableh.patch
+ocfs2-fix-a-typo.patch
+mm-kmemleak-fix-a-typo.patch
+mm-typo-fix-in-the-file-utilc.patch
+lib-fix-a-typo-in-the-file-bchc.patch
+mm-few-spelling-fixes.patch
+kernel-fix-a-typo-in-the-file-upc.patch
+ipc-semc-couple-of-spelling-fixes.patch
 
