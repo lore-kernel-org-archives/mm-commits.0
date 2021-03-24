@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12328C433C1
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 23:34:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34947C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 23:38:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D3869619DC
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 23:34:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03F0C619F8
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 23:38:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231875AbhCXXdY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Mar 2021 19:33:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35926 "EHLO mail.kernel.org"
+        id S235431AbhCXXiN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Mar 2021 19:38:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36440 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235320AbhCXXcy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Mar 2021 19:32:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E099061A17;
-        Wed, 24 Mar 2021 23:32:53 +0000 (UTC)
+        id S231775AbhCXXiE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Mar 2021 19:38:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9AAA961A1F;
+        Wed, 24 Mar 2021 23:38:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616628774;
-        bh=RhZ+4utZ9DjC0Vqr4Bwud302GqJW9w8q2GdCxWIcipM=;
+        s=korg; t=1616629083;
+        bh=8vdgvf9cfZzq7FADWDbemKxk5P8Vo18WPp3orF+9A7w=;
         h=Date:From:To:Subject:From;
-        b=R5X4TmOBuY60aqRxqVgNPZE+zyTyHBJuY7XP34Hl9h1Uknu7/bCCUbIfzBrEgInFt
-         DhQFpHweH7dHTGOYBg+X3EJu8sdLU8lUq2ptBG8uHDV1mJ474wE2NSZy4deLz3kXNh
-         OcTtew2FcvdR4U8ISdaetEDz2rWKN49DFvnvD3Bg=
-Date:   Wed, 24 Mar 2021 16:32:53 -0700
+        b=z5MgqJazelE+zw+1fqot28xN1EI1ZX4m3xUgS9oVw2cG9q7Z2+bHrtv3OJiL4Gz96
+         Aostjp/o3iE/FrIrIGnXk0ONA0YdPTy0d3OyFlLwSF0o0hbqQOozhR58l2/k/ApvKg
+         0g24KTAcJ/1S/ZjZMwjRqAua3nuVVqIvhoW/eZpg=
+Date:   Wed, 24 Mar 2021 16:38:03 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com,
-        mike.kravetz@oracle.com, axelrasmussen@google.com,
-        aarcange@redhat.com, peterx@redhat.com
-Subject:  + userfaultfd-add-minor-fault-registration-mode-fix.patch
+To:     mm-commits@vger.kernel.org, ralf.ramsauer@oth-regensburg.de,
+        joe@perches.com, corbet@lwn.net, lukas.bulwahn@gmail.com
+Subject:  + pagewalk-prefix-struct-kernel-doc-descriptions.patch
  added to -mm tree
-Message-ID: <20210324233253.vC-7i%akpm@linux-foundation.org>
+Message-ID: <20210324233803.YsyYY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/hugetlbfs: fix minor fault page leak
+     Subject: pagewalk: prefix struct kernel-doc descriptions
 has been added to the -mm tree.  Its filename is
-     userfaultfd-add-minor-fault-registration-mode-fix.patch
+     pagewalk-prefix-struct-kernel-doc-descriptions.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-add-minor-fault-registration-mode-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/pagewalk-prefix-struct-kernel-doc-descriptions.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-add-minor-fault-registration-mode-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/pagewalk-prefix-struct-kernel-doc-descriptions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,52 +64,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: userfaultfd/hugetlbfs: fix minor fault page leak
+From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: pagewalk: prefix struct kernel-doc descriptions
 
-When uffd-minor enabled, we need to put the page cache before handling the
-userfault in hugetlb_no_page(), otherwise the page refcount got leaked.
+The script './scripts/kernel-doc -none ./include/linux/pagewalk.h' reports:
 
-This can be reproduced by running userfaultfd selftest with hugetlb_shared
-mode, then cat /proc/meminfo.
+  include/linux/pagewalk.h:37: warning: cannot understand function prototype: 'struct mm_walk_ops '
+  include/linux/pagewalk.h:85: warning: cannot understand function prototype: 'struct mm_walk '
 
-Link: https://lkml.kernel.org/r/20210322175132.36659-1-peterx@redhat.com
-Fixes: f2bf15fb0969 ("userfaultfd: add minor fault registration mode")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+A kernel-doc description for a structure requires to prefix the struct
+name with the keyword 'struct'.  So, do that such that no further
+kernel-doc warnings are reported for this file.
+
+Link: https://lkml.kernel.org/r/20210322122542.15072-3-lukas.bulwahn@gmail.com
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/pagewalk.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~userfaultfd-add-minor-fault-registration-mode-fix
-+++ a/mm/hugetlb.c
-@@ -4565,6 +4565,7 @@ retry:
- 		/* Check for page in userfault range. */
- 		if (userfaultfd_minor(vma)) {
- 			unlock_page(page);
-+			put_page(page);
- 			ret = hugetlb_handle_userfault(vma, mapping, idx,
- 						       flags, haddr,
- 						       VM_UFFD_MINOR);
+--- a/include/linux/pagewalk.h~pagewalk-prefix-struct-kernel-doc-descriptions
++++ a/include/linux/pagewalk.h
+@@ -7,7 +7,7 @@
+ struct mm_walk;
+ 
+ /**
+- * mm_walk_ops - callbacks for walk_page_range
++ * struct mm_walk_ops - callbacks for walk_page_range
+  * @pgd_entry:		if set, called for each non-empty PGD (top-level) entry
+  * @p4d_entry:		if set, called for each non-empty P4D entry
+  * @pud_entry:		if set, called for each non-empty PUD entry
+@@ -71,7 +71,7 @@ enum page_walk_action {
+ };
+ 
+ /**
+- * mm_walk - walk_page_range data
++ * struct mm_walk - walk_page_range data
+  * @ops:	operation to call during the walk
+  * @mm:		mm_struct representing the target process of page table walk
+  * @pgd:	pointer to PGD; only valid with no_vma (otherwise set to NULL)
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
 
-hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share.patch
-hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share-fix.patch
-hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
-hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix.patch
-mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
-hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
-userfaultfd-add-minor-fault-registration-mode-fix.patch
-userfaultfd-selftests-use-user-mode-only.patch
-userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch
-userfaultfd-selftests-dropping-verify-check-in-locking_thread.patch
-userfaultfd-selftests-only-dump-counts-if-mode-enabled.patch
-userfaultfd-selftests-unify-error-handling.patch
+maintainers-assign-pagewalkh-to-memory-management.patch
+pagewalk-prefix-struct-kernel-doc-descriptions.patch
 
