@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFAC5C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 22:27:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52197C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 22:28:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB89461A1D
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 22:27:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 098F761A26
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 22:28:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232602AbhCXW03 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Mar 2021 18:26:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52216 "EHLO mail.kernel.org"
+        id S230003AbhCXW1g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Mar 2021 18:27:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52372 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232573AbhCXW0E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Mar 2021 18:26:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BDBC261925;
-        Wed, 24 Mar 2021 22:26:03 +0000 (UTC)
+        id S229981AbhCXW1a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Mar 2021 18:27:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DEACB61A1D;
+        Wed, 24 Mar 2021 22:27:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616624764;
-        bh=MizwaRSXaVIL39RFchX3r04jJyAFzUOaXO9FZzwusNw=;
+        s=korg; t=1616624850;
+        bh=yao0S+P7cbCevuzJJdtppDJOPc/9ArGA32qf8V2mKOg=;
         h=Date:From:To:Subject:From;
-        b=cHouneEHUHH1DEUw6faK71iIiiyUckm47AW/a7gnIGYqaQ1ZiviyvOC0Zf7sBRWyv
-         d3rPMsIe/2yVKB/vWu6TLDBqd+5EZCnz82l+RPqYwkBs0M7kdyXkXAKTN48NVFb7Dy
-         WvE35qi2CDcsGqtVdJbMYbyB4IiR42SNlTDXW97w=
-Date:   Wed, 24 Mar 2021 15:26:03 -0700
+        b=kpw+RRhPmgjeAWkQbUWPq79c0rWc5EFArVtDB8qAH50t/pK4kBiDDv3fI8Rk5V1X0
+         Jv9e07ut7dNrsNemAQDAuBJNYOE/QP2WTTi8ztRbUhpSu9Hoq0MSZ+qwKTeq1mlcu3
+         D1A/LFtbx8SZ1tnmoiE/B/QZMT/wjjGDJMXgzkAk=
+Date:   Wed, 24 Mar 2021 15:27:29 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
-        zhouguanghui1@huawei.com, willy@infradead.org, shakeelb@google.com,
-        mhocko@suse.com, hughd@google.com, guro@fb.com, hannes@cmpxchg.org
-Subject:  +
- mm-page_alloc-fix-allocation-imbalances-from-speculative-cache-lookup.patch
- added to -mm tree
-Message-ID: <20210324222603.vbMmD%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, sonnyrao@google.com,
+        rppt@linux.vnet.ibm.com, peterx@redhat.com, mst@redhat.com,
+        minchan@kernel.org, luto@amacapital.net, lokeshgidra@google.com,
+        kirill@shutemov.name, hughd@google.com, axelrasmussen@google.com,
+        aarcange@redhat.com, bgeffon@google.com
+Subject:  [to-be-updated]
+ mm-allow-shmem-mappings-with-mremap_dontunmap.patch removed from -mm tree
+Message-ID: <20210324222729.Ojs6p%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,110 +46,83 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-fix-allocation-imbalances-from-speculative-cache-lookup
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-fix-allocation-imbalances-from-speculative-cache-lookup.patch
+     Subject: mm: allow shmem mappings with MREMAP_DONTUNMAP
+has been removed from the -mm tree.  Its filename was
+     mm-allow-shmem-mappings-with-mremap_dontunmap.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-allocation-imbalances-from-speculative-cache-lookup.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-allocation-imbalances-from-speculative-cache-lookup.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm-page_alloc-fix-allocation-imbalances-from-speculative-cache-lookup
+From: Brian Geffon <bgeffon@google.com>
+Subject: mm: allow shmem mappings with MREMAP_DONTUNMAP
 
-fixes suggested by Hugh
+Currently MREMAP_DONTUNMAP only accepts private anonymous mappings.  This
+change will widen the support to include shmem mappings.  The primary use
+case is to support MREMAP_DONTUNMAP on mappings which may have been
+created from a memfd.
 
-Link: https://lkml.kernel.org/r/YFo7SOni0s0TbXUm@cmpxchg.org
-Fixes: e320d3012d25 mm/page_alloc.c: fix freeing non-compound pages
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Hugh Dickins <hughd@google.com>
-Reported-by: Matthew Wilcox <willy@infradead.org>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Zhou Guanghui <zhouguanghui1@huawei.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Roman Gushchin <guro@fb.com>
+Lokesh Gidra who works on the Android JVM, provided an explanation of how
+such a feature will improve Android JVM garbage collection: "Android is
+developing a new garbage collector (GC), based on userfaultfd.  The
+garbage collector will use userfaultfd (uffd) on the java heap during
+compaction.  On accessing any uncompacted page, the application threads
+will find it missing, at which point the thread will create the compacted
+page and then use UFFDIO_COPY ioctl to get it mapped and then resume
+execution.  Before starting this compaction, in a stop-the-world pause the
+heap will be mremap(MREMAP_DONTUNMAP) so that the java heap is ready to
+receive UFFD_EVENT_PAGEFAULT events after resuming execution.
+
+To speedup mremap operations, pagetable movement was optimized by moving
+PUD entries instead of PTE entries [1].  It was necessary as mremap of
+even modest sized memory ranges also took several milliseconds, and
+stopping the application for that long isn't acceptable in response-time
+sensitive cases.  With UFFDIO_CONTINUE feature [2], it will be even more
+efficient to implement this GC, particularly the 'non-moveable' portions
+of the heap.  It will also help in reducing the need to copy (UFFDIO_COPY)
+the pages.  However, for this to work, the java heap has to be on a
+'shared' vma.  Currently MREMAP_DONTUNMAP only supports private anonymous
+mappings, this patch will enable using UFFDIO_CONTINUE for the new
+userfaultfd-based heap compaction."
+
+[1] https://lore.kernel.org/linux-mm/20201215030730.NC3CU98e4%25akpm@linux-foundation.org/
+[2] https://lore.kernel.org/linux-mm/20210302000133.272579-1-axelrasmussen@google.com/
+Link: https://lkml.kernel.org/r/20210303175235.3308220-1-bgeffon@google.com
+Signed-off-by: Brian Geffon <bgeffon@google.com>
+Tested-by: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Michael S . Tsirkin" <mst@redhat.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Sonny Rao <sonnyrao@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   26 +++++++++++++++++---------
- 1 file changed, 17 insertions(+), 9 deletions(-)
+ mm/mremap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-allocation-imbalances-from-speculative-cache-lookup
-+++ a/mm/page_alloc.c
-@@ -5083,6 +5083,8 @@ static inline void free_the_page(struct
-  */
- void __free_pages(struct page *page, unsigned int order)
- {
-+	bool compound = PageHead(page);
-+
- 	/*
- 	 * Drop the base reference from __alloc_pages and free. In
- 	 * case there is an outstanding speculative reference, from
-@@ -5094,18 +5096,24 @@ void __free_pages(struct page *page, uns
+--- a/mm/mremap.c~mm-allow-shmem-mappings-with-mremap_dontunmap
++++ a/mm/mremap.c
+@@ -653,8 +653,7 @@ static struct vm_area_struct *vma_to_res
+ 		return ERR_PTR(-EINVAL);
  	}
  
- 	/*
--	 * The speculative reference will put and free the page.
-+	 * Ok, the speculative reference will put and free the page.
-+	 *
-+	 * - If this was an order-0 page, we're done.
-+	 *
-+	 * - If the page was compound, the other side will free the
-+	 *   entire page and we're done here as well. Just note that
-+	 *   freeing clears PG_head, so it can only be read reliably
-+	 *   before the put_page_testzero().
- 	 *
--	 * However, if the speculation was into a higher-order page
--	 * chunk that isn't marked compound, the other side will know
--	 * nothing about our buddy pages and only free the order-0
--	 * page at the start of our chunk! We must split off and free
--	 * the buddy pages here.
-+	 * - If the page was of higher order but NOT marked compound,
-+	 *   the other side will know nothing about our buddy pages
-+	 *   and only free the order-0 page at the start of our block.
-+	 *   We must split off and free the buddy pages here.
- 	 *
--	 * The buddy pages aren't individually refcounted, so they
--	 * can't have any pending speculative references themselves.
-+	 *   The buddy pages aren't individually refcounted, so they
-+	 *   can't have any pending speculative references themselves.
- 	 */
--	if (!PageHead(page) && order > 0) {
-+	if (order > 0 && !compound) {
- 		split_page_memcg(page, 1 << order);
- 		while (order-- > 0)
- 			free_the_page(page + (1 << order), order);
+-	if (flags & MREMAP_DONTUNMAP && (!vma_is_anonymous(vma) ||
+-			vma->vm_flags & VM_SHARED))
++	if (flags & MREMAP_DONTUNMAP && !(vma_is_anonymous(vma) || vma_is_shmem(vma)))
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	if (is_vm_hugetlb_page(vma))
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from bgeffon@google.com are
 
-mm-page_alloc-fix-memcg-accounting-leak-in-speculative-cache-lookup.patch
-mm-page_alloc-fix-allocation-imbalances-from-speculative-cache-lookup.patch
-mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback.patch
-mm-memcontrol-fix-cpuhotplug-statistics-flushing.patch
-mm-memcontrol-kill-mem_cgroup_nodeinfo.patch
-mm-memcontrol-privatize-memcg_page_state-query-functions.patch
-cgroup-rstat-support-cgroup1.patch
-cgroup-rstat-punt-root-level-optimization-to-individual-controllers.patch
-mm-memcontrol-switch-to-rstat.patch
-mm-memcontrol-switch-to-rstat-fix-2.patch
-mm-memcontrol-consolidate-lruvec-stat-flushing.patch
-kselftests-cgroup-update-kmem-test-for-new-vmstat-implementation.patch
+mm-extend-mremap_dontunmap-to-non-anonymous-mappings.patch
+revert-mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio.patch
+selftests-add-a-mremap_dontunmap-selftest-for-shmem.patch
 
