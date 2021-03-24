@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7212DC433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8349C433C1
 	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 23:30:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2CDB661A24
+	by mail.kernel.org (Postfix) with ESMTP id 7427161A23
 	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 23:30:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231603AbhCXX3j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232571AbhCXX3j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 24 Mar 2021 19:29:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35254 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35218 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231895AbhCXX3K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Mar 2021 19:29:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AEA7E619C7;
-        Wed, 24 Mar 2021 23:29:09 +0000 (UTC)
+        id S231603AbhCXX3I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Mar 2021 19:29:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C1795619BB;
+        Wed, 24 Mar 2021 23:29:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616628549;
-        bh=QJl9qhKBhc1jdU1XvpkYGywqDQR1oINGLPp1yHlCIFo=;
+        s=korg; t=1616628547;
+        bh=w7dpSPGDSSKse+SVNEw+O82p7htr3+UCqgPHaNgKTu8=;
         h=Date:From:To:Subject:From;
-        b=Li2UnWkP5LFZqC12l3gUrlnzMO/4oRq09uDo0EHTY4wbFoA/Z0Kiui/xZDOhmn0pu
-         a8mDTnT396T1vdNWNIcv3zH7fGgPTHcBUW43JOoESlMB50JFmkRg1cA934Tu8gtNPH
-         353bByEWTZjiOIciaBZajF+duSe8VTefnedYnF28=
-Date:   Wed, 24 Mar 2021 16:29:09 -0700
+        b=OUYrUWzW3ELD7pio69SSkSS+8yLpVSvnyjq+zDl1Wba0t8ulwg61yJV/lA88Rbc16
+         FVhEvd54/p8rgJSXNROpJxL38HtcqO6NfY4ttnIchTvRbJaf8CzZ5VBM03aUIPyKT1
+         jOVu3GhH9ooQL2bbCb78rLJSGJIOC/WWqN0Lh3l4=
+Date:   Wed, 24 Mar 2021 16:29:07 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com,
         jhubbard@nvidia.com, corbet@lwn.net, willy@infradead.org
-Subject:  + mm-doc-fix-page_maybe_dma_pinned-kerneldoc.patch added to
- -mm tree
-Message-ID: <20210324232909.AGL3j%akpm@linux-foundation.org>
+Subject:  + mm-doc-fix-fault_flag_allow_retry_first-kerneldoc.patch
+ added to -mm tree
+Message-ID: <20210324232907.sZXUJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/doc: fix page_maybe_dma_pinned kerneldoc
+     Subject: mm/doc: fix fault_flag_allow_retry_first kerneldoc
 has been added to the -mm tree.  Its filename is
-     mm-doc-fix-page_maybe_dma_pinned-kerneldoc.patch
+     mm-doc-fix-fault_flag_allow_retry_first-kerneldoc.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-doc-fix-page_maybe_dma_pinned-kerneldoc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-doc-fix-fault_flag_allow_retry_first-kerneldoc.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-doc-fix-page_maybe_dma_pinned-kerneldoc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-doc-fix-fault_flag_allow_retry_first-kerneldoc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,53 +65,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/doc: fix page_maybe_dma_pinned kerneldoc
+Subject: mm/doc: fix fault_flag_allow_retry_first kerneldoc
 
 make htmldocs reports:
 
-./include/linux/mm.h:1341: warning: Excess function parameter 'Return' description in 'page_maybe_dma_pinned'
+./include/linux/mm.h:496: warning: Function parameter or member 'flags' not described in 'fault_flag_allow_retry_first'
 
-Fix a few other formatting nits while I'm editing this description.
+Add a description.
 
-Link: https://lkml.kernel.org/r/20210322195022.2143603-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210322195022.2143603-1-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/mm.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/mm.h~mm-doc-fix-page_maybe_dma_pinned-kerneldoc
+--- a/include/linux/mm.h~mm-doc-fix-fault_flag_allow_retry_first-kerneldoc
 +++ a/include/linux/mm.h
-@@ -1261,10 +1261,11 @@ void unpin_user_page_range_dirty_lock(st
- void unpin_user_pages(struct page **pages, unsigned long npages);
+@@ -475,6 +475,7 @@ extern pgprot_t protection_map[16];
  
  /**
-- * page_maybe_dma_pinned() - report if a page is pinned for DMA.
-+ * page_maybe_dma_pinned - Report if a page is pinned for DMA.
-+ * @page: The page.
+  * fault_flag_allow_retry_first - check ALLOW_RETRY the first time
++ * @flags: Fault flags.
   *
-  * This function checks if a page has been pinned via a call to
-- * pin_user_pages*().
-+ * a function in the pin_user_pages() family.
-  *
-  * For non-huge pages, the return value is partially fuzzy: false is not fuzzy,
-  * because it means "definitely not pinned for DMA", but true means "probably
-@@ -1282,9 +1283,8 @@ void unpin_user_pages(struct page **page
-  *
-  * For more information, please see Documentation/core-api/pin_user_pages.rst.
-  *
-- * @page:	pointer to page to be queried.
-- * @Return:	True, if it is likely that the page has been "dma-pinned".
-- *		False, if the page is definitely not dma-pinned.
-+ * Return: True, if it is likely that the page has been "dma-pinned".
-+ * False, if the page is definitely not dma-pinned.
-  */
- static inline bool page_maybe_dma_pinned(struct page *page)
- {
+  * This is mostly used for places where we want to try to avoid taking
+  * the mmap_lock for too long a time when waiting for another condition
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
