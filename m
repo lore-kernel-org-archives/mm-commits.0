@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67A86C433C1
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 22:50:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D9D4C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 22:52:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1CC0561A0A
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 22:50:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6622C61A1D
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 22:52:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230022AbhCXWuI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Mar 2021 18:50:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55124 "EHLO mail.kernel.org"
+        id S234230AbhCXWvr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Mar 2021 18:51:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55956 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238379AbhCXWtp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Mar 2021 18:49:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C5FAD619B8;
-        Wed, 24 Mar 2021 22:49:41 +0000 (UTC)
+        id S234409AbhCXWv1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Mar 2021 18:51:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A8CCD619B8;
+        Wed, 24 Mar 2021 22:51:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616626182;
-        bh=PAc0LbWEjZWPdhhSJIkNqzOZU873h5nAPL1LWJnv5EI=;
+        s=korg; t=1616626286;
+        bh=FQ2FfKyuBRDXbmFr5aefyaxsud8NL4A1Ccr3Wlyx0Tg=;
         h=Date:From:To:Subject:From;
-        b=cwHFSsQh5b+mk9iVuulVmz49Qbg+l4Yj1+/L98dnYyiBxOQopcBnCchUzt0KPjEnT
-         rej2rBqVON2NLjOhLmseoOWEten/ztjdswzZrZaLiUDYhdQVf92kgjWBRgasMSUEH2
-         AlUf8I5HEjBulO3FIGK9Oovn8x2JJ8OJ9WPWRzts=
-Date:   Wed, 24 Mar 2021 15:49:39 -0700
+        b=yciExn/eo0cv18H8LTrmD4LuC3oOTbuo4YsLWN/fYt4far+qchwtc2OWfDRoHGH4M
+         59Yj+ft4Jf8PZXZba+K/PcPLPiPVxON68cX1ABwfxRcGZlV2CF1FZF6NKJwsNQI8j7
+         lUXYRb/Y5vJtNH5SkUG/43yVgQrzmTvDkyAzLOME=
+Date:   Wed, 24 Mar 2021 15:51:26 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
-        ndesaulniers@google.com, nathan@kernel.org,
-        michal.lkml@markovi.net, masahiroy@kernel.org, glider@google.com,
-        elver@google.com, dvyukov@google.com, arnd@arndb.de,
-        andreyknvl@gmail.com, arnd@kernel.org
-Subject:  + kasan-fix-hwasan-build-for-gcc.patch added to -mm tree
-Message-ID: <20210324224939.kbP-t%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        songmuchun@bytedance.com, minchan@kernel.org,
+        mike.kravetz@oracle.com, mhocko@suse.com, david@redhat.com,
+        osalvador@suse.de
+Subject:  +
+ mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes-fix.patch
+ added to -mm tree
+Message-ID: <20210324225126.cVuxQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: fix hwasan build for gcc
+     Subject: mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes-fix
 has been added to the -mm tree.  Its filename is
-     kasan-fix-hwasan-build-for-gcc.patch
+     mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-hwasan-build-for-gcc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-hwasan-build-for-gcc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,60 +67,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@kernel.org>
-Subject: kasan: fix hwasan build for gcc
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes-fix
 
+fix missed place wrt. error handling
 
-gcc-11 adds support for -fsanitize=kernel-hwaddress, so it becomes
-possible to enable CONFIG_KASAN_SW_TAGS.
-
-Unfortunately this fails to build at the moment, because the
-corresponding command line arguments use llvm specific syntax.
-
-Change it to use the cc-param macro instead, which works on both
-clang and gcc.
-
-Link: https://lkml.kernel.org/r/20210323124112.1229772-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Michal Marek <michal.lkml@markovi.net>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: https://lkml.kernel.org/r/20210323104858.GA7776@linux
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.kasan |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/compaction.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/scripts/Makefile.kasan~kasan-fix-hwasan-build-for-gcc
-+++ a/scripts/Makefile.kasan
-@@ -36,14 +36,14 @@ endif # CONFIG_KASAN_GENERIC
- ifdef CONFIG_KASAN_SW_TAGS
+--- a/mm/compaction.c~mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes-fix
++++ a/mm/compaction.c
+@@ -809,6 +809,7 @@ isolate_migratepages_block(struct compac
+ 	bool skip_on_failure = false;
+ 	unsigned long next_skip_pfn = 0;
+ 	bool skip_updated = false;
++	int ret = 0;
  
- ifdef CONFIG_KASAN_INLINE
--    instrumentation_flags := -mllvm -hwasan-mapping-offset=$(KASAN_SHADOW_OFFSET)
-+    instrumentation_flags := $(call cc-param,hwasan-mapping-offset=$(KASAN_SHADOW_OFFSET))
- else
--    instrumentation_flags := -mllvm -hwasan-instrument-with-calls=1
-+    instrumentation_flags := $(call cc-param,hwasan-instrument-with-calls=1)
- endif
+ 	cc->migrate_pfn = low_pfn;
  
- CFLAGS_KASAN := -fsanitize=kernel-hwaddress \
--		-mllvm -hwasan-instrument-stack=$(CONFIG_KASAN_STACK) \
--		-mllvm -hwasan-use-short-granules=0 \
-+		$(call cc-param,hwasan-instrument-stack=$(CONFIG_KASAN_STACK)) \
-+		$(call cc-param,hwasan-use-short-granules=0) \
- 		$(instrumentation_flags)
+@@ -877,8 +878,8 @@ isolate_migratepages_block(struct compac
  
- endif # CONFIG_KASAN_SW_TAGS
+ 			if (fatal_signal_pending(current)) {
+ 				cc->contended = true;
++				ret = -EINTR;
+ 
+-				low_pfn = 0;
+ 				goto fatal_pending;
+ 			}
+ 
+@@ -1134,7 +1135,7 @@ fatal_pending:
+ 
+ 	cc->migrate_pfn = low_pfn;
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from arnd@kernel.org are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-kasan-fix-hwasan-build-for-gcc.patch
+x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
+x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
+x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
+x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
+mmpage_alloc-bail-out-earlier-on-enomem-in-alloc_contig_migrate_range.patch
+mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes.patch
+mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes-fix.patch
+mm-make-alloc_contig_range-handle-free-hugetlb-pages.patch
+mm-make-alloc_contig_range-handle-in-use-hugetlb-pages.patch
+mmpage_alloc-drop-unnecessary-checks-from-pfn_range_valid_contig.patch
+mmmemory_hotplug-allocate-memmap-from-the-added-memory-range.patch
+acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
+mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
+x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
