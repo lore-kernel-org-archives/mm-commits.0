@@ -4,42 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9430C433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 23 Mar 2021 08:02:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAA6CC433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 18:55:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B3608619C4
-	for <mm-commits@archiver.kernel.org>; Tue, 23 Mar 2021 08:02:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B0A561A10
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 18:55:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229504AbhCWICD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Mar 2021 04:02:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59388 "EHLO mail.kernel.org"
+        id S237733AbhCXSzL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Mar 2021 14:55:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55746 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229437AbhCWIBb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Mar 2021 04:01:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 91308619BA;
-        Tue, 23 Mar 2021 08:01:30 +0000 (UTC)
+        id S237708AbhCXSyl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Mar 2021 14:54:41 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8816E619EC;
+        Wed, 24 Mar 2021 18:54:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616486491;
-        bh=WwGrDRvIduKtYjbRZ8PUE60XGc2UQIeVzw1JeczIe2U=;
+        s=korg; t=1616612080;
+        bh=AAt6vUeF/u6nQbgaug7xAeiFA+66txJGXSGdSnIxba4=;
         h=Date:From:To:Subject:From;
-        b=weG0KaaJ9dz47EJ6x6Lf2j2DkDdURJ/Ck4R+tyxDMifnERb4p0tGeGtYPiuxqr20n
-         UgnnY+ds/+W5j0nNhbixeJcEuym6x4pD0rx6DlJ++N1G0Ev0vnN5E6FgATE1RwHM/4
-         kkOweekMTesstjUp6uBQNMdpsbMbVx9Ks1q4TMMs=
-Date:   Tue, 23 Mar 2021 01:01:30 -0700
+        b=AKBlWdfHMvuxCJhRYvRxkCvv3NcmMnEkq490SpJKLuQfk3guGlooY7yFvIHCMIkGU
+         IX/zcqPTAMheUaVhW8ceBrmXE6KMfRZePh58oS0oomAABCvLFyQp7TTabmv5Zx+Nm7
+         UWsjEKXAdVe/6Lc0pq62Z+HxYgP3HCAwS23XCg4g=
+Date:   Wed, 24 Mar 2021 11:54:40 -0700
 From:   akpm@linux-foundation.org
-To:     0x7f454c46@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com,
-        linux@armlinux.org.uk, maninder1.s@samsung.com,
-        mm-commits@vger.kernel.org, paulmck@kernel.org, penberg@kernel.org,
-        rientjes@google.com, v.narang@samsung.com, vbabka@suse.cz,
-        viro@zeniv.linux.org.uk
-Subject:  [merged]
- mm-slub-fixing-backtrace-of-objects-because-of-redzone-adjustment.patch
- removed from -mm tree
-Message-ID: <20210323080130.iutiJJyRp%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+To:     mm-commits@vger.kernel.org, vincent.guittot@linaro.org,
+        slyfox@gentoo.org, peterz@infradead.org, mingo@kernel.org,
+        matorola@gmail.com, glaubitz@physik.fu-berlin.de,
+        dietmar.eggemann@arm.com, valentin.schneider@arm.com
+Subject:  +
+ ia64-ensure-proper-numa-distance-and-possible-map-initialization.patch added
+ to -mm tree
+Message-ID: <20210324185440.Waqm4%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,88 +46,101 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub: fix backtrace of objects because of redzone adjustment
-has been removed from the -mm tree.  Its filename was
-     mm-slub-fixing-backtrace-of-objects-because-of-redzone-adjustment.patch
+     Subject: ia64: ensure proper NUMA distance and possible map initialization
+has been added to the -mm tree.  Its filename is
+     ia64-ensure-proper-numa-distance-and-possible-map-initialization.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/ia64-ensure-proper-numa-distance-and-possible-map-initialization.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-ensure-proper-numa-distance-and-possible-map-initialization.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Maninder Singh <maninder1.s@samsung.com>
-Subject: mm/slub: fix backtrace of objects because of redzone adjustment
+From: Valentin Schneider <valentin.schneider@arm.com>
+Subject: ia64: ensure proper NUMA distance and possible map initialization
 
-Fix commit 8e7f37f2aaa5 ("mm: Add mem_dump_obj() to print source of memory
-block")
+John Paul reported a warning about bogus NUMA distance values spurred by
+commit:
 
-With the current code the backtrace of an allocated object is wrong:
+  620a6dc40754 ("sched/topology: Make sched_init_numa() use a set for the deduplicating sort")
 
-/ # cat /proc/meminfo
-[   14.969843]  slab kmalloc-64 start c8ab0140 data offset 64 pointer offset 0 size 64 allocated at 0x6b6b6b6b
-[   14.970635]     0x6b6b6b6b
-[   14.970794]     0x6b6b6b6b
-[   14.970932]     0x6b6b6b6b
-[   14.971077]     0x6b6b6b6b
-[   14.971202]     0x6b6b6b6b
-[   14.971317]     0x6b6b6b6b
-[   14.971423]     0x6b6b6b6b
-[   14.971635]     0x6b6b6b6b
-[   14.971740]     0x6b6b6b6b
-[   14.971871]     0x6b6b6b6b
-[   14.972229]     0x6b6b6b6b
-[   14.972363]     0x6b6b6b6b
-[   14.972505]     0xa56b6b6b
-[   14.972631]     0xbbbbbbbb
-[   14.972734]     0xc8ab0400
-[   14.972891]     meminfo_proc_show+0x40/0x4fc
+In this case, the afflicted machine comes up with a reported 256 possible
+nodes, all of which are 0 distance away from one another.  This was
+previously silently ignored, but is now caught by the aforementioned
+commit.
 
-Because the red zone was not adjusted from the object address.  after
-adding this fixup for redzone, the backtrace is correct:
+The culprit is ia64's node_possible_map which remains unchanged from its
+initialization value of NODE_MASK_ALL.  In John's case, the machine
+doesn't have any SRAT nor SLIT table, but AIUI the possible map remains
+untouched regardless of what ACPI tables end up being parsed.  Thus,
+!online && possible nodes remain with a bogus distance of 0 (distances \in
+[0, 9] are "reserved and have no meaning" as per the ACPI spec).
 
-/ # cat /proc/meminfo
-[   14.870782]  slab kmalloc-64 start c8ab0140 data offset 64 pointer offset 128 size 64 allocated at meminfo_proc_show+0x40/0x4f4
-[   14.871817]     meminfo_proc_show+0x40/0x4f4
-[   14.872035]     seq_read_iter+0x18c/0x4c4
-[   14.872229]     proc_reg_read_iter+0x84/0xac
-[   14.872433]     generic_file_splice_read+0xe8/0x17c
-[   14.872621]     splice_direct_to_actor+0xb8/0x290
-[   14.872747]     do_splice_direct+0xa0/0xe0
-[   14.872896]     do_sendfile+0x2d0/0x438
-[   14.873044]     sys_sendfile64+0x12c/0x140
-[   14.873229]     ret_fast_syscall+0x0/0x58
-[   14.873372]     0xbe861de4
+Follow x86 / drivers/base/arch_numa's example and set the possible map to
+the parsed map, which in this case seems to be the online map.
 
-Link: https://lkml.kernel.org/r/1615891032-29160-1-git-send-email-maninder1.s@samsung.com
-Fixes: 8e7f37f2aaa5 ("mm: Add mem_dump_obj() to print source of memory
-Signed-off-by: Vaneet Narang <v.narang@samsung.com>
-Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
-Acked-by: Paul E. McKenney <paulmck@kernel.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lore.kernel.org/r/255d6b5d-194e-eb0e-ecdd-97477a534441@physik.fu-berlin.de
+Link: https://lkml.kernel.org/r/20210318130617.896309-1-valentin.schneider@arm.com
+Fixes: 620a6dc40754 ("sched/topology: Make sched_init_numa() use a set for the deduplicating sort")
+Signed-off-by: Valentin Schneider <valentin.schneider@arm.com>
+Reported-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Tested-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Tested-by: Sergei Trofimovich <slyfox@gentoo.org>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Anatoly Pugachev <matorola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/ia64/kernel/acpi.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/slub.c~mm-slub-fixing-backtrace-of-objects-because-of-redzone-adjustment
-+++ a/mm/slub.c
-@@ -3991,6 +3991,7 @@ void kmem_obj_info(struct kmem_obj_info
- 	    !(s->flags & SLAB_STORE_USER))
- 		return;
- #ifdef CONFIG_SLUB_DEBUG
-+	objp = fixup_red_left(s, objp);
- 	trackp = get_track(s, objp, TRACK_ALLOC);
- 	kpp->kp_ret = (void *)trackp->addr;
- #ifdef CONFIG_STACKTRACE
+--- a/arch/ia64/kernel/acpi.c~ia64-ensure-proper-numa-distance-and-possible-map-initialization
++++ a/arch/ia64/kernel/acpi.c
+@@ -446,7 +446,8 @@ void __init acpi_numa_fixup(void)
+ 	if (srat_num_cpus == 0) {
+ 		node_set_online(0);
+ 		node_cpuid[0].phys_id = hard_smp_processor_id();
+-		return;
++		slit_distance(0, 0) = LOCAL_DISTANCE;
++		goto out;
+ 	}
+ 
+ 	/*
+@@ -489,7 +490,7 @@ void __init acpi_numa_fixup(void)
+ 			for (j = 0; j < MAX_NUMNODES; j++)
+ 				slit_distance(i, j) = i == j ?
+ 					LOCAL_DISTANCE : REMOTE_DISTANCE;
+-		return;
++		goto out;
+ 	}
+ 
+ 	memset(numa_slit, -1, sizeof(numa_slit));
+@@ -514,6 +515,8 @@ void __init acpi_numa_fixup(void)
+ 		printk("\n");
+ 	}
+ #endif
++out:
++	node_possible_map = node_online_map;
+ }
+ #endif				/* CONFIG_ACPI_NUMA */
+ 
 _
 
-Patches currently in -mm which might be from maninder1.s@samsung.com are
+Patches currently in -mm which might be from valentin.schneider@arm.com are
 
-arm-print-alloc-free-paths-for-address-in-registers.patch
+ia64-ensure-proper-numa-distance-and-possible-map-initialization.patch
 
