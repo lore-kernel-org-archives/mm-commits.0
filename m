@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2570C433C1
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 18:57:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B37CC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 18:58:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0FF7619EC
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 18:57:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E9E1161A17
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Mar 2021 18:58:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237203AbhCXS5S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Mar 2021 14:57:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56394 "EHLO mail.kernel.org"
+        id S237629AbhCXS5u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Mar 2021 14:57:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56768 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237703AbhCXS4q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Mar 2021 14:56:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 93CDD61A0A;
-        Wed, 24 Mar 2021 18:56:45 +0000 (UTC)
+        id S237604AbhCXS5b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Mar 2021 14:57:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8FDEF619EC;
+        Wed, 24 Mar 2021 18:57:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616612205;
-        bh=PE7VKJJvzvLEaTRaKEckG5TtzKRCcChnS/1I8gpavZo=;
+        s=korg; t=1616612251;
+        bh=jQzGKL9I9rW2zbiy/mz354szE7BM50kn6MpPj4bMw3c=;
         h=Date:From:To:Subject:From;
-        b=mBYhhmebxvcZkkXt+qHxxN1W+xgfMTCNfUeP/eSfy1ZmO5BFxqGCjbs3uZSQbcvL1
-         pGjlMzFg0IPwq8GzsilaTWe4pllT4RNFMg77PzpctSW/OffXcjTYl1bm4Vgc/tXZJr
-         eLPYlMn1orr0GLhYkQ8xCi9i1GOnRP4j2SyqNg0s=
-Date:   Wed, 24 Mar 2021 11:56:45 -0700
+        b=oeIQ21s0zFNuz6ryGq5doNo2c7euD67WvBe/Djr1jTEI2aB21XKrxRFljbdG5Mz96
+         s2HyKhT+xwD4i3SkjrXp/DzPSsTOT0iqK0Sxbdd9E2UvU6EAs8AHEa0hNrX1X6B3Cf
+         5zSqySKXH5S32IpAXL9mKbBPvYhZh7bz2SM0ZQS0=
+Date:   Wed, 24 Mar 2021 11:57:31 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, minchan@kernel.org,
-        georgi.djakov@linaro.org, lmark@codeaurora.org
-Subject:  + mm-cma-add-trace-events-for-cma-alloc-perf-testing.patch
- added to -mm tree
-Message-ID: <20210324185645.hWFpW%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, zhongjiang-ali@linux.alibaba.com
+Subject:  +
+ mm-page_owner-remove-unused-parameter-in-__set_page_owner_handle.patch added
+ to -mm tree
+Message-ID: <20210324185731.bWeGV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: add trace events for CMA alloc perf testing
+     Subject: mm, page_owner: remove unused parameter in __set_page_owner_handle
 has been added to the -mm tree.  Its filename is
-     mm-cma-add-trace-events-for-cma-alloc-perf-testing.patch
+     mm-page_owner-remove-unused-parameter-in-__set_page_owner_handle.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-add-trace-events-for-cma-alloc-perf-testing.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-remove-unused-parameter-in-__set_page_owner_handle.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-add-trace-events-for-cma-alloc-perf-testing.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-remove-unused-parameter-in-__set_page_owner_handle.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,145 +64,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liam Mark <lmark@codeaurora.org>
-Subject: mm: cma: add trace events for CMA alloc perf testing
+From: zhongjiang-ali <zhongjiang-ali@linux.alibaba.com>
+Subject: mm, page_owner: remove unused parameter in __set_page_owner_handle
 
-Add cma and migrate trace events to enable CMA allocation performance to
-be measured via ftrace.
+Since commit 5556cfe8d994 ("mm, page_owner: fix off-by-one error in
+__set_page_owner_handle()") introduced, the parameter 'page' will not
+used, hence it need to be removed.
 
-Link: https://lkml.kernel.org/r/20210324160740.15901-1-georgi.djakov@linaro.org
-Signed-off-by: Liam Mark <lmark@codeaurora.org>
-Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: https://lkml.kernel.org/r/1616602022-43545-1-git-send-email-zhongjiang-ali@linux.alibaba.com
+Signed-off-by: zhongjiang-ali <zhongjiang-ali@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/cma.h     |   39 ++++++++++++++++++++++++++++++-
- include/trace/events/migrate.h |   22 +++++++++++++++++
- mm/cma.c                       |    4 +++
- mm/migrate.c                   |    2 +
- 4 files changed, 66 insertions(+), 1 deletion(-)
+ mm/page_owner.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/trace/events/cma.h~mm-cma-add-trace-events-for-cma-alloc-perf-testing
-+++ a/include/trace/events/cma.h
-@@ -8,7 +8,7 @@
- #include <linux/types.h>
- #include <linux/tracepoint.h>
- 
--TRACE_EVENT(cma_alloc,
-+DECLARE_EVENT_CLASS(cma_alloc_class,
- 
- 	TP_PROTO(unsigned long pfn, const struct page *page,
- 		 unsigned int count, unsigned int align),
-@@ -61,6 +61,43 @@ TRACE_EVENT(cma_release,
- 		  __entry->count)
- );
- 
-+TRACE_EVENT(cma_alloc_start,
-+
-+	TP_PROTO(unsigned int count, unsigned int align),
-+
-+	TP_ARGS(count, align),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned int, count)
-+		__field(unsigned int, align)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->count = count;
-+		__entry->align = align;
-+	),
-+
-+	TP_printk("count=%u align=%u",
-+		  __entry->count,
-+		  __entry->align)
-+);
-+
-+DEFINE_EVENT(cma_alloc_class, cma_alloc,
-+
-+	TP_PROTO(unsigned long pfn, const struct page *page,
-+		 unsigned int count, unsigned int align),
-+
-+	TP_ARGS(pfn, page, count, align)
-+);
-+
-+DEFINE_EVENT(cma_alloc_class, cma_alloc_busy_retry,
-+
-+	TP_PROTO(unsigned long pfn, const struct page *page,
-+		 unsigned int count, unsigned int align),
-+
-+	TP_ARGS(pfn, page, count, align)
-+);
-+
- #endif /* _TRACE_CMA_H */
- 
- /* This part must be outside protection */
---- a/include/trace/events/migrate.h~mm-cma-add-trace-events-for-cma-alloc-perf-testing
-+++ a/include/trace/events/migrate.h
-@@ -81,6 +81,28 @@ TRACE_EVENT(mm_migrate_pages,
- 		__print_symbolic(__entry->mode, MIGRATE_MODE),
- 		__print_symbolic(__entry->reason, MIGRATE_REASON))
- );
-+
-+TRACE_EVENT(mm_migrate_pages_start,
-+
-+	TP_PROTO(enum migrate_mode mode, int reason),
-+
-+	TP_ARGS(mode, reason),
-+
-+	TP_STRUCT__entry(
-+		__field(enum migrate_mode, mode)
-+		__field(int, reason)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->mode	= mode;
-+		__entry->reason	= reason;
-+	),
-+
-+	TP_printk("mode=%s reason=%s",
-+		  __print_symbolic(__entry->mode, MIGRATE_MODE),
-+		  __print_symbolic(__entry->reason, MIGRATE_REASON))
-+);
-+
- #endif /* _TRACE_MIGRATE_H */
- 
- /* This part must be outside protection */
---- a/mm/cma.c~mm-cma-add-trace-events-for-cma-alloc-perf-testing
-+++ a/mm/cma.c
-@@ -443,6 +443,8 @@ struct page *cma_alloc(struct cma *cma,
- 	if (!count)
- 		goto out;
- 
-+	trace_cma_alloc_start(count, align);
-+
- 	mask = cma_bitmap_aligned_mask(cma, align);
- 	offset = cma_bitmap_aligned_offset(cma, align);
- 	bitmap_maxno = cma_bitmap_maxno(cma);
-@@ -483,6 +485,8 @@ struct page *cma_alloc(struct cma *cma,
- 
- 		pr_debug("%s(): memory range at %p is busy, retrying\n",
- 			 __func__, pfn_to_page(pfn));
-+
-+		trace_cma_alloc_busy_retry(pfn, pfn_to_page(pfn), count, align);
- 		/* try again with a bit different memory target */
- 		start = bitmap_no + mask + 1;
+--- a/mm/page_owner.c~mm-page_owner-remove-unused-parameter-in-__set_page_owner_handle
++++ a/mm/page_owner.c
+@@ -165,9 +165,9 @@ void __reset_page_owner(struct page *pag
  	}
---- a/mm/migrate.c~mm-cma-add-trace-events-for-cma-alloc-perf-testing
-+++ a/mm/migrate.c
-@@ -1423,6 +1423,8 @@ int migrate_pages(struct list_head *from
- 	int rc, nr_subpages;
- 	LIST_HEAD(ret_pages);
+ }
  
-+	trace_mm_migrate_pages_start(mode, reason);
-+
- 	if (!swapwrite)
- 		current->flags |= PF_SWAPWRITE;
+-static inline void __set_page_owner_handle(struct page *page,
+-	struct page_ext *page_ext, depot_stack_handle_t handle,
+-	unsigned int order, gfp_t gfp_mask)
++static inline void __set_page_owner_handle(struct page_ext *page_ext,
++					depot_stack_handle_t handle,
++					unsigned int order, gfp_t gfp_mask)
+ {
+ 	struct page_owner *page_owner;
+ 	int i;
+@@ -197,7 +197,7 @@ noinline void __set_page_owner(struct pa
+ 		return;
  
+ 	handle = save_stack(gfp_mask);
+-	__set_page_owner_handle(page, page_ext, handle, order, gfp_mask);
++	__set_page_owner_handle(page_ext, handle, order, gfp_mask);
+ }
+ 
+ void __set_page_owner_migrate_reason(struct page *page, int reason)
+@@ -616,7 +616,7 @@ static void init_pages_in_zone(pg_data_t
+ 				continue;
+ 
+ 			/* Found early allocated page */
+-			__set_page_owner_handle(page, page_ext, early_handle,
++			__set_page_owner_handle(page_ext, early_handle,
+ 						0, 0);
+ 			count++;
+ 		}
 _
 
-Patches currently in -mm which might be from lmark@codeaurora.org are
+Patches currently in -mm which might be from zhongjiang-ali@linux.alibaba.com are
 
-mm-cma-add-trace-events-for-cma-alloc-perf-testing.patch
+mm-page_owner-remove-unused-parameter-in-__set_page_owner_handle.patch
 
