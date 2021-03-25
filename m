@@ -2,134 +2,162 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F38AC433C1
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:31:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B925DC433C1
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:37:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 50F2060238
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:31:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9177461A1A
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:37:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229533AbhCYEae (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Mar 2021 00:30:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43168 "EHLO mail.kernel.org"
+        id S229709AbhCYEhL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Mar 2021 00:37:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43886 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229461AbhCYEa3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Mar 2021 00:30:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6FCFC61A14;
-        Thu, 25 Mar 2021 04:30:28 +0000 (UTC)
+        id S229716AbhCYEgo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Mar 2021 00:36:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D2D1561A1A;
+        Thu, 25 Mar 2021 04:36:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616646628;
-        bh=GzGfcPzU0S+PDow3L08zAISSA1Nd4wMv2D/YAM2pnQI=;
-        h=Date:From:To:Subject:From;
-        b=Uqb+mqRhzXyOreaPXvJpPmVmI47SXbN9eG3w5K4JWGXwblgzaMgcmr56NgmC3dJaC
-         SL2tQkoedwwZTEy2tBuPVnrXXltzCKoMZfr0p13ybjRFoNYzDS2GRcI/e+ZIIeS220
-         hCaqVhO9BcppeZnzW3ISRFA7W9uqtlzigbxsE3A0=
-Date:   Wed, 24 Mar 2021 21:30:27 -0700
-From:   akpm@linux-foundation.org
-To:     almasrymina@google.com, aneesh.kumar@linux.vnet.ibm.com,
-        linmiaohe@huawei.com, liwp.linux@gmail.com, lkp@intel.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org
-Subject:  [folded-merged]
- =?US-ASCII?Q?hugetlb=5Fcgroup-fix-imbalanced-css=5Fget-and-css=5Fput-p?=
- =?US-ASCII?Q?air-for-shared-mappings-v3.patch?= removed from -mm tree
-Message-ID: <20210325043027._BMsb1523%akpm@linux-foundation.org>
+        s=korg; t=1616647004;
+        bh=PUcF3KgHrzGiBtVp9wFO0dBtzI7xyYmREqwbxHQEUvQ=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=GwM9R8uzoniZV/WgrVnx1R8ejtH3mS1fOv/MBfU7+FDQIqydhUFxcSG5X0yZO6fbx
+         QMrDFerayDX9coLgDwTcOr4p7awuTvNYVVdVV5ZyOkIIY6h/k9o29d70Li8KX7DjEG
+         OJ2bYblYjr49i0Wz9UsnR2nh6TRMtGXM9PsFbJzI=
+Date:   Wed, 24 Mar 2021 21:36:43 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org, bgardon@google.com,
+        dimitri.sivanich@hpe.com, hannes@cmpxchg.org, jgg@nvidia.com,
+        jgg@ziepe.ca, jglisse@redhat.com, linux-mm@kvack.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com,
+        seanjc@google.com, torvalds@linux-foundation.org
+Subject:  [patch 03/14] mm/mmu_notifiers: ensure range_end() is
+ paired with range_start()
+Message-ID: <20210325043643.dkjDXH1Bc%akpm@linux-foundation.org>
+In-Reply-To: <20210324213324.fe1ba237e471b5de17a08775@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+=46rom: Sean Christopherson <seanjc@google.com>
+Subject: mm/mmu_notifiers: ensure range_end() is paired with range_start()
 
-The patch titled
-     Subject: hugetlb_cgroup: fix imbalanced css_get and css_put pair for shared mappings
-has been removed from the -mm tree.  Its filename was
-     hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings-v3.patch
+If one or more notifiers fails .invalidate_range_start(), invoke
+.invalidate_range_end() for "all" notifiers.  If there are multiple
+notifiers, those that did not fail are expecting _start() and _end() to be
+paired, e.g.  KVM's mmu_notifier_count would become imbalanced.  Disallow
+notifiers that can fail _start() from implementing _end() so that it's
+unnecessary to either track which notifiers rejected _start(), or had
+already succeeded prior to a failed _start().
 
-This patch was dropped because it was folded into hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings.patch
+Note, the existing behavior of calling _start() on all notifiers even
+after a previous notifier failed _start() was an unintented "feature".=20
+Make it canon now that the behavior is depended on for correctness.
 
-------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlb_cgroup: fix imbalanced css_get and css_put pair for shared mappings
+As of today, the bug is likely benign:
 
-reshape some comments, per Mike
+  1. The only caller of the non-blocking notifier is OOM kill.
+  2. The only notifiers that can fail _start() are the i915 and Nouveau
+     drivers.
+  3. The only notifiers that utilize _end() are the SGI UV GRU driver
+     and KVM.
+  4. The GRU driver will never coincide with the i195/Nouveau drivers.
+  5. An imbalanced kvm->mmu_notifier_count only causes soft lockup in the
+     _guest_, and the guest is already doomed due to being an OOM victim.
 
-Link: https://lkml.kernel.org/r/20210316023002.53921-1-linmiaohe@huawei.com
-Fixes: 075a61d07a8e ("hugetlb_cgroup: add accounting for shared mappings")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reported-by: kernel test robot <lkp@intel.com> (auto build test ERROR)
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Wanpeng Li <liwp.linux@gmail.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: <stable@vger.kernel.org>
+Fix the bug now to play nice with future usage, e.g.  KVM has a potential
+use case for blocking memslot updates in KVM while an invalidation is
+in-progress, and failure to unblock would result in said updates being
+blocked indefinitely and hanging.
+
+Found by inspection.  Verified by adding a second notifier in KVM that
+periodically returns -EAGAIN on non-blockable ranges, triggering OOM, and
+observing that KVM exits with an elevated notifier count.
+
+Link: https://lkml.kernel.org/r/20210311180057.1582638-1-seanjc@google.com
+Fixes: 93065ac753e4 ("mm, oom: distinguish blockable mode for mmu notifiers=
+")
+Signed-off-by: Sean Christopherson <seanjc@google.com>
+Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ben Gardon <bgardon@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dimitri Sivanich <dimitri.sivanich@hpe.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c        |   13 ++++++-------
- mm/hugetlb_cgroup.c |    3 +--
- 2 files changed, 7 insertions(+), 9 deletions(-)
+ include/linux/mmu_notifier.h |   10 +++++-----
+ mm/mmu_notifier.c            |   23 +++++++++++++++++++++++
+ 2 files changed, 28 insertions(+), 5 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings-v3
-+++ a/mm/hugetlb.c
-@@ -281,13 +281,12 @@ static void record_hugetlb_cgroup_unchar
- 			&h_cg->rsvd_hugepage[hstate_index(h)];
- 		nrg->css = &h_cg->css;
- 		/*
--		 * The caller (hugetlb_reserve_pages now) will only hold one
--		 * h_cg->css reference for the whole contiguous reservation
--		 * region. But this area might be scattered when there are
--		 * already some file_regions reside in it. As a result, many
--		 * file_regions may share only one h_cg->css reference. In
--		 * order to ensure that one file_region must hold and only
--		 * hold one h_cg->css reference, we should do css_get for
-+		 * The caller will hold exactly one h_cg->css reference for the
-+		 * whole contiguous reservation region. But this area might be
-+		 * scattered when there are already some file_regions reside in
-+		 * it. As a result, many file_regions may share only one css
-+		 * reference. In order to ensure that one file_region must hold
-+		 * exactly one h_cg->css reference, we should do css_get for
- 		 * each file_region and leave the reference held by caller
- 		 * untouched.
- 		 */
---- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings-v3
-+++ a/mm/hugetlb_cgroup.c
-@@ -403,8 +403,7 @@ void hugetlb_cgroup_uncharge_file_region
- 				      nr_pages * resv->pages_per_hpage);
- 		/*
- 		 * Only do css_put(rg->css) when we delete the entire region
--		 * because one file_region must hold and only hold one rg->css
--		 * reference.
-+		 * because one file_region must hold exactly one css reference.
- 		 */
- 		if (region_del)
- 			css_put(rg->css);
+--- a/include/linux/mmu_notifier.h~mm-mmu_notifiers-esnure-range_end-is-pai=
+red-with-range_start
++++ a/include/linux/mmu_notifier.h
+@@ -169,11 +169,11 @@ struct mmu_notifier_ops {
+ 	 * the last refcount is dropped.
+ 	 *
+ 	 * If blockable argument is set to false then the callback cannot
+-	 * sleep and has to return with -EAGAIN. 0 should be returned
+-	 * otherwise. Please note that if invalidate_range_start approves
+-	 * a non-blocking behavior then the same applies to
+-	 * invalidate_range_end.
+-	 *
++	 * sleep and has to return with -EAGAIN if sleeping would be required.
++	 * 0 should be returned otherwise. Please note that notifiers that can
++	 * fail invalidate_range_start are not allowed to implement
++	 * invalidate_range_end, as there is no mechanism for informing the
++	 * notifier that its start failed.
+ 	 */
+ 	int (*invalidate_range_start)(struct mmu_notifier *subscription,
+ 				      const struct mmu_notifier_range *range);
+--- a/mm/mmu_notifier.c~mm-mmu_notifiers-esnure-range_end-is-paired-with-ra=
+nge_start
++++ a/mm/mmu_notifier.c
+@@ -501,10 +501,33 @@ static int mn_hlist_invalidate_range_sta
+ 						"");
+ 				WARN_ON(mmu_notifier_range_blockable(range) ||
+ 					_ret !=3D -EAGAIN);
++				/*
++				 * We call all the notifiers on any EAGAIN,
++				 * there is no way for a notifier to know if
++				 * its start method failed, thus a start that
++				 * does EAGAIN can't also do end.
++				 */
++				WARN_ON(ops->invalidate_range_end);
+ 				ret =3D _ret;
+ 			}
+ 		}
+ 	}
++
++	if (ret) {
++		/*
++		 * Must be non-blocking to get here.  If there are multiple
++		 * notifiers and one or more failed start, any that succeeded
++		 * start are expecting their end to be called.  Do so now.
++		 */
++		hlist_for_each_entry_rcu(subscription, &subscriptions->list,
++					 hlist, srcu_read_lock_held(&srcu)) {
++			if (!subscription->ops->invalidate_range_end)
++				continue;
++
++			subscription->ops->invalidate_range_end(subscription,
++								range);
++		}
++	}
+ 	srcu_read_unlock(&srcu, id);
+=20
+ 	return ret;
 _
-
-Patches currently in -mm which might be from linmiaohe@huawei.com are
-
-hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings.patch
-mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
-mm-hugetlb-use-some-helper-functions-to-cleanup-code.patch
-mm-hugetlb-optimize-the-surplus-state-transfer-code-in-move_hugetlb_state.patch
-hugetlb_cgroup-remove-unnecessary-vm_bug_on_page-in-hugetlb_cgroup_migrate.patch
-mm-hugetlb-simplify-the-code-when-alloc_huge_page-failed-in-hugetlb_no_page.patch
-mm-hugetlb-avoid-calculating-fault_mutex_hash-in-truncate_op-case.patch
-khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps.patch
-khugepaged-reuse-the-smp_wmb-inside-__setpageuptodate.patch
-khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
-khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate.patch
-mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
-mm-huge_memoryc-rework-the-function-vma_adjust_trans_huge.patch
-mm-huge_memoryc-make-get_huge_zero_page-return-bool.patch
-mm-huge_memoryc-rework-the-function-do_huge_pmd_numa_page-slightly.patch
-mm-huge_memoryc-remove-redundant-pagecompound-check.patch
-mm-huge_memoryc-remove-unused-macro-transparent_hugepage_debug_cow_flag.patch
-mm-huge_memoryc-use-helper-function-migration_entry_to_page.patch
-
