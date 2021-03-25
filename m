@@ -2,162 +2,132 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	URIBL_RED autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B925DC433C1
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:37:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18927C433E1
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:37:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9177461A1A
+	by mail.kernel.org (Postfix) with ESMTP id E137561A2B
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:37:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229709AbhCYEhL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229738AbhCYEhL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 25 Mar 2021 00:37:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43886 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43828 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229716AbhCYEgo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Mar 2021 00:36:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D2D1561A1A;
-        Thu, 25 Mar 2021 04:36:43 +0000 (UTC)
+        id S229709AbhCYEgl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Mar 2021 00:36:41 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 89CB560238;
+        Thu, 25 Mar 2021 04:36:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616647004;
-        bh=PUcF3KgHrzGiBtVp9wFO0dBtzI7xyYmREqwbxHQEUvQ=;
+        s=korg; t=1616647001;
+        bh=gaT8IEf8GSnOVlU+YJoOeQRqSYnOUvFmFL7h2HDMNqY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=GwM9R8uzoniZV/WgrVnx1R8ejtH3mS1fOv/MBfU7+FDQIqydhUFxcSG5X0yZO6fbx
-         QMrDFerayDX9coLgDwTcOr4p7awuTvNYVVdVV5ZyOkIIY6h/k9o29d70Li8KX7DjEG
-         OJ2bYblYjr49i0Wz9UsnR2nh6TRMtGXM9PsFbJzI=
-Date:   Wed, 24 Mar 2021 21:36:43 -0700
+        b=iQioKkKyNc5hdNybfs+HuI7x3F9xdYwvyegSBHn6T+Grld3943xYsK1N4lGCnalVZ
+         PqVv6MX0SkRaITPNQlkukgmrnHJY6n9nIFDyjG0GiLokjwW6NMDF8Tb6yNs0deTVuN
+         0h+uxITDlp6XxwPTcaS6raya4XZcJTabaRQmamFg=
+Date:   Wed, 24 Mar 2021 21:36:40 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, akpm@linux-foundation.org, bgardon@google.com,
-        dimitri.sivanich@hpe.com, hannes@cmpxchg.org, jgg@nvidia.com,
-        jgg@ziepe.ca, jglisse@redhat.com, linux-mm@kvack.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com,
-        seanjc@google.com, torvalds@linux-foundation.org
-Subject:  [patch 03/14] mm/mmu_notifiers: ensure range_end() is
- paired with range_start()
-Message-ID: <20210325043643.dkjDXH1Bc%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
+        catalin.marinas@arm.com, dvyukov@google.com, elver@google.com,
+        eugenis@google.com, glider@google.com, kevin.brodsky@arm.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
+        stable@vger.kernel.org, torvalds@linux-foundation.org,
+        vincenzo.frascino@arm.com, will.deacon@arm.com
+Subject:  [patch 02/14] kasan: fix per-page tags for non-page_alloc
+ pages
+Message-ID: <20210325043640.Et_g_98cn%akpm@linux-foundation.org>
 In-Reply-To: <20210324213324.fe1ba237e471b5de17a08775@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: Sean Christopherson <seanjc@google.com>
-Subject: mm/mmu_notifiers: ensure range_end() is paired with range_start()
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: fix per-page tags for non-page_alloc pages
 
-If one or more notifiers fails .invalidate_range_start(), invoke
-.invalidate_range_end() for "all" notifiers.  If there are multiple
-notifiers, those that did not fail are expecting _start() and _end() to be
-paired, e.g.  KVM's mmu_notifier_count would become imbalanced.  Disallow
-notifiers that can fail _start() from implementing _end() so that it's
-unnecessary to either track which notifiers rejected _start(), or had
-already succeeded prior to a failed _start().
+To allow performing tag checks on page_alloc addresses obtained via
+page_address(), tag-based KASAN modes store tags for page_alloc
+allocations in page->flags.
 
-Note, the existing behavior of calling _start() on all notifiers even
-after a previous notifier failed _start() was an unintented "feature".=20
-Make it canon now that the behavior is depended on for correctness.
+Currently, the default tag value stored in page->flags is 0x00. 
+Therefore, page_address() returns a 0x00ffff...  address for pages that
+were not allocated via page_alloc.
 
-As of today, the bug is likely benign:
+This might cause problems.  A particular case we encountered is a conflict
+with KFENCE.  If a KFENCE-allocated slab object is being freed via
+kfree(page_address(page) + offset), the address passed to kfree() will get
+tagged with 0x00 (as slab pages keep the default per-page tags).  This
+leads to is_kfence_address() check failing, and a KFENCE object ending up
+in normal slab freelist, which causes memory corruptions.
 
-  1. The only caller of the non-blocking notifier is OOM kill.
-  2. The only notifiers that can fail _start() are the i915 and Nouveau
-     drivers.
-  3. The only notifiers that utilize _end() are the SGI UV GRU driver
-     and KVM.
-  4. The GRU driver will never coincide with the i195/Nouveau drivers.
-  5. An imbalanced kvm->mmu_notifier_count only causes soft lockup in the
-     _guest_, and the guest is already doomed due to being an OOM victim.
+This patch changes the way KASAN stores tag in page-flags: they are now
+stored xor'ed with 0xff.  This way, KASAN doesn't need to initialize
+per-page flags for every created page, which might be slow.
 
-Fix the bug now to play nice with future usage, e.g.  KVM has a potential
-use case for blocking memslot updates in KVM while an invalidation is
-in-progress, and failure to unblock would result in said updates being
-blocked indefinitely and hanging.
+With this change, page_address() returns natively-tagged (with 0xff)
+pointers for pages that didn't have tags set explicitly.
 
-Found by inspection.  Verified by adding a second notifier in KVM that
-periodically returns -EAGAIN on non-blockable ranges, triggering OOM, and
-observing that KVM exits with an elevated notifier count.
+This patch fixes the encountered conflict with KFENCE and prevents more
+similar issues that can occur in the future.
 
-Link: https://lkml.kernel.org/r/20210311180057.1582638-1-seanjc@google.com
-Fixes: 93065ac753e4 ("mm, oom: distinguish blockable mode for mmu notifiers=
-")
-Signed-off-by: Sean Christopherson <seanjc@google.com>
-Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ben Gardon <bgardon@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dimitri Sivanich <dimitri.sivanich@hpe.com>
+Link: https://lkml.kernel.org/r/1a41abb11c51b264511d9e71c303bb16d5cb367b.1615475452.git.andreyknvl@google.com
+Fixes: 2813b9c02962 ("kasan, mm, arm64: tag non slab memory allocated via pagealloc")
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |   10 +++++-----
- mm/mmu_notifier.c            |   23 +++++++++++++++++++++++
- 2 files changed, 28 insertions(+), 5 deletions(-)
+ include/linux/mm.h |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
---- a/include/linux/mmu_notifier.h~mm-mmu_notifiers-esnure-range_end-is-pai=
-red-with-range_start
-+++ a/include/linux/mmu_notifier.h
-@@ -169,11 +169,11 @@ struct mmu_notifier_ops {
- 	 * the last refcount is dropped.
- 	 *
- 	 * If blockable argument is set to false then the callback cannot
--	 * sleep and has to return with -EAGAIN. 0 should be returned
--	 * otherwise. Please note that if invalidate_range_start approves
--	 * a non-blocking behavior then the same applies to
--	 * invalidate_range_end.
--	 *
-+	 * sleep and has to return with -EAGAIN if sleeping would be required.
-+	 * 0 should be returned otherwise. Please note that notifiers that can
-+	 * fail invalidate_range_start are not allowed to implement
-+	 * invalidate_range_end, as there is no mechanism for informing the
-+	 * notifier that its start failed.
- 	 */
- 	int (*invalidate_range_start)(struct mmu_notifier *subscription,
- 				      const struct mmu_notifier_range *range);
---- a/mm/mmu_notifier.c~mm-mmu_notifiers-esnure-range_end-is-paired-with-ra=
-nge_start
-+++ a/mm/mmu_notifier.c
-@@ -501,10 +501,33 @@ static int mn_hlist_invalidate_range_sta
- 						"");
- 				WARN_ON(mmu_notifier_range_blockable(range) ||
- 					_ret !=3D -EAGAIN);
-+				/*
-+				 * We call all the notifiers on any EAGAIN,
-+				 * there is no way for a notifier to know if
-+				 * its start method failed, thus a start that
-+				 * does EAGAIN can't also do end.
-+				 */
-+				WARN_ON(ops->invalidate_range_end);
- 				ret =3D _ret;
- 			}
- 		}
- 	}
+--- a/include/linux/mm.h~kasan-fix-per-page-tags-for-non-page_alloc-pages
++++ a/include/linux/mm.h
+@@ -1461,16 +1461,28 @@ static inline bool cpupid_match_pid(stru
+ 
+ #if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
+ 
++/*
++ * KASAN per-page tags are stored xor'ed with 0xff. This allows to avoid
++ * setting tags for all pages to native kernel tag value 0xff, as the default
++ * value 0x00 maps to 0xff.
++ */
 +
-+	if (ret) {
-+		/*
-+		 * Must be non-blocking to get here.  If there are multiple
-+		 * notifiers and one or more failed start, any that succeeded
-+		 * start are expecting their end to be called.  Do so now.
-+		 */
-+		hlist_for_each_entry_rcu(subscription, &subscriptions->list,
-+					 hlist, srcu_read_lock_held(&srcu)) {
-+			if (!subscription->ops->invalidate_range_end)
-+				continue;
+ static inline u8 page_kasan_tag(const struct page *page)
+ {
+-	if (kasan_enabled())
+-		return (page->flags >> KASAN_TAG_PGSHIFT) & KASAN_TAG_MASK;
+-	return 0xff;
++	u8 tag = 0xff;
 +
-+			subscription->ops->invalidate_range_end(subscription,
-+								range);
-+		}
++	if (kasan_enabled()) {
++		tag = (page->flags >> KASAN_TAG_PGSHIFT) & KASAN_TAG_MASK;
++		tag ^= 0xff;
 +	}
- 	srcu_read_unlock(&srcu, id);
-=20
- 	return ret;
++
++	return tag;
+ }
+ 
+ static inline void page_kasan_tag_set(struct page *page, u8 tag)
+ {
+ 	if (kasan_enabled()) {
++		tag ^= 0xff;
+ 		page->flags &= ~(KASAN_TAG_MASK << KASAN_TAG_PGSHIFT);
+ 		page->flags |= (tag & KASAN_TAG_MASK) << KASAN_TAG_PGSHIFT;
+ 	}
 _
