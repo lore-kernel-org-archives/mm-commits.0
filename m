@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 904CEC433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF49CC433E4
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:38:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 64F4F619F3
+	by mail.kernel.org (Postfix) with ESMTP id 8741E619F8
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:38:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229832AbhCYEiO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Mar 2021 00:38:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44400 "EHLO mail.kernel.org"
+        id S229788AbhCYEiQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Mar 2021 00:38:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44576 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229759AbhCYEhm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Mar 2021 00:37:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B947B61A1D;
-        Thu, 25 Mar 2021 04:37:41 +0000 (UTC)
+        id S229812AbhCYEhy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Mar 2021 00:37:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BDAEF61A14;
+        Thu, 25 Mar 2021 04:37:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616647061;
-        bh=M+ZhHbLxYIjBn1bgFR7KXGNoacZlnKp98gfx9uks0hU=;
+        s=korg; t=1616647074;
+        bh=R/0VGAuR9hWukgipjX/CZAqJ9nDPINcCLWzVjzgnumw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vCrq9xY323iBSoNeY19ND7BvRkQUA6JE4KB1fjEF4benHwRXVSFbSDMUTpt/TB/e0
-         0s1QsIREMJX07+Tx1FHR11/FBXd3V0VijI8ZCnoU9awb38fvaWjwqy0PzZfZjDr9xW
-         iyWWEkCs3BmbmrQ9NChHOVcuOHkqk56lNrX/x5rc=
-Date:   Wed, 24 Mar 2021 21:37:41 -0700
+        b=gPdifNNpijui7ypa+pI69790CiNQ6UzNgYwYp6A5k6tBfVHR6DJZgKZeUcS9xIrGl
+         r+XOa4cRkte2v8uv5m3frFXnS9tiuxagj+NbZWV6RBHVzWCeTnpJSeS0qoCLu2GYUM
+         jyTZGz8/JUm11hnSm27Sp6H4md1jEc2dJE9zKcaA=
+Date:   Wed, 24 Mar 2021 21:37:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, slyfox@gentoo.org,
+To:     akpm@linux-foundation.org, Chaitanya.Kulkarni@wdc.com,
+        dsterba@suse.com, ira.weiny@intel.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, oliver.sang@intel.com,
+        stable@vger.kernel.org, tglx@linutronix.de,
         torvalds@linux-foundation.org
-Subject:  [patch 09/14] ia64: fix format strings for err_inject
-Message-ID: <20210325043741.HwSwEW1r2%akpm@linux-foundation.org>
+Subject:  [patch 13/14] mm/highmem: fix
+ CONFIG_DEBUG_KMAP_LOCAL_FORCE_MAP
+Message-ID: <20210325043753.HwajHE_mK%akpm@linux-foundation.org>
 In-Reply-To: <20210324213644.bf03a529aec4ef9580e17dbc@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,103 +45,51 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: ia64: fix format strings for err_inject
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: mm/highmem: fix CONFIG_DEBUG_KMAP_LOCAL_FORCE_MAP
 
-Fix warning with %lx / u64 mismatch:
+The kernel test robot found that __kmap_local_sched_out() was not
+correctly skipping the guard pages when CONFIG_DEBUG_KMAP_LOCAL_FORCE_MAP
+was set.[1] This was due to CONFIG_DEBUG_HIGHMEM check being used.
 
-  arch/ia64/kernel/err_inject.c: In function 'show_resources':
-  arch/ia64/kernel/err_inject.c:62:22: warning:
-    format '%lx' expects argument of type 'long unsigned int',
-    but argument 3 has type 'u64' {aka 'long long unsigned int'}
-     62 |  return sprintf(buf, "%lx
-", name[cpu]);   \
-        |                      ^~~~~~~
+Change the configuration check to be correct.
 
-Link: https://lkml.kernel.org/r/20210313104312.1548232-1-slyfox@gentoo.org
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+[1] https://lore.kernel.org/lkml/20210304083825.GB17830@xsang-OptiPlex-9020/
+
+Link: https://lkml.kernel.org/r/20210318230657.1497881-1-ira.weiny@intel.com
+Fixes: 0e91a0c6984c ("mm/highmem: Provide CONFIG_DEBUG_KMAP_LOCAL_FORCE_MAP")
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Oliver Sang <oliver.sang@intel.com>
+Cc: Chaitanya Kulkarni <Chaitanya.Kulkarni@wdc.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/err_inject.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ mm/highmem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/ia64/kernel/err_inject.c~ia64-fix-format-strings-for-err_inject
-+++ a/arch/ia64/kernel/err_inject.c
-@@ -59,7 +59,7 @@ show_##name(struct device *dev, struct d
- 		char *buf)						\
- {									\
- 	u32 cpu=dev->id;						\
--	return sprintf(buf, "%lx\n", name[cpu]);			\
-+	return sprintf(buf, "%llx\n", name[cpu]);			\
- }
+--- a/mm/highmem.c~mm-highmem-fix-config_debug_kmap_local_force_map
++++ a/mm/highmem.c
+@@ -618,7 +618,7 @@ void __kmap_local_sched_out(void)
+ 		int idx;
  
- #define store(name)							\
-@@ -86,9 +86,9 @@ store_call_start(struct device *dev, str
+ 		/* With debug all even slots are unmapped and act as guard */
+-		if (IS_ENABLED(CONFIG_DEBUG_HIGHMEM) && !(i & 0x01)) {
++		if (IS_ENABLED(CONFIG_DEBUG_KMAP_LOCAL) && !(i & 0x01)) {
+ 			WARN_ON_ONCE(!pte_none(pteval));
+ 			continue;
+ 		}
+@@ -654,7 +654,7 @@ void __kmap_local_sched_in(void)
+ 		int idx;
  
- #ifdef ERR_INJ_DEBUG
- 	printk(KERN_DEBUG "pal_mc_err_inject for cpu%d:\n", cpu);
--	printk(KERN_DEBUG "err_type_info=%lx,\n", err_type_info[cpu]);
--	printk(KERN_DEBUG "err_struct_info=%lx,\n", err_struct_info[cpu]);
--	printk(KERN_DEBUG "err_data_buffer=%lx, %lx, %lx.\n",
-+	printk(KERN_DEBUG "err_type_info=%llx,\n", err_type_info[cpu]);
-+	printk(KERN_DEBUG "err_struct_info=%llx,\n", err_struct_info[cpu]);
-+	printk(KERN_DEBUG "err_data_buffer=%llx, %llx, %llx.\n",
- 			  err_data_buffer[cpu].data1,
- 			  err_data_buffer[cpu].data2,
- 			  err_data_buffer[cpu].data3);
-@@ -117,8 +117,8 @@ store_call_start(struct device *dev, str
- 
- #ifdef ERR_INJ_DEBUG
- 	printk(KERN_DEBUG "Returns: status=%d,\n", (int)status[cpu]);
--	printk(KERN_DEBUG "capabilities=%lx,\n", capabilities[cpu]);
--	printk(KERN_DEBUG "resources=%lx\n", resources[cpu]);
-+	printk(KERN_DEBUG "capabilities=%llx,\n", capabilities[cpu]);
-+	printk(KERN_DEBUG "resources=%llx\n", resources[cpu]);
- #endif
- 	return size;
- }
-@@ -131,7 +131,7 @@ show_virtual_to_phys(struct device *dev,
- 			char *buf)
- {
- 	unsigned int cpu=dev->id;
--	return sprintf(buf, "%lx\n", phys_addr[cpu]);
-+	return sprintf(buf, "%llx\n", phys_addr[cpu]);
- }
- 
- static ssize_t
-@@ -145,7 +145,7 @@ store_virtual_to_phys(struct device *dev
- 	ret = get_user_pages_fast(virt_addr, 1, FOLL_WRITE, NULL);
- 	if (ret<=0) {
- #ifdef ERR_INJ_DEBUG
--		printk("Virtual address %lx is not existing.\n",virt_addr);
-+		printk("Virtual address %llx is not existing.\n", virt_addr);
- #endif
- 		return -EINVAL;
- 	}
-@@ -163,7 +163,7 @@ show_err_data_buffer(struct device *dev,
- {
- 	unsigned int cpu=dev->id;
- 
--	return sprintf(buf, "%lx, %lx, %lx\n",
-+	return sprintf(buf, "%llx, %llx, %llx\n",
- 			err_data_buffer[cpu].data1,
- 			err_data_buffer[cpu].data2,
- 			err_data_buffer[cpu].data3);
-@@ -178,13 +178,13 @@ store_err_data_buffer(struct device *dev
- 	int ret;
- 
- #ifdef ERR_INJ_DEBUG
--	printk("write err_data_buffer=[%lx,%lx,%lx] on cpu%d\n",
-+	printk("write err_data_buffer=[%llx,%llx,%llx] on cpu%d\n",
- 		 err_data_buffer[cpu].data1,
- 		 err_data_buffer[cpu].data2,
- 		 err_data_buffer[cpu].data3,
- 		 cpu);
- #endif
--	ret=sscanf(buf, "%lx, %lx, %lx",
-+	ret = sscanf(buf, "%llx, %llx, %llx",
- 			&err_data_buffer[cpu].data1,
- 			&err_data_buffer[cpu].data2,
- 			&err_data_buffer[cpu].data3);
+ 		/* With debug all even slots are unmapped and act as guard */
+-		if (IS_ENABLED(CONFIG_DEBUG_HIGHMEM) && !(i & 0x01)) {
++		if (IS_ENABLED(CONFIG_DEBUG_KMAP_LOCAL) && !(i & 0x01)) {
+ 			WARN_ON_ONCE(!pte_none(pteval));
+ 			continue;
+ 		}
 _
