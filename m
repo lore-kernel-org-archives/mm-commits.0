@@ -7,76 +7,157 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4543BC433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:38:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 027BAC433E1
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:38:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D9AD61A14
+	by mail.kernel.org (Postfix) with ESMTP id CD53A61A23
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:38:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229771AbhCYEhm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229761AbhCYEhm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 25 Mar 2021 00:37:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44212 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44172 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229798AbhCYEh1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Mar 2021 00:37:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C2AA460238;
-        Thu, 25 Mar 2021 04:37:26 +0000 (UTC)
+        id S229788AbhCYEhY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Mar 2021 00:37:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B444761A1A;
+        Thu, 25 Mar 2021 04:37:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616647047;
-        bh=b4ShdLbawH1da2mMX3GriiEiSupRdXsPs1YK7OK2YV0=;
+        s=korg; t=1616647044;
+        bh=PUcF3KgHrzGiBtVp9wFO0dBtzI7xyYmREqwbxHQEUvQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=pfdAzi+ne3Pq9iMBX0uBy0wcoEwqAgCYZcXlTsYRtELPl69m6Gu2tZxLgP9s3a/K8
-         hY/gUCWr2G+gngdEVn6foRuMPh4U1QGxUQvrILMB5WP/T22svOYfJ0LF6Cvl88gcM0
-         JAw/UPaugosppvk9hvgY9EKnTZV30q0rxJIW2NWY=
-Date:   Wed, 24 Mar 2021 21:37:26 -0700
+        b=NlPJQqz6wUVLgAWoxKk7/i8LnbTuhIAeJwg/uYXTslg5c/lcDPypD/AINC36Mo8YN
+         xlwORtV0HzOSf8rlr1NIHkKrMwWf+0BzH/0irytAUDDXUvxQ3qEobl0Z50k0Fe7BX3
+         ZSEQockJt5QXH2KL23k4Xc5h2i5Av03bwLW7g3qQ=
+Date:   Wed, 24 Mar 2021 21:37:23 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org, lkp@intel.com,
-        mm-commits@vger.kernel.org, rong.a.chen@intel.com,
-        shuah@kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 04/14] selftests/vm: fix out-of-tree build
-Message-ID: <20210325043726.UGT1eTOki%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org, bgardon@google.com,
+        dimitri.sivanich@hpe.com, hannes@cmpxchg.org, jgg@nvidia.com,
+        jgg@ziepe.ca, jglisse@redhat.com, linux-mm@kvack.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com,
+        seanjc@google.com, torvalds@linux-foundation.org
+Subject:  [patch 03/14] mm/mmu_notifiers: ensure range_end() is
+ paired with range_start()
+Message-ID: <20210325043723.T8SpyzyPH%akpm@linux-foundation.org>
 In-Reply-To: <20210324213644.bf03a529aec4ef9580e17dbc@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Rong Chen <rong.a.chen@intel.com>
-Subject: selftests/vm: fix out-of-tree build
+=46rom: Sean Christopherson <seanjc@google.com>
+Subject: mm/mmu_notifiers: ensure range_end() is paired with range_start()
 
-When building out-of-tree, attempting to make target from $(OUTPUT) directory:
+If one or more notifiers fails .invalidate_range_start(), invoke
+.invalidate_range_end() for "all" notifiers.  If there are multiple
+notifiers, those that did not fail are expecting _start() and _end() to be
+paired, e.g.  KVM's mmu_notifier_count would become imbalanced.  Disallow
+notifiers that can fail _start() from implementing _end() so that it's
+unnecessary to either track which notifiers rejected _start(), or had
+already succeeded prior to a failed _start().
 
-  make[1]: *** No rule to make target '$(OUTPUT)/protection_keys.c', needed by '$(OUTPUT)/protection_keys_32'.
+Note, the existing behavior of calling _start() on all notifiers even
+after a previous notifier failed _start() was an unintented "feature".=20
+Make it canon now that the behavior is depended on for correctness.
 
-Link: https://lkml.kernel.org/r/20210315094700.522753-1-rong.a.chen@intel.com
-Signed-off-by: Rong Chen <rong.a.chen@intel.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Shuah Khan <shuah@kernel.org>
+As of today, the bug is likely benign:
+
+  1. The only caller of the non-blocking notifier is OOM kill.
+  2. The only notifiers that can fail _start() are the i915 and Nouveau
+     drivers.
+  3. The only notifiers that utilize _end() are the SGI UV GRU driver
+     and KVM.
+  4. The GRU driver will never coincide with the i195/Nouveau drivers.
+  5. An imbalanced kvm->mmu_notifier_count only causes soft lockup in the
+     _guest_, and the guest is already doomed due to being an OOM victim.
+
+Fix the bug now to play nice with future usage, e.g.  KVM has a potential
+use case for blocking memslot updates in KVM while an invalidation is
+in-progress, and failure to unblock would result in said updates being
+blocked indefinitely and hanging.
+
+Found by inspection.  Verified by adding a second notifier in KVM that
+periodically returns -EAGAIN on non-blockable ranges, triggering OOM, and
+observing that KVM exits with an elevated notifier count.
+
+Link: https://lkml.kernel.org/r/20210311180057.1582638-1-seanjc@google.com
+Fixes: 93065ac753e4 ("mm, oom: distinguish blockable mode for mmu notifiers=
+")
+Signed-off-by: Sean Christopherson <seanjc@google.com>
+Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ben Gardon <bgardon@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dimitri Sivanich <dimitri.sivanich@hpe.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mmu_notifier.h |   10 +++++-----
+ mm/mmu_notifier.c            |   23 +++++++++++++++++++++++
+ 2 files changed, 28 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-fix-out-of-tree-build
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -101,7 +101,7 @@ endef
- ifeq ($(CAN_BUILD_I386),1)
- $(BINARIES_32): CFLAGS += -m32
- $(BINARIES_32): LDLIBS += -lrt -ldl -lm
--$(BINARIES_32): %_32: %.c
-+$(BINARIES_32): $(OUTPUT)/%_32: %.c
- 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
- $(foreach t,$(TARGETS),$(eval $(call gen-target-rule-32,$(t))))
- endif
-@@ -109,7 +109,7 @@ endif
- ifeq ($(CAN_BUILD_X86_64),1)
- $(BINARIES_64): CFLAGS += -m64
- $(BINARIES_64): LDLIBS += -lrt -ldl
--$(BINARIES_64): %_64: %.c
-+$(BINARIES_64): $(OUTPUT)/%_64: %.c
- 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
- $(foreach t,$(TARGETS),$(eval $(call gen-target-rule-64,$(t))))
- endif
+--- a/include/linux/mmu_notifier.h~mm-mmu_notifiers-esnure-range_end-is-pai=
+red-with-range_start
++++ a/include/linux/mmu_notifier.h
+@@ -169,11 +169,11 @@ struct mmu_notifier_ops {
+ 	 * the last refcount is dropped.
+ 	 *
+ 	 * If blockable argument is set to false then the callback cannot
+-	 * sleep and has to return with -EAGAIN. 0 should be returned
+-	 * otherwise. Please note that if invalidate_range_start approves
+-	 * a non-blocking behavior then the same applies to
+-	 * invalidate_range_end.
+-	 *
++	 * sleep and has to return with -EAGAIN if sleeping would be required.
++	 * 0 should be returned otherwise. Please note that notifiers that can
++	 * fail invalidate_range_start are not allowed to implement
++	 * invalidate_range_end, as there is no mechanism for informing the
++	 * notifier that its start failed.
+ 	 */
+ 	int (*invalidate_range_start)(struct mmu_notifier *subscription,
+ 				      const struct mmu_notifier_range *range);
+--- a/mm/mmu_notifier.c~mm-mmu_notifiers-esnure-range_end-is-paired-with-ra=
+nge_start
++++ a/mm/mmu_notifier.c
+@@ -501,10 +501,33 @@ static int mn_hlist_invalidate_range_sta
+ 						"");
+ 				WARN_ON(mmu_notifier_range_blockable(range) ||
+ 					_ret !=3D -EAGAIN);
++				/*
++				 * We call all the notifiers on any EAGAIN,
++				 * there is no way for a notifier to know if
++				 * its start method failed, thus a start that
++				 * does EAGAIN can't also do end.
++				 */
++				WARN_ON(ops->invalidate_range_end);
+ 				ret =3D _ret;
+ 			}
+ 		}
+ 	}
++
++	if (ret) {
++		/*
++		 * Must be non-blocking to get here.  If there are multiple
++		 * notifiers and one or more failed start, any that succeeded
++		 * start are expecting their end to be called.  Do so now.
++		 */
++		hlist_for_each_entry_rcu(subscription, &subscriptions->list,
++					 hlist, srcu_read_lock_held(&srcu)) {
++			if (!subscription->ops->invalidate_range_end)
++				continue;
++
++			subscription->ops->invalidate_range_end(subscription,
++								range);
++		}
++	}
+ 	srcu_read_unlock(&srcu, id);
+=20
+ 	return ret;
 _
