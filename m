@@ -2,81 +2,134 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7CD2C433C1
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 00:55:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F38AC433C1
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:31:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8BCE061992
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 00:55:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 50F2060238
+	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:31:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239435AbhCYAyz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Mar 2021 20:54:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50480 "EHLO mail.kernel.org"
+        id S229533AbhCYEae (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Mar 2021 00:30:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43168 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232856AbhCYAy1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Mar 2021 20:54:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A8CC461992;
-        Thu, 25 Mar 2021 00:54:26 +0000 (UTC)
+        id S229461AbhCYEa3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Mar 2021 00:30:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6FCFC61A14;
+        Thu, 25 Mar 2021 04:30:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616633666;
-        bh=BD8YrlY+/+TLzqQLhKR3pu05CsNZKbqWl+ueYf/k3GU=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=Xlschk8GYT4R3ZTGk18V44VCypHWn3epyFUvnMij+Vdh0eK1uP3fx6nwppXycrs0Y
-         GJepFHhjje3KGJUgaOApcO4pg7XJQulYYkqZdsc/kw2OJF3JtJJWB6770uo+oktBIh
-         EMSu79d+3Ngmy/HZsyB5D2BRsjQREclsSNZF2X70=
-Date:   Wed, 24 Mar 2021 17:54:26 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Jens Axboe <axboe@kernel.dk>
-Cc:     Jan Kara <jack@suse.cz>, mm-commits@vger.kernel.org,
-        Matthew Wilcox <willy@infradead.org>
-Subject: Re: + mm-provide-filemap_range_needs_writeback-helper.patch added
- to -mm tree
-Message-Id: <20210324175426.a0dc8a8bde6e905af19fe7b7@linux-foundation.org>
-In-Reply-To: <d90b8446-22dc-2821-a733-1911c7b0d47f@kernel.dk>
-References: <20210302234347.N9evDxn__%akpm@linux-foundation.org>
-        <9c04eafc-475d-31fc-e2cc-ea99aafd8972@kernel.dk>
-        <20210324150218.bd9f1ebc4af58703ce001f77@linux-foundation.org>
-        <a0d094d9-cf6b-8e27-d7f2-a6f86977bfa1@kernel.dk>
-        <20210324151902.171d2a295bebc4e511c7e679@linux-foundation.org>
-        <d90b8446-22dc-2821-a733-1911c7b0d47f@kernel.dk>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
+        s=korg; t=1616646628;
+        bh=GzGfcPzU0S+PDow3L08zAISSA1Nd4wMv2D/YAM2pnQI=;
+        h=Date:From:To:Subject:From;
+        b=Uqb+mqRhzXyOreaPXvJpPmVmI47SXbN9eG3w5K4JWGXwblgzaMgcmr56NgmC3dJaC
+         SL2tQkoedwwZTEy2tBuPVnrXXltzCKoMZfr0p13ybjRFoNYzDS2GRcI/e+ZIIeS220
+         hCaqVhO9BcppeZnzW3ISRFA7W9uqtlzigbxsE3A0=
+Date:   Wed, 24 Mar 2021 21:30:27 -0700
+From:   akpm@linux-foundation.org
+To:     almasrymina@google.com, aneesh.kumar@linux.vnet.ibm.com,
+        linmiaohe@huawei.com, liwp.linux@gmail.com, lkp@intel.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org
+Subject:  [folded-merged]
+ =?US-ASCII?Q?hugetlb=5Fcgroup-fix-imbalanced-css=5Fget-and-css=5Fput-p?=
+ =?US-ASCII?Q?air-for-shared-mappings-v3.patch?= removed from -mm tree
+Message-ID: <20210325043027._BMsb1523%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, 24 Mar 2021 16:25:52 -0600 Jens Axboe <axboe@kernel.dk> wrote:
 
-> The backstory is that an internal workload complained because it was
-> using too much CPU, and when I took a look, we had a lot of io_uring
-> workers going to town. For an async buffered read like workload, I am
-> normally expecting _zero_ offloads to a worker thread, but this one
-> had tons of them. I'd drop caches and things would look good again,
-> but then a minute later we'd regress back to using workers. Turns out
-> that every minute something was reading parts of the device, which
-> would add page cache for that inode. I put patches like these in for
-> our kernel, and the problem was solved.
+The patch titled
+     Subject: hugetlb_cgroup: fix imbalanced css_get and css_put pair for shared mappings
+has been removed from the -mm tree.  Its filename was
+     hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings-v3.patch
 
-I added the above to the 0/n changelog if tha'ts OK.
+This patch was dropped because it was folded into hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings.patch
 
-> Obviously that's not a great story since there are no hard numbers
-> there, and I'd have to generate those for you! Which I surely can.
-> While the original premise of the patches was fixing excessive CPU
-> usage, the general observation is that outside of just using a lot more
-> CPU, it'll also cause worse latencies as offload to a thread always adds
-> latency.
-> 
-> So let me know if you want me to generate some numbers. They will be
-> artificial, but at least it'll be something outside of a story.
+------------------------------------------------------
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: hugetlb_cgroup: fix imbalanced css_get and css_put pair for shared mappings
 
-We really should back it up with numbers, even if they're handwavy.
+reshape some comments, per Mike
 
-Particularly because we need to figure out if -stable wants this.  What
-are your feelings on that one?
+Link: https://lkml.kernel.org/r/20210316023002.53921-1-linmiaohe@huawei.com
+Fixes: 075a61d07a8e ("hugetlb_cgroup: add accounting for shared mappings")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reported-by: kernel test robot <lkp@intel.com> (auto build test ERROR)
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Wanpeng Li <liwp.linux@gmail.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/hugetlb.c        |   13 ++++++-------
+ mm/hugetlb_cgroup.c |    3 +--
+ 2 files changed, 7 insertions(+), 9 deletions(-)
+
+--- a/mm/hugetlb.c~hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings-v3
++++ a/mm/hugetlb.c
+@@ -281,13 +281,12 @@ static void record_hugetlb_cgroup_unchar
+ 			&h_cg->rsvd_hugepage[hstate_index(h)];
+ 		nrg->css = &h_cg->css;
+ 		/*
+-		 * The caller (hugetlb_reserve_pages now) will only hold one
+-		 * h_cg->css reference for the whole contiguous reservation
+-		 * region. But this area might be scattered when there are
+-		 * already some file_regions reside in it. As a result, many
+-		 * file_regions may share only one h_cg->css reference. In
+-		 * order to ensure that one file_region must hold and only
+-		 * hold one h_cg->css reference, we should do css_get for
++		 * The caller will hold exactly one h_cg->css reference for the
++		 * whole contiguous reservation region. But this area might be
++		 * scattered when there are already some file_regions reside in
++		 * it. As a result, many file_regions may share only one css
++		 * reference. In order to ensure that one file_region must hold
++		 * exactly one h_cg->css reference, we should do css_get for
+ 		 * each file_region and leave the reference held by caller
+ 		 * untouched.
+ 		 */
+--- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings-v3
++++ a/mm/hugetlb_cgroup.c
+@@ -403,8 +403,7 @@ void hugetlb_cgroup_uncharge_file_region
+ 				      nr_pages * resv->pages_per_hpage);
+ 		/*
+ 		 * Only do css_put(rg->css) when we delete the entire region
+-		 * because one file_region must hold and only hold one rg->css
+-		 * reference.
++		 * because one file_region must hold exactly one css reference.
+ 		 */
+ 		if (region_del)
+ 			css_put(rg->css);
+_
+
+Patches currently in -mm which might be from linmiaohe@huawei.com are
+
+hugetlb_cgroup-fix-imbalanced-css_get-and-css_put-pair-for-shared-mappings.patch
+mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
+mm-hugetlb-use-some-helper-functions-to-cleanup-code.patch
+mm-hugetlb-optimize-the-surplus-state-transfer-code-in-move_hugetlb_state.patch
+hugetlb_cgroup-remove-unnecessary-vm_bug_on_page-in-hugetlb_cgroup_migrate.patch
+mm-hugetlb-simplify-the-code-when-alloc_huge_page-failed-in-hugetlb_no_page.patch
+mm-hugetlb-avoid-calculating-fault_mutex_hash-in-truncate_op-case.patch
+khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps.patch
+khugepaged-reuse-the-smp_wmb-inside-__setpageuptodate.patch
+khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
+khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate.patch
+mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
+mm-huge_memoryc-rework-the-function-vma_adjust_trans_huge.patch
+mm-huge_memoryc-make-get_huge_zero_page-return-bool.patch
+mm-huge_memoryc-rework-the-function-do_huge_pmd_numa_page-slightly.patch
+mm-huge_memoryc-remove-redundant-pagecompound-check.patch
+mm-huge_memoryc-remove-unused-macro-transparent_hugepage_debug_cow_flag.patch
+mm-huge_memoryc-use-helper-function-migration_entry_to_page.patch
+
