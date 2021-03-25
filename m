@@ -4,42 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3755BC433E4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F671C433E8
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:38:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1CC4B61A23
+	by mail.kernel.org (Postfix) with ESMTP id 46DFE61A14
 	for <mm-commits@archiver.kernel.org>; Thu, 25 Mar 2021 04:38:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229760AbhCYEhm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Mar 2021 00:37:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44130 "EHLO mail.kernel.org"
+        id S229533AbhCYEhn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Mar 2021 00:37:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44280 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229782AbhCYEhV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Mar 2021 00:37:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6471961A1D;
-        Thu, 25 Mar 2021 04:37:20 +0000 (UTC)
+        id S229801AbhCYEhd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Mar 2021 00:37:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 20F0461A1A;
+        Thu, 25 Mar 2021 04:37:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616647040;
-        bh=gaT8IEf8GSnOVlU+YJoOeQRqSYnOUvFmFL7h2HDMNqY=;
+        s=korg; t=1616647053;
+        bh=LkqPU0Xs+GuDXq/TXAmDRaqyB1zG7HUkB8TOhmvZeWA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=oe9U54k7tqzjkW/1M3a6SkxHoi9NE1JY87SWrhTX0iD7VHZsbQrlXfpU11tipPg7O
-         IJ+K5FfP27p2um83GjxdYmj5EOsZIDn5Mr0LNXfxh7WL2U62ZPvOTSOzFvLr6dRfWk
-         3iCtsRxlqPXHQGJpjfGZJ5UJ8DcGShhsFid0Dil0=
-Date:   Wed, 24 Mar 2021 21:37:20 -0700
+        b=h3hStT+2KA5G+g68PzQcG+MFdoM7k6VZKUD+6DGBOSJSHOrL0KUVOJAsj5B79IlLe
+         9wQOfLDYEPJAg7+FcMHnsP5HLTG26xxpuI9QLT3wBr/9PgWoInx1n7TbWtqaEJxyaF
+         jkJ4r5xMp/fcyCvrcXMVGHUtIhEyJgXsYtoB6HpI=
+Date:   Wed, 24 Mar 2021 21:37:32 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@google.com,
-        aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
-        catalin.marinas@arm.com, dvyukov@google.com, elver@google.com,
-        eugenis@google.com, glider@google.com, kevin.brodsky@arm.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
-        stable@vger.kernel.org, torvalds@linux-foundation.org,
-        vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 02/14] kasan: fix per-page tags for non-page_alloc
- pages
-Message-ID: <20210325043720.fMMODU8WV%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
+        sean@geanix.com, stable@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 06/14] squashfs: fix inode lookup sanity checks
+Message-ID: <20210325043732.s0qOxEFN9%akpm@linux-foundation.org>
 In-Reply-To: <20210324213644.bf03a529aec4ef9580e17dbc@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,87 +43,58 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: fix per-page tags for non-page_alloc pages
+From: Sean Nyekjaer <sean@geanix.com>
+Subject: squashfs: fix inode lookup sanity checks
 
-To allow performing tag checks on page_alloc addresses obtained via
-page_address(), tag-based KASAN modes store tags for page_alloc
-allocations in page->flags.
+When mouting a squashfs image created without inode compression it fails
+with: "unable to read inode lookup table"
 
-Currently, the default tag value stored in page->flags is 0x00. 
-Therefore, page_address() returns a 0x00ffff...  address for pages that
-were not allocated via page_alloc.
+It turns out that the BLOCK_OFFSET is missing when checking the
+SQUASHFS_METADATA_SIZE agaist the actual size.
 
-This might cause problems.  A particular case we encountered is a conflict
-with KFENCE.  If a KFENCE-allocated slab object is being freed via
-kfree(page_address(page) + offset), the address passed to kfree() will get
-tagged with 0x00 (as slab pages keep the default per-page tags).  This
-leads to is_kfence_address() check failing, and a KFENCE object ending up
-in normal slab freelist, which causes memory corruptions.
-
-This patch changes the way KASAN stores tag in page-flags: they are now
-stored xor'ed with 0xff.  This way, KASAN doesn't need to initialize
-per-page flags for every created page, which might be slow.
-
-With this change, page_address() returns natively-tagged (with 0xff)
-pointers for pages that didn't have tags set explicitly.
-
-This patch fixes the encountered conflict with KFENCE and prevents more
-similar issues that can occur in the future.
-
-Link: https://lkml.kernel.org/r/1a41abb11c51b264511d9e71c303bb16d5cb367b.1615475452.git.andreyknvl@google.com
-Fixes: 2813b9c02962 ("kasan, mm, arm64: tag non slab memory allocated via pagealloc")
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Link: https://lkml.kernel.org/r/20210226092903.1473545-1-sean@geanix.com
+Fixes: eabac19e40c0 ("squashfs: add more sanity checks in inode lookup")
+Signed-off-by: Sean Nyekjaer <sean@geanix.com>
+Acked-by: Phillip Lougher <phillip@squashfs.org.uk>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ fs/squashfs/export.c      |    8 ++++++--
+ fs/squashfs/squashfs_fs.h |    1 +
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~kasan-fix-per-page-tags-for-non-page_alloc-pages
-+++ a/include/linux/mm.h
-@@ -1461,16 +1461,28 @@ static inline bool cpupid_match_pid(stru
+--- a/fs/squashfs/export.c~squashfs-fix-inode-lookup-sanity-checks
++++ a/fs/squashfs/export.c
+@@ -152,14 +152,18 @@ __le64 *squashfs_read_inode_lookup_table
+ 		start = le64_to_cpu(table[n]);
+ 		end = le64_to_cpu(table[n + 1]);
  
- #if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
- 
-+/*
-+ * KASAN per-page tags are stored xor'ed with 0xff. This allows to avoid
-+ * setting tags for all pages to native kernel tag value 0xff, as the default
-+ * value 0x00 maps to 0xff.
-+ */
-+
- static inline u8 page_kasan_tag(const struct page *page)
- {
--	if (kasan_enabled())
--		return (page->flags >> KASAN_TAG_PGSHIFT) & KASAN_TAG_MASK;
--	return 0xff;
-+	u8 tag = 0xff;
-+
-+	if (kasan_enabled()) {
-+		tag = (page->flags >> KASAN_TAG_PGSHIFT) & KASAN_TAG_MASK;
-+		tag ^= 0xff;
-+	}
-+
-+	return tag;
- }
- 
- static inline void page_kasan_tag_set(struct page *page, u8 tag)
- {
- 	if (kasan_enabled()) {
-+		tag ^= 0xff;
- 		page->flags &= ~(KASAN_TAG_MASK << KASAN_TAG_PGSHIFT);
- 		page->flags |= (tag & KASAN_TAG_MASK) << KASAN_TAG_PGSHIFT;
+-		if (start >= end || (end - start) > SQUASHFS_METADATA_SIZE) {
++		if (start >= end
++		    || (end - start) >
++		    (SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
+ 			kfree(table);
+ 			return ERR_PTR(-EINVAL);
+ 		}
  	}
+ 
+ 	start = le64_to_cpu(table[indexes - 1]);
+-	if (start >= lookup_table_start || (lookup_table_start - start) > SQUASHFS_METADATA_SIZE) {
++	if (start >= lookup_table_start ||
++	    (lookup_table_start - start) >
++	    (SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
+ 		kfree(table);
+ 		return ERR_PTR(-EINVAL);
+ 	}
+--- a/fs/squashfs/squashfs_fs.h~squashfs-fix-inode-lookup-sanity-checks
++++ a/fs/squashfs/squashfs_fs.h
+@@ -17,6 +17,7 @@
+ 
+ /* size of metadata (inode and directory) blocks */
+ #define SQUASHFS_METADATA_SIZE		8192
++#define SQUASHFS_BLOCK_OFFSET		2
+ 
+ /* default size of block device I/O */
+ #ifdef CONFIG_SQUASHFS_4K_DEVBLK_SIZE
 _
