@@ -7,38 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8676C433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:06:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE16BC433C1
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:08:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 75FFB6195D
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:06:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7DBAD6195F
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:08:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231546AbhC1WFu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 18:05:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38674 "EHLO mail.kernel.org"
+        id S229656AbhC1WIA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 18:08:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40318 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230184AbhC1WFT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 18:05:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D619F6195F;
-        Sun, 28 Mar 2021 22:05:17 +0000 (UTC)
+        id S229655AbhC1WHr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 18:07:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A35346195E;
+        Sun, 28 Mar 2021 22:07:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616969118;
-        bh=URHAgUfnAHrTx2lsiUQ7TjTNU8ibf05157T9pK/EZgQ=;
+        s=korg; t=1616969266;
+        bh=1TVxeHIs3KFI5ETdieWXM9e5MHhIvE5qMd1PniU+U5Q=;
         h=Date:From:To:Subject:From;
-        b=C8qA85EJrBh7ITxgXpwH25TtCIPbxPISnN7mz75/1Z6K35gpDaq+tZHvLwW8OC70u
-         B58htai5xVw2Rihn9EIy1Ci8Ak3Y5/4dDjpIaMxcbIYLISeJpXl2JoU/uo1DZtLVKO
-         9bBiWD1eZISKqV7MdA0zPk4XW2VAOLcF1NCoOZBU=
-Date:   Sun, 28 Mar 2021 15:05:17 -0700
+        b=UHODMTscWcNPrnvUdgYq78qhiYabztYY5XoSaDzLsxts37K9SYG7PDEBRmaowI9+t
+         qg8VlSo12iz0DkDjdBFDcdk4pNAhjRWUVhRoO++W/n3iy4O15/Cnn7jcVkfu4O/Rxr
+         L7D6XPzd8w891ss//5eEJ0VKldEDVbwg6JNaMs78=
+Date:   Sun, 28 Mar 2021 15:07:46 -0700
 From:   akpm@linux-foundation.org
-To:     clg@kaod.org, hch@lst.de, mm-commits@vger.kernel.org,
-        npiggin@gmail.com, urezki@gmail.com
-Subject:  + kernel-dma-remove-unnecessary-unmap_kernel_range.patch
- added to -mm tree
-Message-ID: <20210328220517.J31wwUmBY%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
+        vbabka@suse.cz
+Subject:  +
+ selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch added
+ to -mm tree
+Message-ID: <20210328220746.suKqqZ6Nc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,16 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/dma: remove unnecessary unmap_kernel_range
+     Subject: selftests: add a kselftest for SLUB debugging functionality-fix
 has been added to the -mm tree.  Its filename is
-     kernel-dma-remove-unnecessary-unmap_kernel_range.patch
+     selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kernel-dma-remove-unnecessary=
--unmap_kernel_range.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-dma-remove-unnecessary=
--unmap_kernel_range.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,62 +59,43 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Nicholas Piggin <npiggin@gmail.com>
-Subject: kernel/dma: remove unnecessary unmap_kernel_range
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: selftests: add a kselftest for SLUB debugging functionality-fix
 
-vunmap will remove ptes.
+Remove a BUILD_BUG_ON left over from original resiliency_test() that breaks
+builds.
 
-Link: https://lkml.kernel.org/r/20210322021806.892164-3-npiggin@gmail.com
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: C=C3=A9dric Le Goater <clg@kaod.org>
-Cc: Uladzislau Rezki <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/53cc267d-aa0a-071a-f9f8-0b47ec4b2b9d@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/dma/remap.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/test_slub.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/kernel/dma/remap.c~kernel-dma-remove-unnecessary-unmap_kernel_range
-+++ a/kernel/dma/remap.c
-@@ -66,6 +66,5 @@ void dma_common_free_remap(void *cpu_add
- 		return;
- 	}
-=20
--	unmap_kernel_range((unsigned long)cpu_addr, PAGE_ALIGN(size));
- 	vunmap(cpu_addr);
- }
+--- a/lib/test_slub.c~selftests-add-a-kselftest-for-slub-debugging-functionality-fix
++++ a/lib/test_slub.c
+@@ -97,9 +97,6 @@ static void __init test_clobber_redzone_
+ 
+ static void __init resiliency_test(void)
+ {
+-
+-	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 16 || KMALLOC_SHIFT_HIGH < 10);
+-
+ 	pr_err("SLUB resiliency testing\n");
+ 	pr_err("-----------------------\n");
+ 	pr_err("A. Corruption after allocation\n");
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch
-mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_pa=
-ge.patch
-mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_pa=
-ge-fix.patch
-mm-apply_to_pte_range-warn-and-fail-if-a-large-pte-is-encountered.patch
-mm-vmalloc-rename-vmap__range-vmap_pages__range.patch
-mm-ioremap-rename-ioremap__range-to-vmap__range.patch
-mm-huge_vmap-arch-support-cleanup.patch
-powerpc-inline-huge-vmap-supported-functions.patch
-arm64-inline-huge-vmap-supported-functions.patch
-x86-inline-huge-vmap-supported-functions.patch
-mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions.patch
-mm-move-vmap_range-from-mm-ioremapc-to-mm-vmallocc.patch
-mm-vmalloc-add-vmap_range_noflush-variant.patch
-mm-vmalloc-hugepage-vmalloc-mappings.patch
-powerpc-64s-radix-enable-huge-vmalloc-mappings.patch
-mm-vmalloc-remove-map_kernel_range.patch
-kernel-dma-remove-unnecessary-unmap_kernel_range.patch
-powerpc-xive-remove-unnecessary-unmap_kernel_range.patch
-mm-vmalloc-remove-unmap_kernel_range.patch
-mm-vmalloc-improve-allocation-failure-error-messages.patch
+mm-slub-enable-slub_debug-static-key-when-creating-cache-with-explicit-debug-flags.patch
+selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch
 
