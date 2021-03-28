@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90EAAC433C1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B570DC433DB
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:06:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F7E66195F
+	by mail.kernel.org (Postfix) with ESMTP id 8BF6661969
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:06:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230184AbhC1WFu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 18:05:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38734 "EHLO mail.kernel.org"
+        id S231565AbhC1WFv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 18:05:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38860 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231565AbhC1WFV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 18:05:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D4A6161968;
-        Sun, 28 Mar 2021 22:05:20 +0000 (UTC)
+        id S231176AbhC1WF1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 18:05:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D9C9A6195E;
+        Sun, 28 Mar 2021 22:05:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616969121;
-        bh=1ddGdEjVnwghWJGOkgncnSIehDb6yYUu0FK/gwZenUs=;
+        s=korg; t=1616969127;
+        bh=FfwK4gntE2sOnmYbohxMv+B9QFt3WpVNzWwmNnMCXpk=;
         h=Date:From:To:Subject:From;
-        b=o/Ev5CgGE550X/cHps/SvPsn8Fm0j2Qn3AuUAzi+YcTvukccVsQ3xnwrkSGYB8Zpy
-         B8Ma4LIjnOVZyzuGI1EbDcGQ3Ki9TJTnOaIww2Nz4putocp1MNTtr7IZuNDYQ//q34
-         3qGafK05CCMGrqNO1MT/ZWbIQqz9zOAZZSvhLLMc=
-Date:   Sun, 28 Mar 2021 15:05:20 -0700
+        b=wo3hmRA0FT55iNXDe8lgAMCRe33rgJBXEz2kpDUqnYqJFLbP4llH7iIj2PJddAtD5
+         pibZmf5Nl3xh9n3QwBSe7pZ+YPKa55n4DtTUEyPJRQoEcnGlIWs3ZtDlhUAmbN8Z02
+         1F+bm2g4aq/n9+j8mBMMrZF+qnNDAxQl5KzKvvWE=
+Date:   Sun, 28 Mar 2021 15:05:26 -0700
 From:   akpm@linux-foundation.org
 To:     clg@kaod.org, hch@lst.de, mm-commits@vger.kernel.org,
         npiggin@gmail.com, urezki@gmail.com
 Subject:  +
- powerpc-xive-remove-unnecessary-unmap_kernel_range.patch added to -mm tree
-Message-ID: <20210328220520.AFDXsI5zF%akpm@linux-foundation.org>
+ mm-vmalloc-improve-allocation-failure-error-messages.patch added to -mm
+ tree
+Message-ID: <20210328220526.dcy4k9U0m%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -46,16 +47,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/xive: remove unnecessary unmap_kernel_range
+     Subject: mm/vmalloc: improve allocation failure error messages
 has been added to the -mm tree.  Its filename is
-     powerpc-xive-remove-unnecessary-unmap_kernel_range.patch
+     mm-vmalloc-improve-allocation-failure-error-messages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/powerpc-xive-remove-unnecessa=
-ry-unmap_kernel_range.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-improve-allocation=
+-failure-error-messages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/powerpc-xive-remove-unnecessa=
-ry-unmap_kernel_range.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-improve-allocation=
+-failure-error-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,41 +72,116 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Nicholas Piggin <npiggin@gmail.com>
-Subject: powerpc/xive: remove unnecessary unmap_kernel_range
+Subject: mm/vmalloc: improve allocation failure error messages
 
-iounmap will remove ptes.
+There are several reasons why a vmalloc can fail, virtual space exhausted,
+page array allocation failure, page allocation failure, and kernel page
+table allocation failure.
 
-Link: https://lkml.kernel.org/r/20210322021806.892164-4-npiggin@gmail.com
+Add distinct warning messages for the main causes of failure, with some
+added information like page order or allocation size where applicable.
+
+Link: https://lkml.kernel.org/r/20210322021806.892164-6-npiggin@gmail.com
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: C=C3=A9dric Le Goater <clg@kaod.org>
+Cc: C=C3=A9dric Le Goater <clg@kaod.org>
 Cc: Uladzislau Rezki <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/xive/common.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/vmalloc.c |   40 +++++++++++++++++++++++++++-------------
+ 1 file changed, 27 insertions(+), 13 deletions(-)
 
---- a/arch/powerpc/sysdev/xive/common.c~powerpc-xive-remove-unnecessary-unm=
-ap_kernel_range
-+++ a/arch/powerpc/sysdev/xive/common.c
-@@ -959,16 +959,12 @@ EXPORT_SYMBOL_GPL(is_xive_irq);
- void xive_cleanup_irq_data(struct xive_irq_data *xd)
- {
- 	if (xd->eoi_mmio) {
--		unmap_kernel_range((unsigned long)xd->eoi_mmio,
--				   1u << xd->esb_shift);
- 		iounmap(xd->eoi_mmio);
- 		if (xd->eoi_mmio =3D=3D xd->trig_mmio)
- 			xd->trig_mmio =3D NULL;
- 		xd->eoi_mmio =3D NULL;
+--- a/mm/vmalloc.c~mm-vmalloc-improve-allocation-failure-error-messages
++++ a/mm/vmalloc.c
+@@ -2790,6 +2790,10 @@ static void *__vmalloc_area_node(struct
+=20
+ 	if (!pages) {
+ 		free_vm_area(area);
++		warn_alloc(gfp_mask, NULL,
++			   "vmalloc size %lu allocation failure: "
++			   "page array size %lu allocation failed",
++			   area->nr_pages * PAGE_SIZE, array_size);
+ 		return NULL;
  	}
- 	if (xd->trig_mmio) {
--		unmap_kernel_range((unsigned long)xd->trig_mmio,
--				   1u << xd->esb_shift);
- 		iounmap(xd->trig_mmio);
- 		xd->trig_mmio =3D NULL;
+=20
+@@ -2814,6 +2818,10 @@ static void *__vmalloc_area_node(struct
+ 			/* Successfully allocated i pages, free them in __vfree() */
+ 			area->nr_pages =3D i;
+ 			atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
++			warn_alloc(gfp_mask, NULL,
++				   "vmalloc size %lu allocation failure: "
++				   "page order %u allocation failed",
++				   area->nr_pages * PAGE_SIZE, page_order);
+ 			goto fail;
+ 		}
+=20
+@@ -2825,15 +2833,17 @@ static void *__vmalloc_area_node(struct
  	}
+ 	atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
+=20
+-	if (vmap_pages_range(addr, addr + size, prot, pages, page_shift) < 0)
++	if (vmap_pages_range(addr, addr + size, prot, pages, page_shift) < 0) {
++		warn_alloc(gfp_mask, NULL,
++			   "vmalloc size %lu allocation failure: "
++			   "failed to map pages",
++			   area->nr_pages * PAGE_SIZE);
+ 		goto fail;
++	}
+=20
+ 	return area->addr;
+=20
+ fail:
+-	warn_alloc(gfp_mask, NULL,
+-			  "vmalloc: allocation failure, allocated %ld of %ld bytes",
+-			  (area->nr_pages*PAGE_SIZE), size);
+ 	__vfree(area->addr);
+ 	return NULL;
+ }
+@@ -2867,9 +2877,14 @@ void *__vmalloc_node_range(unsigned long
+ 	unsigned long real_align =3D align;
+ 	unsigned int shift =3D PAGE_SHIFT;
+=20
+-	if (!size || (size >> PAGE_SHIFT) > totalram_pages()) {
+-		area =3D NULL;
+-		goto fail;
++	if (WARN_ON_ONCE(!size))
++		return NULL;
++
++	if ((size >> PAGE_SHIFT) > totalram_pages()) {
++		warn_alloc(gfp_mask, NULL,
++			   "vmalloc size %lu allocation failure: "
++			   "exceeds total pages", real_size);
++		return NULL;
+ 	}
+=20
+ 	if (vmap_allow_huge && !(vm_flags & VM_NO_HUGE_VMAP) &&
+@@ -2897,8 +2912,12 @@ again:
+ 	size =3D PAGE_ALIGN(size);
+ 	area =3D __get_vm_area_node(size, align, VM_ALLOC | VM_UNINITIALIZED |
+ 				vm_flags, start, end, node, gfp_mask, caller);
+-	if (!area)
++	if (!area) {
++		warn_alloc(gfp_mask, NULL,
++			   "vmalloc size %lu allocation failure: "
++			   "vm_struct allocation failed", real_size);
+ 		goto fail;
++	}
+=20
+ 	addr =3D __vmalloc_area_node(area, gfp_mask, prot, shift, node);
+ 	if (!addr)
+@@ -2923,11 +2942,6 @@ fail:
+ 		goto again;
+ 	}
+=20
+-	if (!area) {
+-		/* Warn for area allocation, page allocations already warn */
+-		warn_alloc(gfp_mask, NULL,
+-			  "vmalloc: allocation failure: %lu bytes", real_size);
+-	}
+ 	return NULL;
+ }
+=20
 _
 
 Patches currently in -mm which might be from npiggin@gmail.com are
