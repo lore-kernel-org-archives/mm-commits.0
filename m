@@ -7,34 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5720FC433DB
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:53:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0606BC433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:05:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E38661954
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:53:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D5EAC61964
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:05:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231176AbhC1Vwf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 17:52:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56568 "EHLO mail.kernel.org"
+        id S231521AbhC1WFR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 18:05:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38520 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231367AbhC1VwW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 17:52:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D01F61958;
-        Sun, 28 Mar 2021 21:52:21 +0000 (UTC)
+        id S231513AbhC1WFO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 18:05:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1F50E6195E;
+        Sun, 28 Mar 2021 22:05:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616968341;
-        bh=U4LfUxz96khi/W6ydWQ9uqI3NBIWIsqNmCCuNLclDoE=;
+        s=korg; t=1616969114;
+        bh=Sa6Kf/+QQwkplu3XVGXr7uUgJngpq16KZQRoksg8+RI=;
         h=Date:From:To:Subject:From;
-        b=d11bpdDBPG1WSQaEDbwUwDXrnJIs0K/GSpom7hrzqagaKbqzQGsWvXuZwMX5KdzUg
-         nYaPLHCaquF3kWwANlUJAFblc4vAfvkXDMljw6/Ok0uSAknQRohPEWczvHXRc2hr9t
-         O3pAm3YTnXL8jrUUNAVSBcY+dai+mhWjFDsW02RA=
-Date:   Sun, 28 Mar 2021 14:52:21 -0700
+        b=Xd1nuNAX/CwS8CZ9bMwZQnU+JAqk9TJAJlbVe5+f5yOZ6dN+gTlabfIw1D5GM8NY+
+         OdIrbmr7cCX/Igfw6SLzbM3Bi5s+ZVlit4uBv1/2trpC7/TRqPGYvlNrzuNUykJ0+u
+         fwOMba8rO3I1Fo1MyC1tWBurIcyTwbQqNa0jQphM=
+Date:   Sun, 28 Mar 2021 15:05:13 -0700
 From:   akpm@linux-foundation.org
-To:     mingo@kernel.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, unixbhaskar@gmail.com, willy@infradead.org
-Subject:  + mm-fix-typos-in-comments.patch added to -mm tree
-Message-ID: <20210328215221.WarLTc07U%akpm@linux-foundation.org>
+To:     clg@kaod.org, hch@lst.de, mm-commits@vger.kernel.org,
+        npiggin@gmail.com, urezki@gmail.com
+Subject:  + mm-vmalloc-remove-map_kernel_range.patch added to -mm
+ tree
+Message-ID: <20210328220513.GrNtyAbOJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +46,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix typos in comments
+     Subject: mm/vmalloc: remove map_kernel_range
 has been added to the -mm tree.  Its filename is
-     mm-fix-typos-in-comments.patch
+     mm-vmalloc-remove-map_kernel_range.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-typos-in-comments.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-remove-map_kernel_=
+range.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-typos-in-comments.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-remove-map_kernel_=
+range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -57,840 +63,265 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ingo Molnar <mingo@kernel.org>
-Subject: mm: fix typos in comments
+=46rom: Nicholas Piggin <npiggin@gmail.com>
+Subject: mm/vmalloc: remove map_kernel_range
 
-Fix ~94 single-word typos in locking code comments, plus a few
-very obvious grammar mistakes.
+Patch series "mm/vmalloc: cleanup after hugepage series", v2.
 
-Link: https://lkml.kernel.org/r/20210322212624.GA1963421@gmail.com
-Link: https://lore.kernel.org/r/20210322205203.GB1959563@gmail.com
-Signed-off-by: Ingo Molnar <mingo@kernel.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Christoph pointed out some overdue cleanups required after the huge
+vmalloc series, and I had another failure error message improvement as
+well.
+
+
+This patch (of 5):
+
+This is a shim around vmap_pages_range, get rid of it.
+
+Move the main API comment from the _noflush variant to the normal variant,
+and make _noflush internal to mm/.
+
+Link: https://lkml.kernel.org/r/20210322021806.892164-1-npiggin@gmail.com
+Link: https://lkml.kernel.org/r/20210322021806.892164-2-npiggin@gmail.com
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Uladzislau Rezki <urezki@gmail.com>
+Cc: C=C3=A9dric Le Goater <clg@kaod.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h      |    2 +-
- include/linux/vmalloc.h |    4 ++--
- mm/balloon_compaction.c |    4 ++--
- mm/compaction.c         |    4 ++--
- mm/filemap.c            |    2 +-
- mm/gup.c                |    2 +-
- mm/highmem.c            |    2 +-
- mm/huge_memory.c        |    6 +++---
- mm/hugetlb.c            |    6 +++---
- mm/internal.h           |    2 +-
- mm/kasan/kasan.h        |    8 ++++----
- mm/kasan/quarantine.c   |    4 ++--
- mm/kasan/shadow.c       |    4 ++--
- mm/kfence/report.c      |    2 +-
- mm/khugepaged.c         |    2 +-
- mm/ksm.c                |    4 ++--
- mm/madvise.c            |    4 ++--
- mm/memcontrol.c         |   18 +++++++++---------
- mm/memory-failure.c     |    2 +-
- mm/memory.c             |   14 +++++++-------
- mm/mempolicy.c          |    4 ++--
- mm/migrate.c            |    8 ++++----
- mm/mmap.c               |    4 ++--
- mm/mprotect.c           |    2 +-
- mm/mremap.c             |    2 +-
- mm/oom_kill.c           |    2 +-
- mm/page-writeback.c     |    4 ++--
- mm/page_alloc.c         |   14 +++++++-------
- mm/page_owner.c         |    2 +-
- mm/percpu-internal.h    |    2 +-
- mm/percpu.c             |    2 +-
- mm/pgalloc-track.h      |    6 +++---
- mm/slab.c               |    6 +++---
- mm/slub.c               |    2 +-
- mm/swap_slots.c         |    2 +-
- mm/swap_state.c         |    2 +-
- mm/vmalloc.c            |    6 +++---
- mm/vmstat.c             |    2 +-
- mm/zpool.c              |    2 +-
- mm/zsmalloc.c           |    2 +-
- 40 files changed, 86 insertions(+), 86 deletions(-)
+ Documentation/core-api/cachetlb.rst |    2=20
+ include/linux/vmalloc.h             |   11 ----
+ mm/internal.h                       |    6 ++
+ mm/percpu-vm.c                      |    5 +-
+ mm/vmalloc.c                        |   65 +++++++++++---------------
+ 5 files changed, 38 insertions(+), 51 deletions(-)
 
---- a/include/linux/mm.h~mm-fix-typos-in-comments
-+++ a/include/linux/mm.h
-@@ -106,7 +106,7 @@ extern int mmap_rnd_compat_bits __read_m
-  * embedding these tags into addresses that point to these memory regions, and
-  * checking that the memory and the pointer tags match on memory accesses)
-  * redefine this macro to strip tags from pointers.
-- * It's defined as noop for arcitectures that don't support memory tagging.
-+ * It's defined as noop for architectures that don't support memory tagging.
-  */
- #ifndef untagged_addr
- #define untagged_addr(addr) (addr)
---- a/include/linux/vmalloc.h~mm-fix-typos-in-comments
+--- a/Documentation/core-api/cachetlb.rst~mm-vmalloc-remove-map_kernel_range
++++ a/Documentation/core-api/cachetlb.rst
+@@ -213,7 +213,7 @@ Here are the routines, one by one:
+ 	there will be no entries in the cache for the kernel address
+ 	space for virtual addresses in the range 'start' to 'end-1'.
+=20
+-	The first of these two routines is invoked after map_kernel_range()
++	The first of these two routines is invoked after vmap_range()
+ 	has installed the page table entries.  The second is invoked
+ 	before unmap_kernel_range() deletes the page table entries.
+=20
+--- a/include/linux/vmalloc.h~mm-vmalloc-remove-map_kernel_range
 +++ a/include/linux/vmalloc.h
-@@ -33,7 +33,7 @@ struct notifier_block;		/* in notifier.h
-  *
-  * If IS_ENABLED(CONFIG_KASAN_VMALLOC), VM_KASAN is set on a vm_struct after
-  * shadow memory has been mapped. It's used to handle allocation errors so that
-- * we don't try to poision shadow on free if it was never allocated.
-+ * we don't try to poison shadow on free if it was never allocated.
-  *
-  * Otherwise, VM_KASAN is set for kasan_module_alloc() allocations and used to
-  * determine which allocations need the module shadow freed.
-@@ -43,7 +43,7 @@ struct notifier_block;		/* in notifier.h
- 
- /*
-  * Maximum alignment for ioremap() regions.
-- * Can be overriden by arch-specific value.
-+ * Can be overridden by arch-specific value.
-  */
- #ifndef IOREMAP_MAX_ORDER
- #define IOREMAP_MAX_ORDER	(7 + PAGE_SHIFT)	/* 128 pages */
---- a/mm/balloon_compaction.c~mm-fix-typos-in-comments
-+++ a/mm/balloon_compaction.c
-@@ -58,7 +58,7 @@ EXPORT_SYMBOL_GPL(balloon_page_list_enqu
- /**
-  * balloon_page_list_dequeue() - removes pages from balloon's page list and
-  *				 returns a list of the pages.
-- * @b_dev_info: balloon device decriptor where we will grab a page from.
-+ * @b_dev_info: balloon device descriptor where we will grab a page from.
-  * @pages: pointer to the list of pages that would be returned to the caller.
-  * @n_req_pages: number of requested pages.
-  *
-@@ -157,7 +157,7 @@ EXPORT_SYMBOL_GPL(balloon_page_enqueue);
- /*
-  * balloon_page_dequeue - removes a page from balloon's page list and returns
-  *			  its address to allow the driver to release the page.
-- * @b_dev_info: balloon device decriptor where we will grab a page from.
-+ * @b_dev_info: balloon device descriptor where we will grab a page from.
-  *
-  * Driver must call this function to properly dequeue a previously enqueued page
-  * before definitively releasing it back to the guest system.
---- a/mm/compaction.c~mm-fix-typos-in-comments
-+++ a/mm/compaction.c
-@@ -2017,8 +2017,8 @@ static unsigned int fragmentation_score_
- 	unsigned int wmark_low;
- 
- 	/*
--	 * Cap the low watermak to avoid excessive compaction
--	 * activity in case a user sets the proactivess tunable
-+	 * Cap the low watermark to avoid excessive compaction
-+	 * activity in case a user sets the proactiveness tunable
- 	 * close to 100 (maximum).
- 	 */
- 	wmark_low = max(100U - sysctl_compaction_proactiveness, 5U);
---- a/mm/filemap.c~mm-fix-typos-in-comments
-+++ a/mm/filemap.c
-@@ -2708,7 +2708,7 @@ unsigned int seek_page_size(struct xa_st
-  * entirely memory-based such as tmpfs, and filesystems which support
-  * unwritten extents.
-  *
-- * Return: The requested offset on successs, or -ENXIO if @whence specifies
-+ * Return: The requested offset on success, or -ENXIO if @whence specifies
-  * SEEK_DATA and there is no data after @start.  There is an implicit hole
-  * after @end - 1, so SEEK_HOLE returns @end if all the bytes between @start
-  * and @end contain data.
---- a/mm/gup.c~mm-fix-typos-in-comments
-+++ a/mm/gup.c
-@@ -1599,7 +1599,7 @@ finish_or_fault:
-  * Returns NULL on any kind of failure - a hole must then be inserted into
-  * the corefile, to preserve alignment with its headers; and also returns
-  * NULL wherever the ZERO_PAGE, or an anonymous pte_none, has been found -
-- * allowing a hole to be left in the corefile to save diskspace.
-+ * allowing a hole to be left in the corefile to save disk space.
-  *
-  * Called without mmap_lock (takes and releases the mmap_lock by itself).
-  */
---- a/mm/highmem.c~mm-fix-typos-in-comments
-+++ a/mm/highmem.c
-@@ -519,7 +519,7 @@ void *__kmap_local_pfn_prot(unsigned lon
- 
- 	/*
- 	 * Disable migration so resulting virtual address is stable
--	 * accross preemption.
-+	 * across preemption.
- 	 */
- 	migrate_disable();
- 	preempt_disable();
---- a/mm/huge_memory.c~mm-fix-typos-in-comments
-+++ a/mm/huge_memory.c
-@@ -1804,8 +1804,8 @@ bool move_huge_pmd(struct vm_area_struct
- /*
-  * Returns
-  *  - 0 if PMD could not be locked
-- *  - 1 if PMD was locked but protections unchange and TLB flush unnecessary
-- *  - HPAGE_PMD_NR is protections changed and TLB flush necessary
-+ *  - 1 if PMD was locked but protections unchanged and TLB flush unnecessary
-+ *  - HPAGE_PMD_NR if protections changed and TLB flush necessary
-  */
- int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long addr, pgprot_t newprot, unsigned long cp_flags)
-@@ -2481,7 +2481,7 @@ static void __split_huge_page(struct pag
- 		xa_lock(&swap_cache->i_pages);
- 	}
- 
--	/* lock lru list/PageCompound, ref freezed by page_ref_freeze */
-+	/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
- 	lruvec = lock_page_lruvec(head);
- 
- 	for (i = nr - 1; i >= 1; i--) {
---- a/mm/hugetlb.c~mm-fix-typos-in-comments
-+++ a/mm/hugetlb.c
-@@ -462,7 +462,7 @@ static int allocate_file_region_entries(
- 			      resv->region_cache_count;
- 
- 		/* At this point, we should have enough entries in the cache
--		 * for all the existings adds_in_progress. We should only be
-+		 * for all the existing adds_in_progress. We should only be
- 		 * needing to allocate for regions_needed.
- 		 */
- 		VM_BUG_ON(resv->region_cache_count < resv->adds_in_progress);
-@@ -5489,8 +5489,8 @@ void adjust_range_if_pmd_sharing_possibl
- 		v_end = ALIGN_DOWN(vma->vm_end, PUD_SIZE);
- 
- 	/*
--	 * vma need span at least one aligned PUD size and the start,end range
--	 * must at least partialy within it.
-+	 * vma needs to span at least one aligned PUD size, and the range
-+	 * must be at least partially within in.
- 	 */
- 	if (!(vma->vm_flags & VM_MAYSHARE) || !(v_end > v_start) ||
- 		(*end <= v_start) || (*start >= v_end))
---- a/mm/internal.h~mm-fix-typos-in-comments
-+++ a/mm/internal.h
-@@ -335,7 +335,7 @@ static inline bool is_exec_mapping(vm_fl
+@@ -212,10 +212,6 @@ static inline bool is_vm_area_hugepages(
+ int vmap_range(unsigned long addr, unsigned long end,
+ 			phys_addr_t phys_addr, pgprot_t prot,
+ 			unsigned int max_page_shift);
+-extern int map_kernel_range_noflush(unsigned long start, unsigned long siz=
+e,
+-				    pgprot_t prot, struct page **pages);
+-int map_kernel_range(unsigned long start, unsigned long size, pgprot_t pro=
+t,
+-		struct page **pages);
+ extern void unmap_kernel_range_noflush(unsigned long addr, unsigned long s=
+ize);
+ extern void unmap_kernel_range(unsigned long addr, unsigned long size);
+ static inline void set_vm_flush_reset_perms(void *addr)
+@@ -227,13 +223,6 @@ static inline void set_vm_flush_reset_pe
  }
- 
- /*
-- * Stack area - atomatically grows in one direction
-+ * Stack area - automatically grows in one direction
-  *
-  * VM_GROWSUP / VM_GROWSDOWN VMAs are always private anonymous:
-  * do_mmap() forbids all other combinations.
---- a/mm/kasan/kasan.h~mm-fix-typos-in-comments
-+++ a/mm/kasan/kasan.h
-@@ -38,9 +38,9 @@ extern bool kasan_flag_panic __ro_after_
- #define KASAN_TAG_MAX		0xFD /* maximum value for random tags */
- 
- #ifdef CONFIG_KASAN_HW_TAGS
--#define KASAN_TAG_MIN		0xF0 /* mimimum value for random tags */
-+#define KASAN_TAG_MIN		0xF0 /* minimum value for random tags */
+=20
  #else
--#define KASAN_TAG_MIN		0x00 /* mimimum value for random tags */
-+#define KASAN_TAG_MIN		0x00 /* minimum value for random tags */
- #endif
- 
- #ifdef CONFIG_KASAN_GENERIC
-@@ -376,7 +376,7 @@ static inline bool kasan_byte_accessible
- #else /* CONFIG_KASAN_HW_TAGS */
- 
- /**
-- * kasan_poison - mark the memory range as unaccessible
-+ * kasan_poison - mark the memory range as inaccessible
-  * @addr - range start address, must be aligned to KASAN_GRANULE_SIZE
-  * @size - range size, must be aligned to KASAN_GRANULE_SIZE
-  * @value - value that's written to metadata for the range
-@@ -407,7 +407,7 @@ bool kasan_byte_accessible(const void *a
- 
- /**
-  * kasan_poison_last_granule - mark the last granule of the memory range as
-- * unaccessible
-+ * inaccessible
-  * @addr - range start address, must be aligned to KASAN_GRANULE_SIZE
-  * @size - range size
-  *
---- a/mm/kasan/quarantine.c~mm-fix-typos-in-comments
-+++ a/mm/kasan/quarantine.c
-@@ -27,7 +27,7 @@
- /* Data structure and operations for quarantine queues. */
- 
- /*
-- * Each queue is a signle-linked list, which also stores the total size of
-+ * Each queue is a single-linked list, which also stores the total size of
-  * objects inside of it.
-  */
- struct qlist_head {
-@@ -138,7 +138,7 @@ static void qlink_free(struct qlist_node
- 		local_irq_save(flags);
- 
- 	/*
--	 * As the object now gets freed from the quaratine, assume that its
-+	 * As the object now gets freed from the quarantine, assume that its
- 	 * free track is no longer valid.
- 	 */
- 	*(u8 *)kasan_mem_to_shadow(object) = KASAN_KMALLOC_FREE;
---- a/mm/kasan/shadow.c~mm-fix-typos-in-comments
-+++ a/mm/kasan/shadow.c
-@@ -316,7 +316,7 @@ int kasan_populate_vmalloc(unsigned long
- 	 * // rest of vmalloc process		<data dependency>
- 	 * STORE p, a				LOAD shadow(x+99)
- 	 *
--	 * If there is no barrier between the end of unpoisioning the shadow
-+	 * If there is no barrier between the end of unpoisoning the shadow
- 	 * and the store of the result to p, the stores could be committed
- 	 * in a different order by CPU#0, and CPU#1 could erroneously observe
- 	 * poison in the shadow.
-@@ -384,7 +384,7 @@ static int kasan_depopulate_vmalloc_pte(
-  * How does this work?
-  * -------------------
-  *
-- * We have a region that is page aligned, labelled as A.
-+ * We have a region that is page aligned, labeled as A.
-  * That might not map onto the shadow in a way that is page-aligned:
-  *
-  *                    start                     end
---- a/mm/kfence/report.c~mm-fix-typos-in-comments
-+++ a/mm/kfence/report.c
-@@ -263,6 +263,6 @@ void kfence_report_error(unsigned long a
- 	if (panic_on_warn)
- 		panic("panic_on_warn set ...\n");
- 
--	/* We encountered a memory unsafety error, taint the kernel! */
-+	/* We encountered a memory safety error, taint the kernel! */
- 	add_taint(TAINT_BAD_PAGE, LOCKDEP_STILL_OK);
- }
---- a/mm/khugepaged.c~mm-fix-typos-in-comments
-+++ a/mm/khugepaged.c
-@@ -667,7 +667,7 @@ static int __collapse_huge_page_isolate(
- 		 *
- 		 * The page table that maps the page has been already unlinked
- 		 * from the page table tree and this process cannot get
--		 * an additinal pin on the page.
-+		 * an additional pin on the page.
- 		 *
- 		 * New pins can come later if the page is shared across fork,
- 		 * but not from this process. The other process cannot write to
---- a/mm/ksm.c~mm-fix-typos-in-comments
-+++ a/mm/ksm.c
-@@ -1068,7 +1068,7 @@ static int write_protect_page(struct vm_
- 		/*
- 		 * Ok this is tricky, when get_user_pages_fast() run it doesn't
- 		 * take any lock, therefore the check that we are going to make
--		 * with the pagecount against the mapcount is racey and
-+		 * with the pagecount against the mapcount is racy and
- 		 * O_DIRECT can happen right after the check.
- 		 * So we clear the pte and flush the tlb before the check
- 		 * this assure us that no O_DIRECT can happen after the check
-@@ -1438,7 +1438,7 @@ static struct page *stable_node_dup(stru
- 			 */
- 			*_stable_node = found;
- 			/*
--			 * Just for robustneess as stable_node is
-+			 * Just for robustness, as stable_node is
- 			 * otherwise left as a stable pointer, the
- 			 * compiler shall optimize it away at build
- 			 * time.
---- a/mm/madvise.c~mm-fix-typos-in-comments
-+++ a/mm/madvise.c
-@@ -799,7 +799,7 @@ static long madvise_dontneed_free(struct
- 		if (end > vma->vm_end) {
- 			/*
- 			 * Don't fail if end > vma->vm_end. If the old
--			 * vma was splitted while the mmap_lock was
-+			 * vma was split while the mmap_lock was
- 			 * released the effect of the concurrent
- 			 * operation may not cause madvise() to
- 			 * have an undefined result. There may be an
-@@ -1039,7 +1039,7 @@ process_madvise_behavior_valid(int behav
-  *  MADV_DODUMP - cancel MADV_DONTDUMP: no longer exclude from core dump.
-  *  MADV_COLD - the application is not expected to use this memory soon,
-  *		deactivate pages in this range so that they can be reclaimed
-- *		easily if memory pressure hanppens.
-+ *		easily if memory pressure happens.
-  *  MADV_PAGEOUT - the application is not expected to use this memory soon,
-  *		page out the pages in this range immediately.
-  *
---- a/mm/memcontrol.c~mm-fix-typos-in-comments
-+++ a/mm/memcontrol.c
-@@ -215,7 +215,7 @@ enum res_type {
- #define MEMFILE_PRIVATE(x, val)	((x) << 16 | (val))
- #define MEMFILE_TYPE(val)	((val) >> 16 & 0xffff)
- #define MEMFILE_ATTR(val)	((val) & 0xffff)
--/* Used for OOM nofiier */
-+/* Used for OOM notifier */
- #define OOM_CONTROL		(0)
- 
- /*
-@@ -786,7 +786,7 @@ void __mod_lruvec_kmem_state(void *p, en
-  * __count_memcg_events - account VM events in a cgroup
-  * @memcg: the memory cgroup
-  * @idx: the event item
-- * @count: the number of events that occured
-+ * @count: the number of events that occurred
-  */
- void __count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
- 			  unsigned long count)
-@@ -904,7 +904,7 @@ struct mem_cgroup *get_mem_cgroup_from_m
- 	rcu_read_lock();
- 	do {
- 		/*
--		 * Page cache insertions can happen withou an
-+		 * Page cache insertions can happen without an
- 		 * actual mm context, e.g. during disk probing
- 		 * on boot, loopback IO, acct() writes etc.
- 		 */
-@@ -1712,7 +1712,7 @@ static void mem_cgroup_unmark_under_oom(
- 	struct mem_cgroup *iter;
- 
- 	/*
--	 * Be careful about under_oom underflows becase a child memcg
-+	 * Be careful about under_oom underflows because a child memcg
- 	 * could have been added after mem_cgroup_mark_under_oom.
- 	 */
- 	spin_lock(&memcg_oom_lock);
-@@ -1884,7 +1884,7 @@ bool mem_cgroup_oom_synchronize(bool han
- 		/*
- 		 * There is no guarantee that an OOM-lock contender
- 		 * sees the wakeups triggered by the OOM kill
--		 * uncharges.  Wake any sleepers explicitely.
-+		 * uncharges.  Wake any sleepers explicitly.
- 		 */
- 		memcg_oom_recover(memcg);
- 	}
-@@ -4360,7 +4360,7 @@ void mem_cgroup_wb_stats(struct bdi_writ
-  * Foreign dirty flushing
-  *
-  * There's an inherent mismatch between memcg and writeback.  The former
-- * trackes ownership per-page while the latter per-inode.  This was a
-+ * tracks ownership per-page while the latter per-inode.  This was a
-  * deliberate design decision because honoring per-page ownership in the
-  * writeback path is complicated, may lead to higher CPU and IO overheads
-  * and deemed unnecessary given that write-sharing an inode across
-@@ -4375,9 +4375,9 @@ void mem_cgroup_wb_stats(struct bdi_writ
-  * triggering background writeback.  A will be slowed down without a way to
-  * make writeback of the dirty pages happen.
-  *
-- * Conditions like the above can lead to a cgroup getting repatedly and
-+ * Conditions like the above can lead to a cgroup getting repeatedly and
-  * severely throttled after making some progress after each
-- * dirty_expire_interval while the underyling IO device is almost
-+ * dirty_expire_interval while the underlying IO device is almost
-  * completely idle.
-  *
-  * Solving this problem completely requires matching the ownership tracking
-@@ -5770,7 +5770,7 @@ static int mem_cgroup_can_attach(struct
- 		return 0;
- 
- 	/*
--	 * We are now commited to this value whatever it is. Changes in this
-+	 * We are now committed to this value whatever it is. Changes in this
- 	 * tunable will only affect upcoming migrations, not the current one.
- 	 * So we need to save it, and keep it going.
- 	 */
---- a/mm/memory.c~mm-fix-typos-in-comments
-+++ a/mm/memory.c
-@@ -3737,7 +3737,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- 		return ret;
- 
- 	/*
--	 * Archs like ppc64 need additonal space to store information
-+	 * Archs like ppc64 need additional space to store information
- 	 * related to pte entry. Use the preallocated table for that.
- 	 */
- 	if (arch_needs_pgtable_deposit() && !vmf->prealloc_pte) {
-@@ -4170,8 +4170,8 @@ static vm_fault_t do_numa_page(struct vm
- 	}
- 
- 	/*
--	 * Make it present again, Depending on how arch implementes non
--	 * accessible ptes, some can allow access by kernel mode.
-+	 * Make it present again, depending on how arch implements
-+	 * non-accessible ptes, some can allow access by kernel mode.
- 	 */
- 	old_pte = ptep_modify_prot_start(vma, vmf->address, vmf->pte);
- 	pte = pte_modify(old_pte, vma->vm_page_prot);
-@@ -4505,7 +4505,7 @@ retry_pud:
- }
- 
- /**
-- * mm_account_fault - Do page fault accountings
-+ * mm_account_fault - Do page fault accounting
-  *
-  * @regs: the pt_regs struct pointer.  When set to NULL, will skip accounting
-  *        of perf event counters, but we'll still do the per-task accounting to
-@@ -4514,9 +4514,9 @@ retry_pud:
-  * @flags: the fault flags.
-  * @ret: the fault retcode.
-  *
-- * This will take care of most of the page fault accountings.  Meanwhile, it
-+ * This will take care of most of the page fault accounting.  Meanwhile, it
-  * will also include the PERF_COUNT_SW_PAGE_FAULTS_[MAJ|MIN] perf counter
-- * updates.  However note that the handling of PERF_COUNT_SW_PAGE_FAULTS should
-+ * updates.  However, note that the handling of PERF_COUNT_SW_PAGE_FAULTS should
-  * still be in per-arch page fault handlers at the entry of page fault.
-  */
- static inline void mm_account_fault(struct pt_regs *regs,
-@@ -4864,7 +4864,7 @@ out:
- /**
-  * generic_access_phys - generic implementation for iomem mmap access
-  * @vma: the vma to access
-- * @addr: userspace addres, not relative offset within @vma
-+ * @addr: userspace address, not relative offset within @vma
-  * @buf: buffer to read/write
-  * @len: length of transfer
-  * @write: set to FOLL_WRITE when writing, otherwise reading
---- a/mm/memory-failure.c~mm-fix-typos-in-comments
-+++ a/mm/memory-failure.c
-@@ -75,7 +75,7 @@ static bool page_handle_poison(struct pa
- 		if (dissolve_free_huge_page(page) || !take_page_off_buddy(page))
- 			/*
- 			 * We could fail to take off the target page from buddy
--			 * for example due to racy page allocaiton, but that's
-+			 * for example due to racy page allocation, but that's
- 			 * acceptable because soft-offlined page is not broken
- 			 * and if someone really want to use it, they should
- 			 * take it.
---- a/mm/mempolicy.c~mm-fix-typos-in-comments
-+++ a/mm/mempolicy.c
-@@ -1867,7 +1867,7 @@ static int apply_policy_zone(struct memp
- 	 * we apply policy when gfp_zone(gfp) = ZONE_MOVABLE only.
- 	 *
- 	 * policy->v.nodes is intersect with node_states[N_MEMORY].
--	 * so if the following test faile, it implies
-+	 * so if the following test fails, it implies
- 	 * policy->v.nodes has movable memory only.
- 	 */
- 	if (!nodes_intersects(policy->v.nodes, node_states[N_HIGH_MEMORY]))
-@@ -2098,7 +2098,7 @@ bool init_nodemask_of_mempolicy(nodemask
-  *
-  * If tsk's mempolicy is "default" [NULL], return 'true' to indicate default
-  * policy.  Otherwise, check for intersection between mask and the policy
-- * nodemask for 'bind' or 'interleave' policy.  For 'perferred' or 'local'
-+ * nodemask for 'bind' or 'interleave' policy.  For 'preferred' or 'local'
-  * policy, always return true since it may allocate elsewhere on fallback.
-  *
-  * Takes task_lock(tsk) to prevent freeing of its mempolicy.
---- a/mm/migrate.c~mm-fix-typos-in-comments
-+++ a/mm/migrate.c
-@@ -2779,11 +2779,11 @@ restore:
-  *
-  * For empty entries inside CPU page table (pte_none() or pmd_none() is true) we
-  * do set MIGRATE_PFN_MIGRATE flag inside the corresponding source array thus
-- * allowing the caller to allocate device memory for those unback virtual
-- * address.  For this the caller simply has to allocate device memory and
-+ * allowing the caller to allocate device memory for those unbacked virtual
-+ * addresses.  For this the caller simply has to allocate device memory and
-  * properly set the destination entry like for regular migration.  Note that
-- * this can still fails and thus inside the device driver must check if the
-- * migration was successful for those entries after calling migrate_vma_pages()
-+ * this can still fail, and thus inside the device driver you must check if the
-+ * migration was successful for those entries after calling migrate_vma_pages(),
-  * just like for regular migration.
-  *
-  * After that, the callers must call migrate_vma_pages() to go over each entry
---- a/mm/mmap.c~mm-fix-typos-in-comments
-+++ a/mm/mmap.c
-@@ -606,7 +606,7 @@ static unsigned long count_vma_pages_ran
- 	unsigned long nr_pages = 0;
- 	struct vm_area_struct *vma;
- 
--	/* Find first overlaping mapping */
-+	/* Find first overlapping mapping */
- 	vma = find_vma_intersection(mm, addr, end);
- 	if (!vma)
- 		return 0;
-@@ -2869,7 +2869,7 @@ int __do_munmap(struct mm_struct *mm, un
- 	if (unlikely(uf)) {
- 		/*
- 		 * If userfaultfd_unmap_prep returns an error the vmas
--		 * will remain splitted, but userland will get a
-+		 * will remain split, but userland will get a
- 		 * highly unexpected error anyway. This is no
- 		 * different than the case where the first of the two
- 		 * __split_vma fails, but we don't undo the first
---- a/mm/mprotect.c~mm-fix-typos-in-comments
-+++ a/mm/mprotect.c
-@@ -699,7 +699,7 @@ SYSCALL_DEFINE1(pkey_free, int, pkey)
- 	mmap_write_unlock(current->mm);
- 
- 	/*
--	 * We could provie warnings or errors if any VMA still
-+	 * We could provide warnings or errors if any VMA still
- 	 * has the pkey set here.
- 	 */
- 	return ret;
---- a/mm/mremap.c~mm-fix-typos-in-comments
-+++ a/mm/mremap.c
-@@ -730,7 +730,7 @@ static unsigned long mremap_to(unsigned
- 	 * So, to avoid such scenario we can pre-compute if the whole
- 	 * operation has high chances to success map-wise.
- 	 * Worst-scenario case is when both vma's (new_addr and old_addr) get
--	 * split in 3 before unmaping it.
-+	 * split in 3 before unmapping it.
- 	 * That means 2 more maps (1 for each) to the ones we already hold.
- 	 * Check whether current map count plus 2 still leads us to 4 maps below
- 	 * the threshold, otherwise return -ENOMEM here to be more safe.
---- a/mm/oom_kill.c~mm-fix-typos-in-comments
-+++ a/mm/oom_kill.c
-@@ -74,7 +74,7 @@ static inline bool is_memcg_oom(struct o
- 
- #ifdef CONFIG_NUMA
- /**
-- * oom_cpuset_eligible() - check task eligiblity for kill
-+ * oom_cpuset_eligible() - check task eligibility for kill
-  * @start: task struct of which task to consider
-  * @oc: pointer to struct oom_control
-  *
---- a/mm/page_alloc.c~mm-fix-typos-in-comments
-+++ a/mm/page_alloc.c
-@@ -889,7 +889,7 @@ compaction_capture(struct capture_contro
- 		return false;
- 
- 	/*
--	 * Do not let lower order allocations polluate a movable pageblock.
-+	 * Do not let lower order allocations pollute a movable pageblock.
- 	 * This might let an unmovable request use a reclaimable pageblock
- 	 * and vice-versa but no more than normal fallback logic which can
- 	 * have trouble finding a high-order free page.
-@@ -2766,7 +2766,7 @@ static bool unreserve_highatomic_pageblo
- 			/*
- 			 * In page freeing path, migratetype change is racy so
- 			 * we can counter several free pages in a pageblock
--			 * in this loop althoug we changed the pageblock type
-+			 * in this loop although we changed the pageblock type
- 			 * from highatomic to ac->migratetype. So we should
- 			 * adjust the count once.
- 			 */
-@@ -3070,7 +3070,7 @@ static void drain_local_pages_wq(struct
- 	 * drain_all_pages doesn't use proper cpu hotplug protection so
- 	 * we can race with cpu offline when the WQ can move this from
- 	 * a cpu pinned worker to an unbound one. We can operate on a different
--	 * cpu which is allright but we also have to make sure to not move to
-+	 * cpu which is alright but we also have to make sure to not move to
- 	 * a different one.
- 	 */
- 	preempt_disable();
-@@ -5919,7 +5919,7 @@ static int build_zonerefs_node(pg_data_t
- static int __parse_numa_zonelist_order(char *s)
+-static inline int
+-map_kernel_range_noflush(unsigned long start, unsigned long size,
+-			pgprot_t prot, struct page **pages)
+-{
+-	return size >> PAGE_SHIFT;
+-}
+-#define map_kernel_range map_kernel_range_noflush
+ static inline void
+ unmap_kernel_range_noflush(unsigned long addr, unsigned long size)
  {
- 	/*
--	 * We used to support different zonlists modes but they turned
-+	 * We used to support different zonelists modes but they turned
- 	 * out to be just not useful. Let's keep the warning in place
- 	 * if somebody still use the cmd line parameter so that we do
- 	 * not fail it silently
-@@ -7660,7 +7660,7 @@ static void check_for_memory(pg_data_t *
- }
- 
- /*
-- * Some architecturs, e.g. ARC may have ZONE_HIGHMEM below ZONE_NORMAL. For
-+ * Some architectures, e.g. ARC may have ZONE_HIGHMEM below ZONE_NORMAL. For
-  * such cases we allow max_zone_pfn sorted in the descending order
+--- a/mm/internal.h~mm-vmalloc-remove-map_kernel_range
++++ a/mm/internal.h
+@@ -638,4 +638,10 @@ struct migration_target_control {
+ 	gfp_t gfp_mask;
+ };
+=20
++/*
++ * mm/vmalloc.c
++ */
++int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
++                pgprot_t prot, struct page **pages, unsigned int page_shif=
+t);
++
+ #endif	/* __MM_INTERNAL_H */
+--- a/mm/percpu-vm.c~mm-vmalloc-remove-map_kernel_range
++++ a/mm/percpu-vm.c
+@@ -8,6 +8,7 @@
+  * Chunks are mapped into vmalloc areas and populated page by page.
+  * This is the default chunk allocator.
   */
- bool __weak arch_has_descending_max_zone_pfns(void)
-@@ -8717,7 +8717,7 @@ static int __alloc_contig_migrate_range(
-  * alloc_contig_range() -- tries to allocate given range of pages
-  * @start:	start PFN to allocate
-  * @end:	one-past-the-last PFN to allocate
-- * @migratetype:	migratetype of the underlaying pageblocks (either
-+ * @migratetype:	migratetype of the underlying pageblocks (either
-  *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
-  *			in range must have the same migratetype and it must
-  *			be either of the two.
-@@ -8977,7 +8977,7 @@ EXPORT_SYMBOL(free_contig_range);
- 
- /*
-  * The zone indicated has a new number of managed_pages; batch sizes and percpu
-- * page high values need to be recalulated.
-+ * page high values need to be recalculated.
-  */
- void __meminit zone_pcp_update(struct zone *zone)
++#include "internal.h"
+=20
+ static struct page *pcpu_chunk_page(struct pcpu_chunk *chunk,
+ 				    unsigned int cpu, int page_idx)
+@@ -192,8 +193,8 @@ static void pcpu_post_unmap_tlb_flush(st
+ static int __pcpu_map_pages(unsigned long addr, struct page **pages,
+ 			    int nr_pages)
  {
---- a/mm/page_owner.c~mm-fix-typos-in-comments
-+++ a/mm/page_owner.c
-@@ -251,7 +251,7 @@ void __copy_page_owner(struct page *oldp
- 	/*
- 	 * We don't clear the bit on the oldpage as it's going to be freed
- 	 * after migration. Until then, the info can be useful in case of
--	 * a bug, and the overal stats will be off a bit only temporarily.
-+	 * a bug, and the overall stats will be off a bit only temporarily.
- 	 * Also, migrate_misplaced_transhuge_page() can still fail the
- 	 * migration and then we want the oldpage to retain the info. But
- 	 * in that case we also don't need to explicitly clear the info from
---- a/mm/page-writeback.c~mm-fix-typos-in-comments
-+++ a/mm/page-writeback.c
-@@ -1806,7 +1806,7 @@ pause:
- 			break;
- 
- 		/*
--		 * In the case of an unresponding NFS server and the NFS dirty
-+		 * In the case of an unresponsive NFS server and the NFS dirty
- 		 * pages exceeds dirty_thresh, give the other good wb's a pipe
- 		 * to go through, so that tasks on them still remain responsive.
- 		 *
-@@ -2216,7 +2216,7 @@ int write_cache_pages(struct address_spa
- 			 * Page truncated or invalidated. We can freely skip it
- 			 * then, even for data integrity operations: the page
- 			 * has disappeared concurrently, so there could be no
--			 * real expectation of this data interity operation
-+			 * real expectation of this data integrity operation
- 			 * even if there is now a new, dirty page at the same
- 			 * pagecache address.
- 			 */
---- a/mm/percpu.c~mm-fix-typos-in-comments
-+++ a/mm/percpu.c
-@@ -1862,7 +1862,7 @@ fail:
- 			pr_info("limit reached, disable warning\n");
- 	}
- 	if (is_atomic) {
--		/* see the flag handling in pcpu_blance_workfn() */
-+		/* see the flag handling in pcpu_balance_workfn() */
- 		pcpu_atomic_alloc_failed = true;
- 		pcpu_schedule_balance_work();
- 	} else {
---- a/mm/percpu-internal.h~mm-fix-typos-in-comments
-+++ a/mm/percpu-internal.h
-@@ -170,7 +170,7 @@ struct percpu_stats {
- 	u64 nr_max_alloc;	/* max # of live allocations */
- 	u32 nr_chunks;		/* current # of live chunks */
- 	u32 nr_max_chunks;	/* max # of live chunks */
--	size_t min_alloc_size;	/* min allocaiton size */
-+	size_t min_alloc_size;	/* min allocation size */
- 	size_t max_alloc_size;	/* max allocation size */
- };
- 
---- a/mm/pgalloc-track.h~mm-fix-typos-in-comments
-+++ a/mm/pgalloc-track.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _LINUX_PGALLLC_TRACK_H
--#define _LINUX_PGALLLC_TRACK_H
-+#ifndef _LINUX_PGALLOC_TRACK_H
-+#define _LINUX_PGALLOC_TRACK_H
- 
- #if defined(CONFIG_MMU)
- static inline p4d_t *p4d_alloc_track(struct mm_struct *mm, pgd_t *pgd,
-@@ -48,4 +48,4 @@ static inline pmd_t *pmd_alloc_track(str
- 	  (__pte_alloc_kernel(pmd) || ({*(mask)|=PGTBL_PMD_MODIFIED;0;})))?\
- 		NULL: pte_offset_kernel(pmd, address))
- 
--#endif /* _LINUX_PGALLLC_TRACK_H */
-+#endif /* _LINUX_PGALLOC_TRACK_H */
---- a/mm/slab.c~mm-fix-typos-in-comments
-+++ a/mm/slab.c
-@@ -259,7 +259,7 @@ static void kmem_cache_node_init(struct
- 
- #define BATCHREFILL_LIMIT	16
- /*
-- * Optimization question: fewer reaps means less probability for unnessary
-+ * Optimization question: fewer reaps means less probability for unnecessary
-  * cpucache drain/refill cycles.
-  *
-  * OTOH the cpuarrays can contain lots of objects,
-@@ -2381,8 +2381,8 @@ union freelist_init_state {
- };
- 
- /*
-- * Initialize the state based on the randomization methode available.
-- * return true if the pre-computed list is available, false otherwize.
-+ * Initialize the state based on the randomization method available.
-+ * return true if the pre-computed list is available, false otherwise.
-  */
- static bool freelist_state_initialize(union freelist_init_state *state,
- 				struct kmem_cache *cachep,
---- a/mm/slub.c~mm-fix-typos-in-comments
-+++ a/mm/slub.c
-@@ -3388,7 +3388,7 @@ EXPORT_SYMBOL(kmem_cache_alloc_bulk);
-  */
- 
- /*
-- * Mininum / Maximum order of slab pages. This influences locking overhead
-+ * Minimum / Maximum order of slab pages. This influences locking overhead
-  * and slab fragmentation. A higher order reduces the number of partial slabs
-  * and increases the number of allocations possible without having to
-  * take the list_lock.
---- a/mm/swap_slots.c~mm-fix-typos-in-comments
-+++ a/mm/swap_slots.c
-@@ -16,7 +16,7 @@
-  * to local caches without needing to acquire swap_info
-  * lock.  We do not reuse the returned slots directly but
-  * move them back to the global pool in a batch.  This
-- * allows the slots to coaellesce and reduce fragmentation.
-+ * allows the slots to coalesce and reduce fragmentation.
-  *
-  * The swap entry allocated is marked with SWAP_HAS_CACHE
-  * flag in map_count that prevents it from being allocated
---- a/mm/swap_state.c~mm-fix-typos-in-comments
-+++ a/mm/swap_state.c
-@@ -792,7 +792,7 @@ static void swap_ra_info(struct vm_fault
-  *
-  * Returns the struct page for entry and addr, after queueing swapin.
-  *
-- * Primitive swap readahead code. We simply read in a few pages whoes
-+ * Primitive swap readahead code. We simply read in a few pages whose
-  * virtual addresses are around the fault address in the same vma.
-  *
-  * Caller must hold read mmap_lock if vmf->vma is not NULL.
---- a/mm/vmalloc.c~mm-fix-typos-in-comments
+-	return map_kernel_range_noflush(addr, nr_pages << PAGE_SHIFT,
+-					PAGE_KERNEL, pages);
++	return vmap_pages_range_noflush(addr, addr + (nr_pages << PAGE_SHIFT),
++					PAGE_KERNEL, pages, PAGE_SHIFT);
+ }
+=20
+ /**
+--- a/mm/vmalloc.c~mm-vmalloc-remove-map_kernel_range
 +++ a/mm/vmalloc.c
-@@ -1589,7 +1589,7 @@ static unsigned long lazy_max_pages(void
- static atomic_long_t vmap_lazy_nr = ATOMIC_LONG_INIT(0);
- 
- /*
-- * Serialize vmap purging.  There is no actual criticial section protected
-+ * Serialize vmap purging.  There is no actual critical section protected
-  * by this look, but we want to avoid concurrent calls for performance
-  * reasons and to make the pcpu_get_vm_areas more deterministic.
-  */
-@@ -2649,7 +2649,7 @@ static void __vfree(const void *addr)
-  * May sleep if called *not* from interrupt context.
-  * Must not be called in NMI context (strictly speaking, it could be
-  * if we have CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG, but making the calling
-- * conventions for vfree() arch-depenedent would be a really bad idea).
-+ * conventions for vfree() arch-dependent would be a really bad idea).
-  */
- void vfree(const void *addr)
+@@ -523,7 +523,16 @@ static int vmap_small_pages_range_noflus
+ 	return 0;
+ }
+=20
+-static int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
++/*
++ * vmap_pages_range_noflush is similar to vmap_pages_range, but does not
++ * flush caches.
++ *
++ * The caller is responsible for calling flush_cache_vmap() after this
++ * function returns successfully and before the addresses are accessed.
++ *
++ * This is an internal function only. Do not use outside mm/.
++ */
++int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+ 		pgprot_t prot, struct page **pages, unsigned int page_shift)
  {
-@@ -3146,7 +3146,7 @@ static int aligned_vread(char *buf, char
- 		/*
- 		 * To do safe access to this _mapped_ area, we need
- 		 * lock. But adding lock here means that we need to add
--		 * overhead of vmalloc()/vfree() calles for this _debug_
-+		 * overhead of vmalloc()/vfree() calls for this _debug_
- 		 * interface, rarely used. Instead of that, we'll use
- 		 * kmap() and get small overhead in this access function.
- 		 */
---- a/mm/vmstat.c~mm-fix-typos-in-comments
-+++ a/mm/vmstat.c
-@@ -934,7 +934,7 @@ void cpu_vm_stats_fold(int cpu)
- 
- /*
-  * this is only called if !populated_zone(zone), which implies no other users of
-- * pset->vm_stat_diff[] exsist.
-+ * pset->vm_stat_diff[] exist.
-  */
- void drain_zonestat(struct zone *zone, struct per_cpu_pageset *pset)
- {
---- a/mm/zpool.c~mm-fix-typos-in-comments
-+++ a/mm/zpool.c
-@@ -336,7 +336,7 @@ int zpool_shrink(struct zpool *zpool, un
-  * This may hold locks, disable interrupts, and/or preemption,
-  * and the zpool_unmap_handle() must be called to undo those
-  * actions.  The code that uses the mapped handle should complete
-- * its operatons on the mapped handle memory quickly and unmap
-+ * its operations on the mapped handle memory quickly and unmap
-  * as soon as possible.  As the implementation may use per-cpu
-  * data, multiple handles should not be mapped concurrently on
-  * any cpu.
---- a/mm/zsmalloc.c~mm-fix-typos-in-comments
-+++ a/mm/zsmalloc.c
-@@ -1227,7 +1227,7 @@ EXPORT_SYMBOL_GPL(zs_get_total_pages);
-  * zs_map_object - get address of allocated object from handle.
-  * @pool: pool from which the object was allocated
-  * @handle: handle returned from zs_malloc
-- * @mm: maping mode to use
-+ * @mm: mapping mode to use
+ 	unsigned int i, nr =3D (end - addr) >> PAGE_SHIFT;
+@@ -549,48 +558,26 @@ static int vmap_pages_range_noflush(unsi
+ 	return 0;
+ }
+=20
+-static int vmap_pages_range(unsigned long addr, unsigned long end,
+-		pgprot_t prot, struct page **pages, unsigned int page_shift)
+-{
+-	int err;
+-
+-	err =3D vmap_pages_range_noflush(addr, end, prot, pages, page_shift);
+-	flush_cache_vmap(addr, end);
+-	return err;
+-}
+-
+ /**
+- * map_kernel_range_noflush - map kernel VM area with the specified pages
++ * vmap_pages_range - map pages to a kernel virtual address
+  * @addr: start of the VM area to map
+- * @size: size of the VM area to map
++ * @end: end of the VM area to map (non-inclusive)
+  * @prot: page protection flags to use
+- * @pages: pages to map
+- *
+- * Map PFN_UP(@size) pages at @addr.  The VM area @addr and @size specify =
+should
+- * have been allocated using get_vm_area() and its friends.
+- *
+- * NOTE:
+- * This function does NOT do any cache flushing.  The caller is responsibl=
+e for
+- * calling flush_cache_vmap() on to-be-mapped areas before calling this
+- * function.
++ * @pages: pages to map (always PAGE_SIZE pages)
++ * @page_shift: maximum shift that the pages may be mapped with, @pages mu=
+st
++ * be aligned and contiguous up to at least this shift.
   *
-  * Before using an object allocated from zs_malloc, it must be mapped using
-  * this function. When done with the object, it must be unmapped using
+  * RETURNS:
+  * 0 on success, -errno on failure.
+  */
+-int map_kernel_range_noflush(unsigned long addr, unsigned long size,
+-			     pgprot_t prot, struct page **pages)
+-{
+-	return vmap_pages_range_noflush(addr, addr + size, prot, pages, PAGE_SHIF=
+T);
+-}
+-
+-int map_kernel_range(unsigned long start, unsigned long size, pgprot_t pro=
+t,
+-		struct page **pages)
++static int vmap_pages_range(unsigned long addr, unsigned long end,
++		pgprot_t prot, struct page **pages, unsigned int page_shift)
+ {
+-	int ret;
++	int err;
+=20
+-	ret =3D map_kernel_range_noflush(start, size, prot, pages);
+-	flush_cache_vmap(start, start + size);
+-	return ret;
++	err =3D vmap_pages_range_noflush(addr, end, prot, pages, page_shift);
++	flush_cache_vmap(addr, end);
++	return err;
+ }
+=20
+ int is_vmalloc_or_module_addr(const void *x)
+@@ -2156,10 +2143,12 @@ void *vm_map_ram(struct page **pages, un
+=20
+ 	kasan_unpoison_vmalloc(mem, size);
+=20
+-	if (map_kernel_range(addr, size, PAGE_KERNEL, pages) < 0) {
++	if (vmap_pages_range(addr, addr + size, PAGE_KERNEL,
++				pages, PAGE_SHIFT) < 0) {
+ 		vm_unmap_ram(mem, count);
+ 		return NULL;
+ 	}
++
+ 	return mem;
+ }
+ EXPORT_SYMBOL(vm_map_ram);
+@@ -2703,6 +2692,7 @@ void *vmap(struct page **pages, unsigned
+ 	   unsigned long flags, pgprot_t prot)
+ {
+ 	struct vm_struct *area;
++	unsigned long addr;
+ 	unsigned long size;		/* In bytes */
+=20
+ 	might_sleep();
+@@ -2715,8 +2705,9 @@ void *vmap(struct page **pages, unsigned
+ 	if (!area)
+ 		return NULL;
+=20
+-	if (map_kernel_range((unsigned long)area->addr, size, pgprot_nx(prot),
+-			pages) < 0) {
++	addr =3D (unsigned long)area->addr;
++	if (vmap_pages_range(addr, addr + size, pgprot_nx(prot),
++				pages, PAGE_SHIFT) < 0) {
+ 		vunmap(area->addr);
+ 		return NULL;
+ 	}
 _
 
-Patches currently in -mm which might be from mingo@kernel.org are
+Patches currently in -mm which might be from npiggin@gmail.com are
 
-mm-fix-typos-in-comments.patch
+arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch
+mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_pa=
+ge.patch
+mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_pa=
+ge-fix.patch
+mm-apply_to_pte_range-warn-and-fail-if-a-large-pte-is-encountered.patch
+mm-vmalloc-rename-vmap__range-vmap_pages__range.patch
+mm-ioremap-rename-ioremap__range-to-vmap__range.patch
+mm-huge_vmap-arch-support-cleanup.patch
+powerpc-inline-huge-vmap-supported-functions.patch
+arm64-inline-huge-vmap-supported-functions.patch
+x86-inline-huge-vmap-supported-functions.patch
+mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions.patch
+mm-move-vmap_range-from-mm-ioremapc-to-mm-vmallocc.patch
+mm-vmalloc-add-vmap_range_noflush-variant.patch
+mm-vmalloc-hugepage-vmalloc-mappings.patch
+powerpc-64s-radix-enable-huge-vmalloc-mappings.patch
+mm-vmalloc-remove-map_kernel_range.patch
+kernel-dma-remove-unnecessary-unmap_kernel_range.patch
+powerpc-xive-remove-unnecessary-unmap_kernel_range.patch
+mm-vmalloc-remove-unmap_kernel_range.patch
+mm-vmalloc-improve-allocation-failure-error-messages.patch
 
