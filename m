@@ -7,38 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89821C433C1
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:58:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3731C433C1
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 20:21:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 339AE61951
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:58:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 687C961951
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 20:21:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229655AbhC1T6I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 15:58:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55316 "EHLO mail.kernel.org"
+        id S231425AbhC1UUq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 16:20:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59070 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229595AbhC1T5z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 15:57:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C788B601FD;
-        Sun, 28 Mar 2021 19:57:54 +0000 (UTC)
+        id S231367AbhC1UUf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 16:20:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B2FD06194A;
+        Sun, 28 Mar 2021 20:20:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616961475;
-        bh=g6jDVSYvhLjFLuAJeP9+hKYbG9M6JvNeF+sI64LYC9s=;
+        s=korg; t=1616962834;
+        bh=RhftaL4Me4aLa6vxLOoN3oIxsl9unpYcNSjlwQ4dgv8=;
         h=Date:From:To:Subject:From;
-        b=JcEhlAzpptX+17mIRQ+CrhQN5oruSB8RoYZpZreFonbHhHibUxsQRklOEt6uuXvyL
-         6AYh+byBHbFeHc+PvAdthVWH2K98h8L29Ku3/0PB4LpvRlOS3/gxyLBdcMd/tvBvwu
-         jXMFIS1BfwUnCRDv+ScKxJR9NMnM1pzoScGhEGVo=
-Date:   Sun, 28 Mar 2021 12:57:54 -0700
+        b=ySMzgihiCszLzQAOS59ZNGF8V6vxXGjUvAYtWT1C/m/adLRA5JwnQ6NPFF9eClAVS
+         KbqrjdA2yBXKVLyQ1hG4xg3b268sQMjkf9osstP5yMrrOgUaAKxo6roGUt9dEGIvnR
+         iQm3ioi0W0dEKlMKqhvotjFusAehHaHSiKDWUofU=
+Date:   Sun, 28 Mar 2021 13:20:34 -0700
 From:   akpm@linux-foundation.org
-To:     ast@kernel.org, hch@lst.de, m.szyprowski@samsung.com,
-        mm-commits@vger.kernel.org, paulmck@kernel.org,
-        peterz@infradead.org, rostedt@goodmis.org,
-        song.bao.hua@hisilicon.com, tglx@linutronix.de,
-        tiantao6@hisilicon.com
-Subject:  [nacked]
- dma-mapping-make-map_benchmark-compile-into-module.patch removed from -mm
- tree
-Message-ID: <20210328195754.8V1m6rWhF%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        unixbhaskar@gmail.com
+Subject:  + mm-slubc-trivial-typo-fixes.patch added to -mm tree
+Message-ID: <20210328202034.MnsV59Tz3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,63 +42,95 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-mapping: make map_benchmark compile into module
-has been removed from the -mm tree.  Its filename was
-     dma-mapping-make-map_benchmark-compile-into-module.patch
+     Subject: mm/slub.c: trivial typo fixes
+has been added to the -mm tree.  Its filename is
+     mm-slubc-trivial-typo-fixes.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slubc-trivial-typo-fixes.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slubc-trivial-typo-fixes.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Tian Tao <tiantao6@hisilicon.com>
-Subject: dma-mapping: make map_benchmark compile into module
+From: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Subject: mm/slub.c: trivial typo fixes
 
-Under some scenarios, it is necessary to compile map_benchmark into a
-module to test iommu, so this patch changes Kconfig and export_symbol to
-implement map_benchmark compiled into module.
+s/operatios/operations/
+s/Mininum/Minimum/
+s/mininum/minimum/  ......two different places.
 
-On the other hand, map_benchmark is a driver, which is supposed to be able
-to run as a module.
-
-Link: https://lkml.kernel.org/r/1616552258-22282-1-git-send-email-tiantao6@hisilicon.com
-Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
-Acked-by: Barry Song <song.bao.hua@hisilicon.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Link: https://lkml.kernel.org/r/20210325044940.14516-1-unixbhaskar@gmail.com
+Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/dma/Kconfig |    2 +-
- kernel/kthread.c   |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ mm/slub.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/kernel/dma/Kconfig~dma-mapping-make-map_benchmark-compile-into-module
-+++ a/kernel/dma/Kconfig
-@@ -223,7 +223,7 @@ config DMA_API_DEBUG_SG
- 	  If unsure, say N.
+--- a/mm/slub.c~mm-slubc-trivial-typo-fixes
++++ a/mm/slub.c
+@@ -3,7 +3,7 @@
+  * SLUB: A slab allocator that limits cache line use instead of queuing
+  * objects in per cpu and per node lists.
+  *
+- * The allocator synchronizes using per slab locks or atomic operatios
++ * The allocator synchronizes using per slab locks or atomic operations
+  * and only uses a centralized lock to manage a pool of partial slabs.
+  *
+  * (C) 2007 SGI, Christoph Lameter
+@@ -157,7 +157,7 @@ static inline bool kmem_cache_has_cpu_pa
+ #undef SLUB_DEBUG_CMPXCHG
  
- config DMA_MAP_BENCHMARK
--	bool "Enable benchmarking of streaming DMA mapping"
-+	tristate "Enable benchmarking of streaming DMA mapping"
- 	depends on DEBUG_FS
- 	help
- 	  Provides /sys/kernel/debug/dma_map_benchmark that helps with testing
---- a/kernel/kthread.c~dma-mapping-make-map_benchmark-compile-into-module
-+++ a/kernel/kthread.c
-@@ -455,6 +455,7 @@ void kthread_bind_mask(struct task_struc
- {
- 	__kthread_bind_mask(p, mask, TASK_UNINTERRUPTIBLE);
- }
-+EXPORT_SYMBOL(kthread_bind_mask);
- 
- /**
-  * kthread_bind - bind a just-created kthread to a cpu.
+ /*
+- * Mininum number of partial slabs. These will be left on the partial
++ * Minimum number of partial slabs. These will be left on the partial
+  * lists even if they are empty. kmem_cache_shrink may reclaim them.
+  */
+ #define MIN_PARTIAL 5
+@@ -829,7 +829,7 @@ static int check_bytes_and_report(struct
+  *
+  * 	A. Free pointer (if we cannot overwrite object on free)
+  * 	B. Tracking data for SLAB_STORE_USER
+- * 	C. Padding to reach required alignment boundary or at mininum
++ * 	C. Padding to reach required alignment boundary or at minimum
+  * 		one word if debugging is on to be able to detect writes
+  * 		before the word boundary.
+  *
+@@ -3418,7 +3418,7 @@ static unsigned int slub_min_objects;
+  *
+  * Higher order allocations also allow the placement of more objects in a
+  * slab and thereby reduce object handling overhead. If the user has
+- * requested a higher mininum order then we start with that one instead of
++ * requested a higher minimum order then we start with that one instead of
+  * the smallest order which will fit the object.
+  */
+ static inline unsigned int slab_order(unsigned int size,
 _
 
-Patches currently in -mm which might be from tiantao6@hisilicon.com are
+Patches currently in -mm which might be from unixbhaskar@gmail.com are
 
+ia64-kernel-few-typos-fixed-in-the-file-fsyss.patch
+ia64-include-asm-minor-typo-fixes-in-the-file-pgtableh.patch
+ocfs2-fix-a-typo.patch
+mm-slubc-trivial-typo-fixes.patch
+mm-kmemleak-fix-a-typo.patch
+mm-typo-fix-in-the-file-utilc.patch
+lib-fix-a-typo-in-the-file-bchc.patch
+lib-genallocc-fix-a-typo.patch
+ipc-semc-mundane-typo-fixes.patch
+mm-few-spelling-fixes.patch
+kernel-fix-a-typo-in-the-file-upc.patch
+ipc-semc-couple-of-spelling-fixes.patch
 
