@@ -7,35 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEB75C433E9
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:12:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17450C433C1
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:12:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9F03619CA
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:12:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE2D56197E
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:12:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231543AbhC1TLq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 15:11:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50114 "EHLO mail.kernel.org"
+        id S231604AbhC1TMP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 15:12:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50228 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231549AbhC1TLk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 15:11:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 21C016196E;
-        Sun, 28 Mar 2021 19:11:40 +0000 (UTC)
+        id S231586AbhC1TLp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 15:11:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6E22361958;
+        Sun, 28 Mar 2021 19:11:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616958700;
-        bh=rd+ECbWqFKPVcFb9bfXCrzWG1RHfDGM202gQqS4leI8=;
+        s=korg; t=1616958704;
+        bh=vBn3GFWUPM1yvyEZqog89jRYUymz8qXwY6TDU2GPZfE=;
         h=Date:From:To:Subject:From;
-        b=HHybwITblXZ9ZcYqBXKg8pYu+BE7l5cBv0KuaFRrzzSmO+KtFO1TBbRTJ8+uOKl6c
-         11vOqF4f0FmPvtGNZ2IrnDl4p4Fb4AsufJr277VQHs0EYr4AvB0l3xY6xVNb1AWV0I
-         MlUNif/ElF9qpwXGQkOXbWeVAC92atUX2nWwbcRI=
-Date:   Sun, 28 Mar 2021 12:11:39 -0700
+        b=iqCyVQFRWrMXbzZN6omPsMn5npElg+L65jOJveRInPihmpB70J8UiIar0mM7i8mmf
+         1I5UTvXzHxc96u9HyNDCAp7UTI8LM0saKlhFTZ/Yrdb+l9/hwW+/1eP3dZUSboLp1H
+         uc2FqmnrY2R5QtL3Hv7zp95TigMMRJjUuIxe0/WI=
+Date:   Sun, 28 Mar 2021 12:11:44 -0700
 From:   akpm@linux-foundation.org
-To:     chris@chris-wilson.co.uk, daniel.vetter@ffwll.ch, hch@lst.de,
-        jani.nikula@linux.intel.com, joonas.lahtinen@linux.intel.com,
-        mm-commits@vger.kernel.org, peterz@infradead.org,
-        rodrigo.vivi@intel.com
-Subject:  + i915-use-io_mapping_map_user.patch added to -mm tree
-Message-ID: <20210328191139.hIddViLWM%akpm@linux-foundation.org>
+To:     apopple@nvidia.com, dan.j.williams@intel.com,
+        daniel.vetter@ffwll.ch, david@redhat.com,
+        gregkh@linuxfoundation.org, jbarnes@virtuousgeek.org,
+        jglisse@redhat.com, jhubbard@nvidia.com, mm-commits@vger.kernel.org
+Subject:  +
+ kernel-resource-fix-locking-in-request_free_mem_region.patch added to -mm
+ tree
+Message-ID: <20210328191144.okUhn91YM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: i915: use io_mapping_map_user
+     Subject: kernel/resource: Fix locking in request_free_mem_region
 has been added to the -mm tree.  Its filename is
-     i915-use-io_mapping_map_user.patch
+     kernel-resource-fix-locking-in-request_free_mem_region.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/i915-use-io_mapping_map_user.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kernel-resource-fix-locking-in-request_free_mem_region.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/i915-use-io_mapping_map_user.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-resource-fix-locking-in-request_free_mem_region.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,138 +67,270 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: i915: use io_mapping_map_user
+From: Alistair Popple <apopple@nvidia.com>
+Subject: kernel/resource: Fix locking in request_free_mem_region
 
-Replace the home-grown remap_io_mapping that abuses apply_to_page_range
-with the proper io_mapping_map_user interface.
+request_free_mem_region() is used to find an empty range of physical
+addresses for hotplugging ZONE_DEVICE memory. It does this by iterating
+over the range of possible addresses using region_intersects() to see if
+the range is free.
 
-Link: https://lkml.kernel.org/r/20210326055505.1424432-4-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
+region_intersects() obtains a read lock before walking the resource tree
+to protect against concurrent changes. However it drops the lock prior
+to returning. This means by the time request_mem_region() is called in
+request_free_mem_region() another thread may have already reserved the
+requested region resulting in unexpected failures and a message in the
+kernel log from hitting this condition:
+
+        /*
+         * mm/hmm.c reserves physical addresses which then
+         * become unavailable to other users.  Conflicts are
+         * not expected.  Warn to aid debugging if encountered.
+         */
+        if (conflict->desc == IORES_DESC_DEVICE_PRIVATE_MEMORY) {
+                pr_warn("Unaddressable device %s %pR conflicts with %pR",
+                        conflict->name, conflict, res);
+
+To fix this create versions of region_intersects() and
+request_mem_region() that allow the caller to take the appropriate lock
+such that it may be held over the required calls.
+
+Instead of creating another version of devm_request_mem_region() that
+doesn't take the lock open-code it to allow the caller to pre-allocate
+the required memory prior to taking the lock.
+
+Link: https://lkml.kernel.org/r/20210326012035.3853-1-apopple@nvidia.com
+Fixes: 0c385190392d8 ("resource: add a not device managed request_free_mem_region variant")
+Fixes: 0092908d16c60 ("mm: factor out a devm_request_free_mem_region helper")
+Fixes: 4ef589dc9b10c ("mm/hmm/devmem: device memory hotplug using ZONE_DEVICE")
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/Kconfig             |    1 
- drivers/gpu/drm/i915/gem/i915_gem_mman.c |    9 +---
- drivers/gpu/drm/i915/i915_drv.h          |    3 -
- drivers/gpu/drm/i915/i915_mm.c           |   44 ---------------------
- 4 files changed, 5 insertions(+), 52 deletions(-)
+ kernel/resource.c |  146 ++++++++++++++++++++++++++++----------------
+ 1 file changed, 94 insertions(+), 52 deletions(-)
 
---- a/drivers/gpu/drm/i915/gem/i915_gem_mman.c~i915-use-io_mapping_map_user
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_mman.c
-@@ -363,11 +363,10 @@ retry:
- 		goto err_unpin;
+--- a/kernel/resource.c~kernel-resource-fix-locking-in-request_free_mem_region
++++ a/kernel/resource.c
+@@ -523,6 +523,34 @@ int __weak page_is_ram(unsigned long pfn
+ }
+ EXPORT_SYMBOL_GPL(page_is_ram);
  
- 	/* Finally, remap it using the new GTT offset */
--	ret = remap_io_mapping(area,
--			       area->vm_start + (vma->ggtt_view.partial.offset << PAGE_SHIFT),
--			       (ggtt->gmadr.start + vma->node.start) >> PAGE_SHIFT,
--			       min_t(u64, vma->size, area->vm_end - area->vm_start),
--			       &ggtt->iomap);
-+	ret = io_mapping_map_user(&ggtt->iomap, area, area->vm_start +
-+			(vma->ggtt_view.partial.offset << PAGE_SHIFT),
-+			(ggtt->gmadr.start + vma->node.start) >> PAGE_SHIFT,
-+			min_t(u64, vma->size, area->vm_end - area->vm_start));
- 	if (ret)
- 		goto err_fence;
- 
---- a/drivers/gpu/drm/i915/i915_drv.h~i915-use-io_mapping_map_user
-+++ a/drivers/gpu/drm/i915/i915_drv.h
-@@ -1973,9 +1973,6 @@ int i915_reg_read_ioctl(struct drm_devic
- 			struct drm_file *file);
- 
- /* i915_mm.c */
--int remap_io_mapping(struct vm_area_struct *vma,
--		     unsigned long addr, unsigned long pfn, unsigned long size,
--		     struct io_mapping *iomap);
- int remap_io_sg(struct vm_area_struct *vma,
- 		unsigned long addr, unsigned long size,
- 		struct scatterlist *sgl, resource_size_t iobase);
---- a/drivers/gpu/drm/i915/i915_mm.c~i915-use-io_mapping_map_user
-+++ a/drivers/gpu/drm/i915/i915_mm.c
-@@ -37,17 +37,6 @@ struct remap_pfn {
- 	resource_size_t iobase;
- };
- 
--static int remap_pfn(pte_t *pte, unsigned long addr, void *data)
--{
--	struct remap_pfn *r = data;
++static int __region_intersects(resource_size_t start, size_t size,
++			       unsigned long flags, unsigned long desc)
++{
++	struct resource res;
++	int type = 0; int other = 0;
++	struct resource *p;
++
++	res.start = start;
++	res.end = start + size - 1;
++
++	for (p = iomem_resource.child; p ; p = p->sibling) {
++		bool is_type = (((p->flags & flags) == flags) &&
++				((desc == IORES_DESC_NONE) ||
++				 (desc == p->desc)));
++
++		if (resource_overlaps(p, &res))
++			is_type ? type++ : other++;
++	}
++
++	if (type == 0)
++		return REGION_DISJOINT;
++
++	if (other == 0)
++		return REGION_INTERSECTS;
++
++	return REGION_MIXED;
++}
++
+ /**
+  * region_intersects() - determine intersection of region with known resources
+  * @start: region start address
+@@ -546,31 +574,12 @@ EXPORT_SYMBOL_GPL(page_is_ram);
+ int region_intersects(resource_size_t start, size_t size, unsigned long flags,
+ 		      unsigned long desc)
+ {
+-	struct resource res;
+-	int type = 0; int other = 0;
+-	struct resource *p;
 -
--	/* Special PTE are not associated with any struct page */
--	set_pte_at(r->mm, addr, pte, pte_mkspecial(pfn_pte(r->pfn, r->prot)));
--	r->pfn++;
--
--	return 0;
--}
--
- #define use_dma(io) ((io) != -1)
+-	res.start = start;
+-	res.end = start + size - 1;
++	int rc;
  
- static inline unsigned long sgt_pfn(const struct remap_pfn *r)
-@@ -77,40 +66,7 @@ static int remap_sg(pte_t *pte, unsigned
- 	return 0;
+ 	read_lock(&resource_lock);
+-	for (p = iomem_resource.child; p ; p = p->sibling) {
+-		bool is_type = (((p->flags & flags) == flags) &&
+-				((desc == IORES_DESC_NONE) ||
+-				 (desc == p->desc)));
+-
+-		if (resource_overlaps(p, &res))
+-			is_type ? type++ : other++;
+-	}
++	rc = __region_intersects(start, size, flags, desc);
+ 	read_unlock(&resource_lock);
+-
+-	if (type == 0)
+-		return REGION_DISJOINT;
+-
+-	if (other == 0)
+-		return REGION_INTERSECTS;
+-
+-	return REGION_MIXED;
++	return rc;
+ }
+ EXPORT_SYMBOL_GPL(region_intersects);
+ 
+@@ -1171,31 +1180,17 @@ struct address_space *iomem_get_mapping(
+ 	return smp_load_acquire(&iomem_inode)->i_mapping;
  }
  
 -/**
-- * remap_io_mapping - remap an IO mapping to userspace
-- * @vma: user vma to map to
-- * @addr: target user address to start at
-- * @pfn: physical address of kernel memory
-- * @size: size of map area
-- * @iomap: the source io_mapping
-- *
-- *  Note: this is only safe if the mm semaphore is held when called.
+- * __request_region - create a new busy resource region
+- * @parent: parent resource descriptor
+- * @start: resource start address
+- * @n: resource region size
+- * @name: reserving caller's ID string
+- * @flags: IO resource flags
 - */
--int remap_io_mapping(struct vm_area_struct *vma,
--		     unsigned long addr, unsigned long pfn, unsigned long size,
--		     struct io_mapping *iomap)
--{
--	struct remap_pfn r;
--	int err;
+-struct resource * __request_region(struct resource *parent,
+-				   resource_size_t start, resource_size_t n,
+-				   const char *name, int flags)
++static bool request_region_locked(struct resource *parent,
++				    struct resource *res, resource_size_t start,
++				    resource_size_t n, const char *name, int flags)
+ {
+-	DECLARE_WAITQUEUE(wait, current);
+-	struct resource *res = alloc_resource(GFP_KERNEL);
+ 	struct resource *orig_parent = parent;
 -
- #define EXPECTED_FLAGS (VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP)
--	GEM_BUG_ON((vma->vm_flags & EXPECTED_FLAGS) != EXPECTED_FLAGS);
--
--	/* We rely on prevalidation of the io-mapping to skip track_pfn(). */
--	r.mm = vma->vm_mm;
--	r.pfn = pfn;
--	r.prot = __pgprot((pgprot_val(iomap->prot) & _PAGE_CACHE_MASK) |
--			  (pgprot_val(vma->vm_page_prot) & ~_PAGE_CACHE_MASK));
--
--	err = apply_to_page_range(r.mm, addr, size, remap_pfn, &r);
--	if (unlikely(err)) {
--		zap_vma_ptes(vma, addr, (r.pfn - pfn) << PAGE_SHIFT);
--		return err;
--	}
--
--	return 0;
--}
+-	if (!res)
+-		return NULL;
++	DECLARE_WAITQUEUE(wait, current);
  
- /**
-  * remap_io_sg - remap an IO mapping to userspace
---- a/drivers/gpu/drm/i915/Kconfig~i915-use-io_mapping_map_user
-+++ a/drivers/gpu/drm/i915/Kconfig
-@@ -20,6 +20,7 @@ config DRM_I915
- 	select INPUT if ACPI
- 	select ACPI_VIDEO if ACPI
- 	select ACPI_BUTTON if ACPI
-+	select IO_MAPPING
- 	select SYNC_FILE
- 	select IOSF_MBI
- 	select CRC32
+ 	res->name = name;
+ 	res->start = start;
+ 	res->end = start + n - 1;
+ 
+-	write_lock(&resource_lock);
+-
+ 	for (;;) {
+ 		struct resource *conflict;
+ 
+@@ -1230,16 +1225,39 @@ struct resource * __request_region(struc
+ 			write_lock(&resource_lock);
+ 			continue;
+ 		}
+-		/* Uhhuh, that didn't work out.. */
+-		free_resource(res);
+-		res = NULL;
+-		break;
++		return false;
+ 	}
+-	write_unlock(&resource_lock);
+ 
+ 	if (res && orig_parent == &iomem_resource)
+ 		revoke_iomem(res);
+ 
++	return true;
++}
++
++/**
++ * __request_region - create a new busy resource region
++ * @parent: parent resource descriptor
++ * @start: resource start address
++ * @n: resource region size
++ * @name: reserving caller's ID string
++ * @flags: IO resource flags
++ */
++struct resource *__request_region(struct resource *parent,
++				  resource_size_t start, resource_size_t n,
++				  const char *name, int flags)
++{
++	struct resource *res = alloc_resource(GFP_KERNEL);
++
++	if (!res)
++		return NULL;
++
++	write_lock(&resource_lock);
++	if (!request_region_locked(parent, res, start, n, name, flags)) {
++		/* Uhhuh, that didn't work out.. */
++		free_resource(res);
++		res = NULL;
++	}
++	write_unlock(&resource_lock);
+ 	return res;
+ }
+ EXPORT_SYMBOL(__request_region);
+@@ -1779,26 +1797,50 @@ static struct resource *__request_free_m
+ {
+ 	resource_size_t end, addr;
+ 	struct resource *res;
++	struct region_devres *dr = NULL;
++
++	res = alloc_resource(GFP_KERNEL);
++	if (!res)
++		return ERR_PTR(-ENOMEM);
++
++	if (dev) {
++		dr = devres_alloc(devm_region_release, sizeof(struct region_devres),
++				  GFP_KERNEL);
++		if (!dr) {
++			free_resource(res);
++			return ERR_PTR(-ENOMEM);
++		}
++	}
+ 
+ 	size = ALIGN(size, 1UL << PA_SECTION_SHIFT);
+ 	end = min_t(unsigned long, base->end, (1UL << MAX_PHYSMEM_BITS) - 1);
+ 	addr = end - size + 1UL;
+ 
++	write_lock(&resource_lock);
+ 	for (; addr > size && addr >= base->start; addr -= size) {
+-		if (region_intersects(addr, size, 0, IORES_DESC_NONE) !=
++		if (__region_intersects(addr, size, 0, IORES_DESC_NONE) !=
+ 				REGION_DISJOINT)
+ 			continue;
+ 
+-		if (dev)
+-			res = devm_request_mem_region(dev, addr, size, name);
+-		else
+-			res = request_mem_region(addr, size, name);
+-		if (!res)
+-			return ERR_PTR(-ENOMEM);
++		if (!request_region_locked(&iomem_resource, res, addr,
++						   size, name, 0))
++			break;
++
+ 		res->desc = IORES_DESC_DEVICE_PRIVATE_MEMORY;
++		if (dev) {
++			dr->parent = &iomem_resource;
++			dr->start = addr;
++			dr->n = size;
++			devres_add(dev, dr);
++		}
++
++		write_unlock(&resource_lock);
+ 		return res;
+ 	}
+ 
++	write_unlock(&resource_lock);
++	free_resource(res);
++
+ 	return ERR_PTR(-ERANGE);
+ }
+ 
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-mm-add-remap_pfn_range_notrack.patch
-mm-add-a-io_mapping_map_user-helper.patch
-i915-use-io_mapping_map_user.patch
-i915-fix-remap_io_sg-to-verify-the-pgprot.patch
-samples-vfio-mdev-mdpy-use-remap_vmalloc_range.patch
-mm-unexport-remap_vmalloc_range_partial.patch
+kernel-resource-fix-locking-in-request_free_mem_region.patch
 
