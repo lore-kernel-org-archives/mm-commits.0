@@ -7,34 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D593C433DB
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:29:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EAA0C433E2
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:30:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30E9261942
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:29:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65BF16196E
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:30:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231146AbhC1V23 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 17:28:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46788 "EHLO mail.kernel.org"
+        id S231446AbhC1V3d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 17:29:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229656AbhC1V15 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 17:27:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B873461945;
-        Sun, 28 Mar 2021 21:27:56 +0000 (UTC)
+        id S231366AbhC1V3a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 17:29:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A8FC161948;
+        Sun, 28 Mar 2021 21:29:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616966876;
-        bh=5JHnsLp+jbX/4+WoYfnBGbwi5hdOHMX+tQDmB7XPn1w=;
+        s=korg; t=1616966969;
+        bh=3vQsP3OTtmWD6ED+jHMCVABEzc/16FQKpVH58wNga8I=;
         h=Date:From:To:Subject:From;
-        b=GL6kmSu9C0wKhP6axG8Vcc/9KeLphlcwd3hXafo1LD6o6FPwZIWfXSlxH3mR8BI+u
-         WNXPOMCPu+mUS5O2pQJW5ZueKqZ39Q03L5MfU0wVBEJrqPy+yELora4zWJaIytBRdp
-         eXwzIsU2dQ79VAGH3G7JQBKvBnkCzrR5cg/OTecs=
-Date:   Sun, 28 Mar 2021 14:27:56 -0700
+        b=FE4MmF45blPwquoNik+vBJFz7JPL9nU5fdTQDlxrVex8C6iUQp7oP7LY6CYH4ij7+
+         NsguTafFM/t2+u/QydU8AdWJ0+Qiw1Ao7+YuqcwYX2AwwA9JGjm47I0Sdo/XmvfXi9
+         afpr2gx3VcXoMuVHcDxi48kkqdm8AThle9gxiZuo=
+Date:   Sun, 28 Mar 2021 14:29:29 -0700
 From:   akpm@linux-foundation.org
 To:     glaubitz@physik.fu-berlin.de, mm-commits@vger.kernel.org
-Subject:  +
- ia64-tools-remove-inclusion-of-ia64-specific-version-of-errnoh-header.patch
- added to -mm tree
-Message-ID: <20210328212756.yO29CNAbR%akpm@linux-foundation.org>
+Subject:  + x.patch added to -mm tree
+Message-ID: <20210328212929.ugThykiOp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: tools: remove inclusion of ia64-specific version of errno.h header
+     Subject: ia64: tools: remove duplicate definition of ia64_mf() on ia64
 has been added to the -mm tree.  Its filename is
-     ia64-tools-remove-inclusion-of-ia64-specific-version-of-errnoh-header.patch
+     x.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ia64-tools-remove-inclusion-of-ia64-specific-version-of-errnoh-header.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-tools-remove-inclusion-of-ia64-specific-version-of-errnoh-header.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,46 +62,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Paul Adrian Glaubitz <glaubitz () physik ! fu-berlin ! de>
-Subject: ia64: tools: remove inclusion of ia64-specific version of errno.h header
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Subject: ia64: tools: remove duplicate definition of ia64_mf() on ia64
 
-There is no longer an ia64-specific version of the errno.h header below
-arch/ia64/include/uapi/asm/, so trying to build tools/bpf fails with:
+The ia64_mf() macro defined in tools/arch/ia64/include/asm/barrier.h is
+already defined in <asm/gcc_intrin.h> on ia64 which causes libbpf failing
+to build:
 
-  CC       /usr/src/linux/tools/bpf/bpftool/btf_dumper.o
-In file included from /usr/src/linux/tools/include/linux/err.h:8,
-                 from btf_dumper.c:11:
-/usr/src/linux/tools/include/uapi/asm/errno.h:13:10: fatal error: ../../../arch/ia64/include/uapi/asm/errno.h: No such file or directory
-   13 | #include "../../../arch/ia64/include/uapi/asm/errno.h"
-      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-compilation terminated.
+  CC       /usr/src/linux/tools/bpf/bpftool//libbpf/staticobjs/libbpf.o
+In file included from /usr/src/linux/tools/include/asm/barrier.h:24,
+                 from /usr/src/linux/tools/include/linux/ring_buffer.h:4,
+                 from libbpf.c:37:
+/usr/src/linux/tools/include/asm/../../arch/ia64/include/asm/barrier.h:43: error: "ia64_mf" redefined [-Werror]
+   43 | #define ia64_mf()       asm volatile ("mf" ::: "memory")
+      |
+In file included from /usr/include/ia64-linux-gnu/asm/intrinsics.h:20,
+                 from /usr/include/ia64-linux-gnu/asm/swab.h:11,
+                 from /usr/include/linux/swab.h:8,
+                 from /usr/include/linux/byteorder/little_endian.h:13,
+                 from /usr/include/ia64-linux-gnu/asm/byteorder.h:5,
+                 from /usr/src/linux/tools/include/uapi/linux/perf_event.h:20,
+                 from libbpf.c:36:
+/usr/include/ia64-linux-gnu/asm/gcc_intrin.h:382: note: this is the location of the previous definition
+  382 | #define ia64_mf() __asm__ volatile ("mf" ::: "memory")
+      |
+cc1: all warnings being treated as errors
 
-Thus, just remove the inclusion of the ia64-specific errno.h so that
-the build will use the generic errno.h header on this target which was
-used there anyway as the ia64-specific errno.h was just a wrapper for
-the generic header.
+Thus, remove the definition from tools/arch/ia64/include/asm/barrier.h.
 
-Fixes: c25f867ddd00 ("ia64: remove unneeded uapi asm-generic wrappers")
 Signed-off-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/uapi/asm/errno.h |    2 --
- 1 file changed, 2 deletions(-)
+ tools/arch/ia64/include/asm/barrier.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/tools/include/uapi/asm/errno.h~ia64-tools-remove-inclusion-of-ia64-specific-version-of-errnoh-header
-+++ a/tools/include/uapi/asm/errno.h
-@@ -9,8 +9,6 @@
- #include "../../../arch/alpha/include/uapi/asm/errno.h"
- #elif defined(__mips__)
- #include "../../../arch/mips/include/uapi/asm/errno.h"
--#elif defined(__ia64__)
--#include "../../../arch/ia64/include/uapi/asm/errno.h"
- #elif defined(__xtensa__)
- #include "../../../arch/xtensa/include/uapi/asm/errno.h"
- #else
+--- a/tools/arch/ia64/include/asm/barrier.h~x
++++ a/tools/arch/ia64/include/asm/barrier.h
+@@ -39,9 +39,6 @@
+  * sequential memory pages only.
+  */
+ 
+-/* XXX From arch/ia64/include/uapi/asm/gcc_intrin.h */
+-#define ia64_mf()       asm volatile ("mf" ::: "memory")
+-
+ #define mb()		ia64_mf()
+ #define rmb()		mb()
+ #define wmb()		mb()
 _
 
 Patches currently in -mm which might be from glaubitz@physik.fu-berlin.de are
 
+x.patch
 
