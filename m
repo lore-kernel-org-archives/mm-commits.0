@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B570DC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8676C433E0
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:06:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8BF6661969
+	by mail.kernel.org (Postfix) with ESMTP id 75FFB6195D
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:06:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231565AbhC1WFv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 18:05:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38860 "EHLO mail.kernel.org"
+        id S231546AbhC1WFu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 18:05:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38674 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231176AbhC1WF1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 18:05:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D9C9A6195E;
-        Sun, 28 Mar 2021 22:05:26 +0000 (UTC)
+        id S230184AbhC1WFT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 18:05:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D619F6195F;
+        Sun, 28 Mar 2021 22:05:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616969127;
-        bh=FfwK4gntE2sOnmYbohxMv+B9QFt3WpVNzWwmNnMCXpk=;
+        s=korg; t=1616969118;
+        bh=URHAgUfnAHrTx2lsiUQ7TjTNU8ibf05157T9pK/EZgQ=;
         h=Date:From:To:Subject:From;
-        b=wo3hmRA0FT55iNXDe8lgAMCRe33rgJBXEz2kpDUqnYqJFLbP4llH7iIj2PJddAtD5
-         pibZmf5Nl3xh9n3QwBSe7pZ+YPKa55n4DtTUEyPJRQoEcnGlIWs3ZtDlhUAmbN8Z02
-         1F+bm2g4aq/n9+j8mBMMrZF+qnNDAxQl5KzKvvWE=
-Date:   Sun, 28 Mar 2021 15:05:26 -0700
+        b=C8qA85EJrBh7ITxgXpwH25TtCIPbxPISnN7mz75/1Z6K35gpDaq+tZHvLwW8OC70u
+         B58htai5xVw2Rihn9EIy1Ci8Ak3Y5/4dDjpIaMxcbIYLISeJpXl2JoU/uo1DZtLVKO
+         9bBiWD1eZISKqV7MdA0zPk4XW2VAOLcF1NCoOZBU=
+Date:   Sun, 28 Mar 2021 15:05:17 -0700
 From:   akpm@linux-foundation.org
 To:     clg@kaod.org, hch@lst.de, mm-commits@vger.kernel.org,
         npiggin@gmail.com, urezki@gmail.com
-Subject:  +
- mm-vmalloc-improve-allocation-failure-error-messages.patch added to -mm
- tree
-Message-ID: <20210328220526.dcy4k9U0m%akpm@linux-foundation.org>
+Subject:  + kernel-dma-remove-unnecessary-unmap_kernel_range.patch
+ added to -mm tree
+Message-ID: <20210328220517.J31wwUmBY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -47,16 +46,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: improve allocation failure error messages
+     Subject: kernel/dma: remove unnecessary unmap_kernel_range
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-improve-allocation-failure-error-messages.patch
+     kernel-dma-remove-unnecessary-unmap_kernel_range.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-improve-allocation=
--failure-error-messages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kernel-dma-remove-unnecessary=
+-unmap_kernel_range.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-improve-allocation=
--failure-error-messages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-dma-remove-unnecessary=
+-unmap_kernel_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,16 +71,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Nicholas Piggin <npiggin@gmail.com>
-Subject: mm/vmalloc: improve allocation failure error messages
+Subject: kernel/dma: remove unnecessary unmap_kernel_range
 
-There are several reasons why a vmalloc can fail, virtual space exhausted,
-page array allocation failure, page allocation failure, and kernel page
-table allocation failure.
+vunmap will remove ptes.
 
-Add distinct warning messages for the main causes of failure, with some
-added information like page order or allocation size where applicable.
-
-Link: https://lkml.kernel.org/r/20210322021806.892164-6-npiggin@gmail.com
+Link: https://lkml.kernel.org/r/20210322021806.892164-3-npiggin@gmail.com
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: C=C3=A9dric Le Goater <clg@kaod.org>
@@ -89,99 +83,18 @@ Cc: Uladzislau Rezki <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   40 +++++++++++++++++++++++++++-------------
- 1 file changed, 27 insertions(+), 13 deletions(-)
+ kernel/dma/remap.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-improve-allocation-failure-error-messages
-+++ a/mm/vmalloc.c
-@@ -2790,6 +2790,10 @@ static void *__vmalloc_area_node(struct
-=20
- 	if (!pages) {
- 		free_vm_area(area);
-+		warn_alloc(gfp_mask, NULL,
-+			   "vmalloc size %lu allocation failure: "
-+			   "page array size %lu allocation failed",
-+			   area->nr_pages * PAGE_SIZE, array_size);
- 		return NULL;
+--- a/kernel/dma/remap.c~kernel-dma-remove-unnecessary-unmap_kernel_range
++++ a/kernel/dma/remap.c
+@@ -66,6 +66,5 @@ void dma_common_free_remap(void *cpu_add
+ 		return;
  	}
 =20
-@@ -2814,6 +2818,10 @@ static void *__vmalloc_area_node(struct
- 			/* Successfully allocated i pages, free them in __vfree() */
- 			area->nr_pages =3D i;
- 			atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
-+			warn_alloc(gfp_mask, NULL,
-+				   "vmalloc size %lu allocation failure: "
-+				   "page order %u allocation failed",
-+				   area->nr_pages * PAGE_SIZE, page_order);
- 			goto fail;
- 		}
-=20
-@@ -2825,15 +2833,17 @@ static void *__vmalloc_area_node(struct
- 	}
- 	atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
-=20
--	if (vmap_pages_range(addr, addr + size, prot, pages, page_shift) < 0)
-+	if (vmap_pages_range(addr, addr + size, prot, pages, page_shift) < 0) {
-+		warn_alloc(gfp_mask, NULL,
-+			   "vmalloc size %lu allocation failure: "
-+			   "failed to map pages",
-+			   area->nr_pages * PAGE_SIZE);
- 		goto fail;
-+	}
-=20
- 	return area->addr;
-=20
- fail:
--	warn_alloc(gfp_mask, NULL,
--			  "vmalloc: allocation failure, allocated %ld of %ld bytes",
--			  (area->nr_pages*PAGE_SIZE), size);
- 	__vfree(area->addr);
- 	return NULL;
+-	unmap_kernel_range((unsigned long)cpu_addr, PAGE_ALIGN(size));
+ 	vunmap(cpu_addr);
  }
-@@ -2867,9 +2877,14 @@ void *__vmalloc_node_range(unsigned long
- 	unsigned long real_align =3D align;
- 	unsigned int shift =3D PAGE_SHIFT;
-=20
--	if (!size || (size >> PAGE_SHIFT) > totalram_pages()) {
--		area =3D NULL;
--		goto fail;
-+	if (WARN_ON_ONCE(!size))
-+		return NULL;
-+
-+	if ((size >> PAGE_SHIFT) > totalram_pages()) {
-+		warn_alloc(gfp_mask, NULL,
-+			   "vmalloc size %lu allocation failure: "
-+			   "exceeds total pages", real_size);
-+		return NULL;
- 	}
-=20
- 	if (vmap_allow_huge && !(vm_flags & VM_NO_HUGE_VMAP) &&
-@@ -2897,8 +2912,12 @@ again:
- 	size =3D PAGE_ALIGN(size);
- 	area =3D __get_vm_area_node(size, align, VM_ALLOC | VM_UNINITIALIZED |
- 				vm_flags, start, end, node, gfp_mask, caller);
--	if (!area)
-+	if (!area) {
-+		warn_alloc(gfp_mask, NULL,
-+			   "vmalloc size %lu allocation failure: "
-+			   "vm_struct allocation failed", real_size);
- 		goto fail;
-+	}
-=20
- 	addr =3D __vmalloc_area_node(area, gfp_mask, prot, shift, node);
- 	if (!addr)
-@@ -2923,11 +2942,6 @@ fail:
- 		goto again;
- 	}
-=20
--	if (!area) {
--		/* Warn for area allocation, page allocations already warn */
--		warn_alloc(gfp_mask, NULL,
--			  "vmalloc: allocation failure: %lu bytes", real_size);
--	}
- 	return NULL;
- }
-=20
 _
 
 Patches currently in -mm which might be from npiggin@gmail.com are
