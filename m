@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 564D6C433DB
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 20:40:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8D39C433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:04:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1920961953
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 20:40:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91C1761481
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:04:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231205AbhC1Uj4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 16:39:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60564 "EHLO mail.kernel.org"
+        id S231367AbhC1VEA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 17:04:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35100 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231288AbhC1Uju (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 16:39:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C48246195E;
-        Sun, 28 Mar 2021 20:39:49 +0000 (UTC)
+        id S231478AbhC1VDu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 17:03:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BB02A61925;
+        Sun, 28 Mar 2021 21:03:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616963989;
-        bh=sS86Do/hYf5ITV2NmZ4b8aWLdEbqhfMYpArj0VxIJsk=;
+        s=korg; t=1616965429;
+        bh=MAZ3JyUYZUuC1MdBJyBwp4N7/tExOl4f77GY2GBhYEk=;
         h=Date:From:To:Subject:From;
-        b=gHxTYHmJVXbAt9p01kQ+CGVgd3M7+Wd2kxFf20h8adtKJasZtOjr63mc6qu7ggTSg
-         X0xP5a1kfaNLfFi2KfLZr50hbQLlRqwhQXruVQ+AnAmTU2Jml9Ggp2FqEGPmIo41+z
-         gDe9I+DmjJ8X8KgauSN2hnvmZ/gSvspllG3pDTEw=
-Date:   Sun, 28 Mar 2021 13:39:49 -0700
+        b=P+e6rZt3Cqejyjnl9Okl669QFng08apthN1eueLf36UK7lXgS125oO5t2wF/asbkh
+         KWVVe5OpXT4x8NXkaOiGUys9vmILEVWbH/5mhC28DjvrKCadVrZQnIxfNeJPFRyoTq
+         Hg9gDusxMN8rW581nesZ0X0gj//5mVc3v429hGts=
+Date:   Sun, 28 Mar 2021 14:03:49 -0700
 From:   akpm@linux-foundation.org
-To:     glaubitz@physik.fu-berlin.de, mm-commits@vger.kernel.org,
-        slyfox@gentoo.org
-Subject:  + ia64-simplify-code-flow-around-swiotlb-init.patch added
- to -mm tree
-Message-ID: <20210328203949.eU6egAIf3%akpm@linux-foundation.org>
+To:     davem@davemloft.net, mm-commits@vger.kernel.org, npiggin@gmail.com,
+        sfr@canb.auug.org.au
+Subject:  +
+ =?US-ASCII?Q?mm-vmalloc-fix-huge=5Fvmap-regression-by-enabling-huge-pa?=
+ =?US-ASCII?Q?ges-in-vmalloc=5Fto=5Fpage-fix.patch?= added to -mm tree
+Message-ID: <20210328210349.kAx0bOG4c%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: simplify code flow around swiotlb init
+     Subject: sparc32: add stub pud_page define for walking huge vmalloc page tables
 has been added to the -mm tree.  Its filename is
-     ia64-simplify-code-flow-around-swiotlb-init.patch
+     mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ia64-simplify-code-flow-around-swiotlb-init.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-simplify-code-flow-around-swiotlb-init.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,47 +67,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: ia64: simplify code flow around swiotlb init
+From: Nicholas Piggin <npiggin@gmail.com>
+Subject: sparc32: add stub pud_page define for walking huge vmalloc page tables
 
-Before the change CONFIG_INTEL_IOMMU && !CONFIG_SWIOTLB && !CONFIG_FLATMEM
-could skip `set_max_mapnr(max_low_pfn);` if iommu is not present on
-system.
+Similarly to the stub p4d_page in sparc64, add a stub pud_page, this
+is needed for hugepages in the vmap page tables to be walked without
+ifdefs, which should be no functional change for sparc32.
 
-Link: https://lkml.kernel.org/r/20210328202439.403601-1-slyfox@gentoo.org
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Link: https://lkml.kernel.org/r/20210324232825.1157363-1-npiggin@gmail.com
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/pgtable_32.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/arch/ia64/mm/init.c~ia64-simplify-code-flow-around-swiotlb-init
-+++ a/arch/ia64/mm/init.c
-@@ -644,13 +644,16 @@ mem_init (void)
- 	 * _before_ any drivers that may need the PCI DMA interface are
- 	 * initialized or bootmem has been freed.
- 	 */
-+	do {
- #ifdef CONFIG_INTEL_IOMMU
--	detect_intel_iommu();
--	if (!iommu_detected)
-+		detect_intel_iommu();
-+		if (iommu_detected)
-+			break;
- #endif
- #ifdef CONFIG_SWIOTLB
- 		swiotlb_init(1);
- #endif
-+	} while (0);
+--- a/arch/sparc/include/asm/pgtable_32.h~mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page-fix
++++ a/arch/sparc/include/asm/pgtable_32.h
+@@ -321,6 +321,9 @@ static inline pte_t pte_modify(pte_t pte
+ 		pgprot_val(newprot));
+ }
  
- #ifdef CONFIG_FLATMEM
- 	BUG_ON(!mem_map);
++/* only used by the huge vmap code, should never be called */
++#define pud_page(pud)			NULL
++
+ struct seq_file;
+ void mmu_info(struct seq_file *m);
+ 
 _
 
-Patches currently in -mm which might be from slyfox@gentoo.org are
+Patches currently in -mm which might be from npiggin@gmail.com are
 
-ia64-drop-unused-ia64_fw_emu-ifdef.patch
-ia64-simplify-code-flow-around-swiotlb-init.patch
+arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch
+mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page.patch
+mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page-fix.patch
+mm-apply_to_pte_range-warn-and-fail-if-a-large-pte-is-encountered.patch
+mm-vmalloc-rename-vmap__range-vmap_pages__range.patch
+mm-ioremap-rename-ioremap__range-to-vmap__range.patch
+mm-huge_vmap-arch-support-cleanup.patch
+powerpc-inline-huge-vmap-supported-functions.patch
+arm64-inline-huge-vmap-supported-functions.patch
+x86-inline-huge-vmap-supported-functions.patch
+mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions.patch
+mm-move-vmap_range-from-mm-ioremapc-to-mm-vmallocc.patch
+mm-vmalloc-add-vmap_range_noflush-variant.patch
+mm-vmalloc-hugepage-vmalloc-mappings.patch
+powerpc-64s-radix-enable-huge-vmalloc-mappings.patch
 
