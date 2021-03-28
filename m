@@ -5,37 +5,35 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDF2DC433E4
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 16:43:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33B91C433E8
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 16:43:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B68E76193F
+	by mail.kernel.org (Postfix) with ESMTP id F3AE561998
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 16:43:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231346AbhC1Qmy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 12:42:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55364 "EHLO mail.kernel.org"
+        id S231331AbhC1Qm5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 12:42:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55528 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231267AbhC1QmX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 12:42:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A96561966;
-        Sun, 28 Mar 2021 16:42:23 +0000 (UTC)
+        id S231340AbhC1Qmh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 12:42:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6A92F6196D;
+        Sun, 28 Mar 2021 16:42:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616949743;
-        bh=opsEW5SVADjyxq3lnUwTPLFkbpXkErZXfqSv8fQU0J4=;
+        s=korg; t=1616949757;
+        bh=2t36B8mFSOFaT8gZFFRobTE/sBz8yobsksnGBAjehtE=;
         h=Date:From:To:Subject:From;
-        b=ECw4q7nfAeJkYp134XgclwJfxI6sAqCDYFgFipn3FzbXk88s5KjRqAnB9cNTxDpAQ
-         86y0iXsce3Xqu3zcFuEm2KyvNhI87XoQ7mUDHqflnQJHSzNxfa6y51Y/s0/tYFwhDf
-         roci9HfYfk2wXJUrk2jgS9pmfsbmYh5MuvIfWp00=
-Date:   Sun, 28 Mar 2021 09:42:23 -0700
+        b=fLDbf8fOxmq86KaLmJrxUIh+Ua6jE7xnotWxKQpZWMxltP3NNa0P86iwtCYsyuF8F
+         KyuW6FUKIeERRnS8gWn0zf4tZWROkh9IRekVNhbQTe/29YNNpwl73Y12pu9XD41j1Y
+         ig3cq0HvRYqnDdXndoVOkN+0YjLJQas1VqdxiE2I=
+Date:   Sun, 28 Mar 2021 09:42:37 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
-        sean@geanix.com, stable@vger.kernel.org
+To:     andreyknvl@google.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- squashfs-fix-xattr-id-and-id-lookup-sanity-checks.patch removed from -mm
- tree
-Message-ID: <20210328164223.J1tgsEOll%akpm@linux-foundation.org>
+ mailmap-update-andrey-konovalovs-email-address.patch removed from -mm tree
+Message-ID: <20210328164237.Oc_jr2Og5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,75 +42,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: squashfs: fix xattr id and id lookup sanity checks
+     Subject: mailmap: update Andrey Konovalov's email address
 has been removed from the -mm tree.  Its filename was
-     squashfs-fix-xattr-id-and-id-lookup-sanity-checks.patch
+     mailmap-update-andrey-konovalovs-email-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: squashfs: fix xattr id and id lookup sanity checks
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: mailmap: update Andrey Konovalov's email address
 
-The checks for maximum metadata block size is missing
-SQUASHFS_BLOCK_OFFSET (the two byte length count).
+Use my personal email, the @google.com one will stop functioning soon.
 
-Link: https://lkml.kernel.org/r/2069685113.2081245.1614583677427@webmail.123-reg.co.uk
-Fixes: f37aa4c7366e23f ("squashfs: add more sanity checks in id lookup")
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: Sean Nyekjaer <sean@geanix.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/ead0e9c32a2f70e0bde6f63b3b9470e0ef13d2ee.1616107969.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/id.c       |    6 ++++--
- fs/squashfs/xattr_id.c |    6 ++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/squashfs/id.c~squashfs-fix-xattr-id-and-id-lookup-sanity-checks
-+++ a/fs/squashfs/id.c
-@@ -97,14 +97,16 @@ __le64 *squashfs_read_id_index_table(str
- 		start = le64_to_cpu(table[n]);
- 		end = le64_to_cpu(table[n + 1]);
- 
--		if (start >= end || (end - start) > SQUASHFS_METADATA_SIZE) {
-+		if (start >= end || (end - start) >
-+				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
- 			kfree(table);
- 			return ERR_PTR(-EINVAL);
- 		}
- 	}
- 
- 	start = le64_to_cpu(table[indexes - 1]);
--	if (start >= id_table_start || (id_table_start - start) > SQUASHFS_METADATA_SIZE) {
-+	if (start >= id_table_start || (id_table_start - start) >
-+				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
- 		kfree(table);
- 		return ERR_PTR(-EINVAL);
- 	}
---- a/fs/squashfs/xattr_id.c~squashfs-fix-xattr-id-and-id-lookup-sanity-checks
-+++ a/fs/squashfs/xattr_id.c
-@@ -109,14 +109,16 @@ __le64 *squashfs_read_xattr_id_table(str
- 		start = le64_to_cpu(table[n]);
- 		end = le64_to_cpu(table[n + 1]);
- 
--		if (start >= end || (end - start) > SQUASHFS_METADATA_SIZE) {
-+		if (start >= end || (end - start) >
-+				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
- 			kfree(table);
- 			return ERR_PTR(-EINVAL);
- 		}
- 	}
- 
- 	start = le64_to_cpu(table[indexes - 1]);
--	if (start >= table_start || (table_start - start) > SQUASHFS_METADATA_SIZE) {
-+	if (start >= table_start || (table_start - start) >
-+				(SQUASHFS_METADATA_SIZE + SQUASHFS_BLOCK_OFFSET)) {
- 		kfree(table);
- 		return ERR_PTR(-EINVAL);
- 	}
+--- a/.mailmap~mailmap-update-andrey-konovalovs-email-address
++++ a/.mailmap
+@@ -36,6 +36,7 @@ Andrew Morton <akpm@linux-foundation.org
+ Andrew Murray <amurray@thegoodpenguin.co.uk> <amurray@embedded-bits.co.uk>
+ Andrew Murray <amurray@thegoodpenguin.co.uk> <andrew.murray@arm.com>
+ Andrew Vasquez <andrew.vasquez@qlogic.com>
++Andrey Konovalov <andreyknvl@gmail.com> <andreyknvl@google.com>
+ Andrey Ryabinin <ryabinin.a.a@gmail.com> <a.ryabinin@samsung.com>
+ Andrey Ryabinin <ryabinin.a.a@gmail.com> <aryabinin@virtuozzo.com>
+ Andy Adamson <andros@citi.umich.edu>
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
+kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch
+mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
+arm64-kasan-allow-to-init-memory-when-setting-tags.patch
+kasan-init-memory-in-kasan_unpoison-for-hw_tags.patch
+kasan-mm-integrate-page_alloc-init-with-hw_tags.patch
+kasan-mm-integrate-slab-init_on_alloc-with-hw_tags.patch
+kasan-mm-integrate-slab-init_on_free-with-hw_tags.patch
+kasan-docs-clean-up-sections.patch
+kasan-docs-update-overview-section.patch
+kasan-docs-update-usage-section.patch
+kasan-docs-update-error-reports-section.patch
+kasan-docs-update-boot-parameters-section.patch
+kasan-docs-update-generic-implementation-details-section.patch
+kasan-docs-update-sw_tags-implementation-details-section.patch
+kasan-docs-update-hw_tags-implementation-details-section.patch
+kasan-docs-update-shadow-memory-section.patch
+kasan-docs-update-ignoring-accesses-section.patch
+kasan-docs-update-tests-section.patch
 
