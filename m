@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55E72C433E1
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:31:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7BCBC433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:31:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2D06061949
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:31:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B052E6193E
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:31:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231521AbhC1Wat (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 18:30:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47522 "EHLO mail.kernel.org"
+        id S231552AbhC1WbU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 18:31:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47628 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231552AbhC1Wao (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 18:30:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B70F76192F;
-        Sun, 28 Mar 2021 22:30:43 +0000 (UTC)
+        id S231579AbhC1Wa7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 18:30:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AF5F56192B;
+        Sun, 28 Mar 2021 22:30:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616970644;
-        bh=5QdZ2rt9uDMSiDaqiCy0s9XakMi8QC7MJfWs5yziIGU=;
+        s=korg; t=1616970655;
+        bh=KioavONzPCcyAOrAGsOzys6USnchoygIWD8h1cJjn/M=;
         h=Date:From:To:Subject:From;
-        b=QAZOUN3uERpIdfl28ddMorYAQjQN3bgYdbB6B4dcOPBCTSirU8WgEd3TIv5dEPLZq
-         v51z8Rg+d+1MQC8b3le++1jfmL3LREeDwUEjXrsje7OljkaYvK+t+v1mT6RSE5Wv/x
-         wqnExuz1f7mhA9TZpAuybm0FgCo4+ZCTK87B6WvA=
-Date:   Sun, 28 Mar 2021 15:30:43 -0700
+        b=oMfO8esJlWb8wpb5JJ+tPdusj5+up188hSmfR7ZcvULbXiP1A3svZRuDmGVHkQBa5
+         95S4jpEgbTltAwejHA1Mcd5uVxdTaLH/Hq6ALLyBRD/ycEkittJScs5X+uMz3gv/fu
+         RphBzZNdc1IeqvSMBbV0L3kQ5n3LYn2HXLb7bUmg=
+Date:   Sun, 28 Mar 2021 15:30:54 -0700
 From:   akpm@linux-foundation.org
 To:     alexander.duyck@gmail.com, alobakin@pm.me, brouer@redhat.com,
         chuck.lever@oracle.com, davem@davemloft.net, hch@infradead.org,
         ilias.apalodimas@linaro.org, mgorman@techsingularity.net,
         mm-commits@vger.kernel.org, vbabka@suse.cz, willy@infradead.org
 Subject:  +
- mm-page_alloc-optimize-code-layout-for-__alloc_pages_bulk.patch added to
- -mm tree
-Message-ID: <20210328223043.EIcZQfis5%akpm@linux-foundation.org>
+ net-page_pool-refactor-dma_map-into-own-function-page_pool_dma_map.patch
+ added to -mm tree
+Message-ID: <20210328223054.01bTQ9Co7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: optimize code layout for __alloc_pages_bulk
+     Subject: net: page_pool: refactor dma_map into own function page_pool_dma_map
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-optimize-code-layout-for-__alloc_pages_bulk.patch
+     net-page_pool-refactor-dma_map-into-own-function-page_pool_dma_map.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-optimize-code-layout-for-__alloc_pages_bulk.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/net-page_pool-refactor-dma_map-into-own-function-page_pool_dma_map.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-optimize-code-layout-for-__alloc_pages_bulk.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/net-page_pool-refactor-dma_map-into-own-function-page_pool_dma_map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,61 +68,103 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: mm/page_alloc: optimize code layout for __alloc_pages_bulk
+Subject: net: page_pool: refactor dma_map into own function page_pool_dma_map
 
-Looking at perf-report and ASM-code for __alloc_pages_bulk() it is clear
-that the code activated is suboptimal.  The compiler guesses wrong and
-places unlikely code at the beginning.  Due to the use of WARN_ON_ONCE()
-macro the UD2 asm instruction is added to the code, which confuse the
-I-cache prefetcher in the CPU.
+In preparation for next patch, move the dma mapping into its own function,
+as this will make it easier to follow the changes.
 
-[mgorman@techsingularity.net: minor changes and rebasing]
-Link: https://lkml.kernel.org/r/20210325114228.27719-5-mgorman@techsingularity.net
+[ilias.apalodimas: make page_pool_dma_map return boolean]
+Link: https://lkml.kernel.org/r/20210325114228.27719-9-mgorman@techsingularity.net
 Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reviewed-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
 Reviewed-by: Alexander Lobakin <alobakin@pm.me>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Chuck Lever <chuck.lever@oracle.com>
 Cc: David Miller <davem@davemloft.net>
-Cc: Ilias Apalodimas <ilias.apalodimas@linaro.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/core/page_pool.c |   45 +++++++++++++++++++++++------------------
+ 1 file changed, 26 insertions(+), 19 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-optimize-code-layout-for-__alloc_pages_bulk
-+++ a/mm/page_alloc.c
-@@ -5036,7 +5036,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 	unsigned int alloc_flags;
- 	int nr_populated = 0;
+--- a/net/core/page_pool.c~net-page_pool-refactor-dma_map-into-own-function-page_pool_dma_map
++++ a/net/core/page_pool.c
+@@ -180,14 +180,37 @@ static void page_pool_dma_sync_for_devic
+ 					 pool->p.dma_dir);
+ }
  
--	if (WARN_ON_ONCE(nr_pages <= 0))
-+	if (unlikely(nr_pages <= 0))
- 		return 0;
++static bool page_pool_dma_map(struct page_pool *pool, struct page *page)
++{
++	dma_addr_t dma;
++
++	/* Setup DMA mapping: use 'struct page' area for storing DMA-addr
++	 * since dma_addr_t can be either 32 or 64 bits and does not always fit
++	 * into page private data (i.e 32bit cpu with 64bit DMA caps)
++	 * This mapping is kept for lifetime of page, until leaving pool.
++	 */
++	dma = dma_map_page_attrs(pool->p.dev, page, 0,
++				 (PAGE_SIZE << pool->p.order),
++				 pool->p.dma_dir, DMA_ATTR_SKIP_CPU_SYNC);
++	if (dma_mapping_error(pool->p.dev, dma))
++		return false;
++
++	page->dma_addr = dma;
++
++	if (pool->p.flags & PP_FLAG_DMA_SYNC_DEV)
++		page_pool_dma_sync_for_device(pool, page, pool->p.max_len);
++
++	return true;
++}
++
+ /* slow path */
+ noinline
+ static struct page *__page_pool_alloc_pages_slow(struct page_pool *pool,
+ 						 gfp_t _gfp)
+ {
++	unsigned int pp_flags = pool->p.flags;
+ 	struct page *page;
+ 	gfp_t gfp = _gfp;
+-	dma_addr_t dma;
  
- 	/*
-@@ -5083,7 +5083,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 	 * If there are no allowed local zones that meets the watermarks then
- 	 * try to allocate a single page and reclaim if necessary.
- 	 */
--	if (!zone)
-+	if (unlikely(!zone))
- 		goto failed;
+ 	/* We could always set __GFP_COMP, and avoid this branch, as
+ 	 * prep_new_page() can handle order-0 with __GFP_COMP.
+@@ -211,30 +234,14 @@ static struct page *__page_pool_alloc_pa
+ 	if (!page)
+ 		return NULL;
  
- 	/* Attempt the batch allocation */
-@@ -5101,7 +5101,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
+-	if (!(pool->p.flags & PP_FLAG_DMA_MAP))
+-		goto skip_dma_map;
+-
+-	/* Setup DMA mapping: use 'struct page' area for storing DMA-addr
+-	 * since dma_addr_t can be either 32 or 64 bits and does not always fit
+-	 * into page private data (i.e 32bit cpu with 64bit DMA caps)
+-	 * This mapping is kept for lifetime of page, until leaving pool.
+-	 */
+-	dma = dma_map_page_attrs(pool->p.dev, page, 0,
+-				 (PAGE_SIZE << pool->p.order),
+-				 pool->p.dma_dir, DMA_ATTR_SKIP_CPU_SYNC);
+-	if (dma_mapping_error(pool->p.dev, dma)) {
++	if ((pp_flags & PP_FLAG_DMA_MAP) &&
++	    unlikely(!page_pool_dma_map(pool, page))) {
+ 		put_page(page);
+ 		return NULL;
+ 	}
+-	page->dma_addr = dma;
  
- 		page = __rmqueue_pcplist(zone, ac.migratetype, alloc_flags,
- 								pcp, pcp_list);
--		if (!page) {
-+		if (unlikely(!page)) {
- 			/* Try and get at least one page */
- 			if (!nr_populated)
- 				goto failed_irq;
+-	if (pool->p.flags & PP_FLAG_DMA_SYNC_DEV)
+-		page_pool_dma_sync_for_device(pool, page, pool->p.max_len);
+-
+-skip_dma_map:
+ 	/* Track how many pages are held 'in-flight' */
+ 	pool->pages_state_hold_cnt++;
+-
+ 	trace_page_pool_state_hold(pool, page, pool->pages_state_hold_cnt);
+ 
+ 	/* When page just alloc'ed is should/must have refcnt 1. */
 _
 
 Patches currently in -mm which might be from brouer@redhat.com are
