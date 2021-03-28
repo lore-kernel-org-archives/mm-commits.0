@@ -5,35 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33B91C433E8
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42A49C433EA
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 16:43:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3AE561998
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 16:43:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20205619AF
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 16:43:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231331AbhC1Qm5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231329AbhC1Qm5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 28 Mar 2021 12:42:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55528 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55496 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231340AbhC1Qmh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 12:42:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6A92F6196D;
-        Sun, 28 Mar 2021 16:42:37 +0000 (UTC)
+        id S231331AbhC1Qmg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 12:42:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 86A4561968;
+        Sun, 28 Mar 2021 16:42:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616949757;
-        bh=2t36B8mFSOFaT8gZFFRobTE/sBz8yobsksnGBAjehtE=;
+        s=korg; t=1616949755;
+        bh=eF3HTBuQwU9xqQ5IgwbMWjJH8gSTk8vEMl33GoZUnhM=;
         h=Date:From:To:Subject:From;
-        b=fLDbf8fOxmq86KaLmJrxUIh+Ua6jE7xnotWxKQpZWMxltP3NNa0P86iwtCYsyuF8F
-         KyuW6FUKIeERRnS8gWn0zf4tZWROkh9IRekVNhbQTe/29YNNpwl73Y12pu9XD41j1Y
-         ig3cq0HvRYqnDdXndoVOkN+0YjLJQas1VqdxiE2I=
-Date:   Sun, 28 Mar 2021 09:42:37 -0700
+        b=EP9epRbsYm7GCEdLbkVn/z5fVBdXEoKFHpUhMpP3uEha4iOI1POWY6MvA/i2yr1Y0
+         9Ii2aXLd+SpQWOwayBkX7mZdRbKayM7QnKmlQIhc6+6s7fXx3wzpryeQ73dggN14Dq
+         xtwahYP3RLjLZLR49id81fT5ZlMhJwNDtDZTmp7g=
+Date:   Sun, 28 Mar 2021 09:42:35 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, mm-commits@vger.kernel.org
+To:     Chaitanya.Kulkarni@wdc.com, dsterba@suse.com, ira.weiny@intel.com,
+        mm-commits@vger.kernel.org, oliver.sang@intel.com,
+        stable@vger.kernel.org, tglx@linutronix.de
 Subject:  [merged]
- mailmap-update-andrey-konovalovs-email-address.patch removed from -mm tree
-Message-ID: <20210328164237.Oc_jr2Og5%akpm@linux-foundation.org>
+ mm-highmem-fix-config_debug_kmap_local_force_map.patch removed from -mm
+ tree
+Message-ID: <20210328164235.udPStFdQP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,56 +45,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: update Andrey Konovalov's email address
+     Subject: mm/highmem: fix CONFIG_DEBUG_KMAP_LOCAL_FORCE_MAP
 has been removed from the -mm tree.  Its filename was
-     mailmap-update-andrey-konovalovs-email-address.patch
+     mm-highmem-fix-config_debug_kmap_local_force_map.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: mailmap: update Andrey Konovalov's email address
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: mm/highmem: fix CONFIG_DEBUG_KMAP_LOCAL_FORCE_MAP
 
-Use my personal email, the @google.com one will stop functioning soon.
+The kernel test robot found that __kmap_local_sched_out() was not
+correctly skipping the guard pages when CONFIG_DEBUG_KMAP_LOCAL_FORCE_MAP
+was set.[1] This was due to CONFIG_DEBUG_HIGHMEM check being used.
 
-Link: https://lkml.kernel.org/r/ead0e9c32a2f70e0bde6f63b3b9470e0ef13d2ee.1616107969.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Change the configuration check to be correct.
+
+[1] https://lore.kernel.org/lkml/20210304083825.GB17830@xsang-OptiPlex-9020/
+
+Link: https://lkml.kernel.org/r/20210318230657.1497881-1-ira.weiny@intel.com
+Fixes: 0e91a0c6984c ("mm/highmem: Provide CONFIG_DEBUG_KMAP_LOCAL_FORCE_MAP")
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Oliver Sang <oliver.sang@intel.com>
+Cc: Chaitanya Kulkarni <Chaitanya.Kulkarni@wdc.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ mm/highmem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/.mailmap~mailmap-update-andrey-konovalovs-email-address
-+++ a/.mailmap
-@@ -36,6 +36,7 @@ Andrew Morton <akpm@linux-foundation.org
- Andrew Murray <amurray@thegoodpenguin.co.uk> <amurray@embedded-bits.co.uk>
- Andrew Murray <amurray@thegoodpenguin.co.uk> <andrew.murray@arm.com>
- Andrew Vasquez <andrew.vasquez@qlogic.com>
-+Andrey Konovalov <andreyknvl@gmail.com> <andreyknvl@google.com>
- Andrey Ryabinin <ryabinin.a.a@gmail.com> <a.ryabinin@samsung.com>
- Andrey Ryabinin <ryabinin.a.a@gmail.com> <aryabinin@virtuozzo.com>
- Andy Adamson <andros@citi.umich.edu>
+--- a/mm/highmem.c~mm-highmem-fix-config_debug_kmap_local_force_map
++++ a/mm/highmem.c
+@@ -618,7 +618,7 @@ void __kmap_local_sched_out(void)
+ 		int idx;
+ 
+ 		/* With debug all even slots are unmapped and act as guard */
+-		if (IS_ENABLED(CONFIG_DEBUG_HIGHMEM) && !(i & 0x01)) {
++		if (IS_ENABLED(CONFIG_DEBUG_KMAP_LOCAL) && !(i & 0x01)) {
+ 			WARN_ON_ONCE(!pte_none(pteval));
+ 			continue;
+ 		}
+@@ -654,7 +654,7 @@ void __kmap_local_sched_in(void)
+ 		int idx;
+ 
+ 		/* With debug all even slots are unmapped and act as guard */
+-		if (IS_ENABLED(CONFIG_DEBUG_HIGHMEM) && !(i & 0x01)) {
++		if (IS_ENABLED(CONFIG_DEBUG_KMAP_LOCAL) && !(i & 0x01)) {
+ 			WARN_ON_ONCE(!pte_none(pteval));
+ 			continue;
+ 		}
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from ira.weiny@intel.com are
 
-kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch
-mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
-arm64-kasan-allow-to-init-memory-when-setting-tags.patch
-kasan-init-memory-in-kasan_unpoison-for-hw_tags.patch
-kasan-mm-integrate-page_alloc-init-with-hw_tags.patch
-kasan-mm-integrate-slab-init_on_alloc-with-hw_tags.patch
-kasan-mm-integrate-slab-init_on_free-with-hw_tags.patch
-kasan-docs-clean-up-sections.patch
-kasan-docs-update-overview-section.patch
-kasan-docs-update-usage-section.patch
-kasan-docs-update-error-reports-section.patch
-kasan-docs-update-boot-parameters-section.patch
-kasan-docs-update-generic-implementation-details-section.patch
-kasan-docs-update-sw_tags-implementation-details-section.patch
-kasan-docs-update-hw_tags-implementation-details-section.patch
-kasan-docs-update-shadow-memory-section.patch
-kasan-docs-update-ignoring-accesses-section.patch
-kasan-docs-update-tests-section.patch
+iov_iter-lift-memzero_page-to-highmemh.patch
+btrfs-use-memzero_page-instead-of-open-coded-kmap-pattern.patch
+mm-highmem-remove-deprecated-kmap_atomic.patch
 
