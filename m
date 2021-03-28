@@ -5,36 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACE3AC433C1
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:41:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4F9AC433C1
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:46:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6B38C6194B
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:41:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6839A6195D
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:46:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231349AbhC1Vke (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 17:40:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47668 "EHLO mail.kernel.org"
+        id S231146AbhC1VqB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 17:46:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52920 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230184AbhC1VkZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 17:40:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 913D761936;
-        Sun, 28 Mar 2021 21:40:24 +0000 (UTC)
+        id S229656AbhC1Vpk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 17:45:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1AC476194B;
+        Sun, 28 Mar 2021 21:45:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616967624;
-        bh=phaHqdSHaYeq4heUgAfHA/lEIE9IeZt1TwGioJP+39E=;
+        s=korg; t=1616967940;
+        bh=ynK8ECM51ppiGTRmNk0bR/wIgM9Ty0gJmOIqSGtCPDM=;
         h=Date:From:To:Subject:From;
-        b=h9DHTJtTHJAU7YzB+5B3mr0HDq6bWnlES1wH/SIGOiDGFaR6e/OTmU60GyYkuJKmI
-         N9KQgUXaXBNpvOkI9TF2Yu9BR0FQREHqRMIJBbgi43AqEx8LXq/j+mzwlvybe+yN74
-         IP7XTzWZ/Vclg8fia6Izr/F8bCGiKgzrKs94whXs=
-Date:   Sun, 28 Mar 2021 14:40:24 -0700
+        b=u8izHa1AHbrxFuCQFN3/1KwMFzeHChqkGeYrUsT6/v0TU7iNR3FsRECRaE5S7MIzb
+         CrV34wCF/tzcTOb+WyaN0I3Zd4gCGq6hLZoOD4Ei9VL8ctp6mipAg11Dh8PRliGNoB
+         zm2j1xE7c2H+VJMXn7Tc9ybjSyU/jWYsYIpkNUEo=
+Date:   Sun, 28 Mar 2021 14:45:39 -0700
 From:   akpm@linux-foundation.org
-To:     jack.qiu@huawei.com, jack@suse.cz, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org
-Subject:  + fs-direct-io-fix-missing-sdio-boundary.patch added to
- -mm tree
-Message-ID: <20210328214024.f6aCv9Crz%akpm@linux-foundation.org>
+To:     david@redhat.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, willy@infradead.org, yaoaili@kingsoft.com
+Subject:  + mm-gup-check-page-posion-status-for-coredump-v4.patch
+ added to -mm tree
+Message-ID: <20210328214539.yKAP2fh8Z%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: direct-io: fix missing sdio->boundary
+     Subject: mm-gup-check-page-posion-status-for-coredump-v4
 has been added to the -mm tree.  Its filename is
-     fs-direct-io-fix-missing-sdio-boundary.patch
+     mm-gup-check-page-posion-status-for-coredump-v4.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-direct-io-fix-missing-sdio-boundary.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-check-page-posion-status-for-coredump-v4.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-direct-io-fix-missing-sdio-boundary.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-check-page-posion-status-for-coredump-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,50 +65,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jack Qiu <jack.qiu@huawei.com>
-Subject: fs: direct-io: fix missing sdio->boundary
+From: Aili Yao <yaoaili@kingsoft.com>
+Subject: mm-gup-check-page-posion-status-for-coredump-v4
 
-dio_send_cur_page() may clear sdio->boundary, so save it to avoid missing
-a boundary.
+is_page_poisoned() arg cannot be null, per Matthew
 
-Link: https://lkml.kernel.org/r/20210322042253.38312-1-jack.qiu@huawei.com
-Fixes: b1058b981272 ("direct-io: submit bio after boundary buffer is
-added to it")
-Signed-off-by: Jack Qiu <jack.qiu@huawei.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210319104437.6f30e80d@alex-virtual-machine
+Link: https://lkml.kernel.org/r/20210322115233.05e4e82a@alex-virtual-machine
+Signed-off-by: Aili Yao <yaoaili@kingsoft.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Aili Yao <yaoaili@kingsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/internal.h |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---- a/fs/direct-io.c~fs-direct-io-fix-missing-sdio-boundary
-+++ a/fs/direct-io.c
-@@ -812,6 +812,7 @@ submit_page_section(struct dio *dio, str
- 		    struct buffer_head *map_bh)
+--- a/mm/internal.h~mm-gup-check-page-posion-status-for-coredump-v4
++++ a/mm/internal.h
+@@ -109,12 +109,11 @@ static inline void set_page_refcounted(s
+  */
+ static inline bool is_page_poisoned(struct page *page)
  {
- 	int ret = 0;
-+	int boundary = sdio->boundary;	/* dio_send_cur_page may clear it */
+-	if (page != NULL) {
+-		if (PageHWPoison(page))
+-			return true;
+-		else if (PageHuge(page) && PageHWPoison(compound_head(page)))
+-			return true;
+-	}
++	if (PageHWPoison(page))
++		return true;
++	else if (PageHuge(page) && PageHWPoison(compound_head(page)))
++		return true;
++
+ 	return false;
+ }
  
- 	if (dio->op == REQ_OP_WRITE) {
- 		/*
-@@ -850,10 +851,10 @@ submit_page_section(struct dio *dio, str
- 	sdio->cur_page_fs_offset = sdio->block_in_file << sdio->blkbits;
- out:
- 	/*
--	 * If sdio->boundary then we want to schedule the IO now to
-+	 * If boundary then we want to schedule the IO now to
- 	 * avoid metadata seeks.
- 	 */
--	if (sdio->boundary) {
-+	if (boundary) {
- 		ret = dio_send_cur_page(dio, sdio, map_bh);
- 		if (sdio->bio)
- 			dio_bio_submit(dio, sdio);
 _
 
-Patches currently in -mm which might be from jack.qiu@huawei.com are
+Patches currently in -mm which might be from yaoaili@kingsoft.com are
 
-fs-direct-io-fix-missing-sdio-boundary.patch
+mm-gup-check-page-posion-status-for-coredump.patch
+mm-gup-check-page-posion-status-for-coredump-v4.patch
 
