@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3731C433C1
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 20:21:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 564D6C433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 20:40:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 687C961951
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 20:21:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1920961953
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 20:40:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231425AbhC1UUq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 16:20:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59070 "EHLO mail.kernel.org"
+        id S231205AbhC1Uj4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 16:39:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60564 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231367AbhC1UUf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 16:20:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B2FD06194A;
-        Sun, 28 Mar 2021 20:20:34 +0000 (UTC)
+        id S231288AbhC1Uju (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 16:39:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C48246195E;
+        Sun, 28 Mar 2021 20:39:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616962834;
-        bh=RhftaL4Me4aLa6vxLOoN3oIxsl9unpYcNSjlwQ4dgv8=;
+        s=korg; t=1616963989;
+        bh=sS86Do/hYf5ITV2NmZ4b8aWLdEbqhfMYpArj0VxIJsk=;
         h=Date:From:To:Subject:From;
-        b=ySMzgihiCszLzQAOS59ZNGF8V6vxXGjUvAYtWT1C/m/adLRA5JwnQ6NPFF9eClAVS
-         KbqrjdA2yBXKVLyQ1hG4xg3b268sQMjkf9osstP5yMrrOgUaAKxo6roGUt9dEGIvnR
-         iQm3ioi0W0dEKlMKqhvotjFusAehHaHSiKDWUofU=
-Date:   Sun, 28 Mar 2021 13:20:34 -0700
+        b=gHxTYHmJVXbAt9p01kQ+CGVgd3M7+Wd2kxFf20h8adtKJasZtOjr63mc6qu7ggTSg
+         X0xP5a1kfaNLfFi2KfLZr50hbQLlRqwhQXruVQ+AnAmTU2Jml9Ggp2FqEGPmIo41+z
+         gDe9I+DmjJ8X8KgauSN2hnvmZ/gSvspllG3pDTEw=
+Date:   Sun, 28 Mar 2021 13:39:49 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        unixbhaskar@gmail.com
-Subject:  + mm-slubc-trivial-typo-fixes.patch added to -mm tree
-Message-ID: <20210328202034.MnsV59Tz3%akpm@linux-foundation.org>
+To:     glaubitz@physik.fu-berlin.de, mm-commits@vger.kernel.org,
+        slyfox@gentoo.org
+Subject:  + ia64-simplify-code-flow-around-swiotlb-init.patch added
+ to -mm tree
+Message-ID: <20210328203949.eU6egAIf3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub.c: trivial typo fixes
+     Subject: ia64: simplify code flow around swiotlb init
 has been added to the -mm tree.  Its filename is
-     mm-slubc-trivial-typo-fixes.patch
+     ia64-simplify-code-flow-around-swiotlb-init.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slubc-trivial-typo-fixes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ia64-simplify-code-flow-around-swiotlb-init.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slubc-trivial-typo-fixes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-simplify-code-flow-around-swiotlb-init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,74 +64,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Subject: mm/slub.c: trivial typo fixes
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Subject: ia64: simplify code flow around swiotlb init
 
-s/operatios/operations/
-s/Mininum/Minimum/
-s/mininum/minimum/  ......two different places.
+Before the change CONFIG_INTEL_IOMMU && !CONFIG_SWIOTLB && !CONFIG_FLATMEM
+could skip `set_max_mapnr(max_low_pfn);` if iommu is not present on
+system.
 
-Link: https://lkml.kernel.org/r/20210325044940.14516-1-unixbhaskar@gmail.com
-Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20210328202439.403601-1-slyfox@gentoo.org
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/ia64/mm/init.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/slub.c~mm-slubc-trivial-typo-fixes
-+++ a/mm/slub.c
-@@ -3,7 +3,7 @@
-  * SLUB: A slab allocator that limits cache line use instead of queuing
-  * objects in per cpu and per node lists.
-  *
-- * The allocator synchronizes using per slab locks or atomic operatios
-+ * The allocator synchronizes using per slab locks or atomic operations
-  * and only uses a centralized lock to manage a pool of partial slabs.
-  *
-  * (C) 2007 SGI, Christoph Lameter
-@@ -157,7 +157,7 @@ static inline bool kmem_cache_has_cpu_pa
- #undef SLUB_DEBUG_CMPXCHG
+--- a/arch/ia64/mm/init.c~ia64-simplify-code-flow-around-swiotlb-init
++++ a/arch/ia64/mm/init.c
+@@ -644,13 +644,16 @@ mem_init (void)
+ 	 * _before_ any drivers that may need the PCI DMA interface are
+ 	 * initialized or bootmem has been freed.
+ 	 */
++	do {
+ #ifdef CONFIG_INTEL_IOMMU
+-	detect_intel_iommu();
+-	if (!iommu_detected)
++		detect_intel_iommu();
++		if (iommu_detected)
++			break;
+ #endif
+ #ifdef CONFIG_SWIOTLB
+ 		swiotlb_init(1);
+ #endif
++	} while (0);
  
- /*
-- * Mininum number of partial slabs. These will be left on the partial
-+ * Minimum number of partial slabs. These will be left on the partial
-  * lists even if they are empty. kmem_cache_shrink may reclaim them.
-  */
- #define MIN_PARTIAL 5
-@@ -829,7 +829,7 @@ static int check_bytes_and_report(struct
-  *
-  * 	A. Free pointer (if we cannot overwrite object on free)
-  * 	B. Tracking data for SLAB_STORE_USER
-- * 	C. Padding to reach required alignment boundary or at mininum
-+ * 	C. Padding to reach required alignment boundary or at minimum
-  * 		one word if debugging is on to be able to detect writes
-  * 		before the word boundary.
-  *
-@@ -3418,7 +3418,7 @@ static unsigned int slub_min_objects;
-  *
-  * Higher order allocations also allow the placement of more objects in a
-  * slab and thereby reduce object handling overhead. If the user has
-- * requested a higher mininum order then we start with that one instead of
-+ * requested a higher minimum order then we start with that one instead of
-  * the smallest order which will fit the object.
-  */
- static inline unsigned int slab_order(unsigned int size,
+ #ifdef CONFIG_FLATMEM
+ 	BUG_ON(!mem_map);
 _
 
-Patches currently in -mm which might be from unixbhaskar@gmail.com are
+Patches currently in -mm which might be from slyfox@gentoo.org are
 
-ia64-kernel-few-typos-fixed-in-the-file-fsyss.patch
-ia64-include-asm-minor-typo-fixes-in-the-file-pgtableh.patch
-ocfs2-fix-a-typo.patch
-mm-slubc-trivial-typo-fixes.patch
-mm-kmemleak-fix-a-typo.patch
-mm-typo-fix-in-the-file-utilc.patch
-lib-fix-a-typo-in-the-file-bchc.patch
-lib-genallocc-fix-a-typo.patch
-ipc-semc-mundane-typo-fixes.patch
-mm-few-spelling-fixes.patch
-kernel-fix-a-typo-in-the-file-upc.patch
-ipc-semc-couple-of-spelling-fixes.patch
+ia64-drop-unused-ia64_fw_emu-ifdef.patch
+ia64-simplify-code-flow-around-swiotlb-init.patch
 
