@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE16BC433C1
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:08:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2D20C433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:13:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7DBAD6195F
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:08:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4DC96195F
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:13:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229656AbhC1WIA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 18:08:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40318 "EHLO mail.kernel.org"
+        id S231544AbhC1WMs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 18:12:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41758 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229655AbhC1WHr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 18:07:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A35346195E;
-        Sun, 28 Mar 2021 22:07:46 +0000 (UTC)
+        id S230184AbhC1WMe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 18:12:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A4DDB60233;
+        Sun, 28 Mar 2021 22:12:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616969266;
-        bh=1TVxeHIs3KFI5ETdieWXM9e5MHhIvE5qMd1PniU+U5Q=;
+        s=korg; t=1616969553;
+        bh=GLGtryFtA8YiwJj3j8d2S0gjJjdPya2T76itjZiX3cc=;
         h=Date:From:To:Subject:From;
-        b=UHODMTscWcNPrnvUdgYq78qhiYabztYY5XoSaDzLsxts37K9SYG7PDEBRmaowI9+t
-         qg8VlSo12iz0DkDjdBFDcdk4pNAhjRWUVhRoO++W/n3iy4O15/Cnn7jcVkfu4O/Rxr
-         L7D6XPzd8w891ss//5eEJ0VKldEDVbwg6JNaMs78=
-Date:   Sun, 28 Mar 2021 15:07:46 -0700
+        b=JzRmUOqRHjis879zxHR6gsdO4h0g0nePDriVeyhK0AnqIOGFDxmQkQedB4jippp9v
+         MNc3v9FwVSE1lKo874VuwgnfZ4J9WjwMBO508V8JxTAoUwysIoteNX46PjRvNFCND2
+         IGOBjRCCFEypCfRdJ8E0QDLZY4ZirejPbe3grXVY=
+Date:   Sun, 28 Mar 2021 15:12:33 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
-        vbabka@suse.cz
-Subject:  +
- selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch added
- to -mm tree
-Message-ID: <20210328220746.suKqqZ6Nc%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        unixbhaskar@gmail.com
+Subject:  + ia64-trivial-spelling-fixes.patch added to -mm tree
+Message-ID: <20210328221233.DxqGWs1PQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: add a kselftest for SLUB debugging functionality-fix
+     Subject: ia64: trivial spelling fixes
 has been added to the -mm tree.  Its filename is
-     selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch
+     ia64-trivial-spelling-fixes.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ia64-trivial-spelling-fixes.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-trivial-spelling-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,37 +63,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: selftests: add a kselftest for SLUB debugging functionality-fix
+From: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Subject: ia64: trivial spelling fixes
 
-Remove a BUILD_BUG_ON left over from original resiliency_test() that breaks
-builds.
+s/seralize/serialize/ .....three different places
 
-Link: https://lkml.kernel.org/r/53cc267d-aa0a-071a-f9f8-0b47ec4b2b9d@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Link: https://lkml.kernel.org/r/YFY+9uwvNLeb/3Ab@Gentoo
+Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_slub.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/ia64/kernel/pal.S |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/lib/test_slub.c~selftests-add-a-kselftest-for-slub-debugging-functionality-fix
-+++ a/lib/test_slub.c
-@@ -97,9 +97,6 @@ static void __init test_clobber_redzone_
- 
- static void __init resiliency_test(void)
- {
--
--	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 16 || KMALLOC_SHIFT_HIGH < 10);
--
- 	pr_err("SLUB resiliency testing\n");
- 	pr_err("-----------------------\n");
- 	pr_err("A. Corruption after allocation\n");
+--- a/arch/ia64/kernel/pal.S~ia64-trivial-spelling-fixes
++++ a/arch/ia64/kernel/pal.S
+@@ -86,7 +86,7 @@ GLOBAL_ENTRY(ia64_pal_call_static)
+ 	mov ar.pfs = loc1
+ 	mov rp = loc0
+ 	;;
+-	srlz.d				// seralize restoration of psr.l
++	srlz.d				// serialize restoration of psr.l
+ 	br.ret.sptk.many b0
+ END(ia64_pal_call_static)
+ EXPORT_SYMBOL(ia64_pal_call_static)
+@@ -194,7 +194,7 @@ GLOBAL_ENTRY(ia64_pal_call_phys_static)
+ 	mov rp = loc0
+ 	;;
+ 	mov ar.rsc=loc4			// restore RSE configuration
+-	srlz.d				// seralize restoration of psr.l
++	srlz.d				// serialize restoration of psr.l
+ 	br.ret.sptk.many b0
+ END(ia64_pal_call_phys_static)
+ EXPORT_SYMBOL(ia64_pal_call_phys_static)
+@@ -252,7 +252,7 @@ GLOBAL_ENTRY(ia64_pal_call_phys_stacked)
+ 	mov rp = loc0
+ 	;;
+ 	mov ar.rsc=loc4			// restore RSE configuration
+-	srlz.d				// seralize restoration of psr.l
++	srlz.d				// serialize restoration of psr.l
+ 	br.ret.sptk.many b0
+ END(ia64_pal_call_phys_stacked)
+ EXPORT_SYMBOL(ia64_pal_call_phys_stacked)
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from unixbhaskar@gmail.com are
 
-mm-slub-enable-slub_debug-static-key-when-creating-cache-with-explicit-debug-flags.patch
-selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch
+ia64-kernel-few-typos-fixed-in-the-file-fsyss.patch
+ia64-include-asm-minor-typo-fixes-in-the-file-pgtableh.patch
+ia64-trivial-spelling-fixes.patch
+ocfs2-fix-a-typo.patch
+mm-slubc-trivial-typo-fixes.patch
+mm-kmemleak-fix-a-typo.patch
+mm-typo-fix-in-the-file-utilc.patch
+lib-fix-a-typo-in-the-file-bchc.patch
+lib-genallocc-fix-a-typo.patch
+ipc-semc-mundane-typo-fixes.patch
+mm-few-spelling-fixes.patch
+kernel-fix-a-typo-in-the-file-upc.patch
+ipc-semc-couple-of-spelling-fixes.patch
 
