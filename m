@@ -5,37 +5,39 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F788C433E9
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 16:43:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA39FC433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 18:27:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E78A61999
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 16:43:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A346661949
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 18:27:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231164AbhC1Qm5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 12:42:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55462 "EHLO mail.kernel.org"
+        id S231247AbhC1S1I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 14:27:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40364 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231329AbhC1Qmd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 12:42:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 879A56193F;
-        Sun, 28 Mar 2021 16:42:33 +0000 (UTC)
+        id S229593AbhC1S0z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 14:26:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7706E61949;
+        Sun, 28 Mar 2021 18:26:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616949753;
-        bh=vt7dYMO/uBh6ITNGwqPnUEzOJjlQbJZopA2e4RyYbsE=;
+        s=korg; t=1616956014;
+        bh=pnNWdIME3IeQCaaZLvUUJ9mzGHwuJwgUsQCR6MKF9mk=;
         h=Date:From:To:Subject:From;
-        b=gEEOu/Ul94so9BU6iwHOk8EXPbdjVX6y/UOdEy+Yawaas3aCSCMaouRmP5b5tTID/
-         4mqohs5YffwB44XCtag4v8TcAiNflTHzIyqe8ZfguDWwwpfzuKgLAMrD8pRhqY4UJc
-         Nrl4mlCSR600JgrbqmoR4LY01/wgHMw0UDue75lM=
-Date:   Sun, 28 Mar 2021 09:42:33 -0700
+        b=bvk2KbDGP1c+uNY6X7OhodNtIqfy78+SnInIDLgyNyF5CFqPGN7vi/uZhv1Ix2Dsl
+         oHDjxykTHavxH740kCyBR+8S0Kdg/1iLv1IBx0meAmbkPJTEbcz7H+cxAUg7E7mn9Z
+         0WtTvU/vKF7g2gfpYAmXa8httDyu+2OsI6mxTI1Q=
+Date:   Sun, 28 Mar 2021 11:26:53 -0700
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, david@redhat.com, lkp@intel.com,
-        mm-commits@vger.kernel.org, ndesaulniers@google.com,
-        rppt@linux.ibm.com
-Subject:  [merged]
- memblock-fix-section-mismatch-warning-again.patch removed from -mm tree
-Message-ID: <20210328164233.UtfbPJd41%akpm@linux-foundation.org>
+To:     guro@fb.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, shakeelb@google.com,
+        stable@vger.kernel.org, willy@infradead.org,
+        zhouguanghui1@huawei.com, ziy@nvidia.com
+Subject:  [to-be-updated]
+ mm-page_alloc-fix-memcg-accounting-leak-in-speculative-cache-lookup.patch
+ removed from -mm tree
+Message-ID: <20210328182653.u2dXqlPMl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,79 +46,127 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memblock: fix section mismatch warning again
+     Subject: mm: page_alloc: fix allocation imbalances from speculative cache lookup
 has been removed from the -mm tree.  Its filename was
-     memblock-fix-section-mismatch-warning-again.patch
+     mm-page_alloc-fix-memcg-accounting-leak-in-speculative-cache-lookup.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm: memblock: fix section mismatch warning again
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: fix allocation imbalances from speculative cache lookup
 
-Commit 34dc2efb39a2 ("memblock: fix section mismatch warning") marked
-memblock_bottom_up() and memblock_set_bottom_up() as __init, but they
-could be referenced from non-init functions like
-memblock_find_in_range_node() on architectures that enable
-CONFIG_ARCH_KEEP_MEMBLOCK.
+When the freeing of a higher-order page block (non-compound) races with a
+speculative page cache lookup, __free_pages() needs to leave the first
+order-0 page in the chunk to the lookup but free the buddy pages that the
+lookup doesn't know about separately.
 
-For such builds kernel test robot reports: All warnings (new ones prefixed
-by >>, old ones prefixed by <<):
+There are currently two problems with it:
 
->> WARNING: modpost: vmlinux.o(.text+0x74fea4): Section mismatch in reference from the function memblock_find_in_range_node() to the function .init.text:memblock_bottom_up()
-The function memblock_find_in_range_node() references
-the function __init memblock_bottom_up().
-This is often because memblock_find_in_range_node lacks a __init
-annotation or the annotation of memblock_bottom_up is wrong.
+1. It checks PageHead() to see whether we're dealing with a compound
+   page after put_page_testzero().  But the speculative lookup could have
+   freed the page after our put and cleared PageHead, in which case we
+   would double free the tail pages.
 
-Replace __init annotations with __init_memblock annotations so that the
-appropriate section will be selected depending on
-CONFIG_ARCH_KEEP_MEMBLOCK.
+   To fix this, test PageHead before the put and cache the result for
+   afterwards.
 
-Link: https://lore.kernel.org/lkml/202103160133.UzhgY0wt-lkp@intel.com
-Link: https://lkml.kernel.org/r/20210316171347.14084-1-rppt@kernel.org
-Fixes: 34dc2efb39a2 ("memblock: fix section mismatch warning")
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Reported-by: kernel test robot <lkp@intel.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Nick Desaulniers <ndesaulniers@google.com>
+2. If such a higher-order page is charged to a memcg (e.g.  !vmap
+   kernel stack)), only the first page of the block has page->memcg set. 
+   That means we'll uncharge only one order-0 page from the entire block,
+   and leak the remainder.
+
+   To fix this, add a split_page_memcg() before it starts freeing tail
+   pages, to ensure they all have page->memcg set up.
+
+While at it, also update the comments a bit to clarify what exactly is
+happening to the page during that race.
+
+Link: https://lkml.kernel.org/r/20210319071547.60973-1-hannes@cmpxchg.org
+Fixes: e320d3012d25 ("mm/page_alloc.c: fix freeing non-compound pages")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Hugh Dickins <hughd@google.com>
+Reported-by: Matthew Wilcox <willy@infradead.org>
+Acked-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Zhou Guanghui <zhouguanghui1@huawei.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: <stable@vger.kernel.org> # 5.10+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   33 +++++++++++++++++++++++++++------
+ 1 file changed, 27 insertions(+), 6 deletions(-)
 
---- a/include/linux/memblock.h~memblock-fix-section-mismatch-warning-again
-+++ a/include/linux/memblock.h
-@@ -460,7 +460,7 @@ static inline void memblock_free_late(ph
- /*
-  * Set the allocation direction to bottom-up or top-down.
+--- a/mm/page_alloc.c~mm-page_alloc-fix-memcg-accounting-leak-in-speculative-cache-lookup
++++ a/mm/page_alloc.c
+@@ -5072,10 +5072,9 @@ static inline void free_the_page(struct
+  * the allocation, so it is easy to leak memory.  Freeing more memory
+  * than was allocated will probably emit a warning.
+  *
+- * If the last reference to this page is speculative, it will be released
+- * by put_page() which only frees the first page of a non-compound
+- * allocation.  To prevent the remaining pages from being leaked, we free
+- * the subsequent pages here.  If you want to use the page's reference
++ * This function isn't a put_page(). Don't let the put_page_testzero()
++ * fool you, it's only to deal with speculative cache references. It
++ * WILL free pages directly. If you want to use the page's reference
+  * count to decide when to free the allocation, you should allocate a
+  * compound page, and use put_page() instead of __free_pages().
+  *
+@@ -5084,11 +5083,33 @@ static inline void free_the_page(struct
   */
--static inline __init void memblock_set_bottom_up(bool enable)
-+static inline __init_memblock void memblock_set_bottom_up(bool enable)
+ void __free_pages(struct page *page, unsigned int order)
  {
- 	memblock.bottom_up = enable;
+-	if (put_page_testzero(page))
++	/*
++	 * Drop the base reference from __alloc_pages and free. In
++	 * case there is an outstanding speculative reference, from
++	 * e.g. the page cache, it will put and free the page later.
++	 */
++	if (likely(put_page_testzero(page))) {
+ 		free_the_page(page, order);
+-	else if (!PageHead(page))
++		return;
++	}
++
++	/*
++	 * The speculative reference will put and free the page.
++	 *
++	 * However, if the speculation was into a higher-order page
++	 * chunk that isn't marked compound, the other side will know
++	 * nothing about our buddy pages and only free the order-0
++	 * page at the start of our chunk! We must split off and free
++	 * the buddy pages here.
++	 *
++	 * The buddy pages aren't individually refcounted, so they
++	 * can't have any pending speculative references themselves.
++	 */
++	if (!PageHead(page) && order > 0) {
++		split_page_memcg(page, 1 << order);
+ 		while (order-- > 0)
+ 			free_the_page(page + (1 << order), order);
++	}
  }
-@@ -470,7 +470,7 @@ static inline __init void memblock_set_b
-  * if this is true, that said, memblock will allocate memory
-  * in bottom-up direction.
-  */
--static inline __init bool memblock_bottom_up(void)
-+static inline __init_memblock bool memblock_bottom_up(void)
- {
- 	return memblock.bottom_up;
- }
+ EXPORT_SYMBOL(__free_pages);
+ 
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mmap-make-mlock_future_check-global.patch
-riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
-set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
-pm-hibernate-disable-when-there-are-active-secretmem-users.patch
-arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
-secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+mm-page_alloc-fix-allocation-imbalances-from-speculative-cache-lookup.patch
+mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback.patch
+mm-memcontrol-fix-cpuhotplug-statistics-flushing.patch
+mm-memcontrol-kill-mem_cgroup_nodeinfo.patch
+mm-memcontrol-privatize-memcg_page_state-query-functions.patch
+cgroup-rstat-support-cgroup1.patch
+cgroup-rstat-punt-root-level-optimization-to-individual-controllers.patch
+mm-memcontrol-switch-to-rstat.patch
+mm-memcontrol-switch-to-rstat-fix-2.patch
+mm-memcontrol-consolidate-lruvec-stat-flushing.patch
+kselftests-cgroup-update-kmem-test-for-new-vmstat-implementation.patch
 
