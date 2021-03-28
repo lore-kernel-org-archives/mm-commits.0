@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2262C433E1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90EAAC433C1
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:06:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9DCBC6195F
+	by mail.kernel.org (Postfix) with ESMTP id 5F7E66195F
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 22:06:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231562AbhC1WFv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 18:05:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38782 "EHLO mail.kernel.org"
+        id S230184AbhC1WFu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 18:05:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38734 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231566AbhC1WFX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 18:05:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F0BE761969;
-        Sun, 28 Mar 2021 22:05:22 +0000 (UTC)
+        id S231565AbhC1WFV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 18:05:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D4A6161968;
+        Sun, 28 Mar 2021 22:05:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616969123;
-        bh=YWGihrLe1Adil8YJY0rV29d6rrmT8pYxfRZoThRaYG4=;
+        s=korg; t=1616969121;
+        bh=1ddGdEjVnwghWJGOkgncnSIehDb6yYUu0FK/gwZenUs=;
         h=Date:From:To:Subject:From;
-        b=tTfsTO4BNd/2FrzD591RludnOZ2kpC8bgqB3COK9+Nn5xM5ANlZpEecoWO2G2kil2
-         IS94yABYMxysSgC1b7cRwlHxoVEY7Lc/3UfDP439pZUR5q3B7dkVaPN63Q3stfHmls
-         q9o2fhcaJrzSz/jwC1oDVobRSDS+L2UaXY/yLYDo=
-Date:   Sun, 28 Mar 2021 15:05:22 -0700
+        b=o/Ev5CgGE550X/cHps/SvPsn8Fm0j2Qn3AuUAzi+YcTvukccVsQ3xnwrkSGYB8Zpy
+         B8Ma4LIjnOVZyzuGI1EbDcGQ3Ki9TJTnOaIww2Nz4putocp1MNTtr7IZuNDYQ//q34
+         3qGafK05CCMGrqNO1MT/ZWbIQqz9zOAZZSvhLLMc=
+Date:   Sun, 28 Mar 2021 15:05:20 -0700
 From:   akpm@linux-foundation.org
 To:     clg@kaod.org, hch@lst.de, mm-commits@vger.kernel.org,
         npiggin@gmail.com, urezki@gmail.com
-Subject:  + mm-vmalloc-remove-unmap_kernel_range.patch added to -mm
- tree
-Message-ID: <20210328220522.7PAg775eV%akpm@linux-foundation.org>
+Subject:  +
+ powerpc-xive-remove-unnecessary-unmap_kernel_range.patch added to -mm tree
+Message-ID: <20210328220520.AFDXsI5zF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -46,16 +46,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: remove unmap_kernel_range
+     Subject: powerpc/xive: remove unnecessary unmap_kernel_range
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-remove-unmap_kernel_range.patch
+     powerpc-xive-remove-unnecessary-unmap_kernel_range.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-remove-unmap_kerne=
-l_range.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/powerpc-xive-remove-unnecessa=
+ry-unmap_kernel_range.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-remove-unmap_kerne=
-l_range.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/powerpc-xive-remove-unnecessa=
+ry-unmap_kernel_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,258 +71,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Nicholas Piggin <npiggin@gmail.com>
-Subject: mm/vmalloc: remove unmap_kernel_range
+Subject: powerpc/xive: remove unnecessary unmap_kernel_range
 
-This is a shim around vunmap_range, get rid of it.
+iounmap will remove ptes.
 
-Move the main API comment from the _noflush variant to the normal
-variant, and make _noflush internal to mm/.
-
-Link: https://lkml.kernel.org/r/20210322021806.892164-5-npiggin@gmail.com
+Link: https://lkml.kernel.org/r/20210322021806.892164-4-npiggin@gmail.com
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: C=C3=A9dric Le Goater <clg@kaod.org>
+Acked-by: C=C3=A9dric Le Goater <clg@kaod.org>
 Cc: Uladzislau Rezki <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/cachetlb.rst |    2=20
- arch/arm64/mm/init.c                |    2=20
- arch/powerpc/kernel/isa-bridge.c    |    4 -
- arch/powerpc/kernel/pci_64.c        |    2=20
- arch/powerpc/mm/ioremap.c           |    2=20
- drivers/pci/pci.c                   |    2=20
- include/linux/vmalloc.h             |    8 ---
- mm/internal.h                       |    1=20
- mm/percpu-vm.c                      |    2=20
- mm/vmalloc.c                        |   59 ++++++++++++--------------
- 10 files changed, 38 insertions(+), 46 deletions(-)
+ arch/powerpc/sysdev/xive/common.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/arch/arm64/mm/init.c~mm-vmalloc-remove-unmap_kernel_range
-+++ a/arch/arm64/mm/init.c
-@@ -521,7 +521,7 @@ void free_initmem(void)
- 	 * prevents the region from being reused for kernel modules, which
- 	 * is not supported by kallsyms.
- 	 */
--	unmap_kernel_range((u64)__init_begin, (u64)(__init_end - __init_begin));
-+	vunmap_range((u64)__init_begin, (u64)__init_end);
- }
-=20
- void dump_mem_limit(void)
---- a/arch/powerpc/kernel/isa-bridge.c~mm-vmalloc-remove-unmap_kernel_range
-+++ a/arch/powerpc/kernel/isa-bridge.c
-@@ -48,7 +48,7 @@ static void remap_isa_base(phys_addr_t p
- 	if (slab_is_available()) {
- 		if (ioremap_page_range(ISA_IO_BASE, ISA_IO_BASE + size, pa,
- 				pgprot_noncached(PAGE_KERNEL)))
--			unmap_kernel_range(ISA_IO_BASE, size);
-+			vunmap_range(ISA_IO_BASE, ISA_IO_BASE + size);
- 	} else {
- 		early_ioremap_range(ISA_IO_BASE, pa, size,
- 				pgprot_noncached(PAGE_KERNEL));
-@@ -311,7 +311,7 @@ static void isa_bridge_remove(void)
- 	isa_bridge_pcidev =3D NULL;
-=20
- 	/* Unmap the ISA area */
--	unmap_kernel_range(ISA_IO_BASE, 0x10000);
-+	vunmap_range(ISA_IO_BASE, ISA_IO_BASE + 0x10000);
- }
-=20
- /**
---- a/arch/powerpc/kernel/pci_64.c~mm-vmalloc-remove-unmap_kernel_range
-+++ a/arch/powerpc/kernel/pci_64.c
-@@ -140,7 +140,7 @@ void __iomem *ioremap_phb(phys_addr_t pa
- 	addr =3D (unsigned long)area->addr;
- 	if (ioremap_page_range(addr, addr + size, paddr,
- 			pgprot_noncached(PAGE_KERNEL))) {
--		unmap_kernel_range(addr, size);
-+		vunmap_range(addr, addr + size);
- 		return NULL;
+--- a/arch/powerpc/sysdev/xive/common.c~powerpc-xive-remove-unnecessary-unm=
+ap_kernel_range
++++ a/arch/powerpc/sysdev/xive/common.c
+@@ -959,16 +959,12 @@ EXPORT_SYMBOL_GPL(is_xive_irq);
+ void xive_cleanup_irq_data(struct xive_irq_data *xd)
+ {
+ 	if (xd->eoi_mmio) {
+-		unmap_kernel_range((unsigned long)xd->eoi_mmio,
+-				   1u << xd->esb_shift);
+ 		iounmap(xd->eoi_mmio);
+ 		if (xd->eoi_mmio =3D=3D xd->trig_mmio)
+ 			xd->trig_mmio =3D NULL;
+ 		xd->eoi_mmio =3D NULL;
  	}
-=20
---- a/arch/powerpc/mm/ioremap.c~mm-vmalloc-remove-unmap_kernel_range
-+++ a/arch/powerpc/mm/ioremap.c
-@@ -93,7 +93,7 @@ void __iomem *do_ioremap(phys_addr_t pa,
- 	if (!ret)
- 		return (void __iomem *)area->addr + offset;
-=20
--	unmap_kernel_range(va, size);
-+	vunmap_range(va, va + size);
- 	free_vm_area(area);
-=20
- 	return NULL;
---- a/Documentation/core-api/cachetlb.rst~mm-vmalloc-remove-unmap_kernel_ra=
-nge
-+++ a/Documentation/core-api/cachetlb.rst
-@@ -215,7 +215,7 @@ Here are the routines, one by one:
-=20
- 	The first of these two routines is invoked after vmap_range()
- 	has installed the page table entries.  The second is invoked
--	before unmap_kernel_range() deletes the page table entries.
-+	before vunmap_range() deletes the page table entries.
-=20
- There exists another whole class of cpu cache issues which currently
- require a whole different set of interfaces to handle properly.
---- a/drivers/pci/pci.c~mm-vmalloc-remove-unmap_kernel_range
-+++ a/drivers/pci/pci.c
-@@ -4112,7 +4112,7 @@ void pci_unmap_iospace(struct resource *
- #if defined(PCI_IOBASE) && defined(CONFIG_MMU)
- 	unsigned long vaddr =3D (unsigned long)PCI_IOBASE + res->start;
-=20
--	unmap_kernel_range(vaddr, resource_size(res));
-+	vunmap_range(vaddr, vaddr + resource_size(res));
- #endif
- }
- EXPORT_SYMBOL(pci_unmap_iospace);
---- a/include/linux/vmalloc.h~mm-vmalloc-remove-unmap_kernel_range
-+++ a/include/linux/vmalloc.h
-@@ -212,8 +212,7 @@ static inline bool is_vm_area_hugepages(
- int vmap_range(unsigned long addr, unsigned long end,
- 			phys_addr_t phys_addr, pgprot_t prot,
- 			unsigned int max_page_shift);
--extern void unmap_kernel_range_noflush(unsigned long addr, unsigned long s=
-ize);
--extern void unmap_kernel_range(unsigned long addr, unsigned long size);
-+void vunmap_range(unsigned long addr, unsigned long end);
- static inline void set_vm_flush_reset_perms(void *addr)
- {
- 	struct vm_struct *vm =3D find_vm_area(addr);
-@@ -223,11 +222,6 @@ static inline void set_vm_flush_reset_pe
- }
-=20
- #else
--static inline void
--unmap_kernel_range_noflush(unsigned long addr, unsigned long size)
--{
--}
--#define unmap_kernel_range unmap_kernel_range_noflush
- static inline void set_vm_flush_reset_perms(void *addr)
- {
- }
---- a/mm/internal.h~mm-vmalloc-remove-unmap_kernel_range
-+++ a/mm/internal.h
-@@ -643,5 +643,6 @@ struct migration_target_control {
-  */
- int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-                 pgprot_t prot, struct page **pages, unsigned int page_shif=
-t);
-+void vunmap_range_noflush(unsigned long start, unsigned long end);
-=20
- #endif	/* __MM_INTERNAL_H */
---- a/mm/percpu-vm.c~mm-vmalloc-remove-unmap_kernel_range
-+++ a/mm/percpu-vm.c
-@@ -134,7 +134,7 @@ static void pcpu_pre_unmap_flush(struct
-=20
- static void __pcpu_unmap_pages(unsigned long addr, int nr_pages)
- {
--	unmap_kernel_range_noflush(addr, nr_pages << PAGE_SHIFT);
-+	vunmap_range_noflush(addr, addr + (nr_pages << PAGE_SHIFT));
- }
-=20
- /**
---- a/mm/vmalloc.c~mm-vmalloc-remove-unmap_kernel_range
-+++ a/mm/vmalloc.c
-@@ -378,22 +378,20 @@ static void vunmap_p4d_range(pgd_t *pgd,
- 	} while (p4d++, addr =3D next, addr !=3D end);
- }
-=20
--/**
-- * unmap_kernel_range_noflush - unmap kernel VM area
-- * @start: start of the VM area to unmap
-- * @size: size of the VM area to unmap
-+/*
-+ * vunmap_range_noflush is similar to vunmap_range, but does not
-+ * flush caches or TLBs.
-  *
-- * Unmap PFN_UP(@size) pages at @addr.  The VM area @addr and @size specify
-- * should have been allocated using get_vm_area() and its friends.
-+ * The caller is responsible for calling flush_cache_vmap() before calling
-+ * this function, and flush_tlb_kernel_range after it has returned
-+ * successfully (and before the addresses are expected to cause a page fau=
-lt
-+ * or be re-mapped for something else, if TLB flushes are being delayed or
-+ * coalesced).
-  *
-- * NOTE:
-- * This function does NOT do any cache flushing.  The caller is responsible
-- * for calling flush_cache_vunmap() on to-be-mapped areas before calling t=
-his
-- * function and flush_tlb_kernel_range() after.
-+ * This is an internal function only. Do not use outside mm/.
-  */
--void unmap_kernel_range_noflush(unsigned long start, unsigned long size)
-+void vunmap_range_noflush(unsigned long start, unsigned long end)
- {
--	unsigned long end =3D start + size;
- 	unsigned long next;
- 	pgd_t *pgd;
- 	unsigned long addr =3D start;
-@@ -414,6 +412,22 @@ void unmap_kernel_range_noflush(unsigned
- 		arch_sync_kernel_mappings(start, end);
- }
-=20
-+/**
-+ * vunmap_range_noflush - unmap kernel virtual addresses
-+ * @addr: start of the VM area to unmap
-+ * @end: end of the VM area to unmap (non-inclusive)
-+ *
-+ * Clears any present PTEs in the virtual address range, flushes TLBs and
-+ * caches. Any subsequent access to the address before it has been re-mapp=
-ed
-+ * is a kernel bug.
-+ */
-+void vunmap_range(unsigned long addr, unsigned long end)
-+{
-+	flush_cache_vunmap(addr, end);
-+	vunmap_range_noflush(addr, end);
-+	flush_tlb_kernel_range(addr, end);
-+}
-+
- static int vmap_pages_pte_range(pmd_t *pmd, unsigned long addr,
- 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
- 		pgtbl_mod_mask *mask)
-@@ -1712,7 +1726,7 @@ static void free_vmap_area_noflush(struc
- static void free_unmap_vmap_area(struct vmap_area *va)
- {
- 	flush_cache_vunmap(va->va_start, va->va_end);
--	unmap_kernel_range_noflush(va->va_start, va->va_end - va->va_start);
-+	vunmap_range_noflush(va->va_start, va->va_end);
- 	if (debug_pagealloc_enabled_static())
- 		flush_tlb_kernel_range(va->va_start, va->va_end);
-=20
-@@ -1990,7 +2004,7 @@ static void vb_free(unsigned long addr,
- 	offset =3D (addr & (VMAP_BLOCK_SIZE - 1)) >> PAGE_SHIFT;
- 	vb =3D xa_load(&vmap_blocks, addr_to_vb_idx(addr));
-=20
--	unmap_kernel_range_noflush(addr, size);
-+	vunmap_range_noflush(addr, addr + size);
-=20
- 	if (debug_pagealloc_enabled_static())
- 		flush_tlb_kernel_range(addr, addr + size);
-@@ -2307,23 +2321,6 @@ void __init vmalloc_init(void)
- 	vmap_initialized =3D true;
- }
-=20
--/**
-- * unmap_kernel_range - unmap kernel VM area and flush cache and TLB
-- * @addr: start of the VM area to unmap
-- * @size: size of the VM area to unmap
-- *
-- * Similar to unmap_kernel_range_noflush() but flushes vcache before
-- * the unmapping and tlb after.
-- */
--void unmap_kernel_range(unsigned long addr, unsigned long size)
--{
--	unsigned long end =3D addr + size;
--
--	flush_cache_vunmap(addr, end);
--	unmap_kernel_range_noflush(addr, size);
--	flush_tlb_kernel_range(addr, end);
--}
--
- static inline void setup_vmalloc_vm_locked(struct vm_struct *vm,
- 	struct vmap_area *va, unsigned long flags, const void *caller)
- {
+ 	if (xd->trig_mmio) {
+-		unmap_kernel_range((unsigned long)xd->trig_mmio,
+-				   1u << xd->esb_shift);
+ 		iounmap(xd->trig_mmio);
+ 		xd->trig_mmio =3D NULL;
+ 	}
 _
 
 Patches currently in -mm which might be from npiggin@gmail.com are
