@@ -7,45 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFAC5C433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:23:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D508DC433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:32:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C3E32619AA
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:23:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A90026191D
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:32:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231489AbhC1TXF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 15:23:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51660 "EHLO mail.kernel.org"
+        id S231176AbhC1Tb0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 15:31:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52644 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229955AbhC1TWj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 15:22:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8689D61999;
-        Sun, 28 Mar 2021 19:22:37 +0000 (UTC)
+        id S230294AbhC1TbZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 15:31:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 08B7161969;
+        Sun, 28 Mar 2021 19:31:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616959358;
-        bh=Mou+HNZEPgjRyZ21jpwhtyxdERMAByn8bUt5PfrSYhk=;
+        s=korg; t=1616959885;
+        bh=TtCkAY6emjfmCyM4mEB/sv5NmgzUis+ff69yfvR7Y90=;
         h=Date:From:To:Subject:From;
-        b=p1La1booKt9ba2w27vzeHw+l7fxBYeQ8iA33PgnY6pTNdi92aYzSZWQ0l+ylAnv6m
-         sZEu2Lq69ejFyDDCrM+RYT7aSACr+5BMnDYvglo3nLbPlG/ez2RCsqZnzxeHvGfEpA
-         I8fXLyIU3hLZDu+70JlZ3QyHetXFdW8vOYr8RF7c=
-Date:   Sun, 28 Mar 2021 12:22:36 -0700
+        b=nLpxVLLOrEkpY2+6bzJZ/8q78Z3cIyrhlvBzF151GfMpygem9A9CPYtExERmdsuzR
+         vh8t1giHZc/QNNhjtyOj93HGvrMPRrhDOfMw4caqHQMfBrwfLAY70Qe6/7JV8aEq0U
+         ddcEDTFOF8uiSfVqyRlwKRrdD/RzOJ7Jfi+v4brQ=
+Date:   Sun, 28 Mar 2021 12:31:24 -0700
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, bhe@redhat.com, bp@alien8.de,
-        brijesh.singh@amd.com, cai@lca.pw, dan.j.williams@intel.com,
-        daniel.vetter@ffwll.ch, dave.hansen@linux.intel.com,
-        david@redhat.com, dyoung@redhat.com, ebiederm@xmission.com,
-        gregkh@linuxfoundation.org, hpa@zytor.com, keith.busch@intel.com,
-        mchehab+huawei@kernel.org, mhocko@suse.com, mingo@redhat.com,
-        mm-commits@vger.kernel.org, osalvador@suse.de, tglx@linutronix.de,
-        thomas.lendacky@amd.com, vgoyal@redhat.com
-Subject:  +
- =?US-ASCII?Q?kernel-resource-make-walk=5Fsystem=5Fram=5Fres-find-all-bu?=
- =?US-ASCII?Q?sy-ioresource=5Fsystem=5Fram-resources.patch?= added to -mm
- tree
-Message-ID: <20210328192236.5t5BRw5oc%akpm@linux-foundation.org>
+To:     alexander.duyck@gmail.com, alobakin@pm.me, brouer@redhat.com,
+        chuck.lever@oracle.com, davem@davemloft.net, hch@infradead.org,
+        ilias.apalodimas@linaro.org, mgorman@techsingularity.net,
+        mm-commits@vger.kernel.org, vbabka@suse.cz, willy@infradead.org
+Subject:  + mm-page_alloc-add-a-bulk-page-allocator.patch added to
+ -mm tree
+Message-ID: <20210328193124.IfyIGbb85%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/resource: make walk_system_ram_res() find all busy IORESOURCE_SYSTEM_RAM resources
+     Subject: mm/page_alloc: add a bulk page allocator
 has been added to the -mm tree.  Its filename is
-     kernel-resource-make-walk_system_ram_res-find-all-busy-ioresource_system_ram-resources.patch
+     mm-page_alloc-add-a-bulk-page-allocator.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kernel-resource-make-walk_system_ram_res-find-all-busy-ioresource_system_ram-resources.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-add-a-bulk-page-allocator.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-resource-make-walk_system_ram_res-find-all-busy-ioresource_system_ram-resources.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-add-a-bulk-page-allocator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,109 +66,195 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: kernel/resource: make walk_system_ram_res() find all busy IORESOURCE_SYSTEM_RAM resources
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: add a bulk page allocator
 
-Patch series "kernel/resource: make walk_system_ram_res() and walk_mem_res() search the whole tree", v2.
+This patch adds a new page allocator interface via alloc_pages_bulk, and
+__alloc_pages_bulk_nodemask.  A caller requests a number of pages to be
+allocated and added to a list.
 
-Playing with kdump+virtio-mem I noticed that kexec_file_load() does not
-consider System RAM added via dax/kmem and virtio-mem when preparing the
-elf header for kdump.  Looking into the details, the logic used in
-walk_system_ram_res() and walk_mem_res() seems to be outdated.
+The API is not guaranteed to return the requested number of pages and may
+fail if the preferred allocation zone has limited free memory, the cpuset
+changes during the allocation or page debugging decides to fail an
+allocation.  It's up to the caller to request more pages in batch if
+necessary.
 
-walk_system_ram_range() already does the right thing, let's change
-walk_system_ram_res() and walk_mem_res(), and clean up.
+Note that this implementation is not very efficient and could be improved
+but it would require refactoring.  The intent is to make it available
+early to determine what semantics are required by different callers.  Once
+the full semantics are nailed down, it can be refactored.
 
-Loading a kdump kernel via "kexec -p -s" ...  will result in the kdump
-kernel to also dump dax/kmem and virtio-mem added System RAM now.
-
-Note: kexec-tools on x86-64 also have to be updated to consider this
-memory in the kexec_load() case when processing /proc/iomem.
-
-
-This patch (of 3):
-
-It used to be true that we can have system RAM (IORESOURCE_SYSTEM_RAM |
-IORESOURCE_BUSY) only on the first level in the resource tree.  However,
-this is no longer holds for driver-managed system RAM (i.e., added via
-dax/kmem and virtio-mem), which gets added on lower levels, for example,
-inside device containers.
-
-We have two users of walk_system_ram_res(), which currently only
-consideres the first level:
-
-a) kernel/kexec_file.c:kexec_walk_resources() -- We properly skip
-   IORESOURCE_SYSRAM_DRIVER_MANAGED resources via
-   locate_mem_hole_callback(), so even after this change, we won't be
-   placing kexec images onto dax/kmem and virtio-mem added memory.  No
-   change.
-
-b) arch/x86/kernel/crash.c:fill_up_crash_elf_data() -- we're currently
-   not adding relevant ranges to the crash elf header, resulting in them
-   not getting dumped via kdump.
-
-This change fixes loading a crashkernel via kexec_file_load() and
-including dax/kmem and virtio-mem added System RAM in the crashdump on
-x86-64.  Note that e.g,, arm64 relies on memblock data and, therefore,
-always considers all added System RAM already.
-
-Let's find all IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY resources, making
-the function behave like walk_system_ram_range().
-
-Link: https://lkml.kernel.org/r/20210325115326.7826-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20210325115326.7826-2-david@redhat.com
-Fixes: ebf71552bb0e ("virtio-mem: Add parent resource for all added "System RAM"")
-Fixes: c221c0b0308f ("device-dax: "Hotplug" persistent memory for use like normal RAM")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Brijesh Singh <brijesh.singh@amd.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Link: https://lkml.kernel.org/r/20210325114228.27719-3-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Alexander Lobakin <alobakin@pm.me>
+Cc: Alexander Duyck <alexander.duyck@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/gfp.h |   11 +++
+ mm/page_alloc.c     |  118 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 129 insertions(+)
 
---- a/kernel/resource.c~kernel-resource-make-walk_system_ram_res-find-all-busy-ioresource_system_ram-resources
-+++ a/kernel/resource.c
-@@ -457,7 +457,7 @@ int walk_system_ram_res(u64 start, u64 e
- {
- 	unsigned long flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+--- a/include/linux/gfp.h~mm-page_alloc-add-a-bulk-page-allocator
++++ a/include/linux/gfp.h
+@@ -518,6 +518,17 @@ static inline int arch_make_page_accessi
+ struct page *__alloc_pages(gfp_t gfp, unsigned int order, int preferred_nid,
+ 		nodemask_t *nodemask);
  
--	return __walk_iomem_res_desc(start, end, flags, IORES_DESC_NONE, true,
-+	return __walk_iomem_res_desc(start, end, flags, IORES_DESC_NONE, false,
- 				     arg, func);
++int __alloc_pages_bulk(gfp_t gfp, int preferred_nid,
++				nodemask_t *nodemask, int nr_pages,
++				struct list_head *list);
++
++/* Bulk allocate order-0 pages */
++static inline unsigned long
++alloc_pages_bulk(gfp_t gfp, unsigned long nr_pages, struct list_head *list)
++{
++	return __alloc_pages_bulk(gfp, numa_mem_id(), NULL, nr_pages, list);
++}
++
+ /*
+  * Allocate pages, preferring the node given as nid. The node must be valid and
+  * online. For more general interface, see alloc_pages_node().
+--- a/mm/page_alloc.c~mm-page_alloc-add-a-bulk-page-allocator
++++ a/mm/page_alloc.c
+@@ -5001,6 +5001,124 @@ static inline bool prepare_alloc_pages(g
  }
  
+ /*
++ * __alloc_pages_bulk - Allocate a number of order-0 pages to a list
++ * @gfp: GFP flags for the allocation
++ * @preferred_nid: The preferred NUMA node ID to allocate from
++ * @nodemask: Set of nodes to allocate from, may be NULL
++ * @nr_pages: The number of pages desired on the list
++ * @page_list: List to store the allocated pages
++ *
++ * This is a batched version of the page allocator that attempts to
++ * allocate nr_pages quickly and add them to a list.
++ *
++ * Returns the number of pages on the list.
++ */
++int __alloc_pages_bulk(gfp_t gfp, int preferred_nid,
++			nodemask_t *nodemask, int nr_pages,
++			struct list_head *page_list)
++{
++	struct page *page;
++	unsigned long flags;
++	struct zone *zone;
++	struct zoneref *z;
++	struct per_cpu_pages *pcp;
++	struct list_head *pcp_list;
++	struct alloc_context ac;
++	gfp_t alloc_gfp;
++	unsigned int alloc_flags;
++	int allocated = 0;
++
++	if (WARN_ON_ONCE(nr_pages <= 0))
++		return 0;
++
++	/* Use the single page allocator for one page. */
++	if (nr_pages == 1)
++		goto failed;
++
++	/* May set ALLOC_NOFRAGMENT, fragmentation will return 1 page. */
++	gfp &= gfp_allowed_mask;
++	alloc_gfp = gfp;
++	if (!prepare_alloc_pages(gfp, 0, preferred_nid, nodemask, &ac, &alloc_gfp, &alloc_flags))
++		return 0;
++	gfp = alloc_gfp;
++
++	/* Find an allowed local zone that meets the high watermark. */
++	for_each_zone_zonelist_nodemask(zone, z, ac.zonelist, ac.highest_zoneidx, ac.nodemask) {
++		unsigned long mark;
++
++		if (cpusets_enabled() && (alloc_flags & ALLOC_CPUSET) &&
++		    !__cpuset_zone_allowed(zone, gfp)) {
++			continue;
++		}
++
++		if (nr_online_nodes > 1 && zone != ac.preferred_zoneref->zone &&
++		    zone_to_nid(zone) != zone_to_nid(ac.preferred_zoneref->zone)) {
++			goto failed;
++		}
++
++		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK) + nr_pages;
++		if (zone_watermark_fast(zone, 0,  mark,
++				zonelist_zone_idx(ac.preferred_zoneref),
++				alloc_flags, gfp)) {
++			break;
++		}
++	}
++
++	/*
++	 * If there are no allowed local zones that meets the watermarks then
++	 * try to allocate a single page and reclaim if necessary.
++	 */
++	if (!zone)
++		goto failed;
++
++	/* Attempt the batch allocation */
++	local_irq_save(flags);
++	pcp = &this_cpu_ptr(zone->pageset)->pcp;
++	pcp_list = &pcp->lists[ac.migratetype];
++
++	while (allocated < nr_pages) {
++		page = __rmqueue_pcplist(zone, ac.migratetype, alloc_flags,
++								pcp, pcp_list);
++		if (!page) {
++			/* Try and get at least one page */
++			if (!allocated)
++				goto failed_irq;
++			break;
++		}
++
++		/*
++		 * Ideally this would be batched but the best way to do
++		 * that cheaply is to first convert zone_statistics to
++		 * be inaccurate per-cpu counter like vm_events to avoid
++		 * a RMW cycle then do the accounting with IRQs enabled.
++		 */
++		__count_zid_vm_events(PGALLOC, zone_idx(zone), 1);
++		zone_statistics(ac.preferred_zoneref->zone, zone);
++
++		prep_new_page(page, 0, gfp, 0);
++		list_add(&page->lru, page_list);
++		allocated++;
++	}
++
++	local_irq_restore(flags);
++
++	return allocated;
++
++failed_irq:
++	local_irq_restore(flags);
++
++failed:
++	page = __alloc_pages(gfp, 0, preferred_nid, nodemask);
++	if (page) {
++		list_add(&page->lru, page_list);
++		allocated = 1;
++	}
++
++	return allocated;
++}
++EXPORT_SYMBOL_GPL(__alloc_pages_bulk);
++
++/*
+  * This is the 'heart' of the zoned buddy allocator.
+  */
+ struct page *__alloc_pages(gfp_t gfp, unsigned int order, int preferred_nid,
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-page_alloc-drop-pr_info_ratelimited-in-alloc_contig_range.patch
-kernel-resource-make-walk_system_ram_res-find-all-busy-ioresource_system_ram-resources.patch
-kernel-resource-make-walk_mem_res-find-all-busy-ioresource_mem-resources.patch
-kernel-resource-remove-first_lvl-siblings_only-logic.patch
-drivers-char-remove-dev-kmem-for-good.patch
-mm-remove-xlate_dev_kmem_ptr.patch
-mm-vmalloc-remove-vwrite.patch
+mm-page_alloc-rename-alloced-to-allocated.patch
+mm-page_alloc-add-a-bulk-page-allocator.patch
+mm-page_alloc-add-a-bulk-page-allocator-fix.patch
+mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator.patch
 
