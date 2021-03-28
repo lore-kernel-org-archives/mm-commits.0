@@ -7,38 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C357C433E4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DB64C433E2
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:12:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 54616619AE
+	by mail.kernel.org (Postfix) with ESMTP id 37CC461972
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:12:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231552AbhC1TMR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 15:12:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50392 "EHLO mail.kernel.org"
+        id S231489AbhC1TMS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 15:12:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50414 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231478AbhC1TLv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 15:11:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 485EE61981;
-        Sun, 28 Mar 2021 19:11:51 +0000 (UTC)
+        id S231499AbhC1TLw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 15:11:52 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 480936196E;
+        Sun, 28 Mar 2021 19:11:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616958711;
-        bh=Hvp29mT1IcQ5KJCgYCnlUdxBYRpvroOQ8bZO+k0TMtE=;
+        s=korg; t=1616958712;
+        bh=UDf3ZIgj+G24K8giWS1P8bIsT33DLy7gOBUsRv6KmkU=;
         h=Date:From:To:Subject:From;
-        b=SFy4anRJmFhE+UYnLq053AzWl1Sv7TaC+bUyUIyE7LkSjGWVbCjRcJfOSGHp7+0wP
-         F5k8dOzWsPC3odS7rhtlTo056wVsa8oaV0h++SfuXBf7gw7I6g+OW32VrRZ28TCULH
-         1Rqk3m2Is+yP9Y/eiuXC9xi9Z3jDGL4wkcQQT2Rg=
-Date:   Sun, 28 Mar 2021 12:11:50 -0700
+        b=jQ7dkEOqo4aSG+nGq4M4v17LLNoIWFYBBjoIR71NnWiLuKC/hMxkhsiec1IAFSETQ
+         gPk7EepRYdFw23T6gN4mprCOUfc3xUIOVs74Zreh26cOWOtvOwABQUBcerqtKb9DVi
+         F83bh07iOq/4m4x5fVm867Q/8vVh+7KZ6/0sjbeQ=
+Date:   Sun, 28 Mar 2021 12:11:51 -0700
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, ziy@nvidia.com
-Subject:  +
- =?US-ASCII?Q?khugepaged-remove-meaningless-pte=5Fpresent-check-in-khuge?=
- =?US-ASCII?Q?paged=5Fscan=5Fpmd.patch?= added to -mm tree
-Message-ID: <20210328191150.wHp4pXCuc%akpm@linux-foundation.org>
+To:     apopple@nvidia.com, aquini@redhat.com, david@redhat.com,
+        jglisse@redhat.com, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org, shy828301@gmail.com
+Subject:  + mm-migratec-make-putback_movable_page-static.patch
+ added to -mm tree
+Message-ID: <20210328191151.08ZLRmXGF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: remove meaningless !pte_present() check in khugepaged_scan_pmd()
+     Subject: mm/migrate.c: make putback_movable_page() static
 has been added to the -mm tree.  Its filename is
-     khugepaged-remove-meaningless-pte_present-check-in-khugepaged_scan_pmd.patch
+     mm-migratec-make-putback_movable_page-static.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/khugepaged-remove-meaningless-pte_present-check-in-khugepaged_scan_pmd.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migratec-make-putback_movable_page-static.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-remove-meaningless-pte_present-check-in-khugepaged_scan_pmd.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migratec-make-putback_movable_page-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,35 +66,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: khugepaged: remove meaningless !pte_present() check in khugepaged_scan_pmd()
+Subject: mm/migrate.c: make putback_movable_page() static
 
-We know it must meet the !is_swap_pte() and !pte_none() condition if we
-reach here. Since !is_swap_pte() indicates pte_none() or pte_present()
-is met, it's guaranteed that pte must be present here.
+Patch series "Cleanup and fixup for mm/migrate.c", v3.
 
-Link: https://lkml.kernel.org/r/20210325135647.64106-4-linmiaohe@huawei.com
+This series contains cleanups to remove unnecessary VM_BUG_ON_PAGE and rc
+!= MIGRATEPAGE_SUCCESS check.  Also use helper function to remove some
+duplicated codes.  What's more, this fixes potential deadlock in NUMA
+balancing shared exec THP case and so on.  More details can be found in
+the respective changelogs.
+
+
+This patch (of 5):
+
+The putback_movable_page() is just called by putback_movable_pages() and
+we know the page is locked and both PageMovable() and PageIsolated() is
+checked right before calling putback_movable_page().  So we make it static
+and remove all the 3 VM_BUG_ON_PAGE().
+
+Link: https://lkml.kernel.org/r/20210325131524.48181-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210325131524.48181-2-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/migrate.h |    1 -
+ mm/migrate.c            |    7 +------
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-remove-meaningless-pte_present-check-in-khugepaged_scan_pmd
-+++ a/mm/khugepaged.c
-@@ -1271,10 +1271,6 @@ static int khugepaged_scan_pmd(struct mm
- 				goto out_unmap;
- 			}
- 		}
--		if (!pte_present(pteval)) {
--			result = SCAN_PTE_NON_PRESENT;
--			goto out_unmap;
--		}
- 		if (pte_uffd_wp(pteval)) {
- 			/*
- 			 * Don't collapse the page if any of the small
+--- a/include/linux/migrate.h~mm-migratec-make-putback_movable_page-static
++++ a/include/linux/migrate.h
+@@ -43,7 +43,6 @@ extern int migrate_pages(struct list_hea
+ 		unsigned long private, enum migrate_mode mode, int reason);
+ extern struct page *alloc_migration_target(struct page *page, unsigned long private);
+ extern int isolate_movable_page(struct page *page, isolate_mode_t mode);
+-extern void putback_movable_page(struct page *page);
+ 
+ extern void migrate_page_states(struct page *newpage, struct page *page);
+ extern void migrate_page_copy(struct page *newpage, struct page *page);
+--- a/mm/migrate.c~mm-migratec-make-putback_movable_page-static
++++ a/mm/migrate.c
+@@ -118,15 +118,10 @@ out:
+ 	return -EBUSY;
+ }
+ 
+-/* It should be called on page which is PG_movable */
+-void putback_movable_page(struct page *page)
++static void putback_movable_page(struct page *page)
+ {
+ 	struct address_space *mapping;
+ 
+-	VM_BUG_ON_PAGE(!PageLocked(page), page);
+-	VM_BUG_ON_PAGE(!PageMovable(page), page);
+-	VM_BUG_ON_PAGE(!PageIsolated(page), page);
+-
+ 	mapping = page_mapping(page);
+ 	mapping->a_ops->putback_page(page);
+ 	__ClearPageIsolated(page);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
