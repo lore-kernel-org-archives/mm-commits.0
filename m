@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 624DFC433EC
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F788C433E9
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 16:43:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E0C661958
+	by mail.kernel.org (Postfix) with ESMTP id 3E78A61999
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 16:43:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231321AbhC1Qm4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 12:42:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55428 "EHLO mail.kernel.org"
+        id S231164AbhC1Qm5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 12:42:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231164AbhC1Qmb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 12:42:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 89B9F61968;
-        Sun, 28 Mar 2021 16:42:30 +0000 (UTC)
+        id S231329AbhC1Qmd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 12:42:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 879A56193F;
+        Sun, 28 Mar 2021 16:42:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616949750;
-        bh=7U069BFSiKD7wy7k7/o4uuXAtU5fOdem2vYnObghMYA=;
+        s=korg; t=1616949753;
+        bh=vt7dYMO/uBh6ITNGwqPnUEzOJjlQbJZopA2e4RyYbsE=;
         h=Date:From:To:Subject:From;
-        b=u7G/nYSntyxiAFqyryEJ9NCecG/KWL5NA+Y1aYaFB80AFKNtUJNDLCtG5nY2KpLCO
-         qgSxgNjBFKGR8rMDz11XKqAf6Jq7eYls8XanHuptJOau8AaVM4tVoGWWsJzVou8HeI
-         slpJsR/LQAdmmeCLvkuC+NFDfg2XQkDcK1h4CCFI=
-Date:   Sun, 28 Mar 2021 09:42:30 -0700
+        b=gEEOu/Ul94so9BU6iwHOk8EXPbdjVX6y/UOdEy+Yawaas3aCSCMaouRmP5b5tTID/
+         4mqohs5YffwB44XCtag4v8TcAiNflTHzIyqe8ZfguDWwwpfzuKgLAMrD8pRhqY4UJc
+         Nrl4mlCSR600JgrbqmoR4LY01/wgHMw0UDue75lM=
+Date:   Sun, 28 Mar 2021 09:42:33 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
-        elver@google.com, glider@google.com, jannh@google.com,
-        lhenriques@suse.de, mm-commits@vger.kernel.org
-Subject:  [merged] kfence-make-compatible-with-kmemleak.patch
- removed from -mm tree
-Message-ID: <20210328164230.ypiCBfQGZ%akpm@linux-foundation.org>
+To:     arnd@arndb.de, david@redhat.com, lkp@intel.com,
+        mm-commits@vger.kernel.org, ndesaulniers@google.com,
+        rppt@linux.ibm.com
+Subject:  [merged]
+ memblock-fix-section-mismatch-warning-again.patch removed from -mm tree
+Message-ID: <20210328164233.UtfbPJd41%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,96 +44,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: make compatible with kmemleak
+     Subject: mm: memblock: fix section mismatch warning again
 has been removed from the -mm tree.  Its filename was
-     kfence-make-compatible-with-kmemleak.patch
+     memblock-fix-section-mismatch-warning-again.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: make compatible with kmemleak
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mm: memblock: fix section mismatch warning again
 
-Because memblock allocations are registered with kmemleak, the KFENCE pool
-was seen by kmemleak as one large object.  Later allocations through
-kfence_alloc() that were registered with kmemleak via
-slab_post_alloc_hook() would then overlap and trigger a warning. 
-Therefore, once the pool is initialized, we can remove (free) it from
-kmemleak again, since it should be treated as allocator-internal and be
-seen as "free memory".
+Commit 34dc2efb39a2 ("memblock: fix section mismatch warning") marked
+memblock_bottom_up() and memblock_set_bottom_up() as __init, but they
+could be referenced from non-init functions like
+memblock_find_in_range_node() on architectures that enable
+CONFIG_ARCH_KEEP_MEMBLOCK.
 
-The second problem is that kmemleak is passed the rounded size, and not
-the originally requested size, which is also the size of KFENCE objects. 
-To avoid kmemleak scanning past the end of an object and trigger a KFENCE
-out-of-bounds error, fix the size if it is a KFENCE object.
+For such builds kernel test robot reports: All warnings (new ones prefixed
+by >>, old ones prefixed by <<):
 
-For simplicity, to avoid a call to kfence_ksize() in
-slab_post_alloc_hook() (and avoid new IS_ENABLED(CONFIG_DEBUG_KMEMLEAK)
-guard), just call kfence_ksize() in mm/kmemleak.c:create_object().
+>> WARNING: modpost: vmlinux.o(.text+0x74fea4): Section mismatch in reference from the function memblock_find_in_range_node() to the function .init.text:memblock_bottom_up()
+The function memblock_find_in_range_node() references
+the function __init memblock_bottom_up().
+This is often because memblock_find_in_range_node lacks a __init
+annotation or the annotation of memblock_bottom_up is wrong.
 
-Link: https://lkml.kernel.org/r/20210317084740.3099921-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: Luis Henriques <lhenriques@suse.de>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Tested-by: Luis Henriques <lhenriques@suse.de>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Jann Horn <jannh@google.com>
+Replace __init annotations with __init_memblock annotations so that the
+appropriate section will be selected depending on
+CONFIG_ARCH_KEEP_MEMBLOCK.
+
+Link: https://lore.kernel.org/lkml/202103160133.UzhgY0wt-lkp@intel.com
+Link: https://lkml.kernel.org/r/20210316171347.14084-1-rppt@kernel.org
+Fixes: 34dc2efb39a2 ("memblock: fix section mismatch warning")
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Reported-by: kernel test robot <lkp@intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |    9 +++++++++
- mm/kmemleak.c    |    3 ++-
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ include/linux/memblock.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/kfence/core.c~kfence-make-compatible-with-kmemleak
-+++ a/mm/kfence/core.c
-@@ -12,6 +12,7 @@
- #include <linux/debugfs.h>
- #include <linux/kcsan-checks.h>
- #include <linux/kfence.h>
-+#include <linux/kmemleak.h>
- #include <linux/list.h>
- #include <linux/lockdep.h>
- #include <linux/memblock.h>
-@@ -480,6 +481,14 @@ static bool __init kfence_init_pool(void
- 		addr += 2 * PAGE_SIZE;
- 	}
- 
-+	/*
-+	 * The pool is live and will never be deallocated from this point on.
-+	 * Remove the pool object from the kmemleak object tree, as it would
-+	 * otherwise overlap with allocations returned by kfence_alloc(), which
-+	 * are registered with kmemleak through the slab post-alloc hook.
-+	 */
-+	kmemleak_free(__kfence_pool);
-+
- 	return true;
- 
- err:
---- a/mm/kmemleak.c~kfence-make-compatible-with-kmemleak
-+++ a/mm/kmemleak.c
-@@ -97,6 +97,7 @@
- #include <linux/atomic.h>
- 
- #include <linux/kasan.h>
-+#include <linux/kfence.h>
- #include <linux/kmemleak.h>
- #include <linux/memory_hotplug.h>
- 
-@@ -589,7 +590,7 @@ static struct kmemleak_object *create_ob
- 	atomic_set(&object->use_count, 1);
- 	object->flags = OBJECT_ALLOCATED;
- 	object->pointer = ptr;
--	object->size = size;
-+	object->size = kfence_ksize((void *)ptr) ?: size;
- 	object->excess_ref = 0;
- 	object->min_count = min_count;
- 	object->count = 0;			/* white color initially */
+--- a/include/linux/memblock.h~memblock-fix-section-mismatch-warning-again
++++ a/include/linux/memblock.h
+@@ -460,7 +460,7 @@ static inline void memblock_free_late(ph
+ /*
+  * Set the allocation direction to bottom-up or top-down.
+  */
+-static inline __init void memblock_set_bottom_up(bool enable)
++static inline __init_memblock void memblock_set_bottom_up(bool enable)
+ {
+ 	memblock.bottom_up = enable;
+ }
+@@ -470,7 +470,7 @@ static inline __init void memblock_set_b
+  * if this is true, that said, memblock will allocate memory
+  * in bottom-up direction.
+  */
+-static inline __init bool memblock_bottom_up(void)
++static inline __init_memblock bool memblock_bottom_up(void)
+ {
+ 	return memblock.bottom_up;
+ }
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-kfence-zero-guard-page-after-out-of-bounds-access.patch
+mmap-make-mlock_future_check-global.patch
+riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
