@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BE4BC433E3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C357C433E4
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:12:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 174AD619AB
+	by mail.kernel.org (Postfix) with ESMTP id 54616619AE
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:12:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231598AbhC1TMQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 15:12:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50346 "EHLO mail.kernel.org"
+        id S231552AbhC1TMR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 15:12:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50392 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231558AbhC1TLu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 15:11:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 55668619A0;
-        Sun, 28 Mar 2021 19:11:49 +0000 (UTC)
+        id S231478AbhC1TLv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 15:11:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 485EE61981;
+        Sun, 28 Mar 2021 19:11:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616958709;
-        bh=kopg5CPT5HV+zLKQz4MJ2RMlvXajEodd2wYIMICXjFE=;
+        s=korg; t=1616958711;
+        bh=Hvp29mT1IcQ5KJCgYCnlUdxBYRpvroOQ8bZO+k0TMtE=;
         h=Date:From:To:Subject:From;
-        b=1xrWhqnn/m9wLG7dRB41fq0fgYidCnpfOc8lz1S9xgJUgunQkZCoJrpmjXvqip4K0
-         9KHCdA9HY9a7ztr/JW0q/KmrxMBfTzgXEuctHFgjqF/otUyxD4dR243WfD2IeqHrQe
-         moO8tv/b/MstWN7U6MlWe1U3p0Bj6gFJkCSVgxnA=
-Date:   Sun, 28 Mar 2021 12:11:48 -0700
+        b=SFy4anRJmFhE+UYnLq053AzWl1Sv7TaC+bUyUIyE7LkSjGWVbCjRcJfOSGHp7+0wP
+         F5k8dOzWsPC3odS7rhtlTo056wVsa8oaV0h++SfuXBf7gw7I6g+OW32VrRZ28TCULH
+         1Rqk3m2Is+yP9Y/eiuXC9xi9Z3jDGL4wkcQQT2Rg=
+Date:   Sun, 28 Mar 2021 12:11:50 -0700
 From:   akpm@linux-foundation.org
 To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, ziy@nvidia.com
 Subject:  +
- =?US-ASCII?Q?khugepaged-use-helper-function-range=5Fin=5Fvma-in-colla?=
- =?US-ASCII?Q?pse=5Fpte=5Fmapped=5Fthp.patch?= added to -mm tree
-Message-ID: <20210328191148.BKYqEZT-H%akpm@linux-foundation.org>
+ =?US-ASCII?Q?khugepaged-remove-meaningless-pte=5Fpresent-check-in-khuge?=
+ =?US-ASCII?Q?paged=5Fscan=5Fpmd.patch?= added to -mm tree
+Message-ID: <20210328191150.wHp4pXCuc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: use helper function range_in_vma() in collapse_pte_mapped_thp()
+     Subject: khugepaged: remove meaningless !pte_present() check in khugepaged_scan_pmd()
 has been added to the -mm tree.  Its filename is
-     khugepaged-use-helper-function-range_in_vma-in-collapse_pte_mapped_thp.patch
+     khugepaged-remove-meaningless-pte_present-check-in-khugepaged_scan_pmd.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/khugepaged-use-helper-function-range_in_vma-in-collapse_pte_mapped_thp.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/khugepaged-remove-meaningless-pte_present-check-in-khugepaged_scan_pmd.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-use-helper-function-range_in_vma-in-collapse_pte_mapped_thp.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-remove-meaningless-pte_present-check-in-khugepaged_scan_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,42 +68,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: khugepaged: use helper function range_in_vma() in collapse_pte_mapped_thp()
+Subject: khugepaged: remove meaningless !pte_present() check in khugepaged_scan_pmd()
 
-Patch series "Cleanup for khugepaged".
+We know it must meet the !is_swap_pte() and !pte_none() condition if we
+reach here. Since !is_swap_pte() indicates pte_none() or pte_present()
+is met, it's guaranteed that pte must be present here.
 
-This series contains cleanups to remove unnecessary out label and
-meaningless !pte_present() check.  Also use helper function to simplify
-the code.  More details can be found in the respective changelogs.
-
-
-This patch (of 3):
-
-We could use helper function range_in_vma() to check whether the desired
-range is inside the vma to simplify the code.
-
-Link: https://lkml.kernel.org/r/20210325135647.64106-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210325135647.64106-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210325135647.64106-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/khugepaged.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-use-helper-function-range_in_vma-in-collapse_pte_mapped_thp
+--- a/mm/khugepaged.c~khugepaged-remove-meaningless-pte_present-check-in-khugepaged_scan_pmd
 +++ a/mm/khugepaged.c
-@@ -1446,7 +1446,7 @@ void collapse_pte_mapped_thp(struct mm_s
- 	int i;
- 
- 	if (!vma || !vma->vm_file ||
--	    vma->vm_start > haddr || vma->vm_end < haddr + HPAGE_PMD_SIZE)
-+	    !range_in_vma(vma, haddr, haddr + HPAGE_PMD_SIZE))
- 		return;
- 
- 	/*
+@@ -1271,10 +1271,6 @@ static int khugepaged_scan_pmd(struct mm
+ 				goto out_unmap;
+ 			}
+ 		}
+-		if (!pte_present(pteval)) {
+-			result = SCAN_PTE_NON_PRESENT;
+-			goto out_unmap;
+-		}
+ 		if (pte_uffd_wp(pteval)) {
+ 			/*
+ 			 * Don't collapse the page if any of the small
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
