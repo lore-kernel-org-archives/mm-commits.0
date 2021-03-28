@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A9A1C433DB
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:06:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD8DAC433C1
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:24:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C44A66193F
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:06:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90D8561945
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 21:24:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231453AbhC1VGJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Mar 2021 17:06:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35172 "EHLO mail.kernel.org"
+        id S231228AbhC1VYH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Mar 2021 17:24:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37512 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231342AbhC1VFh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 17:05:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C2FDA61481;
-        Sun, 28 Mar 2021 21:05:36 +0000 (UTC)
+        id S231459AbhC1VYB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 17:24:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EB14D61953;
+        Sun, 28 Mar 2021 21:24:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616965537;
-        bh=OlVj9tWb/Q8tloJqElusWsUo33OpA9pgYdwdnt7f1Wo=;
+        s=korg; t=1616966641;
+        bh=cgzLtw2dBbbHr2QnTHwG8LyV4z7HwBkH4WcSJNWmuc4=;
         h=Date:From:To:Subject:From;
-        b=eAMB6PdxK4HquwczdTOlRb+0L6sAqEKIegdFWUe3RBzgnglawSDA3ciKQKJN9W89T
-         vkvvV4JISGzcY6FFyulJlnVKOtdT651zzLPkTaPxf/q0DYYNaK3ejTcPAD5d9iMO5U
-         9eKW+EOlnqc9rBh5MXoCGKkE6K4Y1iPDNwAyeueY=
-Date:   Sun, 28 Mar 2021 14:05:36 -0700
+        b=OVkFdVwfny3T0ofjxLQOn+bbMbdGa45/yrCEw3yYd/KxqeyHdaYg+3QO1/o/X5fUQ
+         jqB62E2J+dO7rXdjddSS9o9dzx41ZJ97B7GLUaj2AsK8ZRZwCcOzF+54ng+2pZPH81
+         YqYjsO4pQoS0kj3sZcI/gHT2P/rfbSfdKY3Y9nlA=
+Date:   Sun, 28 Mar 2021 14:24:00 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, digetx@gmail.com, gregkh@linuxfoundation.org,
-        jhubbard@nvidia.com, joaodias@google.com, minchan@kernel.org,
+To:     anders.roxell@linaro.org, colin.king@canonical.com,
+        digetx@gmail.com, gregkh@linuxfoundation.org, jhubbard@nvidia.com,
+        joaodias@google.com, minchan@kernel.org,
         mm-commits@vger.kernel.org, surenb@google.com, willy@infradead.org
-Subject:  [to-be-updated] mm-cma-support-sysfs.patch removed from
- -mm tree
-Message-ID: <20210328210536.aCv6rV-cY%akpm@linux-foundation.org>
+Subject:  + mm-cma-support-sysfs.patch added to -mm tree
+Message-ID: <20210328212400.MRcmaqn6C%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,10 +45,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm: cma: support sysfs
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-cma-support-sysfs.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-support-sysfs.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-support-sysfs.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
@@ -72,28 +86,34 @@ e.g.)
   /sys/kernel/mm/cma/SENSOR/alloc_pages_[success|fail]
   /sys/kernel/mm/cma/BLUETOOTH/alloc_pages_[success|fail]
 
-The cma_stat was intentionally allocated by dynamic allocation to
-harmonize with kobject lifetime management. 
+The cma_stat was intentionally allocated by dynamic allocation
+to harmonize with kobject lifetime management.
 https://lore.kernel.org/linux-mm/YCOAmXqt6dZkCQYs@kroah.com/
 
-Link: https://lkml.kernel.org/r/20210309062333.3216138-1-minchan@kernel.org
+Link: https://lkml.kernel.org/r/20210324230759.2213957-1-minchan@kernel.org
+Link: https://lore.kernel.org/linux-mm/20210316100433.17665-1-colin.king@canonical.com/
 Signed-off-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+
+Tested-by: Dmitry Osipenko <digetx@gmail.com>
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
 Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Tested-by: Anders Roxell <anders.roxell@linaro.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: John Dias <joaodias@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  Documentation/ABI/testing/sysfs-kernel-mm-cma |   25 +++
  mm/Kconfig                                    |    7 +
  mm/Makefile                                   |    1 
- mm/cma.c                                      |    7 -
- mm/cma.h                                      |   20 ++
- mm/cma_sysfs.c                                |  110 ++++++++++++++++
- 6 files changed, 168 insertions(+), 2 deletions(-)
+ mm/cma.c                                      |    8 -
+ mm/cma.h                                      |   23 +++
+ mm/cma_sysfs.c                                |  112 ++++++++++++++++
+ 6 files changed, 174 insertions(+), 2 deletions(-)
 
 --- /dev/null
 +++ a/Documentation/ABI/testing/sysfs-kernel-mm-cma
@@ -125,7 +145,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		the number of pages CMA API failed to allocate
 --- a/mm/cma.c~mm-cma-support-sysfs
 +++ a/mm/cma.c
-@@ -507,10 +507,13 @@ struct page *cma_alloc(struct cma *cma,
+@@ -511,10 +511,14 @@ struct page *cma_alloc(struct cma *cma,
  
  	pr_debug("%s(): returned %p\n", __func__, page);
  out:
@@ -133,58 +153,62 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	if (page) {
  		count_vm_event(CMA_ALLOC_SUCCESS);
 -	else
-+		cma_sysfs_alloc_pages_count(cma, count);
++		cma_sysfs_account_success_pages(cma, count);
 +	} else {
  		count_vm_event(CMA_ALLOC_FAIL);
-+		cma_sysfs_fail_pages_count(cma, count);
++		if (cma)
++			cma_sysfs_account_fail_pages(cma, count);
 +	}
  
  	return page;
  }
 --- a/mm/cma.h~mm-cma-support-sysfs
 +++ a/mm/cma.h
-@@ -3,6 +3,16 @@
+@@ -3,6 +3,12 @@
  #define __MM_CMA_H__
  
  #include <linux/debugfs.h>
 +#include <linux/kobject.h>
 +
-+struct cma_stat {
-+	spinlock_t lock;
-+	/* the number of CMA page successful allocations */
-+	unsigned long nr_pages_succeeded;
-+	/* the number of CMA page allocation failures */
-+	unsigned long nr_pages_failed;
++struct cma_kobject {
 +	struct kobject kobj;
++	struct cma *cma;
 +};
  
  struct cma {
  	unsigned long   base_pfn;
-@@ -16,6 +26,9 @@ struct cma {
+@@ -16,6 +22,14 @@ struct cma {
  	struct debugfs_u32_array dfs_bitmap;
  #endif
  	char name[CMA_MAX_NAME];
 +#ifdef CONFIG_CMA_SYSFS
-+	struct cma_stat	*stat;
++	/* the number of CMA page successful allocations */
++	atomic64_t nr_pages_succeeded;
++	/* the number of CMA page allocation failures */
++	atomic64_t nr_pages_failed;
++	/* kobject requires dynamic object */
++	struct cma_kobject *cma_kobj;
 +#endif
  };
  
  extern struct cma cma_areas[MAX_CMA_AREAS];
-@@ -26,4 +39,11 @@ static inline unsigned long cma_bitmap_m
+@@ -26,4 +40,13 @@ static inline unsigned long cma_bitmap_m
  	return cma->count >> cma->order_per_bit;
  }
  
 +#ifdef CONFIG_CMA_SYSFS
-+void cma_sysfs_alloc_pages_count(struct cma *cma, size_t count);
-+void cma_sysfs_fail_pages_count(struct cma *cma, size_t count);
++void cma_sysfs_account_success_pages(struct cma *cma, unsigned long nr_pages);
++void cma_sysfs_account_fail_pages(struct cma *cma, unsigned long nr_pages);
 +#else
-+static inline void cma_sysfs_alloc_pages_count(struct cma *cma, size_t count) {};
-+static inline void cma_sysfs_fail_pages_count(struct cma *cma, size_t count) {};
++static inline void cma_sysfs_account_success_pages(struct cma *cma,
++						   unsigned long nr_pages) {};
++static inline void cma_sysfs_account_fail_pages(struct cma *cma,
++						unsigned long nr_pages) {};
 +#endif
  #endif
 --- /dev/null
 +++ a/mm/cma_sysfs.c
-@@ -0,0 +1,110 @@
+@@ -0,0 +1,112 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * CMA SysFS Interface
@@ -198,50 +222,50 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +
 +#include "cma.h"
 +
-+static struct cma_stat *cma_stats;
-+
-+void cma_sysfs_alloc_pages_count(struct cma *cma, size_t count)
-+{
-+	spin_lock(&cma->stat->lock);
-+	cma->stat->nr_pages_succeeded += count;
-+	spin_unlock(&cma->stat->lock);
-+}
-+
-+void cma_sysfs_fail_pages_count(struct cma *cma, size_t count)
-+{
-+	spin_lock(&cma->stat->lock);
-+	cma->stat->nr_pages_failed += count;
-+	spin_unlock(&cma->stat->lock);
-+}
-+
 +#define CMA_ATTR_RO(_name) \
 +	static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
 +
-+static struct kobject *cma_kobj;
++void cma_sysfs_account_success_pages(struct cma *cma, unsigned long nr_pages)
++{
++	atomic64_add(nr_pages, &cma->nr_pages_succeeded);
++}
++
++void cma_sysfs_account_fail_pages(struct cma *cma, unsigned long nr_pages)
++{
++	atomic64_add(nr_pages, &cma->nr_pages_failed);
++}
++
++static inline struct cma *cma_from_kobj(struct kobject *kobj)
++{
++	return container_of(kobj, struct cma_kobject, kobj)->cma;
++}
 +
 +static ssize_t alloc_pages_success_show(struct kobject *kobj,
-+			struct kobj_attribute *attr, char *buf)
++					struct kobj_attribute *attr, char *buf)
 +{
-+	struct cma_stat *stat = container_of(kobj, struct cma_stat, kobj);
++	struct cma *cma = cma_from_kobj(kobj);
 +
-+	return sysfs_emit(buf, "%lu\n", stat->nr_pages_succeeded);
++	return sysfs_emit(buf, "%llu\n",
++			  atomic64_read(&cma->nr_pages_succeeded));
 +}
 +CMA_ATTR_RO(alloc_pages_success);
 +
 +static ssize_t alloc_pages_fail_show(struct kobject *kobj,
-+			struct kobj_attribute *attr, char *buf)
++				     struct kobj_attribute *attr, char *buf)
 +{
-+	struct cma_stat *stat = container_of(kobj, struct cma_stat, kobj);
++	struct cma *cma = cma_from_kobj(kobj);
 +
-+	return sysfs_emit(buf, "%lu\n", stat->nr_pages_failed);
++	return sysfs_emit(buf, "%llu\n", atomic64_read(&cma->nr_pages_failed));
 +}
 +CMA_ATTR_RO(alloc_pages_fail);
 +
 +static void cma_kobj_release(struct kobject *kobj)
 +{
-+	struct cma_stat *stat = container_of(kobj, struct cma_stat, kobj);
++	struct cma *cma = cma_from_kobj(kobj);
++	struct cma_kobject *cma_kobj = cma->cma_kobj;
 +
-+	kfree(stat);
++	kfree(cma_kobj);
++	cma->cma_kobj = NULL;
 +}
 +
 +static struct attribute *cma_attrs[] = {
@@ -254,45 +278,47 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +static struct kobj_type cma_ktype = {
 +	.release = cma_kobj_release,
 +	.sysfs_ops = &kobj_sysfs_ops,
-+	.default_groups = cma_groups
++	.default_groups = cma_groups,
 +};
 +
 +static int __init cma_sysfs_init(void)
 +{
-+	int i = 0;
++	struct kobject *cma_kobj_root;
++	struct cma_kobject *cma_kobj;
 +	struct cma *cma;
++	int i, err;
 +
-+	cma_kobj = kobject_create_and_add("cma", mm_kobj);
-+	if (!cma_kobj)
++	cma_kobj_root = kobject_create_and_add("cma", mm_kobj);
++	if (!cma_kobj_root)
 +		return -ENOMEM;
 +
-+	cma_stats = kmalloc_array(cma_area_count, sizeof(struct cma_stat),
-+				GFP_KERNEL|__GFP_ZERO);
-+	if (ZERO_OR_NULL_PTR(cma_stats))
-+		goto out;
-+
-+	do {
-+		cma = &cma_areas[i];
-+		cma->stat = &cma_stats[i];
-+		spin_lock_init(&cma->stat->lock);
-+		if (kobject_init_and_add(&cma->stat->kobj, &cma_ktype,
-+					cma_kobj, "%s", cma->name)) {
-+			kobject_put(&cma->stat->kobj);
++	for (i = 0; i < cma_area_count; i++) {
++		cma_kobj = kzalloc(sizeof(*cma_kobj), GFP_KERNEL);
++		if (!cma_kobj) {
++			err = -ENOMEM;
 +			goto out;
 +		}
-+	} while (++i < cma_area_count);
++
++		cma = &cma_areas[i];
++		cma->cma_kobj = cma_kobj;
++		cma_kobj->cma = cma;
++		err = kobject_init_and_add(&cma_kobj->kobj, &cma_ktype,
++					   cma_kobj_root, "%s", cma->name);
++		if (err) {
++			kobject_put(&cma_kobj->kobj);
++			goto out;
++		}
++	}
 +
 +	return 0;
 +out:
 +	while (--i >= 0) {
 +		cma = &cma_areas[i];
-+		kobject_put(&cma->stat->kobj);
++		kobject_put(&cma->cma_kobj->kobj);
 +	}
++	kobject_put(cma_kobj_root);
 +
-+	kfree(cma_stats);
-+	kobject_put(cma_kobj);
-+
-+	return -ENOMEM;
++	return err;
 +}
 +subsys_initcall(cma_sysfs_init);
 --- a/mm/Kconfig~mm-cma-support-sysfs
@@ -331,4 +357,5 @@ mm-disable-lru-pagevec-during-the-migration-temporarily.patch
 mm-replace-migrate_-with-lru_cache_.patch
 mm-fs-invalidate-bh-lru-during-page-migration.patch
 mm-vmstat-add-cma-statistics.patch
+mm-cma-support-sysfs.patch
 
