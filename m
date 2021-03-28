@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18CC4C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49357C433E1
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:12:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED2846197F
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:12:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 26BBD619A0
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Mar 2021 19:12:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231586AbhC1TMQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231469AbhC1TMQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 28 Mar 2021 15:12:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50258 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50286 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231469AbhC1TLq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 28 Mar 2021 15:11:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8F46161972;
-        Sun, 28 Mar 2021 19:11:45 +0000 (UTC)
+        id S231598AbhC1TLr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 28 Mar 2021 15:11:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A482B61981;
+        Sun, 28 Mar 2021 19:11:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1616958705;
-        bh=98r+aLmt1vKo56lpqCLVBk3+vdJsdfXmRWtKFbD2964=;
+        s=korg; t=1616958707;
+        bh=1g5uHYpZ5wBeXGlmzOMoStsX6bS5iKDdaSDEeqxtnlM=;
         h=Date:From:To:Subject:From;
-        b=Rtntrkywwl+MgKIGZr7VCeDUpEb2sRJworNjIcQ03iPlPTzM78JyPQWosrYlawreO
-         7yVbJuDarOW4UlbaboDGDvZdAsL9Y1/2z5XcCiPNreKc+Pt9m7PCAIrdo+kL4aF8Uk
-         L+uCN2nteWqKFmCczYMuRxAVSkhQ5fKlVu7H3NV4=
-Date:   Sun, 28 Mar 2021 12:11:45 -0700
+        b=Pe9rOu/vGq4kKnSR1N6qkhQBLo9sXRKsO5S/D/BYW5icIch4RgnN4QzMzqnaa9feX
+         wDJD7g5qrWEFUZ8RecoVC6IYI0C3eOCVP7wNfAp6EEbyKCTFWwhw84tVkehRraCvUE
+         NbOq8dPnjFxBdwm9LSFGdVw0fN4DNNP7Q8BO3YRA=
+Date:   Sun, 28 Mar 2021 12:11:46 -0700
 From:   akpm@linux-foundation.org
 To:     bgolaszewski@baylibre.com, gregkh@linuxfoundation.org,
         jassisinghbrar@gmail.com, kabel@kernel.org,
         linus.walleij@linaro.org, mm-commits@vger.kernel.org, pavel@ucw.cz
-Subject:  + treewide-change-my-e-mail-address-fix-my-name.patch
+Subject:  + maintainers-update-cznics-turris-information.patch
  added to -mm tree
-Message-ID: <20210328191145.cO8xFJvlW%akpm@linux-foundation.org>
+Message-ID: <20210328191146.6yoKGwN3W%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -47,16 +47,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: treewide: change my e-mail address, fix my name
+     Subject: MAINTAINERS: update CZ.NIC's Turris information
 has been added to the -mm tree.  Its filename is
-     treewide-change-my-e-mail-address-fix-my-name.patch
+     maintainers-update-cznics-turris-information.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/treewide-change-my-e-mail-add=
-ress-fix-my-name.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-cznics-tur=
+ris-information.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/treewide-change-my-e-mail-add=
-ress-fix-my-name.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-cznics-tur=
+ris-information.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,361 +72,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Marek Beh=C3=BAn <kabel@kernel.org>
-Subject: treewide: change my e-mail address, fix my name
+Subject: MAINTAINERS: update CZ.NIC's Turris information
 
-Change my e-mail address to kabel@kernel.org, and fix my name in
-non-code parts (add diacritical mark).
+Add all the files maintained by Turris team, not only for MOX, but also
+for Omnia.  Change website.
 
-Link: https://lkml.kernel.org/r/20210325171123.28093-2-kabel@kernel.org
+Link: https://lkml.kernel.org/r/20210325171123.28093-1-kabel@kernel.org
 Signed-off-by: Marek Beh=C3=BAn <kabel@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/debugfs-moxtet                            |    4=
- ++--
- Documentation/ABI/testing/debugfs-turris-mox-rwtm                   |    2=
- +-
- Documentation/ABI/testing/sysfs-bus-moxtet-devices                  |    6=
- +++---
- Documentation/ABI/testing/sysfs-class-led-driver-turris-omnia       |    2=
- +-
- Documentation/ABI/testing/sysfs-firmware-turris-mox-rwtm            |   10=
- +++++-----
- Documentation/devicetree/bindings/leds/cznic,turris-omnia-leds.yaml |    2=
- +-
- MAINTAINERS                                                         |    2=
- +-
- arch/arm64/boot/dts/marvell/armada-3720-turris-mox.dts              |    2=
- +-
- drivers/bus/moxtet.c                                                |    4=
- ++--
- drivers/firmware/turris-mox-rwtm.c                                  |    4=
- ++--
- drivers/gpio/gpio-moxtet.c                                          |    4=
- ++--
- drivers/leds/leds-turris-omnia.c                                    |    4=
- ++--
- drivers/mailbox/armada-37xx-rwtm-mailbox.c                          |    4=
- ++--
- drivers/watchdog/armada_37xx_wdt.c                                  |    4=
- ++--
- include/dt-bindings/bus/moxtet.h                                    |    2=
- +-
- include/linux/armada-37xx-rwtm-mailbox.h                            |    2=
- +-
- include/linux/moxtet.h                                              |    2=
- +-
- 17 files changed, 30 insertions(+), 30 deletions(-)
+ MAINTAINERS |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/boot/dts/marvell/armada-3720-turris-mox.dts~treewide-chang=
-e-my-e-mail-address-fix-my-name
-+++ a/arch/arm64/boot/dts/marvell/armada-3720-turris-mox.dts
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
- /*
-  * Device Tree file for CZ.NIC Turris Mox Board
-- * 2019 by Marek Behun <marek.behun@nic.cz>
-+ * 2019 by Marek Beh=C3=BAn <kabel@kernel.org>
-  */
-=20
- /dts-v1/;
---- a/Documentation/ABI/testing/debugfs-moxtet~treewide-change-my-e-mail-ad=
-dress-fix-my-name
-+++ a/Documentation/ABI/testing/debugfs-moxtet
-@@ -1,7 +1,7 @@
- What:		/sys/kernel/debug/moxtet/input
- Date:		March 2019
- KernelVersion:	5.3
--Contact:	Marek Beh=C3=BAn <marek.behun@nic.cz>
-+Contact:	Marek Beh=C3=BAn <kabel@kernel.org>
- Description:	(Read) Read input from the shift registers, in hexadecimal.
- 		Returns N+1 bytes, where N is the number of Moxtet connected
- 		modules. The first byte is from the CPU board itself.
-@@ -19,7 +19,7 @@ Description:	(Read) Read input from the
- What:		/sys/kernel/debug/moxtet/output
- Date:		March 2019
- KernelVersion:	5.3
--Contact:	Marek Beh=C3=BAn <marek.behun@nic.cz>
-+Contact:	Marek Beh=C3=BAn <kabel@kernel.org>
- Description:	(RW) Read last written value to the shift registers, in
- 		hexadecimal, or write values to the shift registers, also
- 		in hexadecimal.
---- a/Documentation/ABI/testing/debugfs-turris-mox-rwtm~treewide-change-my-=
-e-mail-address-fix-my-name
-+++ a/Documentation/ABI/testing/debugfs-turris-mox-rwtm
-@@ -1,7 +1,7 @@
- What:		/sys/kernel/debug/turris-mox-rwtm/do_sign
- Date:		Jun 2020
- KernelVersion:	5.8
--Contact:	Marek Beh=C3=BAn <marek.behun@nic.cz>
-+Contact:	Marek Beh=C3=BAn <kabel@kernel.org>
- Description:
-=20
- 		=3D=3D=3D=3D=3D=3D=3D =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- a/Documentation/ABI/testing/sysfs-bus-moxtet-devices~treewide-change-my=
--e-mail-address-fix-my-name
-+++ a/Documentation/ABI/testing/sysfs-bus-moxtet-devices
-@@ -1,17 +1,17 @@
- What:		/sys/bus/moxtet/devices/moxtet-<name>.<addr>/module_description
- Date:		March 2019
- KernelVersion:	5.3
--Contact:	Marek Beh=C3=BAn <marek.behun@nic.cz>
-+Contact:	Marek Beh=C3=BAn <kabel@kernel.org>
- Description:	(Read) Moxtet module description. Format: string
-=20
- What:		/sys/bus/moxtet/devices/moxtet-<name>.<addr>/module_id
- Date:		March 2019
- KernelVersion:	5.3
--Contact:	Marek Beh=C3=BAn <marek.behun@nic.cz>
-+Contact:	Marek Beh=C3=BAn <kabel@kernel.org>
- Description:	(Read) Moxtet module ID. Format: %x
-=20
- What:		/sys/bus/moxtet/devices/moxtet-<name>.<addr>/module_name
- Date:		March 2019
- KernelVersion:	5.3
--Contact:	Marek Beh=C3=BAn <marek.behun@nic.cz>
-+Contact:	Marek Beh=C3=BAn <kabel@kernel.org>
- Description:	(Read) Moxtet module name. Format: string
---- a/Documentation/ABI/testing/sysfs-class-led-driver-turris-omnia~treewid=
-e-change-my-e-mail-address-fix-my-name
-+++ a/Documentation/ABI/testing/sysfs-class-led-driver-turris-omnia
-@@ -1,7 +1,7 @@
- What:		/sys/class/leds/<led>/device/brightness
- Date:		July 2020
- KernelVersion:	5.9
--Contact:	Marek Beh=C3=BAn <marek.behun@nic.cz>
-+Contact:	Marek Beh=C3=BAn <kabel@kernel.org>
- Description:	(RW) On the front panel of the Turris Omnia router there is a=
-lso
- 		a button which can be used to control the intensity of all the
- 		LEDs at once, so that if they are too bright, user can dim them.
---- a/Documentation/ABI/testing/sysfs-firmware-turris-mox-rwtm~treewide-cha=
-nge-my-e-mail-address-fix-my-name
-+++ a/Documentation/ABI/testing/sysfs-firmware-turris-mox-rwtm
-@@ -1,21 +1,21 @@
- What:		/sys/firmware/turris-mox-rwtm/board_version
- Date:		August 2019
- KernelVersion:	5.4
--Contact:	Marek Beh=C3=BAn <marek.behun@nic.cz>
-+Contact:	Marek Beh=C3=BAn <kabel@kernel.org>
- Description:	(Read) Board version burned into eFuses of this Turris Mox bo=
-ard.
- 		Format: %i
-=20
- What:		/sys/firmware/turris-mox-rwtm/mac_address*
- Date:		August 2019
- KernelVersion:	5.4
--Contact:	Marek Beh=C3=BAn <marek.behun@nic.cz>
-+Contact:	Marek Beh=C3=BAn <kabel@kernel.org>
- Description:	(Read) MAC addresses burned into eFuses of this Turris Mox bo=
-ard.
- 		Format: %pM
-=20
- What:		/sys/firmware/turris-mox-rwtm/pubkey
- Date:		August 2019
- KernelVersion:	5.4
--Contact:	Marek Beh=C3=BAn <marek.behun@nic.cz>
-+Contact:	Marek Beh=C3=BAn <kabel@kernel.org>
- Description:	(Read) ECDSA public key (in pubkey hex compressed form) compu=
-ted
- 		as pair to the ECDSA private key burned into eFuses of this
- 		Turris Mox Board.
-@@ -24,7 +24,7 @@ Description:	(Read) ECDSA public key (in
- What:		/sys/firmware/turris-mox-rwtm/ram_size
- Date:		August 2019
- KernelVersion:	5.4
--Contact:	Marek Beh=C3=BAn <marek.behun@nic.cz>
-+Contact:	Marek Beh=C3=BAn <kabel@kernel.org>
- Description:	(Read) RAM size in MiB of this Turris Mox board as was detect=
-ed
- 		during manufacturing and burned into eFuses. Can be 512 or 1024.
- 		Format: %i
-@@ -32,6 +32,6 @@ Description:	(Read) RAM size in MiB of t
- What:		/sys/firmware/turris-mox-rwtm/serial_number
- Date:		August 2019
- KernelVersion:	5.4
--Contact:	Marek Beh=C3=BAn <marek.behun@nic.cz>
-+Contact:	Marek Beh=C3=BAn <kabel@kernel.org>
- Description:	(Read) Serial number burned into eFuses of this Turris Mox de=
-vice.
- 		Format: %016X
---- a/Documentation/devicetree/bindings/leds/cznic,turris-omnia-leds.yaml~t=
-reewide-change-my-e-mail-address-fix-my-name
-+++ a/Documentation/devicetree/bindings/leds/cznic,turris-omnia-leds.yaml
-@@ -7,7 +7,7 @@ $schema: http://devicetree.org/meta-sche
- title: CZ.NIC's Turris Omnia LEDs driver
-=20
- maintainers:
--  - Marek Beh=C3=BAn <marek.behun@nic.cz>
-+  - Marek Beh=C3=BAn <kabel@kernel.org>
-=20
- description:
-   This module adds support for the RGB LEDs found on the front panel of the
---- a/drivers/bus/moxtet.c~treewide-change-my-e-mail-address-fix-my-name
-+++ a/drivers/bus/moxtet.c
-@@ -2,7 +2,7 @@
- /*
-  * Turris Mox module configuration bus driver
-  *
-- * Copyright (C) 2019 Marek Behun <marek.behun@nic.cz>
-+ * Copyright (C) 2019 Marek Beh=C3=BAn <kabel@kernel.org>
-  */
-=20
- #include <dt-bindings/bus/moxtet.h>
-@@ -879,6 +879,6 @@ static void __exit moxtet_exit(void)
- }
- module_exit(moxtet_exit);
-=20
--MODULE_AUTHOR("Marek Behun <marek.behun@nic.cz>");
-+MODULE_AUTHOR("Marek Behun <kabel@kernel.org>");
- MODULE_DESCRIPTION("CZ.NIC's Turris Mox module configuration bus");
- MODULE_LICENSE("GPL v2");
---- a/drivers/firmware/turris-mox-rwtm.c~treewide-change-my-e-mail-address-=
-fix-my-name
-+++ a/drivers/firmware/turris-mox-rwtm.c
-@@ -2,7 +2,7 @@
- /*
-  * Turris Mox rWTM firmware driver
-  *
-- * Copyright (C) 2019 Marek Behun <marek.behun@nic.cz>
-+ * Copyright (C) 2019 Marek Beh=C3=BAn <kabel@kernel.org>
-  */
-=20
- #include <linux/armada-37xx-rwtm-mailbox.h>
-@@ -547,4 +547,4 @@ module_platform_driver(turris_mox_rwtm_d
-=20
- MODULE_LICENSE("GPL v2");
- MODULE_DESCRIPTION("Turris Mox rWTM firmware driver");
--MODULE_AUTHOR("Marek Behun <marek.behun@nic.cz>");
-+MODULE_AUTHOR("Marek Behun <kabel@kernel.org>");
---- a/drivers/gpio/gpio-moxtet.c~treewide-change-my-e-mail-address-fix-my-n=
-ame
-+++ a/drivers/gpio/gpio-moxtet.c
-@@ -2,7 +2,7 @@
- /*
-  *  Turris Mox Moxtet GPIO expander
-  *
-- *  Copyright (C) 2018 Marek Behun <marek.behun@nic.cz>
-+ *  Copyright (C) 2018 Marek Beh=C3=BAn <kabel@kernel.org>
-  */
-=20
- #include <linux/bitops.h>
-@@ -174,6 +174,6 @@ static struct moxtet_driver moxtet_gpio_
- };
- module_moxtet_driver(moxtet_gpio_driver);
-=20
--MODULE_AUTHOR("Marek Behun <marek.behun@nic.cz>");
-+MODULE_AUTHOR("Marek Behun <kabel@kernel.org>");
- MODULE_DESCRIPTION("Turris Mox Moxtet GPIO expander");
- MODULE_LICENSE("GPL v2");
---- a/drivers/leds/leds-turris-omnia.c~treewide-change-my-e-mail-address-fi=
-x-my-name
-+++ a/drivers/leds/leds-turris-omnia.c
-@@ -2,7 +2,7 @@
- /*
-  * CZ.NIC's Turris Omnia LEDs driver
-  *
-- * 2020 by Marek Behun <marek.behun@nic.cz>
-+ * 2020 by Marek Beh=C3=BAn <kabel@kernel.org>
-  */
-=20
- #include <linux/i2c.h>
-@@ -287,6 +287,6 @@ static struct i2c_driver omnia_leds_driv
-=20
- module_i2c_driver(omnia_leds_driver);
-=20
--MODULE_AUTHOR("Marek Behun <marek.behun@nic.cz>");
-+MODULE_AUTHOR("Marek Behun <kabel@kernel.org>");
- MODULE_DESCRIPTION("CZ.NIC's Turris Omnia LEDs");
- MODULE_LICENSE("GPL v2");
---- a/drivers/mailbox/armada-37xx-rwtm-mailbox.c~treewide-change-my-e-mail-=
-address-fix-my-name
-+++ a/drivers/mailbox/armada-37xx-rwtm-mailbox.c
-@@ -2,7 +2,7 @@
- /*
-  * rWTM BIU Mailbox driver for Armada 37xx
-  *
-- * Author: Marek Behun <marek.behun@nic.cz>
-+ * Author: Marek Beh=C3=BAn <kabel@kernel.org>
-  */
-=20
- #include <linux/device.h>
-@@ -203,4 +203,4 @@ module_platform_driver(armada_37xx_mbox_
-=20
- MODULE_LICENSE("GPL v2");
- MODULE_DESCRIPTION("rWTM BIU Mailbox driver for Armada 37xx");
--MODULE_AUTHOR("Marek Behun <marek.behun@nic.cz>");
-+MODULE_AUTHOR("Marek Behun <kabel@kernel.org>");
---- a/drivers/watchdog/armada_37xx_wdt.c~treewide-change-my-e-mail-address-=
-fix-my-name
-+++ a/drivers/watchdog/armada_37xx_wdt.c
-@@ -2,7 +2,7 @@
- /*
-  * Watchdog driver for Marvell Armada 37xx SoCs
-  *
-- * Author: Marek Behun <marek.behun@nic.cz>
-+ * Author: Marek Beh=C3=BAn <kabel@kernel.org>
-  */
-=20
- #include <linux/clk.h>
-@@ -366,7 +366,7 @@ static struct platform_driver armada_37x
-=20
- module_platform_driver(armada_37xx_wdt_driver);
-=20
--MODULE_AUTHOR("Marek Behun <marek.behun@nic.cz>");
-+MODULE_AUTHOR("Marek Behun <kabel@kernel.org>");
- MODULE_DESCRIPTION("Armada 37xx CPU Watchdog");
-=20
- MODULE_LICENSE("GPL v2");
---- a/include/dt-bindings/bus/moxtet.h~treewide-change-my-e-mail-address-fi=
-x-my-name
-+++ a/include/dt-bindings/bus/moxtet.h
-@@ -2,7 +2,7 @@
- /*
-  * Constant for device tree bindings for Turris Mox module configuration b=
-us
-  *
-- * Copyright (C) 2019 Marek Behun <marek.behun@nic.cz>
-+ * Copyright (C) 2019 Marek Beh=C3=BAn <kabel@kernel.org>
-  */
-=20
- #ifndef _DT_BINDINGS_BUS_MOXTET_H
---- a/include/linux/armada-37xx-rwtm-mailbox.h~treewide-change-my-e-mail-ad=
-dress-fix-my-name
-+++ a/include/linux/armada-37xx-rwtm-mailbox.h
-@@ -2,7 +2,7 @@
- /*
-  * rWTM BIU Mailbox driver for Armada 37xx
-  *
-- * Author: Marek Behun <marek.behun@nic.cz>
-+ * Author: Marek Beh=C3=BAn <kabel@kernel.org>
-  */
-=20
- #ifndef _LINUX_ARMADA_37XX_RWTM_MAILBOX_H_
---- a/include/linux/moxtet.h~treewide-change-my-e-mail-address-fix-my-name
-+++ a/include/linux/moxtet.h
-@@ -2,7 +2,7 @@
- /*
-  * Turris Mox module configuration bus driver
-  *
-- * Copyright (C) 2019 Marek Behun <marek.behun@nic.cz>
-+ * Copyright (C) 2019 Marek Beh=C3=BAn <kabel@kernel.org>
-  */
-=20
- #ifndef __LINUX_MOXTET_H
---- a/MAINTAINERS~treewide-change-my-e-mail-address-fix-my-name
+--- a/MAINTAINERS~maintainers-update-cznics-turris-information
 +++ a/MAINTAINERS
-@@ -1791,7 +1791,7 @@ F:	drivers/pinctrl/pinctrl-gemini.c
+@@ -1790,19 +1790,26 @@ F:	drivers/net/ethernet/cortina/
+ F:	drivers/pinctrl/pinctrl-gemini.c
  F:	drivers/rtc/rtc-ftrtc010.c
 =20
- ARM/CZ.NIC TURRIS SUPPORT
--M:	Marek Behun <marek.behun@nic.cz>
-+M:	Marek Behun <kabel@kernel.org>
+-ARM/CZ.NIC TURRIS MOX SUPPORT
++ARM/CZ.NIC TURRIS SUPPORT
+ M:	Marek Behun <marek.behun@nic.cz>
  S:	Maintained
- W:	https://www.turris.cz/
+-W:	http://mox.turris.cz
++W:	https://www.turris.cz/
  F:	Documentation/ABI/testing/debugfs-moxtet
+ F:	Documentation/ABI/testing/sysfs-bus-moxtet-devices
+ F:	Documentation/ABI/testing/sysfs-firmware-turris-mox-rwtm
+ F:	Documentation/devicetree/bindings/bus/moxtet.txt
+ F:	Documentation/devicetree/bindings/firmware/cznic,turris-mox-rwtm.txt
+ F:	Documentation/devicetree/bindings/gpio/gpio-moxtet.txt
++F:	Documentation/devicetree/bindings/leds/cznic,turris-omnia-leds.yaml
++F:	Documentation/devicetree/bindings/watchdog/armada-37xx-wdt.txt
+ F:	drivers/bus/moxtet.c
+ F:	drivers/firmware/turris-mox-rwtm.c
++F:	drivers/leds/leds-turris-omnia.c
++F:	drivers/mailbox/armada-37xx-rwtm-mailbox.c
+ F:	drivers/gpio/gpio-moxtet.c
++F:	drivers/watchdog/armada_37xx_wdt.c
++F:	include/dt-bindings/bus/moxtet.h
++F:	include/linux/armada-37xx-rwtm-mailbox.h
+ F:	include/linux/moxtet.h
+=20
+ ARM/EZX SMARTPHONES (A780, A910, A1200, E680, ROKR E2 and ROKR E6)
 _
 
 Patches currently in -mm which might be from kabel@kernel.org are
