@@ -7,42 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76AD3C433E3
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:11:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CEA9C433C1
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:25:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4477D619EF
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:11:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E27F4619CD
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:25:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229615AbhCaELQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 00:11:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57138 "EHLO mail.kernel.org"
+        id S230412AbhCaEZX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 00:25:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233240AbhCaEKm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 00:10:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 441C3619DD;
-        Wed, 31 Mar 2021 04:10:41 +0000 (UTC)
+        id S229852AbhCaEYw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 00:24:52 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D4D0C619CD;
+        Wed, 31 Mar 2021 04:24:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617163842;
-        bh=hikUwgLnL6sYTFQRPnt6omd8zGA4Yf/ZoVZD1YedkTE=;
+        s=korg; t=1617164691;
+        bh=7t7CVjDlenzoLONiRTXQxCoiU1R6a0hIvvZMNeZjQJM=;
         h=Date:From:To:Subject:From;
-        b=VA2l3z2Q0oRccYyBncEL15K9F7HD1ocaw0/X61+HOL/bAi0SgYINzSO8LDeroSg2R
-         rL6wwPl/vClVSFGCXPQv9+uw5UAJN1/9JqUDacaap+iDbsm6sCeqKVOgaIoO2z09eX
-         1kdAi+pHG/9k1B5vyfcTd1iIiAjLzZdmrKJxcRYg=
-Date:   Tue, 30 Mar 2021 21:10:40 -0700
+        b=BJVKgEMZEFyq2pkB1JT5MPFgFNF0Ss8raPTHuSd1PPVkn9mJ19PjB0/GOOy4GxNKf
+         KDiReCUYQCvLiQiWUpCi593KY8+jgqXHNDoeF9KAI+l0/QKnA9E7H1WYVO0iZCGSob
+         ut2LD5q8F0Hvwv7JN81QXePo+2vgOsI1XKvULSa8=
+Date:   Tue, 30 Mar 2021 21:24:50 -0700
 From:   akpm@linux-foundation.org
-To:     almasrymina@google.com, aneesh.kumar@linux.ibm.com,
-        david@redhat.com, guro@fb.com, hdanton@sina.com,
-        iamjoonsoo.kim@lge.com, linmiaohe@huawei.com, longman@redhat.com,
-        mhocko@suse.com, mike.kravetz@oracle.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, peterx@redhat.com, peterz@infradead.org,
-        rientjes@google.com, shakeelb@google.com,
-        song.bao.hua@hisilicon.com, songmuchun@bytedance.com,
-        will@kernel.org, willy@infradead.org
-Subject:  +
- hugetlb-change-free_pool_huge_page-to-remove_pool_huge_page.patch added to
- -mm tree
-Message-ID: <20210331041040.P-YEk4wJ3%akpm@linux-foundation.org>
+To:     david@fromorbit.com, guro@fb.com, hannes@cmpxchg.org,
+        hughd@google.com, ktkhai@virtuozzo.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, oliver.sang@intel.com,
+        shakeelb@google.com, shy828301@gmail.com, vbabka@suse.cz
+Subject:  + mm-vmscan-add-per-memcg-shrinker-nr_deferred-fix.patch
+ added to -mm tree
+Message-ID: <20210331042450.rE7TKprY3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: change free_pool_huge_page to remove_pool_huge_page
+     Subject: mm: vmscan: fix shrinker_rwsem in free_shrinker_info()
 has been added to the -mm tree.  Its filename is
-     hugetlb-change-free_pool_huge_page-to-remove_pool_huge_page.patch
+     mm-vmscan-add-per-memcg-shrinker-nr_deferred-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-change-free_pool_huge_page-to-remove_pool_huge_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-add-per-memcg-shrinker-nr_deferred-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-change-free_pool_huge_page-to-remove_pool_huge_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-add-per-memcg-shrinker-nr_deferred-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,268 +66,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: change free_pool_huge_page to remove_pool_huge_page
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: vmscan: fix shrinker_rwsem in free_shrinker_info()
 
-free_pool_huge_page was called with hugetlb_lock held.  It would remove a
-hugetlb page, and then free the corresponding pages to the lower level
-allocators such as buddy.  free_pool_huge_page was called in a loop to
-remove hugetlb pages and these loops could hold the hugetlb_lock for a
-considerable time.
+Lockdep warns mm/vmscan.c: suspicious rcu_dereference_protected() usage!
+when free_shrinker_info() is called from mem_cgroup_css_free(): there it
+is called with no locking, whereas alloc_shrinker_info() calls it with
+down_write of shrinker_rwsem - which seems appropriate.  Rearrange that
+so free_shrinker_info() can manage the shrinker_rwsem for itself.
 
-Create new routine remove_pool_huge_page to replace free_pool_huge_page. 
-remove_pool_huge_page will remove the hugetlb page, and it must be called
-with the hugetlb_lock held.  It will return the removed page and it is the
-responsibility of the caller to free the page to the lower level
-allocators.  The hugetlb_lock is dropped before freeing to these
-allocators which results in shorter lock hold times.
-
-Add new helper routine to call update_and_free_page for a list of pages.
-
-Note: Some changes to the routine return_unused_surplus_pages are in need
-of explanation.  Commit e5bbc8a6c992 ("mm/hugetlb.c: fix reservation race
-when freeing surplus pages") modified this routine to address a race which
-could occur when dropping the hugetlb_lock in the loop that removes pool
-pages.  Accounting changes introduced in that commit were subtle and took
-some thought to understand.  This commit removes the cond_resched_lock()
-and the potential race.  Therefore, remove the subtle code and restore the
-more straight forward accounting effectively reverting the commit.
-
-Link: https://lkml.kernel.org/r/20210331034148.112624-7-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
-Cc: Barry Song <song.bao.hua@hisilicon.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: HORIGUCHI NAOYA <naoya.horiguchi@nec.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20210317140615.GB28839@xsang-OptiPlex-9020
+Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2103301640240.2584@eggly.anvils
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Cc: Roman Gushchin <guro@fb.com>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
 Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   93 ++++++++++++++++++++++++++-----------------------
- 1 file changed, 51 insertions(+), 42 deletions(-)
+ mm/vmscan.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-change-free_pool_huge_page-to-remove_pool_huge_page
-+++ a/mm/hugetlb.c
-@@ -1210,7 +1210,7 @@ static int hstate_next_node_to_alloc(str
- }
+--- a/mm/vmscan.c~mm-vmscan-add-per-memcg-shrinker-nr_deferred-fix
++++ a/mm/vmscan.c
+@@ -249,18 +249,20 @@ void free_shrinker_info(struct mem_cgrou
+ 	struct shrinker_info *info;
+ 	int nid;
  
- /*
-- * helper for free_pool_huge_page() - return the previously saved
-+ * helper for remove_pool_huge_page() - return the previously saved
-  * node ["this node"] from which to free a huge page.  Advance the
-  * next node id whether or not we find a free huge page to free so
-  * that the next attempt to free addresses the next node.
-@@ -1392,6 +1392,16 @@ static void update_and_free_page(struct
++	down_write(&shrinker_rwsem);
+ 	for_each_node(nid) {
+ 		pn = memcg->nodeinfo[nid];
+ 		info = shrinker_info_protected(memcg, nid);
+ 		kvfree(info);
+ 		rcu_assign_pointer(pn->shrinker_info, NULL);
  	}
++	up_write(&shrinker_rwsem);
  }
  
-+static void update_and_free_pages_bulk(struct hstate *h, struct list_head *list)
-+{
-+	struct page *page, *t_page;
-+
-+	list_for_each_entry_safe(page, t_page, list, lru) {
-+		update_and_free_page(h, page);
-+		cond_resched();
-+	}
-+}
-+
- struct hstate *size_to_hstate(unsigned long size)
+ int alloc_shrinker_info(struct mem_cgroup *memcg)
  {
- 	struct hstate *h;
-@@ -1722,16 +1732,18 @@ static int alloc_pool_huge_page(struct h
- }
+ 	struct shrinker_info *info;
+-	int nid, size, ret = 0;
++	int nid, size;
+ 	int map_size, defer_size = 0;
  
- /*
-- * Free huge page from pool from next node to free.
-- * Attempt to keep persistent huge pages more or less
-- * balanced over allowed nodes.
-+ * Remove huge page from pool from next node to free.  Attempt to keep
-+ * persistent huge pages more or less balanced over allowed nodes.
-+ * This routine only 'removes' the hugetlb page.  The caller must make
-+ * an additional call to free the page to low level allocators.
-  * Called with hugetlb_lock locked.
-  */
--static int free_pool_huge_page(struct hstate *h, nodemask_t *nodes_allowed,
--							 bool acct_surplus)
-+static struct page *remove_pool_huge_page(struct hstate *h,
-+						nodemask_t *nodes_allowed,
-+						 bool acct_surplus)
- {
- 	int nr_nodes, node;
--	int ret = 0;
-+	struct page *page = NULL;
- 
- 	for_each_node_mask_to_free(h, nr_nodes, node, nodes_allowed) {
- 		/*
-@@ -1740,23 +1752,14 @@ static int free_pool_huge_page(struct hs
- 		 */
- 		if ((!acct_surplus || h->surplus_huge_pages_node[node]) &&
- 		    !list_empty(&h->hugepage_freelists[node])) {
--			struct page *page =
--				list_entry(h->hugepage_freelists[node].next,
-+			page = list_entry(h->hugepage_freelists[node].next,
- 					  struct page, lru);
- 			remove_hugetlb_page(h, page, acct_surplus);
--			/*
--			 * unlock/lock around update_and_free_page is temporary
--			 * and will be removed with subsequent patch.
--			 */
--			spin_unlock(&hugetlb_lock);
--			update_and_free_page(h, page);
--			spin_lock(&hugetlb_lock);
--			ret = 1;
- 			break;
+ 	down_write(&shrinker_rwsem);
+@@ -270,9 +272,9 @@ int alloc_shrinker_info(struct mem_cgrou
+ 	for_each_node(nid) {
+ 		info = kvzalloc_node(sizeof(*info) + size, GFP_KERNEL, nid);
+ 		if (!info) {
++			up_write(&shrinker_rwsem);
+ 			free_shrinker_info(memcg);
+-			ret = -ENOMEM;
+-			break;
++			return -ENOMEM;
  		}
+ 		info->nr_deferred = (atomic_long_t *)(info + 1);
+ 		info->map = (void *)info->nr_deferred + defer_size;
+@@ -280,7 +282,7 @@ int alloc_shrinker_info(struct mem_cgrou
  	}
+ 	up_write(&shrinker_rwsem);
  
 -	return ret;
-+	return page;
++	return 0;
  }
  
- /*
-@@ -2076,17 +2079,16 @@ free:
-  *    to the associated reservation map.
-  * 2) Free any unused surplus pages that may have been allocated to satisfy
-  *    the reservation.  As many as unused_resv_pages may be freed.
-- *
-- * Called with hugetlb_lock held.  However, the lock could be dropped (and
-- * reacquired) during calls to cond_resched_lock.  Whenever dropping the lock,
-- * we must make sure nobody else can claim pages we are in the process of
-- * freeing.  Do this by ensuring resv_huge_page always is greater than the
-- * number of huge pages we plan to free when dropping the lock.
-  */
- static void return_unused_surplus_pages(struct hstate *h,
- 					unsigned long unused_resv_pages)
- {
- 	unsigned long nr_pages;
-+	struct page *page;
-+	LIST_HEAD(page_list);
-+
-+	/* Uncommit the reservation */
-+	h->resv_huge_pages -= unused_resv_pages;
- 
- 	/* Cannot return gigantic pages currently */
- 	if (hstate_is_gigantic(h))
-@@ -2103,24 +2105,21 @@ static void return_unused_surplus_pages(
- 	 * evenly across all nodes with memory. Iterate across these nodes
- 	 * until we can no longer free unreserved surplus pages. This occurs
- 	 * when the nodes with surplus pages have no free pages.
--	 * free_pool_huge_page() will balance the freed pages across the
-+	 * remove_pool_huge_page() will balance the freed pages across the
- 	 * on-line nodes with memory and will handle the hstate accounting.
--	 *
--	 * Note that we decrement resv_huge_pages as we free the pages.  If
--	 * we drop the lock, resv_huge_pages will still be sufficiently large
--	 * to cover subsequent pages we may free.
- 	 */
- 	while (nr_pages--) {
--		h->resv_huge_pages--;
--		unused_resv_pages--;
--		if (!free_pool_huge_page(h, &node_states[N_MEMORY], 1))
-+		page = remove_pool_huge_page(h, &node_states[N_MEMORY], 1);
-+		if (!page)
- 			goto out;
--		cond_resched_lock(&hugetlb_lock);
-+
-+		list_add(&page->lru, &page_list);
- 	}
- 
- out:
--	/* Fully uncommit the reservation */
--	h->resv_huge_pages -= unused_resv_pages;
-+	spin_unlock(&hugetlb_lock);
-+	update_and_free_pages_bulk(h, &page_list);
-+	spin_lock(&hugetlb_lock);
- }
- 
- 
-@@ -2684,7 +2683,6 @@ static void try_to_free_low(struct hstat
- 						nodemask_t *nodes_allowed)
- {
- 	int i;
--	struct page *page, *next;
- 	LIST_HEAD(page_list);
- 
- 	if (hstate_is_gigantic(h))
-@@ -2694,6 +2692,7 @@ static void try_to_free_low(struct hstat
- 	 * Collect pages to be freed on a list, and free after dropping lock
- 	 */
- 	for_each_node_mask(i, *nodes_allowed) {
-+		struct page *page, *next;
- 		struct list_head *freel = &h->hugepage_freelists[i];
- 		list_for_each_entry_safe(page, next, freel, lru) {
- 			if (count >= h->nr_huge_pages)
-@@ -2707,10 +2706,7 @@ static void try_to_free_low(struct hstat
- 
- out:
- 	spin_unlock(&hugetlb_lock);
--	list_for_each_entry_safe(page, next, &page_list, lru) {
--		update_and_free_page(h, page);
--		cond_resched();
--	}
-+	update_and_free_pages_bulk(h, &page_list);
- 	spin_lock(&hugetlb_lock);
- }
- #else
-@@ -2757,6 +2753,8 @@ static int set_max_huge_pages(struct hst
- 			      nodemask_t *nodes_allowed)
- {
- 	unsigned long min_count, ret;
-+	struct page *page;
-+	LIST_HEAD(page_list);
- 	NODEMASK_ALLOC(nodemask_t, node_alloc_noretry, GFP_KERNEL);
- 
- 	/*
-@@ -2869,11 +2867,22 @@ static int set_max_huge_pages(struct hst
- 	min_count = h->resv_huge_pages + h->nr_huge_pages - h->free_huge_pages;
- 	min_count = max(count, min_count);
- 	try_to_free_low(h, min_count, nodes_allowed);
-+
-+	/*
-+	 * Collect pages to be removed on list without dropping lock
-+	 */
- 	while (min_count < persistent_huge_pages(h)) {
--		if (!free_pool_huge_page(h, nodes_allowed, 0))
-+		page = remove_pool_huge_page(h, nodes_allowed, 0);
-+		if (!page)
- 			break;
--		cond_resched_lock(&hugetlb_lock);
-+
-+		list_add(&page->lru, &page_list);
- 	}
-+	/* free the pages after dropping lock */
-+	spin_unlock(&hugetlb_lock);
-+	update_and_free_pages_bulk(h, &page_list);
-+	spin_lock(&hugetlb_lock);
-+
- 	while (count < persistent_huge_pages(h)) {
- 		if (!adjust_pool_surplus(h, nodes_allowed, 1))
- 			break;
+ static inline bool need_expand(int nr_max)
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-cma-change-cma-mutex-to-irq-safe-spinlock.patch
-hugetlb-no-need-to-drop-hugetlb_lock-to-call-cma_release.patch
-hugetlb-add-per-hstate-mutex-to-synchronize-user-adjustments.patch
-hugetlb-create-remove_hugetlb_page-to-separate-functionality.patch
-hugetlb-call-update_and_free_page-without-hugetlb_lock.patch
-hugetlb-change-free_pool_huge_page-to-remove_pool_huge_page.patch
-hugetlb-make-free_huge_page-irq-safe.patch
-hugetlb-add-lockdep_assert_held-calls-for-hugetlb_lock.patch
+mm-vmscan-add-per-memcg-shrinker-nr_deferred-fix.patch
+mm-restore-node-stat-checking-in-proc-sys-vm-stat_refresh.patch
+mm-no-more-einval-from-proc-sys-vm-stat_refresh.patch
+mm-proc-sys-vm-stat_refresh-skip-checking-known-negative-stats.patch
+mm-proc-sys-vm-stat_refresh-stop-checking-monotonic-numa-stats.patch
 
