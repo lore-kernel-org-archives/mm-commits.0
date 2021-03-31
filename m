@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6332C433C1
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:36:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AE40C433C1
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:39:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E0E6619D9
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:36:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFE37619A7
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:39:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233473AbhCaEgJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 00:36:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60954 "EHLO mail.kernel.org"
+        id S230291AbhCaEjY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 00:39:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233600AbhCaEfe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 00:35:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B4853619A7;
-        Wed, 31 Mar 2021 04:35:28 +0000 (UTC)
+        id S233120AbhCaEjP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 00:39:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D272A6146B;
+        Wed, 31 Mar 2021 04:39:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617165329;
-        bh=zSE/iFjpy56lRUfXa/QJjNuGYSkxih/WzV/VwngT+Y4=;
+        s=korg; t=1617165555;
+        bh=NzpN9izDJW3PECgjL/h1opzfnLk4ZpWvCD33CwYT0Kc=;
         h=Date:From:To:Subject:From;
-        b=QZEs+kvn5KatDtZpDU9ZCIbbv9+VmNSWIChTNuqx9KqF6Z4XHyPdNj20OLD05JX0k
-         FhZoPnc4FPaTD0vxkk4Vsf5TLPvDFOYETvTx6fTdZEakOBXpKCKUOU3QNz6Ho9R3GR
-         HFnnz6CwN5t/mtVGcs34HmrJtbzc39GSfN/XbOzo=
-Date:   Tue, 30 Mar 2021 21:35:28 -0700
+        b=WxvkOHouQyjD44JBw39+qB/awQGeLkX0hFqCGEB6BBBo8lAaMbc3Ww5szwLX6LHi0
+         6ey5rhusPK3/L8Cq1ebkRiCypU3M0e9P58PYdT+sFr0ivPxOtrYWmffK9LWoaRWTTx
+         wC1FbW6cMgj36UnfKiKlDoVmcmnhiDPcTOOgewVQ=
+Date:   Tue, 30 Mar 2021 21:39:14 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, mm-commits@vger.kernel.org,
-        sfr@canb.auug.org.au, slyfox@gentoo.org, vbabka@suse.cz
-Subject:  +
- kasan-mm-integrate-page_alloc-init-with-hw_tags-fix.patch added to -mm tree
-Message-ID: <20210331043528.r1i41QfFj%akpm@linux-foundation.org>
+To:     andreyknvl@gmail.com, andreyknvl@google.com,
+        aryabinin@virtuozzo.com, dvyukov@google.com, elver@google.com,
+        glider@google.com, mm-commits@vger.kernel.org
+Subject:  + kasan-fix-conflict-with-page-poisoning.patch added to
+ -mm tree
+Message-ID: <20210331043914.a9tdW93J6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, kasan: fix for "integrate page_alloc init with HW_TAGS"
+     Subject: kasan: fix conflict with page poisoning
 has been added to the -mm tree.  Its filename is
-     kasan-mm-integrate-page_alloc-init-with-hw_tags-fix.patch
+     kasan-fix-conflict-with-page-poisoning.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-mm-integrate-page_alloc-init-with-hw_tags-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-conflict-with-page-poisoning.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-mm-integrate-page_alloc-init-with-hw_tags-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-conflict-with-page-poisoning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,56 +66,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: mm, kasan: fix for "integrate page_alloc init with HW_TAGS"
+Subject: kasan: fix conflict with page poisoning
 
-My commit "integrate page_alloc init with HW_TAGS" changed the order of
-kernel_unpoison_pages() and kernel_init_free_pages() calls.  This leads to
-complaints from the page unpoisoning code, as the poison pattern gets
-overwritten for __GFP_ZERO allocations.
+When page poisoning is enabled, it accesses memory that is marked as
+poisoned by KASAN, which leas to false-positive KASAN reports.
 
-Fix by restoring the initial order. Also add a warning comment.
+Suppress the reports by adding KASAN annotations to unpoison_page()
+(poison_page() already has them).
 
-Link: https://lkml.kernel.org/r/65b6028dea2e9a6e8e2cb779b5115c09457363fc.1617122211.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/2dc799014d31ac13fd97bd906bad33e16376fc67.1617118501.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reported-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Sergei Trofimovich <slyfox@gentoo.org>
-Tested-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Sergei Trofimovich <slyfox@gentoo.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/page_poison.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~kasan-mm-integrate-page_alloc-init-with-hw_tags-fix
-+++ a/mm/page_alloc.c
-@@ -2331,6 +2331,13 @@ inline void post_alloc_hook(struct page
- 	debug_pagealloc_map_pages(page, 1 << order);
+--- a/mm/page_poison.c~kasan-fix-conflict-with-page-poisoning
++++ a/mm/page_poison.c
+@@ -77,12 +77,14 @@ static void unpoison_page(struct page *p
+ 	void *addr;
  
+ 	addr = kmap_atomic(page);
++	kasan_disable_current();
  	/*
-+	 * Page unpoisoning must happen before memory initialization.
-+	 * Otherwise, the poison pattern will be overwritten for __GFP_ZERO
-+	 * allocations and the page unpoisoning code will complain.
-+	 */
-+	kernel_unpoison_pages(page, 1 << order);
-+
-+	/*
- 	 * As memory initialization might be integrated into KASAN,
- 	 * kasan_alloc_pages and kernel_init_free_pages must be
- 	 * kept together to avoid discrepancies in behavior.
-@@ -2340,7 +2347,6 @@ inline void post_alloc_hook(struct page
- 	if (init && !kasan_has_integrated_init())
- 		kernel_init_free_pages(page, 1 << order);
- 
--	kernel_unpoison_pages(page, 1 << order);
- 	set_page_owner(page, order, gfp_flags);
+ 	 * Page poisoning when enabled poisons each and every page
+ 	 * that is freed to buddy. Thus no extra check is done to
+ 	 * see if a page was poisoned.
+ 	 */
+-	check_poison_mem(addr, PAGE_SIZE);
++	check_poison_mem(kasan_reset_tag(addr), PAGE_SIZE);
++	kasan_enable_current();
+ 	kunmap_atomic(addr);
  }
  
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
 
+kasan-fix-conflict-with-page-poisoning.patch
 kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch
 mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
 arm64-kasan-allow-to-init-memory-when-setting-tags.patch
