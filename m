@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98A92C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:44:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28A27C433C1
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:47:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 613FC6190A
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:44:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D683E61606
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:47:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233469AbhCaEn4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 00:43:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35060 "EHLO mail.kernel.org"
+        id S229959AbhCaErO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 00:47:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35354 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229959AbhCaEnj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 00:43:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AC53F6146B;
-        Wed, 31 Mar 2021 04:43:38 +0000 (UTC)
+        id S230291AbhCaErD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 00:47:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EA0EC6190A;
+        Wed, 31 Mar 2021 04:47:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617165818;
-        bh=Ap42/sZW1c52bSDcNM/KSYyKai7zgMhCfvw+NNe+A9U=;
+        s=korg; t=1617166023;
+        bh=N/O89u0yNsEI1Sx85ZM00pLZcn1CmD3jkC/FYfPzI0M=;
         h=Date:From:To:Subject:From;
-        b=gSDOKJhU+r1YMYIdds0W3oQme1sMWGKZ76z8u/1mcuQzOqbMmF9D50fnvOt/RNIUf
-         BIi23TNUdDS07Do5JSc73dbAKHlO+q5lk+1ghsgYFIc3AqRYrj2dkxlisbuCA5VV7p
-         5M+fEuwWPoT9c2vt4okcrTOyJdy1uD8VicSLdaVs=
-Date:   Tue, 30 Mar 2021 21:43:38 -0700
+        b=BVXrhA7JvGg0M695+CHiXbf3UkvX9HZazYOxlVJU+QcPha6ZRfAG27QLLLvnKxPxp
+         pXUWcY51QB2d1Fl8pYnZDg//lvgjYI88XWzaTJN4Q7mUXxbDL1nlkzjcp0jcEyHNi2
+         oPr/SnnFh6hPsFZxTKeHHjFFNiur6Aex4mZgTWHk=
+Date:   Tue, 30 Mar 2021 21:47:02 -0700
 From:   akpm@linux-foundation.org
-To:     gustavoars@kernel.org, lkp@intel.com, mm-commits@vger.kernel.org
+To:     hughd@google.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
 Subject:  +
- hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch added to -mm
- tree
-Message-ID: <20210331044338.B02dVPtuI%akpm@linux-foundation.org>
+ =?US-ASCII?Q?ksm-use-get=5Fksm=5Fpage=5Fnolock-to-get-ksm-page-in-remo?=
+ =?US-ASCII?Q?ve=5Frmap=5Fitem=5Ffrom=5Ftree.patch?= added to -mm tree
+Message-ID: <20210331044702.t4I8PBrdL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hfsplus: fix out-of-bounds warnings in __hfsplus_setxattr
+     Subject: ksm: use GET_KSM_PAGE_NOLOCK to get ksm page in remove_rmap_item_from_tree()
 has been added to the -mm tree.  Its filename is
-     hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
+     ksm-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ksm-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ksm-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,190 +66,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Subject: hfsplus: fix out-of-bounds warnings in __hfsplus_setxattr
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: ksm: use GET_KSM_PAGE_NOLOCK to get ksm page in remove_rmap_item_from_tree()
 
-Fix the following out-of-bounds warnings by enclosing structure members
-file and finder into new struct info:
+It's unnecessary to lock the page when get ksm page if we're going to
+remove the rmap item as page migration is irrelevant in this case.  Use
+GET_KSM_PAGE_NOLOCK instead to save some page lock cycles.
 
-fs/hfsplus/xattr.c:300:5: warning: 'memcpy' offset [65, 80] from the object at 'entry' is out of the bounds of referenced subobject 'user_info' with type 'struct DInfo' at offset 48 [-Warray-bounds]
-fs/hfsplus/xattr.c:313:5: warning: 'memcpy' offset [65, 80] from the object at 'entry' is out of the bounds of referenced subobject 'user_info' with type 'struct FInfo' at offset 48 [-Warray-bounds]
-
-Refactor the code by making it more "structured."
-
-Also, this helps with the ongoing efforts to enable -Warray-bounds and
-makes the code clearer and avoid confusing the compiler.
-
-Link: https://github.com/KSPP/linux/issues/109
-Link: https://lkml.kernel.org/r/20210330145226.GA207011@embeddedor
-Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-Reported-by: kernel test robot <lkp@intel.com>
+Link: https://lkml.kernel.org/r/20210330140228.45635-3-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/catalog.c     |   16 ++++++++--------
- fs/hfsplus/dir.c         |    4 ++--
- fs/hfsplus/hfsplus_raw.h |   12 ++++++++----
- fs/hfsplus/xattr.c       |   18 ++++++++----------
- 4 files changed, 26 insertions(+), 24 deletions(-)
+ mm/ksm.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/fs/hfsplus/catalog.c~hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr
-+++ a/fs/hfsplus/catalog.c
-@@ -124,7 +124,7 @@ static int hfsplus_cat_build_record(hfsp
- 		hfsplus_cat_set_perms(inode, &folder->permissions);
- 		if (inode == sbi->hidden_dir)
- 			/* invisible and namelocked */
--			folder->user_info.frFlags = cpu_to_be16(0x5000);
-+			folder->info.user.frFlags = cpu_to_be16(0x5000);
- 		return sizeof(*folder);
- 	} else {
- 		struct hfsplus_cat_file *file;
-@@ -142,14 +142,14 @@ static int hfsplus_cat_build_record(hfsp
- 		if (cnid == inode->i_ino) {
- 			hfsplus_cat_set_perms(inode, &file->permissions);
- 			if (S_ISLNK(inode->i_mode)) {
--				file->user_info.fdType =
-+				file->info.user.fdType =
- 					cpu_to_be32(HFSP_SYMLINK_TYPE);
--				file->user_info.fdCreator =
-+				file->info.user.fdCreator =
- 					cpu_to_be32(HFSP_SYMLINK_CREATOR);
- 			} else {
--				file->user_info.fdType =
-+				file->info.user.fdType =
- 					cpu_to_be32(sbi->type);
--				file->user_info.fdCreator =
-+				file->info.user.fdCreator =
- 					cpu_to_be32(sbi->creator);
- 			}
- 			if (HFSPLUS_FLG_IMMUTABLE &
-@@ -158,11 +158,11 @@ static int hfsplus_cat_build_record(hfsp
- 				file->flags |=
- 					cpu_to_be16(HFSPLUS_FILE_LOCKED);
- 		} else {
--			file->user_info.fdType =
-+			file->info.user.fdType =
- 				cpu_to_be32(HFSP_HARDLINK_TYPE);
--			file->user_info.fdCreator =
-+			file->info.user.fdCreator =
- 				cpu_to_be32(HFSP_HFSPLUS_CREATOR);
--			file->user_info.fdFlags =
-+			file->info.user.fdFlags =
- 				cpu_to_be16(0x100);
- 			file->create_date =
- 				HFSPLUS_I(sbi->hidden_dir)->create_date;
---- a/fs/hfsplus/dir.c~hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr
-+++ a/fs/hfsplus/dir.c
-@@ -73,9 +73,9 @@ again:
- 			goto fail;
- 		}
- 		cnid = be32_to_cpu(entry.file.id);
--		if (entry.file.user_info.fdType ==
-+		if (entry.file.info.user.fdType ==
- 				cpu_to_be32(HFSP_HARDLINK_TYPE) &&
--				entry.file.user_info.fdCreator ==
-+				entry.file.info.user.fdCreator ==
- 				cpu_to_be32(HFSP_HFSPLUS_CREATOR) &&
- 				HFSPLUS_SB(sb)->hidden_dir &&
- 				(entry.file.create_date ==
---- a/fs/hfsplus/hfsplus_raw.h~hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr
-+++ a/fs/hfsplus/hfsplus_raw.h
-@@ -260,8 +260,10 @@ struct hfsplus_cat_folder {
- 	__be32 access_date;
- 	__be32 backup_date;
- 	struct hfsplus_perm permissions;
--	struct DInfo user_info;
--	struct DXInfo finder_info;
-+	struct {
-+		struct DInfo user;
-+		struct DXInfo finder;
-+	} info;
- 	__be32 text_encoding;
- 	__be32 subfolders;	/* Subfolder count in HFSX. Reserved in HFS+. */
- } __packed;
-@@ -294,8 +296,10 @@ struct hfsplus_cat_file {
- 	__be32 access_date;
- 	__be32 backup_date;
- 	struct hfsplus_perm permissions;
--	struct FInfo user_info;
--	struct FXInfo finder_info;
-+	struct {
-+		struct FInfo user;
-+		struct FXInfo finder;
-+	} info;
- 	__be32 text_encoding;
- 	u32 reserved2;
+--- a/mm/ksm.c~ksm-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree
++++ a/mm/ksm.c
+@@ -778,12 +778,11 @@ static void remove_rmap_item_from_tree(s
+ 		struct page *page;
  
---- a/fs/hfsplus/xattr.c~hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr
-+++ a/fs/hfsplus/xattr.c
-@@ -262,10 +262,8 @@ int __hfsplus_setxattr(struct inode *ino
- 	struct hfs_find_data cat_fd;
- 	hfsplus_cat_entry entry;
- 	u16 cat_entry_flags, cat_entry_type;
--	u16 folder_finderinfo_len = sizeof(struct DInfo) +
--					sizeof(struct DXInfo);
--	u16 file_finderinfo_len = sizeof(struct FInfo) +
--					sizeof(struct FXInfo);
-+	u16 folder_finderinfo_len = sizeof(entry.folder.info);
-+	u16 file_finderinfo_len = sizeof(entry.file.info);
+ 		stable_node = rmap_item->head;
+-		page = get_ksm_page(stable_node, GET_KSM_PAGE_LOCK);
++		page = get_ksm_page(stable_node, GET_KSM_PAGE_NOLOCK);
+ 		if (!page)
+ 			goto out;
  
- 	if ((!S_ISREG(inode->i_mode) &&
- 			!S_ISDIR(inode->i_mode)) ||
-@@ -297,7 +295,7 @@ int __hfsplus_setxattr(struct inode *ino
- 					sizeof(hfsplus_cat_entry));
- 		if (be16_to_cpu(entry.type) == HFSPLUS_FOLDER) {
- 			if (size == folder_finderinfo_len) {
--				memcpy(&entry.folder.user_info, value,
-+				memcpy(&entry.folder.info, value,
- 						folder_finderinfo_len);
- 				hfs_bnode_write(cat_fd.bnode, &entry,
- 					cat_fd.entryoffset,
-@@ -310,7 +308,7 @@ int __hfsplus_setxattr(struct inode *ino
- 			}
- 		} else if (be16_to_cpu(entry.type) == HFSPLUS_FILE) {
- 			if (size == file_finderinfo_len) {
--				memcpy(&entry.file.user_info, value,
-+				memcpy(&entry.file.info, value,
- 						file_finderinfo_len);
- 				hfs_bnode_write(cat_fd.bnode, &entry,
- 					cat_fd.entryoffset,
-@@ -463,14 +461,14 @@ static ssize_t hfsplus_getxattr_finder_i
- 		if (entry_type == HFSPLUS_FOLDER) {
- 			hfs_bnode_read(fd.bnode, folder_finder_info,
- 				fd.entryoffset +
--				offsetof(struct hfsplus_cat_folder, user_info),
-+				offsetof(struct hfsplus_cat_folder, info.user),
- 				folder_rec_len);
- 			memcpy(value, folder_finder_info, folder_rec_len);
- 			res = folder_rec_len;
- 		} else if (entry_type == HFSPLUS_FILE) {
- 			hfs_bnode_read(fd.bnode, file_finder_info,
- 				fd.entryoffset +
--				offsetof(struct hfsplus_cat_file, user_info),
-+				offsetof(struct hfsplus_cat_file, info.user),
- 				file_rec_len);
- 			memcpy(value, file_finder_info, file_rec_len);
- 			res = file_rec_len;
-@@ -631,14 +629,14 @@ static ssize_t hfsplus_listxattr_finder_
- 		len = sizeof(struct DInfo) + sizeof(struct DXInfo);
- 		hfs_bnode_read(fd.bnode, folder_finder_info,
- 				fd.entryoffset +
--				offsetof(struct hfsplus_cat_folder, user_info),
-+				offsetof(struct hfsplus_cat_folder, info.user),
- 				len);
- 		found_bit = find_first_bit((void *)folder_finder_info, len*8);
- 	} else if (entry_type == HFSPLUS_FILE) {
- 		len = sizeof(struct FInfo) + sizeof(struct FXInfo);
- 		hfs_bnode_read(fd.bnode, file_finder_info,
- 				fd.entryoffset +
--				offsetof(struct hfsplus_cat_file, user_info),
-+				offsetof(struct hfsplus_cat_file, info.user),
- 				len);
- 		found_bit = find_first_bit((void *)file_finder_info, len*8);
- 	} else {
+ 		hlist_del(&rmap_item->hlist);
+-		unlock_page(page);
+ 		put_page(page);
+ 
+ 		if (!hlist_empty(&stable_node->hlist))
 _
 
-Patches currently in -mm which might be from gustavoars@kernel.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
+mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
+mm-hugetlb-use-some-helper-functions-to-cleanup-code.patch
+mm-hugetlb-optimize-the-surplus-state-transfer-code-in-move_hugetlb_state.patch
+hugetlb_cgroup-remove-unnecessary-vm_bug_on_page-in-hugetlb_cgroup_migrate.patch
+mm-hugetlb-simplify-the-code-when-alloc_huge_page-failed-in-hugetlb_no_page.patch
+mm-hugetlb-avoid-calculating-fault_mutex_hash-in-truncate_op-case.patch
+khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps.patch
+khugepaged-reuse-the-smp_wmb-inside-__setpageuptodate.patch
+khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
+khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate.patch
+mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
+mm-huge_memoryc-rework-the-function-vma_adjust_trans_huge.patch
+mm-huge_memoryc-make-get_huge_zero_page-return-bool.patch
+mm-huge_memoryc-rework-the-function-do_huge_pmd_numa_page-slightly.patch
+mm-huge_memoryc-remove-redundant-pagecompound-check.patch
+mm-huge_memoryc-remove-unused-macro-transparent_hugepage_debug_cow_flag.patch
+mm-huge_memoryc-use-helper-function-migration_entry_to_page.patch
+khugepaged-use-helper-function-range_in_vma-in-collapse_pte_mapped_thp.patch
+khugepaged-remove-unnecessary-out-label-in-collapse_huge_page.patch
+khugepaged-remove-meaningless-pte_present-check-in-khugepaged_scan_pmd.patch
+mm-migratec-make-putback_movable_page-static.patch
+mm-migratec-remove-unnecessary-rc-=-migratepage_success-check-in-else-case.patch
+mm-migratec-fix-potential-indeterminate-pte-entry-in-migrate_vma_insert_page.patch
+mm-migratec-use-helper-migrate_vma_collect_skip-in-migrate_vma_collect_hole.patch
+revert-mm-migrate-skip-shared-exec-thp-for-numa-balancing.patch
+ksm-remove-redundant-vm_bug_on_page-on-stable_tree_search.patch
+ksm-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree.patch
+ksm-remove-dedicated-macro-ksm_flag_mask.patch
+ksm-fix-potential-missing-rmap_item-for-stable_node.patch
 
