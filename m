@@ -7,37 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16FF4C433ED
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 23:39:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23AC1C433ED
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 23:40:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D780E61075
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 23:39:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE3A861077
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 23:40:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229515AbhCaXi2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 19:38:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36032 "EHLO mail.kernel.org"
+        id S229812AbhCaXjl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 19:39:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229486AbhCaXiP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 19:38:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0410260C3E;
-        Wed, 31 Mar 2021 23:38:14 +0000 (UTC)
+        id S229959AbhCaXjk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 19:39:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DB0DD61075;
+        Wed, 31 Mar 2021 23:39:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617233895;
-        bh=MNKBZ/IkS01MKFSEFVSJIKjB4Jago1D5ZpJm4NWgXaU=;
+        s=korg; t=1617233980;
+        bh=fF1tE9RGmeJ6wVNiVIv0+Q1d6XTjfYx/SEc5WJ9raQo=;
         h=Date:From:To:Subject:From;
-        b=APHpXDSCqrDVDWsDns8y3bVDadRHrGdyu+wZMSehflD3KJt6qAoYo1/nVdWkO1KqW
-         0kqK6nCmgsDtxwX13+f35pJ9g4+1Xtbqn/p/5jSrzYa4BWIRktQYe5XCzQYrvHksN7
-         47oeOZMve3d8ABuk0B5Kxh31q+K+IW4o1uL6rsu4=
-Date:   Wed, 31 Mar 2021 16:38:14 -0700
+        b=0FSPo7IHgylrHdpqy8LmQTI07crfZrggtZHMt8YFOtxnWygQvZ0yBZYMbfspPOmzU
+         SNVbkao3QUUFkpt31TlJz6jmYk7GryAE9pyUxxM+7GJdxtAuiEQDp8euHktO+XxyGG
+         /mRykZmHzhfNUaBIsX+ZbRvI8jskKgcsk34N7vf0=
+Date:   Wed, 31 Mar 2021 16:39:39 -0700
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, jiangqi903@gmail.com,
-        jlbec@evilplan.org, junxiao.bi@oracle.com, mark@fasheh.com,
-        mm-commits@vger.kernel.org, piaojun@huawei.com,
-        stable@vger.kernel.org, wen.gang.wang@oracle.com
-Subject:  +
- ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write.patch added to -mm
+To:     david@redhat.com, jhubbard@nvidia.com,
+        kirill.shutemov@linux.intel.com, mika.penttila@nextfour.com,
+        mm-commits@vger.kernel.org, rientjes@google.com,
+        sandipan@linux.ibm.com, shuah@kernel.org, shy828301@gmail.com,
+        ziy@nvidia.com
+Subject:  [to-be-updated]
+ mm-huge_memory-debugfs-for-file-backed-thp-split.patch removed from -mm
  tree
-Message-ID: <20210331233814.VDNpynvhr%akpm@linux-foundation.org>
+Message-ID: <20210331233939.KFgSdydVJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,172 +47,296 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix deadlock between setattr and dio_end_io_write
-has been added to the -mm tree.  Its filename is
-     ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write.patch
+     Subject: mm: huge_memory: debugfs for file-backed THP split
+has been removed from the -mm tree.  Its filename was
+     mm-huge_memory-debugfs-for-file-backed-thp-split.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Wengang Wang <wen.gang.wang@oracle.com>
-Subject: ocfs2: fix deadlock between setattr and dio_end_io_write
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm: huge_memory: debugfs for file-backed THP split
 
-The following deadlock is detected:
+Further extend <debugfs>/split_huge_pages to accept
+"<path>,<off_start>,<off_end>" for file-backed THP split tests since tmpfs
+may have file backed by THP that mapped nowhere.
 
-truncate -> setattr path is waiting for pending direct IO to be done (
-inode->i_dio_count become zero) with inode->i_rwsem held (down_write).
+Update selftest program to test file-backed THP split too.
 
-PID: 14827  TASK: ffff881686a9af80  CPU: 20  COMMAND: "ora_p005_hrltd9"
-#0 [ffffc9000bcf3c08] __schedule at ffffffff818667cc
-#1 [ffffc9000bcf3ca0] schedule at ffffffff81866de6
-#2 [ffffc9000bcf3cb8] inode_dio_wait at ffffffff812a2d04
-#3 [ffffc9000bcf3d28] ocfs2_setattr at ffffffffc05f322e [ocfs2]
-#4 [ffffc9000bcf3e18] notify_change at ffffffff812a5a09
-#5 [ffffc9000bcf3e60] do_truncate at ffffffff812808f5
-#6 [ffffc9000bcf3ed8] do_sys_ftruncate.constprop.18 at ffffffff81280cf2
-#7 [ffffc9000bcf3f18] sys_ftruncate at ffffffff81280d8e
-#8 [ffffc9000bcf3f28] do_syscall_64 at ffffffff81003949
-#9 [ffffc9000bcf3f50] entry_SYSCALL_64_after_hwframe at ffffffff81a001ad
-
-dio completion path is going to complete one direct IO (decrement
-inode->i_dio_count), but before that it hang at locking inode->i_rwsem.
-
- #0 [ffffc90009b47b40] __schedule+700 at ffffffff818667cc
- #1 [ffffc90009b47bd8] schedule+54 at ffffffff81866de6
- #2 [ffffc90009b47bf0] rwsem_down_write_failed+536 at ffffffff8186aa28
- #3 [ffffc90009b47c88] call_rwsem_down_write_failed+23 at ffffffff8185a1b7
- #4 [ffffc90009b47cd0] down_write+45 at ffffffff81869c9d
- #5 [ffffc90009b47ce8] ocfs2_dio_end_io_write+180 at ffffffffc05d5444 [ocfs2]
- #6 [ffffc90009b47dd8] ocfs2_dio_end_io+85 at ffffffffc05d5a85 [ocfs2]
- #7 [ffffc90009b47e18] dio_complete+140 at ffffffff812c873c
- #8 [ffffc90009b47e50] dio_aio_complete_work+25 at ffffffff812c89f9
- #9 [ffffc90009b47e60] process_one_work+361 at ffffffff810b1889
-#10 [ffffc90009b47ea8] worker_thread+77 at ffffffff810b233d
-#11 [ffffc90009b47f08] kthread+261 at ffffffff810b7fd5
-#12 [ffffc90009b47f50] ret_from_fork+62 at ffffffff81a0035e
-
-Thus above forms ABBA deadlock. The same deadlock was mentioned in
-upstream commit 28f5a8a7c033cbf3e32277f4cc9c6afd74f05300. well, it seems
-that that commit just removed cluster lock (the victim of above dead
-lock) from the ABBA deadlock party.
-
-End-user visible effects:
-Process hang in truncate -> ocfs2_setattr path and other processes hang at
-ocfs2_dio_end_io_write path.
-
-This is to fix the deadlock its self. It removes inode_lock() call from dio
-completion path to remove the deadlock and add ip_alloc_sem lock in setattr
-path to synchronize the inode modifications.
-
-Link: https://lkml.kernel.org/r/20210331203654.3911-1-wen.gang.wang@oracle.com
-Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210329153932.134510-2-zi.yan@sent.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Suggested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Mika Penttila <mika.penttila@nextfour.com>
+Cc: Sandipan Das <sandipan@linux.ibm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   11 +----------
- fs/ocfs2/file.c |   11 ++++++++++-
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ mm/huge_memory.c                                  |   91 +++++++++++-
+ tools/testing/selftests/vm/split_huge_page_test.c |   81 ++++++++++
+ 2 files changed, 166 insertions(+), 6 deletions(-)
 
---- a/fs/ocfs2/aops.c~ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write
-+++ a/fs/ocfs2/aops.c
-@@ -2295,7 +2295,7 @@ static int ocfs2_dio_end_io_write(struct
- 	struct ocfs2_alloc_context *meta_ac = NULL;
- 	handle_t *handle = NULL;
- 	loff_t end = offset + bytes;
--	int ret = 0, credits = 0, locked = 0;
-+	int ret = 0, credits = 0;
+--- a/mm/huge_memory.c~mm-huge_memory-debugfs-for-file-backed-thp-split
++++ a/mm/huge_memory.c
+@@ -3062,6 +3062,66 @@ out:
+ 	return ret;
+ }
  
- 	ocfs2_init_dealloc_ctxt(&dealloc);
++static int split_huge_pages_in_file(const char *file_path, pgoff_t off_start,
++				pgoff_t off_end)
++{
++	struct filename *file;
++	struct file *candidate;
++	struct address_space *mapping;
++	int ret = -EINVAL;
++	pgoff_t off_cur;
++	unsigned long total = 0, split = 0;
++
++	file = getname_kernel(file_path);
++	if (IS_ERR(file))
++		return ret;
++
++	candidate = file_open_name(file, O_RDONLY, 0);
++	if (IS_ERR(candidate))
++		goto out;
++
++	pr_debug("split file-backed THPs in file: %s, offset: [0x%lx - 0x%lx]\n",
++		 file_path, off_start, off_end);
++
++	mapping = candidate->f_mapping;
++
++	for (off_cur = off_start; off_cur < off_end;) {
++		struct page *fpage = pagecache_get_page(mapping, off_cur,
++						FGP_ENTRY | FGP_HEAD, 0);
++
++		if (xa_is_value(fpage) || !fpage) {
++			off_cur += PAGE_SIZE;
++			continue;
++		}
++
++		if (!is_transparent_hugepage(fpage)) {
++			off_cur += PAGE_SIZE;
++			goto next;
++		}
++		total++;
++		off_cur = fpage->index + thp_size(fpage);
++
++		if (!trylock_page(fpage))
++			goto next;
++
++		if (!split_huge_page(fpage))
++			split++;
++
++		unlock_page(fpage);
++next:
++		put_page(fpage);
++		cond_resched();
++	}
++
++	filp_close(candidate, NULL);
++	ret = 0;
++
++	pr_debug("%lu of %lu file-backed THP split\n", split, total);
++out:
++	putname(file);
++	return ret;
++}
++
+ #define MAX_INPUT_BUF_SZ 255
  
-@@ -2306,13 +2306,6 @@ static int ocfs2_dio_end_io_write(struct
- 	    !dwc->dw_orphaned)
+ static ssize_t split_huge_pages_write(struct file *file, const char __user *buf,
+@@ -3069,7 +3129,8 @@ static ssize_t split_huge_pages_write(st
+ {
+ 	static DEFINE_MUTEX(split_debug_mutex);
+ 	ssize_t ret;
+-	char input_buf[MAX_INPUT_BUF_SZ]; /* hold pid, start_vaddr, end_vaddr */
++	/* hold pid, start_vaddr, end_vaddr or file_path, off_start, off_end */
++	char input_buf[MAX_INPUT_BUF_SZ];
+ 	int pid;
+ 	unsigned long vaddr_start, vaddr_end;
+ 
+@@ -3084,6 +3145,34 @@ static ssize_t split_huge_pages_write(st
  		goto out;
  
--	/* ocfs2_file_write_iter will get i_mutex, so we need not lock if we
--	 * are in that context. */
--	if (dwc->dw_writer_pid != task_pid_nr(current)) {
--		inode_lock(inode);
--		locked = 1;
--	}
--
- 	ret = ocfs2_inode_lock(inode, &di_bh, 1);
- 	if (ret < 0) {
- 		mlog_errno(ret);
-@@ -2393,8 +2386,6 @@ out:
- 	if (meta_ac)
- 		ocfs2_free_alloc_context(meta_ac);
- 	ocfs2_run_deallocs(osb, &dealloc);
--	if (locked)
--		inode_unlock(inode);
- 	ocfs2_dio_free_write_ctx(inode, dwc);
+ 	input_buf[MAX_INPUT_BUF_SZ - 1] = '\0';
++
++	if (input_buf[0] == '/') {
++		char *tok;
++		char *buf = input_buf;
++		char file_path[MAX_INPUT_BUF_SZ];
++		pgoff_t off_start = 0, off_end = 0;
++		size_t input_len = strlen(input_buf);
++
++		tok = strsep(&buf, ",");
++		if (tok) {
++			strncpy(file_path, tok, MAX_INPUT_BUF_SZ);
++		} else {
++			ret = -EINVAL;
++			goto out;
++		}
++
++		ret = sscanf(buf, "0x%lx,0x%lx", &off_start, &off_end);
++		if (ret != 2) {
++			ret = -EINVAL;
++			goto out;
++		}
++		ret = split_huge_pages_in_file(file_path, off_start, off_end);
++		if (!ret)
++			ret = input_len;
++
++		goto out;
++	}
++
+ 	ret = sscanf(input_buf, "%d,0x%lx,0x%lx", &pid, &vaddr_start, &vaddr_end);
+ 	if (ret == 1 && pid == 1) {
+ 		split_huge_pages_all();
+--- a/tools/testing/selftests/vm/split_huge_page_test.c~mm-huge_memory-debugfs-for-file-backed-thp-split
++++ a/tools/testing/selftests/vm/split_huge_page_test.c
+@@ -7,11 +7,13 @@
+ #define _GNU_SOURCE
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <stdarg.h>
+ #include <unistd.h>
+ #include <inttypes.h>
+ #include <string.h>
+ #include <fcntl.h>
+ #include <sys/mman.h>
++#include <sys/mount.h>
+ #include <malloc.h>
+ #include <stdbool.h>
  
- 	return ret;
---- a/fs/ocfs2/file.c~ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write
-+++ a/fs/ocfs2/file.c
-@@ -1124,7 +1124,7 @@ int ocfs2_setattr(struct user_namespace
- 	handle_t *handle = NULL;
- 	struct dquot *transfer_to[MAXQUOTAS] = { };
- 	int qtype;
--	int had_lock;
-+	int had_lock, had_alloc_lock = 0;
- 	struct ocfs2_lock_holder oh;
+@@ -24,6 +26,9 @@ uint64_t pmd_pagesize;
+ #define SMAP_PATH "/proc/self/smaps"
+ #define INPUT_MAX 80
  
- 	trace_ocfs2_setattr(inode, dentry,
-@@ -1245,6 +1245,9 @@ int ocfs2_setattr(struct user_namespace
- 				goto bail_unlock;
- 			}
- 		}
-+		down_write(&OCFS2_I(inode)->ip_alloc_sem);
-+		had_alloc_lock = 1;
++#define PID_FMT "%d,0x%lx,0x%lx"
++#define PATH_FMT "%s,0x%lx,0x%lx"
 +
- 		handle = ocfs2_start_trans(osb, OCFS2_INODE_UPDATE_CREDITS +
- 					   2 * ocfs2_quota_trans_credits(sb));
- 		if (IS_ERR(handle)) {
-@@ -1256,6 +1259,9 @@ int ocfs2_setattr(struct user_namespace
- 		if (status < 0)
- 			goto bail_commit;
- 	} else {
-+		down_write(&OCFS2_I(inode)->ip_alloc_sem);
-+		had_alloc_lock = 1;
+ #define PFN_MASK     ((1UL<<55)-1)
+ #define KPF_THP      (1UL<<22)
+ 
+@@ -87,13 +92,16 @@ static int write_file(const char *path,
+ 	return (unsigned int) numwritten;
+ }
+ 
+-static void write_debugfs(int pid, uint64_t vaddr_start, uint64_t vaddr_end)
++static void write_debugfs(const char *fmt, ...)
+ {
+ 	char input[INPUT_MAX];
+ 	int ret;
++	va_list argp;
 +
- 		handle = ocfs2_start_trans(osb, OCFS2_INODE_UPDATE_CREDITS);
- 		if (IS_ERR(handle)) {
- 			status = PTR_ERR(handle);
-@@ -1274,6 +1280,9 @@ int ocfs2_setattr(struct user_namespace
- bail_commit:
- 	ocfs2_commit_trans(osb, handle);
- bail_unlock:
-+	if (had_alloc_lock)
-+		up_write(&OCFS2_I(inode)->ip_alloc_sem);
++	va_start(argp, fmt);
++	ret = vsnprintf(input, INPUT_MAX, fmt, argp);
++	va_end(argp);
+ 
+-	ret = snprintf(input, INPUT_MAX, "%d,0x%lx,0x%lx", pid, vaddr_start,
+-			vaddr_end);
+ 	if (ret >= INPUT_MAX) {
+ 		printf("%s: Debugfs input is too long\n", __func__);
+ 		exit(EXIT_FAILURE);
+@@ -183,7 +191,8 @@ void split_pmd_thp(void)
+ 	}
+ 
+ 	/* split all THPs */
+-	write_debugfs(getpid(), (uint64_t)one_page, (uint64_t)one_page + len);
++	write_debugfs(PID_FMT, getpid(), (uint64_t)one_page,
++		(uint64_t)one_page + len);
+ 
+ 	for (i = 0; i < len; i++)
+ 		if (one_page[i] != (char)i) {
+@@ -274,7 +283,7 @@ void split_pte_mapped_thp(void)
+ 	}
+ 
+ 	/* split all remapped THPs */
+-	write_debugfs(getpid(), (uint64_t)pte_mapped,
++	write_debugfs(PID_FMT, getpid(), (uint64_t)pte_mapped,
+ 		      (uint64_t)pte_mapped + pagesize * 4);
+ 
+ 	/* smap does not show THPs after mremap, use kpageflags instead */
+@@ -300,6 +309,67 @@ void split_pte_mapped_thp(void)
+ 	close(kpageflags_fd);
+ }
+ 
++void split_file_backed_thp(void)
++{
++	int status;
++	int fd;
++	ssize_t num_written;
++	char tmpfs_template[] = "/tmp/thp_split_XXXXXX";
++	const char *tmpfs_loc = mkdtemp(tmpfs_template);
++	char testfile[INPUT_MAX];
 +
- 	if (status && inode_locked) {
- 		ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
- 		inode_locked = 0;
++	printf("Please enable pr_debug in split_huge_pages_in_file() if you need more info.\n");
++
++	status = mount("tmpfs", tmpfs_loc, "tmpfs", 0, "huge=always,size=4m");
++
++	if (status) {
++		printf("Unable to create a tmpfs for testing\n");
++		exit(EXIT_FAILURE);
++	}
++
++	status = snprintf(testfile, INPUT_MAX, "%s/thp_file", tmpfs_loc);
++	if (status >= INPUT_MAX) {
++		printf("Fail to create file-backed THP split testing file\n");
++		goto cleanup;
++	}
++
++	fd = open(testfile, O_CREAT|O_WRONLY);
++	if (fd == -1) {
++		perror("Cannot open testing file\n");
++		goto cleanup;
++	}
++
++	/* write something to the file, so a file-backed THP can be allocated */
++	num_written = write(fd, tmpfs_loc, sizeof(tmpfs_loc));
++	close(fd);
++
++	if (num_written < 1) {
++		printf("Fail to write data to testing file\n");
++		goto cleanup;
++	}
++
++	/* split the file-backed THP */
++	write_debugfs(PATH_FMT, testfile, 0, 1024);
++
++	status = unlink(testfile);
++	if (status)
++		perror("Cannot remove testing file\n");
++
++cleanup:
++	status = umount(tmpfs_loc);
++	if (status) {
++		printf("Unable to umount %s\n", tmpfs_loc);
++		exit(EXIT_FAILURE);
++	}
++	status = rmdir(tmpfs_loc);
++	if (status) {
++		perror("cannot remove tmp dir");
++		exit(EXIT_FAILURE);
++	}
++
++	printf("file-backed THP split test done, please check dmesg for more information\n");
++}
++
+ int main(int argc, char **argv)
+ {
+ 	if (geteuid() != 0) {
+@@ -313,6 +383,7 @@ int main(int argc, char **argv)
+ 
+ 	split_pmd_thp();
+ 	split_pte_mapped_thp();
++	split_file_backed_thp();
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from wen.gang.wang@oracle.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write.patch
 
