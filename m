@@ -4,39 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B77AC433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 05:49:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0F83C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 06:02:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41EAA61883
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 05:49:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AFB5761935
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 06:02:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233614AbhCaFtH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 01:49:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45796 "EHLO mail.kernel.org"
+        id S233738AbhCaGCA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 02:02:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50834 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229497AbhCaFsj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 01:48:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E31C06024A;
-        Wed, 31 Mar 2021 05:48:38 +0000 (UTC)
+        id S233705AbhCaGB2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 02:01:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C97AB61928;
+        Wed, 31 Mar 2021 06:01:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617169719;
-        bh=YEEoOlzkKpdqUGNogfxqw8uhIsMHUzhPJSy8V7gEqKw=;
+        s=korg; t=1617170484;
+        bh=KuLG1H9GGBHTaF6TOWFtygfVK45Hj68O0ZIGqVxlxbE=;
         h=Date:From:To:Subject:From;
-        b=YK+uajt51t8dR28hXmwYU4jkFGQlbtZlfEuBN0WeOY/MWXQutmw4mTABxTZqHBZYL
-         WqcQrVqQE+hg2QwHNUUYaXD+yO//9ggGkLtlvcDrP9HAw9b2QhUnNTFQXC9DjHRjWJ
-         EHvrETIf3F76FUV6tgiMbsPBFZyipXwVcsbYRrBs=
-Date:   Tue, 30 Mar 2021 22:48:38 -0700
+        b=16BIiHFaePMwP3haraBd76KVnFciQ+idemagIqMOwQgZXApGGlqB1BLbMmdEtvvR2
+         aw20/6CPax0BmYoPCuj8T0fegrafHEhXLrrgAFVszO3/de2rVkFsKYCU8qmLgFzRoB
+         DhPlfVy4XH4ixuDofVF7Pw1i1aZYd5M5j2E3lxqE=
+Date:   Tue, 30 Mar 2021 23:01:23 -0700
 From:   akpm@linux-foundation.org
-To:     ahalaney@redhat.com, glider@google.com, gustavoars@kernel.org,
-        mm-commits@vger.kernel.org, qiang.zhang@windriver.com,
-        vinmenon@codeaurora.org, vjitta@codeaurora.org, ylal@codeaurora.org
+To:     andreyknvl@gmail.com, david@redhat.com, mm-commits@vger.kernel.org,
+        slyfox@gentoo.org, stable@vger.kernel.org, vbabka@suse.cz
 Subject:  +
- lib-stackdepot-turn-depot_lock-spinlock-to-raw_spinlock.patch added to -mm
- tree
-Message-ID: <20210331054838.PVw_M-AQq%akpm@linux-foundation.org>
+ mm-page_alloc-ignore-init_on_free=1-for-debug_pagealloc=1.patch added to
+ -mm tree
+Message-ID: <20210331060123.fRwE_fKx1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: stackdepot: turn depot_lock spinlock to raw_spinlock
+     Subject: mm: page_alloc: ignore init_on_free=1 for debug_pagealloc=1
 has been added to the -mm tree.  Its filename is
-     lib-stackdepot-turn-depot_lock-spinlock-to-raw_spinlock.patch
+     mm-page_alloc-ignore-init_on_free=1-for-debug_pagealloc=1.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-stackdepot-turn-depot_lock-spinlock-to-raw_spinlock.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-ignore-init_on_free%3D1-for-debug_pagealloc%3D1.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-stackdepot-turn-depot_lock-spinlock-to-raw_spinlock.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-ignore-init_on_free%3D1-for-debug_pagealloc%3D1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,79 +65,109 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zqiang <qiang.zhang@windriver.com>
-Subject: lib: stackdepot: turn depot_lock spinlock to raw_spinlock
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Subject: mm: page_alloc: ignore init_on_free=1 for debug_pagealloc=1
 
-[    2.670635] BUG: sleeping function called from invalid context
-at kernel/locking/rtmutex.c:951
-[    2.670638] in_atomic(): 0, irqs_disabled(): 1, non_block: 0,
-pid: 19, name: pgdatinit0
-[    2.670768] Call Trace:
-[    2.670800]  dump_stack+0x93/0xc2
-[    2.670826]  ___might_sleep.cold+0x1b2/0x1f1
-[    2.670838]  rt_spin_lock+0x3b/0xb0
-[    2.670838]  stack_depot_save+0x1b9/0x440
-[    2.670838]  kasan_save_stack+0x32/0x40
-[    2.670838]  kasan_record_aux_stack+0xa5/0xb0
-[    2.670838]  __call_rcu+0x117/0x880
-[    2.670838]  __exit_signal+0xafb/0x1180
-[    2.670838]  release_task+0x1d6/0x480
-[    2.670838]  exit_notify+0x303/0x750
-[    2.670838]  do_exit+0x678/0xcf0
-[    2.670838]  kthread+0x364/0x4f0
-[    2.670838]  ret_from_fork+0x22/0x30
+On !ARCH_SUPPORTS_DEBUG_PAGEALLOC (like ia64) debug_pagealloc=1 implies
+page_poison=on:
 
-In RT system, the spin_lock will be replaced by sleepable rt_mutex lock,
-in __call_rcu(), disable interrupts before calling
-kasan_record_aux_stack(), will trigger above calltrace, replace spinlock
-with raw_spinlock.
+    if (page_poisoning_enabled() ||
+         (!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC) &&
+          debug_pagealloc_enabled()))
+            static_branch_enable(&_page_poisoning_enabled);
 
-Link: https://lkml.kernel.org/r/20210329084009.27013-1-qiang.zhang@windriver.com
-Signed-off-by: Zqiang <qiang.zhang@windriver.com>
-Reported-by: Andrew Halaney <ahalaney@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Cc: Vijayanand Jitta <vjitta@codeaurora.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: Yogesh Lal <ylal@codeaurora.org>
+page_poison=on needs to override init_on_free=1.
+
+Before the change it did not work as expected for the following case:
+- have PAGE_POISONING=y
+- have page_poison unset
+- have !ARCH_SUPPORTS_DEBUG_PAGEALLOC arch (like ia64)
+- have init_on_free=1
+- have debug_pagealloc=1
+
+That way we get both keys enabled:
+- static_branch_enable(&init_on_free);
+- static_branch_enable(&_page_poisoning_enabled);
+
+which leads to poisoned pages returned for __GFP_ZERO pages.
+
+After the change we execute only:
+- static_branch_enable(&_page_poisoning_enabled);
+  and ignore init_on_free=1.
+
+Link: https://lkml.kernel.org/r/20210329222555.3077928-1-slyfox@gentoo.org
+Link: https://lkml.org/lkml/2021/3/26/443
+Fixes: 8db26a3d4735 ("mm, page_poison: use static key more efficiently")
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |   30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
---- a/lib/stackdepot.c~lib-stackdepot-turn-depot_lock-spinlock-to-raw_spinlock
-+++ a/lib/stackdepot.c
-@@ -71,7 +71,7 @@ static void *stack_slabs[STACK_ALLOC_MAX
- static int depot_index;
- static int next_slab_inited;
- static size_t depot_offset;
--static DEFINE_SPINLOCK(depot_lock);
-+static DEFINE_RAW_SPINLOCK(depot_lock);
- 
- static bool init_stack_slab(void **prealloc)
+--- a/mm/page_alloc.c~mm-page_alloc-ignore-init_on_free=1-for-debug_pagealloc=1
++++ a/mm/page_alloc.c
+@@ -786,32 +786,36 @@ static inline void clear_page_guard(stru
+  */
+ void init_mem_debugging_and_hardening(void)
  {
-@@ -305,7 +305,7 @@ depot_stack_handle_t stack_depot_save(un
- 			prealloc = page_address(page);
++	bool page_poisoning_requested = false;
++
++#ifdef CONFIG_PAGE_POISONING
++	/*
++	 * Page poisoning is debug page alloc for some arches. If
++	 * either of those options are enabled, enable poisoning.
++	 */
++	if (page_poisoning_enabled() ||
++	     (!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC) &&
++	      debug_pagealloc_enabled())) {
++		static_branch_enable(&_page_poisoning_enabled);
++		page_poisoning_requested = true;
++	}
++#endif
++
+ 	if (_init_on_alloc_enabled_early) {
+-		if (page_poisoning_enabled())
++		if (page_poisoning_requested)
+ 			pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
+ 				"will take precedence over init_on_alloc\n");
+ 		else
+ 			static_branch_enable(&init_on_alloc);
+ 	}
+ 	if (_init_on_free_enabled_early) {
+-		if (page_poisoning_enabled())
++		if (page_poisoning_requested)
+ 			pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
+ 				"will take precedence over init_on_free\n");
+ 		else
+ 			static_branch_enable(&init_on_free);
  	}
  
--	spin_lock_irqsave(&depot_lock, flags);
-+	raw_spin_lock_irqsave(&depot_lock, flags);
- 
- 	found = find_stack(*bucket, entries, nr_entries, hash);
- 	if (!found) {
-@@ -329,7 +329,7 @@ depot_stack_handle_t stack_depot_save(un
- 		WARN_ON(!init_stack_slab(&prealloc));
- 	}
- 
--	spin_unlock_irqrestore(&depot_lock, flags);
-+	raw_spin_unlock_irqrestore(&depot_lock, flags);
- exit:
- 	if (prealloc) {
- 		/* Nobody used this memory, ok to free it. */
+-#ifdef CONFIG_PAGE_POISONING
+-	/*
+-	 * Page poisoning is debug page alloc for some arches. If
+-	 * either of those options are enabled, enable poisoning.
+-	 */
+-	if (page_poisoning_enabled() ||
+-	     (!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC) &&
+-	      debug_pagealloc_enabled()))
+-		static_branch_enable(&_page_poisoning_enabled);
+-#endif
+-
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ 	if (!debug_pagealloc_enabled())
+ 		return;
 _
 
-Patches currently in -mm which might be from qiang.zhang@windriver.com are
+Patches currently in -mm which might be from slyfox@gentoo.org are
 
-lib-stackdepot-turn-depot_lock-spinlock-to-raw_spinlock.patch
+ia64-drop-unused-ia64_fw_emu-ifdef.patch
+ia64-simplify-code-flow-around-swiotlb-init.patch
+ia64-fix-efi_debug-build.patch
+ia64-mca-always-make-ia64_mca_debug-an-expression.patch
+mm-page_alloc-ignore-init_on_free=1-for-debug_pagealloc=1.patch
 
