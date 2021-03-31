@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EA70C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72347C433E1
 	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:47:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDB1C6190A
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:47:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4DD396190A
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:47:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233553AbhCaErO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230291AbhCaErO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 31 Mar 2021 00:47:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35336 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35370 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229959AbhCaErA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 00:47:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EDB2A61606;
-        Wed, 31 Mar 2021 04:46:59 +0000 (UTC)
+        id S233473AbhCaErF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 00:47:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CBFE9619A7;
+        Wed, 31 Mar 2021 04:47:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617166020;
-        bh=n7Dpj9B4GDbzHtzML5pLhDfcnoOhA0kjSxRPXEDOquo=;
+        s=korg; t=1617166025;
+        bh=vJK47pHfH2m04Drai1kSeLCk0moGjMwzuw39E2fiPR4=;
         h=Date:From:To:Subject:From;
-        b=qPixIPVlmznWmUCQTmQMl61gXVZzipU1Eg/rqrK8BttE2dOFoDZ7e0nfs2RXzVsx7
-         UsGVFfZPu9YB1I987+tYTw+/kbRpUzodAQYXpsMoaWA1jXeejqIDythR5AKvbvipn5
-         lJZIx5Qwx1Guma80NrvwvTElRPwNkcYOunWu+sdg=
-Date:   Tue, 30 Mar 2021 21:46:59 -0700
+        b=OPDeOuhMGIJrPfO0lRJC6pY5RksBWLkhZgYmsNk/dFRApSjECrzngE2j8cfit4H9R
+         BtEv27AEDdqKtQgavSW8gHXuUQxproHYZa3YzbL4m95/FVI4Gyx7ErS5KqrKT2fnLe
+         2wOVooiH5hgq0QTTiY1tWoMnITPoNGkHuMtVQIj4=
+Date:   Tue, 30 Mar 2021 21:47:04 -0700
 From:   akpm@linux-foundation.org
 To:     hughd@google.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
-Subject:  +
- ksm-remove-redundant-vm_bug_on_page-on-stable_tree_search.patch added to
+Subject:  + ksm-remove-dedicated-macro-ksm_flag_mask.patch added to
  -mm tree
-Message-ID: <20210331044659.AbMlBQqHt%akpm@linux-foundation.org>
+Message-ID: <20210331044704.du6PrLFSC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: remove redundant VM_BUG_ON_PAGE() on stable_tree_search()
+     Subject: ksm: remove dedicated macro KSM_FLAG_MASK
 has been added to the -mm tree.  Its filename is
-     ksm-remove-redundant-vm_bug_on_page-on-stable_tree_search.patch
+     ksm-remove-dedicated-macro-ksm_flag_mask.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ksm-remove-redundant-vm_bug_on_page-on-stable_tree_search.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ksm-remove-dedicated-macro-ksm_flag_mask.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ksm-remove-redundant-vm_bug_on_page-on-stable_tree_search.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ksm-remove-dedicated-macro-ksm_flag_mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,49 +64,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: ksm: remove redundant VM_BUG_ON_PAGE() on stable_tree_search()
+Subject: ksm: remove dedicated macro KSM_FLAG_MASK
 
-Patch series "Cleanup and fixup for ksm".
+The macro KSM_FLAG_MASK is used in rmap_walk_ksm() only.  So we can
+replace ~KSM_FLAG_MASK with PAGE_MASK to remove this dedicated macro and
+make code more consistent because PAGE_MASK is used elsewhere in this
+file.
 
-This series contains cleanups to remove unnecessary VM_BUG_ON_PAGE and
-dedicated macro KSM_FLAG_MASK.  Also this fixes potential missing
-rmap_item for stable_node which would result in failed rmap_walk_ksm(). 
-More details can be found in the respective changelogs.
-
-
-This patch (of 4):
-
-The same VM_BUG_ON_PAGE() check is already done in the callee.  Remove
-these extra caller one to simplify code slightly.
-
-Link: https://lkml.kernel.org/r/20210330140228.45635-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210330140228.45635-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210330140228.45635-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/ksm.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/ksm.c~ksm-remove-redundant-vm_bug_on_page-on-stable_tree_search
+--- a/mm/ksm.c~ksm-remove-dedicated-macro-ksm_flag_mask
 +++ a/mm/ksm.c
-@@ -1771,7 +1771,6 @@ chain_append:
- 	 * stable_node_dup is the dup to replace.
- 	 */
- 	if (stable_node_dup == stable_node) {
--		VM_BUG_ON(is_stable_node_chain(stable_node_dup));
- 		VM_BUG_ON(is_stable_node_dup(stable_node_dup));
- 		/* chain is missing so create it */
- 		stable_node = alloc_stable_node_chain(stable_node_dup,
-@@ -1785,7 +1784,6 @@ chain_append:
- 	 * of the current nid for this page
- 	 * content.
- 	 */
--	VM_BUG_ON(!is_stable_node_chain(stable_node));
- 	VM_BUG_ON(!is_stable_node_dup(stable_node_dup));
- 	VM_BUG_ON(page_node->head != &migrate_nodes);
- 	list_del(&page_node->list);
+@@ -215,8 +215,6 @@ struct rmap_item {
+ #define SEQNR_MASK	0x0ff	/* low bits of unstable tree seqnr */
+ #define UNSTABLE_FLAG	0x100	/* is a node of the unstable tree */
+ #define STABLE_FLAG	0x200	/* is listed from the stable tree */
+-#define KSM_FLAG_MASK	(SEQNR_MASK|UNSTABLE_FLAG|STABLE_FLAG)
+-				/* to mask all the flags */
+ 
+ /* The stable and unstable tree heads */
+ static struct rb_root one_stable_tree[1] = { RB_ROOT };
+@@ -2631,7 +2629,7 @@ again:
+ 			vma = vmac->vma;
+ 
+ 			/* Ignore the stable/unstable/sqnr flags */
+-			addr = rmap_item->address & ~KSM_FLAG_MASK;
++			addr = rmap_item->address & PAGE_MASK;
+ 
+ 			if (addr < vma->vm_start || addr >= vma->vm_end)
+ 				continue;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
