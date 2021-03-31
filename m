@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AE40C433C1
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:39:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98A92C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:44:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DFE37619A7
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:39:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 613FC6190A
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:44:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230291AbhCaEjY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 00:39:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34492 "EHLO mail.kernel.org"
+        id S233469AbhCaEn4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 00:43:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35060 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233120AbhCaEjP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 00:39:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D272A6146B;
-        Wed, 31 Mar 2021 04:39:14 +0000 (UTC)
+        id S229959AbhCaEnj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 00:43:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AC53F6146B;
+        Wed, 31 Mar 2021 04:43:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617165555;
-        bh=NzpN9izDJW3PECgjL/h1opzfnLk4ZpWvCD33CwYT0Kc=;
+        s=korg; t=1617165818;
+        bh=Ap42/sZW1c52bSDcNM/KSYyKai7zgMhCfvw+NNe+A9U=;
         h=Date:From:To:Subject:From;
-        b=WxvkOHouQyjD44JBw39+qB/awQGeLkX0hFqCGEB6BBBo8lAaMbc3Ww5szwLX6LHi0
-         6ey5rhusPK3/L8Cq1ebkRiCypU3M0e9P58PYdT+sFr0ivPxOtrYWmffK9LWoaRWTTx
-         wC1FbW6cMgj36UnfKiKlDoVmcmnhiDPcTOOgewVQ=
-Date:   Tue, 30 Mar 2021 21:39:14 -0700
+        b=gSDOKJhU+r1YMYIdds0W3oQme1sMWGKZ76z8u/1mcuQzOqbMmF9D50fnvOt/RNIUf
+         BIi23TNUdDS07Do5JSc73dbAKHlO+q5lk+1ghsgYFIc3AqRYrj2dkxlisbuCA5VV7p
+         5M+fEuwWPoT9c2vt4okcrTOyJdy1uD8VicSLdaVs=
+Date:   Tue, 30 Mar 2021 21:43:38 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, andreyknvl@google.com,
-        aryabinin@virtuozzo.com, dvyukov@google.com, elver@google.com,
-        glider@google.com, mm-commits@vger.kernel.org
-Subject:  + kasan-fix-conflict-with-page-poisoning.patch added to
- -mm tree
-Message-ID: <20210331043914.a9tdW93J6%akpm@linux-foundation.org>
+To:     gustavoars@kernel.org, lkp@intel.com, mm-commits@vger.kernel.org
+Subject:  +
+ hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch added to -mm
+ tree
+Message-ID: <20210331044338.B02dVPtuI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: fix conflict with page poisoning
+     Subject: hfsplus: fix out-of-bounds warnings in __hfsplus_setxattr
 has been added to the -mm tree.  Its filename is
-     kasan-fix-conflict-with-page-poisoning.patch
+     hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-conflict-with-page-poisoning.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-conflict-with-page-poisoning.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,68 +64,190 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: fix conflict with page poisoning
+From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Subject: hfsplus: fix out-of-bounds warnings in __hfsplus_setxattr
 
-When page poisoning is enabled, it accesses memory that is marked as
-poisoned by KASAN, which leas to false-positive KASAN reports.
+Fix the following out-of-bounds warnings by enclosing structure members
+file and finder into new struct info:
 
-Suppress the reports by adding KASAN annotations to unpoison_page()
-(poison_page() already has them).
+fs/hfsplus/xattr.c:300:5: warning: 'memcpy' offset [65, 80] from the object at 'entry' is out of the bounds of referenced subobject 'user_info' with type 'struct DInfo' at offset 48 [-Warray-bounds]
+fs/hfsplus/xattr.c:313:5: warning: 'memcpy' offset [65, 80] from the object at 'entry' is out of the bounds of referenced subobject 'user_info' with type 'struct FInfo' at offset 48 [-Warray-bounds]
 
-Link: https://lkml.kernel.org/r/2dc799014d31ac13fd97bd906bad33e16376fc67.1617118501.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Refactor the code by making it more "structured."
+
+Also, this helps with the ongoing efforts to enable -Warray-bounds and
+makes the code clearer and avoid confusing the compiler.
+
+Link: https://github.com/KSPP/linux/issues/109
+Link: https://lkml.kernel.org/r/20210330145226.GA207011@embeddedor
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_poison.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/hfsplus/catalog.c     |   16 ++++++++--------
+ fs/hfsplus/dir.c         |    4 ++--
+ fs/hfsplus/hfsplus_raw.h |   12 ++++++++----
+ fs/hfsplus/xattr.c       |   18 ++++++++----------
+ 4 files changed, 26 insertions(+), 24 deletions(-)
 
---- a/mm/page_poison.c~kasan-fix-conflict-with-page-poisoning
-+++ a/mm/page_poison.c
-@@ -77,12 +77,14 @@ static void unpoison_page(struct page *p
- 	void *addr;
+--- a/fs/hfsplus/catalog.c~hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr
++++ a/fs/hfsplus/catalog.c
+@@ -124,7 +124,7 @@ static int hfsplus_cat_build_record(hfsp
+ 		hfsplus_cat_set_perms(inode, &folder->permissions);
+ 		if (inode == sbi->hidden_dir)
+ 			/* invisible and namelocked */
+-			folder->user_info.frFlags = cpu_to_be16(0x5000);
++			folder->info.user.frFlags = cpu_to_be16(0x5000);
+ 		return sizeof(*folder);
+ 	} else {
+ 		struct hfsplus_cat_file *file;
+@@ -142,14 +142,14 @@ static int hfsplus_cat_build_record(hfsp
+ 		if (cnid == inode->i_ino) {
+ 			hfsplus_cat_set_perms(inode, &file->permissions);
+ 			if (S_ISLNK(inode->i_mode)) {
+-				file->user_info.fdType =
++				file->info.user.fdType =
+ 					cpu_to_be32(HFSP_SYMLINK_TYPE);
+-				file->user_info.fdCreator =
++				file->info.user.fdCreator =
+ 					cpu_to_be32(HFSP_SYMLINK_CREATOR);
+ 			} else {
+-				file->user_info.fdType =
++				file->info.user.fdType =
+ 					cpu_to_be32(sbi->type);
+-				file->user_info.fdCreator =
++				file->info.user.fdCreator =
+ 					cpu_to_be32(sbi->creator);
+ 			}
+ 			if (HFSPLUS_FLG_IMMUTABLE &
+@@ -158,11 +158,11 @@ static int hfsplus_cat_build_record(hfsp
+ 				file->flags |=
+ 					cpu_to_be16(HFSPLUS_FILE_LOCKED);
+ 		} else {
+-			file->user_info.fdType =
++			file->info.user.fdType =
+ 				cpu_to_be32(HFSP_HARDLINK_TYPE);
+-			file->user_info.fdCreator =
++			file->info.user.fdCreator =
+ 				cpu_to_be32(HFSP_HFSPLUS_CREATOR);
+-			file->user_info.fdFlags =
++			file->info.user.fdFlags =
+ 				cpu_to_be16(0x100);
+ 			file->create_date =
+ 				HFSPLUS_I(sbi->hidden_dir)->create_date;
+--- a/fs/hfsplus/dir.c~hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr
++++ a/fs/hfsplus/dir.c
+@@ -73,9 +73,9 @@ again:
+ 			goto fail;
+ 		}
+ 		cnid = be32_to_cpu(entry.file.id);
+-		if (entry.file.user_info.fdType ==
++		if (entry.file.info.user.fdType ==
+ 				cpu_to_be32(HFSP_HARDLINK_TYPE) &&
+-				entry.file.user_info.fdCreator ==
++				entry.file.info.user.fdCreator ==
+ 				cpu_to_be32(HFSP_HFSPLUS_CREATOR) &&
+ 				HFSPLUS_SB(sb)->hidden_dir &&
+ 				(entry.file.create_date ==
+--- a/fs/hfsplus/hfsplus_raw.h~hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr
++++ a/fs/hfsplus/hfsplus_raw.h
+@@ -260,8 +260,10 @@ struct hfsplus_cat_folder {
+ 	__be32 access_date;
+ 	__be32 backup_date;
+ 	struct hfsplus_perm permissions;
+-	struct DInfo user_info;
+-	struct DXInfo finder_info;
++	struct {
++		struct DInfo user;
++		struct DXInfo finder;
++	} info;
+ 	__be32 text_encoding;
+ 	__be32 subfolders;	/* Subfolder count in HFSX. Reserved in HFS+. */
+ } __packed;
+@@ -294,8 +296,10 @@ struct hfsplus_cat_file {
+ 	__be32 access_date;
+ 	__be32 backup_date;
+ 	struct hfsplus_perm permissions;
+-	struct FInfo user_info;
+-	struct FXInfo finder_info;
++	struct {
++		struct FInfo user;
++		struct FXInfo finder;
++	} info;
+ 	__be32 text_encoding;
+ 	u32 reserved2;
  
- 	addr = kmap_atomic(page);
-+	kasan_disable_current();
- 	/*
- 	 * Page poisoning when enabled poisons each and every page
- 	 * that is freed to buddy. Thus no extra check is done to
- 	 * see if a page was poisoned.
- 	 */
--	check_poison_mem(addr, PAGE_SIZE);
-+	check_poison_mem(kasan_reset_tag(addr), PAGE_SIZE);
-+	kasan_enable_current();
- 	kunmap_atomic(addr);
- }
+--- a/fs/hfsplus/xattr.c~hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr
++++ a/fs/hfsplus/xattr.c
+@@ -262,10 +262,8 @@ int __hfsplus_setxattr(struct inode *ino
+ 	struct hfs_find_data cat_fd;
+ 	hfsplus_cat_entry entry;
+ 	u16 cat_entry_flags, cat_entry_type;
+-	u16 folder_finderinfo_len = sizeof(struct DInfo) +
+-					sizeof(struct DXInfo);
+-	u16 file_finderinfo_len = sizeof(struct FInfo) +
+-					sizeof(struct FXInfo);
++	u16 folder_finderinfo_len = sizeof(entry.folder.info);
++	u16 file_finderinfo_len = sizeof(entry.file.info);
  
+ 	if ((!S_ISREG(inode->i_mode) &&
+ 			!S_ISDIR(inode->i_mode)) ||
+@@ -297,7 +295,7 @@ int __hfsplus_setxattr(struct inode *ino
+ 					sizeof(hfsplus_cat_entry));
+ 		if (be16_to_cpu(entry.type) == HFSPLUS_FOLDER) {
+ 			if (size == folder_finderinfo_len) {
+-				memcpy(&entry.folder.user_info, value,
++				memcpy(&entry.folder.info, value,
+ 						folder_finderinfo_len);
+ 				hfs_bnode_write(cat_fd.bnode, &entry,
+ 					cat_fd.entryoffset,
+@@ -310,7 +308,7 @@ int __hfsplus_setxattr(struct inode *ino
+ 			}
+ 		} else if (be16_to_cpu(entry.type) == HFSPLUS_FILE) {
+ 			if (size == file_finderinfo_len) {
+-				memcpy(&entry.file.user_info, value,
++				memcpy(&entry.file.info, value,
+ 						file_finderinfo_len);
+ 				hfs_bnode_write(cat_fd.bnode, &entry,
+ 					cat_fd.entryoffset,
+@@ -463,14 +461,14 @@ static ssize_t hfsplus_getxattr_finder_i
+ 		if (entry_type == HFSPLUS_FOLDER) {
+ 			hfs_bnode_read(fd.bnode, folder_finder_info,
+ 				fd.entryoffset +
+-				offsetof(struct hfsplus_cat_folder, user_info),
++				offsetof(struct hfsplus_cat_folder, info.user),
+ 				folder_rec_len);
+ 			memcpy(value, folder_finder_info, folder_rec_len);
+ 			res = folder_rec_len;
+ 		} else if (entry_type == HFSPLUS_FILE) {
+ 			hfs_bnode_read(fd.bnode, file_finder_info,
+ 				fd.entryoffset +
+-				offsetof(struct hfsplus_cat_file, user_info),
++				offsetof(struct hfsplus_cat_file, info.user),
+ 				file_rec_len);
+ 			memcpy(value, file_finder_info, file_rec_len);
+ 			res = file_rec_len;
+@@ -631,14 +629,14 @@ static ssize_t hfsplus_listxattr_finder_
+ 		len = sizeof(struct DInfo) + sizeof(struct DXInfo);
+ 		hfs_bnode_read(fd.bnode, folder_finder_info,
+ 				fd.entryoffset +
+-				offsetof(struct hfsplus_cat_folder, user_info),
++				offsetof(struct hfsplus_cat_folder, info.user),
+ 				len);
+ 		found_bit = find_first_bit((void *)folder_finder_info, len*8);
+ 	} else if (entry_type == HFSPLUS_FILE) {
+ 		len = sizeof(struct FInfo) + sizeof(struct FXInfo);
+ 		hfs_bnode_read(fd.bnode, file_finder_info,
+ 				fd.entryoffset +
+-				offsetof(struct hfsplus_cat_file, user_info),
++				offsetof(struct hfsplus_cat_file, info.user),
+ 				len);
+ 		found_bit = find_first_bit((void *)file_finder_info, len*8);
+ 	} else {
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from gustavoars@kernel.org are
 
-kasan-fix-conflict-with-page-poisoning.patch
-kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch
-mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
-arm64-kasan-allow-to-init-memory-when-setting-tags.patch
-kasan-init-memory-in-kasan_unpoison-for-hw_tags.patch
-kasan-mm-integrate-page_alloc-init-with-hw_tags.patch
-kasan-mm-integrate-page_alloc-init-with-hw_tags-fix.patch
-kasan-mm-integrate-slab-init_on_alloc-with-hw_tags.patch
-kasan-mm-integrate-slab-init_on_free-with-hw_tags.patch
-kasan-docs-clean-up-sections.patch
-kasan-docs-update-overview-section.patch
-kasan-docs-update-usage-section.patch
-kasan-docs-update-error-reports-section.patch
-kasan-docs-update-boot-parameters-section.patch
-kasan-docs-update-generic-implementation-details-section.patch
-kasan-docs-update-sw_tags-implementation-details-section.patch
-kasan-docs-update-hw_tags-implementation-details-section.patch
-kasan-docs-update-shadow-memory-section.patch
-kasan-docs-update-ignoring-accesses-section.patch
-kasan-docs-update-tests-section.patch
+hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
 
