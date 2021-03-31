@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28A27C433C1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EA70C433E0
 	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:47:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D683E61606
+	by mail.kernel.org (Postfix) with ESMTP id EDB1C6190A
 	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:47:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229959AbhCaErO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233553AbhCaErO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 31 Mar 2021 00:47:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35354 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35336 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230291AbhCaErD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 00:47:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EA0EC6190A;
-        Wed, 31 Mar 2021 04:47:02 +0000 (UTC)
+        id S229959AbhCaErA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 00:47:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EDB2A61606;
+        Wed, 31 Mar 2021 04:46:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617166023;
-        bh=N/O89u0yNsEI1Sx85ZM00pLZcn1CmD3jkC/FYfPzI0M=;
+        s=korg; t=1617166020;
+        bh=n7Dpj9B4GDbzHtzML5pLhDfcnoOhA0kjSxRPXEDOquo=;
         h=Date:From:To:Subject:From;
-        b=BVXrhA7JvGg0M695+CHiXbf3UkvX9HZazYOxlVJU+QcPha6ZRfAG27QLLLvnKxPxp
-         pXUWcY51QB2d1Fl8pYnZDg//lvgjYI88XWzaTJN4Q7mUXxbDL1nlkzjcp0jcEyHNi2
-         oPr/SnnFh6hPsFZxTKeHHjFFNiur6Aex4mZgTWHk=
-Date:   Tue, 30 Mar 2021 21:47:02 -0700
+        b=qPixIPVlmznWmUCQTmQMl61gXVZzipU1Eg/rqrK8BttE2dOFoDZ7e0nfs2RXzVsx7
+         UsGVFfZPu9YB1I987+tYTw+/kbRpUzodAQYXpsMoaWA1jXeejqIDythR5AKvbvipn5
+         lJZIx5Qwx1Guma80NrvwvTElRPwNkcYOunWu+sdg=
+Date:   Tue, 30 Mar 2021 21:46:59 -0700
 From:   akpm@linux-foundation.org
 To:     hughd@google.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
 Subject:  +
- =?US-ASCII?Q?ksm-use-get=5Fksm=5Fpage=5Fnolock-to-get-ksm-page-in-remo?=
- =?US-ASCII?Q?ve=5Frmap=5Fitem=5Ffrom=5Ftree.patch?= added to -mm tree
-Message-ID: <20210331044702.t4I8PBrdL%akpm@linux-foundation.org>
+ ksm-remove-redundant-vm_bug_on_page-on-stable_tree_search.patch added to
+ -mm tree
+Message-ID: <20210331044659.AbMlBQqHt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: use GET_KSM_PAGE_NOLOCK to get ksm page in remove_rmap_item_from_tree()
+     Subject: ksm: remove redundant VM_BUG_ON_PAGE() on stable_tree_search()
 has been added to the -mm tree.  Its filename is
-     ksm-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree.patch
+     ksm-remove-redundant-vm_bug_on_page-on-stable_tree_search.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ksm-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ksm-remove-redundant-vm_bug_on_page-on-stable_tree_search.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ksm-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ksm-remove-redundant-vm_bug_on_page-on-stable_tree_search.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,37 +65,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: ksm: use GET_KSM_PAGE_NOLOCK to get ksm page in remove_rmap_item_from_tree()
+Subject: ksm: remove redundant VM_BUG_ON_PAGE() on stable_tree_search()
 
-It's unnecessary to lock the page when get ksm page if we're going to
-remove the rmap item as page migration is irrelevant in this case.  Use
-GET_KSM_PAGE_NOLOCK instead to save some page lock cycles.
+Patch series "Cleanup and fixup for ksm".
 
-Link: https://lkml.kernel.org/r/20210330140228.45635-3-linmiaohe@huawei.com
+This series contains cleanups to remove unnecessary VM_BUG_ON_PAGE and
+dedicated macro KSM_FLAG_MASK.  Also this fixes potential missing
+rmap_item for stable_node which would result in failed rmap_walk_ksm(). 
+More details can be found in the respective changelogs.
+
+
+This patch (of 4):
+
+The same VM_BUG_ON_PAGE() check is already done in the callee.  Remove
+these extra caller one to simplify code slightly.
+
+Link: https://lkml.kernel.org/r/20210330140228.45635-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210330140228.45635-2-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/ksm.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/ksm.c~ksm-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree
+--- a/mm/ksm.c~ksm-remove-redundant-vm_bug_on_page-on-stable_tree_search
 +++ a/mm/ksm.c
-@@ -778,12 +778,11 @@ static void remove_rmap_item_from_tree(s
- 		struct page *page;
- 
- 		stable_node = rmap_item->head;
--		page = get_ksm_page(stable_node, GET_KSM_PAGE_LOCK);
-+		page = get_ksm_page(stable_node, GET_KSM_PAGE_NOLOCK);
- 		if (!page)
- 			goto out;
- 
- 		hlist_del(&rmap_item->hlist);
--		unlock_page(page);
- 		put_page(page);
- 
- 		if (!hlist_empty(&stable_node->hlist))
+@@ -1771,7 +1771,6 @@ chain_append:
+ 	 * stable_node_dup is the dup to replace.
+ 	 */
+ 	if (stable_node_dup == stable_node) {
+-		VM_BUG_ON(is_stable_node_chain(stable_node_dup));
+ 		VM_BUG_ON(is_stable_node_dup(stable_node_dup));
+ 		/* chain is missing so create it */
+ 		stable_node = alloc_stable_node_chain(stable_node_dup,
+@@ -1785,7 +1784,6 @@ chain_append:
+ 	 * of the current nid for this page
+ 	 * content.
+ 	 */
+-	VM_BUG_ON(!is_stable_node_chain(stable_node));
+ 	VM_BUG_ON(!is_stable_node_dup(stable_node_dup));
+ 	VM_BUG_ON(page_node->head != &migrate_nodes);
+ 	list_del(&page_node->list);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
