@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96189C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:51:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57291C433C1
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:54:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58E78619A7
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:51:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22A7161952
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:54:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229959AbhCaEvU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 00:51:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35768 "EHLO mail.kernel.org"
+        id S229959AbhCaEx3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 00:53:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233558AbhCaEu6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 00:50:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C78161952;
-        Wed, 31 Mar 2021 04:50:57 +0000 (UTC)
+        id S229852AbhCaEx1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 00:53:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CA0F46190A;
+        Wed, 31 Mar 2021 04:53:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617166257;
-        bh=r2jSE1ibzYWl1jIvwtLU2GmDG9Rcb8+2aPEfWymK2jQ=;
+        s=korg; t=1617166407;
+        bh=qrQ4cAiffK4EdojJSv/jZgFKebgDVSSoxQ/idUK0qFM=;
         h=Date:From:To:Subject:From;
-        b=ucCeZG0jm2UCT/wK5qkAA4XZ4T57GAKxJpl8WuU7G0QDtJk15rik5SsvMEJXMXl0i
-         PeW6TI4ZLe1vWiYZfwU146CJwG11mMjafc5VPbwCOe8n6L2PmGVCrDrkiaIuIW9hVi
-         eCAlx/adJ7FB7O5WslM2Ea3Hv619hI6DAXXYQZ+Y=
-Date:   Tue, 30 Mar 2021 21:50:57 -0700
+        b=Aq4ejMBoNDxyxnJKOcFFxPz1hvIQsNVqn+BbtlqyZ1nm/Cs7y2PKRMid5THiDA/rN
+         O7L1hc1CT0UFcFCdRpo6k5gM4j0gJO2tnvdj0GuGjE1iliXlsjJomCSjDsHapKw/DD
+         CBQUF0E41fSiAGtJhay09nDcNJ1+/XVVYQHdtfx4=
+Date:   Tue, 30 Mar 2021 21:53:26 -0700
 From:   akpm@linux-foundation.org
-To:     cy.fan@huawei.com, hughd@google.com, mm-commits@vger.kernel.org
-Subject:  +
- mm-ksm-remove-unused-parameter-from-remove_trailing_rmap_items.patch added
- to -mm tree
-Message-ID: <20210331045057.ypyuHg4lB%akpm@linux-foundation.org>
+To:     lucjan.lucjanov@gmail.com, masahiroy@kernel.org,
+        mm-commits@vger.kernel.org, oleksandr@natalenko.name
+Subject:  + init-add-support-for-zstd-compressed-modules.patch
+ added to -mm tree
+Message-ID: <20210331045326.9oHKzEL-X%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ksm: remove unused parameter from remove_trailing_rmap_items()
+     Subject: init: add support for zstd compressed modules
 has been added to the -mm tree.  Its filename is
-     mm-ksm-remove-unused-parameter-from-remove_trailing_rmap_items.patch
+     init-add-support-for-zstd-compressed-modules.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-ksm-remove-unused-parameter-from-remove_trailing_rmap_items.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/init-add-support-for-zstd-compressed-modules.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-ksm-remove-unused-parameter-from-remove_trailing_rmap_items.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/init-add-support-for-zstd-compressed-modules.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,55 +64,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chengyang Fan <cy.fan@huawei.com>
-Subject: mm/ksm: remove unused parameter from remove_trailing_rmap_items()
+From: Piotr Gorski <lucjan.lucjanov@gmail.com>
+Subject: init: add support for zstd compressed modules
 
-Since commit 6514d511dbe5 ("ksm: singly-linked rmap_list") was merged,
-remove_trailing_rmap_items() doesn't use the 'mm_slot' parameter.  So
-remove it, and update caller accordingly.
+kmod 28 supports modules compressed in zstd format so let's add this
+possibility to kernel.
 
-Link: https://lkml.kernel.org/r/20210330121320.1693474-1-cy.fan@huawei.com
-Signed-off-by: Chengyang Fan <cy.fan@huawei.com>
-Cc: Hugh Dickins <hughd@google.com>
+Requires this update to mkinitcpio:
+https://github.com/archlinux/mkinitcpio/pull/43
+
+Link: https://lkml.kernel.org/r/20210330113235.2767216-1-lucjan.lucjanov@gmail.com
+Signed-off-by: Piotr Gorski <lucjan.lucjanov@gmail.com>
+Reviewed-by: Oleksandr Natalenko <oleksandr@natalenko.name>
+Tested-by: Oleksandr Natalenko <oleksandr@natalenko.name>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ Makefile     |    7 +++++--
+ init/Kconfig |    9 ++++++---
+ 2 files changed, 11 insertions(+), 5 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-remove-unused-parameter-from-remove_trailing_rmap_items
-+++ a/mm/ksm.c
-@@ -815,8 +815,7 @@ out:
- 	cond_resched();		/* we're called from many long loops */
- }
+--- a/init/Kconfig~init-add-support-for-zstd-compressed-modules
++++ a/init/Kconfig
+@@ -2222,8 +2222,8 @@ config MODULE_COMPRESS
+ 	bool "Compress modules on installation"
+ 	help
  
--static void remove_trailing_rmap_items(struct mm_slot *mm_slot,
--				       struct rmap_item **rmap_list)
-+static void remove_trailing_rmap_items(struct rmap_item **rmap_list)
- {
- 	while (*rmap_list) {
- 		struct rmap_item *rmap_item = *rmap_list;
-@@ -987,7 +986,7 @@ static int unmerge_and_remove_all_rmap_i
- 				goto error;
- 		}
+-	  Compresses kernel modules when 'make modules_install' is run; gzip or
+-	  xz depending on "Compression algorithm" below.
++	  Compresses kernel modules when 'make modules_install' is run; gzip,
++	  xz, or zstd depending on "Compression algorithm" below.
  
--		remove_trailing_rmap_items(mm_slot, &mm_slot->rmap_list);
-+		remove_trailing_rmap_items(&mm_slot->rmap_list);
- 		mmap_read_unlock(mm);
+ 	  module-init-tools MAY support gzip, and kmod MAY support gzip and xz.
  
- 		spin_lock(&ksm_mmlist_lock);
-@@ -2333,7 +2332,7 @@ next_mm:
- 	 * Nuke all the rmap_items that are above this current rmap:
- 	 * because there were no VM_MERGEABLE vmas with such addresses.
- 	 */
--	remove_trailing_rmap_items(slot, ksm_scan.rmap_list);
-+	remove_trailing_rmap_items(ksm_scan.rmap_list);
+@@ -2245,7 +2245,7 @@ choice
+ 	  This determines which sort of compression will be used during
+ 	  'make modules_install'.
  
- 	spin_lock(&ksm_mmlist_lock);
- 	ksm_scan.mm_slot = list_entry(slot->mm_list.next,
+-	  GZIP (default) and XZ are supported.
++	  GZIP (default), XZ, and ZSTD are supported.
+ 
+ config MODULE_COMPRESS_GZIP
+ 	bool "GZIP"
+@@ -2253,6 +2253,9 @@ config MODULE_COMPRESS_GZIP
+ config MODULE_COMPRESS_XZ
+ 	bool "XZ"
+ 
++config MODULE_COMPRESS_ZSTD
++	bool "ZSTD"
++
+ endchoice
+ 
+ config MODULE_ALLOW_MISSING_NAMESPACE_IMPORTS
+--- a/Makefile~init-add-support-for-zstd-compressed-modules
++++ a/Makefile
+@@ -1066,8 +1066,8 @@ endif # INSTALL_MOD_STRIP
+ export mod_strip_cmd
+ 
+ # CONFIG_MODULE_COMPRESS, if defined, will cause module to be compressed
+-# after they are installed in agreement with CONFIG_MODULE_COMPRESS_GZIP
+-# or CONFIG_MODULE_COMPRESS_XZ.
++# after they are installed in agreement with CONFIG_MODULE_COMPRESS_GZIP,
++# CONFIG_MODULE_COMPRESS_XZ, or CONFIG_MODULE_COMPRESS_ZSTD.
+ 
+ mod_compress_cmd = true
+ ifdef CONFIG_MODULE_COMPRESS
+@@ -1077,6 +1077,9 @@ ifdef CONFIG_MODULE_COMPRESS
+   ifdef CONFIG_MODULE_COMPRESS_XZ
+     mod_compress_cmd = $(XZ) --lzma2=dict=2MiB -f
+   endif # CONFIG_MODULE_COMPRESS_XZ
++  ifdef CONFIG_MODULE_COMPRESS_ZSTD
++    mod_compress_cmd = $(ZSTD) -T0 --rm -f -q
++  endif # CONFIG_MODULE_COMPRESS_ZSTD
+ endif # CONFIG_MODULE_COMPRESS
+ export mod_compress_cmd
+ 
 _
 
-Patches currently in -mm which might be from cy.fan@huawei.com are
+Patches currently in -mm which might be from lucjan.lucjanov@gmail.com are
 
-mm-ksm-remove-unused-parameter-from-remove_trailing_rmap_items.patch
+init-add-support-for-zstd-compressed-modules.patch
 
