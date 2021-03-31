@@ -2,91 +2,104 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA61CC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 08:26:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8453BC433B4
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 20:58:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9862A619BC
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 08:26:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 62D1A60BBB
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 20:58:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229759AbhCaIZr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 04:25:47 -0400
-Received: from bilbo.ozlabs.org ([203.11.71.1]:44849 "EHLO ozlabs.org"
+        id S231156AbhCaU5b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 16:57:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51576 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232113AbhCaIZV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 04:25:21 -0400
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4F9KBL5dq1z9sW4;
-        Wed, 31 Mar 2021 19:25:14 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1617179119;
-        bh=7m3QX4rYDIMqI5uM5XstLo8fYxaVC/CMG3CC8GuxK10=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=dU+9hAMvw9Z6VASjOd9K0fqoV6yEYZnqIqvcG6PcmbnyO7kJ9APTVjhCS96saxcVj
-         lb7ESrZ25MhNPabqaiwvHytcPciKEToEe+7wiz0p3FdN2xxQ1J0H+MU00rJORwB3dc
-         je6Ctanx3JYJlyka9lYn3QqLtUBFklJAHRjFZ9/dqPpWW9JfRUN14U4DWa482+bEPQ
-         FZjoVuuiAcpu1B6Dg1ThHXyrB3RJAhQk/DAxcp1M9f5sj/gBaFk0uUbg91Pf5z1OuK
-         F3UeofAWOy+B9nkTRrKhJAIm8gzoZ6gB5J/qxi9h8V9LX473ZdyvgQ1xcQu558vELM
-         npnkguDaEHaow==
-Date:   Wed, 31 Mar 2021 19:25:13 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     akpm@linux-foundation.org
-Cc:     colin.king@canonical.com, dan.carpenter@oracle.com,
-        mm-commits@vger.kernel.org, npiggin@gmail.com, urezki@gmail.com,
-        willy@infradead.org
-Subject: Re: +
- mm-vmalloc-improve-allocation-failure-error-messages-fix.patch added to -mm
- tree
-Message-ID: <20210331192513.65cbc387@canb.auug.org.au>
-In-Reply-To: <20210331051005.Q09qN03sH%akpm@linux-foundation.org>
-References: <20210331051005.Q09qN03sH%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/Kuas8m=sJ4TaBVvBJxf04_s";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+        id S229959AbhCaU5N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 16:57:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0EA6761056;
+        Wed, 31 Mar 2021 20:57:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1617224233;
+        bh=lSgUGDeZ29y4qhzACclGLwM+7u/NzOl9JEDqRe7PkHQ=;
+        h=Date:From:To:Subject:From;
+        b=y98oQajgjdGxFcsPMWCejvhaLmQrL4FfbyQVqWAJAuPToWOikg0s9+aYeBLGcNM7Y
+         OROdHNpm5qJ8+68s75c8GeZdfs7VTntY235tZKK3OxRR+uKtAtzfjtcN07nvzCxiJW
+         BP1lgHgLxFy/JQCLLTVPaHltJ5BLMWCB2v+frmO8=
+Date:   Wed, 31 Mar 2021 13:57:12 -0700
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-git-rejects.patch added to -mm tree
+Message-ID: <20210331205712.V8hwvjFJl%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/Kuas8m=sJ4TaBVvBJxf04_s
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi all,
+The patch titled
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-On Tue, 30 Mar 2021 22:10:05 -0700 akpm@linux-foundation.org wrote:
->
-> The patch titled
->      Subject: mm/vmalloc: print correct vmalloc allocation size
-> has been added to the -mm tree.  Its filename is
->      mm-vmalloc-improve-allocation-failure-error-messages-fix.patch
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
-Added to linux-next today.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---=20
-Cheers,
-Stephen Rothwell
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
---Sig_/Kuas8m=sJ4TaBVvBJxf04_s
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
------BEGIN PGP SIGNATURE-----
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmBkMeoACgkQAVBC80lX
-0Gy+oAgAl3QYNExn9EZPiqmhj39VAeQuuQBhm1FLNwPSYJJjvDwRYYRqw4GxQ3aq
-bUzrRWgCDpAQkygGNdnFOokfKTHFvWGZK031/P+rjlzDp3LF+xjumOcjigIYgqlr
-r2Ie1YCNKG7HGsH8hhPmUhGM0AOcfhMPXBdcoM9m9yKE/j5m39z8VyRppxC4WHY7
-GghQubYbkcpo8cdWwwuFsDgI8tRi9DZO0qEIRONGRGguDzi5FPoJ2INq0Ghkh01+
-Gi3aQjJvPixxLqi+lNB5SgjkUsVVJkhAfoizhMWXcQuU5FGaOfg26bfKaEfC0fuS
-FhZv8kpMbDISgTiEDcvVuurT81+Htg==
-=lJ9B
------END PGP SIGNATURE-----
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
---Sig_/Kuas8m=sJ4TaBVvBJxf04_s--
+ drivers/pinctrl/qcom/pinctrl-sc7280.c |    3 ---
+ 1 file changed, 3 deletions(-)
+
+--- a/drivers/pinctrl/qcom/pinctrl-sc7280.c~linux-next-git-rejects
++++ a/drivers/pinctrl/qcom/pinctrl-sc7280.c
+@@ -1447,8 +1447,6 @@ static const struct msm_pingroup sc7280_
+ 	[180] = SDC_QDSD_PINGROUP(sdc2_clk, 0xb4000, 14, 6),
+ 	[181] = SDC_QDSD_PINGROUP(sdc2_cmd, 0xb4000, 11, 3),
+ 	[182] = SDC_QDSD_PINGROUP(sdc2_data, 0xb4000, 9, 0),
+-<<<<<<< HEAD
+-=======
+ };
+ 
+ static const struct msm_gpio_wakeirq_map sc7280_pdc_map[] = {
+@@ -1471,7 +1469,6 @@ static const struct msm_gpio_wakeirq_map
+ 	{ 150, 87 }, { 151, 88 }, { 153, 89 }, { 155, 164 }, { 156, 129 },
+ 	{ 157, 161 }, { 158, 120 }, { 161, 136 }, { 163, 142 }, { 172, 166 },
+ 	{ 174, 167 },
+->>>>>>> linux-next/akpm-base
+ };
+ 
+ static const struct msm_pinctrl_soc_data sc7280_pinctrl = {
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+kasan-remove-redundant-config-option-fix.patch
+mm-gup-check-page-posion-status-for-coredump-fix.patch
+mm.patch
+mm-memcontrol-switch-to-rstat-fix.patch
+mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+linux-next-git-rejects.patch
+
