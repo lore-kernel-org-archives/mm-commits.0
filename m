@@ -7,35 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3F67C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:29:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6585C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:31:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7AD8E61581
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:29:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A1A15619DA
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Mar 2021 04:31:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229968AbhCaE2u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 00:28:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59400 "EHLO mail.kernel.org"
+        id S229959AbhCaEac (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 00:30:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59572 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229852AbhCaE23 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 00:28:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DD5F16023F;
-        Wed, 31 Mar 2021 04:28:28 +0000 (UTC)
+        id S229852AbhCaEaJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 00:30:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D71B2619CD;
+        Wed, 31 Mar 2021 04:30:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617164909;
-        bh=WHLk3sCtAikqHljshFS0AwTEgo/qAEjcpGUrMzPvX1A=;
+        s=korg; t=1617165005;
+        bh=/AElenvj5HWiyG3SBC7lc/lWWKbW5TXNW67XdZlTDd0=;
         h=Date:From:To:Subject:From;
-        b=Tgs6dkXCppSvF9Qh2xgbJfAqVpoz7YpXZ3HpVE6ny0dpEqnL4aqUCjYTWkut1zEYr
-         6cEIPRHGGUthvoi5f79Ync6dypJf0Cb0X8kZjA9uy/LYrLFdIJSmdZaQRaZe9vWzY0
-         1zwXej+ectyDAFY9j7OAL6DHatI9mfOVB8gVrXY8=
-Date:   Tue, 30 Mar 2021 21:28:28 -0700
+        b=q33Nrd005Z5MmctxQJOEL4nvWdWhmXyMfxhXTQfJ7ngwf+kt0iUTYMcA2Bdg6Tp3M
+         BiFH4d9RigGRwGxtAbtWpLOrWLBftG8LGv1WWjr9G9I310ZD/waFhCDES7px1We9iM
+         ndnwbXB4g7Uxk2rXS+h8ohLIWg6iyylZUmyL3Sp4=
+Date:   Tue, 30 Mar 2021 21:30:04 -0700
 From:   akpm@linux-foundation.org
-To:     joe@perches.com, mm-commits@vger.kernel.org
+To:     deanbo422@gmail.com, green.hu@gmail.com,
+        mm-commits@vger.kernel.org, nickhu@andestech.com,
+        rppt@linux.ibm.com, stable@vger.kernel.org, willy@infradead.org,
+        ying.huang@intel.com
 Subject:  +
- checkpatch-warn-when-missing-newline-in-return-sysfs_emit-formats.patch
- added to -mm tree
-Message-ID: <20210331042828.IuXgOoaK_%akpm@linux-foundation.org>
+ =?US-ASCII?Q?nds32-flush=5Fdcache=5Fpage-use-page=5Fmapping=5Ffile-to-av?=
+ =?US-ASCII?Q?oid-races-with-swapoff.patch?= added to -mm tree
+Message-ID: <20210331043004._EbFtvb3s%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: warn when missing newline in return sysfs_emit() formats
+     Subject: nds32: flush_dcache_page: use page_mapping_file to avoid races with swapoff
 has been added to the -mm tree.  Its filename is
-     checkpatch-warn-when-missing-newline-in-return-sysfs_emit-formats.patch
+     nds32-flush_dcache_page-use-page_mapping_file-to-avoid-races-with-swapoff.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-warn-when-missing-newline-in-return-sysfs_emit-formats.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/nds32-flush_dcache_page-use-page_mapping_file-to-avoid-races-with-swapoff.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-warn-when-missing-newline-in-return-sysfs_emit-formats.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/nds32-flush_dcache_page-use-page_mapping_file-to-avoid-races-with-swapoff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,46 +69,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn when missing newline in return sysfs_emit() formats
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: nds32: flush_dcache_page: use page_mapping_file to avoid races with swapoff
 
-return sysfs_emit() uses should include a newline.
+Commit cb9f753a3731 ("mm: fix races between swapoff and flush dcache")
+updated flush_dcache_page implementations on several architectures to use
+page_mapping_file() in order to avoid races between page_mapping() and
+swapoff().
 
-Suggest adding a newline when one is missing.
-Add one using --fix too.
+This update missed arch/nds32 and there is a possibility of a race there.
 
-Link: https://lkml.kernel.org/r/aa1819fa5faf786573df298e5e2e7d357ba7d4ad.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Replace page_mapping() with page_mapping_file() in nds32 implementation of
+flush_dcache_page().
+
+Link: https://lkml.kernel.org/r/20210330175126.26500-1-rppt@kernel.org
+Fixes: cb9f753a3731 ("mm: fix races between swapoff and flush dcache")
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Nick Hu <nickhu@andestech.com>
+Cc: Vincent Chen <deanbo422@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/nds32/mm/cacheflush.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-warn-when-missing-newline-in-return-sysfs_emit-formats
-+++ a/scripts/checkpatch.pl
-@@ -7103,6 +7103,17 @@ sub process {
- 			     "Using $1 should generally have parentheses around the comparison\n" . $herecurr);
- 		}
+--- a/arch/nds32/mm/cacheflush.c~nds32-flush_dcache_page-use-page_mapping_file-to-avoid-races-with-swapoff
++++ a/arch/nds32/mm/cacheflush.c
+@@ -238,7 +238,7 @@ void flush_dcache_page(struct page *page
+ {
+ 	struct address_space *mapping;
  
-+# return sysfs_emit(foo, fmt, ...) fmt without newline
-+		if ($line =~ /\breturn\s+sysfs_emit\s*\(\s*$FuncArg\s*,\s*($String)/ &&
-+		    substr($rawline, $-[6], $+[6] - $-[6]) !~ /\\n"$/) {
-+			my $offset = $+[6] - 1;
-+			if (WARN("SYSFS_EMIT",
-+				 "return sysfs_emit(...) formats should include a terminating newline\n" . $herecurr) &&
-+			    $fix) {
-+				substr($fixed[$fixlinenr], $offset, 0) = '\\n';
-+			}
-+		}
-+
- # nested likely/unlikely calls
- 		if ($line =~ /\b(?:(?:un)?likely)\s*\(\s*!?\s*(IS_ERR(?:_OR_NULL|_VALUE)?|WARN)/) {
- 			WARN("LIKELY_MISUSE",
+-	mapping = page_mapping(page);
++	mapping = page_mapping_file(page);
+ 	if (mapping && !mapping_mapped(mapping))
+ 		set_bit(PG_dcache_dirty, &page->flags);
+ 	else {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-reduce-mem_dump_obj-object-size.patch
-checkpatch-warn-when-missing-newline-in-return-sysfs_emit-formats.patch
+nds32-flush_dcache_page-use-page_mapping_file-to-avoid-races-with-swapoff.patch
+mmap-make-mlock_future_check-global.patch
+riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
