@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAA91C43603
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A91A2C43461
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:54:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 94851610CC
+	by mail.kernel.org (Postfix) with ESMTP id 8319A610D2
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:54:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232763AbhDAAyU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 20:54:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33376 "EHLO mail.kernel.org"
+        id S232492AbhDAAyR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 20:54:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33052 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232833AbhDAAyO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 20:54:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7D9AD610C7;
-        Thu,  1 Apr 2021 00:54:13 +0000 (UTC)
+        id S232585AbhDAAxy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 20:53:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9ECC36108E;
+        Thu,  1 Apr 2021 00:53:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617238454;
-        bh=cNATp5fhPmE2sPWlK4O8U2rIpv2SX5O5KW9k//WjoyE=;
+        s=korg; t=1617238434;
+        bh=iWNtqBfw8JuXoZMsQ4schda9k7gRl21N154jAgJwMmY=;
         h=Date:From:To:Subject:From;
-        b=GkKCW2P9vc7BdPXFNQiuE3kAjV+rEI2d0QT6pozb+ibEisRJBXiqTfMm0w8BQcgjc
-         knXst8/faCguX+Ue+Po0I29hP0kdr9YE0i81w0ZbIq0ZmQwLVuZXnPV2yfMAdpFEKo
-         afVbzLdInv5XYtd1LHh0DWvbkAkuwsjpOYuqcyo4=
-Date:   Wed, 31 Mar 2021 17:54:12 -0700
+        b=RSOPHTG0SCYBf1bck6/3eeRwgs0kqgS6F1grXF3iFmPlxp6rFb9PetFfXRqKdQHQs
+         PbarxqgayazKTbvmMHyWDIVBuanFtoscxgH6ivakTZ47cNEwHPTnoCx430zJhd3bSh
+         fnuINCsL8BBncYbjgCf4eFElgK2RahVurM8IcF48=
+Date:   Wed, 31 Mar 2021 17:53:52 -0700
 From:   akpm@linux-foundation.org
 To:     aklimov@redhat.com, andriy.shevchenko@linux.intel.com,
         arnd@arndb.de, dalias@libc.org, dennis@kernel.org,
@@ -38,9 +38,9 @@ To:     aklimov@redhat.com, andriy.shevchenko@linux.intel.com,
         mm-commits@vger.kernel.org, richard.weiyang@linux.alibaba.com,
         sbrivio@redhat.com, wsa+renesas@sang-engineering.com,
         ysato@users.osdn.me, yury.norov@gmail.com
-Subject:  + maintainers-add-entry-for-the-bitmap-api.patch added to
- -mm tree
-Message-ID: <20210401005412.9JpuUPRae%akpm@linux-foundation.org>
+Subject:  +
+ tools-sync-small_const_nbits-macro-with-the-kernel.patch added to -mm tree
+Message-ID: <20210401005352.6zVTaMz4b%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add entry for the bitmap API
+     Subject: tools: sync small_const_nbits() macro with the kernel
 has been added to the -mm tree.  Its filename is
-     maintainers-add-entry-for-the-bitmap-api.patch
+     tools-sync-small_const_nbits-macro-with-the-kernel.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-entry-for-the-bitmap-api.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/tools-sync-small_const_nbits-macro-with-the-kernel.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-entry-for-the-bitmap-api.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/tools-sync-small_const_nbits-macro-with-the-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,15 +71,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: MAINTAINERS: add entry for the bitmap API
+Subject: tools: sync small_const_nbits() macro with the kernel
 
-Add myself as maintainer for bitmap API and Andy and Rasmus as reviewers.
+Sync implementation with the kernel and move the macro from
+tools/include/linux/bitmap.h to tools/include/asm-generic/bitsperlong.h
 
-Link: https://lkml.kernel.org/r/20210401003153.97325-13-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210401003153.97325-7-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Alexey Klimov <aklimov@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dennis Zhou <dennis@kernel.org>
@@ -96,34 +97,32 @@ Cc: Yoshinori Sato <ysato@users.osdn.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ tools/include/asm-generic/bitsperlong.h |    3 +++
+ tools/include/linux/bitmap.h            |    3 ---
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-entry-for-the-bitmap-api
-+++ a/MAINTAINERS
-@@ -3158,6 +3158,22 @@ F:	Documentation/filesystems/bfs.rst
- F:	fs/bfs/
- F:	include/uapi/linux/bfs_fs.h
+--- a/tools/include/asm-generic/bitsperlong.h~tools-sync-small_const_nbits-macro-with-the-kernel
++++ a/tools/include/asm-generic/bitsperlong.h
+@@ -18,4 +18,7 @@
+ #define BITS_PER_LONG_LONG 64
+ #endif
  
-+BITMAP API
-+M:	Yury Norov <yury.norov@gmail.com>
-+R:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-+R:	Rasmus Villemoes <linux@rasmusvillemoes.dk>
-+S:	Maintained
-+F:	include/asm-generic/bitops/find.h
-+F:	include/linux/bitmap.h
-+F:	lib/bitmap.c
-+F:	lib/find_bit.c
-+F:	lib/find_bit_benchmark.c
-+F:	lib/test_bitmap.c
-+F:	tools/include/asm-generic/bitops/find.h
-+F:	tools/include/linux/bitmap.h
-+F:	tools/lib/bitmap.c
-+F:	tools/lib/find_bit.c
++#define small_const_nbits(nbits) \
++	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG && (nbits) > 0)
 +
- BLINKM RGB LED DRIVER
- M:	Jan-Simon Moeller <jansimon.moeller@gmx.de>
- S:	Maintained
+ #endif /* __ASM_GENERIC_BITS_PER_LONG */
+--- a/tools/include/linux/bitmap.h~tools-sync-small_const_nbits-macro-with-the-kernel
++++ a/tools/include/linux/bitmap.h
+@@ -22,9 +22,6 @@ void bitmap_clear(unsigned long *map, un
+ #define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) & (BITS_PER_LONG - 1)))
+ #define BITMAP_LAST_WORD_MASK(nbits) (~0UL >> (-(nbits) & (BITS_PER_LONG - 1)))
+ 
+-#define small_const_nbits(nbits) \
+-	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG)
+-
+ static inline void bitmap_zero(unsigned long *dst, unsigned int nbits)
+ {
+ 	if (small_const_nbits(nbits))
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
