@@ -7,34 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE6F0C433ED
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:49:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 903DBC43460
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:54:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6CA461055
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:49:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58315610CD
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:54:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229497AbhDAAtY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 20:49:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59802 "EHLO mail.kernel.org"
+        id S230284AbhDAAxn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 20:53:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32806 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232310AbhDAAtU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 20:49:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B7F2E61056;
-        Thu,  1 Apr 2021 00:49:19 +0000 (UTC)
+        id S232782AbhDAAxm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 20:53:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 075AF61056;
+        Thu,  1 Apr 2021 00:53:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617238160;
-        bh=hkERKroSLtWgicc7NTS7LStZqOZAcGul2tY9EzucowY=;
+        s=korg; t=1617238421;
+        bh=qeOcvnIDbLK0WP80Pj7SJbEaIcij7P0Ut3480OXz+9c=;
         h=Date:From:To:Subject:From;
-        b=xXBo+75Y7cDSlRAQqmRnyLL1YMxeJ34w2Jl/nasGPmh627ri2A25OTrQWJzjsUMCc
-         /3RYebL9088otqEYb04xG0Ih+l05ZVehAyTFGP9HWOwzB6nKdMqlLlgiUAG5pqDrh1
-         hm9k/WM3MKE55CQfez41Nu4J6Z3btixlCocHvTws=
-Date:   Wed, 31 Mar 2021 17:49:19 -0700
+        b=FuHZ25nVkspGs9XUGXRWxYWYwpHP/aPEN31iOgCcLlOqMTtKctLW8l+SZziH7QIo+
+         EyIeaQBa32WI5YqdmWD/r0+VrxmYDmozMgEYxZmJLQ0zF4CNHjYbsh27uJghkZPpG2
+         opNYSjUX7zhymaxWn20qC+OyNc2ItYzIixmIwZb4=
+Date:   Wed, 31 Mar 2021 17:53:40 -0700
 From:   akpm@linux-foundation.org
-To:     ldv@altlinux.org, mm-commits@vger.kernel.org, oleg@redhat.com,
-        slyfox@gentoo.org, stable@vger.kernel.org
-Subject:  + ia64-fix-user_stack_pointer-for-ptrace.patch added to
- -mm tree
-Message-ID: <20210401004919.SClvSTdsD%akpm@linux-foundation.org>
+To:     aklimov@redhat.com, andriy.shevchenko@linux.intel.com,
+        arnd@arndb.de, dalias@libc.org, dennis@kernel.org,
+        dsterba@suse.com, geert@linux-m68k.org,
+        glaubitz@physik.fu-berlin.de, jianpeng.ma@intel.com,
+        joe@perches.com, jpoimboe@redhat.com, linux@rasmusvillemoes.dk,
+        mm-commits@vger.kernel.org, richard.weiyang@linux.alibaba.com,
+        sbrivio@redhat.com, wsa+renesas@sang-engineering.com,
+        ysato@users.osdn.me, yury.norov@gmail.com
+Subject:  +
+ tools-bitmap-sync-function-declarations-with-the-kernel.patch added to -mm
+ tree
+Message-ID: <20210401005340.68a0Zebj-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: fix user_stack_pointer() for ptrace()
+     Subject: tools: bitmap: sync function declarations with the kernel
 has been added to the -mm tree.  Its filename is
-     ia64-fix-user_stack_pointer-for-ptrace.patch
+     tools-bitmap-sync-function-declarations-with-the-kernel.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ia64-fix-user_stack_pointer-for-ptrace.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/tools-bitmap-sync-function-declarations-with-the-kernel.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-fix-user_stack_pointer-for-ptrace.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/tools-bitmap-sync-function-declarations-with-the-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,77 +71,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: ia64: fix user_stack_pointer() for ptrace()
+From: Yury Norov <yury.norov@gmail.com>
+Subject: tools: bitmap: sync function declarations with the kernel
 
-ia64 has two stacks:
-- memory stack (or stack), pointed at by by r12
-- register backing store (register stack), pointed at
-  ar.bsp/ar.bspstore with complications around dirty
-  register frame on CPU.
+Some functions in tools/include/linux/bitmap.h declare nbits as int.  In
+the kernel nbits is declared as unsigned int.
 
-In https://bugs.gentoo.org/769614 Dmitry noticed that
-PTRACE_GET_SYSCALL_INFO returns register stack instead
-memory stack.
-
-The bug comes from the fact that user_stack_pointer() and
-current_user_stack_pointer() don't return the same register:
-
-  ulong user_stack_pointer(struct pt_regs *regs) { return regs->ar_bspstore; }
-  #define current_user_stack_pointer() (current_pt_regs()->r12)
-
-The change gets both back in sync.
-
-I think ptrace(PTRACE_GET_SYSCALL_INFO) is the only affected user
-by this bug on ia64.
-
-The change fixes 'rt_sigreturn.gen.test' strace test where
-it was observed initially.
-
-Link: https://lkml.kernel.org/r/20210331084447.2561532-1-slyfox@gentoo.org
-Link: https://bugs.gentoo.org/769614
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
-Reported-by: Dmitry V. Levin <ldv@altlinux.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210401003153.97325-3-yury.norov@gmail.com
+Signed-off-by: Yury Norov <yury.norov@gmail.com>
+Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Alexey Klimov <aklimov@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jianpeng Ma <jianpeng.ma@intel.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Stefano Brivio <sbrivio@redhat.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: Yoshinori Sato <ysato@users.osdn.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/ptrace.h |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ tools/include/linux/bitmap.h |    8 ++++----
+ tools/lib/bitmap.c           |    4 ++--
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/arch/ia64/include/asm/ptrace.h~ia64-fix-user_stack_pointer-for-ptrace
-+++ a/arch/ia64/include/asm/ptrace.h
-@@ -54,8 +54,7 @@
+--- a/tools/include/linux/bitmap.h~tools-bitmap-sync-function-declarations-with-the-kernel
++++ a/tools/include/linux/bitmap.h
+@@ -30,7 +30,7 @@ void bitmap_clear(unsigned long *map, un
+ #define small_const_nbits(nbits) \
+ 	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG)
  
- static inline unsigned long user_stack_pointer(struct pt_regs *regs)
+-static inline void bitmap_zero(unsigned long *dst, int nbits)
++static inline void bitmap_zero(unsigned long *dst, unsigned int nbits)
  {
--	/* FIXME: should this be bspstore + nr_dirty regs? */
--	return regs->ar_bspstore;
-+	return regs->r12;
+ 	if (small_const_nbits(nbits))
+ 		*dst = 0UL;
+@@ -66,7 +66,7 @@ static inline int bitmap_full(const unsi
+ 	return find_first_zero_bit(src, nbits) == nbits;
  }
  
- static inline int is_syscall_success(struct pt_regs *regs)
-@@ -79,11 +78,6 @@ static inline long regs_return_value(str
- 	unsigned long __ip = instruction_pointer(regs);			\
- 	(__ip & ~3UL) + ((__ip & 3UL) << 2);				\
- })
--/*
-- * Why not default?  Because user_stack_pointer() on ia64 gives register
-- * stack backing store instead...
-- */
--#define current_user_stack_pointer() (current_pt_regs()->r12)
+-static inline int bitmap_weight(const unsigned long *src, int nbits)
++static inline int bitmap_weight(const unsigned long *src, unsigned int nbits)
+ {
+ 	if (small_const_nbits(nbits))
+ 		return hweight_long(*src & BITMAP_LAST_WORD_MASK(nbits));
+@@ -74,7 +74,7 @@ static inline int bitmap_weight(const un
+ }
  
-   /* given a pointer to a task_struct, return the user's pt_regs */
- # define task_pt_regs(t)		(((struct pt_regs *) ((char *) (t) + IA64_STK_OFFSET)) - 1)
+ static inline void bitmap_or(unsigned long *dst, const unsigned long *src1,
+-			     const unsigned long *src2, int nbits)
++			     const unsigned long *src2, unsigned int nbits)
+ {
+ 	if (small_const_nbits(nbits))
+ 		*dst = *src1 | *src2;
+@@ -141,7 +141,7 @@ static inline void bitmap_free(unsigned
+  * @buf: buffer to store output
+  * @size: size of @buf
+  */
+-size_t bitmap_scnprintf(unsigned long *bitmap, int nbits,
++size_t bitmap_scnprintf(unsigned long *bitmap, unsigned int nbits,
+ 			char *buf, size_t size);
+ 
+ /**
+--- a/tools/lib/bitmap.c~tools-bitmap-sync-function-declarations-with-the-kernel
++++ a/tools/lib/bitmap.c
+@@ -28,11 +28,11 @@ void __bitmap_or(unsigned long *dst, con
+ 		dst[k] = bitmap1[k] | bitmap2[k];
+ }
+ 
+-size_t bitmap_scnprintf(unsigned long *bitmap, int nbits,
++size_t bitmap_scnprintf(unsigned long *bitmap, unsigned int nbits,
+ 			char *buf, size_t size)
+ {
+ 	/* current bit is 'cur', most recently seen range is [rbot, rtop] */
+-	int cur, rbot, rtop;
++	unsigned int cur, rbot, rtop;
+ 	bool first = true;
+ 	size_t ret = 0;
+ 
 _
 
-Patches currently in -mm which might be from slyfox@gentoo.org are
+Patches currently in -mm which might be from yury.norov@gmail.com are
 
-ia64-fix-user_stack_pointer-for-ptrace.patch
-ia64-drop-unused-ia64_fw_emu-ifdef.patch
-ia64-simplify-code-flow-around-swiotlb-init.patch
-ia64-fix-efi_debug-build.patch
-ia64-mca-always-make-ia64_mca_debug-an-expression.patch
-mm-page_alloc-ignore-init_on_free=1-for-debug_pagealloc=1.patch
+tools-disable-wno-type-limits.patch
+tools-bitmap-sync-function-declarations-with-the-kernel.patch
+tools-sync-bitmap_last_word_mask-macro-with-the-kernel.patch
+arch-rearrange-headers-inclusion-order-in-asm-bitops-for-m68k-and-sh.patch
+lib-extend-the-scope-of-small_const_nbits-macro.patch
+tools-sync-small_const_nbits-macro-with-the-kernel.patch
+lib-inline-_find_next_bit-wrappers.patch
+tools-sync-find_next_bit-implementation.patch
+lib-add-fast-path-for-find_next__bit.patch
+lib-add-fast-path-for-find_first__bit-and-find_last_bit.patch
+tools-sync-lib-find_bit-implementation.patch
+maintainers-add-entry-for-the-bitmap-api.patch
 
