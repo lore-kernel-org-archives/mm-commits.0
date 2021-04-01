@@ -7,38 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D16DC43460
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D26EC43461
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:35:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 51A4B61077
+	by mail.kernel.org (Postfix) with ESMTP id 32BBC61055
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:35:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233394AbhDAAef (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 20:34:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47866 "EHLO mail.kernel.org"
+        id S229959AbhDAAeg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 20:34:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47892 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229959AbhDAAeR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 20:34:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 549A961003;
-        Thu,  1 Apr 2021 00:34:17 +0000 (UTC)
+        id S230349AbhDAAeU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 20:34:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E533260FEC;
+        Thu,  1 Apr 2021 00:34:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617237257;
-        bh=VzZ4k7JQKJc089elt8Z2iSJFqOpSZny1MrueU17xI6o=;
+        s=korg; t=1617237260;
+        bh=sli+FEvZI4DhWD/MLhxWZarhMvCHAEwVDBwG2GsQEm0=;
         h=Date:From:To:Subject:From;
-        b=2rBTnBq8DQuWdKvQ5d0SJdda008L6DO+4noHUjIEtja4LjovrdoVijJU4LDu+eZTV
-         8ewxL028POykKPLnKLaY5ubyOO/bMuh1zE4V19KasJee4vzkvCA1Yqqe4VwYt1mt5r
-         DVGc2A4fRECGEq4eGh79kHQTrk6VaV2hdUHzJvqs=
-Date:   Wed, 31 Mar 2021 17:34:16 -0700
+        b=zlqzKLyMRpBPx7IdVReawPWZDpO0+w/fkD0w7GE+7DNIEigkesU9P9QnRI/jecDBW
+         rCRzu+E8oGTakuAkvEjjSFo/fNo6XmKCk91hQ95u/3fwO94znYNZP6XYhzM4SdnaiJ
+         NUZ6SVPuGuDS8ebyLEgzhoRlfpLogDOV2AA7fKMo=
+Date:   Wed, 31 Mar 2021 17:34:19 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
         yury.norov@gmail.com
 Subject:  +
- =?US-ASCII?Q?mm-introduce-memfd=5Fsecret-system-call-to-create-secret-me?=
- =?US-ASCII?Q?mory-areas-fix.patch?= added to -mm tree
-Message-ID: <20210401003416.72fbOMGTu%akpm@linux-foundation.org>
+ arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch added to
+ -mm tree
+Message-ID: <20210401003419.-S30sz-Bs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 The patch titled
      Subject: memfd_secret: use unsigned int rather than long as syscall flags type
 has been added to the -mm tree.  Its filename is
-     mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+     arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -89,20 +87,20 @@ Acked-by: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |    2 +-
+ include/linux/syscalls.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/secretmem.c~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix
-+++ a/mm/secretmem.c
-@@ -185,7 +185,7 @@ err_free_inode:
- 	return file;
- }
+--- a/include/linux/syscalls.h~arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix
++++ a/include/linux/syscalls.h
+@@ -1050,7 +1050,7 @@ asmlinkage long sys_landlock_create_rule
+ asmlinkage long sys_landlock_add_rule(int ruleset_fd, enum landlock_rule_type rule_type,
+ 		const void __user *rule_attr, __u32 flags);
+ asmlinkage long sys_landlock_restrict_self(int ruleset_fd, __u32 flags);
+-asmlinkage long sys_memfd_secret(unsigned long flags);
++asmlinkage long sys_memfd_secret(unsigned int flags);
  
--SYSCALL_DEFINE1(memfd_secret, unsigned long, flags)
-+SYSCALL_DEFINE1(memfd_secret, unsigned int, flags)
- {
- 	struct file *file;
- 	int fd, err;
+ /*
+  * Architecture-specific system calls
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
