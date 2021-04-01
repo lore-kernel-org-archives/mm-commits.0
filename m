@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B57CEC433ED
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:46:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B010C433ED
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:46:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6547461055
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:46:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 62CAC61055
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:46:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232271AbhDAApc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 20:45:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56830 "EHLO mail.kernel.org"
+        id S232579AbhDAAqF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 20:46:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56942 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230349AbhDAApc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 20:45:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3041D61029;
-        Thu,  1 Apr 2021 00:45:31 +0000 (UTC)
+        id S230349AbhDAApg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 20:45:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E44386101E;
+        Thu,  1 Apr 2021 00:45:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617237931;
-        bh=rRMZXTJDOaxGhPpxe+5Gyi2TdBJrAZIuPcgzGyQJojc=;
+        s=korg; t=1617237936;
+        bh=hUrDg31176/Dk3fBDP7nWvRZLLEHJLsz+xS3GBI8aww=;
         h=Date:From:To:Subject:From;
-        b=ua27OlfN2T8UI59Gi5N2MvI8dN1Orbm5Hl5ZkCZwnxODyLEWzzRPhSpQ2IlhjyDmP
-         /HmZIIgqYz9vQJmYS0zN8Iar5lVhpGWdJsCA5bLH91gRI/HfGXvGohKGorQJX48WHF
-         IT5yKG6bYFxbQ0AUHdsmqWnhJzu9bvdmU6UkZGsI=
-Date:   Wed, 31 Mar 2021 17:45:30 -0700
+        b=SKnxJ7fY+PvXmtK8MQClFfrKdG2g4obd9ibkxBCrEtgu1YmPgyT3Zs33FwnLMU7Ed
+         DOLThn9cRhr4/cTrhsMNo3ntbhjciyACVvfgeDiS2JUh04JVyipKU7dxljsepsOEtW
+         CYhxdb9RLKeqNP8lxlu049z0Rp57hpGpiwizm1lY=
+Date:   Wed, 31 Mar 2021 17:45:35 -0700
 From:   akpm@linux-foundation.org
 To:     cl@linux.com, glittao@gmail.com, iamjoonsoo.kim@lge.com,
         mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, vbabka@suse.cz
-Subject:  +
- kunit-add-a-kunit-test-for-slub-debugging-functionality.patch added to -mm
+Subject:  + slub-remove-resiliency_test-function.patch added to -mm
  tree
-Message-ID: <20210401004530._bpv4tZmA%akpm@linux-foundation.org>
+Message-ID: <20210401004535.PPEDuJPHr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     for SLUB debugging functionality SLUB has resiliency_test() function which
+     Subject: slub: remove resiliency_test() function
 has been added to the -mm tree.  Its filename is
-     kunit-add-a-kunit-test-for-slub-debugging-functionality.patch
+     slub-remove-resiliency_test-function.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kunit-add-a-kunit-test-for-slub-debugging-functionality.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/slub-remove-resiliency_test-function.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kunit-add-a-kunit-test-for-slub-debugging-functionality.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/slub-remove-resiliency_test-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,447 +65,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oliver Glitta <glittao@gmail.com> Subject: kunit: add a KUnit test
-for SLUB debugging functionality SLUB has resiliency_test() function which
-is hidden behind #ifdef SLUB_RESILIENCY_TEST that is not part of Kconfig,
-so nobody runs it.  KUnit should be a proper replacement for it.
+From: Oliver Glitta <glittao@gmail.com>
+Subject: slub: remove resiliency_test() function
 
-Try changing byte in redzone after allocation and changing pointer to next
-free node, first byte, 50th byte and redzone byte.  Check if validation
-finds errors.
+Function resiliency_test() is hidden behind #ifdef SLUB_RESILIENCY_TEST
+that is not part of Kconfig, so nobody runs it.
 
-There are several differences from the original resiliency test: Tests
-create own caches with known state instead of corrupting shared kmalloc
-caches.
+This function is replaced with KUnit test for SLUB added by the previous
+patch "selftests: add a KUnit test for SLUB debugging functionality".
 
-The corruption of freepointer uses correct offset, the original resiliency
-test got broken with freepointer changes.
-
-Scratch changing random byte test, because it does not have meaning in
-this form where we need deterministic results.
-
-Add new option CONFIG_SLUB_KUNIT_TEST in Kconfig.
-
-Add a counter field "errors" to struct kmem_cache to count number of
-errors detected in cache.
-
-Silence bug report in SLUB test.  Add SLAB_SILENT_ERRORS debug flag.  Add
-SLAB_SILENT_ERRORS flag to SLAB_NEVER_MERGE, SLAB_DEBUG_FLAGS,
-SLAB_FLAGS_PERMITTED macros.
-
-Link: https://lkml.kernel.org/r/20210331085156.5028-1-glittao@gmail.com
+Link: https://lkml.kernel.org/r/20210331085156.5028-2-glittao@gmail.com
 Signed-off-by: Oliver Glitta <glittao@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h     |    2 
- include/linux/slub_def.h |    2 
- lib/Kconfig.debug        |    5 +
- lib/Makefile             |    1 
- lib/test_slub.c          |  124 +++++++++++++++++++++++++++++++++++++
- mm/slab.h                |    7 +-
- mm/slab_common.c         |    2 
- mm/slub.c                |   64 +++++++++++++------
- 8 files changed, 184 insertions(+), 23 deletions(-)
+ mm/slub.c |   64 ----------------------------------------------------
+ 1 file changed, 64 deletions(-)
 
---- a/include/linux/slab.h~kunit-add-a-kunit-test-for-slub-debugging-functionality
-+++ a/include/linux/slab.h
-@@ -25,6 +25,8 @@
-  */
- /* DEBUG: Perform (expensive) checks on alloc/free */
- #define SLAB_CONSISTENCY_CHECKS	((slab_flags_t __force)0x00000100U)
-+/* DEBUG: Silent bug reports */
-+#define SLAB_SILENT_ERRORS	((slab_flags_t __force)0x00000200U)
- /* DEBUG: Red zone objs in a cache */
- #define SLAB_RED_ZONE		((slab_flags_t __force)0x00000400U)
- /* DEBUG: Poison objects */
---- a/include/linux/slub_def.h~kunit-add-a-kunit-test-for-slub-debugging-functionality
-+++ a/include/linux/slub_def.h
-@@ -133,6 +133,8 @@ struct kmem_cache {
- 	unsigned int usersize;		/* Usercopy region size */
- 
- 	struct kmem_cache_node *node[MAX_NUMNODES];
-+
-+	int errors;			/* Number of errors in cache */
- };
- 
- #ifdef CONFIG_SLUB_CPU_PARTIAL
---- a/lib/Kconfig.debug~kunit-add-a-kunit-test-for-slub-debugging-functionality
-+++ a/lib/Kconfig.debug
-@@ -2371,6 +2371,11 @@ config BITS_TEST
- 
- 	  If unsure, say N.
- 
-+config SLUB_KUNIT_TEST
-+	tristate "KUnit Test for SLUB cache error detection" if !KUNIT_ALL_TESTS
-+	depends on SLUB_DEBUG && KUNIT
-+	default KUNIT_ALL_TESTS
-+
- config TEST_UDELAY
- 	tristate "udelay test driver"
- 	help
---- a/lib/Makefile~kunit-add-a-kunit-test-for-slub-debugging-functionality
-+++ a/lib/Makefile
-@@ -352,5 +352,6 @@ obj-$(CONFIG_LIST_KUNIT_TEST) += list-te
- obj-$(CONFIG_LINEAR_RANGES_TEST) += test_linear_ranges.o
- obj-$(CONFIG_BITS_TEST) += test_bits.o
- obj-$(CONFIG_CMDLINE_KUNIT_TEST) += cmdline_kunit.o
-+obj-$(CONFIG_SLUB_KUNIT_TEST) += test_slub.o
- 
- obj-$(CONFIG_GENERIC_LIB_DEVMEM_IS_ALLOWED) += devmem_is_allowed.o
---- /dev/null
-+++ a/lib/test_slub.c
-@@ -0,0 +1,124 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include <kunit/test.h>
-+#include <linux/mm.h>
-+#include <linux/slab.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include "../mm/slab.h"
-+
-+
-+static void test_clobber_zone(struct kunit *test)
-+{
-+	struct kmem_cache *s = kmem_cache_create("TestSlub_RZ_alloc", 64, 0,
-+				SLAB_RED_ZONE | SLAB_SILENT_ERRORS, NULL);
-+	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
-+
-+	p[64] = 0x12;
-+
-+	validate_slab_cache(s);
-+	KUNIT_EXPECT_EQ(test, 1, s->errors);
-+
-+	kmem_cache_free(s, p);
-+	kmem_cache_destroy(s);
-+}
-+
-+static void test_next_pointer(struct kunit *test)
-+{
-+	struct kmem_cache *s = kmem_cache_create("TestSlub_next_ptr_free", 64, 0,
-+				SLAB_POISON | SLAB_SILENT_ERRORS, NULL);
-+	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
-+	unsigned long tmp;
-+	unsigned long *ptr_addr;
-+
-+	kmem_cache_free(s, p);
-+
-+	ptr_addr = (unsigned long *)(p + s->offset);
-+	tmp = *ptr_addr;
-+	p[s->offset] = 0x12;
-+
-+	/*
-+	 * Expecting two errors.
-+	 * One for the corrupted freechain and the other one for the wrong
-+	 * count of objects in use.
-+	 */
-+	validate_slab_cache(s);
-+	KUNIT_EXPECT_EQ(test, 2, s->errors);
-+
-+	/*
-+	 * Try to repair corrupted freepointer.
-+	 * Still expecting one error for the wrong count of objects in use.
-+	 */
-+	*ptr_addr = tmp;
-+
-+	validate_slab_cache(s);
-+	KUNIT_EXPECT_EQ(test, 1, s->errors);
-+
-+	/*
-+	 * Previous validation repaired the count of objects in use.
-+	 * Now expecting no error.
-+	 */
-+	validate_slab_cache(s);
-+	KUNIT_EXPECT_EQ(test, 0, s->errors);
-+
-+	kmem_cache_destroy(s);
-+}
-+
-+static void test_first_word(struct kunit *test)
-+{
-+	struct kmem_cache *s = kmem_cache_create("TestSlub_1th_word_free", 64, 0,
-+				SLAB_POISON | SLAB_SILENT_ERRORS, NULL);
-+	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
-+
-+	kmem_cache_free(s, p);
-+	*p = 0x78;
-+
-+	validate_slab_cache(s);
-+	KUNIT_EXPECT_EQ(test, 1, s->errors);
-+
-+	kmem_cache_destroy(s);
-+}
-+
-+static void test_clobber_50th_byte(struct kunit *test)
-+{
-+	struct kmem_cache *s = kmem_cache_create("TestSlub_50th_word_free", 64, 0,
-+				SLAB_POISON | SLAB_SILENT_ERRORS, NULL);
-+	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
-+
-+	kmem_cache_free(s, p);
-+	p[50] = 0x9a;
-+
-+	validate_slab_cache(s);
-+	KUNIT_EXPECT_EQ(test, 1, s->errors);
-+	kmem_cache_destroy(s);
-+}
-+
-+static void test_clobber_redzone_free(struct kunit *test)
-+{
-+	struct kmem_cache *s = kmem_cache_create("TestSlub_RZ_free", 64, 0,
-+				SLAB_RED_ZONE | SLAB_SILENT_ERRORS, NULL);
-+	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
-+
-+	kmem_cache_free(s, p);
-+	p[64] = 0xab;
-+
-+	validate_slab_cache(s);
-+	KUNIT_EXPECT_EQ(test, 1, s->errors);
-+	kmem_cache_destroy(s);
-+}
-+
-+static struct kunit_case test_cases[] = {
-+	KUNIT_CASE(test_clobber_zone),
-+	KUNIT_CASE(test_next_pointer),
-+	KUNIT_CASE(test_first_word),
-+	KUNIT_CASE(test_clobber_50th_byte),
-+	KUNIT_CASE(test_clobber_redzone_free),
-+	{}
-+};
-+
-+static struct kunit_suite test_suite = {
-+	.name = "slub_test",
-+	.test_cases = test_cases,
-+};
-+kunit_test_suite(test_suite);
-+
-+MODULE_LICENSE("GPL");
---- a/mm/slab_common.c~kunit-add-a-kunit-test-for-slub-debugging-functionality
-+++ a/mm/slab_common.c
-@@ -55,7 +55,7 @@ static DECLARE_WORK(slab_caches_to_rcu_d
-  */
- #define SLAB_NEVER_MERGE (SLAB_RED_ZONE | SLAB_POISON | SLAB_STORE_USER | \
- 		SLAB_TRACE | SLAB_TYPESAFE_BY_RCU | SLAB_NOLEAKTRACE | \
--		SLAB_FAILSLAB | kasan_never_merge())
-+		SLAB_FAILSLAB | SLAB_SILENT_ERRORS | kasan_never_merge())
- 
- #define SLAB_MERGE_SAME (SLAB_RECLAIM_ACCOUNT | SLAB_CACHE_DMA | \
- 			 SLAB_CACHE_DMA32 | SLAB_ACCOUNT)
---- a/mm/slab.h~kunit-add-a-kunit-test-for-slub-debugging-functionality
-+++ a/mm/slab.h
-@@ -134,7 +134,8 @@ static inline slab_flags_t kmem_cache_fl
- #define SLAB_DEBUG_FLAGS (SLAB_RED_ZONE | SLAB_POISON | SLAB_STORE_USER)
- #elif defined(CONFIG_SLUB_DEBUG)
- #define SLAB_DEBUG_FLAGS (SLAB_RED_ZONE | SLAB_POISON | SLAB_STORE_USER | \
--			  SLAB_TRACE | SLAB_CONSISTENCY_CHECKS)
-+			  SLAB_TRACE | SLAB_CONSISTENCY_CHECKS | \
-+			  SLAB_SILENT_ERRORS)
- #else
- #define SLAB_DEBUG_FLAGS (0)
- #endif
-@@ -164,7 +165,8 @@ static inline slab_flags_t kmem_cache_fl
- 			      SLAB_NOLEAKTRACE | \
- 			      SLAB_RECLAIM_ACCOUNT | \
- 			      SLAB_TEMPORARY | \
--			      SLAB_ACCOUNT)
-+			      SLAB_ACCOUNT | \
-+			      SLAB_SILENT_ERRORS)
- 
- bool __kmem_cache_empty(struct kmem_cache *);
- int __kmem_cache_shutdown(struct kmem_cache *);
-@@ -215,6 +217,7 @@ DECLARE_STATIC_KEY_TRUE(slub_debug_enabl
- DECLARE_STATIC_KEY_FALSE(slub_debug_enabled);
- #endif
- extern void print_tracking(struct kmem_cache *s, void *object);
-+long validate_slab_cache(struct kmem_cache *s);
- #else
- static inline void print_tracking(struct kmem_cache *s, void *object)
- {
---- a/mm/slub.c~kunit-add-a-kunit-test-for-slub-debugging-functionality
+--- a/mm/slub.c~slub-remove-resiliency_test-function
 +++ a/mm/slub.c
-@@ -673,14 +673,16 @@ static void slab_bug(struct kmem_cache *
+@@ -153,9 +153,6 @@ static inline bool kmem_cache_has_cpu_pa
+  * - Variable sizing of the per node arrays
+  */
  
- static void slab_fix(struct kmem_cache *s, char *fmt, ...)
- {
--	struct va_format vaf;
--	va_list args;
+-/* Enable to test recovery from slab corruption on boot */
+-#undef SLUB_RESILIENCY_TEST
 -
--	va_start(args, fmt);
--	vaf.fmt = fmt;
--	vaf.va = &args;
--	pr_err("FIX %s: %pV\n", s->name, &vaf);
--	va_end(args);
-+	if (!(s->flags & SLAB_SILENT_ERRORS)) {
-+		struct va_format vaf;
-+		va_list args;
-+
-+		va_start(args, fmt);
-+		vaf.fmt = fmt;
-+		vaf.va = &args;
-+		pr_err("FIX %s: %pV\n", s->name, &vaf);
-+		va_end(args);
-+	}
+ /* Enable to log cmpxchg failures */
+ #undef SLUB_DEBUG_CMPXCHG
+ 
+@@ -4932,66 +4929,6 @@ static int list_locations(struct kmem_ca
  }
+ #endif	/* CONFIG_SLUB_DEBUG */
  
- static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
-@@ -739,8 +741,10 @@ static void print_trailer(struct kmem_ca
- void object_err(struct kmem_cache *s, struct page *page,
- 			u8 *object, char *reason)
- {
--	slab_bug(s, "%s", reason);
--	print_trailer(s, page, object);
-+	if (!(s->flags & SLAB_SILENT_ERRORS)) {
-+		slab_bug(s, "%s", reason);
-+		print_trailer(s, page, object);
-+	}
- }
+-#ifdef SLUB_RESILIENCY_TEST
+-static void __init resiliency_test(void)
+-{
+-	u8 *p;
+-	int type = KMALLOC_NORMAL;
+-
+-	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 16 || KMALLOC_SHIFT_HIGH < 10);
+-
+-	pr_err("SLUB resiliency testing\n");
+-	pr_err("-----------------------\n");
+-	pr_err("A. Corruption after allocation\n");
+-
+-	p = kzalloc(16, GFP_KERNEL);
+-	p[16] = 0x12;
+-	pr_err("\n1. kmalloc-16: Clobber Redzone/next pointer 0x12->0x%p\n\n",
+-	       p + 16);
+-
+-	validate_slab_cache(kmalloc_caches[type][4]);
+-
+-	/* Hmmm... The next two are dangerous */
+-	p = kzalloc(32, GFP_KERNEL);
+-	p[32 + sizeof(void *)] = 0x34;
+-	pr_err("\n2. kmalloc-32: Clobber next pointer/next slab 0x34 -> -0x%p\n",
+-	       p);
+-	pr_err("If allocated object is overwritten then not detectable\n\n");
+-
+-	validate_slab_cache(kmalloc_caches[type][5]);
+-	p = kzalloc(64, GFP_KERNEL);
+-	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
+-	*p = 0x56;
+-	pr_err("\n3. kmalloc-64: corrupting random byte 0x56->0x%p\n",
+-	       p);
+-	pr_err("If allocated object is overwritten then not detectable\n\n");
+-	validate_slab_cache(kmalloc_caches[type][6]);
+-
+-	pr_err("\nB. Corruption after free\n");
+-	p = kzalloc(128, GFP_KERNEL);
+-	kfree(p);
+-	*p = 0x78;
+-	pr_err("1. kmalloc-128: Clobber first word 0x78->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches[type][7]);
+-
+-	p = kzalloc(256, GFP_KERNEL);
+-	kfree(p);
+-	p[50] = 0x9a;
+-	pr_err("\n2. kmalloc-256: Clobber 50th byte 0x9a->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches[type][8]);
+-
+-	p = kzalloc(512, GFP_KERNEL);
+-	kfree(p);
+-	p[512] = 0xab;
+-	pr_err("\n3. kmalloc-512: Clobber redzone 0xab->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches[type][9]);
+-}
+-#else
+-#ifdef CONFIG_SYSFS
+-static void resiliency_test(void) {};
+-#endif
+-#endif	/* SLUB_RESILIENCY_TEST */
+-
+ #ifdef CONFIG_SYSFS
+ enum slab_stat_type {
+ 	SL_ALL,			/* All slabs */
+@@ -5840,7 +5777,6 @@ static int __init slab_sysfs_init(void)
+ 	}
  
- static __printf(3, 4) void slab_err(struct kmem_cache *s, struct page *page,
-@@ -752,9 +756,11 @@ static __printf(3, 4) void slab_err(stru
- 	va_start(args, fmt);
- 	vsnprintf(buf, sizeof(buf), fmt, args);
- 	va_end(args);
--	slab_bug(s, "%s", buf);
--	print_page_info(page);
--	dump_stack();
-+	if (!(s->flags & SLAB_SILENT_ERRORS)) {
-+		slab_bug(s, "%s", buf);
-+		print_page_info(page);
-+		dump_stack();
-+	}
- }
- 
- static void init_object(struct kmem_cache *s, void *object, u8 val)
-@@ -798,11 +804,13 @@ static int check_bytes_and_report(struct
- 	while (end > fault && end[-1] == value)
- 		end--;
- 
--	slab_bug(s, "%s overwritten", what);
--	pr_err("INFO: 0x%p-0x%p @offset=%tu. First byte 0x%x instead of 0x%x\n",
-+	if (!(s->flags & SLAB_SILENT_ERRORS)) {
-+		slab_bug(s, "%s overwritten", what);
-+		pr_err("INFO: 0x%p-0x%p @offset=%tu. First byte 0x%x instead of 0x%x\n",
- 					fault, end - 1, fault - addr,
- 					fault[0], value);
--	print_trailer(s, page, object);
-+		print_trailer(s, page, object);
-+	}
- 
- 	restore_bytes(s, what, value, fault, end);
+ 	mutex_unlock(&slab_mutex);
+-	resiliency_test();
  	return 0;
-@@ -964,6 +972,7 @@ static int check_slab(struct kmem_cache
- 
- 	if (!PageSlab(page)) {
- 		slab_err(s, page, "Not a valid slab page");
-+		s->errors += 1;
- 		return 0;
- 	}
- 
-@@ -971,11 +980,13 @@ static int check_slab(struct kmem_cache
- 	if (page->objects > maxobj) {
- 		slab_err(s, page, "objects %u > max %u",
- 			page->objects, maxobj);
-+		s->errors += 1;
- 		return 0;
- 	}
- 	if (page->inuse > page->objects) {
- 		slab_err(s, page, "inuse %u > max %u",
- 			page->inuse, page->objects);
-+		s->errors += 1;
- 		return 0;
- 	}
- 	/* Slab_pad_check fixes things up after itself */
-@@ -1008,8 +1019,10 @@ static int on_freelist(struct kmem_cache
- 				page->freelist = NULL;
- 				page->inuse = page->objects;
- 				slab_fix(s, "Freelist cleared");
-+				s->errors += 1;
- 				return 0;
- 			}
-+			s->errors += 1;
- 			break;
- 		}
- 		object = fp;
-@@ -1026,12 +1039,14 @@ static int on_freelist(struct kmem_cache
- 			 page->objects, max_objects);
- 		page->objects = max_objects;
- 		slab_fix(s, "Number of objects adjusted.");
-+		s->errors += 1;
- 	}
- 	if (page->inuse != page->objects - nr) {
- 		slab_err(s, page, "Wrong object count. Counter is %d but counted were %d",
- 			 page->inuse, page->objects - nr);
- 		page->inuse = page->objects - nr;
- 		slab_fix(s, "Object count adjusted.");
-+		s->errors += 1;
- 	}
- 	return search == NULL;
- }
-@@ -4638,8 +4653,10 @@ static void validate_slab(struct kmem_ca
- 		u8 val = test_bit(__obj_to_index(s, addr, p), map) ?
- 			 SLUB_RED_INACTIVE : SLUB_RED_ACTIVE;
- 
--		if (!check_object(s, page, p, val))
-+		if (!check_object(s, page, p, val)) {
-+			s->errors += 1;
- 			break;
-+		}
- 	}
- 	put_map(map);
- unlock:
-@@ -4659,9 +4676,11 @@ static int validate_slab_node(struct kme
- 		validate_slab(s, page);
- 		count++;
- 	}
--	if (count != n->nr_partial)
-+	if (count != n->nr_partial) {
- 		pr_err("SLUB %s: %ld partial slabs counted but counter=%ld\n",
- 		       s->name, count, n->nr_partial);
-+		s->errors += 1;
-+	}
- 
- 	if (!(s->flags & SLAB_STORE_USER))
- 		goto out;
-@@ -4670,20 +4689,23 @@ static int validate_slab_node(struct kme
- 		validate_slab(s, page);
- 		count++;
- 	}
--	if (count != atomic_long_read(&n->nr_slabs))
-+	if (count != atomic_long_read(&n->nr_slabs)) {
- 		pr_err("SLUB: %s %ld slabs counted but counter=%ld\n",
- 		       s->name, count, atomic_long_read(&n->nr_slabs));
-+		s->errors += 1;
-+	}
- 
- out:
- 	spin_unlock_irqrestore(&n->list_lock, flags);
- 	return count;
  }
  
--static long validate_slab_cache(struct kmem_cache *s)
-+long validate_slab_cache(struct kmem_cache *s)
- {
- 	int node;
- 	unsigned long count = 0;
- 	struct kmem_cache_node *n;
-+	s->errors = 0;
- 
- 	flush_all(s);
- 	for_each_kmem_cache_node(s, node, n)
-@@ -4691,6 +4713,8 @@ static long validate_slab_cache(struct k
- 
- 	return count;
- }
-+EXPORT_SYMBOL(validate_slab_cache);
-+
- /*
-  * Generate lists of code addresses where slabcache objects are allocated
-  * and freed.
 _
 
 Patches currently in -mm which might be from glittao@gmail.com are
