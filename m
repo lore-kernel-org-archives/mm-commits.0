@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB0B0C433B4
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:43:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6210C433ED
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:45:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A09D761056
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:43:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ABC5A61057
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:45:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232565AbhDAAnV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 20:43:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53456 "EHLO mail.kernel.org"
+        id S229812AbhDAAo1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 20:44:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229812AbhDAAnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 20:43:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 363576052B;
-        Thu,  1 Apr 2021 00:43:07 +0000 (UTC)
+        id S232579AbhDAAoD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 20:44:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9663A61056;
+        Thu,  1 Apr 2021 00:44:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617237787;
-        bh=vXY9B6d4bgKe5X9MaHT7bWeRm6upkJWsTp3EwLgo6VA=;
+        s=korg; t=1617237843;
+        bh=ObXe+YA681XZxwPfW9LaDMdH2MJzpclwT3UG+hnPMaA=;
         h=Date:From:To:Subject:From;
-        b=OuZMEv5D57PAYry4NU6tY+2N23S/IpQ38BxrW5De4nxgYrqMccCSZBwH+B267yDnw
-         KGXeoz7JMc3g93XqtsXtUousHzPlKb2pEi3VYFXu6QzM6/BuKRrqTFvygnUVirDBB6
-         H+w4zihg8L8N+DOly4BcNzHrmctNHJsULpssHqi4=
-Date:   Wed, 31 Mar 2021 17:43:06 -0700
+        b=oE0GWYWm+MPCuwTmEJyb/nmej4LCQp4XtzcxFL2aC29fwJ3rUH9mvCCeMMxJB8Zrk
+         taoE/7yLnCLHrMJF5t+D6PQ0W34Jm6C2wgLjKQJUxc4TlG4VRN8JD+UssdDsGSCVw3
+         IPCfsTx47bCoFWzIMr6DB8u8bzywdcvlVXGe7wZE=
+Date:   Wed, 31 Mar 2021 17:44:02 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
-        vbabka@suse.cz
-Subject:  [folded-merged]
- selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch
- removed from -mm tree
-Message-ID: <20210401004306.-mSZB4avx%akpm@linux-foundation.org>
+To:     cl@linux.com, glittao@gmail.com, iamjoonsoo.kim@lge.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, vbabka@suse.cz
+Subject:  [to-be-updated]
+ slub-remove-resiliency_test-function.patch removed from -mm tree
+Message-ID: <20210401004402.zHwFur-j0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,44 +44,124 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: add a kselftest for SLUB debugging functionality-fix
+     Subject: slub: remove resiliency_test() function
 has been removed from the -mm tree.  Its filename was
-     selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch
+     slub-remove-resiliency_test-function.patch
 
-This patch was dropped because it was folded into selftests-add-a-kselftest-for-slub-debugging-functionality.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: selftests: add a kselftest for SLUB debugging functionality-fix
+From: Oliver Glitta <glittao@gmail.com>
+Subject: slub: remove resiliency_test() function
 
-Remove a BUILD_BUG_ON left over from original resiliency_test() that breaks
-builds.
+Function resiliency_test() is hidden behind #ifdef SLUB_RESILIENCY_TEST
+that is not part of Kconfig, so nobody runs it.
 
-Link: https://lkml.kernel.org/r/53cc267d-aa0a-071a-f9f8-0b47ec4b2b9d@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+This function is replaced with kselftest for SLUB added by the previous
+patch "selftests: add a kselftest for SLUB debugging functionality".
+
+Link: https://lkml.kernel.org/r/20210316124118.6874-2-glittao@gmail.com
+Signed-off-by: Oliver Glitta <glittao@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_slub.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/slub.c |   64 ----------------------------------------------------
+ 1 file changed, 64 deletions(-)
 
---- a/lib/test_slub.c~selftests-add-a-kselftest-for-slub-debugging-functionality-fix
-+++ a/lib/test_slub.c
-@@ -97,9 +97,6 @@ static void __init test_clobber_redzone_
+--- a/mm/slub.c~slub-remove-resiliency_test-function
++++ a/mm/slub.c
+@@ -153,9 +153,6 @@ static inline bool kmem_cache_has_cpu_pa
+  * - Variable sizing of the per node arrays
+  */
  
- static void __init resiliency_test(void)
- {
+-/* Enable to test recovery from slab corruption on boot */
+-#undef SLUB_RESILIENCY_TEST
+-
+ /* Enable to log cmpxchg failures */
+ #undef SLUB_DEBUG_CMPXCHG
+ 
+@@ -4919,66 +4916,6 @@ static int list_locations(struct kmem_ca
+ }
+ #endif	/* CONFIG_SLUB_DEBUG */
+ 
+-#ifdef SLUB_RESILIENCY_TEST
+-static void __init resiliency_test(void)
+-{
+-	u8 *p;
+-	int type = KMALLOC_NORMAL;
 -
 -	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 16 || KMALLOC_SHIFT_HIGH < 10);
 -
- 	pr_err("SLUB resiliency testing\n");
- 	pr_err("-----------------------\n");
- 	pr_err("A. Corruption after allocation\n");
+-	pr_err("SLUB resiliency testing\n");
+-	pr_err("-----------------------\n");
+-	pr_err("A. Corruption after allocation\n");
+-
+-	p = kzalloc(16, GFP_KERNEL);
+-	p[16] = 0x12;
+-	pr_err("\n1. kmalloc-16: Clobber Redzone/next pointer 0x12->0x%p\n\n",
+-	       p + 16);
+-
+-	validate_slab_cache(kmalloc_caches[type][4]);
+-
+-	/* Hmmm... The next two are dangerous */
+-	p = kzalloc(32, GFP_KERNEL);
+-	p[32 + sizeof(void *)] = 0x34;
+-	pr_err("\n2. kmalloc-32: Clobber next pointer/next slab 0x34 -> -0x%p\n",
+-	       p);
+-	pr_err("If allocated object is overwritten then not detectable\n\n");
+-
+-	validate_slab_cache(kmalloc_caches[type][5]);
+-	p = kzalloc(64, GFP_KERNEL);
+-	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
+-	*p = 0x56;
+-	pr_err("\n3. kmalloc-64: corrupting random byte 0x56->0x%p\n",
+-	       p);
+-	pr_err("If allocated object is overwritten then not detectable\n\n");
+-	validate_slab_cache(kmalloc_caches[type][6]);
+-
+-	pr_err("\nB. Corruption after free\n");
+-	p = kzalloc(128, GFP_KERNEL);
+-	kfree(p);
+-	*p = 0x78;
+-	pr_err("1. kmalloc-128: Clobber first word 0x78->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches[type][7]);
+-
+-	p = kzalloc(256, GFP_KERNEL);
+-	kfree(p);
+-	p[50] = 0x9a;
+-	pr_err("\n2. kmalloc-256: Clobber 50th byte 0x9a->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches[type][8]);
+-
+-	p = kzalloc(512, GFP_KERNEL);
+-	kfree(p);
+-	p[512] = 0xab;
+-	pr_err("\n3. kmalloc-512: Clobber redzone 0xab->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches[type][9]);
+-}
+-#else
+-#ifdef CONFIG_SYSFS
+-static void resiliency_test(void) {};
+-#endif
+-#endif	/* SLUB_RESILIENCY_TEST */
+-
+ #ifdef CONFIG_SYSFS
+ enum slab_stat_type {
+ 	SL_ALL,			/* All slabs */
+@@ -5828,7 +5765,6 @@ static int __init slab_sysfs_init(void)
+ 	}
+ 
+ 	mutex_unlock(&slab_mutex);
+-	resiliency_test();
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from glittao@gmail.com are
 
-mm-slub-enable-slub_debug-static-key-when-creating-cache-with-explicit-debug-flags.patch
-selftests-add-a-kselftest-for-slub-debugging-functionality.patch
 
