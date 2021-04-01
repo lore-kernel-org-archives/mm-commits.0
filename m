@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5865EC433B4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F3DEC433ED
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:54:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2837F610CB
+	by mail.kernel.org (Postfix) with ESMTP id 4AA54610CF
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:54:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232839AbhDAAyQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231620AbhDAAyQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 31 Mar 2021 20:54:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32876 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:32930 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231620AbhDAAxp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 20:53:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EF69361057;
-        Thu,  1 Apr 2021 00:53:43 +0000 (UTC)
+        id S232310AbhDAAxs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 20:53:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0B5AA60FE3;
+        Thu,  1 Apr 2021 00:53:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617238424;
-        bh=wOGc7kD94KA0zs2wMlB/brazba6mB3PzP6K2f96pgCY=;
+        s=korg; t=1617238427;
+        bh=lgA/rCh7G/IGE+U4gVzmT7e9rcWAKZbK6G6ugVlAZpI=;
         h=Date:From:To:Subject:From;
-        b=ouPHh7XfClA+IkuL07ncZOAhSLvhU4iH+l8uz+O9BdA+TVfAn2WZS9JpVI0xTWJLe
-         iRJHkvIRzStd0qw22WXPdaJu90ZhFmtMDPtsLSc/ZJcICCAnx74eLZlq9y3ish7CA0
-         ooXXB0jYGazBK5KObwp57b53Kp5DvEHKRA2mvC5s=
-Date:   Wed, 31 Mar 2021 17:53:43 -0700
+        b=BithxzS/zQwKUrAoYn3EqHIFCDP1ycId4ky3Fvm8gpE5np5uUC+kJ2wjJNTMJBFOW
+         wBYk0pPhRokGxH5XE7FiedGFC++pcagc2TdtIqj7/3gmsYxJ2Y4mPa7o67TnxVlBnc
+         hxALpjaqvhWOBL3SUQeIyeBFxtf28LUHyOWJjE6s=
+Date:   Wed, 31 Mar 2021 17:53:46 -0700
 From:   akpm@linux-foundation.org
 To:     aklimov@redhat.com, andriy.shevchenko@linux.intel.com,
         arnd@arndb.de, dalias@libc.org, dennis@kernel.org,
@@ -39,9 +39,9 @@ To:     aklimov@redhat.com, andriy.shevchenko@linux.intel.com,
         sbrivio@redhat.com, wsa+renesas@sang-engineering.com,
         ysato@users.osdn.me, yury.norov@gmail.com
 Subject:  +
- tools-sync-bitmap_last_word_mask-macro-with-the-kernel.patch added to -mm
- tree
-Message-ID: <20210401005343._kkqti7Ym%akpm@linux-foundation.org>
+ arch-rearrange-headers-inclusion-order-in-asm-bitops-for-m68k-and-sh.patch
+ added to -mm tree
+Message-ID: <20210401005346.v74vNy6TJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools: sync BITMAP_LAST_WORD_MASK() macro with the kernel
+     Subject: arch: rearrange headers inclusion order in asm/bitops for m68k and sh
 has been added to the -mm tree.  Its filename is
-     tools-sync-bitmap_last_word_mask-macro-with-the-kernel.patch
+     arch-rearrange-headers-inclusion-order-in-asm-bitops-for-m68k-and-sh.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/tools-sync-bitmap_last_word_mask-macro-with-the-kernel.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arch-rearrange-headers-inclusion-order-in-asm-bitops-for-m68k-and-sh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/tools-sync-bitmap_last_word_mask-macro-with-the-kernel.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arch-rearrange-headers-inclusion-order-in-asm-bitops-for-m68k-and-sh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,19 +72,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: tools: sync BITMAP_LAST_WORD_MASK() macro with the kernel
+Subject: arch: rearrange headers inclusion order in asm/bitops for m68k and sh
 
-Kernel version generates better code.
+m68k and sh include bitmap/{find,le}.h prior to ffs/fls headers.  New
+fast-path implementation in find.h requires ffs/fls.  Reordering the
+headers inclusion sequence helps to prevent compile-time implicit function
+declaration error.
 
-Link: https://lkml.kernel.org/r/20210401003153.97325-4-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210401003153.97325-5-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Alexey Klimov <aklimov@redhat.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Jianpeng Ma <jianpeng.ma@intel.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
@@ -97,25 +100,56 @@ Cc: Yoshinori Sato <ysato@users.osdn.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/linux/bitmap.h |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ arch/m68k/include/asm/bitops.h |    6 +++---
+ arch/sh/include/asm/bitops.h   |    5 +++--
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
---- a/tools/include/linux/bitmap.h~tools-sync-bitmap_last_word_mask-macro-with-the-kernel
-+++ a/tools/include/linux/bitmap.h
-@@ -20,12 +20,7 @@ int __bitmap_equal(const unsigned long *
- void bitmap_clear(unsigned long *map, unsigned int start, int len);
+--- a/arch/m68k/include/asm/bitops.h~arch-rearrange-headers-inclusion-order-in-asm-bitops-for-m68k-and-sh
++++ a/arch/m68k/include/asm/bitops.h
+@@ -440,8 +440,6 @@ static inline unsigned long ffz(unsigned
  
- #define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) & (BITS_PER_LONG - 1)))
+ #endif
+ 
+-#include <asm-generic/bitops/find.h>
 -
--#define BITMAP_LAST_WORD_MASK(nbits)					\
--(									\
--	((nbits) % BITS_PER_LONG) ?					\
--		(1UL<<((nbits) % BITS_PER_LONG))-1 : ~0UL		\
--)
-+#define BITMAP_LAST_WORD_MASK(nbits) (~0UL >> (-(nbits) & (BITS_PER_LONG - 1)))
+ #ifdef __KERNEL__
  
- #define small_const_nbits(nbits) \
- 	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG)
+ #if defined(CONFIG_CPU_HAS_NO_BITFIELDS)
+@@ -525,10 +523,12 @@ static inline int __fls(int x)
+ #define __clear_bit_unlock	clear_bit_unlock
+ 
+ #include <asm-generic/bitops/ext2-atomic.h>
+-#include <asm-generic/bitops/le.h>
+ #include <asm-generic/bitops/fls64.h>
+ #include <asm-generic/bitops/sched.h>
+ #include <asm-generic/bitops/hweight.h>
++#include <asm-generic/bitops/le.h>
+ #endif /* __KERNEL__ */
+ 
++#include <asm-generic/bitops/find.h>
++
+ #endif /* _M68K_BITOPS_H */
+--- a/arch/sh/include/asm/bitops.h~arch-rearrange-headers-inclusion-order-in-asm-bitops-for-m68k-and-sh
++++ a/arch/sh/include/asm/bitops.h
+@@ -58,15 +58,16 @@ static inline unsigned long __ffs(unsign
+ 	return result;
+ }
+ 
+-#include <asm-generic/bitops/find.h>
+ #include <asm-generic/bitops/ffs.h>
+ #include <asm-generic/bitops/hweight.h>
+ #include <asm-generic/bitops/lock.h>
+ #include <asm-generic/bitops/sched.h>
+-#include <asm-generic/bitops/le.h>
+ #include <asm-generic/bitops/ext2-atomic.h>
+ #include <asm-generic/bitops/fls.h>
+ #include <asm-generic/bitops/__fls.h>
+ #include <asm-generic/bitops/fls64.h>
+ 
++#include <asm-generic/bitops/le.h>
++#include <asm-generic/bitops/find.h>
++
+ #endif /* __ASM_SH_BITOPS_H */
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
