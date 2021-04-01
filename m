@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B010C433ED
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:46:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE6F0C433ED
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:49:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 62CAC61055
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:46:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6CA461055
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:49:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232579AbhDAAqF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 20:46:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56942 "EHLO mail.kernel.org"
+        id S229497AbhDAAtY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 20:49:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59802 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230349AbhDAApg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 20:45:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E44386101E;
-        Thu,  1 Apr 2021 00:45:35 +0000 (UTC)
+        id S232310AbhDAAtU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 20:49:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B7F2E61056;
+        Thu,  1 Apr 2021 00:49:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617237936;
-        bh=hUrDg31176/Dk3fBDP7nWvRZLLEHJLsz+xS3GBI8aww=;
+        s=korg; t=1617238160;
+        bh=hkERKroSLtWgicc7NTS7LStZqOZAcGul2tY9EzucowY=;
         h=Date:From:To:Subject:From;
-        b=SKnxJ7fY+PvXmtK8MQClFfrKdG2g4obd9ibkxBCrEtgu1YmPgyT3Zs33FwnLMU7Ed
-         DOLThn9cRhr4/cTrhsMNo3ntbhjciyACVvfgeDiS2JUh04JVyipKU7dxljsepsOEtW
-         CYhxdb9RLKeqNP8lxlu049z0Rp57hpGpiwizm1lY=
-Date:   Wed, 31 Mar 2021 17:45:35 -0700
+        b=xXBo+75Y7cDSlRAQqmRnyLL1YMxeJ34w2Jl/nasGPmh627ri2A25OTrQWJzjsUMCc
+         /3RYebL9088otqEYb04xG0Ih+l05ZVehAyTFGP9HWOwzB6nKdMqlLlgiUAG5pqDrh1
+         hm9k/WM3MKE55CQfez41Nu4J6Z3btixlCocHvTws=
+Date:   Wed, 31 Mar 2021 17:49:19 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, glittao@gmail.com, iamjoonsoo.kim@lge.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz
-Subject:  + slub-remove-resiliency_test-function.patch added to -mm
- tree
-Message-ID: <20210401004535.PPEDuJPHr%akpm@linux-foundation.org>
+To:     ldv@altlinux.org, mm-commits@vger.kernel.org, oleg@redhat.com,
+        slyfox@gentoo.org, stable@vger.kernel.org
+Subject:  + ia64-fix-user_stack_pointer-for-ptrace.patch added to
+ -mm tree
+Message-ID: <20210401004919.SClvSTdsD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: remove resiliency_test() function
+     Subject: ia64: fix user_stack_pointer() for ptrace()
 has been added to the -mm tree.  Its filename is
-     slub-remove-resiliency_test-function.patch
+     ia64-fix-user_stack_pointer-for-ptrace.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/slub-remove-resiliency_test-function.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ia64-fix-user_stack_pointer-for-ptrace.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/slub-remove-resiliency_test-function.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-fix-user_stack_pointer-for-ptrace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,119 +64,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oliver Glitta <glittao@gmail.com>
-Subject: slub: remove resiliency_test() function
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Subject: ia64: fix user_stack_pointer() for ptrace()
 
-Function resiliency_test() is hidden behind #ifdef SLUB_RESILIENCY_TEST
-that is not part of Kconfig, so nobody runs it.
+ia64 has two stacks:
+- memory stack (or stack), pointed at by by r12
+- register backing store (register stack), pointed at
+  ar.bsp/ar.bspstore with complications around dirty
+  register frame on CPU.
 
-This function is replaced with KUnit test for SLUB added by the previous
-patch "selftests: add a KUnit test for SLUB debugging functionality".
+In https://bugs.gentoo.org/769614 Dmitry noticed that
+PTRACE_GET_SYSCALL_INFO returns register stack instead
+memory stack.
 
-Link: https://lkml.kernel.org/r/20210331085156.5028-2-glittao@gmail.com
-Signed-off-by: Oliver Glitta <glittao@gmail.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+The bug comes from the fact that user_stack_pointer() and
+current_user_stack_pointer() don't return the same register:
+
+  ulong user_stack_pointer(struct pt_regs *regs) { return regs->ar_bspstore; }
+  #define current_user_stack_pointer() (current_pt_regs()->r12)
+
+The change gets both back in sync.
+
+I think ptrace(PTRACE_GET_SYSCALL_INFO) is the only affected user
+by this bug on ia64.
+
+The change fixes 'rt_sigreturn.gen.test' strace test where
+it was observed initially.
+
+Link: https://lkml.kernel.org/r/20210331084447.2561532-1-slyfox@gentoo.org
+Link: https://bugs.gentoo.org/769614
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Reported-by: Dmitry V. Levin <ldv@altlinux.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   64 ----------------------------------------------------
- 1 file changed, 64 deletions(-)
+ arch/ia64/include/asm/ptrace.h |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
---- a/mm/slub.c~slub-remove-resiliency_test-function
-+++ a/mm/slub.c
-@@ -153,9 +153,6 @@ static inline bool kmem_cache_has_cpu_pa
-  * - Variable sizing of the per node arrays
-  */
+--- a/arch/ia64/include/asm/ptrace.h~ia64-fix-user_stack_pointer-for-ptrace
++++ a/arch/ia64/include/asm/ptrace.h
+@@ -54,8 +54,7 @@
  
--/* Enable to test recovery from slab corruption on boot */
--#undef SLUB_RESILIENCY_TEST
--
- /* Enable to log cmpxchg failures */
- #undef SLUB_DEBUG_CMPXCHG
- 
-@@ -4932,66 +4929,6 @@ static int list_locations(struct kmem_ca
- }
- #endif	/* CONFIG_SLUB_DEBUG */
- 
--#ifdef SLUB_RESILIENCY_TEST
--static void __init resiliency_test(void)
--{
--	u8 *p;
--	int type = KMALLOC_NORMAL;
--
--	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 16 || KMALLOC_SHIFT_HIGH < 10);
--
--	pr_err("SLUB resiliency testing\n");
--	pr_err("-----------------------\n");
--	pr_err("A. Corruption after allocation\n");
--
--	p = kzalloc(16, GFP_KERNEL);
--	p[16] = 0x12;
--	pr_err("\n1. kmalloc-16: Clobber Redzone/next pointer 0x12->0x%p\n\n",
--	       p + 16);
--
--	validate_slab_cache(kmalloc_caches[type][4]);
--
--	/* Hmmm... The next two are dangerous */
--	p = kzalloc(32, GFP_KERNEL);
--	p[32 + sizeof(void *)] = 0x34;
--	pr_err("\n2. kmalloc-32: Clobber next pointer/next slab 0x34 -> -0x%p\n",
--	       p);
--	pr_err("If allocated object is overwritten then not detectable\n\n");
--
--	validate_slab_cache(kmalloc_caches[type][5]);
--	p = kzalloc(64, GFP_KERNEL);
--	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
--	*p = 0x56;
--	pr_err("\n3. kmalloc-64: corrupting random byte 0x56->0x%p\n",
--	       p);
--	pr_err("If allocated object is overwritten then not detectable\n\n");
--	validate_slab_cache(kmalloc_caches[type][6]);
--
--	pr_err("\nB. Corruption after free\n");
--	p = kzalloc(128, GFP_KERNEL);
--	kfree(p);
--	*p = 0x78;
--	pr_err("1. kmalloc-128: Clobber first word 0x78->0x%p\n\n", p);
--	validate_slab_cache(kmalloc_caches[type][7]);
--
--	p = kzalloc(256, GFP_KERNEL);
--	kfree(p);
--	p[50] = 0x9a;
--	pr_err("\n2. kmalloc-256: Clobber 50th byte 0x9a->0x%p\n\n", p);
--	validate_slab_cache(kmalloc_caches[type][8]);
--
--	p = kzalloc(512, GFP_KERNEL);
--	kfree(p);
--	p[512] = 0xab;
--	pr_err("\n3. kmalloc-512: Clobber redzone 0xab->0x%p\n\n", p);
--	validate_slab_cache(kmalloc_caches[type][9]);
--}
--#else
--#ifdef CONFIG_SYSFS
--static void resiliency_test(void) {};
--#endif
--#endif	/* SLUB_RESILIENCY_TEST */
--
- #ifdef CONFIG_SYSFS
- enum slab_stat_type {
- 	SL_ALL,			/* All slabs */
-@@ -5840,7 +5777,6 @@ static int __init slab_sysfs_init(void)
- 	}
- 
- 	mutex_unlock(&slab_mutex);
--	resiliency_test();
- 	return 0;
+ static inline unsigned long user_stack_pointer(struct pt_regs *regs)
+ {
+-	/* FIXME: should this be bspstore + nr_dirty regs? */
+-	return regs->ar_bspstore;
++	return regs->r12;
  }
  
+ static inline int is_syscall_success(struct pt_regs *regs)
+@@ -79,11 +78,6 @@ static inline long regs_return_value(str
+ 	unsigned long __ip = instruction_pointer(regs);			\
+ 	(__ip & ~3UL) + ((__ip & 3UL) << 2);				\
+ })
+-/*
+- * Why not default?  Because user_stack_pointer() on ia64 gives register
+- * stack backing store instead...
+- */
+-#define current_user_stack_pointer() (current_pt_regs()->r12)
+ 
+   /* given a pointer to a task_struct, return the user's pt_regs */
+ # define task_pt_regs(t)		(((struct pt_regs *) ((char *) (t) + IA64_STK_OFFSET)) - 1)
 _
 
-Patches currently in -mm which might be from glittao@gmail.com are
+Patches currently in -mm which might be from slyfox@gentoo.org are
 
-kunit-add-a-kunit-test-for-slub-debugging-functionality.patch
-slub-remove-resiliency_test-function.patch
+ia64-fix-user_stack_pointer-for-ptrace.patch
+ia64-drop-unused-ia64_fw_emu-ifdef.patch
+ia64-simplify-code-flow-around-swiotlb-init.patch
+ia64-fix-efi_debug-build.patch
+ia64-mca-always-make-ia64_mca_debug-an-expression.patch
+mm-page_alloc-ignore-init_on_free=1-for-debug_pagealloc=1.patch
 
