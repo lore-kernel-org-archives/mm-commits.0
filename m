@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A91A2C43461
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2E7CC43611
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:54:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8319A610D2
+	by mail.kernel.org (Postfix) with ESMTP id A7ACA610CB
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:54:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232492AbhDAAyR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 20:54:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33052 "EHLO mail.kernel.org"
+        id S232757AbhDAAyU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 20:54:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33332 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232585AbhDAAxy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 20:53:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9ECC36108E;
-        Thu,  1 Apr 2021 00:53:53 +0000 (UTC)
+        id S232800AbhDAAyK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 20:54:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DCE52610A7;
+        Thu,  1 Apr 2021 00:54:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617238434;
-        bh=iWNtqBfw8JuXoZMsQ4schda9k7gRl21N154jAgJwMmY=;
+        s=korg; t=1617238450;
+        bh=mB63h2MGyNBB+bqBUNOv2uDrfuUNcXB2obYnLG1zwVc=;
         h=Date:From:To:Subject:From;
-        b=RSOPHTG0SCYBf1bck6/3eeRwgs0kqgS6F1grXF3iFmPlxp6rFb9PetFfXRqKdQHQs
-         PbarxqgayazKTbvmMHyWDIVBuanFtoscxgH6ivakTZ47cNEwHPTnoCx430zJhd3bSh
-         fnuINCsL8BBncYbjgCf4eFElgK2RahVurM8IcF48=
-Date:   Wed, 31 Mar 2021 17:53:52 -0700
+        b=m7smmkBOqV6Iy4egWz8WZFktFxbW/0c3x/lHQnX9WeieGqkv4t1f/NtTB17BiHQJC
+         8fq+9LImnJza9dnQod6KbquTogq9gN282qrOeJPSN6oEzyvbNQYbxjbjM8bGQAX/+w
+         zCnyB16mSQOcoyIs+fIum/2iHX1mxbSP99QyW78M=
+Date:   Wed, 31 Mar 2021 17:54:09 -0700
 From:   akpm@linux-foundation.org
 To:     aklimov@redhat.com, andriy.shevchenko@linux.intel.com,
         arnd@arndb.de, dalias@libc.org, dennis@kernel.org,
@@ -38,9 +38,9 @@ To:     aklimov@redhat.com, andriy.shevchenko@linux.intel.com,
         mm-commits@vger.kernel.org, richard.weiyang@linux.alibaba.com,
         sbrivio@redhat.com, wsa+renesas@sang-engineering.com,
         ysato@users.osdn.me, yury.norov@gmail.com
-Subject:  +
- tools-sync-small_const_nbits-macro-with-the-kernel.patch added to -mm tree
-Message-ID: <20210401005352.6zVTaMz4b%akpm@linux-foundation.org>
+Subject:  + tools-sync-lib-find_bit-implementation.patch added to
+ -mm tree
+Message-ID: <20210401005409.Ycyfc9ssE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools: sync small_const_nbits() macro with the kernel
+     Subject: tools: sync lib/find_bit implementation
 has been added to the -mm tree.  Its filename is
-     tools-sync-small_const_nbits-macro-with-the-kernel.patch
+     tools-sync-lib-find_bit-implementation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/tools-sync-small_const_nbits-macro-with-the-kernel.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/tools-sync-lib-find_bit-implementation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/tools-sync-small_const_nbits-macro-with-the-kernel.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/tools-sync-lib-find_bit-implementation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,12 +71,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: tools: sync small_const_nbits() macro with the kernel
+Subject: tools: sync lib/find_bit implementation
 
-Sync implementation with the kernel and move the macro from
-tools/include/linux/bitmap.h to tools/include/asm-generic/bitsperlong.h
+Add fast paths to find_*_bit() functions as per kernel implementation.
 
-Link: https://lkml.kernel.org/r/20210401003153.97325-7-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210401003153.97325-12-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Alexey Klimov <aklimov@redhat.com>
@@ -97,32 +96,132 @@ Cc: Yoshinori Sato <ysato@users.osdn.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/asm-generic/bitsperlong.h |    3 +++
- tools/include/linux/bitmap.h            |    3 ---
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ tools/include/asm-generic/bitops/find.h |   58 ++++++++++++++++++++--
+ tools/lib/find_bit.c                    |    4 -
+ 2 files changed, 57 insertions(+), 5 deletions(-)
 
---- a/tools/include/asm-generic/bitsperlong.h~tools-sync-small_const_nbits-macro-with-the-kernel
-+++ a/tools/include/asm-generic/bitsperlong.h
-@@ -18,4 +18,7 @@
- #define BITS_PER_LONG_LONG 64
+--- a/tools/include/asm-generic/bitops/find.h~tools-sync-lib-find_bit-implementation
++++ a/tools/include/asm-generic/bitops/find.h
+@@ -5,6 +5,9 @@
+ extern unsigned long _find_next_bit(const unsigned long *addr1,
+ 		const unsigned long *addr2, unsigned long nbits,
+ 		unsigned long start, unsigned long invert, unsigned long le);
++extern unsigned long _find_first_bit(const unsigned long *addr, unsigned long size);
++extern unsigned long _find_first_zero_bit(const unsigned long *addr, unsigned long size);
++extern unsigned long _find_last_bit(const unsigned long *addr, unsigned long size);
+ 
+ #ifndef find_next_bit
+ /**
+@@ -20,6 +23,16 @@ static inline
+ unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
+ 			    unsigned long offset)
+ {
++	if (small_const_nbits(size)) {
++		unsigned long val;
++
++		if (unlikely(offset >= size))
++			return size;
++
++		val = *addr & GENMASK(size - 1, offset);
++		return val ? __ffs(val) : size;
++	}
++
+ 	return _find_next_bit(addr, NULL, size, offset, 0UL, 0);
+ }
+ #endif
+@@ -40,6 +53,16 @@ unsigned long find_next_and_bit(const un
+ 		const unsigned long *addr2, unsigned long size,
+ 		unsigned long offset)
+ {
++	if (small_const_nbits(size)) {
++		unsigned long val;
++
++		if (unlikely(offset >= size))
++			return size;
++
++		val = *addr1 & *addr2 & GENMASK(size - 1, offset);
++		return val ? __ffs(val) : size;
++	}
++
+ 	return _find_next_bit(addr1, addr2, size, offset, 0UL, 0);
+ }
+ #endif
+@@ -58,6 +81,16 @@ static inline
+ unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
+ 				 unsigned long offset)
+ {
++	if (small_const_nbits(size)) {
++		unsigned long val;
++
++		if (unlikely(offset >= size))
++			return size;
++
++		val = *addr | ~GENMASK(size - 1, offset);
++		return val == ~0UL ? size : ffz(val);
++	}
++
+ 	return _find_next_bit(addr, NULL, size, offset, ~0UL, 0);
+ }
+ #endif
+@@ -72,8 +105,17 @@ unsigned long find_next_zero_bit(const u
+  * Returns the bit number of the first set bit.
+  * If no bits are set, returns @size.
+  */
+-extern unsigned long find_first_bit(const unsigned long *addr,
+-				    unsigned long size);
++static inline
++unsigned long find_first_bit(const unsigned long *addr, unsigned long size)
++{
++	if (small_const_nbits(size)) {
++		unsigned long val = *addr & GENMASK(size - 1, 0);
++
++		return val ? __ffs(val) : size;
++	}
++
++	return _find_first_bit(addr, size);
++}
+ 
+ #endif /* find_first_bit */
+ 
+@@ -87,7 +129,17 @@ extern unsigned long find_first_bit(cons
+  * Returns the bit number of the first cleared bit.
+  * If no bits are zero, returns @size.
+  */
+-unsigned long find_first_zero_bit(const unsigned long *addr, unsigned long size);
++static inline
++unsigned long find_first_zero_bit(const unsigned long *addr, unsigned long size)
++{
++	if (small_const_nbits(size)) {
++		unsigned long val = *addr | ~GENMASK(size - 1, 0);
++
++		return val == ~0UL ? size : ffz(val);
++	}
++
++	return _find_first_zero_bit(addr, size);
++}
  #endif
  
-+#define small_const_nbits(nbits) \
-+	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG && (nbits) > 0)
-+
- #endif /* __ASM_GENERIC_BITS_PER_LONG */
---- a/tools/include/linux/bitmap.h~tools-sync-small_const_nbits-macro-with-the-kernel
-+++ a/tools/include/linux/bitmap.h
-@@ -22,9 +22,6 @@ void bitmap_clear(unsigned long *map, un
- #define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) & (BITS_PER_LONG - 1)))
- #define BITMAP_LAST_WORD_MASK(nbits) (~0UL >> (-(nbits) & (BITS_PER_LONG - 1)))
- 
--#define small_const_nbits(nbits) \
--	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG)
--
- static inline void bitmap_zero(unsigned long *dst, unsigned int nbits)
+ #endif /*_TOOLS_LINUX_ASM_GENERIC_BITOPS_FIND_H_ */
+--- a/tools/lib/find_bit.c~tools-sync-lib-find_bit-implementation
++++ a/tools/lib/find_bit.c
+@@ -83,7 +83,7 @@ unsigned long _find_next_bit(const unsig
+ /*
+  * Find the first set bit in a memory region.
+  */
+-unsigned long find_first_bit(const unsigned long *addr, unsigned long size)
++unsigned long _find_first_bit(const unsigned long *addr, unsigned long size)
  {
- 	if (small_const_nbits(nbits))
+ 	unsigned long idx;
+ 
+@@ -100,7 +100,7 @@ unsigned long find_first_bit(const unsig
+ /*
+  * Find the first cleared bit in a memory region.
+  */
+-unsigned long find_first_zero_bit(const unsigned long *addr, unsigned long size)
++unsigned long _find_first_zero_bit(const unsigned long *addr, unsigned long size)
+ {
+ 	unsigned long idx;
+ 
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
