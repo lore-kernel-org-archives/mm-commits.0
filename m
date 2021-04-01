@@ -7,41 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D767EC43616
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:54:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C78AC433ED
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 01:17:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C62EA610CF
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:54:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 541C461077
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 01:17:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232623AbhDAAyT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 20:54:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33228 "EHLO mail.kernel.org"
+        id S230073AbhDABRT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 21:17:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44264 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232763AbhDAAyF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 20:54:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1F90C610A2;
-        Thu,  1 Apr 2021 00:54:04 +0000 (UTC)
+        id S232866AbhDABQ6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 21:16:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3E8AD61075;
+        Thu,  1 Apr 2021 01:16:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617238444;
-        bh=UdmncOoJS/a4Yzyrp7nczWFimA0P7fCol0rApg2BLH8=;
+        s=korg; t=1617239818;
+        bh=rFACLmwnMmSHPk3+2zmf0v7Y8RCxgwStpWbDTaCkwto=;
         h=Date:From:To:Subject:From;
-        b=URJ9c4D7J5TZvFp2pbW8oier0wsBkjvaJLk9aR7/rT7aot+SkyqZ6nTIecxbyloKW
-         UyTz1ZFi72gGw7C0ADSZvd2X9Jf5kZws7o2NrsrqHggE+MvLC815nGXn6Fz6cDuUL2
-         ya3yo8mOyzJdkuEk5TGe+LfbsZ61kKwMQ9pJjzaQ=
-Date:   Wed, 31 Mar 2021 17:54:03 -0700
+        b=e4y1Ya+HZF3MHp9N/CYuvBCSOKBonozfj4WGD0LKfrGJEnWDG4RGJxNn9Z4Mq65Hk
+         EjrneE2ONunnQeKL3SHTEx9+PE8S2S/PXZxSkghxkAOn7ToSHQBSOrb3tneMgDe7L1
+         pBF28PD6CfgVu3gqrDTuiP1jLJSOVGEtScBmMrL8=
+Date:   Wed, 31 Mar 2021 18:16:57 -0700
 From:   akpm@linux-foundation.org
-To:     aklimov@redhat.com, andriy.shevchenko@linux.intel.com,
-        arnd@arndb.de, dalias@libc.org, dennis@kernel.org,
-        dsterba@suse.com, geert@linux-m68k.org,
-        glaubitz@physik.fu-berlin.de, jianpeng.ma@intel.com,
-        joe@perches.com, jpoimboe@redhat.com, linux@rasmusvillemoes.dk,
-        mm-commits@vger.kernel.org, richard.weiyang@linux.alibaba.com,
-        sbrivio@redhat.com, wsa+renesas@sang-engineering.com,
-        ysato@users.osdn.me, yury.norov@gmail.com
-Subject:  + lib-add-fast-path-for-find_next__bit.patch added to -mm
- tree
-Message-ID: <20210401005403.wAyXjr-Rr%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alexander.duyck@gmail.com,
+        alobakin@pm.me, brouer@redhat.com, chuck.lever@oracle.com,
+        davem@davemloft.net, hch@infradead.org,
+        ilias.apalodimas@linaro.org, mgorman@techsingularity.net,
+        mm-commits@vger.kernel.org, vbabka@suse.cz, willy@infradead.org
+Subject:  +
+ =?US-ASCII?Q?mm-page=5Falloc-add-an-array-based-interface-to-the-bulk-?=
+ =?US-ASCII?Q?page-allocator-fix.patch?= added to -mm tree
+Message-ID: <20210401011657.-oBvOJRYa%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: add fast path for find_next_*_bit()
+     Subject: mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator-fix
 has been added to the -mm tree.  Its filename is
-     lib-add-fast-path-for-find_next__bit.patch
+     mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-add-fast-path-for-find_next__bit.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-add-fast-path-for-find_next__bit.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,200 +70,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yury Norov <yury.norov@gmail.com>
-Subject: lib: add fast path for find_next_*_bit()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator-fix
 
-Similarly to bitmap functions, find_next_*_bit() users will benefit if
-we'll handle a case of bitmaps that fit into a single word inline.  In the
-very best case, the compiler may replace a function call with a few
-instructions.
+remove now unused local `allocated'
 
-This is the quite typical find_next_bit() user:
-
-	unsigned int cpumask_next(int n, const struct cpumask *srcp)
-	{
-		/* -1 is a legal arg here. */
-		if (n != -1)
-			cpumask_check(n);
-		return find_next_bit(cpumask_bits(srcp), nr_cpumask_bits, n + 1);
-	}
-	EXPORT_SYMBOL(cpumask_next);
-
-Currently, on ARM64 the generated code looks like this:
-	0000000000000000 <cpumask_next>:
-	   0:   a9bf7bfd        stp     x29, x30, [sp, #-16]!
-	   4:   11000402        add     w2, w0, #0x1
-	   8:   aa0103e0        mov     x0, x1
-	   c:   d2800401        mov     x1, #0x40                       // #64
-	  10:   910003fd        mov     x29, sp
-	  14:   93407c42        sxtw    x2, w2
-	  18:   94000000        bl      0 <find_next_bit>
-	  1c:   a8c17bfd        ldp     x29, x30, [sp], #16
-	  20:   d65f03c0        ret
-	  24:   d503201f        nop
-
-After applying this patch:
-	0000000000000140 <cpumask_next>:
-	 140:   11000400        add     w0, w0, #0x1
-	 144:   93407c00        sxtw    x0, w0
-	 148:   f100fc1f        cmp     x0, #0x3f
-	 14c:   54000168        b.hi    178 <cpumask_next+0x38>  // b.pmore
-	 150:   f9400023        ldr     x3, [x1]
-	 154:   92800001        mov     x1, #0xffffffffffffffff         // #-1
-	 158:   9ac02020        lsl     x0, x1, x0
-	 15c:   52800802        mov     w2, #0x40                       // #64
-	 160:   8a030001        and     x1, x0, x3
-	 164:   dac00020        rbit    x0, x1
-	 168:   f100003f        cmp     x1, #0x0
-	 16c:   dac01000        clz     x0, x0
-	 170:   1a800040        csel    w0, w2, w0, eq  // eq = none
-	 174:   d65f03c0        ret
-	 178:   52800800        mov     w0, #0x40                       // #64
-	 17c:   d65f03c0        ret
-
-find_next_bit() call is replaced with 6 instructions.  find_next_bit()
-itself is 41 instructions plus function call overhead.
-
-Despite inlining, the scripts/bloat-o-meter report smaller .text size
-after applying the series:
-	add/remove: 11/9 grow/shrink: 233/176 up/down: 5780/-6768 (-988)
-
-Link: https://lkml.kernel.org/r/20210401003153.97325-10-yury.norov@gmail.com
-Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Alexey Klimov <aklimov@redhat.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jianpeng Ma <jianpeng.ma@intel.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Stefano Brivio <sbrivio@redhat.com>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Yoshinori Sato <ysato@users.osdn.me>
+Cc: Alexander Duyck <alexander.duyck@gmail.com>
+Cc: Alexander Lobakin <alobakin@pm.me>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/find.h |   30 ++++++++++++++++++++++++++++
- include/asm-generic/bitops/le.h   |   21 +++++++++++++++++++
- 2 files changed, 51 insertions(+)
+ mm/page_alloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/include/asm-generic/bitops/find.h~lib-add-fast-path-for-find_next__bit
-+++ a/include/asm-generic/bitops/find.h
-@@ -20,6 +20,16 @@ static inline
- unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
- 			    unsigned long offset)
- {
-+	if (small_const_nbits(size)) {
-+		unsigned long val;
-+
-+		if (unlikely(offset >= size))
-+			return size;
-+
-+		val = *addr & GENMASK(size - 1, offset);
-+		return val ? __ffs(val) : size;
-+	}
-+
- 	return _find_next_bit(addr, NULL, size, offset, 0UL, 0);
- }
- #endif
-@@ -40,6 +50,16 @@ unsigned long find_next_and_bit(const un
- 		const unsigned long *addr2, unsigned long size,
- 		unsigned long offset)
- {
-+	if (small_const_nbits(size)) {
-+		unsigned long val;
-+
-+		if (unlikely(offset >= size))
-+			return size;
-+
-+		val = *addr1 & *addr2 & GENMASK(size - 1, offset);
-+		return val ? __ffs(val) : size;
-+	}
-+
- 	return _find_next_bit(addr1, addr2, size, offset, 0UL, 0);
- }
- #endif
-@@ -58,6 +78,16 @@ static inline
- unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
- 				 unsigned long offset)
- {
-+	if (small_const_nbits(size)) {
-+		unsigned long val;
-+
-+		if (unlikely(offset >= size))
-+			return size;
-+
-+		val = *addr | ~GENMASK(size - 1, offset);
-+		return val == ~0UL ? size : ffz(val);
-+	}
-+
- 	return _find_next_bit(addr, NULL, size, offset, ~0UL, 0);
- }
- #endif
---- a/include/asm-generic/bitops/le.h~lib-add-fast-path-for-find_next__bit
-+++ a/include/asm-generic/bitops/le.h
-@@ -5,6 +5,7 @@
- #include <asm-generic/bitops/find.h>
- #include <asm/types.h>
- #include <asm/byteorder.h>
-+#include <linux/swab.h>
+--- a/mm/page_alloc.c~mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator-fix
++++ a/mm/page_alloc.c
+@@ -5040,7 +5040,6 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 	struct alloc_context ac;
+ 	gfp_t alloc_gfp;
+ 	unsigned int alloc_flags = ALLOC_WMARK_LOW;
+-	int allocated = 0;
+ 	int nr_populated = 0;
  
- #if defined(__LITTLE_ENDIAN)
- 
-@@ -37,6 +38,16 @@ static inline
- unsigned long find_next_zero_bit_le(const void *addr, unsigned
- 		long size, unsigned long offset)
- {
-+	if (small_const_nbits(size)) {
-+		unsigned long val = *(const unsigned long *)addr;
-+
-+		if (unlikely(offset >= size))
-+			return size;
-+
-+		val = swab(val) | ~GENMASK(size - 1, offset);
-+		return val == ~0UL ? size : ffz(val);
-+	}
-+
- 	return _find_next_bit(addr, NULL, size, offset, ~0UL, 1);
- }
- #endif
-@@ -46,6 +57,16 @@ static inline
- unsigned long find_next_bit_le(const void *addr, unsigned
- 		long size, unsigned long offset)
- {
-+	if (small_const_nbits(size)) {
-+		unsigned long val = *(const unsigned long *)addr;
-+
-+		if (unlikely(offset >= size))
-+			return size;
-+
-+		val = swab(val) & GENMASK(size - 1, offset);
-+		return val ? __ffs(val) : size;
-+	}
-+
- 	return _find_next_bit(addr, NULL, size, offset, 0UL, 1);
- }
- #endif
+ 	if (WARN_ON_ONCE(nr_pages <= 0))
 _
 
-Patches currently in -mm which might be from yury.norov@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-tools-disable-wno-type-limits.patch
-tools-bitmap-sync-function-declarations-with-the-kernel.patch
-tools-sync-bitmap_last_word_mask-macro-with-the-kernel.patch
-arch-rearrange-headers-inclusion-order-in-asm-bitops-for-m68k-and-sh.patch
-lib-extend-the-scope-of-small_const_nbits-macro.patch
-tools-sync-small_const_nbits-macro-with-the-kernel.patch
-lib-inline-_find_next_bit-wrappers.patch
-tools-sync-find_next_bit-implementation.patch
-lib-add-fast-path-for-find_next__bit.patch
-lib-add-fast-path-for-find_first__bit-and-find_last_bit.patch
-tools-sync-lib-find_bit-implementation.patch
-maintainers-add-entry-for-the-bitmap-api.patch
+kasan-remove-redundant-config-option-fix.patch
+mm-gup-check-page-posion-status-for-coredump-fix.patch
+mm.patch
+mm-memcontrol-switch-to-rstat-fix.patch
+mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator-fix.patch
+mm-vmscan-add-shrinker_info_protected-helper-fix.patch
+mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
