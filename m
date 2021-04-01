@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D26EC43461
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:35:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB0B0C433B4
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:43:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 32BBC61055
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:35:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A09D761056
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:43:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229959AbhDAAeg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Mar 2021 20:34:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47892 "EHLO mail.kernel.org"
+        id S232565AbhDAAnV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Mar 2021 20:43:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53456 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230349AbhDAAeU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 20:34:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E533260FEC;
-        Thu,  1 Apr 2021 00:34:19 +0000 (UTC)
+        id S229812AbhDAAnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 20:43:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 363576052B;
+        Thu,  1 Apr 2021 00:43:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617237260;
-        bh=sli+FEvZI4DhWD/MLhxWZarhMvCHAEwVDBwG2GsQEm0=;
+        s=korg; t=1617237787;
+        bh=vXY9B6d4bgKe5X9MaHT7bWeRm6upkJWsTp3EwLgo6VA=;
         h=Date:From:To:Subject:From;
-        b=zlqzKLyMRpBPx7IdVReawPWZDpO0+w/fkD0w7GE+7DNIEigkesU9P9QnRI/jecDBW
-         rCRzu+E8oGTakuAkvEjjSFo/fNo6XmKCk91hQ95u/3fwO94znYNZP6XYhzM4SdnaiJ
-         NUZ6SVPuGuDS8ebyLEgzhoRlfpLogDOV2AA7fKMo=
-Date:   Wed, 31 Mar 2021 17:34:19 -0700
+        b=OuZMEv5D57PAYry4NU6tY+2N23S/IpQ38BxrW5De4nxgYrqMccCSZBwH+B267yDnw
+         KGXeoz7JMc3g93XqtsXtUousHzPlKb2pEi3VYFXu6QzM6/BuKRrqTFvygnUVirDBB6
+         H+w4zihg8L8N+DOly4BcNzHrmctNHJsULpssHqi4=
+Date:   Wed, 31 Mar 2021 17:43:06 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        yury.norov@gmail.com
-Subject:  +
- arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch added to
- -mm tree
-Message-ID: <20210401003419.-S30sz-Bs%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
+        vbabka@suse.cz
+Subject:  [folded-merged]
+ selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch
+ removed from -mm tree
+Message-ID: <20210401004306.-mSZB4avx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,78 +44,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memfd_secret: use unsigned int rather than long as syscall flags type
-has been added to the -mm tree.  Its filename is
-     arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch
+     Subject: selftests: add a kselftest for SLUB debugging functionality-fix
+has been removed from the -mm tree.  Its filename was
+     selftests-add-a-kselftest-for-slub-debugging-functionality-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into selftests-add-a-kselftest-for-slub-debugging-functionality.patch
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: memfd_secret: use unsigned int rather than long as syscall flags type
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: selftests: add a kselftest for SLUB debugging functionality-fix
 
-Yuri Norov says:
+Remove a BUILD_BUG_ON left over from original resiliency_test() that breaks
+builds.
 
-  If parameter size is the same for native and compat ABIs, we may
-  wire a syscall made by compat client to native handler. This is
-  true for unsigned int, but not true for unsigned long or pointer.
-
-  That's why I suggest using unsigned int and so avoid creating compat
-  entry point.
-
-Use unsigned int as the type of the flags parameter in memfd_secret()
-system call.
-
-Link: https://lkml.kernel.org/r/20210331142345.27532-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Yury Norov <yury.norov@gmail.com>
+Link: https://lkml.kernel.org/r/53cc267d-aa0a-071a-f9f8-0b47ec4b2b9d@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/syscalls.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_slub.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/include/linux/syscalls.h~arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix
-+++ a/include/linux/syscalls.h
-@@ -1050,7 +1050,7 @@ asmlinkage long sys_landlock_create_rule
- asmlinkage long sys_landlock_add_rule(int ruleset_fd, enum landlock_rule_type rule_type,
- 		const void __user *rule_attr, __u32 flags);
- asmlinkage long sys_landlock_restrict_self(int ruleset_fd, __u32 flags);
--asmlinkage long sys_memfd_secret(unsigned long flags);
-+asmlinkage long sys_memfd_secret(unsigned int flags);
+--- a/lib/test_slub.c~selftests-add-a-kselftest-for-slub-debugging-functionality-fix
++++ a/lib/test_slub.c
+@@ -97,9 +97,6 @@ static void __init test_clobber_redzone_
  
- /*
-  * Architecture-specific system calls
+ static void __init resiliency_test(void)
+ {
+-
+-	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 16 || KMALLOC_SHIFT_HIGH < 10);
+-
+ 	pr_err("SLUB resiliency testing\n");
+ 	pr_err("-----------------------\n");
+ 	pr_err("A. Corruption after allocation\n");
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-nds32-flush_dcache_page-use-page_mapping_file-to-avoid-races-with-swapoff.patch
-mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin-fix.patch
-mmap-make-mlock_future_check-global.patch
-riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
-set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-pm-hibernate-disable-when-there-are-active-secretmem-users.patch
-arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
-arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch
-secretmem-test-add-basic-selftest-for-memfd_secret2.patch
-secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
+mm-slub-enable-slub_debug-static-key-when-creating-cache-with-explicit-debug-flags.patch
+selftests-add-a-kselftest-for-slub-debugging-functionality.patch
 
