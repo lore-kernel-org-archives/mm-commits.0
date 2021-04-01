@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8A6DC43600
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D767EC43616
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:54:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B70A4610E8
+	by mail.kernel.org (Postfix) with ESMTP id C62EA610CF
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Apr 2021 00:54:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232718AbhDAAyT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232623AbhDAAyT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 31 Mar 2021 20:54:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33276 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33228 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232782AbhDAAyH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 31 Mar 2021 20:54:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 06CF8610A0;
-        Thu,  1 Apr 2021 00:54:06 +0000 (UTC)
+        id S232763AbhDAAyF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 31 Mar 2021 20:54:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1F90C610A2;
+        Thu,  1 Apr 2021 00:54:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617238447;
-        bh=xxul6ept7ut2p7VGK85SwaUoaFezfWKuv0St5eQS+Lg=;
+        s=korg; t=1617238444;
+        bh=UdmncOoJS/a4Yzyrp7nczWFimA0P7fCol0rApg2BLH8=;
         h=Date:From:To:Subject:From;
-        b=nmwF8S1U9Nh2+WuTeDCNVfdzWyVP4qogKYD2nJlDEb//wD5K9fWhslK2Hvec6axuS
-         /rc/dKXYcDrKLt+6O2xJu4/EKZayMU1CUdtQ4dlV22cgYK6r7gvJJARCKSr7/apOa8
-         RHbN3YHxxImuLdaJMp2VdByZhImcsHgvJ80z90Uw=
-Date:   Wed, 31 Mar 2021 17:54:06 -0700
+        b=URJ9c4D7J5TZvFp2pbW8oier0wsBkjvaJLk9aR7/rT7aot+SkyqZ6nTIecxbyloKW
+         UyTz1ZFi72gGw7C0ADSZvd2X9Jf5kZws7o2NrsrqHggE+MvLC815nGXn6Fz6cDuUL2
+         ya3yo8mOyzJdkuEk5TGe+LfbsZ61kKwMQ9pJjzaQ=
+Date:   Wed, 31 Mar 2021 17:54:03 -0700
 From:   akpm@linux-foundation.org
 To:     aklimov@redhat.com, andriy.shevchenko@linux.intel.com,
         arnd@arndb.de, dalias@libc.org, dennis@kernel.org,
@@ -38,10 +38,9 @@ To:     aklimov@redhat.com, andriy.shevchenko@linux.intel.com,
         mm-commits@vger.kernel.org, richard.weiyang@linux.alibaba.com,
         sbrivio@redhat.com, wsa+renesas@sang-engineering.com,
         ysato@users.osdn.me, yury.norov@gmail.com
-Subject:  +
- lib-add-fast-path-for-find_first__bit-and-find_last_bit.patch added to -mm
+Subject:  + lib-add-fast-path-for-find_next__bit.patch added to -mm
  tree
-Message-ID: <20210401005406.NF6-_eBld%akpm@linux-foundation.org>
+Message-ID: <20210401005403.wAyXjr-Rr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: add fast path for find_first_*_bit() and find_last_bit()
+     Subject: lib: add fast path for find_next_*_bit()
 has been added to the -mm tree.  Its filename is
-     lib-add-fast-path-for-find_first__bit-and-find_last_bit.patch
+     lib-add-fast-path-for-find_next__bit.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-add-fast-path-for-find_first__bit-and-find_last_bit.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-add-fast-path-for-find_next__bit.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-add-fast-path-for-find_first__bit-and-find_last_bit.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-add-fast-path-for-find_next__bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,15 +71,64 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: lib: add fast path for find_first_*_bit() and find_last_bit()
+Subject: lib: add fast path for find_next_*_bit()
 
-Similarly to bitmap functions, users would benefit if we'll handle a case
-of small-size bitmaps that fit into a single word.
+Similarly to bitmap functions, find_next_*_bit() users will benefit if
+we'll handle a case of bitmaps that fit into a single word inline.  In the
+very best case, the compiler may replace a function call with a few
+instructions.
 
-While here, move the find_last_bit() declaration to bitops/find.h where
-other find_*_bit() functions sit.
+This is the quite typical find_next_bit() user:
 
-Link: https://lkml.kernel.org/r/20210401003153.97325-11-yury.norov@gmail.com
+	unsigned int cpumask_next(int n, const struct cpumask *srcp)
+	{
+		/* -1 is a legal arg here. */
+		if (n != -1)
+			cpumask_check(n);
+		return find_next_bit(cpumask_bits(srcp), nr_cpumask_bits, n + 1);
+	}
+	EXPORT_SYMBOL(cpumask_next);
+
+Currently, on ARM64 the generated code looks like this:
+	0000000000000000 <cpumask_next>:
+	   0:   a9bf7bfd        stp     x29, x30, [sp, #-16]!
+	   4:   11000402        add     w2, w0, #0x1
+	   8:   aa0103e0        mov     x0, x1
+	   c:   d2800401        mov     x1, #0x40                       // #64
+	  10:   910003fd        mov     x29, sp
+	  14:   93407c42        sxtw    x2, w2
+	  18:   94000000        bl      0 <find_next_bit>
+	  1c:   a8c17bfd        ldp     x29, x30, [sp], #16
+	  20:   d65f03c0        ret
+	  24:   d503201f        nop
+
+After applying this patch:
+	0000000000000140 <cpumask_next>:
+	 140:   11000400        add     w0, w0, #0x1
+	 144:   93407c00        sxtw    x0, w0
+	 148:   f100fc1f        cmp     x0, #0x3f
+	 14c:   54000168        b.hi    178 <cpumask_next+0x38>  // b.pmore
+	 150:   f9400023        ldr     x3, [x1]
+	 154:   92800001        mov     x1, #0xffffffffffffffff         // #-1
+	 158:   9ac02020        lsl     x0, x1, x0
+	 15c:   52800802        mov     w2, #0x40                       // #64
+	 160:   8a030001        and     x1, x0, x3
+	 164:   dac00020        rbit    x0, x1
+	 168:   f100003f        cmp     x1, #0x0
+	 16c:   dac01000        clz     x0, x0
+	 170:   1a800040        csel    w0, w2, w0, eq  // eq = none
+	 174:   d65f03c0        ret
+	 178:   52800800        mov     w0, #0x40                       // #64
+	 17c:   d65f03c0        ret
+
+find_next_bit() call is replaced with 6 instructions.  find_next_bit()
+itself is 41 instructions plus function call overhead.
+
+Despite inlining, the scripts/bloat-o-meter report smaller .text size
+after applying the series:
+	add/remove: 11/9 grow/shrink: 233/176 up/down: 5780/-6768 (-988)
+
+Link: https://lkml.kernel.org/r/20210401003153.97325-10-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Alexey Klimov <aklimov@redhat.com>
@@ -101,162 +149,107 @@ Cc: Yoshinori Sato <ysato@users.osdn.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/find.h |   50 +++++++++++++++++++++++++---
- include/linux/bitops.h            |   12 ------
- lib/find_bit.c                    |   12 +++---
- 3 files changed, 52 insertions(+), 22 deletions(-)
+ include/asm-generic/bitops/find.h |   30 ++++++++++++++++++++++++++++
+ include/asm-generic/bitops/le.h   |   21 +++++++++++++++++++
+ 2 files changed, 51 insertions(+)
 
---- a/include/asm-generic/bitops/find.h~lib-add-fast-path-for-find_first__bit-and-find_last_bit
+--- a/include/asm-generic/bitops/find.h~lib-add-fast-path-for-find_next__bit
 +++ a/include/asm-generic/bitops/find.h
-@@ -5,6 +5,9 @@
- extern unsigned long _find_next_bit(const unsigned long *addr1,
- 		const unsigned long *addr2, unsigned long nbits,
- 		unsigned long start, unsigned long invert, unsigned long le);
-+extern unsigned long _find_first_bit(const unsigned long *addr, unsigned long size);
-+extern unsigned long _find_first_zero_bit(const unsigned long *addr, unsigned long size);
-+extern unsigned long _find_last_bit(const unsigned long *addr, unsigned long size);
- 
- #ifndef find_next_bit
- /**
-@@ -102,8 +105,17 @@ unsigned long find_next_zero_bit(const u
-  * Returns the bit number of the first set bit.
-  * If no bits are set, returns @size.
-  */
--extern unsigned long find_first_bit(const unsigned long *addr,
--				    unsigned long size);
-+static inline
-+unsigned long find_first_bit(const unsigned long *addr, unsigned long size)
-+{
+@@ -20,6 +20,16 @@ static inline
+ unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
+ 			    unsigned long offset)
+ {
 +	if (small_const_nbits(size)) {
-+		unsigned long val = *addr & GENMASK(size - 1, 0);
++		unsigned long val;
 +
++		if (unlikely(offset >= size))
++			return size;
++
++		val = *addr & GENMASK(size - 1, offset);
 +		return val ? __ffs(val) : size;
 +	}
 +
-+	return _find_first_bit(addr, size);
-+}
- 
- /**
-  * find_first_zero_bit - find the first cleared bit in a memory region
-@@ -113,8 +125,17 @@ extern unsigned long find_first_bit(cons
-  * Returns the bit number of the first cleared bit.
-  * If no bits are zero, returns @size.
-  */
--extern unsigned long find_first_zero_bit(const unsigned long *addr,
--					 unsigned long size);
-+static inline
-+unsigned long find_first_zero_bit(const unsigned long *addr, unsigned long size)
-+{
+ 	return _find_next_bit(addr, NULL, size, offset, 0UL, 0);
+ }
+ #endif
+@@ -40,6 +50,16 @@ unsigned long find_next_and_bit(const un
+ 		const unsigned long *addr2, unsigned long size,
+ 		unsigned long offset)
+ {
 +	if (small_const_nbits(size)) {
-+		unsigned long val = *addr | ~GENMASK(size - 1, 0);
++		unsigned long val;
 +
++		if (unlikely(offset >= size))
++			return size;
++
++		val = *addr1 & *addr2 & GENMASK(size - 1, offset);
++		return val ? __ffs(val) : size;
++	}
++
+ 	return _find_next_bit(addr1, addr2, size, offset, 0UL, 0);
+ }
+ #endif
+@@ -58,6 +78,16 @@ static inline
+ unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
+ 				 unsigned long offset)
+ {
++	if (small_const_nbits(size)) {
++		unsigned long val;
++
++		if (unlikely(offset >= size))
++			return size;
++
++		val = *addr | ~GENMASK(size - 1, offset);
 +		return val == ~0UL ? size : ffz(val);
 +	}
 +
-+	return _find_first_zero_bit(addr, size);
-+}
- #else /* CONFIG_GENERIC_FIND_FIRST_BIT */
+ 	return _find_next_bit(addr, NULL, size, offset, ~0UL, 0);
+ }
+ #endif
+--- a/include/asm-generic/bitops/le.h~lib-add-fast-path-for-find_next__bit
++++ a/include/asm-generic/bitops/le.h
+@@ -5,6 +5,7 @@
+ #include <asm-generic/bitops/find.h>
+ #include <asm/types.h>
+ #include <asm/byteorder.h>
++#include <linux/swab.h>
  
- #ifndef find_first_bit
-@@ -126,6 +147,27 @@ extern unsigned long find_first_zero_bit
+ #if defined(__LITTLE_ENDIAN)
  
- #endif /* CONFIG_GENERIC_FIND_FIRST_BIT */
- 
-+#ifndef find_last_bit
-+/**
-+ * find_last_bit - find the last set bit in a memory region
-+ * @addr: The address to start the search at
-+ * @size: The number of bits to search
-+ *
-+ * Returns the bit number of the last set bit, or size.
-+ */
-+static inline
-+unsigned long find_last_bit(const unsigned long *addr, unsigned long size)
-+{
+@@ -37,6 +38,16 @@ static inline
+ unsigned long find_next_zero_bit_le(const void *addr, unsigned
+ 		long size, unsigned long offset)
+ {
 +	if (small_const_nbits(size)) {
-+		unsigned long val = *addr & GENMASK(size - 1, 0);
++		unsigned long val = *(const unsigned long *)addr;
 +
-+		return val ? __fls(val) : size;
++		if (unlikely(offset >= size))
++			return size;
++
++		val = swab(val) | ~GENMASK(size - 1, offset);
++		return val == ~0UL ? size : ffz(val);
 +	}
 +
-+	return _find_last_bit(addr, size);
-+}
-+#endif
+ 	return _find_next_bit(addr, NULL, size, offset, ~0UL, 1);
+ }
+ #endif
+@@ -46,6 +57,16 @@ static inline
+ unsigned long find_next_bit_le(const void *addr, unsigned
+ 		long size, unsigned long offset)
+ {
++	if (small_const_nbits(size)) {
++		unsigned long val = *(const unsigned long *)addr;
 +
- /**
-  * find_next_clump8 - find next 8-bit clump with set bits in a memory region
-  * @clump: location to store copy of found clump
---- a/include/linux/bitops.h~lib-add-fast-path-for-find_first__bit-and-find_last_bit
-+++ a/include/linux/bitops.h
-@@ -286,17 +286,5 @@ static __always_inline void __assign_bit
- })
- #endif
- 
--#ifndef find_last_bit
--/**
-- * find_last_bit - find the last set bit in a memory region
-- * @addr: The address to start the search at
-- * @size: The number of bits to search
-- *
-- * Returns the bit number of the last set bit, or size.
-- */
--extern unsigned long find_last_bit(const unsigned long *addr,
--				   unsigned long size);
--#endif
--
- #endif /* __KERNEL__ */
- #endif
---- a/lib/find_bit.c~lib-add-fast-path-for-find_first__bit-and-find_last_bit
-+++ a/lib/find_bit.c
-@@ -75,7 +75,7 @@ EXPORT_SYMBOL(_find_next_bit);
- /*
-  * Find the first set bit in a memory region.
-  */
--unsigned long find_first_bit(const unsigned long *addr, unsigned long size)
-+unsigned long _find_first_bit(const unsigned long *addr, unsigned long size)
- {
- 	unsigned long idx;
- 
-@@ -86,14 +86,14 @@ unsigned long find_first_bit(const unsig
- 
- 	return size;
++		if (unlikely(offset >= size))
++			return size;
++
++		val = swab(val) & GENMASK(size - 1, offset);
++		return val ? __ffs(val) : size;
++	}
++
+ 	return _find_next_bit(addr, NULL, size, offset, 0UL, 1);
  }
--EXPORT_SYMBOL(find_first_bit);
-+EXPORT_SYMBOL(_find_first_bit);
  #endif
- 
- #ifndef find_first_zero_bit
- /*
-  * Find the first cleared bit in a memory region.
-  */
--unsigned long find_first_zero_bit(const unsigned long *addr, unsigned long size)
-+unsigned long _find_first_zero_bit(const unsigned long *addr, unsigned long size)
- {
- 	unsigned long idx;
- 
-@@ -104,11 +104,11 @@ unsigned long find_first_zero_bit(const
- 
- 	return size;
- }
--EXPORT_SYMBOL(find_first_zero_bit);
-+EXPORT_SYMBOL(_find_first_zero_bit);
- #endif
- 
- #ifndef find_last_bit
--unsigned long find_last_bit(const unsigned long *addr, unsigned long size)
-+unsigned long _find_last_bit(const unsigned long *addr, unsigned long size)
- {
- 	if (size) {
- 		unsigned long val = BITMAP_LAST_WORD_MASK(size);
-@@ -124,7 +124,7 @@ unsigned long find_last_bit(const unsign
- 	}
- 	return size;
- }
--EXPORT_SYMBOL(find_last_bit);
-+EXPORT_SYMBOL(_find_last_bit);
- #endif
- 
- unsigned long find_next_clump8(unsigned long *clump, const unsigned long *addr,
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
