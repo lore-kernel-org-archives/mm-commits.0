@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 564B3C43460
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Apr 2021 22:01:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46B1BC433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Apr 2021 22:01:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2129761184
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Apr 2021 22:01:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1377061185
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Apr 2021 22:01:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234821AbhDBWBi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Apr 2021 18:01:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38510 "EHLO mail.kernel.org"
+        id S231577AbhDBWBk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Apr 2021 18:01:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38540 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229722AbhDBWBh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 2 Apr 2021 18:01:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D817661183;
-        Fri,  2 Apr 2021 22:01:35 +0000 (UTC)
+        id S229722AbhDBWBj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 2 Apr 2021 18:01:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EE79E61181;
+        Fri,  2 Apr 2021 22:01:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617400896;
-        bh=9jEuIfMe1aNLeqluhem1MT1e5jOkQDcTqvv9RObtSe4=;
+        s=korg; t=1617400898;
+        bh=EEmzLW5oPobOcf3KOfVmhOZcyaeGwrwHoOLaRRk/2/Y=;
         h=Date:From:To:Subject:From;
-        b=lX2en3CmZXXMWCTrYRWA60SyEzZXLAfedszH73O5qkXC6zKbvy6vxWuPN0gqh1PVU
-         w174pVj8DWckGAoEm1okKGh9WSYKVROLGWDLCn9RdTX61LA/gKu1zCxQunf+yJwcXA
-         DrdAvYxOjeX1JHJpN76AZaZXP5H8yLybP16fLYuI=
-Date:   Fri, 02 Apr 2021 15:01:35 -0700
+        b=vI1OKx8nP9Jf8/gHl2NdD3kHbvux7HbI2PIonrjLRO5kQ+4v+IC6daonKfU52SGZX
+         TsQ83d3eAqcIRN3xwiDwdwAvYa2Tb6r32BB8qnPWTQUX1aKPwiP6tqAVFe7WMeS8Mx
+         wfS02FmtDe4AYYDTP1bDhqpzBKaoGUGKccKxHF+k=
+Date:   Fri, 02 Apr 2021 15:01:37 -0700
 From:   akpm@linux-foundation.org
 To:     hdanton@sina.com, mhocko@suse.com, mm-commits@vger.kernel.org,
         oleksiy.avramchenko@sonymobile.com, rostedt@goodmis.org,
         shuah@kernel.org, urezki@gmail.com, willy@infradead.org
-Subject:  +
- vm-test_vmallocsh-adapt-for-updated-driver-interface.patch added to -mm
- tree
-Message-ID: <20210402220135.1QZGBgSB0%akpm@linux-foundation.org>
+Subject:  + mm-vmalloc-refactor-the-preloading-loagic.patch added
+ to -mm tree
+Message-ID: <20210402220137.9RhqRm9_X%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vm/test_vmalloc.sh: adapt for updated driver interface
+     Subject: mm/vmalloc: refactor the preloading loagic
 has been added to the -mm tree.  Its filename is
-     vm-test_vmallocsh-adapt-for-updated-driver-interface.patch
+     mm-vmalloc-refactor-the-preloading-loagic.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/vm-test_vmallocsh-adapt-for-updated-driver-interface.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-refactor-the-preloading-loagic.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/vm-test_vmallocsh-adapt-for-updated-driver-interface.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-refactor-the-preloading-loagic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,87 +66,116 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: vm/test_vmalloc.sh: adapt for updated driver interface
+Subject: mm/vmalloc: refactor the preloading loagic
 
-A 'single_cpu_test' parameter is odd and it does not exist anymore. 
-Instead there was introduced a 'nr_threads' one.  If it is not set it
-behaves as the former parameter.
+Instead of keeping open-coded style, move the code related to preloading
+into a separate function.  Therefore introduce the preload_this_cpu_lock()
+routine that prelaods a current CPU with one extra vmap_area object.
 
-That is why update a "stress mode" according to this change specifying
-number of workers which are equal to number of CPUs.  Also update an
-output of help message based on a new interface.
+There is no functional change as a result of this patch.
 
-Link: https://lkml.kernel.org/r/20210402202237.20334-3-urezki@gmail.com
+Link: https://lkml.kernel.org/r/20210402202237.20334-4-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/test_vmalloc.sh |   21 +++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ mm/vmalloc.c |   60 ++++++++++++++++++++++---------------------------
+ 1 file changed, 27 insertions(+), 33 deletions(-)
 
---- a/tools/testing/selftests/vm/test_vmalloc.sh~vm-test_vmallocsh-adapt-for-updated-driver-interface
-+++ a/tools/testing/selftests/vm/test_vmalloc.sh
-@@ -11,6 +11,7 @@
+--- a/mm/vmalloc.c~mm-vmalloc-refactor-the-preloading-loagic
++++ a/mm/vmalloc.c
+@@ -1430,6 +1430,29 @@ static void free_vmap_area(struct vmap_a
+ 	spin_unlock(&free_vmap_area_lock);
+ }
  
- TEST_NAME="vmalloc"
- DRIVER="test_${TEST_NAME}"
-+NUM_CPUS=`grep -c ^processor /proc/cpuinfo`
- 
- # 1 if fails
- exitcode=1
-@@ -22,9 +23,9 @@ ksft_skip=4
- # Static templates for performance, stressing and smoke tests.
- # Also it is possible to pass any supported parameters manualy.
- #
--PERF_PARAM="single_cpu_test=1 sequential_test_order=1 test_repeat_count=3"
--SMOKE_PARAM="single_cpu_test=1 test_loop_count=10000 test_repeat_count=10"
--STRESS_PARAM="test_repeat_count=20"
-+PERF_PARAM="sequential_test_order=1 test_repeat_count=3"
-+SMOKE_PARAM="test_loop_count=10000 test_repeat_count=10"
-+STRESS_PARAM="nr_threads=$NUM_CPUS test_repeat_count=20"
- 
- check_test_requirements()
++static inline void
++preload_this_cpu_lock(spinlock_t *lock, gfp_t gfp_mask, int node)
++{
++	struct vmap_area *va = NULL;
++
++	/*
++	 * Preload this CPU with one extra vmap_area object. It is used
++	 * when fit type of free area is NE_FIT_TYPE. It guarantees that
++	 * a CPU that does an allocation is preloaded.
++	 *
++	 * We do it in non-atomic context, thus it allows us to use more
++	 * permissive allocation masks to be more stable under low memory
++	 * condition and high memory pressure.
++	 */
++	if (!this_cpu_read(ne_fit_preload_node))
++		va = kmem_cache_alloc_node(vmap_area_cachep, gfp_mask, node);
++
++	spin_lock(lock);
++
++	if (va && __this_cpu_cmpxchg(ne_fit_preload_node, NULL, va))
++		kmem_cache_free(vmap_area_cachep, va);
++}
++
+ /*
+  * Allocate a region of KVA of the specified size and alignment, within the
+  * vstart and vend.
+@@ -1439,7 +1462,7 @@ static struct vmap_area *alloc_vmap_area
+ 				unsigned long vstart, unsigned long vend,
+ 				int node, gfp_t gfp_mask)
  {
-@@ -58,8 +59,8 @@ run_perfformance_check()
+-	struct vmap_area *va, *pva;
++	struct vmap_area *va;
+ 	unsigned long addr;
+ 	int purged = 0;
+ 	int ret;
+@@ -1465,43 +1488,14 @@ static struct vmap_area *alloc_vmap_area
+ 	kmemleak_scan_area(&va->rb_node, SIZE_MAX, gfp_mask);
  
- run_stability_check()
- {
--	echo "Run stability tests. In order to stress vmalloc subsystem we run"
--	echo "all available test cases on all available CPUs simultaneously."
-+	echo "Run stability tests. In order to stress vmalloc subsystem all"
-+	echo "available test cases are run by NUM_CPUS workers simultaneously."
- 	echo "It will take time, so be patient."
+ retry:
+-	/*
+-	 * Preload this CPU with one extra vmap_area object. It is used
+-	 * when fit type of free area is NE_FIT_TYPE. Please note, it
+-	 * does not guarantee that an allocation occurs on a CPU that
+-	 * is preloaded, instead we minimize the case when it is not.
+-	 * It can happen because of cpu migration, because there is a
+-	 * race until the below spinlock is taken.
+-	 *
+-	 * The preload is done in non-atomic context, thus it allows us
+-	 * to use more permissive allocation masks to be more stable under
+-	 * low memory condition and high memory pressure. In rare case,
+-	 * if not preloaded, GFP_NOWAIT is used.
+-	 *
+-	 * Set "pva" to NULL here, because of "retry" path.
+-	 */
+-	pva = NULL;
+-
+-	if (!this_cpu_read(ne_fit_preload_node))
+-		/*
+-		 * Even if it fails we do not really care about that.
+-		 * Just proceed as it is. If needed "overflow" path
+-		 * will refill the cache we allocate from.
+-		 */
+-		pva = kmem_cache_alloc_node(vmap_area_cachep, gfp_mask, node);
+-
+-	spin_lock(&free_vmap_area_lock);
+-
+-	if (pva && __this_cpu_cmpxchg(ne_fit_preload_node, NULL, pva))
+-		kmem_cache_free(vmap_area_cachep, pva);
++	preload_this_cpu_lock(&free_vmap_area_lock, gfp_mask, node);
++	addr = __alloc_vmap_area(size, align, vstart, vend);
++	spin_unlock(&free_vmap_area_lock);
  
- 	modprobe $DRIVER $STRESS_PARAM > /dev/null 2>&1
-@@ -92,17 +93,17 @@ usage()
- 	echo "# Shows help message"
- 	echo "./${DRIVER}.sh"
- 	echo
--	echo "# Runs 1 test(id_1), repeats it 5 times on all online CPUs"
--	echo "./${DRIVER}.sh run_test_mask=1 test_repeat_count=5"
-+	echo "# Runs 1 test(id_1), repeats it 5 times by NUM_CPUS workers"
-+	echo "./${DRIVER}.sh nr_threads=$NUM_CPUS run_test_mask=1 test_repeat_count=5"
- 	echo
- 	echo -n "# Runs 4 tests(id_1|id_2|id_4|id_16) on one CPU with "
- 	echo "sequential order"
--	echo -n "./${DRIVER}.sh single_cpu_test=1 sequential_test_order=1 "
-+	echo -n "./${DRIVER}.sh sequential_test_order=1 "
- 	echo "run_test_mask=23"
- 	echo
--	echo -n "# Runs all tests on all online CPUs, shuffled order, repeats "
-+	echo -n "# Runs all tests by NUM_CPUS workers, shuffled order, repeats "
- 	echo "20 times"
--	echo "./${DRIVER}.sh test_repeat_count=20"
-+	echo "./${DRIVER}.sh nr_threads=$NUM_CPUS test_repeat_count=20"
- 	echo
- 	echo "# Performance analysis"
- 	echo "./${DRIVER}.sh performance"
+ 	/*
+ 	 * If an allocation fails, the "vend" address is
+ 	 * returned. Therefore trigger the overflow path.
+ 	 */
+-	addr = __alloc_vmap_area(size, align, vstart, vend);
+-	spin_unlock(&free_vmap_area_lock);
+-
+ 	if (unlikely(addr == vend))
+ 		goto overflow;
+ 
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
