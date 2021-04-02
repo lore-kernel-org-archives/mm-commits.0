@@ -7,34 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7DDBC433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Apr 2021 22:01:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BA7BC433ED
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Apr 2021 22:16:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9130461186
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Apr 2021 22:01:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 370F761178
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Apr 2021 22:16:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235256AbhDBWBn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Apr 2021 18:01:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38570 "EHLO mail.kernel.org"
+        id S231443AbhDBWQY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Apr 2021 18:16:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43176 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234207AbhDBWBn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 2 Apr 2021 18:01:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 559696117A;
-        Fri,  2 Apr 2021 22:01:41 +0000 (UTC)
+        id S231406AbhDBWQX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 2 Apr 2021 18:16:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C2D43601FC;
+        Fri,  2 Apr 2021 22:16:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617400901;
-        bh=cnnSB0a8eZX7ALwKc0q8R91tjdFF07yRlUDPp5EppAg=;
+        s=korg; t=1617401782;
+        bh=lHr61wfv4q0ggLTdYM1prU6Az4WAOqnKw2jnbfREoqE=;
         h=Date:From:To:Subject:From;
-        b=2pIL0Apw3I/aZp6D3FUPIym4e1IhU6gM05NhOLHVFm4fhdx6EOWgoh9aZYOlrrzHU
-         1eopO8qnq+j7zZ39vpSKrc6ZNoaiJE66OU9fo2KjrqC/PuB/JuOq8GLotjqESfWQdy
-         ZX2IlyhnUYF3drD/3ah8lckwXKpWxKpAScZFzWg8=
-Date:   Fri, 02 Apr 2021 15:01:40 -0700
+        b=HWDfXRbxNZnoL+aTl+YZSvDm8KDNA5okMlhxKKNwjDRVGXzPFg55yEmO6cNcDHJIx
+         BefoIB07LPYosp0aWbmcOZzwMy0/JHvXTVsEH+Xg0h+KpTL82uybN2Flp0KTzDkyvo
+         HUtst0ZuF8sAzIPPX2CCd9dDjzoz49/1zfKTiemk=
+Date:   Fri, 02 Apr 2021 15:16:21 -0700
 From:   akpm@linux-foundation.org
-To:     hdanton@sina.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        oleksiy.avramchenko@sonymobile.com, rostedt@goodmis.org,
-        shuah@kernel.org, urezki@gmail.com, willy@infradead.org
-Subject:  + mm-vmalloc-remove-an-empty-line.patch added to -mm tree
-Message-ID: <20210402220140.WxLbGejo5%akpm@linux-foundation.org>
+To:     gechangwei@live.cn, ghe@suse.com, jiangqi903@gmail.com,
+        jlbec@evilplan.org, junxiao.bi@oracle.com, mark@fasheh.com,
+        mm-commits@vger.kernel.org, piaojun@huawei.com,
+        wen.gang.wang@oracle.com
+Subject:  +
+ ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write-v2.patch added to
+ -mm tree
+Message-ID: <20210402221621.hk6nKwXYG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: remove an empty line
+     Subject: ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write-v2
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-remove-an-empty-line.patch
+     ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write-v2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-remove-an-empty-line.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write-v2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-remove-an-empty-line.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,41 +67,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: remove an empty line
+From: Wengang Wang <wen.gang.wang@oracle.com>
+Subject: ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write-v2
 
-Link: https://lkml.kernel.org/r/20210402202237.20334-5-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+remove the "had_alloc_lock" as suggested
+
+Link: https://lkml.kernel.org/r/20210402171344.1605-1-wen.gang.wang@oracle.com
+Cc: stable@vger.kernel.org
+Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ocfs2/file.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-remove-an-empty-line
-+++ a/mm/vmalloc.c
-@@ -1503,7 +1503,6 @@ retry:
- 	va->va_end = addr + size;
- 	va->vm = NULL;
+--- a/fs/ocfs2/file.c~ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write-v2
++++ a/fs/ocfs2/file.c
+@@ -1124,7 +1124,7 @@ int ocfs2_setattr(struct user_namespace
+ 	handle_t *handle = NULL;
+ 	struct dquot *transfer_to[MAXQUOTAS] = { };
+ 	int qtype;
+-	int had_lock, had_alloc_lock = 0;
++	int had_lock;
+ 	struct ocfs2_lock_holder oh;
  
+ 	trace_ocfs2_setattr(inode, dentry,
+@@ -1246,27 +1246,23 @@ int ocfs2_setattr(struct user_namespace
+ 			}
+ 		}
+ 		down_write(&OCFS2_I(inode)->ip_alloc_sem);
+-		had_alloc_lock = 1;
 -
- 	spin_lock(&vmap_area_lock);
- 	insert_vmap_area(va, &vmap_area_root, &vmap_area_list);
- 	spin_unlock(&vmap_area_lock);
+ 		handle = ocfs2_start_trans(osb, OCFS2_INODE_UPDATE_CREDITS +
+ 					   2 * ocfs2_quota_trans_credits(sb));
+ 		if (IS_ERR(handle)) {
+ 			status = PTR_ERR(handle);
+ 			mlog_errno(status);
+-			goto bail_unlock;
++			goto bail_unlock_alloc;
+ 		}
+ 		status = __dquot_transfer(inode, transfer_to);
+ 		if (status < 0)
+ 			goto bail_commit;
+ 	} else {
+ 		down_write(&OCFS2_I(inode)->ip_alloc_sem);
+-		had_alloc_lock = 1;
+-
+ 		handle = ocfs2_start_trans(osb, OCFS2_INODE_UPDATE_CREDITS);
+ 		if (IS_ERR(handle)) {
+ 			status = PTR_ERR(handle);
+ 			mlog_errno(status);
+-			goto bail_unlock;
++			goto bail_unlock_alloc;
+ 		}
+ 	}
+ 
+@@ -1279,10 +1275,9 @@ int ocfs2_setattr(struct user_namespace
+ 
+ bail_commit:
+ 	ocfs2_commit_trans(osb, handle);
++bail_unlock_alloc:
++	up_write(&OCFS2_I(inode)->ip_alloc_sem);
+ bail_unlock:
+-	if (had_alloc_lock)
+-		up_write(&OCFS2_I(inode)->ip_alloc_sem);
+-
+ 	if (status && inode_locked) {
+ 		ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
+ 		inode_locked = 0;
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from wen.gang.wang@oracle.com are
 
-mm-vmalloc-improve-allocation-failure-error-messages-fix.patch
-lib-test_vmallocc-remove-two-kvfree_rcu-tests.patch
-lib-test_vmallocc-add-a-new-nr_threads-parameter.patch
-vm-test_vmallocsh-adapt-for-updated-driver-interface.patch
-mm-vmalloc-refactor-the-preloading-loagic.patch
-mm-vmalloc-remove-an-empty-line.patch
+ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write.patch
+ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write-v2.patch
 
