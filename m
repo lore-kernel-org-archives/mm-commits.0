@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DDDCC433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Apr 2021 00:15:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D153C433ED
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Apr 2021 00:27:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41043610D1
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Apr 2021 00:15:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E6B20610E9
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Apr 2021 00:27:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235296AbhDBAPl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Apr 2021 20:15:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58304 "EHLO mail.kernel.org"
+        id S236345AbhDBA11 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Apr 2021 20:27:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34568 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233677AbhDBAPl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 1 Apr 2021 20:15:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A267A610CF;
-        Fri,  2 Apr 2021 00:15:39 +0000 (UTC)
+        id S233677AbhDBA10 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 1 Apr 2021 20:27:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 01AB461132;
+        Fri,  2 Apr 2021 00:27:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617322539;
-        bh=Cq4DLmZU1sf92BCU8eEShwb76LdU8qvDuwKsLLLL7HU=;
+        s=korg; t=1617323245;
+        bh=JaHlRgyfCzdGGy+4Hv0e7EY6+AkXhPH12pRNPQCfNpk=;
         h=Date:From:To:Subject:From;
-        b=om4i2XF2Dx0/D9xcsPU+a6CohL6mAdHZ0SBA3OfVXPQn7nZ1N3VyGIDvEOlB2d//Q
-         ZuYAMMKYbFC1OigKTnLrjhHnV3/ZS2Uyy4DxV6pPG9R5EJIo97lSAUg3nTsc0aeK2K
-         RoQH+5fl65w4q4D6dyqf8oUlUMDchGbjZoqPFEc0=
-Date:   Thu, 01 Apr 2021 17:15:39 -0700
+        b=acnMmm9u0sOjdQDEjZqUu5xd23tlNp98rxgQLEqbLeLl7dvmKWxgUCvrVcYu7n9+e
+         KwcD2nuiRXuBrLoeblWNdsKv43g67Jfiu9rfVxF6rOqE4zTXxOZnwbNeoDMSlLHEkz
+         DnP1Oj1n6edapUEayyNy57il2DXL0UHMgDKuo8so=
+Date:   Thu, 01 Apr 2021 17:27:24 -0700
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, mm-commits@vger.kernel.org, npiggin@gmail.com,
-        sfr@canb.auug.org.au
-Subject:  + mm-vmalloc-remove-map_kernel_range-fix-2.patch added to
- -mm tree
-Message-ID: <20210402001539.gVAnz9ZkV%akpm@linux-foundation.org>
+To:     joe@perches.com, masahiroy@kernel.org, mm-commits@vger.kernel.org,
+        wanjiabing@vivo.com
+Subject:  +
+ scripts-a-new-script-for-checking-duplicate-struct-declaration.patch added
+ to -mm tree
+Message-ID: <20210402002724.2GVV7u4ea%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmalloc-remove-map_kernel_range-fix-2
+     Subject: scripts: a new script for checking duplicate struct declaration
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-remove-map_kernel_range-fix-2.patch
+     scripts-a-new-script-for-checking-duplicate-struct-declaration.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-remove-map_kernel_range-fix-2.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/scripts-a-new-script-for-checking-duplicate-struct-declaration.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-remove-map_kernel_range-fix-2.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/scripts-a-new-script-for-checking-duplicate-struct-declaration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,65 +65,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: mm-vmalloc-remove-map_kernel_range-fix-2
+From: Wan Jiabing <wanjiabing@vivo.com>
+Subject: scripts: a new script for checking duplicate struct declaration
 
-This requires a fix for nommu builds.
+checkdeclares: find struct declared more than once.  Inspired by
+checkincludes.pl.
 
-Link: https://lkml.kernel.org/r/1617292497.o1uhq5ipxp.astroid@bobo.none
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+This script checks for duplicate struct declares.  Note that this will not
+take into consideration macros, so you should run this only if you know
+you do have real dups and do not have them under #ifdef's.  You could also
+just review the results.
+
+Link: https://lkml.kernel.org/r/20210401110943.1010796-1-wanjiabing@vivo.com
+Signed-off-by: Wan Jiabing <wanjiabing@vivo.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ scripts/checkdeclares.pl |   53 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
 
---- a/mm/internal.h~mm-vmalloc-remove-map_kernel_range-fix-2
-+++ a/mm/internal.h
-@@ -644,8 +644,18 @@ struct migration_target_control {
- /*
-  * mm/vmalloc.c
-  */
-+#ifdef CONFIG_MMU
- int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-                 pgprot_t prot, struct page **pages, unsigned int page_shift);
-+#else
-+static inline
-+int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-+                pgprot_t prot, struct page **pages, unsigned int page_shift)
-+{
-+	return -EINVAL;
-+}
-+#endif
+--- /dev/null
++++ a/scripts/checkdeclares.pl
+@@ -0,0 +1,53 @@
++#!/usr/bin/env perl
++# SPDX-License-Identifier: GPL-2.0
++#
++# checkdeclares: find struct declared more than once
++#
++# Copyright 2021 Wan Jiabing<wanjiabing@vivo.com>
++# Inspired by checkincludes.pl
++#
++# This script checks for duplicate struct declares.
++# Note that this will not take into consideration macros so
++# you should run this only if you know you do have real dups
++# and do not have them under #ifdef's.
++# You could also just review the results.
 +
- void vunmap_range_noflush(unsigned long start, unsigned long end);
- 
- #endif	/* __MM_INTERNAL_H */
++use strict;
++
++sub usage {
++	print "Usage: checkdeclares.pl \n";
++	print "We just warn of struct declaration duplicates\n";
++	exit 1;
++}
++
++if ($#ARGV < 0) {
++	usage();
++}
++
++my $dup_counter = 0;
++
++foreach my $file (@ARGV) {
++	open(my $f, '<', $file)
++	    or die "Cannot open $file: $!.\n";
++
++	my %declaredstructs = ();
++
++	while (<$f>) {
++		if (m/^\s*struct\s*(\w*);$/o) {
++			++$declaredstructs{$1};
++		}
++	}
++
++	close($f);
++
++	foreach my $structname (keys %declaredstructs) {
++		if ($declaredstructs{$structname} > 1) {
++			print "$file: struct $structname is declared more than once.\n";
++			++$dup_counter;
++		}
++	}
++}
++
++if ($dup_counter == 0) {
++	print "No duplicate struct declares found.\n";
++}
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from wanjiabing@vivo.com are
 
-arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch
-mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page.patch
-mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page-fix.patch
-mm-apply_to_pte_range-warn-and-fail-if-a-large-pte-is-encountered.patch
-mm-vmalloc-rename-vmap__range-vmap_pages__range.patch
-mm-ioremap-rename-ioremap__range-to-vmap__range.patch
-mm-huge_vmap-arch-support-cleanup.patch
-powerpc-inline-huge-vmap-supported-functions.patch
-arm64-inline-huge-vmap-supported-functions.patch
-x86-inline-huge-vmap-supported-functions.patch
-mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions.patch
-mm-move-vmap_range-from-mm-ioremapc-to-mm-vmallocc.patch
-mm-vmalloc-add-vmap_range_noflush-variant.patch
-mm-vmalloc-hugepage-vmalloc-mappings.patch
-powerpc-64s-radix-enable-huge-vmalloc-mappings.patch
-mm-vmalloc-remove-map_kernel_range.patch
-kernel-dma-remove-unnecessary-unmap_kernel_range.patch
-powerpc-xive-remove-unnecessary-unmap_kernel_range.patch
-mm-vmalloc-remove-unmap_kernel_range.patch
-mm-vmalloc-remove-unmap_kernel_range-fix.patch
-mm-vmalloc-remove-map_kernel_range-fix-2.patch
-mm-vmalloc-improve-allocation-failure-error-messages.patch
+scripts-a-new-script-for-checking-duplicate-struct-declaration.patch
+linux-memcontrolh-remove-duplicate-struct-declaration.patch
 
