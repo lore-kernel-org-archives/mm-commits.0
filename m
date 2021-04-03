@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65DA6C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:30:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AC1BC43460
+	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:30:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3096A611BD
-	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:30:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DD6ED611BD
+	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:30:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235967AbhDCAaW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Apr 2021 20:30:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38198 "EHLO mail.kernel.org"
+        id S235996AbhDCAaY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Apr 2021 20:30:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38232 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235979AbhDCAaV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 2 Apr 2021 20:30:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E84C3611B0;
-        Sat,  3 Apr 2021 00:30:17 +0000 (UTC)
+        id S235979AbhDCAaX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 2 Apr 2021 20:30:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DEC42611AD;
+        Sat,  3 Apr 2021 00:30:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617409818;
-        bh=AscUJxBE/+D5k6DlFEuBusn8WSYL3mXgVMKJDuizyp8=;
+        s=korg; t=1617409822;
+        bh=NlrHqIvuvzfPGLf939PuC7X/imag0jtiDbQbe+zgOx4=;
         h=Date:From:To:Subject:From;
-        b=UEyiyIUoglWeUmAOSGXbbnAezGVOaWF62TpHt6Z8FXLS3O0rO8a45NKm/WvtWeFuH
-         cPCkTdDMDlk8fhwkV6rqC3a+X2o3NXNuqbcuF7i0Uou8f9lIuqyZ5Gvk2+1C3BxMYo
-         JnuRfjm+OiESTsPRge0rr7JlzNmJE2D3mk03W/xM=
-Date:   Fri, 02 Apr 2021 17:30:17 -0700
+        b=s4HtShVMsJZP06rso63Gs+PM9ryf1sYUdU9nunUqd+djv3C+S38Ow5J6RlR+RC0wO
+         SxrrdVf26cRLCQGgfvebQnhPjXOPH6hMUzkfUW5V/h/qf92yKHWnm3NIwVAxECNiPk
+         I55O2SpgkbzNg0Bbre567RrzouMBtEmtVztUQShY=
+Date:   Fri, 02 Apr 2021 17:30:21 -0700
 From:   akpm@linux-foundation.org
 To:     hillf.zj@alibaba-inc.com, linmiaohe@huawei.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         n-horiguchi@ah.jp.nec.com
 Subject:  +
- =?US-ASCII?Q?mm-hugeltb-fix-potential-wrong-gbl=5Freserve-value-for-huget?=
- =?US-ASCII?Q?lb=5Facct=5Fmemory.patch?= added to -mm tree
-Message-ID: <20210403003017.Qwo84493H%akpm@linux-foundation.org>
+ mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch added
+ to -mm tree
+Message-ID: <20210403003021.5fLL-FMlV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugeltb: fix potential wrong gbl_reserve value for hugetlb_acct_memory()
+     Subject: mm/hugeltb: handle the error case in hugetlb_fix_reserve_counts()
 has been added to the -mm tree.  Its filename is
-     mm-hugeltb-fix-potential-wrong-gbl_reserve-value-for-hugetlb_acct_memory.patch
+     mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugeltb-fix-potential-wrong-gbl_reserve-value-for-hugetlb_acct_memory.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugeltb-fix-potential-wrong-gbl_reserve-value-for-hugetlb_acct_memory.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,14 +67,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugeltb: fix potential wrong gbl_reserve value for hugetlb_acct_memory()
+Subject: mm/hugeltb: handle the error case in hugetlb_fix_reserve_counts()
 
-The resv_map could be NULL since this routine can be called in the evict
-inode path for all hugetlbfs inodes.  So we could have chg = 0 and this
-would result in a negative value when chg - freed.  This is unexpected for
-hugepage_subpool_put_pages() and hugetlb_acct_memory().
+A rare out of memory error would prevent removal of the reserve map region
+for a page.  hugetlb_fix_reserve_counts() handles this rare case to avoid
+dangling with incorrect counts.  Unfortunately, hugepage_subpool_get_pages
+and hugetlb_acct_memory could possibly fail too.  We should correctly
+handle these cases.
 
-Link: https://lkml.kernel.org/r/20210402093249.25137-4-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210402093249.25137-5-linmiaohe@huawei.com
 Fixes: b5cec28d36f5 ("hugetlbfs: truncate_hugepages() takes a range of pages")
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
@@ -85,29 +84,34 @@ Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugeltb-fix-potential-wrong-gbl_reserve-value-for-hugetlb_acct_memory
+--- a/mm/hugetlb.c~mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts
 +++ a/mm/hugetlb.c
-@@ -5375,6 +5375,7 @@ long hugetlb_unreserve_pages(struct inod
- 	long chg = 0;
+@@ -746,13 +746,20 @@ void hugetlb_fix_reserve_counts(struct i
+ {
  	struct hugepage_subpool *spool = subpool_inode(inode);
- 	long gbl_reserve;
-+	long delta;
+ 	long rsv_adjust;
++	bool reserved = false;
  
- 	/*
- 	 * Since this routine can be called in the evict inode path for all
-@@ -5399,7 +5400,8 @@ long hugetlb_unreserve_pages(struct inod
- 	 * If the subpool has a minimum size, the number of global
- 	 * reservations to be released may be adjusted.
- 	 */
--	gbl_reserve = hugepage_subpool_put_pages(spool, (chg - freed));
-+	delta = chg > 0 ? chg - freed : freed;
-+	gbl_reserve = hugepage_subpool_put_pages(spool, delta);
- 	hugetlb_acct_memory(h, -gbl_reserve);
+ 	rsv_adjust = hugepage_subpool_get_pages(spool, 1);
+-	if (rsv_adjust) {
++	if (rsv_adjust > 0) {
+ 		struct hstate *h = hstate_inode(inode);
  
- 	return 0;
+-		hugetlb_acct_memory(h, 1);
++		if (!hugetlb_acct_memory(h, 1))
++			reserved = true;
++	} else if (!rsv_adjust) {
++		reserved = true;
+ 	}
++
++	if (!reserved)
++		pr_warn("hugetlb: fix reserve count failed\n");
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
