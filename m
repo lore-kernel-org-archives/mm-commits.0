@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 382AFC433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:30:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 239A2C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:30:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 15BA861184
-	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:30:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 02A4C611AD
+	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:30:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235961AbhDCAaQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Apr 2021 20:30:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38132 "EHLO mail.kernel.org"
+        id S235720AbhDCAaW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Apr 2021 20:30:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38160 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235720AbhDCAaP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 2 Apr 2021 20:30:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E7C76611AD;
-        Sat,  3 Apr 2021 00:30:13 +0000 (UTC)
+        id S235967AbhDCAaV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 2 Apr 2021 20:30:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D8B5B611BE;
+        Sat,  3 Apr 2021 00:30:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617409814;
-        bh=V1GuxRtW5G2SdP0sQhN4Qzyf/CBXmJvml71U3YP30WQ=;
+        s=korg; t=1617409816;
+        bh=mvefsTCdDV2CvJzVFMidfsWQ7EbHnSWyEiO8ew9y0oY=;
         h=Date:From:To:Subject:From;
-        b=JkCW6z8yLeDBucAEdDoIZL0yNU+3OqeMpjX4TeNKnWRgWZi9gV+iA2oWd74FaID7x
-         yOEl31uiYYlArYVZbMoq0R94r3FgwjQrq1kVFV9rJibLckZIpo953HCHzwYq5qO2Q0
-         Sma9dausk6KhT+KlhzEsXSQzCoWmx4qPdLAK2ND4=
-Date:   Fri, 02 Apr 2021 17:30:13 -0700
+        b=vMHcj9RD66sSr8peFxTeSQZrNlslFuHpvHTpjSsDOdvBG9UHE8l8zAw1qyCfNcbXO
+         ZjN7GYYgqh284iwdEcv7OWl2fnr+OnrsObj9hcIEfssW3egW1odDYBZiyguCA7RqDq
+         BgucBrcOm+XVzltnMCSD4+KTjkjUN2aG3dfaiS90=
+Date:   Fri, 02 Apr 2021 17:30:15 -0700
 From:   akpm@linux-foundation.org
 To:     hillf.zj@alibaba-inc.com, linmiaohe@huawei.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         n-horiguchi@ah.jp.nec.com
 Subject:  +
- mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch added to -mm tree
-Message-ID: <20210403003013.1JiBw7qEp%akpm@linux-foundation.org>
+ mm-hugeltb-simplify-the-return-code-of-__vma_reservation_common.patch added
+ to -mm tree
+Message-ID: <20210403003015.8TBIXRPDY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugeltb: remove redundant VM_BUG_ON() in region_add()
+     Subject: mm/hugeltb: simplify the return code of __vma_reservation_common()
 has been added to the -mm tree.  Its filename is
-     mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch
+     mm-hugeltb-simplify-the-return-code-of-__vma_reservation_common.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugeltb-simplify-the-return-code-of-__vma_reservation_common.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugeltb-simplify-the-return-code-of-__vma_reservation_common.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,43 +67,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugeltb: remove redundant VM_BUG_ON() in region_add()
+Subject: mm/hugeltb: simplify the return code of __vma_reservation_common()
 
-Patch series "Cleanup and fixup for hugetlb".
+It's guaranteed that the vma is associated with a resv_map, i.e.  either
+VM_MAYSHARE or HPAGE_RESV_OWNER, when the code reaches here or we would
+have returned via !resv check above.  So ret must be less than 0 in the
+'else' case.  Simplify the return code to make this clear.
 
-This series contains cleanups to remove redundant VM_BUG_ON() and simplify
-the return code.  Also this fixes potential wrong gbl_reserve value and
-handle the error case in hugetlb_fix_reserve_counts().  More details can
-be found in the respective changelogs.
-
-
-This patch (of 4):
-
-The same VM_BUG_ON() check is already done in the callee.  Remove this
-extra one to simplify the code slightly.
-
-Link: https://lkml.kernel.org/r/20210402093249.25137-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210402093249.25137-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210402093249.25137-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugeltb-remove-redundant-vm_bug_on-in-region_add
+--- a/mm/hugetlb.c~mm-hugeltb-simplify-the-return-code-of-__vma_reservation_common
 +++ a/mm/hugetlb.c
-@@ -557,7 +557,6 @@ retry:
- 	resv->adds_in_progress -= in_regions_needed;
- 
- 	spin_unlock(&resv->lock);
--	VM_BUG_ON(add < 0);
- 	return add;
+@@ -2184,7 +2184,7 @@ static long __vma_reservation_common(str
+ 			return 1;
+ 	}
+ 	else
+-		return ret < 0 ? ret : 0;
++		return ret;
  }
  
+ static long vma_needs_reservation(struct hstate *h,
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
