@@ -7,36 +7,42 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AC1BC43460
-	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:30:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7195C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:51:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD6ED611BD
-	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:30:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A4AE611AE
+	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:51:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235996AbhDCAaY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Apr 2021 20:30:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38232 "EHLO mail.kernel.org"
+        id S235598AbhDCAvZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Apr 2021 20:51:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40292 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235979AbhDCAaX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 2 Apr 2021 20:30:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DEC42611AD;
-        Sat,  3 Apr 2021 00:30:21 +0000 (UTC)
+        id S234488AbhDCAvY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 2 Apr 2021 20:51:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 12D3F61185;
+        Sat,  3 Apr 2021 00:51:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617409822;
-        bh=NlrHqIvuvzfPGLf939PuC7X/imag0jtiDbQbe+zgOx4=;
+        s=korg; t=1617411082;
+        bh=5Mt6a9Pmzg3XCU9lEtbq7YSxjVbcoHzXkUBlpvpB5r0=;
         h=Date:From:To:Subject:From;
-        b=s4HtShVMsJZP06rso63Gs+PM9ryf1sYUdU9nunUqd+djv3C+S38Ow5J6RlR+RC0wO
-         SxrrdVf26cRLCQGgfvebQnhPjXOPH6hMUzkfUW5V/h/qf92yKHWnm3NIwVAxECNiPk
-         I55O2SpgkbzNg0Bbre567RrzouMBtEmtVztUQShY=
-Date:   Fri, 02 Apr 2021 17:30:21 -0700
+        b=loYRZYkOUDITrQit3lo1q+1r8EcM153hOEfJu+y00x0nc/chE0mB92QSwq70k1TWh
+         Ui8U/LU65+pSwpJktBFyJEWP5R/cu38ZZQaTejoF1lWBUc80Z9NyoC736OigDJ+EtM
+         f8picgEsfVySnKVWCw47kqSmnk45F4AdZCm2XwRE=
+Date:   Fri, 02 Apr 2021 17:51:18 -0700
 From:   akpm@linux-foundation.org
-To:     hillf.zj@alibaba-inc.com, linmiaohe@huawei.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        n-horiguchi@ah.jp.nec.com
-Subject:  +
- mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch added
- to -mm tree
-Message-ID: <20210403003021.5fLL-FMlV%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, aou@eecs.berkeley.edu, arnd@arndb.de,
+        benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de,
+        catalin.marinas@arm.com, dalias@libc.org, deller@gmx.de,
+        gor@linux.ibm.com, hca@linux.ibm.com, hpa@zytor.com,
+        James.Bottomley@HansenPartnership.com, linux@armlinux.org.uk,
+        mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        palmerdabbelt@google.com, paul.walmsley@sifive.com,
+        paulus@samba.org, tglx@linutronix.de, tsbogend@alpha.franken.de,
+        vgupta@synopsys.com, viro@zeniv.linux.org.uk, will@kernel.org,
+        ysato@users.sourceforge.jp
+Subject:  + mm-generalize-arch_has_cache_line_size.patch added to
+ -mm tree
+Message-ID: <20210403005118.pi1qvwagz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugeltb: handle the error case in hugetlb_fix_reserve_counts()
+     Subject: mm: generalize ARCH_HAS_CACHE_LINE_SIZE
 has been added to the -mm tree.  Its filename is
-     mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
+     mm-generalize-arch_has_cache_line_size.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-generalize-arch_has_cache_line_size.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-generalize-arch_has_cache_line_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,87 +72,140 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugeltb: handle the error case in hugetlb_fix_reserve_counts()
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm: generalize ARCH_HAS_CACHE_LINE_SIZE
 
-A rare out of memory error would prevent removal of the reserve map region
-for a page.  hugetlb_fix_reserve_counts() handles this rare case to avoid
-dangling with incorrect counts.  Unfortunately, hugepage_subpool_get_pages
-and hugetlb_acct_memory could possibly fail too.  We should correctly
-handle these cases.
+Patch series "mm: some config cleanups", v2.
 
-Link: https://lkml.kernel.org/r/20210402093249.25137-5-linmiaohe@huawei.com
-Fixes: b5cec28d36f5 ("hugetlbfs: truncate_hugepages() takes a range of pages")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+This series contains config cleanup patches which reduces code duplication
+across platforms and also improves maintainability. There is no functional
+change intended with this series.
+
+
+This patch (of 6):
+
+ARCH_HAS_CACHE_LINE_SIZE config has duplicate definitions on platforms
+that subscribe it.  Instead, just make it a generic option which can be
+selected on applicable platforms.  This change reduces code duplication
+and makes it cleaner.
+
+Link: https://lkml.kernel.org/r/1617259448-22529-1-git-send-email-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/1617259448-22529-2-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com> (arm64)
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Palmer Dabbelt <palmerdabbelt@google.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ arch/arc/Kconfig   |    4 +---
+ arch/arm64/Kconfig |    4 +---
+ arch/x86/Kconfig   |    4 +---
+ mm/Kconfig         |    3 +++
+ 4 files changed, 6 insertions(+), 9 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts
-+++ a/mm/hugetlb.c
-@@ -746,13 +746,20 @@ void hugetlb_fix_reserve_counts(struct i
- {
- 	struct hugepage_subpool *spool = subpool_inode(inode);
- 	long rsv_adjust;
-+	bool reserved = false;
+--- a/arch/arc/Kconfig~mm-generalize-arch_has_cache_line_size
++++ a/arch/arc/Kconfig
+@@ -6,6 +6,7 @@
+ config ARC
+ 	def_bool y
+ 	select ARC_TIMERS
++	select ARCH_HAS_CACHE_LINE_SIZE
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE
+ 	select ARCH_HAS_DMA_PREP_COHERENT
+ 	select ARCH_HAS_PTE_SPECIAL
+@@ -48,9 +49,6 @@ config ARC
+ 	select HAVE_ARCH_JUMP_LABEL if ISA_ARCV2 && !CPU_ENDIAN_BE32
+ 	select SET_FS
  
- 	rsv_adjust = hugepage_subpool_get_pages(spool, 1);
--	if (rsv_adjust) {
-+	if (rsv_adjust > 0) {
- 		struct hstate *h = hstate_inode(inode);
+-config ARCH_HAS_CACHE_LINE_SIZE
+-	def_bool y
+-
+ config TRACE_IRQFLAGS_SUPPORT
+ 	def_bool y
  
--		hugetlb_acct_memory(h, 1);
-+		if (!hugetlb_acct_memory(h, 1))
-+			reserved = true;
-+	} else if (!rsv_adjust) {
-+		reserved = true;
- 	}
+--- a/arch/arm64/Kconfig~mm-generalize-arch_has_cache_line_size
++++ a/arch/arm64/Kconfig
+@@ -11,6 +11,7 @@ config ARM64
+ 	select ACPI_PPTT if ACPI
+ 	select ARCH_HAS_DEBUG_WX
+ 	select ARCH_BINFMT_ELF_STATE
++	select ARCH_HAS_CACHE_LINE_SIZE
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE
+ 	select ARCH_HAS_DMA_PREP_COHERENT
+@@ -1066,9 +1067,6 @@ config HW_PERF_EVENTS
+ config SYS_SUPPORTS_HUGETLBFS
+ 	def_bool y
+ 
+-config ARCH_HAS_CACHE_LINE_SIZE
+-	def_bool y
+-
+ config ARCH_ENABLE_SPLIT_PMD_PTLOCK
+ 	def_bool y if PGTABLE_LEVELS > 2
+ 
+--- a/arch/x86/Kconfig~mm-generalize-arch_has_cache_line_size
++++ a/arch/x86/Kconfig
+@@ -61,6 +61,7 @@ config X86
+ 	select ARCH_32BIT_OFF_T			if X86_32
+ 	select ARCH_CLOCKSOURCE_INIT
+ 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
++	select ARCH_HAS_CACHE_LINE_SIZE
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE	if !X86_PAE
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+@@ -314,9 +315,6 @@ config GENERIC_CALIBRATE_DELAY
+ config ARCH_HAS_CPU_RELAX
+ 	def_bool y
+ 
+-config ARCH_HAS_CACHE_LINE_SIZE
+-	def_bool y
+-
+ config ARCH_HAS_FILTER_PGPROT
+ 	def_bool y
+ 
+--- a/mm/Kconfig~mm-generalize-arch_has_cache_line_size
++++ a/mm/Kconfig
+@@ -773,6 +773,9 @@ config IDLE_PAGE_TRACKING
+ 	  See Documentation/admin-guide/mm/idle_page_tracking.rst for
+ 	  more details.
+ 
++config ARCH_HAS_CACHE_LINE_SIZE
++	bool
 +
-+	if (!reserved)
-+		pr_warn("hugetlb: fix reserve count failed\n");
- }
+ config ARCH_HAS_PTE_DEVMAP
+ 	bool
  
- /*
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
-mm-hugetlb-use-some-helper-functions-to-cleanup-code.patch
-mm-hugetlb-optimize-the-surplus-state-transfer-code-in-move_hugetlb_state.patch
-hugetlb_cgroup-remove-unnecessary-vm_bug_on_page-in-hugetlb_cgroup_migrate.patch
-mm-hugetlb-simplify-the-code-when-alloc_huge_page-failed-in-hugetlb_no_page.patch
-mm-hugetlb-avoid-calculating-fault_mutex_hash-in-truncate_op-case.patch
-khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps.patch
-khugepaged-reuse-the-smp_wmb-inside-__setpageuptodate.patch
-khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
-khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate.patch
-mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
-mm-huge_memoryc-rework-the-function-vma_adjust_trans_huge.patch
-mm-huge_memoryc-make-get_huge_zero_page-return-bool.patch
-mm-huge_memoryc-rework-the-function-do_huge_pmd_numa_page-slightly.patch
-mm-huge_memoryc-remove-redundant-pagecompound-check.patch
-mm-huge_memoryc-remove-unused-macro-transparent_hugepage_debug_cow_flag.patch
-mm-huge_memoryc-use-helper-function-migration_entry_to_page.patch
-khugepaged-use-helper-function-range_in_vma-in-collapse_pte_mapped_thp.patch
-khugepaged-remove-unnecessary-out-label-in-collapse_huge_page.patch
-khugepaged-remove-meaningless-pte_present-check-in-khugepaged_scan_pmd.patch
-mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch
-mm-hugeltb-simplify-the-return-code-of-__vma_reservation_common.patch
-mm-hugeltb-fix-potential-wrong-gbl_reserve-value-for-hugetlb_acct_memory.patch
-mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
-mm-migratec-make-putback_movable_page-static.patch
-mm-migratec-remove-unnecessary-rc-=-migratepage_success-check-in-else-case.patch
-mm-migratec-fix-potential-indeterminate-pte-entry-in-migrate_vma_insert_page.patch
-mm-migratec-use-helper-migrate_vma_collect_skip-in-migrate_vma_collect_hole.patch
-revert-mm-migrate-skip-shared-exec-thp-for-numa-balancing.patch
-ksm-remove-redundant-vm_bug_on_page-on-stable_tree_search.patch
-ksm-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree.patch
-ksm-remove-dedicated-macro-ksm_flag_mask.patch
-ksm-fix-potential-missing-rmap_item-for-stable_node.patch
+mm-generalize-hugetlb_page_size_variable.patch
+mm-generalize-arch_has_cache_line_size.patch
+mm-generalize-sys_supports_hugetlbfs-rename-as-arch_supports_hugetlbfs.patch
+mm-generalize-arch_enable_memory_.patch
+mm-drop-redundant-arch_enable__migration.patch
+mm-drop-redundant-arch_enable_split_pmd_ptlock.patch
+mm-drop-redundant-have_arch_transparent_hugepage.patch
 
