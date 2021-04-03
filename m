@@ -7,34 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B048AC433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:26:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D5C2C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:27:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6ABC061152
-	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:26:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF3AE611AB
+	for <mm-commits@archiver.kernel.org>; Sat,  3 Apr 2021 00:27:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235598AbhDCA0K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Apr 2021 20:26:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37678 "EHLO mail.kernel.org"
+        id S235776AbhDCA1y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Apr 2021 20:27:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37800 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234161AbhDCA0J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 2 Apr 2021 20:26:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A3A0B61185;
-        Sat,  3 Apr 2021 00:26:06 +0000 (UTC)
+        id S235689AbhDCA1x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 2 Apr 2021 20:27:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 04B4E61185;
+        Sat,  3 Apr 2021 00:27:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617409566;
-        bh=B6tiQv+ZKzh9XTkhwNNPuqru7PLMfbRacbUEgGjpE7U=;
+        s=korg; t=1617409671;
+        bh=HuizY0q+A8qYixy7tWAvFAW43Bd3+gZ6QjLEbAWDuaI=;
         h=Date:From:To:Subject:From;
-        b=j2S7tDdSCv5NumHvGQjxZWGpjmLOtSTqD/WeKqnPKVmnv7xeFwYQ956ojTyBu2LOQ
-         RDgUFNnmQXONr5UlShNaeN/tn8vSsdMvzOfYb0J13mpbbtq6Decp3+HEOy1EEqqYQq
-         8Rb7jwpTUX3y9uHrucp5HUslQZ6xy3Yi+0RBY/kU=
-Date:   Fri, 02 Apr 2021 17:26:06 -0700
+        b=Ed84E7kOHcqO+anYe+lGiq9kTuPrOxPzYBcHaa/ff+vZ0lzqdJFCo1iMigYfpJJfB
+         Hq5+Hpj6VJGEPy2agT15+iv7OLbySIIB1NlAYtPofMOSzxpFWLvD6ckVhGKGEXHQma
+         73Jel9oOOl8h2eJvy1L90aduGNINrP/MiWTOYtqs=
+Date:   Fri, 02 Apr 2021 17:27:50 -0700
 From:   akpm@linux-foundation.org
-To:     mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        osalvador@suse.de, songmuchun@bytedance.com
-Subject:  + hugetlb-make-free_huge_page-irq-safe-fix.patch added to
+To:     akpm@linux-foundation.org, bristot@redhat.com, bsegall@google.com,
+        dietmar.eggemann@arm.com, juri.lelli@redhat.com, mgorman@suse.de,
+        mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org,
+        rostedt@goodmis.org, slyfox@gentoo.org, vincent.guittot@linaro.org
+Subject:  +
+ mm-page_owner-detect-page_owner-recursion-via-task_struct.patch added to
  -mm tree
-Message-ID: <20210403002606.CfssP36fd%akpm@linux-foundation.org>
+Message-ID: <20210403002750.JjGDsRbX8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix irq locking omissions
+     Subject: mm: page_owner: detect page_owner recursion via task_struct
 has been added to the -mm tree.  Its filename is
-     hugetlb-make-free_huge_page-irq-safe-fix.patch
+     mm-page_owner-detect-page_owner-recursion-via-task_struct.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-make-free_huge_page-irq-safe-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-detect-page_owner-recursion-via-task_struct.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-make-free_huge_page-irq-safe-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-detect-page_owner-recursion-via-task_struct.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,100 +67,130 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: fix irq locking omissions
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Subject: mm: page_owner: detect page_owner recursion via task_struct
 
-The pach "hugetlb: make free_huge_page irq safe" changed spin_*lock
-calls to spin_*lock_irq* calls.  However, it missed several places
-in the file hugetlb.c.  Add the overlooked changes.
+Before the change page_owner recursion was detected via fetching
+backtrace and inspecting it for current instruction pointer.
+It has a few problems:
+- it is slightly slow as it requires extra backtrace and a linear
+  stack scan of the result
+- it is too late to check if backtrace fetching required memory
+  allocation itself (ia64's unwinder requires it).
 
-Link: https://lkml.kernel.org/r/b0b081e2-9d78-77ab-684f-a0989a7f1d27@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+To simplify recursion tracking let's use page_owner recursion flag
+in 'struct task_struct'.
+
+The change make page_owner=on work on ia64 by avoiding infinite
+recursion in:
+  kmalloc()
+  -> __set_page_owner()
+  -> save_stack()
+  -> unwind() [ia64-specific]
+  -> build_script()
+  -> kmalloc()
+  -> __set_page_owner() [we short-circuit here]
+  -> save_stack()
+  -> unwind() [recursion]
+
+Link: https://lkml.kernel.org/r/20210402115342.1463781-1-slyfox@gentoo.org
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ben Segall <bsegall@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/linux/sched.h |    4 ++++
+ mm/page_owner.c       |   32 ++++++++++----------------------
+ 2 files changed, 14 insertions(+), 22 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-make-free_huge_page-irq-safe-fix
-+++ a/mm/hugetlb.c
-@@ -2278,7 +2278,7 @@ static int alloc_and_dissolve_huge_page(
- 	 */
- 	page_ref_dec(new_page);
- retry:
--	spin_lock(&hugetlb_lock);
-+	spin_lock_irq(&hugetlb_lock);
- 	if (!PageHuge(old_page)) {
- 		/*
- 		 * Freed from under us. Drop new_page too.
-@@ -2291,7 +2291,7 @@ retry:
- 		 * Fail with -EBUSY if not possible.
- 		 */
- 		update_and_free_page(h, new_page);
--		spin_unlock(&hugetlb_lock);
-+		spin_unlock_irq(&hugetlb_lock);
- 		if (!isolate_huge_page(old_page, list))
- 			ret = -EBUSY;
- 		return ret;
-@@ -2301,7 +2301,7 @@ retry:
- 		 * freelist yet. Race window is small, so we can succed here if
- 		 * we retry.
- 		 */
--		spin_unlock(&hugetlb_lock);
-+		spin_unlock_irq(&hugetlb_lock);
- 		cond_resched();
- 		goto retry;
- 	} else {
-@@ -2317,7 +2317,7 @@ retry:
- 		__enqueue_huge_page(&h->hugepage_freelists[nid], new_page);
- 	}
- unlock:
--	spin_unlock(&hugetlb_lock);
-+	spin_unlock_irq(&hugetlb_lock);
+--- a/include/linux/sched.h~mm-page_owner-detect-page_owner-recursion-via-task_struct
++++ a/include/linux/sched.h
+@@ -841,6 +841,10 @@ struct task_struct {
+ 	/* Stalled due to lack of memory */
+ 	unsigned			in_memstall:1;
+ #endif
++#ifdef CONFIG_PAGE_OWNER
++	/* Used by page_owner=on to detect recursion in page tracking. */
++	unsigned			in_page_owner:1;
++#endif
  
- 	return ret;
+ 	unsigned long			atomic_flags; /* Flags requiring atomic access. */
+ 
+--- a/mm/page_owner.c~mm-page_owner-detect-page_owner-recursion-via-task_struct
++++ a/mm/page_owner.c
+@@ -98,42 +98,30 @@ static inline struct page_owner *get_pag
+ 	return (void *)page_ext + page_owner_ops.offset;
  }
-@@ -2333,15 +2333,15 @@ int isolate_or_dissolve_huge_page(struct
- 	 * to carefully check the state under the lock.
- 	 * Return success when racing as if we dissolved the page ourselves.
- 	 */
--	spin_lock(&hugetlb_lock);
-+	spin_lock_irq(&hugetlb_lock);
- 	if (PageHuge(page)) {
- 		head = compound_head(page);
- 		h = page_hstate(head);
- 	} else {
--		spin_unlock(&hugetlb_lock);
-+		spin_unlock_irq(&hugetlb_lock);
- 		return 0;
- 	}
--	spin_unlock(&hugetlb_lock);
-+	spin_unlock_irq(&hugetlb_lock);
  
- 	/*
- 	 * Fence off gigantic pages as there is a cyclic dependency between
-@@ -2729,7 +2729,7 @@ static int set_max_huge_pages(struct hst
- 	 * pages in hstate via the proc/sysfs interfaces.
- 	 */
- 	mutex_lock(&h->resize_lock);
--	spin_lock(&hugetlb_lock);
-+	spin_lock_irq(&hugetlb_lock);
+-static inline bool check_recursive_alloc(unsigned long *entries,
+-					 unsigned int nr_entries,
+-					 unsigned long ip)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < nr_entries; i++) {
+-		if (entries[i] == ip)
+-			return true;
+-	}
+-	return false;
+-}
+-
+ static noinline depot_stack_handle_t save_stack(gfp_t flags)
+ {
+ 	unsigned long entries[PAGE_OWNER_STACK_DEPTH];
+ 	depot_stack_handle_t handle;
+ 	unsigned int nr_entries;
  
+-	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 2);
+-
  	/*
- 	 * Check for a node specific request.
+-	 * We need to check recursion here because our request to
+-	 * stackdepot could trigger memory allocation to save new
+-	 * entry. New memory allocation would reach here and call
+-	 * stack_depot_save_entries() again if we don't catch it. There is
+-	 * still not enough memory in stackdepot so it would try to
+-	 * allocate memory again and loop forever.
++	 * Avoid recursion.
++	 *
++	 * Sometimes page metadata allocation tracking requires more
++	 * memory to be allocated:
++	 * - when new stack trace is saved to stack depot
++	 * - when backtrace itself is calculated (ia64)
+ 	 */
+-	if (check_recursive_alloc(entries, nr_entries, _RET_IP_))
++	if (current->in_page_owner)
+ 		return dummy_handle;
++	current->in_page_owner = 1;
+ 
++	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 2);
+ 	handle = stack_depot_save(entries, nr_entries, flags);
+ 	if (!handle)
+ 		handle = failure_handle;
+ 
++	current->in_page_owner = 0;
+ 	return handle;
+ }
+ 
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from slyfox@gentoo.org are
 
-mm-cma-change-cma-mutex-to-irq-safe-spinlock.patch
-hugetlb-no-need-to-drop-hugetlb_lock-to-call-cma_release.patch
-hugetlb-add-per-hstate-mutex-to-synchronize-user-adjustments.patch
-hugetlb-create-remove_hugetlb_page-to-separate-functionality.patch
-hugetlb-call-update_and_free_page-without-hugetlb_lock.patch
-hugetlb-change-free_pool_huge_page-to-remove_pool_huge_page.patch
-hugetlb-make-free_huge_page-irq-safe.patch
-hugetlb-make-free_huge_page-irq-safe-fix.patch
-hugetlb-add-lockdep_assert_held-calls-for-hugetlb_lock.patch
+ia64-fix-user_stack_pointer-for-ptrace.patch
+ia64-drop-unused-ia64_fw_emu-ifdef.patch
+ia64-simplify-code-flow-around-swiotlb-init.patch
+ia64-fix-efi_debug-build.patch
+ia64-mca-always-make-ia64_mca_debug-an-expression.patch
+mm-page_owner-fetch-backtrace-only-for-tracked-pages.patch
+mm-page_owner-use-kstrtobool-to-parse-bool-option.patch
+mm-page_owner-detect-page_owner-recursion-via-task_struct.patch
+mm-page_alloc-ignore-init_on_free=1-for-debug_pagealloc=1.patch
 
