@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 105C7C433B4
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Apr 2021 03:07:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E4EFC433ED
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Apr 2021 05:54:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C8AE2613AF
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Apr 2021 03:07:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 49B70613C0
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Apr 2021 05:54:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238895AbhDFDHR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Apr 2021 23:07:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42394 "EHLO mail.kernel.org"
+        id S232887AbhDFFzD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Apr 2021 01:55:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37372 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238646AbhDFDHP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 5 Apr 2021 23:07:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C8B2B613AE;
-        Tue,  6 Apr 2021 03:07:08 +0000 (UTC)
+        id S231751AbhDFFzD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Apr 2021 01:55:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 41595613BC;
+        Tue,  6 Apr 2021 05:54:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617678428;
-        bh=xyFXMgOg6B9HB350/LDfKi9LUfvGFVsfu0+DJG6UAG8=;
+        s=korg; t=1617688494;
+        bh=1hIHpIOFdPurKEgWX/ewFNQ0Grqj0pd2s3fIODilDiY=;
         h=Date:From:To:Subject:From;
-        b=kAjDeLws/ljKV1D1D3DIys2cebNj9G4mSeU1PuFzjrBZsEE2z6r6bE9o4yiWAW+Hu
-         jo0nZNbDBvIFZ6888/xtVBlAoAyEh/i84TMuifIkETx76TfW+h4AMLAWbgyhvMY3f/
-         xiZsub5qU/in8LqGiMsHC4ZcRItCo3Yb0E/FeCzw=
-Date:   Mon, 05 Apr 2021 20:07:08 -0700
+        b=kVPdvkR4x4advPVy4RYcNIcBXQYU+qh3lUO9CK42SOCm95b1DkM6BQ5Et7IxgcYS9
+         thesjreQufVXHemIHThpa7NzJgdWdX/85YCjmY1S05NqvA6yTpKKYCQjXDDCQB/9Ek
+         7keK07EyNUQ3Fi5pkdx1udA6q0tMK03umNKh7Suw=
+Date:   Mon, 05 Apr 2021 22:54:53 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, slyfox@gentoo.org
-Subject:  + ia64-module-fix-symbolizer-crash-on-fdescr.patch added
- to -mm tree
-Message-ID: <20210406030708.80_YSl2dv%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org,
+        npiggin@gmail.com, sfr@canb.auug.org.au
+Subject:  + mm-vmalloc-remove-unmap_kernel_range-fix-fix.patch
+ added to -mm tree
+Message-ID: <20210406055453.MLuTCcBH_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: module: fix symbolizer crash on fdescr
+     Subject: mm-vmalloc-remove-unmap_kernel_range-fix-fix
 has been added to the -mm tree.  Its filename is
-     ia64-module-fix-symbolizer-crash-on-fdescr.patch
+     mm-vmalloc-remove-unmap_kernel_range-fix-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ia64-module-fix-symbolizer-crash-on-fdescr.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-remove-unmap_kernel_range-fix-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-module-fix-symbolizer-crash-on-fdescr.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-remove-unmap_kernel_range-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,126 +64,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: ia64: module: fix symbolizer crash on fdescr
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vmalloc-remove-unmap_kernel_range-fix-fix
 
-Noticed failure as a crash on ia64 when tried to symbolize all backtraces
-collected by page_owner=on:
+move vunmap_range_noflush() stub inside !CONFIG_MMU, not !CONFIG_NUMA
 
-    $ cat /sys/kernel/debug/page_owner
-    <oops>
-
-    CPU: 1 PID: 2074 Comm: cat Not tainted 5.12.0-rc4 #226
-    Hardware name: hp server rx3600, BIOS 04.03 04/08/2008
-    ip is at dereference_module_function_descriptor+0x41/0x100
-
-Crash happens at dereference_module_function_descriptor() due to
-use-after-free when dereferencing ".opd" section header.
-
-All section headers are already freed after module is laoded successfully.
-
-To keep symbolizer working the change stores ".opd" address and size after
-module is relocated to a new place and before section headers are
-discarded.
-
-To make similar errors less obscure module_finalize() now zeroes out all
-variables relevant to module loading only.
-
-Link: https://lkml.kernel.org/r/20210403074803.3309096-1-slyfox@gentoo.org
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/module.h |    6 +++++-
- arch/ia64/kernel/module.c      |   29 +++++++++++++++++++++++++----
- 2 files changed, 30 insertions(+), 5 deletions(-)
+ mm/internal.h |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/arch/ia64/include/asm/module.h~ia64-module-fix-symbolizer-crash-on-fdescr
-+++ a/arch/ia64/include/asm/module.h
-@@ -14,16 +14,20 @@
- struct elf64_shdr;			/* forward declration */
+--- a/mm/internal.h~mm-vmalloc-remove-unmap_kernel_range-fix-fix
++++ a/mm/internal.h
+@@ -447,7 +447,9 @@ static inline struct file *maybe_unlock_
+ static inline void clear_page_mlock(struct page *page) { }
+ static inline void mlock_vma_page(struct page *page) { }
+ static inline void mlock_migrate_page(struct page *new, struct page *old) { }
+-
++static inline void vunmap_range_noflush(unsigned long start, unsigned long end)
++{
++}
+ #endif /* !CONFIG_MMU */
  
- struct mod_arch_specific {
-+	/* Used only at module load time. */
- 	struct elf64_shdr *core_plt;	/* core PLT section */
- 	struct elf64_shdr *init_plt;	/* init PLT section */
- 	struct elf64_shdr *got;		/* global offset table */
- 	struct elf64_shdr *opd;		/* official procedure descriptors */
- 	struct elf64_shdr *unwind;	/* unwind-table section */
- 	unsigned long gp;		/* global-pointer for module */
-+	unsigned int next_got_entry;	/* index of next available got entry */
- 
-+	/* Used at module run and cleanup time. */
- 	void *core_unw_table;		/* core unwind-table cookie returned by unwinder */
- 	void *init_unw_table;		/* init unwind-table cookie returned by unwinder */
--	unsigned int next_got_entry;	/* index of next available got entry */
-+	void *opd_addr;			/* symbolize uses .opd to get to actual function */
-+	unsigned long opd_size;
- };
- 
- #define ARCH_SHF_SMALL	SHF_IA_64_SHORT
---- a/arch/ia64/kernel/module.c~ia64-module-fix-symbolizer-crash-on-fdescr
-+++ a/arch/ia64/kernel/module.c
-@@ -905,9 +905,31 @@ register_unwind_table (struct module *mo
- int
- module_finalize (const Elf_Ehdr *hdr, const Elf_Shdr *sechdrs, struct module *mod)
+ /*
+@@ -541,9 +543,6 @@ static inline int node_reclaim(struct pg
  {
-+	struct mod_arch_specific *mas = &mod->arch;
-+
- 	DEBUGP("%s: init: entry=%p\n", __func__, mod->init);
--	if (mod->arch.unwind)
-+	if (mas->unwind)
- 		register_unwind_table(mod);
-+
-+	/*
-+	 * ".opd" was already relocated to the final destination. Store
-+	 * it's address for use in symbolizer.
-+	 */
-+	mas->opd_addr = (void *)mas->opd->sh_addr;
-+	mas->opd_size = mas->opd->sh_size;
-+
-+	/*
-+	 * Module relocation was already done at this point. Section
-+	 * headers are about to be deleted. Wipe out load-time context.
-+	 */
-+	mas->core_plt = NULL;
-+	mas->init_plt = NULL;
-+	mas->got = NULL;
-+	mas->opd = NULL;
-+	mas->unwind = NULL;
-+	mas->gp = 0;
-+	mas->next_got_entry = 0;
-+
- 	return 0;
+ 	return NODE_RECLAIM_NOSCAN;
  }
+-static inline void vunmap_range_noflush(unsigned long start, unsigned long end)
+-{
+-}
+ #endif
  
-@@ -926,10 +948,9 @@ module_arch_cleanup (struct module *mod)
- 
- void *dereference_module_function_descriptor(struct module *mod, void *ptr)
- {
--	Elf64_Shdr *opd = mod->arch.opd;
-+	struct mod_arch_specific *mas = &mod->arch;
- 
--	if (ptr < (void *)opd->sh_addr ||
--			ptr >= (void *)(opd->sh_addr + opd->sh_size))
-+	if (ptr < mas->opd_addr || ptr >= mas->opd_addr + mas->opd_size)
- 		return ptr;
- 
- 	return dereference_function_descriptor(ptr);
+ extern int hwpoison_filter(struct page *p);
 _
 
-Patches currently in -mm which might be from slyfox@gentoo.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ia64-fix-user_stack_pointer-for-ptrace.patch
-ia64-drop-unused-ia64_fw_emu-ifdef.patch
-ia64-simplify-code-flow-around-swiotlb-init.patch
-ia64-fix-efi_debug-build.patch
-ia64-mca-always-make-ia64_mca_debug-an-expression.patch
-ia64-drop-marked-broken-discontigmem-and-virtual_mem_map.patch
-ia64-module-fix-symbolizer-crash-on-fdescr.patch
-mm-page_owner-fetch-backtrace-only-for-tracked-pages.patch
-mm-page_owner-use-kstrtobool-to-parse-bool-option.patch
-mm-page_owner-detect-page_owner-recursion-via-task_struct.patch
-mm-page_poison-print-page-owner-info-when-corruption-is-caught.patch
-mm-page_alloc-ignore-init_on_free=1-for-debug_pagealloc=1.patch
+kasan-remove-redundant-config-option-fix.patch
+mm-gup-check-page-posion-status-for-coredump-fix.patch
+lib-test_kasan_modulec-suppress-unused-var-warning.patch
+scripts-a-new-script-for-checking-duplicate-struct-declaration-fix.patch
+mm.patch
+mm-memcontrol-switch-to-rstat-fix.patch
+mm-vmalloc-remove-unmap_kernel_range-fix-fix.patch
+mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator-fix.patch
+mm-vmscan-add-shrinker_info_protected-helper-fix.patch
+mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
