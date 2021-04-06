@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47FF4C433B4
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Apr 2021 02:36:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 105C7C433B4
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Apr 2021 03:07:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1AEDE610A8
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Apr 2021 02:36:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C8AE2613AF
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Apr 2021 03:07:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238478AbhDFCgi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Apr 2021 22:36:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51956 "EHLO mail.kernel.org"
+        id S238895AbhDFDHR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Apr 2021 23:07:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42394 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232271AbhDFCgh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 5 Apr 2021 22:36:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BCE9F611C0;
-        Tue,  6 Apr 2021 02:36:30 +0000 (UTC)
+        id S238646AbhDFDHP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 5 Apr 2021 23:07:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C8B2B613AE;
+        Tue,  6 Apr 2021 03:07:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617676590;
-        bh=HH32KutOoxdTyLSmg5jDCd2B5SVDPJlu3yUUUehCODw=;
+        s=korg; t=1617678428;
+        bh=xyFXMgOg6B9HB350/LDfKi9LUfvGFVsfu0+DJG6UAG8=;
         h=Date:From:To:Subject:From;
-        b=U1z8/7kMqBi8M6AGnH4l0L6XJJmB1hv7dE3Q0xgSyJN8OQWDXqD7hIE33LGXNMwDp
-         VnHG7kKMNxzlIKE/LyfyqkRuzLEQCUWUMDxzf4rPz+8l2r9xUFKprHnSGpTg35MPs2
-         VqrE1G/w26HGdujWOcxLRLqBEIQ5Bg+4upXW6Coc=
-Date:   Mon, 05 Apr 2021 19:36:30 -0700
+        b=kAjDeLws/ljKV1D1D3DIys2cebNj9G4mSeU1PuFzjrBZsEE2z6r6bE9o4yiWAW+Hu
+         jo0nZNbDBvIFZ6888/xtVBlAoAyEh/i84TMuifIkETx76TfW+h4AMLAWbgyhvMY3f/
+         xiZsub5qU/in8LqGiMsHC4ZcRItCo3Yb0E/FeCzw=
+Date:   Mon, 05 Apr 2021 20:07:08 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, slyfox@gentoo.org
-Subject:  +
- mm-page_poison-print-page-owner-info-when-corruption-is-caught.patch added
+Subject:  + ia64-module-fix-symbolizer-crash-on-fdescr.patch added
  to -mm tree
-Message-ID: <20210406023630.m1abAjx9l%akpm@linux-foundation.org>
+Message-ID: <20210406030708.80_YSl2dv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_poison: print page owner info when corruption is caught
+     Subject: ia64: module: fix symbolizer crash on fdescr
 has been added to the -mm tree.  Its filename is
-     mm-page_poison-print-page-owner-info-when-corruption-is-caught.patch
+     ia64-module-fix-symbolizer-crash-on-fdescr.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_poison-print-page-owner-info-when-corruption-is-caught.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ia64-module-fix-symbolizer-crash-on-fdescr.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_poison-print-page-owner-info-when-corruption-is-caught.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-module-fix-symbolizer-crash-on-fdescr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,94 +64,111 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: mm: page_poison: print page owner info when corruption is caught
+Subject: ia64: module: fix symbolizer crash on fdescr
 
-When page_poison detects page corruption it's useful to see who
-freed a page recently to have a guess where write-after-free
-corruption happens.
+Noticed failure as a crash on ia64 when tried to symbolize all backtraces
+collected by page_owner=on:
 
-After this change corruption report has extra page_owner data.
-Example report from real corruption:
+    $ cat /sys/kernel/debug/page_owner
+    <oops>
 
-    pagealloc: memory corruption
-    e00000014cd61d10: 11 00 00 00 00 00 00 00 30 1d d2 ff ff 0f 00 60
-    e00000014cd61d20: b0 1d d2 ff ff 0f 00 60 90 fe 1c 00 08 00 00 20
-    ...
-    CPU: 1 PID: 220402 Comm: cc1plus Not tainted 5.12.0-rc5-00107-g9720c6f59ecf #245
+    CPU: 1 PID: 2074 Comm: cat Not tainted 5.12.0-rc4 #226
     Hardware name: hp server rx3600, BIOS 04.03 04/08/2008
-    ...
-    Call Trace:
-     [<a000000100015210>] show_stack+0x90/0xc0
-     [<a000000101163390>] dump_stack+0x150/0x1c0
-     [<a0000001003f1e90>] __kernel_unpoison_pages+0x410/0x440
-     [<a0000001003c2460>] get_page_from_freelist+0x1460/0x2ca0
-     [<a0000001003c6be0>] __alloc_pages_nodemask+0x3c0/0x660
-     [<a0000001003ed690>] alloc_pages_vma+0xb0/0x500
-     [<a00000010037deb0>] __handle_mm_fault+0x1230/0x1fe0
-     [<a00000010037ef70>] handle_mm_fault+0x310/0x4e0
-     [<a00000010005dc70>] ia64_do_page_fault+0x1f0/0xb80
-     [<a00000010000ca00>] ia64_leave_kernel+0x0/0x270
-    page_owner tracks the page as freed
-    page allocated via order 0, migratetype Movable,
-      gfp_mask 0x100dca(GFP_HIGHUSER_MOVABLE|__GFP_ZERO), pid 37, ts 8173444098740
-     __reset_page_owner+0x40/0x200
-     free_pcp_prepare+0x4d0/0x600
-     free_unref_page+0x20/0x1c0
-     __put_page+0x110/0x1a0
-     migrate_pages+0x16d0/0x1dc0
-     compact_zone+0xfc0/0x1aa0
-     proactive_compact_node+0xd0/0x1e0
-     kcompactd+0x550/0x600
-     kthread+0x2c0/0x2e0
-     call_payload+0x50/0x80
+    ip is at dereference_module_function_descriptor+0x41/0x100
 
-Here we can see that page was freed by page migration but something
-managed to write to it afterwards.
+Crash happens at dereference_module_function_descriptor() due to
+use-after-free when dereferencing ".opd" section header.
 
-Link: https://lkml.kernel.org/r/20210404141735.2152984-1-slyfox@gentoo.org
+All section headers are already freed after module is laoded successfully.
+
+To keep symbolizer working the change stores ".opd" address and size after
+module is relocated to a new place and before section headers are
+discarded.
+
+To make similar errors less obscure module_finalize() now zeroes out all
+variables relevant to module loading only.
+
+Link: https://lkml.kernel.org/r/20210403074803.3309096-1-slyfox@gentoo.org
 Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_poison.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/ia64/include/asm/module.h |    6 +++++-
+ arch/ia64/kernel/module.c      |   29 +++++++++++++++++++++++++----
+ 2 files changed, 30 insertions(+), 5 deletions(-)
 
---- a/mm/page_poison.c~mm-page_poison-print-page-owner-info-when-corruption-is-caught
-+++ a/mm/page_poison.c
-@@ -4,6 +4,7 @@
- #include <linux/mm.h>
- #include <linux/highmem.h>
- #include <linux/page_ext.h>
-+#include <linux/page_owner.h>
- #include <linux/poison.h>
- #include <linux/ratelimit.h>
- #include <linux/kasan.h>
-@@ -45,7 +46,7 @@ static bool single_bit_flip(unsigned cha
- 	return error && !(error & (error - 1));
- }
+--- a/arch/ia64/include/asm/module.h~ia64-module-fix-symbolizer-crash-on-fdescr
++++ a/arch/ia64/include/asm/module.h
+@@ -14,16 +14,20 @@
+ struct elf64_shdr;			/* forward declration */
  
--static void check_poison_mem(unsigned char *mem, size_t bytes)
-+static void check_poison_mem(struct page *page, unsigned char *mem, size_t bytes)
+ struct mod_arch_specific {
++	/* Used only at module load time. */
+ 	struct elf64_shdr *core_plt;	/* core PLT section */
+ 	struct elf64_shdr *init_plt;	/* init PLT section */
+ 	struct elf64_shdr *got;		/* global offset table */
+ 	struct elf64_shdr *opd;		/* official procedure descriptors */
+ 	struct elf64_shdr *unwind;	/* unwind-table section */
+ 	unsigned long gp;		/* global-pointer for module */
++	unsigned int next_got_entry;	/* index of next available got entry */
+ 
++	/* Used at module run and cleanup time. */
+ 	void *core_unw_table;		/* core unwind-table cookie returned by unwinder */
+ 	void *init_unw_table;		/* init unwind-table cookie returned by unwinder */
+-	unsigned int next_got_entry;	/* index of next available got entry */
++	void *opd_addr;			/* symbolize uses .opd to get to actual function */
++	unsigned long opd_size;
+ };
+ 
+ #define ARCH_SHF_SMALL	SHF_IA_64_SHORT
+--- a/arch/ia64/kernel/module.c~ia64-module-fix-symbolizer-crash-on-fdescr
++++ a/arch/ia64/kernel/module.c
+@@ -905,9 +905,31 @@ register_unwind_table (struct module *mo
+ int
+ module_finalize (const Elf_Ehdr *hdr, const Elf_Shdr *sechdrs, struct module *mod)
  {
- 	static DEFINE_RATELIMIT_STATE(ratelimit, 5 * HZ, 10);
- 	unsigned char *start;
-@@ -70,6 +71,7 @@ static void check_poison_mem(unsigned ch
- 	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 16, 1, start,
- 			end - start + 1, 1);
- 	dump_stack();
-+	dump_page_owner(page);
++	struct mod_arch_specific *mas = &mod->arch;
++
+ 	DEBUGP("%s: init: entry=%p\n", __func__, mod->init);
+-	if (mod->arch.unwind)
++	if (mas->unwind)
+ 		register_unwind_table(mod);
++
++	/*
++	 * ".opd" was already relocated to the final destination. Store
++	 * it's address for use in symbolizer.
++	 */
++	mas->opd_addr = (void *)mas->opd->sh_addr;
++	mas->opd_size = mas->opd->sh_size;
++
++	/*
++	 * Module relocation was already done at this point. Section
++	 * headers are about to be deleted. Wipe out load-time context.
++	 */
++	mas->core_plt = NULL;
++	mas->init_plt = NULL;
++	mas->got = NULL;
++	mas->opd = NULL;
++	mas->unwind = NULL;
++	mas->gp = 0;
++	mas->next_got_entry = 0;
++
+ 	return 0;
  }
  
- static void unpoison_page(struct page *page)
-@@ -83,7 +85,7 @@ static void unpoison_page(struct page *p
- 	 * that is freed to buddy. Thus no extra check is done to
- 	 * see if a page was poisoned.
- 	 */
--	check_poison_mem(kasan_reset_tag(addr), PAGE_SIZE);
-+	check_poison_mem(page, kasan_reset_tag(addr), PAGE_SIZE);
- 	kasan_enable_current();
- 	kunmap_atomic(addr);
- }
+@@ -926,10 +948,9 @@ module_arch_cleanup (struct module *mod)
+ 
+ void *dereference_module_function_descriptor(struct module *mod, void *ptr)
+ {
+-	Elf64_Shdr *opd = mod->arch.opd;
++	struct mod_arch_specific *mas = &mod->arch;
+ 
+-	if (ptr < (void *)opd->sh_addr ||
+-			ptr >= (void *)(opd->sh_addr + opd->sh_size))
++	if (ptr < mas->opd_addr || ptr >= mas->opd_addr + mas->opd_size)
+ 		return ptr;
+ 
+ 	return dereference_function_descriptor(ptr);
 _
 
 Patches currently in -mm which might be from slyfox@gentoo.org are
@@ -163,6 +179,7 @@ ia64-simplify-code-flow-around-swiotlb-init.patch
 ia64-fix-efi_debug-build.patch
 ia64-mca-always-make-ia64_mca_debug-an-expression.patch
 ia64-drop-marked-broken-discontigmem-and-virtual_mem_map.patch
+ia64-module-fix-symbolizer-crash-on-fdescr.patch
 mm-page_owner-fetch-backtrace-only-for-tracked-pages.patch
 mm-page_owner-use-kstrtobool-to-parse-bool-option.patch
 mm-page_owner-detect-page_owner-recursion-via-task_struct.patch
