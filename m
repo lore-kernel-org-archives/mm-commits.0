@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4BF5C433B4
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Apr 2021 03:56:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 324AFC433ED
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Apr 2021 03:57:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6B175613BD
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Apr 2021 03:56:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EB446613A9
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Apr 2021 03:57:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233921AbhDGD4N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Apr 2021 23:56:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51600 "EHLO mail.kernel.org"
+        id S243974AbhDGD5l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Apr 2021 23:57:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51670 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233392AbhDGD4M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Apr 2021 23:56:12 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C75646139E;
-        Wed,  7 Apr 2021 03:56:03 +0000 (UTC)
+        id S233392AbhDGD5k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Apr 2021 23:57:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A35956139E;
+        Wed,  7 Apr 2021 03:57:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617767764;
-        bh=ilh/WYXmRqLq3bUATeC14/Yq+jP82C0SkdN2mQjo3Cg=;
+        s=korg; t=1617767851;
+        bh=tGMPmdVyWUpxqj2P0SbG8aSY79TQZSbo69IorVycJ6Y=;
         h=Date:From:To:Subject:From;
-        b=PXfJQqcQsrCIED7eVCo6jou51Dht9hLt+2kMbH/QfxC77b4K0wvaHo0kywQCaikpz
-         y6iIQ+gcUKhOiFstYJUBrbuJa6Fy2bjBdJHhJQDnBrJoq/BZNjjRdnDSPEV0zCi2ta
-         WrTX8VuchZkJrmw2cDu4o0t+xyvIUbjzgYkfKmEA=
-Date:   Tue, 06 Apr 2021 20:56:03 -0700
+        b=tADwpNLb7xlOdpwySZcC9y3ykEMFGUBkDglQsGwkTqGfhuinLKpPzBM6w6hq/2g4F
+         HCGzPlnU3gE188LWRdNP8oiFp+WO6G+8UE5gwZdPh144P+Taqb6+kh+VuYISZ4aiAY
+         A44A1Ie3ihkaPZUdimVqy4xiS8R/ZFQpjIgtzWNg=
+Date:   Tue, 06 Apr 2021 20:57:31 -0700
 From:   akpm@linux-foundation.org
 To:     dhowells@redhat.com, mm-commits@vger.kernel.org,
         rdunlap@infradead.org, viro@zeniv.linux.org.uk
-Subject:  + lib-parser-clean-up-kernel-doc.patch added to -mm tree
-Message-ID: <20210407035603.tVx0S6Vdd%akpm@linux-foundation.org>
+Subject:  + vfs-fs_parser-clean-up-kernel-doc-warnings.patch added
+ to -mm tree
+Message-ID: <20210407035731.PGWz9fS-a%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: parser: clean up kernel-doc
+     Subject: vfs: fs_parser: clean up kernel-doc warnings
 has been added to the -mm tree.  Its filename is
-     lib-parser-clean-up-kernel-doc.patch
+     vfs-fs_parser-clean-up-kernel-doc-warnings.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-parser-clean-up-kernel-doc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/vfs-fs_parser-clean-up-kernel-doc-warnings.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-parser-clean-up-kernel-doc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/vfs-fs_parser-clean-up-kernel-doc-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,172 +65,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib: parser: clean up kernel-doc
+Subject: vfs: fs_parser: clean up kernel-doc warnings
 
-Mark match_uint() as kernel-doc notation since it is already fully
-annotated as such.  Use % prefix on constants in kernel-doc comments. 
-Convert function return descriptions to use the "Return:" kernel-doc
-notation.
+Fix kernel-doc notation function arguments to eliminate two kernel-doc
+warnings:
 
-Link: https://lkml.kernel.org/r/20210407034514.5651-1-rdunlap@infradead.org
+fs_parser.c:322: warning: Excess function parameter 'name' description in 'validate_constant_table'
+fs_parser.c:367: warning: Function parameter or member 'name' not described in 'fs_validate_description'
+
+Link: https://lkml.kernel.org/r/20210407033743.9701-1-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/parser.c |   61 ++++++++++++++++++++++++++++++-------------------
- 1 file changed, 38 insertions(+), 23 deletions(-)
+ fs/fs_parser.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/parser.c~lib-parser-clean-up-kernel-doc
-+++ a/lib/parser.c
-@@ -98,7 +98,7 @@ static int match_one(char *s, const char
-  * locations.
-  *
-  * Description: Detects which if any of a set of token strings has been passed
-- * to it. Tokens can include up to MAX_OPT_ARGS instances of basic c-style
-+ * to it. Tokens can include up to %MAX_OPT_ARGS instances of basic c-style
-  * format identifiers which will be taken into account when matching the
-  * tokens, and whose locations will be returned in the @args array.
-  */
-@@ -120,8 +120,10 @@ EXPORT_SYMBOL(match_token);
-  * @base: base to use when converting string
-  *
-  * Description: Given a &substring_t and a base, attempts to parse the substring
-- * as a number in that base. On success, sets @result to the integer represented
-- * by the string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
-+ * as a number in that base.
-+ *
-+ * Return: On success, sets @result to the integer represented by the
-+ * string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
-  */
- static int match_number(substring_t *s, int *result, int base)
- {
-@@ -153,8 +155,10 @@ static int match_number(substring_t *s,
-  * @base: base to use when converting string
-  *
-  * Description: Given a &substring_t and a base, attempts to parse the substring
-- * as a number in that base. On success, sets @result to the integer represented
-- * by the string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
-+ * as a number in that base.
-+ *
-+ * Return: On success, sets @result to the integer represented by the
-+ * string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
-  */
- static int match_u64int(substring_t *s, u64 *result, int base)
- {
-@@ -178,9 +182,10 @@ static int match_u64int(substring_t *s,
-  * @s: substring_t to be scanned
-  * @result: resulting integer on success
-  *
-- * Description: Attempts to parse the &substring_t @s as a decimal integer. On
-- * success, sets @result to the integer represented by the string and returns 0.
-- * Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
-+ * Description: Attempts to parse the &substring_t @s as a decimal integer.
-+ *
-+ * Return: On success, sets @result to the integer represented by the string
-+ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
-  */
- int match_int(substring_t *s, int *result)
- {
-@@ -188,14 +193,15 @@ int match_int(substring_t *s, int *resul
- }
- EXPORT_SYMBOL(match_int);
+--- a/fs/fs_parser.c~vfs-fs_parser-clean-up-kernel-doc-warnings
++++ a/fs/fs_parser.c
+@@ -310,7 +310,6 @@ EXPORT_SYMBOL(fs_param_is_path);
+ #ifdef CONFIG_VALIDATE_FS_PARSER
+ /**
+  * validate_constant_table - Validate a constant table
+- * @name: Name to use in reporting
+  * @tbl: The constant table to validate.
+  * @tbl_size: The size of the table.
+  * @low: The lowest permissible value.
+@@ -360,6 +359,7 @@ bool validate_constant_table(const struc
  
--/*
-+/**
-  * match_uint - scan a decimal representation of an integer from a substring_t
-  * @s: substring_t to be scanned
-  * @result: resulting integer on success
-  *
-- * Description: Attempts to parse the &substring_t @s as a decimal integer. On
-- * success, sets @result to the integer represented by the string and returns 0.
-- * Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
-+ * Description: Attempts to parse the &substring_t @s as a decimal integer.
-+ *
-+ * Return: On success, sets @result to the integer represented by the string
-+ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+ /**
+  * fs_validate_description - Validate a parameter description
++ * @name: The parameter name to search for.
+  * @desc: The parameter description to validate.
   */
- int match_uint(substring_t *s, unsigned int *result)
- {
-@@ -217,9 +223,10 @@ EXPORT_SYMBOL(match_uint);
-  * @result: resulting unsigned long long on success
-  *
-  * Description: Attempts to parse the &substring_t @s as a long decimal
-- * integer. On success, sets @result to the integer represented by the
-- * string and returns 0.
-- * Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
-+ * integer.
-+ *
-+ * Return: On success, sets @result to the integer represented by the string
-+ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
-  */
- int match_u64(substring_t *s, u64 *result)
- {
-@@ -232,9 +239,10 @@ EXPORT_SYMBOL(match_u64);
-  * @s: substring_t to be scanned
-  * @result: resulting integer on success
-  *
-- * Description: Attempts to parse the &substring_t @s as an octal integer. On
-- * success, sets @result to the integer represented by the string and returns
-- * 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
-+ * Description: Attempts to parse the &substring_t @s as an octal integer.
-+ *
-+ * Return: On success, sets @result to the integer represented by the string
-+ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
-  */
- int match_octal(substring_t *s, int *result)
- {
-@@ -248,8 +256,9 @@ EXPORT_SYMBOL(match_octal);
-  * @result: resulting integer on success
-  *
-  * Description: Attempts to parse the &substring_t @s as a hexadecimal integer.
-- * On success, sets @result to the integer represented by the string and
-- * returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
-+ *
-+ * Return: On success, sets @result to the integer represented by the string
-+ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
-  */
- int match_hex(substring_t *s, int *result)
- {
-@@ -263,10 +272,11 @@ EXPORT_SYMBOL(match_hex);
-  * @str: the string to be parsed
-  *
-  * Description: Parse the string @str to check if matches wildcard
-- * pattern @pattern. The pattern may contain two type wildcardes:
-+ * pattern @pattern. The pattern may contain two types of wildcards:
-  *   '*' - matches zero or more characters
-  *   '?' - matches one character
-- * If it's matched, return true, else return false.
-+ *
-+ * Return: If the @str matches the @pattern, return true, else return false.
-  */
- bool match_wildcard(const char *pattern, const char *str)
- {
-@@ -316,7 +326,9 @@ EXPORT_SYMBOL(match_wildcard);
-  *
-  * Description: Copy the characters in &substring_t @src to the
-  * c-style string @dest.  Copy no more than @size - 1 characters, plus
-- * the terminating NUL.  Return length of @src.
-+ * the terminating NUL.
-+ *
-+ * Return: length of @src.
-  */
- size_t match_strlcpy(char *dest, const substring_t *src, size_t size)
- {
-@@ -338,6 +350,9 @@ EXPORT_SYMBOL(match_strlcpy);
-  * Description: Allocates and returns a string filled with the contents of
-  * the &substring_t @s. The caller is responsible for freeing the returned
-  * string with kfree().
-+ *
-+ * Return: the address of the newly allocated NUL-terminated string or
-+ * %NULL on error.
-  */
- char *match_strdup(const substring_t *s)
- {
+ bool fs_validate_description(const char *name,
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
 
+vfs-fs_parser-clean-up-kernel-doc-warnings.patch
 lib-parser-clean-up-kernel-doc.patch
 
