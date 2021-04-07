@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 324AFC433ED
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Apr 2021 03:57:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC108C433ED
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Apr 2021 04:03:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EB446613A9
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Apr 2021 03:57:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C2D8613A9
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Apr 2021 04:03:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243974AbhDGD5l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Apr 2021 23:57:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51670 "EHLO mail.kernel.org"
+        id S229460AbhDGEDv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Apr 2021 00:03:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51988 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233392AbhDGD5k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Apr 2021 23:57:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A35956139E;
-        Wed,  7 Apr 2021 03:57:31 +0000 (UTC)
+        id S229445AbhDGEDv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 7 Apr 2021 00:03:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 956D46124C;
+        Wed,  7 Apr 2021 04:03:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617767851;
-        bh=tGMPmdVyWUpxqj2P0SbG8aSY79TQZSbo69IorVycJ6Y=;
+        s=korg; t=1617768222;
+        bh=p3kMjzyFWLwFTetAR1ATR+vIRcnf3Zduu+vp1qU/MNk=;
         h=Date:From:To:Subject:From;
-        b=tADwpNLb7xlOdpwySZcC9y3ykEMFGUBkDglQsGwkTqGfhuinLKpPzBM6w6hq/2g4F
-         HCGzPlnU3gE188LWRdNP8oiFp+WO6G+8UE5gwZdPh144P+Taqb6+kh+VuYISZ4aiAY
-         A44A1Ie3ihkaPZUdimVqy4xiS8R/ZFQpjIgtzWNg=
-Date:   Tue, 06 Apr 2021 20:57:31 -0700
+        b=oh3d8C5AjJu5xDKP50ZPksnEhfqdvRaZUAvRbfh6cfjlWyG7Dw7ZIny24xPi0G5xh
+         wufLaelE4UawX7+M1Q9r0OK6sh86tW7Pj8rsHsWZxOySLt3Y16iXJZcD3gKwg25ZkQ
+         OoJHQZyo3HrOOONhvH+fKxd0sOvRz91Qne9dKfVU=
+Date:   Tue, 06 Apr 2021 21:03:42 -0700
 From:   akpm@linux-foundation.org
-To:     dhowells@redhat.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, viro@zeniv.linux.org.uk
-Subject:  + vfs-fs_parser-clean-up-kernel-doc-warnings.patch added
- to -mm tree
-Message-ID: <20210407035731.PGWz9fS-a%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, osalvador@suse.de
+Subject:  + x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix.patch
+ added to -mm tree
+Message-ID: <20210407040342.4b3B2HrqA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vfs: fs_parser: clean up kernel-doc warnings
+     Subject: x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix
 has been added to the -mm tree.  Its filename is
-     vfs-fs_parser-clean-up-kernel-doc-warnings.patch
+     x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/vfs-fs_parser-clean-up-kernel-doc-warnings.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/vfs-fs_parser-clean-up-kernel-doc-warnings.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,47 +63,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: vfs: fs_parser: clean up kernel-doc warnings
+From: Oscar Salvador <osalvador@suse.de>
+Subject: x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix
 
-Fix kernel-doc notation function arguments to eliminate two kernel-doc
-warnings:
+It seems that we need to go back to the ifdef version as the IS_ENABLED
+does not properly work and throws a warning.
 
-fs_parser.c:322: warning: Excess function parameter 'name' description in 'validate_constant_table'
-fs_parser.c:367: warning: Function parameter or member 'name' not described in 'fs_validate_description'
+Link: https://lkml.kernel.org/r/YGy++mSft7K4u+88@localhost.localdomain
 
-Link: https://lkml.kernel.org/r/20210407033743.9701-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs_parser.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/init_64.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/fs/fs_parser.c~vfs-fs_parser-clean-up-kernel-doc-warnings
-+++ a/fs/fs_parser.c
-@@ -310,7 +310,6 @@ EXPORT_SYMBOL(fs_param_is_path);
- #ifdef CONFIG_VALIDATE_FS_PARSER
- /**
-  * validate_constant_table - Validate a constant table
-- * @name: Name to use in reporting
-  * @tbl: The constant table to validate.
-  * @tbl_size: The size of the table.
-  * @low: The lowest permissible value.
-@@ -360,6 +359,7 @@ bool validate_constant_table(const struc
+--- a/arch/x86/mm/init_64.c~x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix
++++ a/arch/x86/mm/init_64.c
+@@ -1068,15 +1068,16 @@ remove_pmd_table(pmd_t *pmd_start, unsig
+ 				pmd_clear(pmd);
+ 				spin_unlock(&init_mm.page_table_lock);
+ 				pages++;
+-			} else if (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) &&
+-				   vmemmap_pmd_is_unused(addr, next)) {
++			}
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++			else if (vmemmap_pmd_is_unused(addr, next)) {
+ 					free_hugepage_table(pmd_page(*pmd),
+ 							    altmap);
+ 					spin_lock(&init_mm.page_table_lock);
+ 					pmd_clear(pmd);
+ 					spin_unlock(&init_mm.page_table_lock);
+ 			}
+-
++#endif
+ 			continue;
+ 		}
  
- /**
-  * fs_validate_description - Validate a parameter description
-+ * @name: The parameter name to search for.
-  * @desc: The parameter description to validate.
-  */
- bool fs_validate_description(const char *name,
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-vfs-fs_parser-clean-up-kernel-doc-warnings.patch
-lib-parser-clean-up-kernel-doc.patch
+x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
+x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
+x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
+x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix.patch
+x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
+mmpage_alloc-bail-out-earlier-on-enomem-in-alloc_contig_migrate_range.patch
+mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes.patch
+mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes-fix.patch
+mm-make-alloc_contig_range-handle-free-hugetlb-pages.patch
+mm-make-alloc_contig_range-handle-in-use-hugetlb-pages.patch
+mmpage_alloc-drop-unnecessary-checks-from-pfn_range_valid_contig.patch
+mmmemory_hotplug-allocate-memmap-from-the-added-memory-range.patch
+acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
+mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
+x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
