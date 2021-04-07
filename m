@@ -2,116 +2,234 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64169C433B4
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Apr 2021 20:05:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4BF5C433B4
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Apr 2021 03:56:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 090EA613CC
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Apr 2021 20:05:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B175613BD
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Apr 2021 03:56:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245151AbhDFUF0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Apr 2021 16:05:26 -0400
-Received: from mx2.suse.de ([195.135.220.15]:50240 "EHLO mx2.suse.de"
+        id S233921AbhDGD4N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Apr 2021 23:56:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51600 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234411AbhDFUF0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Apr 2021 16:05:26 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id F052DAF98;
-        Tue,  6 Apr 2021 20:05:16 +0000 (UTC)
-Date:   Tue, 6 Apr 2021 22:05:14 +0200
-From:   Oscar Salvador <osalvador@suse.de>
-To:     akpm@linux-foundation.org
-Cc:     bp@alien8.de, dave.hansen@linux.intel.com, david@redhat.com,
-        hpa@zytor.com, luto@kernel.org, mhocko@kernel.org,
-        mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org,
-        tglx@linutronix.de, ziy@nvidia.com, rdunlap@infradead.org
-Subject: Re: + x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch added to
- -mm tree
-Message-ID: <YGy++mSft7K4u+88@localhost.localdomain>
-References: <20210310225856.PQWfPyaE4%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210310225856.PQWfPyaE4%akpm@linux-foundation.org>
+        id S233392AbhDGD4M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Apr 2021 23:56:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C75646139E;
+        Wed,  7 Apr 2021 03:56:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1617767764;
+        bh=ilh/WYXmRqLq3bUATeC14/Yq+jP82C0SkdN2mQjo3Cg=;
+        h=Date:From:To:Subject:From;
+        b=PXfJQqcQsrCIED7eVCo6jou51Dht9hLt+2kMbH/QfxC77b4K0wvaHo0kywQCaikpz
+         y6iIQ+gcUKhOiFstYJUBrbuJa6Fy2bjBdJHhJQDnBrJoq/BZNjjRdnDSPEV0zCi2ta
+         WrTX8VuchZkJrmw2cDu4o0t+xyvIUbjzgYkfKmEA=
+Date:   Tue, 06 Apr 2021 20:56:03 -0700
+From:   akpm@linux-foundation.org
+To:     dhowells@redhat.com, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, viro@zeniv.linux.org.uk
+Subject:  + lib-parser-clean-up-kernel-doc.patch added to -mm tree
+Message-ID: <20210407035603.tVx0S6Vdd%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, Mar 10, 2021 at 02:58:56PM -0800, akpm@linux-foundation.org wrote:
-> ------------------------------------------------------
-> From: Oscar Salvador <osalvador@suse.de>
-> Subject: x86/vmemmap: handle unpopulated sub-pmd ranges
-> 
-> When sizeof(struct page) is not a power of 2, sections do not span a PMD
-> anymore and so when populating them some parts of the PMD will remain
-> unused.
-> 
-> Because of this, PMDs will be left behind when depopulating sections since
-> remove_pmd_table() thinks that those unused parts are still in use.
-> 
-> Fix this by marking the unused parts with PAGE_UNUSED, so memchr_inv()
-> will do the right thing and will let us free the PMD when the last user of
-> it is gone.
-> 
-> This patch is based on a similar patch by David Hildenbrand:
-> 
-> https://lore.kernel.org/linux-mm/20200722094558.9828-9-david@redhat.com/
-> 
-> Link: https://lkml.kernel.org/r/20210309214050.4674-4-osalvador@suse.de
-> Signed-off-by: Oscar Salvador <osalvador@suse.de>
-> Reviewed-by: David Hildenbrand <david@redhat.com>
-> Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Andy Lutomirski <luto@kernel.org>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Cc: "H . Peter Anvin" <hpa@zytor.com>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: Michal Hocko <mhocko@kernel.org>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Zi Yan <ziy@nvidia.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-Hi Andrew,
+The patch titled
+     Subject: lib: parser: clean up kernel-doc
+has been added to the -mm tree.  Its filename is
+     lib-parser-clean-up-kernel-doc.patch
 
-Could you squash the following on top?
-It seems that we need to go back to the ifdef version as the IS_ENABLED
-does not properly work and throws a warning.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-parser-clean-up-kernel-doc.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-parser-clean-up-kernel-doc.patch
 
-Thanks a lot
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 13187a3debe9..bbef99622370 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -1123,15 +1123,16 @@ remove_pmd_table(pmd_t *pmd_start, unsigned long addr, unsigned long end,
- 				pmd_clear(pmd);
- 				spin_unlock(&init_mm.page_table_lock);
- 				pages++;
--			} else if (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) &&
--				   vmemmap_pmd_is_unused(addr, next)) {
-+			}
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+			else if (vmemmap_pmd_is_unused(addr, next)) {
- 					free_hugepage_table(pmd_page(*pmd),
- 							    altmap);
- 					spin_lock(&init_mm.page_table_lock);
- 					pmd_clear(pmd);
- 					spin_unlock(&init_mm.page_table_lock);
- 			}
--
-+#endif
- 			continue;
- 		}
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
+------------------------------------------------------
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: lib: parser: clean up kernel-doc
 
+Mark match_uint() as kernel-doc notation since it is already fully
+annotated as such.  Use % prefix on constants in kernel-doc comments. 
+Convert function return descriptions to use the "Return:" kernel-doc
+notation.
 
--- 
-Oscar Salvador
-SUSE L3
+Link: https://lkml.kernel.org/r/20210407034514.5651-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/parser.c |   61 ++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 38 insertions(+), 23 deletions(-)
+
+--- a/lib/parser.c~lib-parser-clean-up-kernel-doc
++++ a/lib/parser.c
+@@ -98,7 +98,7 @@ static int match_one(char *s, const char
+  * locations.
+  *
+  * Description: Detects which if any of a set of token strings has been passed
+- * to it. Tokens can include up to MAX_OPT_ARGS instances of basic c-style
++ * to it. Tokens can include up to %MAX_OPT_ARGS instances of basic c-style
+  * format identifiers which will be taken into account when matching the
+  * tokens, and whose locations will be returned in the @args array.
+  */
+@@ -120,8 +120,10 @@ EXPORT_SYMBOL(match_token);
+  * @base: base to use when converting string
+  *
+  * Description: Given a &substring_t and a base, attempts to parse the substring
+- * as a number in that base. On success, sets @result to the integer represented
+- * by the string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * as a number in that base.
++ *
++ * Return: On success, sets @result to the integer represented by the
++ * string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ static int match_number(substring_t *s, int *result, int base)
+ {
+@@ -153,8 +155,10 @@ static int match_number(substring_t *s,
+  * @base: base to use when converting string
+  *
+  * Description: Given a &substring_t and a base, attempts to parse the substring
+- * as a number in that base. On success, sets @result to the integer represented
+- * by the string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * as a number in that base.
++ *
++ * Return: On success, sets @result to the integer represented by the
++ * string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ static int match_u64int(substring_t *s, u64 *result, int base)
+ {
+@@ -178,9 +182,10 @@ static int match_u64int(substring_t *s,
+  * @s: substring_t to be scanned
+  * @result: resulting integer on success
+  *
+- * Description: Attempts to parse the &substring_t @s as a decimal integer. On
+- * success, sets @result to the integer represented by the string and returns 0.
+- * Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * Description: Attempts to parse the &substring_t @s as a decimal integer.
++ *
++ * Return: On success, sets @result to the integer represented by the string
++ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ int match_int(substring_t *s, int *result)
+ {
+@@ -188,14 +193,15 @@ int match_int(substring_t *s, int *resul
+ }
+ EXPORT_SYMBOL(match_int);
+ 
+-/*
++/**
+  * match_uint - scan a decimal representation of an integer from a substring_t
+  * @s: substring_t to be scanned
+  * @result: resulting integer on success
+  *
+- * Description: Attempts to parse the &substring_t @s as a decimal integer. On
+- * success, sets @result to the integer represented by the string and returns 0.
+- * Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * Description: Attempts to parse the &substring_t @s as a decimal integer.
++ *
++ * Return: On success, sets @result to the integer represented by the string
++ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ int match_uint(substring_t *s, unsigned int *result)
+ {
+@@ -217,9 +223,10 @@ EXPORT_SYMBOL(match_uint);
+  * @result: resulting unsigned long long on success
+  *
+  * Description: Attempts to parse the &substring_t @s as a long decimal
+- * integer. On success, sets @result to the integer represented by the
+- * string and returns 0.
+- * Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * integer.
++ *
++ * Return: On success, sets @result to the integer represented by the string
++ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ int match_u64(substring_t *s, u64 *result)
+ {
+@@ -232,9 +239,10 @@ EXPORT_SYMBOL(match_u64);
+  * @s: substring_t to be scanned
+  * @result: resulting integer on success
+  *
+- * Description: Attempts to parse the &substring_t @s as an octal integer. On
+- * success, sets @result to the integer represented by the string and returns
+- * 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * Description: Attempts to parse the &substring_t @s as an octal integer.
++ *
++ * Return: On success, sets @result to the integer represented by the string
++ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ int match_octal(substring_t *s, int *result)
+ {
+@@ -248,8 +256,9 @@ EXPORT_SYMBOL(match_octal);
+  * @result: resulting integer on success
+  *
+  * Description: Attempts to parse the &substring_t @s as a hexadecimal integer.
+- * On success, sets @result to the integer represented by the string and
+- * returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ *
++ * Return: On success, sets @result to the integer represented by the string
++ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ int match_hex(substring_t *s, int *result)
+ {
+@@ -263,10 +272,11 @@ EXPORT_SYMBOL(match_hex);
+  * @str: the string to be parsed
+  *
+  * Description: Parse the string @str to check if matches wildcard
+- * pattern @pattern. The pattern may contain two type wildcardes:
++ * pattern @pattern. The pattern may contain two types of wildcards:
+  *   '*' - matches zero or more characters
+  *   '?' - matches one character
+- * If it's matched, return true, else return false.
++ *
++ * Return: If the @str matches the @pattern, return true, else return false.
+  */
+ bool match_wildcard(const char *pattern, const char *str)
+ {
+@@ -316,7 +326,9 @@ EXPORT_SYMBOL(match_wildcard);
+  *
+  * Description: Copy the characters in &substring_t @src to the
+  * c-style string @dest.  Copy no more than @size - 1 characters, plus
+- * the terminating NUL.  Return length of @src.
++ * the terminating NUL.
++ *
++ * Return: length of @src.
+  */
+ size_t match_strlcpy(char *dest, const substring_t *src, size_t size)
+ {
+@@ -338,6 +350,9 @@ EXPORT_SYMBOL(match_strlcpy);
+  * Description: Allocates and returns a string filled with the contents of
+  * the &substring_t @s. The caller is responsible for freeing the returned
+  * string with kfree().
++ *
++ * Return: the address of the newly allocated NUL-terminated string or
++ * %NULL on error.
+  */
+ char *match_strdup(const substring_t *s)
+ {
+_
+
+Patches currently in -mm which might be from rdunlap@infradead.org are
+
+lib-parser-clean-up-kernel-doc.patch
+
