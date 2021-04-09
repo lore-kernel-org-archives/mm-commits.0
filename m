@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 353D1C43460
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 05:09:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09F90C433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 05:37:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 011A160FE6
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 05:09:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5A5A61179
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 05:37:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233173AbhDIFJe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Apr 2021 01:09:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52004 "EHLO mail.kernel.org"
+        id S233244AbhDIFhs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Apr 2021 01:37:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55926 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229526AbhDIFJZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Apr 2021 01:09:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6C5FE61182;
-        Fri,  9 Apr 2021 05:08:05 +0000 (UTC)
+        id S233153AbhDIFhs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Apr 2021 01:37:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DCA1A61165;
+        Fri,  9 Apr 2021 05:37:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617944885;
-        bh=TsQvdvecHs80gPi9Q+/sX9AnUEtCJuAggTtcGhqP29E=;
+        s=korg; t=1617946656;
+        bh=7vLI5pHgMmv5LxUG5v6h6eFyj0WoSFusvOj2tmRSJj8=;
         h=Date:From:To:Subject:From;
-        b=sGpaFoQlfCvisGcrCIP1fYo6WZ5wfhkJblHE83sT25S1s7pHxaEdylSxwKyzLtQEE
-         Y0kxqVI1KlGVUjHJmmmz53jBFMO8Xd/0LDKXkre77DhdmABWT2Obu3EHrWjsb3Ou9K
-         DqEtjfAAX9vznARDSiL5Jn5wC18VWfsY7amBaVKc=
-Date:   Thu, 08 Apr 2021 22:08:05 -0700
+        b=blWibNsyJDnfGbrqfR8NWpKdEZpHYT9AtU7R3THZFHEID3BGoixVlm1/gobLwYjPP
+         4YwFuCi6UvGXqMsTlx7Mmk3M7Gyky7+lMPjLrB3aX+IU1meoD4AtkHl0eyX02SnHyj
+         VCTWOUbimLWUiQrkgWU2zP26JeEY/2gCLVnPYqMk=
+Date:   Thu, 08 Apr 2021 22:37:35 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org, osalvador@suse.de,
-        songmuchun@bytedance.com, vbabka@suse.cz
-Subject:  [to-be-updated]
- mmpage_alloc-drop-unnecessary-checks-from-pfn_range_valid_contig.patch
- removed from -mm tree
-Message-ID: <20210409050805.q4q5JkgAe%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
+        mm-commits@vger.kernel.org
+Subject:  + kernelh-split-out-panic-and-oops-helpers-fix.patch
+ added to -mm tree
+Message-ID: <20210409053735.vZ81PYZ8Z%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,67 +43,75 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,page_alloc: drop unnecessary checks from pfn_range_valid_contig
-has been removed from the -mm tree.  Its filename was
-     mmpage_alloc-drop-unnecessary-checks-from-pfn_range_valid_contig.patch
+     Subject: kernelh-split-out-panic-and-oops-helpers-fix
+has been added to the -mm tree.  Its filename is
+     kernelh-split-out-panic-and-oops-helpers-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/kernelh-split-out-panic-and-oops-helpers-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/kernelh-split-out-panic-and-oops-helpers-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_alloc: drop unnecessary checks from pfn_range_valid_contig
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernelh-split-out-panic-and-oops-helpers-fix
 
-pfn_range_valid_contig() bails out when it finds an in-use page or a
-hugetlb page, among other things.
+more files need panic_notifier.h
 
-We can drop the in-use page check since __alloc_contig_pages can migrate
-away those pages, and the hugetlb page check can go too since
-isolate_migratepages_range is now capable of dealing with hugetlb pages. 
-Either way, those checks are racy so let the end function handle it when
-the time comes.
-
-Link: https://lkml.kernel.org/r/20210319132004.4341-6-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ------
- 1 file changed, 6 deletions(-)
+ arch/x86/xen/enlighten.c        |    1 +
+ drivers/video/fbdev/hyperv_fb.c |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/mm/page_alloc.c~mmpage_alloc-drop-unnecessary-checks-from-pfn_range_valid_contig
-+++ a/mm/page_alloc.c
-@@ -8897,12 +8897,6 @@ static bool pfn_range_valid_contig(struc
+--- a/arch/x86/xen/enlighten.c~kernelh-split-out-panic-and-oops-helpers-fix
++++ a/arch/x86/xen/enlighten.c
+@@ -6,6 +6,7 @@
+ #include <linux/cpu.h>
+ #include <linux/kexec.h>
+ #include <linux/slab.h>
++#include <linux/panic_notifier.h>
  
- 		if (PageReserved(page))
- 			return false;
--
--		if (page_count(page) > 0)
--			return false;
--
--		if (PageHuge(page))
--			return false;
- 	}
- 	return true;
- }
+ #include <xen/xen.h>
+ #include <xen/features.h>
+--- a/drivers/video/fbdev/hyperv_fb.c~kernelh-split-out-panic-and-oops-helpers-fix
++++ a/drivers/video/fbdev/hyperv_fb.c
+@@ -52,6 +52,7 @@
+ #include <linux/completion.h>
+ #include <linux/fb.h>
+ #include <linux/pci.h>
++#include <linux/panic_notifier.h>
+ #include <linux/efi.h>
+ #include <linux/console.h>
+ 
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
-x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
-x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
-x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix.patch
-x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
-mmmemory_hotplug-allocate-memmap-from-the-added-memory-range.patch
-acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
-mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
-x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
-arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+kasan-remove-redundant-config-option-fix.patch
+mm-gup-check-page-posion-status-for-coredump-fix.patch
+lib-test_kasan_modulec-suppress-unused-var-warning.patch
+scripts-a-new-script-for-checking-duplicate-struct-declaration-fix.patch
+mm.patch
+mm-memcontrol-switch-to-rstat-fix.patch
+mm-vmalloc-remove-unmap_kernel_range-fix-fix.patch
+mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator-fix.patch
+mm-vmscan-add-shrinker_info_protected-helper-fix.patch
+mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
