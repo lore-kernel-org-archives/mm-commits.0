@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 627F8C433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:07:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D506EC433ED
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:07:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2162E61165
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:07:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5E2561165
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:07:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233657AbhDIUHO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Apr 2021 16:07:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41342 "EHLO mail.kernel.org"
+        id S233527AbhDIUHm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Apr 2021 16:07:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41574 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231946AbhDIUHO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Apr 2021 16:07:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 698E561108;
-        Fri,  9 Apr 2021 20:07:00 +0000 (UTC)
+        id S232855AbhDIUHk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Apr 2021 16:07:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 198146105A;
+        Fri,  9 Apr 2021 20:07:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617998820;
-        bh=FMafFTtRyudqtf8QuL2ZNlNAzR7qEtY7d6WU5vVBLtk=;
+        s=korg; t=1617998847;
+        bh=cSGuc42KhHFfkPHJyxMY/PN/8NTq4Sy5j45hrOA6k5o=;
         h=Date:From:To:Subject:From;
-        b=CzGCwHfhMZ6jBuzF+KafmyJJM4r2pXEtHBcegy13LHC/fEXZGH3Bk747yYFb0YsWS
-         IubLJ92JUGHaRoOySzCMewsiCGckMu93bwwGWKBeMxAHynJHxxTPofKe9B/TFjEnQn
-         CfoxsmLoeBt8Mi+Bhwrw0HWF1GD9+mNmIINr439U=
-Date:   Fri, 09 Apr 2021 13:06:59 -0700
+        b=SA954zW6WMP75207DOGBSOy4XVgXEZqehfwH82ihEdNeiFrrRc+DqNQBcTGr/8fIk
+         ffj2Xex4Pw44GDA3slOhVgNL/bp0/C9gf550RMIHvC9zfZYU8ReqSGms2ahbvyLyF8
+         Rt6b2x9um8dPGU03zgqwy+8jkrVJRJRAOMBmXmRI=
+Date:   Fri, 09 Apr 2021 13:07:26 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, andreyknvl@google.com, arnd@arndb.de,
-        dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org,
-        natechancellor@gmail.com, ryabinin.a.a@gmail.com,
-        walter-zh.wu@mediatek.com
+To:     akpm@linux-foundation.org, david@redhat.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, osalvador@suse.de, willy@infradead.org,
+        yaoaili@kingsoft.com
 Subject:  [folded-merged]
- kasan-remove-redundant-config-option-fix.patch removed from -mm tree
-Message-ID: <20210409200659.4w2iZ2ttb%akpm@linux-foundation.org>
+ mm-gup-check-page-posion-status-for-coredump-fix.patch removed from -mm
+ tree
+Message-ID: <20210409200726.Ctq4PbMrM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,52 +46,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-remove-redundant-config-option-fix
+     Subject: mm-gup-check-page-posion-status-for-coredump-fix
 has been removed from the -mm tree.  Its filename was
-     kasan-remove-redundant-config-option-fix.patch
+     mm-gup-check-page-posion-status-for-coredump-fix.patch
 
-This patch was dropped because it was folded into kasan-remove-redundant-config-option.patch
+This patch was dropped because it was folded into mm-gup-check-page-posion-status-for-coredump.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kasan-remove-redundant-config-option-fix
+Subject: mm-gup-check-page-posion-status-for-coredump-fix
 
-fix merge snafu
+s/0/false/
 
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Walter Wu <walter-zh.wu@mediatek.com>
+Cc: Aili Yao <yaoaili@kingsoft.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kasan |    6 ------
- 1 file changed, 6 deletions(-)
+ mm/internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/Kconfig.kasan~kasan-remove-redundant-config-option-fix
-+++ a/lib/Kconfig.kasan
-@@ -155,12 +155,6 @@ config KASAN_STACK
- 	  CONFIG_COMPILE_TEST.	On gcc it is assumed to always be safe
- 	  to use and enabled by default.
+--- a/mm/internal.h~mm-gup-check-page-posion-status-for-coredump-fix
++++ a/mm/internal.h
+@@ -115,7 +115,7 @@ static inline bool is_page_poisoned(stru
+ 		else if (PageHuge(page) && PageHWPoison(compound_head(page)))
+ 			return true;
+ 	}
+-	return 0;
++	return false;
+ }
  
--config KASAN_STACK
--	bool
--	depends on KASAN_GENERIC || KASAN_SW_TAGS
--	default 1 if KASAN_STACK_ENABLE || CC_IS_GCC
--	default 0
--
- config KASAN_SW_TAGS_IDENTIFY
- 	bool "Enable memory corruption identification"
- 	depends on KASAN_SW_TAGS
+ extern unsigned long highest_memmap_pfn;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kasan-remove-redundant-config-option.patch
-mm-gup-check-page-posion-status-for-coredump-fix.patch
+mm-gup-check-page-posion-status-for-coredump.patch
 lib-test_kasan_modulec-suppress-unused-var-warning.patch
 scripts-a-new-script-for-checking-duplicate-struct-declaration-fix.patch
 mm.patch
