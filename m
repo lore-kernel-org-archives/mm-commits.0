@@ -5,39 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 183CAC43462
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:27:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0ACEC43461
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:27:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EA30261181
+	by mail.kernel.org (Postfix) with ESMTP id BE59D61165
 	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:27:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234160AbhDIU1e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Apr 2021 16:27:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51414 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233824AbhDIU1d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S234129AbhDIU1d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 9 Apr 2021 16:27:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3CED161007;
-        Fri,  9 Apr 2021 20:27:20 +0000 (UTC)
+Received: from mail.kernel.org ([198.145.29.99]:51356 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S234169AbhDIU1c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Apr 2021 16:27:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 154A161108;
+        Fri,  9 Apr 2021 20:27:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618000040;
-        bh=SakCH8C8OtsgETv5kZZnG3bXMi7xsKfTvcCZqYP0FHM=;
+        s=korg; t=1618000037;
+        bh=PBka4eVp/jxijJ5Syok7sto0bU1ekNIx9Aa00dD05rk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vkYkBYll71ckwxgrQnMrqZxPkwqiidOhWNO6wK51c1bY3HNNKYdJqAHL+EHOHWPQr
-         wMTYgM0I4d4JNLVlRZMJxymajkkIxFaO9yVRl/ihq6oYIuP2PBlrCaiUnmI6bH0foA
-         KTOJF8TqfJbgjRMN+nGh8VcrSl3nhLswr1m5o1Ck=
-Date:   Fri, 09 Apr 2021 13:27:19 -0700
+        b=JhJfuQjDSUUeZrLjdlInErR2qIZEc4cH7peUa15t+2nOQYEeDvCR85Y2AFVKHUjX8
+         hhjF+XKZnEy7TFEsux+PJmq+gqqAVp1SEZhQRhYQTNvWPTofCxUromPY9vcxKwMGFU
+         DyM8/OBZkGyfHp29XHW8+AU5iOez7YNqpifm9TgU=
+Date:   Fri, 09 Apr 2021 13:27:16 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, osalvador@suse.de,
-        torvalds@linux-foundation.org, willy@infradead.org,
-        yaoaili@kingsoft.com
-Subject:  [patch 07/16] mm/gup: check page posion status for
- coredump.
-Message-ID: <20210409202719.tI0cmqT6l%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com, arnd@arndb.de,
+        dvyukov@google.com, glider@google.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, natechancellor@gmail.com,
+        ryabinin.a.a@gmail.com, stable@vger.kernel.org,
+        torvalds@linux-foundation.org, walter-zh.wu@mediatek.com
+Subject:  [patch 06/16] kasan: remove redundant config option
+Message-ID: <20210409202716.K45Mt369a%akpm@linux-foundation.org>
 In-Reply-To: <20210409132633.6855fc8fea1b3905ea1bb4be@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,85 +44,192 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Aili Yao <yaoaili@kingsoft.com>
-Subject: mm/gup: check page posion status for coredump.
+From: Walter Wu <walter-zh.wu@mediatek.com>
+Subject: kasan: remove redundant config option
 
-When we do coredump for user process signal, this may be an SIGBUS signal
-with BUS_MCEERR_AR or BUS_MCEERR_AO code, which means this signal is
-resulted from ECC memory fail like SRAR or SRAO, we expect the memory
-recovery work is finished correctly, then the get_dump_page() will not
-return the error page as its process pte is set invalid by
-memory_failure().
+CONFIG_KASAN_STACK and CONFIG_KASAN_STACK_ENABLE both enable KASAN stack
+instrumentation, but we should only need one config, so that we remove
+CONFIG_KASAN_STACK_ENABLE and make CONFIG_KASAN_STACK workable.  see [1].
 
-But memory_failure() may fail, and the process's related pte may not be
-correctly set invalid, for current code, we will return the poison page,
-get it dumped, and then lead to system panic as its in kernel code.
+When enable KASAN stack instrumentation, then for gcc we could do no
+prompt and default value y, and for clang prompt and default value n.
 
-So check the poison status in get_dump_page(), and if TRUE, return NULL.
+This patch fixes the following compilation warning:
 
-There maybe other scenario that is also better to check the posion status
-and not to panic, so make a wrapper for this check, Thanks to David's
-suggestion(<david@redhat.com>).
+include/linux/kasan.h:333:30: warning: 'CONFIG_KASAN_STACK' is not defined, evaluates to 0 [-Wundef]
 
-[akpm@linux-foundation.org: s/0/false/]
-[yaoaili@kingsoft.com: is_page_poisoned() arg cannot be null, per Matthew]
-  Link: https://lkml.kernel.org/r/20210319104437.6f30e80d@alex-virtual-machine
-  Link: https://lkml.kernel.org/r/20210322115233.05e4e82a@alex-virtual-machine
-Link: https://lkml.kernel.org/r/20210319104437.6f30e80d@alex-virtual-machine
-Signed-off-by: Aili Yao <yaoaili@kingsoft.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Aili Yao <yaoaili@kingsoft.com>
+[1]: https://bugzilla.kernel.org/show_bug.cgi?id=210221
+
+[akpm@linux-foundation.org: fix merge snafu]
+Link: https://lkml.kernel.org/r/20210226012531.29231-1-walter-zh.wu@mediatek.com
+Fixes: d9b571c885a8 ("kasan: fix KASAN_STACK dependency for HW_TAGS")
+Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
+Suggested-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c      |    4 ++++
- mm/internal.h |   20 ++++++++++++++++++++
- 2 files changed, 24 insertions(+)
+ arch/arm64/kernel/sleep.S        |    2 +-
+ arch/x86/kernel/acpi/wakeup_64.S |    2 +-
+ include/linux/kasan.h            |    2 +-
+ lib/Kconfig.kasan                |    9 ++-------
+ mm/kasan/common.c                |    2 +-
+ mm/kasan/kasan.h                 |    2 +-
+ mm/kasan/report_generic.c        |    2 +-
+ scripts/Makefile.kasan           |   10 ++++++++--
+ security/Kconfig.hardening       |    4 ++--
+ 9 files changed, 18 insertions(+), 17 deletions(-)
 
---- a/mm/gup.c~mm-gup-check-page-posion-status-for-coredump
-+++ a/mm/gup.c
-@@ -1535,6 +1535,10 @@ struct page *get_dump_page(unsigned long
- 				      FOLL_FORCE | FOLL_DUMP | FOLL_GET);
- 	if (locked)
- 		mmap_read_unlock(mm);
-+
-+	if (ret == 1 && is_page_poisoned(page))
-+		return NULL;
-+
- 	return (ret == 1) ? page : NULL;
- }
- #endif /* CONFIG_ELF_CORE */
---- a/mm/internal.h~mm-gup-check-page-posion-status-for-coredump
-+++ a/mm/internal.h
-@@ -97,6 +97,26 @@ static inline void set_page_refcounted(s
- 	set_page_count(page, 1);
+--- a/arch/arm64/kernel/sleep.S~kasan-remove-redundant-config-option
++++ a/arch/arm64/kernel/sleep.S
+@@ -134,7 +134,7 @@ SYM_FUNC_START(_cpu_resume)
+ 	 */
+ 	bl	cpu_do_resume
+ 
+-#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
++#if defined(CONFIG_KASAN) && defined(CONFIG_KASAN_STACK)
+ 	mov	x0, sp
+ 	bl	kasan_unpoison_task_stack_below
+ #endif
+--- a/arch/x86/kernel/acpi/wakeup_64.S~kasan-remove-redundant-config-option
++++ a/arch/x86/kernel/acpi/wakeup_64.S
+@@ -115,7 +115,7 @@ SYM_FUNC_START(do_suspend_lowlevel)
+ 	movq	pt_regs_r14(%rax), %r14
+ 	movq	pt_regs_r15(%rax), %r15
+ 
+-#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
++#if defined(CONFIG_KASAN) && defined(CONFIG_KASAN_STACK)
+ 	/*
+ 	 * The suspend path may have poisoned some areas deeper in the stack,
+ 	 * which we now need to unpoison.
+--- a/include/linux/kasan.h~kasan-remove-redundant-config-option
++++ a/include/linux/kasan.h
+@@ -330,7 +330,7 @@ static inline bool kasan_check_byte(cons
+ 
+ #endif /* CONFIG_KASAN */
+ 
+-#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
++#if defined(CONFIG_KASAN) && defined(CONFIG_KASAN_STACK)
+ void kasan_unpoison_task_stack(struct task_struct *task);
+ #else
+ static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
+--- a/lib/Kconfig.kasan~kasan-remove-redundant-config-option
++++ a/lib/Kconfig.kasan
+@@ -138,9 +138,10 @@ config KASAN_INLINE
+ 
+ endchoice
+ 
+-config KASAN_STACK_ENABLE
++config KASAN_STACK
+ 	bool "Enable stack instrumentation (unsafe)" if CC_IS_CLANG && !COMPILE_TEST
+ 	depends on KASAN_GENERIC || KASAN_SW_TAGS
++	default y if CC_IS_GCC
+ 	help
+ 	  The LLVM stack address sanitizer has a know problem that
+ 	  causes excessive stack usage in a lot of functions, see
+@@ -154,12 +155,6 @@ config KASAN_STACK_ENABLE
+ 	  CONFIG_COMPILE_TEST.	On gcc it is assumed to always be safe
+ 	  to use and enabled by default.
+ 
+-config KASAN_STACK
+-	int
+-	depends on KASAN_GENERIC || KASAN_SW_TAGS
+-	default 1 if KASAN_STACK_ENABLE || CC_IS_GCC
+-	default 0
+-
+ config KASAN_SW_TAGS_IDENTIFY
+ 	bool "Enable memory corruption identification"
+ 	depends on KASAN_SW_TAGS
+--- a/mm/kasan/common.c~kasan-remove-redundant-config-option
++++ a/mm/kasan/common.c
+@@ -63,7 +63,7 @@ void __kasan_unpoison_range(const void *
+ 	kasan_unpoison(address, size);
  }
  
-+/*
-+ * When kernel touch the user page, the user page may be have been marked
-+ * poison but still mapped in user space, if without this page, the kernel
-+ * can guarantee the data integrity and operation success, the kernel is
-+ * better to check the posion status and avoid touching it, be good not to
-+ * panic, coredump for process fatal signal is a sample case matching this
-+ * scenario. Or if kernel can't guarantee the data integrity, it's better
-+ * not to call this function, let kernel touch the poison page and get to
-+ * panic.
-+ */
-+static inline bool is_page_poisoned(struct page *page)
-+{
-+	if (PageHWPoison(page))
-+		return true;
-+	else if (PageHuge(page) && PageHWPoison(compound_head(page)))
-+		return true;
-+
-+	return false;
-+}
-+
- extern unsigned long highest_memmap_pfn;
+-#if CONFIG_KASAN_STACK
++#ifdef CONFIG_KASAN_STACK
+ /* Unpoison the entire stack for a task. */
+ void kasan_unpoison_task_stack(struct task_struct *task)
+ {
+--- a/mm/kasan/kasan.h~kasan-remove-redundant-config-option
++++ a/mm/kasan/kasan.h
+@@ -231,7 +231,7 @@ void *kasan_find_first_bad_addr(void *ad
+ const char *kasan_get_bug_type(struct kasan_access_info *info);
+ void kasan_metadata_fetch_row(char *buffer, void *row);
  
- /*
+-#if defined(CONFIG_KASAN_GENERIC) && CONFIG_KASAN_STACK
++#if defined(CONFIG_KASAN_GENERIC) && defined(CONFIG_KASAN_STACK)
+ void kasan_print_address_stack_frame(const void *addr);
+ #else
+ static inline void kasan_print_address_stack_frame(const void *addr) { }
+--- a/mm/kasan/report_generic.c~kasan-remove-redundant-config-option
++++ a/mm/kasan/report_generic.c
+@@ -128,7 +128,7 @@ void kasan_metadata_fetch_row(char *buff
+ 	memcpy(buffer, kasan_mem_to_shadow(row), META_BYTES_PER_ROW);
+ }
+ 
+-#if CONFIG_KASAN_STACK
++#ifdef CONFIG_KASAN_STACK
+ static bool __must_check tokenize_frame_descr(const char **frame_descr,
+ 					      char *token, size_t max_tok_len,
+ 					      unsigned long *value)
+--- a/scripts/Makefile.kasan~kasan-remove-redundant-config-option
++++ a/scripts/Makefile.kasan
+@@ -2,6 +2,12 @@
+ CFLAGS_KASAN_NOSANITIZE := -fno-builtin
+ KASAN_SHADOW_OFFSET ?= $(CONFIG_KASAN_SHADOW_OFFSET)
+ 
++ifdef CONFIG_KASAN_STACK
++	stack_enable := 1
++else
++	stack_enable := 0
++endif
++
+ ifdef CONFIG_KASAN_GENERIC
+ 
+ ifdef CONFIG_KASAN_INLINE
+@@ -27,7 +33,7 @@ else
+ 	CFLAGS_KASAN := $(CFLAGS_KASAN_SHADOW) \
+ 	 $(call cc-param,asan-globals=1) \
+ 	 $(call cc-param,asan-instrumentation-with-call-threshold=$(call_threshold)) \
+-	 $(call cc-param,asan-stack=$(CONFIG_KASAN_STACK)) \
++	 $(call cc-param,asan-stack=$(stack_enable)) \
+ 	 $(call cc-param,asan-instrument-allocas=1)
+ endif
+ 
+@@ -42,7 +48,7 @@ else
+ endif
+ 
+ CFLAGS_KASAN := -fsanitize=kernel-hwaddress \
+-		$(call cc-param,hwasan-instrument-stack=$(CONFIG_KASAN_STACK)) \
++		$(call cc-param,hwasan-instrument-stack=$(stack_enable)) \
+ 		$(call cc-param,hwasan-use-short-granules=0) \
+ 		$(instrumentation_flags)
+ 
+--- a/security/Kconfig.hardening~kasan-remove-redundant-config-option
++++ a/security/Kconfig.hardening
+@@ -64,7 +64,7 @@ choice
+ 	config GCC_PLUGIN_STRUCTLEAK_BYREF
+ 		bool "zero-init structs passed by reference (strong)"
+ 		depends on GCC_PLUGINS
+-		depends on !(KASAN && KASAN_STACK=1)
++		depends on !(KASAN && KASAN_STACK)
+ 		select GCC_PLUGIN_STRUCTLEAK
+ 		help
+ 		  Zero-initialize any structures on the stack that may
+@@ -82,7 +82,7 @@ choice
+ 	config GCC_PLUGIN_STRUCTLEAK_BYREF_ALL
+ 		bool "zero-init anything passed by reference (very strong)"
+ 		depends on GCC_PLUGINS
+-		depends on !(KASAN && KASAN_STACK=1)
++		depends on !(KASAN && KASAN_STACK)
+ 		select GCC_PLUGIN_STRUCTLEAK
+ 		help
+ 		  Zero-initialize any stack variables that may be passed
 _
