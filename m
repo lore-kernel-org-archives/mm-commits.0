@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67709C43462
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 05:06:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49ED3C433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 05:07:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E071611C0
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 05:06:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1A0C261184
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 05:07:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231452AbhDIFHD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Apr 2021 01:07:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51256 "EHLO mail.kernel.org"
+        id S233287AbhDIFHW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Apr 2021 01:07:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51452 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233245AbhDIFGp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Apr 2021 01:06:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9117861186;
-        Fri,  9 Apr 2021 05:06:18 +0000 (UTC)
+        id S233267AbhDIFHJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Apr 2021 01:07:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2AC21610A2;
+        Fri,  9 Apr 2021 05:06:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617944778;
-        bh=A+jQ8DF0KUZU2Hkx1igY8TWgtT1Uso3/P+1scnBBhZ0=;
+        s=korg; t=1617944817;
+        bh=/t+nzGVny+gkbNBS/aq8/pBxxRrmEpBcVk2ChdTSZ4g=;
         h=Date:From:To:Subject:From;
-        b=JWsj2bPBZL3C1ONoYFA/IJpP6DimmUKjPJedvc8CqP0q8fTYA3XJ3uF8NzCGLbMz3
-         YU8hN4KWlRw2lcMmcvh4//+ejre+YVUBAZTIY9PclsTenLroeVQV03Ek8kNkTXYd6Y
-         n1QlK1zloQ5pmX9FMaBZ2XzXyRXiCyB1VfTJ0dB8=
-Date:   Thu, 08 Apr 2021 22:06:18 -0700
+        b=yuwWH160FWh8f2GpBJVjiOL+WBR53x70jgrHvTpzpuz+ACStNYEubuKKhD3CsiDw5
+         PvZHJ+1wi1bwN87zuCLnHqO2IjLfTkGQE9gopI0Y0weyKFPrvn49mt34ah7CNd4O19
+         8h+RoEPwvrgz2xxkYnq6dk1hkgNcpAtMQ45fh9XI=
+Date:   Thu, 08 Apr 2021 22:06:56 -0700
 From:   akpm@linux-foundation.org
-To:     mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        osalvador@suse.de, songmuchun@bytedance.com
+To:     aarcange@redhat.com, axelrasmussen@google.com,
+        mm-commits@vger.kernel.org, nadav.amit@gmail.com, peterx@redhat.com
 Subject:  [to-be-updated]
- hugetlb-make-free_huge_page-irq-safe-fix.patch removed from -mm tree
-Message-ID: <20210409050618.QerRBfkZH%akpm@linux-foundation.org>
+ userfaultfd-selftests-use-user-mode-only.patch removed from -mm tree
+Message-ID: <20210409050656.yeloqp8Bv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,99 +43,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix irq locking omissions
+     Subject: userfaultfd/selftests: use user mode only
 has been removed from the -mm tree.  Its filename was
-     hugetlb-make-free_huge_page-irq-safe-fix.patch
+     userfaultfd-selftests-use-user-mode-only.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: fix irq locking omissions
+From: Peter Xu <peterx@redhat.com>
+Subject: userfaultfd/selftests: use user mode only
 
-The pach "hugetlb: make free_huge_page irq safe" changed spin_*lock
-calls to spin_*lock_irq* calls.  However, it missed several places
-in the file hugetlb.c.  Add the overlooked changes.
+Patch series "userfaultfd/selftests: A few cleanups".
 
-Link: https://lkml.kernel.org/r/b0b081e2-9d78-77ab-684f-a0989a7f1d27@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+I wanted to cleanup userfaultfd.c fault handling for a long time.  If it's
+not cleaned, when the new code grows the file it'll also grow the size
+that needs to be cleaned...  This is my attempt to cleanup the userfaultfd
+selftest on fault handling, to use an err() macro instead of either
+fprintf() or perror() then another exit() call.
+
+The huge cleanup is done in the last patch.  The first 4 patches are some
+other standalone cleanups for the same file, so I put them together.
+
+
+This patch (of 5):
+
+Userfaultfd selftest does not need to handle kernel initiated fault.  Set
+user mode so it can be run even if unprivileged_userfaultfd=0 (which is
+the default).
+
+Link: https://lkml.kernel.org/r/20210310004511.51996-2-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~hugetlb-make-free_huge_page-irq-safe-fix
-+++ a/mm/hugetlb.c
-@@ -2278,7 +2278,7 @@ static int alloc_and_dissolve_huge_page(
- 	 */
- 	page_ref_dec(new_page);
- retry:
--	spin_lock(&hugetlb_lock);
-+	spin_lock_irq(&hugetlb_lock);
- 	if (!PageHuge(old_page)) {
- 		/*
- 		 * Freed from under us. Drop new_page too.
-@@ -2291,7 +2291,7 @@ retry:
- 		 * Fail with -EBUSY if not possible.
- 		 */
- 		update_and_free_page(h, new_page);
--		spin_unlock(&hugetlb_lock);
-+		spin_unlock_irq(&hugetlb_lock);
- 		if (!isolate_huge_page(old_page, list))
- 			ret = -EBUSY;
- 		return ret;
-@@ -2301,7 +2301,7 @@ retry:
- 		 * freelist yet. Race window is small, so we can succed here if
- 		 * we retry.
- 		 */
--		spin_unlock(&hugetlb_lock);
-+		spin_unlock_irq(&hugetlb_lock);
- 		cond_resched();
- 		goto retry;
- 	} else {
-@@ -2317,7 +2317,7 @@ retry:
- 		__enqueue_huge_page(&h->hugepage_freelists[nid], new_page);
- 	}
- unlock:
--	spin_unlock(&hugetlb_lock);
-+	spin_unlock_irq(&hugetlb_lock);
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-use-user-mode-only
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -381,7 +381,7 @@ static int userfaultfd_open(uint64_t *fe
+ {
+ 	struct uffdio_api uffdio_api;
  
- 	return ret;
- }
-@@ -2333,15 +2333,15 @@ int isolate_or_dissolve_huge_page(struct
- 	 * to carefully check the state under the lock.
- 	 * Return success when racing as if we dissolved the page ourselves.
- 	 */
--	spin_lock(&hugetlb_lock);
-+	spin_lock_irq(&hugetlb_lock);
- 	if (PageHuge(page)) {
- 		head = compound_head(page);
- 		h = page_hstate(head);
- 	} else {
--		spin_unlock(&hugetlb_lock);
-+		spin_unlock_irq(&hugetlb_lock);
- 		return 0;
- 	}
--	spin_unlock(&hugetlb_lock);
-+	spin_unlock_irq(&hugetlb_lock);
- 
- 	/*
- 	 * Fence off gigantic pages as there is a cyclic dependency between
-@@ -2729,7 +2729,7 @@ static int set_max_huge_pages(struct hst
- 	 * pages in hstate via the proc/sysfs interfaces.
- 	 */
- 	mutex_lock(&h->resize_lock);
--	spin_lock(&hugetlb_lock);
-+	spin_lock_irq(&hugetlb_lock);
- 
- 	/*
- 	 * Check for a node specific request.
+-	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
++	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY);
+ 	if (uffd < 0) {
+ 		fprintf(stderr,
+ 			"userfaultfd syscall not available in this kernel\n");
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-hugetlb-add-lockdep_assert_held-calls-for-hugetlb_lock.patch
+hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share.patch
+hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share-fix.patch
+hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
+hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix.patch
+mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
+hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
+userfaultfd-add-minor-fault-registration-mode-fix.patch
+userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch
+userfaultfd-selftests-dropping-verify-check-in-locking_thread.patch
+userfaultfd-selftests-only-dump-counts-if-mode-enabled.patch
+userfaultfd-selftests-unify-error-handling.patch
 
