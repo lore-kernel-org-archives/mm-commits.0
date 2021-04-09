@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B265C433ED
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 04:50:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59FE3C433ED
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 04:55:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9AF861179
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 04:50:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2CEBB61165
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 04:55:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229715AbhDIEum (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Apr 2021 00:50:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48902 "EHLO mail.kernel.org"
+        id S229840AbhDIEz5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Apr 2021 00:55:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49484 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229526AbhDIEum (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Apr 2021 00:50:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0F30261165;
-        Fri,  9 Apr 2021 04:50:29 +0000 (UTC)
+        id S229613AbhDIEz5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Apr 2021 00:55:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 27E5A60FF0;
+        Fri,  9 Apr 2021 04:55:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617943829;
-        bh=UA2qzqY5TnkEirRQ5ghXqHSnO9rR3smlgFMQ/izpxCg=;
+        s=korg; t=1617944145;
+        bh=SaQRXCjUf/pj7XK5x06OvxXipN/ZtwZwlT5D7Vcs3LM=;
         h=Date:From:To:Subject:From;
-        b=QsuNWTx3flRAp666vBPvd2yvYBfMtlWeVdQNqnS1j8ndzWtSbnKGaRDFz2Opz9r87
-         Pd3QScf3c1KI7exEPsv3tHA4TQhKN6I4RUr62vRFA2tC9p4bFeMEQA/pkc3CnuNpIv
-         Q9PpfwtlkQVtXh234nGBm15eygtY+sdNtqTHqj9c=
-Date:   Thu, 08 Apr 2021 21:50:28 -0700
+        b=W6FOXxbLycoQZP8RJ4flV2icVNmpTVS+26zc/C6Jg81a88H1+sBpiTkBQjigBR6o9
+         yNtWvxmFL58kUUhiNzNhbflL1MQvJHcZOUAZy4ktyq/PthDeVs7Qd75y8fWb+vpRML
+         RaxndeGZ9FPCuO+47HzfmNFifXnIuXG/oVDRDAf4=
+Date:   Thu, 08 Apr 2021 21:55:44 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, mm-commits@vger.kernel.org,
-        willy@infradead.org
-Subject:  + proc-mandate-proc_lseek-in-struct-proc_ops-fix.patch
- added to -mm tree
-Message-ID: <20210409045028.eIil5nb8E%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, slyfox@gentoo.org, vbabka@suse.cz
+Subject:  +
+ mm-page_poison-print-page-info-when-corruption-is-caught-v2.patch added to
+ -mm tree
+Message-ID: <20210409045544.NuEJ85xEP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: smoke test lseek()
+     Subject: mm-page_poison-print-page-info-when-corruption-is-caught-v2
 has been added to the -mm tree.  Its filename is
-     proc-mandate-proc_lseek-in-struct-proc_ops-fix.patch
+     mm-page_poison-print-page-info-when-corruption-is-caught-v2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/proc-mandate-proc_lseek-in-struct-proc_ops-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_poison-print-page-info-when-corruption-is-caught-v2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/proc-mandate-proc_lseek-in-struct-proc_ops-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_poison-print-page-info-when-corruption-is-caught-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,48 +64,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: smoke test lseek()
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Subject: mm-page_poison-print-page-info-when-corruption-is-caught-v2
 
-Now that ->proc_lseek has been made mandatory it would be nice to test
-that nothing has been forgotten.
+s/dump_page_owner/dump_page/, per Vlastimil
 
-Link: https://lkml.kernel.org/r/YG4OIhChOrVTPgdN@localhost.localdomain
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20210407230800.1086854-1-slyfox@gentoo.org
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/proc/read.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/page_poison.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/proc/read.c~proc-mandate-proc_lseek-in-struct-proc_ops-fix
-+++ a/tools/testing/selftests/proc/read.c
-@@ -14,7 +14,7 @@
-  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-  */
- // Test
--// 1) read of every file in /proc
-+// 1) read and lseek on every file in /proc
- // 2) readlink of every symlink in /proc
- // 3) recursively (1) + (2) for every directory in /proc
- // 4) write to /proc/*/clear_refs and /proc/*/task/*/clear_refs
-@@ -45,6 +45,8 @@ static void f_reg(DIR *d, const char *fi
- 	fd = openat(dirfd(d), filename, O_RDONLY|O_NONBLOCK);
- 	if (fd == -1)
- 		return;
-+	/* struct proc_ops::proc_lseek is mandatory if file is seekable. */
-+	(void)lseek(fd, 0, SEEK_SET);
- 	rv = read(fd, buf, sizeof(buf));
- 	assert((0 <= rv && rv <= sizeof(buf)) || rv == -1);
- 	close(fd);
+--- a/mm/page_poison.c~mm-page_poison-print-page-info-when-corruption-is-caught-v2
++++ a/mm/page_poison.c
+@@ -2,9 +2,9 @@
+ #include <linux/kernel.h>
+ #include <linux/string.h>
+ #include <linux/mm.h>
++#include <linux/mmdebug.h>
+ #include <linux/highmem.h>
+ #include <linux/page_ext.h>
+-#include <linux/page_owner.h>
+ #include <linux/poison.h>
+ #include <linux/ratelimit.h>
+ #include <linux/kasan.h>
+@@ -71,7 +71,7 @@ static void check_poison_mem(struct page
+ 	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 16, 1, start,
+ 			end - start + 1, 1);
+ 	dump_stack();
+-	dump_page_owner(page);
++	dump_page(page, "pagealloc: corrupted page details");
+ }
+ 
+ static void unpoison_page(struct page *page)
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from slyfox@gentoo.org are
 
-proc-save-loc-in-__xlate_proc_name.patch
-proc-mandate-proc_lseek-in-struct-proc_ops.patch
-proc-mandate-proc_lseek-in-struct-proc_ops-fix.patch
-proc-delete-redundant-subset=pid-check.patch
-proc-test-subset=pid.patch
+ia64-fix-user_stack_pointer-for-ptrace.patch
+ia64-drop-unused-ia64_fw_emu-ifdef.patch
+ia64-simplify-code-flow-around-swiotlb-init.patch
+ia64-fix-efi_debug-build.patch
+ia64-mca-always-make-ia64_mca_debug-an-expression.patch
+ia64-drop-marked-broken-discontigmem-and-virtual_mem_map.patch
+ia64-module-fix-symbolizer-crash-on-fdescr.patch
+mm-page_owner-fetch-backtrace-only-for-tracked-pages.patch
+mm-page_owner-use-kstrtobool-to-parse-bool-option.patch
+mm-page_owner-detect-page_owner-recursion-via-task_struct.patch
+mm-page_poison-print-page-owner-info-when-corruption-is-caught.patch
+mm-page_poison-print-page-info-when-corruption-is-caught-v2.patch
+mm-page_alloc-ignore-init_on_free=1-for-debug_pagealloc=1.patch
 
