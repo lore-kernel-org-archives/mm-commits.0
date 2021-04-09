@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57372C433ED
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 01:55:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AF6FC433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 02:38:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2378B610F7
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 01:55:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13E29610C9
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 02:38:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232918AbhDIBzj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Apr 2021 21:55:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52660 "EHLO mail.kernel.org"
+        id S232688AbhDICi0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Apr 2021 22:38:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57894 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232426AbhDIBzj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 8 Apr 2021 21:55:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 062FD610CF;
-        Fri,  9 Apr 2021 01:55:26 +0000 (UTC)
+        id S232616AbhDICiZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 8 Apr 2021 22:38:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 54F5261074;
+        Fri,  9 Apr 2021 02:38:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617933327;
-        bh=Z45HT0Y7xfyEqXR+BbjUzbfUjJOvSaQtjhy/JlP7eDs=;
+        s=korg; t=1617935892;
+        bh=ZVc/pGf3zuUmoADLTkARUQbmxgE+OThZb27oA4waawo=;
         h=Date:From:To:Subject:From;
-        b=PjtFob5I5bZHR7ZIJvt7EJ5/14gE6c2yMtSeraB/55KLwKHF0HuSflZkt4s1yzxrj
-         sC/MHGVk8h4fyGr6aZTTT5/gqqZ1UtDCW6GLUH2lv4zh1xWt4Qe1y/gZLyDnPmTp61
-         7Q5pzUvClunYOFR9KYXe9e9He+26xPgH8ksBsO50=
-Date:   Thu, 08 Apr 2021 18:55:26 -0700
+        b=U/ytBAFbKrILbxkessjzQYG6NTdvLzlXzxXKWm5As9sGAHrvoQrN6wSg2+GcBeqnp
+         zuiDaWPGXFrGYum55QHI6pfk8hNDTSusvhT6ssYSjDDOAI1Dzawry7MTlGDyGebVzJ
+         d1TEupD3kESpE7HZxC5Zb6sVBNwDgXnoqetT9nRk=
+Date:   Thu, 08 Apr 2021 19:38:11 -0700
 From:   akpm@linux-foundation.org
-To:     lucjan.lucjanov@gmail.com, masahiroy@kernel.org,
-        mm-commits@vger.kernel.org, oleksandr@natalenko.name,
-        terrelln@fb.com
-Subject:  [obsolete]
- init-add-support-for-zstd-compressed-modules.patch removed from -mm tree
-Message-ID: <20210409015526.eWqkOuC_O%akpm@linux-foundation.org>
+To:     axelrasmussen@google.com, mm-commits@vger.kernel.org,
+        peterx@redhat.com
+Subject:  [folded-merged]
+ userfaultfd-support-minor-fault-handling-for-shmem-fix-2.patch removed from
+ -mm tree
+Message-ID: <20210409023811.ZGLtHc7Gh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,92 +44,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init: add support for zstd compressed modules
+     Subject: userfaultfd/shmem: fix minor fault page leak
 has been removed from the -mm tree.  Its filename was
-     init-add-support-for-zstd-compressed-modules.patch
+     userfaultfd-support-minor-fault-handling-for-shmem-fix-2.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into userfaultfd-support-minor-fault-handling-for-shmem.patch
 
 ------------------------------------------------------
-From: Piotr Gorski <lucjan.lucjanov@gmail.com>
-Subject: init: add support for zstd compressed modules
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: userfaultfd/shmem: fix minor fault page leak
 
-kmod 28 supports modules compressed in zstd format so let's add this
-possibility to kernel.
+This fix is analogous to Peter Xu's fix for hugetlb [0].  If we don't
+put_page() after getting the page out of the page cache, we leak the
+reference.
 
-Requires this update to mkinitcpio:
-https://github.com/archlinux/mkinitcpio/pull/43
+The fix can be verified by checking /proc/meminfo and running the
+userfaultfd selftest in shmem mode.  Without the fix, we see MemFree /
+MemAvailable steadily decreasing with each run of the test.  With the fix,
+memory is correctly freed after the test program exits.
 
-Link: https://lkml.kernel.org/r/20210330113235.2767216-1-lucjan.lucjanov@gmail.com
-Signed-off-by: Piotr Gorski <lucjan.lucjanov@gmail.com>
-Reviewed-by: Oleksandr Natalenko <oleksandr@natalenko.name>
-Tested-by: Oleksandr Natalenko <oleksandr@natalenko.name>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nick Terrell <terrelln@fb.com>
+Link: https://lkml.kernel.org/r/20210322204836.1650221-1-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile     |    7 +++++--
- init/Kconfig |    9 ++++++---
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ mm/shmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/init/Kconfig~init-add-support-for-zstd-compressed-modules
-+++ a/init/Kconfig
-@@ -2222,8 +2222,8 @@ config MODULE_COMPRESS
- 	bool "Compress modules on installation"
- 	help
+--- a/mm/shmem.c~userfaultfd-support-minor-fault-handling-for-shmem-fix-2
++++ a/mm/shmem.c
+@@ -1831,6 +1831,7 @@ repeat:
  
--	  Compresses kernel modules when 'make modules_install' is run; gzip or
--	  xz depending on "Compression algorithm" below.
-+	  Compresses kernel modules when 'make modules_install' is run; gzip,
-+	  xz, or zstd depending on "Compression algorithm" below.
- 
- 	  module-init-tools MAY support gzip, and kmod MAY support gzip and xz.
- 
-@@ -2245,7 +2245,7 @@ choice
- 	  This determines which sort of compression will be used during
- 	  'make modules_install'.
- 
--	  GZIP (default) and XZ are supported.
-+	  GZIP (default), XZ, and ZSTD are supported.
- 
- config MODULE_COMPRESS_GZIP
- 	bool "GZIP"
-@@ -2253,6 +2253,9 @@ config MODULE_COMPRESS_GZIP
- config MODULE_COMPRESS_XZ
- 	bool "XZ"
- 
-+config MODULE_COMPRESS_ZSTD
-+	bool "ZSTD"
-+
- endchoice
- 
- config MODULE_ALLOW_MISSING_NAMESPACE_IMPORTS
---- a/Makefile~init-add-support-for-zstd-compressed-modules
-+++ a/Makefile
-@@ -1066,8 +1066,8 @@ endif # INSTALL_MOD_STRIP
- export mod_strip_cmd
- 
- # CONFIG_MODULE_COMPRESS, if defined, will cause module to be compressed
--# after they are installed in agreement with CONFIG_MODULE_COMPRESS_GZIP
--# or CONFIG_MODULE_COMPRESS_XZ.
-+# after they are installed in agreement with CONFIG_MODULE_COMPRESS_GZIP,
-+# CONFIG_MODULE_COMPRESS_XZ, or CONFIG_MODULE_COMPRESS_ZSTD.
- 
- mod_compress_cmd = true
- ifdef CONFIG_MODULE_COMPRESS
-@@ -1077,6 +1077,9 @@ ifdef CONFIG_MODULE_COMPRESS
-   ifdef CONFIG_MODULE_COMPRESS_XZ
-     mod_compress_cmd = $(XZ) --lzma2=dict=2MiB -f
-   endif # CONFIG_MODULE_COMPRESS_XZ
-+  ifdef CONFIG_MODULE_COMPRESS_ZSTD
-+    mod_compress_cmd = $(ZSTD) -T0 --rm -f -q
-+  endif # CONFIG_MODULE_COMPRESS_ZSTD
- endif # CONFIG_MODULE_COMPRESS
- export mod_compress_cmd
- 
+ 	if (page && vma && userfaultfd_minor(vma)) {
+ 		unlock_page(page);
++		put_page(page);
+ 		*fault_type = handle_userfault(vmf, VM_UFFD_MINOR);
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from lucjan.lucjanov@gmail.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
+userfaultfd-add-minor-fault-registration-mode.patch
+userfaultfd-disable-huge-pmd-sharing-for-minor-registered-vmas.patch
+userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
+userfaultfd-add-uffdio_continue-ioctl.patch
+userfaultfd-update-documentation-to-describe-minor-fault-handling.patch
+userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch
+userfaultfd-support-minor-fault-handling-for-shmem.patch
+userfaultfd-support-minor-fault-handling-for-shmem-fix-3.patch
+userfaultfd-support-minor-fault-handling-for-shmem-fix-4.patch
+userfaultfd-selftests-use-memfd_create-for-shmem-test-type.patch
+userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch
+userfaultfd-selftests-reinitialize-test-context-in-each-test.patch
+userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
 
