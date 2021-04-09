@@ -2,212 +2,100 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E95EFC433ED
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:26:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3632AC433ED
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:27:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA20C61108
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:26:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F420561108
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:27:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234129AbhDIU0r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Apr 2021 16:26:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50806 "EHLO mail.kernel.org"
+        id S233943AbhDIU1P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Apr 2021 16:27:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51038 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234076AbhDIU0r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Apr 2021 16:26:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A1F13610A8;
-        Fri,  9 Apr 2021 20:26:33 +0000 (UTC)
+        id S233824AbhDIU1P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Apr 2021 16:27:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A80EC610A8;
+        Fri,  9 Apr 2021 20:27:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617999993;
-        bh=TGM1H1hzsI3Vj+2HnOXvwfjJ3RcGByaatUsZV98h5DA=;
-        h=Date:From:To:Cc:Subject:From;
-        b=gUyA7+IurR1W0uobgF+EGgDlOEjZCK5oH53rgJLfl/G2K6Cria82g1d9VSG/9Z0ta
-         nnrd8i3Hf2Yjcw+mBw58akYYEJLvimQaJJOmPB/+KWenKodiL8eU8EMgjgm8+s/NMF
-         RAuyIlWCkneBSLrtZujkJGbk7qASQkpBYlIAM5mA=
-Date:   Fri, 9 Apr 2021 13:26:33 -0700
+        s=korg; t=1618000022;
+        bh=AK8tCDLjTJSPvDJvYpZ71F6nTpQ3k4ANVvzfBycLvE8=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=O9SbnDh3nByWTD1LUMT6wFeSvWKwgbJAZmBGZyVG/rNLrkE5YKU69gMHrRDXnAS/+
+         oYwTnxVLvhpuLSB8el7rNRnZWJhqrAnaXSLOWaadmPCNVILYtjm1kQLjGjr0JyNj/z
+         BDfpt9VKJddnzd5fS07FwWy3RiD06+5TRoOhjr+g=
+Date:   Fri, 09 Apr 2021 13:27:01 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
-Subject: incoming
-Message-Id: <20210409132633.6855fc8fea1b3905ea1bb4be@linux-foundation.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To:     akpm@linux-foundation.org, bgolaszewski@baylibre.com,
+        gregkh@linuxfoundation.org, jassisinghbrar@gmail.com,
+        kabel@kernel.org, linus.walleij@linaro.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, pavel@ucw.cz,
+        torvalds@linux-foundation.org
+Subject:  [patch 01/16] MAINTAINERS: update CZ.NIC's Turris
+ information
+Message-ID: <20210409202701.XGAIC0VNd%akpm@linux-foundation.org>
+In-Reply-To: <20210409132633.6855fc8fea1b3905ea1bb4be@linux-foundation.org>
+User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-16 patches, based on 17e7124aad766b3f158943acb51467f86220afe9.
+=46rom: Marek Beh=C3=BAn <kabel@kernel.org>
+Subject: MAINTAINERS: update CZ.NIC's Turris information
 
-Subsystems affected by this patch series:
+Add all the files maintained by Turris team, not only for MOX, but also
+for Omnia.  Change website.
 
-  MAINTAINERS
-  mailmap
-  mm/kasan
-  mm/gup
-  nds32
-  gcov
-  ocfs2
-  ia64
-  mm/pagecache
-  mm/kasan
-  mm/kfence
-  lib
+Link: https://lkml.kernel.org/r/20210325171123.28093-1-kabel@kernel.org
+Signed-off-by: Marek Beh=C3=BAn <kabel@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Subsystem: MAINTAINERS
+ MAINTAINERS |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-    Marek Beh=FAn <kabel@kernel.org>:
-      MAINTAINERS: update CZ.NIC's Turris information
-      treewide: change my e-mail address, fix my name
-
-Subsystem: mailmap
-
-    Jordan Crouse <jordan@cosmicpenguin.net>:
-      mailmap: update email address for Jordan Crouse
-
-    Matthew Wilcox <willy@infradead.org>:
-      .mailmap: fix old email addresses
-
-Subsystem: mm/kasan
-
-    Arnd Bergmann <arnd@arndb.de>:
-      kasan: fix hwasan build for gcc
-
-    Walter Wu <walter-zh.wu@mediatek.com>:
-      kasan: remove redundant config option
-
-Subsystem: mm/gup
-
-    Aili Yao <yaoaili@kingsoft.com>:
-      mm/gup: check page posion status for coredump.
-
-Subsystem: nds32
-
-    Mike Rapoport <rppt@linux.ibm.com>:
-      nds32: flush_dcache_page: use page_mapping_file to avoid races with s=
-wapoff
-
-Subsystem: gcov
-
-    Nick Desaulniers <ndesaulniers@google.com>:
-      gcov: re-fix clang-11+ support
-
-Subsystem: ocfs2
-
-    Wengang Wang <wen.gang.wang@oracle.com>:
-      ocfs2: fix deadlock between setattr and dio_end_io_write
-
-Subsystem: ia64
-
-    Sergei Trofimovich <slyfox@gentoo.org>:
-      ia64: fix user_stack_pointer() for ptrace()
-
-Subsystem: mm/pagecache
-
-    Jack Qiu <jack.qiu@huawei.com>:
-      fs: direct-io: fix missing sdio->boundary
-
-Subsystem: mm/kasan
-
-    Andrey Konovalov <andreyknvl@google.com>:
-      kasan: fix conflict with page poisoning
-
-    Andrew Morton <akpm@linux-foundation.org>:
-      lib/test_kasan_module.c: suppress unused var warning
-
-Subsystem: mm/kfence
-
-    Marco Elver <elver@google.com>:
-      kfence, x86: fix preemptible warning on KPTI-enabled systems
-
-Subsystem: lib
-
-    Julian Braha <julianbraha@gmail.com>:
-      lib: fix kconfig dependency on ARCH_WANT_FRAME_POINTERS
-
- .mailmap                                                            |    7=
- ++
- Documentation/ABI/testing/debugfs-moxtet                            |    4=
- -
- Documentation/ABI/testing/debugfs-turris-mox-rwtm                   |    2=
+--- a/MAINTAINERS~maintainers-update-cznics-turris-information
++++ a/MAINTAINERS
+@@ -1790,19 +1790,26 @@ F:	drivers/net/ethernet/cortina/
+ F:	drivers/pinctrl/pinctrl-gemini.c
+ F:	drivers/rtc/rtc-ftrtc010.c
 =20
- Documentation/ABI/testing/sysfs-bus-moxtet-devices                  |    6=
- +-
- Documentation/ABI/testing/sysfs-class-led-driver-turris-omnia       |    2=
+-ARM/CZ.NIC TURRIS MOX SUPPORT
++ARM/CZ.NIC TURRIS SUPPORT
+ M:	Marek Behun <marek.behun@nic.cz>
+ S:	Maintained
+-W:	http://mox.turris.cz
++W:	https://www.turris.cz/
+ F:	Documentation/ABI/testing/debugfs-moxtet
+ F:	Documentation/ABI/testing/sysfs-bus-moxtet-devices
+ F:	Documentation/ABI/testing/sysfs-firmware-turris-mox-rwtm
+ F:	Documentation/devicetree/bindings/bus/moxtet.txt
+ F:	Documentation/devicetree/bindings/firmware/cznic,turris-mox-rwtm.txt
+ F:	Documentation/devicetree/bindings/gpio/gpio-moxtet.txt
++F:	Documentation/devicetree/bindings/leds/cznic,turris-omnia-leds.yaml
++F:	Documentation/devicetree/bindings/watchdog/armada-37xx-wdt.txt
+ F:	drivers/bus/moxtet.c
+ F:	drivers/firmware/turris-mox-rwtm.c
++F:	drivers/leds/leds-turris-omnia.c
++F:	drivers/mailbox/armada-37xx-rwtm-mailbox.c
+ F:	drivers/gpio/gpio-moxtet.c
++F:	drivers/watchdog/armada_37xx_wdt.c
++F:	include/dt-bindings/bus/moxtet.h
++F:	include/linux/armada-37xx-rwtm-mailbox.h
+ F:	include/linux/moxtet.h
 =20
- Documentation/ABI/testing/sysfs-firmware-turris-mox-rwtm            |   10=
- +--
- Documentation/devicetree/bindings/leds/cznic,turris-omnia-leds.yaml |    2=
-=20
- MAINTAINERS                                                         |   13=
- +++-
- arch/arm64/boot/dts/marvell/armada-3720-turris-mox.dts              |    2=
-=20
- arch/arm64/kernel/sleep.S                                           |    2=
-=20
- arch/ia64/include/asm/ptrace.h                                      |    8=
- --
- arch/nds32/mm/cacheflush.c                                          |    2=
-=20
- arch/x86/include/asm/kfence.h                                       |    7=
- ++
- arch/x86/kernel/acpi/wakeup_64.S                                    |    2=
-=20
- drivers/bus/moxtet.c                                                |    4=
- -
- drivers/firmware/turris-mox-rwtm.c                                  |    4=
- -
- drivers/gpio/gpio-moxtet.c                                          |    4=
- -
- drivers/leds/leds-turris-omnia.c                                    |    4=
- -
- drivers/mailbox/armada-37xx-rwtm-mailbox.c                          |    4=
- -
- drivers/watchdog/armada_37xx_wdt.c                                  |    4=
- -
- fs/direct-io.c                                                      |    5=
- +
- fs/ocfs2/aops.c                                                     |   11=
- ---
- fs/ocfs2/file.c                                                     |    8=
- ++
- include/dt-bindings/bus/moxtet.h                                    |    2=
-=20
- include/linux/armada-37xx-rwtm-mailbox.h                            |    2=
-=20
- include/linux/kasan.h                                               |    2=
-=20
- include/linux/moxtet.h                                              |    2=
-=20
- kernel/gcov/clang.c                                                 |   29=
- ++++++----
- lib/Kconfig.debug                                                   |    6=
- +-
- lib/Kconfig.kasan                                                   |    9=
- ---
- lib/test_kasan_module.c                                             |    2=
-=20
- mm/gup.c                                                            |    4=
- +
- mm/internal.h                                                       |   20=
- ++++++
- mm/kasan/common.c                                                   |    2=
-=20
- mm/kasan/kasan.h                                                    |    2=
-=20
- mm/kasan/report_generic.c                                           |    2=
-=20
- mm/page_poison.c                                                    |    4=
- +
- scripts/Makefile.kasan                                              |   18=
- ++++--
- security/Kconfig.hardening                                          |    4=
- -
- 39 files changed, 136 insertions(+), 91 deletions(-)
-
+ ARM/EZX SMARTPHONES (A780, A910, A1200, E680, ROKR E2 and ROKR E6)
+_
