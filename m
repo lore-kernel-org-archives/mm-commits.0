@@ -7,35 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0076C433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:07:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C279C433ED
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:08:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8991061182
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:07:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A6E461074
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:08:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232855AbhDIUHn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Apr 2021 16:07:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41614 "EHLO mail.kernel.org"
+        id S233824AbhDIUIh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Apr 2021 16:08:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42306 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233674AbhDIUHn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Apr 2021 16:07:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AAD00610FC;
-        Fri,  9 Apr 2021 20:07:29 +0000 (UTC)
+        id S232796AbhDIUIh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Apr 2021 16:08:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C3A306105A;
+        Fri,  9 Apr 2021 20:08:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617998849;
-        bh=A2ZpxWwwEHHIINjdoiB2U6/Z75Ht3Zog+fTQuYpT4Gk=;
+        s=korg; t=1617998904;
+        bh=o2WyZ6I8rzwkjW83M9jt/YKVxfKlBbkr5N379Yhi+Yk=;
         h=Date:From:To:Subject:From;
-        b=B4mtI9Zsz470XImeYfI9LaHfUlzG37hFCoB6pHHDYnzLVTNpPlXULihww5FKecmIx
-         Z0OiSv5avSvauKOSIUnvM7ieqaH0E5uTXnfKWstWXNIeK1ruXyhTLhRfOFQFoCh9DL
-         nslnio+aZVn3bkY8gH7p3DHRjMN/9s84CPED/TWo=
-Date:   Fri, 09 Apr 2021 13:07:29 -0700
+        b=LKy7NWlP1BbIFODmfMsF/zOmHCWXJtiwUa5a7yTrmesL0aPYWO+1xqRcO/+Fp0BpI
+         lG81IXnQc9T1GR+92VK2ej1CG6Waje/5yy9myhUyZmCcj/gjxvc3pRe8UD1e4d302C
+         avbX3ku7IOXzyr/l3EZnTWEJJswsvWlkp6zvME18=
+Date:   Fri, 09 Apr 2021 13:08:23 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, willy@infradead.org, yaoaili@kingsoft.com
+To:     gechangwei@live.cn, ghe@suse.com, jiangqi903@gmail.com,
+        jlbec@evilplan.org, junxiao.bi@oracle.com, mark@fasheh.com,
+        mm-commits@vger.kernel.org, piaojun@huawei.com,
+        wen.gang.wang@oracle.com
 Subject:  [folded-merged]
- mm-gup-check-page-posion-status-for-coredump-v4.patch removed from -mm tree
-Message-ID: <20210409200729.8HonXY-uZ%akpm@linux-foundation.org>
+ ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write-v2.patch removed
+ from -mm tree
+Message-ID: <20210409200823.GP_FHyj7l%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,56 +46,92 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-gup-check-page-posion-status-for-coredump-v4
+     Subject: ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write-v2
 has been removed from the -mm tree.  Its filename was
-     mm-gup-check-page-posion-status-for-coredump-v4.patch
+     ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write-v2.patch
 
-This patch was dropped because it was folded into mm-gup-check-page-posion-status-for-coredump.patch
+This patch was dropped because it was folded into ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write.patch
 
 ------------------------------------------------------
-From: Aili Yao <yaoaili@kingsoft.com>
-Subject: mm-gup-check-page-posion-status-for-coredump-v4
+From: Wengang Wang <wen.gang.wang@oracle.com>
+Subject: ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write-v2
 
-is_page_poisoned() arg cannot be null, per Matthew
+remove the "had_alloc_lock" as suggested
 
-Link: https://lkml.kernel.org/r/20210319104437.6f30e80d@alex-virtual-machine
-Link: https://lkml.kernel.org/r/20210322115233.05e4e82a@alex-virtual-machine
-Signed-off-by: Aili Yao <yaoaili@kingsoft.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Aili Yao <yaoaili@kingsoft.com>
+Link: https://lkml.kernel.org/r/20210402171344.1605-1-wen.gang.wang@oracle.com
+Cc: stable@vger.kernel.org
+Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ fs/ocfs2/file.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
---- a/mm/internal.h~mm-gup-check-page-posion-status-for-coredump-v4
-+++ a/mm/internal.h
-@@ -109,12 +109,11 @@ static inline void set_page_refcounted(s
-  */
- static inline bool is_page_poisoned(struct page *page)
- {
--	if (page != NULL) {
--		if (PageHWPoison(page))
--			return true;
--		else if (PageHuge(page) && PageHWPoison(compound_head(page)))
--			return true;
--	}
-+	if (PageHWPoison(page))
-+		return true;
-+	else if (PageHuge(page) && PageHWPoison(compound_head(page)))
-+		return true;
-+
- 	return false;
- }
+--- a/fs/ocfs2/file.c~ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write-v2
++++ a/fs/ocfs2/file.c
+@@ -1124,7 +1124,7 @@ int ocfs2_setattr(struct user_namespace
+ 	handle_t *handle = NULL;
+ 	struct dquot *transfer_to[MAXQUOTAS] = { };
+ 	int qtype;
+-	int had_lock, had_alloc_lock = 0;
++	int had_lock;
+ 	struct ocfs2_lock_holder oh;
  
+ 	trace_ocfs2_setattr(inode, dentry,
+@@ -1246,27 +1246,23 @@ int ocfs2_setattr(struct user_namespace
+ 			}
+ 		}
+ 		down_write(&OCFS2_I(inode)->ip_alloc_sem);
+-		had_alloc_lock = 1;
+-
+ 		handle = ocfs2_start_trans(osb, OCFS2_INODE_UPDATE_CREDITS +
+ 					   2 * ocfs2_quota_trans_credits(sb));
+ 		if (IS_ERR(handle)) {
+ 			status = PTR_ERR(handle);
+ 			mlog_errno(status);
+-			goto bail_unlock;
++			goto bail_unlock_alloc;
+ 		}
+ 		status = __dquot_transfer(inode, transfer_to);
+ 		if (status < 0)
+ 			goto bail_commit;
+ 	} else {
+ 		down_write(&OCFS2_I(inode)->ip_alloc_sem);
+-		had_alloc_lock = 1;
+-
+ 		handle = ocfs2_start_trans(osb, OCFS2_INODE_UPDATE_CREDITS);
+ 		if (IS_ERR(handle)) {
+ 			status = PTR_ERR(handle);
+ 			mlog_errno(status);
+-			goto bail_unlock;
++			goto bail_unlock_alloc;
+ 		}
+ 	}
+ 
+@@ -1279,10 +1275,9 @@ int ocfs2_setattr(struct user_namespace
+ 
+ bail_commit:
+ 	ocfs2_commit_trans(osb, handle);
++bail_unlock_alloc:
++	up_write(&OCFS2_I(inode)->ip_alloc_sem);
+ bail_unlock:
+-	if (had_alloc_lock)
+-		up_write(&OCFS2_I(inode)->ip_alloc_sem);
+-
+ 	if (status && inode_locked) {
+ 		ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
+ 		inode_locked = 0;
 _
 
-Patches currently in -mm which might be from yaoaili@kingsoft.com are
+Patches currently in -mm which might be from wen.gang.wang@oracle.com are
 
-mm-gup-check-page-posion-status-for-coredump.patch
+ocfs2-fix-deadlock-between-setattr-and-dio_end_io_write.patch
 
