@@ -7,34 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00370C43462
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:27:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65AB3C433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:27:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D02EC61181
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:27:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3914D610A8
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:27:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234076AbhDIU1Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Apr 2021 16:27:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51226 "EHLO mail.kernel.org"
+        id S234159AbhDIU11 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Apr 2021 16:27:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51288 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233824AbhDIU1Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Apr 2021 16:27:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C49A16115C;
-        Fri,  9 Apr 2021 20:27:10 +0000 (UTC)
+        id S234105AbhDIU11 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Apr 2021 16:27:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CC9126113A;
+        Fri,  9 Apr 2021 20:27:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618000031;
-        bh=qVuxJWwFpQIgD1n7i5u31PpDu3NCtxxqjIHJuu9jmas=;
+        s=korg; t=1618000034;
+        bh=c0mXdT2B5GRpdhEZdqiQV1hXeIgb67qKfPiI43wBuH0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=KWub/5bXVYi72DvKuWb/5AMUjOXs/rUJEgiau7qexgcLQCrubVDLSB1eQ8l2Vt6Qa
-         NRCr/MBeIrs/9eOrdMhHwxIBwufQwVIvr8B4qJPHEa4A/96ocSCCL5U2nuHXF8ioxI
-         7bUuSUl8RPvkH/A5lgbBcUqXfWhGjj1LLtna1KWQ=
-Date:   Fri, 09 Apr 2021 13:27:10 -0700
+        b=AWH3YCxL78INITxvVGnNjxaSbOxulJfA+g/hbmi/JLvUoX6gbaI0/o22SO7c+3j3f
+         XssZ0uOKV825/XAlNhR5M3VCFdvt1YoqyY48tHhuHWCUeW9In6+xUDTWh9Oaw1LUmh
+         1YyNv1p9Ya0BohSiQ/FWu0QxBmiUaAdYQ0bERhsI=
+Date:   Fri, 09 Apr 2021 13:27:13 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, npiggin@gmail.com, nyc@holomorphy.com,
-        torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [patch 04/16] .mailmap: fix old email addresses
-Message-ID: <20210409202710.MmkDUuRkd%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@gmail.com, arnd@arndb.de,
+        dvyukov@google.com, elver@google.com, glider@google.com,
+        linux-mm@kvack.org, masahiroy@kernel.org, michal.lkml@markovi.net,
+        mm-commits@vger.kernel.org, nathan@kernel.org,
+        ndesaulniers@google.com, ryabinin.a.a@gmail.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 05/16] kasan: fix hwasan build for gcc
+Message-ID: <20210409202713.NIELx3Tx9%akpm@linux-foundation.org>
 In-Reply-To: <20210409132633.6855fc8fea1b3905ea1bb4be@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,36 +45,54 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Matthew Wilcox <willy@infradead.org>
-Subject: .mailmap: fix old email addresses
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kasan: fix hwasan build for gcc
 
-Update Nick & Nadia's old addresses.
+gcc-11 adds support for -fsanitize=kernel-hwaddress, so it becomes
+possible to enable CONFIG_KASAN_SW_TAGS.
 
-Link: https://lkml.kernel.org/r/20210406134036.GQ2531743@casper.infradead.org
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Nadia Yvette Chambers <nyc@holomorphy.com>
+Unfortunately this fails to build at the moment, because the corresponding
+command line arguments use llvm specific syntax.
+
+Change it to use the cc-param macro instead, which works on both clang and
+gcc.
+
+Link: https://lkml.kernel.org/r/20210323124112.1229772-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/Makefile.kasan |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/.mailmap~old-email-addresses-in-mailmap
-+++ a/.mailmap
-@@ -254,8 +254,14 @@ Morten Welinder <welinder@anemone.rentec
- Morten Welinder <welinder@darter.rentec.com>
- Morten Welinder <welinder@troll.com>
- Mythri P K <mythripk@ti.com>
-+Nadia Yvette Chambers <nyc@holomorphy.com> William Lee Irwin III <wli@holomorphy.com>
- Nathan Chancellor <nathan@kernel.org> <natechancellor@gmail.com>
- Nguyen Anh Quynh <aquynh@gmail.com>
-+Nicholas Piggin <npiggin@gmail.com> <npiggen@suse.de>
-+Nicholas Piggin <npiggin@gmail.com> <npiggin@kernel.dk>
-+Nicholas Piggin <npiggin@gmail.com> <npiggin@suse.de>
-+Nicholas Piggin <npiggin@gmail.com> <nickpiggin@yahoo.com.au>
-+Nicholas Piggin <npiggin@gmail.com> <piggin@cyberone.com.au>
- Nicolas Ferre <nicolas.ferre@microchip.com> <nicolas.ferre@atmel.com>
- Nicolas Pitre <nico@fluxnic.net> <nicolas.pitre@linaro.org>
- Nicolas Pitre <nico@fluxnic.net> <nico@linaro.org>
+--- a/scripts/Makefile.kasan~kasan-fix-hwasan-build-for-gcc
++++ a/scripts/Makefile.kasan
+@@ -36,14 +36,14 @@ endif # CONFIG_KASAN_GENERIC
+ ifdef CONFIG_KASAN_SW_TAGS
+ 
+ ifdef CONFIG_KASAN_INLINE
+-    instrumentation_flags := -mllvm -hwasan-mapping-offset=$(KASAN_SHADOW_OFFSET)
++    instrumentation_flags := $(call cc-param,hwasan-mapping-offset=$(KASAN_SHADOW_OFFSET))
+ else
+-    instrumentation_flags := -mllvm -hwasan-instrument-with-calls=1
++    instrumentation_flags := $(call cc-param,hwasan-instrument-with-calls=1)
+ endif
+ 
+ CFLAGS_KASAN := -fsanitize=kernel-hwaddress \
+-		-mllvm -hwasan-instrument-stack=$(CONFIG_KASAN_STACK) \
+-		-mllvm -hwasan-use-short-granules=0 \
++		$(call cc-param,hwasan-instrument-stack=$(CONFIG_KASAN_STACK)) \
++		$(call cc-param,hwasan-use-short-granules=0) \
+ 		$(instrumentation_flags)
+ 
+ endif # CONFIG_KASAN_SW_TAGS
 _
