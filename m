@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65AB3C433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:27:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 183CAC43462
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:27:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3914D610A8
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:27:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA30261181
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 20:27:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234159AbhDIU11 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Apr 2021 16:27:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51288 "EHLO mail.kernel.org"
+        id S234160AbhDIU1e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Apr 2021 16:27:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51414 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234105AbhDIU11 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Apr 2021 16:27:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CC9126113A;
-        Fri,  9 Apr 2021 20:27:13 +0000 (UTC)
+        id S233824AbhDIU1d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Apr 2021 16:27:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3CED161007;
+        Fri,  9 Apr 2021 20:27:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618000034;
-        bh=c0mXdT2B5GRpdhEZdqiQV1hXeIgb67qKfPiI43wBuH0=;
+        s=korg; t=1618000040;
+        bh=SakCH8C8OtsgETv5kZZnG3bXMi7xsKfTvcCZqYP0FHM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=AWH3YCxL78INITxvVGnNjxaSbOxulJfA+g/hbmi/JLvUoX6gbaI0/o22SO7c+3j3f
-         XssZ0uOKV825/XAlNhR5M3VCFdvt1YoqyY48tHhuHWCUeW9In6+xUDTWh9Oaw1LUmh
-         1YyNv1p9Ya0BohSiQ/FWu0QxBmiUaAdYQ0bERhsI=
-Date:   Fri, 09 Apr 2021 13:27:13 -0700
+        b=vkYkBYll71ckwxgrQnMrqZxPkwqiidOhWNO6wK51c1bY3HNNKYdJqAHL+EHOHWPQr
+         wMTYgM0I4d4JNLVlRZMJxymajkkIxFaO9yVRl/ihq6oYIuP2PBlrCaiUnmI6bH0foA
+         KTOJF8TqfJbgjRMN+nGh8VcrSl3nhLswr1m5o1Ck=
+Date:   Fri, 09 Apr 2021 13:27:19 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@gmail.com, arnd@arndb.de,
-        dvyukov@google.com, elver@google.com, glider@google.com,
-        linux-mm@kvack.org, masahiroy@kernel.org, michal.lkml@markovi.net,
-        mm-commits@vger.kernel.org, nathan@kernel.org,
-        ndesaulniers@google.com, ryabinin.a.a@gmail.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 05/16] kasan: fix hwasan build for gcc
-Message-ID: <20210409202713.NIELx3Tx9%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, osalvador@suse.de,
+        torvalds@linux-foundation.org, willy@infradead.org,
+        yaoaili@kingsoft.com
+Subject:  [patch 07/16] mm/gup: check page posion status for
+ coredump.
+Message-ID: <20210409202719.tI0cmqT6l%akpm@linux-foundation.org>
 In-Reply-To: <20210409132633.6855fc8fea1b3905ea1bb4be@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,54 +45,85 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kasan: fix hwasan build for gcc
+From: Aili Yao <yaoaili@kingsoft.com>
+Subject: mm/gup: check page posion status for coredump.
 
-gcc-11 adds support for -fsanitize=kernel-hwaddress, so it becomes
-possible to enable CONFIG_KASAN_SW_TAGS.
+When we do coredump for user process signal, this may be an SIGBUS signal
+with BUS_MCEERR_AR or BUS_MCEERR_AO code, which means this signal is
+resulted from ECC memory fail like SRAR or SRAO, we expect the memory
+recovery work is finished correctly, then the get_dump_page() will not
+return the error page as its process pte is set invalid by
+memory_failure().
 
-Unfortunately this fails to build at the moment, because the corresponding
-command line arguments use llvm specific syntax.
+But memory_failure() may fail, and the process's related pte may not be
+correctly set invalid, for current code, we will return the poison page,
+get it dumped, and then lead to system panic as its in kernel code.
 
-Change it to use the cc-param macro instead, which works on both clang and
-gcc.
+So check the poison status in get_dump_page(), and if TRUE, return NULL.
 
-Link: https://lkml.kernel.org/r/20210323124112.1229772-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Michal Marek <michal.lkml@markovi.net>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+There maybe other scenario that is also better to check the posion status
+and not to panic, so make a wrapper for this check, Thanks to David's
+suggestion(<david@redhat.com>).
+
+[akpm@linux-foundation.org: s/0/false/]
+[yaoaili@kingsoft.com: is_page_poisoned() arg cannot be null, per Matthew]
+  Link: https://lkml.kernel.org/r/20210319104437.6f30e80d@alex-virtual-machine
+  Link: https://lkml.kernel.org/r/20210322115233.05e4e82a@alex-virtual-machine
+Link: https://lkml.kernel.org/r/20210319104437.6f30e80d@alex-virtual-machine
+Signed-off-by: Aili Yao <yaoaili@kingsoft.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Aili Yao <yaoaili@kingsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.kasan |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/gup.c      |    4 ++++
+ mm/internal.h |   20 ++++++++++++++++++++
+ 2 files changed, 24 insertions(+)
 
---- a/scripts/Makefile.kasan~kasan-fix-hwasan-build-for-gcc
-+++ a/scripts/Makefile.kasan
-@@ -36,14 +36,14 @@ endif # CONFIG_KASAN_GENERIC
- ifdef CONFIG_KASAN_SW_TAGS
+--- a/mm/gup.c~mm-gup-check-page-posion-status-for-coredump
++++ a/mm/gup.c
+@@ -1535,6 +1535,10 @@ struct page *get_dump_page(unsigned long
+ 				      FOLL_FORCE | FOLL_DUMP | FOLL_GET);
+ 	if (locked)
+ 		mmap_read_unlock(mm);
++
++	if (ret == 1 && is_page_poisoned(page))
++		return NULL;
++
+ 	return (ret == 1) ? page : NULL;
+ }
+ #endif /* CONFIG_ELF_CORE */
+--- a/mm/internal.h~mm-gup-check-page-posion-status-for-coredump
++++ a/mm/internal.h
+@@ -97,6 +97,26 @@ static inline void set_page_refcounted(s
+ 	set_page_count(page, 1);
+ }
  
- ifdef CONFIG_KASAN_INLINE
--    instrumentation_flags := -mllvm -hwasan-mapping-offset=$(KASAN_SHADOW_OFFSET)
-+    instrumentation_flags := $(call cc-param,hwasan-mapping-offset=$(KASAN_SHADOW_OFFSET))
- else
--    instrumentation_flags := -mllvm -hwasan-instrument-with-calls=1
-+    instrumentation_flags := $(call cc-param,hwasan-instrument-with-calls=1)
- endif
++/*
++ * When kernel touch the user page, the user page may be have been marked
++ * poison but still mapped in user space, if without this page, the kernel
++ * can guarantee the data integrity and operation success, the kernel is
++ * better to check the posion status and avoid touching it, be good not to
++ * panic, coredump for process fatal signal is a sample case matching this
++ * scenario. Or if kernel can't guarantee the data integrity, it's better
++ * not to call this function, let kernel touch the poison page and get to
++ * panic.
++ */
++static inline bool is_page_poisoned(struct page *page)
++{
++	if (PageHWPoison(page))
++		return true;
++	else if (PageHuge(page) && PageHWPoison(compound_head(page)))
++		return true;
++
++	return false;
++}
++
+ extern unsigned long highest_memmap_pfn;
  
- CFLAGS_KASAN := -fsanitize=kernel-hwaddress \
--		-mllvm -hwasan-instrument-stack=$(CONFIG_KASAN_STACK) \
--		-mllvm -hwasan-use-short-granules=0 \
-+		$(call cc-param,hwasan-instrument-stack=$(CONFIG_KASAN_STACK)) \
-+		$(call cc-param,hwasan-use-short-granules=0) \
- 		$(instrumentation_flags)
- 
- endif # CONFIG_KASAN_SW_TAGS
+ /*
 _
