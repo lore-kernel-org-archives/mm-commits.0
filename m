@@ -5,43 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90755C433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 02:40:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2431C43460
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 03:49:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6CE09610FC
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 02:40:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE85E61042
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 03:49:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232770AbhDICkn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Apr 2021 22:40:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58292 "EHLO mail.kernel.org"
+        id S233238AbhDIDtW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Apr 2021 23:49:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42238 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232616AbhDICkm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 8 Apr 2021 22:40:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BA771610F9;
-        Fri,  9 Apr 2021 02:40:29 +0000 (UTC)
+        id S233234AbhDIDtW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 8 Apr 2021 23:49:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9653061055;
+        Fri,  9 Apr 2021 03:49:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1617936030;
-        bh=qWFxhFMYLBKDyX/myxpSrathZdegs0HhSiN5JzoBLpc=;
+        s=korg; t=1617940149;
+        bh=0gUWXb3/doFw11CsQ5dxmRy4Vyr8oi5eKYlMmI2lp8Y=;
         h=Date:From:To:Subject:From;
-        b=T6g22iC+bo0ojR1tqs8WOmGlP1BD4p0rOxBStiytWWhKcIEe5U1zTeV2RzK5W7UKJ
-         4YvrULPtp/iPGAU91EseVJA3LQuMyforJqgBqwEjseky6L6WqHl/WGP70wU0OreICm
-         PEMr3TwvN0eqERfrvdASZ+wGr3Ya6oMWxOlQF2Kk=
-Date:   Thu, 08 Apr 2021 19:40:29 -0700
+        b=WI4xvS3fURCKxu1E3aXhjfbe0mZCLhbKj6kYBvvxnkd+LbVt4tGFp76zGkySR70T0
+         NONhSB0akpgTHvwdcI2RWBbVG3FbMVBHI/HYShxPK5+UwmwrWDQ6FkslqlPz9IkAgd
+         v+VupFREXkqmYoXZkH/V0Rc0049yKkEIoAbqdI0k=
+Date:   Thu, 08 Apr 2021 20:49:09 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, almasrymina@google.com,
-        axelrasmussen@google.com, bgeffon@google.com,
-        cannonmatthews@google.com, dgilbert@redhat.com, hughd@google.com,
-        jglisse@redhat.com, joe@perches.com, lokeshgidra@google.com,
-        mm-commits@vger.kernel.org, oupton@google.com, peterx@redhat.com,
-        rientjes@google.com, rppt@linux.vnet.ibm.com, shli@fb.com,
-        shuah@kernel.org, viro@zeniv.linux.org.uk, walken@google.com,
-        wangqing@vivo.com
-Subject:  [to-be-updated]
- userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
- removed from -mm tree
-Message-ID: <20210409024029.RrtkjnEcV%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, nathan@kernel.org,
+        ndesaulniers@google.com, psodagud@quicinc.com,
+        stable@vger.kernel.org
+Subject:  + gcov-re-fix-clang-11-support.patch added to -mm tree
+Message-ID: <20210409034909.Jv0bVKDo3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,103 +43,145 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/selftests: exercise minor fault handling shmem support
-has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
+     Subject: gcov: re-fix clang-11+ support
+has been added to the -mm tree.  Its filename is
+     gcov-re-fix-clang-11-support.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/gcov-re-fix-clang-11-support.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/gcov-re-fix-clang-11-support.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/selftests: exercise minor fault handling shmem support
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: gcov: re-fix clang-11+ support
 
-Enable test_uffdio_minor for test_type == TEST_SHMEM, and modify the test
-slightly to pass in / check for the right feature flags.
+LLVM changed the expected function signature for llvm_gcda_emit_function()
+in the clang-11 release.  Users of clang-11 or newer may have noticed
+their kernels producing invalid coverage information:
 
-Link: https://lkml.kernel.org/r/20210302000133.272579-6-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Cannon Matthews <cannonmatthews@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Oliver Upton <oupton@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shaohua Li <shli@fb.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Wang Qing <wangqing@vivo.com>
+$ llvm-cov gcov -a -c -u -f -b <input>.gcda -- gcno=<input>.gcno
+1 <func>: checksum mismatch, \
+  (<lineno chksum A>, <cfg chksum B>) != (<lineno chksum A>, <cfg chksum C>)
+2 Invalid .gcda File!
+...
+
+Fix up the function signatures so calling this function interprets its
+parameters correctly and computes the correct cfg checksum.  In
+particular, in clang-11, the additional checksum is no longer optional.
+
+Link: https://reviews.llvm.org/rG25544ce2df0daa4304c07e64b9c8b0f7df60c11d
+Link: https://lkml.kernel.org/r/20210408184631.1156669-1-ndesaulniers@google.com
+Reported-by: Prasad Sodagudi <psodagud@quicinc.com>
+Tested-by: Prasad Sodagudi <psodagud@quicinc.com>
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
+Cc: <stable@vger.kernel.org>	[5.4+]
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ kernel/gcov/clang.c |   29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-exercise-minor-fault-handling-shmem-support
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -1423,7 +1423,7 @@ static int userfaultfd_minor_test(void)
- 	void *expected_page;
- 	char c;
- 	struct uffd_stats stats = { 0 };
--	uint64_t features = UFFD_FEATURE_MINOR_HUGETLBFS;
-+	uint64_t req_features, features_out;
+--- a/kernel/gcov/clang.c~gcov-re-fix-clang-11-support
++++ a/kernel/gcov/clang.c
+@@ -70,7 +70,9 @@ struct gcov_fn_info {
  
- 	if (!test_uffdio_minor)
- 		return 0;
-@@ -1431,10 +1431,18 @@ static int userfaultfd_minor_test(void)
- 	printf("testing minor faults: ");
- 	fflush(stdout);
+ 	u32 ident;
+ 	u32 checksum;
++#if CONFIG_CLANG_VERSION < 110000
+ 	u8 use_extra_checksum;
++#endif
+ 	u32 cfg_checksum;
  
--	if (uffd_test_ctx_clear() || uffd_test_ctx_init_ext(&features))
-+	if (test_type == TEST_HUGETLB)
-+		req_features = UFFD_FEATURE_MINOR_HUGETLBFS;
-+	else if (test_type == TEST_SHMEM)
-+		req_features = UFFD_FEATURE_MINOR_SHMEM;
-+	else
- 		return 1;
--	/* If kernel reports the feature isn't supported, skip the test. */
--	if (!(features & UFFD_FEATURE_MINOR_HUGETLBFS)) {
-+
-+	features_out = req_features;
-+	if (uffd_test_ctx_clear() || uffd_test_ctx_init_ext(&features_out))
-+		return 1;
-+	/* If kernel reports required features aren't supported, skip test. */
-+	if ((features_out & req_features) != req_features) {
- 		printf("skipping test due to lack of feature support\n");
- 		fflush(stdout);
- 		return 0;
-@@ -1444,7 +1452,7 @@ static int userfaultfd_minor_test(void)
- 	uffdio_register.range.len = nr_pages * page_size;
- 	uffdio_register.mode = UFFDIO_REGISTER_MODE_MINOR;
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register)) {
--		fprintf(stderr, "register failure\n");
-+		perror("register failure");
- 		exit(1);
+ 	u32 num_counters;
+@@ -145,10 +147,8 @@ void llvm_gcda_emit_function(u32 ident,
+ 
+ 	list_add_tail(&info->head, &current_info->functions);
+ }
+-EXPORT_SYMBOL(llvm_gcda_emit_function);
+ #else
+-void llvm_gcda_emit_function(u32 ident, u32 func_checksum,
+-		u8 use_extra_checksum, u32 cfg_checksum)
++void llvm_gcda_emit_function(u32 ident, u32 func_checksum, u32 cfg_checksum)
+ {
+ 	struct gcov_fn_info *info = kzalloc(sizeof(*info), GFP_KERNEL);
+ 
+@@ -158,12 +158,11 @@ void llvm_gcda_emit_function(u32 ident,
+ 	INIT_LIST_HEAD(&info->head);
+ 	info->ident = ident;
+ 	info->checksum = func_checksum;
+-	info->use_extra_checksum = use_extra_checksum;
+ 	info->cfg_checksum = cfg_checksum;
+ 	list_add_tail(&info->head, &current_info->functions);
+ }
+-EXPORT_SYMBOL(llvm_gcda_emit_function);
+ #endif
++EXPORT_SYMBOL(llvm_gcda_emit_function);
+ 
+ void llvm_gcda_emit_arcs(u32 num_counters, u64 *counters)
+ {
+@@ -293,11 +292,16 @@ int gcov_info_is_compatible(struct gcov_
+ 		!list_is_last(&fn_ptr2->head, &info2->functions)) {
+ 		if (fn_ptr1->checksum != fn_ptr2->checksum)
+ 			return false;
++#if CONFIG_CLANG_VERSION < 110000
+ 		if (fn_ptr1->use_extra_checksum != fn_ptr2->use_extra_checksum)
+ 			return false;
+ 		if (fn_ptr1->use_extra_checksum &&
+ 			fn_ptr1->cfg_checksum != fn_ptr2->cfg_checksum)
+ 			return false;
++#else
++		if (fn_ptr1->cfg_checksum != fn_ptr2->cfg_checksum)
++			return false;
++#endif
+ 		fn_ptr1 = list_next_entry(fn_ptr1, head);
+ 		fn_ptr2 = list_next_entry(fn_ptr2, head);
  	}
+@@ -529,17 +533,22 @@ static size_t convert_to_gcda(char *buff
  
-@@ -1708,6 +1716,7 @@ static void set_test_type(const char *ty
- 		map_shared = true;
- 		test_type = TEST_SHMEM;
- 		uffd_test_ops = &shmem_uffd_test_ops;
-+		test_uffdio_minor = true;
- 	} else {
- 		fprintf(stderr, "Unknown test type: %s\n", type); exit(1);
- 	}
+ 	list_for_each_entry(fi_ptr, &info->functions, head) {
+ 		u32 i;
+-		u32 len = 2;
+-
+-		if (fi_ptr->use_extra_checksum)
+-			len++;
+ 
+ 		pos += store_gcov_u32(buffer, pos, GCOV_TAG_FUNCTION);
+-		pos += store_gcov_u32(buffer, pos, len);
++#if CONFIG_CLANG_VERSION < 110000
++		pos += store_gcov_u32(buffer, pos,
++			fi_ptr->use_extra_checksum ? 3 : 2);
++#else
++		pos += store_gcov_u32(buffer, pos, 3);
++#endif
+ 		pos += store_gcov_u32(buffer, pos, fi_ptr->ident);
+ 		pos += store_gcov_u32(buffer, pos, fi_ptr->checksum);
++#if CONFIG_CLANG_VERSION < 110000
+ 		if (fi_ptr->use_extra_checksum)
+ 			pos += store_gcov_u32(buffer, pos, fi_ptr->cfg_checksum);
++#else
++		pos += store_gcov_u32(buffer, pos, fi_ptr->cfg_checksum);
++#endif
+ 
+ 		pos += store_gcov_u32(buffer, pos, GCOV_TAG_COUNTER_BASE);
+ 		pos += store_gcov_u32(buffer, pos, fi_ptr->num_counters * 2);
 _
 
-Patches currently in -mm which might be from axelrasmussen@google.com are
+Patches currently in -mm which might be from ndesaulniers@google.com are
 
-userfaultfd-add-minor-fault-registration-mode.patch
-userfaultfd-disable-huge-pmd-sharing-for-minor-registered-vmas.patch
-userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled.patch
-userfaultfd-add-uffdio_continue-ioctl.patch
-userfaultfd-update-documentation-to-describe-minor-fault-handling.patch
-userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch
+gcov-re-fix-clang-11-support.patch
+gcov-clang-drop-support-for-clang-10-and-older.patch
 
