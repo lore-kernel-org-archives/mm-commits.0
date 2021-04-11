@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE0DCC433ED
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:31:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABA7CC433ED
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:31:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 830DE611C9
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:31:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7FC5A611CE
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:31:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236014AbhDKWbz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Apr 2021 18:31:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36606 "EHLO mail.kernel.org"
+        id S235983AbhDKWb6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Apr 2021 18:31:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36656 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235366AbhDKWbz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 11 Apr 2021 18:31:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BF329610CB;
-        Sun, 11 Apr 2021 22:31:37 +0000 (UTC)
+        id S235366AbhDKWb5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 11 Apr 2021 18:31:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C7D1F611C9;
+        Sun, 11 Apr 2021 22:31:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618180298;
-        bh=Js67mPjA59IUyD6vk03yOg8lU0THSas+jqWCVDI27hI=;
+        s=korg; t=1618180300;
+        bh=N8gBVFnK4QKR1XF1y53GdpA1PWXo6gS0d68tdm+m+pw=;
         h=Date:From:To:Subject:From;
-        b=CjOAt9JlgSRKmTcdshq4RDBOt4F0PTrWhjZi1B723da9Z5qTgbMurKvk8i3JYR6nB
-         qTJkn0dGDIk/oC6vlwBnZ93kqWaO4UXIT89NTmPL1rs0eiw7hYOF00FOsQA2J4iqh7
-         3B6L08E9dcMMaJCmr3yInVF+JCW1OIjFbrG1cVDM=
-Date:   Sun, 11 Apr 2021 15:31:37 -0700
+        b=H9EGp16iCj46zLEEdYJta8M17/XNrcTDBr3GUVuI7JJihanlZUKWA5iZ7cT8hNBbO
+         wyd8YdiRPHLtBsewx1L2A1/DKrSl5PS4ZtNKXvLF4heRVjpGSi/ZD8VyXBcTWVxdRN
+         QkBhmLPERjMZM3VXcaxVZsVomufqkqwvnJhcO5Hk=
+Date:   Sun, 11 Apr 2021 15:31:39 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
         songmuchun@bytedance.com, song.bao.hua@hisilicon.com,
@@ -39,9 +39,9 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
         david@redhat.com, aneesh.kumar@linux.ibm.com,
         almasrymina@google.com, mike.kravetz@oracle.com
 Subject:  +
- hugetlb-no-need-to-drop-hugetlb_lock-to-call-cma_release.patch added to -mm
- tree
-Message-ID: <20210411223137.rb_le%akpm@linux-foundation.org>
+ hugetlb-add-per-hstate-mutex-to-synchronize-user-adjustments.patch added to
+ -mm tree
+Message-ID: <20210411223139.uF2t1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: no need to drop hugetlb_lock to call cma_release
+     Subject: hugetlb: add per-hstate mutex to synchronize user adjustments
 has been added to the -mm tree.  Its filename is
-     hugetlb-no-need-to-drop-hugetlb_lock-to-call-cma_release.patch
+     hugetlb-add-per-hstate-mutex-to-synchronize-user-adjustments.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-no-need-to-drop-hugetlb_lock-to-call-cma_release.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-add-per-hstate-mutex-to-synchronize-user-adjustments.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-no-need-to-drop-hugetlb_lock-to-call-cma_release.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-add-per-hstate-mutex-to-synchronize-user-adjustments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,16 +72,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: no need to drop hugetlb_lock to call cma_release
+Subject: hugetlb: add per-hstate mutex to synchronize user adjustments
 
-Now that cma_release is non-blocking and irq safe, there is no need to
-drop hugetlb_lock before calling.
+The helper routine hstate_next_node_to_alloc accesses and modifies the
+hstate variable next_nid_to_alloc.  The helper is used by the routines
+alloc_pool_huge_page and adjust_pool_surplus.  adjust_pool_surplus is
+called with hugetlb_lock held.  However, alloc_pool_huge_page can not be
+called with the hugetlb lock held as it will call the page allocator.  Two
+instances of alloc_pool_huge_page could be run in parallel or
+alloc_pool_huge_page could run in parallel with adjust_pool_surplus which
+may result in the variable next_nid_to_alloc becoming invalid for the
+caller and pages being allocated on the wrong node.
 
-Link: https://lkml.kernel.org/r/20210409205254.242291-3-mike.kravetz@oracle.com
+Both alloc_pool_huge_page and adjust_pool_surplus are only called from the
+routine set_max_huge_pages after boot.  set_max_huge_pages is only called
+as the reusult of a user writing to the proc/sysfs nr_hugepages, or
+nr_hugepages_mempolicy file to adjust the number of hugetlb pages.
+
+It makes little sense to allow multiple adjustment to the number of
+hugetlb pages in parallel.  Add a mutex to the hstate and use it to only
+allow one hugetlb page adjustment at a time.  This will synchronize
+modifications to the next_nid_to_alloc variable.
+
+Link: https://lkml.kernel.org/r/20210409205254.242291-4-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Roman Gushchin <guro@fb.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
 Cc: Barry Song <song.bao.hua@hisilicon.com>
@@ -90,37 +108,68 @@ Cc: Hillf Danton <hdanton@sina.com>
 Cc: HORIGUCHI NAOYA <naoya.horiguchi@nec.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Mina Almasry <almasrymina@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Roman Gushchin <guro@fb.com>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Waiman Long <longman@redhat.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ------
- 1 file changed, 6 deletions(-)
+ include/linux/hugetlb.h |    1 +
+ mm/hugetlb.c            |    8 ++++++++
+ 2 files changed, 9 insertions(+)
 
---- a/mm/hugetlb.c~hugetlb-no-need-to-drop-hugetlb_lock-to-call-cma_release
+--- a/include/linux/hugetlb.h~hugetlb-add-per-hstate-mutex-to-synchronize-user-adjustments
++++ a/include/linux/hugetlb.h
+@@ -559,6 +559,7 @@ HPAGEFLAG(Freed, freed)
+ #define HSTATE_NAME_LEN 32
+ /* Defines one hugetlb page size */
+ struct hstate {
++	struct mutex resize_lock;
+ 	int next_nid_to_alloc;
+ 	int next_nid_to_free;
+ 	unsigned int order;
+--- a/mm/hugetlb.c~hugetlb-add-per-hstate-mutex-to-synchronize-user-adjustments
 +++ a/mm/hugetlb.c
-@@ -1355,14 +1355,8 @@ static void update_and_free_page(struct
- 	set_compound_page_dtor(page, NULL_COMPOUND_DTOR);
- 	set_page_refcounted(page);
- 	if (hstate_is_gigantic(h)) {
--		/*
--		 * Temporarily drop the hugetlb_lock, because
--		 * we might block in free_gigantic_page().
--		 */
--		spin_unlock(&hugetlb_lock);
- 		destroy_compound_gigantic_page(page, huge_page_order(h));
- 		free_gigantic_page(page, huge_page_order(h));
--		spin_lock(&hugetlb_lock);
- 	} else {
- 		__free_pages(page, huge_page_order(h));
- 	}
+@@ -2621,6 +2621,11 @@ static int set_max_huge_pages(struct hst
+ 	else
+ 		return -ENOMEM;
+ 
++	/*
++	 * resize_lock mutex prevents concurrent adjustments to number of
++	 * pages in hstate via the proc/sysfs interfaces.
++	 */
++	mutex_lock(&h->resize_lock);
+ 	spin_lock(&hugetlb_lock);
+ 
+ 	/*
+@@ -2653,6 +2658,7 @@ static int set_max_huge_pages(struct hst
+ 	if (hstate_is_gigantic(h) && !IS_ENABLED(CONFIG_CONTIG_ALLOC)) {
+ 		if (count > persistent_huge_pages(h)) {
+ 			spin_unlock(&hugetlb_lock);
++			mutex_unlock(&h->resize_lock);
+ 			NODEMASK_FREE(node_alloc_noretry);
+ 			return -EINVAL;
+ 		}
+@@ -2727,6 +2733,7 @@ static int set_max_huge_pages(struct hst
+ out:
+ 	h->max_huge_pages = persistent_huge_pages(h);
+ 	spin_unlock(&hugetlb_lock);
++	mutex_unlock(&h->resize_lock);
+ 
+ 	NODEMASK_FREE(node_alloc_noretry);
+ 
+@@ -3214,6 +3221,7 @@ void __init hugetlb_add_hstate(unsigned
+ 	BUG_ON(hugetlb_max_hstate >= HUGE_MAX_HSTATE);
+ 	BUG_ON(order == 0);
+ 	h = &hstates[hugetlb_max_hstate++];
++	mutex_init(&h->resize_lock);
+ 	h->order = order;
+ 	h->mask = ~(huge_page_size(h) - 1);
+ 	for (i = 0; i < MAX_NUMNODES; ++i)
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
