@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AFA8C433B4
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:09:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64F0BC433ED
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:10:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EBFB16101D
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:09:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 218E86101D
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:10:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235095AbhDKWJv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Apr 2021 18:09:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58262 "EHLO mail.kernel.org"
+        id S235740AbhDKWLD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Apr 2021 18:11:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59042 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235768AbhDKWJu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 11 Apr 2021 18:09:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A67096008E;
-        Sun, 11 Apr 2021 22:09:29 +0000 (UTC)
+        id S235718AbhDKWLC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 11 Apr 2021 18:11:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 97E296008E;
+        Sun, 11 Apr 2021 22:10:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618178969;
-        bh=DBbrXk19WEyPytquxGe7xp56q8nI4t4YD+NBKMRukPU=;
+        s=korg; t=1618179045;
+        bh=y+7oUbF+MIuZYp8NjazWFihj0LT00GHoqCC8Zgt4zxE=;
         h=Date:From:To:Subject:From;
-        b=ip+CcAI1u/kszaCMpkOFKRiYjZh4bANtYN4eQ4C+WMI3653Yn6NCPg52s7hEMm1vh
-         8Lfd9x+RoR9r1cbiwvFm8VDInop292qXpOmqBpfX0ScDQg7tlTVy/Es+J2iRvpkUrP
-         RDwTQ2CCncgxKeKB9MoHaN8i0GfJQLX8kXwElChU=
-Date:   Sun, 11 Apr 2021 15:09:29 -0700
+        b=xmm95LyYLL9TizSy03dhA7mR4NVopcTj2JXdojxHAZxLqu0LK8xA6Amm1US1ezkLO
+         KuP8SHAndqTRZhLdG/L2vJPe4TVqRG2xun87OKgu7XxHF/fh5YC9q+iGgPcF2rS/0f
+         yUel2byOSuMQ+27JBx9F6PduHrUi9dVSCyhcx3Fk=
+Date:   Sun, 11 Apr 2021 15:10:45 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
+To:     mm-commits@vger.kernel.org, lkp@intel.com,
+        jesse.brandeburg@intel.com, guoren@kernel.org,
         rdunlap@infradead.org
 Subject:  +
- mm-eliminate-expecting-prototype-kernel-doc-warnings.patch added to -mm tree
-Message-ID: <20210411220929.0T-aC%akpm@linux-foundation.org>
+ csky-change-a-kconfig-symbol-name-to-fix-e1000-build-error.patch added to -mm
+ tree
+Message-ID: <20210411221045.mujiB%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: eliminate "expecting prototype" kernel-doc warnings
+     Subject: csky: change a Kconfig symbol name to fix e1000 build error
 has been added to the -mm tree.  Its filename is
-     mm-eliminate-expecting-prototype-kernel-doc-warnings.patch
+     csky-change-a-kconfig-symbol-name-to-fix-e1000-build-error.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-eliminate-expecting-prototype-kernel-doc-warnings.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/csky-change-a-kconfig-symbol-name-to-fix-e1000-build-error.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-eliminate-expecting-prototype-kernel-doc-warnings.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/csky-change-a-kconfig-symbol-name-to-fix-e1000-build-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,107 +67,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm: eliminate "expecting prototype" kernel-doc warnings
+Subject: csky: change a Kconfig symbol name to fix e1000 build error
 
-Fix stray kernel-doc warnings in mm/ due to mis-typed or missing function
-names.
+e1000's #define of CONFIG_RAM_BASE conflicts with a Kconfig symbol in
+arch/csky/Kconfig.
 
-Quietens these kernel-doc warnings:
+The symbol in e1000 has been around longer, so change arch/csky/ to use
+DRAM_BASE instead of RAM_BASE to remove the conflict.  (although e1000 is
+also a 2-line change)
 
-../mm/mmu_gather.c:264: warning: expecting prototype for tlb_gather_mmu(). Prototype was for __tlb_gather_mmu() instead
-../mm/oom_kill.c:180: warning: expecting prototype for Check whether unreclaimable slab amount is greater than(). Prototype was for should_dump_unreclaim_slab() instead
-../mm/shuffle.c:155: warning: expecting prototype for shuffle_free_memory(). Prototype was for __shuffle_free_memory() instead
-
-Link: https://lkml.kernel.org/r/20210411210642.11362-1-rdunlap@infradead.org
+Link: https://lkml.kernel.org/r/20210411055335.7111-1-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Acked-by: Guo Ren <guoren@kernel.org>
+Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_gather.c |   29 +++++++++++++++++++----------
- mm/oom_kill.c   |    2 +-
- mm/shuffle.c    |    4 ++--
- 3 files changed, 22 insertions(+), 13 deletions(-)
+ arch/csky/Kconfig            |    2 +-
+ arch/csky/include/asm/page.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/mmu_gather.c~mm-eliminate-expecting-prototype-kernel-doc-warnings
-+++ a/mm/mmu_gather.c
-@@ -249,16 +249,6 @@ void tlb_flush_mmu(struct mmu_gather *tl
- 	tlb_flush_mmu_free(tlb);
- }
+--- a/arch/csky/include/asm/page.h~csky-change-a-kconfig-symbol-name-to-fix-e1000-build-error
++++ a/arch/csky/include/asm/page.h
+@@ -28,7 +28,7 @@
+ #define SSEG_SIZE	0x20000000
+ #define LOWMEM_LIMIT	(SSEG_SIZE * 2)
  
--/**
-- * tlb_gather_mmu - initialize an mmu_gather structure for page-table tear-down
-- * @tlb: the mmu_gather structure to initialize
-- * @mm: the mm_struct of the target address space
-- * @fullmm: @mm is without users and we're going to destroy the full address
-- *	    space (exit/execve)
-- *
-- * Called to initialize an (on-stack) mmu_gather structure for page-table
-- * tear-down from @mm.
-- */
- static void __tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
- 			     bool fullmm)
- {
-@@ -283,11 +273,30 @@ static void __tlb_gather_mmu(struct mmu_
- 	inc_tlb_flush_pending(tlb->mm);
- }
+-#define PHYS_OFFSET_OFFSET (CONFIG_RAM_BASE & (SSEG_SIZE - 1))
++#define PHYS_OFFSET_OFFSET (CONFIG_DRAM_BASE & (SSEG_SIZE - 1))
  
-+/**
-+ * tlb_gather_mmu - initialize an mmu_gather structure for page-table tear-down
-+ * @tlb: the mmu_gather structure to initialize
-+ * @mm: the mm_struct of the target address space
-+ *
-+ * Called to initialize an (on-stack) mmu_gather structure for page-table
-+ * tear-down from @mm.
-+ */
- void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm)
- {
- 	__tlb_gather_mmu(tlb, mm, false);
- }
+ #ifndef __ASSEMBLY__
  
-+/**
-+ * tlb_gather_mmu_fullmm - initialize an mmu_gather structure for page-table tear-down
-+ * @tlb: the mmu_gather structure to initialize
-+ * @mm: the mm_struct of the target address space
-+ *
-+ * In this case, @mm is without users and we're going to destroy the
-+ * full address space (exit/execve).
-+ *
-+ * Called to initialize an (on-stack) mmu_gather structure for page-table
-+ * tear-down from @mm.
-+ */
- void tlb_gather_mmu_fullmm(struct mmu_gather *tlb, struct mm_struct *mm)
- {
- 	__tlb_gather_mmu(tlb, mm, true);
---- a/mm/oom_kill.c~mm-eliminate-expecting-prototype-kernel-doc-warnings
-+++ a/mm/oom_kill.c
-@@ -170,7 +170,7 @@ static bool oom_unkillable_task(struct t
- 	return false;
- }
+--- a/arch/csky/Kconfig~csky-change-a-kconfig-symbol-name-to-fix-e1000-build-error
++++ a/arch/csky/Kconfig
+@@ -314,7 +314,7 @@ config FORCE_MAX_ZONEORDER
+ 	int "Maximum zone order"
+ 	default "11"
  
--/**
-+/*
-  * Check whether unreclaimable slab amount is greater than
-  * all user memory(LRU pages).
-  * dump_unreclaimable_slab() could help in the case that
---- a/mm/shuffle.c~mm-eliminate-expecting-prototype-kernel-doc-warnings
-+++ a/mm/shuffle.c
-@@ -147,8 +147,8 @@ void __meminit __shuffle_zone(struct zon
- 	spin_unlock_irqrestore(&z->lock, flags);
- }
+-config RAM_BASE
++config DRAM_BASE
+ 	hex "DRAM start addr (the same with memory-section in dts)"
+ 	default 0x0
  
--/**
-- * shuffle_free_memory - reduce the predictability of the page allocator
-+/*
-+ * __shuffle_free_memory - reduce the predictability of the page allocator
-  * @pgdat: node page data
-  */
- void __meminit __shuffle_free_memory(pg_data_t *pgdat)
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
 
 mm-eliminate-expecting-prototype-kernel-doc-warnings.patch
+csky-change-a-kconfig-symbol-name-to-fix-e1000-build-error.patch
 vfs-fs_parser-clean-up-kernel-doc-warnings.patch
 lib-parser-clean-up-kernel-doc.patch
 
