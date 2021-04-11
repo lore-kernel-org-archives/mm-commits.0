@@ -7,33 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FFC5C433B4
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:19:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5689C433B4
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:20:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3985561074
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:19:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7418561074
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:20:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235835AbhDKWTf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Apr 2021 18:19:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60360 "EHLO mail.kernel.org"
+        id S235474AbhDKWU7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Apr 2021 18:20:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60536 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235761AbhDKWTe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 11 Apr 2021 18:19:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EF6CD6102A;
-        Sun, 11 Apr 2021 22:19:14 +0000 (UTC)
+        id S235847AbhDKWU7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 11 Apr 2021 18:20:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D527601FB;
+        Sun, 11 Apr 2021 22:20:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618179555;
-        bh=IbLcUOvUC7mxf1D5nsQvLJaKojLpxN4V6clFLcJpbLE=;
+        s=korg; t=1618179641;
+        bh=LLgVzR/qt6HZsKSetqrB/QjbUjnk2ndU3/VyB2QgPm4=;
         h=Date:From:To:Subject:From;
-        b=vaJctzB8nWFiZl1SBvLeYpHkFBinLcLhwjxgcARVgt3JhlvMBVV+PBDfu7uci2jDP
-         NdGDqPuZEYG/EizJFm9m0FEFSYyU5AgBQAE9otyI8MxuJLBnMlw4nrc6T8/rGFNJBF
-         mrTYZ0Fxm3SwF7XiDsWaSanRgniGbKcE9aM4EkqA=
-Date:   Sun, 11 Apr 2021 15:19:14 -0700
+        b=gUFmXqyUBHqp1321vEHUFQ+5vBlm2h9H/MvnuTclvRCY6BEQ9bkbgVRZea+LAuBpO
+         nPDFyihmuzKKyxlXXid/9Nef/BKd1ebzkW8u92kO6KijzEcP7oVcsfFjYGnj873Y+q
+         dfJ1vEcA4E0y7KU7TaDekp6TD7D+YMUA6j361jO4=
+Date:   Sun, 11 Apr 2021 15:20:40 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, rdunlap@infradead.org
-Subject:  + ia64-fix-discontigc-section-mismatches.patch added to -mm
+To:     mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        mike.kravetz@oracle.com, hillf.zj@alibaba-inc.com,
+        linmiaohe@huawei.com
+Subject:  [to-be-updated]
+ mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch removed from -mm
  tree
-Message-ID: <20210411221914.dZTCJ%akpm@linux-foundation.org>
+Message-ID: <20210411222040.Y09Tj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,102 +45,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: fix discontig.c section mismatches
-has been added to the -mm tree.  Its filename is
-     ia64-fix-discontigc-section-mismatches.patch
+     Subject: mm/hugeltb: remove redundant VM_BUG_ON() in region_add()
+has been removed from the -mm tree.  Its filename was
+     mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ia64-fix-discontigc-section-mismatches.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-fix-discontigc-section-mismatches.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: ia64: fix discontig.c section mismatches
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/hugeltb: remove redundant VM_BUG_ON() in region_add()
 
-Fix IA64 discontig.c Section mismatch warnings.
+Patch series "Cleanup and fixup for hugetlb".
 
-When CONFIG_SPARSEMEM=y and CONFIG_MEMORY_HOTPLUG=y, the functions
-computer_pernodesize() and scatter_node_data() should not be marked
-as __meminit because they are needed after init, on any memory
-hotplug event. Also, early_nr_cpus_node() is called by
-compute_pernodesize(), so early_nr_cpus_node() cannot be __meminit either.
+This series contains cleanups to remove redundant VM_BUG_ON() and simplify
+the return code.  Also this fixes potential wrong gbl_reserve value and
+handle the error case in hugetlb_fix_reserve_counts().  More details can
+be found in the respective changelogs.
 
-WARNING: modpost: vmlinux.o(.text.unlikely+0x1612): Section mismatch in reference from the function arch_alloc_nodedata() to the function .meminit.text:compute_pernodesize()
-The function arch_alloc_nodedata() references
-the function __meminit compute_pernodesize().
-This is often because arch_alloc_nodedata lacks a __meminit
-annotation or the annotation of compute_pernodesize is wrong.
 
-WARNING: modpost: vmlinux.o(.text.unlikely+0x1692): Section mismatch in reference from the function arch_refresh_nodedata() to the function .meminit.text:scatter_node_data()
-The function arch_refresh_nodedata() references
-the function __meminit scatter_node_data().
-This is often because arch_refresh_nodedata lacks a __meminit
-annotation or the annotation of scatter_node_data is wrong.
+This patch (of 4):
 
-WARNING: modpost: vmlinux.o(.text.unlikely+0x1502): Section mismatch in reference from the function compute_pernodesize() to the function .meminit.text:early_nr_cpus_node()
-The function compute_pernodesize() references
-the function __meminit early_nr_cpus_node().
-This is often because compute_pernodesize lacks a __meminit
-annotation or the annotation of early_nr_cpus_node is wrong.
+The same VM_BUG_ON() check is already done in the callee.  Remove this
+extra one to simplify the code slightly.
 
-Link: https://lkml.kernel.org/r/20210411001201.3069-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20210402093249.25137-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210402093249.25137-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/discontig.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/arch/ia64/mm/discontig.c~ia64-fix-discontigc-section-mismatches
-+++ a/arch/ia64/mm/discontig.c
-@@ -95,7 +95,7 @@ static int __init build_node_maps(unsign
-  * acpi_boot_init() (which builds the node_to_cpu_mask array) hasn't been
-  * called yet.  Note that node 0 will also count all non-existent cpus.
-  */
--static int __meminit early_nr_cpus_node(int node)
-+static int early_nr_cpus_node(int node)
- {
- 	int cpu, n = 0;
+--- a/mm/hugetlb.c~mm-hugeltb-remove-redundant-vm_bug_on-in-region_add
++++ a/mm/hugetlb.c
+@@ -557,7 +557,6 @@ retry:
+ 	resv->adds_in_progress -= in_regions_needed;
  
-@@ -110,7 +110,7 @@ static int __meminit early_nr_cpus_node(
-  * compute_pernodesize - compute size of pernode data
-  * @node: the node id.
-  */
--static unsigned long __meminit compute_pernodesize(int node)
-+static unsigned long compute_pernodesize(int node)
- {
- 	unsigned long pernodesize = 0, cpus;
- 
-@@ -367,7 +367,7 @@ static void __init reserve_pernode_space
- 	}
+ 	spin_unlock(&resv->lock);
+-	VM_BUG_ON(add < 0);
+ 	return add;
  }
  
--static void __meminit scatter_node_data(void)
-+static void scatter_node_data(void)
- {
- 	pg_data_t **dst;
- 	int node;
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-eliminate-expecting-prototype-kernel-doc-warnings.patch
-csky-change-a-kconfig-symbol-name-to-fix-e1000-build-error.patch
-ia64-remove-duplicate-entries-in-generic_defconfig.patch
-ia64-fix-discontigc-section-mismatches.patch
-vfs-fs_parser-clean-up-kernel-doc-warnings.patch
-lib-parser-clean-up-kernel-doc.patch
+mm-hugetlb-remove-redundant-reservation-check-condition-in-alloc_huge_page.patch
+mm-hugetlb-use-some-helper-functions-to-cleanup-code.patch
+mm-hugetlb-optimize-the-surplus-state-transfer-code-in-move_hugetlb_state.patch
+hugetlb_cgroup-remove-unnecessary-vm_bug_on_page-in-hugetlb_cgroup_migrate.patch
+mm-hugetlb-simplify-the-code-when-alloc_huge_page-failed-in-hugetlb_no_page.patch
+mm-hugetlb-avoid-calculating-fault_mutex_hash-in-truncate_op-case.patch
+khugepaged-remove-unneeded-return-value-of-khugepaged_collapse_pte_mapped_thps.patch
+khugepaged-reuse-the-smp_wmb-inside-__setpageuptodate.patch
+khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
+khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate.patch
+mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
+mm-huge_memoryc-rework-the-function-vma_adjust_trans_huge.patch
+mm-huge_memoryc-make-get_huge_zero_page-return-bool.patch
+mm-huge_memoryc-rework-the-function-do_huge_pmd_numa_page-slightly.patch
+mm-huge_memoryc-remove-redundant-pagecompound-check.patch
+mm-huge_memoryc-remove-unused-macro-transparent_hugepage_debug_cow_flag.patch
+mm-huge_memoryc-use-helper-function-migration_entry_to_page.patch
+khugepaged-use-helper-function-range_in_vma-in-collapse_pte_mapped_thp.patch
+khugepaged-remove-unnecessary-out-label-in-collapse_huge_page.patch
+khugepaged-remove-meaningless-pte_present-check-in-khugepaged_scan_pmd.patch
+mm-hugeltb-simplify-the-return-code-of-__vma_reservation_common.patch
+mm-hugeltb-fix-potential-wrong-gbl_reserve-value-for-hugetlb_acct_memory.patch
+mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
+mm-migratec-make-putback_movable_page-static.patch
+mm-migratec-remove-unnecessary-rc-=-migratepage_success-check-in-else-case.patch
+mm-migratec-fix-potential-indeterminate-pte-entry-in-migrate_vma_insert_page.patch
+mm-migratec-use-helper-migrate_vma_collect_skip-in-migrate_vma_collect_hole.patch
+revert-mm-migrate-skip-shared-exec-thp-for-numa-balancing.patch
+ksm-remove-redundant-vm_bug_on_page-on-stable_tree_search.patch
+ksm-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree.patch
+ksm-remove-dedicated-macro-ksm_flag_mask.patch
+ksm-fix-potential-missing-rmap_item-for-stable_node.patch
 
