@@ -2,94 +2,170 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A585C433ED
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 21:56:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AFA8C433B4
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:09:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E2E88610CF
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Apr 2021 21:56:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EBFB16101D
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:09:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234870AbhDIV43 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Apr 2021 17:56:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41822 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234079AbhDIV42 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2021 17:56:28 -0400
-Received: from mail-lf1-x134.google.com (mail-lf1-x134.google.com [IPv6:2a00:1450:4864:20::134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED3BEC061762
-        for <mm-commits@vger.kernel.org>; Fri,  9 Apr 2021 14:56:14 -0700 (PDT)
-Received: by mail-lf1-x134.google.com with SMTP id h19so11943099lfu.9
-        for <mm-commits@vger.kernel.org>; Fri, 09 Apr 2021 14:56:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=DxXR2dn277ZxqcFwtteBaWwW/3dtN2eFgo8ineb4CYo=;
-        b=H/yvFQzseWo9Qfu+rOzsWKSXSK3IHTJj5m1pxWD8jWJct8oqYip/Cylpdhj9/GnhH4
-         w2F5mM3QbgqWk8cbcv9fBggsQxUM2Jb/bSEfFXFliLhldNqqeN8b3GUwpm9JOmK7nRkn
-         ONlowcV6AGUfefmH3kc6OnNIsoGix8RUMKX3s=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=DxXR2dn277ZxqcFwtteBaWwW/3dtN2eFgo8ineb4CYo=;
-        b=OW6xIoBBfgwcz1lKMXEvhrXg55JtfWiwHa7HBj+3MBmfBYLkUDXJUUhTcSEQHvutm+
-         fLKLWhs+ho+Boq8x+y193hdxN9rNk8xUWc4phT5e4ArnU/pDjBXabWGHAnv77O4c8zIx
-         vAKUBSC70lfNdT9pRq1F/4sH39ohNvqPOvL2vacZHudNACZQz6Xef1e130foBO2N2Orj
-         KgKOjW5swbZgQu5G9sudZQ5yNzyTa0Zpc18xV0zoALvKdyjXVK3/2hxWnuUiEY2D/H4A
-         YlSjSrVGoiEnGByBd81HEnqfwd9z0Fpv6PK1jsgaHzkO9aQf6TmOIAJBxYpQamfxecJK
-         OIvg==
-X-Gm-Message-State: AOAM5322y91cvAtJK9DQlsJZtLrWKjvyxZEXcwMKDEHmahzxWVUHzKvY
-        1tvbPo4VfoEXQlDr64yIEZt9kEtg3ALY6Q==
-X-Google-Smtp-Source: ABdhPJz9yb/45JgjK5WBiF6X5xJ4rg+oIkNJhX1u2C8rIWaZlWDFh/s089/Kvj4pnBAWGAetC9d7OQ==
-X-Received: by 2002:a19:c1c5:: with SMTP id r188mr11601710lff.179.1618005372490;
-        Fri, 09 Apr 2021 14:56:12 -0700 (PDT)
-Received: from mail-lj1-f177.google.com (mail-lj1-f177.google.com. [209.85.208.177])
-        by smtp.gmail.com with ESMTPSA id f15sm494064lfr.51.2021.04.09.14.56.11
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 09 Apr 2021 14:56:11 -0700 (PDT)
-Received: by mail-lj1-f177.google.com with SMTP id l14so5245090ljb.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Apr 2021 14:56:11 -0700 (PDT)
-X-Received: by 2002:a2e:9acf:: with SMTP id p15mr10260732ljj.61.1618005371618;
- Fri, 09 Apr 2021 14:56:11 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210409132633.6855fc8fea1b3905ea1bb4be@linux-foundation.org>
- <20210409202713.NIELx3Tx9%akpm@linux-foundation.org> <CA+fCnZf1ABrQg0dsxtoZa9zM1BSbLYq_Xbu+xi9cv8WAZxdC2g@mail.gmail.com>
-In-Reply-To: <CA+fCnZf1ABrQg0dsxtoZa9zM1BSbLYq_Xbu+xi9cv8WAZxdC2g@mail.gmail.com>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Fri, 9 Apr 2021 14:55:55 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wjAsjrcAXgyJX2K+jFEJ3odsew6zApx65PE_XY+FMR0+w@mail.gmail.com>
-Message-ID: <CAHk-=wjAsjrcAXgyJX2K+jFEJ3odsew6zApx65PE_XY+FMR0+w@mail.gmail.com>
-Subject: Re: [patch 05/16] kasan: fix hwasan build for gcc
-To:     Andrey Konovalov <andreyknvl@gmail.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Marco Elver <elver@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        Linux Memory Management List <linux-mm@kvack.org>,
-        Masahiro Yamada <masahiroy@kernel.org>,
-        Michal Marek <michal.lkml@markovi.net>,
-        mm-commits@vger.kernel.org, Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+        id S235095AbhDKWJv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Apr 2021 18:09:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58262 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S235768AbhDKWJu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 11 Apr 2021 18:09:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A67096008E;
+        Sun, 11 Apr 2021 22:09:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1618178969;
+        bh=DBbrXk19WEyPytquxGe7xp56q8nI4t4YD+NBKMRukPU=;
+        h=Date:From:To:Subject:From;
+        b=ip+CcAI1u/kszaCMpkOFKRiYjZh4bANtYN4eQ4C+WMI3653Yn6NCPg52s7hEMm1vh
+         8Lfd9x+RoR9r1cbiwvFm8VDInop292qXpOmqBpfX0ScDQg7tlTVy/Es+J2iRvpkUrP
+         RDwTQ2CCncgxKeKB9MoHaN8i0GfJQLX8kXwElChU=
+Date:   Sun, 11 Apr 2021 15:09:29 -0700
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        rdunlap@infradead.org
+Subject:  +
+ mm-eliminate-expecting-prototype-kernel-doc-warnings.patch added to -mm tree
+Message-ID: <20210411220929.0T-aC%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Apr 9, 2021 at 1:39 PM Andrey Konovalov <andreyknvl@gmail.com> wrote:
->
-> As I commented on the patch, this breaks SW_TAGS build with Clang for me with:
->
-> arch/arm64/include/asm/current.h:19: undefined reference to `__hwasan_tls'
 
-I've dropped this patch and the next one ("[PATCH 06/16] kasan: remove
-redundant config option") that depended on it.
+The patch titled
+     Subject: mm: eliminate "expecting prototype" kernel-doc warnings
+has been added to the -mm tree.  Its filename is
+     mm-eliminate-expecting-prototype-kernel-doc-warnings.patch
 
-             Linus
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-eliminate-expecting-prototype-kernel-doc-warnings.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-eliminate-expecting-prototype-kernel-doc-warnings.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm: eliminate "expecting prototype" kernel-doc warnings
+
+Fix stray kernel-doc warnings in mm/ due to mis-typed or missing function
+names.
+
+Quietens these kernel-doc warnings:
+
+../mm/mmu_gather.c:264: warning: expecting prototype for tlb_gather_mmu(). Prototype was for __tlb_gather_mmu() instead
+../mm/oom_kill.c:180: warning: expecting prototype for Check whether unreclaimable slab amount is greater than(). Prototype was for should_dump_unreclaim_slab() instead
+../mm/shuffle.c:155: warning: expecting prototype for shuffle_free_memory(). Prototype was for __shuffle_free_memory() instead
+
+Link: https://lkml.kernel.org/r/20210411210642.11362-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/mmu_gather.c |   29 +++++++++++++++++++----------
+ mm/oom_kill.c   |    2 +-
+ mm/shuffle.c    |    4 ++--
+ 3 files changed, 22 insertions(+), 13 deletions(-)
+
+--- a/mm/mmu_gather.c~mm-eliminate-expecting-prototype-kernel-doc-warnings
++++ a/mm/mmu_gather.c
+@@ -249,16 +249,6 @@ void tlb_flush_mmu(struct mmu_gather *tl
+ 	tlb_flush_mmu_free(tlb);
+ }
+ 
+-/**
+- * tlb_gather_mmu - initialize an mmu_gather structure for page-table tear-down
+- * @tlb: the mmu_gather structure to initialize
+- * @mm: the mm_struct of the target address space
+- * @fullmm: @mm is without users and we're going to destroy the full address
+- *	    space (exit/execve)
+- *
+- * Called to initialize an (on-stack) mmu_gather structure for page-table
+- * tear-down from @mm.
+- */
+ static void __tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
+ 			     bool fullmm)
+ {
+@@ -283,11 +273,30 @@ static void __tlb_gather_mmu(struct mmu_
+ 	inc_tlb_flush_pending(tlb->mm);
+ }
+ 
++/**
++ * tlb_gather_mmu - initialize an mmu_gather structure for page-table tear-down
++ * @tlb: the mmu_gather structure to initialize
++ * @mm: the mm_struct of the target address space
++ *
++ * Called to initialize an (on-stack) mmu_gather structure for page-table
++ * tear-down from @mm.
++ */
+ void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm)
+ {
+ 	__tlb_gather_mmu(tlb, mm, false);
+ }
+ 
++/**
++ * tlb_gather_mmu_fullmm - initialize an mmu_gather structure for page-table tear-down
++ * @tlb: the mmu_gather structure to initialize
++ * @mm: the mm_struct of the target address space
++ *
++ * In this case, @mm is without users and we're going to destroy the
++ * full address space (exit/execve).
++ *
++ * Called to initialize an (on-stack) mmu_gather structure for page-table
++ * tear-down from @mm.
++ */
+ void tlb_gather_mmu_fullmm(struct mmu_gather *tlb, struct mm_struct *mm)
+ {
+ 	__tlb_gather_mmu(tlb, mm, true);
+--- a/mm/oom_kill.c~mm-eliminate-expecting-prototype-kernel-doc-warnings
++++ a/mm/oom_kill.c
+@@ -170,7 +170,7 @@ static bool oom_unkillable_task(struct t
+ 	return false;
+ }
+ 
+-/**
++/*
+  * Check whether unreclaimable slab amount is greater than
+  * all user memory(LRU pages).
+  * dump_unreclaimable_slab() could help in the case that
+--- a/mm/shuffle.c~mm-eliminate-expecting-prototype-kernel-doc-warnings
++++ a/mm/shuffle.c
+@@ -147,8 +147,8 @@ void __meminit __shuffle_zone(struct zon
+ 	spin_unlock_irqrestore(&z->lock, flags);
+ }
+ 
+-/**
+- * shuffle_free_memory - reduce the predictability of the page allocator
++/*
++ * __shuffle_free_memory - reduce the predictability of the page allocator
+  * @pgdat: node page data
+  */
+ void __meminit __shuffle_free_memory(pg_data_t *pgdat)
+_
+
+Patches currently in -mm which might be from rdunlap@infradead.org are
+
+mm-eliminate-expecting-prototype-kernel-doc-warnings.patch
+vfs-fs_parser-clean-up-kernel-doc-warnings.patch
+lib-parser-clean-up-kernel-doc.patch
+
