@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5689C433B4
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:20:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E59ABC433ED
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:20:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7418561074
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:20:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C1DBF611CE
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:20:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235474AbhDKWU7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Apr 2021 18:20:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60536 "EHLO mail.kernel.org"
+        id S235910AbhDKWVD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Apr 2021 18:21:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60562 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235847AbhDKWU7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 11 Apr 2021 18:20:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D527601FB;
-        Sun, 11 Apr 2021 22:20:41 +0000 (UTC)
+        id S235879AbhDKWVB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 11 Apr 2021 18:21:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 877A2610CB;
+        Sun, 11 Apr 2021 22:20:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618179641;
-        bh=LLgVzR/qt6HZsKSetqrB/QjbUjnk2ndU3/VyB2QgPm4=;
+        s=korg; t=1618179643;
+        bh=OtxsKLvYRhkLEpYcJ2pD0N2UDejA4dDUIbBWam9/ChQ=;
         h=Date:From:To:Subject:From;
-        b=gUFmXqyUBHqp1321vEHUFQ+5vBlm2h9H/MvnuTclvRCY6BEQ9bkbgVRZea+LAuBpO
-         nPDFyihmuzKKyxlXXid/9Nef/BKd1ebzkW8u92kO6KijzEcP7oVcsfFjYGnj873Y+q
-         dfJ1vEcA4E0y7KU7TaDekp6TD7D+YMUA6j361jO4=
-Date:   Sun, 11 Apr 2021 15:20:40 -0700
+        b=TkBsejS1TzmFg7pvZNuqPU3Letzu7QvYL3Ct9yC7UZbxAez/qXj22qhxLCoGr12tu
+         Jf86aSemQbwrRVdxLLq4nTPqc45LeTlzKUDcU0RQtWOFoBgJbR6tXvgX+MMQPBFqlr
+         63MVh6YHcxNFdpzLsz3oxbyywFXngMz2sFlLZ9LQ=
+Date:   Sun, 11 Apr 2021 15:20:43 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
         mike.kravetz@oracle.com, hillf.zj@alibaba-inc.com,
         linmiaohe@huawei.com
 Subject:  [to-be-updated]
- mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch removed from -mm
- tree
-Message-ID: <20210411222040.Y09Tj%akpm@linux-foundation.org>
+ mm-hugeltb-simplify-the-return-code-of-__vma_reservation_common.patch removed
+ from -mm tree
+Message-ID: <20210411222043.V743r%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,51 +45,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugeltb: remove redundant VM_BUG_ON() in region_add()
+     Subject: mm/hugeltb: simplify the return code of __vma_reservation_common()
 has been removed from the -mm tree.  Its filename was
-     mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch
+     mm-hugeltb-simplify-the-return-code-of-__vma_reservation_common.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugeltb: remove redundant VM_BUG_ON() in region_add()
+Subject: mm/hugeltb: simplify the return code of __vma_reservation_common()
 
-Patch series "Cleanup and fixup for hugetlb".
+It's guaranteed that the vma is associated with a resv_map, i.e.  either
+VM_MAYSHARE or HPAGE_RESV_OWNER, when the code reaches here or we would
+have returned via !resv check above.  So ret must be less than 0 in the
+'else' case.  Simplify the return code to make this clear.
 
-This series contains cleanups to remove redundant VM_BUG_ON() and simplify
-the return code.  Also this fixes potential wrong gbl_reserve value and
-handle the error case in hugetlb_fix_reserve_counts().  More details can
-be found in the respective changelogs.
-
-
-This patch (of 4):
-
-The same VM_BUG_ON() check is already done in the callee.  Remove this
-extra one to simplify the code slightly.
-
-Link: https://lkml.kernel.org/r/20210402093249.25137-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210402093249.25137-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210402093249.25137-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugeltb-remove-redundant-vm_bug_on-in-region_add
+--- a/mm/hugetlb.c~mm-hugeltb-simplify-the-return-code-of-__vma_reservation_common
 +++ a/mm/hugetlb.c
-@@ -557,7 +557,6 @@ retry:
- 	resv->adds_in_progress -= in_regions_needed;
- 
- 	spin_unlock(&resv->lock);
--	VM_BUG_ON(add < 0);
- 	return add;
+@@ -2184,7 +2184,7 @@ static long __vma_reservation_common(str
+ 			return 1;
+ 	}
+ 	else
+-		return ret < 0 ? ret : 0;
++		return ret;
  }
  
+ static long vma_needs_reservation(struct hstate *h,
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -114,7 +106,6 @@ mm-huge_memoryc-use-helper-function-migration_entry_to_page.patch
 khugepaged-use-helper-function-range_in_vma-in-collapse_pte_mapped_thp.patch
 khugepaged-remove-unnecessary-out-label-in-collapse_huge_page.patch
 khugepaged-remove-meaningless-pte_present-check-in-khugepaged_scan_pmd.patch
-mm-hugeltb-simplify-the-return-code-of-__vma_reservation_common.patch
 mm-hugeltb-fix-potential-wrong-gbl_reserve-value-for-hugetlb_acct_memory.patch
 mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
 mm-migratec-make-putback_movable_page-static.patch
