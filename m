@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D427C433ED
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:31:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94C18C433ED
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:31:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2E905611F0
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:31:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 71549611F2
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:31:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236024AbhDKWcC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Apr 2021 18:32:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36762 "EHLO mail.kernel.org"
+        id S236028AbhDKWcE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Apr 2021 18:32:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36826 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235366AbhDKWcC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 11 Apr 2021 18:32:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C1018610E9;
-        Sun, 11 Apr 2021 22:31:44 +0000 (UTC)
+        id S235366AbhDKWcE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 11 Apr 2021 18:32:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CD9C6611C9;
+        Sun, 11 Apr 2021 22:31:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618180305;
-        bh=Z1iXLoGfQ08awJWnFd0QkffZFgwjD+ahhGhOnRsruNs=;
+        s=korg; t=1618180307;
+        bh=6C4wVK+GJYlCyQi/vrdQOiV9ytfPlW8H34aN3IYkNXU=;
         h=Date:From:To:Subject:From;
-        b=iF7bI434JwecXb+QiS3yZebCcoOsvsu0iy2Xfu5phgOL2WR5KxpbtpHKJXmsWDLkL
-         WDoaNUSnR4TkVa6z5pkGIS43rA81ykv9AOvw4iAERfFq6Lz0/KzJqXe58t8BX1sTkH
-         zAf6oGmK/V2HqMsRWmXgvJYa+8ayO1EXiuXAZNEI=
-Date:   Sun, 11 Apr 2021 15:31:44 -0700
+        b=Ntj5oWsenopCmhspXBo0q7/fHbBwus4+nV/vM6wmplra/bylmDgGhkFCOaHPEgVQ4
+         GXavlliugu526sMwN/zrLn2Va2LCLmPNS59+7UNHK6PSONeLerrJSc120v8Rrevco+
+         EY3LtmG6YSdeRgwriDf580BGprDmgvxmddcYLhgA=
+Date:   Sun, 11 Apr 2021 15:31:46 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
         songmuchun@bytedance.com, song.bao.hua@hisilicon.com,
@@ -39,9 +39,9 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
         david@redhat.com, aneesh.kumar@linux.ibm.com,
         almasrymina@google.com, mike.kravetz@oracle.com
 Subject:  +
- hugetlb-call-update_and_free_page-without-hugetlb_lock.patch added to -mm
- tree
-Message-ID: <20210411223144.K8yVH%akpm@linux-foundation.org>
+ hugetlb-change-free_pool_huge_page-to-remove_pool_huge_page.patch added to
+ -mm tree
+Message-ID: <20210411223146.cmGfw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: call update_and_free_page without hugetlb_lock
+     Subject: hugetlb: change free_pool_huge_page to remove_pool_huge_page
 has been added to the -mm tree.  Its filename is
-     hugetlb-call-update_and_free_page-without-hugetlb_lock.patch
+     hugetlb-change-free_pool_huge_page-to-remove_pool_huge_page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-call-update_and_free_page-without-hugetlb_lock.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-change-free_pool_huge_page-to-remove_pool_huge_page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-call-update_and_free_page-without-hugetlb_lock.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-change-free_pool_huge_page-to-remove_pool_huge_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,24 +72,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: call update_and_free_page without hugetlb_lock
+Subject: hugetlb: change free_pool_huge_page to remove_pool_huge_page
 
-With the introduction of remove_hugetlb_page(), there is no need for
-update_and_free_page to hold the hugetlb lock.  Change all callers to drop
-the lock before calling.
+free_pool_huge_page was called with hugetlb_lock held.  It would remove a
+hugetlb page, and then free the corresponding pages to the lower level
+allocators such as buddy.  free_pool_huge_page was called in a loop to
+remove hugetlb pages and these loops could hold the hugetlb_lock for a
+considerable time.
 
-With additional code modifications, this will allow loops which decrease
-the huge page pool to drop the hugetlb_lock with each page to reduce long
-hold times.
+Create new routine remove_pool_huge_page to replace free_pool_huge_page. 
+remove_pool_huge_page will remove the hugetlb page, and it must be called
+with the hugetlb_lock held.  It will return the removed page and it is the
+responsibility of the caller to free the page to the lower level
+allocators.  The hugetlb_lock is dropped before freeing to these
+allocators which results in shorter lock hold times.
 
-The ugly unlock/lock cycle in free_pool_huge_page will be removed in a
-subsequent patch which restructures free_pool_huge_page.
+Add new helper routine to call update_and_free_page for a list of pages.
 
-Link: https://lkml.kernel.org/r/20210409205254.242291-6-mike.kravetz@oracle.com
+Note: Some changes to the routine return_unused_surplus_pages are in need
+of explanation.  Commit e5bbc8a6c992 ("mm/hugetlb.c: fix reservation race
+when freeing surplus pages") modified this routine to address a race which
+could occur when dropping the hugetlb_lock in the loop that removes pool
+pages.  Accounting changes introduced in that commit were subtle and took
+some thought to understand.  This commit removes the cond_resched_lock()
+and the potential race.  Therefore, remove the subtle code and restore the
+more straight forward accounting effectively reverting the commit.
+
+Link: https://lkml.kernel.org/r/20210409205254.242291-7-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
 Cc: Barry Song <song.bao.hua@hisilicon.com>
@@ -99,6 +111,7 @@ Cc: Hillf Danton <hdanton@sina.com>
 Cc: HORIGUCHI NAOYA <naoya.horiguchi@nec.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Mina Almasry <almasrymina@google.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -109,94 +122,206 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   31 ++++++++++++++++++++++++++-----
- 1 file changed, 26 insertions(+), 5 deletions(-)
+ mm/hugetlb.c |   93 ++++++++++++++++++++++++++-----------------------
+ 1 file changed, 51 insertions(+), 42 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-call-update_and_free_page-without-hugetlb_lock
+--- a/mm/hugetlb.c~hugetlb-change-free_pool_huge_page-to-remove_pool_huge_page
 +++ a/mm/hugetlb.c
-@@ -1451,16 +1451,18 @@ static void __free_huge_page(struct page
- 
- 	if (HPageTemporary(page)) {
- 		remove_hugetlb_page(h, page, false);
-+		spin_unlock(&hugetlb_lock);
- 		update_and_free_page(h, page);
- 	} else if (h->surplus_huge_pages_node[nid]) {
- 		/* remove the page from active list */
- 		remove_hugetlb_page(h, page, true);
-+		spin_unlock(&hugetlb_lock);
- 		update_and_free_page(h, page);
- 	} else {
- 		arch_clear_hugepage_flags(page);
- 		enqueue_huge_page(h, page);
-+		spin_unlock(&hugetlb_lock);
- 	}
--	spin_unlock(&hugetlb_lock);
+@@ -1211,7 +1211,7 @@ static int hstate_next_node_to_alloc(str
  }
  
  /*
-@@ -1741,7 +1743,13 @@ static int free_pool_huge_page(struct hs
- 				list_entry(h->hugepage_freelists[node].next,
- 					  struct page, lru);
- 			remove_hugetlb_page(h, page, acct_surplus);
-+			/*
-+			 * unlock/lock around update_and_free_page is temporary
-+			 * and will be removed with subsequent patch.
-+			 */
-+			spin_unlock(&hugetlb_lock);
- 			update_and_free_page(h, page);
-+			spin_lock(&hugetlb_lock);
- 			ret = 1;
- 			break;
- 		}
-@@ -1810,8 +1818,9 @@ retry:
- 		}
- 		remove_hugetlb_page(h, page, false);
- 		h->max_huge_pages--;
-+		spin_unlock(&hugetlb_lock);
- 		update_and_free_page(h, head);
--		rc = 0;
-+		return 0;
+- * helper for free_pool_huge_page() - return the previously saved
++ * helper for remove_pool_huge_page() - return the previously saved
+  * node ["this node"] from which to free a huge page.  Advance the
+  * next node id whether or not we find a free huge page to free so
+  * that the next attempt to free addresses the next node.
+@@ -1391,6 +1391,16 @@ static void update_and_free_page(struct
  	}
- out:
- 	spin_unlock(&hugetlb_lock);
-@@ -2563,22 +2572,34 @@ static void try_to_free_low(struct hstat
- 						nodemask_t *nodes_allowed)
- {
- 	int i;
-+	struct page *page, *next;
-+	LIST_HEAD(page_list);
+ }
  
- 	if (hstate_is_gigantic(h))
- 		return;
- 
-+	/*
-+	 * Collect pages to be freed on a list, and free after dropping lock
-+	 */
- 	for_each_node_mask(i, *nodes_allowed) {
--		struct page *page, *next;
- 		struct list_head *freel = &h->hugepage_freelists[i];
- 		list_for_each_entry_safe(page, next, freel, lru) {
- 			if (count >= h->nr_huge_pages)
--				return;
-+				goto out;
- 			if (PageHighMem(page))
- 				continue;
- 			remove_hugetlb_page(h, page, false);
--			update_and_free_page(h, page);
-+			list_add(&page->lru, &page_list);
- 		}
- 	}
++static void update_and_free_pages_bulk(struct hstate *h, struct list_head *list)
++{
++	struct page *page, *t_page;
 +
-+out:
-+	spin_unlock(&hugetlb_lock);
-+	list_for_each_entry_safe(page, next, &page_list, lru) {
++	list_for_each_entry_safe(page, t_page, list, lru) {
 +		update_and_free_page(h, page);
 +		cond_resched();
 +	}
++}
++
+ struct hstate *size_to_hstate(unsigned long size)
+ {
+ 	struct hstate *h;
+@@ -1721,16 +1731,18 @@ static int alloc_pool_huge_page(struct h
+ }
+ 
+ /*
+- * Free huge page from pool from next node to free.
+- * Attempt to keep persistent huge pages more or less
+- * balanced over allowed nodes.
++ * Remove huge page from pool from next node to free.  Attempt to keep
++ * persistent huge pages more or less balanced over allowed nodes.
++ * This routine only 'removes' the hugetlb page.  The caller must make
++ * an additional call to free the page to low level allocators.
+  * Called with hugetlb_lock locked.
+  */
+-static int free_pool_huge_page(struct hstate *h, nodemask_t *nodes_allowed,
+-							 bool acct_surplus)
++static struct page *remove_pool_huge_page(struct hstate *h,
++						nodemask_t *nodes_allowed,
++						 bool acct_surplus)
+ {
+ 	int nr_nodes, node;
+-	int ret = 0;
++	struct page *page = NULL;
+ 
+ 	for_each_node_mask_to_free(h, nr_nodes, node, nodes_allowed) {
+ 		/*
+@@ -1739,23 +1751,14 @@ static int free_pool_huge_page(struct hs
+ 		 */
+ 		if ((!acct_surplus || h->surplus_huge_pages_node[node]) &&
+ 		    !list_empty(&h->hugepage_freelists[node])) {
+-			struct page *page =
+-				list_entry(h->hugepage_freelists[node].next,
++			page = list_entry(h->hugepage_freelists[node].next,
+ 					  struct page, lru);
+ 			remove_hugetlb_page(h, page, acct_surplus);
+-			/*
+-			 * unlock/lock around update_and_free_page is temporary
+-			 * and will be removed with subsequent patch.
+-			 */
+-			spin_unlock(&hugetlb_lock);
+-			update_and_free_page(h, page);
+-			spin_lock(&hugetlb_lock);
+-			ret = 1;
+ 			break;
+ 		}
+ 	}
+ 
+-	return ret;
++	return page;
+ }
+ 
+ /*
+@@ -2075,17 +2078,16 @@ free:
+  *    to the associated reservation map.
+  * 2) Free any unused surplus pages that may have been allocated to satisfy
+  *    the reservation.  As many as unused_resv_pages may be freed.
+- *
+- * Called with hugetlb_lock held.  However, the lock could be dropped (and
+- * reacquired) during calls to cond_resched_lock.  Whenever dropping the lock,
+- * we must make sure nobody else can claim pages we are in the process of
+- * freeing.  Do this by ensuring resv_huge_page always is greater than the
+- * number of huge pages we plan to free when dropping the lock.
+  */
+ static void return_unused_surplus_pages(struct hstate *h,
+ 					unsigned long unused_resv_pages)
+ {
+ 	unsigned long nr_pages;
++	struct page *page;
++	LIST_HEAD(page_list);
++
++	/* Uncommit the reservation */
++	h->resv_huge_pages -= unused_resv_pages;
+ 
+ 	/* Cannot return gigantic pages currently */
+ 	if (hstate_is_gigantic(h))
+@@ -2102,24 +2104,21 @@ static void return_unused_surplus_pages(
+ 	 * evenly across all nodes with memory. Iterate across these nodes
+ 	 * until we can no longer free unreserved surplus pages. This occurs
+ 	 * when the nodes with surplus pages have no free pages.
+-	 * free_pool_huge_page() will balance the freed pages across the
++	 * remove_pool_huge_page() will balance the freed pages across the
+ 	 * on-line nodes with memory and will handle the hstate accounting.
+-	 *
+-	 * Note that we decrement resv_huge_pages as we free the pages.  If
+-	 * we drop the lock, resv_huge_pages will still be sufficiently large
+-	 * to cover subsequent pages we may free.
+ 	 */
+ 	while (nr_pages--) {
+-		h->resv_huge_pages--;
+-		unused_resv_pages--;
+-		if (!free_pool_huge_page(h, &node_states[N_MEMORY], 1))
++		page = remove_pool_huge_page(h, &node_states[N_MEMORY], 1);
++		if (!page)
+ 			goto out;
+-		cond_resched_lock(&hugetlb_lock);
++
++		list_add(&page->lru, &page_list);
+ 	}
+ 
+ out:
+-	/* Fully uncommit the reservation */
+-	h->resv_huge_pages -= unused_resv_pages;
++	spin_unlock(&hugetlb_lock);
++	update_and_free_pages_bulk(h, &page_list);
 +	spin_lock(&hugetlb_lock);
  }
+ 
+ 
+@@ -2572,7 +2571,6 @@ static void try_to_free_low(struct hstat
+ 						nodemask_t *nodes_allowed)
+ {
+ 	int i;
+-	struct page *page, *next;
+ 	LIST_HEAD(page_list);
+ 
+ 	if (hstate_is_gigantic(h))
+@@ -2582,6 +2580,7 @@ static void try_to_free_low(struct hstat
+ 	 * Collect pages to be freed on a list, and free after dropping lock
+ 	 */
+ 	for_each_node_mask(i, *nodes_allowed) {
++		struct page *page, *next;
+ 		struct list_head *freel = &h->hugepage_freelists[i];
+ 		list_for_each_entry_safe(page, next, freel, lru) {
+ 			if (count >= h->nr_huge_pages)
+@@ -2595,10 +2594,7 @@ static void try_to_free_low(struct hstat
+ 
+ out:
+ 	spin_unlock(&hugetlb_lock);
+-	list_for_each_entry_safe(page, next, &page_list, lru) {
+-		update_and_free_page(h, page);
+-		cond_resched();
+-	}
++	update_and_free_pages_bulk(h, &page_list);
+ 	spin_lock(&hugetlb_lock);
+ }
  #else
- static inline void try_to_free_low(struct hstate *h, unsigned long count,
+@@ -2645,6 +2641,8 @@ static int set_max_huge_pages(struct hst
+ 			      nodemask_t *nodes_allowed)
+ {
+ 	unsigned long min_count, ret;
++	struct page *page;
++	LIST_HEAD(page_list);
+ 	NODEMASK_ALLOC(nodemask_t, node_alloc_noretry, GFP_KERNEL);
+ 
+ 	/*
+@@ -2757,11 +2755,22 @@ static int set_max_huge_pages(struct hst
+ 	min_count = h->resv_huge_pages + h->nr_huge_pages - h->free_huge_pages;
+ 	min_count = max(count, min_count);
+ 	try_to_free_low(h, min_count, nodes_allowed);
++
++	/*
++	 * Collect pages to be removed on list without dropping lock
++	 */
+ 	while (min_count < persistent_huge_pages(h)) {
+-		if (!free_pool_huge_page(h, nodes_allowed, 0))
++		page = remove_pool_huge_page(h, nodes_allowed, 0);
++		if (!page)
+ 			break;
+-		cond_resched_lock(&hugetlb_lock);
++
++		list_add(&page->lru, &page_list);
+ 	}
++	/* free the pages after dropping lock */
++	spin_unlock(&hugetlb_lock);
++	update_and_free_pages_bulk(h, &page_list);
++	spin_lock(&hugetlb_lock);
++
+ 	while (count < persistent_huge_pages(h)) {
+ 		if (!adjust_pool_surplus(h, nodes_allowed, 1))
+ 			break;
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
