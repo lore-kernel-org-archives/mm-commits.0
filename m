@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 138DEC433B4
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:24:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4874DC433ED
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:24:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5274611AD
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:24:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11D7C610CB
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:24:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235956AbhDKWYV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Apr 2021 18:24:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34880 "EHLO mail.kernel.org"
+        id S235960AbhDKWYX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Apr 2021 18:24:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34910 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235366AbhDKWYU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 11 Apr 2021 18:24:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AED42610CB;
-        Sun, 11 Apr 2021 22:24:03 +0000 (UTC)
+        id S235366AbhDKWYW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 11 Apr 2021 18:24:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C51A601FB;
+        Sun, 11 Apr 2021 22:24:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618179843;
-        bh=ectECz3Xm4T+1iK0UPszQtRUTE+mwacvJBEYJCXi4N0=;
+        s=korg; t=1618179845;
+        bh=mJ4ngWkyVLwxpW+F4FaLsz8fNmmFl+ZaPTESiweKfck=;
         h=Date:From:To:Subject:From;
-        b=jpb8pc21J8OOCBMzEboNIChycsjCxA0X37Fa4nxg3bAYbD7w+0g+hwjov0WfGAu1l
-         DJzn3Ef3BLWpWHffBcwvkkRAUT034RFf0xLfP4nrY8ANZNltghIeBXbgEof3Su/BF6
-         meKQWT3dig27sSwd0bC2RjWxOPi15q58VNyij4uQ=
-Date:   Sun, 11 Apr 2021 15:24:03 -0700
+        b=MwkhSgBQn/xJo3UWJkVQuxNbvMA+ROpGPimdQgAjNMlS9qVFyHsg2R4SjH+ZkAVt2
+         43oierus0OsmWNzfAnLsmUW5LwiEN9mIotmBewLAjqyeeN3pWRnVL82PEs44iWyGFv
+         P7ZltyRU3aLUTPtgtlaK8470Ob1rbFd14Jn4OYCs=
+Date:   Sun, 11 Apr 2021 15:24:05 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
         linfeilong@huawei.com, linmiaohe@huawei.com
 Subject:  +
- mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch added to
- -mm tree
-Message-ID: <20210411222403.t0CRx%akpm@linux-foundation.org>
+ mm-hugetlb-remove-unused-variable-pseudo_vma-in-remove_inode_hugepages.patch
+ added to -mm tree
+Message-ID: <20210411222405.6lT_t%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugeltb: handle the error case in hugetlb_fix_reserve_counts()
+     Subject: mm/hugetlb: remove unused variable pseudo_vma in remove_inode_hugepages()
 has been added to the -mm tree.  Its filename is
-     mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
+     mm-hugetlb-remove-unused-variable-pseudo_vma-in-remove_inode_hugepages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-remove-unused-variable-pseudo_vma-in-remove_inode_hugepages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-remove-unused-variable-pseudo_vma-in-remove_inode_hugepages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,50 +66,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugeltb: handle the error case in hugetlb_fix_reserve_counts()
+Subject: mm/hugetlb: remove unused variable pseudo_vma in remove_inode_hugepages()
 
-A rare out of memory error would prevent removal of the reserve map region
-for a page.  hugetlb_fix_reserve_counts() handles this rare case to avoid
-dangling with incorrect counts.  Unfortunately, hugepage_subpool_get_pages
-and hugetlb_acct_memory could possibly fail too.  We should correctly
-handle these cases.
+The local variable pseudo_vma is not used anymore.
 
-Link: https://lkml.kernel.org/r/20210410072348.20437-5-linmiaohe@huawei.com
-Fixes: b5cec28d36f5 ("hugetlbfs: truncate_hugepages() takes a range of pages")
+Link: https://lkml.kernel.org/r/20210410072348.20437-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Feilong Lin <linfeilong@huawei.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ fs/hugetlbfs/inode.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts
-+++ a/mm/hugetlb.c
-@@ -742,13 +742,20 @@ void hugetlb_fix_reserve_counts(struct i
- {
- 	struct hugepage_subpool *spool = subpool_inode(inode);
- 	long rsv_adjust;
-+	bool reserved = false;
+--- a/fs/hugetlbfs/inode.c~mm-hugetlb-remove-unused-variable-pseudo_vma-in-remove_inode_hugepages
++++ a/fs/hugetlbfs/inode.c
+@@ -463,14 +463,11 @@ static void remove_inode_hugepages(struc
+ 	struct address_space *mapping = &inode->i_data;
+ 	const pgoff_t start = lstart >> huge_page_shift(h);
+ 	const pgoff_t end = lend >> huge_page_shift(h);
+-	struct vm_area_struct pseudo_vma;
+ 	struct pagevec pvec;
+ 	pgoff_t next, index;
+ 	int i, freed = 0;
+ 	bool truncate_op = (lend == LLONG_MAX);
  
- 	rsv_adjust = hugepage_subpool_get_pages(spool, 1);
--	if (rsv_adjust) {
-+	if (rsv_adjust > 0) {
- 		struct hstate *h = hstate_inode(inode);
- 
--		hugetlb_acct_memory(h, 1);
-+		if (!hugetlb_acct_memory(h, 1))
-+			reserved = true;
-+	} else if (!rsv_adjust) {
-+		reserved = true;
- 	}
-+
-+	if (!reserved)
-+		pr_warn("hugetlb: Huge Page Reserved count may go negative.\n");
- }
- 
- /*
+-	vma_init(&pseudo_vma, current->mm);
+-	pseudo_vma.vm_flags = (VM_HUGETLB | VM_MAYSHARE | VM_SHARED);
+ 	pagevec_init(&pvec);
+ 	next = start;
+ 	while (next < end) {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
