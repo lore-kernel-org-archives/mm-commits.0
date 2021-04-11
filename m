@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55F1EC43461
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:20:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E14EAC433ED
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:23:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2307B611F0
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:20:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 96F8261074
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Apr 2021 22:23:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235847AbhDKWVF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Apr 2021 18:21:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60604 "EHLO mail.kernel.org"
+        id S235005AbhDKWYP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Apr 2021 18:24:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34752 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235920AbhDKWVE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 11 Apr 2021 18:21:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 90018610E9;
-        Sun, 11 Apr 2021 22:20:47 +0000 (UTC)
+        id S235982AbhDKWYP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 11 Apr 2021 18:24:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E9010601FB;
+        Sun, 11 Apr 2021 22:23:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618179647;
-        bh=8NuBf8huyHwmKlJCtRzj2LVE7Wv9bUXLxTI68Ad0LmY=;
+        s=korg; t=1618179838;
+        bh=Ttr5IF5uUfXWY+YMsz8QSosD6+C3n+mj6AbRACQvHfU=;
         h=Date:From:To:Subject:From;
-        b=PTdSKcQ895ORV/XlSfQFQFhik+nB5I48biPojvxObBcnvPxRqgVOcWz5UGEUNb5dm
-         TU8NuR8fU7gwQBaXCc9qmbnIrTIIl0rtObROzQuQNQtI6deM3Bp+blpKxWSdU6qeHU
-         3NiB9FSu5srhuB6ntzOMsPNlPLsfqr8tD1fHnE5c=
-Date:   Sun, 11 Apr 2021 15:20:47 -0700
+        b=WuSaQ+8Jf7JsAAtm7Kel5uKs+oJMnjV89Y0zwTLlGfAcqwofx2jz6L/OhmTfQ8lZo
+         giqPCB2tJs/bb9XBJf4SWU5RA7py/XAbPlEtMq/set3v53kKKgqkvxjLxhZT/w4+eh
+         k1XuLADocznJ9Ly1HnnnCdMzCuHQ83vByQKOOqek=
+Date:   Sun, 11 Apr 2021 15:23:57 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
-        mike.kravetz@oracle.com, hillf.zj@alibaba-inc.com,
-        linmiaohe@huawei.com
-Subject:  [to-be-updated]
- mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch removed
- from -mm tree
-Message-ID: <20210411222047.eSR0t%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
+        linfeilong@huawei.com, linmiaohe@huawei.com
+Subject:  + mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch
+ added to -mm tree
+Message-ID: <20210411222357.UWvXL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,59 +43,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugeltb: handle the error case in hugetlb_fix_reserve_counts()
-has been removed from the -mm tree.  Its filename was
-     mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
+     Subject: mm/hugeltb: remove redundant VM_BUG_ON() in region_add()
+has been added to the -mm tree.  Its filename is
+     mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugeltb: handle the error case in hugetlb_fix_reserve_counts()
+Subject: mm/hugeltb: remove redundant VM_BUG_ON() in region_add()
 
-A rare out of memory error would prevent removal of the reserve map region
-for a page.  hugetlb_fix_reserve_counts() handles this rare case to avoid
-dangling with incorrect counts.  Unfortunately, hugepage_subpool_get_pages
-and hugetlb_acct_memory could possibly fail too.  We should correctly
-handle these cases.
+Patch series "Cleanup and fixup for hugetlb", v2.
 
-Link: https://lkml.kernel.org/r/20210402093249.25137-5-linmiaohe@huawei.com
-Fixes: b5cec28d36f5 ("hugetlbfs: truncate_hugepages() takes a range of pages")
+This series contains cleanups to remove redundant VM_BUG_ON() and simplify
+the return code.  Also this handles the error case in
+hugetlb_fix_reserve_counts() correctly.  More details can be found in the
+respective changelogs.
+
+
+This patch (of 5):
+
+The same VM_BUG_ON() check is already done in the callee.  Remove this
+extra one to simplify the code slightly.
+
+Link: https://lkml.kernel.org/r/20210410072348.20437-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210410072348.20437-2-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Feilong Lin <linfeilong@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts
+--- a/mm/hugetlb.c~mm-hugeltb-remove-redundant-vm_bug_on-in-region_add
 +++ a/mm/hugetlb.c
-@@ -746,13 +746,20 @@ void hugetlb_fix_reserve_counts(struct i
- {
- 	struct hugepage_subpool *spool = subpool_inode(inode);
- 	long rsv_adjust;
-+	bool reserved = false;
+@@ -553,7 +553,6 @@ retry:
+ 	resv->adds_in_progress -= in_regions_needed;
  
- 	rsv_adjust = hugepage_subpool_get_pages(spool, 1);
--	if (rsv_adjust) {
-+	if (rsv_adjust > 0) {
- 		struct hstate *h = hstate_inode(inode);
- 
--		hugetlb_acct_memory(h, 1);
-+		if (!hugetlb_acct_memory(h, 1))
-+			reserved = true;
-+	} else if (!rsv_adjust) {
-+		reserved = true;
- 	}
-+
-+	if (!reserved)
-+		pr_warn("hugetlb: fix reserve count failed\n");
+ 	spin_unlock(&resv->lock);
+-	VM_BUG_ON(add < 0);
+ 	return add;
  }
  
- /*
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -122,6 +125,11 @@ mm-huge_memoryc-use-helper-function-migration_entry_to_page.patch
 khugepaged-use-helper-function-range_in_vma-in-collapse_pte_mapped_thp.patch
 khugepaged-remove-unnecessary-out-label-in-collapse_huge_page.patch
 khugepaged-remove-meaningless-pte_present-check-in-khugepaged_scan_pmd.patch
+mm-hugeltb-remove-redundant-vm_bug_on-in-region_add.patch
+mm-hugeltb-simplify-the-return-code-of-__vma_reservation_common.patch
+mm-hugeltb-clarify-chg-freed-wont-go-negative-in-hugetlb_unreserve_pages.patch
+mm-hugeltb-handle-the-error-case-in-hugetlb_fix_reserve_counts.patch
+mm-hugetlb-remove-unused-variable-pseudo_vma-in-remove_inode_hugepages.patch
 mm-migratec-make-putback_movable_page-static.patch
 mm-migratec-remove-unnecessary-rc-=-migratepage_success-check-in-else-case.patch
 mm-migratec-fix-potential-indeterminate-pte-entry-in-migrate_vma_insert_page.patch
