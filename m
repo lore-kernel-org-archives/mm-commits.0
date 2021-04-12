@@ -7,34 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67CF3C433B4
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Apr 2021 01:58:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D037EC433B4
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Apr 2021 02:17:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 364C761027
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Apr 2021 01:58:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E43460FD8
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Apr 2021 02:17:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236249AbhDLB6T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Apr 2021 21:58:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56718 "EHLO mail.kernel.org"
+        id S236080AbhDLCSG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Apr 2021 22:18:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58682 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235543AbhDLB6T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 11 Apr 2021 21:58:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4218D61027;
-        Mon, 12 Apr 2021 01:58:02 +0000 (UTC)
+        id S235768AbhDLCSF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 11 Apr 2021 22:18:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 87F9860FD8;
+        Mon, 12 Apr 2021 02:17:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618192682;
-        bh=cylVJBPNGeAeKk7QHTu34+XLKGtykYQ7MXO4ZxTmOGs=;
+        s=korg; t=1618193868;
+        bh=HY+2jcE3wNl0rxRiDpPDMEp3Ex+Kjf1cp3lychiiaVY=;
         h=Date:From:To:Subject:From;
-        b=CmcnxIheMCGQMGbukUSf9e8nWBJEu0vfqEgzKm9FJkWe0jqBbIO6n5ZXUP+mk1hoG
-         uI6eibLe72RmMq51s1d9x2hCBK7fzao/ULr2dBHi9bXQj7RjUvfq9HeWVoHVnFxJso
-         n2KddEHbyTQ68E8EL9kvtpCFEj0ZrhJdpo9yXJvY=
-Date:   Sun, 11 Apr 2021 18:58:01 -0700
+        b=UGkLAUYytkDPZ7hlRpxpEphsO41lTiX3GAzXLV2wtF7k0V+A09UpuegOeJWjmRFhM
+         5/ZNSMd1dnlbdgKXSW2tHzsLr0Ia+1+eNXmXdjvLlY6c4cQrwaVzwtSpd4R5AVl/Eb
+         UuBwmmWlKbP/mJIJjMzkSnL999qE6UunbH4On4d8=
+Date:   Sun, 11 Apr 2021 19:17:48 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, axboe@kernel.dk,
-        akpm@linux-foundation.org
-Subject:  [obsolete] beats-the-shit-out-of-me.patch removed from -mm
- tree
-Message-ID: <20210412015801.A8623%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, axboe@kernel.dk
+Subject:  + fs-io_uringc-fix-build.patch added to -mm tree
+Message-ID: <20210412021748.X7M8F%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,53 +41,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: beats-the-shit-out-of-me
-has been removed from the -mm tree.  Its filename was
-     beats-the-shit-out-of-me.patch
+     Subject: fs-io_uringc-fix-build
+has been added to the -mm tree.  Its filename is
+     fs-io_uringc-fix-build.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-io_uringc-fix-build.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-io_uringc-fix-build.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: beats-the-shit-out-of-me
+From: Jens Axboe <axboe@kernel.dk>
+Subject: fs-io_uringc-fix-build
 
-Cc: Jens Axboe <axboe@kernel.dk>
+Here's the bit from the incremental:
+
+Link: https://lkml.kernel.org/r/8bf7c0e9-5ba8-9f35-cefa-4c7b1055eaa0@kernel.dk
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/io_uring.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/io_uring.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/fs/io_uring.c~beats-the-shit-out-of-me
+--- a/fs/io_uring.c~fs-io_uringc-fix-build
 +++ a/fs/io_uring.c
-@@ -2760,6 +2760,7 @@ static void kiocb_done(struct kiocb *kio
- 	else
- 		io_rw_done(kiocb, ret);
+@@ -2762,7 +2762,11 @@ static void kiocb_done(struct kiocb *kio
  
-+#if 0
  	if (check_reissue && req->flags & REQ_F_REISSUE) {
  		req->flags &= ~REQ_F_REISSUE;
- 		if (!io_rw_reissue(req)) {
-@@ -2771,6 +2772,7 @@ static void kiocb_done(struct kiocb *kio
- 			__io_req_complete(req, issue_flags, ret, cflags);
- 		}
- 	}
-+#endif
- }
+-		if (!io_rw_reissue(req)) {
++
++		if (io_resubmit_prep(req)) {
++			req_ref_get(req);
++			io_queue_async_work(req);
++		} else {
+ 			int cflags = 0;
  
- static int io_import_fixed(struct io_kiocb *req, int rw, struct iov_iter *iter)
+ 			req_set_fail_links(req);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from axboe@kernel.dk are
 
-scripts-a-new-script-for-checking-duplicate-struct-declaration-fix.patch
-mm.patch
-mm-memcontrol-switch-to-rstat-fix.patch
-mm-vmalloc-remove-unmap_kernel_range-fix-fix.patch
-mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator-fix.patch
-mm-vmscan-add-shrinker_info_protected-helper-fix.patch
-mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-provide-filemap_range_needs_writeback-helper.patch
+mm-use-filemap_range_needs_writeback-for-o_direct-reads.patch
+iomap-use-filemap_range_needs_writeback-for-o_direct-reads.patch
+fs-io_uringc-fix-build.patch
 
