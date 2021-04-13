@@ -2,181 +2,652 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB12EC433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Apr 2021 09:26:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E94F7C433B4
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Apr 2021 17:19:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5004613BD
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Apr 2021 09:26:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C8C30613B6
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Apr 2021 17:19:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230495AbhDMJ0d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Apr 2021 05:26:33 -0400
-Received: from smtp80.ord1c.emailsrvr.com ([108.166.43.80]:50688 "EHLO
-        smtp80.ord1c.emailsrvr.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S237611AbhDMJ0d (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Apr 2021 05:26:33 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=mev.co.uk;
-        s=20190130-41we5z8j; t=1618305384;
-        bh=QXGo3zNi/KJgYClnZP5yTyPQTb/XfbzL7t7ZBTImJ9U=;
-        h=Subject:To:From:Date:From;
-        b=VLAZMi3SCjUw+2opoShtg738e7WxEt+NYuLynoqp0ozC7Fb+qdushv/ChWcvw88Ow
-         tflGO9rfzLIf+ifNhVxq1G+h+QgMj3eibsFuBN5KfI97JC+ZiX30ZtTQZxNCQYWXGu
-         eDuBzaCMsikmNlnlCQPcbiId0hBkNBwBmOaOOFBY=
-X-Auth-ID: abbotti@mev.co.uk
-Received: by smtp27.relay.ord1c.emailsrvr.com (Authenticated sender: abbotti-AT-mev.co.uk) with ESMTPSA id EF079400F3;
-        Tue, 13 Apr 2021 05:16:22 -0400 (EDT)
-Subject: Re: mmotm 2021-04-11-20-47 uploaded (ni_routes_test.c)
-To:     Randy Dunlap <rdunlap@infradead.org>, akpm@linux-foundation.org,
-        broonie@kernel.org, mhocko@suse.cz, sfr@canb.auug.org.au,
-        linux-next@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        mm-commits@vger.kernel.org, Spencer Olson <olsonse@umich.edu>,
-        H Hartley Sweeten <hsweeten@visionengravers.com>
-References: <20210412034813.EK9k9%akpm@linux-foundation.org>
- <9ad69f10-ef0a-548a-0928-ddb9106e3311@infradead.org>
-From:   Ian Abbott <abbotti@mev.co.uk>
-Organization: MEV Ltd.
-Message-ID: <f2201ff8-f61e-dda7-4165-61a344def0ce@mev.co.uk>
-Date:   Tue, 13 Apr 2021 10:16:22 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.9.0
-MIME-Version: 1.0
-In-Reply-To: <9ad69f10-ef0a-548a-0928-ddb9106e3311@infradead.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
-X-Classification-ID: 70b10d23-5d40-4148-8623-67b56555bf91-1-1
+        id S1345784AbhDMRTh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Apr 2021 13:19:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34088 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1345776AbhDMRTg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Apr 2021 13:19:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C6581613B1;
+        Tue, 13 Apr 2021 17:19:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1618334356;
+        bh=4pRUduesdqBnYChzjJnBtQMxicG5qc0At97Q8jFwdEw=;
+        h=Date:From:To:Subject:From;
+        b=ftSXpSSJdnMWceRtTyg1r4shEB5enBKVN8mvkuAJNpNutyebvDM+6xOCRSKI6gT1v
+         zxxx3Q6bnkG1D5ZYckKpa3rCO0KjpEV+IZuO+QnGtmgnS8V7TOs0A1GWQYrlUMAJyT
+         0fS5o2gU+FTJ1Z2/2vJjZyaYHuj657pvXEcVjTVg=
+Date:   Tue, 13 Apr 2021 10:19:16 -0700
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Message-ID: <20210413171916.qbISorxCM%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 12/04/2021 18:27, Randy Dunlap wrote:
-> On 4/11/21 8:48 PM, akpm@linux-foundation.org wrote:
->> The mm-of-the-moment snapshot 2021-04-11-20-47 has been uploaded to
->>
->>     https://www.ozlabs.org/~akpm/mmotm/
->>
->> mmotm-readme.txt says
->>
->> README for mm-of-the-moment:
->>
->> https://www.ozlabs.org/~akpm/mmotm/
->>
->> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
->> more than once a week.
->>
->> You will need quilt to apply these patches to the latest Linus release (5.x
->> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
->> https://ozlabs.org/~akpm/mmotm/series
->>
->> The file broken-out.tar.gz contains two datestamp files: .DATE and
->> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
->> followed by the base kernel version against which this patch series is to
->> be applied.
->>
->> This tree is partially included in linux-next.  To see which patches are
->> included in linux-next, consult the `series' file.  Only the patches
->> within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
->> linux-next.
->>
->>
->> A full copy of the full kernel tree with the linux-next and mmotm patches
->> already applied is available through git within an hour of the mmotm
->> release.  Individual mmotm releases are tagged.  The master branch always
->> points to the latest release, so it's constantly rebasing.
->>
->> 	https://github.com/hnaz/linux-mm
->>
->> The directory https://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
->> contains daily snapshots of the -mm tree.  It is updated more frequently
->> than mmotm, and is untested.
->>
->> A git copy of this tree is also available at
->>
->> 	https://github.com/hnaz/linux-mm
-> 
-> on x86_64:
-> 
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o: in function `test_ni_route_to_register':
-> ni_routes_test.c:(.text+0x103): undefined reference to `ni_route_to_register'
-> ld: ni_routes_test.c:(.text+0x13a): undefined reference to `ni_route_to_register'
-> ld: ni_routes_test.c:(.text+0x171): undefined reference to `ni_route_to_register'
-> ld: ni_routes_test.c:(.text+0x1a8): undefined reference to `ni_route_to_register'
-> ld: ni_routes_test.c:(.text+0x1df): undefined reference to `ni_route_to_register'
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o:ni_routes_test.c:(.text+0x216): more undefined references to `ni_route_to_register' follow
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o: in function `test_ni_find_route_source':
-> ni_routes_test.c:(.text+0x47d): undefined reference to `ni_find_route_source'
-> ld: ni_routes_test.c:(.text+0x4b2): undefined reference to `ni_find_route_source'
-> ld: ni_routes_test.c:(.text+0x4ec): undefined reference to `ni_find_route_source'
-> ld: ni_routes_test.c:(.text+0x526): undefined reference to `ni_find_route_source'
-> ld: ni_routes_test.c:(.text+0x560): undefined reference to `ni_find_route_source'
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o: in function `test_ni_get_valid_routes':
-> ni_routes_test.c:(.text+0x59f): undefined reference to `ni_get_valid_routes'
-> ld: ni_routes_test.c:(.text+0x5d5): undefined reference to `ni_get_valid_routes'
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o: in function `test_ni_is_cmd_dest':
-> ni_routes_test.c:(.text+0x659): undefined reference to `ni_is_cmd_dest'
-> ld: ni_routes_test.c:(.text+0x684): undefined reference to `ni_is_cmd_dest'
-> ld: ni_routes_test.c:(.text+0x6af): undefined reference to `ni_is_cmd_dest'
-> ld: ni_routes_test.c:(.text+0x6da): undefined reference to `ni_is_cmd_dest'
-> ld: ni_routes_test.c:(.text+0x705): undefined reference to `ni_is_cmd_dest'
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o:ni_routes_test.c:(.text+0x730): more undefined references to `ni_is_cmd_dest' follow
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o: in function `test_ni_lookup_route_register':
-> ni_routes_test.c:(.text+0x771): undefined reference to `ni_lookup_route_register'
-> ld: ni_routes_test.c:(.text+0x7a8): undefined reference to `ni_lookup_route_register'
-> ld: ni_routes_test.c:(.text+0x7df): undefined reference to `ni_lookup_route_register'
-> ld: ni_routes_test.c:(.text+0x816): undefined reference to `ni_lookup_route_register'
-> ld: ni_routes_test.c:(.text+0x84d): undefined reference to `ni_lookup_route_register'
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o:ni_routes_test.c:(.text+0x884): more undefined references to `ni_lookup_route_register' follow
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o: in function `test_ni_route_set_has_source':
-> ni_routes_test.c:(.text+0xa3c): undefined reference to `ni_route_set_has_source'
-> ld: ni_routes_test.c:(.text+0xa6e): undefined reference to `ni_route_set_has_source'
-> ld: ni_routes_test.c:(.text+0xaa0): undefined reference to `ni_route_set_has_source'
-> ld: ni_routes_test.c:(.text+0xad2): undefined reference to `ni_route_set_has_source'
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o: in function `test_ni_find_route_set':
-> ni_routes_test.c:(.text+0xb0a): undefined reference to `ni_find_route_set'
-> ld: ni_routes_test.c:(.text+0xb3d): undefined reference to `ni_find_route_set'
-> ld: ni_routes_test.c:(.text+0xb74): undefined reference to `ni_find_route_set'
-> ld: ni_routes_test.c:(.text+0xbb2): undefined reference to `ni_find_route_set'
-> ld: ni_routes_test.c:(.text+0xbfa): undefined reference to `ni_find_route_set'
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o: in function `test_ni_assign_device_routes':
-> ni_routes_test.c:(.text+0xc6c): undefined reference to `ni_assign_device_routes'
-> ld: ni_routes_test.c:(.text+0xeb6): undefined reference to `ni_assign_device_routes'
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o: in function `test_ni_count_valid_routes':
-> ni_routes_test.c:(.text+0xf9c): undefined reference to `ni_count_valid_routes'
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o: in function `ni_get_reg_value_roffs.constprop.7':
-> ni_routes_test.c:(.text+0xfef): undefined reference to `ni_find_route_source'
-> ld: ni_routes_test.c:(.text+0x1015): undefined reference to `ni_route_to_register'
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o: in function `test_route_is_valid':
-> ni_routes_test.c:(.text+0x1074): undefined reference to `ni_route_to_register'
-> ld: ni_routes_test.c:(.text+0x10ab): undefined reference to `ni_route_to_register'
-> ld: ni_routes_test.c:(.text+0x10e2): undefined reference to `ni_route_to_register'
-> ld: ni_routes_test.c:(.text+0x1119): undefined reference to `ni_route_to_register'
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o: in function `test_route_register_is_valid':
-> ni_routes_test.c:(.text+0x115a): undefined reference to `ni_find_route_source'
-> ld: ni_routes_test.c:(.text+0x118e): undefined reference to `ni_find_route_source'
-> ld: ni_routes_test.c:(.text+0x11c5): undefined reference to `ni_find_route_source'
-> ld: ni_routes_test.c:(.text+0x11fc): undefined reference to `ni_find_route_source'
-> ld: drivers/staging/comedi/drivers/tests/ni_routes_test.o: in function `test_ni_sort_device_routes':
-> ni_routes_test.c:(.text+0x16ef): undefined reference to `ni_sort_device_routes'
-> 
-> 
-> Full randconfig file is attached.
 
-Hi all,
+The patch titled
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-That should be fixed by commit e7442ffe1cc5 ("staging: comedi: Kconfig: 
-Fix COMEDI_TESTS_NI_ROUTES selections") in linux-next master.
+This patch was dropped because it is obsolete
 
-Sorry for the trouble!
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
--- 
--=( Ian Abbott <abbotti@mev.co.uk> || MEV Ltd. is a company  )=-
--=( registered in England & Wales.  Regd. number: 02862268.  )=-
--=( Regd. addr.: S11 & 12 Building 67, Europa Business Park, )=-
--=( Bird Hall Lane, STOCKPORT, SK3 0XA, UK. || www.mev.co.uk )=-
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/base/dd.c                                 |    3 
+ drivers/gpu/drm/vc4/vc4_plane.c                   |   24 
+ drivers/net/dsa/lantiq_gswip.c                    |    8 
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c |  315 ------------
+ drivers/scsi/ufs/ufshcd.c                         |    4 
+ drivers/target/iscsi/iscsi_target.c               |    4 
+ include/linux/bpf.h                               |    3 
+ include/linux/ethtool.h                           |    3 
+ include/linux/skmsg.h                             |   16 
+ net/core/skmsg.c                                  |   18 
+ net/ipv6/addrconf.c                               |   12 
+ 11 files changed, 410 deletions(-)
+
+--- a/drivers/base/dd.c~linux-next-git-rejects
++++ a/drivers/base/dd.c
+@@ -300,11 +300,8 @@ int driver_deferred_probe_check_state(st
+ static void deferred_probe_timeout_work_func(struct work_struct *work)
+ {
+ 	struct device_private *p;
+-<<<<<<< HEAD
+-=======
+ 
+ 	fw_devlink_drivers_done();
+->>>>>>> linux-next/akpm-base
+ 
+ 	driver_deferred_probe_timeout = 0;
+ 	driver_deferred_probe_trigger();
+--- a/drivers/gpu/drm/vc4/vc4_plane.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/vc4/vc4_plane.c
+@@ -1141,29 +1141,6 @@ static void vc4_plane_atomic_async_updat
+ 										 plane);
+ 	struct vc4_plane_state *vc4_state, *new_vc4_state;
+ 
+-<<<<<<< HEAD
+-	swap(plane->state->fb, state->fb);
+-	plane->state->crtc_x = state->crtc_x;
+-	plane->state->crtc_y = state->crtc_y;
+-	plane->state->crtc_w = state->crtc_w;
+-	plane->state->crtc_h = state->crtc_h;
+-	plane->state->src_x = state->src_x;
+-	plane->state->src_y = state->src_y;
+-	plane->state->src_w = state->src_w;
+-	plane->state->src_h = state->src_h;
+-	plane->state->alpha = state->alpha;
+-	plane->state->pixel_blend_mode = state->pixel_blend_mode;
+-	plane->state->rotation = state->rotation;
+-	plane->state->zpos = state->zpos;
+-	plane->state->normalized_zpos = state->normalized_zpos;
+-	plane->state->color_encoding = state->color_encoding;
+-	plane->state->color_range = state->color_range;
+-	plane->state->src = state->src;
+-	plane->state->dst = state->dst;
+-	plane->state->visible = state->visible;
+-
+-	new_vc4_state = to_vc4_plane_state(state);
+-=======
+ 	swap(plane->state->fb, new_plane_state->fb);
+ 	plane->state->crtc_x = new_plane_state->crtc_x;
+ 	plane->state->crtc_y = new_plane_state->crtc_y;
+@@ -1185,7 +1162,6 @@ static void vc4_plane_atomic_async_updat
+ 	plane->state->visible = new_plane_state->visible;
+ 
+ 	new_vc4_state = to_vc4_plane_state(new_plane_state);
+->>>>>>> linux-next/akpm-base
+ 	vc4_state = to_vc4_plane_state(plane->state);
+ 
+ 	vc4_state->crtc_x = new_vc4_state->crtc_x;
+--- a/drivers/net/dsa/lantiq_gswip.c~linux-next-git-rejects
++++ a/drivers/net/dsa/lantiq_gswip.c
+@@ -827,17 +827,9 @@ static int gswip_setup(struct dsa_switch
+ 	/* Configure the MDIO Clock 2.5 MHz */
+ 	gswip_mdio_mask(priv, 0xff, 0x09, GSWIP_MDIO_MDC_CFG1);
+ 
+-<<<<<<< HEAD
+-	/* Disable the xMII interface and clear it's isolation bit */
+-	for (i = 0; i < priv->hw_info->max_ports; i++)
+-		gswip_mii_mask_cfg(priv,
+-				   GSWIP_MII_CFG_EN | GSWIP_MII_CFG_ISOLATE,
+-				   0, i);
+-=======
+ 	for (i = 0; i < priv->hw_info->max_ports; i++) {
+ 		/* Disable the xMII link */
+ 		gswip_mii_mask_cfg(priv, GSWIP_MII_CFG_EN, 0, i);
+->>>>>>> linux-next/akpm-base
+ 
+ 		/* Automatically select the xMII interface clock */
+ 		gswip_mii_mask_cfg(priv, GSWIP_MII_CFG_RATE_MASK,
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -1040,11 +1040,7 @@ static int mlx5e_alloc_icosq(struct mlx5
+ 	int err;
+ 
+ 	sq->channel   = c;
+-<<<<<<< HEAD
+-	sq->uar_map   = mdev->mlx5e_res.bfreg.map;
+-=======
+ 	sq->uar_map   = mdev->mlx5e_res.hw_objs.bfreg.map;
+->>>>>>> linux-next/akpm-base
+ 	sq->reserved_room = param->stop_room;
+ 
+ 	param->wq.db_numa_node = cpu_to_node(c->cpu);
+@@ -2066,317 +2062,6 @@ static void mlx5e_close_channel(struct m
+ 	kvfree(c);
+ }
+ 
+-<<<<<<< HEAD
+-#define DEFAULT_FRAG_SIZE (2048)
+-
+-static void mlx5e_build_rq_frags_info(struct mlx5_core_dev *mdev,
+-				      struct mlx5e_params *params,
+-				      struct mlx5e_xsk_param *xsk,
+-				      struct mlx5e_rq_frags_info *info)
+-{
+-	u32 byte_count = MLX5E_SW2HW_MTU(params, params->sw_mtu);
+-	int frag_size_max = DEFAULT_FRAG_SIZE;
+-	u32 buf_size = 0;
+-	int i;
+-
+-	if (mlx5_fpga_is_ipsec_device(mdev))
+-		byte_count += MLX5E_METADATA_ETHER_LEN;
+-
+-	if (mlx5e_rx_is_linear_skb(params, xsk)) {
+-		int frag_stride;
+-
+-		frag_stride = mlx5e_rx_get_linear_frag_sz(params, xsk);
+-		frag_stride = roundup_pow_of_two(frag_stride);
+-
+-		info->arr[0].frag_size = byte_count;
+-		info->arr[0].frag_stride = frag_stride;
+-		info->num_frags = 1;
+-		info->wqe_bulk = PAGE_SIZE / frag_stride;
+-		goto out;
+-	}
+-
+-	if (byte_count > PAGE_SIZE +
+-	    (MLX5E_MAX_RX_FRAGS - 1) * frag_size_max)
+-		frag_size_max = PAGE_SIZE;
+-
+-	i = 0;
+-	while (buf_size < byte_count) {
+-		int frag_size = byte_count - buf_size;
+-
+-		if (i < MLX5E_MAX_RX_FRAGS - 1)
+-			frag_size = min(frag_size, frag_size_max);
+-
+-		info->arr[i].frag_size = frag_size;
+-		info->arr[i].frag_stride = roundup_pow_of_two(frag_size);
+-
+-		buf_size += frag_size;
+-		i++;
+-	}
+-	info->num_frags = i;
+-	/* number of different wqes sharing a page */
+-	info->wqe_bulk = 1 + (info->num_frags % 2);
+-
+-out:
+-	info->wqe_bulk = max_t(u8, info->wqe_bulk, 8);
+-	info->log_num_frags = order_base_2(info->num_frags);
+-}
+-
+-static inline u8 mlx5e_get_rqwq_log_stride(u8 wq_type, int ndsegs)
+-{
+-	int sz = sizeof(struct mlx5_wqe_data_seg) * ndsegs;
+-
+-	switch (wq_type) {
+-	case MLX5_WQ_TYPE_LINKED_LIST_STRIDING_RQ:
+-		sz += sizeof(struct mlx5e_rx_wqe_ll);
+-		break;
+-	default: /* MLX5_WQ_TYPE_CYCLIC */
+-		sz += sizeof(struct mlx5e_rx_wqe_cyc);
+-	}
+-
+-	return order_base_2(sz);
+-}
+-
+-static u8 mlx5e_get_rq_log_wq_sz(void *rqc)
+-{
+-	void *wq = MLX5_ADDR_OF(rqc, rqc, wq);
+-
+-	return MLX5_GET(wq, wq, log_wq_sz);
+-}
+-
+-void mlx5e_build_rq_param(struct mlx5e_priv *priv,
+-			  struct mlx5e_params *params,
+-			  struct mlx5e_xsk_param *xsk,
+-			  struct mlx5e_rq_param *param)
+-{
+-	struct mlx5_core_dev *mdev = priv->mdev;
+-	void *rqc = param->rqc;
+-	void *wq = MLX5_ADDR_OF(rqc, rqc, wq);
+-	int ndsegs = 1;
+-
+-	switch (params->rq_wq_type) {
+-	case MLX5_WQ_TYPE_LINKED_LIST_STRIDING_RQ:
+-		MLX5_SET(wq, wq, log_wqe_num_of_strides,
+-			 mlx5e_mpwqe_get_log_num_strides(mdev, params, xsk) -
+-			 MLX5_MPWQE_LOG_NUM_STRIDES_BASE);
+-		MLX5_SET(wq, wq, log_wqe_stride_size,
+-			 mlx5e_mpwqe_get_log_stride_size(mdev, params, xsk) -
+-			 MLX5_MPWQE_LOG_STRIDE_SZ_BASE);
+-		MLX5_SET(wq, wq, log_wq_sz, mlx5e_mpwqe_get_log_rq_size(params, xsk));
+-		break;
+-	default: /* MLX5_WQ_TYPE_CYCLIC */
+-		MLX5_SET(wq, wq, log_wq_sz, params->log_rq_mtu_frames);
+-		mlx5e_build_rq_frags_info(mdev, params, xsk, &param->frags_info);
+-		ndsegs = param->frags_info.num_frags;
+-	}
+-
+-	MLX5_SET(wq, wq, wq_type,          params->rq_wq_type);
+-	MLX5_SET(wq, wq, end_padding_mode, MLX5_WQ_END_PAD_MODE_ALIGN);
+-	MLX5_SET(wq, wq, log_wq_stride,
+-		 mlx5e_get_rqwq_log_stride(params->rq_wq_type, ndsegs));
+-	MLX5_SET(wq, wq, pd,               mdev->mlx5e_res.pdn);
+-	MLX5_SET(rqc, rqc, counter_set_id, priv->q_counter);
+-	MLX5_SET(rqc, rqc, vsd,            params->vlan_strip_disable);
+-	MLX5_SET(rqc, rqc, scatter_fcs,    params->scatter_fcs_en);
+-
+-	param->wq.buf_numa_node = dev_to_node(mlx5_core_dma_dev(mdev));
+-	mlx5e_build_rx_cq_param(priv, params, xsk, &param->cqp);
+-}
+-
+-static void mlx5e_build_drop_rq_param(struct mlx5e_priv *priv,
+-				      struct mlx5e_rq_param *param)
+-{
+-	struct mlx5_core_dev *mdev = priv->mdev;
+-	void *rqc = param->rqc;
+-	void *wq = MLX5_ADDR_OF(rqc, rqc, wq);
+-
+-	MLX5_SET(wq, wq, wq_type, MLX5_WQ_TYPE_CYCLIC);
+-	MLX5_SET(wq, wq, log_wq_stride,
+-		 mlx5e_get_rqwq_log_stride(MLX5_WQ_TYPE_CYCLIC, 1));
+-	MLX5_SET(rqc, rqc, counter_set_id, priv->drop_rq_q_counter);
+-
+-	param->wq.buf_numa_node = dev_to_node(mlx5_core_dma_dev(mdev));
+-}
+-
+-void mlx5e_build_sq_param_common(struct mlx5e_priv *priv,
+-				 struct mlx5e_sq_param *param)
+-{
+-	void *sqc = param->sqc;
+-	void *wq = MLX5_ADDR_OF(sqc, sqc, wq);
+-
+-	MLX5_SET(wq, wq, log_wq_stride, ilog2(MLX5_SEND_WQE_BB));
+-	MLX5_SET(wq, wq, pd,            priv->mdev->mlx5e_res.pdn);
+-
+-	param->wq.buf_numa_node = dev_to_node(mlx5_core_dma_dev(priv->mdev));
+-}
+-
+-void mlx5e_build_sq_param(struct mlx5e_priv *priv, struct mlx5e_params *params,
+-			  struct mlx5e_sq_param *param)
+-{
+-	void *sqc = param->sqc;
+-	void *wq = MLX5_ADDR_OF(sqc, sqc, wq);
+-	bool allow_swp;
+-
+-	allow_swp = mlx5_geneve_tx_allowed(priv->mdev) ||
+-		    !!MLX5_IPSEC_DEV(priv->mdev);
+-	mlx5e_build_sq_param_common(priv, param);
+-	MLX5_SET(wq, wq, log_wq_sz, params->log_sq_size);
+-	MLX5_SET(sqc, sqc, allow_swp, allow_swp);
+-	param->is_mpw = MLX5E_GET_PFLAG(params, MLX5E_PFLAG_SKB_TX_MPWQE);
+-	param->stop_room = mlx5e_calc_sq_stop_room(priv->mdev, params);
+-	mlx5e_build_tx_cq_param(priv, params, &param->cqp);
+-}
+-
+-static void mlx5e_build_common_cq_param(struct mlx5e_priv *priv,
+-					struct mlx5e_cq_param *param)
+-{
+-	void *cqc = param->cqc;
+-
+-	MLX5_SET(cqc, cqc, uar_page, priv->mdev->priv.uar->index);
+-	if (MLX5_CAP_GEN(priv->mdev, cqe_128_always) && cache_line_size() >= 128)
+-		MLX5_SET(cqc, cqc, cqe_sz, CQE_STRIDE_128_PAD);
+-}
+-
+-void mlx5e_build_rx_cq_param(struct mlx5e_priv *priv,
+-			     struct mlx5e_params *params,
+-			     struct mlx5e_xsk_param *xsk,
+-			     struct mlx5e_cq_param *param)
+-{
+-	struct mlx5_core_dev *mdev = priv->mdev;
+-	bool hw_stridx = false;
+-	void *cqc = param->cqc;
+-	u8 log_cq_size;
+-
+-	switch (params->rq_wq_type) {
+-	case MLX5_WQ_TYPE_LINKED_LIST_STRIDING_RQ:
+-		log_cq_size = mlx5e_mpwqe_get_log_rq_size(params, xsk) +
+-			mlx5e_mpwqe_get_log_num_strides(mdev, params, xsk);
+-		hw_stridx = MLX5_CAP_GEN(mdev, mini_cqe_resp_stride_index);
+-		break;
+-	default: /* MLX5_WQ_TYPE_CYCLIC */
+-		log_cq_size = params->log_rq_mtu_frames;
+-	}
+-
+-	MLX5_SET(cqc, cqc, log_cq_size, log_cq_size);
+-	if (MLX5E_GET_PFLAG(params, MLX5E_PFLAG_RX_CQE_COMPRESS)) {
+-		MLX5_SET(cqc, cqc, mini_cqe_res_format, hw_stridx ?
+-			 MLX5_CQE_FORMAT_CSUM_STRIDX : MLX5_CQE_FORMAT_CSUM);
+-		MLX5_SET(cqc, cqc, cqe_comp_en, 1);
+-	}
+-
+-	mlx5e_build_common_cq_param(priv, param);
+-	param->cq_period_mode = params->rx_cq_moderation.cq_period_mode;
+-}
+-
+-void mlx5e_build_tx_cq_param(struct mlx5e_priv *priv,
+-			     struct mlx5e_params *params,
+-			     struct mlx5e_cq_param *param)
+-{
+-	void *cqc = param->cqc;
+-
+-	MLX5_SET(cqc, cqc, log_cq_size, params->log_sq_size);
+-
+-	mlx5e_build_common_cq_param(priv, param);
+-	param->cq_period_mode = params->tx_cq_moderation.cq_period_mode;
+-}
+-
+-void mlx5e_build_ico_cq_param(struct mlx5e_priv *priv,
+-			      u8 log_wq_size,
+-			      struct mlx5e_cq_param *param)
+-{
+-	void *cqc = param->cqc;
+-
+-	MLX5_SET(cqc, cqc, log_cq_size, log_wq_size);
+-
+-	mlx5e_build_common_cq_param(priv, param);
+-
+-	param->cq_period_mode = DIM_CQ_PERIOD_MODE_START_FROM_EQE;
+-}
+-
+-void mlx5e_build_icosq_param(struct mlx5e_priv *priv,
+-			     u8 log_wq_size,
+-			     struct mlx5e_sq_param *param)
+-{
+-	void *sqc = param->sqc;
+-	void *wq = MLX5_ADDR_OF(sqc, sqc, wq);
+-
+-	mlx5e_build_sq_param_common(priv, param);
+-
+-	MLX5_SET(wq, wq, log_wq_sz, log_wq_size);
+-	MLX5_SET(sqc, sqc, reg_umr, MLX5_CAP_ETH(priv->mdev, reg_umr_sq));
+-	mlx5e_build_ico_cq_param(priv, log_wq_size, &param->cqp);
+-}
+-
+-static void mlx5e_build_async_icosq_param(struct mlx5e_priv *priv,
+-					  struct mlx5e_params *params,
+-					  u8 log_wq_size,
+-					  struct mlx5e_sq_param *param)
+-{
+-	void *sqc = param->sqc;
+-	void *wq = MLX5_ADDR_OF(sqc, sqc, wq);
+-
+-	mlx5e_build_sq_param_common(priv, param);
+-
+-	/* async_icosq is used by XSK only if xdp_prog is active */
+-	if (params->xdp_prog)
+-		param->stop_room = mlx5e_stop_room_for_wqe(1); /* for XSK NOP */
+-	MLX5_SET(sqc, sqc, reg_umr, MLX5_CAP_ETH(priv->mdev, reg_umr_sq));
+-	MLX5_SET(wq, wq, log_wq_sz, log_wq_size);
+-	mlx5e_build_ico_cq_param(priv, log_wq_size, &param->cqp);
+-}
+-
+-void mlx5e_build_xdpsq_param(struct mlx5e_priv *priv,
+-			     struct mlx5e_params *params,
+-			     struct mlx5e_sq_param *param)
+-{
+-	void *sqc = param->sqc;
+-	void *wq = MLX5_ADDR_OF(sqc, sqc, wq);
+-
+-	mlx5e_build_sq_param_common(priv, param);
+-	MLX5_SET(wq, wq, log_wq_sz, params->log_sq_size);
+-	param->is_mpw = MLX5E_GET_PFLAG(params, MLX5E_PFLAG_XDP_TX_MPWQE);
+-	mlx5e_build_tx_cq_param(priv, params, &param->cqp);
+-}
+-
+-static u8 mlx5e_build_icosq_log_wq_sz(struct mlx5e_params *params,
+-				      struct mlx5e_rq_param *rqp)
+-{
+-	switch (params->rq_wq_type) {
+-	case MLX5_WQ_TYPE_LINKED_LIST_STRIDING_RQ:
+-		return max_t(u8, MLX5E_PARAMS_MINIMUM_LOG_SQ_SIZE,
+-			     order_base_2(MLX5E_UMR_WQEBBS) +
+-			     mlx5e_get_rq_log_wq_sz(rqp->rqc));
+-	default: /* MLX5_WQ_TYPE_CYCLIC */
+-		return MLX5E_PARAMS_MINIMUM_LOG_SQ_SIZE;
+-	}
+-}
+-
+-static u8 mlx5e_build_async_icosq_log_wq_sz(struct net_device *netdev)
+-{
+-	if (netdev->hw_features & NETIF_F_HW_TLS_RX)
+-		return MLX5E_PARAMS_DEFAULT_LOG_SQ_SIZE;
+-
+-	return MLX5E_PARAMS_MINIMUM_LOG_SQ_SIZE;
+-}
+-
+-static void mlx5e_build_channel_param(struct mlx5e_priv *priv,
+-				      struct mlx5e_params *params,
+-				      struct mlx5e_channel_param *cparam)
+-{
+-	u8 icosq_log_wq_sz, async_icosq_log_wq_sz;
+-
+-	mlx5e_build_rq_param(priv, params, NULL, &cparam->rq);
+-
+-	icosq_log_wq_sz = mlx5e_build_icosq_log_wq_sz(params, &cparam->rq);
+-	async_icosq_log_wq_sz = mlx5e_build_async_icosq_log_wq_sz(priv->netdev);
+-
+-	mlx5e_build_sq_param(priv, params, &cparam->txq_sq);
+-	mlx5e_build_xdpsq_param(priv, params, &cparam->xdp_sq);
+-	mlx5e_build_icosq_param(priv, icosq_log_wq_sz, &cparam->icosq);
+-	mlx5e_build_async_icosq_param(priv, params, async_icosq_log_wq_sz, &cparam->async_icosq);
+-}
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ int mlx5e_open_channels(struct mlx5e_priv *priv,
+ 			struct mlx5e_channels *chs)
+ {
+--- a/drivers/scsi/ufs/ufshcd.c~linux-next-git-rejects
++++ a/drivers/scsi/ufs/ufshcd.c
+@@ -6399,11 +6399,7 @@ static int __ufshcd_issue_tm_cmd(struct
+ 	blk_mq_start_request(req);
+ 
+ 	task_tag = req->tag;
+-<<<<<<< HEAD
+-	treq->req_header.dword_0 |= cpu_to_be32(task_tag);
+-=======
+ 	treq->upiu_req.req_header.dword_0 |= cpu_to_be32(task_tag);
+->>>>>>> linux-next/akpm-base
+ 
+ 	memcpy(hba->utmrdl_base_addr + task_tag, treq, sizeof(*treq));
+ 	ufshcd_vops_setup_task_mgmt(hba, task_tag, tm_function);
+--- a/drivers/target/iscsi/iscsi_target.c~linux-next-git-rejects
++++ a/drivers/target/iscsi/iscsi_target.c
+@@ -1167,12 +1167,8 @@ int iscsit_setup_scsi_cmd(struct iscsi_c
+ 	target_get_sess_cmd(&cmd->se_cmd, true);
+ 
+ 	cmd->se_cmd.tag = (__force u32)cmd->init_task_tag;
+-<<<<<<< HEAD
+-	cmd->sense_reason = target_cmd_init_cdb(&cmd->se_cmd, hdr->cdb);
+-=======
+ 	cmd->sense_reason = target_cmd_init_cdb(&cmd->se_cmd, hdr->cdb,
+ 						GFP_KERNEL);
+->>>>>>> linux-next/akpm-base
+ 	if (cmd->sense_reason) {
+ 		if (cmd->sense_reason == TCM_OUT_OF_RESOURCES) {
+ 			return iscsit_add_reject_cmd(cmd,
+--- a/include/linux/bpf.h~linux-next-git-rejects
++++ a/include/linux/bpf.h
+@@ -41,10 +41,7 @@ struct bpf_local_storage_map;
+ struct kobject;
+ struct mem_cgroup;
+ struct module;
+-<<<<<<< HEAD
+-=======
+ struct bpf_func_state;
+->>>>>>> linux-next/akpm-base
+ 
+ extern struct idr btf_idr;
+ extern spinlock_t btf_idr_lock;
+--- a/include/linux/ethtool.h~linux-next-git-rejects
++++ a/include/linux/ethtool.h
+@@ -583,8 +583,6 @@ void ethtool_set_ethtool_phy_ops(const s
+ void
+ ethtool_params_from_link_mode(struct ethtool_link_ksettings *link_ksettings,
+ 			      enum ethtool_link_mode_bit_indices link_mode);
+-<<<<<<< HEAD
+-=======
+ 
+ /**
+  * ethtool_sprintf - Write formatted string to ethtool string data
+@@ -595,5 +593,4 @@ ethtool_params_from_link_mode(struct eth
+  * next string.
+  */
+ extern __printf(2, 3) void ethtool_sprintf(u8 **data, const char *fmt, ...);
+->>>>>>> linux-next/akpm-base
+ #endif /* _LINUX_ETHTOOL_H */
+--- a/include/linux/skmsg.h~linux-next-git-rejects
++++ a/include/linux/skmsg.h
+@@ -403,25 +403,9 @@ static inline void sk_psock_cork_free(st
+ static inline void sk_psock_restore_proto(struct sock *sk,
+ 					  struct sk_psock *psock)
+ {
+-<<<<<<< HEAD
+-	if (inet_csk_has_ulp(sk)) {
+-		/* TLS does not have an unhash proto in SW cases, but we need
+-		 * to ensure we stop using the sock_map unhash routine because
+-		 * the associated psock is being removed. So use the original
+-		 * unhash handler.
+-		 */
+-		WRITE_ONCE(sk->sk_prot->unhash, psock->saved_unhash);
+-		tcp_update_ulp(sk, psock->sk_proto, psock->saved_write_space);
+-	} else {
+-		sk->sk_write_space = psock->saved_write_space;
+-		/* Pairs with lockless read in sk_clone_lock() */
+-		WRITE_ONCE(sk->sk_prot, psock->sk_proto);
+-	}
+-=======
+ 	sk->sk_prot->unhash = psock->saved_unhash;
+ 	if (psock->psock_update_sk_prot)
+ 		psock->psock_update_sk_prot(sk, true);
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ static inline void sk_psock_set_state(struct sk_psock *psock,
+--- a/net/core/skmsg.c~linux-next-git-rejects
++++ a/net/core/skmsg.c
+@@ -991,14 +991,6 @@ static void sk_psock_strp_read(struct st
+ 		kfree_skb(skb);
+ 		goto out;
+ 	}
+-<<<<<<< HEAD
+-	prog = READ_ONCE(psock->progs.skb_verdict);
+-	if (likely(prog)) {
+-		skb->sk = sk;
+-		tcp_skb_bpf_redirect_clear(skb);
+-		ret = sk_psock_bpf_run(psock, prog, skb);
+-		ret = sk_psock_map_verd(ret, tcp_skb_bpf_redirect_fetch(skb));
+-=======
+ 	prog = READ_ONCE(psock->progs.stream_verdict);
+ 	if (likely(prog)) {
+ 		skb->sk = sk;
+@@ -1006,7 +998,6 @@ static void sk_psock_strp_read(struct st
+ 		skb_bpf_redirect_clear(skb);
+ 		ret = bpf_prog_run_pin_on_cpu(prog, skb);
+ 		ret = sk_psock_map_verd(ret, skb_bpf_redirect_fetch(skb));
+->>>>>>> linux-next/akpm-base
+ 		skb->sk = NULL;
+ 	}
+ 	sk_psock_verdict_apply(psock, skb, ret);
+@@ -1121,14 +1112,6 @@ static int sk_psock_verdict_recv(read_de
+ 		kfree_skb(skb);
+ 		goto out;
+ 	}
+-<<<<<<< HEAD
+-	prog = READ_ONCE(psock->progs.skb_verdict);
+-	if (likely(prog)) {
+-		skb->sk = sk;
+-		tcp_skb_bpf_redirect_clear(skb);
+-		ret = sk_psock_bpf_run(psock, prog, skb);
+-		ret = sk_psock_map_verd(ret, tcp_skb_bpf_redirect_fetch(skb));
+-=======
+ 	prog = READ_ONCE(psock->progs.stream_verdict);
+ 	if (!prog)
+ 		prog = READ_ONCE(psock->progs.skb_verdict);
+@@ -1138,7 +1121,6 @@ static int sk_psock_verdict_recv(read_de
+ 		skb_bpf_redirect_clear(skb);
+ 		ret = bpf_prog_run_pin_on_cpu(prog, skb);
+ 		ret = sk_psock_map_verd(ret, skb_bpf_redirect_fetch(skb));
+->>>>>>> linux-next/akpm-base
+ 		skb->sk = NULL;
+ 	}
+ 	sk_psock_verdict_apply(psock, skb, ret);
+--- a/net/ipv6/addrconf.c~linux-next-git-rejects
++++ a/net/ipv6/addrconf.c
+@@ -5687,7 +5687,6 @@ static int inet6_set_iftoken(struct inet
+ 
+ 	if (dev->flags & IFF_LOOPBACK) {
+ 		NL_SET_ERR_MSG_MOD(extack, "Device is loopback");
+-<<<<<<< HEAD
+ 		return -EINVAL;
+ 	}
+ 
+@@ -5697,17 +5696,6 @@ static int inet6_set_iftoken(struct inet
+ 		return -EINVAL;
+ 	}
+ 
+-=======
+-		return -EINVAL;
+-	}
+-
+-	if (dev->flags & IFF_NOARP) {
+-		NL_SET_ERR_MSG_MOD(extack,
+-				   "Device does not do neighbour discovery");
+-		return -EINVAL;
+-	}
+-
+->>>>>>> linux-next/akpm-base
+ 	if (!ipv6_accept_ra(idev)) {
+ 		NL_SET_ERR_MSG_MOD(extack,
+ 				   "Router advertisement is disabled on device");
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+scripts-a-new-script-for-checking-duplicate-struct-declaration-fix.patch
+mm.patch
+mm-memcontrol-switch-to-rstat-fix.patch
+mm-vmalloc-remove-unmap_kernel_range-fix-fix.patch
+mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator-fix.patch
+mm-vmscan-add-shrinker_info_protected-helper-fix.patch
+mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+
