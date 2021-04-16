@@ -4,40 +4,37 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82CD0C43460
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 18:12:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51E0DC43461
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 18:12:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5775E611AB
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 18:12:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D194613BA
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 18:12:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237802AbhDPSMw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Apr 2021 14:12:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40090 "EHLO mail.kernel.org"
+        id S239270AbhDPSMx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Apr 2021 14:12:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40126 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236084AbhDPSMv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Apr 2021 14:12:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9FE87613B0;
-        Fri, 16 Apr 2021 18:12:24 +0000 (UTC)
+        id S236084AbhDPSMw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Apr 2021 14:12:52 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A42316137D;
+        Fri, 16 Apr 2021 18:12:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618596744;
-        bh=8sKU394inG1ptMR6jqMIGWYRKWFKHnrcs7QH+uIL2Iw=;
+        s=korg; t=1618596746;
+        bh=rSn3bdC0hqwRK7LplmNbUaESCCWAIG7pHovceuEyJAQ=;
         h=Date:From:To:Subject:From;
-        b=2ojuqGwe9+M18WIsYzIea9xHnBKZ6BsMgf88DtFm26fPzsuvCehveTFnI+o3B4B20
-         D3npNaNC3SSB1Fi5lSw5083QIDEEgFt+BNrt1RGGyfRLCXEyoeDvw9dWpCV9h0Pgfb
-         JXIbgVtPNMeVoHArXhbjRmOmWcOouwUlszXPP9Vc=
-Date:   Fri, 16 Apr 2021 11:12:24 -0700
+        b=VxgYb3VzjYn2AAzznWSrPo9DqYpefk1mqgQusxf87Nh7/wWeA5oJwEgA002R4gQx8
+         g1joNz98lZZyJxUIM8Ed8qUrbXzGLPfCe25RJo2NJr5ajOT7hV/OWJhQBE8viFRefA
+         c3cbQSgLTtuhEYJjHs0bGF7YzgSLsnIyNYeQOtBU=
+Date:   Fri, 16 Apr 2021 11:12:26 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        pasha.tatashin@soleen.com, osalvador@suse.de, mhocko@kernel.org,
-        david@redhat.com, anshuman.khandual@arm.com,
-        akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, david@redhat.com, osalvador@suse.de
 Subject:  [to-be-updated]
- mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
- removed from -mm tree
-Message-ID: <20210416181224.zVeZ5%akpm@linux-foundation.org>
+ acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch removed from
+ -mm tree
+Message-ID: <20210416181226.qLVkp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,63 +43,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix
+     Subject: acpi,memhotplug: enable MHP_MEMMAP_ON_MEMORY when supported
 has been removed from the -mm tree.  Its filename was
-     mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix.patch
+     acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix
+From: Oscar Salvador <osalvador@suse.de>
+Subject: acpi,memhotplug: enable MHP_MEMMAP_ON_MEMORY when supported
 
-typo & code cleanup, per David
+Let the caller check whether it can pass MHP_MEMMAP_ON_MEMORY by checking
+mhp_supports_memmap_on_memory().  MHP_MEMMAP_ON_MEMORY can only be set in
+case ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE is enabled, the architecture
+supports altmap, and the range to be added spans a single memory block.
 
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20210319092635.6214-3-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/memory_hotplug.c~mmmemory_hotplug-allocate-memmap-from-the-added-memory-range-fix
-+++ a/mm/memory_hotplug.c
-@@ -1097,7 +1097,7 @@ bool mhp_supports_memmap_on_memory(unsig
- 	 * Besides having arch support and the feature enabled at runtime, we
- 	 * need a few more assumptions to hold true:
- 	 *
--	 * a) We span a single memory block: memory onlining/offlinin;g happens
-+	 * a) We span a single memory block: memory onlining/offlining happens
- 	 *    in memory block granularity. We don't want the vmemmap of online
- 	 *    memory blocks to reside on offline memory blocks. In the future,
- 	 *    we might want to support variable-sized memory blocks to make the
-@@ -1123,7 +1123,7 @@ bool mhp_supports_memmap_on_memory(unsig
- 	       IS_ENABLED(CONFIG_MHP_MEMMAP_ON_MEMORY) &&
- 	       size == memory_block_size_bytes() &&
- 	       IS_ALIGNED(vmemmap_size, PMD_SIZE) &&
--	       IS_ALIGNED(remaining_size, (pageblock_nr_pages << PAGE_SHIFT));
-+	       IS_ALIGNED(remaining_size, pageblock_nr_pages << PAGE_SHIFT);
- }
+--- a/drivers/acpi/acpi_memhotplug.c~acpimemhotplug-enable-mhp_memmap_on_memory-when-supported
++++ a/drivers/acpi/acpi_memhotplug.c
+@@ -171,6 +171,7 @@ static int acpi_memory_enable_device(str
+ 	acpi_handle handle = mem_device->device->handle;
+ 	int result, num_enabled = 0;
+ 	struct acpi_memory_info *info;
++	mhp_t mhp_flags = MHP_NONE;
+ 	int node;
  
- /*
+ 	node = acpi_get_node(handle);
+@@ -194,8 +195,10 @@ static int acpi_memory_enable_device(str
+ 		if (node < 0)
+ 			node = memory_add_physaddr_to_nid(info->start_addr);
+ 
++		if (mhp_supports_memmap_on_memory(info->length))
++			mhp_flags |= MHP_MEMMAP_ON_MEMORY;
+ 		result = __add_memory(node, info->start_addr, info->length,
+-				      MHP_NONE);
++				      mhp_flags);
+ 
+ 		/*
+ 		 * If the memory block has been used by the kernel, add_memory()
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-scripts-a-new-script-for-checking-duplicate-struct-declaration-fix.patch
-mm.patch
-mm-memcontrol-switch-to-rstat-fix.patch
-mm-vmalloc-remove-unmap_kernel_range-fix-fix.patch
-mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator-fix.patch
-mm-vmscan-add-shrinker_info_protected-helper-fix.patch
-mm-drop-redundant-arch_enable__migration-fix.patch
-mm-drop-redundant-arch_enable__migration-fix-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
+x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
+x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
+x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix.patch
+x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
+mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
+x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
