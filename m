@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A5CFC43460
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B041AC433ED
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 64978613C7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 955FA613C7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234209AbhDPWqp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Apr 2021 18:46:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53518 "EHLO mail.kernel.org"
+        id S234965AbhDPWqu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Apr 2021 18:46:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53550 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234797AbhDPWqp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Apr 2021 18:46:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4DD63613C7;
-        Fri, 16 Apr 2021 22:46:18 +0000 (UTC)
+        id S234797AbhDPWqr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Apr 2021 18:46:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2117C613C5;
+        Fri, 16 Apr 2021 22:46:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618613178;
-        bh=R+uGwTtcNlyIbj++0CC4cDQctjTweVvFDd7V07HIPPQ=;
+        s=korg; t=1618613181;
+        bh=MkCvSbtAeLbKTeGB85UdZQMtFmOwEku9Mq87qmjNORo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=MR4Q/GBsvDg/DcDnvyl9eOzPUnmdMw3y3RA4BseMbnoohsAoFFCgxSlthEin7f3qH
-         Q6ufFjWlxj0RqBemxxAvS3MUOl45/BaBQBuSdfchAeJxSv/7566fW2zz8mu0SSSPik
-         b2XT5ePcq2JxY1vB/XE0I92gMClnzJrM1Bq84x2A=
-Date:   Fri, 16 Apr 2021 15:46:18 -0700
+        b=2Ksq4w23sD3jOQ6M8HvOAnbdVo7LiR5AQ1qnw8D8CNGXsLdepyuK6ypg0XvvuU+in
+         n4Sn+lqFLgm8DhcA2QJmWdbjc354gec7mx/C8x1dsX0+q2KDcxtja+b2iO1kwvhoXW
+         cDWPywCfFjy/S4WVXZmVnLT2N9Bdmzx1Jai+M/cs=
+Date:   Fri, 16 Apr 2021 15:46:20 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, thomas_os@shipmail.org,
-        torvalds@linux-foundation.org, zackr@vmware.com
-Subject:  [patch 09/12] mm/mapping_dirty_helpers: guard hugepage
- pud's usage
-Message-ID: <20210416224618.i95n9fHXs%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, christophe.leroy@csgroup.eu,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        steven.price@arm.com, torvalds@linux-foundation.org
+Subject:  [patch 10/12] mm: ptdump: fix build failure
+Message-ID: <20210416224620.vDDxhwPBO%akpm@linux-foundation.org>
 In-Reply-To: <20210416154523.3f9794326e8e1db549873cf8@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,49 +42,56 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Zack Rusin <zackr@vmware.com>
-Subject: mm/mapping_dirty_helpers: guard hugepage pud's usage
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: mm: ptdump: fix build failure
 
-Mapping dirty helpers have, so far, been only used on X86, but a port of
-vmwgfx to ARM64 exposed a problem which results in a compilation error on
-ARM64 systems:
+	  CC      mm/ptdump.o
+	In file included from <command-line>:
+	mm/ptdump.c: In function 'ptdump_pte_entry':
+	././include/linux/compiler_types.h:320:38: error: call to '__compiletime_assert_207' declared with attribute error: Unsupported access size for {READ,WRITE}_ONCE().
+	  320 |  _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+	      |                                      ^
+	././include/linux/compiler_types.h:301:4: note: in definition of macro '__compiletime_assert'
+	  301 |    prefix ## suffix();    \
+	      |    ^~~~~~
+	././include/linux/compiler_types.h:320:2: note: in expansion of macro '_compiletime_assert'
+	  320 |  _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+	      |  ^~~~~~~~~~~~~~~~~~~
+	./include/asm-generic/rwonce.h:36:2: note: in expansion of macro 'compiletime_assert'
+	   36 |  compiletime_assert(__native_word(t) || sizeof(t) == sizeof(long long), \
+	      |  ^~~~~~~~~~~~~~~~~~
+	./include/asm-generic/rwonce.h:49:2: note: in expansion of macro 'compiletime_assert_rwonce_type'
+	   49 |  compiletime_assert_rwonce_type(x);    \
+	      |  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	mm/ptdump.c:114:14: note: in expansion of macro 'READ_ONCE'
+	  114 |  pte_t val = READ_ONCE(*pte);
+	      |              ^~~~~~~~~
+	make[2]: *** [mm/ptdump.o] Error 1
 
-mm/mapping_dirty_helpers.c: In function `wp_clean_pud_entry':
-mm/mapping_dirty_helpers.c:172:32: error: implicit declaration of function `pud_dirty'; did you mean `pmd_dirty'? [-Werror=implicit-function-declaration]
+READ_ONCE() cannot be used for reading PTEs.  Use ptep_get() instead.  See
+commit 481e980a7c19 ("mm: Allow arches to provide ptep_get()") and commit
+c0e1c8c22beb ("powerpc/8xx: Provide ptep_get() with 16k pages") for
+details.
 
-This is due to the fact that mapping_dirty_helpers code assumes that
-pud_dirty is always defined, which is not the case for architectures that
-don't define CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD.
-
-ARM64 arch is a little inconsistent when it comes to PUD hugepage helpers,
-e.g.  it defines pud_young but not pud_dirty but regardless of that the
-core kernel code shouldn't assume that any of the PUD hugepage helpers are
-available unless CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD is defined. 
-This prevents compilation errors whenever one of the drivers is ported to
-new architectures.
-
-Link: https://lkml.kernel.org/r/20210409165151.694574-1-zackr@vmware.com
-Signed-off-by: Zack Rusin <zackr@vmware.com>
-Reviewed-by: Thomas Hellstrm (Intel) <thomas_os@shipmail.org>
+Link: https://lkml.kernel.org/r/912b349e2bcaa88939904815ca0af945740c6bd4.1618478922.git.christophe.leroy@csgroup.eu
+Fixes: 30d621f6723b ("mm: add generic ptdump")
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Steven Price <steven.price@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mapping_dirty_helpers.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/ptdump.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mapping_dirty_helpers.c~mm-mapping_dirty_helpers-guard-hugepage-puds-usage
-+++ a/mm/mapping_dirty_helpers.c
-@@ -165,10 +165,12 @@ static int wp_clean_pud_entry(pud_t *pud
- 		return 0;
- 	}
+--- a/mm/ptdump.c~mm-ptdump-fix-build-failure
++++ a/mm/ptdump.c
+@@ -111,7 +111,7 @@ static int ptdump_pte_entry(pte_t *pte,
+ 			    unsigned long next, struct mm_walk *walk)
+ {
+ 	struct ptdump_state *st = walk->private;
+-	pte_t val = READ_ONCE(*pte);
++	pte_t val = ptep_get(pte);
  
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- 	/* Huge pud */
- 	walk->action = ACTION_CONTINUE;
- 	if (pud_trans_huge(pudval) || pud_devmap(pudval))
- 		WARN_ON(pud_write(pudval) || pud_dirty(pudval));
-+#endif
- 
- 	return 0;
- }
+ 	if (st->effective_prot)
+ 		st->effective_prot(st, 4, pte_val(val));
 _
