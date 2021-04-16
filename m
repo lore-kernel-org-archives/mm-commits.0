@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7699AC43460
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B3ADC433ED
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 577AC613C7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 500F8613C7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234926AbhDPWqg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Apr 2021 18:46:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53392 "EHLO mail.kernel.org"
+        id S234937AbhDPWqi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Apr 2021 18:46:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53438 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234886AbhDPWqg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Apr 2021 18:46:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D8AEF613C5;
-        Fri, 16 Apr 2021 22:46:09 +0000 (UTC)
+        id S234886AbhDPWqi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Apr 2021 18:46:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B8375613C3;
+        Fri, 16 Apr 2021 22:46:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618613170;
-        bh=eMDYH7X5el7T+Mq0yxz/gwIC8FTj4Dw8cAIHpE3lhP8=;
+        s=korg; t=1618613172;
+        bh=BfY/oKu7RUiPBfLmlqzjnlcOkUlautBG4ewu6wU4Okk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=DWvrHsI2P7T1TOdHgsDChf/R8FkZCXhBkwC16ny7YXct80EDmn41lqnz90DbjJucK
-         kG+Q7ms+2fF9ItwP1zMaJ+XCiyP0ucN/H2V3lyMblf86cuUd4f7DlxRbF29IsAx3lz
-         as/7xp3YlSy55lIP5WnkdQGymzHlI9Mn7qEAAViQ=
-Date:   Fri, 16 Apr 2021 15:46:09 -0700
+        b=y4lWlCW0W8Fnl5g3MfMl4oJgqAloRsv4caT8EC9IJ4Q3Eix7TF+pj0F1sBsR+6lNM
+         ZXeCuPuGMcrnM0G6ArC8jF0SyjPrOTuBszzHQoe27WfQrxFboAZyKg5jpBOEoRNhiJ
+         qJWhwAS5r4jX0eai6mUmX2PWiiIN0EdcFXVIxBc0=
+Date:   Fri, 16 Apr 2021 15:46:12 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org, rppt@kernel.org,
+To:     akpm@linux-foundation.org, glaubitz@physik.fu-berlin.de,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 06/12] ia64: fix discontig.c section mismatches
-Message-ID: <20210416224609.QrS02drWb%akpm@linux-foundation.org>
+Subject:  [patch 07/12] ia64: tools: remove inclusion of
+ ia64-specific version of errno.h header
+Message-ID: <20210416224612.CwMWAe8pW%akpm@linux-foundation.org>
 In-Reply-To: <20210416154523.3f9794326e8e1db549873cf8@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,71 +43,42 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: ia64: fix discontig.c section mismatches
+From: John Paul Adrian Glaubitz <glaubitz () physik ! fu-berlin ! de>
+Subject: ia64: tools: remove inclusion of ia64-specific version of errno.h header
 
-Fix IA64 discontig.c Section mismatch warnings.
+There is no longer an ia64-specific version of the errno.h header below
+arch/ia64/include/uapi/asm/, so trying to build tools/bpf fails with:
 
-When CONFIG_SPARSEMEM=y and CONFIG_MEMORY_HOTPLUG=y, the functions
-computer_pernodesize() and scatter_node_data() should not be marked
-as __meminit because they are needed after init, on any memory
-hotplug event. Also, early_nr_cpus_node() is called by
-compute_pernodesize(), so early_nr_cpus_node() cannot be __meminit either.
+  CC       /usr/src/linux/tools/bpf/bpftool/btf_dumper.o
+In file included from /usr/src/linux/tools/include/linux/err.h:8,
+                 from btf_dumper.c:11:
+/usr/src/linux/tools/include/uapi/asm/errno.h:13:10: fatal error: ../../../arch/ia64/include/uapi/asm/errno.h: No such file or directory
+   13 | #include "../../../arch/ia64/include/uapi/asm/errno.h"
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
 
-WARNING: modpost: vmlinux.o(.text.unlikely+0x1612): Section mismatch in reference from the function arch_alloc_nodedata() to the function .meminit.text:compute_pernodesize()
-The function arch_alloc_nodedata() references
-the function __meminit compute_pernodesize().
-This is often because arch_alloc_nodedata lacks a __meminit
-annotation or the annotation of compute_pernodesize is wrong.
+Thus, just remove the inclusion of the ia64-specific errno.h so that
+the build will use the generic errno.h header on this target which was
+used there anyway as the ia64-specific errno.h was just a wrapper for
+the generic header.
 
-WARNING: modpost: vmlinux.o(.text.unlikely+0x1692): Section mismatch in reference from the function arch_refresh_nodedata() to the function .meminit.text:scatter_node_data()
-The function arch_refresh_nodedata() references
-the function __meminit scatter_node_data().
-This is often because arch_refresh_nodedata lacks a __meminit
-annotation or the annotation of scatter_node_data is wrong.
-
-WARNING: modpost: vmlinux.o(.text.unlikely+0x1502): Section mismatch in reference from the function compute_pernodesize() to the function .meminit.text:early_nr_cpus_node()
-The function compute_pernodesize() references
-the function __meminit early_nr_cpus_node().
-This is often because compute_pernodesize lacks a __meminit
-annotation or the annotation of early_nr_cpus_node is wrong.
-
-Link: https://lkml.kernel.org/r/20210411001201.3069-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
+Fixes: c25f867ddd00 ("ia64: remove unneeded uapi asm-generic wrappers")
+Signed-off-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/discontig.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ tools/include/uapi/asm/errno.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/arch/ia64/mm/discontig.c~ia64-fix-discontigc-section-mismatches
-+++ a/arch/ia64/mm/discontig.c
-@@ -95,7 +95,7 @@ static int __init build_node_maps(unsign
-  * acpi_boot_init() (which builds the node_to_cpu_mask array) hasn't been
-  * called yet.  Note that node 0 will also count all non-existent cpus.
-  */
--static int __meminit early_nr_cpus_node(int node)
-+static int early_nr_cpus_node(int node)
- {
- 	int cpu, n = 0;
- 
-@@ -110,7 +110,7 @@ static int __meminit early_nr_cpus_node(
-  * compute_pernodesize - compute size of pernode data
-  * @node: the node id.
-  */
--static unsigned long __meminit compute_pernodesize(int node)
-+static unsigned long compute_pernodesize(int node)
- {
- 	unsigned long pernodesize = 0, cpus;
- 
-@@ -367,7 +367,7 @@ static void __init reserve_pernode_space
- 	}
- }
- 
--static void __meminit scatter_node_data(void)
-+static void scatter_node_data(void)
- {
- 	pg_data_t **dst;
- 	int node;
+--- a/tools/include/uapi/asm/errno.h~ia64-tools-remove-inclusion-of-ia64-specific-version-of-errnoh-header
++++ a/tools/include/uapi/asm/errno.h
+@@ -9,8 +9,6 @@
+ #include "../../../arch/alpha/include/uapi/asm/errno.h"
+ #elif defined(__mips__)
+ #include "../../../arch/mips/include/uapi/asm/errno.h"
+-#elif defined(__ia64__)
+-#include "../../../arch/ia64/include/uapi/asm/errno.h"
+ #elif defined(__xtensa__)
+ #include "../../../arch/xtensa/include/uapi/asm/errno.h"
+ #else
 _
