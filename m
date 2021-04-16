@@ -4,40 +4,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DDD8C433ED
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 19:46:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EB4CC43461
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 19:46:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2066F613C8
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 19:46:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFB5A6137D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 19:46:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235907AbhDPTrK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Apr 2021 15:47:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37530 "EHLO mail.kernel.org"
+        id S236414AbhDPTrM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Apr 2021 15:47:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37576 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236085AbhDPTrJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Apr 2021 15:47:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 90418613C1;
-        Fri, 16 Apr 2021 19:46:44 +0000 (UTC)
+        id S236085AbhDPTrL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Apr 2021 15:47:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 86D30613CB;
+        Fri, 16 Apr 2021 19:46:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618602404;
-        bh=sTSZiLGQV2Z9S63G7Xt/3tHXy+xJ4jqb9JqeNVZftws=;
+        s=korg; t=1618602406;
+        bh=rvNLvVMySnSPqdVuiuLrEL+Xf2aX2+ZV9QGq0xfgqT0=;
         h=Date:From:To:Subject:From;
-        b=iIc46Jyspfocub4lRtPj4tUOxSXVUKSEJnGtUMpV9sUtkKDFnK/l2fe6i6xBWRhv+
-         N/x1PdaIpH4mudmlsTg1V2enly4gebNnVbEcXY5Zx8oFMeK6ctXpLxCEVBh0wbkdlB
-         Z5Z6kM2eoYYXu8Wa1mPHSqGQr+H472MbH/oyIvik=
-Date:   Fri, 16 Apr 2021 12:46:44 -0700
+        b=2aVSGR8pR0W3YSdgHQrjNqk4Z2CH/DARYSWWhZhTQ4mA+zi5WgWT2AJcsjHvilI8+
+         YmGd+MdfJu1GWvV9gSW59PobyCZwSM7QpyaUjqXx2xOqRUzIrrY+cgn0MOS2gQStxs
+         kZ/xCmXMTZF93DNO3MhqCucrUob4TO78M+HnfXic=
+Date:   Fri, 16 Apr 2021 12:46:46 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        pasha.tatashin@soleen.com, mhocko@suse.com, mhocko@kernel.org,
-        david@redhat.com, anshuman.khandual@arm.com, osalvador@suse.de
+        pasha.tatashin@soleen.com, osalvador@suse.de, mhocko@suse.com,
+        mhocko@kernel.org, anshuman.khandual@arm.com, david@redhat.com
 Subject:  [to-be-updated]
- mmmemory_hotplug-relax-fully-spanned-sections-check.patch removed from -mm
+ =?us-ascii?Q?mmmemory=5Fhotplug-factor-out-adjusting-present-pages-into?=
+ =?us-ascii?Q?-adjust=5Fpresent=5Fpage=5Fcount.patch?= removed from -mm
  tree
-Message-ID: <20210416194644.E9NxL%akpm@linux-foundation.org>
+Message-ID: <20210416194646.67wXZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,23 +48,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,memory_hotplug: relax fully spanned sections check
+     Subject: mm,memory_hotplug: factor out adjusting present pages into adjust_present_page_count()
 has been removed from the -mm tree.  Its filename was
-     mmmemory_hotplug-relax-fully-spanned-sections-check.patch
+     mmmemory_hotplug-factor-out-adjusting-present-pages-into-adjust_present_page_count.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,memory_hotplug: relax fully spanned sections check
+From: David Hildenbrand <david@redhat.com>
+Subject: mm,memory_hotplug: factor out adjusting present pages into adjust_present_page_count()
 
-When using self-hosted vmemmap pages, the number of pages passed to
-{online,offline}_pages might not fully span sections, but they always
-fully span pageblocks.  Relax the check account for that case.
+Let's have a single place (inspired by adjust_managed_page_count()) where
+we adjust present pages.
 
-Link: https://lkml.kernel.org/r/20210416112411.9826-3-osalvador@suse.de
+In contrast to adjust_managed_page_count(), only memory onlining/offlining
+is allowed to modify the number of present pages.
+
+Link: https://lkml.kernel.org/r/20210416112411.9826-4-osalvador@suse.de
+Signed-off-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -70,57 +76,63 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ mm/memory_hotplug.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
---- a/mm/memory_hotplug.c~mmmemory_hotplug-relax-fully-spanned-sections-check
+--- a/mm/memory_hotplug.c~mmmemory_hotplug-factor-out-adjusting-present-pages-into-adjust_present_page_count
 +++ a/mm/memory_hotplug.c
-@@ -838,9 +838,14 @@ int __ref online_pages(unsigned long pfn
- 	int ret;
- 	struct memory_notify arg;
+@@ -829,6 +829,16 @@ struct zone * zone_for_pfn_range(int onl
+ 	return default_zone_for_pfn(nid, start_pfn, nr_pages);
+ }
  
--	/* We can only online full sections (e.g., SECTION_IS_ONLINE) */
-+	/* We can only offline full sections (e.g., SECTION_IS_ONLINE).
-+	 * However, when using e.g: memmap_on_memory, some pages are initialized
-+	 * prior to calling in here. The remaining amount of pages must be
-+	 * pageblock aligned.
-+	 */
- 	if (WARN_ON_ONCE(!nr_pages ||
--			 !IS_ALIGNED(pfn | nr_pages, PAGES_PER_SECTION)))
-+			 !IS_ALIGNED(pfn, pageblock_nr_pages) ||
-+			 !IS_ALIGNED(pfn + nr_pages, PAGES_PER_SECTION)))
- 		return -EINVAL;
++static void adjust_present_page_count(struct zone *zone, long nr_pages)
++{
++	unsigned long flags;
++
++	zone->present_pages += nr_pages;
++	pgdat_resize_lock(zone->zone_pgdat, &flags);
++	zone->zone_pgdat->node_present_pages += nr_pages;
++	pgdat_resize_unlock(zone->zone_pgdat, &flags);
++}
++
+ int __ref online_pages(unsigned long pfn, unsigned long nr_pages,
+ 		       int online_type, int nid)
+ {
+@@ -882,11 +892,7 @@ int __ref online_pages(unsigned long pfn
+ 	}
  
- 	mem_hotplug_begin();
-@@ -1573,9 +1578,14 @@ int __ref offline_pages(unsigned long st
- 	int ret, node;
- 	char *reason;
+ 	online_pages_range(pfn, nr_pages);
+-	zone->present_pages += nr_pages;
+-
+-	pgdat_resize_lock(zone->zone_pgdat, &flags);
+-	zone->zone_pgdat->node_present_pages += nr_pages;
+-	pgdat_resize_unlock(zone->zone_pgdat, &flags);
++	adjust_present_page_count(zone, nr_pages);
  
--	/* We can only offline full sections (e.g., SECTION_IS_ONLINE) */
-+	/* We can only offline full sections (e.g., SECTION_IS_ONLINE).
-+	 * However, when using e.g: memmap_on_memory, some pages are initialized
-+	 * prior to calling in here. The remaining amount of pages must be
-+	 * pageblock aligned.
-+	 */
- 	if (WARN_ON_ONCE(!nr_pages ||
--			 !IS_ALIGNED(start_pfn | nr_pages, PAGES_PER_SECTION)))
-+			 !IS_ALIGNED(start_pfn, pageblock_nr_pages) ||
-+			 !IS_ALIGNED(start_pfn + nr_pages, PAGES_PER_SECTION)))
- 		return -EINVAL;
+ 	node_states_set_node(nid, &arg);
+ 	if (need_zonelists_rebuild)
+@@ -1702,11 +1708,7 @@ int __ref offline_pages(unsigned long st
  
- 	mem_hotplug_begin();
+ 	/* removal success */
+ 	adjust_managed_page_count(pfn_to_page(start_pfn), -nr_pages);
+-	zone->present_pages -= nr_pages;
+-
+-	pgdat_resize_lock(zone->zone_pgdat, &flags);
+-	zone->zone_pgdat->node_present_pages -= nr_pages;
+-	pgdat_resize_unlock(zone->zone_pgdat, &flags);
++	adjust_present_page_count(zone, -nr_pages);
+ 
+ 	init_per_zone_wmark_min();
+ 
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from david@redhat.com are
 
-x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
-x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
-x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
-x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix.patch
-x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
-mmmemory_hotplug-allocate-memmap-from-the-added-memory-range.patch
-acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
-mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
-x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
-arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+mm-page_alloc-drop-pr_info_ratelimited-in-alloc_contig_range.patch
+kernel-resource-make-walk_system_ram_res-find-all-busy-ioresource_system_ram-resources.patch
+kernel-resource-make-walk_mem_res-find-all-busy-ioresource_mem-resources.patch
+kernel-resource-remove-first_lvl-siblings_only-logic.patch
+drivers-char-remove-dev-kmem-for-good.patch
+mm-remove-xlate_dev_kmem_ptr.patch
+mm-vmalloc-remove-vwrite.patch
 
