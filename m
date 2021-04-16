@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76C3EC433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 18:48:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67418C43460
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 18:48:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 525DE6137D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 18:48:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F23E6124B
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 18:48:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235522AbhDPStP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235693AbhDPStP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 16 Apr 2021 14:49:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53500 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53568 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235693AbhDPStA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Apr 2021 14:49:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A67B86137D;
-        Fri, 16 Apr 2021 18:48:32 +0000 (UTC)
+        id S235385AbhDPStC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Apr 2021 14:49:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9BE29613B7;
+        Fri, 16 Apr 2021 18:48:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618598912;
-        bh=TtUDkj1lzJItT1DtJgRl8xD3wwOjI5dDKCmqeWlQ3r4=;
+        s=korg; t=1618598916;
+        bh=645t5om6lTXl5uD4DET0P+QUvcUakJ7bEaBMP8NkhF4=;
         h=Date:From:To:Subject:From;
-        b=VakhGLKhBGP406FTZk5sdz/A+F83tHSb2X5cxPP+RtWII/4WxV6QP5glWtiL2FpLY
-         fXXeO9YRPEWabQMR/dckRxIVslEtDGzoZBqL8zE5OESdDOlXLQyi7IrBJi3tL68lRP
-         R68fqe91sJx36j/HshWOCszc1Z8of1Abxo/6QVmc=
-Date:   Fri, 16 Apr 2021 11:48:32 -0700
+        b=Lq7kkHwRDFD1lUuPP9oOrUq1sfFm1bZhAFZaEhGOinFV+c5WK+GkrcYah0VEnIbTh
+         MPCvdOfv+oXynk3aOTJuhePTgl/EwDaKNGYXekVDHvKslUUo9V2z9ajOKNtgAwHrvY
+         LH7/15SCerFvxEmo5g0e25wRgcy8eQPPH7d/WsS0=
+Date:   Fri, 16 Apr 2021 11:48:36 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
         pasha.tatashin@soleen.com, mhocko@suse.com, mhocko@kernel.org,
         david@redhat.com, anshuman.khandual@arm.com, osalvador@suse.de
 Subject:  +
- acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch added to -mm
+ x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch added to -mm
  tree
-Message-ID: <20210416184832.XMVaD%akpm@linux-foundation.org>
+Message-ID: <20210416184836.0h4-q%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: acpi,memhotplug: enable MHP_MEMMAP_ON_MEMORY when supported
+     Subject: x86/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
 has been added to the -mm tree.  Its filename is
-     acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
+     x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,49 +67,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: acpi,memhotplug: enable MHP_MEMMAP_ON_MEMORY when supported
+Subject: x86/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
 
-Let the caller check whether it can pass MHP_MEMMAP_ON_MEMORY by checking
-mhp_supports_memmap_on_memory().  MHP_MEMMAP_ON_MEMORY can only be set in
-case ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE is enabled, the architecture
-supports altmap, and the range to be added spans a single memory block.
+Enable x86_64 platform to use the MHP_MEMMAP_ON_MEMORY feature.
 
-Link: https://lkml.kernel.org/r/20210416112411.9826-6-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20210416112411.9826-8-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/acpi_memhotplug.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/x86/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/drivers/acpi/acpi_memhotplug.c~acpimemhotplug-enable-mhp_memmap_on_memory-when-supported
-+++ a/drivers/acpi/acpi_memhotplug.c
-@@ -171,6 +171,7 @@ static int acpi_memory_enable_device(str
- 	acpi_handle handle = mem_device->device->handle;
- 	int result, num_enabled = 0;
- 	struct acpi_memory_info *info;
-+	mhp_t mhp_flags = MHP_NONE;
- 	int node;
+--- a/arch/x86/Kconfig~x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable
++++ a/arch/x86/Kconfig
+@@ -2430,6 +2430,9 @@ config ARCH_HAS_ADD_PAGES
+ 	def_bool y
+ 	depends on X86_64 && ARCH_ENABLE_MEMORY_HOTPLUG
  
- 	node = acpi_get_node(handle);
-@@ -194,8 +195,10 @@ static int acpi_memory_enable_device(str
- 		if (node < 0)
- 			node = memory_add_physaddr_to_nid(info->start_addr);
- 
-+		if (mhp_supports_memmap_on_memory(info->length))
-+			mhp_flags |= MHP_MEMMAP_ON_MEMORY;
- 		result = __add_memory(node, info->start_addr, info->length,
--				      MHP_NONE);
-+				      mhp_flags);
- 
- 		/*
- 		 * If the memory block has been used by the kernel, add_memory()
++config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
++	def_bool y
++
+ config USE_PERCPU_NUMA_NODE_ID
+ 	def_bool y
+ 	depends on NUMA
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
