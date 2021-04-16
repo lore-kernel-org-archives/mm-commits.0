@@ -2,131 +2,142 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89A3DC433ED
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:45:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E57FC433ED
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:45:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B69D613CD
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:45:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11FEF613C3
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:45:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230432AbhDPWpu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Apr 2021 18:45:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52994 "EHLO mail.kernel.org"
+        id S234775AbhDPWqU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Apr 2021 18:46:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53164 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234996AbhDPWpt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Apr 2021 18:45:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3159E6108B;
-        Fri, 16 Apr 2021 22:45:24 +0000 (UTC)
+        id S231296AbhDPWqU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Apr 2021 18:46:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F32FF6137D;
+        Fri, 16 Apr 2021 22:45:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618613124;
-        bh=kBeAWsAZC0MFEdaOHJY11MUV8G/y/hypTczwsAu5ACM=;
-        h=Date:From:To:Cc:Subject:From;
-        b=S6JgHCp4ULc/RTbqMYQCbwkcUbRCW7wT8XV9Md3oQEBkT4XwmXtLDHixIuhfm3XQs
-         frDEy8vUqjY1iPNW6SSgMPV8pzbxkPC9mPt+3x/nz01fFU2FOTlZHjz3PtpixCSd2m
-         Dm/JdtRt7S4LejavVTYLDZnEbhUllZzBhVtiSlmw=
-Date:   Fri, 16 Apr 2021 15:45:23 -0700
+        s=korg; t=1618613155;
+        bh=aaCF2HWlKT9lX7cEAgmlF2G9RxkC7JLcX8osP4AspOs=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=Tk79Y6CQP5peDE4HZB6rOHeLgMIZaZJfoLE8lJtsuXdTlOj+KBAtamITapNnlPQbz
+         thPgofJEh3hx9hkJ4m2GK3p+fWXqm9Z55pLmOTyyzek5iQSKFvfC71hB0LtNWZ7Bup
+         kBfkUy9TUm0OYjrFS8mtgVMuSZWHfbQLZIQD1Mu0=
+Date:   Fri, 16 Apr 2021 15:45:54 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org
-Subject: incoming
-Message-Id: <20210416154523.3f9794326e8e1db549873cf8@linux-foundation.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        torvalds@linux-foundation.org, willy@infradead.org
+Subject:  [patch 01/12] mm: eliminate "expecting prototype"
+ kernel-doc warnings
+Message-ID: <20210416224554.052darJdq%akpm@linux-foundation.org>
+In-Reply-To: <20210416154523.3f9794326e8e1db549873cf8@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-12 patches, based on 06c2aac4014c38247256fe49c61b7f55890271e7.
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm: eliminate "expecting prototype" kernel-doc warnings
 
-Subsystems affected by this patch series:
+Fix stray kernel-doc warnings in mm/ due to mis-typed or missing function
+names.
 
-  mm/documentation
-  mm/kasan
-  csky
-  ia64
-  mm/pagemap
-  gcov
-  lib
+Quietens these kernel-doc warnings:
 
-Subsystem: mm/documentation
+../mm/mmu_gather.c:264: warning: expecting prototype for tlb_gather_mmu(). Prototype was for __tlb_gather_mmu() instead
+../mm/oom_kill.c:180: warning: expecting prototype for Check whether unreclaimable slab amount is greater than(). Prototype was for should_dump_unreclaim_slab() instead
+../mm/shuffle.c:155: warning: expecting prototype for shuffle_free_memory(). Prototype was for __shuffle_free_memory() instead
 
-    Randy Dunlap <rdunlap@infradead.org>:
-      mm: eliminate "expecting prototype" kernel-doc warnings
+Link: https://lkml.kernel.org/r/20210411210642.11362-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Subsystem: mm/kasan
+ mm/mmu_gather.c |   29 +++++++++++++++++++----------
+ mm/oom_kill.c   |    2 +-
+ mm/shuffle.c    |    4 ++--
+ 3 files changed, 22 insertions(+), 13 deletions(-)
 
-    Arnd Bergmann <arnd@arndb.de>:
-      kasan: fix hwasan build for gcc
-
-    Walter Wu <walter-zh.wu@mediatek.com>:
-      kasan: remove redundant config option
-
-Subsystem: csky
-
-    Randy Dunlap <rdunlap@infradead.org>:
-      csky: change a Kconfig symbol name to fix e1000 build error
-
-Subsystem: ia64
-
-    Randy Dunlap <rdunlap@infradead.org>:
-      ia64: remove duplicate entries in generic_defconfig
-      ia64: fix discontig.c section mismatches
-
-    John Paul Adrian Glaubitz <glaubitz () physik ! fu-berlin ! de>:
-      ia64: tools: remove inclusion of ia64-specific version of errno.h header
-
-    John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>:
-      ia64: tools: remove duplicate definition of ia64_mf() on ia64
-
-Subsystem: mm/pagemap
-
-    Zack Rusin <zackr@vmware.com>:
-      mm/mapping_dirty_helpers: guard hugepage pud's usage
-
-    Christophe Leroy <christophe.leroy@csgroup.eu>:
-      mm: ptdump: fix build failure
-
-Subsystem: gcov
-
-    Johannes Berg <johannes.berg@intel.com>:
-      gcov: clang: fix clang-11+ build
-
-Subsystem: lib
-
-    Randy Dunlap <rdunlap@infradead.org>:
-      lib: remove "expecting prototype" kernel-doc warnings
-
- arch/arm64/kernel/sleep.S             |    2 +-
- arch/csky/Kconfig                     |    2 +-
- arch/csky/include/asm/page.h          |    2 +-
- arch/ia64/configs/generic_defconfig   |    2 --
- arch/ia64/mm/discontig.c              |    6 +++---
- arch/x86/kernel/acpi/wakeup_64.S      |    2 +-
- include/linux/kasan.h                 |    2 +-
- kernel/gcov/clang.c                   |    2 +-
- lib/Kconfig.kasan                     |    9 ++-------
- lib/earlycpio.c                       |    4 ++--
- lib/lru_cache.c                       |    3 ++-
- lib/parman.c                          |    4 ++--
- lib/radix-tree.c                      |   11 ++++++-----
- mm/kasan/common.c                     |    2 +-
- mm/kasan/kasan.h                      |    2 +-
- mm/kasan/report_generic.c             |    2 +-
- mm/mapping_dirty_helpers.c            |    2 ++
- mm/mmu_gather.c                       |   29 +++++++++++++++++++----------
- mm/oom_kill.c                         |    2 +-
- mm/ptdump.c                           |    2 +-
- mm/shuffle.c                          |    4 ++--
- scripts/Makefile.kasan                |   22 ++++++++++++++--------
- security/Kconfig.hardening            |    4 ++--
- tools/arch/ia64/include/asm/barrier.h |    3 ---
- tools/include/uapi/asm/errno.h        |    2 --
- 25 files changed, 67 insertions(+), 60 deletions(-)
-
+--- a/mm/mmu_gather.c~mm-eliminate-expecting-prototype-kernel-doc-warnings
++++ a/mm/mmu_gather.c
+@@ -249,16 +249,6 @@ void tlb_flush_mmu(struct mmu_gather *tl
+ 	tlb_flush_mmu_free(tlb);
+ }
+ 
+-/**
+- * tlb_gather_mmu - initialize an mmu_gather structure for page-table tear-down
+- * @tlb: the mmu_gather structure to initialize
+- * @mm: the mm_struct of the target address space
+- * @fullmm: @mm is without users and we're going to destroy the full address
+- *	    space (exit/execve)
+- *
+- * Called to initialize an (on-stack) mmu_gather structure for page-table
+- * tear-down from @mm.
+- */
+ static void __tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
+ 			     bool fullmm)
+ {
+@@ -283,11 +273,30 @@ static void __tlb_gather_mmu(struct mmu_
+ 	inc_tlb_flush_pending(tlb->mm);
+ }
+ 
++/**
++ * tlb_gather_mmu - initialize an mmu_gather structure for page-table tear-down
++ * @tlb: the mmu_gather structure to initialize
++ * @mm: the mm_struct of the target address space
++ *
++ * Called to initialize an (on-stack) mmu_gather structure for page-table
++ * tear-down from @mm.
++ */
+ void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm)
+ {
+ 	__tlb_gather_mmu(tlb, mm, false);
+ }
+ 
++/**
++ * tlb_gather_mmu_fullmm - initialize an mmu_gather structure for page-table tear-down
++ * @tlb: the mmu_gather structure to initialize
++ * @mm: the mm_struct of the target address space
++ *
++ * In this case, @mm is without users and we're going to destroy the
++ * full address space (exit/execve).
++ *
++ * Called to initialize an (on-stack) mmu_gather structure for page-table
++ * tear-down from @mm.
++ */
+ void tlb_gather_mmu_fullmm(struct mmu_gather *tlb, struct mm_struct *mm)
+ {
+ 	__tlb_gather_mmu(tlb, mm, true);
+--- a/mm/oom_kill.c~mm-eliminate-expecting-prototype-kernel-doc-warnings
++++ a/mm/oom_kill.c
+@@ -170,7 +170,7 @@ static bool oom_unkillable_task(struct t
+ 	return false;
+ }
+ 
+-/**
++/*
+  * Check whether unreclaimable slab amount is greater than
+  * all user memory(LRU pages).
+  * dump_unreclaimable_slab() could help in the case that
+--- a/mm/shuffle.c~mm-eliminate-expecting-prototype-kernel-doc-warnings
++++ a/mm/shuffle.c
+@@ -147,8 +147,8 @@ void __meminit __shuffle_zone(struct zon
+ 	spin_unlock_irqrestore(&z->lock, flags);
+ }
+ 
+-/**
+- * shuffle_free_memory - reduce the predictability of the page allocator
++/*
++ * __shuffle_free_memory - reduce the predictability of the page allocator
+  * @pgdat: node page data
+  */
+ void __meminit __shuffle_free_memory(pg_data_t *pgdat)
+_
