@@ -4,37 +4,37 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFF52C433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 18:12:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 786E8C433B4
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 18:25:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C27A6611AB
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 18:12:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 389F360FD9
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 18:25:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244362AbhDPSM7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Apr 2021 14:12:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40266 "EHLO mail.kernel.org"
+        id S235747AbhDPSZg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Apr 2021 14:25:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41220 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239524AbhDPSM6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Apr 2021 14:12:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A9FBE613B0;
-        Fri, 16 Apr 2021 18:12:32 +0000 (UTC)
+        id S235735AbhDPSZf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Apr 2021 14:25:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B5EC1610FB;
+        Fri, 16 Apr 2021 18:25:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618596752;
-        bh=ZrH704g3uasHvScNTZXkjhjdZZa5tF2OYsSMs8jNOM8=;
+        s=korg; t=1618597510;
+        bh=D/4GYF8oJvSEwOIfLF8rjPH2VirEETih0A2eTYI8jKs=;
         h=Date:From:To:Subject:From;
-        b=Bc9ickrpVywP6zLgDHcEgqnI0dnekTW/TSQ/ugdOxZbQTuGG+Wgrn1bAaRjDuUt+H
-         SDLedKUgqgDTqcCyBe0AwxkTRY9eYFRy4OD6cUrJnguQ0TyaoIV2uglRgR+CCtaIpE
-         EgyMJYOI18MOcHj6mkdBkH0DKzOPHFXbSHxR3u5s=
-Date:   Fri, 16 Apr 2021 11:12:32 -0700
+        b=cX6pRHmf7X8+pUUZQuCZF4IVcp/xjte9eDl2Sn4zTZfQ8ks8z0CUJUI/6p3z8Bb4C
+         g01Mbm04CUZQP4ax0tE2iPMEKlPPwimn9iBBDDfVMMQ8UTDE+zlmmZdRvu0upCplQ8
+         iN2qHn15QcZuzMLKQa5uYttmD3ZemABw3yMHEiMw=
+Date:   Fri, 16 Apr 2021 11:25:08 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, david@redhat.com, osalvador@suse.de
-Subject:  [to-be-updated]
- arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch removed from
+To:     mm-commits@vger.kernel.org, joe@perches.com,
+        christophe.jaillet@wanadoo.fr
+Subject:  + checkpatch-improve-alloc_array_args-test.patch added to
  -mm tree
-Message-ID: <20210416181232.f5_4p%akpm@linux-foundation.org>
+Message-ID: <20210416182508.wK6CF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,46 +43,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
-has been removed from the -mm tree.  Its filename was
-     arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+     Subject: checkpatch: improve ALLOC_ARRAY_ARGS test
+has been added to the -mm tree.  Its filename is
+     checkpatch-improve-alloc_array_args-test.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-alloc_array_args-test.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-alloc_array_args-test.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: arm64/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: checkpatch: improve ALLOC_ARRAY_ARGS test
 
-Enable arm64 platform to use the MHP_MEMMAP_ON_MEMORY feature.
+The devm_ variant of 'kcalloc()' and 'kmalloc_array()' are not tested
+Add the corresponding check.
 
-Link: https://lkml.kernel.org/r/20210319092635.6214-6-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/205fc4847972fb6779abcc8818f39c14d1b45af1.1618595794.git.christophe.jaillet@wanadoo.fr
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    3 +++
- 1 file changed, 3 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm64/Kconfig~arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable
-+++ a/arch/arm64/Kconfig
-@@ -312,6 +312,9 @@ config ZONE_DMA32
- 	bool "Support DMA32 zone" if EXPERT
- 	default y
+--- a/scripts/checkpatch.pl~checkpatch-improve-alloc_array_args-test
++++ a/scripts/checkpatch.pl
+@@ -6911,7 +6911,7 @@ sub process {
+ 		}
  
-+config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
-+	def_bool y
-+
- config SMP
- 	def_bool y
- 
+ # check for alloc argument mismatch
+-		if ($line =~ /\b(kcalloc|kmalloc_array)\s*\(\s*sizeof\b/) {
++		if ($line =~ /\b((?:devm_)?(?:kcalloc|kmalloc_array))\s*\(\s*sizeof\b/) {
+ 			WARN("ALLOC_ARRAY_ARGS",
+ 			     "$1 uses number as first arg, sizeof is generally wrong\n" . $herecurr);
+ 		}
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
-x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
-x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
-x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
-x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix.patch
-x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
+checkpatch-improve-alloc_array_args-test.patch
 
