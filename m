@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AF74C433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7699AC43460
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 61333613C7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 577AC613C7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234922AbhDPWqe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Apr 2021 18:46:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53358 "EHLO mail.kernel.org"
+        id S234926AbhDPWqg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Apr 2021 18:46:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53392 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234937AbhDPWqd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Apr 2021 18:46:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D09DD613CD;
-        Fri, 16 Apr 2021 22:46:06 +0000 (UTC)
+        id S234886AbhDPWqg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Apr 2021 18:46:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D8AEF613C5;
+        Fri, 16 Apr 2021 22:46:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618613167;
-        bh=5irC4jEHVy9WTnSwU42ljXApkrq11taRiIDddSVKTp0=;
+        s=korg; t=1618613170;
+        bh=eMDYH7X5el7T+Mq0yxz/gwIC8FTj4Dw8cAIHpE3lhP8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=AlxJD1rS35erCv71ylwiFUPzaLYzi/Dvq5aYv5l4EjuI0sZki/iN26Y3Ne9mIyJ2e
-         d6CWL2MjcIwRZXvsj1mmlCbheyr9D2OvRc+jW6NeLztqAQTEWRRbamUdOa2a51InbR
-         9q0SeQn4cnZkSFb6FQhDoJK/7uwnIEzM55/2cg/k=
-Date:   Fri, 16 Apr 2021 15:46:06 -0700
+        b=DWvrHsI2P7T1TOdHgsDChf/R8FkZCXhBkwC16ny7YXct80EDmn41lqnz90DbjJucK
+         kG+Q7ms+2fF9ItwP1zMaJ+XCiyP0ucN/H2V3lyMblf86cuUd4f7DlxRbF29IsAx3lz
+         as/7xp3YlSy55lIP5WnkdQGymzHlI9Mn7qEAAViQ=
+Date:   Fri, 16 Apr 2021 15:46:09 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, fenghua.yu@intel.com,
-        geert@linux-m68k.org, hch@lst.de, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        tony.luck@intel.com, torvalds@linux-foundation.org
-Subject:  [patch 05/12] ia64: remove duplicate entries in
- generic_defconfig
-Message-ID: <20210416224606.D3JeuLkN5%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org, rppt@kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 06/12] ia64: fix discontig.c section mismatches
+Message-ID: <20210416224609.QrS02drWb%akpm@linux-foundation.org>
 In-Reply-To: <20210416154523.3f9794326e8e1db549873cf8@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,37 +43,70 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: ia64: remove duplicate entries in generic_defconfig
+Subject: ia64: fix discontig.c section mismatches
 
-Fix ia64 generic_defconfig duplicate entries, as warned by:
+Fix IA64 discontig.c Section mismatch warnings.
 
-  + arch/ia64/configs/generic_defconfig: warning: override: reassigning to symbol ATA:  => 58
-  + arch/ia64/configs/generic_defconfig: warning: override: reassigning to symbol ATA_PIIX:  => 59
+When CONFIG_SPARSEMEM=y and CONFIG_MEMORY_HOTPLUG=y, the functions
+computer_pernodesize() and scatter_node_data() should not be marked
+as __meminit because they are needed after init, on any memory
+hotplug event. Also, early_nr_cpus_node() is called by
+compute_pernodesize(), so early_nr_cpus_node() cannot be __meminit either.
 
-These 2 symbols still have the same value as in the removed lines.
+WARNING: modpost: vmlinux.o(.text.unlikely+0x1612): Section mismatch in reference from the function arch_alloc_nodedata() to the function .meminit.text:compute_pernodesize()
+The function arch_alloc_nodedata() references
+the function __meminit compute_pernodesize().
+This is often because arch_alloc_nodedata lacks a __meminit
+annotation or the annotation of compute_pernodesize is wrong.
 
-Link: https://lkml.kernel.org/r/20210411020255.18052-1-rdunlap@infradead.org
-Fixes: c331649e6371 ("ia64: Use libata instead of the legacy ide driver in defconfigs")
+WARNING: modpost: vmlinux.o(.text.unlikely+0x1692): Section mismatch in reference from the function arch_refresh_nodedata() to the function .meminit.text:scatter_node_data()
+The function arch_refresh_nodedata() references
+the function __meminit scatter_node_data().
+This is often because arch_refresh_nodedata lacks a __meminit
+annotation or the annotation of scatter_node_data is wrong.
+
+WARNING: modpost: vmlinux.o(.text.unlikely+0x1502): Section mismatch in reference from the function compute_pernodesize() to the function .meminit.text:early_nr_cpus_node()
+The function compute_pernodesize() references
+the function __meminit early_nr_cpus_node().
+This is often because compute_pernodesize lacks a __meminit
+annotation or the annotation of early_nr_cpus_node is wrong.
+
+Link: https://lkml.kernel.org/r/20210411001201.3069-1-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/configs/generic_defconfig |    2 --
- 1 file changed, 2 deletions(-)
+ arch/ia64/mm/discontig.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/ia64/configs/generic_defconfig~ia64-remove-duplicate-entries-in-generic_defconfig
-+++ a/arch/ia64/configs/generic_defconfig
-@@ -55,8 +55,6 @@ CONFIG_CHR_DEV_SG=m
- CONFIG_SCSI_FC_ATTRS=y
- CONFIG_SCSI_SYM53C8XX_2=y
- CONFIG_SCSI_QLOGIC_1280=y
--CONFIG_ATA=y
--CONFIG_ATA_PIIX=y
- CONFIG_SATA_VITESSE=y
- CONFIG_MD=y
- CONFIG_BLK_DEV_MD=m
+--- a/arch/ia64/mm/discontig.c~ia64-fix-discontigc-section-mismatches
++++ a/arch/ia64/mm/discontig.c
+@@ -95,7 +95,7 @@ static int __init build_node_maps(unsign
+  * acpi_boot_init() (which builds the node_to_cpu_mask array) hasn't been
+  * called yet.  Note that node 0 will also count all non-existent cpus.
+  */
+-static int __meminit early_nr_cpus_node(int node)
++static int early_nr_cpus_node(int node)
+ {
+ 	int cpu, n = 0;
+ 
+@@ -110,7 +110,7 @@ static int __meminit early_nr_cpus_node(
+  * compute_pernodesize - compute size of pernode data
+  * @node: the node id.
+  */
+-static unsigned long __meminit compute_pernodesize(int node)
++static unsigned long compute_pernodesize(int node)
+ {
+ 	unsigned long pernodesize = 0, cpus;
+ 
+@@ -367,7 +367,7 @@ static void __init reserve_pernode_space
+ 	}
+ }
+ 
+-static void __meminit scatter_node_data(void)
++static void scatter_node_data(void)
+ {
+ 	pg_data_t **dst;
+ 	int node;
 _
