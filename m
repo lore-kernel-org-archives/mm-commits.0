@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B072BC43460
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 19:56:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 558E2C43462
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 19:56:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 94EA1613CD
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 19:56:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40338613D3
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 19:56:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243724AbhDPT4t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S244062AbhDPT4t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 16 Apr 2021 15:56:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39546 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39592 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243893AbhDPT4o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Apr 2021 15:56:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A1C3461006;
-        Fri, 16 Apr 2021 19:56:17 +0000 (UTC)
+        id S243897AbhDPT4q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Apr 2021 15:56:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A3B7613CD;
+        Fri, 16 Apr 2021 19:56:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618602977;
-        bh=645t5om6lTXl5uD4DET0P+QUvcUakJ7bEaBMP8NkhF4=;
+        s=korg; t=1618602979;
+        bh=Mqzutygu1plJ6ZMUzTPCu7shi6HNmSbfLMdhsp7ZOZM=;
         h=Date:From:To:Subject:From;
-        b=ntUGuqvP62jwr8g3c+vdPPDHLlk82f40icPY12XwjDoZ1/MZsUelBvbxsmnhNLr80
-         K+3SMFfa9zpYL2FO1Gz70q+ua1JhMRH8jGaiZvcf2eC2QJk5XM5mjg9c8uiMAWlhaW
-         Q1p3NPXPAn67zmEO3lHvETJks01g3/NaYBGErDhw=
-Date:   Fri, 16 Apr 2021 12:56:17 -0700
+        b=RkgIaBqham20YyjC9tBrmqYCzVqmIQ70dtA02mjlrU3itjBlguZJAybcO/7UmFVy7
+         nj4CIBZHvEgTHqtlMV6HfuRgWEr5bg7jH3BLRFKpqW9MKzHPQ4tic0htscbVXlVdnZ
+         nVayqqAZHdwI+Sp0O0Ik6Foo/cH7AlNsOcCJ5Ugk=
+Date:   Fri, 16 Apr 2021 12:56:19 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
         pasha.tatashin@soleen.com, mhocko@suse.com, mhocko@kernel.org,
         david@redhat.com, anshuman.khandual@arm.com, osalvador@suse.de
 Subject:  +
- x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch added to -mm
+ arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch added to -mm
  tree
-Message-ID: <20210416195617.05Bm5%akpm@linux-foundation.org>
+Message-ID: <20210416195619.wNryf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
+     Subject: arm64/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
 has been added to the -mm tree.  Its filename is
-     x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+     arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,36 +67,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: x86/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
+Subject: arm64/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
 
-Enable x86_64 platform to use the MHP_MEMMAP_ON_MEMORY feature.
+Enable arm64 platform to use the MHP_MEMMAP_ON_MEMORY feature.
 
-Link: https://lkml.kernel.org/r/20210416112411.9826-8-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20210416112411.9826-9-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    3 +++
+ arch/arm64/Kconfig |    3 +++
  1 file changed, 3 insertions(+)
 
---- a/arch/x86/Kconfig~x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable
-+++ a/arch/x86/Kconfig
-@@ -2430,6 +2430,9 @@ config ARCH_HAS_ADD_PAGES
- 	def_bool y
- 	depends on X86_64 && ARCH_ENABLE_MEMORY_HOTPLUG
+--- a/arch/arm64/Kconfig~arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable
++++ a/arch/arm64/Kconfig
+@@ -312,6 +312,9 @@ config ZONE_DMA32
+ 	bool "Support DMA32 zone" if EXPERT
+ 	default y
  
 +config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
 +	def_bool y
 +
- config USE_PERCPU_NUMA_NODE_ID
+ config SMP
  	def_bool y
- 	depends on NUMA
+ 
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
