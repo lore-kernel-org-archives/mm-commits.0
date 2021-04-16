@@ -5,37 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAEA1C43461
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A5CFC43460
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91723613CF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64978613C7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234886AbhDPWql (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Apr 2021 18:46:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53482 "EHLO mail.kernel.org"
+        id S234209AbhDPWqp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Apr 2021 18:46:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53518 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234797AbhDPWqk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Apr 2021 18:46:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 82FAE613D1;
-        Fri, 16 Apr 2021 22:46:15 +0000 (UTC)
+        id S234797AbhDPWqp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Apr 2021 18:46:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4DD63613C7;
+        Fri, 16 Apr 2021 22:46:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618613175;
-        bh=TLb5oVVx1Av3NYepD3n/B/8RNdcDVOkGEad/izZ0U3E=;
+        s=korg; t=1618613178;
+        bh=R+uGwTtcNlyIbj++0CC4cDQctjTweVvFDd7V07HIPPQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=GcMI0lMtCtXIINm7UTE1uADsFK4utklcxxSXfrPiOtBpyIhTc1eU1JwNbSSduUJd5
-         f4g8o+oCJ6cycEpDlw9RacY8na1AS6H99pmq7tJEC6IhaOUVoK57/6aXOikAECkpoR
-         q0T4monidEVmCH61lxBiifW8Xu2Nng4MVPyWG2Xg=
-Date:   Fri, 16 Apr 2021 15:46:15 -0700
+        b=MR4Q/GBsvDg/DcDnvyl9eOzPUnmdMw3y3RA4BseMbnoohsAoFFCgxSlthEin7f3qH
+         Q6ufFjWlxj0RqBemxxAvS3MUOl45/BaBQBuSdfchAeJxSv/7566fW2zz8mu0SSSPik
+         b2XT5ePcq2JxY1vB/XE0I92gMClnzJrM1Bq84x2A=
+Date:   Fri, 16 Apr 2021 15:46:18 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, glaubitz@physik.fu-berlin.de,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 08/12] ia64: tools: remove duplicate definition of
- ia64_mf() on ia64
-Message-ID: <20210416224615._syscQRrG%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, thomas_os@shipmail.org,
+        torvalds@linux-foundation.org, zackr@vmware.com
+Subject:  [patch 09/12] mm/mapping_dirty_helpers: guard hugepage
+ pud's usage
+Message-ID: <20210416224618.i95n9fHXs%akpm@linux-foundation.org>
 In-Reply-To: <20210416154523.3f9794326e8e1db549873cf8@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,51 +43,49 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Subject: ia64: tools: remove duplicate definition of ia64_mf() on ia64
+From: Zack Rusin <zackr@vmware.com>
+Subject: mm/mapping_dirty_helpers: guard hugepage pud's usage
 
-The ia64_mf() macro defined in tools/arch/ia64/include/asm/barrier.h is
-already defined in <asm/gcc_intrin.h> on ia64 which causes libbpf failing
-to build:
+Mapping dirty helpers have, so far, been only used on X86, but a port of
+vmwgfx to ARM64 exposed a problem which results in a compilation error on
+ARM64 systems:
 
-  CC       /usr/src/linux/tools/bpf/bpftool//libbpf/staticobjs/libbpf.o
-In file included from /usr/src/linux/tools/include/asm/barrier.h:24,
-                 from /usr/src/linux/tools/include/linux/ring_buffer.h:4,
-                 from libbpf.c:37:
-/usr/src/linux/tools/include/asm/../../arch/ia64/include/asm/barrier.h:43: error: "ia64_mf" redefined [-Werror]
-   43 | #define ia64_mf()       asm volatile ("mf" ::: "memory")
-      |
-In file included from /usr/include/ia64-linux-gnu/asm/intrinsics.h:20,
-                 from /usr/include/ia64-linux-gnu/asm/swab.h:11,
-                 from /usr/include/linux/swab.h:8,
-                 from /usr/include/linux/byteorder/little_endian.h:13,
-                 from /usr/include/ia64-linux-gnu/asm/byteorder.h:5,
-                 from /usr/src/linux/tools/include/uapi/linux/perf_event.h:20,
-                 from libbpf.c:36:
-/usr/include/ia64-linux-gnu/asm/gcc_intrin.h:382: note: this is the location of the previous definition
-  382 | #define ia64_mf() __asm__ volatile ("mf" ::: "memory")
-      |
-cc1: all warnings being treated as errors
+mm/mapping_dirty_helpers.c: In function `wp_clean_pud_entry':
+mm/mapping_dirty_helpers.c:172:32: error: implicit declaration of function `pud_dirty'; did you mean `pmd_dirty'? [-Werror=implicit-function-declaration]
 
-Thus, remove the definition from tools/arch/ia64/include/asm/barrier.h.
+This is due to the fact that mapping_dirty_helpers code assumes that
+pud_dirty is always defined, which is not the case for architectures that
+don't define CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD.
 
-Signed-off-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+ARM64 arch is a little inconsistent when it comes to PUD hugepage helpers,
+e.g.  it defines pud_young but not pud_dirty but regardless of that the
+core kernel code shouldn't assume that any of the PUD hugepage helpers are
+available unless CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD is defined. 
+This prevents compilation errors whenever one of the drivers is ported to
+new architectures.
+
+Link: https://lkml.kernel.org/r/20210409165151.694574-1-zackr@vmware.com
+Signed-off-by: Zack Rusin <zackr@vmware.com>
+Reviewed-by: Thomas Hellstrm (Intel) <thomas_os@shipmail.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/arch/ia64/include/asm/barrier.h |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/mapping_dirty_helpers.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/arch/ia64/include/asm/barrier.h~ia64-tools-remove-duplicate-definition-of-ia64_mf-on-ia64
-+++ a/tools/arch/ia64/include/asm/barrier.h
-@@ -39,9 +39,6 @@
-  * sequential memory pages only.
-  */
+--- a/mm/mapping_dirty_helpers.c~mm-mapping_dirty_helpers-guard-hugepage-puds-usage
++++ a/mm/mapping_dirty_helpers.c
+@@ -165,10 +165,12 @@ static int wp_clean_pud_entry(pud_t *pud
+ 		return 0;
+ 	}
  
--/* XXX From arch/ia64/include/uapi/asm/gcc_intrin.h */
--#define ia64_mf()       asm volatile ("mf" ::: "memory")
--
- #define mb()		ia64_mf()
- #define rmb()		mb()
- #define wmb()		mb()
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+ 	/* Huge pud */
+ 	walk->action = ACTION_CONTINUE;
+ 	if (pud_trans_huge(pudval) || pud_devmap(pudval))
+ 		WARN_ON(pud_write(pudval) || pud_dirty(pudval));
++#endif
+ 
+ 	return 0;
+ }
 _
