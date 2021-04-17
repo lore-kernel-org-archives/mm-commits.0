@@ -2,185 +2,116 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82AA2C433ED
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FFA1C433ED
+	for <mm-commits@archiver.kernel.org>; Sat, 17 Apr 2021 00:45:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 63072613C7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Apr 2021 22:46:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5029A6137D
+	for <mm-commits@archiver.kernel.org>; Sat, 17 Apr 2021 00:45:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234916AbhDPWqx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Apr 2021 18:46:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53628 "EHLO mail.kernel.org"
+        id S231997AbhDQAqH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Apr 2021 20:46:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42106 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234813AbhDPWqw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Apr 2021 18:46:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C755A613B0;
-        Fri, 16 Apr 2021 22:46:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618613187;
-        bh=O2YvzHI2RahrAhxold00dtP92uE2XKn1u0uufdw8VAk=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=U0KGBRv+ImG9IBBhz7JUFWcZ8210hAaVp8Sb2FTVyAsdQee8sntVITV7gb2tSezwb
-         +ASI4JbWB5uXJznpmu1TcMmPsPiE+NE8YtXSlFCu71D9Llj9IDAei+RkgUN3MEMo4D
-         ZCfc4A0Nhek8WMPa5xH7FPxFU+4RBKOongnK9z4E=
-Date:   Fri, 16 Apr 2021 15:46:26 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, jiri@nvidia.com,
-        lars.ellenberg@linbit.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, philipp.reisner@linbit.com,
-        rdunlap@infradead.org, torvalds@linux-foundation.org,
-        willy@infradead.org
-Subject:  [patch 12/12] lib: remove "expecting prototype"
- kernel-doc warnings
-Message-ID: <20210416224626.Evzxb9hBs%akpm@linux-foundation.org>
-In-Reply-To: <20210416154523.3f9794326e8e1db549873cf8@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S229719AbhDQAqG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Apr 2021 20:46:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2121E6137D
+        for <mm-commits@vger.kernel.org>; Sat, 17 Apr 2021 00:45:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1618620341;
+        bh=lSsnVay0rJWW6MjOZqm8flZ5I5tTGTUG6tF6O4/guDA=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=Tyv15qdH10P1CX6MbjYxxWSCqw5E01W2VOrmv7oxnMSFEyrN594lfuz1l1Gqm+Vs7
+         Fd8Gsblu5fVfeV+VN1cKQjdBPgmKMWMDmoAKoBKsKlHLs7Y0z7k4MoUvKmMb92cWCY
+         8aYrmnsrlVQ2SoPNccRHTqzaMqOalPEVxh5qTg7s9Fel1Wkwu82xZTgKwVqaoww9xF
+         a4CsmFbugxLQ/D7PtA08djX+zRO3ras027Sws6GUYBRezPFsFuuHVFi30uDvoS0miq
+         W56AOUDHwXTZbSxoPOuryGKbCRxdZww3pjQ36TYMbPZXbnKkTcb/U1iczhb1wD0AoC
+         fLxBkx4jPNXLQ==
+Received: by mail-lf1-f50.google.com with SMTP id f17so40377766lfu.7
+        for <mm-commits@vger.kernel.org>; Fri, 16 Apr 2021 17:45:41 -0700 (PDT)
+X-Gm-Message-State: AOAM530OK7Gwuhy30s1fDlRRoydCI5s5jrbmoQV4VpGPyuKYq3zQ+bUt
+        34zCd2HsUPxm/bs8TwkU4BKA1wC0yl58uPtGm5I=
+X-Google-Smtp-Source: ABdhPJz32kliawinOEuXKfgFPcpC2BEqt0tlvGESX2Sa34wzDqUIxi1I5niUwnf7/+B9QQghlWUZT+Px75+KnnGukc4=
+X-Received: by 2002:a05:6512:3f02:: with SMTP id y2mr4737601lfa.355.1618620339526;
+ Fri, 16 Apr 2021 17:45:39 -0700 (PDT)
+MIME-Version: 1.0
+References: <20210416154523.3f9794326e8e1db549873cf8@linux-foundation.org> <20210416224603.EETOY2Or4%akpm@linux-foundation.org>
+In-Reply-To: <20210416224603.EETOY2Or4%akpm@linux-foundation.org>
+From:   Guo Ren <guoren@kernel.org>
+Date:   Sat, 17 Apr 2021 08:45:28 +0800
+X-Gmail-Original-Message-ID: <CAJF2gTTDzXPqmwTiyESzwwbJFsAZpnhSY9UqvXvvkY51WusGBA@mail.gmail.com>
+Message-ID: <CAJF2gTTDzXPqmwTiyESzwwbJFsAZpnhSY9UqvXvvkY51WusGBA@mail.gmail.com>
+Subject: Re: [patch 04/12] csky: change a Kconfig symbol name to fix e1000
+ build error
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        Linux-MM <linux-mm@kvack.org>, kbuild test robot <lkp@intel.com>,
+        mm-commits@vger.kernel.org, Randy Dunlap <rdunlap@infradead.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib: remove "expecting prototype" kernel-doc warnings
+Looks good to me, I'll approve it in my linux-next tree.
 
-Fix various kernel-doc warnings in lib/ due to missing or
-erroneous function names.
-Add kernel-doc for some function parameters that was missing.
-Use kernel-doc "Return:" notation in earlycpio.c.
+On Sat, Apr 17, 2021 at 6:46 AM Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> From: Randy Dunlap <rdunlap@infradead.org>
+> Subject: csky: change a Kconfig symbol name to fix e1000 build error
+>
+> e1000's #define of CONFIG_RAM_BASE conflicts with a Kconfig symbol in
+> arch/csky/Kconfig.
+>
+> The symbol in e1000 has been around longer, so change arch/csky/ to use
+> DRAM_BASE instead of RAM_BASE to remove the conflict.  (although e1000 is
+> also a 2-line change)
+>
+> Link: https://lkml.kernel.org/r/20210411055335.7111-1-rdunlap@infradead.org
+> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+> Reported-by: kernel test robot <lkp@intel.com>
+> Acked-by: Guo Ren <guoren@kernel.org>
+> Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>  arch/csky/Kconfig            |    2 +-
+>  arch/csky/include/asm/page.h |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+>
+> --- a/arch/csky/include/asm/page.h~csky-change-a-kconfig-symbol-name-to-fix-e1000-build-error
+> +++ a/arch/csky/include/asm/page.h
+> @@ -28,7 +28,7 @@
+>  #define SSEG_SIZE      0x20000000
+>  #define LOWMEM_LIMIT   (SSEG_SIZE * 2)
+>
+> -#define PHYS_OFFSET_OFFSET (CONFIG_RAM_BASE & (SSEG_SIZE - 1))
+> +#define PHYS_OFFSET_OFFSET (CONFIG_DRAM_BASE & (SSEG_SIZE - 1))
+>
+>  #ifndef __ASSEMBLY__
+>
+> --- a/arch/csky/Kconfig~csky-change-a-kconfig-symbol-name-to-fix-e1000-build-error
+> +++ a/arch/csky/Kconfig
+> @@ -314,7 +314,7 @@ config FORCE_MAX_ZONEORDER
+>         int "Maximum zone order"
+>         default "11"
+>
+> -config RAM_BASE
+> +config DRAM_BASE
+>         hex "DRAM start addr (the same with memory-section in dts)"
+>         default 0x0
+>
+> _
 
-Quietens the following warnings:
 
-../lib/earlycpio.c:61: warning: expecting prototype for cpio_data find_cpio_data(). Prototype was for find_cpio_data() instead
 
-../lib/lru_cache.c:640: warning: expecting prototype for lc_dump(). Prototype was for lc_seq_dump_details() instead
-lru_cache.c:90: warning: Function parameter or member 'cache' not described in 'lc_create'
+-- 
+Best Regards
+ Guo Ren
 
-../lib/parman.c:368: warning: expecting prototype for parman_item_del(). Prototype was for parman_item_remove() instead
-parman.c:309: warning: Excess function parameter 'prority' description in 'parman_prio_init'
-
-../lib/radix-tree.c:703: warning: expecting prototype for __radix_tree_insert(). Prototype was for radix_tree_insert() instead
-radix-tree.c:180: warning: Excess function parameter 'addr' description in 'radix_tree_find_next_bit'
-radix-tree.c:180: warning: Excess function parameter 'size' description in 'radix_tree_find_next_bit'
-radix-tree.c:931: warning: Function parameter or member 'iter' not described in 'radix_tree_iter_replace'
-
-Link: https://lkml.kernel.org/r/20210411221756.15461-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Philipp Reisner <philipp.reisner@linbit.com>
-Cc: Lars Ellenberg <lars.ellenberg@linbit.com>
-Cc: Jiri Pirko <jiri@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/earlycpio.c  |    4 ++--
- lib/lru_cache.c  |    3 ++-
- lib/parman.c     |    4 ++--
- lib/radix-tree.c |   11 ++++++-----
- 4 files changed, 12 insertions(+), 10 deletions(-)
-
---- a/lib/earlycpio.c~lib-remove-expecting-prototype-kernel-doc-warnings
-+++ a/lib/earlycpio.c
-@@ -40,7 +40,7 @@ enum cpio_fields {
- };
- 
- /**
-- * cpio_data find_cpio_data - Search for files in an uncompressed cpio
-+ * find_cpio_data - Search for files in an uncompressed cpio
-  * @path:       The directory to search for, including a slash at the end
-  * @data:       Pointer to the cpio archive or a header inside
-  * @len:        Remaining length of the cpio based on data pointer
-@@ -49,7 +49,7 @@ enum cpio_fields {
-  *              matching file itself. It can be used to iterate through the cpio
-  *              to find all files inside of a directory path.
-  *
-- * @return:     struct cpio_data containing the address, length and
-+ * Return:      &struct cpio_data containing the address, length and
-  *              filename (with the directory path cut off) of the found file.
-  *              If you search for a filename and not for files in a directory,
-  *              pass the absolute path of the filename in the cpio and make sure
---- a/lib/lru_cache.c~lib-remove-expecting-prototype-kernel-doc-warnings
-+++ a/lib/lru_cache.c
-@@ -76,6 +76,7 @@ int lc_try_lock(struct lru_cache *lc)
- /**
-  * lc_create - prepares to track objects in an active set
-  * @name: descriptive name only used in lc_seq_printf_stats and lc_seq_dump_details
-+ * @cache: cache root pointer
-  * @max_pending_changes: maximum changes to accumulate until a transaction is required
-  * @e_count: number of elements allowed to be active simultaneously
-  * @e_size: size of the tracked objects
-@@ -627,7 +628,7 @@ void lc_set(struct lru_cache *lc, unsign
- }
- 
- /**
-- * lc_dump - Dump a complete LRU cache to seq in textual form.
-+ * lc_seq_dump_details - Dump a complete LRU cache to seq in textual form.
-  * @lc: the lru cache to operate on
-  * @seq: the &struct seq_file pointer to seq_printf into
-  * @utext: user supplied additional "heading" or other info
---- a/lib/parman.c~lib-remove-expecting-prototype-kernel-doc-warnings
-+++ a/lib/parman.c
-@@ -297,7 +297,7 @@ EXPORT_SYMBOL(parman_destroy);
-  * parman_prio_init - initializes a parman priority chunk
-  * @parman:	parman instance
-  * @prio:	parman prio structure to be initialized
-- * @prority:	desired priority of the chunk
-+ * @priority:	desired priority of the chunk
-  *
-  * Note: all locking must be provided by the caller.
-  *
-@@ -356,7 +356,7 @@ int parman_item_add(struct parman *parma
- EXPORT_SYMBOL(parman_item_add);
- 
- /**
-- * parman_item_del - deletes parman item
-+ * parman_item_remove - deletes parman item
-  * @parman:	parman instance
-  * @prio:	parman prio instance to delete the item from
-  * @item:	parman item instance
---- a/lib/radix-tree.c~lib-remove-expecting-prototype-kernel-doc-warnings
-+++ a/lib/radix-tree.c
-@@ -166,9 +166,9 @@ static inline void all_tag_set(struct ra
- /**
-  * radix_tree_find_next_bit - find the next set bit in a memory region
-  *
-- * @addr: The address to base the search on
-- * @size: The bitmap size in bits
-- * @offset: The bitnumber to start searching at
-+ * @node: where to begin the search
-+ * @tag: the tag index
-+ * @offset: the bitnumber to start searching at
-  *
-  * Unrollable variant of find_next_bit() for constant size arrays.
-  * Tail bits starting from size to roundup(size, BITS_PER_LONG) must be zero.
-@@ -461,7 +461,7 @@ out:
- 
- /**
-  *	radix_tree_shrink    -    shrink radix tree to minimum height
-- *	@root		radix tree root
-+ *	@root:		radix tree root
-  */
- static inline bool radix_tree_shrink(struct radix_tree_root *root)
- {
-@@ -691,7 +691,7 @@ static inline int insert_entries(struct
- }
- 
- /**
-- *	__radix_tree_insert    -    insert into a radix tree
-+ *	radix_tree_insert    -    insert into a radix tree
-  *	@root:		radix tree root
-  *	@index:		index key
-  *	@item:		item to insert
-@@ -919,6 +919,7 @@ EXPORT_SYMBOL(radix_tree_replace_slot);
- /**
-  * radix_tree_iter_replace - replace item in a slot
-  * @root:	radix tree root
-+ * @iter:	iterator state
-  * @slot:	pointer to slot
-  * @item:	new item to store in the slot.
-  *
-_
+ML: https://lore.kernel.org/linux-csky/
