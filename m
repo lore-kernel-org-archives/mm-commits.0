@@ -2,116 +2,95 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-21.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FFA1C433ED
-	for <mm-commits@archiver.kernel.org>; Sat, 17 Apr 2021 00:45:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA791C433B4
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Apr 2021 21:37:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5029A6137D
-	for <mm-commits@archiver.kernel.org>; Sat, 17 Apr 2021 00:45:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A56B3613AC
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Apr 2021 21:37:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231997AbhDQAqH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Apr 2021 20:46:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42106 "EHLO mail.kernel.org"
+        id S240387AbhDSVhd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Apr 2021 17:37:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40866 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229719AbhDQAqG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Apr 2021 20:46:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2121E6137D
-        for <mm-commits@vger.kernel.org>; Sat, 17 Apr 2021 00:45:41 +0000 (UTC)
+        id S229714AbhDSVhc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 19 Apr 2021 17:37:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 70B3F6113C;
+        Mon, 19 Apr 2021 21:37:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1618620341;
-        bh=lSsnVay0rJWW6MjOZqm8flZ5I5tTGTUG6tF6O4/guDA=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=Tyv15qdH10P1CX6MbjYxxWSCqw5E01W2VOrmv7oxnMSFEyrN594lfuz1l1Gqm+Vs7
-         Fd8Gsblu5fVfeV+VN1cKQjdBPgmKMWMDmoAKoBKsKlHLs7Y0z7k4MoUvKmMb92cWCY
-         8aYrmnsrlVQ2SoPNccRHTqzaMqOalPEVxh5qTg7s9Fel1Wkwu82xZTgKwVqaoww9xF
-         a4CsmFbugxLQ/D7PtA08djX+zRO3ras027Sws6GUYBRezPFsFuuHVFi30uDvoS0miq
-         W56AOUDHwXTZbSxoPOuryGKbCRxdZww3pjQ36TYMbPZXbnKkTcb/U1iczhb1wD0AoC
-         fLxBkx4jPNXLQ==
-Received: by mail-lf1-f50.google.com with SMTP id f17so40377766lfu.7
-        for <mm-commits@vger.kernel.org>; Fri, 16 Apr 2021 17:45:41 -0700 (PDT)
-X-Gm-Message-State: AOAM530OK7Gwuhy30s1fDlRRoydCI5s5jrbmoQV4VpGPyuKYq3zQ+bUt
-        34zCd2HsUPxm/bs8TwkU4BKA1wC0yl58uPtGm5I=
-X-Google-Smtp-Source: ABdhPJz32kliawinOEuXKfgFPcpC2BEqt0tlvGESX2Sa34wzDqUIxi1I5niUwnf7/+B9QQghlWUZT+Px75+KnnGukc4=
-X-Received: by 2002:a05:6512:3f02:: with SMTP id y2mr4737601lfa.355.1618620339526;
- Fri, 16 Apr 2021 17:45:39 -0700 (PDT)
+        s=k20201202; t=1618868221;
+        bh=YnVav9b2X8BK437Ycy2zQXeK5R1Vi6ULJV95mmEM4l4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=EI1wBfo0xtdY0joSyyKzShYA0Pga5EG2LIV5/8DChIL9W2DIYzIi6029niHZHtnev
+         1qJydGLBDhqzO0dKt3C8s0bBy7bcHS/PAitfln3FrxJ4gWAPpuh/bNv1E6It1lyR3A
+         uFqPAaBEM2ugQIAX8iFdBBolBgnRXtXiqffC7jse9KO8bEiuGwdEdG83mlnGqQlFlK
+         im6hV+uNMfb3IwC8FDsTccbFFq01IsnwHJUwlsi/0z0pfwa1FywH3ixCCWtqSsKpJF
+         jJOG5yXW1QcSEYOePKQa0E9s6yQLRP8MF4Gch+oTLjyfBUkO8sxGrJO0prT0dDPJa6
+         n2tSUH0/vXGAw==
+Date:   Mon, 19 Apr 2021 14:36:57 -0700
+From:   Nathan Chancellor <nathan@kernel.org>
+To:     linux-kernel@vger.kernel.org
+Cc:     akpm@linux-foundation.org, johannes.berg@intel.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        ndesaulniers@google.com, torvalds@linux-foundation.org
+Subject: Re: [patch 11/12] gcov: clang: fix clang-11+ build
+Message-ID: <YH33+R8pwviVysY5@archlinux-ax161>
+References: <20210416154523.3f9794326e8e1db549873cf8@linux-foundation.org>
+ <20210416224623.nZhisHrwM%akpm@linux-foundation.org>
 MIME-Version: 1.0
-References: <20210416154523.3f9794326e8e1db549873cf8@linux-foundation.org> <20210416224603.EETOY2Or4%akpm@linux-foundation.org>
-In-Reply-To: <20210416224603.EETOY2Or4%akpm@linux-foundation.org>
-From:   Guo Ren <guoren@kernel.org>
-Date:   Sat, 17 Apr 2021 08:45:28 +0800
-X-Gmail-Original-Message-ID: <CAJF2gTTDzXPqmwTiyESzwwbJFsAZpnhSY9UqvXvvkY51WusGBA@mail.gmail.com>
-Message-ID: <CAJF2gTTDzXPqmwTiyESzwwbJFsAZpnhSY9UqvXvvkY51WusGBA@mail.gmail.com>
-Subject: Re: [patch 04/12] csky: change a Kconfig symbol name to fix e1000
- build error
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Linux-MM <linux-mm@kvack.org>, kbuild test robot <lkp@intel.com>,
-        mm-commits@vger.kernel.org, Randy Dunlap <rdunlap@infradead.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210416224623.nZhisHrwM%akpm@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Looks good to me, I'll approve it in my linux-next tree.
-
-On Sat, Apr 17, 2021 at 6:46 AM Andrew Morton <akpm@linux-foundation.org> wrote:
->
-> From: Randy Dunlap <rdunlap@infradead.org>
-> Subject: csky: change a Kconfig symbol name to fix e1000 build error
->
-> e1000's #define of CONFIG_RAM_BASE conflicts with a Kconfig symbol in
-> arch/csky/Kconfig.
->
-> The symbol in e1000 has been around longer, so change arch/csky/ to use
-> DRAM_BASE instead of RAM_BASE to remove the conflict.  (although e1000 is
-> also a 2-line change)
->
-> Link: https://lkml.kernel.org/r/20210411055335.7111-1-rdunlap@infradead.org
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Reported-by: kernel test robot <lkp@intel.com>
-> Acked-by: Guo Ren <guoren@kernel.org>
-> Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
+On Fri, Apr 16, 2021 at 03:46:23PM -0700, Andrew Morton wrote:
+> From: Johannes Berg <johannes.berg@intel.com>
+> Subject: gcov: clang: fix clang-11+ build
+> 
+> With clang-11+, the code is broken due to my kvmalloc() conversion (which
+> predated the clang-11 support code) leaving one vmalloc() in place.  Fix
+> that.
+> 
+> Link: https://lkml.kernel.org/r/20210412214210.6e1ecca9cdc5.I24459763acf0591d5e6b31c7e3a59890d802f79c@changeid
+> Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+> Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+> Tested-by: Nick Desaulniers <ndesaulniers@google.com>
 > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 > ---
->
->  arch/csky/Kconfig            |    2 +-
->  arch/csky/include/asm/page.h |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
->
-> --- a/arch/csky/include/asm/page.h~csky-change-a-kconfig-symbol-name-to-fix-e1000-build-error
-> +++ a/arch/csky/include/asm/page.h
-> @@ -28,7 +28,7 @@
->  #define SSEG_SIZE      0x20000000
->  #define LOWMEM_LIMIT   (SSEG_SIZE * 2)
->
-> -#define PHYS_OFFSET_OFFSET (CONFIG_RAM_BASE & (SSEG_SIZE - 1))
-> +#define PHYS_OFFSET_OFFSET (CONFIG_DRAM_BASE & (SSEG_SIZE - 1))
->
->  #ifndef __ASSEMBLY__
->
-> --- a/arch/csky/Kconfig~csky-change-a-kconfig-symbol-name-to-fix-e1000-build-error
-> +++ a/arch/csky/Kconfig
-> @@ -314,7 +314,7 @@ config FORCE_MAX_ZONEORDER
->         int "Maximum zone order"
->         default "11"
->
-> -config RAM_BASE
-> +config DRAM_BASE
->         hex "DRAM start addr (the same with memory-section in dts)"
->         default 0x0
->
+> 
+>  kernel/gcov/clang.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- a/kernel/gcov/clang.c~gcov-clang-fix-clang-11-build
+> +++ a/kernel/gcov/clang.c
+> @@ -369,7 +369,7 @@ static struct gcov_fn_info *gcov_fn_info
+>  	INIT_LIST_HEAD(&fn_dup->head);
+>  
+>  	cv_size = fn->num_counters * sizeof(fn->counters[0]);
+> -	fn_dup->counters = vmalloc(cv_size);
+> +	fn_dup->counters = kvmalloc(cv_size, GFP_KERNEL);
+>  	if (!fn_dup->counters) {
+>  		kfree(fn_dup);
+>  		return NULL;
 > _
 
+This should not have been merged into mainline by itself. It was a fix
+for "gcov: use kvmalloc()", which is still in -mm/-next. Merging it
+alone has now broken the build:
 
+https://github.com/ClangBuiltLinux/continuous-integration2/runs/2384465683?check_suite_focus=true
 
--- 
-Best Regards
- Guo Ren
+Could it please be reverted in mainline then added as a fix patch for
+the patch that is still in -mm:
 
-ML: https://lore.kernel.org/linux-csky/
+https://www.ozlabs.org/~akpm/mmotm/broken-out/gcov-use-kvmalloc.patch
+
+Cheers,
+Nathan
