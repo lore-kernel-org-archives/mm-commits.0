@@ -2,95 +2,95 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA791C433B4
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Apr 2021 21:37:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE386C43461
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Apr 2021 22:12:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A56B3613AC
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Apr 2021 21:37:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A6D161077
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Apr 2021 22:12:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240387AbhDSVhd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Apr 2021 17:37:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40866 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229714AbhDSVhc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 19 Apr 2021 17:37:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 70B3F6113C;
-        Mon, 19 Apr 2021 21:37:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1618868221;
-        bh=YnVav9b2X8BK437Ycy2zQXeK5R1Vi6ULJV95mmEM4l4=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=EI1wBfo0xtdY0joSyyKzShYA0Pga5EG2LIV5/8DChIL9W2DIYzIi6029niHZHtnev
-         1qJydGLBDhqzO0dKt3C8s0bBy7bcHS/PAitfln3FrxJ4gWAPpuh/bNv1E6It1lyR3A
-         uFqPAaBEM2ugQIAX8iFdBBolBgnRXtXiqffC7jse9KO8bEiuGwdEdG83mlnGqQlFlK
-         im6hV+uNMfb3IwC8FDsTccbFFq01IsnwHJUwlsi/0z0pfwa1FywH3ixCCWtqSsKpJF
-         jJOG5yXW1QcSEYOePKQa0E9s6yQLRP8MF4Gch+oTLjyfBUkO8sxGrJO0prT0dDPJa6
-         n2tSUH0/vXGAw==
-Date:   Mon, 19 Apr 2021 14:36:57 -0700
-From:   Nathan Chancellor <nathan@kernel.org>
-To:     linux-kernel@vger.kernel.org
-Cc:     akpm@linux-foundation.org, johannes.berg@intel.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        ndesaulniers@google.com, torvalds@linux-foundation.org
-Subject: Re: [patch 11/12] gcov: clang: fix clang-11+ build
-Message-ID: <YH33+R8pwviVysY5@archlinux-ax161>
-References: <20210416154523.3f9794326e8e1db549873cf8@linux-foundation.org>
- <20210416224623.nZhisHrwM%akpm@linux-foundation.org>
+        id S229473AbhDSWNR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Apr 2021 18:13:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35620 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230313AbhDSWNR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Apr 2021 18:13:17 -0400
+Received: from mail-lj1-x230.google.com (mail-lj1-x230.google.com [IPv6:2a00:1450:4864:20::230])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 862B4C06138A
+        for <mm-commits@vger.kernel.org>; Mon, 19 Apr 2021 15:12:45 -0700 (PDT)
+Received: by mail-lj1-x230.google.com with SMTP id a25so27900899ljm.11
+        for <mm-commits@vger.kernel.org>; Mon, 19 Apr 2021 15:12:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=+H3mqp2R90G8NCw9fCRyS3oUOaUPPm2FiUG9y073Tek=;
+        b=CvduBEQUHFFh4Jq/ayDbLyMywS01YXp5FiMxStQ35SFbmG4ML4iS2QyKJWWBBzlOUg
+         f1XbpwtpjLvOtS3v5710aVWlGcZKjR2JsPDMUdojSq7OYYl101N3FbPXm3uM5qcs7lgu
+         te+yhQMxUKyArjW5eUhlZoc0312JyUXJVws3Q=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=+H3mqp2R90G8NCw9fCRyS3oUOaUPPm2FiUG9y073Tek=;
+        b=KoCJeQTiRqtRTKuLubzlxK7vKukzNs+886PrY4GRqBEqXgTpAGzP2zCqXGRU9bW1W0
+         J+YfjQszkncZXzuRjLOf6RJ7iE1tlJiafy4mSiRvRYOGedNTtYfz9XHbnIH2tuPidfzp
+         GO29hx5IG211ewlXEDOi5jt84nF4guHdDXSEbiRAUHzVjHiY835rBrCPan334k4PStQr
+         10VgXe3KC4gxAhSyOUqq4YdeoCFUnE7UBIYfWcD8e43Z3Z6BMKIaipJuKvjLp/Nze1LR
+         bLSWEiNsQGc5N2OK3yZaQDWEqJyGVVAabS/tok9Dy2uWSsld8CLATmVMeIfvSRrpUMRS
+         Abrw==
+X-Gm-Message-State: AOAM5312VW7o0eTrptiLi5+Fom9LkqPbA3mdSAixrjGBmpOvmdYeUOqi
+        IqJANaZogT9SRgaHzJWM0n8aXDBZCNeKw2g4
+X-Google-Smtp-Source: ABdhPJwaq7Fmq6tgxc2stNQMkySSKvgBjRlooX89mWHnOVJPbWdGv2QHMzDL5C88NhCTXLeL45sdzA==
+X-Received: by 2002:a05:651c:482:: with SMTP id s2mr9257892ljc.397.1618870363847;
+        Mon, 19 Apr 2021 15:12:43 -0700 (PDT)
+Received: from mail-lf1-f43.google.com (mail-lf1-f43.google.com. [209.85.167.43])
+        by smtp.gmail.com with ESMTPSA id w18sm1948925lfd.223.2021.04.19.15.12.42
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 19 Apr 2021 15:12:42 -0700 (PDT)
+Received: by mail-lf1-f43.google.com with SMTP id d27so1555146lfv.9
+        for <mm-commits@vger.kernel.org>; Mon, 19 Apr 2021 15:12:42 -0700 (PDT)
+X-Received: by 2002:a05:6512:3763:: with SMTP id z3mr13215500lft.487.1618870362276;
+ Mon, 19 Apr 2021 15:12:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210416224623.nZhisHrwM%akpm@linux-foundation.org>
+References: <20210416154523.3f9794326e8e1db549873cf8@linux-foundation.org>
+ <20210416224623.nZhisHrwM%akpm@linux-foundation.org> <YH33+R8pwviVysY5@archlinux-ax161>
+In-Reply-To: <YH33+R8pwviVysY5@archlinux-ax161>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Mon, 19 Apr 2021 15:12:26 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wgkck4D7ANx-uJCTugfR5GgH6MgvrmmGcqQRy6ZMECdTw@mail.gmail.com>
+Message-ID: <CAHk-=wgkck4D7ANx-uJCTugfR5GgH6MgvrmmGcqQRy6ZMECdTw@mail.gmail.com>
+Subject: Re: [patch 11/12] gcov: clang: fix clang-11+ build
+To:     Nathan Chancellor <nathan@kernel.org>,
+        stable <stable@vger.kernel.org>, Sasha Levin <sashal@kernel.org>
+Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        johannes.berg@intel.com, Linux-MM <linux-mm@kvack.org>,
+        mm-commits@vger.kernel.org,
+        Nick Desaulniers <ndesaulniers@google.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Apr 16, 2021 at 03:46:23PM -0700, Andrew Morton wrote:
-> From: Johannes Berg <johannes.berg@intel.com>
-> Subject: gcov: clang: fix clang-11+ build
-> 
-> With clang-11+, the code is broken due to my kvmalloc() conversion (which
-> predated the clang-11 support code) leaving one vmalloc() in place.  Fix
-> that.
-> 
-> Link: https://lkml.kernel.org/r/20210412214210.6e1ecca9cdc5.I24459763acf0591d5e6b31c7e3a59890d802f79c@changeid
-> Signed-off-by: Johannes Berg <johannes.berg@intel.com>
-> Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-> Tested-by: Nick Desaulniers <ndesaulniers@google.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  kernel/gcov/clang.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> --- a/kernel/gcov/clang.c~gcov-clang-fix-clang-11-build
-> +++ a/kernel/gcov/clang.c
-> @@ -369,7 +369,7 @@ static struct gcov_fn_info *gcov_fn_info
->  	INIT_LIST_HEAD(&fn_dup->head);
->  
->  	cv_size = fn->num_counters * sizeof(fn->counters[0]);
-> -	fn_dup->counters = vmalloc(cv_size);
-> +	fn_dup->counters = kvmalloc(cv_size, GFP_KERNEL);
->  	if (!fn_dup->counters) {
->  		kfree(fn_dup);
->  		return NULL;
-> _
+On Mon, Apr 19, 2021 at 2:37 PM Nathan Chancellor <nathan@kernel.org> wrote:
+>
+> This should not have been merged into mainline by itself. It was a fix
+> for "gcov: use kvmalloc()", which is still in -mm/-next. Merging it
+> alone has now broken the build:
+>
+> https://github.com/ClangBuiltLinux/continuous-integration2/runs/2384465683?check_suite_focus=true
+>
+> Could it please be reverted in mainline [..]
 
-This should not have been merged into mainline by itself. It was a fix
-for "gcov: use kvmalloc()", which is still in -mm/-next. Merging it
-alone has now broken the build:
+Now reverted in my tree.
 
-https://github.com/ClangBuiltLinux/continuous-integration2/runs/2384465683?check_suite_focus=true
+Sasha and stable cc'd too, since it was apparently auto-selected there..
 
-Could it please be reverted in mainline then added as a fix patch for
-the patch that is still in -mm:
-
-https://www.ozlabs.org/~akpm/mmotm/broken-out/gcov-use-kvmalloc.patch
-
-Cheers,
-Nathan
+           Linus
