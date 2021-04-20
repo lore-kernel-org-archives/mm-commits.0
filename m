@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76FACC433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Apr 2021 22:54:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA9BAC433B4
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Apr 2021 22:55:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 37F6461406
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Apr 2021 22:54:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA921613E7
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Apr 2021 22:55:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234189AbhDTWzD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Apr 2021 18:55:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60426 "EHLO mail.kernel.org"
+        id S233992AbhDTW4F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Apr 2021 18:56:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60638 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233964AbhDTWzC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Apr 2021 18:55:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B37ED613E7;
-        Tue, 20 Apr 2021 22:54:29 +0000 (UTC)
+        id S233964AbhDTW4F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Apr 2021 18:56:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DDD3161406;
+        Tue, 20 Apr 2021 22:55:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618959269;
-        bh=7YrVmkGoKN57ge8rfcD4Y5bluX6PrJiEy74T7s+bqXM=;
+        s=korg; t=1618959333;
+        bh=vUGmzym0ctKng6TAKQigf4pEfcRGJqRiRqTOIhlMyc0=;
         h=Date:From:To:Subject:From;
-        b=gFe7hF19KuX9JMDqyxzJNaUQ0gj/g1iYIlCUiafKfCtXGJGaPjgV3WlIqAP+dvKje
-         ALkMMiPSqZVT4pXr31tyZokqKwJupwWrAYGt9J2BM/YEGeeVNLaSwyjDq27o/HDa5l
-         7w4NYBuoPtv9WBY0e2FVSyMR0m1S51VRiJXPKeGk=
-Date:   Tue, 20 Apr 2021 15:54:29 -0700
+        b=wLOI/oDOnaLyX33QlUpQTknnbqxIGIsnQjY9w1sEO/XxTxqDkOvABRoqFvlqAFtUM
+         KGtbenCr2tN0wrfQNSs5ZDPhpE/O0JR1BxrVBQvngBMVJWjf5mLGi7AeN8eXL1nRC6
+         pspGg2aFv3RNmuHhQra7SQl6mXP8yolyvdlNcMnY=
+Date:   Tue, 20 Apr 2021 15:55:32 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        willy@infradead.org
-Subject:  [merged]
- mm-eliminate-expecting-prototype-kernel-doc-warnings.patch removed from -mm
- tree
-Message-ID: <20210420225429.18_Vyx3SJ%akpm@linux-foundation.org>
+To:     andreyknvl@gmail.com, arnd@arndb.de, dvyukov@google.com,
+        elver@google.com, glider@google.com, masahiroy@kernel.org,
+        michal.lkml@markovi.net, mm-commits@vger.kernel.org,
+        nathan@kernel.org, ndesaulniers@google.com, ryabinin.a.a@gmail.com
+Subject:  [merged] kasan-fix-hwasan-build-for-gcc.patch removed
+ from -mm tree
+Message-ID: <20210420225532.vYg7_YRfs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,114 +45,86 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: eliminate "expecting prototype" kernel-doc warnings
+     Subject: kasan: fix hwasan build for gcc
 has been removed from the -mm tree.  Its filename was
-     mm-eliminate-expecting-prototype-kernel-doc-warnings.patch
+     kasan-fix-hwasan-build-for-gcc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm: eliminate "expecting prototype" kernel-doc warnings
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kasan: fix hwasan build for gcc
 
-Fix stray kernel-doc warnings in mm/ due to mis-typed or missing function
-names.
+gcc-11 adds support for -fsanitize=kernel-hwaddress, so it becomes
+possible to enable CONFIG_KASAN_SW_TAGS.
 
-Quietens these kernel-doc warnings:
+Unfortunately this fails to build at the moment, because the corresponding
+command line arguments use llvm specific syntax.
 
-../mm/mmu_gather.c:264: warning: expecting prototype for tlb_gather_mmu(). Prototype was for __tlb_gather_mmu() instead
-../mm/oom_kill.c:180: warning: expecting prototype for Check whether unreclaimable slab amount is greater than(). Prototype was for should_dump_unreclaim_slab() instead
-../mm/shuffle.c:155: warning: expecting prototype for shuffle_free_memory(). Prototype was for __shuffle_free_memory() instead
+Change it to use the cc-param macro instead, which works on both clang and
+gcc.
 
-Link: https://lkml.kernel.org/r/20210411210642.11362-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+[elver@google.com: fixup for "kasan: fix hwasan build for gcc"]
+  Link: https://lkml.kernel.org/r/YHQZVfVVLE/LDK2v@elver.google.com
+Link: https://lkml.kernel.org/r/20210323124112.1229772-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Acked-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_gather.c |   29 +++++++++++++++++++----------
- mm/oom_kill.c   |    2 +-
- mm/shuffle.c    |    4 ++--
- 3 files changed, 22 insertions(+), 13 deletions(-)
+ scripts/Makefile.kasan |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/mmu_gather.c~mm-eliminate-expecting-prototype-kernel-doc-warnings
-+++ a/mm/mmu_gather.c
-@@ -249,16 +249,6 @@ void tlb_flush_mmu(struct mmu_gather *tl
- 	tlb_flush_mmu_free(tlb);
- }
+--- a/scripts/Makefile.kasan~kasan-fix-hwasan-build-for-gcc
++++ a/scripts/Makefile.kasan
+@@ -2,6 +2,8 @@
+ CFLAGS_KASAN_NOSANITIZE := -fno-builtin
+ KASAN_SHADOW_OFFSET ?= $(CONFIG_KASAN_SHADOW_OFFSET)
  
--/**
-- * tlb_gather_mmu - initialize an mmu_gather structure for page-table tear-down
-- * @tlb: the mmu_gather structure to initialize
-- * @mm: the mm_struct of the target address space
-- * @fullmm: @mm is without users and we're going to destroy the full address
-- *	    space (exit/execve)
-- *
-- * Called to initialize an (on-stack) mmu_gather structure for page-table
-- * tear-down from @mm.
-- */
- static void __tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
- 			     bool fullmm)
- {
-@@ -283,11 +273,30 @@ static void __tlb_gather_mmu(struct mmu_
- 	inc_tlb_flush_pending(tlb->mm);
- }
++cc-param = $(call cc-option, -mllvm -$(1), $(call cc-option, --param $(1)))
++
+ ifdef CONFIG_KASAN_GENERIC
  
-+/**
-+ * tlb_gather_mmu - initialize an mmu_gather structure for page-table tear-down
-+ * @tlb: the mmu_gather structure to initialize
-+ * @mm: the mm_struct of the target address space
-+ *
-+ * Called to initialize an (on-stack) mmu_gather structure for page-table
-+ * tear-down from @mm.
-+ */
- void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm)
- {
- 	__tlb_gather_mmu(tlb, mm, false);
- }
+ ifdef CONFIG_KASAN_INLINE
+@@ -12,8 +14,6 @@ endif
  
-+/**
-+ * tlb_gather_mmu_fullmm - initialize an mmu_gather structure for page-table tear-down
-+ * @tlb: the mmu_gather structure to initialize
-+ * @mm: the mm_struct of the target address space
-+ *
-+ * In this case, @mm is without users and we're going to destroy the
-+ * full address space (exit/execve).
-+ *
-+ * Called to initialize an (on-stack) mmu_gather structure for page-table
-+ * tear-down from @mm.
-+ */
- void tlb_gather_mmu_fullmm(struct mmu_gather *tlb, struct mm_struct *mm)
- {
- 	__tlb_gather_mmu(tlb, mm, true);
---- a/mm/oom_kill.c~mm-eliminate-expecting-prototype-kernel-doc-warnings
-+++ a/mm/oom_kill.c
-@@ -170,7 +170,7 @@ static bool oom_unkillable_task(struct t
- 	return false;
- }
+ CFLAGS_KASAN_MINIMAL := -fsanitize=kernel-address
  
--/**
-+/*
-  * Check whether unreclaimable slab amount is greater than
-  * all user memory(LRU pages).
-  * dump_unreclaimable_slab() could help in the case that
---- a/mm/shuffle.c~mm-eliminate-expecting-prototype-kernel-doc-warnings
-+++ a/mm/shuffle.c
-@@ -147,8 +147,8 @@ void __meminit __shuffle_zone(struct zon
- 	spin_unlock_irqrestore(&z->lock, flags);
- }
+-cc-param = $(call cc-option, -mllvm -$(1), $(call cc-option, --param $(1)))
+-
+ # -fasan-shadow-offset fails without -fsanitize
+ CFLAGS_KASAN_SHADOW := $(call cc-option, -fsanitize=kernel-address \
+ 			-fasan-shadow-offset=$(KASAN_SHADOW_OFFSET), \
+@@ -36,14 +36,14 @@ endif # CONFIG_KASAN_GENERIC
+ ifdef CONFIG_KASAN_SW_TAGS
  
--/**
-- * shuffle_free_memory - reduce the predictability of the page allocator
-+/*
-+ * __shuffle_free_memory - reduce the predictability of the page allocator
-  * @pgdat: node page data
-  */
- void __meminit __shuffle_free_memory(pg_data_t *pgdat)
+ ifdef CONFIG_KASAN_INLINE
+-    instrumentation_flags := -mllvm -hwasan-mapping-offset=$(KASAN_SHADOW_OFFSET)
++    instrumentation_flags := $(call cc-param,hwasan-mapping-offset=$(KASAN_SHADOW_OFFSET))
+ else
+-    instrumentation_flags := -mllvm -hwasan-instrument-with-calls=1
++    instrumentation_flags := $(call cc-param,hwasan-instrument-with-calls=1)
+ endif
+ 
+ CFLAGS_KASAN := -fsanitize=kernel-hwaddress \
+-		-mllvm -hwasan-instrument-stack=$(CONFIG_KASAN_STACK) \
+-		-mllvm -hwasan-use-short-granules=0 \
++		$(call cc-param,hwasan-instrument-stack=$(CONFIG_KASAN_STACK)) \
++		$(call cc-param,hwasan-use-short-granules=0) \
+ 		$(instrumentation_flags)
+ 
+ endif # CONFIG_KASAN_SW_TAGS
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-vfs-fs_parser-clean-up-kernel-doc-warnings.patch
-lib-parser-clean-up-kernel-doc.patch
 
