@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BEFFC43460
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Apr 2021 22:55:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63BDAC433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Apr 2021 22:55:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E6C3D61406
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Apr 2021 22:55:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4022A6140A
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Apr 2021 22:55:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234280AbhDTW4X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Apr 2021 18:56:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60830 "EHLO mail.kernel.org"
+        id S234302AbhDTW43 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Apr 2021 18:56:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60880 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234249AbhDTW4X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Apr 2021 18:56:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A332A613E7;
-        Tue, 20 Apr 2021 22:55:49 +0000 (UTC)
+        id S234249AbhDTW43 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Apr 2021 18:56:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A6C8961406;
+        Tue, 20 Apr 2021 22:55:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618959349;
-        bh=OQby0N/6pjU6kPq2SCaVl4E43KzGZpGOYwo9rks7pyo=;
+        s=korg; t=1618959355;
+        bh=7b5kf5MAIu75pbnerprBn6hM+tOZ41s5rvFLVK+o5+A=;
         h=Date:From:To:Subject:From;
-        b=FnfYnAphCne8M4HW2NzFaNxfDSPt7LZK+95o5UKSq29sJwotDTK7Ikxs9Dc4WeMX8
-         NIUFQrKoqjmwZPCk9B4p/cUi4SREjFRstqP1TYMWCYobofToEXminFF7uiFRjOzQMJ
-         U93nK55rmlFRabNsAfAtXggo8XFkhLl2Z1lD/4cU=
-Date:   Tue, 20 Apr 2021 15:55:49 -0700
+        b=YNsoa75oeOkQcN/+iQCWR4CHCmpP2a9LSTKqaYfSNinL32fV1tbQUi48x9CRgVo25
+         vS3tcdjW60xjC3Ylav+hTGXeSK/AtsbBT4J7yX/RVcHQbnhXRe+SzEhB3n7PaPPCig
+         4nOQ8BtS03mxAFtGmfJcexdRyVw/32ixasXshbA8=
+Date:   Tue, 20 Apr 2021 15:55:55 -0700
 From:   akpm@linux-foundation.org
-To:     glaubitz@physik.fu-berlin.de, mm-commits@vger.kernel.org
-Subject:  [merged]
- ia64-tools-remove-duplicate-definition-of-ia64_mf-on-ia64.patch removed
- from -mm tree
-Message-ID: <20210420225549.oGqvSXrCW%akpm@linux-foundation.org>
+To:     christophe.leroy@csgroup.eu, mm-commits@vger.kernel.org,
+        steven.price@arm.com
+Subject:  [merged] mm-ptdump-fix-build-failure.patch removed from
+ -mm tree
+Message-ID: <20210420225555.-vg4NeZ5d%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,62 +43,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: tools: remove duplicate definition of ia64_mf() on ia64
+     Subject: mm: ptdump: fix build failure
 has been removed from the -mm tree.  Its filename was
-     ia64-tools-remove-duplicate-definition-of-ia64_mf-on-ia64.patch
+     mm-ptdump-fix-build-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Subject: ia64: tools: remove duplicate definition of ia64_mf() on ia64
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: mm: ptdump: fix build failure
 
-The ia64_mf() macro defined in tools/arch/ia64/include/asm/barrier.h is
-already defined in <asm/gcc_intrin.h> on ia64 which causes libbpf failing
-to build:
+	  CC      mm/ptdump.o
+	In file included from <command-line>:
+	mm/ptdump.c: In function 'ptdump_pte_entry':
+	././include/linux/compiler_types.h:320:38: error: call to '__compiletime_assert_207' declared with attribute error: Unsupported access size for {READ,WRITE}_ONCE().
+	  320 |  _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+	      |                                      ^
+	././include/linux/compiler_types.h:301:4: note: in definition of macro '__compiletime_assert'
+	  301 |    prefix ## suffix();    \
+	      |    ^~~~~~
+	././include/linux/compiler_types.h:320:2: note: in expansion of macro '_compiletime_assert'
+	  320 |  _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+	      |  ^~~~~~~~~~~~~~~~~~~
+	./include/asm-generic/rwonce.h:36:2: note: in expansion of macro 'compiletime_assert'
+	   36 |  compiletime_assert(__native_word(t) || sizeof(t) == sizeof(long long), \
+	      |  ^~~~~~~~~~~~~~~~~~
+	./include/asm-generic/rwonce.h:49:2: note: in expansion of macro 'compiletime_assert_rwonce_type'
+	   49 |  compiletime_assert_rwonce_type(x);    \
+	      |  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	mm/ptdump.c:114:14: note: in expansion of macro 'READ_ONCE'
+	  114 |  pte_t val = READ_ONCE(*pte);
+	      |              ^~~~~~~~~
+	make[2]: *** [mm/ptdump.o] Error 1
 
-  CC       /usr/src/linux/tools/bpf/bpftool//libbpf/staticobjs/libbpf.o
-In file included from /usr/src/linux/tools/include/asm/barrier.h:24,
-                 from /usr/src/linux/tools/include/linux/ring_buffer.h:4,
-                 from libbpf.c:37:
-/usr/src/linux/tools/include/asm/../../arch/ia64/include/asm/barrier.h:43: error: "ia64_mf" redefined [-Werror]
-   43 | #define ia64_mf()       asm volatile ("mf" ::: "memory")
-      |
-In file included from /usr/include/ia64-linux-gnu/asm/intrinsics.h:20,
-                 from /usr/include/ia64-linux-gnu/asm/swab.h:11,
-                 from /usr/include/linux/swab.h:8,
-                 from /usr/include/linux/byteorder/little_endian.h:13,
-                 from /usr/include/ia64-linux-gnu/asm/byteorder.h:5,
-                 from /usr/src/linux/tools/include/uapi/linux/perf_event.h:20,
-                 from libbpf.c:36:
-/usr/include/ia64-linux-gnu/asm/gcc_intrin.h:382: note: this is the location of the previous definition
-  382 | #define ia64_mf() __asm__ volatile ("mf" ::: "memory")
-      |
-cc1: all warnings being treated as errors
+READ_ONCE() cannot be used for reading PTEs.  Use ptep_get() instead.  See
+commit 481e980a7c19 ("mm: Allow arches to provide ptep_get()") and commit
+c0e1c8c22beb ("powerpc/8xx: Provide ptep_get() with 16k pages") for
+details.
 
-Thus, remove the definition from tools/arch/ia64/include/asm/barrier.h.
-
-Signed-off-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Link: https://lkml.kernel.org/r/912b349e2bcaa88939904815ca0af945740c6bd4.1618478922.git.christophe.leroy@csgroup.eu
+Fixes: 30d621f6723b ("mm: add generic ptdump")
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Steven Price <steven.price@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/arch/ia64/include/asm/barrier.h |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/ptdump.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/arch/ia64/include/asm/barrier.h~ia64-tools-remove-duplicate-definition-of-ia64_mf-on-ia64
-+++ a/tools/arch/ia64/include/asm/barrier.h
-@@ -39,9 +39,6 @@
-  * sequential memory pages only.
-  */
+--- a/mm/ptdump.c~mm-ptdump-fix-build-failure
++++ a/mm/ptdump.c
+@@ -111,7 +111,7 @@ static int ptdump_pte_entry(pte_t *pte,
+ 			    unsigned long next, struct mm_walk *walk)
+ {
+ 	struct ptdump_state *st = walk->private;
+-	pte_t val = READ_ONCE(*pte);
++	pte_t val = ptep_get(pte);
  
--/* XXX From arch/ia64/include/uapi/asm/gcc_intrin.h */
--#define ia64_mf()       asm volatile ("mf" ::: "memory")
--
- #define mb()		ia64_mf()
- #define rmb()		mb()
- #define wmb()		mb()
+ 	if (st->effective_prot)
+ 		st->effective_prot(st, 4, pte_val(val));
 _
 
-Patches currently in -mm which might be from glaubitz@physik.fu-berlin.de are
+Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
 
 
