@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ED92C43460
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 02:46:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C62AC433B4
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 02:49:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DCB2F6141F
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 02:46:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6266613DC
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 02:49:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234023AbhDUCqx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Apr 2021 22:46:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55578 "EHLO mail.kernel.org"
+        id S233974AbhDUCtf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Apr 2021 22:49:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56284 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233974AbhDUCqx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Apr 2021 22:46:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 15AFF61420;
-        Wed, 21 Apr 2021 02:46:19 +0000 (UTC)
+        id S233956AbhDUCtf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Apr 2021 22:49:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BCEF5613D1;
+        Wed, 21 Apr 2021 02:49:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618973179;
-        bh=fjDFW0MpvUM7RSUii9iW3IQaj7yUhmN8Trv9TM7DjhQ=;
+        s=korg; t=1618973342;
+        bh=ZfrQt2DfrSrzOxvx6V1kAHK5LN44xF/2zxQ/Iqi+aCY=;
         h=Date:From:To:Subject:From;
-        b=hvb1G0ppxgaFMI9OXq6iECBX/WHdQgDlDroCbAeFwy73P4P6xNpDWktcM2WRJ7JPb
-         4ZIIpdCBBqNZW1e3B96a+cfoFFrV/Wh+/+tRKQRWsT49q2B6MIdZfvEP+4chrFf8Gx
-         qljF4ig0woXT7EPa67oltq6P9dUjWHa7Vmjbwu2Q=
-Date:   Tue, 20 Apr 2021 19:46:18 -0700
+        b=SVlO+klEHvSuYgpMtgCCTZsjR1mR1xnTFlt95ryusouqkkUd29+fmFcHTRGS4ZBbs
+         5k3cGZyGDdiLqUsFC6Mt5iq9RD+vnGyn7TaKu95dNAqrNaL1oLoqQ5hSjHUu/SlfoW
+         NqXK3C0kboWxIdZE6rXSQj/IkjUOv/cG8wK943Kc=
+Date:   Tue, 20 Apr 2021 19:49:02 -0700
 From:   akpm@linux-foundation.org
-To:     dvyukov@google.com, elver@google.com, glider@google.com,
-        hdanton@sina.com, jannh@google.com, mark.rutland@arm.com,
+To:     linmiaohe@huawei.com, luoshijie1@huawei.com,
         mm-commits@vger.kernel.org
-Subject:  +
- kfence-use-power-efficient-work-queue-to-run-delayed-work.patch added to
- -mm tree
-Message-ID: <20210421024618.1ohG6WH21%akpm@linux-foundation.org>
+Subject:  + mm-fix-some-typos-and-code-style-problems.patch added
+ to -mm tree
+Message-ID: <20210421024902.1tfzvUBBp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: use power-efficient work queue to run delayed work
+     Subject: mm: fix some typos and code style problems
 has been added to the -mm tree.  Its filename is
-     kfence-use-power-efficient-work-queue-to-run-delayed-work.patch
+     mm-fix-some-typos-and-code-style-problems.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kfence-use-power-efficient-work-queue-to-run-delayed-work.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-some-typos-and-code-style-problems.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-use-power-efficient-work-queue-to-run-delayed-work.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-some-typos-and-code-style-problems.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,53 +64,132 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: use power-efficient work queue to run delayed work
+From: Shijie Luo <luoshijie1@huawei.com>
+Subject: mm: fix some typos and code style problems
 
-Use the power-efficient work queue, to avoid the pathological case where
-we keep pinning ourselves on the same possibly idle CPU on systems that
-want to be power-efficient (https://lwn.net/Articles/731052/).
+fix some typos and code style problems in mm.
 
-Link: https://lkml.kernel.org/r/20210419085027.761150-4-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Hillf Danton <hdanton@sina.com>
+gfp.h: s/MAXNODES/MAX_NUMNODES
+mmzone.h: s/then/than
+rmap.c: s/__vma_split()/__vma_adjust()
+swap.c: s/__mod_zone_page_stat/__mod_zone_page_state, s/is is/is
+swap_state.c: s/whoes/whose
+z3fold.c: code style problem fix in z3fold_unregister_migration
+zsmalloc.c: s/of/or, s/give/given
+
+Link: https://lkml.kernel.org/r/20210419083057.64820-1-luoshijie1@huawei.com
+Signed-off-by: Shijie Luo <luoshijie1@huawei.com>
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/gfp.h    |    2 +-
+ include/linux/mmzone.h |    2 +-
+ mm/rmap.c              |    2 +-
+ mm/swap.c              |    4 ++--
+ mm/swap_state.c        |    2 +-
+ mm/z3fold.c            |    2 +-
+ mm/zsmalloc.c          |    4 ++--
+ 7 files changed, 9 insertions(+), 9 deletions(-)
 
---- a/mm/kfence/core.c~kfence-use-power-efficient-work-queue-to-run-delayed-work
-+++ a/mm/kfence/core.c
-@@ -642,7 +642,8 @@ static void toggle_allocation_gate(struc
- 	/* Disable static key and reset timer. */
- 	static_branch_disable(&kfence_allocation_key);
- #endif
--	schedule_delayed_work(&kfence_timer, msecs_to_jiffies(kfence_sample_interval));
-+	queue_delayed_work(system_power_efficient_wq, &kfence_timer,
-+			   msecs_to_jiffies(kfence_sample_interval));
- }
- static DECLARE_DELAYED_WORK(kfence_timer, toggle_allocation_gate);
+--- a/include/linux/gfp.h~mm-fix-some-typos-and-code-style-problems
++++ a/include/linux/gfp.h
+@@ -490,7 +490,7 @@ static inline int gfp_zonelist(gfp_t fla
  
-@@ -671,7 +672,7 @@ void __init kfence_init(void)
- 	}
+ /*
+  * We get the zone list from the current node and the gfp_mask.
+- * This zone list contains a maximum of MAXNODES*MAX_NR_ZONES zones.
++ * This zone list contains a maximum of MAX_NUMNODES*MAX_NR_ZONES zones.
+  * There are two zonelists per node, one for all zones with memory and
+  * one containing just zones from the node the zonelist belongs to.
+  *
+--- a/include/linux/mmzone.h~mm-fix-some-typos-and-code-style-problems
++++ a/include/linux/mmzone.h
+@@ -55,7 +55,7 @@ enum migratetype {
+ 	 * pageblocks to MIGRATE_CMA which can be done by
+ 	 * __free_pageblock_cma() function.  What is important though
+ 	 * is that a range of pageblocks must be aligned to
+-	 * MAX_ORDER_NR_PAGES should biggest page be bigger then
++	 * MAX_ORDER_NR_PAGES should biggest page be bigger than
+ 	 * a single pageblock.
+ 	 */
+ 	MIGRATE_CMA,
+--- a/mm/rmap.c~mm-fix-some-typos-and-code-style-problems
++++ a/mm/rmap.c
+@@ -257,7 +257,7 @@ static inline void unlock_anon_vma_root(
+  * Attach the anon_vmas from src to dst.
+  * Returns 0 on success, -ENOMEM on failure.
+  *
+- * anon_vma_clone() is called by __vma_split(), __split_vma(), copy_vma() and
++ * anon_vma_clone() is called by __vma_adjust(), __split_vma(), copy_vma() and
+  * anon_vma_fork(). The first three want an exact copy of src, while the last
+  * one, anon_vma_fork(), may try to reuse an existing anon_vma to prevent
+  * endless growth of anon_vma. Since dst->anon_vma is set to NULL before call,
+--- a/mm/swap.c~mm-fix-some-typos-and-code-style-problems
++++ a/mm/swap.c
+@@ -496,7 +496,7 @@ void lru_cache_add_inactive_or_unevictab
+ 	if (unlikely(unevictable) && !TestSetPageMlocked(page)) {
+ 		int nr_pages = thp_nr_pages(page);
+ 		/*
+-		 * We use the irq-unsafe __mod_zone_page_stat because this
++		 * We use the irq-unsafe __mod_zone_page_state because this
+ 		 * counter is not modified from interrupt context, and the pte
+ 		 * lock is held(spinlock), which implies preemption disabled.
+ 		 */
+@@ -808,7 +808,7 @@ inline void __lru_add_drain_all(bool for
+ 	 * below which drains the page vectors.
+ 	 *
+ 	 * Let x, y, and z represent some system CPU numbers, where x < y < z.
+-	 * Assume CPU #z is is in the middle of the for_each_online_cpu loop
++	 * Assume CPU #z is in the middle of the for_each_online_cpu loop
+ 	 * below and has already reached CPU #y's per-cpu data. CPU #x comes
+ 	 * along, adds some pages to its per-cpu vectors, then calls
+ 	 * lru_add_drain_all().
+--- a/mm/swap_state.c~mm-fix-some-typos-and-code-style-problems
++++ a/mm/swap_state.c
+@@ -792,7 +792,7 @@ static void swap_ra_info(struct vm_fault
+  *
+  * Returns the struct page for entry and addr, after queueing swapin.
+  *
+- * Primitive swap readahead code. We simply read in a few pages whoes
++ * Primitive swap readahead code. We simply read in a few pages whose
+  * virtual addresses are around the fault address in the same vma.
+  *
+  * Caller must hold read mmap_lock if vmf->vma is not NULL.
+--- a/mm/z3fold.c~mm-fix-some-typos-and-code-style-problems
++++ a/mm/z3fold.c
+@@ -391,7 +391,7 @@ static void z3fold_unregister_migration(
+ {
+ 	if (pool->inode)
+ 		iput(pool->inode);
+- }
++}
  
- 	WRITE_ONCE(kfence_enabled, true);
--	schedule_delayed_work(&kfence_timer, 0);
-+	queue_delayed_work(system_power_efficient_wq, &kfence_timer, 0);
- 	pr_info("initialized - using %lu bytes for %d objects at 0x%p-0x%p\n", KFENCE_POOL_SIZE,
- 		CONFIG_KFENCE_NUM_OBJECTS, (void *)__kfence_pool,
- 		(void *)(__kfence_pool + KFENCE_POOL_SIZE));
+ /* Initializes the z3fold header of a newly allocated z3fold page */
+ static struct z3fold_header *init_z3fold_page(struct page *page, bool headless,
+--- a/mm/zsmalloc.c~mm-fix-some-typos-and-code-style-problems
++++ a/mm/zsmalloc.c
+@@ -61,7 +61,7 @@
+ #define ZSPAGE_MAGIC	0x58
+ 
+ /*
+- * This must be power of 2 and greater than of equal to sizeof(link_free).
++ * This must be power of 2 and greater than or equal to sizeof(link_free).
+  * These two conditions ensure that any 'struct link_free' itself doesn't
+  * span more than 1 page which avoids complex case of mapping 2 pages simply
+  * to restore link_free pointer values.
+@@ -530,7 +530,7 @@ static void set_zspage_mapping(struct zs
+  * class maintains a list of zspages where each zspage is divided
+  * into equal sized chunks. Each allocation falls into one of these
+  * classes depending on its size. This function returns index of the
+- * size class which has chunk size big enough to hold the give size.
++ * size class which has chunk size big enough to hold the given size.
+  */
+ static int get_size_class_index(int size)
+ {
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from luoshijie1@huawei.com are
 
-kfence-zero-guard-page-after-out-of-bounds-access.patch
-kfence-await-for-allocation-using-wait_event.patch
-kfence-maximize-allocation-wait-timeout-duration.patch
-kfence-use-power-efficient-work-queue-to-run-delayed-work.patch
+mm-fix-some-typos-and-code-style-problems.patch
 
