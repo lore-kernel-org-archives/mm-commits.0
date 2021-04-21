@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88F52C433B4
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 00:17:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AD65C43461
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 00:22:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 49F74613AB
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 00:17:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE0176024A
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 00:22:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233914AbhDUASI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Apr 2021 20:18:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34088 "EHLO mail.kernel.org"
+        id S233928AbhDUAWi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Apr 2021 20:22:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36052 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233752AbhDUASH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Apr 2021 20:18:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DE3696044F;
-        Wed, 21 Apr 2021 00:17:33 +0000 (UTC)
+        id S233863AbhDUAWi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Apr 2021 20:22:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C88B261409;
+        Wed, 21 Apr 2021 00:22:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618964254;
-        bh=tLwSO8sLSjPv+OkPmZhBP48j//rZfdG8gh9kCReoSuE=;
+        s=korg; t=1618964525;
+        bh=IWNCHNDee8FDaDFuD4487oUq2HTtDoN0pi2/8ulph00=;
         h=Date:From:To:Subject:From;
-        b=tnBKsB9BXj+RR6FkTiFdV33qs3gpZC6LrDL68eduy54/VQmn2xnFW7bBdknRTkEoF
-         Bor8a0ZxmltY9zSCxg5Xj7qD6qrsr5RosmyKT8wt8JW7G4zG7TgkiMWBcn6pLPWgC1
-         d2g/Up86Pd8WeC5Ni4y0Qv761doqx8+Iwy3e7bBk=
-Date:   Tue, 20 Apr 2021 17:17:33 -0700
+        b=X3ebIiOW08yfMbX0S41gSX6pdyiV0Umrt7KBobzoONEE0tO3Eyi5qRPR0VdtA94yA
+         yZI/Bh0vDWwvyysDPy3jt3zIasXNfEJ0zVslcn+NzlaTVfRd13su+9/uScaZgxEous
+         FfTPX0pboq2F7OjmQ1EiY3AVLiIr6lci+U7E5YOY=
+Date:   Tue, 20 Apr 2021 17:22:04 -0700
 From:   akpm@linux-foundation.org
-To:     gustavoars@kernel.org, mm-commits@vger.kernel.org
-Subject:  + isofs-fix-fall-through-warnings-for-clang.patch added
- to -mm tree
-Message-ID: <20210421001733.h9XZsyUNe%akpm@linux-foundation.org>
+To:     david@redhat.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com
+Subject:  +
+ =?US-ASCII?Q?mm-introduce-memfd=5Fsecret-system-call-to-create-secret-?=
+ =?US-ASCII?Q?memory-areas-fix-2.patch?= added to -mm tree
+Message-ID: <20210421002204.HmKQb3VEO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: isofs: fix fall-through warnings for Clang
+     Subject: secretmem/gup: don't check if page is secretmem without reference
 has been added to the -mm tree.  Its filename is
-     isofs-fix-fall-through-warnings-for-clang.patch
+     mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/isofs-fix-fall-through-warnings-for-clang.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/isofs-fix-fall-through-warnings-for-clang.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,37 +66,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Subject: isofs: fix fall-through warnings for Clang
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: secretmem/gup: don't check if page is secretmem without reference
 
-In preparation to enable -Wimplicit-fallthrough for Clang, fix a warning
-by explicitly adding a break statement instead of just letting the code
-fall through to the next case.
+The check in gup_pte_range() whether a page belongs to a secretmem mapping
+is performed before grabbing the page reference.
 
-Link: https://github.com/KSPP/linux/issues/115
-Link: https://lkml.kernel.org/r/5b7caa73958588065fabc59032c340179b409ef5.1605896059.git.gustavoars@kernel.org
-Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+To avoid potential race move the check after try_grab_compound_head().
+
+Link: https://lkml.kernel.org/r/20210420150049.14031-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/rock.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/gup.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/fs/isofs/rock.c~isofs-fix-fall-through-warnings-for-clang
-+++ a/fs/isofs/rock.c
-@@ -767,6 +767,7 @@ repeat:
- 			rs.cont_extent = isonum_733(rr->u.CE.extent);
- 			rs.cont_offset = isonum_733(rr->u.CE.offset);
- 			rs.cont_size = isonum_733(rr->u.CE.size);
-+			break;
- 		default:
- 			break;
- 		}
+--- a/mm/gup.c~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-2
++++ a/mm/gup.c
+@@ -2080,13 +2080,15 @@ static int gup_pte_range(pmd_t pmd, unsi
+ 		VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
+ 		page = pte_page(pte);
+ 
+-		if (page_is_secretmem(page))
+-			goto pte_unmap;
+-
+ 		head = try_grab_compound_head(page, 1, flags);
+ 		if (!head)
+ 			goto pte_unmap;
+ 
++		if (unlikely(page_is_secretmem(page))) {
++			put_compound_head(head, 1, flags);
++			goto pte_unmap;
++		}
++
+ 		if (unlikely(pte_val(pte) != pte_val(*ptep))) {
+ 			put_compound_head(head, 1, flags);
+ 			goto pte_unmap;
 _
 
-Patches currently in -mm which might be from gustavoars@kernel.org are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-isofs-fix-fall-through-warnings-for-clang.patch
-hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
-hpfs-replace-one-element-array-with-flexible-array-member.patch
+mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin-fix.patch
+mmap-make-mlock_future_check-global.patch
+riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-2.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
+arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
+secretmem-optimize-page_is_secretmem.patch
 
