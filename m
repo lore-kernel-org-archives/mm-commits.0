@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30D4AC433B4
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 00:42:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A233C433B4
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 02:37:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DEAB76141D
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 00:41:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 41B5B613DE
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 02:37:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234309AbhDUAmb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Apr 2021 20:42:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41898 "EHLO mail.kernel.org"
+        id S234004AbhDUChu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Apr 2021 22:37:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53108 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234276AbhDUAmb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Apr 2021 20:42:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C4F1861409;
-        Wed, 21 Apr 2021 00:41:58 +0000 (UTC)
+        id S234023AbhDUChr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Apr 2021 22:37:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DBCE3613DE;
+        Wed, 21 Apr 2021 02:37:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618965719;
-        bh=LTJdV3eA556IP6DmcSBKM1CDPscUkmD5YvIXv0xi50M=;
+        s=korg; t=1618972634;
+        bh=4FSTR8EiTMg50VYsnwbnJx5ucAZ17QTL6gtKYGiu6Vk=;
         h=Date:From:To:Subject:From;
-        b=xYsS4pnX/tEIPY9GtegDxlc88hKbcjFr9XA152pOoH6oLxAs1sGTE6hKOrvx1frAC
-         S2JbYhbPaPXAZXEKOFvpPtPMKInFrCGW+pXbMGTiU1mSGTQ8LdTaEJX79MeCbQZINA
-         DiMOHYMr5/3uDe32vTE7KHFlDUK2RJqxDLG7BynQ=
-Date:   Tue, 20 Apr 2021 17:41:58 -0700
+        b=kes6lJhm4+hA4v4qsKQacMlKGYkjytyeRv8MGaUhTeRGmLX0wlEK+26+Viw4HJJ8s
+         HJ9jJML/v6Ppqdl7oRXJqV45T8S71vOZjJskCT4mLRz1Kw0zP6lxPOK3ukJHzrq0Gv
+         74hVmkFt1tpScxCzkCIt5F/6m8dHr1BwkuzMcBzQ=
+Date:   Tue, 20 Apr 2021 19:37:13 -0700
 From:   akpm@linux-foundation.org
-To:     dan.j.williams@intel.com, dave.jiang@intel.com,
-        jane.chu@oracle.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com
-Subject:  + mm-memory-failure-unecessary-amount-of-unmapping.patch
- added to -mm tree
-Message-ID: <20210421004158.6VnCZ5bEm%akpm@linux-foundation.org>
+To:     johannes.berg@intel.com, mm-commits@vger.kernel.org,
+        ndesaulniers@google.com
+Subject:  + gcov-use-kvmalloc-fix.patch added to -mm tree
+Message-ID: <20210421023713.JEaFosUem%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: unnecessary amount of unmapping
+     Subject: gcov: clang: fix clang-11+ build
 has been added to the -mm tree.  Its filename is
-     mm-memory-failure-unecessary-amount-of-unmapping.patch
+     gcov-use-kvmalloc-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failure-unecessary-amount-of-unmapping.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/gcov-use-kvmalloc-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failure-unecessary-amount-of-unmapping.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/gcov-use-kvmalloc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,39 +63,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jane Chu <jane.chu@oracle.com>
-Subject: mm/memory-failure: unnecessary amount of unmapping
+From: Johannes Berg <johannes.berg@intel.com>
+Subject: gcov: clang: fix clang-11+ build
 
-It appears that unmap_mapping_range() actually takes a 'size' as its third
-argument rather than a location, the current calling fashion causes
-unecessary amount of unmapping to occur.
+With clang-11+, the code is broken due to my kvmalloc() conversion (which
+predated the clang-11 support code) leaving one vmalloc() in place.  Fix
+that.
 
-Link: https://lkml.kernel.org/r/20210420002821.2749748-1-jane.chu@oracle.com
-Fixes: 6100e34b2526e ("mm, memory_failure: Teach memory_failure() about dev_pagemap pages")
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
+Link: https://lkml.kernel.org/r/20210412214210.6e1ecca9cdc5.I24459763acf0591d5e6b31c7e3a59890d802f79c@changeid
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+Tested-by: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
+ kernel/gcov/clang.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-unecessary-amount-of-unmapping
-+++ a/mm/memory-failure.c
-@@ -1368,7 +1368,7 @@ static int memory_failure_dev_pagemap(un
- 		 * communicated in siginfo, see kill_proc()
- 		 */
- 		start = (page->index << PAGE_SHIFT) & ~(size - 1);
--		unmap_mapping_range(page->mapping, start, start + size, 0);
-+		unmap_mapping_range(page->mapping, start, size, 0);
- 	}
- 	kill_procs(&tokill, flags & MF_MUST_KILL, !unmap_success, pfn, flags);
- 	rc = 0;
+--- a/kernel/gcov/clang.c~gcov-use-kvmalloc-fix
++++ a/kernel/gcov/clang.c
+@@ -368,7 +368,7 @@ static struct gcov_fn_info *gcov_fn_info
+ 	INIT_LIST_HEAD(&fn_dup->head);
+ 
+ 	cv_size = fn->num_counters * sizeof(fn->counters[0]);
+-	fn_dup->counters = vmalloc(cv_size);
++	fn_dup->counters = kvmalloc(cv_size, GFP_KERNEL);
+ 	if (!fn_dup->counters) {
+ 		kfree(fn_dup);
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from jane.chu@oracle.com are
+Patches currently in -mm which might be from johannes.berg@intel.com are
 
-mm-memory-failure-unecessary-amount-of-unmapping.patch
+gcov-combine-common-code.patch
+gcov-simplify-buffer-allocation.patch
+gcov-use-kvmalloc.patch
+gcov-use-kvmalloc-fix.patch
+gdb-lx-symbols-store-the-abspath.patch
 
