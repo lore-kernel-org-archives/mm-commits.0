@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9F46C433B4
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Apr 2021 22:56:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88F52C433B4
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 00:17:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B2286140A
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Apr 2021 22:56:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 49F74613AB
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Apr 2021 00:17:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234309AbhDTW4c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Apr 2021 18:56:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60906 "EHLO mail.kernel.org"
+        id S233914AbhDUASI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Apr 2021 20:18:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234249AbhDTW4c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Apr 2021 18:56:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9565261411;
-        Tue, 20 Apr 2021 22:55:58 +0000 (UTC)
+        id S233752AbhDUASH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Apr 2021 20:18:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DE3696044F;
+        Wed, 21 Apr 2021 00:17:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1618959358;
-        bh=cQB4PhY79WUMuPJNVq3EcQUlM/lUR07n+uG1/TKL21I=;
+        s=korg; t=1618964254;
+        bh=tLwSO8sLSjPv+OkPmZhBP48j//rZfdG8gh9kCReoSuE=;
         h=Date:From:To:Subject:From;
-        b=OhLyVM8eMt2AWMHMbO2QgKjG0QHWgvIBajLAoyUERv0ZVaDMARXD612djM48PTW9h
-         mm/kciaHzhohMn00ECRR1sW9mn1Yzv0d1emxoUyBULwxuiAylFvD9aKCTYlYTU+xiZ
-         XnCFJFlUbop2dGxSJjahgJSHnc2XOIFojhETDojw=
-Date:   Tue, 20 Apr 2021 15:55:58 -0700
+        b=tnBKsB9BXj+RR6FkTiFdV33qs3gpZC6LrDL68eduy54/VQmn2xnFW7bBdknRTkEoF
+         Bor8a0ZxmltY9zSCxg5Xj7qD6qrsr5RosmyKT8wt8JW7G4zG7TgkiMWBcn6pLPWgC1
+         d2g/Up86Pd8WeC5Ni4y0Qv761doqx8+Iwy3e7bBk=
+Date:   Tue, 20 Apr 2021 17:17:33 -0700
 From:   akpm@linux-foundation.org
-To:     jiri@nvidia.com, lars.ellenberg@linbit.com,
-        mm-commits@vger.kernel.org, philipp.reisner@linbit.com,
-        rdunlap@infradead.org, willy@infradead.org
-Subject:  [merged]
- lib-remove-expecting-prototype-kernel-doc-warnings.patch removed from -mm
- tree
-Message-ID: <20210420225558.tKCE8qbmU%akpm@linux-foundation.org>
+To:     gustavoars@kernel.org, mm-commits@vger.kernel.org
+Subject:  + isofs-fix-fall-through-warnings-for-clang.patch added
+ to -mm tree
+Message-ID: <20210421001733.h9XZsyUNe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,155 +42,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: remove "expecting prototype" kernel-doc warnings
-has been removed from the -mm tree.  Its filename was
-     lib-remove-expecting-prototype-kernel-doc-warnings.patch
+     Subject: isofs: fix fall-through warnings for Clang
+has been added to the -mm tree.  Its filename is
+     isofs-fix-fall-through-warnings-for-clang.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/isofs-fix-fall-through-warnings-for-clang.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/isofs-fix-fall-through-warnings-for-clang.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib: remove "expecting prototype" kernel-doc warnings
+From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Subject: isofs: fix fall-through warnings for Clang
 
-Fix various kernel-doc warnings in lib/ due to missing or
-erroneous function names.
-Add kernel-doc for some function parameters that was missing.
-Use kernel-doc "Return:" notation in earlycpio.c.
+In preparation to enable -Wimplicit-fallthrough for Clang, fix a warning
+by explicitly adding a break statement instead of just letting the code
+fall through to the next case.
 
-Quietens the following warnings:
-
-../lib/earlycpio.c:61: warning: expecting prototype for cpio_data find_cpio_data(). Prototype was for find_cpio_data() instead
-
-../lib/lru_cache.c:640: warning: expecting prototype for lc_dump(). Prototype was for lc_seq_dump_details() instead
-lru_cache.c:90: warning: Function parameter or member 'cache' not described in 'lc_create'
-
-../lib/parman.c:368: warning: expecting prototype for parman_item_del(). Prototype was for parman_item_remove() instead
-parman.c:309: warning: Excess function parameter 'prority' description in 'parman_prio_init'
-
-../lib/radix-tree.c:703: warning: expecting prototype for __radix_tree_insert(). Prototype was for radix_tree_insert() instead
-radix-tree.c:180: warning: Excess function parameter 'addr' description in 'radix_tree_find_next_bit'
-radix-tree.c:180: warning: Excess function parameter 'size' description in 'radix_tree_find_next_bit'
-radix-tree.c:931: warning: Function parameter or member 'iter' not described in 'radix_tree_iter_replace'
-
-Link: https://lkml.kernel.org/r/20210411221756.15461-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Philipp Reisner <philipp.reisner@linbit.com>
-Cc: Lars Ellenberg <lars.ellenberg@linbit.com>
-Cc: Jiri Pirko <jiri@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://github.com/KSPP/linux/issues/115
+Link: https://lkml.kernel.org/r/5b7caa73958588065fabc59032c340179b409ef5.1605896059.git.gustavoars@kernel.org
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/earlycpio.c  |    4 ++--
- lib/lru_cache.c  |    3 ++-
- lib/parman.c     |    4 ++--
- lib/radix-tree.c |   11 ++++++-----
- 4 files changed, 12 insertions(+), 10 deletions(-)
+ fs/isofs/rock.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/earlycpio.c~lib-remove-expecting-prototype-kernel-doc-warnings
-+++ a/lib/earlycpio.c
-@@ -40,7 +40,7 @@ enum cpio_fields {
- };
- 
- /**
-- * cpio_data find_cpio_data - Search for files in an uncompressed cpio
-+ * find_cpio_data - Search for files in an uncompressed cpio
-  * @path:       The directory to search for, including a slash at the end
-  * @data:       Pointer to the cpio archive or a header inside
-  * @len:        Remaining length of the cpio based on data pointer
-@@ -49,7 +49,7 @@ enum cpio_fields {
-  *              matching file itself. It can be used to iterate through the cpio
-  *              to find all files inside of a directory path.
-  *
-- * @return:     struct cpio_data containing the address, length and
-+ * Return:      &struct cpio_data containing the address, length and
-  *              filename (with the directory path cut off) of the found file.
-  *              If you search for a filename and not for files in a directory,
-  *              pass the absolute path of the filename in the cpio and make sure
---- a/lib/lru_cache.c~lib-remove-expecting-prototype-kernel-doc-warnings
-+++ a/lib/lru_cache.c
-@@ -76,6 +76,7 @@ int lc_try_lock(struct lru_cache *lc)
- /**
-  * lc_create - prepares to track objects in an active set
-  * @name: descriptive name only used in lc_seq_printf_stats and lc_seq_dump_details
-+ * @cache: cache root pointer
-  * @max_pending_changes: maximum changes to accumulate until a transaction is required
-  * @e_count: number of elements allowed to be active simultaneously
-  * @e_size: size of the tracked objects
-@@ -627,7 +628,7 @@ void lc_set(struct lru_cache *lc, unsign
- }
- 
- /**
-- * lc_dump - Dump a complete LRU cache to seq in textual form.
-+ * lc_seq_dump_details - Dump a complete LRU cache to seq in textual form.
-  * @lc: the lru cache to operate on
-  * @seq: the &struct seq_file pointer to seq_printf into
-  * @utext: user supplied additional "heading" or other info
---- a/lib/parman.c~lib-remove-expecting-prototype-kernel-doc-warnings
-+++ a/lib/parman.c
-@@ -297,7 +297,7 @@ EXPORT_SYMBOL(parman_destroy);
-  * parman_prio_init - initializes a parman priority chunk
-  * @parman:	parman instance
-  * @prio:	parman prio structure to be initialized
-- * @prority:	desired priority of the chunk
-+ * @priority:	desired priority of the chunk
-  *
-  * Note: all locking must be provided by the caller.
-  *
-@@ -356,7 +356,7 @@ int parman_item_add(struct parman *parma
- EXPORT_SYMBOL(parman_item_add);
- 
- /**
-- * parman_item_del - deletes parman item
-+ * parman_item_remove - deletes parman item
-  * @parman:	parman instance
-  * @prio:	parman prio instance to delete the item from
-  * @item:	parman item instance
---- a/lib/radix-tree.c~lib-remove-expecting-prototype-kernel-doc-warnings
-+++ a/lib/radix-tree.c
-@@ -166,9 +166,9 @@ static inline void all_tag_set(struct ra
- /**
-  * radix_tree_find_next_bit - find the next set bit in a memory region
-  *
-- * @addr: The address to base the search on
-- * @size: The bitmap size in bits
-- * @offset: The bitnumber to start searching at
-+ * @node: where to begin the search
-+ * @tag: the tag index
-+ * @offset: the bitnumber to start searching at
-  *
-  * Unrollable variant of find_next_bit() for constant size arrays.
-  * Tail bits starting from size to roundup(size, BITS_PER_LONG) must be zero.
-@@ -461,7 +461,7 @@ out:
- 
- /**
-  *	radix_tree_shrink    -    shrink radix tree to minimum height
-- *	@root		radix tree root
-+ *	@root:		radix tree root
-  */
- static inline bool radix_tree_shrink(struct radix_tree_root *root)
- {
-@@ -691,7 +691,7 @@ static inline int insert_entries(struct
- }
- 
- /**
-- *	__radix_tree_insert    -    insert into a radix tree
-+ *	radix_tree_insert    -    insert into a radix tree
-  *	@root:		radix tree root
-  *	@index:		index key
-  *	@item:		item to insert
-@@ -919,6 +919,7 @@ EXPORT_SYMBOL(radix_tree_replace_slot);
- /**
-  * radix_tree_iter_replace - replace item in a slot
-  * @root:	radix tree root
-+ * @iter:	iterator state
-  * @slot:	pointer to slot
-  * @item:	new item to store in the slot.
-  *
+--- a/fs/isofs/rock.c~isofs-fix-fall-through-warnings-for-clang
++++ a/fs/isofs/rock.c
+@@ -767,6 +767,7 @@ repeat:
+ 			rs.cont_extent = isonum_733(rr->u.CE.extent);
+ 			rs.cont_offset = isonum_733(rr->u.CE.offset);
+ 			rs.cont_size = isonum_733(rr->u.CE.size);
++			break;
+ 		default:
+ 			break;
+ 		}
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from gustavoars@kernel.org are
 
-vfs-fs_parser-clean-up-kernel-doc-warnings.patch
-lib-parser-clean-up-kernel-doc.patch
+isofs-fix-fall-through-warnings-for-clang.patch
+hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
+hpfs-replace-one-element-array-with-flexible-array-member.patch
 
