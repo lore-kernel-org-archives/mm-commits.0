@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D202C43461
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA2B5C43460
 	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:25:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 519FD61453
+	by mail.kernel.org (Postfix) with ESMTP id 7FB3861422
 	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:25:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229568AbhDVEZl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229571AbhDVEZl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 22 Apr 2021 00:25:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51100 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51206 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229571AbhDVEZj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S229569AbhDVEZj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 22 Apr 2021 00:25:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F152961003;
-        Thu, 22 Apr 2021 04:24:23 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DE0F1613F0;
+        Thu, 22 Apr 2021 04:24:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619065464;
-        bh=ISz3QhVUUml0tWEwuvJ2KlU6YTv1nzBrxBu15jfVd8E=;
+        s=korg; t=1619065474;
+        bh=K0CXugLKKH9q4iW/erLIIy7thivtzNRzrXMniNK3HvM=;
         h=Date:From:To:Subject:From;
-        b=LsCHC42eUUEBxP4jYKqXzvreBLLMVkZKmjtl0lwprKMRScMY82c5ll/08tBYrwyG5
-         4lR/w/YKGNHdOEZnuY6CNWj0zzhS472M5NFMa2fg9UViX/ENJRlXCvsXPVy6gcv4AV
-         EY9xpbdEI5PqXYS1u7Hoi9rGuMbcazbeRC74+AvI=
-Date:   Wed, 21 Apr 2021 21:24:23 -0700
+        b=kteOD9VH7Wlftj/ISvSfJ1hSDIU8GKBBg3WFK7mIfItzpbmHjebk21ildrEaFpCG8
+         TODha5h5YgiTddNYwoBWA3UIbhBQCOdywJujuumpl529AhIdVFLb/GABqkIxdp4PaH
+         uDGFFUfRNStxxc2sB+CXWRj8xOjtCVE/8CX7w3Rw=
+Date:   Wed, 21 Apr 2021 21:24:33 -0700
 From:   akpm@linux-foundation.org
 To:     anshuman.khandual@arm.com, david@redhat.com, mhocko@suse.com,
         mm-commits@vger.kernel.org, osalvador@suse.de,
         pasha.tatashin@soleen.com, vbabka@suse.cz
 Subject:  +
- mmmemory_hotplug-relax-fully-spanned-sections-check.patch added to -mm tree
-Message-ID: <20210422042423.wU1spxMQg%akpm@linux-foundation.org>
+ acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch added to
+ -mm tree
+Message-ID: <20210422042433.GcppcCclk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,memory_hotplug: relax fully spanned sections check
+     Subject: acpi,memhotplug: enable MHP_MEMMAP_ON_MEMORY when supported
 has been added to the -mm tree.  Its filename is
-     mmmemory_hotplug-relax-fully-spanned-sections-check.patch
+     acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmmemory_hotplug-relax-fully-spanned-sections-check.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmmemory_hotplug-relax-fully-spanned-sections-check.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,14 +67,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,memory_hotplug: relax fully spanned sections check
+Subject: acpi,memhotplug: enable MHP_MEMMAP_ON_MEMORY when supported
 
-We want {online,offline}_pages to operate on whole memblocks, but
-memmap_on_memory will poke pageblock_nr_pages aligned holes in the
-beginning, which is a special case we want to allow.  Relax the check to
-account for that case.
+Let the caller check whether it can pass MHP_MEMMAP_ON_MEMORY by checking
+mhp_supports_memmap_on_memory().  MHP_MEMMAP_ON_MEMORY can only be set in
+case ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE is enabled, the architecture
+supports altmap, and the range to be added spans a single memory block.
 
-Link: https://lkml.kernel.org/r/20210421102701.25051-3-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20210421102701.25051-6-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
@@ -83,49 +84,31 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/memory_hotplug.c~mmmemory_hotplug-relax-fully-spanned-sections-check
-+++ a/mm/memory_hotplug.c
-@@ -838,9 +838,16 @@ int __ref online_pages(unsigned long pfn
- 	int ret;
- 	struct memory_notify arg;
+--- a/drivers/acpi/acpi_memhotplug.c~acpimemhotplug-enable-mhp_memmap_on_memory-when-supported
++++ a/drivers/acpi/acpi_memhotplug.c
+@@ -171,6 +171,7 @@ static int acpi_memory_enable_device(str
+ 	acpi_handle handle = mem_device->device->handle;
+ 	int result, num_enabled = 0;
+ 	struct acpi_memory_info *info;
++	mhp_t mhp_flags = MHP_NONE;
+ 	int node;
  
--	/* We can only online full sections (e.g., SECTION_IS_ONLINE) */
-+	/*
-+	 * {on,off}lining is constrained to full memory sections (or more
-+	 * precisly to memory blocks from the user space POV).
-+	 * memmap_on_memory is an exception because it reserves initial part
-+	 * of the physical memory space for vmemmaps. That space is pageblock
-+	 * aligned.
-+	 */
- 	if (WARN_ON_ONCE(!nr_pages ||
--			 !IS_ALIGNED(pfn | nr_pages, PAGES_PER_SECTION)))
-+			 !IS_ALIGNED(pfn, pageblock_nr_pages) ||
-+			 !IS_ALIGNED(pfn + nr_pages, PAGES_PER_SECTION)))
- 		return -EINVAL;
+ 	node = acpi_get_node(handle);
+@@ -194,8 +195,10 @@ static int acpi_memory_enable_device(str
+ 		if (node < 0)
+ 			node = memory_add_physaddr_to_nid(info->start_addr);
  
- 	mem_hotplug_begin();
-@@ -1573,9 +1580,16 @@ int __ref offline_pages(unsigned long st
- 	int ret, node;
- 	char *reason;
++		if (mhp_supports_memmap_on_memory(info->length))
++			mhp_flags |= MHP_MEMMAP_ON_MEMORY;
+ 		result = __add_memory(node, info->start_addr, info->length,
+-				      MHP_NONE);
++				      mhp_flags);
  
--	/* We can only offline full sections (e.g., SECTION_IS_ONLINE) */
-+	/*
-+	 * {on,off}lining is constrained to full memory sections (or more
-+	 * precisly to memory blocks from the user space POV).
-+	 * memmap_on_memory is an exception because it reserves initial part
-+	 * of the physical memory space for vmemmaps. That space is pageblock
-+	 * aligned.
-+	 */
- 	if (WARN_ON_ONCE(!nr_pages ||
--			 !IS_ALIGNED(start_pfn | nr_pages, PAGES_PER_SECTION)))
-+			 !IS_ALIGNED(start_pfn, pageblock_nr_pages) ||
-+			 !IS_ALIGNED(start_pfn + nr_pages, PAGES_PER_SECTION)))
- 		return -EINVAL;
- 
- 	mem_hotplug_begin();
+ 		/*
+ 		 * If the memory block has been used by the kernel, add_memory()
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
