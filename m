@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6AD1C433ED
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:15:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9F05C433B4
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:17:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9696C61455
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:15:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A296860698
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:17:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229441AbhDVEPm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 22 Apr 2021 00:15:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48222 "EHLO mail.kernel.org"
+        id S229441AbhDVESI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 22 Apr 2021 00:18:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48886 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229557AbhDVEPk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 22 Apr 2021 00:15:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A92FF61002;
-        Thu, 22 Apr 2021 04:15:06 +0000 (UTC)
+        id S229479AbhDVESI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 22 Apr 2021 00:18:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1057661002;
+        Thu, 22 Apr 2021 04:17:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619064906;
-        bh=SPPzXBd+ETrrpEFsLJ8m70PtdHbdhgv30+goHfpoUqk=;
+        s=korg; t=1619065054;
+        bh=zBU4eq2ZQrbyTJvOxtpaUOZby34a0yG4W//wbFxyQr0=;
         h=Date:From:To:Subject:From;
-        b=OkbY4Gd32Bwsr22XNCmL+xpFEhAxYpb1ZIUqvXAsB2tx4+LLS9IUGykog0/WRtUqo
-         +/da/h2ZspS8NDKCrAmwUoTQRVOIBhoigChL7YNVtY6ByVwvKMwVZdRSiwcOu7Q28z
-         mjvdmuo3KMK6C4vQNqOD44znJgprRCg8qND37loc=
-Date:   Wed, 21 Apr 2021 21:15:06 -0700
+        b=ot8rcMoiRXS9kj3z/ZrkLX1bodPD1pfM2/47pbAtbfJomI6tjP6KiIjm7EvoPPBdU
+         kIMzY9zZYuAmiLkQAN6zM/oH57GPDAn6++QHVrQ6nzKgDR1wbpRdnWhMQzw4X8wTnD
+         kinDdl3XqLX5c9qPDmHar5LIL2BXJFfSUa/9vN4Y=
+Date:   Wed, 21 Apr 2021 21:17:33 -0700
 From:   akpm@linux-foundation.org
 To:     dvyukov@google.com, elver@google.com, glider@google.com,
         hdanton@sina.com, jannh@google.com, mark.rutland@arm.com,
         mm-commits@vger.kernel.org
-Subject:  [to-be-updated]
- kfence-use-power-efficient-work-queue-to-run-delayed-work.patch removed
- from -mm tree
-Message-ID: <20210422041506.nzHxif19q%akpm@linux-foundation.org>
+Subject:  + kfence-await-for-allocation-using-wait_event.patch
+ added to -mm tree
+Message-ID: <20210422041733.VYtnRd90_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,21 +44,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: use power-efficient work queue to run delayed work
-has been removed from the -mm tree.  Its filename was
-     kfence-use-power-efficient-work-queue-to-run-delayed-work.patch
+     Subject: kfence: await for allocation using wait_event
+has been added to the -mm tree.  Its filename is
+     kfence-await-for-allocation-using-wait_event.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/kfence-await-for-allocation-using-wait_event.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-await-for-allocation-using-wait_event.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: kfence: use power-efficient work queue to run delayed work
+Subject: kfence: await for allocation using wait_event
 
-Use the power-efficient work queue, to avoid the pathological case where
-we keep pinning ourselves on the same possibly idle CPU on systems that
-want to be power-efficient (https://lwn.net/Articles/731052/).
+Patch series "kfence: optimize timer scheduling", v2.
 
-Link: https://lkml.kernel.org/r/20210419085027.761150-4-elver@google.com
+We have observed that mostly-idle systems with KFENCE enabled wake up
+otherwise idle CPUs, preventing such to enter a lower power state. 
+Debugging revealed that KFENCE spends too much active time in
+toggle_allocation_gate().
+
+While the first version of KFENCE was using all the right bits to be
+scheduling optimal, and thus power efficient, by simply using wait_event()
++ wake_up(), that code was unfortunately removed.
+
+As KFENCE was exposed to various different configs and tests, the
+scheduling optimal code slowly disappeared.  First because of hung task
+warnings, and finally because of deadlocks when an allocation is made by
+timer code with debug objects enabled.  Clearly, the "fixes" were not too
+friendly for devices that want to be power efficient.
+
+Therefore, let's try a little harder to fix the hung task and deadlock
+problems that we have with wait_event() + wake_up(), while remaining as
+scheduling friendly and power efficient as possible.
+
+Crucially, we need to defer the wake_up() to an irq_work, avoiding any
+potential for deadlock.
+
+The result with this series is that on the devices where we observed a
+power regression, power usage returns back to baseline levels.
+
+
+This patch (of 3):
+
+On mostly-idle systems, we have observed that toggle_allocation_gate() is
+a cause of frequent wake-ups, preventing an otherwise idle CPU to go into
+a lower power state.
+
+A late change in KFENCE's development, due to a potential deadlock [1],
+required changing the scheduling-friendly wait_event_timeout() and
+wake_up() to an open-coded wait-loop using schedule_timeout().  [1]
+https://lkml.kernel.org/r/000000000000c0645805b7f982e4@google.com
+
+To avoid unnecessary wake-ups, switch to using wait_event_timeout().
+
+Unfortunately, we still cannot use a version with direct wake_up() in
+__kfence_alloc() due to the same potential for deadlock as in [1]. 
+Instead, add a level of indirection via an irq_work that is scheduled if
+we determine that the kfence_timer requires a wake_up().
+
+Link: https://lkml.kernel.org/r/20210421105132.3965998-1-elver@google.com
+Link: https://lkml.kernel.org/r/20210421105132.3965998-2-elver@google.com
+Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
 Signed-off-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -69,33 +126,103 @@ Cc: Hillf Danton <hdanton@sina.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/Kconfig.kfence |    1 +
+ mm/kfence/core.c   |   43 ++++++++++++++++++++++++++++---------------
+ 2 files changed, 29 insertions(+), 15 deletions(-)
 
---- a/mm/kfence/core.c~kfence-use-power-efficient-work-queue-to-run-delayed-work
+--- a/lib/Kconfig.kfence~kfence-await-for-allocation-using-wait_event
++++ a/lib/Kconfig.kfence
+@@ -7,6 +7,7 @@ menuconfig KFENCE
+ 	bool "KFENCE: low-overhead sampling-based memory safety error detector"
+ 	depends on HAVE_ARCH_KFENCE && (SLAB || SLUB)
+ 	select STACKTRACE
++	select IRQ_WORK
+ 	help
+ 	  KFENCE is a low-overhead sampling-based detector of heap out-of-bounds
+ 	  access, use-after-free, and invalid-free errors. KFENCE is designed
+--- a/mm/kfence/core.c~kfence-await-for-allocation-using-wait_event
 +++ a/mm/kfence/core.c
-@@ -642,7 +642,8 @@ static void toggle_allocation_gate(struc
+@@ -10,6 +10,7 @@
+ #include <linux/atomic.h>
+ #include <linux/bug.h>
+ #include <linux/debugfs.h>
++#include <linux/irq_work.h>
+ #include <linux/kcsan-checks.h>
+ #include <linux/kfence.h>
+ #include <linux/kmemleak.h>
+@@ -587,6 +588,17 @@ late_initcall(kfence_debugfs_init);
+ 
+ /* === Allocation Gate Timer ================================================ */
+ 
++#ifdef CONFIG_KFENCE_STATIC_KEYS
++/* Wait queue to wake up allocation-gate timer task. */
++static DECLARE_WAIT_QUEUE_HEAD(allocation_wait);
++
++static void wake_up_kfence_timer(struct irq_work *work)
++{
++	wake_up(&allocation_wait);
++}
++static DEFINE_IRQ_WORK(wake_up_kfence_timer_work, wake_up_kfence_timer);
++#endif
++
+ /*
+  * Set up delayed work, which will enable and disable the static key. We need to
+  * use a work queue (rather than a simple timer), since enabling and disabling a
+@@ -604,25 +616,13 @@ static void toggle_allocation_gate(struc
+ 	if (!READ_ONCE(kfence_enabled))
+ 		return;
+ 
+-	/* Enable static key, and await allocation to happen. */
+ 	atomic_set(&kfence_allocation_gate, 0);
+ #ifdef CONFIG_KFENCE_STATIC_KEYS
++	/* Enable static key, and await allocation to happen. */
+ 	static_branch_enable(&kfence_allocation_key);
+-	/*
+-	 * Await an allocation. Timeout after 1 second, in case the kernel stops
+-	 * doing allocations, to avoid stalling this worker task for too long.
+-	 */
+-	{
+-		unsigned long end_wait = jiffies + HZ;
+ 
+-		do {
+-			set_current_state(TASK_UNINTERRUPTIBLE);
+-			if (atomic_read(&kfence_allocation_gate) != 0)
+-				break;
+-			schedule_timeout(1);
+-		} while (time_before(jiffies, end_wait));
+-		__set_current_state(TASK_RUNNING);
+-	}
++	wait_event_timeout(allocation_wait, atomic_read(&kfence_allocation_gate), HZ);
++
  	/* Disable static key and reset timer. */
  	static_branch_disable(&kfence_allocation_key);
  #endif
--	schedule_delayed_work(&kfence_timer, msecs_to_jiffies(kfence_sample_interval));
-+	queue_delayed_work(system_power_efficient_wq, &kfence_timer,
-+			   msecs_to_jiffies(kfence_sample_interval));
- }
- static DECLARE_DELAYED_WORK(kfence_timer, toggle_allocation_gate);
+@@ -729,6 +729,19 @@ void *__kfence_alloc(struct kmem_cache *
+ 	 */
+ 	if (atomic_read(&kfence_allocation_gate) || atomic_inc_return(&kfence_allocation_gate) > 1)
+ 		return NULL;
++#ifdef CONFIG_KFENCE_STATIC_KEYS
++	/*
++	 * waitqueue_active() is fully ordered after the update of
++	 * kfence_allocation_gate per atomic_inc_return().
++	 */
++	if (waitqueue_active(&allocation_wait)) {
++		/*
++		 * Calling wake_up() here may deadlock when allocations happen
++		 * from within timer code. Use an irq_work to defer it.
++		 */
++		irq_work_queue(&wake_up_kfence_timer_work);
++	}
++#endif
  
-@@ -671,7 +672,7 @@ void __init kfence_init(void)
- 	}
- 
- 	WRITE_ONCE(kfence_enabled, true);
--	schedule_delayed_work(&kfence_timer, 0);
-+	queue_delayed_work(system_power_efficient_wq, &kfence_timer, 0);
- 	pr_info("initialized - using %lu bytes for %d objects at 0x%p-0x%p\n", KFENCE_POOL_SIZE,
- 		CONFIG_KFENCE_NUM_OBJECTS, (void *)__kfence_pool,
- 		(void *)(__kfence_pool + KFENCE_POOL_SIZE));
+ 	if (!READ_ONCE(kfence_enabled))
+ 		return NULL;
 _
 
 Patches currently in -mm which might be from elver@google.com are
 
 kfence-zero-guard-page-after-out-of-bounds-access.patch
+kfence-await-for-allocation-using-wait_event.patch
+kfence-maximize-allocation-wait-timeout-duration.patch
+kfence-use-power-efficient-work-queue-to-run-delayed-work.patch
 
