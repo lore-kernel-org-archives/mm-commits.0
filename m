@@ -7,40 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEEE8C43461
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:19:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2694CC43600
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:19:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB9EB61002
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:19:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EFCB861459
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:19:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229441AbhDVETm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229636AbhDVETm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 22 Apr 2021 00:19:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49216 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49468 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229571AbhDVET1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 22 Apr 2021 00:19:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C99D561450;
-        Thu, 22 Apr 2021 04:18:27 +0000 (UTC)
+        id S229907AbhDVET3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 22 Apr 2021 00:19:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D423C61455;
+        Thu, 22 Apr 2021 04:18:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619065108;
-        bh=P1YJ2FuOom8LztWnt5xt99VdKI70JWnhlbRpoVUIFj8=;
+        s=korg; t=1619065116;
+        bh=pj/7yNzOUMkNr34KY/bkrO8MylJZ8mwlXpcN4hzV7rc=;
         h=Date:From:To:Subject:From;
-        b=QVAXP5edHNhfS0DBbvcqiXQTwgU8oTwBBf+9QhI9g/p9EMlnP6geoSjIprOAk1K1h
-         2nLjgb/eJbKmIZ3bG3CIGcMX5l8teqUbaWvpO7MjGhsb4gW+a5EqnsHyeuhZVFVi0C
-         XPd8fami4yGW5LDjgROqqpOEO5rPEOY0KbxfKHqk=
-Date:   Wed, 21 Apr 2021 21:18:27 -0700
+        b=uMa8/lWIiLGhRr/CxWoHHRNOv452273jy4gPtRULEh1o+hTUYVB9FamfLcaeHYTre
+         1aDPudGEj/M+6lNn86pnCRPOd7Ba6taAariqwo6SKzcVDz17tcB+Zxmj6emr804E4J
+         d9f2KZMcAJChRHqpkKXzBXo9Y8P5LYero2LX8two=
+Date:   Wed, 21 Apr 2021 21:18:35 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, david@redhat.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, osalvador@suse.de,
+To:     anshuman.khandual@arm.com, david@redhat.com, mhocko@kernel.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de,
         pasha.tatashin@soleen.com, vbabka@suse.cz
 Subject:  [to-be-updated]
- =?US-ASCII?Q?mmmemory=5Fhotplug-factor-out-adjusting-present-pages-into?=
- =?US-ASCII?Q?-adjust=5Fpresent=5Fpage=5Fcount.patch?= removed from -mm
- tree
-Message-ID: <20210422041827.PkQpp5_5l%akpm@linux-foundation.org>
+ x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch removed from
+ -mm tree
+Message-ID: <20210422041835.51nC0SCJJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,89 +45,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,memory_hotplug: factor out adjusting present pages into adjust_present_page_count()
+     Subject: x86/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
 has been removed from the -mm tree.  Its filename was
-     mmmemory_hotplug-factor-out-adjusting-present-pages-into-adjust_present_page_count.patch
+     x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm,memory_hotplug: factor out adjusting present pages into adjust_present_page_count()
+From: Oscar Salvador <osalvador@suse.de>
+Subject: x86/Kconfig: introduce ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
 
-Let's have a single place (inspired by adjust_managed_page_count()) where
-we adjust present pages.  In contrast to adjust_managed_page_count(), only
-memory onlining/offlining is allowed to modify the number of present
-pages.
+Enable x86_64 platform to use the MHP_MEMMAP_ON_MEMORY feature.
 
-Link: https://lkml.kernel.org/r/20210416112411.9826-4-osalvador@suse.de
-Signed-off-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20210416112411.9826-8-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ arch/x86/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/memory_hotplug.c~mmmemory_hotplug-factor-out-adjusting-present-pages-into-adjust_present_page_count
-+++ a/mm/memory_hotplug.c
-@@ -829,6 +829,16 @@ struct zone * zone_for_pfn_range(int onl
- 	return default_zone_for_pfn(nid, start_pfn, nr_pages);
- }
+--- a/arch/x86/Kconfig~x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable
++++ a/arch/x86/Kconfig
+@@ -2430,6 +2430,9 @@ config ARCH_HAS_ADD_PAGES
+ 	def_bool y
+ 	depends on X86_64 && ARCH_ENABLE_MEMORY_HOTPLUG
  
-+static void adjust_present_page_count(struct zone *zone, long nr_pages)
-+{
-+	unsigned long flags;
++config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
++	def_bool y
 +
-+	zone->present_pages += nr_pages;
-+	pgdat_resize_lock(zone->zone_pgdat, &flags);
-+	zone->zone_pgdat->node_present_pages += nr_pages;
-+	pgdat_resize_unlock(zone->zone_pgdat, &flags);
-+}
-+
- int __ref online_pages(unsigned long pfn, unsigned long nr_pages,
- 		       int online_type, int nid)
- {
-@@ -882,11 +892,7 @@ int __ref online_pages(unsigned long pfn
- 	}
- 
- 	online_pages_range(pfn, nr_pages);
--	zone->present_pages += nr_pages;
--
--	pgdat_resize_lock(zone->zone_pgdat, &flags);
--	zone->zone_pgdat->node_present_pages += nr_pages;
--	pgdat_resize_unlock(zone->zone_pgdat, &flags);
-+	adjust_present_page_count(zone, nr_pages);
- 
- 	node_states_set_node(nid, &arg);
- 	if (need_zonelists_rebuild)
-@@ -1702,11 +1708,7 @@ int __ref offline_pages(unsigned long st
- 
- 	/* removal success */
- 	adjust_managed_page_count(pfn_to_page(start_pfn), -nr_pages);
--	zone->present_pages -= nr_pages;
--
--	pgdat_resize_lock(zone->zone_pgdat, &flags);
--	zone->zone_pgdat->node_present_pages -= nr_pages;
--	pgdat_resize_unlock(zone->zone_pgdat, &flags);
-+	adjust_present_page_count(zone, -nr_pages);
- 
- 	init_per_zone_wmark_min();
- 
+ config USE_PERCPU_NUMA_NODE_ID
+ 	def_bool y
+ 	depends on NUMA
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mm-page_alloc-drop-pr_info_ratelimited-in-alloc_contig_range.patch
-kernel-resource-make-walk_system_ram_res-find-all-busy-ioresource_system_ram-resources.patch
-kernel-resource-make-walk_mem_res-find-all-busy-ioresource_mem-resources.patch
-kernel-resource-remove-first_lvl-siblings_only-logic.patch
-drivers-char-remove-dev-kmem-for-good.patch
-mm-remove-xlate_dev_kmem_ptr.patch
-mm-vmalloc-remove-vwrite.patch
+x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
+x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
+x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
+x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix.patch
+x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
+mmpage_alloc-bail-out-earlier-on-enomem-in-alloc_contig_migrate_range.patch
+mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes.patch
+mmhugetlb-drop-clearing-of-flag-from-prep_new_huge_page.patch
+mmhugetlb-split-prep_new_huge_page-functionality.patch
+mm-make-alloc_contig_range-handle-free-hugetlb-pages.patch
+mm-make-alloc_contig_range-handle-in-use-hugetlb-pages.patch
+mmpage_alloc-drop-unnecessary-checks-from-pfn_range_valid_contig.patch
+arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
 
