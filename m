@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49654C433ED
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:31:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F232EC433B4
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:36:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 260DA61404
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:31:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD2696142F
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 04:36:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229557AbhDVEbe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 22 Apr 2021 00:31:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53292 "EHLO mail.kernel.org"
+        id S229907AbhDVEge (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 22 Apr 2021 00:36:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54632 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229468AbhDVEbd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 22 Apr 2021 00:31:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A29C4613F5;
-        Thu, 22 Apr 2021 04:30:59 +0000 (UTC)
+        id S229468AbhDVEgd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 22 Apr 2021 00:36:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 70A3161435;
+        Thu, 22 Apr 2021 04:35:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619065859;
-        bh=hyfqOQTyAoGVt3hdSVZYpIGygcTkrQpN2hvkSu8DiGw=;
+        s=korg; t=1619066159;
+        bh=QerITk1SMGczbcf8L3AWDWY6anuWZUY/dgZ/ZRB8VVo=;
         h=Date:From:To:Subject:From;
-        b=izDCxVpak0EQdBbUFY+T15miSmiVomd6ZPfUsGm3++RSkYny8crQ3Yuzsv/Lmh12I
-         4uIp9+nZ0bhUXJgY8WvmP02ZBDdL6hz2q3f77RtlwRts2pKZ911ceVxhixCmqoOSX1
-         z65Glirh0YjjceejAydF5P94u3Mjsea8PJW/vKSc=
-Date:   Wed, 21 Apr 2021 21:30:59 -0700
+        b=mb4KYhcKV8n9whjXY5uGGVVFzdh6C7VDxYWwLal8SRuY0JHpORitgyM/Xj2OrX4fb
+         QKR0D0G5j4/tTqltunR+EuN/mDqAxWVtk+4CB7gODJ4txM7+Ph7JBT2s0MRGrbpbBS
+         iZYQZzAYT9E3M6zfvibIZ+4+gUwIFkrN5aDjgrlo=
+Date:   Wed, 21 Apr 2021 21:35:58 -0700
 From:   akpm@linux-foundation.org
-To:     ink@jurassic.park.msu.ru, mattst88@gmail.com,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org, rth@twiddle.net
-Subject:  + alpha-eliminate-old-style-function-definitions.patch
- added to -mm tree
-Message-ID: <20210422043059.h4rZJ3uKS%akpm@linux-foundation.org>
+To:     dchinner@redhat.com, hannes@cmpxchg.org, hch@lst.de,
+        hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com,
+        mm-commits@vger.kernel.org, william.kucharski@oracle.com,
+        willy@infradead.org, yang.shi@linux.alibaba.com
+Subject:  +
+ mm-filemap-fix-find_lock_entries-hang-on-32-bit-thp.patch added to -mm tree
+Message-ID: <20210422043558.dlryBaV6a%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alpha: eliminate old-style function definitions
+     Subject: mm/filemap: fix find_lock_entries hang on 32-bit THP
 has been added to the -mm tree.  Its filename is
-     alpha-eliminate-old-style-function-definitions.patch
+     mm-filemap-fix-find_lock_entries-hang-on-32-bit-thp.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/alpha-eliminate-old-style-function-definitions.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-fix-find_lock_entries-hang-on-32-bit-thp.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/alpha-eliminate-old-style-function-definitions.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-fix-find_lock_entries-hang-on-32-bit-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,53 +66,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: alpha: eliminate old-style function definitions
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/filemap: fix find_lock_entries hang on 32-bit THP
 
-'make ARCH=alpha W=1' reports a couple of old-style function
-definitions with missing parameter list, so fix those.
+No problem on 64-bit, or without huge pages, but xfstests generic/308 hung
+uninterruptibly on 32-bit huge tmpfs.  Since 4.13's 0cc3b0ec23ce ("Clarify
+(and fix) MAX_LFS_FILESIZE macros"), MAX_LFS_FILESIZE is only a PAGE_SIZE
+away from wrapping 32-bit xa_index to 0, so the new find_lock_entries()
+has to be extra careful when handling a THP.
 
-../arch/alpha/kernel/pc873xx.c: In function 'pc873xx_get_base':
-../arch/alpha/kernel/pc873xx.c:16:21: warning: old-style function definition [-Wold-style-definition]
-   16 | unsigned int __init pc873xx_get_base()
-
-../arch/alpha/kernel/pc873xx.c: In function 'pc873xx_get_model':
-../arch/alpha/kernel/pc873xx.c:21:14: warning: old-style function definition [-Wold-style-definition]
-   21 | char *__init pc873xx_get_model()
-
-Link: https://lkml.kernel.org/r/20210421061312.30097-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2104211735430.3299@eggly.anvils
+Fixes: 5c211ba29deb ("mm: add and use find_lock_entries")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/pc873xx.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/filemap.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/arch/alpha/kernel/pc873xx.c~alpha-eliminate-old-style-function-definitions
-+++ a/arch/alpha/kernel/pc873xx.c
-@@ -13,12 +13,12 @@ static char *pc873xx_names[] = {
- static unsigned int base, model;
+--- a/mm/filemap.c~mm-filemap-fix-find_lock_entries-hang-on-32-bit-thp
++++ a/mm/filemap.c
+@@ -1969,8 +1969,14 @@ unlock:
+ put:
+ 		put_page(page);
+ next:
+-		if (!xa_is_value(page) && PageTransHuge(page))
+-			xas_set(&xas, page->index + thp_nr_pages(page));
++		if (!xa_is_value(page) && PageTransHuge(page)) {
++			unsigned int nr_pages = thp_nr_pages(page);
++
++			/* Final THP may cross MAX_LFS_FILESIZE on 32-bit */
++			xas_set(&xas, page->index + nr_pages);
++			if (xas.xa_index < nr_pages)
++				break;
++		}
+ 	}
+ 	rcu_read_unlock();
  
- 
--unsigned int __init pc873xx_get_base()
-+unsigned int __init pc873xx_get_base(void)
- {
- 	return base;
- }
- 
--char *__init pc873xx_get_model()
-+char *__init pc873xx_get_model(void)
- {
- 	return pc873xx_names[model];
- }
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-vfs-fs_parser-clean-up-kernel-doc-warnings.patch
-alpha-eliminate-old-style-function-definitions.patch
-lib-parser-clean-up-kernel-doc.patch
+mm-filemap-fix-find_lock_entries-hang-on-32-bit-thp.patch
+mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit.patch
+mm-restore-node-stat-checking-in-proc-sys-vm-stat_refresh.patch
+mm-no-more-einval-from-proc-sys-vm-stat_refresh.patch
+mm-proc-sys-vm-stat_refresh-skip-checking-known-negative-stats.patch
+mm-proc-sys-vm-stat_refresh-stop-checking-monotonic-numa-stats.patch
 
