@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AFEFC433ED
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 23:03:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 036EDC433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 23:07:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44E6261404
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 23:03:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CCDA46141C
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Apr 2021 23:07:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236949AbhDVXDj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 22 Apr 2021 19:03:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53210 "EHLO mail.kernel.org"
+        id S239650AbhDVXIH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 22 Apr 2021 19:08:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235977AbhDVXDi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 22 Apr 2021 19:03:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E492C61417;
-        Thu, 22 Apr 2021 23:03:02 +0000 (UTC)
+        id S236896AbhDVXIH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 22 Apr 2021 19:08:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C969D61360;
+        Thu, 22 Apr 2021 23:07:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619132583;
-        bh=S3NfI5YRiUQ1OfBqf0hQMt2zavWbp2EVLdv6dpp07xk=;
+        s=korg; t=1619132852;
+        bh=kQST3A8M/CyxUDzKl8fYYH4OAcRW/k1uwZXgj4a7nLo=;
         h=Date:From:To:Subject:From;
-        b=eGSrrosLK9mIzUKMd9ML/qW2T8NHiF37r0pKJLPFtDrCHv5OtDwaeVMPrhRkqrrKo
-         nHrZ1Y+iiUCe6k0MQWxwxw/HwreGqQepw1m7SnvVQyjR6bGk8f2r/lo/g9pFvfu0fc
-         qZJ9l7BTDGpzAcNZtEo4kp5S3Lq7kX0nLBDs3ObI=
-Date:   Thu, 22 Apr 2021 16:03:02 -0700
+        b=FQbFYpvEYlbSRjKk7sc+Y8pWQvQbbhckdZJczGM8NO96TXILjAU0anSDf1VYBgrCH
+         o9PbkXru+vGjQfEyyDzTU+5MSZuhnxJniL1qR7C1h3He5eyLQK2hnslc0RZuAP5wjE
+         e1t5AZlxQhT2UdEL7nbGMEvFYfrGSCxyCE0TEYEs=
+Date:   Thu, 22 Apr 2021 16:07:31 -0700
 From:   akpm@linux-foundation.org
-To:     dchinner@redhat.com, hannes@cmpxchg.org, hch@lst.de,
-        hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com,
-        mm-commits@vger.kernel.org, william.kucharski@oracle.com,
-        willy@infradead.org, yang.shi@linux.alibaba.com
-Subject:  +
- mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2.patch added to -mm
- tree
-Message-ID: <20210422230302.C6iYqA-Pn%akpm@linux-foundation.org>
+To:     dan.carpenter@oracle.com, mm-commits@vger.kernel.org,
+        stefani@seibold.net
+Subject:  + kfifo-fix-ternary-sign-extension-bugs.patch added to
+ -mm tree
+Message-ID: <20210422230731.3Hht0ZytI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2
+     Subject: kfifo: fix ternary sign extension bugs
 has been added to the -mm tree.  Its filename is
-     mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2.patch
+     kfifo-fix-ternary-sign-extension-bugs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kfifo-fix-ternary-sign-extension-bugs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kfifo-fix-ternary-sign-extension-bugs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,68 +64,113 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: kfifo: fix ternary sign extension bugs
 
-remove unneeded u64 casts
+The intent with this code was to return negative error codes but instead
+it returns positives.
 
-Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2104221347240.1170@eggly.anvils
-Fixes: 41139aa4c3a3 ("mm/filemap: add mapping_seek_hole_data")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+The problem is how type promotion works with ternary operations.  These
+functions return long, "ret" is an int and "copied" is a u32.  The
+negative error code is first cast to u32 so it becomes a high positive and
+then cast to long where it's still a positive.
+
+We could fix this by declaring "ret" as a ssize_t but let's just get rid
+of the ternaries instead.
+
+Link: https://lkml.kernel.org/r/YIE+/cK1tBzSuQPU@mwanda
+Fixes: 5bf2b19320ec ("kfifo: add example files to the kernel sample directory")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ samples/kfifo/bytestream-example.c |    8 ++++++--
+ samples/kfifo/inttype-example.c    |    8 ++++++--
+ samples/kfifo/record-example.c     |    8 ++++++--
+ 3 files changed, 18 insertions(+), 6 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2
-+++ a/mm/filemap.c
-@@ -2677,8 +2677,8 @@ unsigned int seek_page_size(struct xa_st
- loff_t mapping_seek_hole_data(struct address_space *mapping, loff_t start,
- 		loff_t end, int whence)
- {
--	XA_STATE(xas, &mapping->i_pages, (u64)start >> PAGE_SHIFT);
--	pgoff_t max = (u64)(end - 1) >> PAGE_SHIFT;
-+	XA_STATE(xas, &mapping->i_pages, start >> PAGE_SHIFT);
-+	pgoff_t max = (end - 1) >> PAGE_SHIFT;
- 	bool seek_data = (whence == SEEK_DATA);
- 	struct page *page;
+--- a/samples/kfifo/bytestream-example.c~kfifo-fix-ternary-sign-extension-bugs
++++ a/samples/kfifo/bytestream-example.c
+@@ -122,8 +122,10 @@ static ssize_t fifo_write(struct file *f
+ 	ret = kfifo_from_user(&test, buf, count, &copied);
  
-@@ -2697,7 +2697,7 @@ loff_t mapping_seek_hole_data(struct add
- 		}
+ 	mutex_unlock(&write_lock);
++	if (ret)
++		return ret;
  
- 		seek_size = seek_page_size(&xas, page);
--		pos = round_up((u64)pos + 1, seek_size);
-+		pos = round_up(pos + 1, seek_size);
- 		start = page_seek_hole_data(&xas, mapping, page, start, pos,
- 				seek_data);
- 		if (start < pos)
-@@ -2705,7 +2705,7 @@ loff_t mapping_seek_hole_data(struct add
- 		if (start >= end)
- 			break;
- 		if (seek_size > PAGE_SIZE)
--			xas_set(&xas, (u64)pos >> PAGE_SHIFT);
-+			xas_set(&xas, pos >> PAGE_SHIFT);
- 		if (!xa_is_value(page))
- 			put_page(page);
- 	}
+-	return ret ? ret : copied;
++	return copied;
+ }
+ 
+ static ssize_t fifo_read(struct file *file, char __user *buf,
+@@ -138,8 +140,10 @@ static ssize_t fifo_read(struct file *fi
+ 	ret = kfifo_to_user(&test, buf, count, &copied);
+ 
+ 	mutex_unlock(&read_lock);
++	if (ret)
++		return ret;
+ 
+-	return ret ? ret : copied;
++	return copied;
+ }
+ 
+ static const struct proc_ops fifo_proc_ops = {
+--- a/samples/kfifo/inttype-example.c~kfifo-fix-ternary-sign-extension-bugs
++++ a/samples/kfifo/inttype-example.c
+@@ -115,8 +115,10 @@ static ssize_t fifo_write(struct file *f
+ 	ret = kfifo_from_user(&test, buf, count, &copied);
+ 
+ 	mutex_unlock(&write_lock);
++	if (ret)
++		return ret;
+ 
+-	return ret ? ret : copied;
++	return copied;
+ }
+ 
+ static ssize_t fifo_read(struct file *file, char __user *buf,
+@@ -131,8 +133,10 @@ static ssize_t fifo_read(struct file *fi
+ 	ret = kfifo_to_user(&test, buf, count, &copied);
+ 
+ 	mutex_unlock(&read_lock);
++	if (ret)
++		return ret;
+ 
+-	return ret ? ret : copied;
++	return copied;
+ }
+ 
+ static const struct proc_ops fifo_proc_ops = {
+--- a/samples/kfifo/record-example.c~kfifo-fix-ternary-sign-extension-bugs
++++ a/samples/kfifo/record-example.c
+@@ -129,8 +129,10 @@ static ssize_t fifo_write(struct file *f
+ 	ret = kfifo_from_user(&test, buf, count, &copied);
+ 
+ 	mutex_unlock(&write_lock);
++	if (ret)
++		return ret;
+ 
+-	return ret ? ret : copied;
++	return copied;
+ }
+ 
+ static ssize_t fifo_read(struct file *file, char __user *buf,
+@@ -145,8 +147,10 @@ static ssize_t fifo_read(struct file *fi
+ 	ret = kfifo_to_user(&test, buf, count, &copied);
+ 
+ 	mutex_unlock(&read_lock);
++	if (ret)
++		return ret;
+ 
+-	return ret ? ret : copied;
++	return copied;
+ }
+ 
+ static const struct proc_ops fifo_proc_ops = {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-mm-filemap-fix-find_lock_entries-hang-on-32-bit-thp.patch
-mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit.patch
-mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2.patch
-mm-restore-node-stat-checking-in-proc-sys-vm-stat_refresh.patch
-mm-no-more-einval-from-proc-sys-vm-stat_refresh.patch
-mm-proc-sys-vm-stat_refresh-skip-checking-known-negative-stats.patch
-mm-proc-sys-vm-stat_refresh-stop-checking-monotonic-numa-stats.patch
+kfifo-fix-ternary-sign-extension-bugs.patch
 
