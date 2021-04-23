@@ -2,118 +2,81 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BCE4C433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 20:25:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0665AC433B4
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 21:28:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EFBEA613D8
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 20:25:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D5A6961474
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 21:28:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232573AbhDWUZz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Apr 2021 16:25:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39248 "EHLO mail.kernel.org"
+        id S232523AbhDWV2q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Apr 2021 17:28:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36566 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229691AbhDWUZy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 23 Apr 2021 16:25:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 62851613B0;
-        Fri, 23 Apr 2021 20:25:05 +0000 (UTC)
+        id S229488AbhDWV2n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 23 Apr 2021 17:28:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1664F611F1;
+        Fri, 23 Apr 2021 21:28:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619209505;
-        bh=XpPNO4oFoB4sKzNRdszi4n2sDFjdsZvBHbKCfZ7fnzY=;
-        h=Date:From:To:Subject:From;
-        b=eME/Ldwf326FTO3/QaGkP/N1WkaO454gtrkBicWKq1AIqhO+q8/4ZpPNEnYn5aiRh
-         kp2FluTZWq9vLgDcfb3TZa2GDOvwX9j509appHnN4HmLE9OTt9dOxPiAO1e+LmaImR
-         PCNNwjJ0w4gJFCILjZr8rZpspSntF/d/cLvPf+jo=
-Date:   Fri, 23 Apr 2021 13:25:04 -0700
-From:   akpm@linux-foundation.org
-To:     dchinner@redhat.com, hannes@cmpxchg.org, hch@lst.de,
-        hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com,
-        mm-commits@vger.kernel.org, william.kucharski@oracle.com,
-        willy@infradead.org, yang.shi@linux.alibaba.com
-Subject:  [folded-merged]
- mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2.patch removed from
- -mm tree
-Message-ID: <20210423202504.WzXVWp3aV%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        s=korg; t=1619213286;
+        bh=5XMyWmPObm2Db2rJLK2SkblzsKhD+iSf4uLNQ62wixU=;
+        h=Date:From:To:Cc:Subject:From;
+        b=D/6TFHbzI5ldxkpeozPQ0SxNTgKkOjINEBL3+JhNlQjEMmjJZoEfsWzki6esYndbx
+         P5jwKxW9lSBgMcFfGJ1H9qpih79Er1A2YsOtoKYoL92DynQ3Eh0a/XhDsjn+zYHkDl
+         bZeh1GYlN4FEE98syvEAId3v6J5OzoDwI1qiP154=
+Date:   Fri, 23 Apr 2021 14:28:05 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
+Subject: incoming
+Message-Id: <20210423142805.fd6d718ec3296452108b3ee0@linux-foundation.org>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2
-has been removed from the -mm tree.  Its filename was
-     mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2.patch
+5 patches, based on 5bfc75d92efd494db37f5c4c173d3639d4772966.
 
-This patch was dropped because it was folded into mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit.patch
+Subsystems affected by this patch series:
 
-------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2
+  coda
+  overlayfs
+  mm/pagecache
+  mm/memcg
 
-remove unneeded u64 casts
+Subsystem: coda
 
-Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2104221347240.1170@eggly.anvils
-Fixes: 41139aa4c3a3 ("mm/filemap: add mapping_seek_hole_data")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+    Christian K=F6nig <christian.koenig@amd.com>:
+      coda: fix reference counting in coda_file_mmap error path
 
- mm/filemap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Subsystem: overlayfs
 
---- a/mm/filemap.c~mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2
-+++ a/mm/filemap.c
-@@ -2677,8 +2677,8 @@ unsigned int seek_page_size(struct xa_st
- loff_t mapping_seek_hole_data(struct address_space *mapping, loff_t start,
- 		loff_t end, int whence)
- {
--	XA_STATE(xas, &mapping->i_pages, (u64)start >> PAGE_SHIFT);
--	pgoff_t max = (u64)(end - 1) >> PAGE_SHIFT;
-+	XA_STATE(xas, &mapping->i_pages, start >> PAGE_SHIFT);
-+	pgoff_t max = (end - 1) >> PAGE_SHIFT;
- 	bool seek_data = (whence == SEEK_DATA);
- 	struct page *page;
- 
-@@ -2697,7 +2697,7 @@ loff_t mapping_seek_hole_data(struct add
- 		}
- 
- 		seek_size = seek_page_size(&xas, page);
--		pos = round_up((u64)pos + 1, seek_size);
-+		pos = round_up(pos + 1, seek_size);
- 		start = page_seek_hole_data(&xas, mapping, page, start, pos,
- 				seek_data);
- 		if (start < pos)
-@@ -2705,7 +2705,7 @@ loff_t mapping_seek_hole_data(struct add
- 		if (start >= end)
- 			break;
- 		if (seek_size > PAGE_SIZE)
--			xas_set(&xas, (u64)pos >> PAGE_SHIFT);
-+			xas_set(&xas, pos >> PAGE_SHIFT);
- 		if (!xa_is_value(page))
- 			put_page(page);
- 	}
-_
+    Christian K=F6nig <christian.koenig@amd.com>:
+      ovl: fix reference counting in ovl_mmap error path
 
-Patches currently in -mm which might be from hughd@google.com are
+Subsystem: mm/pagecache
 
-mm-filemap-fix-find_lock_entries-hang-on-32-bit-thp.patch
-mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit.patch
-mm-restore-node-stat-checking-in-proc-sys-vm-stat_refresh.patch
-mm-no-more-einval-from-proc-sys-vm-stat_refresh.patch
-mm-proc-sys-vm-stat_refresh-skip-checking-known-negative-stats.patch
-mm-proc-sys-vm-stat_refresh-stop-checking-monotonic-numa-stats.patch
+    Hugh Dickins <hughd@google.com>:
+      mm/filemap: fix find_lock_entries hang on 32-bit THP
+      mm/filemap: fix mapping_seek_hole_data on THP & 32-bit
+
+Subsystem: mm/memcg
+
+    Vasily Averin <vvs@virtuozzo.com>:
+      tools/cgroup/slabinfo.py: updated to work on current kernel
+
+ fs/coda/file.c                 |    6 +++---
+ fs/overlayfs/file.c            |   11 +----------
+ mm/filemap.c                   |   31 +++++++++++++++++++------------
+ tools/cgroup/memcg_slabinfo.py |    8 ++++----
+ 4 files changed, 27 insertions(+), 29 deletions(-)
 
