@@ -7,32 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD6ACC433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 18:48:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BCE4C433B4
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 20:25:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A37A961425
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 18:48:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EFBEA613D8
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 20:25:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231735AbhDWSsg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Apr 2021 14:48:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36296 "EHLO mail.kernel.org"
+        id S232573AbhDWUZz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Apr 2021 16:25:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39248 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231684AbhDWSsg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 23 Apr 2021 14:48:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3A2F0613B2;
-        Fri, 23 Apr 2021 18:47:58 +0000 (UTC)
+        id S229691AbhDWUZy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 23 Apr 2021 16:25:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 62851613B0;
+        Fri, 23 Apr 2021 20:25:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619203678;
-        bh=fE4yNrz7lAIGxXp/SC5DXlZ1WE1HO0hoW2UjnCb43W0=;
+        s=korg; t=1619209505;
+        bh=XpPNO4oFoB4sKzNRdszi4n2sDFjdsZvBHbKCfZ7fnzY=;
         h=Date:From:To:Subject:From;
-        b=HnWVKLI8LKJiqZcnbcXrYQ4Mwp5PZIiBA9crPhpwHA1OqgWammHJYtZKrMx1l8Kwv
-         ueiJ5ZcPxlKLdfaCZwvZojV7p3/zvQHROjeoUxjDOBcGPWU4j5hNrFLQS7ozD0uB/C
-         MF4XZgURPk8ggBN1YfowVd2AqhW+ZzdiAjUWvSBU=
-Date:   Fri, 23 Apr 2021 11:47:57 -0700
+        b=eME/Ldwf326FTO3/QaGkP/N1WkaO454gtrkBicWKq1AIqhO+q8/4ZpPNEnYn5aiRh
+         kp2FluTZWq9vLgDcfb3TZa2GDOvwX9j509appHnN4HmLE9OTt9dOxPiAO1e+LmaImR
+         PCNNwjJ0w4gJFCILjZr8rZpspSntF/d/cLvPf+jo=
+Date:   Fri, 23 Apr 2021 13:25:04 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20210423184757.uUBM3fRBP%akpm@linux-foundation.org>
+To:     dchinner@redhat.com, hannes@cmpxchg.org, hch@lst.de,
+        hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com,
+        mm-commits@vger.kernel.org, william.kucharski@oracle.com,
+        willy@infradead.org, yang.shi@linux.alibaba.com
+Subject:  [folded-merged]
+ mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2.patch removed from
+ -mm tree
+Message-ID: <20210423202504.WzXVWp3aV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,70 +46,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2
+has been removed from the -mm tree.  Its filename was
+     mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Hugh Dickins <hughd@google.com>
+Subject: mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2
 
+remove unneeded u64 casts
+
+Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2104221347240.1170@eggly.anvils
+Fixes: 41139aa4c3a3 ("mm/filemap: add mapping_seek_hole_data")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/filemap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4249,8 +4249,6 @@ static bool dm_plane_format_mod_supporte
- 		return true;
+--- a/mm/filemap.c~mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit-v2
++++ a/mm/filemap.c
+@@ -2677,8 +2677,8 @@ unsigned int seek_page_size(struct xa_st
+ loff_t mapping_seek_hole_data(struct address_space *mapping, loff_t start,
+ 		loff_t end, int whence)
+ {
+-	XA_STATE(xas, &mapping->i_pages, (u64)start >> PAGE_SHIFT);
+-	pgoff_t max = (u64)(end - 1) >> PAGE_SHIFT;
++	XA_STATE(xas, &mapping->i_pages, start >> PAGE_SHIFT);
++	pgoff_t max = (end - 1) >> PAGE_SHIFT;
+ 	bool seek_data = (whence == SEEK_DATA);
+ 	struct page *page;
+ 
+@@ -2697,7 +2697,7 @@ loff_t mapping_seek_hole_data(struct add
+ 		}
+ 
+ 		seek_size = seek_page_size(&xas, page);
+-		pos = round_up((u64)pos + 1, seek_size);
++		pos = round_up(pos + 1, seek_size);
+ 		start = page_seek_hole_data(&xas, mapping, page, start, pos,
+ 				seek_data);
+ 		if (start < pos)
+@@ -2705,7 +2705,7 @@ loff_t mapping_seek_hole_data(struct add
+ 		if (start >= end)
+ 			break;
+ 		if (seek_size > PAGE_SIZE)
+-			xas_set(&xas, (u64)pos >> PAGE_SHIFT);
++			xas_set(&xas, pos >> PAGE_SHIFT);
+ 		if (!xa_is_value(page))
+ 			put_page(page);
  	}
- 
--<<<<<<< HEAD
--=======
- 	/* Check that the modifier is on the list of the plane's supported modifiers. */
- 	for (i = 0; i < plane->modifier_count; i++) {
- 		if (modifier == plane->modifiers[i])
-@@ -4259,7 +4257,6 @@ static bool dm_plane_format_mod_supporte
- 	if (i == plane->modifier_count)
- 		return false;
- 
-->>>>>>> linux-next/akpm-base
- 	/*
- 	 * For D swizzle the canonical modifier depends on the bpp, so check
- 	 * it here.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-scripts-a-new-script-for-checking-duplicate-struct-declaration-fix.patch
-mm.patch
-mm-memcontrol-switch-to-rstat-fix.patch
-mm-vmalloc-remove-unmap_kernel_range-fix-fix.patch
-mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator-fix.patch
-mm-vmscan-add-shrinker_info_protected-helper-fix.patch
-mm-drop-redundant-arch_enable__migration-fix.patch
-mm-drop-redundant-arch_enable__migration-fix-fix.patch
-kernel-resource-allow-region_intersects-users-to-hold-resource_lock-fix.patch
-linux-next-rejects.patch
-cifsd-is-broken.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
+mm-filemap-fix-find_lock_entries-hang-on-32-bit-thp.patch
+mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit.patch
+mm-restore-node-stat-checking-in-proc-sys-vm-stat_refresh.patch
+mm-no-more-einval-from-proc-sys-vm-stat_refresh.patch
+mm-proc-sys-vm-stat_refresh-skip-checking-known-negative-stats.patch
+mm-proc-sys-vm-stat_refresh-stop-checking-monotonic-numa-stats.patch
 
