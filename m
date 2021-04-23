@@ -5,93 +5,90 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2BF8C43462
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 21:29:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39C0AC43470
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 21:29:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 98CF76146E
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 21:29:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 18F28613AB
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 21:29:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229488AbhDWV3f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Apr 2021 17:29:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36896 "EHLO mail.kernel.org"
+        id S232466AbhDWV3g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Apr 2021 17:29:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36946 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232466AbhDWV3b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 23 Apr 2021 17:29:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 710D46146D;
-        Fri, 23 Apr 2021 21:28:54 +0000 (UTC)
+        id S243960AbhDWV3e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 23 Apr 2021 17:29:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 780C661469;
+        Fri, 23 Apr 2021 21:28:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619213334;
-        bh=T5RHb2YggDTpgWTv964Gu9/vr5TPsOYHkwyJI3FohCc=;
+        s=korg; t=1619213337;
+        bh=50DcqW+qXHbwsuPF084kbHU9PE95xeexvEO5iqMPrIM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=j/Gpgxk7xaTK0lvhYA4zQnaYFCMSiFALqvYrQ779w3g6UICb4+4BG4Cd/9rJjlWIy
-         iUTB9alyY5GIM0rYi4SXJlQ0NbVEF9zO952AkaaWdnFbaV9RQr6A+a37L99Su+CuuR
-         zYJYMrMKaj0mSrphilU9Hd3hlzb73RE6yuZ/Hbas=
-Date:   Fri, 23 Apr 2021 14:28:54 -0700
+        b=svdMtvwkTn3eNYC4aJvpDAtxgh5Rvq12OJXwlalO/92KOkVH1ihiBkv1RVf1fyzUf
+         ff0syY0NSnLZbF3mWKGiKE44ZjaQNiCqeYLQazOvdvsWRMlyXvr8aoXoBCVB4SHdFv
+         RLWiqtSWM+maAqKZiX2Ie+OZlL20ASJZy2EmRLKY=
+Date:   Fri, 23 Apr 2021 14:28:57 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, christian.koenig@amd.com,
-        daniel.vetter@ffwll.ch, jaharkes@cs.cmu.edu, jgg@ziepe.ca,
-        linux-mm@kvack.org, miklos@szeredi.hu, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 2/5] ovl: fix reference counting in ovl_mmap error
- path
-Message-ID: <20210423212854.Tu-9GzF1K%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dchinner@redhat.com, hannes@cmpxchg.org,
+        hch@lst.de, hughd@google.com, jack@suse.cz,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        william.kucharski@oracle.com, willy@infradead.org,
+        yang.shi@linux.alibaba.com
+Subject:  [patch 3/5] mm/filemap: fix find_lock_entries hang on
+ 32-bit THP
+Message-ID: <20210423212857.ZjNcexu9X%akpm@linux-foundation.org>
 In-Reply-To: <20210423142805.fd6d718ec3296452108b3ee0@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: Christian K=C3=B6nig <christian.koenig@amd.com>
-Subject: ovl: fix reference counting in ovl_mmap error path
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/filemap: fix find_lock_entries hang on 32-bit THP
 
-mmap_region() now calls fput() on the vma->vm_file.
+No problem on 64-bit, or without huge pages, but xfstests generic/308 hung
+uninterruptibly on 32-bit huge tmpfs.  Since 4.13's 0cc3b0ec23ce ("Clarify
+(and fix) MAX_LFS_FILESIZE macros"), MAX_LFS_FILESIZE is only a PAGE_SIZE
+away from wrapping 32-bit xa_index to 0, so the new find_lock_entries()
+has to be extra careful when handling a THP.
 
-Fix this by using vma_set_file() so it doesn't need to be handled manually
-here any more.
-
-Link: https://lkml.kernel.org/r/20210421132012.82354-2-christian.koenig@amd=
-.com
-Fixes: 1527f926fd04 ("mm: mmap: fix fput in error path v2")
-Signed-off-by: Christian K=C3=B6nig <christian.koenig@amd.com>
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Jan Harkes <jaharkes@cs.cmu.edu>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: <stable@vger.kernel.org>	[5.11+]
+Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2104211735430.3299@eggly.anvils
+Fixes: 5c211ba29deb ("mm: add and use find_lock_entries")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/overlayfs/file.c |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ mm/filemap.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/fs/overlayfs/file.c~ovl-fix-reference-counting-in-ovl_mmap-error-path
-+++ a/fs/overlayfs/file.c
-@@ -430,20 +430,11 @@ static int ovl_mmap(struct file *file, s
- 	if (WARN_ON(file !=3D vma->vm_file))
- 		return -EIO;
-=20
--	vma->vm_file =3D get_file(realfile);
-+	vma_set_file(vma, realfile);
-=20
- 	old_cred =3D ovl_override_creds(file_inode(file)->i_sb);
- 	ret =3D call_mmap(vma->vm_file, vma);
- 	revert_creds(old_cred);
--
--	if (ret) {
--		/* Drop reference count from new vm_file value */
--		fput(realfile);
--	} else {
--		/* Drop reference count from previous vm_file value */
--		fput(file);
--	}
--
- 	ovl_file_accessed(file);
-=20
- 	return ret;
+--- a/mm/filemap.c~mm-filemap-fix-find_lock_entries-hang-on-32-bit-thp
++++ a/mm/filemap.c
+@@ -1969,8 +1969,14 @@ unlock:
+ put:
+ 		put_page(page);
+ next:
+-		if (!xa_is_value(page) && PageTransHuge(page))
+-			xas_set(&xas, page->index + thp_nr_pages(page));
++		if (!xa_is_value(page) && PageTransHuge(page)) {
++			unsigned int nr_pages = thp_nr_pages(page);
++
++			/* Final THP may cross MAX_LFS_FILESIZE on 32-bit */
++			xas_set(&xas, page->index + nr_pages);
++			if (xas.xa_index < nr_pages)
++				break;
++		}
+ 	}
+ 	rcu_read_unlock();
+ 
 _
