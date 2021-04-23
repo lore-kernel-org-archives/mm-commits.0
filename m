@@ -2,81 +2,89 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0665AC433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 21:28:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A28FC433ED
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 21:29:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5A6961474
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 21:28:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2E23613AB
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Apr 2021 21:28:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232523AbhDWV2q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Apr 2021 17:28:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36566 "EHLO mail.kernel.org"
+        id S243971AbhDWV3e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Apr 2021 17:29:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36830 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229488AbhDWV2n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 23 Apr 2021 17:28:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1664F611F1;
-        Fri, 23 Apr 2021 21:28:06 +0000 (UTC)
+        id S229488AbhDWV3a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 23 Apr 2021 17:29:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7303061468;
+        Fri, 23 Apr 2021 21:28:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619213286;
-        bh=5XMyWmPObm2Db2rJLK2SkblzsKhD+iSf4uLNQ62wixU=;
-        h=Date:From:To:Cc:Subject:From;
-        b=D/6TFHbzI5ldxkpeozPQ0SxNTgKkOjINEBL3+JhNlQjEMmjJZoEfsWzki6esYndbx
-         P5jwKxW9lSBgMcFfGJ1H9qpih79Er1A2YsOtoKYoL92DynQ3Eh0a/XhDsjn+zYHkDl
-         bZeh1GYlN4FEE98syvEAId3v6J5OzoDwI1qiP154=
-Date:   Fri, 23 Apr 2021 14:28:05 -0700
+        s=korg; t=1619213331;
+        bh=FB56MfyUiyiTrXdyx5rMarSiOFlA48br4dGERILl08I=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=hU8Nf8iOca6LE/I1lpwtZcjVI5Szq16t8VpCuv2N5b0qZw5h7NcxQzQn2upMw+6py
+         GEzXWQ9i7SC4CW9dWQ0zCAF6XxkpXR98Vt8/8+WDZP/PBjXVBkk6t1gmbgoee1XBWX
+         7tvFeprWJlsZC2lkxGE5AwsF9gPmYgYz+erkA/+Q=
+Date:   Fri, 23 Apr 2021 14:28:51 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
-Subject: incoming
-Message-Id: <20210423142805.fd6d718ec3296452108b3ee0@linux-foundation.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To:     akpm@linux-foundation.org, christian.koenig@amd.com,
+        daniel.vetter@ffwll.ch, jaharkes@cs.cmu.edu, jgg@ziepe.ca,
+        linux-mm@kvack.org, miklos@szeredi.hu, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 1/5] coda: fix reference counting in
+ coda_file_mmap error path
+Message-ID: <20210423212851.EzTJf6Dwt%akpm@linux-foundation.org>
+In-Reply-To: <20210423142805.fd6d718ec3296452108b3ee0@linux-foundation.org>
+User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+=46rom: Christian K=C3=B6nig <christian.koenig@amd.com>
+Subject: coda: fix reference counting in coda_file_mmap error path
 
-5 patches, based on 5bfc75d92efd494db37f5c4c173d3639d4772966.
+mmap_region() now calls fput() on the vma->vm_file.
 
-Subsystems affected by this patch series:
+So we need to drop the extra reference on the coda file instead of the
+host file.
 
-  coda
-  overlayfs
-  mm/pagecache
-  mm/memcg
+Link: https://lkml.kernel.org/r/20210421132012.82354-1-christian.koenig@amd=
+.com
+Fixes: 1527f926fd04 ("mm: mmap: fix fput in error path v2")
+Signed-off-by: Christian K=C3=B6nig <christian.koenig@amd.com>
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Acked-by: Jan Harkes <jaharkes@cs.cmu.edu>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: <stable@vger.kernel.org>	[5.11+]
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Subsystem: coda
+ fs/coda/file.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-    Christian K=F6nig <christian.koenig@amd.com>:
-      coda: fix reference counting in coda_file_mmap error path
-
-Subsystem: overlayfs
-
-    Christian K=F6nig <christian.koenig@amd.com>:
-      ovl: fix reference counting in ovl_mmap error path
-
-Subsystem: mm/pagecache
-
-    Hugh Dickins <hughd@google.com>:
-      mm/filemap: fix find_lock_entries hang on 32-bit THP
-      mm/filemap: fix mapping_seek_hole_data on THP & 32-bit
-
-Subsystem: mm/memcg
-
-    Vasily Averin <vvs@virtuozzo.com>:
-      tools/cgroup/slabinfo.py: updated to work on current kernel
-
- fs/coda/file.c                 |    6 +++---
- fs/overlayfs/file.c            |   11 +----------
- mm/filemap.c                   |   31 +++++++++++++++++++------------
- tools/cgroup/memcg_slabinfo.py |    8 ++++----
- 4 files changed, 27 insertions(+), 29 deletions(-)
-
+--- a/fs/coda/file.c~coda-fix-reference-counting-in-coda_file_mmap-error-pa=
+th
++++ a/fs/coda/file.c
+@@ -175,10 +175,10 @@ coda_file_mmap(struct file *coda_file, s
+ 	ret =3D call_mmap(vma->vm_file, vma);
+=20
+ 	if (ret) {
+-		/* if call_mmap fails, our caller will put coda_file so we
+-		 * should drop the reference to the host_file that we got.
++		/* if call_mmap fails, our caller will put host_file so we
++		 * should drop the reference to the coda_file that we got.
+ 		 */
+-		fput(host_file);
++		fput(coda_file);
+ 		kfree(cvm_ops);
+ 	} else {
+ 		/* here we add redirects for the open/close vm_operations */
+_
