@@ -4,39 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F387EC433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Apr 2021 00:00:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1315AC433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Apr 2021 00:12:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB4226113D
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Apr 2021 00:00:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFE946135D
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Apr 2021 00:12:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234275AbhD0ABf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Apr 2021 20:01:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41152 "EHLO mail.kernel.org"
+        id S232235AbhD0AN3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Apr 2021 20:13:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52606 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232022AbhD0ABe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 26 Apr 2021 20:01:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1408F61040;
-        Tue, 27 Apr 2021 00:00:52 +0000 (UTC)
+        id S232022AbhD0AN3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 26 Apr 2021 20:13:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A329B60FDC;
+        Tue, 27 Apr 2021 00:12:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619481652;
-        bh=nexsys/ulU8gVnhHvT6V4y+K8ELQWv9E9CcyGMxZOLE=;
+        s=korg; t=1619482365;
+        bh=KhReYF+LOrrxwwkTDTPbD+tboSB67AtcaZI0FjuJTWI=;
         h=Date:From:To:Subject:From;
-        b=Kg/iLui98l+mmCmVdHyYLAWyKIjxOPBhgugKm+We9Yvc2C4jrLa7kqi3O/p3jpkrJ
-         041i2qDQosW+YAYkCucz3dCuYRPY4kXZEuAHZmeUL05CY+jkSB8sAIMfAvWztMZPrR
-         IIv+US4+CycRVbuLrSg10PMUqK0n2OVf1fhyZlsI=
-Date:   Mon, 26 Apr 2021 17:00:51 -0700
+        b=ZpWbxJg2Kpd6NL7sv8O1o32cZg9t1XlOVUhiM9+n/6Qbf5AHfsIG6eB2/K+c75h68
+         ktWSBfhFttwEIn45cdsc8nsrLHWhXbVvcdL66f+Rvpvv5Fzu3gYiiMzLd0l6U5z4eU
+         09VFyQuV4to+7twLAfuC9WrITjLrqzUiHQoMKYhg=
+Date:   Mon, 26 Apr 2021 17:12:45 -0700
 From:   akpm@linux-foundation.org
-To:     ink@jurassic.park.msu.ru, lkp@intel.com, mattst88@gmail.com,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org, rth@twiddle.net,
-        viro@zeniv.linux.org.uk
+To:     anshuman.khandual@arm.com, mm-commits@vger.kernel.org,
+        rppt@linux.ibm.com, willy@infradead.org
 Subject:  +
- alpha-csum_partial_copyc-add-function-prototypes-from-net-checksumh.patch
+ mm-mmzoneh-fix-existing-kernel-doc-comments-and-link-them-to-core-api.patch
  added to -mm tree
-Message-ID: <20210427000051.gZAUmar2a%akpm@linux-foundation.org>
+Message-ID: <20210427001245.U3KRK16w_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alpha: csum_partial_copy.c: add function prototypes from <net/checksum.h>
+     Subject: mm/mmzone.h: fix existing kernel-doc comments and link them to core-api
 has been added to the -mm tree.  Its filename is
-     alpha-csum_partial_copyc-add-function-prototypes-from-net-checksumh.patch
+     mm-mmzoneh-fix-existing-kernel-doc-comments-and-link-them-to-core-api.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/alpha-csum_partial_copyc-add-function-prototypes-from-net-checksumh.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmzoneh-fix-existing-kernel-doc-comments-and-link-them-to-core-api.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/alpha-csum_partial_copyc-add-function-prototypes-from-net-checksumh.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmzoneh-fix-existing-kernel-doc-comments-and-link-them-to-core-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,48 +65,157 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: alpha: csum_partial_copy.c: add function prototypes from <net/checksum.h>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mm/mmzone.h: fix existing kernel-doc comments and link them to core-api
 
-Fix "no previous prototype" W=1 warnings from the kernel test robot:
+There are a couple of kernel-doc comments in include/linux/mmzone.h but
+they have minor formatting issues that would cause kernel-doc warnings.
 
-../arch/alpha/lib/csum_partial_copy.c:349:1: error: no previous prototype for 'csum_and_copy_from_user' [-Werror=missing-prototypes]
-  349 | csum_and_copy_from_user(const void __user *src, void *dst, int len)
-      | ^~~~~~~~~~~~~~~~~~~~~~~
-../arch/alpha/lib/csum_partial_copy.c:358:1: error: no previous prototype for 'csum_partial_copy_nocheck' [-Werror=missing-prototypes]
-  358 | csum_partial_copy_nocheck(const void *src, void *dst, int len)
-      | ^~~~~~~~~~~~~~~~~~~~~~~~~
+Fix the formatting of those comments, add missing Return: descriptions and
+link include/linux/mmzone.h to Documentation/core-api/mm-api.rst
 
-Link: https://lkml.kernel.org/r/20210425235749.19113-1-rdunlap@infradead.org
-Fixes: 808b49da54e6 ("alpha: turn csum_partial_copy_from_user() into csum_and_copy_from_user()")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Link: https://lkml.kernel.org/r/20210426141927.1314326-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/lib/csum_partial_copy.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/core-api/mm-api.rst |    1 
+ include/linux/mmzone.h            |   43 +++++++++++++++-------------
+ 2 files changed, 25 insertions(+), 19 deletions(-)
 
---- a/arch/alpha/lib/csum_partial_copy.c~alpha-csum_partial_copyc-add-function-prototypes-from-net-checksumh
-+++ a/arch/alpha/lib/csum_partial_copy.c
-@@ -13,6 +13,7 @@
- #include <linux/types.h>
- #include <linux/string.h>
- #include <linux/uaccess.h>
-+#include <net/checksum.h>
+--- a/Documentation/core-api/mm-api.rst~mm-mmzoneh-fix-existing-kernel-doc-comments-and-link-them-to-core-api
++++ a/Documentation/core-api/mm-api.rst
+@@ -97,3 +97,4 @@ More Memory Management Functions
+    :internal:
+ .. kernel-doc:: include/linux/mm.h
+    :internal:
++.. kernel-doc:: include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-mmzoneh-fix-existing-kernel-doc-comments-and-link-them-to-core-api
++++ a/include/linux/mmzone.h
+@@ -993,7 +993,8 @@ static inline int is_highmem_idx(enum zo
+  * is_highmem - helper function to quickly check if a struct zone is a
+  *              highmem zone or not.  This is an attempt to keep references
+  *              to ZONE_{DMA/NORMAL/HIGHMEM/etc} in general code to a minimum.
+- * @zone - pointer to struct zone variable
++ * @zone: pointer to struct zone variable
++ * Return: 1 for a highmem zone, 0 otherwise
+  */
+ static inline int is_highmem(struct zone *zone)
+ {
+@@ -1044,7 +1045,7 @@ extern struct zone *next_zone(struct zon
  
+ /**
+  * for_each_online_pgdat - helper macro to iterate over all online nodes
+- * @pgdat - pointer to a pg_data_t variable
++ * @pgdat: pointer to a pg_data_t variable
+  */
+ #define for_each_online_pgdat(pgdat)			\
+ 	for (pgdat = first_online_pgdat();		\
+@@ -1052,7 +1053,7 @@ extern struct zone *next_zone(struct zon
+ 	     pgdat = next_online_pgdat(pgdat))
+ /**
+  * for_each_zone - helper macro to iterate over all memory zones
+- * @zone - pointer to struct zone variable
++ * @zone: pointer to struct zone variable
+  *
+  * The user only needs to declare the zone variable, for_each_zone
+  * fills it in.
+@@ -1091,15 +1092,18 @@ struct zoneref *__next_zones_zonelist(st
  
- #define ldq_u(x,y) \
+ /**
+  * next_zones_zonelist - Returns the next zone at or below highest_zoneidx within the allowed nodemask using a cursor within a zonelist as a starting point
+- * @z - The cursor used as a starting point for the search
+- * @highest_zoneidx - The zone index of the highest zone to return
+- * @nodes - An optional nodemask to filter the zonelist with
++ * @z: The cursor used as a starting point for the search
++ * @highest_zoneidx: The zone index of the highest zone to return
++ * @nodes: An optional nodemask to filter the zonelist with
+  *
+  * This function returns the next zone at or below a given zone index that is
+  * within the allowed nodemask using a cursor as the starting point for the
+  * search. The zoneref returned is a cursor that represents the current zone
+  * being examined. It should be advanced by one before calling
+  * next_zones_zonelist again.
++ *
++ * Return: the next zone at or below highest_zoneidx within the allowed
++ * nodemask using a cursor within a zonelist as a starting point
+  */
+ static __always_inline struct zoneref *next_zones_zonelist(struct zoneref *z,
+ 					enum zone_type highest_zoneidx,
+@@ -1112,10 +1116,9 @@ static __always_inline struct zoneref *n
+ 
+ /**
+  * first_zones_zonelist - Returns the first zone at or below highest_zoneidx within the allowed nodemask in a zonelist
+- * @zonelist - The zonelist to search for a suitable zone
+- * @highest_zoneidx - The zone index of the highest zone to return
+- * @nodes - An optional nodemask to filter the zonelist with
+- * @return - Zoneref pointer for the first suitable zone found (see below)
++ * @zonelist: The zonelist to search for a suitable zone
++ * @highest_zoneidx: The zone index of the highest zone to return
++ * @nodes: An optional nodemask to filter the zonelist with
+  *
+  * This function returns the first zone at or below a given zone index that is
+  * within the allowed nodemask. The zoneref returned is a cursor that can be
+@@ -1125,6 +1128,8 @@ static __always_inline struct zoneref *n
+  * When no eligible zone is found, zoneref->zone is NULL (zoneref itself is
+  * never NULL). This may happen either genuinely, or due to concurrent nodemask
+  * update due to cpuset modification.
++ *
++ * Return: Zoneref pointer for the first suitable zone found
+  */
+ static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
+ 					enum zone_type highest_zoneidx,
+@@ -1136,11 +1141,11 @@ static inline struct zoneref *first_zone
+ 
+ /**
+  * for_each_zone_zonelist_nodemask - helper macro to iterate over valid zones in a zonelist at or below a given zone index and within a nodemask
+- * @zone - The current zone in the iterator
+- * @z - The current pointer within zonelist->_zonerefs being iterated
+- * @zlist - The zonelist being iterated
+- * @highidx - The zone index of the highest zone to return
+- * @nodemask - Nodemask allowed by the allocator
++ * @zone: The current zone in the iterator
++ * @z: The current pointer within zonelist->_zonerefs being iterated
++ * @zlist: The zonelist being iterated
++ * @highidx: The zone index of the highest zone to return
++ * @nodemask: Nodemask allowed by the allocator
+  *
+  * This iterator iterates though all zones at or below a given zone index and
+  * within a given nodemask
+@@ -1160,10 +1165,10 @@ static inline struct zoneref *first_zone
+ 
+ /**
+  * for_each_zone_zonelist - helper macro to iterate over valid zones in a zonelist at or below a given zone index
+- * @zone - The current zone in the iterator
+- * @z - The current pointer within zonelist->zones being iterated
+- * @zlist - The zonelist being iterated
+- * @highidx - The zone index of the highest zone to return
++ * @zone: The current zone in the iterator
++ * @z: The current pointer within zonelist->zones being iterated
++ * @zlist: The zonelist being iterated
++ * @highidx: The zone index of the highest zone to return
+  *
+  * This iterator iterates though all zones at or below a given zone index.
+  */
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-vfs-fs_parser-clean-up-kernel-doc-warnings.patch
-alpha-eliminate-old-style-function-definitions.patch
-alpha-csum_partial_copyc-add-function-prototypes-from-net-checksumh.patch
-lib-parser-clean-up-kernel-doc.patch
+mm-mmzoneh-fix-existing-kernel-doc-comments-and-link-them-to-core-api.patch
+mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin-fix.patch
+mmap-make-mlock_future_check-global.patch
+riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-2.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-3.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
+arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
 
