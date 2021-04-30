@@ -2,187 +2,659 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E751C433ED
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 18:33:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E519C433B4
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 18:47:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24774613F7
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 18:33:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DF2EE613F7
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 18:47:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230329AbhD3Sd5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 14:33:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44926 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229750AbhD3Sdw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Apr 2021 14:33:52 -0400
-Received: from mail-lf1-x129.google.com (mail-lf1-x129.google.com [IPv6:2a00:1450:4864:20::129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8F51C06174A
-        for <mm-commits@vger.kernel.org>; Fri, 30 Apr 2021 11:33:02 -0700 (PDT)
-Received: by mail-lf1-x129.google.com with SMTP id j10so18369620lfb.12
-        for <mm-commits@vger.kernel.org>; Fri, 30 Apr 2021 11:33:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=P1Q7BrgOtfscywkg5hVce2+3guXdura6NsxZgt2BXPQ=;
-        b=ghUSTWnV/xszGi51+GjhZMwQjv3qdRdMqSYN9LIkqgLV5KPrG+VjnGtbADfK1LmrIp
-         YRwqJBjUp/Uy5HhEoka+hBk5fKZ+mSgxT3bexDrNzdicKrv/nhGO/Nj+ZNYu52WV0KQM
-         TvoSIw5LXjBTwfmuto3eXFfjthwjQMW9AxyII=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=P1Q7BrgOtfscywkg5hVce2+3guXdura6NsxZgt2BXPQ=;
-        b=nivAV0OU+Nqt7DaTOnEUhPLobkEaXULfCk7kog/cqWjxA54QCf0k9xy3TUvLGyOGWJ
-         JVPqUqrYsPskUP03mKY+GCbZLD7maHr3evtIMb8P5KPKJOwNoKbBg+FmLbjIJdBCnVMl
-         /2gV7tUBHB11MTgtieHzOb6ato5qVnqp89BnIOfTyKi/uQyTNo0/DvYm3sx1Z9/5i7c9
-         idJkU09563sh0ejUmRMfUYaOXTEFKw8WffjAJwd8+GKaqL5K89/cGlLHaW7d3tI+539r
-         1WNSrvlKh0CJcZN0JOzMG06GEW+Onmx34sDvBfQNcI+iX0Px8C16Es7zvFnkPqQrDYUK
-         v8jA==
-X-Gm-Message-State: AOAM531Vk3FnaY34D0PXW15u6rTdolSvyigc6dJuXXmHjoRUTelWDD3C
-        BHJeXUp55V7LI7ojtqF9gjit6O5WRS7WJQPp
-X-Google-Smtp-Source: ABdhPJwKFKG79OK/+BhBlKQL1nUI9Hpo1G+c5/bQeae9/+dHmqN51BwnmZJqaAhqMXVKC2Osr2PTbA==
-X-Received: by 2002:a05:6512:108a:: with SMTP id j10mr4198470lfg.559.1619807581071;
-        Fri, 30 Apr 2021 11:33:01 -0700 (PDT)
-Received: from mail-lf1-f53.google.com (mail-lf1-f53.google.com. [209.85.167.53])
-        by smtp.gmail.com with ESMTPSA id q2sm327148ljc.130.2021.04.30.11.33.00
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 30 Apr 2021 11:33:00 -0700 (PDT)
-Received: by mail-lf1-f53.google.com with SMTP id j10so18369536lfb.12
-        for <mm-commits@vger.kernel.org>; Fri, 30 Apr 2021 11:33:00 -0700 (PDT)
-X-Received: by 2002:a19:7504:: with SMTP id y4mr4054152lfe.41.1619807579878;
- Fri, 30 Apr 2021 11:32:59 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210429225251.02b6386d21b69255b4f6c163@linux-foundation.org> <20210430060049.FrKVS3ZER%akpm@linux-foundation.org>
-In-Reply-To: <20210430060049.FrKVS3ZER%akpm@linux-foundation.org>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Fri, 30 Apr 2021 11:32:43 -0700
-X-Gmail-Original-Message-ID: <CAHk-=whhOEXyFGV7CfwB44etgYsb1vAkLhRrWb-mxjeUcqWu=g@mail.gmail.com>
-Message-ID: <CAHk-=whhOEXyFGV7CfwB44etgYsb1vAkLhRrWb-mxjeUcqWu=g@mail.gmail.com>
-Subject: Re: [patch 148/178] kasan: detect false-positives in tests
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        Stephen Rothwell <sfr@canb.auug.org.au>
-Cc:     Andrey Konovalov <andreyknvl@google.com>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Marco Elver <elver@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        id S230329AbhD3SsW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 14:48:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51988 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229954AbhD3SsV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 14:48:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 102B261185;
+        Fri, 30 Apr 2021 18:47:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1619808453;
+        bh=WkAfvTP8RsSECkFUmX2eQoWOsRZtwkOAf9Ho1wappOE=;
+        h=Date:From:To:Subject:From;
+        b=PY8YLAL3CcOGqJFlnvHeHqWT3N7/3nUOz4mjk7QXqwfsQ/W3wcSbAo4PfsswDWMaq
+         yoWtQd4GuivxXhUmVnZFM/DNsEuAcxT0v9BgYtxvB4zom47fUQM2ZFf82LYpnPunud
+         csKXH5cdsYvmdB1D9ZPkAVHo+S5ZvXIS/jWx6KfM=
+Date:   Fri, 30 Apr 2021 11:47:32 -0700
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Message-ID: <20210430184732.cR1I22CCX%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, Apr 29, 2021 at 11:00 PM Andrew Morton
-<akpm@linux-foundation.org> wrote:
->
-> From: Andrey Konovalov <andreyknvl@google.com>
-> Subject: kasan: detect false-positives in tests
->
-> Currently, KASAN-KUnit tests can check that a particular annotated part of
-> code causes a KASAN report.  However, they do not check that no unwanted
-> reports happen between the annotated parts.
->
-> This patch implements these checks.
 
-No.
+The patch titled
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch does no such thing.
+This patch was dropped because it is obsolete
 
-This patch is untested garbage that doesn't even compile.
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-> +       if (IS_ENABLED(CONFIG_KASAN_HW_TAGS)) {                         \
-> +               if (READ_ONCE(fail_data.report_found))                  \
-> +                       kasan_enable_tagging();                         \
-> +               migrate_enable();                                       \
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-kasan_enable_tagging() was renamed to kasan_enable_tagging_sync() in commit
+ Makefile                                           |   18 ---
+ arch/alpha/kernel/syscalls/syscall.tbl             |    3 
+ arch/arm/tools/syscall.tbl                         |    3 
+ arch/arm64/include/asm/unistd.h                    |    4 
+ arch/arm64/include/asm/unistd32.h                  |    3 
+ arch/ia64/kernel/syscalls/syscall.tbl              |    3 
+ arch/m68k/kernel/syscalls/syscall.tbl              |    3 
+ arch/microblaze/kernel/syscalls/syscall.tbl        |    3 
+ arch/mips/kernel/syscalls/syscall_n32.tbl          |    3 
+ arch/mips/kernel/syscalls/syscall_n64.tbl          |    3 
+ arch/mips/kernel/syscalls/syscall_o32.tbl          |    3 
+ arch/parisc/kernel/syscalls/syscall.tbl            |    3 
+ arch/powerpc/kernel/syscalls/syscall.tbl           |    3 
+ arch/s390/kernel/syscalls/syscall.tbl              |    3 
+ arch/sh/kernel/syscalls/syscall.tbl                |    3 
+ arch/sparc/kernel/syscalls/syscall.tbl             |    3 
+ arch/x86/entry/syscalls/syscall_32.tbl             |    3 
+ arch/x86/entry/syscalls/syscall_64.tbl             |    3 
+ arch/x86/kernel/kvm.c                              |   44 -------
+ arch/xtensa/kernel/syscalls/syscall.tbl            |    3 
+ drivers/block/rnbd/rnbd-clt.c                      |    8 -
+ drivers/bluetooth/virtio_bt.c                      |    3 
+ drivers/target/iscsi/iscsi_target.c                |    4 
+ fs/io_uring.c                                      |   61 -----------
+ include/linux/blk-mq.h                             |    9 -
+ include/uapi/asm-generic/unistd.h                  |    6 -
+ tools/testing/selftests/net/mptcp/mptcp_connect.sh |    4 
+ 27 files changed, 212 deletions(-)
 
-    2603f8a78dfb ("kasan: Add KASAN mode kernel parameter")
+--- a/arch/alpha/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/alpha/kernel/syscalls/syscall.tbl
+@@ -483,9 +483,6 @@
+ 551	common	epoll_pwait2			sys_epoll_pwait2
+ 552	common	mount_setattr			sys_mount_setattr
+ 553	common	quotactl_path			sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 554	common	landlock_create_ruleset		sys_landlock_create_ruleset
+ 555	common	landlock_add_rule		sys_landlock_add_rule
+ 556	common	landlock_restrict_self		sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/arm64/include/asm/unistd32.h~linux-next-git-rejects
++++ a/arch/arm64/include/asm/unistd32.h
+@@ -895,15 +895,12 @@ __SYSCALL(__NR_epoll_pwait2, compat_sys_
+ __SYSCALL(__NR_mount_setattr, sys_mount_setattr)
+ #define __NR_quotactl_path 443
+ __SYSCALL(__NR_quotactl_path, sys_quotactl_path)
+-<<<<<<< HEAD
+-=======
+ #define __NR_landlock_create_ruleset 444
+ __SYSCALL(__NR_landlock_create_ruleset, sys_landlock_create_ruleset)
+ #define __NR_landlock_add_rule 445
+ __SYSCALL(__NR_landlock_add_rule, sys_landlock_add_rule)
+ #define __NR_landlock_restrict_self 446
+ __SYSCALL(__NR_landlock_restrict_self, sys_landlock_restrict_self)
+->>>>>>> linux-next/akpm-base
+ 
+ /*
+  * Please add new compat syscalls above this comment and update
+--- a/arch/arm64/include/asm/unistd.h~linux-next-git-rejects
++++ a/arch/arm64/include/asm/unistd.h
+@@ -38,11 +38,7 @@
+ #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE + 5)
+ #define __ARM_NR_COMPAT_END		(__ARM_NR_COMPAT_BASE + 0x800)
+ 
+-<<<<<<< HEAD
+-#define __NR_compat_syscalls		444
+-=======
+ #define __NR_compat_syscalls		447
+->>>>>>> linux-next/akpm-base
+ #endif
+ 
+ #define __ARCH_WANT_SYS_CLONE
+--- a/arch/arm/tools/syscall.tbl~linux-next-git-rejects
++++ a/arch/arm/tools/syscall.tbl
+@@ -457,9 +457,6 @@
+ 441	common	epoll_pwait2			sys_epoll_pwait2
+ 442	common	mount_setattr			sys_mount_setattr
+ 443	common	quotactl_path			sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
+ 445	common	landlock_add_rule		sys_landlock_add_rule
+ 446	common	landlock_restrict_self		sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/ia64/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/ia64/kernel/syscalls/syscall.tbl
+@@ -364,9 +364,6 @@
+ 441	common	epoll_pwait2			sys_epoll_pwait2
+ 442	common	mount_setattr			sys_mount_setattr
+ 443	common	quotactl_path			sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
+ 445	common	landlock_add_rule		sys_landlock_add_rule
+ 446	common	landlock_restrict_self		sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/m68k/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/m68k/kernel/syscalls/syscall.tbl
+@@ -443,9 +443,6 @@
+ 441	common	epoll_pwait2			sys_epoll_pwait2
+ 442	common	mount_setattr			sys_mount_setattr
+ 443	common	quotactl_path			sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
+ 445	common	landlock_add_rule		sys_landlock_add_rule
+ 446	common	landlock_restrict_self		sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/microblaze/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/microblaze/kernel/syscalls/syscall.tbl
+@@ -449,9 +449,6 @@
+ 441	common	epoll_pwait2			sys_epoll_pwait2
+ 442	common	mount_setattr			sys_mount_setattr
+ 443	common	quotactl_path			sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
+ 445	common	landlock_add_rule		sys_landlock_add_rule
+ 446	common	landlock_restrict_self		sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/mips/kernel/syscalls/syscall_n32.tbl~linux-next-git-rejects
++++ a/arch/mips/kernel/syscalls/syscall_n32.tbl
+@@ -382,9 +382,6 @@
+ 441	n32	epoll_pwait2			compat_sys_epoll_pwait2
+ 442	n32	mount_setattr			sys_mount_setattr
+ 443	n32	quotactl_path			sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	n32	landlock_create_ruleset		sys_landlock_create_ruleset
+ 445	n32	landlock_add_rule		sys_landlock_add_rule
+ 446	n32	landlock_restrict_self		sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/mips/kernel/syscalls/syscall_n64.tbl~linux-next-git-rejects
++++ a/arch/mips/kernel/syscalls/syscall_n64.tbl
+@@ -358,9 +358,6 @@
+ 441	n64	epoll_pwait2			sys_epoll_pwait2
+ 442	n64	mount_setattr			sys_mount_setattr
+ 443	n64	quotactl_path			sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	n64	landlock_create_ruleset		sys_landlock_create_ruleset
+ 445	n64	landlock_add_rule		sys_landlock_add_rule
+ 446	n64	landlock_restrict_self		sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/mips/kernel/syscalls/syscall_o32.tbl~linux-next-git-rejects
++++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
+@@ -431,9 +431,6 @@
+ 441	o32	epoll_pwait2			sys_epoll_pwait2		compat_sys_epoll_pwait2
+ 442	o32	mount_setattr			sys_mount_setattr
+ 443	o32	quotactl_path			sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	o32	landlock_create_ruleset		sys_landlock_create_ruleset
+ 445	o32	landlock_add_rule		sys_landlock_add_rule
+ 446	o32	landlock_restrict_self		sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/parisc/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/parisc/kernel/syscalls/syscall.tbl
+@@ -441,9 +441,6 @@
+ 441	common	epoll_pwait2			sys_epoll_pwait2		compat_sys_epoll_pwait2
+ 442	common	mount_setattr			sys_mount_setattr
+ 443	common	quotactl_path			sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
+ 445	common	landlock_add_rule		sys_landlock_add_rule
+ 446	common	landlock_restrict_self		sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/powerpc/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/powerpc/kernel/syscalls/syscall.tbl
+@@ -523,9 +523,6 @@
+ 441	common	epoll_pwait2			sys_epoll_pwait2		compat_sys_epoll_pwait2
+ 442	common	mount_setattr			sys_mount_setattr
+ 443	common	quotactl_path			sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
+ 445	common	landlock_add_rule		sys_landlock_add_rule
+ 446	common	landlock_restrict_self		sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/s390/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/s390/kernel/syscalls/syscall.tbl
+@@ -446,9 +446,6 @@
+ 441  common	epoll_pwait2		sys_epoll_pwait2		compat_sys_epoll_pwait2
+ 442  common	mount_setattr		sys_mount_setattr		sys_mount_setattr
+ 443  common	quotactl_path		sys_quotactl_path		sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444  common	landlock_create_ruleset	sys_landlock_create_ruleset	sys_landlock_create_ruleset
+ 445  common	landlock_add_rule	sys_landlock_add_rule		sys_landlock_add_rule
+ 446  common	landlock_restrict_self	sys_landlock_restrict_self	sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/sh/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/sh/kernel/syscalls/syscall.tbl
+@@ -446,9 +446,6 @@
+ 441	common	epoll_pwait2			sys_epoll_pwait2
+ 442	common	mount_setattr			sys_mount_setattr
+ 443	common	quotactl_path			sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
+ 445	common	landlock_add_rule		sys_landlock_add_rule
+ 446	common	landlock_restrict_self		sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/sparc/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/sparc/kernel/syscalls/syscall.tbl
+@@ -489,9 +489,6 @@
+ 441	common	epoll_pwait2			sys_epoll_pwait2		compat_sys_epoll_pwait2
+ 442	common	mount_setattr			sys_mount_setattr
+ 443	common	quotactl_path			sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
+ 445	common	landlock_add_rule		sys_landlock_add_rule
+ 446	common	landlock_restrict_self		sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/x86/entry/syscalls/syscall_32.tbl~linux-next-git-rejects
++++ a/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -448,9 +448,6 @@
+ 441	i386	epoll_pwait2		sys_epoll_pwait2		compat_sys_epoll_pwait2
+ 442	i386	mount_setattr		sys_mount_setattr
+ 443	i386	quotactl_path		sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	i386	landlock_create_ruleset	sys_landlock_create_ruleset
+ 445	i386	landlock_add_rule	sys_landlock_add_rule
+ 446	i386	landlock_restrict_self	sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/arch/x86/entry/syscalls/syscall_64.tbl~linux-next-git-rejects
++++ a/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -365,12 +365,9 @@
+ 441	common	epoll_pwait2		sys_epoll_pwait2
+ 442	common	mount_setattr		sys_mount_setattr
+ 443	common	quotactl_path		sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	common	landlock_create_ruleset	sys_landlock_create_ruleset
+ 445	common	landlock_add_rule	sys_landlock_add_rule
+ 446	common	landlock_restrict_self	sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+ 
+ #
+ # Due to a historical design error, certain syscalls are numbered differently
+--- a/arch/x86/kernel/kvm.c~linux-next-git-rejects
++++ a/arch/x86/kernel/kvm.c
+@@ -659,43 +659,8 @@ static int kvm_cpu_down_prepare(unsigned
+ 	local_irq_enable();
+ 	return 0;
+ }
+-<<<<<<< HEAD
+-#endif
+-
+-static void kvm_flush_tlb_multi(const struct cpumask *cpumask,
+-			const struct flush_tlb_info *info)
+-{
+-	u8 state;
+-	int cpu;
+-	struct kvm_steal_time *src;
+-	struct cpumask *flushmask = this_cpu_cpumask_var_ptr(__pv_cpu_mask);
+-
+-	cpumask_copy(flushmask, cpumask);
+-	/*
+-	 * We have to call flush only on online vCPUs. And
+-	 * queue flush_on_enter for pre-empted vCPUs
+-	 */
+-	for_each_cpu(cpu, flushmask) {
+-		/*
+-		 * The local vCPU is never preempted, so we do not explicitly
+-		 * skip check for local vCPU - it will never be cleared from
+-		 * flushmask.
+-		 */
+-		src = &per_cpu(steal_time, cpu);
+-		state = READ_ONCE(src->preempted);
+-		if ((state & KVM_VCPU_PREEMPTED)) {
+-			if (try_cmpxchg(&src->preempted, &state,
+-					state | KVM_VCPU_FLUSH_TLB))
+-				__cpumask_clear_cpu(cpu, flushmask);
+-		}
+-	}
+-
+-	native_flush_tlb_multi(flushmask, info);
+-}
+-=======
+ 
+ #endif
+->>>>>>> linux-next/akpm-base
+ 
+ static void __init kvm_guest_init(void)
+ {
+@@ -711,15 +676,6 @@ static void __init kvm_guest_init(void)
+ 		static_call_update(pv_steal_clock, kvm_steal_clock);
+ 	}
+ 
+-<<<<<<< HEAD
+-	if (pv_tlb_flush_supported()) {
+-		pv_ops.mmu.flush_tlb_multi = kvm_flush_tlb_multi;
+-		pv_ops.mmu.tlb_remove_table = tlb_remove_table;
+-		pr_info("KVM setup pv remote TLB flush\n");
+-	}
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	if (kvm_para_has_feature(KVM_FEATURE_PV_EOI))
+ 		apic_set_eoi_write(kvm_guest_apic_eoi_write);
+ 
+--- a/arch/xtensa/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/xtensa/kernel/syscalls/syscall.tbl
+@@ -414,9 +414,6 @@
+ 441	common	epoll_pwait2			sys_epoll_pwait2
+ 442	common	mount_setattr			sys_mount_setattr
+ 443	common	quotactl_path			sys_quotactl_path
+-<<<<<<< HEAD
+-=======
+ 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
+ 445	common	landlock_add_rule		sys_landlock_add_rule
+ 446	common	landlock_restrict_self		sys_landlock_restrict_self
+->>>>>>> linux-next/akpm-base
+--- a/drivers/block/rnbd/rnbd-clt.c~linux-next-git-rejects
++++ a/drivers/block/rnbd/rnbd-clt.c
+@@ -320,11 +320,7 @@ static struct rtrs_permit *rnbd_get_perm
+ 	struct rtrs_permit *permit;
+ 
+ 	permit = rtrs_clt_get_permit(sess->rtrs, con_type, wait);
+-<<<<<<< HEAD
+-	if (likely(permit))
+-=======
+ 	if (permit)
+->>>>>>> linux-next/akpm-base
+ 		/* We have a subtle rare case here, when all permits can be
+ 		 * consumed before busy counter increased.  This is safe,
+ 		 * because loser will get NULL as a permit, observe 0 busy
+@@ -359,11 +355,7 @@ static struct rnbd_iu *rnbd_get_iu(struc
+ 		return NULL;
+ 
+ 	permit = rnbd_get_permit(sess, con_type, wait);
+-<<<<<<< HEAD
+-	if (unlikely(!permit)) {
+-=======
+ 	if (!permit) {
+->>>>>>> linux-next/akpm-base
+ 		kfree(iu);
+ 		return NULL;
+ 	}
+--- a/drivers/bluetooth/virtio_bt.c~linux-next-git-rejects
++++ a/drivers/bluetooth/virtio_bt.c
+@@ -34,12 +34,9 @@ static int virtbt_add_inbuf(struct virti
+ 	int err;
+ 
+ 	skb = alloc_skb(1000, GFP_KERNEL);
+-<<<<<<< HEAD
+-=======
+ 	if (!skb)
+ 		return -ENOMEM;
+ 
+->>>>>>> linux-next/akpm-base
+ 	sg_init_one(sg, skb->data, 1000);
+ 
+ 	err = virtqueue_add_inbuf(vq, sg, 1, skb, GFP_KERNEL);
+--- a/drivers/target/iscsi/iscsi_target.c~linux-next-git-rejects
++++ a/drivers/target/iscsi/iscsi_target.c
+@@ -1169,10 +1169,6 @@ int iscsit_setup_scsi_cmd(struct iscsi_c
+ 	cmd->se_cmd.tag = (__force u32)cmd->init_task_tag;
+ 	cmd->sense_reason = target_cmd_init_cdb(&cmd->se_cmd, hdr->cdb,
+ 						GFP_KERNEL);
+-<<<<<<< HEAD
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	if (cmd->sense_reason) {
+ 		if (cmd->sense_reason == TCM_OUT_OF_RESOURCES) {
+ 			return iscsit_add_reject_cmd(cmd,
+--- a/fs/io_uring.c~linux-next-git-rejects
++++ a/fs/io_uring.c
+@@ -456,10 +456,7 @@ struct io_ring_ctx {
+ 	spinlock_t			rsrc_ref_lock;
+ 	struct io_rsrc_node		*rsrc_node;
+ 	struct io_rsrc_node		*rsrc_backup_node;
+-<<<<<<< HEAD
+-=======
+ 	struct io_mapped_ubuf		*dummy_ubuf;
+->>>>>>> linux-next/akpm-base
+ 
+ 	struct io_restriction		restrictions;
+ 
+@@ -7154,7 +7151,6 @@ static int io_rsrc_ref_quiesce(struct io
+ }
+ 
+ static void io_rsrc_data_free(struct io_rsrc_data *data)
+-<<<<<<< HEAD
+ {
+ 	kvfree(data->tags);
+ 	kfree(data);
+@@ -7164,17 +7160,6 @@ static struct io_rsrc_data *io_rsrc_data
+ 					       rsrc_put_fn *do_put,
+ 					       unsigned nr)
+ {
+-=======
+-{
+-	kvfree(data->tags);
+-	kfree(data);
+-}
+-
+-static struct io_rsrc_data *io_rsrc_data_alloc(struct io_ring_ctx *ctx,
+-					       rsrc_put_fn *do_put,
+-					       unsigned nr)
+-{
+->>>>>>> linux-next/akpm-base
+ 	struct io_rsrc_data *data;
+ 
+ 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+@@ -7559,10 +7544,7 @@ static void __io_rsrc_put_work(struct io
+ 			io_ring_submit_lock(ctx, lock_ring);
+ 			spin_lock_irqsave(&ctx->completion_lock, flags);
+ 			io_cqring_fill_event(ctx, prsrc->tag, 0, 0);
+-<<<<<<< HEAD
+-=======
+ 			ctx->cq_extra++;
+->>>>>>> linux-next/akpm-base
+ 			io_commit_cqring(ctx);
+ 			spin_unlock_irqrestore(&ctx->completion_lock, flags);
+ 			io_cqring_ev_posted(ctx);
+@@ -8131,41 +8113,6 @@ static unsigned long rings_size(unsigned
+ }
+ 
+ static void io_buffer_unmap(struct io_ring_ctx *ctx, struct io_mapped_ubuf **slot)
+-<<<<<<< HEAD
+-{
+-	struct io_mapped_ubuf *imu = *slot;
+-	unsigned int i;
+-
+-	for (i = 0; i < imu->nr_bvecs; i++)
+-		unpin_user_page(imu->bvec[i].bv_page);
+-	if (imu->acct_pages)
+-		io_unaccount_mem(ctx, imu->acct_pages);
+-	kvfree(imu);
+-	*slot = NULL;
+-}
+-
+-static void io_rsrc_buf_put(struct io_ring_ctx *ctx, struct io_rsrc_put *prsrc)
+-{
+-	io_buffer_unmap(ctx, &prsrc->buf);
+-	prsrc->buf = NULL;
+-}
+-
+-static void __io_sqe_buffers_unregister(struct io_ring_ctx *ctx)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < ctx->nr_user_bufs; i++)
+-		io_buffer_unmap(ctx, &ctx->user_bufs[i]);
+-	kfree(ctx->user_bufs);
+-	kfree(ctx->buf_data);
+-	ctx->user_bufs = NULL;
+-	ctx->buf_data = NULL;
+-	ctx->nr_user_bufs = 0;
+-}
+-
+-static int io_sqe_buffers_unregister(struct io_ring_ctx *ctx)
+-{
+-=======
+ {
+ 	struct io_mapped_ubuf *imu = *slot;
+ 	unsigned int i;
+@@ -8201,7 +8148,6 @@ static void __io_sqe_buffers_unregister(
+ 
+ static int io_sqe_buffers_unregister(struct io_ring_ctx *ctx)
+ {
+->>>>>>> linux-next/akpm-base
+ 	int ret;
+ 
+ 	if (!ctx->buf_data)
+@@ -8522,21 +8468,14 @@ static int __io_sqe_buffers_update(struc
+ 		err = io_buffer_validate(&iov);
+ 		if (err)
+ 			break;
+-<<<<<<< HEAD
+-=======
+ 		if (!iov.iov_base && tag)
+ 			return -EINVAL;
+->>>>>>> linux-next/akpm-base
+ 		err = io_sqe_buffer_register(ctx, &iov, &imu, &last_hpage);
+ 		if (err)
+ 			break;
+ 
+ 		i = array_index_nospec(offset, ctx->nr_user_bufs);
+-<<<<<<< HEAD
+-		if (ctx->user_bufs[i]) {
+-=======
+ 		if (ctx->user_bufs[i] != ctx->dummy_ubuf) {
+->>>>>>> linux-next/akpm-base
+ 			err = io_queue_rsrc_removal(ctx->buf_data, offset,
+ 						    ctx->rsrc_node, ctx->user_bufs[i]);
+ 			if (unlikely(err)) {
+--- a/include/linux/blk-mq.h~linux-next-git-rejects
++++ a/include/linux/blk-mq.h
+@@ -313,21 +313,12 @@ struct blk_mq_ops {
+ 	 */
+ 	void (*put_budget)(struct request_queue *, int);
+ 
+-<<<<<<< HEAD
+-	/*
+-	 * @set_rq_budget_toekn: store rq's budget token
+-	 */
+-	void (*set_rq_budget_token)(struct request *, int);
+-	/*
+-	 * @get_rq_budget_toekn: retrieve rq's budget token
+-=======
+ 	/**
+ 	 * @set_rq_budget_token: store rq's budget token
+ 	 */
+ 	void (*set_rq_budget_token)(struct request *, int);
+ 	/**
+ 	 * @get_rq_budget_token: retrieve rq's budget token
+->>>>>>> linux-next/akpm-base
+ 	 */
+ 	int (*get_rq_budget_token)(struct request *);
+ 
+--- a/include/uapi/asm-generic/unistd.h~linux-next-git-rejects
++++ a/include/uapi/asm-generic/unistd.h
+@@ -865,11 +865,6 @@ __SC_COMP(__NR_epoll_pwait2, sys_epoll_p
+ __SYSCALL(__NR_mount_setattr, sys_mount_setattr)
+ #define __NR_quotactl_path 443
+ __SYSCALL(__NR_quotactl_path, sys_quotactl_path)
+-<<<<<<< HEAD
+-
+-#undef __NR_syscalls
+-#define __NR_syscalls 444
+-=======
+ #define __NR_landlock_create_ruleset 444
+ __SYSCALL(__NR_landlock_create_ruleset, sys_landlock_create_ruleset)
+ #define __NR_landlock_add_rule 445
+@@ -879,7 +874,6 @@ __SYSCALL(__NR_landlock_restrict_self, s
+ 
+ #undef __NR_syscalls
+ #define __NR_syscalls 447
+->>>>>>> linux-next/akpm-base
+ 
+ /*
+  * 32 bit systems traditionally used different
+--- a/Makefile~linux-next-git-rejects
++++ a/Makefile
+@@ -270,11 +270,7 @@ no-dot-config-targets := $(clean-targets
+ 			 cscope gtags TAGS tags help% %docs check% coccicheck \
+ 			 $(version_h) headers headers_% archheaders archscripts \
+ 			 %asm-generic kernelversion %src-pkg dt_binding_check \
+-<<<<<<< HEAD
+-			 outputmakefile
+-=======
+ 			 outputmakefile rustfmt rustfmtcheck
+->>>>>>> linux-next/akpm-base
+ # Installation targets should not require compiler. Unfortunately, vdso_install
+ # is an exception where build artifacts may be updated. This must be fixed.
+ no-compiler-targets := $(no-dot-config-targets) install dtbs_install \
+@@ -627,21 +623,7 @@ export TENTATIVE_CLANG_FLAGS
+ CC_VERSION_TEXT = $(subst $(pound),,$(shell $(CC) --version 2>/dev/null | head -n 1))
+ 
+ ifneq ($(findstring clang,$(CC_VERSION_TEXT)),)
+-<<<<<<< HEAD
+-ifneq ($(CROSS_COMPILE),)
+-CLANG_FLAGS	+= --target=$(notdir $(CROSS_COMPILE:%-=%))
+-endif
+-ifeq ($(LLVM_IAS),1)
+-CLANG_FLAGS	+= -integrated-as
+-else
+-CLANG_FLAGS	+= -no-integrated-as
+-GCC_TOOLCHAIN_DIR := $(dir $(shell which $(CROSS_COMPILE)elfedit))
+-CLANG_FLAGS	+= --prefix=$(GCC_TOOLCHAIN_DIR)$(notdir $(CROSS_COMPILE))
+-endif
+-CLANG_FLAGS	+= -Werror=unknown-warning-option
+-=======
+ CLANG_FLAGS	+= $(TENTATIVE_CLANG_FLAGS)
+->>>>>>> linux-next/akpm-base
+ KBUILD_CFLAGS	+= $(CLANG_FLAGS)
+ KBUILD_AFLAGS	+= $(CLANG_FLAGS)
+ export CLANG_FLAGS
+--- a/tools/testing/selftests/net/mptcp/mptcp_connect.sh~linux-next-git-rejects
++++ a/tools/testing/selftests/net/mptcp/mptcp_connect.sh
+@@ -274,11 +274,7 @@ check_mptcp_disabled()
+ 	ip netns exec ${disabled_ns} sysctl -q net.mptcp.enabled=0
+ 
+ 	local err=0
+-<<<<<<< HEAD
+-	LANG=C ip netns exec ${disabled_ns} ./mptcp_connect -p 10000 -s MPTCP 127.0.0.1 < "$cin" 2>&1 | \
+-=======
+ 	LC_ALL=C ip netns exec ${disabled_ns} ./mptcp_connect -p 10000 -s MPTCP 127.0.0.1 < "$cin" 2>&1 | \
+->>>>>>> linux-next/akpm-base
+ 		grep -q "^socket: Protocol not available$" && err=1
+ 	ip netns delete ${disabled_ns}
+ 
+_
 
-and this patch was clearly rebased onto current -git without any testing at all.
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-You can even see the effects of the rename in the patch itself, in
-that the code it removes has the new name:
+mm.patch
+mm-vmscan-add-shrinker_info_protected-helper-fix.patch
+mm-drop-redundant-arch_enable__migration-fix.patch
+mm-drop-redundant-arch_enable__migration-fix-fix.patch
+kernel-resource-allow-region_intersects-users-to-hold-resource_lock-fix.patch
+linux-next-rejects.patch
+cifsd-is-broken.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
--       if (IS_ENABLED(CONFIG_KASAN_HW_TAGS) &&                 \
--           !kasan_async_mode_enabled()) {                      \
--               if (READ_ONCE(fail_data.report_found))          \
--                       kasan_enable_tagging_sync();            \
-
-but then the patch re-introduces the old name in the new version of that code.
-
-Andrew, you really need to stop using your garbage workflow of
-randomly rebasing patches at the last minute.
-
-In the cover letter, you clearly say:
-
-  "178 patches, based on 8ca5297e7e38f2dc8c753d33a5092e7be181fff0."
-
-where that commit was basically my top commit as of yesterday
-afternoon - and that base very much has that rename in place.
-
-So you rebased your patch series - apparently without any testing at
-all - since that afternoon commit.
-
-This *HAS* to stop.
-
-If you use your old legacy "patch series" model, then dammit, stop
-sending those patches on top of random commits. Pick a base, and
-*STICK* to it. Make sure your patch series is actually *tested*.
-
-Because I'd much rather handle conflicts and blame myself if I screw
-something up during the merge, than get something from you that is
-untested and may be subtly - or as in this case, very much not-subtly
-- broken.
-
-Right now, the way you work, all the work that Stephen Rothwell has
-done to merge your patch series and have it tested in linux-next is
-basically made almost entirely worthless, because you end up changing
-your patches and rebasing it all the last minute, and all the testing
-it got earlier is now thrown right out the window.
-
-What used to be a perfectly cromulent patch is now garbage that
-doesn't even compile.
-
-I'm going to fix this one patch up by hand, but I really need you to
-stop doing this. Use the previous release as a base (ie in this case
-5.12), and don't do any last-minute rebasing. If you have patches in
-your patch-series that depend on stuff that comes in this merge
-window, just drop them - or at least don't send them to me.
-
-Or better yet, base it on something even older than the release that
-opens the merge window, so that you don't have to rebase anything
-*during* the merge window, and so that your patch series actually gets
-tested as-is in the real format in linux-next even before the merge
-window opens. If you had created this series two weeks ago, marked it
-as "ready for the 5.13 merge window", and it had been tested as such
-in linux-next, we would have known about the conflict from linux-next,
-and I'd have seen it as something that was trivial to fix when I did
-the merge.
-
-And that would catch all the cases that I can't catch, because
-linux-next actually does a whole lot more build-testing than I do.
-Different architectures, lots of different configs etc.
-
-Instead, I applied a series of 178 patches (ok, 175 after I had
-dropped a couple), saw nothing wrong, and did my (very basic and
-minimal) build testing, and saw that the patches you sent to me didn't
-even compile.
-
-I bet a fixed workflow will make it easier for Stephen too, to not
-continually have to rebase your series, and have a separate queue for
-patch-series that get randomly updated.
-
-I'm perfectly happy with you not using git - I apply patches from
-others too. But I don't want to see this broken "rebase with no
-testing" model. A patch queue that has its base changed has all the
-same issues that a blind "git rebase" has, and is wrong for all the
-same reasons - all whether you use git or not.
-
-                 Linus
