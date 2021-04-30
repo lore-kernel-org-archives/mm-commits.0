@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E54EC433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:55:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFD5DC433B4
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:55:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8233D61466
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:55:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D525861463
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:55:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230215AbhD3F4P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 01:56:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48326 "EHLO mail.kernel.org"
+        id S229684AbhD3F4S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 01:56:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48382 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230210AbhD3F4P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 01:56:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5202561462;
-        Fri, 30 Apr 2021 05:55:27 +0000 (UTC)
+        id S229834AbhD3F4S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 01:56:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 53B7B6145D;
+        Fri, 30 Apr 2021 05:55:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619762127;
-        bh=OitvE7nEBHz4yuTvsmftMoE6scvcM1kzJKwLQeSgZK8=;
+        s=korg; t=1619762130;
+        bh=xE3HrCMsVMegBNX7U8WUSTzX2f3lSEy4dNpc1RnFqBA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=X1nbWyRM0L9aiFu9QQckJExr701bUR7I8vvTfZRn72GdN3j8B5wN0tw80J6IBB43u
-         LTBGOCuSkCCbSwVTejpHhQjRRq4wQfc/Z7bgmlkZecOSEuUSb5YqttXj1Hv8L1DkUd
-         G++CIf/EQwU16A6oFpE59bg/xl1h5MZOfnWrDc0s=
-Date:   Thu, 29 Apr 2021 22:55:26 -0700
+        b=EaY8HXvWu3O2RWMbpc6cKJaWMACpOqsLA8/FVp5+dEQI5whB2fHoDHWyqKGVBi1lg
+         NGSUqx2nF9nsS+EyRgd1ycSHasYIya2Y6dOFPJDj9ugQ08vHmeiIF51XzBrF98lVPd
+         EKaN4ygRCFiJs+BsL8asUHqs+DfK59oCcXd4LXm8=
+Date:   Thu, 29 Apr 2021 22:55:29 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hch@lst.de, kent.overstreet@gmail.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [patch 044/178] mm/filemap: use filemap_read_page in
- filemap_fault
-Message-ID: <20210430055526.9vktZ__HG%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        william.kucharski@oracle.com, willy@infradead.org
+Subject:  [patch 045/178] mm/filemap: drop check for truncated page
+ after I/O
+Message-ID: <20210430055529.3k2s8lyPB%akpm@linux-foundation.org>
 In-Reply-To: <20210429225251.02b6386d21b69255b4f6c163@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,62 +44,43 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: use filemap_read_page in filemap_fault
+Subject: mm/filemap: drop check for truncated page after I/O
 
-After splitting generic_file_buffered_read() into smaller parts, it turns
-out we can reuse one of the parts in filemap_fault().  This fixes an
-oversight -- waiting for the I/O to complete is now interruptible by a
-fatal signal.  And it saves us a few bytes of text in an unlikely path.
+If the I/O completed successfully, the page will remain Uptodate, even if
+it is subsequently truncated.  If the I/O completed with an error, this
+check would cause us to retry the I/O if the page were truncated before we
+woke up.  There is no need to retry the I/O; the I/O to fill the page
+failed, so we can legitimately just return -EIO.
 
-$ ./scripts/bloat-o-meter before.o after.o
-add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-207 (-207)
-Function                                     old     new   delta
-filemap_fault                               2187    1980    -207
-Total: Before=37491, After=37284, chg -0.55%
+This code was originally added by commit 56f0d5fe6851 ("[PATCH]
+readpage-vs-invalidate fix") in 2005 (this commit ID is from the
+linux-fullhistory tree; it is also commit ba1f08f14b52 in tglx-history).
 
-Link: https://lkml.kernel.org/r/20210226140011.2883498-1-willy@infradead.org
+At the time, truncate_complete_page() called ClearPageUptodate(), and so
+this was fixing a real bug.  In 2008, commit 84209e02de48 ("mm: dont clear
+PG_uptodate on truncate/invalidate") removed the call to
+ClearPageUptodate, and this check has been unnecessary ever since.
+
+It doesn't do any real harm, but there's no need to keep it.
+
+Link: https://lkml.kernel.org/r/20210303222547.1056428-1-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Acked-by: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ mm/filemap.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-use-filemap_read_page-in-filemap_fault
+--- a/mm/filemap.c~mm-filemap-drop-check-for-truncated-page-after-i-o
 +++ a/mm/filemap.c
-@@ -2980,7 +2980,6 @@ vm_fault_t filemap_fault(struct vm_fault
- 	struct file *file = vmf->vma->vm_file;
- 	struct file *fpin = NULL;
- 	struct address_space *mapping = file->f_mapping;
--	struct file_ra_state *ra = &file->f_ra;
- 	struct inode *inode = mapping->host;
- 	pgoff_t offset = vmf->pgoff;
- 	pgoff_t max_off;
-@@ -3067,14 +3066,8 @@ page_not_uptodate:
- 	 * because there really aren't any performance issues here
- 	 * and we need to check for errors.
- 	 */
--	ClearPageError(page);
- 	fpin = maybe_unlock_mmap_for_io(vmf, fpin);
--	error = mapping->a_ops->readpage(file, page);
--	if (!error) {
--		wait_on_page_locked(page);
--		if (!PageUptodate(page))
--			error = -EIO;
--	}
-+	error = filemap_read_page(file, mapping, page);
- 	if (fpin)
- 		goto out_retry;
- 	put_page(page);
-@@ -3082,7 +3075,6 @@ page_not_uptodate:
- 	if (!error || error == AOP_TRUNCATED_PAGE)
- 		goto retry_find;
- 
--	shrink_readahead_size_eio(ra);
- 	return VM_FAULT_SIGBUS;
- 
- out_retry:
+@@ -2348,8 +2348,6 @@ static int filemap_read_page(struct file
+ 		return error;
+ 	if (PageUptodate(page))
+ 		return 0;
+-	if (!page->mapping)	/* page truncated */
+-		return AOP_TRUNCATED_PAGE;
+ 	shrink_readahead_size_eio(&file->f_ra);
+ 	return -EIO;
+ }
 _
