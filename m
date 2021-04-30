@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED312C433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:25:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD2ADC433ED
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:26:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C282461445
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:25:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A521F611ED
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:26:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230182AbhD3F0b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 01:26:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37910 "EHLO mail.kernel.org"
+        id S229590AbhD3F13 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 01:27:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38102 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229590AbhD3F0b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 01:26:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A141761434;
-        Fri, 30 Apr 2021 05:25:43 +0000 (UTC)
+        id S229591AbhD3F13 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 01:27:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0C1756101B;
+        Fri, 30 Apr 2021 05:26:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619760343;
-        bh=a9pi2yTzuH0TIdoErbiFrJGAI0tIQQAfQE7DHv3+weI=;
+        s=korg; t=1619760400;
+        bh=+U6g5Bueg9JhUuCOmCy2sU/CTyBHmS78nKK2RA/cyYk=;
         h=Date:From:To:Subject:From;
-        b=C4568ijXrvk/eSIFbcxmc1q5+zS4GFf5XCbRKgSos/ktLkVxxoXsJmW2RS1uSI5CW
-         X8lisPfJ4bLxi33v/kwnXCj3owHUOjLZPPtOFaLjc4sLYa3oEOXbTwZzAT+fjrd4jT
-         RYRG/lqMS552AWY6BfTTFn6zxqvRSjFKg9oylOE4=
-Date:   Thu, 29 Apr 2021 22:25:43 -0700
+        b=py2nrOhYPMCw5hkUhbPssInaHzzi9SoUwjhKd68pMfr4qVdjLjla8Z2bBx+UxHzHB
+         IhgwvFvbUQgTUEC1WAGyT/ZpMIE9+ybkCkuU3BPeyE4kk2wMG8m+7jGdBfeqQpQUN3
+         pksN2i82QI4CyjgtbqCaVwCqZP9tsRhLuKupK8c8=
+Date:   Thu, 29 Apr 2021 22:26:39 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, osalvador@suse.de
+To:     davem@davemloft.net, mm-commits@vger.kernel.org, npiggin@gmail.com,
+        sfr@canb.auug.org.au
 Subject:  [folded-merged]
- x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix.patch removed from -mm
- tree
-Message-ID: <20210430052543.iHMe_hNBI%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-vmalloc-fix-huge=5Fvmap-regression-by-enabling-huge-pa?=
+ =?US-ASCII?Q?ges-in-vmalloc=5Fto=5Fpage-fix.patch?= removed from -mm tree
+Message-ID: <20210430052639.EF9HFb9p1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,69 +46,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix
+     Subject: sparc32: add stub pud_page define for walking huge vmalloc page tables
 has been removed from the -mm tree.  Its filename was
-     x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix.patch
+     mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page-fix.patch
 
-This patch was dropped because it was folded into x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
+This patch was dropped because it was folded into mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page.patch
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix
+From: Nicholas Piggin <npiggin@gmail.com>
+Subject: sparc32: add stub pud_page define for walking huge vmalloc page tables
 
-It seems that we need to go back to the ifdef version as the IS_ENABLED
-does not properly work and throws a warning.
+Similarly to the stub p4d_page in sparc64, add a stub pud_page, this
+is needed for hugepages in the vmap page tables to be walked without
+ifdefs, which should be no functional change for sparc32.
 
-Link: https://lkml.kernel.org/r/YGy++mSft7K4u+88@localhost.localdomain
-
+Link: https://lkml.kernel.org/r/20210324232825.1157363-1-npiggin@gmail.com
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/sparc/include/asm/pgtable_32.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/arch/x86/mm/init_64.c~x86-vmemmap-handle-unpopulated-sub-pmd-ranges-fix
-+++ a/arch/x86/mm/init_64.c
-@@ -1068,15 +1068,16 @@ remove_pmd_table(pmd_t *pmd_start, unsig
- 				pmd_clear(pmd);
- 				spin_unlock(&init_mm.page_table_lock);
- 				pages++;
--			} else if (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) &&
--				   vmemmap_pmd_is_unused(addr, next)) {
-+			}
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+			else if (vmemmap_pmd_is_unused(addr, next)) {
- 					free_hugepage_table(pmd_page(*pmd),
- 							    altmap);
- 					spin_lock(&init_mm.page_table_lock);
- 					pmd_clear(pmd);
- 					spin_unlock(&init_mm.page_table_lock);
- 			}
--
-+#endif
- 			continue;
- 		}
+--- a/arch/sparc/include/asm/pgtable_32.h~mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page-fix
++++ a/arch/sparc/include/asm/pgtable_32.h
+@@ -321,6 +321,9 @@ static inline pte_t pte_modify(pte_t pte
+ 		pgprot_val(newprot));
+ }
+ 
++/* only used by the huge vmap code, should never be called */
++#define pud_page(pud)			NULL
++
+ struct seq_file;
+ void mmu_info(struct seq_file *m);
  
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from npiggin@gmail.com are
 
-x86-vmemmap-drop-handling-of-4k-unaligned-vmemmap-range.patch
-x86-vmemmap-drop-handling-of-1gb-vmemmap-ranges.patch
-x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
-x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
-mmpage_alloc-bail-out-earlier-on-enomem-in-alloc_contig_migrate_range.patch
-mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes.patch
-mmhugetlb-drop-clearing-of-flag-from-prep_new_huge_page.patch
-mmhugetlb-split-prep_new_huge_page-functionality.patch
-mm-make-alloc_contig_range-handle-free-hugetlb-pages.patch
-mm-make-alloc_contig_range-handle-in-use-hugetlb-pages.patch
-mmpage_alloc-drop-unnecessary-checks-from-pfn_range_valid_contig.patch
-drivers-base-memory-introduce-memory_block_onlineoffline.patch
-mmmemory_hotplug-relax-fully-spanned-sections-check.patch
-mmmemory_hotplug-allocate-memmap-from-the-added-memory-range.patch
-acpimemhotplug-enable-mhp_memmap_on_memory-when-supported.patch
-mmmemory_hotplug-add-kernel-boot-option-to-enable-memmap_on_memory.patch
-x86-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
-arm64-kconfig-introduce-arch_mhp_memmap_on_memory_enable.patch
+arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch
+mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page.patch
+mm-apply_to_pte_range-warn-and-fail-if-a-large-pte-is-encountered.patch
+mm-vmalloc-rename-vmap__range-vmap_pages__range.patch
+mm-ioremap-rename-ioremap__range-to-vmap__range.patch
+mm-huge_vmap-arch-support-cleanup.patch
+powerpc-inline-huge-vmap-supported-functions.patch
+arm64-inline-huge-vmap-supported-functions.patch
+x86-inline-huge-vmap-supported-functions.patch
+mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions.patch
+mm-move-vmap_range-from-mm-ioremapc-to-mm-vmallocc.patch
+mm-vmalloc-add-vmap_range_noflush-variant.patch
+mm-vmalloc-hugepage-vmalloc-mappings.patch
+mm-vmalloc-remove-map_kernel_range.patch
+kernel-dma-remove-unnecessary-unmap_kernel_range.patch
+powerpc-xive-remove-unnecessary-unmap_kernel_range.patch
+mm-vmalloc-remove-unmap_kernel_range.patch
+mm-vmalloc-remove-unmap_kernel_range-fix.patch
+mm-vmalloc-remove-map_kernel_range-fix-2.patch
+mm-vmalloc-improve-allocation-failure-error-messages.patch
 
