@@ -5,38 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A8DCC43600
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:54:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40CFCC43461
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:54:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0203961468
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:54:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 21E3561463
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:54:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229508AbhD3Fzb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 01:55:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47170 "EHLO mail.kernel.org"
+        id S229712AbhD3Fzi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 01:55:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230210AbhD3Fza (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 01:55:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BDD3661459;
-        Fri, 30 Apr 2021 05:54:42 +0000 (UTC)
+        id S230187AbhD3Fzg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 01:55:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CE61461466;
+        Fri, 30 Apr 2021 05:54:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619762083;
-        bh=TXgHM08k6mPTcn+ffJUCUw8xzBUU+ZwWKvTztiR9Qak=;
+        s=korg; t=1619762089;
+        bh=Ga3wXw++X/AlTB7galPw4kg4D1x85MyUSMemNJ7u3YA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=xOsDphUSNm6AU/8hU/sPPK8c0QXcgBvptCR1ik9+V9P3loqASbpKztFuEsl9/Eqlc
-         tXUXUF4TZGq50UMP6DcPENCJj/LFRREfJNbiENcfLa7P/lsi6aUWjH1S4kdy3jpnl+
-         P8QYgU1MVCLc3yBfSzjcrmSK99UQ6msDbg+7vZWI=
-Date:   Thu, 29 Apr 2021 22:54:42 -0700
+        b=BxzgUDYQo3IfgBk/DPa+wbLTQ7kD24Q1LnNedi3dJl5o8CDoV4AMvbts/0Xlt2PTo
+         Mb9MNjRDh73Jh/vRRGpbQyNQVlNTK8DtF3z+f8KVxDHI7frLIgPp9CglwAjB6QkQsq
+         j3PlytMP5kNyEbP8uMQklrx8oE6JRle3GOZBya6w=
+Date:   Thu, 29 Apr 2021 22:54:48 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, cl@linux.com, glittao@gmail.com,
         iamjoonsoo.kim@lge.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, paulmck@kernel.org, penberg@kernel.org,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 029/178] mm, slub: enable slub_debug static key
- when creating cache with explicit debug flags
-Message-ID: <20210430055442.MXMLO5jMs%akpm@linux-foundation.org>
+Subject:  [patch 031/178] slub: remove resiliency_test() function
+Message-ID: <20210430055448.fnA-M6zJS%akpm@linux-foundation.org>
 In-Reply-To: <20210429225251.02b6386d21b69255b4f6c163@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,66 +43,113 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: enable slub_debug static key when creating cache with explicit debug flags
+From: Oliver Glitta <glittao@gmail.com>
+Subject: slub: remove resiliency_test() function
 
-Commit ca0cab65ea2b ("mm, slub: introduce static key for slub_debug()")
-introduced a static key to optimize the case where no debugging is enabled
-for any cache.  The static key is enabled when slub_debug boot parameter
-is passed, or CONFIG_SLUB_DEBUG_ON enabled.
+Function resiliency_test() is hidden behind #ifdef SLUB_RESILIENCY_TEST
+that is not part of Kconfig, so nobody runs it.
 
-However, some caches might be created with one or more debugging flags
-explicitly passed to kmem_cache_create(), and the commit missed this. 
-Thus the debugging functionality would not be actually performed for these
-caches unless the static key gets enabled by boot param or config.
+This function is replaced with KUnit test for SLUB added by the previous
+patch "selftests: add a KUnit test for SLUB debugging functionality".
 
-This patch fixes it by checking for debugging flags passed to
-kmem_cache_create() and enabling the static key accordingly.
-
-Note such explicit debugging flags should not be used outside of debugging
-and testing as they will now enable the static key globally. 
-btrfs_init_cachep() creates a cache with SLAB_RED_ZONE but that's a
-mistake that's being corrected [1].  rcu_torture_stats() creates a cache
-with SLAB_STORE_USER, but that is a testing module so it's OK and will
-start working as intended after this patch.
-
-Also note that in case of backports to kernels before v5.12 that don't
-have 59450bbc12be ("mm, slab, slub: stop taking cpu hotplug lock"),
-static_branch_enable_cpuslocked() should be used.
-
-[1] https://lore.kernel.org/linux-btrfs/20210315141824.26099-1-dsterba@suse.com/
-
-Link: https://lkml.kernel.org/r/20210315153415.24404-1-vbabka@suse.cz
-Fixes: ca0cab65ea2b ("mm, slub: introduce static key for slub_debug()")
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Oliver Glitta <glittao@gmail.com>
+Link: https://lkml.kernel.org/r/20210331085156.5028-2-glittao@gmail.com
+Signed-off-by: Oliver Glitta <glittao@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: David Rientjes <rientjes@google.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/slub.c |   64 ----------------------------------------------------
+ 1 file changed, 64 deletions(-)
 
---- a/mm/slub.c~mm-slub-enable-slub_debug-static-key-when-creating-cache-with-explicit-debug-flags
+--- a/mm/slub.c~slub-remove-resiliency_test-function
 +++ a/mm/slub.c
-@@ -3828,6 +3828,15 @@ static int calculate_sizes(struct kmem_c
+@@ -153,9 +153,6 @@ static inline bool kmem_cache_has_cpu_pa
+  * - Variable sizing of the per node arrays
+  */
  
- static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
- {
-+#ifdef CONFIG_SLUB_DEBUG
-+	/*
-+	 * If no slub_debug was enabled globally, the static key is not yet
-+	 * enabled by setup_slub_debug(). Enable it if the cache is being
-+	 * created with any of the debugging flags passed explicitly.
-+	 */
-+	if (flags & SLAB_DEBUG_FLAGS)
-+		static_branch_enable(&slub_debug_enabled);
-+#endif
- 	s->flags = kmem_cache_flags(s->size, flags, s->name);
- #ifdef CONFIG_SLAB_FREELIST_HARDENED
- 	s->random = get_random_long();
+-/* Enable to test recovery from slab corruption on boot */
+-#undef SLUB_RESILIENCY_TEST
+-
+ /* Enable to log cmpxchg failures */
+ #undef SLUB_DEBUG_CMPXCHG
+ 
+@@ -4935,66 +4932,6 @@ static int list_locations(struct kmem_ca
+ }
+ #endif	/* CONFIG_SLUB_DEBUG */
+ 
+-#ifdef SLUB_RESILIENCY_TEST
+-static void __init resiliency_test(void)
+-{
+-	u8 *p;
+-	int type = KMALLOC_NORMAL;
+-
+-	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 16 || KMALLOC_SHIFT_HIGH < 10);
+-
+-	pr_err("SLUB resiliency testing\n");
+-	pr_err("-----------------------\n");
+-	pr_err("A. Corruption after allocation\n");
+-
+-	p = kzalloc(16, GFP_KERNEL);
+-	p[16] = 0x12;
+-	pr_err("\n1. kmalloc-16: Clobber Redzone/next pointer 0x12->0x%p\n\n",
+-	       p + 16);
+-
+-	validate_slab_cache(kmalloc_caches[type][4]);
+-
+-	/* Hmmm... The next two are dangerous */
+-	p = kzalloc(32, GFP_KERNEL);
+-	p[32 + sizeof(void *)] = 0x34;
+-	pr_err("\n2. kmalloc-32: Clobber next pointer/next slab 0x34 -> -0x%p\n",
+-	       p);
+-	pr_err("If allocated object is overwritten then not detectable\n\n");
+-
+-	validate_slab_cache(kmalloc_caches[type][5]);
+-	p = kzalloc(64, GFP_KERNEL);
+-	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
+-	*p = 0x56;
+-	pr_err("\n3. kmalloc-64: corrupting random byte 0x56->0x%p\n",
+-	       p);
+-	pr_err("If allocated object is overwritten then not detectable\n\n");
+-	validate_slab_cache(kmalloc_caches[type][6]);
+-
+-	pr_err("\nB. Corruption after free\n");
+-	p = kzalloc(128, GFP_KERNEL);
+-	kfree(p);
+-	*p = 0x78;
+-	pr_err("1. kmalloc-128: Clobber first word 0x78->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches[type][7]);
+-
+-	p = kzalloc(256, GFP_KERNEL);
+-	kfree(p);
+-	p[50] = 0x9a;
+-	pr_err("\n2. kmalloc-256: Clobber 50th byte 0x9a->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches[type][8]);
+-
+-	p = kzalloc(512, GFP_KERNEL);
+-	kfree(p);
+-	p[512] = 0xab;
+-	pr_err("\n3. kmalloc-512: Clobber redzone 0xab->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches[type][9]);
+-}
+-#else
+-#ifdef CONFIG_SYSFS
+-static void resiliency_test(void) {};
+-#endif
+-#endif	/* SLUB_RESILIENCY_TEST */
+-
+ #ifdef CONFIG_SYSFS
+ enum slab_stat_type {
+ 	SL_ALL,			/* All slabs */
+@@ -5843,7 +5780,6 @@ static int __init slab_sysfs_init(void)
+ 	}
+ 
+ 	mutex_unlock(&slab_mutex);
+-	resiliency_test();
+ 	return 0;
+ }
+ 
 _
