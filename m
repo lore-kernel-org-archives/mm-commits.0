@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C917AC43470
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:54:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17A1CC43462
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:54:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B60796145D
+	by mail.kernel.org (Postfix) with ESMTP id F238561463
 	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:54:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229648AbhD3Fz1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230202AbhD3Fz1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 30 Apr 2021 01:55:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47020 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230210AbhD3FzZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 01:55:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9652861460;
-        Fri, 30 Apr 2021 05:54:36 +0000 (UTC)
+        id S229508AbhD3Fz1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 01:55:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A0E7A61462;
+        Fri, 30 Apr 2021 05:54:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619762076;
-        bh=Mw8gkNHqPVqA+cGNyW2hXpxDiyDL8O9mW18nNvh8dbI=;
+        s=korg; t=1619762080;
+        bh=vfGUo8MTS+gsj1ln8gU6Plhim2OEyl0Ee77gd/UG9+U=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=NgzCDH2ZGuZZLgO0qyATlJZMUZMk0uvUx0KnSGB3+ZAUASLOE8UT+BYQR4646qBuQ
-         q0csJmgAmD77hz8vb9G20r97302LvDmXJzokuUN7a1c6OIv9seu8YcqMAvX83m3Y+W
-         5rgfTWl3mtGOP2xIRRnHVNzU+nrAm10+NOdD+Sso=
-Date:   Thu, 29 Apr 2021 22:54:36 -0700
+        b=dRyiLdw2VOqSH9yZm+Qjwh81ZwPd99Jj3kyvMnWBdvLBVLc2LGh84KViPEgGde06G
+         T5cO0T0yZSEOVJu6PlDBV5DI5p/KYLe/2BtwRYZShFU7RJq+lUG0iijseam+3UCvZe
+         hw150kbbXbkUIu9xtbHzrS0b7NHlm53+sSLhc0Eo=
+Date:   Thu, 29 Apr 2021 22:54:39 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org, loberman@redhat.com,
-        mhocko@suse.com, mingo@kernel.org, mm-commits@vger.kernel.org,
-        peterz@infradead.org, pmladek@suse.com, tglx@linutronix.de,
-        torvalds@linux-foundation.org, vincent.whitchurch@axis.com
-Subject:  [patch 027/178] watchdog: cleanup handling of false
- positives
-Message-ID: <20210430055436.MWryAEh4m%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aquini@redhat.com, cl@linux.com,
+        iamjoonsoo.kim@lge.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 028/178] mm/slab_common: provide "slab_merge"
+ option for !IS_ENABLED(CONFIG_SLAB_MERGE_DEFAULT) builds
+Message-ID: <20210430055439.ddvXjxtae%akpm@linux-foundation.org>
 In-Reply-To: <20210429225251.02b6386d21b69255b4f6c163@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,153 +44,70 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Petr Mladek <pmladek@suse.com>
-Subject: watchdog: cleanup handling of false positives
+From: Rafael Aquini <aquini@redhat.com>
+Subject: mm/slab_common: provide "slab_merge" option for !IS_ENABLED(CONFIG_SLAB_MERGE_DEFAULT) builds
 
-The commit d6ad3e286d2c075 ("softlockup: Add sched_clock_tick() to avoid
-kernel warning on kgdb resume") introduced
-touch_softlockup_watchdog_sync().
+This is a minor addition to the allocator setup options to provide a
+simple way to on demand enable back cache merging for builds that by
+default run with CONFIG_SLAB_MERGE_DEFAULT not set.
 
-It solved a problem when the watchdog was touched in an atomic context,
-the timer callback was proceed right after releasing interrupts, and the
-local clock has not been updated yet.  In this case, sched_clock_tick()
-was called in watchdog_timer_fn() before updating the timer.
-
-So far so good.
-
-Later the commit 5d1c0f4a80a6df73 ("watchdog: add check for suspended vm
-in softlockup detector") added two kvm_check_and_clear_guest_paused()
-calls.  They touch the watchdog when the guest has been sleeping.
-
-The code makes my head spin around.
-
-Scenario 1:
-
-    + guest did sleep:
-	+ PVCLOCK_GUEST_STOPPED is set
-
-    + 1st watchdog_timer_fn() invocation:
-	+ the watchdog is not touched yet
-	+ is_softlockup() returns too big delay
-	+ kvm_check_and_clear_guest_paused():
-	   + clear PVCLOCK_GUEST_STOPPED
-	   + call touch_softlockup_watchdog_sync()
-		+ set SOFTLOCKUP_DELAY_REPORT
-		+ set softlockup_touch_sync
-	+ return from the timer callback
-
-      + 2nd watchdog_timer_fn() invocation:
-
-	+ call sched_clock_tick() even though it is not needed.
-	  The timer callback was invoked again only because the clock
-	  has already been updated in the meantime.
-
-	+ call kvm_check_and_clear_guest_paused() that does nothing
-	  because PVCLOCK_GUEST_STOPPED has been cleared already.
-
-	+ call update_report_ts() and return. This is fine. Except
-	  that sched_clock_tick() might allow to set it already
-	  during the 1st invocation.
-
-Scenario 2:
-
-	+ guest did sleep
-
-	+ 1st watchdog_timer_fn() invocation
-	    + same as in 1st scenario
-
-	+ guest did sleep again:
-	    + set PVCLOCK_GUEST_STOPPED again
-
-	+ 2nd watchdog_timer_fn() invocation
-	    + SOFTLOCKUP_DELAY_REPORT is set from 1st invocation
-	    + call sched_clock_tick()
-	    + call kvm_check_and_clear_guest_paused()
-		+ clear PVCLOCK_GUEST_STOPPED
-		+ call touch_softlockup_watchdog_sync()
-		    + set SOFTLOCKUP_DELAY_REPORT
-		    + set softlockup_touch_sync
-	    + call update_report_ts() (set real timestamp immediately)
-	    + return from the timer callback
-
-	+ 3rd watchdog_timer_fn() invocation
-	    + timestamp is set from 2nd invocation
-	    + softlockup_touch_sync is set but not checked because
-	      the real timestamp is already set
-
-Make the code more straightforward:
-
-1. Always call kvm_check_and_clear_guest_paused() at the very
-   beginning to handle PVCLOCK_GUEST_STOPPED. It touches the watchdog
-   when the quest did sleep.
-
-2. Handle the situation when the watchdog has been touched
-   (SOFTLOCKUP_DELAY_REPORT is set).
-
-   Call sched_clock_tick() when touch_*sync() variant was used. It makes
-   sure that the timestamp will be up to date even when it has been
-   touched in atomic context or quest did sleep.
-
-As a result, kvm_check_and_clear_guest_paused() is called on a single
-location.  And the right timestamp is always set when returning from the
-timer callback.
-
-Link: https://lkml.kernel.org/r/20210311122130.6788-7-pmladek@suse.com
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Laurence Oberman <loberman@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Link: https://lkml.kernel.org/r/20210319194506.200159-1-aquini@redhat.com
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    7 +++++++
+ mm/slab_common.c                                |    8 ++++++++
+ 2 files changed, 15 insertions(+)
 
---- a/kernel/watchdog.c~watchdog-cleanup-handling-of-false-positives
-+++ a/kernel/watchdog.c
-@@ -376,7 +376,14 @@ static enum hrtimer_restart watchdog_tim
- 	/* .. and repeat */
- 	hrtimer_forward_now(hrtimer, ns_to_ktime(sample_period));
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -4996,6 +4996,10 @@
  
--	/* Reset the interval when touched externally by a known slow code. */
-+	/*
-+	 * If a virtual machine is stopped by the host it can look to
-+	 * the watchdog like a soft lockup. Check to see if the host
-+	 * stopped the vm before we process the timestamps.
-+	 */
-+	kvm_check_and_clear_guest_paused();
+ 	slram=		[HW,MTD]
+ 
++	slab_merge	[MM]
++			Enable merging of slabs with similar size when the
++			kernel is built without CONFIG_SLAB_MERGE_DEFAULT.
 +
-+	/* Reset the interval when touched by known problematic code. */
- 	if (period_ts == SOFTLOCKUP_DELAY_REPORT) {
- 		if (unlikely(__this_cpu_read(softlockup_touch_sync))) {
- 			/*
-@@ -387,10 +394,7 @@ static enum hrtimer_restart watchdog_tim
- 			sched_clock_tick();
- 		}
+ 	slab_nomerge	[MM]
+ 			Disable merging of slabs with similar size. May be
+ 			necessary if there is some reason to distinguish
+@@ -5043,6 +5047,9 @@
+ 			lower than slub_max_order.
+ 			For more information see Documentation/vm/slub.rst.
  
--		/* Clear the guest paused flag on watchdog reset */
--		kvm_check_and_clear_guest_paused();
- 		update_report_ts();
--
- 		return HRTIMER_RESTART;
- 	}
++	slub_merge	[MM, SLUB]
++			Same with slab_merge.
++
+ 	slub_nomerge	[MM, SLUB]
+ 			Same with slab_nomerge. This is supported for legacy.
+ 			See slab_nomerge for more information.
+--- a/mm/slab_common.c~mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds
++++ a/mm/slab_common.c
+@@ -71,11 +71,19 @@ static int __init setup_slab_nomerge(cha
+ 	return 1;
+ }
  
-@@ -403,14 +407,6 @@ static enum hrtimer_restart watchdog_tim
- 	duration = is_softlockup(touch_ts, period_ts);
- 	if (unlikely(duration)) {
- 		/*
--		 * If a virtual machine is stopped by the host it can look to
--		 * the watchdog like a soft lockup, check to see if the host
--		 * stopped the vm before we issue the warning
--		 */
--		if (kvm_check_and_clear_guest_paused())
--			return HRTIMER_RESTART;
--
--		/*
- 		 * Prevent multiple soft-lockup reports if one cpu is already
- 		 * engaged in dumping all cpu back traces.
- 		 */
++static int __init setup_slab_merge(char *str)
++{
++	slab_nomerge = false;
++	return 1;
++}
++
+ #ifdef CONFIG_SLUB
+ __setup_param("slub_nomerge", slub_nomerge, setup_slab_nomerge, 0);
++__setup_param("slub_merge", slub_merge, setup_slab_merge, 0);
+ #endif
+ 
+ __setup("slab_nomerge", setup_slab_nomerge);
++__setup("slab_merge", setup_slab_merge);
+ 
+ /*
+  * Determine the size of a slab object
 _
