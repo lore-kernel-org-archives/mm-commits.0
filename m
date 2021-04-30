@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1DD5C433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:56:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63DFFC433ED
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:56:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 95B806147E
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:56:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4BF1A610FC
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:56:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229591AbhD3F5b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 01:57:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50242 "EHLO mail.kernel.org"
+        id S230132AbhD3F5e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 01:57:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229508AbhD3F5a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 01:57:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C6AC461476;
-        Fri, 30 Apr 2021 05:56:42 +0000 (UTC)
+        id S229508AbhD3F5d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 01:57:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D6607613A9;
+        Fri, 30 Apr 2021 05:56:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619762203;
-        bh=Bgvt5zu4e55Z5ZnAslXfwKZ9YNg5hLH3pvLoIBqFf6g=;
+        s=korg; t=1619762206;
+        bh=GL8IqcMIuZ04rlW5GMBIGdlmIQ/Tp6tOVH9RSpNQ42A=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=NW5eG/OSzkE+TDzH9u50rFpObOLIO/p/NecyECXNGiKsy1dbkAnLSbHVy+EgPHkNA
-         X5ZrF5mAzdTQDpUBPHEQN6fWlG2WG3Ju2yDlV9j+pUqFe2Uz/84Lv/s4RAkiIrSiq4
-         dhJAqRICNq+weTukD5iwzbjAYTptlFpRys+tzYSY=
-Date:   Thu, 29 Apr 2021 22:56:42 -0700
+        b=NGElmZRr4hqfKsSCH3urO1sagSWr+EVILt7lESufcPd6rAxCrEnQwYOWnzQvCGl3l
+         +UXPMuXFN04UL3TqcpLrPEylpNbSThqd5CbyM6+uO+3xyp1c2LpJKlV6pVdmjoHDxm
+         /Oe1U22F1s4bhjJ4/AYnfV2OgAg6bybyFbcOoSpo=
+Date:   Thu, 29 Apr 2021 22:56:45 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, duanxiongchun@bytedance.com,
         guro@fb.com, hannes@cmpxchg.org, linux-mm@kvack.org,
         mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com,
         songmuchun@bytedance.com, torvalds@linux-foundation.org,
         vdavydov.dev@gmail.com
-Subject:  [patch 069/178] mm: memcontrol: introduce
- obj_cgroup_{un}charge_pages
-Message-ID: <20210430055642.sFElfIOEQ%akpm@linux-foundation.org>
+Subject:  [patch 070/178] mm: memcontrol: directly access
+ page->memcg_data in mm/page_alloc.c
+Message-ID: <20210430055645.miuXq4j_V%akpm@linux-foundation.org>
 In-Reply-To: <20210429225251.02b6386d21b69255b4f6c163@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,140 +46,47 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: introduce obj_cgroup_{un}charge_pages
+Subject: mm: memcontrol: directly access page->memcg_data in mm/page_alloc.c
 
-We know that the unit of slab object charging is bytes, the unit of kmem
-page charging is PAGE_SIZE.  If we want to reuse obj_cgroup APIs to charge
-the kmem pages, we should pass PAGE_SIZE (as third parameter) to
-obj_cgroup_charge().  Because the size is already PAGE_SIZE, we can skip
-touch the objcg stock.  And obj_cgroup_{un}charge_pages() are introduced
-to charge in units of page level.
+page_memcg() is not suitable for use by page_expected_state() and
+page_bad_reason().  Because it can BUG_ON() for the slab pages when
+CONFIG_DEBUG_VM is enabled.  As neither lru, nor kmem, nor slab page
+should have anything left in there by the time the page is freed, what we
+care about is whether the value of page->memcg_data is 0.  So just
+directly access page->memcg_data here.
 
-In the latter patch, we also can reuse those two helpers to charge or
-uncharge a number of kernel pages to a object cgroup.  This is just a code
-movement without any functional changes.
-
-Link: https://lkml.kernel.org/r/20210319163821.20704-3-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20210319163821.20704-4-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Roman Gushchin <guro@fb.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   63 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 40 insertions(+), 23 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-introduce-obj_cgroup_uncharge_pages
-+++ a/mm/memcontrol.c
-@@ -2874,6 +2874,20 @@ static void commit_charge(struct page *p
- 	page->memcg_data = (unsigned long)memcg;
- }
- 
-+static struct mem_cgroup *get_mem_cgroup_from_objcg(struct obj_cgroup *objcg)
-+{
-+	struct mem_cgroup *memcg;
-+
-+	rcu_read_lock();
-+retry:
-+	memcg = obj_cgroup_memcg(objcg);
-+	if (unlikely(!css_tryget(&memcg->css)))
-+		goto retry;
-+	rcu_read_unlock();
-+
-+	return memcg;
-+}
-+
- #ifdef CONFIG_MEMCG_KMEM
- int memcg_alloc_page_obj_cgroups(struct page *page, struct kmem_cache *s,
- 				 gfp_t gfp, bool new_page)
-@@ -3025,6 +3039,29 @@ static void memcg_free_cache_id(int id)
- 	ida_simple_remove(&memcg_cache_ida, id);
- }
- 
-+static void obj_cgroup_uncharge_pages(struct obj_cgroup *objcg,
-+				      unsigned int nr_pages)
-+{
-+	struct mem_cgroup *memcg;
-+
-+	memcg = get_mem_cgroup_from_objcg(objcg);
-+	__memcg_kmem_uncharge(memcg, nr_pages);
-+	css_put(&memcg->css);
-+}
-+
-+static int obj_cgroup_charge_pages(struct obj_cgroup *objcg, gfp_t gfp,
-+				   unsigned int nr_pages)
-+{
-+	struct mem_cgroup *memcg;
-+	int ret;
-+
-+	memcg = get_mem_cgroup_from_objcg(objcg);
-+	ret = __memcg_kmem_charge(memcg, gfp, nr_pages);
-+	css_put(&memcg->css);
-+
-+	return ret;
-+}
-+
- /**
-  * __memcg_kmem_charge: charge a number of kernel pages to a memcg
-  * @memcg: memory cgroup to charge
-@@ -3149,19 +3186,8 @@ static void drain_obj_stock(struct memcg
- 		unsigned int nr_pages = stock->nr_bytes >> PAGE_SHIFT;
- 		unsigned int nr_bytes = stock->nr_bytes & (PAGE_SIZE - 1);
- 
--		if (nr_pages) {
--			struct mem_cgroup *memcg;
--
--			rcu_read_lock();
--retry:
--			memcg = obj_cgroup_memcg(old);
--			if (unlikely(!css_tryget(&memcg->css)))
--				goto retry;
--			rcu_read_unlock();
--
--			__memcg_kmem_uncharge(memcg, nr_pages);
--			css_put(&memcg->css);
--		}
-+		if (nr_pages)
-+			obj_cgroup_uncharge_pages(old, nr_pages);
- 
- 		/*
- 		 * The leftover is flushed to the centralized per-memcg value.
-@@ -3219,7 +3245,6 @@ static void refill_obj_stock(struct obj_
- 
- int obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp, size_t size)
- {
--	struct mem_cgroup *memcg;
- 	unsigned int nr_pages, nr_bytes;
- 	int ret;
- 
-@@ -3236,24 +3261,16 @@ int obj_cgroup_charge(struct obj_cgroup
- 	 * refill_obj_stock(), called from this function or
- 	 * independently later.
- 	 */
--	rcu_read_lock();
--retry:
--	memcg = obj_cgroup_memcg(objcg);
--	if (unlikely(!css_tryget(&memcg->css)))
--		goto retry;
--	rcu_read_unlock();
--
- 	nr_pages = size >> PAGE_SHIFT;
- 	nr_bytes = size & (PAGE_SIZE - 1);
- 
- 	if (nr_bytes)
- 		nr_pages += 1;
- 
--	ret = __memcg_kmem_charge(memcg, gfp, nr_pages);
-+	ret = obj_cgroup_charge_pages(objcg, gfp, nr_pages);
- 	if (!ret && nr_bytes)
- 		refill_obj_stock(objcg, PAGE_SIZE - nr_bytes);
- 
--	css_put(&memcg->css);
- 	return ret;
- }
- 
+--- a/mm/page_alloc.c~mm-memcontrol-directly-access-page-memcg_data-in-mm-page_allocc
++++ a/mm/page_alloc.c
+@@ -1103,7 +1103,7 @@ static inline bool page_expected_state(s
+ 	if (unlikely((unsigned long)page->mapping |
+ 			page_ref_count(page) |
+ #ifdef CONFIG_MEMCG
+-			(unsigned long)page_memcg(page) |
++			page->memcg_data |
+ #endif
+ 			(page->flags & check_flags)))
+ 		return false;
+@@ -1128,7 +1128,7 @@ static const char *page_bad_reason(struc
+ 			bad_reason = "PAGE_FLAGS_CHECK_AT_FREE flag(s) set";
+ 	}
+ #ifdef CONFIG_MEMCG
+-	if (unlikely(page_memcg(page)))
++	if (unlikely(page->memcg_data))
+ 		bad_reason = "page still charged to cgroup";
+ #endif
+ 	return bad_reason;
 _
