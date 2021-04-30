@@ -5,37 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26C3DC43460
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEABCC43461
 	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 06:00:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0CEFE61483
+	by mail.kernel.org (Postfix) with ESMTP id 8FB6B61483
 	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 06:00:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229609AbhD3GBP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 02:01:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54436 "EHLO mail.kernel.org"
+        id S230318AbhD3GBR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 02:01:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54522 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230318AbhD3GBM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 02:01:12 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2ED8C6148E;
-        Fri, 30 Apr 2021 06:00:22 +0000 (UTC)
+        id S229712AbhD3GBQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 02:01:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1906D61481;
+        Fri, 30 Apr 2021 06:00:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619762422;
-        bh=xDnPQk/EgYDX4dPLLMCy+no7XcCLPZoRFn2dl459wCY=;
+        s=korg; t=1619762428;
+        bh=2NTzOym+sSDT/Bef7OscGQqUmw/U8pYrdm8XldiKhuU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=rl8iqTYiEvum/Byy/9n1LCNh20eW5zOwaEAct2/9Rz/8YFU8FNBEbVXuX/cJ089hj
-         Yi1lYOlIVOgLYqVuOz6oV7gr8kgsnEyBkR20RlnwfC9mTr1hQdlM5KyhTQerJaRXaY
-         v/GfNOWe69VApmSfDNPL3O0JbTMzHo/CLauwTfmc=
-Date:   Thu, 29 Apr 2021 23:00:21 -0700
+        b=rKo5qjbWiE6uPSc939AWC89WL8dwCpWNyeOB0dXJz1C/U0IQ81wUc+713i7X1fId1
+         YY4i0hZHm5yqVqCoigOW8a1Fst/GfCRox6wTocoQWe8ih1fpiNya6RwiLrgt0zYviX
+         lrAD469xifxPCUhgeQZ8Fek4/+D1OsL11+ht5AMw=
+Date:   Thu, 29 Apr 2021 23:00:27 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, dvyukov@google.com, elver@google.com,
         glider@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 139/178] kasan: docs: update error reports section
-Message-ID: <20210430060021.Rfma7nv46%akpm@linux-foundation.org>
+Subject:  [patch 141/178] kasan: docs: update GENERIC
+ implementation details section
+Message-ID: <20210430060027.tUSBKxSC2%akpm@linux-foundation.org>
 In-Reply-To: <20210429225251.02b6386d21b69255b4f6c163@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,16 +45,16 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: docs: update error reports section
+Subject: kasan: docs: update GENERIC implementation details section
 
-Update the "Error reports" section in KASAN documentation:
+Update the "Implementation details" section for generic KASAN:
 
-- Mention that bug titles are best-effort.
-- Move and reword the part about auxiliary stacks from
-  "Implementation details".
+- Don't mention kmemcheck, it's not present in the kernel anymore.
+- Don't mention GCC as the only supported compiler.
+- Update kasan_mem_to_shadow() definition to match actual code.
 - Punctuation, readability, and other minor clean-ups.
 
-Link: https://lkml.kernel.org/r/3531e8fe6972cf39d1954e3643237b19eb21227e.1615559068.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/f2f35fdab701f8c709f63d328f98aec2982c8acc.1615559068.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -62,88 +63,60 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   46 +++++++++++++++-------------
- 1 file changed, 26 insertions(+), 20 deletions(-)
+ Documentation/dev-tools/kasan.rst |   29 +++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-error-reports-section
+--- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-generic-implementation-details-section
 +++ a/Documentation/dev-tools/kasan.rst
-@@ -60,7 +60,7 @@ physical pages, enable ``CONFIG_PAGE_OWN
- Error reports
+@@ -209,12 +209,11 @@ Implementation details
+ Generic KASAN
  ~~~~~~~~~~~~~
  
--A typical out-of-bounds access generic KASAN report looks like this::
-+A typical KASAN report looks like this::
+-From a high level perspective, KASAN's approach to memory error detection is
+-similar to that of kmemcheck: use shadow memory to record whether each byte of
+-memory is safe to access, and use compile-time instrumentation to insert checks
+-of shadow memory on each memory access.
++Software KASAN modes use shadow memory to record whether each byte of memory is
++safe to access and use compile-time instrumentation to insert shadow memory
++checks before each memory access.
  
-     ==================================================================
-     BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [test_kasan]
-@@ -133,33 +133,43 @@ A typical out-of-bounds access generic K
-      ffff8801f44ec400: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
-     ==================================================================
+-Generic KASAN dedicates 1/8th of kernel memory to its shadow memory (e.g. 16TB
++Generic KASAN dedicates 1/8th of kernel memory to its shadow memory (16TB
+ to cover 128TB on x86_64) and uses direct mapping with a scale and offset to
+ translate a memory address to its corresponding shadow address.
  
--The header of the report provides a short summary of what kind of bug happened
--and what kind of access caused it. It's followed by a stack trace of the bad
--access, a stack trace of where the accessed memory was allocated (in case bad
--access happens on a slab object), and a stack trace of where the object was
--freed (in case of a use-after-free bug report). Next comes a description of
--the accessed slab object and information about the accessed memory page.
-+The report header summarizes what kind of bug happened and what kind of access
-+caused it. It is followed by a stack trace of the bad access, a stack trace of
-+where the accessed memory was allocated (in case a slab object was accessed),
-+and a stack trace of where the object was freed (in case of a use-after-free
-+bug report). Next comes a description of the accessed slab object and the
-+information about the accessed memory page.
+@@ -223,23 +222,23 @@ address::
  
--In the last section the report shows memory state around the accessed address.
--Internally KASAN tracks memory state separately for each memory granule, which
-+In the end, the report shows the memory state around the accessed address.
-+Internally, KASAN tracks memory state separately for each memory granule, which
- is either 8 or 16 aligned bytes depending on KASAN mode. Each number in the
- memory state section of the report shows the state of one of the memory
- granules that surround the accessed address.
+     static inline void *kasan_mem_to_shadow(const void *addr)
+     {
+-	return ((unsigned long)addr >> KASAN_SHADOW_SCALE_SHIFT)
++	return (void *)((unsigned long)addr >> KASAN_SHADOW_SCALE_SHIFT)
+ 		+ KASAN_SHADOW_OFFSET;
+     }
  
--For generic KASAN the size of each memory granule is 8. The state of each
-+For generic KASAN, the size of each memory granule is 8. The state of each
- granule is encoded in one shadow byte. Those 8 bytes can be accessible,
--partially accessible, freed or be a part of a redzone. KASAN uses the following
--encoding for each shadow byte: 0 means that all 8 bytes of the corresponding
-+partially accessible, freed, or be a part of a redzone. KASAN uses the following
-+encoding for each shadow byte: 00 means that all 8 bytes of the corresponding
- memory region are accessible; number N (1 <= N <= 7) means that the first N
- bytes are accessible, and other (8 - N) bytes are not; any negative value
- indicates that the entire 8-byte word is inaccessible. KASAN uses different
- negative values to distinguish between different kinds of inaccessible memory
- like redzones or freed memory (see mm/kasan/kasan.h).
+ where ``KASAN_SHADOW_SCALE_SHIFT = 3``.
  
--In the report above the arrows point to the shadow byte 03, which means that
--the accessed address is partially accessible. For tag-based KASAN modes this
--last report section shows the memory tags around the accessed address
--(see the `Implementation details`_ section).
-+In the report above, the arrow points to the shadow byte ``03``, which means
-+that the accessed address is partially accessible.
-+
-+For tag-based KASAN modes, this last report section shows the memory tags around
-+the accessed address (see the `Implementation details`_ section).
-+
-+Note that KASAN bug titles (like ``slab-out-of-bounds`` or ``use-after-free``)
-+are best-effort: KASAN prints the most probable bug type based on the limited
-+information it has. The actual type of the bug might be different.
-+
-+Generic KASAN also reports up to two auxiliary call stack traces. These stack
-+traces point to places in code that interacted with the object but that are not
-+directly present in the bad access stack trace. Currently, this includes
-+call_rcu() and workqueue queuing.
- 
- Boot parameters
- ~~~~~~~~~~~~~~~
-@@ -223,10 +233,6 @@ function calls GCC directly inserts the
- This option significantly enlarges kernel but it gives x1.1-x2 performance
- boost over outline instrumented kernel.
- 
--Generic KASAN also reports the last 2 call stacks to creation of work that
--potentially has access to an object. Call stacks for the following are shown:
--call_rcu() and workqueue queuing.
+ Compile-time instrumentation is used to insert memory access checks. Compiler
+-inserts function calls (__asan_load*(addr), __asan_store*(addr)) before each
+-memory access of size 1, 2, 4, 8 or 16. These functions check whether memory
+-access is valid or not by checking corresponding shadow memory.
 -
- Generic KASAN is the only mode that delays the reuse of freed object via
+-GCC 5.0 has possibility to perform inline instrumentation. Instead of making
+-function calls GCC directly inserts the code to check the shadow memory.
+-This option significantly enlarges kernel but it gives x1.1-x2 performance
+-boost over outline instrumented kernel.
++inserts function calls (``__asan_load*(addr)``, ``__asan_store*(addr)``) before
++each memory access of size 1, 2, 4, 8, or 16. These functions check whether
++memory accesses are valid or not by checking corresponding shadow memory.
++
++With inline instrumentation, instead of making function calls, the compiler
++directly inserts the code to check shadow memory. This option significantly
++enlarges the kernel, but it gives an x1.1-x2 performance boost over the
++outline-instrumented kernel.
+ 
+-Generic KASAN is the only mode that delays the reuse of freed object via
++Generic KASAN is the only mode that delays the reuse of freed objects via
  quarantine (see mm/kasan/quarantine.c for implementation).
  
+ Software tag-based KASAN
 _
