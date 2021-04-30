@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1639C433ED
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 06:00:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07CBFC433B4
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 06:00:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 864FC61483
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 06:00:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFA4661483
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 06:00:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229712AbhD3GB3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 02:01:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54682 "EHLO mail.kernel.org"
+        id S229684AbhD3GBc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 02:01:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54724 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229684AbhD3GB3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 02:01:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3F07461482;
-        Fri, 30 Apr 2021 06:00:40 +0000 (UTC)
+        id S229482AbhD3GBc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 02:01:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3A4B661463;
+        Fri, 30 Apr 2021 06:00:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619762440;
-        bh=s/UdawWteAsAtNp9fSZCySBSnSFxJVPUfZXfbTqZUbw=;
+        s=korg; t=1619762443;
+        bh=e/tZy96EyXFrPPA74tcq6+yebxiL2AWqKNTQc4Ta2FM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Vbsrhbzna1dt+mL+HzV84U+aHCNHuQQxVwWDoiBb53CqZqQEiXAIefkufNuSVVWIp
-         JGP6mQeCHlcDUlQIzyyWynqLsZlJm8WSHQTX9iZJJTf+Ztl4e2NlH7AEXPTnEHM4MC
-         8FTNga33Iv17nn5Gq+4kEDswzOdyErStUAMi6XkI=
-Date:   Thu, 29 Apr 2021 23:00:39 -0700
+        b=rdFA3Y081aGOOsMGmCRngZGkqQd+j5fidtlbaXZNWVyNcG92yMT1C/h9tiQ2cZw22
+         2+IUVWhCIoT8NEqjSrSPrDHhc+CFdbZAAjy+8w/er17pjgF6/1oeK3IFGKzcByT69v
+         H1r9xx+xNnP4pMAeN6tGBNGg8hARXSVf3uIYeWNc=
+Date:   Thu, 29 Apr 2021 23:00:42 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, dvyukov@google.com, elver@google.com,
         glider@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 145/178] kasan: docs: update ignoring accesses
- section
-Message-ID: <20210430060039.NQHzrzXmr%akpm@linux-foundation.org>
+Subject:  [patch 146/178] kasan: docs: update tests section
+Message-ID: <20210430060042.4Env0NIjA%akpm@linux-foundation.org>
 In-Reply-To: <20210429225251.02b6386d21b69255b4f6c163@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,16 +44,15 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: docs: update ignoring accesses section
+Subject: kasan: docs: update tests section
 
-Update the "Ignoring accesses" section in KASAN documentation:
+Update the "Tests" section in KASAN documentation:
 
-- Mention __no_sanitize_address/noinstr.
-- Mention kasan_disable/enable_current().
-- Mention kasan_reset_tag()/page_kasan_tag_reset().
-- Readability and punctuation clean-ups.
+- Add an introductory sentence.
+- Add proper indentation for the list of ways to run KUnit tests.
+- Punctuation, readability, and other minor clean-ups.
 
-Link: https://lkml.kernel.org/r/4531ba5f3eca61f6aade863c136778cc8c807a64.1615559068.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/fb08845e25c8847ffda271fa19cda2621c04a65b.1615559068.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -63,59 +61,72 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   34 ++++++++++++++++++++++++----
- 1 file changed, 30 insertions(+), 4 deletions(-)
+ Documentation/dev-tools/kasan.rst |   32 +++++++++++++---------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-ignoring-accesses-section
+--- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-tests-section
 +++ a/Documentation/dev-tools/kasan.rst
-@@ -377,12 +377,18 @@ Ignoring accesses
- ~~~~~~~~~~~~~~~~~
- 
- Software KASAN modes use compiler instrumentation to insert validity checks.
--Such instrumentation might be incompatible with some part of the kernel, and
--therefore needs to be disabled. To disable instrumentation for specific files
--or directories, add a line similar to the following to the respective kernel
-+Such instrumentation might be incompatible with some parts of the kernel, and
-+therefore needs to be disabled.
-+
-+Other parts of the kernel might access metadata for allocated objects.
-+Normally, KASAN detects and reports such accesses, but in some cases (e.g.,
-+in memory allocators), these accesses are valid.
-+
-+For software KASAN modes, to disable instrumentation for a specific file or
-+directory, add a ``KASAN_SANITIZE`` annotation to the respective kernel
- Makefile:
- 
--- For a single file (e.g. main.o)::
-+- For a single file (e.g., main.o)::
- 
-     KASAN_SANITIZE_main.o := n
- 
-@@ -390,6 +396,26 @@ Makefile:
- 
-     KASAN_SANITIZE := n
- 
-+For software KASAN modes, to disable instrumentation on a per-function basis,
-+use the KASAN-specific ``__no_sanitize_address`` function attribute or the
-+generic ``noinstr`` one.
-+
-+Note that disabling compiler instrumentation (either on a per-file or a
-+per-function basis) makes KASAN ignore the accesses that happen directly in
-+that code for software KASAN modes. It does not help when the accesses happen
-+indirectly (through calls to instrumented functions) or with the hardware
-+tag-based mode that does not use compiler instrumentation.
-+
-+For software KASAN modes, to disable KASAN reports in a part of the kernel code
-+for the current task, annotate this part of the code with a
-+``kasan_disable_current()``/``kasan_enable_current()`` section. This also
-+disables the reports for indirect accesses that happen through function calls.
-+
-+For tag-based KASAN modes (include the hardware one), to disable access
-+checking, use ``kasan_reset_tag()`` or ``page_kasan_tag_reset()``. Note that
-+temporarily disabling access checking via ``page_kasan_tag_reset()`` requires
-+saving and restoring the per-page KASAN tag via
-+``page_kasan_tag``/``page_kasan_tag_set``.
- 
+@@ -420,19 +420,20 @@ saving and restoring the per-page KASAN
  Tests
  ~~~~~
+ 
+-KASAN tests consist of two parts:
++There are KASAN tests that allow verifying that KASAN works and can detect
++certain types of memory corruptions. The tests consist of two parts:
+ 
+ 1. Tests that are integrated with the KUnit Test Framework. Enabled with
+ ``CONFIG_KASAN_KUNIT_TEST``. These tests can be run and partially verified
+-automatically in a few different ways, see the instructions below.
++automatically in a few different ways; see the instructions below.
+ 
+ 2. Tests that are currently incompatible with KUnit. Enabled with
+ ``CONFIG_KASAN_MODULE_TEST`` and can only be run as a module. These tests can
+-only be verified manually, by loading the kernel module and inspecting the
++only be verified manually by loading the kernel module and inspecting the
+ kernel log for KASAN reports.
+ 
+-Each KUnit-compatible KASAN test prints a KASAN report if an error is detected.
+-Then the test prints its number and status.
++Each KUnit-compatible KASAN test prints one of multiple KASAN reports if an
++error is detected. Then the test prints its number and status.
+ 
+ When a test passes::
+ 
+@@ -460,27 +461,24 @@ Or, if one of the tests failed::
+ 
+         not ok 1 - kasan
+ 
+-
+ There are a few ways to run KUnit-compatible KASAN tests.
+ 
+ 1. Loadable module
+ 
+-With ``CONFIG_KUNIT`` enabled, ``CONFIG_KASAN_KUNIT_TEST`` can be built as
+-a loadable module and run on any architecture that supports KASAN by loading
+-the module with insmod or modprobe. The module is called ``test_kasan``.
++   With ``CONFIG_KUNIT`` enabled, KASAN-KUnit tests can be built as a loadable
++   module and run by loading ``test_kasan.ko`` with ``insmod`` or ``modprobe``.
+ 
+ 2. Built-In
+ 
+-With ``CONFIG_KUNIT`` built-in, ``CONFIG_KASAN_KUNIT_TEST`` can be built-in
+-on any architecure that supports KASAN. These and any other KUnit tests enabled
+-will run and print the results at boot as a late-init call.
++   With ``CONFIG_KUNIT`` built-in, KASAN-KUnit tests can be built-in as well.
++   In this case, the tests will run at boot as a late-init call.
+ 
+ 3. Using kunit_tool
+ 
+-With ``CONFIG_KUNIT`` and ``CONFIG_KASAN_KUNIT_TEST`` built-in, it's also
+-possible use ``kunit_tool`` to see the results of these and other KUnit tests
+-in a more readable way. This will not print the KASAN reports of the tests that
+-passed. Use `KUnit documentation <https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html>`_
+-for more up-to-date information on ``kunit_tool``.
++   With ``CONFIG_KUNIT`` and ``CONFIG_KASAN_KUNIT_TEST`` built-in, it is also
++   possible to use ``kunit_tool`` to see the results of KUnit tests in a more
++   readable way. This will not print the KASAN reports of the tests that passed.
++   See `KUnit documentation <https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html>`_
++   for more up-to-date information on ``kunit_tool``.
+ 
+ .. _KUnit: https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html
 _
