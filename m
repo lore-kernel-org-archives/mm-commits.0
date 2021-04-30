@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEA9FC433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:27:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F7BFC433B4
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:28:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B5B45613F0
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:27:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3750F61445
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:28:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229591AbhD3F2n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 01:28:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38280 "EHLO mail.kernel.org"
+        id S229508AbhD3F3a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 01:29:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38394 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229508AbhD3F2f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 01:28:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E1679613F0;
-        Fri, 30 Apr 2021 05:27:46 +0000 (UTC)
+        id S229482AbhD3F32 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 01:29:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C5812613FA;
+        Fri, 30 Apr 2021 05:28:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619760467;
-        bh=BUCirTVij/lEAipYi9hLmHCchT80vY8mliPAd0Ju1kk=;
+        s=korg; t=1619760514;
+        bh=hXutZUELvXAxJtphZuJqnXyLAaINnfAWKQ3QtqVSKa0=;
         h=Date:From:To:Subject:From;
-        b=Xm0IJOJDt+LMh7wcEOjSAvdOYhQGLCyFlh4rTWC1Uu/ZMPBBUG7cXxb9Dxf5GyyOd
-         EE6jMAfJP7OeZA1cHobcfvm4ZENK8K608HcNJHU9drc/1oF4ofk3SgUW6q0j+iaIqW
-         B2W33kIJJjeJRfFQaW+OqGq7rrKJ4ijeNNwAj+J0=
-Date:   Thu, 29 Apr 2021 22:27:46 -0700
+        b=c80NlZXaBw1KTnEzG/EnHVJjrHNZr9Rh40UnJLMLL9B0FKs1hUzRuD/6/JyL147uT
+         oh+j/qNXc5j/u5OTsE1NktJfcmParzl4VwsR4X8Zp0ZlPMQAZzR0qGw+yzYQb4SzR+
+         2xAy459rZo1hKJp+Fsk93LIHg7UGC/Ytxc8lMrpk=
+Date:   Thu, 29 Apr 2021 22:28:34 -0700
 From:   akpm@linux-foundation.org
-To:     colin.king@canonical.com, mm-commits@vger.kernel.org,
-        npiggin@gmail.com, sfr@canb.auug.org.au
+To:     hch@lst.de, mm-commits@vger.kernel.org, npiggin@gmail.com,
+        sfr@canb.auug.org.au
 Subject:  [folded-merged]
- mm-vmalloc-hugepage-vmalloc-mappings-fix.patch removed from -mm tree
-Message-ID: <20210430052746.JYcfzbQ8X%akpm@linux-foundation.org>
+ mm-vmalloc-remove-unmap_kernel_range-fix.patch removed from -mm tree
+Message-ID: <20210430052834.StwQBw2OD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,82 +43,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: [next] mm/vmalloc: fix read of uninitialized pointer area
+     Subject: mm-vmalloc-remove-unmap_kernel_range-fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-hugepage-vmalloc-mappings-fix.patch
+     mm-vmalloc-remove-unmap_kernel_range-fix.patch
 
-This patch was dropped because it was folded into mm-vmalloc-hugepage-vmalloc-mappings.patch
+This patch was dropped because it was folded into mm-vmalloc-remove-unmap_kernel_range.patch
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: [next] mm/vmalloc: fix read of uninitialized pointer area
+From: Nicholas Piggin <npiggin@gmail.com>
+Subject: mm-vmalloc-remove-unmap_kernel_range-fix
 
-There is a corner case where the sanity check of variable size fails
-and branches to label fail and shift can be less than PAGE_SHIFT
-causing area to never be assigned. This was picked up by static
-analysis as follows:
+This requires a fix for nommu builds and a comment bug that sfr noticed.
 
-    1. var_decl: Declaring variable area without initializer.
-       struct vm_struct *area;
-
-   ...
-
-    2. Condition !size, taking true branch.
-       if (!size || (size >> PAGE_SHIFT) > totalram_pages())
-    3. Jumping to label fail.
-               goto fail;
-
-    ...
-
-    4. Condition shift > 12, taking false branch.
-	fail:
-		if (shift > PAGE_SHIFT) {
-			shift = PAGE_SHIFT;
-			align = real_align;
-			size = real_size;
-			goto again;
-		}
-
-     Uninitialized pointer read (UNINIT)
-     5. uninit_use: Using uninitialized value area.
- 		if (!area) {
-			...
-		}
-
-Fix this by setting area to NULL to avoid the uninitialized read
-of area.
-
-Addresses-Coverity: ("Uninitialized pointer read")
-Link: https://lkml.kernel.org/r/20210318155955.18220-1-colin.king@canonical.com
-Fixes: 92db9fec381b ("mm/vmalloc: hugepage vmalloc mappings")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Acked-by: Nicholas Piggin <npiggin@gmail.com>
+Link: https://lkml.kernel.org/r/1617292598.m6g0knx24s.astroid@bobo.none
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/internal.h |    3 +++
+ mm/vmalloc.c  |    2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-hugepage-vmalloc-mappings-fix
+--- a/mm/internal.h~mm-vmalloc-remove-unmap_kernel_range-fix
++++ a/mm/internal.h
+@@ -541,6 +541,9 @@ static inline int node_reclaim(struct pg
+ {
+ 	return NODE_RECLAIM_NOSCAN;
+ }
++static inline void vunmap_range_noflush(unsigned long start, unsigned long end)
++{
++}
+ #endif
+ 
+ extern int hwpoison_filter(struct page *p);
+--- a/mm/vmalloc.c~mm-vmalloc-remove-unmap_kernel_range-fix
 +++ a/mm/vmalloc.c
-@@ -2879,8 +2879,10 @@ void *__vmalloc_node_range(unsigned long
- 	unsigned long real_align = align;
- 	unsigned int shift = PAGE_SHIFT;
+@@ -413,7 +413,7 @@ void vunmap_range_noflush(unsigned long
+ }
  
--	if (!size || (size >> PAGE_SHIFT) > totalram_pages())
-+	if (!size || (size >> PAGE_SHIFT) > totalram_pages()) {
-+		area = NULL;
- 		goto fail;
-+	}
- 
- 	if (vmap_allow_huge && !(vm_flags & VM_NO_HUGE_VMAP) &&
- 			arch_vmap_pmd_supported(prot)) {
+ /**
+- * vunmap_range_noflush - unmap kernel virtual addresses
++ * vunmap_range - unmap kernel virtual addresses
+  * @addr: start of the VM area to unmap
+  * @end: end of the VM area to unmap (non-inclusive)
+  *
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from npiggin@gmail.com are
 
+arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch
+mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page.patch
+mm-apply_to_pte_range-warn-and-fail-if-a-large-pte-is-encountered.patch
+mm-vmalloc-rename-vmap__range-vmap_pages__range.patch
+mm-ioremap-rename-ioremap__range-to-vmap__range.patch
+mm-huge_vmap-arch-support-cleanup.patch
+powerpc-inline-huge-vmap-supported-functions.patch
+arm64-inline-huge-vmap-supported-functions.patch
+x86-inline-huge-vmap-supported-functions.patch
+mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions.patch
+mm-move-vmap_range-from-mm-ioremapc-to-mm-vmallocc.patch
+mm-vmalloc-add-vmap_range_noflush-variant.patch
 mm-vmalloc-hugepage-vmalloc-mappings.patch
-proc-fix-incorrect-pde_is_permanent-check.patch
-mm-slab-fix-spelling-mistake-disired-desired.patch
+mm-vmalloc-remove-map_kernel_range.patch
+kernel-dma-remove-unnecessary-unmap_kernel_range.patch
+powerpc-xive-remove-unnecessary-unmap_kernel_range.patch
+mm-vmalloc-remove-unmap_kernel_range.patch
+mm-vmalloc-remove-map_kernel_range-fix-2.patch
+mm-vmalloc-improve-allocation-failure-error-messages.patch
 
