@@ -5,38 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40F62C43600
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:55:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7820CC433ED
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:55:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23A6561463
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:55:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 51F7861462
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:55:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230132AbhD3F4h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 01:56:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48836 "EHLO mail.kernel.org"
+        id S230182AbhD3F4j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 01:56:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48928 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230306AbhD3F4f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 01:56:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EB97C61464;
-        Fri, 30 Apr 2021 05:55:47 +0000 (UTC)
+        id S230210AbhD3F4i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 01:56:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F277161474;
+        Fri, 30 Apr 2021 05:55:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619762148;
-        bh=3RQIacojUd5RTpXbVSxUg3pHdS+AzGvarx8O1MVEI1M=;
+        s=korg; t=1619762151;
+        bh=Upfq7lJE5NbpuA0zJqOBNnp0aghl9W9jaiQqYUFKq2E=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Q24aFVvs6i5CcsmpZBz5X2hVKmleJeqH1xamJ2SqatbBc2AifPvhlYBEyovCnFr5r
-         uroWz70Iubvt2LasRDYo+1P7MfLNemMvFrZ/mLgbrRzt4xAqJsTI9Ma6Wvl7KjtBwo
-         ba7JbK0zoM7uAF6fAZfDRCz8FmFipvGoooH/MgMM=
-Date:   Thu, 29 Apr 2021 22:55:47 -0700
+        b=lpuCdUTnWPMVnGg4EH8Jr/X38Qj1Uy0vc5FDfVOP6R37uAxZ4QWP5ay3ko/V7ZnjQ
+         UXvXtF1QEB6mUrWliqL2Y8JVHt9pWKt5AuEKalf5yGmKBwbPDUFrFjM1H5khF+O9NF
+         1hNeottQxDZLO6gJzh5uaLyWQhT6EAtWxY8enjIE=
+Date:   Thu, 29 Apr 2021 22:55:50 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, dledford@redhat.com, hch@infradead.org,
         jgg@nvidia.com, jhubbard@nvidia.com, joao.m.martins@oracle.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [patch 051/178] mm/gup: decrement head page once for
- group of subpages
-Message-ID: <20210430055547.K6f0kA22t%akpm@linux-foundation.org>
+Subject:  [patch 052/178] mm/gup: add a range variant of
+ unpin_user_pages_dirty_lock()
+Message-ID: <20210430055550.dTV9QXG5Y%akpm@linux-foundation.org>
 In-Reply-To: <20210429225251.02b6386d21b69255b4f6c163@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,103 +45,121 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/gup: decrement head page once for group of subpages
+Subject: mm/gup: add a range variant of unpin_user_pages_dirty_lock()
 
-Rather than decrementing the head page refcount one by one, we walk the
-page array and checking which belong to the same compound_head.  Later on
-we decrement the calculated amount of references in a single write to the
-head page.  To that end switch to for_each_compound_head() does most of
-the work.
+Add an unpin_user_page_range_dirty_lock() API which takes a starting page
+and how many consecutive pages we want to unpin and optionally dirty.
 
-set_page_dirty() needs no adjustment as it's a nop for non-dirty head
-pages and it doesn't operate on tail pages.
+To that end, define another iterator for_each_compound_range() that
+operates in page ranges as opposed to page array.
 
-This considerably improves unpinning of pages with THP and hugetlbfs:
+For users (like RDMA mr_dereg) where each sg represents a contiguous set
+of pages, we're able to more efficiently unpin pages without having to
+supply an array of pages much of what happens today with
+unpin_user_pages().
 
-- THP
-gup_test -t -m 16384 -r 10 [-L|-a] -S -n 512 -w
-PIN_LONGTERM_BENCHMARK (put values): ~87.6k us -> ~23.2k us
-
-- 16G with 1G huge page size
-gup_test -f /mnt/huge/file -m 16384 -r 10 [-L|-a] -S -n 512 -w
-PIN_LONGTERM_BENCHMARK: (put values): ~87.6k us -> ~27.5k us
-
-Link: https://lkml.kernel.org/r/20210212130843.13865-3-joao.m.martins@oracle.com
+Link: https://lkml.kernel.org/r/20210212130843.13865-4-joao.m.martins@oracle.com
+Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Doug Ledford <dledford@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   29 +++++++++++------------------
- 1 file changed, 11 insertions(+), 18 deletions(-)
+ include/linux/mm.h |    2 +
+ mm/gup.c           |   62 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+)
 
---- a/mm/gup.c~mm-gup-decrement-head-page-once-for-group-of-subpages
+--- a/include/linux/mm.h~mm-gup-add-a-range-variant-of-unpin_user_pages_dirty_lock
++++ a/include/linux/mm.h
+@@ -1265,6 +1265,8 @@ static inline void put_page(struct page
+ void unpin_user_page(struct page *page);
+ void unpin_user_pages_dirty_lock(struct page **pages, unsigned long npages,
+ 				 bool make_dirty);
++void unpin_user_page_range_dirty_lock(struct page *page, unsigned long npages,
++				      bool make_dirty);
+ void unpin_user_pages(struct page **pages, unsigned long npages);
+ 
+ /**
+--- a/mm/gup.c~mm-gup-add-a-range-variant-of-unpin_user_pages_dirty_lock
 +++ a/mm/gup.c
-@@ -265,20 +265,15 @@ void unpin_user_pages_dirty_lock(struct
- 				 bool make_dirty)
- {
- 	unsigned long index;
--
--	/*
--	 * TODO: this can be optimized for huge pages: if a series of pages is
--	 * physically contiguous and part of the same compound page, then a
--	 * single operation to the head page should suffice.
--	 */
+@@ -213,6 +213,32 @@ void unpin_user_page(struct page *page)
+ }
+ EXPORT_SYMBOL(unpin_user_page);
+ 
++static inline void compound_range_next(unsigned long i, unsigned long npages,
++				       struct page **list, struct page **head,
++				       unsigned int *ntails)
++{
++	struct page *next, *page;
++	unsigned int nr = 1;
++
++	if (i >= npages)
++		return;
++
++	next = *list + i;
++	page = compound_head(next);
++	if (PageCompound(page) && compound_order(page) >= 1)
++		nr = min_t(unsigned int,
++			   page + compound_nr(page) - next, npages - i);
++
++	*head = page;
++	*ntails = nr;
++}
++
++#define for_each_compound_range(__i, __list, __npages, __head, __ntails) \
++	for (__i = 0, \
++	     compound_range_next(__i, __npages, __list, &(__head), &(__ntails)); \
++	     __i < __npages; __i += __ntails, \
++	     compound_range_next(__i, __npages, __list, &(__head), &(__ntails)))
++
+ static inline void compound_next(unsigned long i, unsigned long npages,
+ 				 struct page **list, struct page **head,
+ 				 unsigned int *ntails)
+@@ -302,6 +328,42 @@ void unpin_user_pages_dirty_lock(struct
+ EXPORT_SYMBOL(unpin_user_pages_dirty_lock);
+ 
+ /**
++ * unpin_user_page_range_dirty_lock() - release and optionally dirty
++ * gup-pinned page range
++ *
++ * @page:  the starting page of a range maybe marked dirty, and definitely released.
++ * @npages: number of consecutive pages to release.
++ * @make_dirty: whether to mark the pages dirty
++ *
++ * "gup-pinned page range" refers to a range of pages that has had one of the
++ * pin_user_pages() variants called on that page.
++ *
++ * For the page ranges defined by [page .. page+npages], make that range (or
++ * its head pages, if a compound page) dirty, if @make_dirty is true, and if the
++ * page range was previously listed as clean.
++ *
++ * set_page_dirty_lock() is used internally. If instead, set_page_dirty() is
++ * required, then the caller should a) verify that this is really correct,
++ * because _lock() is usually required, and b) hand code it:
++ * set_page_dirty_lock(), unpin_user_page().
++ *
++ */
++void unpin_user_page_range_dirty_lock(struct page *page, unsigned long npages,
++				      bool make_dirty)
++{
++	unsigned long index;
 +	struct page *head;
 +	unsigned int ntails;
- 
- 	if (!make_dirty) {
- 		unpin_user_pages(pages, npages);
- 		return;
- 	}
- 
--	for (index = 0; index < npages; index++) {
--		struct page *page = compound_head(pages[index]);
-+	for_each_compound_head(index, pages, npages, head, ntails) {
- 		/*
- 		 * Checking PageDirty at this point may race with
- 		 * clear_page_dirty_for_io(), but that's OK. Two key
-@@ -299,9 +294,9 @@ void unpin_user_pages_dirty_lock(struct
- 		 * written back, so it gets written back again in the
- 		 * next writeback cycle. This is harmless.
- 		 */
--		if (!PageDirty(page))
--			set_page_dirty_lock(page);
--		unpin_user_page(page);
-+		if (!PageDirty(head))
++
++	for_each_compound_range(index, &page, npages, head, ntails) {
++		if (make_dirty && !PageDirty(head))
 +			set_page_dirty_lock(head);
 +		put_compound_head(head, ntails, FOLL_PIN);
- 	}
- }
- EXPORT_SYMBOL(unpin_user_pages_dirty_lock);
-@@ -318,6 +313,8 @@ EXPORT_SYMBOL(unpin_user_pages_dirty_loc
- void unpin_user_pages(struct page **pages, unsigned long npages)
- {
- 	unsigned long index;
-+	struct page *head;
-+	unsigned int ntails;
- 
- 	/*
- 	 * If this WARN_ON() fires, then the system *might* be leaking pages (by
-@@ -326,13 +323,9 @@ void unpin_user_pages(struct page **page
- 	 */
- 	if (WARN_ON(IS_ERR_VALUE(npages)))
- 		return;
--	/*
--	 * TODO: this can be optimized for huge pages: if a series of pages is
--	 * physically contiguous and part of the same compound page, then a
--	 * single operation to the head page should suffice.
--	 */
--	for (index = 0; index < npages; index++)
--		unpin_user_page(pages[index]);
++	}
++}
++EXPORT_SYMBOL(unpin_user_page_range_dirty_lock);
 +
-+	for_each_compound_head(index, pages, npages, head, ntails)
-+		put_compound_head(head, ntails, FOLL_PIN);
- }
- EXPORT_SYMBOL(unpin_user_pages);
- 
++/**
+  * unpin_user_pages() - release an array of gup-pinned pages.
+  * @pages:  array of pages to be marked dirty and released.
+  * @npages: number of pages in the @pages array.
 _
