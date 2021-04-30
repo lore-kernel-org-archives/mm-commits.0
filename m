@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEAB2C433ED
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:20:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6014DC433B4
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:22:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8EFD361445
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:20:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 380C361445
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:22:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229581AbhD3FVi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 01:21:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36604 "EHLO mail.kernel.org"
+        id S229590AbhD3FXK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 01:23:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37094 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229482AbhD3FVi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 01:21:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7BB306121E;
-        Fri, 30 Apr 2021 05:20:50 +0000 (UTC)
+        id S229482AbhD3FXJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 01:23:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B26BB61423;
+        Fri, 30 Apr 2021 05:22:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619760050;
-        bh=qP09R2xnHMySgMcZA3etM6LdlZEJAp0kvhiLvUWzIG4=;
+        s=korg; t=1619760141;
+        bh=z+kWqmXzY1LbIsmy90BVUnLaARD7uF5Hr/8ONSCth3E=;
         h=Date:From:To:Subject:From;
-        b=iQCu7nQVGpxN8qzVjWNZqioalGDLD2bQ9DWHeboza+UT/k5/ikiB96PeqSdj31OiN
-         GJBdoPfVOtA3jmS67awCZ74ESzPG+DaD/X5mB/S7mVBJcY2iJU+bbtKdMxIKDD6pU0
-         bkLev67EqYaXVCCHIEQaOGMv817NyWFcCKc4dtl0=
-Date:   Thu, 29 Apr 2021 22:20:50 -0700
+        b=0qSEDZp0F3uk3CWoQ8twUzBQHxPeGyjJGDuyPCfv5jMpK9jWLNOwiAhVrWTr62ah8
+         eOM7Y5WXaUosKhY5Qk6hWLL5hJVTsHwGjQq/K9ATXbYSTCQuKvdgVRPg3qwr22I8mk
+         ENTpez4+VpW0vbtb4uvuezG5rOwFWImJEALUW9gg=
+Date:   Thu, 29 Apr 2021 22:22:21 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, peterz@infradead.org, pmladek@suse.com
+To:     mm-commits@vger.kernel.org, slyfox@gentoo.org, vbabka@suse.cz
 Subject:  [folded-merged]
- watchdog-fix-barriers-when-printing-backtraces-from-all-cpus-fix.patch
- removed from -mm tree
-Message-ID: <20210430052050.bcj_hb0CI%akpm@linux-foundation.org>
+ mm-page_poison-print-page-info-when-corruption-is-caught-v2.patch removed
+ from -mm tree
+Message-ID: <20210430052221.hVDabqUBx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,72 +43,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: use bit lock operations to prevent multiple soft-lockup reports
+     Subject: mm-page_poison-print-page-info-when-corruption-is-caught-v2
 has been removed from the -mm tree.  Its filename was
-     watchdog-fix-barriers-when-printing-backtraces-from-all-cpus-fix.patch
+     mm-page_poison-print-page-info-when-corruption-is-caught-v2.patch
 
-This patch was dropped because it was folded into watchdog-fix-barriers-when-printing-backtraces-from-all-cpus.patch
+This patch was dropped because it was folded into mm-page_poison-print-page-owner-info-when-corruption-is-caught.patch
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: watchdog: use bit lock operations to prevent multiple soft-lockup reports
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Subject: mm-page_poison-print-page-info-when-corruption-is-caught-v2
 
-Use bit_lock operation to prevent multiple soft-lockups reports when one
-CPU already triggered dumping backtraces from all CPUs.
+s/dump_page_owner/dump_page/, per Vlastimil
 
-It allows to remove the explicit memory barriers and misleading
-comments.
-
-Link: https://lkml.kernel.org/r/YFSVsLGVWMXTvlbk@alley
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20210407230800.1086854-1-slyfox@gentoo.org
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ mm/page_poison.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/watchdog.c~watchdog-fix-barriers-when-printing-backtraces-from-all-cpus-fix
-+++ a/kernel/watchdog.c
-@@ -415,13 +415,8 @@ static enum hrtimer_restart watchdog_tim
- 		 * engaged in dumping all cpu back traces.
- 		 */
- 		if (softlockup_all_cpu_backtrace) {
--			if (test_and_set_bit(0, &soft_lockup_nmi_warn))
-+			if (test_and_set_bit_lock(0, &soft_lockup_nmi_warn))
- 				return HRTIMER_RESTART;
--			/*
--			 * Make sure that reports are serialized. Start
--			 * printing after getting the exclusive rights.
--			 */
--			smp_mb__after_atomic();
- 		}
+--- a/mm/page_poison.c~mm-page_poison-print-page-info-when-corruption-is-caught-v2
++++ a/mm/page_poison.c
+@@ -2,9 +2,9 @@
+ #include <linux/kernel.h>
+ #include <linux/string.h>
+ #include <linux/mm.h>
++#include <linux/mmdebug.h>
+ #include <linux/highmem.h>
+ #include <linux/page_ext.h>
+-#include <linux/page_owner.h>
+ #include <linux/poison.h>
+ #include <linux/ratelimit.h>
+ #include <linux/kasan.h>
+@@ -71,7 +71,7 @@ static void check_poison_mem(struct page
+ 	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 16, 1, start,
+ 			end - start + 1, 1);
+ 	dump_stack();
+-	dump_page_owner(page);
++	dump_page(page, "pagealloc: corrupted page details");
+ }
  
- 		/* Start period for the next softlockup warning. */
-@@ -439,13 +434,7 @@ static enum hrtimer_restart watchdog_tim
- 
- 		if (softlockup_all_cpu_backtrace) {
- 			trigger_allbutself_cpu_backtrace();
--			/*
--			 * Make sure that everything is printed before
--			 * another CPU is allowed to report lockup again.
--			 */
--			smp_mb__before_atomic();
--			/* Allow a further report. */
--			clear_bit(0, &soft_lockup_nmi_warn);
-+			clear_bit_unlock(0, &soft_lockup_nmi_warn);
- 		}
- 
- 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
+ static void unpoison_page(struct page *page)
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from slyfox@gentoo.org are
 
-watchdog-rename-__touch_watchdog-to-a-better-descriptive-name.patch
-watchdog-explicitly-update-timestamp-when-reporting-softlockup.patch
-watchdog-softlockup-report-the-overall-time-of-softlockups.patch
-watchdog-softlockup-remove-logic-that-tried-to-prevent-repeated-reports.patch
-watchdog-fix-barriers-when-printing-backtraces-from-all-cpus.patch
-watchdog-cleanup-handling-of-false-positives.patch
+ia64-drop-unused-ia64_fw_emu-ifdef.patch
+ia64-simplify-code-flow-around-swiotlb-init.patch
+ia64-fix-efi_debug-build.patch
+ia64-mca-always-make-ia64_mca_debug-an-expression.patch
+ia64-drop-marked-broken-discontigmem-and-virtual_mem_map.patch
+ia64-module-fix-symbolizer-crash-on-fdescr.patch
+mm-page_owner-fetch-backtrace-only-for-tracked-pages.patch
+mm-page_owner-use-kstrtobool-to-parse-bool-option.patch
+mm-page_owner-detect-page_owner-recursion-via-task_struct.patch
+mm-page_poison-print-page-owner-info-when-corruption-is-caught.patch
+mm-page_alloc-ignore-init_on_free=1-for-debug_pagealloc=1.patch
 
