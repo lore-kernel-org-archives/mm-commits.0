@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E55F9C433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:24:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3912CC433ED
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:24:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF62761445
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:24:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0892D61452
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:24:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229508AbhD3FYr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 01:24:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37666 "EHLO mail.kernel.org"
+        id S230181AbhD3FZa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 01:25:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37772 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229581AbhD3FYr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 01:24:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6A0B661423;
-        Fri, 30 Apr 2021 05:23:59 +0000 (UTC)
+        id S229590AbhD3FZ3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 01:25:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EBED761434;
+        Fri, 30 Apr 2021 05:24:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619760239;
-        bh=IoplVkK/gI3MdNqWDPFNhdaivSyILA9NZYRdjLOqKtE=;
+        s=korg; t=1619760282;
+        bh=PlGbqHa57STOfSb+7CxcKxqRQMJEif1MDT0GEZLdfhQ=;
         h=Date:From:To:Subject:From;
-        b=0gJVSw6jvqxJxK8fFWXdiDsovmkWhosHD/GAW7XZceeeJXxthlb78b+6HcrT2AkHJ
-         QWgVMq+5n0bb/0MHLUwleGHpfVLgy5c3aMQkR9FNKfaR3B+dsZYv3ggyw/bID1WY+Y
-         6Wc3itKW9oxTcWKsW/H5ej1wBaolcivyx0EZHMJI=
-Date:   Thu, 29 Apr 2021 22:23:58 -0700
+        b=VD1st2WRvpJ1Ixl+7KOl8Gv/7drvOY07C2LcQWpN9xO6WWJJRhJE1rNUZNxYsZ0le
+         BNroT99E4Os2W2WG4dalztM/FQuWZhDE6KRbiWlQES78v4DVd4qW6pXLrwYGeKUxgL
+         FlXijPvyMLj3QJaqeIqHc/qXpAXxVZjAJY8Gn+GY=
+Date:   Thu, 29 Apr 2021 22:24:41 -0700
 From:   akpm@linux-foundation.org
-To:     borntraeger@de.ibm.com, guro@fb.com, hannes@cmpxchg.org,
-        hca@linux.ibm.com, hughd@google.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        shakeelb@google.com
+To:     borntraeger@de.ibm.com, duanxiongchun@bytedance.com, guro@fb.com,
+        hannes@cmpxchg.org, linmiaohe@huawei.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, shakeelb@google.com,
+        songmuchun@bytedance.com, vdavydov.dev@gmail.com
 Subject:  [folded-merged]
- memcg-charge-before-adding-to-swapcache-on-swapin-fix.patch removed from
- -mm tree
-Message-ID: <20210430052358.6QyRDxi-C%akpm@linux-foundation.org>
+ mm-memcontrol-use-obj_cgroup-apis-to-charge-kmem-pages-fix.patch removed
+ from -mm tree
+Message-ID: <20210430052441.UL3Tbb8-F%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,56 +46,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: set page->private before calling swap_readpage
+     Subject: mm: memcontrol: fix forget to obtain the ref to objcg in split_page_memcg
 has been removed from the -mm tree.  Its filename was
-     memcg-charge-before-adding-to-swapcache-on-swapin-fix.patch
+     mm-memcontrol-use-obj_cgroup-apis-to-charge-kmem-pages-fix.patch
 
-This patch was dropped because it was folded into memcg-charge-before-adding-to-swapcache-on-swapin.patch
+This patch was dropped because it was folded into mm-memcontrol-use-obj_cgroup-apis-to-charge-kmem-pages.patch
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: memcg: set page->private before calling swap_readpage
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcontrol: fix forget to obtain the ref to objcg in split_page_memcg
 
-The function swap_readpage() (and other functions it call) extracts swap
-entry from page->private.  However for SWP_SYNCHRONOUS_IO, the kernel
-skips the swapcache and thus we need to manually set the page->private
-with the swap entry before calling swap_readpage().
+Christian Borntraeger reported a warning about "percpu ref
+(obj_cgroup_release) <= 0 (-1) after switching to atomic".  Because we
+forgot to obtain the reference to the objcg and wrongly obtain the
+reference of memcg.
 
-Link: https://lkml.kernel.org/r/20210318015959.2986837-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Reported-by: Heiko Carstens <hca@linux.ibm.com>
-Tested-by: Heiko Carstens <hca@linux.ibm.com>
-Cc: Roman Gushchin <guro@fb.com>
+Link: https://lkml.kernel.org/r/20210401030141.37061-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reported-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/memcontrol.h |    6 ++++++
+ mm/memcontrol.c            |    6 +++++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
---- a/mm/memory.c~memcg-charge-before-adding-to-swapcache-on-swapin-fix
-+++ a/mm/memory.c
-@@ -3324,7 +3324,11 @@ vm_fault_t do_swap_page(struct vm_fault
- 					workingset_refault(page, shadow);
+--- a/include/linux/memcontrol.h~mm-memcontrol-use-obj_cgroup-apis-to-charge-kmem-pages-fix
++++ a/include/linux/memcontrol.h
+@@ -798,6 +798,12 @@ static inline void obj_cgroup_get(struct
+ 	percpu_ref_get(&objcg->refcnt);
+ }
  
- 				lru_cache_add(page);
++static inline void obj_cgroup_get_many(struct obj_cgroup *objcg,
++				       unsigned long nr)
++{
++	percpu_ref_get_many(&objcg->refcnt, nr);
++}
 +
-+				/* To provide entry to swap_readpage() */
-+				set_page_private(page, entry.val);
- 				swap_readpage(page, true);
-+				set_page_private(page, 0);
- 			}
- 		} else {
- 			page = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
+ static inline void obj_cgroup_put(struct obj_cgroup *objcg)
+ {
+ 	percpu_ref_put(&objcg->refcnt);
+--- a/mm/memcontrol.c~mm-memcontrol-use-obj_cgroup-apis-to-charge-kmem-pages-fix
++++ a/mm/memcontrol.c
+@@ -3270,7 +3270,11 @@ void split_page_memcg(struct page *head,
+ 
+ 	for (i = 1; i < nr; i++)
+ 		head[i].memcg_data = head->memcg_data;
+-	css_get_many(&memcg->css, nr - 1);
++
++	if (PageMemcgKmem(head))
++		obj_cgroup_get_many(__page_objcg(head), nr - 1);
++	else
++		css_get_many(&memcg->css, nr - 1);
+ }
+ 
+ #ifdef CONFIG_MEMCG_SWAP
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-memcg-cleanup-root-memcg-checks.patch
-memcg-enable-memcg-oom-kill-for-__gfp_nofail.patch
-memcg-charge-before-adding-to-swapcache-on-swapin.patch
+mm-memcontrol-fix-kernel-stack-account.patch
+mm-memcontrol-slab-fix-obtain-a-reference-to-a-freeing-memcg.patch
+mm-memcontrol-introduce-obj_cgroup_uncharge_pages.patch
+mm-memcontrol-directly-access-page-memcg_data-in-mm-page_allocc.patch
+mm-memcontrol-change-ug-dummy_page-only-if-memcg-changed.patch
+mm-memcontrol-use-obj_cgroup-apis-to-charge-kmem-pages.patch
+mm-memcontrol-inline-__memcg_kmem_uncharge-into-obj_cgroup_uncharge_pages.patch
+mm-memcontrol-move-pagememcgkmem-to-the-scope-of-config_memcg_kmem.patch
 
