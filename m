@@ -5,30 +5,30 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF4F0C433ED
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:58:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C54AC43461
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:58:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C616A6148E
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:58:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8092E61482
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:58:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229684AbhD3F7H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 01:59:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52250 "EHLO mail.kernel.org"
+        id S230202AbhD3F7J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 01:59:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52314 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230338AbhD3F7F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 01:59:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1BFFF61480;
-        Fri, 30 Apr 2021 05:58:17 +0000 (UTC)
+        id S229508AbhD3F7I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 01:59:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 672EF613A9;
+        Fri, 30 Apr 2021 05:58:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619762297;
-        bh=7rpMmdy7VFLGGRax40eAkuntAZSLaFEb5pJSm/Wtr+g=;
+        s=korg; t=1619762301;
+        bh=x7sS+1Ctv8sVkk5s4ak469iPWqi/QlX8hLDSjLACOsU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=h38fhngj84LoMmiTYXUnLSxonP92gV5P1S+Vsixzf8mDvDZ/Ac+U8ls1CIyht5g6X
-         JEI8Fm+AOJoQcWLoeIXyKQG9DmzfRe5G0bcrQKGG9RWjWLsbm9xZR+nZlQ800v7CJi
-         9GSP9TiXv/tREr+RPBa7+xgKUWhpMOwKhvkHhfcQ=
-Date:   Thu, 29 Apr 2021 22:58:16 -0700
+        b=QIRZYCN4fnSyRYlDo88S7Q5aS80PJUxLxA48sRvQIIDFsykBTjWmMtQ2yRpMmot/Y
+         Jrm2G2XGTmYN0rQ6Gv/QmIN3pz5HaocQ2X1N6mIJj9ujM4FW/6CVJr+7iT0qw1U+iy
+         cEG1nvj6qpMm3cpEpF+MmHlVqJvpB7g2mCieUef0=
+Date:   Thu, 29 Apr 2021 22:58:19 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bp@alien8.de, catalin.marinas@arm.com,
         dingtianhong@huawei.com, hch@lst.de, hpa@zytor.com,
@@ -36,9 +36,9 @@ To:     akpm@linux-foundation.org, bp@alien8.de, catalin.marinas@arm.com,
         mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
         npiggin@gmail.com, tglx@linutronix.de,
         torvalds@linux-foundation.org, urezki@gmail.com, will@kernel.org
-Subject:  [patch 099/178] mm: apply_to_pte_range warn and fail if a
- large pte is encountered
-Message-ID: <20210430055816.RlW64mxCs%akpm@linux-foundation.org>
+Subject:  [patch 100/178] mm/vmalloc: rename vmap_*_range
+ vmap_pages_*_range
+Message-ID: <20210430055819.OKKISs_6Y%akpm@linux-foundation.org>
 In-Reply-To: <20210429225251.02b6386d21b69255b4f6c163@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,13 +47,12 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Nicholas Piggin <npiggin@gmail.com>
-Subject: mm: apply_to_pte_range warn and fail if a large pte is encountered
+Subject: mm/vmalloc: rename vmap_*_range vmap_pages_*_range
 
-apply_to_pte_range might mistake a large pte for bad, or treat it as a
-page table, resulting in a crash or corruption.  Add a test to warn and
-return error if large entries are found.
+The vmalloc mapper operates on a struct page * array rather than a linear
+physical address, re-name it to make this distinction clear.
 
-Link: https://lkml.kernel.org/r/20210317062402.533919-4-npiggin@gmail.com
+Link: https://lkml.kernel.org/r/20210317062402.533919-5-npiggin@gmail.com
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
@@ -70,110 +69,77 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   66 +++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 49 insertions(+), 17 deletions(-)
+ mm/vmalloc.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/memory.c~mm-apply_to_pte_range-warn-and-fail-if-a-large-pte-is-encountered
-+++ a/mm/memory.c
-@@ -2457,13 +2457,21 @@ static int apply_to_pmd_range(struct mm_
- 	}
+--- a/mm/vmalloc.c~mm-vmalloc-rename-vmap__range-vmap_pages__range
++++ a/mm/vmalloc.c
+@@ -189,7 +189,7 @@ void unmap_kernel_range_noflush(unsigned
+ 		arch_sync_kernel_mappings(start, end);
+ }
+ 
+-static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
++static int vmap_pages_pte_range(pmd_t *pmd, unsigned long addr,
+ 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
+ 		pgtbl_mod_mask *mask)
+ {
+@@ -217,7 +217,7 @@ static int vmap_pte_range(pmd_t *pmd, un
+ 	return 0;
+ }
+ 
+-static int vmap_pmd_range(pud_t *pud, unsigned long addr,
++static int vmap_pages_pmd_range(pud_t *pud, unsigned long addr,
+ 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
+ 		pgtbl_mod_mask *mask)
+ {
+@@ -229,13 +229,13 @@ static int vmap_pmd_range(pud_t *pud, un
+ 		return -ENOMEM;
  	do {
  		next = pmd_addr_end(addr, end);
--		if (create || !pmd_none_or_clear_bad(pmd)) {
--			err = apply_to_pte_range(mm, pmd, addr, next, fn, data,
--						 create, mask);
--			if (err)
--				break;
-+		if (pmd_none(*pmd) && !create)
-+			continue;
-+		if (WARN_ON_ONCE(pmd_leaf(*pmd)))
-+			return -EINVAL;
-+		if (!pmd_none(*pmd) && WARN_ON_ONCE(pmd_bad(*pmd))) {
-+			if (!create)
-+				continue;
-+			pmd_clear_bad(pmd);
- 		}
-+		err = apply_to_pte_range(mm, pmd, addr, next,
-+					 fn, data, create, mask);
-+		if (err)
-+			break;
+-		if (vmap_pte_range(pmd, addr, next, prot, pages, nr, mask))
++		if (vmap_pages_pte_range(pmd, addr, next, prot, pages, nr, mask))
+ 			return -ENOMEM;
  	} while (pmd++, addr = next, addr != end);
-+
- 	return err;
+ 	return 0;
  }
  
-@@ -2485,13 +2493,21 @@ static int apply_to_pud_range(struct mm_
- 	}
+-static int vmap_pud_range(p4d_t *p4d, unsigned long addr,
++static int vmap_pages_pud_range(p4d_t *p4d, unsigned long addr,
+ 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
+ 		pgtbl_mod_mask *mask)
+ {
+@@ -247,13 +247,13 @@ static int vmap_pud_range(p4d_t *p4d, un
+ 		return -ENOMEM;
  	do {
  		next = pud_addr_end(addr, end);
--		if (create || !pud_none_or_clear_bad(pud)) {
--			err = apply_to_pmd_range(mm, pud, addr, next, fn, data,
--						 create, mask);
--			if (err)
--				break;
-+		if (pud_none(*pud) && !create)
-+			continue;
-+		if (WARN_ON_ONCE(pud_leaf(*pud)))
-+			return -EINVAL;
-+		if (!pud_none(*pud) && WARN_ON_ONCE(pud_bad(*pud))) {
-+			if (!create)
-+				continue;
-+			pud_clear_bad(pud);
- 		}
-+		err = apply_to_pmd_range(mm, pud, addr, next,
-+					 fn, data, create, mask);
-+		if (err)
-+			break;
+-		if (vmap_pmd_range(pud, addr, next, prot, pages, nr, mask))
++		if (vmap_pages_pmd_range(pud, addr, next, prot, pages, nr, mask))
+ 			return -ENOMEM;
  	} while (pud++, addr = next, addr != end);
-+
- 	return err;
+ 	return 0;
  }
  
-@@ -2513,13 +2529,21 @@ static int apply_to_p4d_range(struct mm_
- 	}
+-static int vmap_p4d_range(pgd_t *pgd, unsigned long addr,
++static int vmap_pages_p4d_range(pgd_t *pgd, unsigned long addr,
+ 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
+ 		pgtbl_mod_mask *mask)
+ {
+@@ -265,7 +265,7 @@ static int vmap_p4d_range(pgd_t *pgd, un
+ 		return -ENOMEM;
  	do {
  		next = p4d_addr_end(addr, end);
--		if (create || !p4d_none_or_clear_bad(p4d)) {
--			err = apply_to_pud_range(mm, p4d, addr, next, fn, data,
--						 create, mask);
--			if (err)
--				break;
-+		if (p4d_none(*p4d) && !create)
-+			continue;
-+		if (WARN_ON_ONCE(p4d_leaf(*p4d)))
-+			return -EINVAL;
-+		if (!p4d_none(*p4d) && WARN_ON_ONCE(p4d_bad(*p4d))) {
-+			if (!create)
-+				continue;
-+			p4d_clear_bad(p4d);
- 		}
-+		err = apply_to_pud_range(mm, p4d, addr, next,
-+					 fn, data, create, mask);
-+		if (err)
-+			break;
+-		if (vmap_pud_range(p4d, addr, next, prot, pages, nr, mask))
++		if (vmap_pages_pud_range(p4d, addr, next, prot, pages, nr, mask))
+ 			return -ENOMEM;
  	} while (p4d++, addr = next, addr != end);
-+
- 	return err;
- }
- 
-@@ -2539,9 +2563,17 @@ static int __apply_to_page_range(struct
- 	pgd = pgd_offset(mm, addr);
- 	do {
+ 	return 0;
+@@ -306,7 +306,7 @@ int map_kernel_range_noflush(unsigned lo
  		next = pgd_addr_end(addr, end);
--		if (!create && pgd_none_or_clear_bad(pgd))
-+		if (pgd_none(*pgd) && !create)
- 			continue;
--		err = apply_to_p4d_range(mm, pgd, addr, next, fn, data, create, &mask);
-+		if (WARN_ON_ONCE(pgd_leaf(*pgd)))
-+			return -EINVAL;
-+		if (!pgd_none(*pgd) && WARN_ON_ONCE(pgd_bad(*pgd))) {
-+			if (!create)
-+				continue;
-+			pgd_clear_bad(pgd);
-+		}
-+		err = apply_to_p4d_range(mm, pgd, addr, next,
-+					 fn, data, create, &mask);
+ 		if (pgd_bad(*pgd))
+ 			mask |= PGTBL_PGD_MODIFIED;
+-		err = vmap_p4d_range(pgd, addr, next, prot, pages, &nr, &mask);
++		err = vmap_pages_p4d_range(pgd, addr, next, prot, pages, &nr, &mask);
  		if (err)
- 			break;
+ 			return err;
  	} while (pgd++, addr = next, addr != end);
 _
