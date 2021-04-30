@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 660CFC433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:30:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43DFBC433B4
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:30:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30E5461456
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:30:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F74561458
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:30:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229508AbhD3FbD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 01:31:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38694 "EHLO mail.kernel.org"
+        id S229508AbhD3Fbd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 01:31:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38820 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229482AbhD3FbC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 01:31:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 26DD061423;
-        Fri, 30 Apr 2021 05:30:15 +0000 (UTC)
+        id S229482AbhD3Fbc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 01:31:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0AAA661434;
+        Fri, 30 Apr 2021 05:30:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619760615;
-        bh=yx7nocZqXQ3KHpdJNgXMvM6WEWVySywqLGGJwPFJZNI=;
+        s=korg; t=1619760645;
+        bh=KGc6Jj+pT8eFP/C+7iX0wB7ZWWCJkghuUnJmXdblMDU=;
         h=Date:From:To:Subject:From;
-        b=IWLJnEhHryfqt7sqRotkqfDGirZUU9NAnYIvkQd+fc/13O49qisSNN1mKDGPnUqpD
-         zSjId0Iwl/m+6yjrOUWq1scDyYanRgCiyH41PfA65Fbe41bGApOMhGZcDGOHWNgUJW
-         kgE/klxsrEBMwlb7oG4I/0C8T7jrTDQIa2iXjUTM=
-Date:   Thu, 29 Apr 2021 22:30:14 -0700
+        b=nZRsMMTMIH3xcS7sDEMmdRr5BVxwpQBgPd9At96vZfdzTLY25D4oQSCmGANopc+o9
+         A3TpvcXVK0BP1Y2148Vz+nb/6Kj5sPfWSX8Gl5dzykc8WfjsQl05fgNVlBjo+X2Z5J
+         oBli5M2XIZvDCsw33DSO9fB7GHxOU9Y8bRd8q3wo=
+Date:   Thu, 29 Apr 2021 22:30:44 -0700
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, mm-commits@vger.kernel.org, npiggin@gmail.com,
-        sfr@canb.auug.org.au
+To:     colin.king@canonical.com, dan.carpenter@oracle.com,
+        mm-commits@vger.kernel.org, npiggin@gmail.com,
+        sfr@canb.auug.org.au, urezki@gmail.com, willy@infradead.org
 Subject:  [folded-merged]
- mm-vmalloc-remove-map_kernel_range-fix-2.patch removed from -mm tree
-Message-ID: <20210430053014.d9OC6DSpN%akpm@linux-foundation.org>
+ mm-vmalloc-improve-allocation-failure-error-messages-fix.patch removed from
+ -mm tree
+Message-ID: <20210430053044.lcMlizoXV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,68 +45,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmalloc-remove-map_kernel_range-fix-2
+     Subject: mm/vmalloc: print correct vmalloc allocation size
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-remove-map_kernel_range-fix-2.patch
+     mm-vmalloc-improve-allocation-failure-error-messages-fix.patch
 
-This patch was dropped because it was folded into mm-vmalloc-remove-unmap_kernel_range.patch
+This patch was dropped because it was folded into mm-vmalloc-improve-allocation-failure-error-messages.patch
 
 ------------------------------------------------------
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: mm-vmalloc-remove-map_kernel_range-fix-2
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm/vmalloc: print correct vmalloc allocation size
 
-This requires a fix for nommu builds.
+On entry the area->nr_pages is not set yet and is zero, thus when an
+allocation of the page-table array fails the vmalloc size will not be
+reflected correctly in a error message.
 
-Link: https://lkml.kernel.org/r/1617292497.o1uhq5ipxp.astroid@bobo.none
-Cc: Christoph Hellwig <hch@lst.de>
+Replace area->nr_pages by the nr_small_pages.
+
+Link: https://lkml.kernel.org/r/20210329193214.GA28602@pc638.lan
+Fixes: 014ccf9b888d ("mm/vmalloc: improve allocation failure error messages")
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reported-by: Colin King <colin.king@canonical.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/internal.h~mm-vmalloc-remove-map_kernel_range-fix-2
-+++ a/mm/internal.h
-@@ -643,8 +643,18 @@ struct migration_target_control {
- /*
-  * mm/vmalloc.c
-  */
-+#ifdef CONFIG_MMU
- int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-                 pgprot_t prot, struct page **pages, unsigned int page_shift);
-+#else
-+static inline
-+int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-+                pgprot_t prot, struct page **pages, unsigned int page_shift)
-+{
-+	return -EINVAL;
-+}
-+#endif
-+
- void vunmap_range_noflush(unsigned long start, unsigned long end);
+--- a/mm/vmalloc.c~mm-vmalloc-improve-allocation-failure-error-messages-fix
++++ a/mm/vmalloc.c
+@@ -2793,7 +2793,7 @@ static void *__vmalloc_area_node(struct
+ 		warn_alloc(gfp_mask, NULL,
+ 			   "vmalloc size %lu allocation failure: "
+ 			   "page array size %lu allocation failed",
+-			   area->nr_pages * PAGE_SIZE, array_size);
++			   nr_small_pages * PAGE_SIZE, array_size);
+ 		return NULL;
+ 	}
  
- #endif	/* __MM_INTERNAL_H */
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-arm-mm-add-missing-pud_page-define-to-2-level-page-tables.patch
-mm-vmalloc-fix-huge_vmap-regression-by-enabling-huge-pages-in-vmalloc_to_page.patch
-mm-apply_to_pte_range-warn-and-fail-if-a-large-pte-is-encountered.patch
-mm-vmalloc-rename-vmap__range-vmap_pages__range.patch
-mm-ioremap-rename-ioremap__range-to-vmap__range.patch
-mm-huge_vmap-arch-support-cleanup.patch
-powerpc-inline-huge-vmap-supported-functions.patch
-arm64-inline-huge-vmap-supported-functions.patch
-x86-inline-huge-vmap-supported-functions.patch
-mm-vmalloc-provide-fallback-arch-huge-vmap-support-functions.patch
-mm-move-vmap_range-from-mm-ioremapc-to-mm-vmallocc.patch
-mm-vmalloc-add-vmap_range_noflush-variant.patch
-mm-vmalloc-hugepage-vmalloc-mappings.patch
-mm-vmalloc-remove-map_kernel_range.patch
-kernel-dma-remove-unnecessary-unmap_kernel_range.patch
-powerpc-xive-remove-unnecessary-unmap_kernel_range.patch
-mm-vmalloc-remove-unmap_kernel_range.patch
 mm-vmalloc-improve-allocation-failure-error-messages.patch
+lib-test_vmallocc-remove-two-kvfree_rcu-tests.patch
+lib-test_vmallocc-add-a-new-nr_threads-parameter.patch
+lib-test_vmallocc-add-a-new-nr_threads-parameter-fix.patch
+vm-test_vmallocsh-adapt-for-updated-driver-interface.patch
+mm-vmalloc-refactor-the-preloading-loagic.patch
+mm-vmalloc-remove-an-empty-line.patch
 
