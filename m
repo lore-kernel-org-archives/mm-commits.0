@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABCD0C43460
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:59:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32C61C433B4
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 06:00:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8CED561482
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 05:59:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0EB9A6148E
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 06:00:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230202AbhD3GAo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 02:00:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53988 "EHLO mail.kernel.org"
+        id S229834AbhD3GAs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 02:00:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54062 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230045AbhD3GAo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 02:00:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 02EF661481;
-        Fri, 30 Apr 2021 05:59:55 +0000 (UTC)
+        id S229609AbhD3GAr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 02:00:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 760CD61463;
+        Fri, 30 Apr 2021 05:59:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619762396;
-        bh=YqVPFnJlKjcCjL/T2DP84nAX4j+pncKyvXnSoMjx2YQ=;
+        s=korg; t=1619762400;
+        bh=eI7UP48NVytPjYGom+bfoTJwFqTsNx8M3Y6oSqTwryU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=sj/IJJInPu+asoLJCUGcRYEVFSmGZcqlS2yZQ73gi1KGTLMUrQV9OXLCT4+vwc9Ki
-         ucDBTdP3wkvG9lD3NypeV4bJU3oKvG4J/JsrFNH30aFp84SmXhNbCpP7KtAwtfXL6+
-         7cC9BPcfWz5DnIpk8CrUD19zlfJdnI1NBM8+BdRE=
-Date:   Thu, 29 Apr 2021 22:59:55 -0700
+        b=YZP7uweYZ4Ikmp23j0zbJx9iZQ0NpTUrZbOFhrf5WXQHb1wkGK1SUKEWZFN8LQvqd
+         BV0Fx0YklPZrcp+hKcUhf3XYdnpafnFb40ydDVQMfGL4ITnNfATzLg7QDTXLJTC6ox
+         ieINhH8XVBmzk27Qu0kMfM93VNseV3W19YNYdRbw=
+Date:   Thu, 29 Apr 2021 22:59:59 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -38,9 +38,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         mm-commits@vger.kernel.org, pcc@google.com, penberg@kernel.org,
         rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 131/178] arm64: kasan: allow to init memory when
- setting tags
-Message-ID: <20210430055955.lPnlaQ-lb%akpm@linux-foundation.org>
+Subject:  [patch 132/178] kasan: init memory in kasan_(un)poison
+ for HW_TAGS
+Message-ID: <20210430055959.AgWgqJOjo%akpm@linux-foundation.org>
 In-Reply-To: <20210429225251.02b6386d21b69255b4f6c163@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -49,24 +49,10 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: arm64: kasan: allow to init memory when setting tags
+Subject: kasan: init memory in kasan_(un)poison for HW_TAGS
 
-Patch series "kasan: integrate with init_on_alloc/free", v3.
-
-This patch series integrates HW_TAGS KASAN with init_on_alloc/free by
-initializing memory via the same arm64 instruction that sets memory tags.
-
-This is expected to improve HW_TAGS KASAN performance when
-init_on_alloc/free is enabled.  The exact perfomance numbers are unknown
-as MTE-enabled hardware doesn't exist yet.
-
-
-This patch (of 5):
-
-This change adds an argument to mte_set_mem_tag_range() that allows to
-enable memory initialization when settinh the allocation tags.  The
-implementation uses stzg instruction instead of stg when this argument
-indicates to initialize memory.
+This change adds an argument to kasan_poison() and kasan_unpoison() that
+allows initializing memory along with setting the tags for HW_TAGS.
 
 Combining setting allocation tags with memory initialization will improve
 HW_TAGS KASAN performance when init_on_alloc/free is enabled.
@@ -74,145 +60,332 @@ HW_TAGS KASAN performance when init_on_alloc/free is enabled.
 This change doesn't integrate memory initialization with KASAN, this is
 done is subsequent patches in this series.
 
-Link: https://lkml.kernel.org/r/cover.1615296150.git.andreyknvl@google.com
-Link: https://lkml.kernel.org/r/d04ae90cc36be3fe246ea8025e5085495681c3d7.1615296150.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/3054314039fa64510947e674180d675cab1b4c41.1615296150.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Acked-by: Marco Elver <elver@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/memory.h    |    4 +-
- arch/arm64/include/asm/mte-kasan.h |   39 +++++++++++++++++----------
- mm/kasan/kasan.h                   |    9 +++---
- 3 files changed, 32 insertions(+), 20 deletions(-)
+ lib/test_kasan.c   |    4 ++--
+ mm/kasan/common.c  |   28 ++++++++++++++--------------
+ mm/kasan/generic.c |   12 ++++++------
+ mm/kasan/kasan.h   |   14 ++++++++------
+ mm/kasan/shadow.c  |   10 +++++-----
+ mm/kasan/sw_tags.c |    2 +-
+ 6 files changed, 36 insertions(+), 34 deletions(-)
 
---- a/arch/arm64/include/asm/memory.h~arm64-kasan-allow-to-init-memory-when-setting-tags
-+++ a/arch/arm64/include/asm/memory.h
-@@ -250,8 +250,8 @@ static inline const void *__tag_set(cons
- #define arch_init_tags(max_tag)			mte_init_tags(max_tag)
- #define arch_get_random_tag()			mte_get_random_tag()
- #define arch_get_mem_tag(addr)			mte_get_mem_tag(addr)
--#define arch_set_mem_tag_range(addr, size, tag)	\
--			mte_set_mem_tag_range((addr), (size), (tag))
-+#define arch_set_mem_tag_range(addr, size, tag, init)	\
-+			mte_set_mem_tag_range((addr), (size), (tag), (init))
- #endif /* CONFIG_KASAN_HW_TAGS */
+--- a/lib/test_kasan.c~kasan-init-memory-in-kasan_unpoison-for-hw_tags
++++ a/lib/test_kasan.c
+@@ -1049,14 +1049,14 @@ static void match_all_mem_tag(struct kun
+ 			continue;
+ 
+ 		/* Mark the first memory granule with the chosen memory tag. */
+-		kasan_poison(ptr, KASAN_GRANULE_SIZE, (u8)tag);
++		kasan_poison(ptr, KASAN_GRANULE_SIZE, (u8)tag, false);
+ 
+ 		/* This access must cause a KASAN report. */
+ 		KUNIT_EXPECT_KASAN_FAIL(test, *ptr = 0);
+ 	}
+ 
+ 	/* Recover the memory tag and free. */
+-	kasan_poison(ptr, KASAN_GRANULE_SIZE, get_tag(ptr));
++	kasan_poison(ptr, KASAN_GRANULE_SIZE, get_tag(ptr), false);
+ 	kfree(ptr);
+ }
+ 
+--- a/mm/kasan/common.c~kasan-init-memory-in-kasan_unpoison-for-hw_tags
++++ a/mm/kasan/common.c
+@@ -60,7 +60,7 @@ void kasan_disable_current(void)
+ 
+ void __kasan_unpoison_range(const void *address, size_t size)
+ {
+-	kasan_unpoison(address, size);
++	kasan_unpoison(address, size, false);
+ }
+ 
+ #ifdef CONFIG_KASAN_STACK
+@@ -69,7 +69,7 @@ void kasan_unpoison_task_stack(struct ta
+ {
+ 	void *base = task_stack_page(task);
+ 
+-	kasan_unpoison(base, THREAD_SIZE);
++	kasan_unpoison(base, THREAD_SIZE, false);
+ }
+ 
+ /* Unpoison the stack for the current task beyond a watermark sp value. */
+@@ -82,7 +82,7 @@ asmlinkage void kasan_unpoison_task_stac
+ 	 */
+ 	void *base = (void *)((unsigned long)watermark & ~(THREAD_SIZE - 1));
+ 
+-	kasan_unpoison(base, watermark - base);
++	kasan_unpoison(base, watermark - base, false);
+ }
+ #endif /* CONFIG_KASAN_STACK */
+ 
+@@ -108,14 +108,14 @@ void __kasan_alloc_pages(struct page *pa
+ 	tag = kasan_random_tag();
+ 	for (i = 0; i < (1 << order); i++)
+ 		page_kasan_tag_set(page + i, tag);
+-	kasan_unpoison(page_address(page), PAGE_SIZE << order);
++	kasan_unpoison(page_address(page), PAGE_SIZE << order, false);
+ }
+ 
+ void __kasan_free_pages(struct page *page, unsigned int order)
+ {
+ 	if (likely(!PageHighMem(page)))
+ 		kasan_poison(page_address(page), PAGE_SIZE << order,
+-			     KASAN_FREE_PAGE);
++			     KASAN_FREE_PAGE, false);
+ }
  
  /*
---- a/arch/arm64/include/asm/mte-kasan.h~arm64-kasan-allow-to-init-memory-when-setting-tags
-+++ a/arch/arm64/include/asm/mte-kasan.h
-@@ -53,7 +53,8 @@ static inline u8 mte_get_random_tag(void
-  * Note: The address must be non-NULL and MTE_GRANULE_SIZE aligned and
-  * size must be non-zero and MTE_GRANULE_SIZE aligned.
-  */
--static inline void mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
-+static inline void mte_set_mem_tag_range(void *addr, size_t size,
-+						u8 tag, bool init)
+@@ -251,18 +251,18 @@ void __kasan_poison_slab(struct page *pa
+ 	for (i = 0; i < compound_nr(page); i++)
+ 		page_kasan_tag_reset(page + i);
+ 	kasan_poison(page_address(page), page_size(page),
+-		     KASAN_KMALLOC_REDZONE);
++		     KASAN_KMALLOC_REDZONE, false);
+ }
+ 
+ void __kasan_unpoison_object_data(struct kmem_cache *cache, void *object)
  {
- 	u64 curr, end;
- 
-@@ -63,18 +64,27 @@ static inline void mte_set_mem_tag_range
- 	curr = (u64)__tag_set(addr, tag);
- 	end = curr + size;
- 
--	do {
--		/*
--		 * 'asm volatile' is required to prevent the compiler to move
--		 * the statement outside of the loop.
--		 */
--		asm volatile(__MTE_PREAMBLE "stg %0, [%0]"
--			     :
--			     : "r" (curr)
--			     : "memory");
--
--		curr += MTE_GRANULE_SIZE;
--	} while (curr != end);
-+	/*
-+	 * 'asm volatile' is required to prevent the compiler to move
-+	 * the statement outside of the loop.
-+	 */
-+	if (init) {
-+		do {
-+			asm volatile(__MTE_PREAMBLE "stzg %0, [%0]"
-+				     :
-+				     : "r" (curr)
-+				     : "memory");
-+			curr += MTE_GRANULE_SIZE;
-+		} while (curr != end);
-+	} else {
-+		do {
-+			asm volatile(__MTE_PREAMBLE "stg %0, [%0]"
-+				     :
-+				     : "r" (curr)
-+				     : "memory");
-+			curr += MTE_GRANULE_SIZE;
-+		} while (curr != end);
-+	}
+-	kasan_unpoison(object, cache->object_size);
++	kasan_unpoison(object, cache->object_size, false);
  }
  
- void mte_enable_kernel_sync(void);
-@@ -101,7 +111,8 @@ static inline u8 mte_get_random_tag(void
- 	return 0xFF;
- }
- 
--static inline void mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
-+static inline void mte_set_mem_tag_range(void *addr, size_t size,
-+						u8 tag, bool init)
+ void __kasan_poison_object_data(struct kmem_cache *cache, void *object)
  {
+ 	kasan_poison(object, round_up(cache->object_size, KASAN_GRANULE_SIZE),
+-			KASAN_KMALLOC_REDZONE);
++			KASAN_KMALLOC_REDZONE, false);
  }
  
---- a/mm/kasan/kasan.h~arm64-kasan-allow-to-init-memory-when-setting-tags
+ /*
+@@ -351,7 +351,7 @@ static inline bool ____kasan_slab_free(s
+ 	}
+ 
+ 	kasan_poison(object, round_up(cache->object_size, KASAN_GRANULE_SIZE),
+-			KASAN_KMALLOC_FREE);
++			KASAN_KMALLOC_FREE, false);
+ 
+ 	if ((IS_ENABLED(CONFIG_KASAN_GENERIC) && !quarantine))
+ 		return false;
+@@ -407,7 +407,7 @@ void __kasan_slab_free_mempool(void *ptr
+ 	if (unlikely(!PageSlab(page))) {
+ 		if (____kasan_kfree_large(ptr, ip))
+ 			return;
+-		kasan_poison(ptr, page_size(page), KASAN_FREE_PAGE);
++		kasan_poison(ptr, page_size(page), KASAN_FREE_PAGE, false);
+ 	} else {
+ 		____kasan_slab_free(page->slab_cache, ptr, ip, false);
+ 	}
+@@ -453,7 +453,7 @@ void * __must_check __kasan_slab_alloc(s
+ 	 * Unpoison the whole object.
+ 	 * For kmalloc() allocations, kasan_kmalloc() will do precise poisoning.
+ 	 */
+-	kasan_unpoison(tagged_object, cache->object_size);
++	kasan_unpoison(tagged_object, cache->object_size, false);
+ 
+ 	/* Save alloc info (if possible) for non-kmalloc() allocations. */
+ 	if (kasan_stack_collection_enabled())
+@@ -496,7 +496,7 @@ static inline void *____kasan_kmalloc(st
+ 	redzone_end = round_up((unsigned long)(object + cache->object_size),
+ 				KASAN_GRANULE_SIZE);
+ 	kasan_poison((void *)redzone_start, redzone_end - redzone_start,
+-			   KASAN_KMALLOC_REDZONE);
++			   KASAN_KMALLOC_REDZONE, false);
+ 
+ 	/*
+ 	 * Save alloc info (if possible) for kmalloc() allocations.
+@@ -546,7 +546,7 @@ void * __must_check __kasan_kmalloc_larg
+ 				KASAN_GRANULE_SIZE);
+ 	redzone_end = (unsigned long)ptr + page_size(virt_to_page(ptr));
+ 	kasan_poison((void *)redzone_start, redzone_end - redzone_start,
+-		     KASAN_PAGE_REDZONE);
++		     KASAN_PAGE_REDZONE, false);
+ 
+ 	return (void *)ptr;
+ }
+@@ -563,7 +563,7 @@ void * __must_check __kasan_krealloc(con
+ 	 * Part of it might already have been unpoisoned, but it's unknown
+ 	 * how big that part is.
+ 	 */
+-	kasan_unpoison(object, size);
++	kasan_unpoison(object, size, false);
+ 
+ 	page = virt_to_head_page(object);
+ 
+--- a/mm/kasan/generic.c~kasan-init-memory-in-kasan_unpoison-for-hw_tags
++++ a/mm/kasan/generic.c
+@@ -208,11 +208,11 @@ static void register_global(struct kasan
+ {
+ 	size_t aligned_size = round_up(global->size, KASAN_GRANULE_SIZE);
+ 
+-	kasan_unpoison(global->beg, global->size);
++	kasan_unpoison(global->beg, global->size, false);
+ 
+ 	kasan_poison(global->beg + aligned_size,
+ 		     global->size_with_redzone - aligned_size,
+-		     KASAN_GLOBAL_REDZONE);
++		     KASAN_GLOBAL_REDZONE, false);
+ }
+ 
+ void __asan_register_globals(struct kasan_global *globals, size_t size)
+@@ -292,11 +292,11 @@ void __asan_alloca_poison(unsigned long
+ 	WARN_ON(!IS_ALIGNED(addr, KASAN_ALLOCA_REDZONE_SIZE));
+ 
+ 	kasan_unpoison((const void *)(addr + rounded_down_size),
+-			size - rounded_down_size);
++			size - rounded_down_size, false);
+ 	kasan_poison(left_redzone, KASAN_ALLOCA_REDZONE_SIZE,
+-		     KASAN_ALLOCA_LEFT);
++		     KASAN_ALLOCA_LEFT, false);
+ 	kasan_poison(right_redzone, padding_size + KASAN_ALLOCA_REDZONE_SIZE,
+-		     KASAN_ALLOCA_RIGHT);
++		     KASAN_ALLOCA_RIGHT, false);
+ }
+ EXPORT_SYMBOL(__asan_alloca_poison);
+ 
+@@ -306,7 +306,7 @@ void __asan_allocas_unpoison(const void
+ 	if (unlikely(!stack_top || stack_top > stack_bottom))
+ 		return;
+ 
+-	kasan_unpoison(stack_top, stack_bottom - stack_top);
++	kasan_unpoison(stack_top, stack_bottom - stack_top, false);
+ }
+ EXPORT_SYMBOL(__asan_allocas_unpoison);
+ 
+--- a/mm/kasan/kasan.h~kasan-init-memory-in-kasan_unpoison-for-hw_tags
 +++ a/mm/kasan/kasan.h
-@@ -314,7 +314,7 @@ static inline const void *arch_kasan_set
- #define arch_get_mem_tag(addr)	(0xFF)
- #endif
- #ifndef arch_set_mem_tag_range
--#define arch_set_mem_tag_range(addr, size, tag) ((void *)(addr))
-+#define arch_set_mem_tag_range(addr, size, tag, init) ((void *)(addr))
- #endif
+@@ -359,7 +359,7 @@ static inline u8 kasan_random_tag(void)
  
- #define hw_enable_tagging_sync()		arch_enable_tagging_sync()
-@@ -324,7 +324,8 @@ static inline const void *arch_kasan_set
- #define hw_force_async_tag_fault()		arch_force_async_tag_fault()
- #define hw_get_random_tag()			arch_get_random_tag()
- #define hw_get_mem_tag(addr)			arch_get_mem_tag(addr)
--#define hw_set_mem_tag_range(addr, size, tag)	arch_set_mem_tag_range((addr), (size), (tag))
-+#define hw_set_mem_tag_range(addr, size, tag, init) \
-+			arch_set_mem_tag_range((addr), (size), (tag), (init))
+ #ifdef CONFIG_KASAN_HW_TAGS
  
- #else /* CONFIG_KASAN_HW_TAGS */
+-static inline void kasan_poison(const void *addr, size_t size, u8 value)
++static inline void kasan_poison(const void *addr, size_t size, u8 value, bool init)
+ {
+ 	addr = kasan_reset_tag(addr);
  
-@@ -371,7 +372,7 @@ static inline void kasan_poison(const vo
+@@ -372,10 +372,10 @@ static inline void kasan_poison(const vo
  	if (WARN_ON(size & KASAN_GRANULE_MASK))
  		return;
  
--	hw_set_mem_tag_range((void *)addr, size, value);
-+	hw_set_mem_tag_range((void *)addr, size, value, false);
+-	hw_set_mem_tag_range((void *)addr, size, value, false);
++	hw_set_mem_tag_range((void *)addr, size, value, init);
  }
  
- static inline void kasan_unpoison(const void *addr, size_t size)
-@@ -388,7 +389,7 @@ static inline void kasan_unpoison(const
+-static inline void kasan_unpoison(const void *addr, size_t size)
++static inline void kasan_unpoison(const void *addr, size_t size, bool init)
+ {
+ 	u8 tag = get_tag(addr);
+ 
+@@ -389,7 +389,7 @@ static inline void kasan_unpoison(const
  		return;
  	size = round_up(size, KASAN_GRANULE_SIZE);
  
--	hw_set_mem_tag_range((void *)addr, size, tag);
-+	hw_set_mem_tag_range((void *)addr, size, tag, false);
+-	hw_set_mem_tag_range((void *)addr, size, tag, false);
++	hw_set_mem_tag_range((void *)addr, size, tag, init);
  }
  
  static inline bool kasan_byte_accessible(const void *addr)
+@@ -407,22 +407,24 @@ static inline bool kasan_byte_accessible
+  * @addr - range start address, must be aligned to KASAN_GRANULE_SIZE
+  * @size - range size, must be aligned to KASAN_GRANULE_SIZE
+  * @value - value that's written to metadata for the range
++ * @init - whether to initialize the memory range (only for hardware tag-based)
+  *
+  * The size gets aligned to KASAN_GRANULE_SIZE before marking the range.
+  */
+-void kasan_poison(const void *addr, size_t size, u8 value);
++void kasan_poison(const void *addr, size_t size, u8 value, bool init);
+ 
+ /**
+  * kasan_unpoison - mark the memory range as accessible
+  * @addr - range start address, must be aligned to KASAN_GRANULE_SIZE
+  * @size - range size, can be unaligned
++ * @init - whether to initialize the memory range (only for hardware tag-based)
+  *
+  * For the tag-based modes, the @size gets aligned to KASAN_GRANULE_SIZE before
+  * marking the range.
+  * For the generic mode, the last granule of the memory range gets partially
+  * unpoisoned based on the @size.
+  */
+-void kasan_unpoison(const void *addr, size_t size);
++void kasan_unpoison(const void *addr, size_t size, bool init);
+ 
+ bool kasan_byte_accessible(const void *addr);
+ 
+--- a/mm/kasan/shadow.c~kasan-init-memory-in-kasan_unpoison-for-hw_tags
++++ a/mm/kasan/shadow.c
+@@ -69,7 +69,7 @@ void *memcpy(void *dest, const void *src
+ 	return __memcpy(dest, src, len);
+ }
+ 
+-void kasan_poison(const void *addr, size_t size, u8 value)
++void kasan_poison(const void *addr, size_t size, u8 value, bool init)
+ {
+ 	void *shadow_start, *shadow_end;
+ 
+@@ -106,7 +106,7 @@ void kasan_poison_last_granule(const voi
+ }
+ #endif
+ 
+-void kasan_unpoison(const void *addr, size_t size)
++void kasan_unpoison(const void *addr, size_t size, bool init)
+ {
+ 	u8 tag = get_tag(addr);
+ 
+@@ -129,7 +129,7 @@ void kasan_unpoison(const void *addr, si
+ 		return;
+ 
+ 	/* Unpoison all granules that cover the object. */
+-	kasan_poison(addr, round_up(size, KASAN_GRANULE_SIZE), tag);
++	kasan_poison(addr, round_up(size, KASAN_GRANULE_SIZE), tag, false);
+ 
+ 	/* Partially poison the last granule for the generic mode. */
+ 	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
+@@ -344,7 +344,7 @@ void kasan_poison_vmalloc(const void *st
+ 		return;
+ 
+ 	size = round_up(size, KASAN_GRANULE_SIZE);
+-	kasan_poison(start, size, KASAN_VMALLOC_INVALID);
++	kasan_poison(start, size, KASAN_VMALLOC_INVALID, false);
+ }
+ 
+ void kasan_unpoison_vmalloc(const void *start, unsigned long size)
+@@ -352,7 +352,7 @@ void kasan_unpoison_vmalloc(const void *
+ 	if (!is_vmalloc_or_module_addr(start))
+ 		return;
+ 
+-	kasan_unpoison(start, size);
++	kasan_unpoison(start, size, false);
+ }
+ 
+ static int kasan_depopulate_vmalloc_pte(pte_t *ptep, unsigned long addr,
+--- a/mm/kasan/sw_tags.c~kasan-init-memory-in-kasan_unpoison-for-hw_tags
++++ a/mm/kasan/sw_tags.c
+@@ -163,7 +163,7 @@ EXPORT_SYMBOL(__hwasan_storeN_noabort);
+ 
+ void __hwasan_tag_memory(unsigned long addr, u8 tag, unsigned long size)
+ {
+-	kasan_poison((void *)addr, size, tag);
++	kasan_poison((void *)addr, size, tag, false);
+ }
+ EXPORT_SYMBOL(__hwasan_tag_memory);
+ 
 _
