@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29A0CC433ED
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 06:00:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D068C433B4
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 06:00:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E1EA6148E
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 06:00:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 235F561483
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Apr 2021 06:00:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230253AbhD3GA5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Apr 2021 02:00:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54228 "EHLO mail.kernel.org"
+        id S230316AbhD3GBC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Apr 2021 02:01:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54268 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229609AbhD3GA4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Apr 2021 02:00:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A1E961493;
-        Fri, 30 Apr 2021 06:00:06 +0000 (UTC)
+        id S230280AbhD3GA7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Apr 2021 02:00:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 097A46147E;
+        Fri, 30 Apr 2021 06:00:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1619762407;
-        bh=cXDjUJKzcepD6lt89MPOwOUd/nJQS66Li/AeCVPUJ4E=;
+        s=korg; t=1619762410;
+        bh=icD84AthwAm92NJXxAZ91M9jWsK9Srh+WD/FbmwNI4g=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=DZxKYeS/EgMEbxJA44iGtPIDLzqOZb4xcISqxQMKQdpMWNVUPpZ43YdkKvgAUBifT
-         w6C5mIiyv9JhC3Vx13upD8sztMWEw3cXA2OzvQrwH6RiB+1yw1+Su2AD5B2Oq+s8mv
-         n+phOUwn97SEIqF6f0BpDIkAQTlCTi3GpyKHQgJ4=
-Date:   Thu, 29 Apr 2021 23:00:06 -0700
+        b=l8QBe7Efat0SfeEy9BvMoF6inOS3cFvx1/El7bo7wCUwnLcbOs0onTxqxVqjTAji7
+         v+5J1Jy2qQjnkP7BiEtimA4eqS2GkQz1dEYifKyaMbPK3cK5uVfdHr8BfpNVwZrs52
+         dHINMWPqINfIQWJZHr1vaP9+Ko3LbttbWTut9xOQ=
+Date:   Thu, 29 Apr 2021 23:00:09 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -38,9 +38,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         mm-commits@vger.kernel.org, pcc@google.com, penberg@kernel.org,
         rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 134/178] kasan, mm: integrate slab init_on_alloc
+Subject:  [patch 135/178] kasan, mm: integrate slab init_on_free
  with HW_TAGS
-Message-ID: <20210430060006.PTeIvFIaZ%akpm@linux-foundation.org>
+Message-ID: <20210430060009.AMjKM6c49%akpm@linux-foundation.org>
 In-Reply-To: <20210429225251.02b6386d21b69255b4f6c163@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -49,28 +49,28 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, mm: integrate slab init_on_alloc with HW_TAGS
+Subject: kasan, mm: integrate slab init_on_free with HW_TAGS
 
 This change uses the previously added memory initialization feature of
-HW_TAGS KASAN routines for slab memory when init_on_alloc is enabled.
+HW_TAGS KASAN routines for slab memory when init_on_free is enabled.
 
 With this change, memory initialization memset() is no longer called when
-both HW_TAGS KASAN and init_on_alloc are enabled.  Instead, memory is
+both HW_TAGS KASAN and init_on_free are enabled.  Instead, memory is
 initialized in KASAN runtime.
 
-The memory initialization memset() is moved into slab_post_alloc_hook()
-that currently directly follows the initialization loop.  A new argument
-is added to slab_post_alloc_hook() that indicates whether to initialize
-the memory or not.
+For SLUB, the memory initialization memset() is moved into
+slab_free_hook() that currently directly follows the initialization loop. 
+A new argument is added to slab_free_hook() that indicates whether to
+initialize the memory or not.
 
 To avoid discrepancies with which memory gets initialized that can be
 caused by future changes, both KASAN hook and initialization memset() are
 put together and a warning comment is added.
 
 Combining setting allocation tags with memory initialization improves
-HW_TAGS KASAN performance when init_on_alloc is enabled.
+HW_TAGS KASAN performance when init_on_free is enabled.
 
-Link: https://lkml.kernel.org/r/c1292aeb5d519da221ec74a0684a949b027d7720.1615296150.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/190fd15c1886654afdec0d19ebebd5ade665b601.1615296150.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -91,225 +91,196 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    8 ++++----
- mm/kasan/common.c     |    4 ++--
- mm/slab.c             |   28 +++++++++++++---------------
- mm/slab.h             |   17 +++++++++++++----
- mm/slub.c             |   27 +++++++++++----------------
- 5 files changed, 43 insertions(+), 41 deletions(-)
+ include/linux/kasan.h |   10 +++++----
+ mm/kasan/common.c     |   13 ++++++------
+ mm/slab.c             |   15 ++++++++++---
+ mm/slub.c             |   43 ++++++++++++++++++++++------------------
+ 4 files changed, 48 insertions(+), 33 deletions(-)
 
---- a/include/linux/kasan.h~kasan-mm-integrate-slab-init_on_alloc-with-hw_tags
+--- a/include/linux/kasan.h~kasan-mm-integrate-slab-init_on_free-with-hw_tags
 +++ a/include/linux/kasan.h
-@@ -226,12 +226,12 @@ static __always_inline void kasan_slab_f
+@@ -203,11 +203,13 @@ static __always_inline void * __must_che
+ 	return (void *)object;
  }
  
- void * __must_check __kasan_slab_alloc(struct kmem_cache *s,
--				       void *object, gfp_t flags);
-+				       void *object, gfp_t flags, bool init);
- static __always_inline void * __must_check kasan_slab_alloc(
--				struct kmem_cache *s, void *object, gfp_t flags)
-+		struct kmem_cache *s, void *object, gfp_t flags, bool init)
+-bool __kasan_slab_free(struct kmem_cache *s, void *object, unsigned long ip);
+-static __always_inline bool kasan_slab_free(struct kmem_cache *s, void *object)
++bool __kasan_slab_free(struct kmem_cache *s, void *object,
++			unsigned long ip, bool init);
++static __always_inline bool kasan_slab_free(struct kmem_cache *s,
++						void *object, bool init)
  {
  	if (kasan_enabled())
--		return __kasan_slab_alloc(s, object, flags);
-+		return __kasan_slab_alloc(s, object, flags, init);
- 	return object;
+-		return __kasan_slab_free(s, object, _RET_IP_);
++		return __kasan_slab_free(s, object, _RET_IP_, init);
+ 	return false;
  }
  
-@@ -320,7 +320,7 @@ static inline bool kasan_slab_free(struc
- static inline void kasan_kfree_large(void *ptr) {}
- static inline void kasan_slab_free_mempool(void *ptr) {}
- static inline void *kasan_slab_alloc(struct kmem_cache *s, void *object,
--				   gfp_t flags)
-+				   gfp_t flags, bool init)
+@@ -313,7 +315,7 @@ static inline void *kasan_init_slab_obj(
  {
- 	return object;
+ 	return (void *)object;
  }
---- a/mm/kasan/common.c~kasan-mm-integrate-slab-init_on_alloc-with-hw_tags
+-static inline bool kasan_slab_free(struct kmem_cache *s, void *object)
++static inline bool kasan_slab_free(struct kmem_cache *s, void *object, bool init)
+ {
+ 	return false;
+ }
+--- a/mm/kasan/common.c~kasan-mm-integrate-slab-init_on_free-with-hw_tags
 +++ a/mm/kasan/common.c
-@@ -428,7 +428,7 @@ static void set_alloc_info(struct kmem_c
+@@ -322,8 +322,8 @@ void * __must_check __kasan_init_slab_ob
+ 	return (void *)object;
  }
  
- void * __must_check __kasan_slab_alloc(struct kmem_cache *cache,
--					void *object, gfp_t flags)
-+					void *object, gfp_t flags, bool init)
+-static inline bool ____kasan_slab_free(struct kmem_cache *cache,
+-				void *object, unsigned long ip, bool quarantine)
++static inline bool ____kasan_slab_free(struct kmem_cache *cache, void *object,
++				unsigned long ip, bool quarantine, bool init)
  {
  	u8 tag;
  	void *tagged_object;
-@@ -453,7 +453,7 @@ void * __must_check __kasan_slab_alloc(s
- 	 * Unpoison the whole object.
- 	 * For kmalloc() allocations, kasan_kmalloc() will do precise poisoning.
- 	 */
--	kasan_unpoison(tagged_object, cache->object_size, false);
-+	kasan_unpoison(tagged_object, cache->object_size, init);
+@@ -351,7 +351,7 @@ static inline bool ____kasan_slab_free(s
+ 	}
  
- 	/* Save alloc info (if possible) for non-kmalloc() allocations. */
- 	if (kasan_stack_collection_enabled())
---- a/mm/slab.c~kasan-mm-integrate-slab-init_on_alloc-with-hw_tags
-+++ a/mm/slab.c
-@@ -3216,6 +3216,7 @@ slab_alloc_node(struct kmem_cache *cache
- 	void *ptr;
- 	int slab_node = numa_mem_id();
- 	struct obj_cgroup *objcg = NULL;
-+	bool init = false;
+ 	kasan_poison(object, round_up(cache->object_size, KASAN_GRANULE_SIZE),
+-			KASAN_KMALLOC_FREE, false);
++			KASAN_KMALLOC_FREE, init);
  
- 	flags &= gfp_allowed_mask;
- 	cachep = slab_pre_alloc_hook(cachep, &objcg, 1, flags);
-@@ -3254,12 +3255,10 @@ slab_alloc_node(struct kmem_cache *cache
-   out:
- 	local_irq_restore(save_flags);
- 	ptr = cache_alloc_debugcheck_after(cachep, flags, ptr, caller);
--
--	if (unlikely(slab_want_init_on_alloc(flags, cachep)) && ptr)
--		memset(ptr, 0, cachep->object_size);
-+	init = slab_want_init_on_alloc(flags, cachep);
- 
- out_hooks:
--	slab_post_alloc_hook(cachep, objcg, flags, 1, &ptr);
-+	slab_post_alloc_hook(cachep, objcg, flags, 1, &ptr, init);
- 	return ptr;
+ 	if ((IS_ENABLED(CONFIG_KASAN_GENERIC) && !quarantine))
+ 		return false;
+@@ -362,9 +362,10 @@ static inline bool ____kasan_slab_free(s
+ 	return kasan_quarantine_put(cache, object);
  }
  
-@@ -3301,6 +3300,7 @@ slab_alloc(struct kmem_cache *cachep, gf
- 	unsigned long save_flags;
- 	void *objp;
- 	struct obj_cgroup *objcg = NULL;
-+	bool init = false;
- 
- 	flags &= gfp_allowed_mask;
- 	cachep = slab_pre_alloc_hook(cachep, &objcg, 1, flags);
-@@ -3317,12 +3317,10 @@ slab_alloc(struct kmem_cache *cachep, gf
- 	local_irq_restore(save_flags);
- 	objp = cache_alloc_debugcheck_after(cachep, flags, objp, caller);
- 	prefetchw(objp);
--
--	if (unlikely(slab_want_init_on_alloc(flags, cachep)) && objp)
--		memset(objp, 0, cachep->object_size);
-+	init = slab_want_init_on_alloc(flags, cachep);
- 
- out:
--	slab_post_alloc_hook(cachep, objcg, flags, 1, &objp);
-+	slab_post_alloc_hook(cachep, objcg, flags, 1, &objp, init);
- 	return objp;
- }
- 
-@@ -3542,18 +3540,18 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 
- 	cache_alloc_debugcheck_after_bulk(s, flags, size, p, _RET_IP_);
- 
--	/* Clear memory outside IRQ disabled section */
--	if (unlikely(slab_want_init_on_alloc(flags, s)))
--		for (i = 0; i < size; i++)
--			memset(p[i], 0, s->object_size);
--
--	slab_post_alloc_hook(s, objcg, flags, size, p);
-+	/*
-+	 * memcg and kmem_cache debug support and memory initialization.
-+	 * Done outside of the IRQ disabled section.
-+	 */
-+	slab_post_alloc_hook(s, objcg, flags, size, p,
-+				slab_want_init_on_alloc(flags, s));
- 	/* FIXME: Trace call missing. Christoph would like a bulk variant */
- 	return size;
- error:
- 	local_irq_enable();
- 	cache_alloc_debugcheck_after_bulk(s, flags, i, p, _RET_IP_);
--	slab_post_alloc_hook(s, objcg, flags, i, p);
-+	slab_post_alloc_hook(s, objcg, flags, i, p, false);
- 	__kmem_cache_free_bulk(s, i, p);
- 	return 0;
- }
---- a/mm/slab.h~kasan-mm-integrate-slab-init_on_alloc-with-hw_tags
-+++ a/mm/slab.h
-@@ -509,15 +509,24 @@ static inline struct kmem_cache *slab_pr
- }
- 
- static inline void slab_post_alloc_hook(struct kmem_cache *s,
--					struct obj_cgroup *objcg,
--					gfp_t flags, size_t size, void **p)
-+					struct obj_cgroup *objcg, gfp_t flags,
-+					size_t size, void **p, bool init)
+-bool __kasan_slab_free(struct kmem_cache *cache, void *object, unsigned long ip)
++bool __kasan_slab_free(struct kmem_cache *cache, void *object,
++				unsigned long ip, bool init)
  {
- 	size_t i;
+-	return ____kasan_slab_free(cache, object, ip, true);
++	return ____kasan_slab_free(cache, object, ip, true, init);
+ }
  
- 	flags &= gfp_allowed_mask;
+ static inline bool ____kasan_kfree_large(void *ptr, unsigned long ip)
+@@ -409,7 +410,7 @@ void __kasan_slab_free_mempool(void *ptr
+ 			return;
+ 		kasan_poison(ptr, page_size(page), KASAN_FREE_PAGE, false);
+ 	} else {
+-		____kasan_slab_free(page->slab_cache, ptr, ip, false);
++		____kasan_slab_free(page->slab_cache, ptr, ip, false, false);
+ 	}
+ }
+ 
+--- a/mm/slab.c~kasan-mm-integrate-slab-init_on_free-with-hw_tags
++++ a/mm/slab.c
+@@ -3425,17 +3425,24 @@ free_done:
+ static __always_inline void __cache_free(struct kmem_cache *cachep, void *objp,
+ 					 unsigned long caller)
+ {
++	bool init;
 +
+ 	if (is_kfence_address(objp)) {
+ 		kmemleak_free_recursive(objp, cachep->flags);
+ 		__kfence_free(objp);
+ 		return;
+ 	}
+ 
+-	if (unlikely(slab_want_init_on_free(cachep)))
 +	/*
 +	 * As memory initialization might be integrated into KASAN,
-+	 * kasan_slab_alloc and initialization memset must be
++	 * kasan_slab_free and initialization memset must be
++	 * kept together to avoid discrepancies in behavior.
++	 */
++	init = slab_want_init_on_free(cachep);
++	if (init && !kasan_has_integrated_init())
+ 		memset(objp, 0, cachep->object_size);
+-
+-	/* Put the object into the quarantine, don't touch it for now. */
+-	if (kasan_slab_free(cachep, objp))
++	/* KASAN might put objp into memory quarantine, delaying its reuse. */
++	if (kasan_slab_free(cachep, objp, init))
+ 		return;
+ 
+ 	/* Use KCSAN to help debug racy use-after-free. */
+--- a/mm/slub.c~kasan-mm-integrate-slab-init_on_free-with-hw_tags
++++ a/mm/slub.c
+@@ -1545,7 +1545,8 @@ static __always_inline void kfree_hook(v
+ 	kasan_kfree_large(x);
+ }
+ 
+-static __always_inline bool slab_free_hook(struct kmem_cache *s, void *x)
++static __always_inline bool slab_free_hook(struct kmem_cache *s,
++						void *x, bool init)
+ {
+ 	kmemleak_free_recursive(x, s->flags);
+ 
+@@ -1571,8 +1572,25 @@ static __always_inline bool slab_free_ho
+ 		__kcsan_check_access(x, s->object_size,
+ 				     KCSAN_ACCESS_WRITE | KCSAN_ACCESS_ASSERT);
+ 
+-	/* KASAN might put x into memory quarantine, delaying its reuse */
+-	return kasan_slab_free(s, x);
++	/*
++	 * As memory initialization might be integrated into KASAN,
++	 * kasan_slab_free and initialization memset's must be
 +	 * kept together to avoid discrepancies in behavior.
 +	 *
-+	 * As p[i] might get tagged, memset and kmemleak hook come after KASAN.
++	 * The initialization memset's clear the object and the metadata,
++	 * but don't touch the SLAB redzone.
 +	 */
- 	for (i = 0; i < size; i++) {
--		p[i] = kasan_slab_alloc(s, p[i], flags);
--		/* As p[i] might get tagged, call kmemleak hook after KASAN. */
-+		p[i] = kasan_slab_alloc(s, p[i], flags, init);
-+		if (p[i] && init && !kasan_has_integrated_init())
-+			memset(p[i], 0, s->object_size);
- 		kmemleak_alloc_recursive(p[i], s->object_size, 1,
- 					 s->flags, flags);
- 	}
---- a/mm/slub.c~kasan-mm-integrate-slab-init_on_alloc-with-hw_tags
-+++ a/mm/slub.c
-@@ -2835,6 +2835,7 @@ static __always_inline void *slab_alloc_
- 	struct page *page;
- 	unsigned long tid;
- 	struct obj_cgroup *objcg = NULL;
-+	bool init = false;
- 
- 	s = slab_pre_alloc_hook(s, &objcg, 1, gfpflags);
- 	if (!s)
-@@ -2912,12 +2913,10 @@ redo:
- 	}
- 
- 	maybe_wipe_obj_freeptr(s, object);
--
--	if (unlikely(slab_want_init_on_alloc(gfpflags, s)) && object)
--		memset(kasan_reset_tag(object), 0, s->object_size);
-+	init = slab_want_init_on_alloc(gfpflags, s);
- 
- out:
--	slab_post_alloc_hook(s, objcg, gfpflags, 1, &object);
-+	slab_post_alloc_hook(s, objcg, gfpflags, 1, &object, init);
- 
- 	return object;
++	if (init) {
++		int rsize;
++
++		if (!kasan_has_integrated_init())
++			memset(kasan_reset_tag(x), 0, s->object_size);
++		rsize = (s->flags & SLAB_RED_ZONE) ? s->red_left_pad : 0;
++		memset((char *)kasan_reset_tag(x) + s->inuse, 0,
++		       s->size - s->inuse - rsize);
++	}
++	/* KASAN might put x into memory quarantine, delaying its reuse. */
++	return kasan_slab_free(s, x, init);
  }
-@@ -3369,20 +3368,16 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 	c->tid = next_tid(c->tid);
- 	local_irq_enable();
  
--	/* Clear memory outside IRQ disabled fastpath loop */
--	if (unlikely(slab_want_init_on_alloc(flags, s))) {
--		int j;
+ static inline bool slab_free_freelist_hook(struct kmem_cache *s,
+@@ -1582,10 +1600,9 @@ static inline bool slab_free_freelist_ho
+ 	void *object;
+ 	void *next = *head;
+ 	void *old_tail = *tail ? *tail : *head;
+-	int rsize;
+ 
+ 	if (is_kfence_address(next)) {
+-		slab_free_hook(s, next);
++		slab_free_hook(s, next, false);
+ 		return true;
+ 	}
+ 
+@@ -1597,20 +1614,8 @@ static inline bool slab_free_freelist_ho
+ 		object = next;
+ 		next = get_freepointer(s, object);
+ 
+-		if (slab_want_init_on_free(s)) {
+-			/*
+-			 * Clear the object and the metadata, but don't touch
+-			 * the redzone.
+-			 */
+-			memset(kasan_reset_tag(object), 0, s->object_size);
+-			rsize = (s->flags & SLAB_RED_ZONE) ? s->red_left_pad
+-							   : 0;
+-			memset((char *)kasan_reset_tag(object) + s->inuse, 0,
+-			       s->size - s->inuse - rsize);
 -
--		for (j = 0; j < i; j++)
--			memset(kasan_reset_tag(p[j]), 0, s->object_size);
--	}
--
--	/* memcg and kmem_cache debug support */
--	slab_post_alloc_hook(s, objcg, flags, size, p);
-+	/*
-+	 * memcg and kmem_cache debug support and memory initialization.
-+	 * Done outside of the IRQ disabled fastpath loop.
-+	 */
-+	slab_post_alloc_hook(s, objcg, flags, size, p,
-+				slab_want_init_on_alloc(flags, s));
- 	return i;
- error:
- 	local_irq_enable();
--	slab_post_alloc_hook(s, objcg, flags, i, p);
-+	slab_post_alloc_hook(s, objcg, flags, i, p, false);
- 	__kmem_cache_free_bulk(s, i, p);
- 	return 0;
- }
-@@ -3592,7 +3587,7 @@ static void early_kmem_cache_node_alloc(
- 	init_object(kmem_cache_node, n, SLUB_RED_ACTIVE);
- 	init_tracking(kmem_cache_node, n);
- #endif
--	n = kasan_slab_alloc(kmem_cache_node, n, GFP_KERNEL);
-+	n = kasan_slab_alloc(kmem_cache_node, n, GFP_KERNEL, false);
- 	page->freelist = get_freepointer(kmem_cache_node, n);
- 	page->inuse = 1;
- 	page->frozen = 0;
+-		}
+ 		/* If object's reuse doesn't have to be delayed */
+-		if (!slab_free_hook(s, object)) {
++		if (!slab_free_hook(s, object, slab_want_init_on_free(s))) {
+ 			/* Move object to the new freelist */
+ 			set_freepointer(s, object, *head);
+ 			*head = object;
+@@ -3248,7 +3253,7 @@ int build_detached_freelist(struct kmem_
+ 	}
+ 
+ 	if (is_kfence_address(object)) {
+-		slab_free_hook(df->s, object);
++		slab_free_hook(df->s, object, false);
+ 		__kfence_free(object);
+ 		p[size] = NULL; /* mark object processed */
+ 		return size;
 _
