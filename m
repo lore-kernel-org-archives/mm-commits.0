@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A68CC433ED
-	for <mm-commits@archiver.kernel.org>; Mon,  3 May 2021 19:41:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35CA1C433B4
+	for <mm-commits@archiver.kernel.org>; Tue,  4 May 2021 22:21:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EF22B61026
-	for <mm-commits@archiver.kernel.org>; Mon,  3 May 2021 19:41:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE6DA611AD
+	for <mm-commits@archiver.kernel.org>; Tue,  4 May 2021 22:21:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229670AbhECTmZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 May 2021 15:42:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58142 "EHLO mail.kernel.org"
+        id S232221AbhEDWW1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 18:22:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44726 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229602AbhECTmY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 May 2021 15:42:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C464613C5;
-        Mon,  3 May 2021 19:41:30 +0000 (UTC)
+        id S229694AbhEDWW1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 18:22:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7568D613D8;
+        Tue,  4 May 2021 22:21:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620070890;
-        bh=RhSOYFIwuZa4Yotzfire412WP63GzDPEBrXrkSoNXKY=;
+        s=korg; t=1620166891;
+        bh=KlC6i+crqiCakE3rWgz3yCjE1vZHQVIVs4GvWwyYx9g=;
         h=Date:From:To:Subject:From;
-        b=trC9uJAfHZVUHfsmT9PeeKMo6QkyCAgmsbHBdNr1iWNAPO1brluswVGao932m9k4S
-         wl86x7evUQPutVbGDxAGX8S9cVbCHRVRdYIB/jL56dX23W03iIbjuElUX1AMGz5UtI
-         m0Gw3fbZl+R8JB3cABY7A8vRRhFhT/i65DyNhjwI=
-Date:   Mon, 03 May 2021 12:41:29 -0700
+        b=z2fBYI4EKx3WrVvq6sntc1UJkRqzrFRK21dgS36u8a8yXljG1QsPObsr5+vW63Rj4
+         5CaMo/DgEucoJ3SIwXdUkosC38dMwe0YlczRJ2Gzu5RrVEu/RdkSerUyW4XSiTmesE
+         v4rxdgBb5FDa/FZDOVj6ZvyAPfcMumjxFvLGQP/U=
+Date:   Tue, 04 May 2021 15:21:30 -0700
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  + mm-remove-nrexceptional-from-inode-remove-bug_on.patch
- added to -mm tree
-Message-ID: <20210503194129.frVW4cC14%akpm@linux-foundation.org>
+To:     hughd@google.com, joel@joelfernandes.org, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, peterx@redhat.com,
+        stable@vger.kernel.org
+Subject:  + mm-hugetlb-fix-f_seal_future_write.patch added to -mm
+ tree
+Message-ID: <20210504222130.d46tH9_t9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove nrexceptional from inode: remove BUG_ON
+     Subject: mm/hugetlb: fix F_SEAL_FUTURE_WRITE
 has been added to the -mm tree.  Its filename is
-     mm-remove-nrexceptional-from-inode-remove-bug_on.patch
+     mm-hugetlb-fix-f_seal_future_write.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-nrexceptional-from-inode-remove-bug_on.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-f_seal_future_write.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-nrexceptional-from-inode-remove-bug_on.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-f_seal_future_write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,51 +65,161 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: remove nrexceptional from inode: remove BUG_ON
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/hugetlb: fix F_SEAL_FUTURE_WRITE
 
-clear_inode()'s BUG_ON(!mapping_empty(&inode->i_data)) is unsafe: we know
-of two ways in which nodes can and do (on rare occasions) get left behind.
-Until those are fixed, do not BUG_ON() nor even WARN_ON().  Yes, this
-will then leak those nodes (or the next user of the struct inode may use
-them); but this has been happening for years, and the new
-BUG_ON(!mapping_empty) was only guilty of revealing that.  A proper fix
-will follow, but no hurry.
+Patch series "mm/hugetlb: Fix issues on file sealing and fork", v2.
 
-Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2104292229380.16080@eggly.anvils
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Hugh reported issue with F_SEAL_FUTURE_WRITE not applied correctly to
+hugetlbfs, which I can easily verify using the memfd_test program, which
+seems that the program is hardly run with hugetlbfs pages (as by default
+shmem).
+
+Meanwhile I found another probably even more severe issue on that hugetlb
+fork won't wr-protect child cow pages, so child can potentially write to
+parent private pages.  Patch 2 addresses that.
+
+After this series applied, "memfd_test hugetlbfs" should start to pass.
+
+
+This patch (of 2):
+
+F_SEAL_FUTURE_WRITE is missing for hugetlb starting from the first day. 
+There is a test program for that and it fails constantly.
+
+$ ./memfd_test hugetlbfs
+memfd-hugetlb: CREATE
+memfd-hugetlb: BASIC
+memfd-hugetlb: SEAL-WRITE
+memfd-hugetlb: SEAL-FUTURE-WRITE
+mmap() didn't fail as expected
+Aborted (core dumped)
+
+I think it's probably because no one is really running the hugetlbfs test.
+
+Fix it by checking FUTURE_WRITE also in hugetlbfs_file_mmap() as what we
+do in shmem_mmap().  Generalize a helper for that.
+
+Link: https://lkml.kernel.org/r/20210503234356.9097-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20210503234356.9097-2-peterx@redhat.com
+Fixes: ab3948f58ff84 ("mm/memfd: add an F_SEAL_FUTURE_WRITE seal to memfd")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c |    5 +++++
+ include/linux/mm.h   |   32 ++++++++++++++++++++++++++++++++
+ mm/shmem.c           |   22 ++++------------------
+ 3 files changed, 41 insertions(+), 18 deletions(-)
 
---- a/fs/inode.c~mm-remove-nrexceptional-from-inode-remove-bug_on
-+++ a/fs/inode.c
-@@ -529,7 +529,14 @@ void clear_inode(struct inode *inode)
- 	 */
- 	xa_lock_irq(&inode->i_data.i_pages);
- 	BUG_ON(inode->i_data.nrpages);
--	BUG_ON(!mapping_empty(&inode->i_data));
-+	/*
-+	 * Almost always, mapping_empty(&inode->i_data) here; but there are
-+	 * two known and long-standing ways in which nodes may get left behind
-+	 * (when deep radix-tree node allocation failed partway; or when THP
-+	 * collapse_file() failed). Until those two known cases are cleaned up,
-+	 * or a cleanup function is called here, do not BUG_ON(!mapping_empty),
-+	 * nor even WARN_ON(!mapping_empty).
-+	 */
- 	xa_unlock_irq(&inode->i_data.i_pages);
- 	BUG_ON(!list_empty(&inode->i_data.private_list));
- 	BUG_ON(!(inode->i_state & I_FREEING));
+--- a/fs/hugetlbfs/inode.c~mm-hugetlb-fix-f_seal_future_write
++++ a/fs/hugetlbfs/inode.c
+@@ -131,6 +131,7 @@ static void huge_pagevec_release(struct
+ static int hugetlbfs_file_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct inode *inode = file_inode(file);
++	struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
+ 	loff_t len, vma_len;
+ 	int ret;
+ 	struct hstate *h = hstate_file(file);
+@@ -146,6 +147,10 @@ static int hugetlbfs_file_mmap(struct fi
+ 	vma->vm_flags |= VM_HUGETLB | VM_DONTEXPAND;
+ 	vma->vm_ops = &hugetlb_vm_ops;
+ 
++	ret = seal_check_future_write(info->seals, vma);
++	if (ret)
++		return ret;
++
+ 	/*
+ 	 * page based offset in vm_pgoff could be sufficiently large to
+ 	 * overflow a loff_t when converted to byte offset.  This can
+--- a/include/linux/mm.h~mm-hugetlb-fix-f_seal_future_write
++++ a/include/linux/mm.h
+@@ -3190,5 +3190,37 @@ void mem_dump_obj(void *object);
+ static inline void mem_dump_obj(void *object) {}
+ #endif
+ 
++/**
++ * seal_check_future_write - Check for F_SEAL_FUTURE_WRITE flag and handle it
++ * @seals: the seals to check
++ * @vma: the vma to operate on
++ *
++ * Check whether F_SEAL_FUTURE_WRITE is set; if so, do proper check/handling on
++ * the vma flags.  Return 0 if check pass, or <0 for errors.
++ */
++static inline int seal_check_future_write(int seals, struct vm_area_struct *vma)
++{
++	if (seals & F_SEAL_FUTURE_WRITE) {
++		/*
++		 * New PROT_WRITE and MAP_SHARED mmaps are not allowed when
++		 * "future write" seal active.
++		 */
++		if ((vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_WRITE))
++			return -EPERM;
++
++		/*
++		 * Since an F_SEAL_FUTURE_WRITE sealed memfd can be mapped as
++		 * MAP_SHARED and read-only, take care to not allow mprotect to
++		 * revert protections on such mappings. Do this only for shared
++		 * mappings. For private mappings, don't need to mask
++		 * VM_MAYWRITE as we still want them to be COW-writable.
++		 */
++		if (vma->vm_flags & VM_SHARED)
++			vma->vm_flags &= ~(VM_MAYWRITE);
++	}
++
++	return 0;
++}
++
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_MM_H */
+--- a/mm/shmem.c~mm-hugetlb-fix-f_seal_future_write
++++ a/mm/shmem.c
+@@ -2258,25 +2258,11 @@ out_nomem:
+ static int shmem_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct shmem_inode_info *info = SHMEM_I(file_inode(file));
++	int ret;
+ 
+-	if (info->seals & F_SEAL_FUTURE_WRITE) {
+-		/*
+-		 * New PROT_WRITE and MAP_SHARED mmaps are not allowed when
+-		 * "future write" seal active.
+-		 */
+-		if ((vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_WRITE))
+-			return -EPERM;
+-
+-		/*
+-		 * Since an F_SEAL_FUTURE_WRITE sealed memfd can be mapped as
+-		 * MAP_SHARED and read-only, take care to not allow mprotect to
+-		 * revert protections on such mappings. Do this only for shared
+-		 * mappings. For private mappings, don't need to mask
+-		 * VM_MAYWRITE as we still want them to be COW-writable.
+-		 */
+-		if (vma->vm_flags & VM_SHARED)
+-			vma->vm_flags &= ~(VM_MAYWRITE);
+-	}
++	ret = seal_check_future_write(info->seals, vma);
++	if (ret)
++		return ret;
+ 
+ 	/* arm64 - allow memory tagging on RAM-based files */
+ 	vma->vm_flags |= VM_MTE_ALLOWED;
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-remove-nrexceptional-from-inode-remove-bug_on.patch
-mm-restore-node-stat-checking-in-proc-sys-vm-stat_refresh.patch
-mm-no-more-einval-from-proc-sys-vm-stat_refresh.patch
-mm-proc-sys-vm-stat_refresh-skip-checking-known-negative-stats.patch
-mm-proc-sys-vm-stat_refresh-stop-checking-monotonic-numa-stats.patch
+mm-hugetlb-fix-f_seal_future_write.patch
+mm-hugetlb-fix-cow-where-page-writtable-in-child.patch
+hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share.patch
+hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share-fix.patch
+hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
+hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix.patch
+mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
+hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
+userfaultfd-add-minor-fault-registration-mode-fix.patch
 
