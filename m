@@ -4,38 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BC77C433ED
-	for <mm-commits@archiver.kernel.org>; Tue,  4 May 2021 22:21:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D7B1C433B4
+	for <mm-commits@archiver.kernel.org>; Tue,  4 May 2021 22:23:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5EEE613D4
-	for <mm-commits@archiver.kernel.org>; Tue,  4 May 2021 22:21:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E94D0613D8
+	for <mm-commits@archiver.kernel.org>; Tue,  4 May 2021 22:23:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229694AbhEDWWb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 18:22:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44842 "EHLO mail.kernel.org"
+        id S232905AbhEDWX7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 18:23:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46312 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232456AbhEDWWa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 18:22:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B929B613DD;
-        Tue,  4 May 2021 22:21:34 +0000 (UTC)
+        id S232456AbhEDWX7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 18:23:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C9F3B613AA;
+        Tue,  4 May 2021 22:23:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620166895;
-        bh=X7Ht3HoHp6+OxEyPcAFA0l0DoNTSFJeRWwwbsQlUYxA=;
+        s=korg; t=1620166983;
+        bh=LhFGQUp714LXbBh32Nr/jAh1ankCGxVM8//sENv/T8c=;
         h=Date:From:To:Subject:From;
-        b=uVC7sGJcm+sY9BN1nK3gVUcUcpJH3/cTFAliLguAPxUzyMm5EBtzGhL+s8VFB7Bcb
-         hfstNJwMdnira036WL45FXf7tv+aSnNCUAWfNSWd7ugAuGnpywc7ELEjq6lti3klZh
-         5j8HHfmhQ0WpWmqt+s7N3GleR3e4QGgvNxA+qsq8=
-Date:   Tue, 04 May 2021 15:21:34 -0700
+        b=WDAkJMX5uR2lPeoPMtypMl8QvHEFrLf60XwKL7f5FfRvViqOi5HigoYimA/JfLRwH
+         ksjxQuCA5/UU0nH6u8gvuZLKPbJ03sDZNEv0IwHsRnoxzJESIsHHQtgPgbJ6jUuYJZ
+         wS4qDw4DPF7Sfl9xps0rMVW7FKTvC0oZKKTJMLQE=
+Date:   Tue, 04 May 2021 15:23:02 -0700
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, joel@joelfernandes.org, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, peterx@redhat.com,
-        stable@vger.kernel.org
-Subject:  + mm-hugetlb-fix-cow-where-page-writtable-in-child.patch
- added to -mm tree
-Message-ID: <20210504222134.OVXQ7jyUz%akpm@linux-foundation.org>
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        paulmck@kernel.org, penberg@kernel.org, rientjes@google.com,
+        vbabka@suse.cz
+Subject:  +
+ mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex.patch added
+ to -mm tree
+Message-ID: <20210504222302.stbaOhFma%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix cow where page writtable in child
+     Subject: mm, slub: move slub_debug static key enabling outside slab_mutex
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-cow-where-page-writtable-in-child.patch
+     mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-cow-where-page-writtable-in-child.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-cow-where-page-writtable-in-child.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,52 +66,169 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: fix cow where page writtable in child
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slub: move slub_debug static key enabling outside slab_mutex
 
-When rework early cow of pinned hugetlb pages, we moved huge_ptep_get()
-upper but overlooked a side effect that the huge_ptep_get() will fetch the
-pte after wr-protection.  After moving it upwards, we need explicit
-wr-protect of child pte or we will keep the write bit set in the child
-process, which could cause data corrution where the child can write to the
-original page directly.
+Paul E.  McKenney reported [1] that commit 1f0723a4c0df ("mm, slub: enable
+slub_debug static key when creating cache with explicit debug flags")
+results in the lockdep complaint:
 
-This issue can also be exposed by "memfd_test hugetlbfs" kselftest.
+ ======================================================
+ WARNING: possible circular locking dependency detected
+ 5.12.0+ #15 Not tainted
+ ------------------------------------------------------
+ rcu_torture_sta/109 is trying to acquire lock:
+ ffffffff96063cd0 (cpu_hotplug_lock){++++}-{0:0}, at: static_key_enable+0x9/0x20
 
-Link: https://lkml.kernel.org/r/20210503234356.9097-3-peterx@redhat.com
-Fixes: 4eae4efa2c299 ("hugetlb: do early cow when page pinned on src mm")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: <stable@vger.kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
+ but task is already holding lock:
+ ffffffff96173c28 (slab_mutex){+.+.}-{3:3}, at: kmem_cache_create_usercopy+0x2d/0x250
+
+ which lock already depends on the new lock.
+
+ the existing dependency chain (in reverse order) is:
+
+ -> #1 (slab_mutex){+.+.}-{3:3}:
+        lock_acquire+0xb9/0x3a0
+        __mutex_lock+0x8d/0x920
+        slub_cpu_dead+0x15/0xf0
+        cpuhp_invoke_callback+0x17a/0x7c0
+        cpuhp_invoke_callback_range+0x3b/0x80
+        _cpu_down+0xdf/0x2a0
+        cpu_down+0x2c/0x50
+        device_offline+0x82/0xb0
+        remove_cpu+0x1a/0x30
+        torture_offline+0x80/0x140
+        torture_onoff+0x147/0x260
+        kthread+0x10a/0x140
+        ret_from_fork+0x22/0x30
+
+ -> #0 (cpu_hotplug_lock){++++}-{0:0}:
+        check_prev_add+0x8f/0xbf0
+        __lock_acquire+0x13f0/0x1d80
+        lock_acquire+0xb9/0x3a0
+        cpus_read_lock+0x21/0xa0
+        static_key_enable+0x9/0x20
+        __kmem_cache_create+0x38d/0x430
+        kmem_cache_create_usercopy+0x146/0x250
+        kmem_cache_create+0xd/0x10
+        rcu_torture_stats+0x79/0x280
+        kthread+0x10a/0x140
+        ret_from_fork+0x22/0x30
+
+ other info that might help us debug this:
+
+  Possible unsafe locking scenario:
+
+        CPU0                    CPU1
+        ----                    ----
+   lock(slab_mutex);
+                                lock(cpu_hotplug_lock);
+                                lock(slab_mutex);
+   lock(cpu_hotplug_lock);
+
+  *** DEADLOCK ***
+
+ 1 lock held by rcu_torture_sta/109:
+  #0: ffffffff96173c28 (slab_mutex){+.+.}-{3:3}, at: kmem_cache_create_usercopy+0x2d/0x250
+
+ stack backtrace:
+ CPU: 3 PID: 109 Comm: rcu_torture_sta Not tainted 5.12.0+ #15
+ Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.13.0-1ubuntu1.1 04/01/2014
+ Call Trace:
+  dump_stack+0x6d/0x89
+  check_noncircular+0xfe/0x110
+  ? lock_is_held_type+0x98/0x110
+  check_prev_add+0x8f/0xbf0
+  __lock_acquire+0x13f0/0x1d80
+  lock_acquire+0xb9/0x3a0
+  ? static_key_enable+0x9/0x20
+  ? mark_held_locks+0x49/0x70
+  cpus_read_lock+0x21/0xa0
+  ? static_key_enable+0x9/0x20
+  static_key_enable+0x9/0x20
+  __kmem_cache_create+0x38d/0x430
+  kmem_cache_create_usercopy+0x146/0x250
+  ? rcu_torture_stats_print+0xd0/0xd0
+  kmem_cache_create+0xd/0x10
+  rcu_torture_stats+0x79/0x280
+  ? rcu_torture_stats_print+0xd0/0xd0
+  kthread+0x10a/0x140
+  ? kthread_park+0x80/0x80
+  ret_from_fork+0x22/0x30
+
+This is because there's one order of locking from the hotplug callbacks:
+
+lock(cpu_hotplug_lock); // from hotplug machinery itself
+lock(slab_mutex); // in e.g. slab_mem_going_offline_callback()
+
+And commit 1f0723a4c0df made the reverse sequence possible:
+lock(slab_mutex); // in kmem_cache_create_usercopy()
+lock(cpu_hotplug_lock); // kmem_cache_open() -> static_key_enable()
+
+The simplest fix is to move static_key_enable() to a place before slab_mutex is
+taken. That means kmem_cache_create_usercopy() in mm/slab_common.c which is not
+ideal for SLUB-specific code, but the #ifdef CONFIG_SLUB_DEBUG makes it
+at least self-contained and obvious.
+
+[1] https://lore.kernel.org/lkml/20210502171827.GA3670492@paulmck-ThinkPad-P17-Gen-1/
+
+Link: https://lkml.kernel.org/r/20210504120019.26791-1-vbabka@suse.cz
+Fixes: 1f0723a4c0df ("mm, slub: enable slub_debug static key when creating cache with explicit debug flags")
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Paul E. McKenney <paulmck@kernel.org>
+Tested-by: Paul E. McKenney <paulmck@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/slab_common.c |   10 ++++++++++
+ mm/slub.c        |    9 ---------
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-cow-where-page-writtable-in-child
-+++ a/mm/hugetlb.c
-@@ -3898,6 +3898,7 @@ again:
- 				 * See Documentation/vm/mmu_notifier.rst
- 				 */
- 				huge_ptep_set_wrprotect(src, addr, src_pte);
-+				entry = huge_pte_wrprotect(entry);
- 			}
+--- a/mm/slab_common.c~mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex
++++ a/mm/slab_common.c
+@@ -318,6 +318,16 @@ kmem_cache_create_usercopy(const char *n
+ 	const char *cache_name;
+ 	int err;
  
- 			page_dup_rmap(ptepage, true);
++#ifdef CONFIG_SLUB_DEBUG
++	/*
++	 * If no slub_debug was enabled globally, the static key is not yet
++	 * enabled by setup_slub_debug(). Enable it if the cache is being
++	 * created with any of the debugging flags passed explicitly.
++	 */
++	if (flags & SLAB_DEBUG_FLAGS)
++		static_branch_enable(&slub_debug_enabled);
++#endif
++
+ 	mutex_lock(&slab_mutex);
+ 
+ 	err = kmem_cache_sanity_check(name, size);
+--- a/mm/slub.c~mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex
++++ a/mm/slub.c
+@@ -3840,15 +3840,6 @@ static int calculate_sizes(struct kmem_c
+ 
+ static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
+ {
+-#ifdef CONFIG_SLUB_DEBUG
+-	/*
+-	 * If no slub_debug was enabled globally, the static key is not yet
+-	 * enabled by setup_slub_debug(). Enable it if the cache is being
+-	 * created with any of the debugging flags passed explicitly.
+-	 */
+-	if (flags & SLAB_DEBUG_FLAGS)
+-		static_branch_enable(&slub_debug_enabled);
+-#endif
+ 	s->flags = kmem_cache_flags(s->size, flags, s->name);
+ #ifdef CONFIG_SLAB_FREELIST_HARDENED
+ 	s->random = get_random_long();
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-hugetlb-fix-f_seal_future_write.patch
-mm-hugetlb-fix-cow-where-page-writtable-in-child.patch
-hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share.patch
-hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share-fix.patch
-hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
-hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled-fix.patch
-mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
-hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
-userfaultfd-add-minor-fault-registration-mode-fix.patch
+mm-slub-enable-slub_debug-static-key-when-creating-cache-with-explicit-debug-flags.patch
+mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex.patch
 
