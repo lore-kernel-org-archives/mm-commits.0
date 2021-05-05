@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4275C433B4
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 00:56:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 625B0C433B4
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 00:56:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ABCD861168
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 00:56:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 281DE61159
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 00:56:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229586AbhEEA5O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 20:57:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41320 "EHLO mail.kernel.org"
+        id S231408AbhEEA5w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 20:57:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41724 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230328AbhEEA5O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 20:57:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 76CA6613BA;
-        Wed,  5 May 2021 00:56:16 +0000 (UTC)
+        id S230328AbhEEA5v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 20:57:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AB60D61078;
+        Wed,  5 May 2021 00:56:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620176177;
-        bh=+lbi85RpEeK80J5F9yM6/sZy3jVyyp7qqafalrrWZBs=;
+        s=korg; t=1620176215;
+        bh=uWXFFGKcZbOX2dNDD8yjoK70x0I9oc78l53+9PDm0O8=;
         h=Date:From:To:Subject:From;
-        b=dFcKZ7YvclvvJZYyGSM9yMmwtL/gIvwQh68gk0DGuJ7FXmvKhTmtY3FBaETCy7fuH
-         JdOElq8/++83JHVe86trYTtIKI3Hm5sGZcScO+rrvc/0pI62I4/WJeEjtBMflMXM4Z
-         Z6hwaRJ79NHlncgY6DRt78xswecw7MsVRZCUog7w=
-Date:   Tue, 04 May 2021 17:56:15 -0700
+        b=GWGTPBxS55cqM82dd4nbB2f1qZAoOCeG7FYKpBS0yEZEKmqFljCh5zYekaKihvbR7
+         Gjco+7UYsdYa4c5+Vr5hisi4A7p1Ijv7orEQOkEcDpkXy/MhD+SQJketedEdmUIPos
+         5jZozMTjV9Pbpxz8bnD/tGifvWepMuslo7A0C+LA=
+Date:   Tue, 04 May 2021 17:56:55 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, david@fromorbit.com, guro@fb.com,
-        hannes@cmpxchg.org, hughd@google.com, ktkhai@virtuozzo.com,
-        mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com,
-        shy828301@gmail.com, vbabka@suse.cz
+To:     georgi.djakov@linaro.org, minchan@kernel.org,
+        mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- mm-vmscan-add-shrinker_info_protected-helper-fix.patch removed from -mm
- tree
-Message-ID: <20210505005615.Oo7rfEXnK%akpm@linux-foundation.org>
+ mm-cma-add-trace-events-for-cma-alloc-perf-testing-fix.patch removed from
+ -mm tree
+Message-ID: <20210505005655.LPOe56pPQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,54 +44,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmscan-add-shrinker_info_protected-helper-fix
+     Subject: mm: cma: Add the CMA instance name to the cma_alloc_start trace event
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-add-shrinker_info_protected-helper-fix.patch
+     mm-cma-add-trace-events-for-cma-alloc-perf-testing-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-add-shrinker_info_protected-helper.patch
+This patch was dropped because it was folded into mm-cma-add-trace-events-for-cma-alloc-perf-testing.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-add-shrinker_info_protected-helper-fix
+From: Georgi Djakov <georgi.djakov@linaro.org>
+Subject: mm: cma: Add the CMA instance name to the cma_alloc_start trace event
 
-retain rcu_dereference_protected() in free_shrinker_info(), per Hugh
+During CMA allocation, print also the name to identify the CMA instance.
 
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/20210326155414.25006-1-georgi.djakov@linaro.org
+Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/trace/events/cma.h |    9 ++++++---
+ mm/cma.c                   |    2 +-
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-add-shrinker_info_protected-helper-fix
-+++ a/mm/vmscan.c
-@@ -239,7 +239,7 @@ void free_shrinker_info(struct mem_cgrou
+--- a/include/trace/events/cma.h~mm-cma-add-trace-events-for-cma-alloc-perf-testing-fix
++++ a/include/trace/events/cma.h
+@@ -63,21 +63,24 @@ TRACE_EVENT(cma_release,
  
- 	for_each_node(nid) {
- 		pn = memcg->nodeinfo[nid];
--		info = shrinker_info_protected(memcg, nid);
-+		info = rcu_dereference_protected(pn->shrinker_info, true);
- 		kvfree(info);
- 		rcu_assign_pointer(pn->shrinker_info, NULL);
- 	}
+ TRACE_EVENT(cma_alloc_start,
+ 
+-	TP_PROTO(unsigned int count, unsigned int align),
++	TP_PROTO(const char *name, unsigned int count, unsigned int align),
+ 
+-	TP_ARGS(count, align),
++	TP_ARGS(name, count, align),
+ 
+ 	TP_STRUCT__entry(
++		__string(name, name)
+ 		__field(unsigned int, count)
+ 		__field(unsigned int, align)
+ 	),
+ 
+ 	TP_fast_assign(
++		__assign_str(name, name);
+ 		__entry->count = count;
+ 		__entry->align = align;
+ 	),
+ 
+-	TP_printk("count=%u align=%u",
++	TP_printk("name=%s count=%u align=%u",
++		  __get_str(name),
+ 		  __entry->count,
+ 		  __entry->align)
+ );
+--- a/mm/cma.c~mm-cma-add-trace-events-for-cma-alloc-perf-testing-fix
++++ a/mm/cma.c
+@@ -443,7 +443,7 @@ struct page *cma_alloc(struct cma *cma,
+ 	if (!count)
+ 		goto out;
+ 
+-	trace_cma_alloc_start(count, align);
++	trace_cma_alloc_start(cma->name, count, align);
+ 
+ 	mask = cma_bitmap_aligned_mask(cma, align);
+ 	offset = cma_bitmap_aligned_offset(cma, align);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from georgi.djakov@linaro.org are
 
-mm-vmscan-add-shrinker_info_protected-helper.patch
-mm-drop-redundant-arch_enable__migration-fix.patch
-mm-drop-redundant-arch_enable__migration-fix-fix.patch
-mm.patch
-kernel-resource-allow-region_intersects-users-to-hold-resource_lock-fix.patch
-linux-next-rejects.patch
-cifsd-is-broken.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-page_owner-record-the-timestamp-of-all-pages-during-free.patch
+mm-cma-add-trace-events-for-cma-alloc-perf-testing.patch
 
