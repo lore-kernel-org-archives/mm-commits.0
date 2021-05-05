@@ -5,30 +5,30 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC3A7C433B4
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB87DC43460
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 901EC61428
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D2A3861422
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232033AbhEEBjl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 21:39:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42886 "EHLO mail.kernel.org"
+        id S232036AbhEEBjn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 21:39:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231440AbhEEBjk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 21:39:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B19F1610A1;
-        Wed,  5 May 2021 01:38:42 +0000 (UTC)
+        id S231440AbhEEBjm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 21:39:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 712F761182;
+        Wed,  5 May 2021 01:38:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620178723;
-        bh=49hbTOzL9Hd6mB4cRIxZJM2ydCd9FAJqMdKKM6aYOH8=;
+        s=korg; t=1620178727;
+        bh=O6G8jMzh61gEiDKFjaQBXyHq2EengRwa5NShtXsEdsk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=bfhMYd4YAEI4YvYYj8JakuOrglS2aNfIPQzMP+henhrQ/tmR83oLIwt8dssQIvjUp
-         /Ueh9zsWKSihPKS2Jqpbe8WjMXnxJJX6Dc2RBCHJeZEZ/1PsWysG02RozskUEGIKfm
-         4A9mWhbzZW9j3mzr7NBCZL/BYmRpv2kNNHUuEBm8=
-Date:   Tue, 04 May 2021 18:38:42 -0700
+        b=xQBTzbnUrcNSAntRp6mfnrZ2J5xcORorUfRNftGG4zBG1ReaE/XqpHGEXS35RNYdX
+         sh+9Xb0qPDeeEx2IaYaZmcMebjoxysG9ySWJEQ/7XImGPwNfbwb0+IrL/f0NvAjvOg
+         T0UmZOwUzlhQ7vsNkggJnOQV6S+9lSkKHiRGZWsU=
+Date:   Tue, 04 May 2021 18:38:46 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
         david@redhat.com, iamjoonsoo.kim@lge.com, ira.weiny@intel.com,
@@ -40,9 +40,9 @@ To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
         rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
         torvalds@linux-foundation.org, tyhicks@linux.microsoft.com,
         vbabka@suse.cz, willy@infradead.org
-Subject:  [patch 111/143] mm/gup: check every subpage of a compound
- page during isolation
-Message-ID: <20210505013842.bA5AgeZ-Y%akpm@linux-foundation.org>
+Subject:  [patch 112/143] mm/gup: return an error on migration
+ failure
+Message-ID: <20210505013846.4yrwf55ju%akpm@linux-foundation.org>
 In-Reply-To: <20210504183219.a3cc46aee4013d77402276c5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -51,29 +51,19 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: mm/gup: check every subpage of a compound page during isolation
+Subject: mm/gup: return an error on migration failure
 
-When pages are isolated in check_and_migrate_movable_pages() we skip
-compound number of pages at a time.  However, as Jason noted, it is not
-necessary correct that pages[i] corresponds to the pages that we skipped. 
-This is because it is possible that the addresses in this range had
-split_huge_pmd()/split_huge_pud(), and these functions do not update the
-compound page metadata.
+When migration failure occurs, we still pin pages, which means
+that we may pin CMA movable pages which should never be the case.
 
-The problem can be reproduced if something like this occurs:
+Instead return an error without pinning pages when migration failure
+happens.
 
-1. User faulted huge pages.
-2. split_huge_pmd() was called for some reason
-3. User has unmapped some sub-pages in the range
-4. User tries to longterm pin the addresses.
+No need to retry migrating, because migrate_pages() already retries
+10 times.
 
-The resulting pages[i] might end-up having pages which are not compound
-size page aligned.
-
-Link: https://lkml.kernel.org/r/20210215161349.246722-3-pasha.tatashin@soleen.com
-Fixes: aa712399c1e8 ("mm/gup: speed up check_and_migrate_cma_pages() on huge page")
+Link: https://lkml.kernel.org/r/20210215161349.246722-4-pasha.tatashin@soleen.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reported-by: Jason Gunthorpe <jgg@nvidia.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -98,52 +88,50 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ mm/gup.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
---- a/mm/gup.c~mm-gup-check-every-subpage-of-a-compound-page-during-isolation
+--- a/mm/gup.c~mm-gup-return-an-error-on-migration-failure
 +++ a/mm/gup.c
-@@ -1609,26 +1609,23 @@ static long check_and_migrate_cma_pages(
- 					unsigned int gup_flags)
+@@ -1610,7 +1610,6 @@ static long check_and_migrate_cma_pages(
  {
  	unsigned long i;
--	unsigned long step;
  	bool drain_allow = true;
- 	bool migrate_allow = true;
+-	bool migrate_allow = true;
  	LIST_HEAD(cma_page_list);
  	long ret = nr_pages;
-+	struct page *prev_head, *head;
- 	struct migration_target_control mtc = {
- 		.nid = NUMA_NO_NODE,
- 		.gfp_mask = GFP_USER | __GFP_NOWARN,
- 	};
+ 	struct page *prev_head, *head;
+@@ -1661,17 +1660,15 @@ check_again:
+ 			for (i = 0; i < nr_pages; i++)
+ 				put_page(pages[i]);
  
- check_again:
--	for (i = 0; i < nr_pages;) {
+-		if (migrate_pages(&cma_page_list, alloc_migration_target, NULL,
+-			(unsigned long)&mtc, MIGRATE_SYNC, MR_CONTIG_RANGE)) {
+-			/*
+-			 * some of the pages failed migration. Do get_user_pages
+-			 * without migration.
+-			 */
+-			migrate_allow = false;
 -
--		struct page *head = compound_head(pages[i]);
--
--		/*
--		 * gup may start from a tail page. Advance step by the left
--		 * part.
--		 */
--		step = compound_nr(head) - (pages[i] - head);
-+	prev_head = NULL;
-+	for (i = 0; i < nr_pages; i++) {
-+		head = compound_head(pages[i]);
-+		if (head == prev_head)
-+			continue;
-+		prev_head = head;
- 		/*
- 		 * If we get a page from the CMA zone, since we are going to
- 		 * be pinning these entries, we might as well move them out
-@@ -1652,8 +1649,6 @@ check_again:
- 				}
- 			}
++		ret = migrate_pages(&cma_page_list, alloc_migration_target,
++				    NULL, (unsigned long)&mtc, MIGRATE_SYNC,
++				    MR_CONTIG_RANGE);
++		if (ret) {
+ 			if (!list_empty(&cma_page_list))
+ 				putback_movable_pages(&cma_page_list);
++			return ret > 0 ? -ENOMEM : ret;
  		}
--
--		i += step;
- 	}
++
+ 		/*
+ 		 * We did migrate all the pages, Try to get the page references
+ 		 * again migrating any new CMA pages which we failed to isolate
+@@ -1681,7 +1678,7 @@ check_again:
+ 						   pages, vmas, NULL,
+ 						   gup_flags);
  
- 	if (!list_empty(&cma_page_list)) {
+-		if ((ret > 0) && migrate_allow) {
++		if (ret > 0) {
+ 			nr_pages = ret;
+ 			drain_allow = true;
+ 			goto check_again;
 _
