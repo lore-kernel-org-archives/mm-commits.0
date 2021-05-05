@@ -5,37 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B371C433B4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67E5CC433ED
 	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:40:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC56261426
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:40:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B31A61423
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:40:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232222AbhEEBlP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 21:41:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44814 "EHLO mail.kernel.org"
+        id S231869AbhEEBlQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 21:41:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44854 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232200AbhEEBlL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 21:41:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1A05161423;
-        Wed,  5 May 2021 01:40:16 +0000 (UTC)
+        id S232221AbhEEBlP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 21:41:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 06E7F611AB;
+        Wed,  5 May 2021 01:40:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620178816;
-        bh=RwYenkykS+k7VbAmzczu6oh7V8zOWUjR93fdJvDhvJM=;
+        s=korg; t=1620178819;
+        bh=D8bIDYN9Fs8tVciGy1zIl5xoQRfryhpx1Jly6UY+7JQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Hk0DUHBp910sh/mCHkuuDht/BkPXiWodxZ3FBhTTroppZxIQoKO4xA5MKzMurdbMo
-         aLrLBm99kzr8aAN4T/CJFLLFviMLmwPoC26D+uaWwdr+7dPM/Tg2LU2ExNkoyA1yi4
-         0YMDblWNG1KssrMVQXFkUv7rhwwM/+7I+wfjDSHQ=
-Date:   Tue, 04 May 2021 18:40:15 -0700
+        b=LFAtMAmThl79kY6Edn5mqulS9N5eLSCygSNLi+6miqBDWEh52fvHZfr3nhgfHSKdx
+         KKrzZcE0DALXUp6vOF2lGcDKXRqP6pKzNRsnGlpQIRyi9kxMtjhcXGgchoo9D/ON4k
+         0EEmMTEC1TWth2O/tXMhHgmSCrlTE7tp2vGygakg=
+Date:   Tue, 04 May 2021 18:40:18 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        zhang.yunkai@zte.com.cn
-Subject:  [patch 139/143] mm/process_vm_access.c: remove duplicate
- include
-Message-ID: <20210505014015.jvfymrW5Y%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        dvyukov@google.com, elver@google.com, glider@google.com,
+        jannh@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 140/143] kfence: zero guard page after
+ out-of-bounds access
+Message-ID: <20210505014018.iniqSBnhX%akpm@linux-foundation.org>
 In-Reply-To: <20210504183219.a3cc46aee4013d77402276c5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,27 +44,34 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Zhang Yunkai <zhang.yunkai@zte.com.cn>
-Subject: mm/process_vm_access.c: remove duplicate include
+From: Marco Elver <elver@google.com>
+Subject: kfence: zero guard page after out-of-bounds access
 
-'linux/compat.h' included in 'process_vm_access.c' is duplicated.
+After an out-of-bounds accesses, zero the guard page before re-protecting
+in kfence_guarded_free().  On one hand this helps make the failure mode of
+subsequent out-of-bounds accesses more deterministic, but could also
+prevent certain information leaks.
 
-Link: https://lkml.kernel.org/r/20210306132122.220431-1-zhang.yunkai@zte.com.cn
-Signed-off-by: Zhang Yunkai <zhang.yunkai@zte.com.cn>
+Link: https://lkml.kernel.org/r/20210312121653.348518-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/process_vm_access.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/kfence/core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/process_vm_access.c~mm-process_vm_access-remove-duplicate-include
-+++ a/mm/process_vm_access.c
-@@ -9,7 +9,6 @@
- #include <linux/mm.h>
- #include <linux/uio.h>
- #include <linux/sched.h>
--#include <linux/compat.h>
- #include <linux/sched/mm.h>
- #include <linux/highmem.h>
- #include <linux/ptrace.h>
+--- a/mm/kfence/core.c~kfence-zero-guard-page-after-out-of-bounds-access
++++ a/mm/kfence/core.c
+@@ -372,6 +372,7 @@ static void kfence_guarded_free(void *ad
+ 
+ 	/* Restore page protection if there was an OOB access. */
+ 	if (meta->unprotected_page) {
++		memzero_explicit((void *)ALIGN_DOWN(meta->unprotected_page, PAGE_SIZE), PAGE_SIZE);
+ 		kfence_protect(meta->unprotected_page);
+ 		meta->unprotected_page = 0;
+ 	}
 _
