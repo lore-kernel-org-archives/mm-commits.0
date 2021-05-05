@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2536BC433B4
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A71CDC433B4
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0CAC861423
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B50661422
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229985AbhEEBjr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 21:39:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43046 "EHLO mail.kernel.org"
+        id S231925AbhEEBjv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 21:39:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43124 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232037AbhEEBjq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 21:39:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3D4B2611AB;
-        Wed,  5 May 2021 01:38:50 +0000 (UTC)
+        id S231440AbhEEBjv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 21:39:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F26A861421;
+        Wed,  5 May 2021 01:38:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620178731;
-        bh=9qVAdEEvFErkvOHzlR9kGYyZgcKYpN/8gYGGuf+ar3w=;
+        s=korg; t=1620178734;
+        bh=+8PEG3/iyCZIHX9E3mMDU4E/84Hn60H2h6cL793kRUY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=XuW2ZuUZJz3JtDPU7itlu0jnWGC4WdqjogH9Ds0sj3OavtpgZehzUaQKiQY2c+qUs
-         UhKrKrvbK4AYYnSdBLw7s3effZeQumlancUnHxMnvOgYOW0ZuRt50xHMVY2qN2Yf6D
-         HiXfQofR5sH0FML4C0ubg9kSjQTzrT69l9ncKuQo=
-Date:   Tue, 04 May 2021 18:38:49 -0700
+        b=gt6aRA+6skptqkSwZ8oiAmL68A8I6rL5OE4Eg8ptQnaruz3T8EeCElUVqvr9TFQj5
+         TKj41xzJJirqcvFka+VIp0iy5pIVQXGO0W+M+2Iec5iEVl2UnMpOZpi+duaU3IkxFS
+         ezQTb571CfXdq5jbyxRUkn/xPvqguT5SeYBoxuB0=
+Date:   Tue, 04 May 2021 18:38:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
         david@redhat.com, iamjoonsoo.kim@lge.com, ira.weiny@intel.com,
@@ -37,11 +37,12 @@ To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
         mhocko@kernel.org, mhocko@suse.com, mike.kravetz@oracle.com,
         mingo@redhat.com, mm-commits@vger.kernel.org, osalvador@suse.de,
         pasha.tatashin@soleen.com, peterz@infradead.org,
-        rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
-        torvalds@linux-foundation.org, tyhicks@linux.microsoft.com,
-        vbabka@suse.cz, willy@infradead.org
-Subject:  [patch 113/143] mm/gup: check for isolation errors
-Message-ID: <20210505013849.4q8mUwl2D%akpm@linux-foundation.org>
+        rientjes@google.com, rostedt@goodmis.org, rppt@linux.ibm.com,
+        sashal@kernel.org, torvalds@linux-foundation.org,
+        tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
+Subject:  [patch 114/143] mm cma: rename PF_MEMALLOC_NOCMA to
+ PF_MEMALLOC_PIN
+Message-ID: <20210505013853.LfEayPo_h%akpm@linux-foundation.org>
 In-Reply-To: <20210504183219.a3cc46aee4013d77402276c5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -50,33 +51,43 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: mm/gup: check for isolation errors
+Subject: mm cma: rename PF_MEMALLOC_NOCMA to PF_MEMALLOC_PIN
 
-It is still possible that we pin movable CMA pages if there are isolation
-errors and cma_page_list stays empty when we check again.
+PF_MEMALLOC_NOCMA is used ot guarantee that the allocator will not return
+pages that might belong to CMA region.  This is currently used for long
+term gup to make sure that such pins are not going to be done on any CMA
+pages.
 
-Check for isolation errors, and return success only when there are no
-isolation errors, and cma_page_list is empty after checking.
+When PF_MEMALLOC_NOCMA has been introduced we haven't realized that it is
+focusing on CMA pages too much and that there is larger class of pages
+that need the same treatment.  MOVABLE zone cannot contain any long term
+pins as well so it makes sense to reuse and redefine this flag for that
+usecase as well.  Rename the flag to PF_MEMALLOC_PIN which defines an
+allocation context which can only get pages suitable for long-term pins.
 
-Because isolation errors are transient, we retry indefinitely.
+Also rename: memalloc_nocma_save()/memalloc_nocma_restore to
+memalloc_pin_save()/memalloc_pin_restore() and make the new functions
+common.
 
-Link: https://lkml.kernel.org/r/20210215161349.246722-5-pasha.tatashin@soleen.com
-Fixes: 9a4e9f3b2d73 ("mm: update get_user_pages_longterm to migrate pages allocated from CMA region")
+[rppt@linux.ibm.com: fix renaming of PF_MEMALLOC_NOCMA to PF_MEMALLOC_PIN]
+  Link: https://lkml.kernel.org/r/20210331163816.11517-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210215161349.246722-6-pasha.tatashin@soleen.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: James Morris <jmorris@namei.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -87,109 +98,108 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   60 ++++++++++++++++++++++++++++++-----------------------
- 1 file changed, 34 insertions(+), 26 deletions(-)
+ include/linux/sched.h    |    2 +-
+ include/linux/sched/mm.h |   21 +++++----------------
+ mm/gup.c                 |    4 ++--
+ mm/hugetlb.c             |    4 ++--
+ mm/page_alloc.c          |    4 ++--
+ 5 files changed, 12 insertions(+), 23 deletions(-)
 
---- a/mm/gup.c~mm-gup-check-for-isolation-errors
-+++ a/mm/gup.c
-@@ -1608,8 +1608,8 @@ static long check_and_migrate_cma_pages(
- 					struct vm_area_struct **vmas,
- 					unsigned int gup_flags)
- {
--	unsigned long i;
--	bool drain_allow = true;
-+	unsigned long i, isolation_error_count;
-+	bool drain_allow;
- 	LIST_HEAD(cma_page_list);
- 	long ret = nr_pages;
- 	struct page *prev_head, *head;
-@@ -1620,6 +1620,8 @@ static long check_and_migrate_cma_pages(
+--- a/include/linux/sched.h~mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin
++++ a/include/linux/sched.h
+@@ -1583,7 +1583,7 @@ extern struct pid *cad_pid;
+ #define PF_SWAPWRITE		0x00800000	/* Allowed to write to swap */
+ #define PF_NO_SETAFFINITY	0x04000000	/* Userland is not allowed to meddle with cpus_mask */
+ #define PF_MCE_EARLY		0x08000000      /* Early kill for mce process policy */
+-#define PF_MEMALLOC_NOCMA	0x10000000	/* All allocation request will have _GFP_MOVABLE cleared */
++#define PF_MEMALLOC_PIN		0x10000000	/* Allocation context constrained to zones which allow long term pinning. */
+ #define PF_FREEZER_SKIP		0x40000000	/* Freezer should not count it as freezable */
+ #define PF_SUSPEND_TASK		0x80000000      /* This thread called freeze_processes() and should not be frozen */
  
- check_again:
- 	prev_head = NULL;
-+	isolation_error_count = 0;
-+	drain_allow = true;
- 	for (i = 0; i < nr_pages; i++) {
- 		head = compound_head(pages[i]);
- 		if (head == prev_head)
-@@ -1631,25 +1633,35 @@ check_again:
- 		 * of the CMA zone if possible.
- 		 */
- 		if (is_migrate_cma_page(head)) {
--			if (PageHuge(head))
--				isolate_huge_page(head, &cma_page_list);
--			else {
-+			if (PageHuge(head)) {
-+				if (!isolate_huge_page(head, &cma_page_list))
-+					isolation_error_count++;
-+			} else {
- 				if (!PageLRU(head) && drain_allow) {
- 					lru_add_drain_all();
- 					drain_allow = false;
- 				}
- 
--				if (!isolate_lru_page(head)) {
--					list_add_tail(&head->lru, &cma_page_list);
--					mod_node_page_state(page_pgdat(head),
--							    NR_ISOLATED_ANON +
--							    page_is_file_lru(head),
--							    thp_nr_pages(head));
-+				if (isolate_lru_page(head)) {
-+					isolation_error_count++;
-+					continue;
- 				}
-+				list_add_tail(&head->lru, &cma_page_list);
-+				mod_node_page_state(page_pgdat(head),
-+						    NR_ISOLATED_ANON +
-+						    page_is_file_lru(head),
-+						    thp_nr_pages(head));
- 			}
- 		}
- 	}
- 
-+	/*
-+	 * If list is empty, and no isolation errors, means that all pages are
-+	 * in the correct zone.
-+	 */
-+	if (list_empty(&cma_page_list) && !isolation_error_count)
-+		return ret;
-+
- 	if (!list_empty(&cma_page_list)) {
- 		/*
- 		 * drop the above get_user_pages reference.
-@@ -1669,23 +1681,19 @@ check_again:
- 			return ret > 0 ? -ENOMEM : ret;
- 		}
- 
--		/*
--		 * We did migrate all the pages, Try to get the page references
--		 * again migrating any new CMA pages which we failed to isolate
--		 * earlier.
--		 */
--		ret = __get_user_pages_locked(mm, start, nr_pages,
--						   pages, vmas, NULL,
--						   gup_flags);
--
--		if (ret > 0) {
--			nr_pages = ret;
--			drain_allow = true;
--			goto check_again;
--		}
-+		/* We unpinned pages before migration, pin them again */
-+		ret = __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
-+					      NULL, gup_flags);
-+		if (ret <= 0)
-+			return ret;
-+		nr_pages = ret;
- 	}
- 
--	return ret;
-+	/*
-+	 * check again because pages were unpinned, and we also might have
-+	 * had isolation errors and need more pages to migrate.
-+	 */
-+	goto check_again;
+--- a/include/linux/sched/mm.h~mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin
++++ a/include/linux/sched/mm.h
+@@ -271,29 +271,18 @@ static inline void memalloc_noreclaim_re
+ 	current->flags = (current->flags & ~PF_MEMALLOC) | flags;
  }
- #else
- static long check_and_migrate_cma_pages(struct mm_struct *mm,
+ 
+-#ifdef CONFIG_CMA
+-static inline unsigned int memalloc_nocma_save(void)
++static inline unsigned int memalloc_pin_save(void)
+ {
+-	unsigned int flags = current->flags & PF_MEMALLOC_NOCMA;
++	unsigned int flags = current->flags & PF_MEMALLOC_PIN;
+ 
+-	current->flags |= PF_MEMALLOC_NOCMA;
++	current->flags |= PF_MEMALLOC_PIN;
+ 	return flags;
+ }
+ 
+-static inline void memalloc_nocma_restore(unsigned int flags)
++static inline void memalloc_pin_restore(unsigned int flags)
+ {
+-	current->flags = (current->flags & ~PF_MEMALLOC_NOCMA) | flags;
++	current->flags = (current->flags & ~PF_MEMALLOC_PIN) | flags;
+ }
+-#else
+-static inline unsigned int memalloc_nocma_save(void)
+-{
+-	return 0;
+-}
+-
+-static inline void memalloc_nocma_restore(unsigned int flags)
+-{
+-}
+-#endif
+ 
+ #ifdef CONFIG_MEMCG
+ DECLARE_PER_CPU(struct mem_cgroup *, int_active_memcg);
+--- a/mm/gup.c~mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin
++++ a/mm/gup.c
+@@ -1722,7 +1722,7 @@ static long __gup_longterm_locked(struct
+ 	long rc;
+ 
+ 	if (gup_flags & FOLL_LONGTERM)
+-		flags = memalloc_nocma_save();
++		flags = memalloc_pin_save();
+ 
+ 	rc = __get_user_pages_locked(mm, start, nr_pages, pages, vmas, NULL,
+ 				     gup_flags);
+@@ -1731,7 +1731,7 @@ static long __gup_longterm_locked(struct
+ 		if (rc > 0)
+ 			rc = check_and_migrate_cma_pages(mm, start, rc, pages,
+ 							 vmas, gup_flags);
+-		memalloc_nocma_restore(flags);
++		memalloc_pin_restore(flags);
+ 	}
+ 	return rc;
+ }
+--- a/mm/hugetlb.c~mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin
++++ a/mm/hugetlb.c
+@@ -1079,11 +1079,11 @@ static void enqueue_huge_page(struct hst
+ static struct page *dequeue_huge_page_node_exact(struct hstate *h, int nid)
+ {
+ 	struct page *page;
+-	bool nocma = !!(current->flags & PF_MEMALLOC_NOCMA);
++	bool pin = !!(current->flags & PF_MEMALLOC_PIN);
+ 
+ 	lockdep_assert_held(&hugetlb_lock);
+ 	list_for_each_entry(page, &h->hugepage_freelists[nid], lru) {
+-		if (nocma && is_migrate_cma_page(page))
++		if (pin && is_migrate_cma_page(page))
+ 			continue;
+ 
+ 		if (PageHWPoison(page))
+--- a/mm/page_alloc.c~mm-cma-rename-pf_memalloc_nocma-to-pf_memalloc_pin
++++ a/mm/page_alloc.c
+@@ -3865,8 +3865,8 @@ static inline unsigned int current_alloc
+ #ifdef CONFIG_CMA
+ 	unsigned int pflags = current->flags;
+ 
+-	if (!(pflags & PF_MEMALLOC_NOCMA) &&
+-			gfp_migratetype(gfp_mask) == MIGRATE_MOVABLE)
++	if (!(pflags & PF_MEMALLOC_PIN) &&
++	    gfp_migratetype(gfp_mask) == MIGRATE_MOVABLE)
+ 		alloc_flags |= ALLOC_CMA;
+ 
+ #endif
 _
