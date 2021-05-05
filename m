@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10FDBC433B4
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:35:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F452C433ED
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:35:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EAF30613FE
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:35:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E5A1761408
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:35:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231827AbhEEBgM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 21:36:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39130 "EHLO mail.kernel.org"
+        id S231987AbhEEBgP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 21:36:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39182 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231204AbhEEBgL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 21:36:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 129E861408;
-        Wed,  5 May 2021 01:35:15 +0000 (UTC)
+        id S231204AbhEEBgO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 21:36:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1911A61402;
+        Wed,  5 May 2021 01:35:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620178515;
-        bh=TUTQ71uCsYaw1SlebNdkKW76+cVNl03PlTnewKvGaLc=;
+        s=korg; t=1620178518;
+        bh=poUZtuCTslq4UIP2OyZsKMg1x7rUdPLFJj066yWO2rY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=efNMqMpjAYcyfD1xkujJrfzAIUechyjhuzvJoCOW0+vX2QNDsOBOQShf/U4DFlqSn
-         Alyb/afTjILBNldgUj7DD+6T/odiUodC14HiAAlfmToq3+7NLTu23CgmtXK72Hxs/q
-         KFdEUjPq5RXSRIBFGIiH03G6bTEUCRMNmzC50vXk=
-Date:   Tue, 04 May 2021 18:35:14 -0700
+        b=m0vSXvZYs9cAqYJntiUuIZSoenf5Q5wJ+pNZS0tYioFn03sH/gIoqJNVvVLHVwOEs
+         +ZpUPY+iPw+lamfMHjFX7Qf8DlJ/2hhRiISMlfjZ/AiTfRf6Kb59bm3NUpMxk2Wz2l
+         A0Cs50YUfkh05IUz6EF4WZiWAOaimgLF7G08Khlg=
+Date:   Tue, 04 May 2021 18:35:17 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
         mhocko@suse.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, osalvador@suse.de,
         songmuchun@bytedance.com, torvalds@linux-foundation.org,
         vbabka@suse.cz
-Subject:  [patch 047/143] mm,page_alloc: bail out earlier on
- -ENOMEM in alloc_contig_migrate_range
-Message-ID: <20210505013514.78PU92gQ1%akpm@linux-foundation.org>
+Subject:  [patch 048/143] mm,compaction: let
+ isolate_migratepages_{range,block} return error codes
+Message-ID: <20210505013517.wafNpdOjs%akpm@linux-foundation.org>
 In-Reply-To: <20210504183219.a3cc46aee4013d77402276c5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,161 +46,223 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_alloc: bail out earlier on -ENOMEM in alloc_contig_migrate_range
+Subject: mm,compaction: let isolate_migratepages_{range,block} return error codes
 
-Patch series "Make alloc_contig_range handle Hugetlb pages", v10.
+Currently, isolate_migratepages_{range,block} and their callers use a pfn
+== 0 vs pfn != 0 scheme to let the caller know whether there was any error
+during isolation.
 
+This does not work as soon as we need to start reporting different error
+codes and make sure we pass them down the chain, so they are properly
+interpreted by functions like e.g: alloc_contig_range.
 
-alloc_contig_range lacks the ability to handle HugeTLB pages.  This can be
-problematic for some users, e.g: CMA and virtio-mem, where those users
-will fail the call if alloc_contig_range ever sees a HugeTLB page, even
-when those pages lay in ZONE_MOVABLE and are free.  That problem can be
-easily solved by replacing the page in the free hugepage pool.
+Let us rework isolate_migratepages_{range,block} so we can report error
+codes.  Since isolate_migratepages_block will stop returning the next pfn
+to be scanned, we reuse the cc->migrate_pfn field to keep track of that.
 
-In-use HugeTLB are no exception though, as those can be isolated and
-migrated as any other LRU or Movable page.
-
-This patchset aims for improving
-alloc_contig_range->isolate_migratepages_block, so HugeTLB pages can be
-recognized and handled.
-
-Since we also need to start reporting errors down the chain (e.g: -ENOMEM
-due to not be able to allocate a new hugetlb page),
-isolate_migratepages_{range,block} interfaces need to change to start
-reporting error codes instead of the pfn == 0 vs pfn != 0 scheme it is
-using right now.  From now on, isolate_migratepages_block will not return
-the next pfn to be scanned anymore, but -EINTR, -ENOMEM or 0, so we the
-next pfn to be scanned will be recorded in cc->migrate_pfn field (as it is
-already done in isolate_migratepages_range()).
-
-Below is an insight from David (thanks), where the problem can clearly be
-seen:
-
- "Start a VM with 4G. Hotplug 1G via virtio-mem and online it to
-  ZONE_MOVABLE. Allocate 512 huge pages.
-
-  [root@localhost ~]# cat /proc/meminfo
-  MemTotal:        5061512 kB
-  MemFree:         3319396 kB
-  MemAvailable:    3457144 kB
-  ...
-  HugePages_Total:     512
-  HugePages_Free:      512
-  HugePages_Rsvd:        0
-  HugePages_Surp:        0
-  Hugepagesize:       2048 kB
-
-  The huge pages get partially allocate from ZONE_MOVABLE. Try unplugging
-  1G via virtio-mem (remember, all ZONE_MOVABLE). Inside the guest:
-
-  [  180.058992] alloc_contig_range: [1b8000, 1c0000) PFNs busy
-  [  180.060531] alloc_contig_range: [1b8000, 1c0000) PFNs busy
-  [  180.061972] alloc_contig_range: [1b8000, 1c0000) PFNs busy
-  [  180.063413] alloc_contig_range: [1b8000, 1c0000) PFNs busy
-  [  180.064838] alloc_contig_range: [1b8000, 1c0000) PFNs busy
-  [  180.065848] alloc_contig_range: [1bfc00, 1c0000) PFNs busy
-  [  180.066794] alloc_contig_range: [1bfc00, 1c0000) PFNs busy
-  [  180.067738] alloc_contig_range: [1bfc00, 1c0000) PFNs busy
-  [  180.068669] alloc_contig_range: [1bfc00, 1c0000) PFNs busy
-  [  180.069598] alloc_contig_range: [1bfc00, 1c0000) PFNs busy"
-
-And then with this patchset running:
-
- "Same experiment with ZONE_MOVABLE:
-
-  a) Free huge pages: all memory can get unplugged again.
-
-  b) Allocated/populated but idle huge pages: all memory can get unplugged
-     again.
-
-  c) Allocated/populated but all 512 huge pages are read/written in a
-     loop: all memory can get unplugged again, but I get a single
-
-     [  121.192345] alloc_contig_range: [180000, 188000) PFNs busy
-
-     Most probably because it happened to try migrating a huge page
-     while it was busy.  As virtio-mem retries on ZONE_MOVABLE a couple of
-     times, it can deal with this temporary failure.
-
-  Last but not least, I did something extreme:
-
-  # cat /proc/meminfo
-  MemTotal:        5061568 kB
-  MemFree:          186560 kB
-  MemAvailable:     354524 kB
-  ...
-  HugePages_Total:    2048
-  HugePages_Free:     2048
-  HugePages_Rsvd:        0
-  HugePages_Surp:        0
-
-  Triggering unplug would require to dissolve+alloc - which now fails
-  when trying to allocate an additional ~512 huge pages (1G).
-
-  As expected, I can properly see memory unplug not fully succeeding.  +
-  I get a fairly continuous stream of
-
-  [  226.611584] alloc_contig_range: [19f400, 19f800) PFNs busy
-  ...
-
-  But more importantly, the hugepage count remains stable, as configured
-  by the admin (me):
-
-  HugePages_Total:    2048
-  HugePages_Free:     2048
-  HugePages_Rsvd:        0
-  HugePages_Surp:        0"
-
-
-This patch (of 7):
-
-Currently, __alloc_contig_migrate_range can generate -EINTR, -ENOMEM or
--EBUSY, and report them down the chain.  The problem is that when
-migrate_pages() reports -ENOMEM, we keep going till we exhaust all the
-try-attempts (5 at the moment) instead of bailing out.
-
-migrate_pages() bails out right away on -ENOMEM because it is considered a
-fatal error.  Do the same here instead of keep going and retrying.  Note
-that this is not fixing a real issue, just a cosmetic change.  Although we
-can save some cycles by backing off ealier
-
-Link: https://lkml.kernel.org/r/20210419075413.1064-1-osalvador@suse.de
-Link: https://lkml.kernel.org/r/20210419075413.1064-2-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20210419075413.1064-3-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/compaction.c |   52 ++++++++++++++++++++++------------------------
+ mm/internal.h   |   10 +++++++-
+ mm/page_alloc.c |    7 ++----
+ 3 files changed, 36 insertions(+), 33 deletions(-)
 
---- a/mm/page_alloc.c~mmpage_alloc-bail-out-earlier-on-enomem-in-alloc_contig_migrate_range
-+++ a/mm/page_alloc.c
-@@ -8696,7 +8696,7 @@ static int __alloc_contig_migrate_range(
+--- a/mm/compaction.c~mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes
++++ a/mm/compaction.c
+@@ -787,15 +787,14 @@ static bool too_many_isolated(pg_data_t
+  *
+  * Isolate all pages that can be migrated from the range specified by
+  * [low_pfn, end_pfn). The range is expected to be within same pageblock.
+- * Returns zero if there is a fatal signal pending, otherwise PFN of the
+- * first page that was not scanned (which may be both less, equal to or more
+- * than end_pfn).
++ * Returns errno, like -EAGAIN or -EINTR in case e.g signal pending or congestion,
++ * or 0.
++ * cc->migrate_pfn will contain the next pfn to scan.
+  *
+  * The pages are isolated on cc->migratepages list (not required to be empty),
+- * and cc->nr_migratepages is updated accordingly. The cc->migrate_pfn field
+- * is neither read nor updated.
++ * and cc->nr_migratepages is updated accordingly.
+  */
+-static unsigned long
++static int
+ isolate_migratepages_block(struct compact_control *cc, unsigned long low_pfn,
+ 			unsigned long end_pfn, isolate_mode_t isolate_mode)
+ {
+@@ -809,6 +808,9 @@ isolate_migratepages_block(struct compac
+ 	bool skip_on_failure = false;
+ 	unsigned long next_skip_pfn = 0;
+ 	bool skip_updated = false;
++	int ret = 0;
++
++	cc->migrate_pfn = low_pfn;
+ 
+ 	/*
+ 	 * Ensure that there are not too many pages isolated from the LRU
+@@ -818,16 +820,16 @@ isolate_migratepages_block(struct compac
+ 	while (unlikely(too_many_isolated(pgdat))) {
+ 		/* stop isolation if there are still pages not migrated */
+ 		if (cc->nr_migratepages)
+-			return 0;
++			return -EAGAIN;
+ 
+ 		/* async migration should just abort */
+ 		if (cc->mode == MIGRATE_ASYNC)
+-			return 0;
++			return -EAGAIN;
+ 
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 
+ 		if (fatal_signal_pending(current))
+-			return 0;
++			return -EINTR;
+ 	}
+ 
+ 	cond_resched();
+@@ -875,8 +877,8 @@ isolate_migratepages_block(struct compac
+ 
+ 			if (fatal_signal_pending(current)) {
+ 				cc->contended = true;
++				ret = -EINTR;
+ 
+-				low_pfn = 0;
+ 				goto fatal_pending;
  			}
- 			tries = 0;
- 		} else if (++tries == 5) {
--			ret = ret < 0 ? ret : -EBUSY;
-+			ret = -EBUSY;
+ 
+@@ -1130,7 +1132,9 @@ fatal_pending:
+ 	if (nr_isolated)
+ 		count_compact_events(COMPACTISOLATED, nr_isolated);
+ 
+-	return low_pfn;
++	cc->migrate_pfn = low_pfn;
++
++	return ret;
+ }
+ 
+ /**
+@@ -1139,15 +1143,14 @@ fatal_pending:
+  * @start_pfn: The first PFN to start isolating.
+  * @end_pfn:   The one-past-last PFN.
+  *
+- * Returns zero if isolation fails fatally due to e.g. pending signal.
+- * Otherwise, function returns one-past-the-last PFN of isolated page
+- * (which may be greater than end_pfn if end fell in a middle of a THP page).
++ * Returns -EAGAIN when contented, -EINTR in case of a signal pending or 0.
+  */
+-unsigned long
++int
+ isolate_migratepages_range(struct compact_control *cc, unsigned long start_pfn,
+ 							unsigned long end_pfn)
+ {
+ 	unsigned long pfn, block_start_pfn, block_end_pfn;
++	int ret = 0;
+ 
+ 	/* Scan block by block. First and last block may be incomplete */
+ 	pfn = start_pfn;
+@@ -1166,17 +1169,17 @@ isolate_migratepages_range(struct compac
+ 					block_end_pfn, cc->zone))
+ 			continue;
+ 
+-		pfn = isolate_migratepages_block(cc, pfn, block_end_pfn,
+-							ISOLATE_UNEVICTABLE);
++		ret = isolate_migratepages_block(cc, pfn, block_end_pfn,
++						 ISOLATE_UNEVICTABLE);
+ 
+-		if (!pfn)
++		if (ret)
  			break;
+ 
+ 		if (cc->nr_migratepages >= COMPACT_CLUSTER_MAX)
+ 			break;
+ 	}
+ 
+-	return pfn;
++	return ret;
+ }
+ 
+ #endif /* CONFIG_COMPACTION || CONFIG_CMA */
+@@ -1847,7 +1850,7 @@ static isolate_migrate_t isolate_migrate
+ 	 */
+ 	for (; block_end_pfn <= cc->free_pfn;
+ 			fast_find_block = false,
+-			low_pfn = block_end_pfn,
++			cc->migrate_pfn = low_pfn = block_end_pfn,
+ 			block_start_pfn = block_end_pfn,
+ 			block_end_pfn += pageblock_nr_pages) {
+ 
+@@ -1889,10 +1892,8 @@ static isolate_migrate_t isolate_migrate
  		}
  
-@@ -8706,6 +8706,13 @@ static int __alloc_contig_migrate_range(
+ 		/* Perform the isolation */
+-		low_pfn = isolate_migratepages_block(cc, low_pfn,
+-						block_end_pfn, isolate_mode);
+-
+-		if (!low_pfn)
++		if (isolate_migratepages_block(cc, low_pfn, block_end_pfn,
++						isolate_mode))
+ 			return ISOLATE_ABORT;
  
- 		ret = migrate_pages(&cc->migratepages, alloc_migration_target,
- 				NULL, (unsigned long)&mtc, cc->mode, MR_CONTIG_RANGE);
-+
-+		/*
-+		 * On -ENOMEM, migrate_pages() bails out right away. It is pointless
-+		 * to retry again over this error, so do the same here.
-+		 */
-+		if (ret == -ENOMEM)
-+			break;
+ 		/*
+@@ -1903,9 +1904,6 @@ static isolate_migrate_t isolate_migrate
+ 		break;
  	}
- 	if (ret < 0) {
- 		alloc_contig_dump_pages(&cc->migratepages);
+ 
+-	/* Record where migration scanner will be restarted. */
+-	cc->migrate_pfn = low_pfn;
+-
+ 	return cc->nr_migratepages ? ISOLATE_SUCCESS : ISOLATE_NONE;
+ }
+ 
+--- a/mm/internal.h~mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes
++++ a/mm/internal.h
+@@ -244,7 +244,13 @@ struct compact_control {
+ 	unsigned int nr_freepages;	/* Number of isolated free pages */
+ 	unsigned int nr_migratepages;	/* Number of pages to migrate */
+ 	unsigned long free_pfn;		/* isolate_freepages search base */
+-	unsigned long migrate_pfn;	/* isolate_migratepages search base */
++	/*
++	 * Acts as an in/out parameter to page isolation for migration.
++	 * isolate_migratepages uses it as a search base.
++	 * isolate_migratepages_block will update the value to the next pfn
++	 * after the last isolated one.
++	 */
++	unsigned long migrate_pfn;
+ 	unsigned long fast_start_pfn;	/* a pfn to start linear scan from */
+ 	struct zone *zone;
+ 	unsigned long total_migrate_scanned;
+@@ -280,7 +286,7 @@ struct capture_control {
+ unsigned long
+ isolate_freepages_range(struct compact_control *cc,
+ 			unsigned long start_pfn, unsigned long end_pfn);
+-unsigned long
++int
+ isolate_migratepages_range(struct compact_control *cc,
+ 			   unsigned long low_pfn, unsigned long end_pfn);
+ int find_suitable_fallback(struct free_area *area, unsigned int order,
+--- a/mm/page_alloc.c~mmcompaction-let-isolate_migratepages_rangeblock-return-error-codes
++++ a/mm/page_alloc.c
+@@ -8689,11 +8689,10 @@ static int __alloc_contig_migrate_range(
+ 
+ 		if (list_empty(&cc->migratepages)) {
+ 			cc->nr_migratepages = 0;
+-			pfn = isolate_migratepages_range(cc, pfn, end);
+-			if (!pfn) {
+-				ret = -EINTR;
++			ret = isolate_migratepages_range(cc, pfn, end);
++			if (ret && ret != -EAGAIN)
+ 				break;
+-			}
++			pfn = cc->migrate_pfn;
+ 			tries = 0;
+ 		} else if (++tries == 5) {
+ 			ret = -EBUSY;
 _
