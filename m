@@ -5,30 +5,30 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDA05C433B4
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E44B8C43460
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9DF6E61421
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C66F2611AB
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231684AbhEEBjP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 21:39:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42368 "EHLO mail.kernel.org"
+        id S231869AbhEEBjS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 21:39:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42466 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232201AbhEEBjO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 21:39:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E11AF61182;
-        Wed,  5 May 2021 01:38:17 +0000 (UTC)
+        id S232101AbhEEBjS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 21:39:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BFDFD61423;
+        Wed,  5 May 2021 01:38:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620178698;
-        bh=WqKNMU9hMcuZntzVkrYt4QPkqjMLz3/qYHvl39G1OTg=;
+        s=korg; t=1620178702;
+        bh=JIpHeiFVV+hjyT5gkzZnqftm2+14A2zkXI+hhLVYDZ8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Q6wxBtL2d8KrWUSL5bODgpa5HW3G/XBe0bWO12nse/sGqwBW9WH/dX4qhjTvG+EEU
-         NGrzpHFGg2QvV5PDrEh65i9BXKcFr0J1NZjZeiGQm0HU5gZ4QE10cPobucR/XfLxgc
-         W951Cqk+RoB6a1gnlX7tmApQz02Ca/+NlzdrmfkA=
-Date:   Tue, 04 May 2021 18:38:17 -0700
+        b=AE8YN9vx6fcl9bHjF/I8Kt7E7LiQLH9k3OfpKePtjy9tow+iOSWl852jR8+FrmtsP
+         8Az6oVX5F2pwaAbiT/fU1/Q/wHXiU9BUpK/RkChr3i4luGtIxqQ2ON70mF2Bze17PE
+         IZevfA5hMOMUqzlcfUFnb7fd5swYO7k6g594atDM=
+Date:   Tue, 04 May 2021 18:38:21 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
         aou@eecs.berkeley.edu, arnd@arndb.de, benh@kernel.crashing.org,
@@ -43,9 +43,9 @@ To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
         torvalds@linux-foundation.org, tsbogend@alpha.franken.de,
         vgupta@synopsys.com, viro@zeniv.linux.org.uk, will@kernel.org,
         ysato@users.sourceforge.jp
-Subject:  [patch 104/143] mm: generalize
- ARCH_ENABLE_MEMORY_[HOTPLUG|HOTREMOVE]
-Message-ID: <20210505013817.AaJrs6DQE%akpm@linux-foundation.org>
+Subject:  [patch 105/143] mm: drop redundant
+ ARCH_ENABLE_[HUGEPAGE|THP]_MIGRATION
+Message-ID: <20210505013821.9eAhYOAPV%akpm@linux-foundation.org>
 In-Reply-To: <20210504183219.a3cc46aee4013d77402276c5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,24 +54,20 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: generalize ARCH_ENABLE_MEMORY_[HOTPLUG|HOTREMOVE]
+Subject: mm: drop redundant ARCH_ENABLE_[HUGEPAGE|THP]_MIGRATION
 
-ARCH_ENABLE_MEMORY_[HOTPLUG|HOTREMOVE] configs have duplicate definitions
-on platforms that subscribe them.  Instead, just make them generic options
-which can be selected on applicable platforms.
+ARCH_ENABLE_[HUGEPAGE|THP]_MIGRATION configs have duplicate definitions on
+platforms that subscribe them.  Drop these reduntant definitions and
+instead just select them appropriately.
 
-Link: https://lkml.kernel.org/r/1617259448-22529-4-git-send-email-anshuman.khandual@arm.com
+[akpm@linux-foundation.org: s/x86_64/X86_64/, per Oscar]
+Link: https://lkml.kernel.org/r/1617259448-22529-5-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
-Acked-by: Heiko Carstens <hca@linux.ibm.com>		[s390]
 Cc: Will Deacon <will@kernel.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -79,196 +75,101 @@ Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Helge Deller <deller@gmx.de>
 Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
 Cc: Palmer Dabbelt <palmerdabbelt@google.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Rich Felker <dalias@libc.org>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig   |    8 ++------
- arch/ia64/Kconfig    |    8 ++------
- arch/powerpc/Kconfig |    8 ++------
- arch/s390/Kconfig    |    8 ++------
- arch/sh/Kconfig      |    2 ++
- arch/sh/mm/Kconfig   |    8 --------
- arch/x86/Kconfig     |   10 ++--------
- mm/Kconfig           |    6 ++++++
- 8 files changed, 18 insertions(+), 40 deletions(-)
+ arch/arm64/Kconfig                     |   10 ++--------
+ arch/powerpc/platforms/Kconfig.cputype |    5 +----
+ arch/x86/Kconfig                       |   10 ++--------
+ 3 files changed, 5 insertions(+), 20 deletions(-)
 
---- a/arch/arm64/Kconfig~mm-generalize-arch_enable_memory_
+--- a/arch/arm64/Kconfig~mm-drop-redundant-arch_enable__migration
 +++ a/arch/arm64/Kconfig
-@@ -11,6 +11,8 @@ config ARM64
+@@ -11,8 +11,10 @@ config ARM64
  	select ACPI_PPTT if ACPI
  	select ARCH_HAS_DEBUG_WX
  	select ARCH_BINFMT_ELF_STATE
-+	select ARCH_ENABLE_MEMORY_HOTPLUG
-+	select ARCH_ENABLE_MEMORY_HOTREMOVE
++	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
+ 	select ARCH_ENABLE_MEMORY_HOTPLUG
+ 	select ARCH_ENABLE_MEMORY_HOTREMOVE
++	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
  	select ARCH_HAS_CACHE_LINE_SIZE
  	select ARCH_HAS_DEBUG_VIRTUAL
  	select ARCH_HAS_DEBUG_VM_PGTABLE
-@@ -311,12 +313,6 @@ config ZONE_DMA32
- 	bool "Support DMA32 zone" if EXPERT
- 	default y
- 
--config ARCH_ENABLE_MEMORY_HOTPLUG
--	def_bool y
--
--config ARCH_ENABLE_MEMORY_HOTREMOVE
--	def_bool y
--
- config SMP
+@@ -1916,14 +1918,6 @@ config SYSVIPC_COMPAT
  	def_bool y
+ 	depends on COMPAT && SYSVIPC
  
---- a/arch/ia64/Kconfig~mm-generalize-arch_enable_memory_
-+++ a/arch/ia64/Kconfig
-@@ -13,6 +13,8 @@ config IA64
- 	select ARCH_MIGHT_HAVE_PC_SERIO
- 	select ACPI
- 	select ACPI_NUMA if NUMA
-+	select ARCH_ENABLE_MEMORY_HOTPLUG
-+	select ARCH_ENABLE_MEMORY_HOTREMOVE
- 	select ARCH_SUPPORTS_ACPI
- 	select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
- 	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
-@@ -246,12 +248,6 @@ config HOTPLUG_CPU
- 	  can be controlled through /sys/devices/system/cpu/cpu#.
- 	  Say N if you want to disable CPU hotplug.
+-config ARCH_ENABLE_HUGEPAGE_MIGRATION
+-	def_bool y
+-	depends on HUGETLB_PAGE && MIGRATION
+-
+-config ARCH_ENABLE_THP_MIGRATION
+-	def_bool y
+-	depends on TRANSPARENT_HUGEPAGE
+-
+ menu "Power management options"
  
--config ARCH_ENABLE_MEMORY_HOTPLUG
--	def_bool y
--
--config ARCH_ENABLE_MEMORY_HOTREMOVE
--	def_bool y
--
- config SCHED_SMT
- 	bool "SMT scheduler support"
- 	depends on SMP
---- a/arch/powerpc/Kconfig~mm-generalize-arch_enable_memory_
-+++ a/arch/powerpc/Kconfig
-@@ -118,6 +118,8 @@ config PPC
- 	# Please keep this list sorted alphabetically.
- 	#
- 	select ARCH_32BIT_OFF_T if PPC32
-+	select ARCH_ENABLE_MEMORY_HOTPLUG
-+	select ARCH_ENABLE_MEMORY_HOTREMOVE
- 	select ARCH_HAS_DEBUG_VIRTUAL
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_ELF_RANDOMIZE
-@@ -512,12 +514,6 @@ config ARCH_CPU_PROBE_RELEASE
- 	def_bool y
- 	depends on HOTPLUG_CPU
- 
--config ARCH_ENABLE_MEMORY_HOTPLUG
--	def_bool y
--
--config ARCH_ENABLE_MEMORY_HOTREMOVE
--	def_bool y
--
- config PPC64_SUPPORTS_MEMORY_FAILURE
- 	bool "Add support for memory hwpoison"
+ source "kernel/power/Kconfig"
+--- a/arch/powerpc/platforms/Kconfig.cputype~mm-drop-redundant-arch_enable__migration
++++ a/arch/powerpc/platforms/Kconfig.cputype
+@@ -96,6 +96,7 @@ config PPC_BOOK3S_64
+ 	select PPC_FPU
+ 	select PPC_HAVE_PMU_SUPPORT
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
++	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
+ 	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
+ 	select ARCH_SUPPORTS_HUGETLBFS
+ 	select ARCH_SUPPORTS_NUMA_BALANCING
+@@ -420,10 +421,6 @@ config PPC_PKEY
  	depends on PPC_BOOK3S_64
---- a/arch/s390/Kconfig~mm-generalize-arch_enable_memory_
-+++ a/arch/s390/Kconfig
-@@ -60,6 +60,8 @@ config S390
- 	imply IMA_SECURE_AND_OR_TRUSTED_BOOT
- 	select ARCH_32BIT_USTAT_F_TINODE
- 	select ARCH_BINFMT_ELF_STATE
-+	select ARCH_ENABLE_MEMORY_HOTPLUG if SPARSEMEM
-+	select ARCH_ENABLE_MEMORY_HOTREMOVE
- 	select ARCH_HAS_DEBUG_VM_PGTABLE
- 	select ARCH_HAS_DEBUG_WX
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
-@@ -626,12 +628,6 @@ config ARCH_SPARSEMEM_ENABLE
- config ARCH_SPARSEMEM_DEFAULT
- 	def_bool y
+ 	depends on PPC_MEM_KEYS || PPC_KUAP || PPC_KUEP
  
--config ARCH_ENABLE_MEMORY_HOTPLUG
--	def_bool y if SPARSEMEM
--
--config ARCH_ENABLE_MEMORY_HOTREMOVE
+-config ARCH_ENABLE_HUGEPAGE_MIGRATION
 -	def_bool y
+-	depends on PPC_BOOK3S_64 && HUGETLB_PAGE && MIGRATION
 -
- config ARCH_ENABLE_SPLIT_PMD_PTLOCK
- 	def_bool y
  
---- a/arch/sh/Kconfig~mm-generalize-arch_enable_memory_
-+++ a/arch/sh/Kconfig
-@@ -2,6 +2,8 @@
- config SUPERH
+ config PPC_MMU_NOHASH
  	def_bool y
- 	select ARCH_32BIT_OFF_T
-+	select ARCH_ENABLE_MEMORY_HOTPLUG if SPARSEMEM && MMU
-+	select ARCH_ENABLE_MEMORY_HOTREMOVE if SPARSEMEM && MMU
- 	select ARCH_HAVE_CUSTOM_GPIO_H
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG if (GUSA_RB || CPU_SH4A)
- 	select ARCH_HAS_BINFMT_FLAT if !MMU
---- a/arch/sh/mm/Kconfig~mm-generalize-arch_enable_memory_
-+++ a/arch/sh/mm/Kconfig
-@@ -136,14 +136,6 @@ config ARCH_SPARSEMEM_DEFAULT
- config ARCH_SELECT_MEMORY_MODEL
- 	def_bool y
- 
--config ARCH_ENABLE_MEMORY_HOTPLUG
--	def_bool y
--	depends on SPARSEMEM && MMU
--
--config ARCH_ENABLE_MEMORY_HOTREMOVE
--	def_bool y
--	depends on SPARSEMEM && MMU
--
- config ARCH_MEMORY_PROBE
- 	def_bool y
- 	depends on MEMORY_HOTPLUG
---- a/arch/x86/Kconfig~mm-generalize-arch_enable_memory_
+--- a/arch/x86/Kconfig~mm-drop-redundant-arch_enable__migration
 +++ a/arch/x86/Kconfig
-@@ -60,6 +60,8 @@ config X86
+@@ -60,8 +60,10 @@ config X86
  	select ACPI_SYSTEM_POWER_STATES_SUPPORT	if ACPI
  	select ARCH_32BIT_OFF_T			if X86_32
  	select ARCH_CLOCKSOURCE_INIT
-+	select ARCH_ENABLE_MEMORY_HOTPLUG if X86_64 || (X86_32 && HIGHMEM)
-+	select ARCH_ENABLE_MEMORY_HOTREMOVE if MEMORY_HOTPLUG
++	select ARCH_ENABLE_HUGEPAGE_MIGRATION if X86_64 && HUGETLB_PAGE && MIGRATION
+ 	select ARCH_ENABLE_MEMORY_HOTPLUG if X86_64 || (X86_32 && HIGHMEM)
+ 	select ARCH_ENABLE_MEMORY_HOTREMOVE if MEMORY_HOTPLUG
++	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
  	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
  	select ARCH_HAS_CACHE_LINE_SIZE
  	select ARCH_HAS_DEBUG_VIRTUAL
-@@ -2427,14 +2429,6 @@ config ARCH_HAS_ADD_PAGES
+@@ -2437,14 +2439,6 @@ config ARCH_ENABLE_SPLIT_PMD_PTLOCK
  	def_bool y
- 	depends on X86_64 && ARCH_ENABLE_MEMORY_HOTPLUG
+ 	depends on X86_64 || X86_PAE
  
--config ARCH_ENABLE_MEMORY_HOTPLUG
+-config ARCH_ENABLE_HUGEPAGE_MIGRATION
 -	def_bool y
--	depends on X86_64 || (X86_32 && HIGHMEM)
+-	depends on X86_64 && HUGETLB_PAGE && MIGRATION
 -
--config ARCH_ENABLE_MEMORY_HOTREMOVE
+-config ARCH_ENABLE_THP_MIGRATION
 -	def_bool y
--	depends on MEMORY_HOTPLUG
+-	depends on X86_64 && TRANSPARENT_HUGEPAGE
 -
- config USE_PERCPU_NUMA_NODE_ID
- 	def_bool y
- 	depends on NUMA
---- a/mm/Kconfig~mm-generalize-arch_enable_memory_
-+++ a/mm/Kconfig
-@@ -148,6 +148,9 @@ config MEMORY_ISOLATION
- config HAVE_BOOTMEM_INFO_NODE
- 	def_bool n
+ menu "Power management and ACPI options"
  
-+config ARCH_ENABLE_MEMORY_HOTPLUG
-+	bool
-+
- # eventually, we can have this option just 'select SPARSEMEM'
- config MEMORY_HOTPLUG
- 	bool "Allow for memory hot-add"
-@@ -176,6 +179,9 @@ config MEMORY_HOTPLUG_DEFAULT_ONLINE
- 	  Say N here if you want the default policy to keep all hot-plugged
- 	  memory blocks in 'offline' state.
- 
-+config ARCH_ENABLE_MEMORY_HOTREMOVE
-+	bool
-+
- config MEMORY_HOTREMOVE
- 	bool "Allow for memory hot remove"
- 	select HAVE_BOOTMEM_INFO_NODE if (X86_64 || PPC64)
+ config ARCH_HIBERNATION_HEADER
 _
