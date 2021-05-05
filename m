@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85035C433B4
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 00:55:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4275C433B4
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 00:56:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 59FA3613CD
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 00:55:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ABCD861168
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 00:56:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231408AbhEEA4S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 20:56:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40702 "EHLO mail.kernel.org"
+        id S229586AbhEEA5O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 20:57:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41320 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229586AbhEEA4R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 20:56:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DF313613CB;
-        Wed,  5 May 2021 00:55:21 +0000 (UTC)
+        id S230328AbhEEA5O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 20:57:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 76CA6613BA;
+        Wed,  5 May 2021 00:56:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620176122;
-        bh=Vu0bzqcvlqKSP6WZkzrHRS2q/l3r2nzMPAx7ot2Glp0=;
+        s=korg; t=1620176177;
+        bh=+lbi85RpEeK80J5F9yM6/sZy3jVyyp7qqafalrrWZBs=;
         h=Date:From:To:Subject:From;
-        b=zT2UXlFdQfCQmimUpoM2cz7yW/dfh50Y1g9X9hNN/Jh83/9fdrCaARhYQBYq8eVut
-         ACzrMgwIxeo3KDFpZx77eCV63Q6EVyKpkHr4C6x6GLW7LBX3+C3vfpP+aqJwkP+Wg1
-         Y+zxmLLgZE0fo0ZkKGrJI9QRpvmPXDEQk7DzBxGw=
-Date:   Tue, 04 May 2021 17:55:21 -0700
+        b=dFcKZ7YvclvvJZYyGSM9yMmwtL/gIvwQh68gk0DGuJ7FXmvKhTmtY3FBaETCy7fuH
+         JdOElq8/++83JHVe86trYTtIKI3Hm5sGZcScO+rrvc/0pI62I4/WJeEjtBMflMXM4Z
+         Z6hwaRJ79NHlncgY6DRt78xswecw7MsVRZCUog7w=
+Date:   Tue, 04 May 2021 17:56:15 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, axelrasmussen@google.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        peterx@redhat.com, rppt@linux.vnet.ibm.com
+To:     akpm@linux-foundation.org, david@fromorbit.com, guro@fb.com,
+        hannes@cmpxchg.org, hughd@google.com, ktkhai@virtuozzo.com,
+        mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com,
+        shy828301@gmail.com, vbabka@suse.cz
 Subject:  [folded-merged]
- userfaultfd-add-minor-fault-registration-mode-fix.patch removed from -mm
+ mm-vmscan-add-shrinker_info_protected-helper-fix.patch removed from -mm
  tree
-Message-ID: <20210505005521.SYDfuHP4H%akpm@linux-foundation.org>
+Message-ID: <20210505005615.Oo7rfEXnK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,54 +46,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/hugetlbfs: fix minor fault page leak
+     Subject: mm-vmscan-add-shrinker_info_protected-helper-fix
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-add-minor-fault-registration-mode-fix.patch
+     mm-vmscan-add-shrinker_info_protected-helper-fix.patch
 
-This patch was dropped because it was folded into userfaultfd-add-minor-fault-registration-mode.patch
+This patch was dropped because it was folded into mm-vmscan-add-shrinker_info_protected-helper.patch
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: userfaultfd/hugetlbfs: fix minor fault page leak
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vmscan-add-shrinker_info_protected-helper-fix
 
-When uffd-minor enabled, we need to put the page cache before handling the
-userfault in hugetlb_no_page(), otherwise the page refcount got leaked.
+retain rcu_dereference_protected() in free_shrinker_info(), per Hugh
 
-This can be reproduced by running userfaultfd selftest with hugetlb_shared
-mode, then cat /proc/meminfo.
-
-Link: https://lkml.kernel.org/r/20210322175132.36659-1-peterx@redhat.com
-Fixes: f2bf15fb0969 ("userfaultfd: add minor fault registration mode")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~userfaultfd-add-minor-fault-registration-mode-fix
-+++ a/mm/hugetlb.c
-@@ -4609,6 +4609,7 @@ retry:
- 		/* Check for page in userfault range. */
- 		if (userfaultfd_minor(vma)) {
- 			unlock_page(page);
-+			put_page(page);
- 			ret = hugetlb_handle_userfault(vma, mapping, idx,
- 						       flags, haddr,
- 						       VM_UFFD_MINOR);
+--- a/mm/vmscan.c~mm-vmscan-add-shrinker_info_protected-helper-fix
++++ a/mm/vmscan.c
+@@ -239,7 +239,7 @@ void free_shrinker_info(struct mem_cgrou
+ 
+ 	for_each_node(nid) {
+ 		pn = memcg->nodeinfo[nid];
+-		info = shrinker_info_protected(memcg, nid);
++		info = rcu_dereference_protected(pn->shrinker_info, true);
+ 		kvfree(info);
+ 		rcu_assign_pointer(pn->shrinker_info, NULL);
+ 	}
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hugetlb-pass-vma-into-huge_pte_alloc-and-huge_pmd_share.patch
-hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
-mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
-hugetlb-userfaultfd-unshare-all-pmds-for-hugetlbfs-when-register-wp.patch
-userfaultfd-add-minor-fault-registration-mode.patch
-mm-hugetlb-fix-f_seal_future_write.patch
-mm-hugetlb-fix-cow-where-page-writtable-in-child.patch
+mm-vmscan-add-shrinker_info_protected-helper.patch
+mm-drop-redundant-arch_enable__migration-fix.patch
+mm-drop-redundant-arch_enable__migration-fix-fix.patch
+mm.patch
+kernel-resource-allow-region_intersects-users-to-hold-resource_lock-fix.patch
+linux-next-rejects.patch
+cifsd-is-broken.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
