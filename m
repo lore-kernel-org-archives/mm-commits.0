@@ -7,38 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4374C43460
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:36:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC296C433ED
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:36:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8939261423
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:36:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A60EE6141F
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:36:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231993AbhEEBhB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 21:37:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39966 "EHLO mail.kernel.org"
+        id S231995AbhEEBhE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 21:37:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40024 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230361AbhEEBhB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 21:37:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0C09B6141F;
-        Wed,  5 May 2021 01:36:05 +0000 (UTC)
+        id S230361AbhEEBhE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 21:37:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8411261413;
+        Wed,  5 May 2021 01:36:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620178565;
-        bh=WQF6XW3YFUQ+oI1QsGX17OjgGz3z1AgbYg7/W89lL4w=;
+        s=korg; t=1620178568;
+        bh=4oGczEGWUDZJvr9Qk0Qd6jdguKbSi3E1MNpJ458mWwU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=yxDWP3LkE/CzCDimD6zFl5OUcsD+zknMcmteQWQhKOqp/gEiCdqwHMzhyrGLO8Sjv
-         dZXBzxyMiNvrEzGwgNtWMxo5+g7u+ccHhmOLShSuo5q1ZS2XvfT0nU3Tc4gdEEwDaz
-         Kxu2MMNsS08ihnfzlitrDZ81VgPVC+Jp+Ub4pfsI=
-Date:   Tue, 04 May 2021 18:36:04 -0700
+        b=UU6EQLE2KMBjpPKt5WA0urveoZmYAzHjhRa6sYxCIIf5Hn8r61aPgZ3kY8Q4Ulz/d
+         27ZGAMUQGg942suVKCrJWEJetniU/8ISgrvLGGlzk0yWWVqODnLgzn9LS/WRuUGgr7
+         l8K9i1j5Q4RLpDlPQ1Nq3cqbgnArj5BgisW25yXE=
+Date:   Tue, 04 May 2021 18:36:08 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
-        ben.widawsky@intel.com, cai@lca.pw, cl@linux.com,
-        dan.j.williams@intel.com, dave.hansen@linux.intel.com,
-        dwagner@suse.de, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        osalvador@suse.de, rientjes@google.com, tobin@kernel.org,
-        torvalds@linux-foundation.org, ying.huang@intel.com
-Subject:  [patch 061/143] mm/vmscan: replace implicit RECLAIM_ZONE
- checks with explicit checks
-Message-ID: <20210505013604.yKOCIK--1%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@fromorbit.com, guro@fb.com,
+        hannes@cmpxchg.org, ktkhai@virtuozzo.com, linux-mm@kvack.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com,
+        shy828301@gmail.com, torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 062/143] mm: vmscan: use nid from shrink_control
+ for tracepoint
+Message-ID: <20210505013608.vieUB4sdl%akpm@linux-foundation.org>
 In-Reply-To: <20210504183219.a3cc46aee4013d77402276c5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,86 +44,171 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm/vmscan: replace implicit RECLAIM_ZONE checks with explicit checks
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: vmscan: use nid from shrink_control for tracepoint
 
-RECLAIM_ZONE was assumed to be unused because it was never explicitly used
-in the kernel.  However, there were a number of places where it was
-checked implicitly by checking 'node_reclaim_mode' for a zero value.
+Patch series "Make shrinker's nr_deferred memcg aware", v10.
 
-These zero checks are not great because it is not obvious what a zero mode
-*means* in the code.  Replace them with a helper which makes it more
-obvious: node_reclaim_enabled().
+Recently huge amount one-off slab drop was seen on some vfs metadata heavy
+workloads, it turned out there were huge amount accumulated nr_deferred
+objects seen by the shrinker.
 
-This helper also provides a handy place to explicitly check the
-RECLAIM_ZONE bit itself.  Check it explicitly there to make it more
-obvious where the bit can affect behavior.
+On our production machine, I saw absurd number of nr_deferred shown as the
+below tracing result: 
 
-This should have no functional impact.
+<...>-48776 [032] .... 27970562.458916: mm_shrink_slab_start:
+super_cache_scan+0x0/0x1a0 ffff9a83046f3458: nid: 0 objects to shrink
+2531805877005 gfp_flags GFP_HIGHUSER_MOVABLE pgs_scanned 32 lru_pgs
+9300 cache items 1667 delta 11 total_scan 833
 
-Link: https://lkml.kernel.org/r/20210219172559.BF589C44@viggo.jf.intel.com
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: "Tobin C. Harding" <tobin@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Daniel Wagner <dwagner@suse.de>
+There are 2.5 trillion deferred objects on one node, assuming all of them
+are dentry (192 bytes per object), so the total size of deferred on one
+node is ~480TB.  It is definitely ridiculous.
+
+I managed to reproduce this problem with kernel build workload plus
+negative dentry generator.
+
+First step, run the below kernel build test script:
+
+NR_CPUS=`cat /proc/cpuinfo | grep -e processor | wc -l`
+
+cd /root/Buildarea/linux-stable
+
+for i in `seq 1500`; do
+        cgcreate -g memory:kern_build
+        echo 4G > /sys/fs/cgroup/memory/kern_build/memory.limit_in_bytes
+
+        echo 3 > /proc/sys/vm/drop_caches
+        cgexec -g memory:kern_build make clean > /dev/null 2>&1
+        cgexec -g memory:kern_build make -j$NR_CPUS > /dev/null 2>&1
+
+        cgdelete -g memory:kern_build
+done
+
+Then run the below negative dentry generator script:
+
+NR_CPUS=`cat /proc/cpuinfo | grep -e processor | wc -l`
+
+mkdir /sys/fs/cgroup/memory/test
+echo $$ > /sys/fs/cgroup/memory/test/tasks
+
+for i in `seq $NR_CPUS`; do
+        while true; do
+                FILE=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64`
+                cat $FILE 2>/dev/null
+        done &
+done
+
+Then kswapd will shrink half of dentry cache in just one loop as the below
+tracing result showed:
+
+	kswapd0-475   [028] .... 305968.252561: mm_shrink_slab_start: super_cache_scan+0x0/0x190 0000000024acf00c: nid: 0
+objects to shrink 4994376020 gfp_flags GFP_KERNEL cache items 93689873 delta 45746 total_scan 46844936 priority 12
+	kswapd0-475   [021] .... 306013.099399: mm_shrink_slab_end: super_cache_scan+0x0/0x190 0000000024acf00c: nid: 0 unused
+scan count 4994376020 new scan count 4947576838 total_scan 8 last shrinker return val 46844928
+
+There were huge number of deferred objects before the shrinker was called,
+the behavior does match the code but it might be not desirable from the
+user's stand of point.
+
+The excessive amount of nr_deferred might be accumulated due to various
+reasons, for example:
+
+* GFP_NOFS allocation
+
+* Significant times of small amount scan (< scan_batch, 1024 for vfs
+  metadata)
+
+However the LRUs of slabs are per memcg (memcg-aware shrinkers) but the
+deferred objects is per shrinker, this may have some bad effects:
+
+* Poor isolation among memcgs.  Some memcgs which happen to have
+  frequent limit reclaim may get nr_deferred accumulated to a huge number,
+  then other innocent memcgs may take the fall.  In our case the main
+  workload was hit.
+
+* Unbounded deferred objects.  There is no cap for deferred objects, it
+  can outgrow ridiculously as the tracing result showed.
+
+* Easy to get out of control.  Although shrinkers take into account
+  deferred objects, but it can go out of control easily.  One
+  misconfigured memcg could incur absurd amount of deferred objects in a
+  period of time.
+
+* Sort of reclaim problems, i.e.  over reclaim, long reclaim latency,
+  etc.  There may be hundred GB slab caches for vfe metadata heavy
+  workload, shrink half of them may take minutes.  We observed latency
+  spike due to the prolonged reclaim.
+
+These issues also have been discussed in
+https://lore.kernel.org/linux-mm/20200916185823.5347-1-shy828301@gmail.com/.
+The patchset is the outcome of that discussion.
+
+So this patchset makes nr_deferred per-memcg to tackle the problem.  It
+does:
+
+* Have memcg_shrinker_deferred per memcg per node, just like what
+  shrinker_map does.  Instead it is an atomic_long_t array, each element
+  represent one shrinker even though the shrinker is not memcg aware, this
+  simplifies the implementation.  For memcg aware shrinkers, the deferred
+  objects are just accumulated to its own memcg.  The shrinkers just see
+  nr_deferred from its own memcg.  Non memcg aware shrinkers still use
+  global nr_deferred from struct shrinker.
+
+* Once the memcg is offlined, its nr_deferred will be reparented to its
+  parent along with LRUs.
+
+* The root memcg has memcg_shrinker_deferred array too.  It simplifies
+  the handling of reparenting to root memcg.
+
+* Cap nr_deferred to 2x of the length of lru.  The idea is borrowed from
+  Dave Chinner's series
+  (https://lore.kernel.org/linux-xfs/20191031234618.15403-1-david@fromorbit.com/)
+
+The downside is each memcg has to allocate extra memory to store the
+nr_deferred array.  On our production environment, there are typically
+around 40 shrinkers, so each memcg needs ~320 bytes.  10K memcgs would
+need ~3.2MB memory.  It seems fine.
+
+We have been running the patched kernel on some hosts of our fleet (test
+and production) for months, it works very well.  The monitor data shows
+the working set is sustained as expected.
+
+
+This patch (of 13):
+
+The tracepoint's nid should show what node the shrink happens on, the
+start tracepoint uses nid from shrinkctl, but the nid might be set to 0
+before end tracepoint if the shrinker is not NUMA aware, so the tracing
+log may show the shrink happens on one node but end up on the other node. 
+It seems confusing.  And the following patch will remove using nid
+directly in do_shrink_slab(), this patch also helps cleanup the code.
+
+Link: https://lkml.kernel.org/r/20210311190845.9708-1-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20210311190845.9708-2-shy828301@gmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Kirill Tkhai <ktkhai@virtuozzo.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    7 +++++++
- mm/khugepaged.c      |    2 +-
- mm/page_alloc.c      |    2 +-
- 3 files changed, 9 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/swap.h~mm-vmscan-replace-implicit-reclaim_zone-checks-with-explicit-checks
-+++ a/include/linux/swap.h
-@@ -12,6 +12,7 @@
- #include <linux/fs.h>
- #include <linux/atomic.h>
- #include <linux/page-flags.h>
-+#include <uapi/linux/mempolicy.h>
- #include <asm/page.h>
+--- a/mm/vmscan.c~mm-vmscan-use-nid-from-shrink_control-for-tracepoint
++++ a/mm/vmscan.c
+@@ -536,7 +536,7 @@ static unsigned long do_shrink_slab(stru
+ 	else
+ 		new_nr = atomic_long_read(&shrinker->nr_deferred[nid]);
  
- struct notifier_block;
-@@ -378,6 +379,12 @@ extern int sysctl_min_slab_ratio;
- #define node_reclaim_mode 0
- #endif
- 
-+static inline bool node_reclaim_enabled(void)
-+{
-+	/* Is any node_reclaim_mode bit set? */
-+	return node_reclaim_mode & (RECLAIM_ZONE|RECLAIM_WRITE|RECLAIM_UNMAP);
-+}
-+
- extern void check_move_unevictable_pages(struct pagevec *pvec);
- 
- extern int kswapd_run(int nid);
---- a/mm/khugepaged.c~mm-vmscan-replace-implicit-reclaim_zone-checks-with-explicit-checks
-+++ a/mm/khugepaged.c
-@@ -809,7 +809,7 @@ static bool khugepaged_scan_abort(int ni
- 	 * If node_reclaim_mode is disabled, then no extra effort is made to
- 	 * allocate memory locally.
- 	 */
--	if (!node_reclaim_mode)
-+	if (!node_reclaim_enabled())
- 		return false;
- 
- 	/* If there is a count for this node already, it must be acceptable */
---- a/mm/page_alloc.c~mm-vmscan-replace-implicit-reclaim_zone-checks-with-explicit-checks
-+++ a/mm/page_alloc.c
-@@ -3968,7 +3968,7 @@ retry:
- 			if (alloc_flags & ALLOC_NO_WATERMARKS)
- 				goto try_this_zone;
- 
--			if (node_reclaim_mode == 0 ||
-+			if (!node_reclaim_enabled() ||
- 			    !zone_allows_reclaim(ac->preferred_zoneref->zone, zone))
- 				continue;
+-	trace_mm_shrink_slab_end(shrinker, nid, freed, nr, new_nr, total_scan);
++	trace_mm_shrink_slab_end(shrinker, shrinkctl->nid, freed, nr, new_nr, total_scan);
+ 	return freed;
+ }
  
 _
