@@ -5,38 +5,46 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E7C4C43461
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8214CC43460
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F9C361421
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65D8A61423
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231548AbhEEBjD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 21:39:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42014 "EHLO mail.kernel.org"
+        id S232154AbhEEBjI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 21:39:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42128 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231132AbhEEBjC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 21:39:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EA53261029;
-        Wed,  5 May 2021 01:38:06 +0000 (UTC)
+        id S232098AbhEEBjH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 21:39:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3646261029;
+        Wed,  5 May 2021 01:38:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620178687;
-        bh=FzK/MsFcenfF5vrhlbhCv5kC0CfOqe/6rgPo9J3LFag=;
+        s=korg; t=1620178691;
+        bh=mH25f1dYEAJYj18anfbWEGfUVbYHXf+sg6WwoOmxRlM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=STSOBTDy72HVH3TcHyLCJg8E3Z9NV7kBWdAvzkxnWcjSSbK07fxCupMq4t8wF8Gnb
-         J3Nv4GG0DiW/+Qnlgk21HFJBrmqVx0tvDBumKNz+Yl5MLz4gUkhTTw7hWqTNMN9mcp
-         9twg6pmunCBOICBSxEHcP+eKoazekovbfcMdQSpM=
-Date:   Tue, 04 May 2021 18:38:06 -0700
+        b=xQlMKo/T7SSPLRNx0+YDyVagD4NKeZBKeXA4m7N40BMNVf0ZC39h+42pBuF1qlDa6
+         hLKDPKY0C+R8pyTN2RnI7FPJTJCLprGxFnhX076iNXdFX5PIqBVu+op7NVUonvkkb6
+         hYtec1OfM/3INZt9o0eFICEooqmBwbd47ZaHiu0E=
+Date:   Tue, 04 May 2021 18:38:09 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, hughd@google.com,
-        Liam.Howlett@Oracle.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        willy@infradead.org
-Subject:  [patch 101/143] mm/mmap.c: don't unlock VMAs in
- remap_file_pages()
-Message-ID: <20210505013806.k_t9jKakt%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
+        aou@eecs.berkeley.edu, arnd@arndb.de, benh@kernel.crashing.org,
+        borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com,
+        dalias@libc.org, deller@gmx.de, gor@linux.ibm.com,
+        hca@linux.ibm.com, hpa@zytor.com,
+        James.Bottomley@HansenPartnership.com, linux-mm@kvack.org,
+        linux@armlinux.org.uk, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        palmerdabbelt@google.com, paul.walmsley@sifive.com,
+        paulus@samba.org, tglx@linutronix.de,
+        torvalds@linux-foundation.org, tsbogend@alpha.franken.de,
+        vgupta@synopsys.com, viro@zeniv.linux.org.uk, will@kernel.org,
+        ysato@users.sourceforge.jp
+Subject:  [patch 102/143] mm: generalize ARCH_HAS_CACHE_LINE_SIZE
+Message-ID: <20210505013809.rjHdQkSaU%akpm@linux-foundation.org>
 In-Reply-To: <20210504183219.a3cc46aee4013d77402276c5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,51 +52,129 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mm/mmap.c: don't unlock VMAs in remap_file_pages()
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm: generalize ARCH_HAS_CACHE_LINE_SIZE
 
-Since this call uses MAP_FIXED, do_mmap() will munlock the necessary
-range.  There is also an error in the loop test expression which will
-evaluate as false and the loop body has never execute.
+Patch series "mm: some config cleanups", v2.
 
-Link: https://lkml.kernel.org/r/20210223235010.2296915-1-Liam.Howlett@Oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+This series contains config cleanup patches which reduces code duplication
+across platforms and also improves maintainability. There is no functional
+change intended with this series.
+
+
+This patch (of 6):
+
+ARCH_HAS_CACHE_LINE_SIZE config has duplicate definitions on platforms
+that subscribe it.  Instead, just make it a generic option which can be
+selected on applicable platforms.  This change reduces code duplication
+and makes it cleaner.
+
+Link: https://lkml.kernel.org/r/1617259448-22529-1-git-send-email-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/1617259448-22529-2-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
+Acked-by: Vineet Gupta <vgupta@synopsys.com>		[arc]
+Cc: Will Deacon <will@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Palmer Dabbelt <palmerdabbelt@google.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   18 +-----------------
- 1 file changed, 1 insertion(+), 17 deletions(-)
+ arch/arc/Kconfig   |    4 +---
+ arch/arm64/Kconfig |    4 +---
+ arch/x86/Kconfig   |    4 +---
+ mm/Kconfig         |    3 +++
+ 4 files changed, 6 insertions(+), 9 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-dont-unlock-vmas-in-remap_file_pages
-+++ a/mm/mmap.c
-@@ -3029,25 +3029,9 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+--- a/arch/arc/Kconfig~mm-generalize-arch_has_cache_line_size
++++ a/arch/arc/Kconfig
+@@ -6,6 +6,7 @@
+ config ARC
+ 	def_bool y
+ 	select ARC_TIMERS
++	select ARCH_HAS_CACHE_LINE_SIZE
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE
+ 	select ARCH_HAS_DMA_PREP_COHERENT
+ 	select ARCH_HAS_PTE_SPECIAL
+@@ -48,9 +49,6 @@ config ARC
+ 	select HAVE_ARCH_JUMP_LABEL if ISA_ARCV2 && !CPU_ENDIAN_BE32
+ 	select SET_FS
  
- 	flags &= MAP_NONBLOCK;
- 	flags |= MAP_SHARED | MAP_FIXED | MAP_POPULATE;
--	if (vma->vm_flags & VM_LOCKED) {
--		struct vm_area_struct *tmp;
-+	if (vma->vm_flags & VM_LOCKED)
- 		flags |= MAP_LOCKED;
+-config ARCH_HAS_CACHE_LINE_SIZE
+-	def_bool y
+-
+ config TRACE_IRQFLAGS_SUPPORT
+ 	def_bool y
  
--		/* drop PG_Mlocked flag for over-mapped range */
--		for (tmp = vma; tmp->vm_start >= start + size;
--				tmp = tmp->vm_next) {
--			/*
--			 * Split pmd and munlock page on the border
--			 * of the range.
--			 */
--			vma_adjust_trans_huge(tmp, start, start + size, 0);
+--- a/arch/arm64/Kconfig~mm-generalize-arch_has_cache_line_size
++++ a/arch/arm64/Kconfig
+@@ -11,6 +11,7 @@ config ARM64
+ 	select ACPI_PPTT if ACPI
+ 	select ARCH_HAS_DEBUG_WX
+ 	select ARCH_BINFMT_ELF_STATE
++	select ARCH_HAS_CACHE_LINE_SIZE
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE
+ 	select ARCH_HAS_DMA_PREP_COHERENT
+@@ -1074,9 +1075,6 @@ config HW_PERF_EVENTS
+ config SYS_SUPPORTS_HUGETLBFS
+ 	def_bool y
+ 
+-config ARCH_HAS_CACHE_LINE_SIZE
+-	def_bool y
 -
--			munlock_vma_pages_range(tmp,
--					max(tmp->vm_start, start),
--					min(tmp->vm_end, start + size));
--		}
--	}
+ config ARCH_HAS_FILTER_PGPROT
+ 	def_bool y
+ 
+--- a/arch/x86/Kconfig~mm-generalize-arch_has_cache_line_size
++++ a/arch/x86/Kconfig
+@@ -61,6 +61,7 @@ config X86
+ 	select ARCH_32BIT_OFF_T			if X86_32
+ 	select ARCH_CLOCKSOURCE_INIT
+ 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
++	select ARCH_HAS_CACHE_LINE_SIZE
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE	if !X86_PAE
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+@@ -316,9 +317,6 @@ config GENERIC_CALIBRATE_DELAY
+ config ARCH_HAS_CPU_RELAX
+ 	def_bool y
+ 
+-config ARCH_HAS_CACHE_LINE_SIZE
+-	def_bool y
 -
- 	file = get_file(vma->vm_file);
- 	ret = do_mmap(vma->vm_file, start, size,
- 			prot, flags, pgoff, &populate, NULL);
+ config ARCH_HAS_FILTER_PGPROT
+ 	def_bool y
+ 
+--- a/mm/Kconfig~mm-generalize-arch_has_cache_line_size
++++ a/mm/Kconfig
+@@ -772,6 +772,9 @@ config IDLE_PAGE_TRACKING
+ 	  See Documentation/admin-guide/mm/idle_page_tracking.rst for
+ 	  more details.
+ 
++config ARCH_HAS_CACHE_LINE_SIZE
++	bool
++
+ config ARCH_HAS_PTE_DEVMAP
+ 	bool
+ 
 _
