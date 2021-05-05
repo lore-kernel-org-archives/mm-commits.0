@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8214CC43460
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDA05C433B4
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65D8A61423
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9DF6E61421
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232154AbhEEBjI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 21:39:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42128 "EHLO mail.kernel.org"
+        id S231684AbhEEBjP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 21:39:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42368 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232098AbhEEBjH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 21:39:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3646261029;
-        Wed,  5 May 2021 01:38:10 +0000 (UTC)
+        id S232201AbhEEBjO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 21:39:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E11AF61182;
+        Wed,  5 May 2021 01:38:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620178691;
-        bh=mH25f1dYEAJYj18anfbWEGfUVbYHXf+sg6WwoOmxRlM=;
+        s=korg; t=1620178698;
+        bh=WqKNMU9hMcuZntzVkrYt4QPkqjMLz3/qYHvl39G1OTg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=xQlMKo/T7SSPLRNx0+YDyVagD4NKeZBKeXA4m7N40BMNVf0ZC39h+42pBuF1qlDa6
-         hLKDPKY0C+R8pyTN2RnI7FPJTJCLprGxFnhX076iNXdFX5PIqBVu+op7NVUonvkkb6
-         hYtec1OfM/3INZt9o0eFICEooqmBwbd47ZaHiu0E=
-Date:   Tue, 04 May 2021 18:38:09 -0700
+        b=Q6wxBtL2d8KrWUSL5bODgpa5HW3G/XBe0bWO12nse/sGqwBW9WH/dX4qhjTvG+EEU
+         NGrzpHFGg2QvV5PDrEh65i9BXKcFr0J1NZjZeiGQm0HU5gZ4QE10cPobucR/XfLxgc
+         W951Cqk+RoB6a1gnlX7tmApQz02Ca/+NlzdrmfkA=
+Date:   Tue, 04 May 2021 18:38:17 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
         aou@eecs.berkeley.edu, arnd@arndb.de, benh@kernel.crashing.org,
@@ -43,8 +43,9 @@ To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
         torvalds@linux-foundation.org, tsbogend@alpha.franken.de,
         vgupta@synopsys.com, viro@zeniv.linux.org.uk, will@kernel.org,
         ysato@users.sourceforge.jp
-Subject:  [patch 102/143] mm: generalize ARCH_HAS_CACHE_LINE_SIZE
-Message-ID: <20210505013809.rjHdQkSaU%akpm@linux-foundation.org>
+Subject:  [patch 104/143] mm: generalize
+ ARCH_ENABLE_MEMORY_[HOTPLUG|HOTREMOVE]
+Message-ID: <20210505013817.AaJrs6DQE%akpm@linux-foundation.org>
 In-Reply-To: <20210504183219.a3cc46aee4013d77402276c5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,128 +54,221 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: generalize ARCH_HAS_CACHE_LINE_SIZE
+Subject: mm: generalize ARCH_ENABLE_MEMORY_[HOTPLUG|HOTREMOVE]
 
-Patch series "mm: some config cleanups", v2.
+ARCH_ENABLE_MEMORY_[HOTPLUG|HOTREMOVE] configs have duplicate definitions
+on platforms that subscribe them.  Instead, just make them generic options
+which can be selected on applicable platforms.
 
-This series contains config cleanup patches which reduces code duplication
-across platforms and also improves maintainability. There is no functional
-change intended with this series.
-
-
-This patch (of 6):
-
-ARCH_HAS_CACHE_LINE_SIZE config has duplicate definitions on platforms
-that subscribe it.  Instead, just make it a generic option which can be
-selected on applicable platforms.  This change reduces code duplication
-and makes it cleaner.
-
-Link: https://lkml.kernel.org/r/1617259448-22529-1-git-send-email-anshuman.khandual@arm.com
-Link: https://lkml.kernel.org/r/1617259448-22529-2-git-send-email-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/1617259448-22529-4-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
-Acked-by: Vineet Gupta <vgupta@synopsys.com>		[arc]
+Acked-by: Heiko Carstens <hca@linux.ibm.com>		[s390]
 Cc: Will Deacon <will@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Borislav Petkov <bp@alien8.de>
 Cc: Helge Deller <deller@gmx.de>
 Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Palmer Dabbelt <palmerdabbelt@google.com>
-Cc: Paul Mackerras <paulus@samba.org>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Rich Felker <dalias@libc.org>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Vineet Gupta <vgupta@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/Kconfig   |    4 +---
- arch/arm64/Kconfig |    4 +---
- arch/x86/Kconfig   |    4 +---
- mm/Kconfig         |    3 +++
- 4 files changed, 6 insertions(+), 9 deletions(-)
+ arch/arm64/Kconfig   |    8 ++------
+ arch/ia64/Kconfig    |    8 ++------
+ arch/powerpc/Kconfig |    8 ++------
+ arch/s390/Kconfig    |    8 ++------
+ arch/sh/Kconfig      |    2 ++
+ arch/sh/mm/Kconfig   |    8 --------
+ arch/x86/Kconfig     |   10 ++--------
+ mm/Kconfig           |    6 ++++++
+ 8 files changed, 18 insertions(+), 40 deletions(-)
 
---- a/arch/arc/Kconfig~mm-generalize-arch_has_cache_line_size
-+++ a/arch/arc/Kconfig
-@@ -6,6 +6,7 @@
- config ARC
- 	def_bool y
- 	select ARC_TIMERS
-+	select ARCH_HAS_CACHE_LINE_SIZE
- 	select ARCH_HAS_DEBUG_VM_PGTABLE
- 	select ARCH_HAS_DMA_PREP_COHERENT
- 	select ARCH_HAS_PTE_SPECIAL
-@@ -48,9 +49,6 @@ config ARC
- 	select HAVE_ARCH_JUMP_LABEL if ISA_ARCV2 && !CPU_ENDIAN_BE32
- 	select SET_FS
- 
--config ARCH_HAS_CACHE_LINE_SIZE
--	def_bool y
--
- config TRACE_IRQFLAGS_SUPPORT
- 	def_bool y
- 
---- a/arch/arm64/Kconfig~mm-generalize-arch_has_cache_line_size
+--- a/arch/arm64/Kconfig~mm-generalize-arch_enable_memory_
 +++ a/arch/arm64/Kconfig
-@@ -11,6 +11,7 @@ config ARM64
+@@ -11,6 +11,8 @@ config ARM64
  	select ACPI_PPTT if ACPI
  	select ARCH_HAS_DEBUG_WX
  	select ARCH_BINFMT_ELF_STATE
-+	select ARCH_HAS_CACHE_LINE_SIZE
++	select ARCH_ENABLE_MEMORY_HOTPLUG
++	select ARCH_ENABLE_MEMORY_HOTREMOVE
+ 	select ARCH_HAS_CACHE_LINE_SIZE
  	select ARCH_HAS_DEBUG_VIRTUAL
  	select ARCH_HAS_DEBUG_VM_PGTABLE
- 	select ARCH_HAS_DMA_PREP_COHERENT
-@@ -1074,9 +1075,6 @@ config HW_PERF_EVENTS
- config SYS_SUPPORTS_HUGETLBFS
- 	def_bool y
+@@ -311,12 +313,6 @@ config ZONE_DMA32
+ 	bool "Support DMA32 zone" if EXPERT
+ 	default y
  
--config ARCH_HAS_CACHE_LINE_SIZE
+-config ARCH_ENABLE_MEMORY_HOTPLUG
 -	def_bool y
 -
- config ARCH_HAS_FILTER_PGPROT
+-config ARCH_ENABLE_MEMORY_HOTREMOVE
+-	def_bool y
+-
+ config SMP
  	def_bool y
  
---- a/arch/x86/Kconfig~mm-generalize-arch_has_cache_line_size
+--- a/arch/ia64/Kconfig~mm-generalize-arch_enable_memory_
++++ a/arch/ia64/Kconfig
+@@ -13,6 +13,8 @@ config IA64
+ 	select ARCH_MIGHT_HAVE_PC_SERIO
+ 	select ACPI
+ 	select ACPI_NUMA if NUMA
++	select ARCH_ENABLE_MEMORY_HOTPLUG
++	select ARCH_ENABLE_MEMORY_HOTREMOVE
+ 	select ARCH_SUPPORTS_ACPI
+ 	select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
+ 	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
+@@ -246,12 +248,6 @@ config HOTPLUG_CPU
+ 	  can be controlled through /sys/devices/system/cpu/cpu#.
+ 	  Say N if you want to disable CPU hotplug.
+ 
+-config ARCH_ENABLE_MEMORY_HOTPLUG
+-	def_bool y
+-
+-config ARCH_ENABLE_MEMORY_HOTREMOVE
+-	def_bool y
+-
+ config SCHED_SMT
+ 	bool "SMT scheduler support"
+ 	depends on SMP
+--- a/arch/powerpc/Kconfig~mm-generalize-arch_enable_memory_
++++ a/arch/powerpc/Kconfig
+@@ -118,6 +118,8 @@ config PPC
+ 	# Please keep this list sorted alphabetically.
+ 	#
+ 	select ARCH_32BIT_OFF_T if PPC32
++	select ARCH_ENABLE_MEMORY_HOTPLUG
++	select ARCH_ENABLE_MEMORY_HOTREMOVE
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+ 	select ARCH_HAS_ELF_RANDOMIZE
+@@ -512,12 +514,6 @@ config ARCH_CPU_PROBE_RELEASE
+ 	def_bool y
+ 	depends on HOTPLUG_CPU
+ 
+-config ARCH_ENABLE_MEMORY_HOTPLUG
+-	def_bool y
+-
+-config ARCH_ENABLE_MEMORY_HOTREMOVE
+-	def_bool y
+-
+ config PPC64_SUPPORTS_MEMORY_FAILURE
+ 	bool "Add support for memory hwpoison"
+ 	depends on PPC_BOOK3S_64
+--- a/arch/s390/Kconfig~mm-generalize-arch_enable_memory_
++++ a/arch/s390/Kconfig
+@@ -60,6 +60,8 @@ config S390
+ 	imply IMA_SECURE_AND_OR_TRUSTED_BOOT
+ 	select ARCH_32BIT_USTAT_F_TINODE
+ 	select ARCH_BINFMT_ELF_STATE
++	select ARCH_ENABLE_MEMORY_HOTPLUG if SPARSEMEM
++	select ARCH_ENABLE_MEMORY_HOTREMOVE
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE
+ 	select ARCH_HAS_DEBUG_WX
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+@@ -626,12 +628,6 @@ config ARCH_SPARSEMEM_ENABLE
+ config ARCH_SPARSEMEM_DEFAULT
+ 	def_bool y
+ 
+-config ARCH_ENABLE_MEMORY_HOTPLUG
+-	def_bool y if SPARSEMEM
+-
+-config ARCH_ENABLE_MEMORY_HOTREMOVE
+-	def_bool y
+-
+ config ARCH_ENABLE_SPLIT_PMD_PTLOCK
+ 	def_bool y
+ 
+--- a/arch/sh/Kconfig~mm-generalize-arch_enable_memory_
++++ a/arch/sh/Kconfig
+@@ -2,6 +2,8 @@
+ config SUPERH
+ 	def_bool y
+ 	select ARCH_32BIT_OFF_T
++	select ARCH_ENABLE_MEMORY_HOTPLUG if SPARSEMEM && MMU
++	select ARCH_ENABLE_MEMORY_HOTREMOVE if SPARSEMEM && MMU
+ 	select ARCH_HAVE_CUSTOM_GPIO_H
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG if (GUSA_RB || CPU_SH4A)
+ 	select ARCH_HAS_BINFMT_FLAT if !MMU
+--- a/arch/sh/mm/Kconfig~mm-generalize-arch_enable_memory_
++++ a/arch/sh/mm/Kconfig
+@@ -136,14 +136,6 @@ config ARCH_SPARSEMEM_DEFAULT
+ config ARCH_SELECT_MEMORY_MODEL
+ 	def_bool y
+ 
+-config ARCH_ENABLE_MEMORY_HOTPLUG
+-	def_bool y
+-	depends on SPARSEMEM && MMU
+-
+-config ARCH_ENABLE_MEMORY_HOTREMOVE
+-	def_bool y
+-	depends on SPARSEMEM && MMU
+-
+ config ARCH_MEMORY_PROBE
+ 	def_bool y
+ 	depends on MEMORY_HOTPLUG
+--- a/arch/x86/Kconfig~mm-generalize-arch_enable_memory_
 +++ a/arch/x86/Kconfig
-@@ -61,6 +61,7 @@ config X86
+@@ -60,6 +60,8 @@ config X86
+ 	select ACPI_SYSTEM_POWER_STATES_SUPPORT	if ACPI
  	select ARCH_32BIT_OFF_T			if X86_32
  	select ARCH_CLOCKSOURCE_INIT
++	select ARCH_ENABLE_MEMORY_HOTPLUG if X86_64 || (X86_32 && HIGHMEM)
++	select ARCH_ENABLE_MEMORY_HOTREMOVE if MEMORY_HOTPLUG
  	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
-+	select ARCH_HAS_CACHE_LINE_SIZE
+ 	select ARCH_HAS_CACHE_LINE_SIZE
  	select ARCH_HAS_DEBUG_VIRTUAL
- 	select ARCH_HAS_DEBUG_VM_PGTABLE	if !X86_PAE
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
-@@ -316,9 +317,6 @@ config GENERIC_CALIBRATE_DELAY
- config ARCH_HAS_CPU_RELAX
+@@ -2427,14 +2429,6 @@ config ARCH_HAS_ADD_PAGES
  	def_bool y
+ 	depends on X86_64 && ARCH_ENABLE_MEMORY_HOTPLUG
  
--config ARCH_HAS_CACHE_LINE_SIZE
+-config ARCH_ENABLE_MEMORY_HOTPLUG
 -	def_bool y
+-	depends on X86_64 || (X86_32 && HIGHMEM)
 -
- config ARCH_HAS_FILTER_PGPROT
+-config ARCH_ENABLE_MEMORY_HOTREMOVE
+-	def_bool y
+-	depends on MEMORY_HOTPLUG
+-
+ config USE_PERCPU_NUMA_NODE_ID
  	def_bool y
- 
---- a/mm/Kconfig~mm-generalize-arch_has_cache_line_size
+ 	depends on NUMA
+--- a/mm/Kconfig~mm-generalize-arch_enable_memory_
 +++ a/mm/Kconfig
-@@ -772,6 +772,9 @@ config IDLE_PAGE_TRACKING
- 	  See Documentation/admin-guide/mm/idle_page_tracking.rst for
- 	  more details.
+@@ -148,6 +148,9 @@ config MEMORY_ISOLATION
+ config HAVE_BOOTMEM_INFO_NODE
+ 	def_bool n
  
-+config ARCH_HAS_CACHE_LINE_SIZE
++config ARCH_ENABLE_MEMORY_HOTPLUG
 +	bool
 +
- config ARCH_HAS_PTE_DEVMAP
- 	bool
+ # eventually, we can have this option just 'select SPARSEMEM'
+ config MEMORY_HOTPLUG
+ 	bool "Allow for memory hot-add"
+@@ -176,6 +179,9 @@ config MEMORY_HOTPLUG_DEFAULT_ONLINE
+ 	  Say N here if you want the default policy to keep all hot-plugged
+ 	  memory blocks in 'offline' state.
  
++config ARCH_ENABLE_MEMORY_HOTREMOVE
++	bool
++
+ config MEMORY_HOTREMOVE
+ 	bool "Allow for memory hot remove"
+ 	select HAVE_BOOTMEM_INFO_NODE if (X86_64 || PPC64)
 _
