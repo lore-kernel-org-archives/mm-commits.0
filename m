@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B67CC433B4
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:33:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81321C433ED
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:33:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E2645613F0
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:33:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 665B2613F1
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:33:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231967AbhEEBem (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 21:34:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37644 "EHLO mail.kernel.org"
+        id S231151AbhEEBeq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 21:34:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37696 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231964AbhEEBem (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 21:34:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C6DAA613EB;
-        Wed,  5 May 2021 01:33:46 +0000 (UTC)
+        id S231221AbhEEBep (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 21:34:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BB188613ED;
+        Wed,  5 May 2021 01:33:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620178427;
-        bh=SfKm0nKPSIPT4KXpIyzYqTKSVtseWqXTWmkSHabwfNY=;
+        s=korg; t=1620178429;
+        bh=OVjQDcBhp1XUrKdv1U065GpQQ+a9BBi3t4gdfE8oe0g=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Gw/obv27DdrBLDqNTbZPAnCxSPxscG+ZHHFsZoPYviDQycxbeD6UKYi94VlkTDQmt
-         oyI5AssNwDthMXbVKc2LQmZI0Y1LJz5SQKocSW6XP/+N5htuYa2nuSogEms0bVJprc
-         AxnYyjKktIPCIZQ1/8kWV9sAJUeQBWvkSNWRcN6Y=
-Date:   Tue, 04 May 2021 18:33:46 -0700
+        b=ImES+5Tx0s6NjXuZLgh3puRTZ0jzAsVsvKbNgZ2T3bU/29g9XeFeZTq13RB8CeXHp
+         MlgbqjWptmOCfASxUR5xmbdJjDQv8c7KKj6fx/YOaiq/Z60HJ0UoFYQPl0kQCBa+du
+         dVG7PBas8vWBBGw9hxdhuguqo1MgJi43jHySm+tM=
+Date:   Tue, 04 May 2021 18:33:49 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dan.carpenter@oracle.com,
-        ebru.akagunduz@gmail.com, kirill.shutemov@linux.intel.com,
-        linmiaohe@huawei.com, linux-mm@kvack.org, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, riel@redhat.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 020/143] khugepaged: fix wrong result value for
- trace_mm_collapse_huge_page_isolate()
-Message-ID: <20210505013346.Kj7gF-PQ5%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+        linux-mm@kvack.org, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 021/143] mm/huge_memory.c: remove unnecessary
+ local variable ret2
+Message-ID: <20210505013349.iDRTwx4Mr%akpm@linux-foundation.org>
 In-Reply-To: <20210504183219.a3cc46aee4013d77402276c5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,53 +44,39 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: khugepaged: fix wrong result value for trace_mm_collapse_huge_page_isolate()
+Subject: mm/huge_memory.c: remove unnecessary local variable ret2
 
-In writable and !referenced case, the result value should be
-SCAN_LACK_REFERENCED_PAGE for trace_mm_collapse_huge_page_isolate()
-instead of default 0 (SCAN_FAIL) here.
+There is no need to use a new local variable ret2 to get the return value
+of handle_userfault(). Use ret directly to make code more succinct.
 
-Link: https://lkml.kernel.org/r/20210306032947.35921-5-linmiaohe@huawei.com
-Fixes: 7d2eba0557c1 ("mm: add tracepoint for scanning pages")
+Link: https://lkml.kernel.org/r/20210210072409.60587-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/huge_memory.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-fix-wrong-result-value-for-trace_mm_collapse_huge_page_isolate
-+++ a/mm/khugepaged.c
-@@ -716,17 +716,17 @@ next:
- 		if (pte_write(pteval))
- 			writable = true;
- 	}
--	if (likely(writable)) {
--		if (likely(referenced)) {
--			result = SCAN_SUCCEED;
--			trace_mm_collapse_huge_page_isolate(page, none_or_zero,
--							    referenced, writable, result);
--			return 1;
--		}
--	} else {
-+
-+	if (unlikely(!writable)) {
- 		result = SCAN_PAGE_RO;
-+	} else if (unlikely(!referenced)) {
-+		result = SCAN_LACK_REFERENCED_PAGE;
-+	} else {
-+		result = SCAN_SUCCEED;
-+		trace_mm_collapse_huge_page_isolate(page, none_or_zero,
-+						    referenced, writable, result);
-+		return 1;
- 	}
+--- a/mm/huge_memory.c~mm-huge_memoryc-remove-unnecessary-local-variable-ret2
++++ a/mm/huge_memory.c
+@@ -624,14 +624,12 @@ static vm_fault_t __do_huge_pmd_anonymou
+ 
+ 		/* Deliver the page fault to userland */
+ 		if (userfaultfd_missing(vma)) {
+-			vm_fault_t ret2;
 -
- out:
- 	release_pte_pages(pte, _pte, compound_pagelist);
- 	trace_mm_collapse_huge_page_isolate(page, none_or_zero,
+ 			spin_unlock(vmf->ptl);
+ 			put_page(page);
+ 			pte_free(vma->vm_mm, pgtable);
+-			ret2 = handle_userfault(vmf, VM_UFFD_MISSING);
+-			VM_BUG_ON(ret2 & VM_FAULT_FALLBACK);
+-			return ret2;
++			ret = handle_userfault(vmf, VM_UFFD_MISSING);
++			VM_BUG_ON(ret & VM_FAULT_FALLBACK);
++			return ret;
+ 		}
+ 
+ 		entry = mk_huge_pmd(page, vma->vm_page_prot);
 _
