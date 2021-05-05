@@ -7,45 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E44B8C43460
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D47FC433B4
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C66F2611AB
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1DFA611AB
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:38:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231869AbhEEBjS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 21:39:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42466 "EHLO mail.kernel.org"
+        id S230451AbhEEBj3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 21:39:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42712 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232101AbhEEBjS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 21:39:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BFDFD61423;
-        Wed,  5 May 2021 01:38:21 +0000 (UTC)
+        id S231440AbhEEBj3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 21:39:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D64A761182;
+        Wed,  5 May 2021 01:38:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620178702;
-        bh=JIpHeiFVV+hjyT5gkzZnqftm2+14A2zkXI+hhLVYDZ8=;
+        s=korg; t=1620178713;
+        bh=NP9dFcv823jOkYYAC3hbqyvnkJ624i1QnEhYBOhdMWc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=AE8YN9vx6fcl9bHjF/I8Kt7E7LiQLH9k3OfpKePtjy9tow+iOSWl852jR8+FrmtsP
-         8Az6oVX5F2pwaAbiT/fU1/Q/wHXiU9BUpK/RkChr3i4luGtIxqQ2ON70mF2Bze17PE
-         IZevfA5hMOMUqzlcfUFnb7fd5swYO7k6g594atDM=
-Date:   Tue, 04 May 2021 18:38:21 -0700
+        b=i0kdKX/iLVwhZwzYbb2NdENTmPL8GwB6+99cscJRFU7ml+wspmSwTq58VZgSqL3iY
+         s8vk0aXtgURlJXx3uDkhJJQhZcg4afySn/Cbs0yfXJ3felblDMmyZ8xqBuGeqQhr1P
+         JgTwAmYPsl9zw2rSBIeBePNR6oXAK1lGMyUqmHwM=
+Date:   Tue, 04 May 2021 18:38:32 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
-        aou@eecs.berkeley.edu, arnd@arndb.de, benh@kernel.crashing.org,
-        borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com,
-        dalias@libc.org, deller@gmx.de, gor@linux.ibm.com,
-        hca@linux.ibm.com, hpa@zytor.com,
-        James.Bottomley@HansenPartnership.com, linux-mm@kvack.org,
-        linux@armlinux.org.uk, mingo@redhat.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        palmerdabbelt@google.com, paul.walmsley@sifive.com,
-        paulus@samba.org, tglx@linutronix.de,
-        torvalds@linux-foundation.org, tsbogend@alpha.franken.de,
-        vgupta@synopsys.com, viro@zeniv.linux.org.uk, will@kernel.org,
-        ysato@users.sourceforge.jp
-Subject:  [patch 105/143] mm: drop redundant
- ARCH_ENABLE_[HUGEPAGE|THP]_MIGRATION
-Message-ID: <20210505013821.9eAhYOAPV%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, joe@perches.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 108/143] mm/util.c: reduce mem_dump_obj() object
+ size
+Message-ID: <20210505013832.YjDN3dU7O%akpm@linux-foundation.org>
 In-Reply-To: <20210504183219.a3cc46aee4013d77402276c5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,123 +42,63 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: drop redundant ARCH_ENABLE_[HUGEPAGE|THP]_MIGRATION
+From: Joe Perches <joe@perches.com>
+Subject: mm/util.c: reduce mem_dump_obj() object size
 
-ARCH_ENABLE_[HUGEPAGE|THP]_MIGRATION configs have duplicate definitions on
-platforms that subscribe them.  Drop these reduntant definitions and
-instead just select them appropriately.
+Simplify the code by using a temporary and reduce the object size by using
+a single call to pr_cont().  Reverse a test and unindent a block too.
 
-[akpm@linux-foundation.org: s/x86_64/X86_64/, per Oscar]
-Link: https://lkml.kernel.org/r/1617259448-22529-5-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
-Cc: Will Deacon <will@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Palmer Dabbelt <palmerdabbelt@google.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+$ size mm/util.o* (defconfig x86-64)
+   text	   data	    bss	    dec	    hex	filename
+   7419	    372	     40	   7831	   1e97	mm/util.o.new
+   7477	    372	     40	   7889	   1ed1	mm/util.o.old
+
+Link: https://lkml.kernel.org/r/a6e105886338f68afd35f7a13d73bcf06b0cc732.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig                     |   10 ++--------
- arch/powerpc/platforms/Kconfig.cputype |    5 +----
- arch/x86/Kconfig                       |   10 ++--------
- 3 files changed, 5 insertions(+), 20 deletions(-)
+ mm/util.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
---- a/arch/arm64/Kconfig~mm-drop-redundant-arch_enable__migration
-+++ a/arch/arm64/Kconfig
-@@ -11,8 +11,10 @@ config ARM64
- 	select ACPI_PPTT if ACPI
- 	select ARCH_HAS_DEBUG_WX
- 	select ARCH_BINFMT_ELF_STATE
-+	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_MEMORY_HOTPLUG
- 	select ARCH_ENABLE_MEMORY_HOTREMOVE
-+	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_CACHE_LINE_SIZE
- 	select ARCH_HAS_DEBUG_VIRTUAL
- 	select ARCH_HAS_DEBUG_VM_PGTABLE
-@@ -1916,14 +1918,6 @@ config SYSVIPC_COMPAT
- 	def_bool y
- 	depends on COMPAT && SYSVIPC
- 
--config ARCH_ENABLE_HUGEPAGE_MIGRATION
--	def_bool y
--	depends on HUGETLB_PAGE && MIGRATION
--
--config ARCH_ENABLE_THP_MIGRATION
--	def_bool y
--	depends on TRANSPARENT_HUGEPAGE
--
- menu "Power management options"
- 
- source "kernel/power/Kconfig"
---- a/arch/powerpc/platforms/Kconfig.cputype~mm-drop-redundant-arch_enable__migration
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -96,6 +96,7 @@ config PPC_BOOK3S_64
- 	select PPC_FPU
- 	select PPC_HAVE_PMU_SUPPORT
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
-+	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
- 	select ARCH_SUPPORTS_HUGETLBFS
- 	select ARCH_SUPPORTS_NUMA_BALANCING
-@@ -420,10 +421,6 @@ config PPC_PKEY
- 	depends on PPC_BOOK3S_64
- 	depends on PPC_MEM_KEYS || PPC_KUAP || PPC_KUEP
- 
--config ARCH_ENABLE_HUGEPAGE_MIGRATION
--	def_bool y
--	depends on PPC_BOOK3S_64 && HUGETLB_PAGE && MIGRATION
--
- 
- config PPC_MMU_NOHASH
- 	def_bool y
---- a/arch/x86/Kconfig~mm-drop-redundant-arch_enable__migration
-+++ a/arch/x86/Kconfig
-@@ -60,8 +60,10 @@ config X86
- 	select ACPI_SYSTEM_POWER_STATES_SUPPORT	if ACPI
- 	select ARCH_32BIT_OFF_T			if X86_32
- 	select ARCH_CLOCKSOURCE_INIT
-+	select ARCH_ENABLE_HUGEPAGE_MIGRATION if X86_64 && HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_MEMORY_HOTPLUG if X86_64 || (X86_32 && HIGHMEM)
- 	select ARCH_ENABLE_MEMORY_HOTREMOVE if MEMORY_HOTPLUG
-+	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
- 	select ARCH_HAS_CACHE_LINE_SIZE
- 	select ARCH_HAS_DEBUG_VIRTUAL
-@@ -2437,14 +2439,6 @@ config ARCH_ENABLE_SPLIT_PMD_PTLOCK
- 	def_bool y
- 	depends on X86_64 || X86_PAE
- 
--config ARCH_ENABLE_HUGEPAGE_MIGRATION
--	def_bool y
--	depends on X86_64 && HUGETLB_PAGE && MIGRATION
--
--config ARCH_ENABLE_THP_MIGRATION
--	def_bool y
--	depends on X86_64 && TRANSPARENT_HUGEPAGE
--
- menu "Power management and ACPI options"
- 
- config ARCH_HIBERNATION_HEADER
+--- a/mm/util.c~mm-reduce-mem_dump_obj-object-size
++++ a/mm/util.c
+@@ -987,22 +987,26 @@ int __weak memcmp_pages(struct page *pag
+  */
+ void mem_dump_obj(void *object)
+ {
++	const char *type;
++
+ 	if (kmem_valid_obj(object)) {
+ 		kmem_dump_obj(object);
+ 		return;
+ 	}
++
+ 	if (vmalloc_dump_obj(object))
+ 		return;
+-	if (!virt_addr_valid(object)) {
+-		if (object == NULL)
+-			pr_cont(" NULL pointer.\n");
+-		else if (object == ZERO_SIZE_PTR)
+-			pr_cont(" zero-size pointer.\n");
+-		else
+-			pr_cont(" non-paged memory.\n");
+-		return;
+-	}
+-	pr_cont(" non-slab/vmalloc memory.\n");
++
++	if (virt_addr_valid(object))
++		type = "non-slab/vmalloc memory";
++	else if (object == NULL)
++		type = "NULL pointer";
++	else if (object == ZERO_SIZE_PTR)
++		type = "zero-size pointer";
++	else
++		type = "non-paged memory";
++
++	pr_cont(" %s\n", type);
+ }
+ EXPORT_SYMBOL_GPL(mem_dump_obj);
+ #endif
 _
