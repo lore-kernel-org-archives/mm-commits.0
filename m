@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 300C9C433ED
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:35:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B5D0C433ED
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:35:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 141406140E
-	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:35:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60BB861415
+	for <mm-commits@archiver.kernel.org>; Wed,  5 May 2021 01:35:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231604AbhEEBgi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 May 2021 21:36:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39540 "EHLO mail.kernel.org"
+        id S231326AbhEEBgn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 May 2021 21:36:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39610 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230451AbhEEBgh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 May 2021 21:36:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3924061410;
-        Wed,  5 May 2021 01:35:41 +0000 (UTC)
+        id S230451AbhEEBgn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 May 2021 21:36:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 62D8D6140F;
+        Wed,  5 May 2021 01:35:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620178542;
-        bh=P4ozicjPY7EGLhV23x36GXnzeTld8enGc8KIw+FQqo8=;
+        s=korg; t=1620178546;
+        bh=MMnxZRafg49jSancWKzcRK9JqITgkXif/9fd1lNcf8c=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=esJN/xxtJG8qtA2UFunTDg6L6dB9Mol7elA5g/iasaAi6/drRq8O0nip9N+KLNHPF
-         pru4zZbTNQmQ4oT5BYzYJOi8I0d46bjp25giAKLUcM3snO0d/PR088BGlOfBaLJcX/
-         uQ4/DUTe6yPUhD3PsYD3UofmjKet+umdLnBNpmoI=
-Date:   Tue, 04 May 2021 18:35:40 -0700
+        b=M9h4I5qPX6eIci5TYLKb2qfdFFS12r5gN98JzaoJ3NIHefyGyrr4pJyk3RzqWr4bv
+         Hyza9cJXFQosIDlv8I+E9RbT4+dBS6Fsw9e+aWXQSM8ObIEYXFgb/Z8JaeZgRJ8T4L
+         2afw0V5C4eCHG20ZeD+ojJ02yrzvBF+KFBPt8FWk=
+Date:   Tue, 04 May 2021 18:35:45 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aarcange@redhat.com, adobriyan@gmail.com,
         akpm@linux-foundation.org, almasrymina@google.com,
@@ -44,9 +44,9 @@ To:     aarcange@redhat.com, adobriyan@gmail.com,
         steven.price@arm.com, torvalds@linux-foundation.org,
         vbabka@suse.cz, viro@zeniv.linux.org.uk, walken@google.com,
         willy@infradead.org, ying.huang@intel.com
-Subject:  [patch 055/143] userfaultfd: disable huge PMD sharing for
- MINOR registered VMAs
-Message-ID: <20210505013540.i2dtgVhuP%akpm@linux-foundation.org>
+Subject:  [patch 056/143] userfaultfd: hugetlbfs: only compile UFFD
+ helpers if config enabled
+Message-ID: <20210505013545.iT2lFP6ap%akpm@linux-foundation.org>
 In-Reply-To: <20210504183219.a3cc46aee4013d77402276c5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,20 +55,29 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd: disable huge PMD sharing for MINOR registered VMAs
+Subject: userfaultfd: hugetlbfs: only compile UFFD helpers if config enabled
 
-As the comment says: for the MINOR fault use case, although the page might
-be present and populated in the other (non-UFFD-registered) half of the
-mapping, it may be out of date, and we explicitly want userspace to get a
-minor fault so it can check and potentially update the page's contents.
+For background, mm/userfaultfd.c provides a general mcopy_atomic
+implementation.  But some types of memory (i.e., hugetlb and shmem) need a
+slightly different implementation, so they provide their own helpers for
+this.  In other words, userfaultfd is the only caller of these functions.
 
-Huge PMD sharing would prevent these faults from occurring for suitably
-aligned areas, so disable it upon UFFD registration.
+This patch achieves two things:
 
-Link: https://lkml.kernel.org/r/20210301222728.176417-3-axelrasmussen@google.com
+1. Don't spend time compiling code which will end up never being
+   referenced anyway (a small build time optimization).
+
+2. In patches later in this series, we extend the signature of these
+   helpers with UFFD-specific state (a mode enumeration).  Once this
+   happens, we *have to* either not compile the helpers, or
+   unconditionally define the UFFD-only state (which seems messier to me).
+   This includes the declarations in the headers, as otherwise they'd
+   yield warnings about implicitly defining the type of those arguments.
+
+Link: https://lkml.kernel.org/r/20210301222728.176417-4-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: Adam Ruprecht <ruprecht@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
@@ -101,32 +110,58 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/userfaultfd_k.h |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ include/linux/hugetlb.h |    4 ++++
+ mm/hugetlb.c            |    2 ++
+ 2 files changed, 6 insertions(+)
 
---- a/include/linux/userfaultfd_k.h~userfaultfd-disable-huge-pmd-sharing-for-minor-registered-vmas
-+++ a/include/linux/userfaultfd_k.h
-@@ -56,12 +56,19 @@ static inline bool is_mergeable_vm_userf
+--- a/include/linux/hugetlb.h~userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled
++++ a/include/linux/hugetlb.h
+@@ -134,11 +134,13 @@ void hugetlb_show_meminfo(void);
+ unsigned long hugetlb_total_pages(void);
+ vm_fault_t hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, unsigned int flags);
++#ifdef CONFIG_USERFAULTFD
+ int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm, pte_t *dst_pte,
+ 				struct vm_area_struct *dst_vma,
+ 				unsigned long dst_addr,
+ 				unsigned long src_addr,
+ 				struct page **pagep);
++#endif /* CONFIG_USERFAULTFD */
+ bool hugetlb_reserve_pages(struct inode *inode, long from, long to,
+ 						struct vm_area_struct *vma,
+ 						vm_flags_t vm_flags);
+@@ -310,6 +312,7 @@ static inline void hugetlb_free_pgd_rang
+ 	BUG();
  }
  
++#ifdef CONFIG_USERFAULTFD
+ static inline int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm,
+ 						pte_t *dst_pte,
+ 						struct vm_area_struct *dst_vma,
+@@ -320,6 +323,7 @@ static inline int hugetlb_mcopy_atomic_p
+ 	BUG();
+ 	return 0;
+ }
++#endif /* CONFIG_USERFAULTFD */
+ 
+ static inline pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr,
+ 					unsigned long sz)
+--- a/mm/hugetlb.c~userfaultfd-hugetlbfs-only-compile-uffd-helpers-if-config-enabled
++++ a/mm/hugetlb.c
+@@ -4855,6 +4855,7 @@ out_mutex:
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_USERFAULTFD
  /*
-- * Never enable huge pmd sharing on uffd-wp registered vmas, because uffd-wp
-- * protect information is per pgtable entry.
-+ * Never enable huge pmd sharing on some uffd registered vmas:
-+ *
-+ * - VM_UFFD_WP VMAs, because write protect information is per pgtable entry.
-+ *
-+ * - VM_UFFD_MINOR VMAs, because otherwise we would never get minor faults for
-+ *   VMAs which share huge pmds. (If you have two mappings to the same
-+ *   underlying pages, and fault in the non-UFFD-registered one with a write,
-+ *   with huge pmd sharing this would *also* setup the second UFFD-registered
-+ *   mapping, and we'd not get minor faults.)
-  */
- static inline bool uffd_disable_huge_pmd_share(struct vm_area_struct *vma)
- {
--	return vma->vm_flags & VM_UFFD_WP;
-+	return vma->vm_flags & (VM_UFFD_WP | VM_UFFD_MINOR);
+  * Used by userfaultfd UFFDIO_COPY.  Based on mcopy_atomic_pte with
+  * modifications for huge pages.
+@@ -4985,6 +4986,7 @@ out_release_nounlock:
+ 	put_page(page);
+ 	goto out;
  }
++#endif /* CONFIG_USERFAULTFD */
  
- static inline bool userfaultfd_missing(struct vm_area_struct *vma)
+ static void record_subpages_vmas(struct page *page, struct vm_area_struct *vma,
+ 				 int refs, struct page **pages,
 _
