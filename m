@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A287C433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:05:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7E0EC433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:05:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF31161289
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:05:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D545613C9
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:05:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234104AbhEGBGA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:06:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46806 "EHLO mail.kernel.org"
+        id S230384AbhEGBGC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:06:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46882 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230384AbhEGBF7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:05:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E2B961041;
-        Fri,  7 May 2021 01:05:00 +0000 (UTC)
+        id S231489AbhEGBGC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:06:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E56A61041;
+        Fri,  7 May 2021 01:05:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349500;
-        bh=y8opZji1uurSx1pUYlJCh0EsFQw7giaYyBvCQqfZwzo=;
+        s=korg; t=1620349503;
+        bh=I3SeJ6HRy1Z7CPZFZRWgezQYkFbLw0hT9hCBb4UYLzQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=izVj0cuxvK1LS5nmDls04cM/ofD0CSWnq98oMrFHw2PeNRkNMBlmXW9ICs9FbmM9x
-         9xKthW2yIiiCIcbhVlJZeSHA+0DMTP1K9/qLdI0IFAguPu7UeZqqWea8k7YwozEhF2
-         syIyWBt8viBIVoxAekV+VaPJ65R1+98C2mi55aFQ=
-Date:   Thu, 06 May 2021 18:05:00 -0700
+        b=JFrkk4GTD8KoKNdroSCC9Tw3edQMKQoebXXvHGdog/3SMk+JITBCjinmsuOrmVKqZ
+         2Liol+0DI3gGLHW8nYFVPrefssPBQpEux/XwPpDz64/fnoWv3l/nCz29AlP4BlkOdR
+         Gk0qOI/7FAQuehEf8NuoeT9R8J673P9KaAzuel6Q=
+Date:   Thu, 06 May 2021 18:05:03 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, axboe@kernel.dk, joshs@netflix.com,
-        laoar.shao@gmail.com, linux-mm@kvack.org, mingo@kernel.org,
-        mm-commits@vger.kernel.org, tj@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 57/91] delayacct: clear right task's flag after
- blkio completes
-Message-ID: <20210507010500.CPd3sPDCB%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, jan.kiszka@siemens.com,
+        johannes.berg@intel.com, kbingham@kernel.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 58/91] gdb: lx-symbols: store the abspath()
+Message-ID: <20210507010503.UbLiMisse%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,127 +42,35 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: delayacct: clear right task's flag after blkio completes
+From: Johannes Berg <johannes.berg@intel.com>
+Subject: gdb: lx-symbols: store the abspath()
 
-When I was implementing a latency analyze tool by using task->delays and
-other things, I found there's issue in delayacct.  The issue is it should
-clear the target's flag instead of current's in delayacct_blkio_end().
+If we store the relative path, the user might later cd to a different
+directory, and that would break the automatic symbol resolving that
+happens when a module is loaded into the target kernel.  Fix this by
+storing the abspath() of each path given, just like we already do for the
+cwd (os.getcwd() is absolute.)
 
-When I git blame delayacct, I found there're some similar issues we have
-fixed in delayacct_blkio_end().
-'Commit c96f5471ce7d ("delayacct: Account blkio completion on the correct task")'
-fixed the issue that it should account blkio completion on the target
-task instead of current.
-'Commit b512719f771a ("delayacct: fix crash in delayacct_blkio_end() after delayacct init failure")'
-fixed the issue that it should check target task's delays instead of
-current task'. It seems that delayacct_blkio_{begin, end} are error prone.
-So I introduce a new paratmeter - the target task 'p' into these helpers,
-after that change, the callsite will specifilly set the right task, which
-should make it less error prone.
-
-Link: https://lkml.kernel.org/r/20210414083720.24083-1-laoar.shao@gmail.com
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Josh Snyder <joshs@netflix.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Ingo Molnar <mingo@kernel.org>
+Link: https://lkml.kernel.org/r/20201217091747.bf4332cf2b35.I10ebbdb7e9b80ab1a5cddebf53d073be8232d656@changeid
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/delayacct.h |   20 ++++++++++----------
- mm/memory.c               |    8 ++++----
- 2 files changed, 14 insertions(+), 14 deletions(-)
+ scripts/gdb/linux/symbols.py |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/delayacct.h~delayacct-clear-right-tasks-flag-after-blkio-completes
-+++ a/include/linux/delayacct.h
-@@ -82,16 +82,16 @@ static inline int delayacct_is_task_wait
- 		return 0;
- }
+--- a/scripts/gdb/linux/symbols.py~gdb-lx-symbols-store-the-abspath
++++ a/scripts/gdb/linux/symbols.py
+@@ -164,7 +164,8 @@ lx-symbols command."""
+             saved_state['breakpoint'].enabled = saved_state['enabled']
  
--static inline void delayacct_set_flag(int flag)
-+static inline void delayacct_set_flag(struct task_struct *p, int flag)
- {
--	if (current->delays)
--		current->delays->flags |= flag;
-+	if (p->delays)
-+		p->delays->flags |= flag;
- }
+     def invoke(self, arg, from_tty):
+-        self.module_paths = [os.path.expanduser(p) for p in arg.split()]
++        self.module_paths = [os.path.abspath(os.path.expanduser(p))
++                             for p in arg.split()]
+         self.module_paths.append(os.getcwd())
  
--static inline void delayacct_clear_flag(int flag)
-+static inline void delayacct_clear_flag(struct task_struct *p, int flag)
- {
--	if (current->delays)
--		current->delays->flags &= ~flag;
-+	if (p->delays)
-+		p->delays->flags &= ~flag;
- }
- 
- static inline void delayacct_tsk_init(struct task_struct *tsk)
-@@ -114,7 +114,7 @@ static inline void delayacct_tsk_free(st
- 
- static inline void delayacct_blkio_start(void)
- {
--	delayacct_set_flag(DELAYACCT_PF_BLKIO);
-+	delayacct_set_flag(current, DELAYACCT_PF_BLKIO);
- 	if (current->delays)
- 		__delayacct_blkio_start();
- }
-@@ -123,7 +123,7 @@ static inline void delayacct_blkio_end(s
- {
- 	if (p->delays)
- 		__delayacct_blkio_end(p);
--	delayacct_clear_flag(DELAYACCT_PF_BLKIO);
-+	delayacct_clear_flag(p, DELAYACCT_PF_BLKIO);
- }
- 
- static inline int delayacct_add_tsk(struct taskstats *d,
-@@ -166,9 +166,9 @@ static inline void delayacct_thrashing_e
- }
- 
- #else
--static inline void delayacct_set_flag(int flag)
-+static inline void delayacct_set_flag(struct task_struct *p, int flag)
- {}
--static inline void delayacct_clear_flag(int flag)
-+static inline void delayacct_clear_flag(struct task_struct *p, int flag)
- {}
- static inline void delayacct_init(void)
- {}
---- a/mm/memory.c~delayacct-clear-right-tasks-flag-after-blkio-completes
-+++ a/mm/memory.c
-@@ -3339,7 +3339,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 	}
- 
- 
--	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
-+	delayacct_set_flag(current, DELAYACCT_PF_SWAPIN);
- 	page = lookup_swap_cache(entry, vma, vmf->address);
- 	swapcache = page;
- 
-@@ -3388,7 +3388,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 					vmf->address, &vmf->ptl);
- 			if (likely(pte_same(*vmf->pte, vmf->orig_pte)))
- 				ret = VM_FAULT_OOM;
--			delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
-+			delayacct_clear_flag(current, DELAYACCT_PF_SWAPIN);
- 			goto unlock;
- 		}
- 
-@@ -3402,13 +3402,13 @@ vm_fault_t do_swap_page(struct vm_fault
- 		 * owner processes (which may be unknown at hwpoison time)
- 		 */
- 		ret = VM_FAULT_HWPOISON;
--		delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
-+		delayacct_clear_flag(current, DELAYACCT_PF_SWAPIN);
- 		goto out_release;
- 	}
- 
- 	locked = lock_page_or_retry(page, vma->vm_mm, vmf->flags);
- 
--	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
-+	delayacct_clear_flag(current, DELAYACCT_PF_SWAPIN);
- 	if (!locked) {
- 		ret |= VM_FAULT_RETRY;
- 		goto out_release;
+         # enforce update
 _
