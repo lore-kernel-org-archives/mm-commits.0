@@ -7,35 +7,45 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D91CC43460
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF98CC433ED
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D114610FA
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8FB47610FA
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234090AbhEGBF3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:05:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45970 "EHLO mail.kernel.org"
+        id S234092AbhEGBFc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:05:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46074 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234073AbhEGBF2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:05:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 16F86613B5;
-        Fri,  7 May 2021 01:04:29 +0000 (UTC)
+        id S234073AbhEGBFc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:05:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A3C261041;
+        Fri,  7 May 2021 01:04:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349469;
-        bh=vvrQ1k3FbumfTbXi5p7S89PC9Za3U76Fn2hQPDctZKI=;
+        s=korg; t=1620349473;
+        bh=FQF8djJT0KzhqELEGFSpdi0mXRoyiiCyMFvSe5r+J8o=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Ni4fSESV8aMv/ChezJ0nvytTYQsea+p9Fh3/Aguh4oX3uXI9qiK4a3jKJAawv6roT
-         2ym+I1mhKnoc6UeeIWepSTRHJ3Zgk3edeQYGxKl7QrUOccdbjPuDLHwwlAWYxMLdna
-         f3xzXjOrwrsp01fa5zVZkJhsTORIW8yu5ExlZ6ig=
-Date:   Thu, 06 May 2021 18:04:28 -0700
+        b=qHkT+rMeBieB3lUX2QdKLWqzzajJfUFC7jO422uqhR7Y5RXgm6Njlx2roHhPBHDcj
+         Su/YWJmBCVfm6ZYOyO/WLnDKL2GYaW2VFqLsghhZa5MDphewZY1yXrVPnNZzkH9I70
+         loMC5HFyam8q+1uazQ/XAPowkG47uQJ3KQHXmUiY=
+Date:   Thu, 06 May 2021 18:04:32 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, axboe@kernel.dk, caoxiaofeng@yulong.com,
-        christian.brauner@ubuntu.com, cxfcosmos@gmail.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 47/91] kernel/fork.c: fix typos
-Message-ID: <20210507010428.EGHlz4IUa%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com, bhe@redhat.com,
+        christian.brauner@ubuntu.com, colin.king@canonical.com,
+        corbet@lwn.net, dyoung@redhat.com, frederic@kernel.org,
+        gpiccoli@canonical.com, john.p.donnelly@oracle.com,
+        jpoimboe@redhat.com, keescook@chromium.org, linux-mm@kvack.org,
+        masahiroy@kernel.org, mchehab+huawei@kernel.org,
+        mike.kravetz@oracle.com, mingo@kernel.org,
+        mm-commits@vger.kernel.org, paulmck@kernel.org,
+        peterz@infradead.org, rdunlap@infradead.org, rostedt@goodmis.org,
+        rppt@kernel.org, saeed.mirzamohammadi@oracle.com,
+        samitolvanen@google.com, sboyd@kernel.org, tglx@linutronix.de,
+        torvalds@linux-foundation.org, vgoyal@redhat.com,
+        yifeifz2@illinois.edu
+Subject:  [patch 48/91] kernel/crash_core: add crashkernel=auto for
+ vmcore creation
+Message-ID: <20210507010432.IN24PudKT%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,52 +53,127 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Xiaofeng Cao <cxfcosmos@gmail.com>
-Subject: kernel/fork.c: fix typos
+From: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
+Subject: kernel/crash_core: add crashkernel=auto for vmcore creation
 
-change 'ancestoral' to 'ancestral'
-change 'reuseable' to 'reusable'
-delete 'do' grammatically
+This adds crashkernel=auto feature to configure reserved memory for vmcore
+creation.  CONFIG_CRASH_AUTO_STR is defined to be set for different kernel
+distributions and different archs based on their needs.
 
-Link: https://lkml.kernel.org/r/20210317082031.11692-1-caoxiaofeng@yulong.com
-Signed-off-by: Xiaofeng Cao <caoxiaofeng@yulong.com>
-Reviewed-by: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Link: https://lkml.kernel.org/r/20210223174153.72802-1-saeed.mirzamohammadi@oracle.com
+Signed-off-by: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
+Signed-off-by: John Donnelly <john.p.donnelly@oracle.com>
+Tested-by: John Donnelly <john.p.donnelly@oracle.com>
+ed-by: Dave Young <dyoung@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Guilherme G. Piccoli" <gpiccoli@canonical.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: "Steven Rostedt (VMware)" <rostedt@goodmis.org>
+Cc: YiFei Zhu <yifeifz2@illinois.edu>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Stephen Boyd <sboyd@kernel.org>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/admin-guide/kdump/kdump.rst       |    3 +-
+ Documentation/admin-guide/kernel-parameters.txt |    6 ++++
+ arch/Kconfig                                    |   20 ++++++++++++++
+ kernel/crash_core.c                             |    7 ++++
+ 4 files changed, 35 insertions(+), 1 deletion(-)
 
---- a/kernel/fork.c~kernel-fork-fix-typo-issue
-+++ a/kernel/fork.c
-@@ -1145,7 +1145,7 @@ void mmput_async(struct mm_struct *mm)
-  * invocations: in mmput() nobody alive left, in execve task is single
-  * threaded. sys_prctl(PR_SET_MM_MAP/EXE_FILE) also needs to set the
-  * mm->exe_file, but does so without using set_mm_exe_file() in order
-- * to do avoid the need for any locks.
-+ * to avoid the need for any locks.
-  */
- void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
- {
-@@ -1736,7 +1736,7 @@ static int pidfd_release(struct inode *i
-  * /proc/<pid>/status where Pid and NSpid are always shown relative to
-  * the  pid namespace of the procfs instance. The difference becomes
-  * obvious when sending around a pidfd between pid namespaces from a
-- * different branch of the tree, i.e. where no ancestoral relation is
-+ * different branch of the tree, i.e. where no ancestral relation is
-  * present between the pid namespaces:
-  * - create two new pid namespaces ns1 and ns2 in the initial pid
-  *   namespace (also take care to create new mount namespaces in the
-@@ -2728,8 +2728,8 @@ static bool clone3_args_valid(struct ker
- 		return false;
+--- a/arch/Kconfig~kernel-crash_core-add-crashkernel=auto-for-vmcore-creation
++++ a/arch/Kconfig
+@@ -14,6 +14,26 @@ menu "General architecture-dependent opt
+ config CRASH_CORE
+ 	bool
  
++config CRASH_AUTO_STR
++	string "Memory reserved for crash kernel"
++	depends on CRASH_CORE
++	default "1G-64G:128M,64G-1T:256M,1T-:512M"
++	help
++	  This configures the reserved memory dependent
++	  on the value of System RAM. The syntax is:
++	  crashkernel=<range1>:<size1>[,<range2>:<size2>,...][@offset]
++	              range=start-[end]
++
++	  For example:
++	      crashkernel=512M-2G:64M,2G-:128M
++
++	  This would mean:
++
++	      1) if the RAM is smaller than 512M, then don't reserve anything
++	         (this is the "rescue" case)
++	      2) if the RAM size is between 512M and 2G (exclusive), then reserve 64M
++	      3) if the RAM size is larger than 2G, then reserve 128M
++
+ config KEXEC_CORE
+ 	select CRASH_CORE
+ 	bool
+--- a/Documentation/admin-guide/kdump/kdump.rst~kernel-crash_core-add-crashkernel=auto-for-vmcore-creation
++++ a/Documentation/admin-guide/kdump/kdump.rst
+@@ -285,7 +285,8 @@ This would mean:
+     2) if the RAM size is between 512M and 2G (exclusive), then reserve 64M
+     3) if the RAM size is larger than 2G, then reserve 128M
+ 
+-
++Or you can use crashkernel=auto to choose the crash kernel memory size
++based on the recommended configuration set for each arch.
+ 
+ Boot into System Kernel
+ =======================
+--- a/Documentation/admin-guide/kernel-parameters.txt~kernel-crash_core-add-crashkernel=auto-for-vmcore-creation
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -751,6 +751,12 @@
+ 			a memory unit (amount[KMG]). See also
+ 			Documentation/admin-guide/kdump/kdump.rst for an example.
+ 
++	crashkernel=auto
++			[KNL] This parameter will set the reserved memory for
++			the crash kernel based on the value of the CRASH_AUTO_STR
++			that is the best effort estimation for each arch. See also
++			arch/Kconfig for further details.
++
+ 	crashkernel=size[KMG],high
+ 			[KNL, X86-64] range could be above 4G. Allow kernel
+ 			to allocate physical memory region from top, so could
+--- a/kernel/crash_core.c~kernel-crash_core-add-crashkernel=auto-for-vmcore-creation
++++ a/kernel/crash_core.c
+@@ -7,6 +7,7 @@
+ #include <linux/crash_core.h>
+ #include <linux/utsname.h>
+ #include <linux/vmalloc.h>
++#include <linux/kexec.h>
+ 
+ #include <asm/page.h>
+ #include <asm/sections.h>
+@@ -250,6 +251,12 @@ static int __init __parse_crashkernel(ch
+ 	if (suffix)
+ 		return parse_crashkernel_suffix(ck_cmdline, crash_size,
+ 				suffix);
++#ifdef CONFIG_CRASH_AUTO_STR
++	if (strncmp(ck_cmdline, "auto", 4) == 0) {
++		ck_cmdline = CONFIG_CRASH_AUTO_STR;
++		pr_info("Using crashkernel=auto, the size chosen is a best effort estimation.\n");
++	}
++#endif
  	/*
--	 * - make the CLONE_DETACHED bit reuseable for clone3
--	 * - make the CSIGNAL bits reuseable for clone3
-+	 * - make the CLONE_DETACHED bit reusable for clone3
-+	 * - make the CSIGNAL bits reusable for clone3
- 	 */
- 	if (kargs->flags & (CLONE_DETACHED | CSIGNAL))
- 		return false;
+ 	 * if the commandline contains a ':', then that's the extended
+ 	 * syntax -- if not, it must be the classic syntax
 _
