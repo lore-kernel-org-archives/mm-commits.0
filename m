@@ -2,50 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF98CC433ED
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96B0EC433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8FB47610FA
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 77CAA613B9
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234092AbhEGBFc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:05:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46074 "EHLO mail.kernel.org"
+        id S234073AbhEGBFg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:05:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46192 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234073AbhEGBFc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:05:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A3C261041;
-        Fri,  7 May 2021 01:04:32 +0000 (UTC)
+        id S233978AbhEGBFf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:05:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 51446610FA;
+        Fri,  7 May 2021 01:04:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349473;
-        bh=FQF8djJT0KzhqELEGFSpdi0mXRoyiiCyMFvSe5r+J8o=;
+        s=korg; t=1620349476;
+        bh=1NoE4aWUG2IAkLD23KS3EuKvqhqphLy8gpQFtMmSOjc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=qHkT+rMeBieB3lUX2QdKLWqzzajJfUFC7jO422uqhR7Y5RXgm6Njlx2roHhPBHDcj
-         Su/YWJmBCVfm6ZYOyO/WLnDKL2GYaW2VFqLsghhZa5MDphewZY1yXrVPnNZzkH9I70
-         loMC5HFyam8q+1uazQ/XAPowkG47uQJ3KQHXmUiY=
-Date:   Thu, 06 May 2021 18:04:32 -0700
+        b=JnXEotvzq/eiG5Df451lT+UqjlUznNETVw2KsxPlY3CnQe4Nso25pBotxn5YeoirA
+         nY6ufIaGlqThjPkVnXpmqANMoBvHGbdQ4UEBIprKFDHFTE4Hb01qHQ8CeXHVhpgVAK
+         ebcXNVMRJm/g4huZYEoj/oZIFjzqWFZre5vXpOug=
+Date:   Thu, 06 May 2021 18:04:35 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@google.com, bhe@redhat.com,
-        christian.brauner@ubuntu.com, colin.king@canonical.com,
-        corbet@lwn.net, dyoung@redhat.com, frederic@kernel.org,
-        gpiccoli@canonical.com, john.p.donnelly@oracle.com,
-        jpoimboe@redhat.com, keescook@chromium.org, linux-mm@kvack.org,
-        masahiroy@kernel.org, mchehab+huawei@kernel.org,
-        mike.kravetz@oracle.com, mingo@kernel.org,
-        mm-commits@vger.kernel.org, paulmck@kernel.org,
-        peterz@infradead.org, rdunlap@infradead.org, rostedt@goodmis.org,
-        rppt@kernel.org, saeed.mirzamohammadi@oracle.com,
-        samitolvanen@google.com, sboyd@kernel.org, tglx@linutronix.de,
-        torvalds@linux-foundation.org, vgoyal@redhat.com,
-        yifeifz2@illinois.edu
-Subject:  [patch 48/91] kernel/crash_core: add crashkernel=auto for
- vmcore creation
-Message-ID: <20210507010432.IN24PudKT%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bhe@redhat.com, jolevequ@microsoft.com,
+        lguohan@gmail.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        pmenzel@molgen.mpg.de, torvalds@linux-foundation.org
+Subject:  [patch 49/91] kexec: add kexec reboot string
+Message-ID: <20210507010435.nxkpJ8Xsl%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,127 +42,37 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
-Subject: kernel/crash_core: add crashkernel=auto for vmcore creation
+From: Joe LeVeque <jolevequ@microsoft.com>
+Subject: kexec: Add kexec reboot string
 
-This adds crashkernel=auto feature to configure reserved memory for vmcore
-creation.  CONFIG_CRASH_AUTO_STR is defined to be set for different kernel
-distributions and different archs based on their needs.
+The purpose is to notify the kernel module for fast reboot.
 
-Link: https://lkml.kernel.org/r/20210223174153.72802-1-saeed.mirzamohammadi@oracle.com
-Signed-off-by: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
-Signed-off-by: John Donnelly <john.p.donnelly@oracle.com>
-Tested-by: John Donnelly <john.p.donnelly@oracle.com>
-ed-by: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: "Guilherme G. Piccoli" <gpiccoli@canonical.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: "Steven Rostedt (VMware)" <rostedt@goodmis.org>
-Cc: YiFei Zhu <yifeifz2@illinois.edu>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Stephen Boyd <sboyd@kernel.org>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Colin Ian King <colin.king@canonical.com>
+Upstream a patch from the SONiC network operating system [1].
+
+[1]: https://github.com/Azure/sonic-linux-kernel/pull/46
+
+Link: https://lkml.kernel.org/r/20210304124626.13927-1-pmenzel@molgen.mpg.de
+Signed-off-by: Joe LeVeque <jolevequ@microsoft.com>
+Signed-off-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Guohan Lu <lguohan@gmail.com>
+Cc: Joe LeVeque <jolevequ@microsoft.com>
+Cc: Paul Menzel <pmenzel@molgen.mpg.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kdump/kdump.rst       |    3 +-
- Documentation/admin-guide/kernel-parameters.txt |    6 ++++
- arch/Kconfig                                    |   20 ++++++++++++++
- kernel/crash_core.c                             |    7 ++++
- 4 files changed, 35 insertions(+), 1 deletion(-)
+ kernel/kexec_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/Kconfig~kernel-crash_core-add-crashkernel=auto-for-vmcore-creation
-+++ a/arch/Kconfig
-@@ -14,6 +14,26 @@ menu "General architecture-dependent opt
- config CRASH_CORE
- 	bool
+--- a/kernel/kexec_core.c~kexec-add-kexec-reboot-string
++++ a/kernel/kexec_core.c
+@@ -1165,7 +1165,7 @@ int kernel_kexec(void)
+ #endif
+ 	{
+ 		kexec_in_progress = true;
+-		kernel_restart_prepare(NULL);
++		kernel_restart_prepare("kexec reboot");
+ 		migrate_to_reboot_cpu();
  
-+config CRASH_AUTO_STR
-+	string "Memory reserved for crash kernel"
-+	depends on CRASH_CORE
-+	default "1G-64G:128M,64G-1T:256M,1T-:512M"
-+	help
-+	  This configures the reserved memory dependent
-+	  on the value of System RAM. The syntax is:
-+	  crashkernel=<range1>:<size1>[,<range2>:<size2>,...][@offset]
-+	              range=start-[end]
-+
-+	  For example:
-+	      crashkernel=512M-2G:64M,2G-:128M
-+
-+	  This would mean:
-+
-+	      1) if the RAM is smaller than 512M, then don't reserve anything
-+	         (this is the "rescue" case)
-+	      2) if the RAM size is between 512M and 2G (exclusive), then reserve 64M
-+	      3) if the RAM size is larger than 2G, then reserve 128M
-+
- config KEXEC_CORE
- 	select CRASH_CORE
- 	bool
---- a/Documentation/admin-guide/kdump/kdump.rst~kernel-crash_core-add-crashkernel=auto-for-vmcore-creation
-+++ a/Documentation/admin-guide/kdump/kdump.rst
-@@ -285,7 +285,8 @@ This would mean:
-     2) if the RAM size is between 512M and 2G (exclusive), then reserve 64M
-     3) if the RAM size is larger than 2G, then reserve 128M
- 
--
-+Or you can use crashkernel=auto to choose the crash kernel memory size
-+based on the recommended configuration set for each arch.
- 
- Boot into System Kernel
- =======================
---- a/Documentation/admin-guide/kernel-parameters.txt~kernel-crash_core-add-crashkernel=auto-for-vmcore-creation
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -751,6 +751,12 @@
- 			a memory unit (amount[KMG]). See also
- 			Documentation/admin-guide/kdump/kdump.rst for an example.
- 
-+	crashkernel=auto
-+			[KNL] This parameter will set the reserved memory for
-+			the crash kernel based on the value of the CRASH_AUTO_STR
-+			that is the best effort estimation for each arch. See also
-+			arch/Kconfig for further details.
-+
- 	crashkernel=size[KMG],high
- 			[KNL, X86-64] range could be above 4G. Allow kernel
- 			to allocate physical memory region from top, so could
---- a/kernel/crash_core.c~kernel-crash_core-add-crashkernel=auto-for-vmcore-creation
-+++ a/kernel/crash_core.c
-@@ -7,6 +7,7 @@
- #include <linux/crash_core.h>
- #include <linux/utsname.h>
- #include <linux/vmalloc.h>
-+#include <linux/kexec.h>
- 
- #include <asm/page.h>
- #include <asm/sections.h>
-@@ -250,6 +251,12 @@ static int __init __parse_crashkernel(ch
- 	if (suffix)
- 		return parse_crashkernel_suffix(ck_cmdline, crash_size,
- 				suffix);
-+#ifdef CONFIG_CRASH_AUTO_STR
-+	if (strncmp(ck_cmdline, "auto", 4) == 0) {
-+		ck_cmdline = CONFIG_CRASH_AUTO_STR;
-+		pr_info("Using crashkernel=auto, the size chosen is a best effort estimation.\n");
-+	}
-+#endif
- 	/*
- 	 * if the commandline contains a ':', then that's the extended
- 	 * syntax -- if not, it must be the classic syntax
+ 		/*
 _
