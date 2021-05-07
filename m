@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D17D1C433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDE53C43460
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AF26B613B5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D28CD610FA
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231271AbhEGBFm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:05:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46330 "EHLO mail.kernel.org"
+        id S234095AbhEGBFt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:05:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46484 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230384AbhEGBFl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:05:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 55A18613B9;
-        Fri,  7 May 2021 01:04:42 +0000 (UTC)
+        id S230384AbhEGBFs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:05:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 79349610FA;
+        Fri,  7 May 2021 01:04:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349482;
-        bh=8sHBm7FVeCaTcPVAAlSZbcHtT9eMECCNvN6EiXYeKLw=;
+        s=korg; t=1620349488;
+        bh=KhvQresWMRSe+igiEmNrHb97WEHAFq8OsiWH/7o8k10=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=KvJRbORTnItoP2ju+BjG5pz70TKzYBy6sBBjuznHX2XRzNYxVJFRUHCM8jWi0mWGy
-         rzv8xnvM83Rbx+8vpdvh4s/6jbLcQK6vfkqagqtw6P1CF4cCek+FC0SCjG4DXQ9zKz
-         Eb4o9IoAQnxUHbHOD01oxBR6WiWRVqF+obX1p+GM=
-Date:   Thu, 06 May 2021 18:04:41 -0700
+        b=Fn1X+T2q3BibgirvvAN3zRxjBZ8T383Q+9CpCZWbcRmo6kK0dn1enynXk+t4RBu3r
+         SZ88JJnmRkQYHFRRd6jbeYzmN0vqYbl0QYkTZDh3v6mAkZEqXTI3KDHqxdcTkvZvE5
+         jWI0Xf3FV5VrY6UZFkOUUbJd8VrCv0Vd+x8bZ4mc=
+Date:   Thu, 06 May 2021 18:04:48 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anton@enomsg.org, bhe@redhat.com,
-        bhsharma@redhat.com, ccross@android.com, ebiederm@xmission.com,
-        jmorris@namei.org, keescook@chromium.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, pasha.tatashin@soleen.com,
-        pmladek@suse.com, sashal@kernel.org, tony.luck@intel.com,
-        torvalds@linux-foundation.org, tyhicks@linux.microsoft.com
-Subject:  [patch 51/91] kexec: dump kmessage before machine_kexec
-Message-ID: <20210507010441.lL4uYsEjV%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, johannes.berg@intel.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        oberpar@linux.ibm.com, torvalds@linux-foundation.org
+Subject:  [patch 53/91] gcov: simplify buffer allocation
+Message-ID: <20210507010448.TMyKI3xgO%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,65 +42,75 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: kexec: dump kmessage before machine_kexec
+From: Johannes Berg <johannes.berg@intel.com>
+Subject: gcov: simplify buffer allocation
 
-kmsg_dump(KMSG_DUMP_SHUTDOWN) is called before
-machine_restart(), machine_halt(), machine_power_off(), the only one that
-is missing is  machine_kexec().
+Use just a single vmalloc() with struct_size() instead of a separate
+kmalloc() for the iter struct.
 
-The dmesg output that it contains can be used to study the shutdown
-performance of both kernel and systemd during kexec reboot.
-
-Here is example of dmesg data collected after kexec:
-
-root@dplat-cp22:~# cat /sys/fs/pstore/dmesg-ramoops-0 | tail
-...
-<6>[   70.914592] psci: CPU3 killed (polled 0 ms)
-<5>[   70.915705] CPU4: shutdown
-<6>[   70.916643] psci: CPU4 killed (polled 4 ms)
-<5>[   70.917715] CPU5: shutdown
-<6>[   70.918725] psci: CPU5 killed (polled 0 ms)
-<5>[   70.919704] CPU6: shutdown
-<6>[   70.920726] psci: CPU6 killed (polled 4 ms)
-<5>[   70.921642] CPU7: shutdown
-<6>[   70.922650] psci: CPU7 killed (polled 0 ms)
-
-Link: https://lkml.kernel.org/r/20210319192326.146000-2-pasha.tatashin@soleen.com
-Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Bhupesh Sharma <bhsharma@redhat.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Tyler Hicks <tyhicks@linux.microsoft.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Sasha Levin <sashal@kernel.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Anton Vorontsov <anton@enomsg.org>
-Cc: Colin Cross <ccross@android.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Link: https://lkml.kernel.org/r/20210315235453.b6de4a92096e.Iac40a5166589cefbff8449e466bd1b38ea7a17af@changeid
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/gcov/fs.c |   24 +++++++++---------------
+ 1 file changed, 9 insertions(+), 15 deletions(-)
 
---- a/kernel/kexec_core.c~kexec-dump-kmessage-before-machine_kexec
-+++ a/kernel/kexec_core.c
-@@ -37,6 +37,7 @@
- #include <linux/compiler.h>
- #include <linux/hugetlb.h>
- #include <linux/objtool.h>
-+#include <linux/kmsg_dump.h>
+--- a/kernel/gcov/fs.c~gcov-simplify-buffer-allocation
++++ a/kernel/gcov/fs.c
+@@ -97,9 +97,9 @@ __setup("gcov_persist=", gcov_persist_se
+  */
+ struct gcov_iterator {
+ 	struct gcov_info *info;
+-	void *buffer;
+ 	size_t size;
+ 	loff_t pos;
++	char buffer[];
+ };
  
- #include <asm/page.h>
- #include <asm/sections.h>
-@@ -1179,6 +1180,7 @@ int kernel_kexec(void)
- 		machine_shutdown();
- 	}
+ /**
+@@ -111,25 +111,20 @@ struct gcov_iterator {
+ static struct gcov_iterator *gcov_iter_new(struct gcov_info *info)
+ {
+ 	struct gcov_iterator *iter;
++	size_t size;
++
++	/* Dry-run to get the actual buffer size. */
++	size = convert_to_gcda(NULL, info);
  
-+	kmsg_dump(KMSG_DUMP_SHUTDOWN);
- 	machine_kexec(kexec_image);
+-	iter = kzalloc(sizeof(struct gcov_iterator), GFP_KERNEL);
++	iter = vmalloc(struct_size(iter, buffer, size));
+ 	if (!iter)
+-		goto err_free;
++		return NULL;
  
- #ifdef CONFIG_KEXEC_JUMP
+ 	iter->info = info;
+-	/* Dry-run to get the actual buffer size. */
+-	iter->size = convert_to_gcda(NULL, info);
+-	iter->buffer = vmalloc(iter->size);
+-	if (!iter->buffer)
+-		goto err_free;
+-
++	iter->size = size;
+ 	convert_to_gcda(iter->buffer, info);
+ 
+ 	return iter;
+-
+-err_free:
+-	kfree(iter);
+-	return NULL;
+ }
+ 
+ 
+@@ -139,8 +134,7 @@ err_free:
+  */
+ static void gcov_iter_free(struct gcov_iterator *iter)
+ {
+-	vfree(iter->buffer);
+-	kfree(iter);
++	vfree(iter);
+ }
+ 
+ /**
 _
