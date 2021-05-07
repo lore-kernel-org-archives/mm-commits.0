@@ -7,36 +7,42 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAD22C433ED
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:05:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05DC4C433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:05:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C221061041
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:05:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DF22E613C9
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:05:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234110AbhEGBGK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:06:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47050 "EHLO mail.kernel.org"
+        id S234123AbhEGBGN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:06:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47140 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231489AbhEGBGJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:06:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AF197613C2;
-        Fri,  7 May 2021 01:05:09 +0000 (UTC)
+        id S231489AbhEGBGM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:06:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2C571610FA;
+        Fri,  7 May 2021 01:05:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349510;
-        bh=Jb8Agu7UTIkAs9BZPaHvrNgl1/X+HXJSY9J7Fh148Zk=;
+        s=korg; t=1620349514;
+        bh=yWMPpAFMbTQKvM7Ns+F0NZef2UOegYgQ739DTNmGDeM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=uGnrSnj5zc7MsIzyfv5J3KNHhtASxXzL2ceD3xHtp67lpT3xI4IaJZZtVW7WMs7Tn
-         Y/clBGFQIp13oP6hWxoibPpWiq4LujnOqlYdSKC4d7rT3WmT0C6yVnW1HDH6tnA1Bw
-         BmtZwO8sO/vHqOnJi6+swkOhnrebFHoPL4Agl1jU=
-Date:   Thu, 06 May 2021 18:05:09 -0700
+        b=P1NKvymlxDZKFobVlk1n4gZlxmFIE0BJ5klCnhKaOxDUIQaQuYTou4OkZhrJG/Bk2
+         u7fNA4imxJtw/xLxR3YgqmUngyItcVafc+cv6cjdWvMublhDZYNyXOAOlBEQ75Cbzh
+         RgHSgUErKpEYtSkdc0Z0Ih56cPuAKekp2UuDOVGo=
+Date:   Thu, 06 May 2021 18:05:12 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, corbet@lwn.net, jan.kiszka@siemens.com,
-        kbingham@kernel.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, song.bao.hua@hisilicon.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 60/91] scripts/gdb: add lx_current support for
- arm64
-Message-ID: <20210507010509.ZVraMwd2d%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
+        bhe@redhat.com, bp@alien8.de, brijesh.singh@amd.com, cai@lca.pw,
+        dan.j.williams@intel.com, daniel.vetter@ffwll.ch,
+        dave.hansen@linux.intel.com, david@redhat.com, dyoung@redhat.com,
+        ebiederm@xmission.com, gregkh@linuxfoundation.org, hpa@zytor.com,
+        keith.busch@intel.com, linux-mm@kvack.org,
+        mchehab+huawei@kernel.org, mhocko@suse.com, mingo@redhat.com,
+        mm-commits@vger.kernel.org, osalvador@suse.de, tglx@linutronix.de,
+        thomas.lendacky@amd.com, torvalds@linux-foundation.org,
+        vgoyal@redhat.com
+Subject:  [patch 61/91] kernel/resource: make walk_system_ram_res()
+ find all busy IORESOURCE_SYSTEM_RAM resources
+Message-ID: <20210507010512.Ou-MGmhz9%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,72 +50,98 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Barry Song <song.bao.hua@hisilicon.com>
-Subject: scripts/gdb: add lx_current support for arm64
+From: David Hildenbrand <david@redhat.com>
+Subject: kernel/resource: make walk_system_ram_res() find all busy IORESOURCE_SYSTEM_RAM resources
 
-arm64 uses SP_EL0 to save the current task_struct address.  While running
-in EL0, SP_EL0 is clobbered by userspace.  So if the upper bit is not 1
-(not TTBR1), the current address is invalid.  This patch checks the upper
-bit of SP_EL0, if the upper bit is 1, lx_current() of arm64 will return
-the derefrence of current task.  Otherwise, lx_current() will tell users
-they are running in userspace(EL0).
+Patch series "kernel/resource: make walk_system_ram_res() and walk_mem_res() search the whole tree", v2.
 
-While arm64 is running in EL0, it is actually pointless to print current
-task as the memory of kernel space is not accessible in EL0.
+Playing with kdump+virtio-mem I noticed that kexec_file_load() does not
+consider System RAM added via dax/kmem and virtio-mem when preparing the
+elf header for kdump.  Looking into the details, the logic used in
+walk_system_ram_res() and walk_mem_res() seems to be outdated.
 
-Link: https://lkml.kernel.org/r/20210314203444.15188-3-song.bao.hua@hisilicon.com
-Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kieran Bingham <kbingham@kernel.org>
+walk_system_ram_range() already does the right thing, let's change
+walk_system_ram_res() and walk_mem_res(), and clean up.
+
+Loading a kdump kernel via "kexec -p -s" ...  will result in the kdump
+kernel to also dump dax/kmem and virtio-mem added System RAM now.
+
+Note: kexec-tools on x86-64 also have to be updated to consider this
+memory in the kexec_load() case when processing /proc/iomem.
+
+
+This patch (of 3):
+
+It used to be true that we can have system RAM (IORESOURCE_SYSTEM_RAM |
+IORESOURCE_BUSY) only on the first level in the resource tree.  However,
+this is no longer holds for driver-managed system RAM (i.e., added via
+dax/kmem and virtio-mem), which gets added on lower levels, for example,
+inside device containers.
+
+We have two users of walk_system_ram_res(), which currently only
+consideres the first level:
+
+a) kernel/kexec_file.c:kexec_walk_resources() -- We properly skip
+   IORESOURCE_SYSRAM_DRIVER_MANAGED resources via
+   locate_mem_hole_callback(), so even after this change, we won't be
+   placing kexec images onto dax/kmem and virtio-mem added memory.  No
+   change.
+
+b) arch/x86/kernel/crash.c:fill_up_crash_elf_data() -- we're currently
+   not adding relevant ranges to the crash elf header, resulting in them
+   not getting dumped via kdump.
+
+This change fixes loading a crashkernel via kexec_file_load() and
+including dax/kmem and virtio-mem added System RAM in the crashdump on
+x86-64.  Note that e.g,, arm64 relies on memblock data and, therefore,
+always considers all added System RAM already.
+
+Let's find all IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY resources, making
+the function behave like walk_system_ram_range().
+
+Link: https://lkml.kernel.org/r/20210325115326.7826-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20210325115326.7826-2-david@redhat.com
+Fixes: ebf71552bb0e ("virtio-mem: Add parent resource for all added "System RAM"")
+Fixes: c221c0b0308f ("device-dax: "Hotplug" persistent memory for use like normal RAM")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Brijesh Singh <brijesh.singh@amd.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/gdb-kernel-debugging.rst |    2 +-
- scripts/gdb/linux/cpus.py                        |   13 +++++++++++++
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ kernel/resource.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/dev-tools/gdb-kernel-debugging.rst~scripts-gdb-add-lx_current-support-for-arm64
-+++ a/Documentation/dev-tools/gdb-kernel-debugging.rst
-@@ -114,7 +114,7 @@ Examples of using the Linux-provided gdb
-     [     0.000000] BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
-     ....
+--- a/kernel/resource.c~kernel-resource-make-walk_system_ram_res-find-all-busy-ioresource_system_ram-resources
++++ a/kernel/resource.c
+@@ -457,7 +457,7 @@ int walk_system_ram_res(u64 start, u64 e
+ {
+ 	unsigned long flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
  
--- Examine fields of the current task struct(supported by x86 only)::
-+- Examine fields of the current task struct(supported by x86 and arm64 only)::
+-	return __walk_iomem_res_desc(start, end, flags, IORES_DESC_NONE, true,
++	return __walk_iomem_res_desc(start, end, flags, IORES_DESC_NONE, false,
+ 				     arg, func);
+ }
  
-     (gdb) p $lx_current().pid
-     $1 = 4998
---- a/scripts/gdb/linux/cpus.py~scripts-gdb-add-lx_current-support-for-arm64
-+++ a/scripts/gdb/linux/cpus.py
-@@ -16,6 +16,9 @@ import gdb
- from linux import tasks, utils
- 
- 
-+task_type = utils.CachedType("struct task_struct")
-+
-+
- MAX_CPUS = 4096
- 
- 
-@@ -157,9 +160,19 @@ Note that VAR has to be quoted as string
- PerCpu()
- 
- def get_current_task(cpu):
-+    task_ptr_type = task_type.get_type().pointer()
-+
-     if utils.is_target_arch("x86"):
-          var_ptr = gdb.parse_and_eval("&current_task")
-          return per_cpu(var_ptr, cpu).dereference()
-+    elif utils.is_target_arch("aarch64"):
-+         current_task_addr = gdb.parse_and_eval("$SP_EL0")
-+         if((current_task_addr >> 63) != 0):
-+             current_task = current_task_addr.cast(task_ptr_type)
-+             return current_task.dereference()
-+         else:
-+             raise gdb.GdbError("Sorry, obtaining the current task is not allowed "
-+                                "while running in userspace(EL0)")
-     else:
-         raise gdb.GdbError("Sorry, obtaining the current task is not yet "
-                            "supported with this arch")
 _
