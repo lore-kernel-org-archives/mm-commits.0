@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D755C433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:03:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6748C43460
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:03:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 344D0613C5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:03:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 778F661289
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:03:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234033AbhEGBEs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:04:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44898 "EHLO mail.kernel.org"
+        id S234057AbhEGBEt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:04:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44980 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230499AbhEGBEq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:04:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0AEEC61041;
-        Fri,  7 May 2021 01:03:47 +0000 (UTC)
+        id S230499AbhEGBEt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:04:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 19F74610FA;
+        Fri,  7 May 2021 01:03:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349427;
-        bh=yJSwoEai5IhGCfELSn+AqwWIto5fW3brLoJw6y5w9EU=;
+        s=korg; t=1620349430;
+        bh=3f4ck7rVcuaK1FUbu7+7gFcJX+CsZrCtN2rIAwwo9Aw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=XJ4O1tH++U5BfkREShm4wktg6ZZDShVcVd03Y5SsYTXvWtAyxjHokuAGuDzxNCwM0
-         unIj7d4juaJVtoSCvDcisrQ3AULUHS4DAnZq5Gb4ixE7d9c71TbpI777qCsAi74EVY
-         9lIr+r0wqHrHP87obsSzU06SGBbpXyWpnJ0mmhzk=
-Date:   Thu, 06 May 2021 18:03:46 -0700
+        b=Go7SxsbbWJ+ISlaWCQGzqUfgtlBR71GT37kHyKV4nQWt5Vw//B+boU+LbyfF1b1qh
+         jO72Uunu9yhdmXt+JaHIIscwuRR+wS/ABsLviKE4cGeTXb/CXaaHqh5FEedNs9uKpB
+         iK4NKr3wmmUTSjI0bxv62teyB8vf/kKiss6DIGMw=
+Date:   Thu, 06 May 2021 18:03:49 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, alexey.skidanov@intel.com,
-        alexs@kernel.org, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        sfr@canb.auug.org.au, sjhuang@iluvatar.ai,
-        torvalds@linux-foundation.org, unixbhaskar@gmail.com
-Subject:  [patch 33/91] lib/genalloc: add parameter description to
- fix doc compile warning
-Message-ID: <20210507010346.3Qp4K67Vg%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dhowells@redhat.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+Subject:  [patch 34/91] lib: parser: clean up kernel-doc
+Message-ID: <20210507010349.bF17Bzuxd%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,74 +42,168 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Alex Shi <alexs@kernel.org>
-Subject: lib/genalloc: add parameter description to fix doc compile warning
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: lib: parser: clean up kernel-doc
 
-commit 52fbf1134d47 ("lib/genalloc.c: fix allocation of aligned buffer
- from non-aligned chunk") add a new parameter 'start_addr' w/o
-description for it. That cause some doc compile warning:
+Mark match_uint() as kernel-doc notation since it is already fully
+annotated as such.  Use % prefix on constants in kernel-doc comments. 
+Convert function return descriptions to use the "Return:" kernel-doc
+notation.
 
-lib/genalloc.c:649: warning: Function parameter or member 'start_addr' not described in 'gen_pool_first_fit'
-lib/genalloc.c:667: warning: Function parameter or member 'start_addr' not described in 'gen_pool_first_fit_align'
-lib/genalloc.c:694: warning: Function parameter or member 'start_addr' not described in 'gen_pool_fixed_alloc'
-lib/genalloc.c:729: warning: Function parameter or member 'start_addr' not described in 'gen_pool_first_fit_order_align'
-lib/genalloc.c:752: warning: Function parameter or member 'start_addr' not described in 'gen_pool_best_fit'
-
-This patch fix this by adding parameter descriptions.
-
-Link: https://lkml.kernel.org/r/20210405132021.131231-1-alexs@kernel.org
-Signed-off-by: Alex Shi <alexs@kernel.org>
-Cc: Alexey Skidanov <alexey.skidanov@intel.com>
-Cc: Huang Shijie <sjhuang@iluvatar.ai>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/20210407034514.5651-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/genalloc.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ lib/parser.c |   61 ++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 38 insertions(+), 23 deletions(-)
 
---- a/lib/genalloc.c~lib-genalloc-add-parameter-description-to-fix-doc-compile-warning
-+++ a/lib/genalloc.c
-@@ -642,6 +642,7 @@ EXPORT_SYMBOL(gen_pool_set_algo);
-  * @nr: The number of zeroed bits we're looking for
-  * @data: additional data - unused
-  * @pool: pool to find the fit region memory from
-+ * @start_addr: not used in this function
-  */
- unsigned long gen_pool_first_fit(unsigned long *map, unsigned long size,
- 		unsigned long start, unsigned int nr, void *data,
-@@ -660,6 +661,7 @@ EXPORT_SYMBOL(gen_pool_first_fit);
-  * @nr: The number of zeroed bits we're looking for
-  * @data: data for alignment
-  * @pool: pool to get order from
-+ * @start_addr: start addr of alloction chunk
-  */
- unsigned long gen_pool_first_fit_align(unsigned long *map, unsigned long size,
- 		unsigned long start, unsigned int nr, void *data,
-@@ -687,6 +689,7 @@ EXPORT_SYMBOL(gen_pool_first_fit_align);
-  * @nr: The number of zeroed bits we're looking for
-  * @data: data for alignment
-  * @pool: pool to get order from
-+ * @start_addr: not used in this function
-  */
- unsigned long gen_pool_fixed_alloc(unsigned long *map, unsigned long size,
- 		unsigned long start, unsigned int nr, void *data,
-@@ -721,6 +724,7 @@ EXPORT_SYMBOL(gen_pool_fixed_alloc);
-  * @nr: The number of zeroed bits we're looking for
-  * @data: additional data - unused
-  * @pool: pool to find the fit region memory from
-+ * @start_addr: not used in this function
-  */
- unsigned long gen_pool_first_fit_order_align(unsigned long *map,
- 		unsigned long size, unsigned long start,
-@@ -742,6 +746,7 @@ EXPORT_SYMBOL(gen_pool_first_fit_order_a
-  * @nr: The number of zeroed bits we're looking for
-  * @data: additional data - unused
-  * @pool: pool to find the fit region memory from
-+ * @start_addr: not used in this function
+--- a/lib/parser.c~lib-parser-clean-up-kernel-doc
++++ a/lib/parser.c
+@@ -98,7 +98,7 @@ static int match_one(char *s, const char
+  * locations.
   *
-  * Iterate over the bitmap to find the smallest free region
-  * which we can allocate the memory.
+  * Description: Detects which if any of a set of token strings has been passed
+- * to it. Tokens can include up to MAX_OPT_ARGS instances of basic c-style
++ * to it. Tokens can include up to %MAX_OPT_ARGS instances of basic c-style
+  * format identifiers which will be taken into account when matching the
+  * tokens, and whose locations will be returned in the @args array.
+  */
+@@ -120,8 +120,10 @@ EXPORT_SYMBOL(match_token);
+  * @base: base to use when converting string
+  *
+  * Description: Given a &substring_t and a base, attempts to parse the substring
+- * as a number in that base. On success, sets @result to the integer represented
+- * by the string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * as a number in that base.
++ *
++ * Return: On success, sets @result to the integer represented by the
++ * string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ static int match_number(substring_t *s, int *result, int base)
+ {
+@@ -153,8 +155,10 @@ static int match_number(substring_t *s,
+  * @base: base to use when converting string
+  *
+  * Description: Given a &substring_t and a base, attempts to parse the substring
+- * as a number in that base. On success, sets @result to the integer represented
+- * by the string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * as a number in that base.
++ *
++ * Return: On success, sets @result to the integer represented by the
++ * string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ static int match_u64int(substring_t *s, u64 *result, int base)
+ {
+@@ -178,9 +182,10 @@ static int match_u64int(substring_t *s,
+  * @s: substring_t to be scanned
+  * @result: resulting integer on success
+  *
+- * Description: Attempts to parse the &substring_t @s as a decimal integer. On
+- * success, sets @result to the integer represented by the string and returns 0.
+- * Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * Description: Attempts to parse the &substring_t @s as a decimal integer.
++ *
++ * Return: On success, sets @result to the integer represented by the string
++ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ int match_int(substring_t *s, int *result)
+ {
+@@ -188,14 +193,15 @@ int match_int(substring_t *s, int *resul
+ }
+ EXPORT_SYMBOL(match_int);
+ 
+-/*
++/**
+  * match_uint - scan a decimal representation of an integer from a substring_t
+  * @s: substring_t to be scanned
+  * @result: resulting integer on success
+  *
+- * Description: Attempts to parse the &substring_t @s as a decimal integer. On
+- * success, sets @result to the integer represented by the string and returns 0.
+- * Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * Description: Attempts to parse the &substring_t @s as a decimal integer.
++ *
++ * Return: On success, sets @result to the integer represented by the string
++ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ int match_uint(substring_t *s, unsigned int *result)
+ {
+@@ -217,9 +223,10 @@ EXPORT_SYMBOL(match_uint);
+  * @result: resulting unsigned long long on success
+  *
+  * Description: Attempts to parse the &substring_t @s as a long decimal
+- * integer. On success, sets @result to the integer represented by the
+- * string and returns 0.
+- * Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * integer.
++ *
++ * Return: On success, sets @result to the integer represented by the string
++ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ int match_u64(substring_t *s, u64 *result)
+ {
+@@ -232,9 +239,10 @@ EXPORT_SYMBOL(match_u64);
+  * @s: substring_t to be scanned
+  * @result: resulting integer on success
+  *
+- * Description: Attempts to parse the &substring_t @s as an octal integer. On
+- * success, sets @result to the integer represented by the string and returns
+- * 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * Description: Attempts to parse the &substring_t @s as an octal integer.
++ *
++ * Return: On success, sets @result to the integer represented by the string
++ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ int match_octal(substring_t *s, int *result)
+ {
+@@ -248,8 +256,9 @@ EXPORT_SYMBOL(match_octal);
+  * @result: resulting integer on success
+  *
+  * Description: Attempts to parse the &substring_t @s as a hexadecimal integer.
+- * On success, sets @result to the integer represented by the string and
+- * returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ *
++ * Return: On success, sets @result to the integer represented by the string
++ * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
+  */
+ int match_hex(substring_t *s, int *result)
+ {
+@@ -263,10 +272,11 @@ EXPORT_SYMBOL(match_hex);
+  * @str: the string to be parsed
+  *
+  * Description: Parse the string @str to check if matches wildcard
+- * pattern @pattern. The pattern may contain two type wildcardes:
++ * pattern @pattern. The pattern may contain two types of wildcards:
+  *   '*' - matches zero or more characters
+  *   '?' - matches one character
+- * If it's matched, return true, else return false.
++ *
++ * Return: If the @str matches the @pattern, return true, else return false.
+  */
+ bool match_wildcard(const char *pattern, const char *str)
+ {
+@@ -316,7 +326,9 @@ EXPORT_SYMBOL(match_wildcard);
+  *
+  * Description: Copy the characters in &substring_t @src to the
+  * c-style string @dest.  Copy no more than @size - 1 characters, plus
+- * the terminating NUL.  Return length of @src.
++ * the terminating NUL.
++ *
++ * Return: length of @src.
+  */
+ size_t match_strlcpy(char *dest, const substring_t *src, size_t size)
+ {
+@@ -338,6 +350,9 @@ EXPORT_SYMBOL(match_strlcpy);
+  * Description: Allocates and returns a string filled with the contents of
+  * the &substring_t @s. The caller is responsible for freeing the returned
+  * string with kfree().
++ *
++ * Return: the address of the newly allocated NUL-terminated string or
++ * %NULL on error.
+  */
+ char *match_strdup(const substring_t *s)
+ {
 _
