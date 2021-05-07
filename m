@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9C07C433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A287C433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:05:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA77C613C5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DF31161289
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:05:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234103AbhEGBF4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:05:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46736 "EHLO mail.kernel.org"
+        id S234104AbhEGBGA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:06:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46806 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230384AbhEGBF4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:05:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8B12E610FA;
-        Fri,  7 May 2021 01:04:57 +0000 (UTC)
+        id S230384AbhEGBF7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:05:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E2B961041;
+        Fri,  7 May 2021 01:05:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349497;
-        bh=svQBwBACLtUvO35TNf1+dAi5TDq7x9dlAAkf8ZKJ5+k=;
+        s=korg; t=1620349500;
+        bh=y8opZji1uurSx1pUYlJCh0EsFQw7giaYyBvCQqfZwzo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=tSLXF1qpjeV3XJptgB2kd4nmavJECsDNSWDMWTds4NyGRBjA/AsUxCgGDai2hWyrO
-         vNkKgaZ0Hk+eeMWUlXQg77KY9ghUum99Zr7ZEESTRiMv669tYjl1VTkssKB+J9FxFu
-         6goE6dW+EbKBCj62OqflPhyObrqpO07IkVpcEUkc=
-Date:   Thu, 06 May 2021 18:04:57 -0700
+        b=izVj0cuxvK1LS5nmDls04cM/ofD0CSWnq98oMrFHw2PeNRkNMBlmXW9ICs9FbmM9x
+         9xKthW2yIiiCIcbhVlJZeSHA+0DMTP1K9/qLdI0IFAguPu7UeZqqWea8k7YwozEhF2
+         syIyWBt8viBIVoxAekV+VaPJ65R1+98C2mi55aFQ=
+Date:   Thu, 06 May 2021 18:05:00 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, heying24@huawei.com, hulkci@huawei.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+To:     akpm@linux-foundation.org, axboe@kernel.dk, joshs@netflix.com,
+        laoar.shao@gmail.com, linux-mm@kvack.org, mingo@kernel.org,
+        mm-commits@vger.kernel.org, tj@kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 56/91] smp: kernel/panic.c - silence warnings
-Message-ID: <20210507010457.h2agUId-5%akpm@linux-foundation.org>
+Subject:  [patch 57/91] delayacct: clear right task's flag after
+ blkio completes
+Message-ID: <20210507010500.CPd3sPDCB%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,41 +44,127 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: He Ying <heying24@huawei.com>
-Subject: smp: kernel/panic.c - silence warnings
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: delayacct: clear right task's flag after blkio completes
 
-We found these warnings in kernel/panic.c by using sparse tool:
-warning: symbol 'panic_smp_self_stop' was not declared.
-warning: symbol 'nmi_panic_self_stop' was not declared.
-warning: symbol 'crash_smp_send_stop' was not declared.
+When I was implementing a latency analyze tool by using task->delays and
+other things, I found there's issue in delayacct.  The issue is it should
+clear the target's flag instead of current's in delayacct_blkio_end().
 
-To avoid them, add declarations for these three functions in
-include/linux/smp.h.
+When I git blame delayacct, I found there're some similar issues we have
+fixed in delayacct_blkio_end().
+'Commit c96f5471ce7d ("delayacct: Account blkio completion on the correct task")'
+fixed the issue that it should account blkio completion on the target
+task instead of current.
+'Commit b512719f771a ("delayacct: fix crash in delayacct_blkio_end() after delayacct init failure")'
+fixed the issue that it should check target task's delays instead of
+current task'. It seems that delayacct_blkio_{begin, end} are error prone.
+So I introduce a new paratmeter - the target task 'p' into these helpers,
+after that change, the callsite will specifilly set the right task, which
+should make it less error prone.
 
-Link: https://lkml.kernel.org/r/20210316084150.75201-1-heying24@huawei.com
-Signed-off-by: He Ying <heying24@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
+Link: https://lkml.kernel.org/r/20210414083720.24083-1-laoar.shao@gmail.com
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Josh Snyder <joshs@netflix.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/delayacct.h |   20 ++++++++++----------
+ mm/memory.c               |    8 ++++----
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
---- a/include/linux/smp.h~smp-kernel-panicc-silence-warnings
-+++ a/include/linux/smp.h
-@@ -56,6 +56,14 @@ void on_each_cpu_cond_mask(smp_cond_func
- int smp_call_function_single_async(int cpu, call_single_data_t *csd);
+--- a/include/linux/delayacct.h~delayacct-clear-right-tasks-flag-after-blkio-completes
++++ a/include/linux/delayacct.h
+@@ -82,16 +82,16 @@ static inline int delayacct_is_task_wait
+ 		return 0;
+ }
  
- /*
-+ * Cpus stopping functions in panic. All have default weak definitions.
-+ * Architecture-dependent code may override them.
-+ */
-+void panic_smp_self_stop(void);
-+void nmi_panic_self_stop(struct pt_regs *regs);
-+void crash_smp_send_stop(void);
-+
-+/*
-  * Call a function on all processors
-  */
- static inline void on_each_cpu(smp_call_func_t func, void *info, int wait)
+-static inline void delayacct_set_flag(int flag)
++static inline void delayacct_set_flag(struct task_struct *p, int flag)
+ {
+-	if (current->delays)
+-		current->delays->flags |= flag;
++	if (p->delays)
++		p->delays->flags |= flag;
+ }
+ 
+-static inline void delayacct_clear_flag(int flag)
++static inline void delayacct_clear_flag(struct task_struct *p, int flag)
+ {
+-	if (current->delays)
+-		current->delays->flags &= ~flag;
++	if (p->delays)
++		p->delays->flags &= ~flag;
+ }
+ 
+ static inline void delayacct_tsk_init(struct task_struct *tsk)
+@@ -114,7 +114,7 @@ static inline void delayacct_tsk_free(st
+ 
+ static inline void delayacct_blkio_start(void)
+ {
+-	delayacct_set_flag(DELAYACCT_PF_BLKIO);
++	delayacct_set_flag(current, DELAYACCT_PF_BLKIO);
+ 	if (current->delays)
+ 		__delayacct_blkio_start();
+ }
+@@ -123,7 +123,7 @@ static inline void delayacct_blkio_end(s
+ {
+ 	if (p->delays)
+ 		__delayacct_blkio_end(p);
+-	delayacct_clear_flag(DELAYACCT_PF_BLKIO);
++	delayacct_clear_flag(p, DELAYACCT_PF_BLKIO);
+ }
+ 
+ static inline int delayacct_add_tsk(struct taskstats *d,
+@@ -166,9 +166,9 @@ static inline void delayacct_thrashing_e
+ }
+ 
+ #else
+-static inline void delayacct_set_flag(int flag)
++static inline void delayacct_set_flag(struct task_struct *p, int flag)
+ {}
+-static inline void delayacct_clear_flag(int flag)
++static inline void delayacct_clear_flag(struct task_struct *p, int flag)
+ {}
+ static inline void delayacct_init(void)
+ {}
+--- a/mm/memory.c~delayacct-clear-right-tasks-flag-after-blkio-completes
++++ a/mm/memory.c
+@@ -3339,7 +3339,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	}
+ 
+ 
+-	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
++	delayacct_set_flag(current, DELAYACCT_PF_SWAPIN);
+ 	page = lookup_swap_cache(entry, vma, vmf->address);
+ 	swapcache = page;
+ 
+@@ -3388,7 +3388,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 					vmf->address, &vmf->ptl);
+ 			if (likely(pte_same(*vmf->pte, vmf->orig_pte)))
+ 				ret = VM_FAULT_OOM;
+-			delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
++			delayacct_clear_flag(current, DELAYACCT_PF_SWAPIN);
+ 			goto unlock;
+ 		}
+ 
+@@ -3402,13 +3402,13 @@ vm_fault_t do_swap_page(struct vm_fault
+ 		 * owner processes (which may be unknown at hwpoison time)
+ 		 */
+ 		ret = VM_FAULT_HWPOISON;
+-		delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
++		delayacct_clear_flag(current, DELAYACCT_PF_SWAPIN);
+ 		goto out_release;
+ 	}
+ 
+ 	locked = lock_page_or_retry(page, vma->vm_mm, vmf->flags);
+ 
+-	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
++	delayacct_clear_flag(current, DELAYACCT_PF_SWAPIN);
+ 	if (!locked) {
+ 		ret |= VM_FAULT_RETRY;
+ 		goto out_release;
 _
