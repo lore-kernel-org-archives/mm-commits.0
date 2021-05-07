@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E87FC433ED
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:03:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC0F4C433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53FE2613C8
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:03:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D35CF61041
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234061AbhEGBEz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:04:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45140 "EHLO mail.kernel.org"
+        id S234065AbhEGBE6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:04:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45206 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230499AbhEGBEz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:04:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F30E561289;
-        Fri,  7 May 2021 01:03:55 +0000 (UTC)
+        id S230499AbhEGBE6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:04:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E036A610F7;
+        Fri,  7 May 2021 01:03:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349436;
-        bh=yNccgy6pq9qZzno8uinz34DjqBjAwW+ELqL//f2yANc=;
+        s=korg; t=1620349439;
+        bh=3oIOmhhwylh/Ad5EKTVIjtRH+XgJ7M7Dn139FYpVpcY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=TIUxSFg8ME/hyCtp6c8AUFxwYdL5zbqHPu8+lbaFRGuFr4HqPBfZdNKYMeTRAD1qS
-         1ltdINq/RE/m4BAXqhex//QhR46QqDLC8xQJ6ylNwGEoC/7wRrPbpdfBfXF09qK7pJ
-         Ep5oFLG2FTHPQ0p9MnjCbKS+XJ3s/ZmW+xlM686M=
-Date:   Thu, 06 May 2021 18:03:55 -0700
+        b=KLvJu+3ktFaFnxT2umWjTTYRvjdZggi4BqkqL6PoTmqMvOIflXtUVtVstgpt+Sao3
+         BfKe9tLfsD3upHdIZJOoxZe22VW0YjmW3kGGxTqVsU19lGAwey6BLHVDV9oj58wv4c
+         6mU20kLS+XTELjZBnmX4vTJc2we4d+0ZrIwtyRTs=
+Date:   Thu, 06 May 2021 18:03:58 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, joe@perches.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 36/91] checkpatch: warn when missing newline in
- return sysfs_emit() formats
-Message-ID: <20210507010355.UoGRYeyIJ%akpm@linux-foundation.org>
+        mailhol.vincent@wanadoo.fr, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 37/91] checkpatch: exclude four preprocessor
+ sub-expressions from MACRO_ARG_REUSE
+Message-ID: <20210507010358.m2ZZiPpcT%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,40 +43,34 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn when missing newline in return sysfs_emit() formats
+From: Vincent Mailhol <mailhol.vincent@wanadoo.fr>
+Subject: checkpatch: exclude four preprocessor sub-expressions from MACRO_ARG_REUSE
 
-return sysfs_emit() uses should include a newline.
+__must_be_array, offsetof, sizeof_field and __stringify are all
+preprocessor macros and do not evaluate their arguments.  As such, it is
+safe not to warn when arguments are being reused in those four
+sub-expressions.
 
-Suggest adding a newline when one is missing.
-Add one using --fix too.
+Exclude those so that they can pass checkpatch.
 
-Link: https://lkml.kernel.org/r/aa1819fa5faf786573df298e5e2e7d357ba7d4ad.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/20210407105042.25380-1-mailhol.vincent@wanadoo.fr
+Signed-off-by: Vincent Mailhol <mailhol.vincent@wanadoo.fr>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-warn-when-missing-newline-in-return-sysfs_emit-formats
+--- a/scripts/checkpatch.pl~checkpatch-exclude-four-preprocessor-sub-expressions-from-macro_arg_reuse
 +++ a/scripts/checkpatch.pl
-@@ -7198,6 +7198,17 @@ sub process {
- 			     "Using $1 should generally have parentheses around the comparison\n" . $herecurr);
- 		}
- 
-+# return sysfs_emit(foo, fmt, ...) fmt without newline
-+		if ($line =~ /\breturn\s+sysfs_emit\s*\(\s*$FuncArg\s*,\s*($String)/ &&
-+		    substr($rawline, $-[6], $+[6] - $-[6]) !~ /\\n"$/) {
-+			my $offset = $+[6] - 1;
-+			if (WARN("SYSFS_EMIT",
-+				 "return sysfs_emit(...) formats should include a terminating newline\n" . $herecurr) &&
-+			    $fix) {
-+				substr($fixed[$fixlinenr], $offset, 0) = '\\n';
-+			}
-+		}
-+
- # nested likely/unlikely calls
- 		if ($line =~ /\b(?:(?:un)?likely)\s*\(\s*!?\s*(IS_ERR(?:_OR_NULL|_VALUE)?|WARN)/) {
- 			WARN("LIKELY_MISUSE",
+@@ -5829,7 +5829,7 @@ sub process {
+ 			        next if ($arg =~ /\.\.\./);
+ 			        next if ($arg =~ /^type$/i);
+ 				my $tmp_stmt = $define_stmt;
+-				$tmp_stmt =~ s/\b(sizeof|typeof|__typeof__|__builtin\w+|typecheck\s*\(\s*$Type\s*,|\#+)\s*\(*\s*$arg\s*\)*\b//g;
++				$tmp_stmt =~ s/\b(__must_be_array|offsetof|sizeof|sizeof_field|__stringify|typeof|__typeof__|__builtin\w+|typecheck\s*\(\s*$Type\s*,|\#+)\s*\(*\s*$arg\s*\)*\b//g;
+ 				$tmp_stmt =~ s/\#+\s*$arg\b//g;
+ 				$tmp_stmt =~ s/\b$arg\s*\#\#//g;
+ 				my $use_cnt = () = $tmp_stmt =~ /\b$arg\b/g;
 _
