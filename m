@@ -7,90 +7,179 @@ X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4464AC433ED
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 701B1C433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1042D610FA
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40BB161289
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234086AbhEGBFT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:05:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45740 "EHLO mail.kernel.org"
+        id S234082AbhEGBFW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:05:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234082AbhEGBFT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:05:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D22FB61041;
-        Fri,  7 May 2021 01:04:19 +0000 (UTC)
+        id S234073AbhEGBFW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:05:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 014A2610F7;
+        Fri,  7 May 2021 01:04:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349460;
-        bh=o/2N0T9G83T1JnhF/ZSD7fzPsMJv/MlfUZjK+z2T5T8=;
+        s=korg; t=1620349463;
+        bh=QBPEZG2WgYOW+t5sc5Dew2EQsTta3czEDUc52L3XMMA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=i3RcU7ucB/ZN6yPjJm0JNt6M37OkDapfkDRMeoSA6rXLXIqexuZCsYgLSvnc5ILRX
-         0TqdAepgDUt3USB5nZ2WFT2noe8NwmdOxyMzDFNUjc99GKJ3XIZynNUh+jFNmdkEOU
-         jd4HhLilCbRBM6aBm8X+TqR5NqCdOqIbWhtpVgD8=
-Date:   Thu, 06 May 2021 18:04:19 -0700
+        b=LscgNs/mIoopr9wOnMBV2u7fK3F8chD+2sjUcwb5a66AR/Ft64jlRFcOJ922t7oTu
+         e8urWn8L8qyGMIc5PqCPjcy48sJ7OKjymSUTS7P+oHVvUJCPi7qpw7dn8p2EQ1gvfg
+         eQK7fvOEYO2webBDRgaaQ/uTU3UwDecTjyAC00jY=
+Date:   Thu, 06 May 2021 18:04:22 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, gustavoars@kernel.org,
-        linux-mm@kvack.org, mikulas@artax.karlin.mff.cuni.cz,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 44/91] hpfs: replace one-element array with
- flexible-array member
-Message-ID: <20210507010419.mWM1EAwEh%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, christian@brauner.io,
+        ebiederm@xmission.com, jnewsome@torproject.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, oleg@redhat.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 45/91] do_wait: make PIDTYPE_PID case O(1) instead
+ of O(n)
+Message-ID: <20210507010422.5op90-oWN%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Subject: hpfs: replace one-element array with flexible-array member
+From: Jim Newsome <jnewsome@torproject.org>
+Subject: do_wait: make PIDTYPE_PID case O(1) instead of O(n)
 
-There is a regular need in the kernel to provide a way to declare having
-a dynamically sized set of trailing elements in a structure. Kernel code
-should always use =E2=80=9Cflexible array members=E2=80=9D[1] for these cas=
-es. The older
-style of one-element or zero-length arrays should no longer be used[2].
+Add a special-case when waiting on a pid (via waitpid, waitid, wait4, etc)
+to avoid doing an O(n) scan of children and tracees, and instead do an
+O(1) lookup.  This improves performance when waiting on a pid from a
+thread group with many children and/or tracees.
 
-Also, this helps with the ongoing efforts to enable -Warray-bounds by
-fixing the following warning:
+Time to fork and then call waitpid on the child, from a task that already
+has N children [1]:
 
-  CC [M]  fs/hpfs/dir.o
-fs/hpfs/dir.c: In function `hpfs_readdir':
-fs/hpfs/dir.c:163:41: warning: array subscript 1 is above array bounds of `=
-u8[1]' {aka `unsigned char[1]'} [-Warray-bounds]
-  163 |         || de ->name[0] !=3D 1 || de->name[1] !=3D 1))
-      |                                 ~~~~~~~~^~~
+N    | Before  | After
+-----|---------|------
+1    | 74 us   | 74 us
+20   | 72 us   | 75 us
+100  | 83 us   | 77 us
+500  | 99 us   | 74 us
+1000 | 179 us  | 75 us
+5000 | 804 us  | 79 us
+8000 | 1268 us | 78 us
 
-[1] https://en.wikipedia.org/wiki/Flexible_array_member
-[2] https://www.kernel.org/doc/html/v5.10/process/deprecated.html#zero-leng=
-th-and-one-element-arrays
+[1]: https://lkml.org/lkml/2021/3/12/1567
 
-Link: https://github.com/KSPP/linux/issues/79
-Link: https://github.com/KSPP/linux/issues/109
-Link: https://lkml.kernel.org/r/20210326173510.GA81212@embeddedor
-Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+This can make a substantial performance improvement for applications with
+a thread that has many children or tracees and frequently needs to wait on
+them.  Tools that use ptrace to intercept syscalls for a large number of
+processes are likely to fall into this category.  In particular this patch
+was developed while building a ptrace-based second generation of the
+Shadow emulator [2], for which it allows us to avoid quadratic scaling
+(without having to use a workaround that introduces a ~40% performance
+penalty) [3].  Other examples of tools that fall into this category which
+this patch may help include User Mode Linux [4] and DetTrace [5].
+
+[2]: https://shadow.github.io/
+[3]: https://github.com/shadow/shadow/issues/1134#issuecomment-798992292
+[4]: https://en.wikipedia.org/wiki/User-mode_Linux
+[5]: https://github.com/dettrace/dettrace
+
+Link: https://lkml.kernel.org/r/20210314231544.9379-1-jnewsome@torproject.org
+Signed-off-by: James Newsome <jnewsome@torproject.org>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Cc: "Eric W . Biederman" <ebiederm@xmission.com>
+Cc: Christian Brauner <christian@brauner.io>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hpfs/hpfs.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/exit.c |   67 ++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 57 insertions(+), 10 deletions(-)
 
---- a/fs/hpfs/hpfs.h~hpfs-replace-one-element-array-with-flexible-array-mem=
-ber
-+++ a/fs/hpfs/hpfs.h
-@@ -356,7 +356,8 @@ struct hpfs_dirent {
-   u8 no_of_acls;			/* number of ACL's (low 3 bits) */
-   u8 ix;				/* code page index (of filename), see
- 					   struct code_page_data */
--  u8 namelen, name[1];			/* file name */
-+  u8 namelen;				/* file name length */
-+  u8 name[];				/* file name */
-   /* dnode_secno down;	  btree down pointer, if present,
-      			  follows name on next word boundary, or maybe it
- 			  precedes next dirent, which is on a word boundary. */
+--- a/kernel/exit.c~do_wait-make-pidtype_pid-case-o1-instead-of-on
++++ a/kernel/exit.c
+@@ -1440,9 +1440,48 @@ void __wake_up_parent(struct task_struct
+ 			   TASK_INTERRUPTIBLE, p);
+ }
+ 
++static bool is_effectively_child(struct wait_opts *wo, bool ptrace,
++				 struct task_struct *target)
++{
++	struct task_struct *parent =
++		!ptrace ? target->real_parent : target->parent;
++
++	return current == parent || (!(wo->wo_flags & __WNOTHREAD) &&
++				     same_thread_group(current, parent));
++}
++
++/*
++ * Optimization for waiting on PIDTYPE_PID. No need to iterate through child
++ * and tracee lists to find the target task.
++ */
++static int do_wait_pid(struct wait_opts *wo)
++{
++	bool ptrace;
++	struct task_struct *target;
++	int retval;
++
++	ptrace = false;
++	target = pid_task(wo->wo_pid, PIDTYPE_TGID);
++	if (target && is_effectively_child(wo, ptrace, target)) {
++		retval = wait_consider_task(wo, ptrace, target);
++		if (retval)
++			return retval;
++	}
++
++	ptrace = true;
++	target = pid_task(wo->wo_pid, PIDTYPE_PID);
++	if (target && target->ptrace &&
++	    is_effectively_child(wo, ptrace, target)) {
++		retval = wait_consider_task(wo, ptrace, target);
++		if (retval)
++			return retval;
++	}
++
++	return 0;
++}
++
+ static long do_wait(struct wait_opts *wo)
+ {
+-	struct task_struct *tsk;
+ 	int retval;
+ 
+ 	trace_sched_process_wait(wo->wo_pid);
+@@ -1464,19 +1503,27 @@ repeat:
+ 
+ 	set_current_state(TASK_INTERRUPTIBLE);
+ 	read_lock(&tasklist_lock);
+-	tsk = current;
+-	do {
+-		retval = do_wait_thread(wo, tsk);
+-		if (retval)
+-			goto end;
+ 
+-		retval = ptrace_do_wait(wo, tsk);
++	if (wo->wo_type == PIDTYPE_PID) {
++		retval = do_wait_pid(wo);
+ 		if (retval)
+ 			goto end;
++	} else {
++		struct task_struct *tsk = current;
+ 
+-		if (wo->wo_flags & __WNOTHREAD)
+-			break;
+-	} while_each_thread(current, tsk);
++		do {
++			retval = do_wait_thread(wo, tsk);
++			if (retval)
++				goto end;
++
++			retval = ptrace_do_wait(wo, tsk);
++			if (retval)
++				goto end;
++
++			if (wo->wo_flags & __WNOTHREAD)
++				break;
++		} while_each_thread(current, tsk);
++	}
+ 	read_unlock(&tasklist_lock);
+ 
+ notask:
 _
