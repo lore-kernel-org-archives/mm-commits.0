@@ -2,88 +2,95 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC86BC433ED
-	for <mm-commits@archiver.kernel.org>; Thu,  6 May 2021 03:19:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3F11C433ED
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 00:07:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 84138613BA
-	for <mm-commits@archiver.kernel.org>; Thu,  6 May 2021 03:19:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9AFC261164
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 00:07:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230185AbhEFDUE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 May 2021 23:20:04 -0400
-Received: from foss.arm.com ([217.140.110.172]:55436 "EHLO foss.arm.com"
+        id S233404AbhEGAID (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 20:08:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47502 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232884AbhEFDUA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 5 May 2021 23:20:00 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 66A251FB;
-        Wed,  5 May 2021 20:19:02 -0700 (PDT)
-Received: from [192.168.0.130] (unknown [172.31.20.19])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A856C3F73B;
-        Wed,  5 May 2021 20:19:00 -0700 (PDT)
-Subject: Re: incoming
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Konstantin Ryabitsev <konstantin@linuxfoundation.org>,
-        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org
-References: <20210504183219.a3cc46aee4013d77402276c5@linux-foundation.org>
- <CAHk-=wjzDtUVs9To0nMerMt-XDiP3JH2ee=1A9z+0onQaFD4KQ@mail.gmail.com>
- <20210504201608.5e5f94e76f7eed7264285c28@linux-foundation.org>
- <CAHk-=wgOGM5u0Kcx0L0u58D9ms6vQ=LwtJNMNd4xmAjQ+jcQSw@mail.gmail.com>
- <20210505104401.75fc14e7de7573c26c4c49d4@linux-foundation.org>
-From:   Anshuman Khandual <anshuman.khandual@arm.com>
-Message-ID: <9d1f770a-3ea0-9d73-e47d-4eb1f2de123d@arm.com>
-Date:   Thu, 6 May 2021 08:49:47 +0530
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
-MIME-Version: 1.0
-In-Reply-To: <20210505104401.75fc14e7de7573c26c4c49d4@linux-foundation.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        id S232375AbhEGAIC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 20:08:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 189B761104;
+        Fri,  7 May 2021 00:07:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1620346023;
+        bh=gt+Hm4JlgT0KbVXxwWoSz78c2NyE4WXvZWcFZ7TrObw=;
+        h=Date:From:To:Subject:From;
+        b=bgnWHVoh7Sr64k8bHKXauAmBrspITYG2IwmnQ+xSAqRAHE/NLxFx+aW4p3OJb6SgE
+         vsJ4fJXkU7bDJRsFW4kGiGE3Dw8dgiXlAS1IPEmYgNS2niuaQ0x25aqDlLseJ3igMS
+         qXpT+l3or+ojuruUEtYEn7fcroETE8+rNQ+MEy+U=
+Date:   Thu, 06 May 2021 17:07:02 -0700
+From:   akpm@linux-foundation.org
+To:     adobriyan@gmail.com, mm-commits@vger.kernel.org,
+        willy@infradead.org
+Subject:  [folded-merged]
+ proc-mandate-proc_lseek-in-struct-proc_ops-fix.patch removed from -mm tree
+Message-ID: <20210507000702.iDNd2VHcn%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
+The patch titled
+     Subject: proc: smoke test lseek()
+has been removed from the -mm tree.  Its filename was
+     proc-mandate-proc_lseek-in-struct-proc_ops-fix.patch
 
-On 5/5/21 11:14 PM, Andrew Morton wrote:
-> On Wed, 5 May 2021 10:10:33 -0700 Linus Torvalds <torvalds@linux-foundation.org> wrote:
-> 
->> On Tue, May 4, 2021 at 8:16 PM Andrew Morton <akpm@linux-foundation.org> wrote:
->>> Let me resend right now with the same in-reply-to.  Hopefully they will
->>> land in the correct place.
->> Well, you re-sent it twice, and I have three copies in my own mailbox,
->> bot they still don't show up on the mm-commits mailing list.
->>
->> So the list hates them for some odd reason.
->>
->> I've picked them up locally, but adding Konstantin to the participants
->> to see if he can see what's up.
->>
->> Konstantin: patches 103/106/107 are missing on lore out of Andrew's
->> series of 143. Odd.
-> It's weird.  They don't turn up on linux-mm either, and that's running
-> at kvack.org, also majordomo.  They don't get through when sent with
-> either heirloom-mailx or with sylpheed.
-> 
-> Also, it seems that when Anshuman originally sent the patch, linux-mm
-> and linux-kernel didn't send it back out.  So perhaps a spam filter
-> triggered?
-> 
-> I'm seeing
-> 
-> https://lore.kernel.org/linux-arm-kernel/1615278790-18053-3-git-send-email-anshuman.khandual@arm.com/
-> 
-> which is via linux-arm-kernel@lists.infradead.org but the linux-kernel
-> server massacred that patch series.  Searching
-> https://lkml.org/lkml/2021/3/9 for "anshuman" only shows 3 of the 7
-> email series.
+This patch was dropped because it was folded into proc-mandate-proc_lseek-in-struct-proc_ops.patch
 
-Yeah these patches faced problem from the very beginning getting
-into the MM/LKML list for some strange reason.
+------------------------------------------------------
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: smoke test lseek()
+
+Now that ->proc_lseek has been made mandatory it would be nice to test
+that nothing has been forgotten.
+
+Link: https://lkml.kernel.org/r/YG4OIhChOrVTPgdN@localhost.localdomain
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/proc/read.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+--- a/tools/testing/selftests/proc/read.c~proc-mandate-proc_lseek-in-struct-proc_ops-fix
++++ a/tools/testing/selftests/proc/read.c
+@@ -14,7 +14,7 @@
+  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+  */
+ // Test
+-// 1) read of every file in /proc
++// 1) read and lseek on every file in /proc
+ // 2) readlink of every symlink in /proc
+ // 3) recursively (1) + (2) for every directory in /proc
+ // 4) write to /proc/*/clear_refs and /proc/*/task/*/clear_refs
+@@ -45,6 +45,8 @@ static void f_reg(DIR *d, const char *fi
+ 	fd = openat(dirfd(d), filename, O_RDONLY|O_NONBLOCK);
+ 	if (fd == -1)
+ 		return;
++	/* struct proc_ops::proc_lseek is mandatory if file is seekable. */
++	(void)lseek(fd, 0, SEEK_SET);
+ 	rv = read(fd, buf, sizeof(buf));
+ 	assert((0 <= rv && rv <= sizeof(buf)) || rv == -1);
+ 	close(fd);
+_
+
+Patches currently in -mm which might be from adobriyan@gmail.com are
+
+proc-save-loc-in-__xlate_proc_name.patch
+proc-mandate-proc_lseek-in-struct-proc_ops.patch
+proc-delete-redundant-subset=pid-check.patch
+proc-test-subset=pid.patch
+
