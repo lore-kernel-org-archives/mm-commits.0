@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E057BC433ED
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 00:09:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2426C433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 00:10:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8FF1F613B9
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 00:09:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9781C61104
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 00:10:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232375AbhEGAKp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 20:10:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48864 "EHLO mail.kernel.org"
+        id S233445AbhEGALh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 20:11:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49442 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233434AbhEGAKp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 20:10:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2F68B61164;
-        Fri,  7 May 2021 00:09:46 +0000 (UTC)
+        id S233434AbhEGALh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 20:11:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1D98361164;
+        Fri,  7 May 2021 00:10:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620346186;
-        bh=1ayH9QEeFit6vl4UPqzUuUvGWUObs88KBIwO9Y1Pifw=;
+        s=korg; t=1620346238;
+        bh=QR9qlcN22Ce5Pt+qrrb0P/K5800nmoN+uKjPODI8pMI=;
         h=Date:From:To:Subject:From;
-        b=vLnSqHENYSVhmidv+HtfB1swEsEsWmHRRvieBQ7U3NFlA2VcS46/Bf/YVcMSMIEP6
-         QOG1z7Y1GbmWi2BSY8/qMSFMSRYr/JldeQSyAHEUqrtkV9kLHDdS8w7vLXlMVpm4gO
-         KtAJSQf7q9naheax1MFzjSgYjWvKnFD3ffVzHHmM=
-Date:   Thu, 06 May 2021 17:09:45 -0700
+        b=Cr5Ne7WsfazQnjmcz+BA12gcZJPK7U4vKnAtk9ETa/ix9e/YiT5OFmGOIO5bxTLHs
+         Hu65Vw9SshufJvZUbBBlG9XzfDEd5ZG9aDQ0eP9R8YHG8/FapNlWvNx+W1+TMJawCE
+         G/Zg/hNuKhpRjxpN4gXIKjODlDF8nJKgRnO7k5Bo=
+Date:   Thu, 06 May 2021 17:10:37 -0700
 From:   akpm@linux-foundation.org
-To:     johannes.berg@intel.com, mm-commits@vger.kernel.org,
-        ndesaulniers@google.com
-Subject:  [folded-merged] gcov-use-kvmalloc-fix.patch removed from
- -mm tree
-Message-ID: <20210507000945.VF8pbBg-w%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, apopple@nvidia.com, lkp@intel.com,
+        mm-commits@vger.kernel.org
+Subject:  [folded-merged]
+ =?US-ASCII?Q?kernel-resource-allow-region=5Fintersects-users-to-hold-res?=
+ =?US-ASCII?Q?ource=5Flock-fix.patch?= removed from -mm tree
+Message-ID: <20210507001037.xhL-1AmWJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,47 +46,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gcov: clang: fix clang-11+ build
+     Subject: kernel-resource-allow-region_intersects-users-to-hold-resource_lock-fix
 has been removed from the -mm tree.  Its filename was
-     gcov-use-kvmalloc-fix.patch
+     kernel-resource-allow-region_intersects-users-to-hold-resource_lock-fix.patch
 
-This patch was dropped because it was folded into gcov-use-kvmalloc.patch
+This patch was dropped because it was folded into kernel-resource-allow-region_intersects-users-to-hold-resource_lock.patch
 
 ------------------------------------------------------
-From: Johannes Berg <johannes.berg@intel.com>
-Subject: gcov: clang: fix clang-11+ build
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel-resource-allow-region_intersects-users-to-hold-resource_lock-fix
 
-With clang-11+, the code is broken due to my kvmalloc() conversion (which
-predated the clang-11 support code) leaving one vmalloc() in place.  Fix
-that.
+make __region_intersects static
 
-Link: https://lkml.kernel.org/r/20210412214210.6e1ecca9cdc5.I24459763acf0591d5e6b31c7e3a59890d802f79c@changeid
-Signed-off-by: Johannes Berg <johannes.berg@intel.com>
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-Tested-by: Nick Desaulniers <ndesaulniers@google.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/clang.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/resource.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/gcov/clang.c~gcov-use-kvmalloc-fix
-+++ a/kernel/gcov/clang.c
-@@ -368,7 +368,7 @@ static struct gcov_fn_info *gcov_fn_info
- 	INIT_LIST_HEAD(&fn_dup->head);
+--- a/kernel/resource.c~kernel-resource-allow-region_intersects-users-to-hold-resource_lock-fix
++++ a/kernel/resource.c
+@@ -502,8 +502,8 @@ int __weak page_is_ram(unsigned long pfn
+ }
+ EXPORT_SYMBOL_GPL(page_is_ram);
  
- 	cv_size = fn->num_counters * sizeof(fn->counters[0]);
--	fn_dup->counters = vmalloc(cv_size);
-+	fn_dup->counters = kvmalloc(cv_size, GFP_KERNEL);
- 	if (!fn_dup->counters) {
- 		kfree(fn_dup);
- 		return NULL;
+-int __region_intersects(resource_size_t start, size_t size, unsigned long flags,
+-			unsigned long desc)
++static int __region_intersects(resource_size_t start, size_t size,
++			unsigned long flags, unsigned long desc)
+ {
+ 	struct resource res;
+ 	int type = 0; int other = 0;
 _
 
-Patches currently in -mm which might be from johannes.berg@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-gcov-combine-common-code.patch
-gcov-simplify-buffer-allocation.patch
-gcov-use-kvmalloc.patch
-gdb-lx-symbols-store-the-abspath.patch
+kernel-resource-allow-region_intersects-users-to-hold-resource_lock.patch
+mm.patch
+linux-next-rejects.patch
+cifsd-is-broken.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
