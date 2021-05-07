@@ -2,147 +2,235 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 621AAC433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 07:33:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFEBCC433ED
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 08:16:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 25781601FF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 07:33:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8770A61464
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 08:16:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232868AbhEGHe1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 May 2021 03:34:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48516 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229849AbhEGHeW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2021 03:34:22 -0400
-Received: from mail-lj1-x234.google.com (mail-lj1-x234.google.com [IPv6:2a00:1450:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0310BC061574
-        for <mm-commits@vger.kernel.org>; Fri,  7 May 2021 00:33:23 -0700 (PDT)
-Received: by mail-lj1-x234.google.com with SMTP id w4so10341132ljw.9
-        for <mm-commits@vger.kernel.org>; Fri, 07 May 2021 00:33:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=bApySWlmTsfizudeVmUm2CRbJWPswhG/6Y0dhbrJr7E=;
-        b=VcQuqnwfp4qDEkS+zK9V3j86OHrLkqmVnGXei5/r3lgE7od3meqaBsckUS2Kt0xMCS
-         yJCYFvuF9t+7+cFmoMNa3dg4wVYrZowROrwPc4GMov1TXU2E85p7VnrBvKeVBwmnrkVB
-         z9VO2fEhXGKD0vp1Z1vt36cXiK6c+1jrhI69Q=
+        id S235498AbhEGIRW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 May 2021 04:17:22 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:30947 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S234484AbhEGIRW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2021 04:17:22 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1620375382;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=QU5nPCq4OJAv/v6RLOBfbWfNHLCkuq3W/8oOHWi1GtM=;
+        b=M1HOlb1Ur2WxxzC8SeQeQpGPD5syYFhRu2JQt2nHD+Dy49LL25rDSWYc+OnLWreS88/JCH
+        gpi7L/lflFt4F/7t9gHfNFpfopitXJ5oQX8pUZkAql5bl75RggUzw6YfcvCU4xxZqL/l+C
+        cT2vx4g6tDGDcEoUus2WbQBIMDlhAfg=
+Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
+ [209.85.128.69]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-92-qRop4h8VPyeuGdlEo1Un-Q-1; Fri, 07 May 2021 04:16:14 -0400
+X-MC-Unique: qRop4h8VPyeuGdlEo1Un-Q-1
+Received: by mail-wm1-f69.google.com with SMTP id o18-20020a1ca5120000b02901333a56d46eso3637723wme.8
+        for <mm-commits@vger.kernel.org>; Fri, 07 May 2021 01:16:13 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=bApySWlmTsfizudeVmUm2CRbJWPswhG/6Y0dhbrJr7E=;
-        b=nG2v7A7+pGHC//JlbLZJUyZy3pC6iQwnVxn8pe70O3vnqbBoqfK9F2MzCOSEqwhpWP
-         /u7jxUa6GC9Q9wsH39QOU2k5VlDFrpeakUCgJ791zuNVuF2isWeUyhjjxT9LnA1sH3gA
-         tGI+t930ub9FDNtgZyxF0b/lf2ohIeecE8X3hL/82EaUuOIzmK3x/kyco1kA4SvBhbTP
-         OLexTZXosD2TKTjBmEEj3Za8T/2esInFN4ELhQtO8V/IZB5f36iJDOJtflNo92YZdSs0
-         raA9Oyt1VY5hzIZEV6Y9QOIpgZu2d5inrmdXUwjmd9K4iUxR5TRR5wIipFXw0sKPopf9
-         LoZw==
-X-Gm-Message-State: AOAM531dy9qUkD6ydSrM2yBflw2VLBd2dugBvbEyQN5QXadCLn+RlZzk
-        MYHMn/mP2+MfHdWq9aP5lgPCoY/gqgiIQm59TJc=
-X-Google-Smtp-Source: ABdhPJy8xj4MmaXWj4Ln8dc9AVAwHvZsmKkeHwFbJbm+lkKT7UWTsXEJmvE4caaG5ZK+KY+y6v6yaA==
-X-Received: by 2002:a2e:8596:: with SMTP id b22mr6546471lji.482.1620372801320;
-        Fri, 07 May 2021 00:33:21 -0700 (PDT)
-Received: from mail-lf1-f43.google.com (mail-lf1-f43.google.com. [209.85.167.43])
-        by smtp.gmail.com with ESMTPSA id y20sm1283327lfe.162.2021.05.07.00.33.21
-        for <mm-commits@vger.kernel.org>
+        h=x-gm-message-state:to:references:from:organization:subject
+         :message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=QU5nPCq4OJAv/v6RLOBfbWfNHLCkuq3W/8oOHWi1GtM=;
+        b=eMydIKHI/b4Nel2LOjVnA0/k7xaUEy4BToAXbZQWOOTN6FzuOZ8VVnN+BUnWqBX+ns
+         At2g9GeXpMjT/I5rkT6gb335LT6XSoM2Yw7KrKnscx66/tiINfdz1QW+E6MqgKsk7sPk
+         7PWB1jiJHR7SFH+v1ZqY65exXbhBox4NoXF3KRTeHTjZm016+8csEaReRdsLwdPibauA
+         KgzmyRzGH8BUvPu6jzArfzeZgRf+1sOSK0Sargq9KQxj9kREXCNapxFP44TJNnDX67bU
+         cHcnS4U6vz2kDwdSpHi6iLgX9I7G4qwTbZP82+xil/OjkSmFFA7uy4GWG14aCR/nYms1
+         1eBg==
+X-Gm-Message-State: AOAM5320bMwe0C7EPrpstVMrjabNHSnHcFjrnv3fH3M9sV93yXnyDzC8
+        vgWyNGsHPmv51/lXKr+s7ogH48HjW8xMteub3lsmMpqRVHUAyOSB3S58JHyPtgZj8pSZJWMFul7
+        HPm//2lp4hm/4I9L9GKLX4A==
+X-Received: by 2002:a5d:5989:: with SMTP id n9mr10510552wri.60.1620375372829;
+        Fri, 07 May 2021 01:16:12 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJzPwlxwGpKSwux7xmomYJp4AJrLdLT8b/gkgFSV2749Azw5aIolat5m1b3QUnWYput7V6ffpg==
+X-Received: by 2002:a5d:5989:: with SMTP id n9mr10510515wri.60.1620375372610;
+        Fri, 07 May 2021 01:16:12 -0700 (PDT)
+Received: from [192.168.3.132] (p5b0c63c0.dip0.t-ipconnect.de. [91.12.99.192])
+        by smtp.gmail.com with ESMTPSA id b6sm12050107wmj.2.2021.05.07.01.16.11
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 07 May 2021 00:33:21 -0700 (PDT)
-Received: by mail-lf1-f43.google.com with SMTP id x19so11469881lfa.2
-        for <mm-commits@vger.kernel.org>; Fri, 07 May 2021 00:33:21 -0700 (PDT)
-X-Received: by 2002:ac2:5f92:: with SMTP id r18mr5567590lfe.253.1620372345069;
- Fri, 07 May 2021 00:25:45 -0700 (PDT)
+        Fri, 07 May 2021 01:16:12 -0700 (PDT)
+To:     Andrew Morton <akpm@linux-foundation.org>, andreyknvl@google.com,
+        bhe@redhat.com, christian.brauner@ubuntu.com,
+        colin.king@canonical.com, corbet@lwn.net, dyoung@redhat.com,
+        frederic@kernel.org, gpiccoli@canonical.com,
+        john.p.donnelly@oracle.com, jpoimboe@redhat.com,
+        keescook@chromium.org, linux-mm@kvack.org, masahiroy@kernel.org,
+        mchehab+huawei@kernel.org, mike.kravetz@oracle.com,
+        mingo@kernel.org, mm-commits@vger.kernel.org, paulmck@kernel.org,
+        peterz@infradead.org, rdunlap@infradead.org, rostedt@goodmis.org,
+        rppt@kernel.org, saeed.mirzamohammadi@oracle.com,
+        samitolvanen@google.com, sboyd@kernel.org, tglx@linutronix.de,
+        torvalds@linux-foundation.org, vgoyal@redhat.com,
+        yifeifz2@illinois.edu
+References: <20210507010432.IN24PudKT%akpm@linux-foundation.org>
+From:   David Hildenbrand <david@redhat.com>
+Organization: Red Hat
+Subject: Re: [patch 48/91] kernel/crash_core: add crashkernel=auto for vmcore
+ creation
+Message-ID: <889c6b90-7335-71ce-c955-3596e6ac7c5a@redhat.com>
+Date:   Fri, 7 May 2021 10:16:10 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.8.1
 MIME-Version: 1.0
-References: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org> <20210507010432.IN24PudKT%akpm@linux-foundation.org>
 In-Reply-To: <20210507010432.IN24PudKT%akpm@linux-foundation.org>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Fri, 7 May 2021 00:25:29 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wigjok_oSyrwiJMxQgTGYg9QtbG5xomMm9qQeO68MwsRw@mail.gmail.com>
-Message-ID: <CAHk-=wigjok_oSyrwiJMxQgTGYg9QtbG5xomMm9qQeO68MwsRw@mail.gmail.com>
-Subject: Re: [patch 48/91] kernel/crash_core: add crashkernel=auto for vmcore creation
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Andrey Konovalov <andreyknvl@google.com>,
-        Baoquan He <bhe@redhat.com>,
-        Christian Brauner <christian.brauner@ubuntu.com>,
-        Colin King <colin.king@canonical.com>,
-        Jonathan Corbet <corbet@lwn.net>, dyoung@redhat.com,
-        Frederic Weisbecker <frederic@kernel.org>,
-        gpiccoli@canonical.com, john.p.donnelly@oracle.com,
-        Josh Poimboeuf <jpoimboe@redhat.com>,
-        Kees Cook <keescook@chromium.org>,
-        Linux-MM <linux-mm@kvack.org>,
-        Masahiro Yamada <masahiroy@kernel.org>,
-        Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Ingo Molnar <mingo@kernel.org>, mm-commits@vger.kernel.org,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Mike Rapoport <rppt@kernel.org>,
-        saeed.mirzamohammadi@oracle.com,
-        Sami Tolvanen <samitolvanen@google.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Vivek Goyal <vgoyal@redhat.com>, yifeifz2@illinois.edu
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, May 6, 2021 at 6:04 PM Andrew Morton <akpm@linux-foundation.org> wrote:
->
+On 07.05.21 03:04, Andrew Morton wrote:
 > From: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
 > Subject: kernel/crash_core: add crashkernel=auto for vmcore creation
->
+> 
 > This adds crashkernel=auto feature to configure reserved memory for vmcore
 > creation.  CONFIG_CRASH_AUTO_STR is defined to be set for different kernel
 > distributions and different archs based on their needs.
+> 
+> Link: https://lkml.kernel.org/r/20210223174153.72802-1-saeed.mirzamohammadi@oracle.com
+> Signed-off-by: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
+> Signed-off-by: John Donnelly <john.p.donnelly@oracle.com>
+> Tested-by: John Donnelly <john.p.donnelly@oracle.com>
+> ed-by: Dave Young <dyoung@redhat.com>
+> Cc: Baoquan He <bhe@redhat.com>
+> Cc: Vivek Goyal <vgoyal@redhat.com>
+> Cc: Jonathan Corbet <corbet@lwn.net>
+> Cc: "Paul E. McKenney" <paulmck@kernel.org>
+> Cc: Randy Dunlap <rdunlap@infradead.org>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+> Cc: Mike Kravetz <mike.kravetz@oracle.com>
+> Cc: "Guilherme G. Piccoli" <gpiccoli@canonical.com>
+> Cc: Kees Cook <keescook@chromium.org>
+> Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+> Cc: Ingo Molnar <mingo@kernel.org>
+> Cc: "Steven Rostedt (VMware)" <rostedt@goodmis.org>
+> Cc: YiFei Zhu <yifeifz2@illinois.edu>
+> Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+> Cc: Mike Rapoport <rppt@kernel.org>
+> Cc: Masahiro Yamada <masahiroy@kernel.org>
+> Cc: Sami Tolvanen <samitolvanen@google.com>
+> Cc: Frederic Weisbecker <frederic@kernel.org>
+> Cc: Christian Brauner <christian.brauner@ubuntu.com>
+> Cc: Stephen Boyd <sboyd@kernel.org>
+> Cc: Andrey Konovalov <andreyknvl@google.com>
+> Cc: Colin Ian King <colin.king@canonical.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>   Documentation/admin-guide/kdump/kdump.rst       |    3 +-
+>   Documentation/admin-guide/kernel-parameters.txt |    6 ++++
+>   arch/Kconfig                                    |   20 ++++++++++++++
+>   kernel/crash_core.c                             |    7 ++++
+>   4 files changed, 35 insertions(+), 1 deletion(-)
+> 
+> --- a/arch/Kconfig~kernel-crash_core-add-crashkernel=auto-for-vmcore-creation
+> +++ a/arch/Kconfig
+> @@ -14,6 +14,26 @@ menu "General architecture-dependent opt
+>   config CRASH_CORE
+>   	bool
+>   
+> +config CRASH_AUTO_STR
+> +	string "Memory reserved for crash kernel"
+> +	depends on CRASH_CORE
+> +	default "1G-64G:128M,64G-1T:256M,1T-:512M"
+> +	help
+> +	  This configures the reserved memory dependent
+> +	  on the value of System RAM. The syntax is:
+> +	  crashkernel=<range1>:<size1>[,<range2>:<size2>,...][@offset]
+> +	              range=start-[end]
+> +
+> +	  For example:
+> +	      crashkernel=512M-2G:64M,2G-:128M
+> +
+> +	  This would mean:
+> +
+> +	      1) if the RAM is smaller than 512M, then don't reserve anything
+> +	         (this is the "rescue" case)
+> +	      2) if the RAM size is between 512M and 2G (exclusive), then reserve 64M
+> +	      3) if the RAM size is larger than 2G, then reserve 128M
+> +
+>   config KEXEC_CORE
+>   	select CRASH_CORE
+>   	bool
+> --- a/Documentation/admin-guide/kdump/kdump.rst~kernel-crash_core-add-crashkernel=auto-for-vmcore-creation
+> +++ a/Documentation/admin-guide/kdump/kdump.rst
+> @@ -285,7 +285,8 @@ This would mean:
+>       2) if the RAM size is between 512M and 2G (exclusive), then reserve 64M
+>       3) if the RAM size is larger than 2G, then reserve 128M
+>   
+> -
+> +Or you can use crashkernel=auto to choose the crash kernel memory size
+> +based on the recommended configuration set for each arch.
+>   
+>   Boot into System Kernel
+>   =======================
+> --- a/Documentation/admin-guide/kernel-parameters.txt~kernel-crash_core-add-crashkernel=auto-for-vmcore-creation
+> +++ a/Documentation/admin-guide/kernel-parameters.txt
+> @@ -751,6 +751,12 @@
+>   			a memory unit (amount[KMG]). See also
+>   			Documentation/admin-guide/kdump/kdump.rst for an example.
+>   
+> +	crashkernel=auto
+> +			[KNL] This parameter will set the reserved memory for
+> +			the crash kernel based on the value of the CRASH_AUTO_STR
+> +			that is the best effort estimation for each arch. See also
+> +			arch/Kconfig for further details.
+> +
+>   	crashkernel=size[KMG],high
+>   			[KNL, X86-64] range could be above 4G. Allow kernel
+>   			to allocate physical memory region from top, so could
+> --- a/kernel/crash_core.c~kernel-crash_core-add-crashkernel=auto-for-vmcore-creation
+> +++ a/kernel/crash_core.c
+> @@ -7,6 +7,7 @@
+>   #include <linux/crash_core.h>
+>   #include <linux/utsname.h>
+>   #include <linux/vmalloc.h>
+> +#include <linux/kexec.h>
+>   
+>   #include <asm/page.h>
+>   #include <asm/sections.h>
+> @@ -250,6 +251,12 @@ static int __init __parse_crashkernel(ch
+>   	if (suffix)
+>   		return parse_crashkernel_suffix(ck_cmdline, crash_size,
+>   				suffix);
+> +#ifdef CONFIG_CRASH_AUTO_STR
+> +	if (strncmp(ck_cmdline, "auto", 4) == 0) {
+> +		ck_cmdline = CONFIG_CRASH_AUTO_STR;
+> +		pr_info("Using crashkernel=auto, the size chosen is a best effort estimation.\n");
+> +	}
+> +#endif
+I remember that the original "crashkernel=auto" as once proposed by Red 
+Hat people did not receive a warm welcome.
 
-Ugh. I didn't realize how nasty this was until after I'd applied this patch.
+Let me take a look .... oh, there it is from 2009
 
-I'm going to drop this patch, because the Kconfig thing for it is an
-unmitigated mess. I was confused by the question, and then the help
-message was actively misleading.
+https://marc.info/?t=125006512600002&r=1&w=2
 
-This is wrong for so many reasons:
+and then we had it in 2018
 
- - this is a classic case of "you shouldn't ask a user this".
+https://lkml.org/lkml/2018/5/20/262
 
-   The question makes no sense to any normal person, it certainly
-didn't to me. Don't ask questions that don't have sane answers.
 
- - the config help text is actively misleading, and claims that the
-option is about how much memory is reserved for a crash kernel
+The issue I have with this: it's just plain wrong when you take memory 
+hotplug into serious account as we see it quite heavily in VMs. You 
+don't know what you'll need when building a kernel. Just pass it via the 
+cmdline ...
 
-   Not so. It's the default string for when somebody uses "crashkernel=auto"
+-- 
+Thanks,
 
- - this shouldn't be a config option at all, it's clearly a distro
-setting, and should be on the kernel command line with the other
-distro settings.
+David / dhildenb
 
-So I'm dropping this, and I don't see it ever being applied in this
-form for the above reasons.
-
-People, I've said this before, and apparently I need to say it again:
-the kernel config is likely the nastiest part of building a local
-kernel, and the biggest impediment to people actually building their
-own kernels.
-
-And people building their own kernel is the first step to becoming a
-kernel developer.
-
-So the kernel configuration is already one of the less pleasant parts
-of the kernel, but that does NOT mean that we should strive to make it
-even worse.
-
-Obscure, odd, strange config questions like this are a no-no. We're
-not making an already bad experience wose for something like this.
-
-           Linus
