@@ -7,110 +7,86 @@ X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F16FC433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 02:24:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59ED1C433ED
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 07:12:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0357F61157
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 02:24:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1995B613D6
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 07:12:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233775AbhEGCZy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 22:25:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37234 "EHLO
+        id S230426AbhEGHNb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 May 2021 03:13:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233647AbhEGCZy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2021 22:25:54 -0400
-Received: from mail-lf1-x131.google.com (mail-lf1-x131.google.com [IPv6:2a00:1450:4864:20::131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9245C061574
-        for <mm-commits@vger.kernel.org>; Thu,  6 May 2021 19:24:54 -0700 (PDT)
-Received: by mail-lf1-x131.google.com with SMTP id 2so10688944lft.4
-        for <mm-commits@vger.kernel.org>; Thu, 06 May 2021 19:24:54 -0700 (PDT)
+        with ESMTP id S230131AbhEGHNa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2021 03:13:30 -0400
+Received: from mail-lf1-x136.google.com (mail-lf1-x136.google.com [IPv6:2a00:1450:4864:20::136])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9ADEFC061574
+        for <mm-commits@vger.kernel.org>; Fri,  7 May 2021 00:12:29 -0700 (PDT)
+Received: by mail-lf1-x136.google.com with SMTP id c3so11368109lfs.7
+        for <mm-commits@vger.kernel.org>; Fri, 07 May 2021 00:12:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linux-foundation.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=0OkFpp3Tpm3CAdH//vkbEPOvgMuJGJC1iISmLvW+Rbc=;
-        b=QP6NoIQh0vOG4cXH4h84nqiB/yQHy0e/v9/r7M7dZmAJ51A/oYPyfk4ZU+obfOPXQ6
-         NWD3DLA1YTziKlS21/VSsG0cd9+6NUgzmqL4drba3HDDUxgpTBq1PVmkrk8v8H4V1ulB
-         Cl3IeRQuC06e9OEbTtFkwg5XT5J4dXt0F68+k=
+        bh=vZU6CZhyeJkt24upSsaVh0Sfws7MZza4FtVyrq444RM=;
+        b=Up1YaHxbYZwLL0nZA8XeLJy0/KBx+SrVCE+SEqvwZfE/8l6A203fwih7kJbOQWI6qA
+         pW9e8mXYDVhIQ8z5QKGzH8zAu/BPEDbQ1/0XyU3NG8s4jdRT17JozMg1qiAUiCzx5wNi
+         8w5IHRe1dHEoNyfGHAZW9whVlloqxgRCSbFQk=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=0OkFpp3Tpm3CAdH//vkbEPOvgMuJGJC1iISmLvW+Rbc=;
-        b=fOG/He0EHf0XFNhaS417PK/g/RXP8M4uTe58uUCN7izBx+VsKrR1SYX0ihZ6bN12Dn
-         C9rNGekZc4z2um9qBm1rRPuxP6CfSQyDgOsfzSTO8mhYdsPOt/v06r/ckiqk6ZlUi4QP
-         5oXxGR6bz5jsTXPUYbODUB3Sz2ugp7ACG2dvM8El2NUbXivmBJyGwnclzhq6VzzVlSlP
-         Q/Wbz0gwXjN/J0jcIHXsFOjTsYlx+pvQwqxmKwiVhUYEQehK2sbOIpj+pePzx1UPAqtd
-         ZTAuZSIcG13PTblFRcyOu7ul++25Xf9LCU2V+uC0g42GIIvTm6v8WAM5xUlf7sQ/smYz
-         llDA==
-X-Gm-Message-State: AOAM5338HiGyS3z/04x6pKXNxVElZSUUJF/AtmRtv751nH46bmAVkei2
-        QELLWHELIX8S1IQPBZ/DaTH3EHti0lSrcRCY
-X-Google-Smtp-Source: ABdhPJzxZjJ93N6phNT1qpdaWhTbiKkrLbr+260n22QvJfFQDDpyvKMQFMX4P6hu/DFIp6C3Ex1+KA==
-X-Received: by 2002:a05:6512:2312:: with SMTP id o18mr4890240lfu.159.1620354293229;
-        Thu, 06 May 2021 19:24:53 -0700 (PDT)
-Received: from mail-lj1-f169.google.com (mail-lj1-f169.google.com. [209.85.208.169])
-        by smtp.gmail.com with ESMTPSA id u16sm1107760lfl.83.2021.05.06.19.24.52
+        bh=vZU6CZhyeJkt24upSsaVh0Sfws7MZza4FtVyrq444RM=;
+        b=iwqNw1Ud6coSEfV/xS+U/Gx6WCTBs7RtRmZcve+UDLVm1YJoaPn5Sj3lwhYjQhupCo
+         qBSP3KdaavvMLwGhmlnANR3Jwm5DDO4JMLlmiC+1dOgGMo0SbnTKl7WQZpLv/aITH3X6
+         47YSQvK8buduUsJJCkvidUXTM0eQu0IOX+8TDNYP9m10CAHiyg99DjsLpzQXktA+qV8t
+         NntNqRx8kM2o3cAi/FOycXWhAaLUTfadFok0Tkzl1zQ2WIriPVT7EXjOnPW5/+7nYamx
+         6CNzj3X1q3fdBJuIuP+zZ3dQwlZo/VK4UT9UGD+B7A7GQVVouni22a8VUhZf8f2kBNyP
+         XO4Q==
+X-Gm-Message-State: AOAM532wpgiLcPJ695uUX9TJdp2sGgxD6ruDwprJZ46baROj49s5BbLh
+        z8fHEd91MeAc1UvriynwQ0cVAF7dhg+0WByojzs=
+X-Google-Smtp-Source: ABdhPJxpeSSdWqpDatjQPLDgpHZ33rdHWkcaLCF2718d0TFjrtNVELgW3wNwZYtmNDHXltXE+/mvLw==
+X-Received: by 2002:a19:ac4d:: with SMTP id r13mr5185788lfc.360.1620371547911;
+        Fri, 07 May 2021 00:12:27 -0700 (PDT)
+Received: from mail-lj1-f177.google.com (mail-lj1-f177.google.com. [209.85.208.177])
+        by smtp.gmail.com with ESMTPSA id v16sm1254223lfi.131.2021.05.07.00.12.26
         for <mm-commits@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 06 May 2021 19:24:52 -0700 (PDT)
-Received: by mail-lj1-f169.google.com with SMTP id u25so9620488ljg.7
-        for <mm-commits@vger.kernel.org>; Thu, 06 May 2021 19:24:52 -0700 (PDT)
-X-Received: by 2002:a05:651c:3de:: with SMTP id f30mr5755440ljp.251.1620354292233;
- Thu, 06 May 2021 19:24:52 -0700 (PDT)
+        Fri, 07 May 2021 00:12:27 -0700 (PDT)
+Received: by mail-lj1-f177.google.com with SMTP id u25so10276321ljg.7
+        for <mm-commits@vger.kernel.org>; Fri, 07 May 2021 00:12:26 -0700 (PDT)
+X-Received: by 2002:a05:651c:3de:: with SMTP id f30mr6489888ljp.251.1620371546749;
+ Fri, 07 May 2021 00:12:26 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org> <20210507010213.V8MhqooKS%akpm@linux-foundation.org>
-In-Reply-To: <20210507010213.V8MhqooKS%akpm@linux-foundation.org>
+References: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
+In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Thu, 6 May 2021 19:24:36 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wjKQZczi-J0rEUoPS+=Q6gCSpr3UmWzh-L8Qs9WGGUHuA@mail.gmail.com>
-Message-ID: <CAHk-=wjKQZczi-J0rEUoPS+=Q6gCSpr3UmWzh-L8Qs9WGGUHuA@mail.gmail.com>
-Subject: Re: [patch 04/91] proc: save LOC in __xlate_proc_name()
+Date:   Fri, 7 May 2021 00:12:10 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wjHOZk_WdgsHQ2U+y5GGMWc+Psfc3jAzd4FJC9bQh7ApA@mail.gmail.com>
+Message-ID: <CAHk-=wjHOZk_WdgsHQ2U+y5GGMWc+Psfc3jAzd4FJC9bQh7ApA@mail.gmail.com>
+Subject: Re: incoming
 To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Alexey Dobriyan <adobriyan@gmail.com>,
-        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org
+Cc:     mm-commits@vger.kernel.org, Linux-MM <linux-mm@kvack.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, May 6, 2021 at 6:02 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+On Thu, May 6, 2021 at 6:01 PM Andrew Morton <akpm@linux-foundation.org> wrote:
 >
-> From: Alexey Dobriyan <adobriyan@gmail.com>
-> Subject: proc: save LOC in __xlate_proc_name()
-..
-> +       while ((next = strchr(cp, '/'))) {
+> I've been wobbly about the secretmem patches due to doubts about
+> whether the feature is sufficiently useful to justify inclusion, but
+> developers are now weighing in with helpful information and I've asked Mike
+> for an extensively updated [0/n] changelog.  This will take a few days
+> to play out so it is possible that I will prevail upon you for a post-rc1
+> merge.
 
-Please don't do this.
+Oh, much too late for this release by now.
 
-Yes, gcc suggests that double parentheses syntax around an assignment
-to avoid warnings.
+> If that's a problem, there's always 5.13-rc1.
 
-gcc is wrong, and is being completely stupid.
+5.13-rc1 is two days from now, it would be for 5.14-rc1.. How time -
+and version numbers - fly.
 
-The proper way to avoid the "assignment in conditional" warning is to
-(surprise, surprise) USE A CONDITIONAL.
-
-So that
-
-          while ((next = strchr(cp, '/'))) {
-
-is the crazy rantings of a misguided compiler. No sane human should
-ever care about some odd double parenthesis syntax. We're not writing
-LISP, for chrissake.
-
-The proper way to write this is
-
-          while ((next = strchr(cp, '/')) != NULL) {
-
-which makes sense to not just a machine, but to a human, and avoids
-the whole "assignment used as a conditional" warning very naturally.
-
-See? Now it uses a conditional as a conditional. Doesn't that make a
-whole lot more sense than the crazy ramblings of a broken machine
-mind?
-
-I fixed it up manually, I just wanted to rant against this kind of
-"mindlessly take advice from the compiler without thinking about it".
-
-                   Linus
+             Linus
