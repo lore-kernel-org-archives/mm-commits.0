@@ -7,34 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03567C433ED
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:02:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41DACC433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:02:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DC42261289
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:02:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24ACE613B5
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:02:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234014AbhEGBDj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:03:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43062 "EHLO mail.kernel.org"
+        id S234015AbhEGBDn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:03:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43154 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233989AbhEGBDi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:03:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C24B5610FA;
-        Fri,  7 May 2021 01:02:39 +0000 (UTC)
+        id S233989AbhEGBDm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:03:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D7C6C61041;
+        Fri,  7 May 2021 01:02:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349360;
-        bh=0L3kolUuDR8fwQiwrvqc+Ukz3JHygx4cOKiqfpsOpBk=;
+        s=korg; t=1620349363;
+        bh=dtN6/mDIhSYvL2dOinpwL3CnqAnD9YfcdeoYWOpIo2M=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=evPgeOAtJi/tkN5GHMpPgkAu3b0m5B0N9IqRUihZRDDDa7VnK7MJ7s+/A1cG8et1i
-         lDUbkuNA5Xjxb9je+AbRuCi7cclsLgRzReSiqTB0fifwMYD8eds25v7MQFzHp7Alsk
-         +xwDZiZDyKu/mUGyR9XBGuxTd4OxeQE60sbgTw9Y=
-Date:   Thu, 06 May 2021 18:02:39 -0700
+        b=ufKzsR7/HpyTKMZ/F6J38cMdKa1Wr1Aohkxhcol7ufX9K033CMgfGGfITz56RQFXv
+         aisfFTTip9ZuKFSi2lB+tJnu/Gu8u/cw81ch6oh3SRfJ4f5Qr9Y1Qkvasy1gsnlb6j
+         s6xNQZf3BxOflyIrYf7Gt6e62jbkZDd2hHyP2x+0=
+Date:   Thu, 06 May 2021 18:02:42 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+To:     aklimov@redhat.com, akpm@linux-foundation.org,
+        andriy.shevchenko@linux.intel.com, arnd@arndb.de, dalias@libc.org,
+        dennis@kernel.org, dsterba@suse.com, geert@linux-m68k.org,
+        glaubitz@physik.fu-berlin.de, jianpeng.ma@intel.com,
+        joe@perches.com, jpoimboe@redhat.com, linux-mm@kvack.org,
         linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 13/91] kernel/cred.c: make init_groups static
-Message-ID: <20210507010239.bYfQQ1TOQ%akpm@linux-foundation.org>
+        richard.weiyang@linux.alibaba.com, sbrivio@redhat.com,
+        torvalds@linux-foundation.org, wsa+renesas@sang-engineering.com,
+        ysato@users.osdn.me, yury.norov@gmail.com
+Subject:  [patch 14/91] tools: disable -Wno-type-limits
+Message-ID: <20210507010242.ydCofRv4z%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,52 +48,60 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: kernel/cred.c: make init_groups static
+From: Yury Norov <yury.norov@gmail.com>
+Subject: tools: disable -Wno-type-limits
 
-init_groups is declared in both cred.h and init_task.h, but it is not
-actually referenced anywhere outside of cred.c where it is defined.  So
-make it static and remove the declarations.
+Patch series "lib/find_bit: fast path for small bitmaps", v6.
 
-Link: https://lkml.kernel.org/r/20210310220102.2484201-1-linux@rasmusvillemoes.dk
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Bitmap operations are much simpler and faster in case of small bitmaps
+which fit into a single word.  In linux/bitmap.c we have a machinery that
+allows compiler to replace actual function call with a few instructions if
+bitmaps passed into the function are small and their size is known at
+compile time.
+
+find_*_bit() API lacks this functionality; but users will benefit from it
+a lot.  One important example is cpumask subsystem when NR_CPUS <=
+BITS_PER_LONG.
+
+
+This patch (of 12):
+
+GENMASK(h, l) may be passed with unsigned types.  In such case,
+type-limits warning is generated for example in case of GENMASK(h, 0).
+
+Link: https://lkml.kernel.org/r/20210401003153.97325-1-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210401003153.97325-2-yury.norov@gmail.com
+Signed-off-by: Yury Norov <yury.norov@gmail.com>
+Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Alexey Klimov <aklimov@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jianpeng Ma <jianpeng.ma@intel.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Stefano Brivio <sbrivio@redhat.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: Yoshinori Sato <ysato@users.osdn.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cred.h      |    1 -
- include/linux/init_task.h |    1 -
- kernel/cred.c             |    2 +-
- 3 files changed, 1 insertion(+), 3 deletions(-)
+ tools/scripts/Makefile.include |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/cred.h~kernel-credc-make-init_groups-static
-+++ a/include/linux/cred.h
-@@ -53,7 +53,6 @@ do {							\
- 		groups_free(group_info);		\
- } while (0)
+--- a/tools/scripts/Makefile.include~tools-disable-wno-type-limits
++++ a/tools/scripts/Makefile.include
+@@ -38,6 +38,7 @@ EXTRA_WARNINGS += -Wswitch-enum
+ EXTRA_WARNINGS += -Wundef
+ EXTRA_WARNINGS += -Wwrite-strings
+ EXTRA_WARNINGS += -Wformat
++EXTRA_WARNINGS += -Wno-type-limits
  
--extern struct group_info init_groups;
- #ifdef CONFIG_MULTIUSER
- extern struct group_info *groups_alloc(int);
- extern void groups_free(struct group_info *);
---- a/include/linux/init_task.h~kernel-credc-make-init_groups-static
-+++ a/include/linux/init_task.h
-@@ -25,7 +25,6 @@
- extern struct files_struct init_files;
- extern struct fs_struct init_fs;
- extern struct nsproxy init_nsproxy;
--extern struct group_info init_groups;
- extern struct cred init_cred;
- 
- #ifndef CONFIG_VIRT_CPU_ACCOUNTING_NATIVE
---- a/kernel/cred.c~kernel-credc-make-init_groups-static
-+++ a/kernel/cred.c
-@@ -33,7 +33,7 @@ do {									\
- static struct kmem_cache *cred_jar;
- 
- /* init to 2 - one for init_task, one to ensure it is never freed */
--struct group_info init_groups = { .usage = ATOMIC_INIT(2) };
-+static struct group_info init_groups = { .usage = ATOMIC_INIT(2) };
- 
- /*
-  * The initial credentials for the initial task
+ # Makefiles suck: This macro sets a default value of $(2) for the
+ # variable named by $(1), unless the variable has been set by
 _
