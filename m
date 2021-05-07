@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41DACC433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:02:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8271AC433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:02:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24ACE613B5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:02:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 62DEA613B5
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:02:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234015AbhEGBDn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:03:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43154 "EHLO mail.kernel.org"
+        id S234018AbhEGBDr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:03:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43268 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233989AbhEGBDm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:03:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D7C6C61041;
-        Fri,  7 May 2021 01:02:42 +0000 (UTC)
+        id S233989AbhEGBDq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:03:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8EF94610F7;
+        Fri,  7 May 2021 01:02:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349363;
-        bh=dtN6/mDIhSYvL2dOinpwL3CnqAnD9YfcdeoYWOpIo2M=;
+        s=korg; t=1620349367;
+        bh=qpTt3t0UE+zsql2w3MPBjk2FWVKE8lCJY7dDZOMgkPs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ufKzsR7/HpyTKMZ/F6J38cMdKa1Wr1Aohkxhcol7ufX9K033CMgfGGfITz56RQFXv
-         aisfFTTip9ZuKFSi2lB+tJnu/Gu8u/cw81ch6oh3SRfJ4f5Qr9Y1Qkvasy1gsnlb6j
-         s6xNQZf3BxOflyIrYf7Gt6e62jbkZDd2hHyP2x+0=
-Date:   Thu, 06 May 2021 18:02:42 -0700
+        b=SiFkWUIB1mODihdWmaUeLUfQgfZq3GfDVekaxKR0W/aESz4G5hgtOP7PikuQqWjhV
+         KmZTcvO15nLdiAgvbTDeCl2M9cLw9Y0dQyEZWcH7FyQ+eFdFmOQcdSHnKdHXWTppV3
+         A0TAjOgDvNwjL+Fn/ACjhyTsslqQoNmUj2p8z5nA=
+Date:   Thu, 06 May 2021 18:02:46 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aklimov@redhat.com, akpm@linux-foundation.org,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, dalias@libc.org,
@@ -39,8 +39,9 @@ To:     aklimov@redhat.com, akpm@linux-foundation.org,
         richard.weiyang@linux.alibaba.com, sbrivio@redhat.com,
         torvalds@linux-foundation.org, wsa+renesas@sang-engineering.com,
         ysato@users.osdn.me, yury.norov@gmail.com
-Subject:  [patch 14/91] tools: disable -Wno-type-limits
-Message-ID: <20210507010242.ydCofRv4z%akpm@linux-foundation.org>
+Subject:  [patch 15/91] tools: bitmap: sync function declarations
+ with the kernel
+Message-ID: <20210507010246.n_fOXph42%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -49,28 +50,12 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Yury Norov <yury.norov@gmail.com>
-Subject: tools: disable -Wno-type-limits
+Subject: tools: bitmap: sync function declarations with the kernel
 
-Patch series "lib/find_bit: fast path for small bitmaps", v6.
+Some functions in tools/include/linux/bitmap.h declare nbits as int.  In
+the kernel nbits is declared as unsigned int.
 
-Bitmap operations are much simpler and faster in case of small bitmaps
-which fit into a single word.  In linux/bitmap.c we have a machinery that
-allows compiler to replace actual function call with a few instructions if
-bitmaps passed into the function are small and their size is known at
-compile time.
-
-find_*_bit() API lacks this functionality; but users will benefit from it
-a lot.  One important example is cpumask subsystem when NR_CPUS <=
-BITS_PER_LONG.
-
-
-This patch (of 12):
-
-GENMASK(h, l) may be passed with unsigned types.  In such case,
-type-limits warning is generated for example in case of GENMASK(h, 0).
-
-Link: https://lkml.kernel.org/r/20210401003153.97325-1-yury.norov@gmail.com
-Link: https://lkml.kernel.org/r/20210401003153.97325-2-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210401003153.97325-3-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Alexey Klimov <aklimov@redhat.com>
@@ -91,17 +76,62 @@ Cc: Yoshinori Sato <ysato@users.osdn.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/scripts/Makefile.include |    1 +
- 1 file changed, 1 insertion(+)
+ tools/include/linux/bitmap.h |    8 ++++----
+ tools/lib/bitmap.c           |    4 ++--
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/tools/scripts/Makefile.include~tools-disable-wno-type-limits
-+++ a/tools/scripts/Makefile.include
-@@ -38,6 +38,7 @@ EXTRA_WARNINGS += -Wswitch-enum
- EXTRA_WARNINGS += -Wundef
- EXTRA_WARNINGS += -Wwrite-strings
- EXTRA_WARNINGS += -Wformat
-+EXTRA_WARNINGS += -Wno-type-limits
+--- a/tools/include/linux/bitmap.h~tools-bitmap-sync-function-declarations-with-the-kernel
++++ a/tools/include/linux/bitmap.h
+@@ -30,7 +30,7 @@ void bitmap_clear(unsigned long *map, un
+ #define small_const_nbits(nbits) \
+ 	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG)
  
- # Makefiles suck: This macro sets a default value of $(2) for the
- # variable named by $(1), unless the variable has been set by
+-static inline void bitmap_zero(unsigned long *dst, int nbits)
++static inline void bitmap_zero(unsigned long *dst, unsigned int nbits)
+ {
+ 	if (small_const_nbits(nbits))
+ 		*dst = 0UL;
+@@ -66,7 +66,7 @@ static inline int bitmap_full(const unsi
+ 	return find_first_zero_bit(src, nbits) == nbits;
+ }
+ 
+-static inline int bitmap_weight(const unsigned long *src, int nbits)
++static inline int bitmap_weight(const unsigned long *src, unsigned int nbits)
+ {
+ 	if (small_const_nbits(nbits))
+ 		return hweight_long(*src & BITMAP_LAST_WORD_MASK(nbits));
+@@ -74,7 +74,7 @@ static inline int bitmap_weight(const un
+ }
+ 
+ static inline void bitmap_or(unsigned long *dst, const unsigned long *src1,
+-			     const unsigned long *src2, int nbits)
++			     const unsigned long *src2, unsigned int nbits)
+ {
+ 	if (small_const_nbits(nbits))
+ 		*dst = *src1 | *src2;
+@@ -141,7 +141,7 @@ static inline void bitmap_free(unsigned
+  * @buf: buffer to store output
+  * @size: size of @buf
+  */
+-size_t bitmap_scnprintf(unsigned long *bitmap, int nbits,
++size_t bitmap_scnprintf(unsigned long *bitmap, unsigned int nbits,
+ 			char *buf, size_t size);
+ 
+ /**
+--- a/tools/lib/bitmap.c~tools-bitmap-sync-function-declarations-with-the-kernel
++++ a/tools/lib/bitmap.c
+@@ -28,11 +28,11 @@ void __bitmap_or(unsigned long *dst, con
+ 		dst[k] = bitmap1[k] | bitmap2[k];
+ }
+ 
+-size_t bitmap_scnprintf(unsigned long *bitmap, int nbits,
++size_t bitmap_scnprintf(unsigned long *bitmap, unsigned int nbits,
+ 			char *buf, size_t size)
+ {
+ 	/* current bit is 'cur', most recently seen range is [rbot, rtop] */
+-	int cur, rbot, rtop;
++	unsigned int cur, rbot, rtop;
+ 	bool first = true;
+ 	size_t ret = 0;
+ 
 _
