@@ -2,105 +2,95 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E105C43460
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4464AC433ED
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 60629610F7
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1042D610FA
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:04:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234084AbhEGBFQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:05:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45660 "EHLO mail.kernel.org"
+        id S234086AbhEGBFT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:05:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45740 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234082AbhEGBFQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:05:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C65B4610FA;
-        Fri,  7 May 2021 01:04:16 +0000 (UTC)
+        id S234082AbhEGBFT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:05:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D22FB61041;
+        Fri,  7 May 2021 01:04:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349457;
-        bh=uoCzfKDfcb96k/vte1/IXTxczNvNAnA9zDT9OVW0fnI=;
+        s=korg; t=1620349460;
+        bh=o/2N0T9G83T1JnhF/ZSD7fzPsMJv/MlfUZjK+z2T5T8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vEL1CkIP54KcPC4tUHHtcJAfs39RSq6Kj/2hJV2M2RuC+iZgUuEbfV/Nr8V5FpGLx
-         ZI7pXctmZKWtwIK+OleamForlD2kF7lCPIVhwQqOjF7nYrYWN3cSkddpvywMQH3w/a
-         af1E03xRJjbFIhwFqZXsi9bLNTgC35BlmSaCjeDM=
-Date:   Thu, 06 May 2021 18:04:16 -0700
+        b=i3RcU7ucB/ZN6yPjJm0JNt6M37OkDapfkDRMeoSA6rXLXIqexuZCsYgLSvnc5ILRX
+         0TqdAepgDUt3USB5nZ2WFT2noe8NwmdOxyMzDFNUjc99GKJ3XIZynNUh+jFNmdkEOU
+         jd4HhLilCbRBM6aBm8X+TqR5NqCdOqIbWhtpVgD8=
+Date:   Thu, 06 May 2021 18:04:19 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, konishi.ryusuke@gmail.com,
-        linux-mm@kvack.org, lujialin4@huawei.com,
+To:     akpm@linux-foundation.org, gustavoars@kernel.org,
+        linux-mm@kvack.org, mikulas@artax.karlin.mff.cuni.cz,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 43/91] nilfs2: fix typos in comments
-Message-ID: <20210507010416.J5T14Ihdh%akpm@linux-foundation.org>
+Subject:  [patch 44/91] hpfs: replace one-element array with
+ flexible-array member
+Message-ID: <20210507010419.mWM1EAwEh%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Lu Jialin <lujialin4@huawei.com>
-Subject: nilfs2: fix typos in comments
+=46rom: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Subject: hpfs: replace one-element array with flexible-array member
 
-numer -> number in fs/nilfs2/cpfile.c
-Decription -> Description in fs/nilfs2/ioctl.c
-isntance -> instance in fs/nilfs2/the_nilfs.c
+There is a regular need in the kernel to provide a way to declare having
+a dynamically sized set of trailing elements in a structure. Kernel code
+should always use =E2=80=9Cflexible array members=E2=80=9D[1] for these cas=
+es. The older
+style of one-element or zero-length arrays should no longer be used[2].
 
-Link: https://lkml.kernel.org/r/1617942951-14631-1-git-send-email-konishi.ryusuke@gmail.com
-Link: https://lore.kernel.org/r/20210409022519.176988-1-lujialin4@huawei.com
-Signed-off-by: Lu Jialin <lujialin4@huawei.com>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Also, this helps with the ongoing efforts to enable -Warray-bounds by
+fixing the following warning:
+
+  CC [M]  fs/hpfs/dir.o
+fs/hpfs/dir.c: In function `hpfs_readdir':
+fs/hpfs/dir.c:163:41: warning: array subscript 1 is above array bounds of `=
+u8[1]' {aka `unsigned char[1]'} [-Warray-bounds]
+  163 |         || de ->name[0] !=3D 1 || de->name[1] !=3D 1))
+      |                                 ~~~~~~~~^~~
+
+[1] https://en.wikipedia.org/wiki/Flexible_array_member
+[2] https://www.kernel.org/doc/html/v5.10/process/deprecated.html#zero-leng=
+th-and-one-element-arrays
+
+Link: https://github.com/KSPP/linux/issues/79
+Link: https://github.com/KSPP/linux/issues/109
+Link: https://lkml.kernel.org/r/20210326173510.GA81212@embeddedor
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/cpfile.c    |    2 +-
- fs/nilfs2/ioctl.c     |    4 ++--
- fs/nilfs2/the_nilfs.c |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ fs/hpfs/hpfs.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/nilfs2/cpfile.c~nilfs2-fix-typos-in-comments
-+++ a/fs/nilfs2/cpfile.c
-@@ -293,7 +293,7 @@ void nilfs_cpfile_put_checkpoint(struct
-  * nilfs_cpfile_delete_checkpoints - delete checkpoints
-  * @cpfile: inode of checkpoint file
-  * @start: start checkpoint number
-- * @end: end checkpoint numer
-+ * @end: end checkpoint number
-  *
-  * Description: nilfs_cpfile_delete_checkpoints() deletes the checkpoints in
-  * the period from @start to @end, excluding @end itself. The checkpoints
---- a/fs/nilfs2/ioctl.c~nilfs2-fix-typos-in-comments
-+++ a/fs/nilfs2/ioctl.c
-@@ -1043,7 +1043,7 @@ out:
-  * @inode: inode object
-  * @argp: pointer on argument from userspace
-  *
-- * Decription: nilfs_ioctl_trim_fs is the FITRIM ioctl handle function. It
-+ * Description: nilfs_ioctl_trim_fs is the FITRIM ioctl handle function. It
-  * checks the arguments from userspace and calls nilfs_sufile_trim_fs, which
-  * performs the actual trim operation.
-  *
-@@ -1085,7 +1085,7 @@ static int nilfs_ioctl_trim_fs(struct in
-  * @inode: inode object
-  * @argp: pointer on argument from userspace
-  *
-- * Decription: nilfs_ioctl_set_alloc_range() function defines lower limit
-+ * Description: nilfs_ioctl_set_alloc_range() function defines lower limit
-  * of segments in bytes and upper limit of segments in bytes.
-  * The NILFS_IOCTL_SET_ALLOC_RANGE is used by nilfs_resize utility.
-  *
---- a/fs/nilfs2/the_nilfs.c~nilfs2-fix-typos-in-comments
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -195,7 +195,7 @@ static int nilfs_store_log_cursor(struct
- /**
-  * load_nilfs - load and recover the nilfs
-  * @nilfs: the_nilfs structure to be released
-- * @sb: super block isntance used to recover past segment
-+ * @sb: super block instance used to recover past segment
-  *
-  * load_nilfs() searches and load the latest super root,
-  * attaches the last segment, and does recovery if needed.
+--- a/fs/hpfs/hpfs.h~hpfs-replace-one-element-array-with-flexible-array-mem=
+ber
++++ a/fs/hpfs/hpfs.h
+@@ -356,7 +356,8 @@ struct hpfs_dirent {
+   u8 no_of_acls;			/* number of ACL's (low 3 bits) */
+   u8 ix;				/* code page index (of filename), see
+ 					   struct code_page_data */
+-  u8 namelen, name[1];			/* file name */
++  u8 namelen;				/* file name length */
++  u8 name[];				/* file name */
+   /* dnode_secno down;	  btree down pointer, if present,
+      			  follows name on next word boundary, or maybe it
+ 			  precedes next dirent, which is on a word boundary. */
 _
