@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B319DC433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:03:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96A71C433ED
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:03:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 99E5461041
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:03:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 75905613C5
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:03:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233989AbhEGBEE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:04:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43806 "EHLO mail.kernel.org"
+        id S234027AbhEGBEH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:04:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43898 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230446AbhEGBED (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:04:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 557DB613BA;
-        Fri,  7 May 2021 01:03:04 +0000 (UTC)
+        id S230446AbhEGBEH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:04:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E9355610F7;
+        Fri,  7 May 2021 01:03:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349385;
-        bh=AOCWHKOWZPD30Dx6IqIspIOB6XEuWs0GpUjnxzcPDJ0=;
+        s=korg; t=1620349388;
+        bh=Pkab8KtjTQfufFRoupPQsW7YyuF8SfHOXvcbQp/pZdk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=uGu3h8VRBXNRwgXerCjwA0S9r9cjNyhQyMgiovVbtYQwTV6fzjjpLhvpA9moev34p
-         HJWaDEesazYf5Z3Td4z55wIZ0WdtorSfSEaDqXqADTSeVJofGruw6vwaaAf/Xln8cG
-         P2tywrPhx/tqI4A97aGdtDtsDJ3gK78O5BCrw90o=
-Date:   Thu, 06 May 2021 18:03:03 -0700
+        b=vTTaKW5Cqm9Cs4UiznK69uaSICn9huA8+XS5x7hQfHrREnKH4E/8Y9LR2vETFBR1d
+         LWUyw/EuXXXtv7395U6r9fc2uOreN9M02QV+4aU7cslLqodlgcRhaS6xFgwXTnRoXX
+         AwLVNa/6uUJDiN9ibdVGAU9veMb2YivAD4Hk6WY8=
+Date:   Thu, 06 May 2021 18:03:07 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aklimov@redhat.com, akpm@linux-foundation.org,
-        andy.shevchenko@gmail.com, arnd@arndb.de, dalias@libc.org,
+        andriy.shevchenko@linux.intel.com, arnd@arndb.de, dalias@libc.org,
         dennis@kernel.org, dsterba@suse.com, geert@linux-m68k.org,
         glaubitz@physik.fu-berlin.de, jianpeng.ma@intel.com,
         joe@perches.com, jpoimboe@redhat.com, linux-mm@kvack.org,
@@ -39,8 +39,8 @@ To:     aklimov@redhat.com, akpm@linux-foundation.org,
         richard.weiyang@linux.alibaba.com, sbrivio@redhat.com,
         torvalds@linux-foundation.org, wsa+renesas@sang-engineering.com,
         ysato@users.osdn.me, yury.norov@gmail.com
-Subject:  [patch 20/91] lib: inline _find_next_bit() wrappers
-Message-ID: <20210507010303.bPAB4_o9d%akpm@linux-foundation.org>
+Subject:  [patch 21/91] tools: sync find_next_bit implementation
+Message-ID: <20210507010307.lB5PRLFyZ%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -49,17 +49,15 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Yury Norov <yury.norov@gmail.com>
-Subject: lib: inline _find_next_bit() wrappers
+Subject: tools: sync find_next_bit implementation
 
-lib/find_bit.c declares five single-line wrappers for _find_next_bit(). 
-We may turn those wrappers to inline functions.  It eliminates unneeded
-function calls and opens room for compile-time optimizations.
+Sync the implementation with recent kernel changes.
 
-Link: https://lkml.kernel.org/r/20210401003153.97325-8-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210401003153.97325-9-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: Alexey Klimov <aklimov@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dennis Zhou <dennis@kernel.org>
@@ -76,16 +74,15 @@ Cc: Yoshinori Sato <ysato@users.osdn.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/find.h |   28 +++++++++++---
- include/asm-generic/bitops/le.h   |   17 ++++++--
- lib/find_bit.c                    |   56 +---------------------------
- 3 files changed, 37 insertions(+), 64 deletions(-)
+ tools/include/asm-generic/bitops/find.h |   27 ++++++++---
+ tools/lib/find_bit.c                    |   52 ++++++++--------------
+ 2 files changed, 42 insertions(+), 37 deletions(-)
 
---- a/include/asm-generic/bitops/find.h~lib-inline-_find_next_bit-wrappers
-+++ a/include/asm-generic/bitops/find.h
+--- a/tools/include/asm-generic/bitops/find.h~tools-sync-find_next_bit-implementation
++++ a/tools/include/asm-generic/bitops/find.h
 @@ -2,6 +2,10 @@
- #ifndef _ASM_GENERIC_BITOPS_FIND_H_
- #define _ASM_GENERIC_BITOPS_FIND_H_
+ #ifndef _TOOLS_LINUX_ASM_GENERIC_BITOPS_FIND_H_
+ #define _TOOLS_LINUX_ASM_GENERIC_BITOPS_FIND_H_
  
 +extern unsigned long _find_next_bit(const unsigned long *addr1,
 +		const unsigned long *addr2, unsigned long nbits,
@@ -109,7 +106,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  #endif
  
  #ifndef find_next_and_bit
-@@ -27,9 +35,13 @@ extern unsigned long find_next_bit(const
+@@ -27,13 +35,16 @@ extern unsigned long find_next_bit(const
   * Returns the bit number for the next set bit
   * If no bits are set, returns @size.
   */
@@ -125,74 +122,74 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  #endif
  
  #ifndef find_next_zero_bit
-@@ -42,8 +54,12 @@ extern unsigned long find_next_and_bit(c
+-
+ /**
+  * find_next_zero_bit - find the next cleared bit in a memory region
+  * @addr: The address to base the search on
+@@ -43,8 +54,12 @@ extern unsigned long find_next_and_bit(c
   * Returns the bit number of the next zero bit
   * If no bits are zero, returns @size.
   */
--extern unsigned long find_next_zero_bit(const unsigned long *addr, unsigned
--		long size, unsigned long offset);
 +static inline
-+unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
+ unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
+-				 unsigned long offset);
 +				 unsigned long offset)
 +{
 +	return _find_next_bit(addr, NULL, size, offset, ~0UL, 0);
 +}
  #endif
  
- #ifdef CONFIG_GENERIC_FIND_FIRST_BIT
---- a/include/asm-generic/bitops/le.h~lib-inline-_find_next_bit-wrappers
-+++ a/include/asm-generic/bitops/le.h
-@@ -2,6 +2,7 @@
- #ifndef _ASM_GENERIC_BITOPS_LE_H_
- #define _ASM_GENERIC_BITOPS_LE_H_
- 
-+#include <asm-generic/bitops/find.h>
- #include <asm/types.h>
- #include <asm/byteorder.h>
- 
-@@ -32,13 +33,21 @@ static inline unsigned long find_first_z
- #define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
- 
- #ifndef find_next_zero_bit_le
--extern unsigned long find_next_zero_bit_le(const void *addr,
--		unsigned long size, unsigned long offset);
-+static inline
-+unsigned long find_next_zero_bit_le(const void *addr, unsigned
-+		long size, unsigned long offset)
-+{
-+	return _find_next_bit(addr, NULL, size, offset, ~0UL, 1);
-+}
- #endif
- 
- #ifndef find_next_bit_le
--extern unsigned long find_next_bit_le(const void *addr,
--		unsigned long size, unsigned long offset);
-+static inline
-+unsigned long find_next_bit_le(const void *addr, unsigned
-+		long size, unsigned long offset)
-+{
-+	return _find_next_bit(addr, NULL, size, offset, 0UL, 1);
-+}
- #endif
- 
- #ifndef find_first_zero_bit_le
---- a/lib/find_bit.c~lib-inline-_find_next_bit-wrappers
-+++ a/lib/find_bit.c
-@@ -29,7 +29,7 @@
+ #ifndef find_first_bit
+--- a/tools/lib/find_bit.c~tools-sync-find_next_bit-implementation
++++ a/tools/lib/find_bit.c
+@@ -28,11 +28,12 @@
   *    searching it for one bits.
   *  - The optional "addr2", which is anded with "addr1" if present.
   */
--static unsigned long _find_next_bit(const unsigned long *addr1,
+-static inline unsigned long _find_next_bit(const unsigned long *addr1,
 +unsigned long _find_next_bit(const unsigned long *addr1,
  		const unsigned long *addr2, unsigned long nbits,
- 		unsigned long start, unsigned long invert, unsigned long le)
+-		unsigned long start, unsigned long invert)
++		unsigned long start, unsigned long invert, unsigned long le)
  {
-@@ -68,37 +68,7 @@ static unsigned long _find_next_bit(cons
+-	unsigned long tmp;
++	unsigned long tmp, mask;
++	(void) le;
  
- 	return min(start + __ffs(tmp), nbits);
- }
--#endif
--
+ 	if (unlikely(start >= nbits))
+ 		return nbits;
+@@ -43,7 +44,19 @@ static inline unsigned long _find_next_b
+ 	tmp ^= invert;
+ 
+ 	/* Handle 1st word. */
+-	tmp &= BITMAP_FIRST_WORD_MASK(start);
++	mask = BITMAP_FIRST_WORD_MASK(start);
++
++	/*
++	 * Due to the lack of swab() in tools, and the fact that it doesn't
++	 * need little-endian support, just comment it out
++	 */
++#if (0)
++	if (le)
++		mask = swab(mask);
++#endif
++
++	tmp &= mask;
++
+ 	start = round_down(start, BITS_PER_LONG);
+ 
+ 	while (!tmp) {
+@@ -57,18 +70,12 @@ static inline unsigned long _find_next_b
+ 		tmp ^= invert;
+ 	}
+ 
+-	return min(start + __ffs(tmp), nbits);
+-}
++#if (0)
++	if (le)
++		tmp = swab(tmp);
+ #endif
+ 
 -#ifndef find_next_bit
 -/*
 - * Find the next set bit in a memory region.
@@ -200,59 +197,30 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
 -			    unsigned long offset)
 -{
--	return _find_next_bit(addr, NULL, size, offset, 0UL, 0);
--}
--EXPORT_SYMBOL(find_next_bit);
--#endif
+-	return _find_next_bit(addr, NULL, size, offset, 0UL);
++	return min(start + __ffs(tmp), nbits);
+ }
+ #endif
+ 
+@@ -105,20 +112,3 @@ unsigned long find_first_zero_bit(const
+ 	return size;
+ }
+ #endif
 -
 -#ifndef find_next_zero_bit
 -unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
 -				 unsigned long offset)
 -{
--	return _find_next_bit(addr, NULL, size, offset, ~0UL, 0);
+-	return _find_next_bit(addr, NULL, size, offset, ~0UL);
 -}
--EXPORT_SYMBOL(find_next_zero_bit);
 -#endif
 -
--#if !defined(find_next_and_bit)
+-#ifndef find_next_and_bit
 -unsigned long find_next_and_bit(const unsigned long *addr1,
 -		const unsigned long *addr2, unsigned long size,
 -		unsigned long offset)
 -{
--	return _find_next_bit(addr1, addr2, size, offset, 0UL, 0);
+-	return _find_next_bit(addr1, addr2, size, offset, 0UL);
 -}
--EXPORT_SYMBOL(find_next_and_bit);
-+EXPORT_SYMBOL(_find_next_bit);
- #endif
- 
- #ifndef find_first_bit
-@@ -157,28 +127,6 @@ unsigned long find_last_bit(const unsign
- EXPORT_SYMBOL(find_last_bit);
- #endif
- 
--#ifdef __BIG_ENDIAN
--
--#ifndef find_next_zero_bit_le
--unsigned long find_next_zero_bit_le(const void *addr, unsigned
--		long size, unsigned long offset)
--{
--	return _find_next_bit(addr, NULL, size, offset, ~0UL, 1);
--}
--EXPORT_SYMBOL(find_next_zero_bit_le);
 -#endif
--
--#ifndef find_next_bit_le
--unsigned long find_next_bit_le(const void *addr, unsigned
--		long size, unsigned long offset)
--{
--	return _find_next_bit(addr, NULL, size, offset, 0UL, 1);
--}
--EXPORT_SYMBOL(find_next_bit_le);
--#endif
--
--#endif /* __BIG_ENDIAN */
--
- unsigned long find_next_clump8(unsigned long *clump, const unsigned long *addr,
- 			       unsigned long size, unsigned long offset)
- {
 _
