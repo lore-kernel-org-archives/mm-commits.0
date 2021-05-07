@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8271AC433B4
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:02:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E690C433B4
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:02:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 62DEA613B5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:02:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDEA461289
+	for <mm-commits@archiver.kernel.org>; Fri,  7 May 2021 01:02:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234018AbhEGBDr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 May 2021 21:03:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43268 "EHLO mail.kernel.org"
+        id S234019AbhEGBDt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 May 2021 21:03:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43374 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233989AbhEGBDq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 May 2021 21:03:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8EF94610F7;
-        Fri,  7 May 2021 01:02:46 +0000 (UTC)
+        id S233989AbhEGBDt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 May 2021 21:03:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0AAA2610FA;
+        Fri,  7 May 2021 01:02:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620349367;
-        bh=qpTt3t0UE+zsql2w3MPBjk2FWVKE8lCJY7dDZOMgkPs=;
+        s=korg; t=1620349370;
+        bh=0GJVno1y+0vVOTE5uxdZXHfI9McDoHYOl2prdGYgXP0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=SiFkWUIB1mODihdWmaUeLUfQgfZq3GfDVekaxKR0W/aESz4G5hgtOP7PikuQqWjhV
-         KmZTcvO15nLdiAgvbTDeCl2M9cLw9Y0dQyEZWcH7FyQ+eFdFmOQcdSHnKdHXWTppV3
-         A0TAjOgDvNwjL+Fn/ACjhyTsslqQoNmUj2p8z5nA=
-Date:   Thu, 06 May 2021 18:02:46 -0700
+        b=or498UcfR5F75jVUFOOwdvSbs6AT7cKYutSj/ULSBpALnVAu4F5aEechKLKPgglZo
+         RiOAMo0/y0COXtHyiiFNYIqsfr9+lRCH9XdM70GRZCngHSbrQcoRCCQ1rmsisPht/p
+         4dVDoyuG+3RKHm+4H0NjH2PJcs1wdeSwTY+hYJm0=
+Date:   Thu, 06 May 2021 18:02:49 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aklimov@redhat.com, akpm@linux-foundation.org,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, dalias@libc.org,
@@ -39,9 +39,9 @@ To:     aklimov@redhat.com, akpm@linux-foundation.org,
         richard.weiyang@linux.alibaba.com, sbrivio@redhat.com,
         torvalds@linux-foundation.org, wsa+renesas@sang-engineering.com,
         ysato@users.osdn.me, yury.norov@gmail.com
-Subject:  [patch 15/91] tools: bitmap: sync function declarations
+Subject:  [patch 16/91] tools: sync BITMAP_LAST_WORD_MASK() macro
  with the kernel
-Message-ID: <20210507010246.n_fOXph42%akpm@linux-foundation.org>
+Message-ID: <20210507010249.NNhmvZ7Zf%akpm@linux-foundation.org>
 In-Reply-To: <20210506180126.03e1baee7ca52bedb6cc6003@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -50,12 +50,11 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Yury Norov <yury.norov@gmail.com>
-Subject: tools: bitmap: sync function declarations with the kernel
+Subject: tools: sync BITMAP_LAST_WORD_MASK() macro with the kernel
 
-Some functions in tools/include/linux/bitmap.h declare nbits as int.  In
-the kernel nbits is declared as unsigned int.
+Kernel version generates better code.
 
-Link: https://lkml.kernel.org/r/20210401003153.97325-3-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210401003153.97325-4-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Alexey Klimov <aklimov@redhat.com>
@@ -76,62 +75,23 @@ Cc: Yoshinori Sato <ysato@users.osdn.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/linux/bitmap.h |    8 ++++----
- tools/lib/bitmap.c           |    4 ++--
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ tools/include/linux/bitmap.h |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/tools/include/linux/bitmap.h~tools-bitmap-sync-function-declarations-with-the-kernel
+--- a/tools/include/linux/bitmap.h~tools-sync-bitmap_last_word_mask-macro-with-the-kernel
 +++ a/tools/include/linux/bitmap.h
-@@ -30,7 +30,7 @@ void bitmap_clear(unsigned long *map, un
+@@ -20,12 +20,7 @@ int __bitmap_equal(const unsigned long *
+ void bitmap_clear(unsigned long *map, unsigned int start, int len);
+ 
+ #define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) & (BITS_PER_LONG - 1)))
+-
+-#define BITMAP_LAST_WORD_MASK(nbits)					\
+-(									\
+-	((nbits) % BITS_PER_LONG) ?					\
+-		(1UL<<((nbits) % BITS_PER_LONG))-1 : ~0UL		\
+-)
++#define BITMAP_LAST_WORD_MASK(nbits) (~0UL >> (-(nbits) & (BITS_PER_LONG - 1)))
+ 
  #define small_const_nbits(nbits) \
  	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG)
- 
--static inline void bitmap_zero(unsigned long *dst, int nbits)
-+static inline void bitmap_zero(unsigned long *dst, unsigned int nbits)
- {
- 	if (small_const_nbits(nbits))
- 		*dst = 0UL;
-@@ -66,7 +66,7 @@ static inline int bitmap_full(const unsi
- 	return find_first_zero_bit(src, nbits) == nbits;
- }
- 
--static inline int bitmap_weight(const unsigned long *src, int nbits)
-+static inline int bitmap_weight(const unsigned long *src, unsigned int nbits)
- {
- 	if (small_const_nbits(nbits))
- 		return hweight_long(*src & BITMAP_LAST_WORD_MASK(nbits));
-@@ -74,7 +74,7 @@ static inline int bitmap_weight(const un
- }
- 
- static inline void bitmap_or(unsigned long *dst, const unsigned long *src1,
--			     const unsigned long *src2, int nbits)
-+			     const unsigned long *src2, unsigned int nbits)
- {
- 	if (small_const_nbits(nbits))
- 		*dst = *src1 | *src2;
-@@ -141,7 +141,7 @@ static inline void bitmap_free(unsigned
-  * @buf: buffer to store output
-  * @size: size of @buf
-  */
--size_t bitmap_scnprintf(unsigned long *bitmap, int nbits,
-+size_t bitmap_scnprintf(unsigned long *bitmap, unsigned int nbits,
- 			char *buf, size_t size);
- 
- /**
---- a/tools/lib/bitmap.c~tools-bitmap-sync-function-declarations-with-the-kernel
-+++ a/tools/lib/bitmap.c
-@@ -28,11 +28,11 @@ void __bitmap_or(unsigned long *dst, con
- 		dst[k] = bitmap1[k] | bitmap2[k];
- }
- 
--size_t bitmap_scnprintf(unsigned long *bitmap, int nbits,
-+size_t bitmap_scnprintf(unsigned long *bitmap, unsigned int nbits,
- 			char *buf, size_t size)
- {
- 	/* current bit is 'cur', most recently seen range is [rbot, rtop] */
--	int cur, rbot, rtop;
-+	unsigned int cur, rbot, rtop;
- 	bool first = true;
- 	size_t ret = 0;
- 
 _
