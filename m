@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30C3CC433B4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C399C43460
 	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D9C56142D
+	by mail.kernel.org (Postfix) with ESMTP id 1AEE6610FA
 	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229723AbhEHWyt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229689AbhEHWyt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 8 May 2021 18:54:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42518 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42560 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229689AbhEHWyq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:54:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 87883610FA;
-        Sat,  8 May 2021 22:53:44 +0000 (UTC)
+        id S229690AbhEHWys (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:54:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 988FE61402;
+        Sat,  8 May 2021 22:53:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514424;
-        bh=r716GNTVX+WLmMIX3Pkg8KJBIxx4Zk8cV4F1KFn++zI=;
+        s=korg; t=1620514426;
+        bh=LefW1LwgxsDNiq2aA4UNyH6TFW+STmJ3AKZgSURtyHw=;
         h=Date:From:To:Subject:From;
-        b=Fnr4ufpC3o0Nul0L6YdavNam/kx3W/E2JiOuRL9Plm/zdbQIGyWV6XkZHRXOTp+Pr
-         +1tHKu/IZv/KBJVDZMBku3YH5aPZR9laQfYXxPCMz+2vc8Rt0YREx+7KCVQ+UkekHc
-         Vvp7m93r1V4V4BFyz2wcTH95s7Fph5X1OkVisKNM=
-Date:   Sat, 08 May 2021 15:53:44 -0700
+        b=uMkJGuSJhAZcKUEV20p5KAis0/7WNBxvP3PbBf5oy4TTLYU6tR1XyVnfUL9LGsG1P
+         /81XXpV/Cmw4zLaihCSErikGMDeM88UERqGIMnDJGq7N8//Z8KCP7ZKzEz/tr65muA
+         ZxCzor8+YS2K8VGxMLvqv3bl5vcIjuLZh59dQUhc=
+Date:   Sat, 08 May 2021 15:53:46 -0700
 From:   akpm@linux-foundation.org
 To:     johannes.berg@intel.com, mm-commits@vger.kernel.org,
-        oberpar@linux.ibm.com
-Subject:  [merged] gcov-simplify-buffer-allocation.patch removed
- from -mm tree
-Message-ID: <20210508225344.-TFHALHb5%akpm@linux-foundation.org>
+        ndesaulniers@google.com, oberpar@linux.ibm.com
+Subject:  [merged] gcov-use-kvmalloc.patch removed from -mm tree
+Message-ID: <20210508225346.x8Eixwf3E%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,84 +42,143 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gcov: simplify buffer allocation
+     Subject: gcov: use kvmalloc()
 has been removed from the -mm tree.  Its filename was
-     gcov-simplify-buffer-allocation.patch
+     gcov-use-kvmalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Berg <johannes.berg@intel.com>
-Subject: gcov: simplify buffer allocation
+Subject: gcov: use kvmalloc()
 
-Use just a single vmalloc() with struct_size() instead of a separate
-kmalloc() for the iter struct.
+Using vmalloc() in gcov is really quite wasteful, many of the objects
+allocated are really small (e.g.  I've seen 24 bytes.) Use kvmalloc() to
+automatically pick the better of kmalloc() or vmalloc() depending on the
+size.
 
-Link: https://lkml.kernel.org/r/20210315235453.b6de4a92096e.Iac40a5166589cefbff8449e466bd1b38ea7a17af@changeid
+[johannes.berg@intel.com: fix clang-11+ build]
+  Link: https://lkml.kernel.org/r/20210412214210.6e1ecca9cdc5.I24459763acf0591d5e6b31c7e3a59890d802f79c@changeid
+Link: https://lkml.kernel.org/r/20210315235453.799e7a9d627d.I741d0db096c6f312910f7f1bcdfde0fda20801a4@changeid
 Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+Tested-by: Nick Desaulniers <ndesaulniers@google.com>
 Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/fs.c |   24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
+ kernel/gcov/clang.c   |   12 ++++++------
+ kernel/gcov/fs.c      |    6 +++---
+ kernel/gcov/gcc_4_7.c |    6 +++---
+ 3 files changed, 12 insertions(+), 12 deletions(-)
 
---- a/kernel/gcov/fs.c~gcov-simplify-buffer-allocation
+--- a/kernel/gcov/clang.c~gcov-use-kvmalloc
++++ a/kernel/gcov/clang.c
+@@ -49,7 +49,7 @@
+ #include <linux/printk.h>
+ #include <linux/ratelimit.h>
+ #include <linux/slab.h>
+-#include <linux/vmalloc.h>
++#include <linux/mm.h>
+ #include "gcov.h"
+ 
+ typedef void (*llvm_gcov_callback)(void);
+@@ -333,8 +333,8 @@ void gcov_info_add(struct gcov_info *dst
+ static struct gcov_fn_info *gcov_fn_info_dup(struct gcov_fn_info *fn)
+ {
+ 	size_t cv_size; /* counter values size */
+-	struct gcov_fn_info *fn_dup = kmemdup(fn, sizeof(*fn),
+-			GFP_KERNEL);
++	struct gcov_fn_info *fn_dup = kmemdup(fn, sizeof(*fn), GFP_KERNEL);
++
+ 	if (!fn_dup)
+ 		return NULL;
+ 	INIT_LIST_HEAD(&fn_dup->head);
+@@ -344,7 +344,7 @@ static struct gcov_fn_info *gcov_fn_info
+ 		goto err_name;
+ 
+ 	cv_size = fn->num_counters * sizeof(fn->counters[0]);
+-	fn_dup->counters = vmalloc(cv_size);
++	fn_dup->counters = kvmalloc(cv_size, GFP_KERNEL);
+ 	if (!fn_dup->counters)
+ 		goto err_counters;
+ 	memcpy(fn_dup->counters, fn->counters, cv_size);
+@@ -368,7 +368,7 @@ static struct gcov_fn_info *gcov_fn_info
+ 	INIT_LIST_HEAD(&fn_dup->head);
+ 
+ 	cv_size = fn->num_counters * sizeof(fn->counters[0]);
+-	fn_dup->counters = vmalloc(cv_size);
++	fn_dup->counters = kvmalloc(cv_size, GFP_KERNEL);
+ 	if (!fn_dup->counters) {
+ 		kfree(fn_dup);
+ 		return NULL;
+@@ -439,7 +439,7 @@ void gcov_info_free(struct gcov_info *in
+ 	struct gcov_fn_info *fn, *tmp;
+ 
+ 	list_for_each_entry_safe(fn, tmp, &info->functions, head) {
+-		vfree(fn->counters);
++		kvfree(fn->counters);
+ 		list_del(&fn->head);
+ 		kfree(fn);
+ 	}
+--- a/kernel/gcov/fs.c~gcov-use-kvmalloc
 +++ a/kernel/gcov/fs.c
-@@ -97,9 +97,9 @@ __setup("gcov_persist=", gcov_persist_se
-  */
- struct gcov_iterator {
- 	struct gcov_info *info;
--	void *buffer;
- 	size_t size;
- 	loff_t pos;
-+	char buffer[];
- };
+@@ -26,7 +26,7 @@
+ #include <linux/slab.h>
+ #include <linux/mutex.h>
+ #include <linux/seq_file.h>
+-#include <linux/vmalloc.h>
++#include <linux/mm.h>
+ #include "gcov.h"
  
  /**
-@@ -111,25 +111,20 @@ struct gcov_iterator {
- static struct gcov_iterator *gcov_iter_new(struct gcov_info *info)
- {
- 	struct gcov_iterator *iter;
-+	size_t size;
-+
-+	/* Dry-run to get the actual buffer size. */
-+	size = convert_to_gcda(NULL, info);
+@@ -116,7 +116,7 @@ static struct gcov_iterator *gcov_iter_n
+ 	/* Dry-run to get the actual buffer size. */
+ 	size = convert_to_gcda(NULL, info);
  
--	iter = kzalloc(sizeof(struct gcov_iterator), GFP_KERNEL);
-+	iter = vmalloc(struct_size(iter, buffer, size));
+-	iter = vmalloc(struct_size(iter, buffer, size));
++	iter = kvmalloc(struct_size(iter, buffer, size), GFP_KERNEL);
  	if (!iter)
--		goto err_free;
-+		return NULL;
+ 		return NULL;
  
- 	iter->info = info;
--	/* Dry-run to get the actual buffer size. */
--	iter->size = convert_to_gcda(NULL, info);
--	iter->buffer = vmalloc(iter->size);
--	if (!iter->buffer)
--		goto err_free;
--
-+	iter->size = size;
- 	convert_to_gcda(iter->buffer, info);
- 
- 	return iter;
--
--err_free:
--	kfree(iter);
--	return NULL;
- }
- 
- 
-@@ -139,8 +134,7 @@ err_free:
+@@ -134,7 +134,7 @@ static struct gcov_iterator *gcov_iter_n
   */
  static void gcov_iter_free(struct gcov_iterator *iter)
  {
--	vfree(iter->buffer);
--	kfree(iter);
-+	vfree(iter);
+-	vfree(iter);
++	kvfree(iter);
  }
  
  /**
+--- a/kernel/gcov/gcc_4_7.c~gcov-use-kvmalloc
++++ a/kernel/gcov/gcc_4_7.c
+@@ -15,7 +15,7 @@
+ #include <linux/errno.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+-#include <linux/vmalloc.h>
++#include <linux/mm.h>
+ #include "gcov.h"
+ 
+ #if (__GNUC__ >= 10)
+@@ -309,7 +309,7 @@ struct gcov_info *gcov_info_dup(struct g
+ 
+ 			cv_size = sizeof(gcov_type) * sci_ptr->num;
+ 
+-			dci_ptr->values = vmalloc(cv_size);
++			dci_ptr->values = kvmalloc(cv_size, GFP_KERNEL);
+ 
+ 			if (!dci_ptr->values)
+ 				goto err_free;
+@@ -351,7 +351,7 @@ void gcov_info_free(struct gcov_info *in
+ 		ci_ptr = info->functions[fi_idx]->ctrs;
+ 
+ 		for (ct_idx = 0; ct_idx < active; ct_idx++, ci_ptr++)
+-			vfree(ci_ptr->values);
++			kvfree(ci_ptr->values);
+ 
+ 		kfree(info->functions[fi_idx]);
+ 	}
 _
 
 Patches currently in -mm which might be from johannes.berg@intel.com are
