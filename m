@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7285C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9395C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 993BD6141E
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A9CF46141D
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229522AbhEHWlC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:41:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44404 "EHLO mail.kernel.org"
+        id S229559AbhEHWlE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:41:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44486 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229641AbhEHWlB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:41:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 93AAD61402;
-        Sat,  8 May 2021 22:39:58 +0000 (UTC)
+        id S229641AbhEHWlD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:41:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A600A613EA;
+        Sat,  8 May 2021 22:40:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513598;
-        bh=10s/CJ+JL8benTdEHcZi9tV54vliDWJ9sfpHNX54lk8=;
+        s=korg; t=1620513601;
+        bh=v1X9nHKNLkAMd+EHuak1bdYynpUldzJldwhvXatiSpk=;
         h=Date:From:To:Subject:From;
-        b=wCNXzPevKIGV+2/0YZnDk0ISyNdFG+Yb73uiqeUpzx3hfTkwBpkOCtI2kapit73Vo
-         pRZLwleK4ePKjjHue8djTqciGGdpjhszD2WSsESTkui0V1V0+tP21pzkJALmqJeBvl
-         jDnS4QIjFIYKzoBHic35EXr8nrGriY4YxIqFBYHc=
-Date:   Sat, 08 May 2021 15:39:58 -0700
+        b=Awz2ZpBzZLo+v8CEiNafPimpjhQEQL7+pvPqZvhhU4OG89F7In4/EsjeQW9+Io57q
+         4phiUgFsoVF5rWaTyL6IDxLOifqrBmL4IDULILb5vVC0pdGK7MUQwXOhCmQGkT/mzN
+         qFKplP41FgfczRoHituhegUfxeLbiM1jqFIrrJyU=
+Date:   Sat, 08 May 2021 15:40:01 -0700
 From:   akpm@linux-foundation.org
-To:     aquini@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
+To:     cl@linux.com, glittao@gmail.com, iamjoonsoo.kim@lge.com,
+        mm-commits@vger.kernel.org, paulmck@kernel.org, penberg@kernel.org,
         rientjes@google.com, vbabka@suse.cz
 Subject:  [merged]
- =?US-ASCII?Q?mm-slab=5Fcommon-provide-slab=5Fmerge-option-for-is=5Fenabl?=
- =?US-ASCII?Q?edconfig=5Fslab=5Fmerge=5Fdefault-builds.patch?= removed from
- -mm tree
-Message-ID: <20210508223958.V6GsFhCo_%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-slub-enable-slub=5Fdebug-static-key-when-creating-cache?=
+ =?US-ASCII?Q?-with-explicit-debug-flags.patch?= removed from -mm tree
+Message-ID: <20210508224001.H8q7b4z0L%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -48,81 +47,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab_common: provide "slab_merge" option for !IS_ENABLED(CONFIG_SLAB_MERGE_DEFAULT) builds
+     Subject: mm, slub: enable slub_debug static key when creating cache with explicit debug flags
 has been removed from the -mm tree.  Its filename was
-     mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds.patch
+     mm-slub-enable-slub_debug-static-key-when-creating-cache-with-explicit-debug-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rafael Aquini <aquini@redhat.com>
-Subject: mm/slab_common: provide "slab_merge" option for !IS_ENABLED(CONFIG_SLAB_MERGE_DEFAULT) builds
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slub: enable slub_debug static key when creating cache with explicit debug flags
 
-This is a minor addition to the allocator setup options to provide a
-simple way to on demand enable back cache merging for builds that by
-default run with CONFIG_SLAB_MERGE_DEFAULT not set.
+Commit ca0cab65ea2b ("mm, slub: introduce static key for slub_debug()")
+introduced a static key to optimize the case where no debugging is enabled
+for any cache.  The static key is enabled when slub_debug boot parameter
+is passed, or CONFIG_SLUB_DEBUG_ON enabled.
 
-Link: https://lkml.kernel.org/r/20210319194506.200159-1-aquini@redhat.com
-Signed-off-by: Rafael Aquini <aquini@redhat.com>
+However, some caches might be created with one or more debugging flags
+explicitly passed to kmem_cache_create(), and the commit missed this. 
+Thus the debugging functionality would not be actually performed for these
+caches unless the static key gets enabled by boot param or config.
+
+This patch fixes it by checking for debugging flags passed to
+kmem_cache_create() and enabling the static key accordingly.
+
+Note such explicit debugging flags should not be used outside of debugging
+and testing as they will now enable the static key globally. 
+btrfs_init_cachep() creates a cache with SLAB_RED_ZONE but that's a
+mistake that's being corrected [1].  rcu_torture_stats() creates a cache
+with SLAB_STORE_USER, but that is a testing module so it's OK and will
+start working as intended after this patch.
+
+Also note that in case of backports to kernels before v5.12 that don't
+have 59450bbc12be ("mm, slab, slub: stop taking cpu hotplug lock"),
+static_branch_enable_cpuslocked() should be used.
+
+[1] https://lore.kernel.org/linux-btrfs/20210315141824.26099-1-dsterba@suse.com/
+
+Link: https://lkml.kernel.org/r/20210315153415.24404-1-vbabka@suse.cz
+Fixes: ca0cab65ea2b ("mm, slub: introduce static key for slub_debug()")
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Oliver Glitta <glittao@gmail.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    7 +++++++
- mm/slab_common.c                                |    8 ++++++++
- 2 files changed, 15 insertions(+)
+ mm/slub.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -4996,6 +4996,10 @@
+--- a/mm/slub.c~mm-slub-enable-slub_debug-static-key-when-creating-cache-with-explicit-debug-flags
++++ a/mm/slub.c
+@@ -3828,6 +3828,15 @@ static int calculate_sizes(struct kmem_c
  
- 	slram=		[HW,MTD]
- 
-+	slab_merge	[MM]
-+			Enable merging of slabs with similar size when the
-+			kernel is built without CONFIG_SLAB_MERGE_DEFAULT.
-+
- 	slab_nomerge	[MM]
- 			Disable merging of slabs with similar size. May be
- 			necessary if there is some reason to distinguish
-@@ -5043,6 +5047,9 @@
- 			lower than slub_max_order.
- 			For more information see Documentation/vm/slub.rst.
- 
-+	slub_merge	[MM, SLUB]
-+			Same with slab_merge.
-+
- 	slub_nomerge	[MM, SLUB]
- 			Same with slab_nomerge. This is supported for legacy.
- 			See slab_nomerge for more information.
---- a/mm/slab_common.c~mm-slab_common-provide-slab_merge-option-for-is_enabledconfig_slab_merge_default-builds
-+++ a/mm/slab_common.c
-@@ -71,11 +71,19 @@ static int __init setup_slab_nomerge(cha
- 	return 1;
- }
- 
-+static int __init setup_slab_merge(char *str)
-+{
-+	slab_nomerge = false;
-+	return 1;
-+}
-+
- #ifdef CONFIG_SLUB
- __setup_param("slub_nomerge", slub_nomerge, setup_slab_nomerge, 0);
-+__setup_param("slub_merge", slub_merge, setup_slab_merge, 0);
- #endif
- 
- __setup("slab_nomerge", setup_slab_nomerge);
-+__setup("slab_merge", setup_slab_merge);
- 
- /*
-  * Determine the size of a slab object
+ static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
+ {
++#ifdef CONFIG_SLUB_DEBUG
++	/*
++	 * If no slub_debug was enabled globally, the static key is not yet
++	 * enabled by setup_slub_debug(). Enable it if the cache is being
++	 * created with any of the debugging flags passed explicitly.
++	 */
++	if (flags & SLAB_DEBUG_FLAGS)
++		static_branch_enable(&slub_debug_enabled);
++#endif
+ 	s->flags = kmem_cache_flags(s->size, flags, s->name);
+ #ifdef CONFIG_SLAB_FREELIST_HARDENED
+ 	s->random = get_random_long();
 _
 
-Patches currently in -mm which might be from aquini@redhat.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
+mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex.patch
 
