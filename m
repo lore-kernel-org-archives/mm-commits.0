@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 864A4C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:51:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF356C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:51:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5E546613EA
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:51:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEFB160233
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:51:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229691AbhEHWww (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:52:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39902 "EHLO mail.kernel.org"
+        id S229656AbhEHWwz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:52:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39950 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229647AbhEHWww (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:52:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 93D7060233;
-        Sat,  8 May 2021 22:51:50 +0000 (UTC)
+        id S229723AbhEHWwy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:52:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9173260233;
+        Sat,  8 May 2021 22:51:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514310;
-        bh=TBHALTjouHbl02yufBnUpMBWPsHjb+DpdSqYxfqGd2I=;
+        s=korg; t=1620514312;
+        bh=LIpbsoDG+Yo8Bxv2a8IWylfFB9l3Tggmkoulg6+aViU=;
         h=Date:From:To:Subject:From;
-        b=0NrUaywZZSnKr21Ug2J9d2SA8pgiKXKcyE8eZMMLFhp/UbYgK9/uNqwtVkU9x4mnc
-         6vVc5pyMfAmJTf/50ZaXHOCZsb9YcClKmxWNKu7ubdzLf8T8bSbHWNBzYRDsBzHNMG
-         NacX+uVSczeNixa7AHMTVIWdPzWsfR8y7wHPX9Mw=
-Date:   Sat, 08 May 2021 15:51:50 -0700
+        b=t5tq8YIrY/KIRF0jZ5fa6cKsFDzLiOqyRdjb5ZfqMzUZ+P5aEaP78cVA5N+HMHKyf
+         MmnCCZn6F+RjamwT1pnXl545SynYBXVJmS86yscUDr1FYo7tX4yf1H6gimW283llrc
+         3lcrrqQcHwjw1wnTGzzz5/Uzp81YGWbThUhNRsM8=
+Date:   Sat, 08 May 2021 15:51:52 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, mm-commits@vger.kernel.org
-Subject:  [merged] proc-mandate-proc_lseek-in-struct-proc_ops.patch
+To:     adobriyan@gmail.com, gladkov.alexey@gmail.com,
+        mm-commits@vger.kernel.org
+Subject:  [merged] proc-delete-redundant-subset=pid-check.patch
  removed from -mm tree
-Message-ID: <20210508225150.uZ0GUsJ-v%akpm@linux-foundation.org>
+Message-ID: <20210508225152.bqYenucM1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,130 +43,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: mandate ->proc_lseek in "struct proc_ops"
+     Subject: proc: delete redundant subset=pid check
 has been removed from the -mm tree.  Its filename was
-     proc-mandate-proc_lseek-in-struct-proc_ops.patch
+     proc-delete-redundant-subset=pid-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: mandate ->proc_lseek in "struct proc_ops"
+Subject: proc: delete redundant subset=pid check
 
-Now that proc_ops are separate from file_operations and other operations
-it easy to check all instances to have ->proc_lseek hook and remove check
-in main code.
+Two checks in lookup and readdir code should be enough to not have third
+check in open code.
 
-Note:
-nonseekable_open() files naturally don't require ->proc_lseek.
+Can't open what can't be looked up?
 
-Garbage collect pde_lseek() function.
-
-[adobriyan@gmail.com: smoke test lseek()]
-  Link: https://lkml.kernel.org/r/YG4OIhChOrVTPgdN@localhost.localdomain
-Link: https://lkml.kernel.org/r/YFYX0Bzwxlc7aBa/@localhost.localdomain
+Link: https://lkml.kernel.org/r/YFYYwIBIkytqnkxP@localhost.localdomain
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Acked-by: Alexey Gladkov <gladkov.alexey@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/kcapi_proc.c                     |    1 
- drivers/net/wireless/intersil/hostap/hostap_proc.c |    1 
- drivers/scsi/esas2r/esas2r_main.c                  |    1 
- fs/proc/inode.c                                    |   14 +----------
- include/linux/proc_fs.h                            |    1 
- tools/testing/selftests/proc/read.c                |    4 ++-
- 6 files changed, 9 insertions(+), 13 deletions(-)
+ fs/proc/inode.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/drivers/isdn/capi/kcapi_proc.c~proc-mandate-proc_lseek-in-struct-proc_ops
-+++ a/drivers/isdn/capi/kcapi_proc.c
-@@ -201,6 +201,7 @@ static ssize_t empty_read(struct file *f
- 
- static const struct proc_ops empty_proc_ops = {
- 	.proc_read	= empty_read,
-+	.proc_lseek	= default_llseek,
- };
- 
- // ---------------------------------------------------------------------------
---- a/drivers/net/wireless/intersil/hostap/hostap_proc.c~proc-mandate-proc_lseek-in-struct-proc_ops
-+++ a/drivers/net/wireless/intersil/hostap/hostap_proc.c
-@@ -227,6 +227,7 @@ static ssize_t prism2_aux_dump_proc_no_r
- 
- static const struct proc_ops prism2_aux_dump_proc_ops = {
- 	.proc_read	= prism2_aux_dump_proc_no_read,
-+	.proc_lseek	= default_llseek,
- };
- 
- 
---- a/drivers/scsi/esas2r/esas2r_main.c~proc-mandate-proc_lseek-in-struct-proc_ops
-+++ a/drivers/scsi/esas2r/esas2r_main.c
-@@ -616,6 +616,7 @@ static const struct file_operations esas
- };
- 
- static const struct proc_ops esas2r_proc_ops = {
-+	.proc_lseek		= default_llseek,
- 	.proc_ioctl		= esas2r_proc_ioctl,
- #ifdef CONFIG_COMPAT
- 	.proc_compat_ioctl	= compat_ptr_ioctl,
---- a/fs/proc/inode.c~proc-mandate-proc_lseek-in-struct-proc_ops
+--- a/fs/proc/inode.c~proc-delete-redundant-subset=pid-check
 +++ a/fs/proc/inode.c
-@@ -273,25 +273,15 @@ void proc_entry_rundown(struct proc_dir_
- 	spin_unlock(&de->pde_unload_lock);
- }
+@@ -483,7 +483,6 @@ proc_reg_get_unmapped_area(struct file *
  
--static loff_t pde_lseek(struct proc_dir_entry *pde, struct file *file, loff_t offset, int whence)
--{
--	typeof_member(struct proc_ops, proc_lseek) lseek;
--
--	lseek = pde->proc_ops->proc_lseek;
--	if (!lseek)
--		lseek = default_llseek;
--	return lseek(file, offset, whence);
--}
--
- static loff_t proc_reg_llseek(struct file *file, loff_t offset, int whence)
+ static int proc_reg_open(struct inode *inode, struct file *file)
  {
- 	struct proc_dir_entry *pde = PDE(file_inode(file));
- 	loff_t rv = -EINVAL;
- 
- 	if (pde_is_permanent(pde)) {
--		return pde_lseek(pde, file, offset, whence);
-+		return pde->proc_ops->proc_lseek(file, offset, whence);
- 	} else if (use_pde(pde)) {
--		rv = pde_lseek(pde, file, offset, whence);
-+		rv = pde->proc_ops->proc_lseek(file, offset, whence);
- 		unuse_pde(pde);
+-	struct proc_fs_info *fs_info = proc_sb_info(inode->i_sb);
+ 	struct proc_dir_entry *pde = PDE(inode);
+ 	int rv = 0;
+ 	typeof_member(struct proc_ops, proc_open) open;
+@@ -497,9 +496,6 @@ static int proc_reg_open(struct inode *i
+ 		return rv;
  	}
- 	return rv;
---- a/include/linux/proc_fs.h~proc-mandate-proc_lseek-in-struct-proc_ops
-+++ a/include/linux/proc_fs.h
-@@ -32,6 +32,7 @@ struct proc_ops {
- 	ssize_t	(*proc_read)(struct file *, char __user *, size_t, loff_t *);
- 	ssize_t (*proc_read_iter)(struct kiocb *, struct iov_iter *);
- 	ssize_t	(*proc_write)(struct file *, const char __user *, size_t, loff_t *);
-+	/* mandatory unless nonseekable_open() or equivalent is used */
- 	loff_t	(*proc_lseek)(struct file *, loff_t, int);
- 	int	(*proc_release)(struct inode *, struct file *);
- 	__poll_t (*proc_poll)(struct file *, struct poll_table_struct *);
---- a/tools/testing/selftests/proc/read.c~proc-mandate-proc_lseek-in-struct-proc_ops
-+++ a/tools/testing/selftests/proc/read.c
-@@ -14,7 +14,7 @@
-  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-  */
- // Test
--// 1) read of every file in /proc
-+// 1) read and lseek on every file in /proc
- // 2) readlink of every symlink in /proc
- // 3) recursively (1) + (2) for every directory in /proc
- // 4) write to /proc/*/clear_refs and /proc/*/task/*/clear_refs
-@@ -45,6 +45,8 @@ static void f_reg(DIR *d, const char *fi
- 	fd = openat(dirfd(d), filename, O_RDONLY|O_NONBLOCK);
- 	if (fd == -1)
- 		return;
-+	/* struct proc_ops::proc_lseek is mandatory if file is seekable. */
-+	(void)lseek(fd, 0, SEEK_SET);
- 	rv = read(fd, buf, sizeof(buf));
- 	assert((0 <= rv && rv <= sizeof(buf)) || rv == -1);
- 	close(fd);
+ 
+-	if (fs_info->pidonly == PROC_PIDONLY_ON)
+-		return -ENOENT;
+-
+ 	/*
+ 	 * Ensure that
+ 	 * 1) PDE's ->release hook will be called no matter what
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
