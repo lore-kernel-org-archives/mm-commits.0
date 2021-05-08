@@ -2,42 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98A94C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:41:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DE0EC433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:41:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73E4B61415
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:41:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5ED0461415
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:41:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229660AbhEHWmy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:42:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47638 "EHLO mail.kernel.org"
+        id S229672AbhEHWm5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:42:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47714 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229559AbhEHWmy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:42:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B3A316140E;
-        Sat,  8 May 2021 22:41:51 +0000 (UTC)
+        id S229559AbhEHWm4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:42:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D0076100C;
+        Sat,  8 May 2021 22:41:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513712;
-        bh=g51JK5DXhAESF1qskTwrD6M8SwRKj/gVdrrqgjfRgDo=;
+        s=korg; t=1620513714;
+        bh=+TH1EMWSUnUnbYwbefB4ItpLySplsEcKflXaTqdP+f0=;
         h=Date:From:To:Subject:From;
-        b=gD2fikJj/LSeUMCwMfFwZHG4CUODP40d8dKieTew1aLiOizhN36Qf73jQVk7kVhno
-         +OfvWUdyX0lfW8nqdAd7/0/UuOrSeLJffUIwxmdF4sksflYXF0piPPEdxDUeWzfqU0
-         2GrAj6eGujDitejvU5D46trHgQFxtZrkFuBljPGA=
-Date:   Sat, 08 May 2021 15:41:51 -0700
+        b=RtqvaQNheHBRkyPLdvZIZmwo2PLSzArW/xD/8k6dIcEGZV/hO5px3mqZ47EiUybJZ
+         cakukcK9oCHpgpqbklJf7dhDdjW33l4X0mzxNlje+c2G8L5D5GvmdGWom+dK88JZZI
+         UUjVmFpUHdeO2waT/soWKGSes7OlWgdfyXiGLIak=
+Date:   Sat, 08 May 2021 15:41:53 -0700
 From:   akpm@linux-foundation.org
-To:     bp@alien8.de, dave.hansen@linux.intel.com, david@redhat.com,
-        hpa@zytor.com, luto@kernel.org, mhocko@kernel.org,
-        mingo@redhat.com, mm-commits@vger.kernel.org, osalvador@suse.de,
+To:     bp@alien8.de, dave.hansen@linux.intel.com, hpa@zytor.com,
+        luto@kernel.org, mhocko@kernel.org, mingo@redhat.com,
+        mm-commits@vger.kernel.org, osalvador@suse.de,
         peterz@infradead.org, tglx@linutronix.de, ziy@nvidia.com
 Subject:  [merged]
- x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch removed from -mm tree
-Message-ID: <20210508224151.k6Jhlxe5A%akpm@linux-foundation.org>
+ =?US-ASCII?Q?x86-vmemmap-optimize-for-consecutive-sections-in-partial-?=
+ =?US-ASCII?Q?populated-pmds.patch?= removed from -mm tree
+Message-ID: <20210508224153.sy20K_hsy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,36 +48,35 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/vmemmap: handle unpopulated sub-pmd ranges
+     Subject: x86/vmemmap: optimize for consecutive sections in partial populated PMDs
 has been removed from the -mm tree.  Its filename was
-     x86-vmemmap-handle-unpopulated-sub-pmd-ranges.patch
+     x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: x86/vmemmap: handle unpopulated sub-pmd ranges
+Subject: x86/vmemmap: optimize for consecutive sections in partial populated PMDs
 
-When sizeof(struct page) is not a power of 2, sections do not span a PMD
-anymore and so when populating them some parts of the PMD will remain
-unused.
+We can optimize in the case we are adding consecutive sections, so no
+memset(PAGE_UNUSED) is needed.
 
-Because of this, PMDs will be left behind when depopulating sections since
-remove_pmd_table() thinks that those unused parts are still in use.
+In that case, let us keep track where the unused range of the previous
+memory range begins, so we can compare it with start of the range to be
+added.  If they are equal, we know sections are added consecutively.
 
-Fix this by marking the unused parts with PAGE_UNUSED, so memchr_inv()
-will do the right thing and will let us free the PMD when the last user of
-it is gone.
+For that purpose, let us introduce 'unused_pmd_start', which always holds
+the beginning of the unused memory range.
+
+In the case a section does not contiguously follow the previous one, we
+know we can memset [unused_pmd_start, PMD_BOUNDARY) with PAGE_UNUSE.
 
 This patch is based on a similar patch by David Hildenbrand:
 
-https://lore.kernel.org/linux-mm/20200722094558.9828-9-david@redhat.com/
+https://lore.kernel.org/linux-mm/20200722094558.9828-10-david@redhat.com/
 
-[osalvador@suse.de: go back to the ifdef version]
-  Link: https://lkml.kernel.org/r/YGy++mSft7K4u+88@localhost.localdomain
-Link: https://lkml.kernel.org/r/20210309214050.4674-4-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20210309214050.4674-5-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Borislav Petkov <bp@alien8.de>
@@ -87,122 +89,119 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |   68 ++++++++++++++++++++++++++++++++--------
- 1 file changed, 55 insertions(+), 13 deletions(-)
+ arch/x86/mm/init_64.c |   67 ++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 61 insertions(+), 6 deletions(-)
 
---- a/arch/x86/mm/init_64.c~x86-vmemmap-handle-unpopulated-sub-pmd-ranges
+--- a/arch/x86/mm/init_64.c~x86-vmemmap-optimize-for-consecutive-sections-in-partial-populated-pmds
 +++ a/arch/x86/mm/init_64.c
-@@ -826,6 +826,51 @@ void __init paging_init(void)
- 	zone_sizes_init();
- }
+@@ -829,17 +829,42 @@ void __init paging_init(void)
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+ #define PAGE_UNUSED 0xFD
  
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+#define PAGE_UNUSED 0xFD
++/*
++ * The unused vmemmap range, which was not yet memset(PAGE_UNUSED), ranges
++ * from unused_pmd_start to next PMD_SIZE boundary.
++ */
++static unsigned long unused_pmd_start __meminitdata;
 +
-+/* Returns true if the PMD is completely unused and thus it can be freed */
-+static bool __meminit vmemmap_pmd_is_unused(unsigned long addr, unsigned long end)
++static void __meminit vmemmap_flush_unused_pmd(void)
 +{
-+	unsigned long start = ALIGN_DOWN(addr, PMD_SIZE);
-+
-+	memset((void *)addr, PAGE_UNUSED, end - addr);
-+
-+	return !memchr_inv((void *)start, PAGE_UNUSED, PMD_SIZE);
++	if (!unused_pmd_start)
++		return;
++	/*
++	 * Clears (unused_pmd_start, PMD_END]
++	 */
++	memset((void *)unused_pmd_start, PAGE_UNUSED,
++	       ALIGN(unused_pmd_start, PMD_SIZE) - unused_pmd_start);
++	unused_pmd_start = 0;
 +}
 +
-+static void __meminit vmemmap_use_sub_pmd(unsigned long start)
-+{
-+	/*
-+	 * As we expect to add in the same granularity as we remove, it's
-+	 * sufficient to mark only some piece used to block the memmap page from
-+	 * getting removed when removing some other adjacent memmap (just in
-+	 * case the first memmap never gets initialized e.g., because the memory
-+	 * block never gets onlined).
-+	 */
-+	memset((void *)start, 0, sizeof(struct page));
-+}
-+
-+static void __meminit vmemmap_use_new_sub_pmd(unsigned long start, unsigned long end)
-+{
-+	/*
-+	 * Could be our memmap page is filled with PAGE_UNUSED already from a
-+	 * previous remove. Make sure to reset it.
-+	 */
-+	vmemmap_use_sub_pmd(start);
-+
-+	/*
-+	 * Mark with PAGE_UNUSED the unused parts of the new memmap range
-+	 */
-+	if (!IS_ALIGNED(start, PMD_SIZE))
-+		memset((void *)start, PAGE_UNUSED,
-+		        start - ALIGN_DOWN(start, PMD_SIZE));
-+	if (!IS_ALIGNED(end, PMD_SIZE))
-+		memset((void *)end, PAGE_UNUSED,
-+		        ALIGN(end, PMD_SIZE) - end);
-+}
-+#endif
-+
- /*
-  * Memory hotplug specific functions
-  */
-@@ -871,8 +916,6 @@ int arch_add_memory(int nid, u64 start,
- 	return add_pages(nid, start_pfn, nr_pages, params);
- }
- 
--#define PAGE_INUSE 0xFD
--
- static void __meminit free_pagetable(struct page *page, int order)
++#ifdef CONFIG_MEMORY_HOTPLUG
+ /* Returns true if the PMD is completely unused and thus it can be freed */
+ static bool __meminit vmemmap_pmd_is_unused(unsigned long addr, unsigned long end)
  {
- 	unsigned long magic;
-@@ -1006,7 +1049,6 @@ remove_pmd_table(pmd_t *pmd_start, unsig
- 	unsigned long next, pages = 0;
- 	pte_t *pte_base;
- 	pmd_t *pmd;
--	void *page_addr;
+ 	unsigned long start = ALIGN_DOWN(addr, PMD_SIZE);
  
- 	pmd = pmd_start + pmd_index(addr);
- 	for (; addr < end; addr = next, pmd++) {
-@@ -1026,22 +1068,16 @@ remove_pmd_table(pmd_t *pmd_start, unsig
- 				pmd_clear(pmd);
- 				spin_unlock(&init_mm.page_table_lock);
- 				pages++;
--			} else {
--				/* If here, we are freeing vmemmap pages. */
--				memset((void *)addr, PAGE_INUSE, next - addr);
--
--				page_addr = page_address(pmd_page(*pmd));
--				if (!memchr_inv(page_addr, PAGE_INUSE,
--						PMD_SIZE)) {
-+			}
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+			else if (vmemmap_pmd_is_unused(addr, next)) {
- 					free_hugepage_table(pmd_page(*pmd),
- 							    altmap);
--
- 					spin_lock(&init_mm.page_table_lock);
- 					pmd_clear(pmd);
- 					spin_unlock(&init_mm.page_table_lock);
--				}
- 			}
--
++	/*
++	 * Flush the unused range cache to ensure that memchr_inv() will work
++	 * for the whole range.
++	 */
++	vmemmap_flush_unused_pmd();
+ 	memset((void *)addr, PAGE_UNUSED, end - addr);
+ 
+ 	return !memchr_inv((void *)start, PAGE_UNUSED, PMD_SIZE);
+ }
 +#endif
- 			continue;
- 		}
  
-@@ -1492,11 +1528,17 @@ static int __meminit vmemmap_populate_hu
+-static void __meminit vmemmap_use_sub_pmd(unsigned long start)
++static void __meminit __vmemmap_use_sub_pmd(unsigned long start)
+ {
+ 	/*
+ 	 * As we expect to add in the same granularity as we remove, it's
+@@ -851,23 +876,53 @@ static void __meminit vmemmap_use_sub_pm
+ 	memset((void *)start, 0, sizeof(struct page));
+ }
  
- 				addr_end = addr + PMD_SIZE;
- 				p_end = p + PMD_SIZE;
++static void __meminit vmemmap_use_sub_pmd(unsigned long start, unsigned long end)
++{
++	/*
++	 * We only optimize if the new used range directly follows the
++	 * previously unused range (esp., when populating consecutive sections).
++	 */
++	if (unused_pmd_start == start) {
++		if (likely(IS_ALIGNED(end, PMD_SIZE)))
++			unused_pmd_start = 0;
++		else
++			unused_pmd_start = end;
++		return;
++	}
 +
-+				if (!IS_ALIGNED(addr, PMD_SIZE) ||
-+				    !IS_ALIGNED(next, PMD_SIZE))
-+					vmemmap_use_new_sub_pmd(addr, next);
++	/*
++	 * If the range does not contiguously follows previous one, make sure
++	 * to mark the unused range of the previous one so it can be removed.
++	 */
++	vmemmap_flush_unused_pmd();
++	__vmemmap_use_sub_pmd(start);
++}
 +
- 				continue;
- 			} else if (altmap)
++
+ static void __meminit vmemmap_use_new_sub_pmd(unsigned long start, unsigned long end)
+ {
++	vmemmap_flush_unused_pmd();
++
+ 	/*
+ 	 * Could be our memmap page is filled with PAGE_UNUSED already from a
+ 	 * previous remove. Make sure to reset it.
+ 	 */
+-	vmemmap_use_sub_pmd(start);
++	__vmemmap_use_sub_pmd(start);
+ 
+ 	/*
+ 	 * Mark with PAGE_UNUSED the unused parts of the new memmap range
+ 	 */
+ 	if (!IS_ALIGNED(start, PMD_SIZE))
+ 		memset((void *)start, PAGE_UNUSED,
+-		        start - ALIGN_DOWN(start, PMD_SIZE));
++			start - ALIGN_DOWN(start, PMD_SIZE));
++
++	/*
++	 * We want to avoid memset(PAGE_UNUSED) when populating the vmemmap of
++	 * consecutive sections. Remember for the last added PMD where the
++	 * unused range begins.
++	 */
+ 	if (!IS_ALIGNED(end, PMD_SIZE))
+-		memset((void *)end, PAGE_UNUSED,
+-		        ALIGN(end, PMD_SIZE) - end);
++		unused_pmd_start = end;
+ }
+ #endif
+ 
+@@ -1538,7 +1593,7 @@ static int __meminit vmemmap_populate_hu
  				return -ENOMEM; /* no fallback */
  		} else if (pmd_large(*pmd)) {
  			vmemmap_verify((pte_t *)pmd, node, addr, next);
-+			vmemmap_use_sub_pmd(addr);
+-			vmemmap_use_sub_pmd(addr);
++			vmemmap_use_sub_pmd(addr, next);
  			continue;
  		}
  		if (vmemmap_populate_basepages(addr, next, node, NULL))
