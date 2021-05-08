@@ -7,40 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8769C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 896F1C43460
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C825F61415
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6CB0561421
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229577AbhEHWkc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:40:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43624 "EHLO mail.kernel.org"
+        id S229616AbhEHWkd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:40:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43702 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229552AbhEHWkb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:40:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A1C2D613EA;
-        Sat,  8 May 2021 22:39:28 +0000 (UTC)
+        id S229552AbhEHWkd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:40:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7E49361415;
+        Sat,  8 May 2021 22:39:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513568;
-        bh=Uj7rUm1NC2OKDRr3DPPJDSu8mI4hjWT0TVCoyOYUqqY=;
+        s=korg; t=1620513571;
+        bh=X8hTZQoSokk6kWjSKQxROk/cYLYZTK859Ty7RG1kLzU=;
         h=Date:From:To:Subject:From;
-        b=oaVMkC+DRQPlRaiI+XELDBoX7F+a/+GxTQfUwLOoY1kl483xHDkfRl4zq9iMgOKXz
-         MszoLL/LWWLCfkIQyFZKm7ExMGXiFoAdk6JebRs+nUd7fISKsJ5dcv3xwNKPL0hD3X
-         cDDJdLjY6s9O3H9pYsDoozIk7FhNVjQqRhOKxpJA=
-Date:   Sat, 08 May 2021 15:39:28 -0700
+        b=JgRPlnLA0o738wRsgypIf9hV5S8Rl6o9lb2h+dv2LD42RZxVrwDORGhMR/PAOLboj
+         QO01zXiVetCTEQLV6YiF0lzTnd2jb+dXNd9RvhvG8DWl59BVvi64WAd5MRRDXZLi8x
+         eg8yMzELAxHHgXZVHKYrnJDf5TqxZ/eKT0j6hB+U=
+Date:   Sat, 08 May 2021 15:39:31 -0700
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com,
-        wen.gang.wang@oracle.com
-Subject:  [merged] ocfs2-map-flags-directly-in-flags_to_o2dlm.patch
- removed from -mm tree
-Message-ID: <20210508223928.Bx778rwbL%akpm@linux-foundation.org>
+To:     joseph.qi@linux.alibaba.com, mm-commits@vger.kernel.org,
+        unixbhaskar@gmail.com
+Subject:  [merged] ocfs2-fix-a-typo.patch removed from -mm tree
+Message-ID: <20210508223931.N4LzTKuWG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,95 +42,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: map flags directly in flags_to_o2dlm()
+     Subject: ocfs2: fix a typo
 has been removed from the -mm tree.  Its filename was
-     ocfs2-map-flags-directly-in-flags_to_o2dlm.patch
+     ocfs2-fix-a-typo.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: map flags directly in flags_to_o2dlm()
+From: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Subject: ocfs2: fix a typo
 
-Use macro map_flag() is tricky and coccicheck outputs the following
-warning:
+s/cluter/cluster/
 
-fs/ocfs2/stack_o2cb.c:69:5-16: Unneeded variable: "o2dlm_flags".
-So map flags directly in flags_to_o2dlm() to make coccicheck=C2=A0happy.
-And remove BUG_ON() here as well to simplify code since it runs well
-a long time.
-
-Link: https://lkml.kernel.org/r/1616138664-35935-1-git-send-email-joseph.qi=
-@linux.alibaba.com
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Wengang Wang <wen.gang.wang@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20210324072931.5056-1-unixbhaskar@gmail.com
+Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stack_o2cb.c |   36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+ fs/ocfs2/stackglue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/stack_o2cb.c~ocfs2-map-flags-directly-in-flags_to_o2dlm
-+++ a/fs/ocfs2/stack_o2cb.c
-@@ -59,31 +59,31 @@ static inline int mode_to_o2dlm(int mode
- 	return mode;
+--- a/fs/ocfs2/stackglue.c~ocfs2-fix-a-typo
++++ a/fs/ocfs2/stackglue.c
+@@ -731,7 +731,7 @@ static void __exit ocfs2_stack_glue_exit
  }
-=20
--#define map_flag(_generic, _o2dlm)		\
--	if (flags & (_generic)) {		\
--		flags &=3D ~(_generic);		\
--		o2dlm_flags |=3D (_o2dlm);	\
--	}
- static int flags_to_o2dlm(u32 flags)
- {
- 	int o2dlm_flags =3D 0;
-=20
--	map_flag(DLM_LKF_NOQUEUE, LKM_NOQUEUE);
--	map_flag(DLM_LKF_CANCEL, LKM_CANCEL);
--	map_flag(DLM_LKF_CONVERT, LKM_CONVERT);
--	map_flag(DLM_LKF_VALBLK, LKM_VALBLK);
--	map_flag(DLM_LKF_IVVALBLK, LKM_INVVALBLK);
--	map_flag(DLM_LKF_ORPHAN, LKM_ORPHAN);
--	map_flag(DLM_LKF_FORCEUNLOCK, LKM_FORCE);
--	map_flag(DLM_LKF_TIMEOUT, LKM_TIMEOUT);
--	map_flag(DLM_LKF_LOCAL, LKM_LOCAL);
--
--	/* map_flag() should have cleared every flag passed in */
--	BUG_ON(flags !=3D 0);
-+	if (flags & DLM_LKF_NOQUEUE)
-+		o2dlm_flags |=3D LKM_NOQUEUE;
-+	if (flags & DLM_LKF_CANCEL)
-+		o2dlm_flags |=3D LKM_CANCEL;
-+	if (flags & DLM_LKF_CONVERT)
-+		o2dlm_flags |=3D LKM_CONVERT;
-+	if (flags & DLM_LKF_VALBLK)
-+		o2dlm_flags |=3D LKM_VALBLK;
-+	if (flags & DLM_LKF_IVVALBLK)
-+		o2dlm_flags |=3D LKM_INVVALBLK;
-+	if (flags & DLM_LKF_ORPHAN)
-+		o2dlm_flags |=3D LKM_ORPHAN;
-+	if (flags & DLM_LKF_FORCEUNLOCK)
-+		o2dlm_flags |=3D LKM_FORCE;
-+	if (flags & DLM_LKF_TIMEOUT)
-+		o2dlm_flags |=3D LKM_TIMEOUT;
-+	if (flags & DLM_LKF_LOCAL)
-+		o2dlm_flags |=3D LKM_LOCAL;
-=20
- 	return o2dlm_flags;
- }
--#undef map_flag
-=20
- /*
-  * Map an o2dlm status to standard errno values.
+ 
+ MODULE_AUTHOR("Oracle");
+-MODULE_DESCRIPTION("ocfs2 cluter stack glue layer");
++MODULE_DESCRIPTION("ocfs2 cluster stack glue layer");
+ MODULE_LICENSE("GPL");
+ module_init(ocfs2_stack_glue_init);
+ module_exit(ocfs2_stack_glue_exit);
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from unixbhaskar@gmail.com are
 
 
