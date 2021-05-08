@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95706C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 527C1C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C71A613EA
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F4D36141D
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229559AbhEHWkF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:40:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42882 "EHLO mail.kernel.org"
+        id S229647AbhEHWkI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:40:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42926 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229620AbhEHWkF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:40:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6A8DA61402;
-        Sat,  8 May 2021 22:39:03 +0000 (UTC)
+        id S229620AbhEHWkH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:40:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6B1DF613EA;
+        Sat,  8 May 2021 22:39:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513543;
-        bh=glwATauRkDowMkeQNgygI+owgK0AXAkff/ONhVRL2sQ=;
+        s=korg; t=1620513545;
+        bh=PCz+dl20ZDbap8eks6FjBmFKU61P8DxPZc5SBK4hskk=;
         h=Date:From:To:Subject:From;
-        b=txssyu0rKMb5NyoRSaAKYNcNxMBY9YmKRyYcdbNwlOasvWMiuXmNhGvJjrrARSJ9e
-         53LxpMoziB9HWyAgbQwm+Rsh114qtsqpcvWCUgVoNqQ5Y2zq0lDz4e/kOCA6CpO7BW
-         IdWdau9wQHsTrjRft7WiOjmvylrH/aJ2YaCSDZAc=
-Date:   Sat, 08 May 2021 15:39:03 -0700
+        b=w1CWR2nOFPNM/drLTzqNy3jz5YqEtrHGmoV2PJsusFNdZtPtNBDR2iowxJ5WLLY+3
+         QtbqmgsXkUqU/zuJVbRQ3RwiH6wdUnG3v23LTKkl84nEFlDlUZ07wi0+YdvvKT+H6k
+         gY0x6tRBHZlIjGVmVVQ8dTcZgo4cmAcSumJmyHPY=
+Date:   Sat, 08 May 2021 15:39:05 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, slyfox@gentoo.org
-Subject:  [merged] ia64-drop-unused-ia64_fw_emu-ifdef.patch removed
- from -mm tree
-Message-ID: <20210508223903.B4hpd46j9%akpm@linux-foundation.org>
+To:     glaubitz@physik.fu-berlin.de, mm-commits@vger.kernel.org,
+        slyfox@gentoo.org
+Subject:  [merged]
+ ia64-simplify-code-flow-around-swiotlb-init.patch removed from -mm tree
+Message-ID: <20210508223905.DWa7GcE6O%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,41 +43,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: drop unused IA64_FW_EMU ifdef
+     Subject: ia64: simplify code flow around swiotlb init
 has been removed from the -mm tree.  Its filename was
-     ia64-drop-unused-ia64_fw_emu-ifdef.patch
+     ia64-simplify-code-flow-around-swiotlb-init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: ia64: drop unused IA64_FW_EMU ifdef
+Subject: ia64: simplify code flow around swiotlb init
 
-It's a remnant of deleted hpsim emulation target removed in fc5bad037
-("ia64: remove the hpsim platform").
+Before the change CONFIG_INTEL_IOMMU && !CONFIG_SWIOTLB && !CONFIG_FLATMEM
+could skip `set_max_mapnr(max_low_pfn);` if iommu is not present on
+system.
 
-Link: https://lkml.kernel.org/r/20210323224009.240625-1-slyfox@gentoo.org
+Link: https://lkml.kernel.org/r/20210328202439.403601-1-slyfox@gentoo.org
 Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/head.S |    5 -----
- 1 file changed, 5 deletions(-)
+ arch/ia64/mm/init.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/arch/ia64/kernel/head.S~ia64-drop-unused-ia64_fw_emu-ifdef
-+++ a/arch/ia64/kernel/head.S
-@@ -404,11 +404,6 @@ start_ap:
+--- a/arch/ia64/mm/init.c~ia64-simplify-code-flow-around-swiotlb-init
++++ a/arch/ia64/mm/init.c
+@@ -644,13 +644,16 @@ mem_init (void)
+ 	 * _before_ any drivers that may need the PCI DMA interface are
+ 	 * initialized or bootmem has been freed.
+ 	 */
++	do {
+ #ifdef CONFIG_INTEL_IOMMU
+-	detect_intel_iommu();
+-	if (!iommu_detected)
++		detect_intel_iommu();
++		if (iommu_detected)
++			break;
+ #endif
+ #ifdef CONFIG_SWIOTLB
+ 		swiotlb_init(1);
+ #endif
++	} while (0);
  
- 	// This is executed by the bootstrap processor (bsp) only:
- 
--#ifdef CONFIG_IA64_FW_EMU
--	// initialize PAL & SAL emulator:
--	br.call.sptk.many rp=sys_fw_init
--.ret1:
--#endif
- 	br.call.sptk.many rp=start_kernel
- .ret2:	addl r3=@ltoff(halt_msg),gp
- 	;;
+ #ifdef CONFIG_FLATMEM
+ 	BUG_ON(!mem_map);
 _
 
 Patches currently in -mm which might be from slyfox@gentoo.org are
