@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0CD5C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:45:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6BDBC433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:45:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2D5861415
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:45:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AAD0E61415
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:45:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229675AbhEHWqo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:46:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57078 "EHLO mail.kernel.org"
+        id S229616AbhEHWqs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:46:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57156 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229647AbhEHWqn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:46:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D91E6100C;
-        Sat,  8 May 2021 22:45:41 +0000 (UTC)
+        id S229647AbhEHWqr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:46:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A0C08613C5;
+        Sat,  8 May 2021 22:45:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513942;
-        bh=JAJSCHt9SIlxqZd6nJXlrcdwYPLZwbXn5A9RbySbStA=;
+        s=korg; t=1620513945;
+        bh=mMLMCIB6Ck94b4OHCxEfbS896mqRW2TLHl87BIcWepM=;
         h=Date:From:To:Subject:From;
-        b=n/z3Qx2//yxAcfpRs6cuVRW0bXeq5ul32GegI81V9ihxX/5fsN4ZAeBbbcxCom0eY
-         1HYJ4EUkur6Nj3StGmu9c5CAKlh5ql5P0AaX1vLRQasFDCNTGUNa9+yjWVhoR8Fg8w
-         zGaRHMNAU8nXx2UqakOOXUxG4P0bGzNJrMTZI0Y8=
-Date:   Sat, 08 May 2021 15:45:41 -0700
+        b=KaSV7us7VJZtTwi9o952OO1k3vrAr03GIrSMe3Rh7My5Fr2U4pNP3HwmYKso36sOb
+         fZMahkmko9S2cEWurZCVrotfL53kCXRQNga7NwH5wyay9bFqS5CcJW50IqZfadNUk2
+         d6jqbEyo6w1Asq/MI4ntLpfiOmF2A/EFJOWr98vk=
+Date:   Sat, 08 May 2021 15:45:44 -0700
 From:   akpm@linux-foundation.org
 To:     alexander.duyck@gmail.com, alobakin@pm.me, brouer@redhat.com,
         chuck.lever@oracle.com, davem@davemloft.net, hch@infradead.org,
         ilias.apalodimas@linaro.org, mgorman@techsingularity.net,
         mm-commits@vger.kernel.org, vbabka@suse.cz, willy@infradead.org
 Subject:  [merged]
- sunrpc-refresh-rq_pages-using-a-bulk-page-allocator.patch removed from -mm
- tree
-Message-ID: <20210508224541.kf5VkEN59%akpm@linux-foundation.org>
+ net-page_pool-refactor-dma_map-into-own-function-page_pool_dma_map.patch
+ removed from -mm tree
+Message-ID: <20210508224544.IpBjxfWu2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,88 +46,113 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: SUNRPC: refresh rq_pages using a bulk page allocator
+     Subject: net: page_pool: refactor dma_map into own function page_pool_dma_map
 has been removed from the -mm tree.  Its filename was
-     sunrpc-refresh-rq_pages-using-a-bulk-page-allocator.patch
+     net-page_pool-refactor-dma_map-into-own-function-page_pool_dma_map.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chuck Lever <chuck.lever@oracle.com>
-Subject: SUNRPC: refresh rq_pages using a bulk page allocator
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: net: page_pool: refactor dma_map into own function page_pool_dma_map
 
-Reduce the rate at which nfsd threads hammer on the page allocator.  This
-improves throughput scalability by enabling the threads to run more
-independently of each other.
+In preparation for next patch, move the dma mapping into its own function,
+as this will make it easier to follow the changes.
 
-[mgorman: Update interpretation of alloc_pages_bulk return value]
-Link: https://lkml.kernel.org/r/20210325114228.27719-8-mgorman@techsingularity.net
-Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+[ilias.apalodimas: make page_pool_dma_map return boolean]
+Link: https://lkml.kernel.org/r/20210325114228.27719-9-mgorman@techsingularity.net
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reviewed-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
 Reviewed-by: Alexander Lobakin <alobakin@pm.me>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Chuck Lever <chuck.lever@oracle.com>
 Cc: David Miller <davem@davemloft.net>
-Cc: Ilias Apalodimas <ilias.apalodimas@linaro.org>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svc_xprt.c |   31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ net/core/page_pool.c |   45 +++++++++++++++++++++++------------------
+ 1 file changed, 26 insertions(+), 19 deletions(-)
 
---- a/net/sunrpc/svc_xprt.c~sunrpc-refresh-rq_pages-using-a-bulk-page-allocator
-+++ a/net/sunrpc/svc_xprt.c
-@@ -662,30 +662,29 @@ static int svc_alloc_arg(struct svc_rqst
+--- a/net/core/page_pool.c~net-page_pool-refactor-dma_map-into-own-function-page_pool_dma_map
++++ a/net/core/page_pool.c
+@@ -180,14 +180,37 @@ static void page_pool_dma_sync_for_devic
+ 					 pool->p.dma_dir);
+ }
+ 
++static bool page_pool_dma_map(struct page_pool *pool, struct page *page)
++{
++	dma_addr_t dma;
++
++	/* Setup DMA mapping: use 'struct page' area for storing DMA-addr
++	 * since dma_addr_t can be either 32 or 64 bits and does not always fit
++	 * into page private data (i.e 32bit cpu with 64bit DMA caps)
++	 * This mapping is kept for lifetime of page, until leaving pool.
++	 */
++	dma = dma_map_page_attrs(pool->p.dev, page, 0,
++				 (PAGE_SIZE << pool->p.order),
++				 pool->p.dma_dir, DMA_ATTR_SKIP_CPU_SYNC);
++	if (dma_mapping_error(pool->p.dev, dma))
++		return false;
++
++	page->dma_addr = dma;
++
++	if (pool->p.flags & PP_FLAG_DMA_SYNC_DEV)
++		page_pool_dma_sync_for_device(pool, page, pool->p.max_len);
++
++	return true;
++}
++
+ /* slow path */
+ noinline
+ static struct page *__page_pool_alloc_pages_slow(struct page_pool *pool,
+ 						 gfp_t _gfp)
  {
- 	struct svc_serv *serv = rqstp->rq_server;
- 	struct xdr_buf *arg = &rqstp->rq_arg;
--	int pages;
--	int i;
-+	unsigned long pages, filled;
++	unsigned int pp_flags = pool->p.flags;
+ 	struct page *page;
+ 	gfp_t gfp = _gfp;
+-	dma_addr_t dma;
  
--	/* now allocate needed pages.  If we get a failure, sleep briefly */
- 	pages = (serv->sv_max_mesg + 2 * PAGE_SIZE) >> PAGE_SHIFT;
- 	if (pages > RPCSVC_MAXPAGES) {
--		pr_warn_once("svc: warning: pages=%u > RPCSVC_MAXPAGES=%lu\n",
-+		pr_warn_once("svc: warning: pages=%lu > RPCSVC_MAXPAGES=%lu\n",
- 			     pages, RPCSVC_MAXPAGES);
- 		/* use as many pages as possible */
- 		pages = RPCSVC_MAXPAGES;
+ 	/* We could always set __GFP_COMP, and avoid this branch, as
+ 	 * prep_new_page() can handle order-0 with __GFP_COMP.
+@@ -211,30 +234,14 @@ static struct page *__page_pool_alloc_pa
+ 	if (!page)
+ 		return NULL;
+ 
+-	if (!(pool->p.flags & PP_FLAG_DMA_MAP))
+-		goto skip_dma_map;
+-
+-	/* Setup DMA mapping: use 'struct page' area for storing DMA-addr
+-	 * since dma_addr_t can be either 32 or 64 bits and does not always fit
+-	 * into page private data (i.e 32bit cpu with 64bit DMA caps)
+-	 * This mapping is kept for lifetime of page, until leaving pool.
+-	 */
+-	dma = dma_map_page_attrs(pool->p.dev, page, 0,
+-				 (PAGE_SIZE << pool->p.order),
+-				 pool->p.dma_dir, DMA_ATTR_SKIP_CPU_SYNC);
+-	if (dma_mapping_error(pool->p.dev, dma)) {
++	if ((pp_flags & PP_FLAG_DMA_MAP) &&
++	    unlikely(!page_pool_dma_map(pool, page))) {
+ 		put_page(page);
+ 		return NULL;
  	}
--	for (i = 0; i < pages ; i++)
--		while (rqstp->rq_pages[i] == NULL) {
--			struct page *p = alloc_page(GFP_KERNEL);
--			if (!p) {
--				set_current_state(TASK_INTERRUPTIBLE);
--				if (signalled() || kthread_should_stop()) {
--					set_current_state(TASK_RUNNING);
--					return -EINTR;
--				}
--				schedule_timeout(msecs_to_jiffies(500));
--			}
--			rqstp->rq_pages[i] = p;
-+
-+	for (;;) {
-+		filled = alloc_pages_bulk_array(GFP_KERNEL, pages,
-+						rqstp->rq_pages);
-+		if (filled == pages)
-+			break;
-+
-+		set_current_state(TASK_INTERRUPTIBLE);
-+		if (signalled() || kthread_should_stop()) {
-+			set_current_state(TASK_RUNNING);
-+			return -EINTR;
- 		}
-+		schedule_timeout(msecs_to_jiffies(500));
-+	}
- 	rqstp->rq_page_end = &rqstp->rq_pages[pages];
- 	rqstp->rq_pages[pages] = NULL; /* this might be seen in nfsd_splice_actor() */
+-	page->dma_addr = dma;
  
+-	if (pool->p.flags & PP_FLAG_DMA_SYNC_DEV)
+-		page_pool_dma_sync_for_device(pool, page, pool->p.max_len);
+-
+-skip_dma_map:
+ 	/* Track how many pages are held 'in-flight' */
+ 	pool->pages_state_hold_cnt++;
+-
+ 	trace_page_pool_state_hold(pool, page, pool->pages_state_hold_cnt);
+ 
+ 	/* When page just alloc'ed is should/must have refcnt 1. */
 _
 
-Patches currently in -mm which might be from chuck.lever@oracle.com are
+Patches currently in -mm which might be from brouer@redhat.com are
 
 
