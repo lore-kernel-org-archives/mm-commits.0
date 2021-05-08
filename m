@@ -7,48 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6C08C43460
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9128DC433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C34B26142D
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 71E7661448
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229672AbhEHWzs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:55:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44282 "EHLO mail.kernel.org"
+        id S229662AbhEHWzw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:55:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229662AbhEHWzq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:55:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 38C3161402;
-        Sat,  8 May 2021 22:54:43 +0000 (UTC)
+        id S229660AbhEHWzw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:55:52 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B4D4860E0B;
+        Sat,  8 May 2021 22:54:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514484;
-        bh=f20aYNkyOa7RlM4gerRicGa5ynuGVQLz8agsyB41UaA=;
+        s=korg; t=1620514490;
+        bh=8VqsHwKLReiFOzsYviFv7/CVpuu867SR+eASjiVDnNA=;
         h=Date:From:To:Subject:From;
-        b=Q4VCwB0M8R1cGdoy7lxqEhRIyJqDNuqV+Qx09ti/o7VK1eB5sAq50YeBy+4MyzhQD
-         J8sK3XKdEemMoR564seKcZhU0EfYp3EMK7f6FBTKf4qn5n1wy3AhV+8SKqdZQOpFpP
-         hatsthOBzEMfNQNP/oVYRjTKWwK9B9tF1VyvqqFc=
-Date:   Sat, 08 May 2021 15:54:42 -0700
+        b=z1DME/0T4Ha+ltSzYvLgjLl8I9/oxOD+NMm7Q9kLluEBbBMTkQWasKOLFnnOxE0wK
+         sj1yiPJs8awkRatAxCArJsOdSdpapYV8EMFdZILkR7FsnRtaVtpYXZQSjzEIedR201
+         5rUFo4B4OaVd+HlM480+Vd7rGiWRHJhKL10eW6z8=
+Date:   Sat, 08 May 2021 15:54:49 -0700
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, bcain@codeaurora.org, benh@kernel.crashing.org,
-        bigeasy@linutronix.de, borntraeger@de.ibm.com,
-        christophe.leroy@csgroup.eu, dalias@libc.org, davem@davemloft.net,
-        david@redhat.com, deller@gmx.de, geert@linux-m68k.org,
-        gerald.schaefer@linux.ibm.com, gor@linux.ibm.com,
-        green.hu@gmail.com, gregkh@linuxfoundation.org, hca@linux.ibm.com,
-        ink@jurassic.park.msu.ru, James.Bottomley@HansenPartnership.com,
-        jiaxun.yang@flygoat.com, krzk@kernel.org,
-        kuninori.morimoto.gx@renesas.com, linux@armlinux.org.uk,
-        luc.vanoostenryck@gmail.com, mattst88@gmail.com, mcgrof@kernel.org,
-        mhocko@suse.com, mingo@kernel.org, mm-commits@vger.kernel.org,
-        mpatocka@redhat.com, mpe@ellerman.id.au, palmerdabbelt@google.com,
-        paulus@samba.org, peterz@infradead.org, pmorel@linux.ibm.com,
-        rdunlap@infradead.org, rppt@kernel.org, rth@twiddle.net,
-        schnelle@linux.ibm.com, torvalds@linux-foundation.org,
-        tsbogend@alpha.franken.de, ysato@users.sourceforge.jp
-Subject:  [merged] mm-remove-xlate_dev_kmem_ptr.patch removed from
- -mm tree
-Message-ID: <20210508225442.tVNlY3MrN%akpm@linux-foundation.org>
+To:     0x7f454c46@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com,
+        linux@armlinux.org.uk, maninder1.s@samsung.com,
+        mm-commits@vger.kernel.org, paulmck@kernel.org, penberg@kernel.org,
+        rientjes@google.com, v.narang@samsung.com, vbabka@suse.cz,
+        viro@zeniv.linux.org.uk
+Subject:  [merged]
+ arm-print-alloc-free-paths-for-address-in-registers.patch removed from -mm
+ tree
+Message-ID: <20210508225449.ohIBSn36F%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,273 +47,119 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove xlate_dev_kmem_ptr()
+     Subject: arm: print alloc free paths for address in registers
 has been removed from the -mm tree.  Its filename was
-     mm-remove-xlate_dev_kmem_ptr.patch
+     arm-print-alloc-free-paths-for-address-in-registers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: remove xlate_dev_kmem_ptr()
+From: Maninder Singh <maninder1.s@samsung.com>
+Subject: arm: print alloc free paths for address in registers
 
-Since /dev/kmem has been removed, let's remove the xlate_dev_kmem_ptr()
-leftovers.
+In case of a use after free kernel oops, the freeing path of the object is
+required to debug futher.  In most of cases the object address is present
+in one of the registers.
 
-Link: https://lkml.kernel.org/r/20210324102351.6932-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Thus check the register's address and if it belongs to slab, print its
+alloc and free path.
+
+e.g.  in the below issue register r6 belongs to slab, and a use after free
+issue occurred on one of its dereferenced values:
+
+[   20.182197] Unable to handle kernel paging request at virtual address 6b6b6b6f
+....
+[   20.185035] pc : [<c0538afc>]    lr : [<c0465674>]    psr: 60000013
+[   20.185271] sp : c8927d40  ip : ffffefff  fp : c8aa8020
+[   20.185462] r10: c8927e10  r9 : 00000001  r8 : 00400cc0
+[   20.185674] r7 : 00000000  r6 : c8ab0180  r5 : c1804a80  r4 : c8aa8008
+[   20.185924] r3 : c1a5661c  r2 : 00000000  r1 : 6b6b6b6b  r0 : c139bf48
+.....
+[   20.191499] Register r6 information: slab kmalloc-64 start c8ab0140 data offset 64 pointer offset 0 size 64 allocated at meminfo_proc_show+0x40/0x4fc
+[   20.192078]     meminfo_proc_show+0x40/0x4fc
+[   20.192263]     seq_read_iter+0x18c/0x4c4
+[   20.192430]     proc_reg_read_iter+0x84/0xac
+[   20.192617]     generic_file_splice_read+0xe8/0x17c
+[   20.192816]     splice_direct_to_actor+0xb8/0x290
+[   20.193008]     do_splice_direct+0xa0/0xe0
+[   20.193185]     do_sendfile+0x2d0/0x438
+[   20.193345]     sys_sendfile64+0x12c/0x140
+[   20.193523]     ret_fast_syscall+0x0/0x58
+[   20.193695]     0xbeeacde4
+[   20.193822]  Free path:
+[   20.193935]     meminfo_proc_show+0x5c/0x4fc
+[   20.194115]     seq_read_iter+0x18c/0x4c4
+[   20.194285]     proc_reg_read_iter+0x84/0xac
+[   20.194475]     generic_file_splice_read+0xe8/0x17c
+[   20.194685]     splice_direct_to_actor+0xb8/0x290
+[   20.194870]     do_splice_direct+0xa0/0xe0
+[   20.195014]     do_sendfile+0x2d0/0x438
+[   20.195174]     sys_sendfile64+0x12c/0x140
+[   20.195336]     ret_fast_syscall+0x0/0x58
+[   20.195491]     0xbeeacde4
+
+Link: https://lkml.kernel.org/r/1615891032-29160-3-git-send-email-maninder1.s@samsung.com
+Co-developed-by: Vaneet Narang <v.narang@samsung.com>
+Signed-off-by: Vaneet Narang <v.narang@samsung.com>
+Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Russell King <linux@armlinux.org.uk>
-Cc: Brian Cain <bcain@codeaurora.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Palmer Dabbelt <palmerdabbelt@google.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Niklas Schnelle <schnelle@linux.ibm.com>
-Cc: Pierre Morel <pmorel@linux.ibm.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/io.h     |    5 -----
- arch/arm/include/asm/io.h       |    5 -----
- arch/hexagon/include/asm/io.h   |    1 -
- arch/ia64/include/asm/io.h      |    1 -
- arch/ia64/include/asm/uaccess.h |   18 ------------------
- arch/m68k/include/asm/io_mm.h   |    5 -----
- arch/mips/include/asm/io.h      |    5 -----
- arch/parisc/include/asm/io.h    |    5 -----
- arch/powerpc/include/asm/io.h   |    5 -----
- arch/s390/include/asm/io.h      |    5 -----
- arch/sh/include/asm/io.h        |    5 -----
- arch/sparc/include/asm/io_64.h  |    5 -----
- include/asm-generic/io.h        |   11 -----------
- 13 files changed, 76 deletions(-)
+ arch/arm/include/asm/bug.h |    1 +
+ arch/arm/kernel/process.c  |   11 +++++++++++
+ arch/arm/kernel/traps.c    |    1 +
+ 3 files changed, 13 insertions(+)
 
---- a/arch/alpha/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
-+++ a/arch/alpha/include/asm/io.h
-@@ -602,11 +602,6 @@ extern void outsl (unsigned long port, c
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
+--- a/arch/arm/include/asm/bug.h~arm-print-alloc-free-paths-for-address-in-registers
++++ a/arch/arm/include/asm/bug.h
+@@ -88,5 +88,6 @@ extern asmlinkage void c_backtrace(unsig
+ struct mm_struct;
+ void show_pte(const char *lvl, struct mm_struct *mm, unsigned long addr);
+ extern void __show_regs(struct pt_regs *);
++extern void __show_regs_alloc_free(struct pt_regs *regs);
  
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- #endif /* __KERNEL__ */
- 
- #endif /* __ALPHA_IO_H */
---- a/arch/arm/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
-+++ a/arch/arm/include/asm/io.h
-@@ -430,11 +430,6 @@ extern void pci_iounmap(struct pci_dev *
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- #include <asm-generic/io.h>
- 
- #ifdef CONFIG_MMU
---- a/arch/hexagon/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
-+++ a/arch/hexagon/include/asm/io.h
-@@ -64,7 +64,6 @@ static inline void *phys_to_virt(unsigne
-  * convert a physical pointer to a virtual kernel pointer for
-  * /dev/mem access.
-  */
--#define xlate_dev_kmem_ptr(p)    __va(p)
- #define xlate_dev_mem_ptr(p)    __va(p)
- 
- /*
---- a/arch/ia64/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
-+++ a/arch/ia64/include/asm/io.h
-@@ -277,7 +277,6 @@ extern void memset_io(volatile void __io
- #define memcpy_fromio memcpy_fromio
- #define memcpy_toio memcpy_toio
- #define memset_io memset_io
--#define xlate_dev_kmem_ptr xlate_dev_kmem_ptr
- #define xlate_dev_mem_ptr xlate_dev_mem_ptr
- #include <asm-generic/io.h>
- #undef PCI_IOBASE
---- a/arch/ia64/include/asm/uaccess.h~mm-remove-xlate_dev_kmem_ptr
-+++ a/arch/ia64/include/asm/uaccess.h
-@@ -272,22 +272,4 @@ xlate_dev_mem_ptr(phys_addr_t p)
- 	return ptr;
+ #endif
+--- a/arch/arm/kernel/process.c~arm-print-alloc-free-paths-for-address-in-registers
++++ a/arch/arm/kernel/process.c
+@@ -92,6 +92,17 @@ void arch_cpu_idle_exit(void)
+ 	ledtrig_cpu(CPU_LED_IDLE_END);
  }
  
--/*
-- * Convert a virtual cached kernel memory pointer to an uncached pointer
-- */
--static __inline__ void *
--xlate_dev_kmem_ptr(void *p)
--{
--	struct page *page;
--	void *ptr;
--
--	page = virt_to_page((unsigned long)p);
--	if (PageUncached(page))
--		ptr = (void *)__pa(p) + __IA64_UNCACHED_OFFSET;
--	else
--		ptr = p;
--
--	return ptr;
--}
--
- #endif /* _ASM_IA64_UACCESS_H */
---- a/arch/m68k/include/asm/io_mm.h~mm-remove-xlate_dev_kmem_ptr
-+++ a/arch/m68k/include/asm/io_mm.h
-@@ -397,11 +397,6 @@ static inline void isa_delay(void)
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
++void __show_regs_alloc_free(struct pt_regs *regs)
++{
++	int i;
++
++	/* check for r0 - r12 only */
++	for (i = 0; i < 13; i++) {
++		pr_alert("Register r%d information:", i);
++		mem_dump_obj((void *)regs->uregs[i]);
++	}
++}
++
+ void __show_regs(struct pt_regs *regs)
+ {
+ 	unsigned long flags;
+--- a/arch/arm/kernel/traps.c~arm-print-alloc-free-paths-for-address-in-registers
++++ a/arch/arm/kernel/traps.c
+@@ -287,6 +287,7 @@ static int __die(const char *str, int er
  
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- #define readb_relaxed(addr)	readb(addr)
- #define readw_relaxed(addr)	readw(addr)
- #define readl_relaxed(addr)	readl(addr)
---- a/arch/mips/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
-+++ a/arch/mips/include/asm/io.h
-@@ -564,11 +564,6 @@ extern void (*_dma_cache_inv)(unsigned l
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
+ 	print_modules();
+ 	__show_regs(regs);
++	__show_regs_alloc_free(regs);
+ 	pr_emerg("Process %.*s (pid: %d, stack limit = 0x%p)\n",
+ 		 TASK_COMM_LEN, tsk->comm, task_pid_nr(tsk), end_of_stack(tsk));
  
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- void __ioread64_copy(void *to, const void __iomem *from, size_t count);
- 
- #endif /* _ASM_IO_H */
---- a/arch/parisc/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
-+++ a/arch/parisc/include/asm/io.h
-@@ -316,11 +316,6 @@ extern void iowrite64be(u64 val, void __
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- extern int devmem_is_allowed(unsigned long pfn);
- 
- #endif
---- a/arch/powerpc/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
-+++ a/arch/powerpc/include/asm/io.h
-@@ -663,11 +663,6 @@ static inline void name at					\
- #define xlate_dev_mem_ptr(p)	__va(p)
- 
- /*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
--/*
-  * We don't do relaxed operations yet, at least not with this semantic
-  */
- #define readb_relaxed(addr)	readb(addr)
---- a/arch/s390/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
-+++ a/arch/s390/include/asm/io.h
-@@ -20,11 +20,6 @@ void *xlate_dev_mem_ptr(phys_addr_t phys
- #define unxlate_dev_mem_ptr unxlate_dev_mem_ptr
- void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- #define IO_SPACE_LIMIT 0
- 
- void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot);
---- a/arch/sh/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
-+++ a/arch/sh/include/asm/io.h
-@@ -283,11 +283,6 @@ static inline void __iomem *ioremap_prot
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- #define ARCH_HAS_VALID_PHYS_ADDR_RANGE
- int valid_phys_addr_range(phys_addr_t addr, size_t size);
- int valid_mmap_phys_addr_range(unsigned long pfn, size_t size);
---- a/arch/sparc/include/asm/io_64.h~mm-remove-xlate_dev_kmem_ptr
-+++ a/arch/sparc/include/asm/io_64.h
-@@ -454,11 +454,6 @@ void sbus_set_sbus64(struct device *, in
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- #endif
- 
- #endif /* !(__SPARC64_IO_H) */
---- a/include/asm-generic/io.h~mm-remove-xlate_dev_kmem_ptr
-+++ a/include/asm-generic/io.h
-@@ -1064,17 +1064,6 @@ static inline void pci_iounmap(struct pc
- #endif
- #endif /* CONFIG_GENERIC_IOMAP */
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#ifndef xlate_dev_kmem_ptr
--#define xlate_dev_kmem_ptr xlate_dev_kmem_ptr
--static inline void *xlate_dev_kmem_ptr(void *addr)
--{
--	return addr;
--}
--#endif
--
- #ifndef xlate_dev_mem_ptr
- #define xlate_dev_mem_ptr xlate_dev_mem_ptr
- static inline void *xlate_dev_mem_ptr(phys_addr_t addr)
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from maninder1.s@samsung.com are
 
 
