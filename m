@@ -2,43 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BCADC433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3D02C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 483C261402
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA2C561421
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229644AbhEHWlh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:41:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45378 "EHLO mail.kernel.org"
+        id S229620AbhEHWlj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:41:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45432 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229620AbhEHWlh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:41:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 937D26140E;
-        Sat,  8 May 2021 22:40:34 +0000 (UTC)
+        id S229647AbhEHWli (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:41:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9055961402;
+        Sat,  8 May 2021 22:40:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513634;
-        bh=1P7J5JZr8ug9srN+CA+BOZFwIkMvmrP0EeGZ3ZLw8bM=;
+        s=korg; t=1620513636;
+        bh=AVoQRJhlQWrgxigM4NtPzVEb9QWD+Q95jkQ+JZaD1hc=;
         h=Date:From:To:Subject:From;
-        b=DZJKj9w3r6O23FAUlqa/HBogZF8WKfRiRjnQRaLdZ4mvawiIxeGpmeVVciQCa13Pi
-         3OvVZFwWSz86PElGRAkjFQWrurAm8GuosxmAJr1O49LG4VZX4BB76lW26Z5zKg86w4
-         eJaimYdvBZGuoIPtc7AzO2thGFV59puv921F6uc0=
-Date:   Sat, 08 May 2021 15:40:34 -0700
+        b=aooWdFRpYduaK3qx9JUXJWmTBUwDNjd6oPQ6NPTfC3cHL15r2PUTWSvA66FK022vC
+         rlYx2DcpTkZdMMOHr5lO7QLd9DV915W+SLdKPgdarS0ZwzvY8Sf1/nEDLIz44glOUj
+         l8aHIIZJwHejphqZ7vkq+Z7GcjjBOUaQ4cSsLug0=
+Date:   Sat, 08 May 2021 15:40:36 -0700
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com
-Subject:  [merged]
- =?US-ASCII?Q?mm-page-writeback-simplify-memcg-handling-in-test=5Fclear=5F?=
- =?US-ASCII?Q?page=5Fwriteback.patch?= removed from -mm tree
-Message-ID: <20210508224034.rdK7nyNtc%akpm@linux-foundation.org>
+To:     david@redhat.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        willy@infradead.org, ying.huang@intel.com
+Subject:  [merged] mm-move-page_mapping_file-to-pagemaph.patch
+ removed from -mm tree
+Message-ID: <20210508224036.-qDw4fJZD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,228 +43,182 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page-writeback: simplify memcg handling in test_clear_page_writeback()
+     Subject: mm: move page_mapping_file to pagemap.h
 has been removed from the -mm tree.  Its filename was
-     mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback.patch
+     mm-move-page_mapping_file-to-pagemaph.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page-writeback: simplify memcg handling in test_clear_page_writeback()
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: move page_mapping_file to pagemap.h
 
-Page writeback doesn't hold a page reference, which allows truncate to
-free a page the second PageWriteback is cleared.  This used to require
-special attention in test_clear_page_writeback(), where we had to be
-careful not to rely on the unstable page->memcg binding and look up all
-the necessary information before clearing the writeback flag.
+page_mapping_file() is only used by some architectures, and then it
+is usually only used in one place.  Make it a static inline function
+so other architectures don't have to carry this dead code.
 
-Since commit 073861ed77b6 ("mm: fix VM_BUG_ON(PageTail) and
-BUG_ON(PageWriteback)") test_clear_page_writeback() is called with an
-explicit reference on the page, and this dance is no longer needed.
-
-Use unlock_page_memcg() and dec_lruvec_page_state() directly.
-
-This removes the last user of the lock_page_memcg() return value, change
-it to void.  Touch up the comments in there as well.  This also removes
-the last extern user of __unlock_page_memcg(), make it static.  Further,
-it removes the last user of dec_lruvec_state(), delete it, along with a
-few other unused helpers.
-
-Link: https://lkml.kernel.org/r/YCQbYAWg4nvBFL6h@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
+Link: https://lkml.kernel.org/r/20210317123011.350118-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   10 +--------
- include/linux/vmstat.h     |   24 ++---------------------
- mm/memcontrol.c            |   36 ++++++++++-------------------------
- mm/page-writeback.c        |    9 ++------
- 4 files changed, 19 insertions(+), 60 deletions(-)
+ arch/arm/mm/copypage-v4mc.c   |    1 +
+ arch/arm/mm/copypage-v6.c     |    1 +
+ arch/arm/mm/copypage-xscale.c |    1 +
+ arch/csky/abiv1/cacheflush.c  |    1 +
+ arch/mips/mm/cache.c          |    1 +
+ arch/nios2/mm/cacheflush.c    |    1 +
+ arch/sh/mm/cache-sh4.c        |    1 +
+ arch/sh/mm/cache-sh7705.c     |    1 +
+ arch/sparc/mm/tlb.c           |    1 +
+ include/linux/mm.h            |    1 -
+ include/linux/pagemap.h       |   10 ++++++++++
+ mm/util.c                     |   10 ----------
+ 12 files changed, 19 insertions(+), 11 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback
-+++ a/include/linux/memcontrol.h
-@@ -867,8 +867,7 @@ void mem_cgroup_print_oom_group(struct m
- extern bool cgroup_memory_noswap;
- #endif
+--- a/arch/arm/mm/copypage-v4mc.c~mm-move-page_mapping_file-to-pagemaph
++++ a/arch/arm/mm/copypage-v4mc.c
+@@ -13,6 +13,7 @@
+ #include <linux/init.h>
+ #include <linux/mm.h>
+ #include <linux/highmem.h>
++#include <linux/pagemap.h>
  
--struct mem_cgroup *lock_page_memcg(struct page *page);
--void __unlock_page_memcg(struct mem_cgroup *memcg);
-+void lock_page_memcg(struct page *page);
- void unlock_page_memcg(struct page *page);
+ #include <asm/tlbflush.h>
+ #include <asm/cacheflush.h>
+--- a/arch/arm/mm/copypage-v6.c~mm-move-page_mapping_file-to-pagemaph
++++ a/arch/arm/mm/copypage-v6.c
+@@ -8,6 +8,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/mm.h>
+ #include <linux/highmem.h>
++#include <linux/pagemap.h>
+ 
+ #include <asm/shmparam.h>
+ #include <asm/tlbflush.h>
+--- a/arch/arm/mm/copypage-xscale.c~mm-move-page_mapping_file-to-pagemaph
++++ a/arch/arm/mm/copypage-xscale.c
+@@ -13,6 +13,7 @@
+ #include <linux/init.h>
+ #include <linux/mm.h>
+ #include <linux/highmem.h>
++#include <linux/pagemap.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/cacheflush.h>
+--- a/arch/csky/abiv1/cacheflush.c~mm-move-page_mapping_file-to-pagemaph
++++ a/arch/csky/abiv1/cacheflush.c
+@@ -4,6 +4,7 @@
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/fs.h>
++#include <linux/pagemap.h>
+ #include <linux/syscalls.h>
+ #include <linux/spinlock.h>
+ #include <asm/page.h>
+--- a/arch/mips/mm/cache.c~mm-move-page_mapping_file-to-pagemaph
++++ a/arch/mips/mm/cache.c
+@@ -15,6 +15,7 @@
+ #include <linux/syscalls.h>
+ #include <linux/mm.h>
+ #include <linux/highmem.h>
++#include <linux/pagemap.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/processor.h>
+--- a/arch/nios2/mm/cacheflush.c~mm-move-page_mapping_file-to-pagemaph
++++ a/arch/nios2/mm/cacheflush.c
+@@ -11,6 +11,7 @@
+ #include <linux/sched.h>
+ #include <linux/mm.h>
+ #include <linux/fs.h>
++#include <linux/pagemap.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/cpuinfo.h>
+--- a/arch/sh/mm/cache-sh4.c~mm-move-page_mapping_file-to-pagemaph
++++ a/arch/sh/mm/cache-sh4.c
+@@ -16,6 +16,7 @@
+ #include <linux/mutex.h>
+ #include <linux/fs.h>
+ #include <linux/highmem.h>
++#include <linux/pagemap.h>
+ #include <asm/mmu_context.h>
+ #include <asm/cache_insns.h>
+ #include <asm/cacheflush.h>
+--- a/arch/sh/mm/cache-sh7705.c~mm-move-page_mapping_file-to-pagemaph
++++ a/arch/sh/mm/cache-sh7705.c
+@@ -13,6 +13,7 @@
+ #include <linux/mman.h>
+ #include <linux/mm.h>
+ #include <linux/fs.h>
++#include <linux/pagemap.h>
+ #include <linux/threads.h>
+ #include <asm/addrspace.h>
+ #include <asm/page.h>
+--- a/arch/sparc/mm/tlb.c~mm-move-page_mapping_file-to-pagemaph
++++ a/arch/sparc/mm/tlb.c
+@@ -9,6 +9,7 @@
+ #include <linux/mm.h>
+ #include <linux/swap.h>
+ #include <linux/preempt.h>
++#include <linux/pagemap.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/cacheflush.h>
+--- a/include/linux/mm.h~mm-move-page_mapping_file-to-pagemaph
++++ a/include/linux/mm.h
+@@ -1629,7 +1629,6 @@ static inline pgoff_t page_index(struct
+ 
+ bool page_mapped(struct page *page);
+ struct address_space *page_mapping(struct page *page);
+-struct address_space *page_mapping_file(struct page *page);
  
  /*
-@@ -1289,12 +1288,7 @@ mem_cgroup_print_oom_meminfo(struct mem_
- {
+  * Return true only if the page has been allocated with
+--- a/include/linux/pagemap.h~mm-move-page_mapping_file-to-pagemaph
++++ a/include/linux/pagemap.h
+@@ -158,6 +158,16 @@ static inline void filemap_nr_thps_dec(s
+ void release_pages(struct page **pages, int nr);
+ 
+ /*
++ * For file cache pages, return the address_space, otherwise return NULL
++ */
++static inline struct address_space *page_mapping_file(struct page *page)
++{
++	if (unlikely(PageSwapCache(page)))
++		return NULL;
++	return page_mapping(page);
++}
++
++/*
+  * speculatively take a reference to a page.
+  * If the page is free (_refcount == 0), then _refcount is untouched, and 0
+  * is returned. Otherwise, _refcount is incremented by 1 and 1 is returned.
+--- a/mm/util.c~mm-move-page_mapping_file-to-pagemaph
++++ a/mm/util.c
+@@ -711,16 +711,6 @@ struct address_space *page_mapping(struc
  }
+ EXPORT_SYMBOL(page_mapping);
  
--static inline struct mem_cgroup *lock_page_memcg(struct page *page)
--{
--	return NULL;
--}
--
--static inline void __unlock_page_memcg(struct mem_cgroup *memcg)
-+static inline void lock_page_memcg(struct page *page)
- {
- }
- 
---- a/include/linux/vmstat.h~mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback
-+++ a/include/linux/vmstat.h
-@@ -512,16 +512,10 @@ static inline void mod_lruvec_page_state
- 
- #endif /* CONFIG_MEMCG */
- 
--static inline void __inc_lruvec_state(struct lruvec *lruvec,
--				      enum node_stat_item idx)
--{
--	__mod_lruvec_state(lruvec, idx, 1);
--}
--
--static inline void __dec_lruvec_state(struct lruvec *lruvec,
--				      enum node_stat_item idx)
-+static inline void inc_lruvec_state(struct lruvec *lruvec,
-+				    enum node_stat_item idx)
- {
--	__mod_lruvec_state(lruvec, idx, -1);
-+	mod_lruvec_state(lruvec, idx, 1);
- }
- 
- static inline void __inc_lruvec_page_state(struct page *page,
-@@ -536,18 +530,6 @@ static inline void __dec_lruvec_page_sta
- 	__mod_lruvec_page_state(page, idx, -1);
- }
- 
--static inline void inc_lruvec_state(struct lruvec *lruvec,
--				    enum node_stat_item idx)
--{
--	mod_lruvec_state(lruvec, idx, 1);
--}
--
--static inline void dec_lruvec_state(struct lruvec *lruvec,
--				    enum node_stat_item idx)
--{
--	mod_lruvec_state(lruvec, idx, -1);
--}
--
- static inline void inc_lruvec_page_state(struct page *page,
- 					 enum node_stat_item idx)
- {
---- a/mm/memcontrol.c~mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback
-+++ a/mm/memcontrol.c
-@@ -2118,11 +2118,10 @@ void mem_cgroup_print_oom_group(struct m
-  * This function protects unlocked LRU pages from being moved to
-  * another cgroup.
-  *
-- * It ensures lifetime of the returned memcg. Caller is responsible
-- * for the lifetime of the page; __unlock_page_memcg() is available
-- * when @page might get freed inside the locked section.
-+ * It ensures lifetime of the locked memcg. Caller is responsible
-+ * for the lifetime of the page.
-  */
--struct mem_cgroup *lock_page_memcg(struct page *page)
-+void lock_page_memcg(struct page *page)
- {
- 	struct page *head = compound_head(page); /* rmap on tail pages */
- 	struct mem_cgroup *memcg;
-@@ -2132,21 +2131,15 @@ struct mem_cgroup *lock_page_memcg(struc
- 	 * The RCU lock is held throughout the transaction.  The fast
- 	 * path can get away without acquiring the memcg->move_lock
- 	 * because page moving starts with an RCU grace period.
--	 *
--	 * The RCU lock also protects the memcg from being freed when
--	 * the page state that is going to change is the only thing
--	 * preventing the page itself from being freed. E.g. writeback
--	 * doesn't hold a page reference and relies on PG_writeback to
--	 * keep off truncation, migration and so forth.
-          */
- 	rcu_read_lock();
- 
- 	if (mem_cgroup_disabled())
--		return NULL;
-+		return;
- again:
- 	memcg = page_memcg(head);
- 	if (unlikely(!memcg))
--		return NULL;
-+		return;
- 
- #ifdef CONFIG_PROVE_LOCKING
- 	local_irq_save(flags);
-@@ -2155,7 +2148,7 @@ again:
- #endif
- 
- 	if (atomic_read(&memcg->moving_account) <= 0)
--		return memcg;
-+		return;
- 
- 	spin_lock_irqsave(&memcg->move_lock, flags);
- 	if (memcg != page_memcg(head)) {
-@@ -2164,24 +2157,17 @@ again:
- 	}
- 
- 	/*
--	 * When charge migration first begins, we can have locked and
--	 * unlocked page stat updates happening concurrently.  Track
--	 * the task who has the lock for unlock_page_memcg().
-+	 * When charge migration first begins, we can have multiple
-+	 * critical sections holding the fast-path RCU lock and one
-+	 * holding the slowpath move_lock. Track the task who has the
-+	 * move_lock for unlock_page_memcg().
- 	 */
- 	memcg->move_lock_task = current;
- 	memcg->move_lock_flags = flags;
--
--	return memcg;
- }
- EXPORT_SYMBOL(lock_page_memcg);
- 
--/**
-- * __unlock_page_memcg - unlock and unpin a memcg
-- * @memcg: the memcg
-- *
-- * Unlock and unpin a memcg returned by lock_page_memcg().
+-/*
+- * For file cache pages, return the address_space, otherwise return NULL
 - */
--void __unlock_page_memcg(struct mem_cgroup *memcg)
-+static void __unlock_page_memcg(struct mem_cgroup *memcg)
+-struct address_space *page_mapping_file(struct page *page)
+-{
+-	if (unlikely(PageSwapCache(page)))
+-		return NULL;
+-	return page_mapping(page);
+-}
+-
+ /* Slow path of page_mapcount() for compound pages */
+ int __page_mapcount(struct page *page)
  {
- 	if (memcg && memcg->move_lock_task == current) {
- 		unsigned long flags = memcg->move_lock_flags;
---- a/mm/page-writeback.c~mm-page-writeback-simplify-memcg-handling-in-test_clear_page_writeback
-+++ a/mm/page-writeback.c
-@@ -2722,12 +2722,9 @@ EXPORT_SYMBOL(clear_page_dirty_for_io);
- int test_clear_page_writeback(struct page *page)
- {
- 	struct address_space *mapping = page_mapping(page);
--	struct mem_cgroup *memcg;
--	struct lruvec *lruvec;
- 	int ret;
- 
--	memcg = lock_page_memcg(page);
--	lruvec = mem_cgroup_page_lruvec(page, page_pgdat(page));
-+	lock_page_memcg(page);
- 	if (mapping && mapping_use_writeback_tags(mapping)) {
- 		struct inode *inode = mapping->host;
- 		struct backing_dev_info *bdi = inode_to_bdi(inode);
-@@ -2755,11 +2752,11 @@ int test_clear_page_writeback(struct pag
- 		ret = TestClearPageWriteback(page);
- 	}
- 	if (ret) {
--		dec_lruvec_state(lruvec, NR_WRITEBACK);
-+		dec_lruvec_page_state(page, NR_WRITEBACK);
- 		dec_zone_page_state(page, NR_ZONE_WRITE_PENDING);
- 		inc_node_page_state(page, NR_WRITTEN);
- 	}
--	__unlock_page_memcg(memcg);
-+	unlock_page_memcg(page);
- 	return ret;
- }
- 
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
