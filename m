@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA2F4C43461
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FCCCC43460
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F12A61415
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 57508613EA
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229685AbhEHWpZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:45:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53786 "EHLO mail.kernel.org"
+        id S229522AbhEHWp1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:45:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53862 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229641AbhEHWpY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:45:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A93A613C5;
-        Sat,  8 May 2021 22:44:22 +0000 (UTC)
+        id S229641AbhEHWp0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:45:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E2596100C;
+        Sat,  8 May 2021 22:44:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513862;
-        bh=JeBZYZuWVLu95w5/hyu0E6TSLaW0VebInG4CABxS5zo=;
+        s=korg; t=1620513864;
+        bh=L2myNEOYLIReBC6uX1pSh2FJWHUhMXzNH5QRCvjH1w4=;
         h=Date:From:To:Subject:From;
-        b=RwsYc0CZfmdvUQdGWN7XWQCshZBik/HVdnce6z6vL0DxAarpwKQaCzwZf/O8jMBJ2
-         Tp5FuY6A1Epw5GazD1nIdTkIzZb0lrAliIl/xb9Pc02qIOG+4FlKkFrEWOYJLyjf+I
-         JNDveXU5a5fOBy5exTZ8iuazdSZCv7Fey9mnLEL8=
-Date:   Sat, 08 May 2021 15:44:22 -0700
+        b=wk3p4EbtVqgEKvHV9RhT0TS9oHe3R4gx9kFqlq2wOCmzrWDXl10apd1DITz/5FBGB
+         XFa8pJnlDiJUb5G97zvd/6zM30cyS2IrraIaYps2VF+0jL6nKlPdHMak6sp8jkPdHj
+         HXIQq2L/sxYlrqhMRDPUDuwtCqymzwuDl9N55nh4=
+Date:   Sat, 08 May 2021 15:44:24 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com,
         elver@google.com, glider@google.com, mm-commits@vger.kernel.org
-Subject:  [merged] kasan-docs-update-error-reports-section.patch
+Subject:  [merged] kasan-docs-update-boot-parameters-section.patch
  removed from -mm tree
-Message-ID: <20210508224422.rFQwXEdHx%akpm@linux-foundation.org>
+Message-ID: <20210508224424.3AttMP9M8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,24 +43,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: docs: update error reports section
+     Subject: kasan: docs: update boot parameters section
 has been removed from the -mm tree.  Its filename was
-     kasan-docs-update-error-reports-section.patch
+     kasan-docs-update-boot-parameters-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: docs: update error reports section
+Subject: kasan: docs: update boot parameters section
 
-Update the "Error reports" section in KASAN documentation:
+Update the "Boot parameters" section in KASAN documentation:
 
-- Mention that bug titles are best-effort.
-- Move and reword the part about auxiliary stacks from
-  "Implementation details".
-- Punctuation, readability, and other minor clean-ups.
+- Mention panic_on_warn.
+- Mention kasan_multi_shot and its interaction with panic_on_warn.
+- Clarify kasan.fault=panic interaction with panic_on_warn.
+- A readability clean-up.
 
-Link: https://lkml.kernel.org/r/3531e8fe6972cf39d1954e3643237b19eb21227e.1615559068.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/01364952f15789948f0627d6733b5cdf5209f83a.1615559068.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -69,90 +69,41 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   46 +++++++++++++++-------------
- 1 file changed, 26 insertions(+), 20 deletions(-)
+ Documentation/dev-tools/kasan.rst |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-error-reports-section
+--- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-boot-parameters-section
 +++ a/Documentation/dev-tools/kasan.rst
-@@ -60,7 +60,7 @@ physical pages, enable ``CONFIG_PAGE_OWN
- Error reports
- ~~~~~~~~~~~~~
- 
--A typical out-of-bounds access generic KASAN report looks like this::
-+A typical KASAN report looks like this::
- 
-     ==================================================================
-     BUG: KASAN: slab-out-of-bounds in kmalloc_oob_right+0xa8/0xbc [test_kasan]
-@@ -133,33 +133,43 @@ A typical out-of-bounds access generic K
-      ffff8801f44ec400: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
-     ==================================================================
- 
--The header of the report provides a short summary of what kind of bug happened
--and what kind of access caused it. It's followed by a stack trace of the bad
--access, a stack trace of where the accessed memory was allocated (in case bad
--access happens on a slab object), and a stack trace of where the object was
--freed (in case of a use-after-free bug report). Next comes a description of
--the accessed slab object and information about the accessed memory page.
-+The report header summarizes what kind of bug happened and what kind of access
-+caused it. It is followed by a stack trace of the bad access, a stack trace of
-+where the accessed memory was allocated (in case a slab object was accessed),
-+and a stack trace of where the object was freed (in case of a use-after-free
-+bug report). Next comes a description of the accessed slab object and the
-+information about the accessed memory page.
- 
--In the last section the report shows memory state around the accessed address.
--Internally KASAN tracks memory state separately for each memory granule, which
-+In the end, the report shows the memory state around the accessed address.
-+Internally, KASAN tracks memory state separately for each memory granule, which
- is either 8 or 16 aligned bytes depending on KASAN mode. Each number in the
- memory state section of the report shows the state of one of the memory
- granules that surround the accessed address.
- 
--For generic KASAN the size of each memory granule is 8. The state of each
-+For generic KASAN, the size of each memory granule is 8. The state of each
- granule is encoded in one shadow byte. Those 8 bytes can be accessible,
--partially accessible, freed or be a part of a redzone. KASAN uses the following
--encoding for each shadow byte: 0 means that all 8 bytes of the corresponding
-+partially accessible, freed, or be a part of a redzone. KASAN uses the following
-+encoding for each shadow byte: 00 means that all 8 bytes of the corresponding
- memory region are accessible; number N (1 <= N <= 7) means that the first N
- bytes are accessible, and other (8 - N) bytes are not; any negative value
- indicates that the entire 8-byte word is inaccessible. KASAN uses different
- negative values to distinguish between different kinds of inaccessible memory
- like redzones or freed memory (see mm/kasan/kasan.h).
- 
--In the report above the arrows point to the shadow byte 03, which means that
--the accessed address is partially accessible. For tag-based KASAN modes this
--last report section shows the memory tags around the accessed address
--(see the `Implementation details`_ section).
-+In the report above, the arrow points to the shadow byte ``03``, which means
-+that the accessed address is partially accessible.
-+
-+For tag-based KASAN modes, this last report section shows the memory tags around
-+the accessed address (see the `Implementation details`_ section).
-+
-+Note that KASAN bug titles (like ``slab-out-of-bounds`` or ``use-after-free``)
-+are best-effort: KASAN prints the most probable bug type based on the limited
-+information it has. The actual type of the bug might be different.
-+
-+Generic KASAN also reports up to two auxiliary call stack traces. These stack
-+traces point to places in code that interacted with the object but that are not
-+directly present in the bad access stack trace. Currently, this includes
-+call_rcu() and workqueue queuing.
- 
+@@ -174,10 +174,16 @@ call_rcu() and workqueue queuing.
  Boot parameters
  ~~~~~~~~~~~~~~~
-@@ -223,10 +233,6 @@ function calls GCC directly inserts the
- This option significantly enlarges kernel but it gives x1.1-x2 performance
- boost over outline instrumented kernel.
  
--Generic KASAN also reports the last 2 call stacks to creation of work that
--potentially has access to an object. Call stacks for the following are shown:
--call_rcu() and workqueue queuing.
--
- Generic KASAN is the only mode that delays the reuse of freed object via
- quarantine (see mm/kasan/quarantine.c for implementation).
++KASAN is affected by the generic ``panic_on_warn`` command line parameter.
++When it is enabled, KASAN panics the kernel after printing a bug report.
++
++By default, KASAN prints a bug report only for the first invalid memory access.
++With ``kasan_multi_shot``, KASAN prints a report on every invalid access. This
++effectively disables ``panic_on_warn`` for KASAN reports.
++
+ Hardware tag-based KASAN mode (see the section about various modes below) is
+ intended for use in production as a security mitigation. Therefore, it supports
+-boot parameters that allow to disable KASAN competely or otherwise control
+-particular KASAN features.
++boot parameters that allow disabling KASAN or controlling its features.
  
+ - ``kasan=off`` or ``=on`` controls whether KASAN is enabled (default: ``on``).
+ 
+@@ -194,8 +200,8 @@ particular KASAN features.
+   traces collection (default: ``on``).
+ 
+ - ``kasan.fault=report`` or ``=panic`` controls whether to only print a KASAN
+-  report or also panic the kernel (default: ``report``). Note, that tag
+-  checking gets disabled after the first reported bug.
++  report or also panic the kernel (default: ``report``). The panic happens even
++  if ``kasan_multi_shot`` is enabled.
+ 
+ Implementation details
+ ----------------------
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
