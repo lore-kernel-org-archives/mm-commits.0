@@ -7,34 +7,43 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8D81C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1204AC433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 97EE961421
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DBC8161426
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229631AbhEHWvW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:51:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37072 "EHLO mail.kernel.org"
+        id S229549AbhEHWvT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:51:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229609AbhEHWvV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:51:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E1A56101D;
-        Sat,  8 May 2021 22:50:19 +0000 (UTC)
+        id S229522AbhEHWvS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:51:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F269161402;
+        Sat,  8 May 2021 22:50:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514219;
-        bh=9jV47vRm8HZyFc9Mo8fvumFe4rfd7jPHBRDe/c46zQ0=;
+        s=korg; t=1620514216;
+        bh=QVLHmAA2u5TID3IUqyQ+tKg4fJJWtIRn97M6XfqGyco=;
         h=Date:From:To:Subject:From;
-        b=D8gQpY7T8Fie2jhUsBHuVKOunj76q4yJrQx3+k29iQDFhq5pERWjDsTtQifWe9j9q
-         9L+OpoKqQnucBMmsbYqWMZgmeQ7foxfqXjxGFguBL2m40p0VFiGIzolShwRBA5DpmW
-         7dFJk+YvpozjSNr+tv1sHujA6jEFM93Xe8t16/JU=
-Date:   Sat, 08 May 2021 15:50:19 -0700
+        b=l9EsxSMAMSXPXpDbteDss0bkY4mQRhm6GUC6dLLhH6zu1oNb+NkysMoGDL34XAyra
+         0btHj29IHkQGwreJm7BAnZJgFxpg6+maRrdoTZuu8i0Al7K1Xwg5zp8gZM0I5sVK1G
+         bHlmMrRS3Mc1d7biIQRx3VBgOTJP7rtc3wRqjQX0=
+Date:   Sat, 08 May 2021 15:50:15 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, joe@perches.com,
-        mm-commits@vger.kernel.org
-Subject:  [merged] mm-reduce-mem_dump_obj-object-size.patch removed
- from -mm tree
-Message-ID: <20210508225019.RRdJ5yMUu%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, aou@eecs.berkeley.edu, arnd@arndb.de,
+        benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de,
+        catalin.marinas@arm.com, dalias@libc.org, deller@gmx.de,
+        gor@linux.ibm.com, hca@linux.ibm.com, hpa@zytor.com,
+        James.Bottomley@HansenPartnership.com, linux@armlinux.org.uk,
+        mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        palmerdabbelt@google.com, paul.walmsley@sifive.com,
+        paulus@samba.org, tglx@linutronix.de, tsbogend@alpha.franken.de,
+        vgupta@synopsys.com, viro@zeniv.linux.org.uk, will@kernel.org,
+        ysato@users.sourceforge.jp
+Subject:  [merged]
+ mm-drop-redundant-have_arch_transparent_hugepage.patch removed from -mm
+ tree
+Message-ID: <20210508225015.5A3-nfZx5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,74 +52,97 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/util.c: reduce mem_dump_obj() object size
+     Subject: mm: drop redundant HAVE_ARCH_TRANSPARENT_HUGEPAGE
 has been removed from the -mm tree.  Its filename was
-     mm-reduce-mem_dump_obj-object-size.patch
+     mm-drop-redundant-have_arch_transparent_hugepage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: mm/util.c: reduce mem_dump_obj() object size
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm: drop redundant HAVE_ARCH_TRANSPARENT_HUGEPAGE
 
-Simplify the code by using a temporary and reduce the object size by using
-a single call to pr_cont().  Reverse a test and unindent a block too.
+HAVE_ARCH_TRANSPARENT_HUGEPAGE has duplicate definitions on platforms that
+subscribe it.  Drop these reduntant definitions and instead just select it
+on applicable platforms.
 
-$ size mm/util.o* (defconfig x86-64)
-   text	   data	    bss	    dec	    hex	filename
-   7419	    372	     40	   7831	   1e97	mm/util.o.new
-   7477	    372	     40	   7889	   1ed1	mm/util.o.old
-
-Link: https://lkml.kernel.org/r/a6e105886338f68afd35f7a13d73bcf06b0cc732.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: https://lkml.kernel.org/r/1617259448-22529-7-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Vineet Gupta <vgupta@synopsys.com>		[arc]
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Palmer Dabbelt <palmerdabbelt@google.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ arch/arc/Kconfig |    5 +----
+ arch/arm/Kconfig |    5 +----
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
---- a/mm/util.c~mm-reduce-mem_dump_obj-object-size
-+++ a/mm/util.c
-@@ -987,22 +987,26 @@ int __weak memcmp_pages(struct page *pag
-  */
- void mem_dump_obj(void *object)
- {
-+	const char *type;
-+
- 	if (kmem_valid_obj(object)) {
- 		kmem_dump_obj(object);
- 		return;
- 	}
-+
- 	if (vmalloc_dump_obj(object))
- 		return;
--	if (!virt_addr_valid(object)) {
--		if (object == NULL)
--			pr_cont(" NULL pointer.\n");
--		else if (object == ZERO_SIZE_PTR)
--			pr_cont(" zero-size pointer.\n");
--		else
--			pr_cont(" non-paged memory.\n");
--		return;
--	}
--	pr_cont(" non-slab/vmalloc memory.\n");
-+
-+	if (virt_addr_valid(object))
-+		type = "non-slab/vmalloc memory";
-+	else if (object == NULL)
-+		type = "NULL pointer";
-+	else if (object == ZERO_SIZE_PTR)
-+		type = "zero-size pointer";
-+	else
-+		type = "non-paged memory";
-+
-+	pr_cont(" %s\n", type);
- }
- EXPORT_SYMBOL_GPL(mem_dump_obj);
- #endif
+--- a/arch/arc/Kconfig~mm-drop-redundant-have_arch_transparent_hugepage
++++ a/arch/arc/Kconfig
+@@ -29,6 +29,7 @@ config ARC
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_TRACEHOOK
++	select HAVE_ARCH_TRANSPARENT_HUGEPAGE if ARC_MMU_V4
+ 	select HAVE_DEBUG_STACKOVERFLOW
+ 	select HAVE_DEBUG_KMEMLEAK
+ 	select HAVE_FUTEX_CMPXCHG if FUTEX
+@@ -84,10 +85,6 @@ config STACKTRACE_SUPPORT
+ 	def_bool y
+ 	select STACKTRACE
+ 
+-config HAVE_ARCH_TRANSPARENT_HUGEPAGE
+-	def_bool y
+-	depends on ARC_MMU_V4
+-
+ menu "ARC Architecture Configuration"
+ 
+ menu "ARC Platform/SoC/Board"
+--- a/arch/arm/Kconfig~mm-drop-redundant-have_arch_transparent_hugepage
++++ a/arch/arm/Kconfig
+@@ -78,6 +78,7 @@ config ARM
+ 	select HAVE_ARCH_SECCOMP_FILTER if AEABI && !OABI_COMPAT
+ 	select HAVE_ARCH_THREAD_STRUCT_WHITELIST
+ 	select HAVE_ARCH_TRACEHOOK
++	select HAVE_ARCH_TRANSPARENT_HUGEPAGE if ARM_LPAE
+ 	select HAVE_ARM_SMCCC if CPU_V7
+ 	select HAVE_EBPF_JIT if !CPU_ENDIAN_BE32
+ 	select HAVE_CONTEXT_TRACKING
+@@ -1512,10 +1513,6 @@ config HW_PERF_EVENTS
+ 	def_bool y
+ 	depends on ARM_PMU
+ 
+-config HAVE_ARCH_TRANSPARENT_HUGEPAGE
+-       def_bool y
+-       depends on ARM_LPAE
+-
+ config ARCH_WANT_GENERAL_HUGETLB
+ 	def_bool y
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
 
