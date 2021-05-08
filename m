@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86DD6C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A85C7C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 665576141E
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7CC4D6140E
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229667AbhEHWlu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:41:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45704 "EHLO mail.kernel.org"
+        id S229616AbhEHWlx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:41:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45772 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229609AbhEHWlu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:41:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7684B6140E;
-        Sat,  8 May 2021 22:40:47 +0000 (UTC)
+        id S229609AbhEHWlw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:41:52 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9DF1561415;
+        Sat,  8 May 2021 22:40:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513647;
-        bh=cHpL7bho19UQTNX/XGyGDK+6MRu67C1WLxZBLCzZ7ts=;
+        s=korg; t=1620513649;
+        bh=MmrjIC9DYwhdQOWrqjPNaS81Vme/c8P10yOsJ6BC/Pg=;
         h=Date:From:To:Subject:From;
-        b=FzsQKmrato9CKdGLUEKLL/fRD07ZcwK16OdubcAYj+97Qjo5/PqGEJ6AmH3VwZk4H
-         oyfe4PHH6/PRLf1/56NXHr3Hn5cgZEzmzY8uoGCNc04rkmAZBpdSZq2ftONrwegOTf
-         Y2Iw55qirgI92Keh/JIb6p0Qcs77g5oKjOnvxmco=
-Date:   Sat, 08 May 2021 15:40:47 -0700
+        b=uzMvhgb6u0rDfcmlxiD/Qp0ROQfncnQqrH/ubRhs/MhdZqvq9ZsafwU6ZPVXyVf8Z
+         3AFbvS5Yo3i67Ljrp8U1egH4uUhCDzMrsRYSXP/boX/D1rtOsj7eUAnqQBkykX55yF
+         poOiviNT1ThgTdWwARLFh2iqgotrQOYaWzTI1axA=
+Date:   Sat, 08 May 2021 15:40:49 -0700
 From:   akpm@linux-foundation.org
 To:     dledford@redhat.com, hch@infradead.org, jgg@nvidia.com,
         jhubbard@nvidia.com, joao.m.martins@oracle.com,
         mm-commits@vger.kernel.org, willy@infradead.org
 Subject:  [merged]
- mm-gup-add-a-range-variant-of-unpin_user_pages_dirty_lock.patch removed
- from -mm tree
-Message-ID: <20210508224047.hNb2G_zaL%akpm@linux-foundation.org>
+ rdma-umem-batch-page-unpin-in-__ib_umem_release.patch removed from -mm tree
+Message-ID: <20210508224049.2VefNozQN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,131 +44,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: add a range variant of unpin_user_pages_dirty_lock()
+     Subject: RDMA/umem: batch page unpin in __ib_umem_release()
 has been removed from the -mm tree.  Its filename was
-     mm-gup-add-a-range-variant-of-unpin_user_pages_dirty_lock.patch
+     rdma-umem-batch-page-unpin-in-__ib_umem_release.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/gup: add a range variant of unpin_user_pages_dirty_lock()
+Subject: RDMA/umem: batch page unpin in __ib_umem_release()
 
-Add an unpin_user_page_range_dirty_lock() API which takes a starting page
-and how many consecutive pages we want to unpin and optionally dirty.
+Use the newly added unpin_user_page_range_dirty_lock() for more quickly
+unpinning a consecutive range of pages represented as compound pages. 
+This will also calculate number of pages to unpin (for the tail pages
+which matching head page) and thus batch the refcount update.
 
-To that end, define another iterator for_each_compound_range() that
-operates in page ranges as opposed to page array.
+Running a test program which calls memory range reg/unreg on a region 1G
+in size and measures cost of both operations together (in a guest using
+rxe) with THP and hugetlbfs:
 
-For users (like RDMA mr_dereg) where each sg represents a contiguous set
-of pages, we're able to more efficiently unpin pages without having to
-supply an array of pages much of what happens today with
-unpin_user_pages().
+Before:
+590 rounds in 5.003 sec: 8480.335 usec / round
+6898 rounds in 60.001 sec: 8698.367 usec / round
 
-Link: https://lkml.kernel.org/r/20210212130843.13865-4-joao.m.martins@oracle.com
-Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
+After:
+2688 rounds in 5.002 sec: 1860.786 usec / round
+32517 rounds in 60.001 sec: 1845.225 usec / round
+
+Link: https://lkml.kernel.org/r/20210212130843.13865-5-joao.m.martins@oracle.com
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Doug Ledford <dledford@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +
- mm/gup.c           |   62 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+)
+ drivers/infiniband/core/umem.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/include/linux/mm.h~mm-gup-add-a-range-variant-of-unpin_user_pages_dirty_lock
-+++ a/include/linux/mm.h
-@@ -1265,6 +1265,8 @@ static inline void put_page(struct page
- void unpin_user_page(struct page *page);
- void unpin_user_pages_dirty_lock(struct page **pages, unsigned long npages,
- 				 bool make_dirty);
-+void unpin_user_page_range_dirty_lock(struct page *page, unsigned long npages,
-+				      bool make_dirty);
- void unpin_user_pages(struct page **pages, unsigned long npages);
+--- a/drivers/infiniband/core/umem.c~rdma-umem-batch-page-unpin-in-__ib_umem_release
++++ a/drivers/infiniband/core/umem.c
+@@ -47,17 +47,17 @@
  
- /**
---- a/mm/gup.c~mm-gup-add-a-range-variant-of-unpin_user_pages_dirty_lock
-+++ a/mm/gup.c
-@@ -213,6 +213,32 @@ void unpin_user_page(struct page *page)
+ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int dirty)
+ {
+-	struct sg_page_iter sg_iter;
+-	struct page *page;
++	bool make_dirty = umem->writable && dirty;
++	struct scatterlist *sg;
++	unsigned int i;
+ 
+ 	if (umem->nmap > 0)
+ 		ib_dma_unmap_sg(dev, umem->sg_head.sgl, umem->sg_nents,
+ 				DMA_BIDIRECTIONAL);
+ 
+-	for_each_sg_page(umem->sg_head.sgl, &sg_iter, umem->sg_nents, 0) {
+-		page = sg_page_iter_page(&sg_iter);
+-		unpin_user_pages_dirty_lock(&page, 1, umem->writable && dirty);
+-	}
++	for_each_sg(umem->sg_head.sgl, sg, umem->sg_nents, i)
++		unpin_user_page_range_dirty_lock(sg_page(sg),
++			DIV_ROUND_UP(sg->length, PAGE_SIZE), make_dirty);
+ 
+ 	sg_free_table(&umem->sg_head);
  }
- EXPORT_SYMBOL(unpin_user_page);
- 
-+static inline void compound_range_next(unsigned long i, unsigned long npages,
-+				       struct page **list, struct page **head,
-+				       unsigned int *ntails)
-+{
-+	struct page *next, *page;
-+	unsigned int nr = 1;
-+
-+	if (i >= npages)
-+		return;
-+
-+	next = *list + i;
-+	page = compound_head(next);
-+	if (PageCompound(page) && compound_order(page) >= 1)
-+		nr = min_t(unsigned int,
-+			   page + compound_nr(page) - next, npages - i);
-+
-+	*head = page;
-+	*ntails = nr;
-+}
-+
-+#define for_each_compound_range(__i, __list, __npages, __head, __ntails) \
-+	for (__i = 0, \
-+	     compound_range_next(__i, __npages, __list, &(__head), &(__ntails)); \
-+	     __i < __npages; __i += __ntails, \
-+	     compound_range_next(__i, __npages, __list, &(__head), &(__ntails)))
-+
- static inline void compound_next(unsigned long i, unsigned long npages,
- 				 struct page **list, struct page **head,
- 				 unsigned int *ntails)
-@@ -302,6 +328,42 @@ void unpin_user_pages_dirty_lock(struct
- EXPORT_SYMBOL(unpin_user_pages_dirty_lock);
- 
- /**
-+ * unpin_user_page_range_dirty_lock() - release and optionally dirty
-+ * gup-pinned page range
-+ *
-+ * @page:  the starting page of a range maybe marked dirty, and definitely released.
-+ * @npages: number of consecutive pages to release.
-+ * @make_dirty: whether to mark the pages dirty
-+ *
-+ * "gup-pinned page range" refers to a range of pages that has had one of the
-+ * pin_user_pages() variants called on that page.
-+ *
-+ * For the page ranges defined by [page .. page+npages], make that range (or
-+ * its head pages, if a compound page) dirty, if @make_dirty is true, and if the
-+ * page range was previously listed as clean.
-+ *
-+ * set_page_dirty_lock() is used internally. If instead, set_page_dirty() is
-+ * required, then the caller should a) verify that this is really correct,
-+ * because _lock() is usually required, and b) hand code it:
-+ * set_page_dirty_lock(), unpin_user_page().
-+ *
-+ */
-+void unpin_user_page_range_dirty_lock(struct page *page, unsigned long npages,
-+				      bool make_dirty)
-+{
-+	unsigned long index;
-+	struct page *head;
-+	unsigned int ntails;
-+
-+	for_each_compound_range(index, &page, npages, head, ntails) {
-+		if (make_dirty && !PageDirty(head))
-+			set_page_dirty_lock(head);
-+		put_compound_head(head, ntails, FOLL_PIN);
-+	}
-+}
-+EXPORT_SYMBOL(unpin_user_page_range_dirty_lock);
-+
-+/**
-  * unpin_user_pages() - release an array of gup-pinned pages.
-  * @pages:  array of pages to be marked dirty and released.
-  * @npages: number of pages in the @pages array.
 _
 
 Patches currently in -mm which might be from joao.m.martins@oracle.com are
