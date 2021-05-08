@@ -4,37 +4,37 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 989AEC43461
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23226C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 81C4161402
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0ADEF61415
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229679AbhEHWpi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:45:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54174 "EHLO mail.kernel.org"
+        id S229727AbhEHWpl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:45:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54330 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229726AbhEHWpf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:45:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 899BB61402;
-        Sat,  8 May 2021 22:44:32 +0000 (UTC)
+        id S229696AbhEHWpi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:45:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 913EB613C5;
+        Sat,  8 May 2021 22:44:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513872;
-        bh=L1pNmlZwQAgyY2JlbMPW0nwAJ4b9vfIuekh5PKPthao=;
+        s=korg; t=1620513876;
+        bh=FphjXGVMzUIQq7T7i4zLa8d4SaKK/uxq/FPXoxdVkH8=;
         h=Date:From:To:Subject:From;
-        b=T6Dc9ruGPZlE37b/8u58QRbmUTPtpfD7WaoF4RdpknbUIEJCTvA/aKYurv7NvWM0Z
-         CZkgJL+IVMGU+VOeG3KCMAR3fPaYkVdkZQrHmNaEGBB29IiPvjRHRyTWbgJ9EIpsml
-         03riWT9aun6C+x2F6B2cPmgA4RDs55IWy1oW9qGc=
-Date:   Sat, 08 May 2021 15:44:32 -0700
+        b=WXJoZRdbc7AdU4RXq87N2E6ujwxZqnqAPvssZ0bRVPg/HUGpbs4hFi7YTgBNskUHv
+         e4l+mYYpqdUT85GIrOAjtY6NC3jlHYRrAU/R7EU159ac6pL23Sw6RQdggHn5N2XLWE
+         dVQx/o4/GqKb8Orv/kj41C3Z6CB3FZzLtvMZHAwA=
+Date:   Sat, 08 May 2021 15:44:36 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com,
         elver@google.com, glider@google.com, mm-commits@vger.kernel.org
-Subject:  [merged] kasan-docs-update-shadow-memory-section.patch
- removed from -mm tree
-Message-ID: <20210508224432.U9qsPgu7e%akpm@linux-foundation.org>
+Subject:  [merged] kasan-docs-update-tests-section.patch removed
+ from -mm tree
+Message-ID: <20210508224436.uWS_boeIs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,24 +43,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: docs: update shadow memory section
+     Subject: kasan: docs: update tests section
 has been removed from the -mm tree.  Its filename was
-     kasan-docs-update-shadow-memory-section.patch
+     kasan-docs-update-tests-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: docs: update shadow memory section
+Subject: kasan: docs: update tests section
 
-Update the "Shadow memory" section in KASAN documentation:
+Update the "Tests" section in KASAN documentation:
 
-- Rearrange the introduction paragraph do it doesn't give a
-  "KASAN has an issue" impression.
-- Update the list of architectures with vmalloc support.
+- Add an introductory sentence.
+- Add proper indentation for the list of ways to run KUnit tests.
 - Punctuation, readability, and other minor clean-ups.
 
-Link: https://lkml.kernel.org/r/00f8c38b0fd5290a3f4dced04eaba41383e67e14.1615559068.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/fb08845e25c8847ffda271fa19cda2621c04a65b.1615559068.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -69,72 +68,74 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   31 ++++++++++++----------------
- 1 file changed, 14 insertions(+), 17 deletions(-)
+ Documentation/dev-tools/kasan.rst |   32 +++++++++++++---------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-shadow-memory-section
+--- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-tests-section
 +++ a/Documentation/dev-tools/kasan.rst
-@@ -313,14 +313,11 @@ checking gets disabled.
- Shadow memory
- -------------
+@@ -420,19 +420,20 @@ saving and restoring the per-page KASAN
+ Tests
+ ~~~~~
  
--The kernel maps memory in a number of different parts of the address
--space. This poses something of a problem for KASAN, which requires
--that all addresses accessed by instrumented code have a valid shadow
--region.
+-KASAN tests consist of two parts:
++There are KASAN tests that allow verifying that KASAN works and can detect
++certain types of memory corruptions. The tests consist of two parts:
+ 
+ 1. Tests that are integrated with the KUnit Test Framework. Enabled with
+ ``CONFIG_KASAN_KUNIT_TEST``. These tests can be run and partially verified
+-automatically in a few different ways, see the instructions below.
++automatically in a few different ways; see the instructions below.
+ 
+ 2. Tests that are currently incompatible with KUnit. Enabled with
+ ``CONFIG_KASAN_MODULE_TEST`` and can only be run as a module. These tests can
+-only be verified manually, by loading the kernel module and inspecting the
++only be verified manually by loading the kernel module and inspecting the
+ kernel log for KASAN reports.
+ 
+-Each KUnit-compatible KASAN test prints a KASAN report if an error is detected.
+-Then the test prints its number and status.
++Each KUnit-compatible KASAN test prints one of multiple KASAN reports if an
++error is detected. Then the test prints its number and status.
+ 
+ When a test passes::
+ 
+@@ -460,27 +461,24 @@ Or, if one of the tests failed::
+ 
+         not ok 1 - kasan
+ 
 -
--The range of kernel virtual addresses is large: there is not enough
--real memory to support a real shadow region for every address that
--could be accessed by the kernel.
-+The kernel maps memory in several different parts of the address space.
-+The range of kernel virtual addresses is large: there is not enough real
-+memory to support a real shadow region for every address that could be
-+accessed by the kernel. Therefore, KASAN only maps real shadow for certain
-+parts of the address space.
+ There are a few ways to run KUnit-compatible KASAN tests.
  
- Default behaviour
- ~~~~~~~~~~~~~~~~~
-@@ -332,10 +329,9 @@ page is mapped over the shadow area. Thi
- declares all memory accesses as permitted.
+ 1. Loadable module
  
- This presents a problem for modules: they do not live in the linear
--mapping, but in a dedicated module space. By hooking in to the module
--allocator, KASAN can temporarily map real shadow memory to cover
--them. This allows detection of invalid accesses to module globals, for
--example.
-+mapping but in a dedicated module space. By hooking into the module
-+allocator, KASAN temporarily maps real shadow memory to cover them.
-+This allows detection of invalid accesses to module globals, for example.
+-With ``CONFIG_KUNIT`` enabled, ``CONFIG_KASAN_KUNIT_TEST`` can be built as
+-a loadable module and run on any architecture that supports KASAN by loading
+-the module with insmod or modprobe. The module is called ``test_kasan``.
++   With ``CONFIG_KUNIT`` enabled, KASAN-KUnit tests can be built as a loadable
++   module and run by loading ``test_kasan.ko`` with ``insmod`` or ``modprobe``.
  
- This also creates an incompatibility with ``VMAP_STACK``: if the stack
- lives in vmalloc space, it will be shadowed by the read-only page, and
-@@ -346,9 +342,10 @@ CONFIG_KASAN_VMALLOC
- ~~~~~~~~~~~~~~~~~~~~
+ 2. Built-In
  
- With ``CONFIG_KASAN_VMALLOC``, KASAN can cover vmalloc space at the
--cost of greater memory usage. Currently this is only supported on x86.
-+cost of greater memory usage. Currently, this is supported on x86,
-+riscv, s390, and powerpc.
+-With ``CONFIG_KUNIT`` built-in, ``CONFIG_KASAN_KUNIT_TEST`` can be built-in
+-on any architecure that supports KASAN. These and any other KUnit tests enabled
+-will run and print the results at boot as a late-init call.
++   With ``CONFIG_KUNIT`` built-in, KASAN-KUnit tests can be built-in as well.
++   In this case, the tests will run at boot as a late-init call.
  
--This works by hooking into vmalloc and vmap, and dynamically
-+This works by hooking into vmalloc and vmap and dynamically
- allocating real shadow memory to back the mappings.
+ 3. Using kunit_tool
  
- Most mappings in vmalloc space are small, requiring less than a full
-@@ -367,10 +364,10 @@ memory.
+-With ``CONFIG_KUNIT`` and ``CONFIG_KASAN_KUNIT_TEST`` built-in, it's also
+-possible use ``kunit_tool`` to see the results of these and other KUnit tests
+-in a more readable way. This will not print the KASAN reports of the tests that
+-passed. Use `KUnit documentation <https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html>`_
+-for more up-to-date information on ``kunit_tool``.
++   With ``CONFIG_KUNIT`` and ``CONFIG_KASAN_KUNIT_TEST`` built-in, it is also
++   possible to use ``kunit_tool`` to see the results of KUnit tests in a more
++   readable way. This will not print the KASAN reports of the tests that passed.
++   See `KUnit documentation <https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html>`_
++   for more up-to-date information on ``kunit_tool``.
  
- To avoid the difficulties around swapping mappings around, KASAN expects
- that the part of the shadow region that covers the vmalloc space will
--not be covered by the early shadow page, but will be left
--unmapped. This will require changes in arch-specific code.
-+not be covered by the early shadow page but will be left unmapped.
-+This will require changes in arch-specific code.
- 
--This allows ``VMAP_STACK`` support on x86, and can simplify support of
-+This allows ``VMAP_STACK`` support on x86 and can simplify support of
- architectures that do not have a fixed module region.
- 
- For developers
+ .. _KUnit: https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
