@@ -7,36 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06BCCC433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8734EC433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DA1F7613EA
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D523613C5
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229693AbhEHWoz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:44:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52826 "EHLO mail.kernel.org"
+        id S229631AbhEHWo6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:44:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52914 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229631AbhEHWoy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:44:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A46D61426;
-        Sat,  8 May 2021 22:43:52 +0000 (UTC)
+        id S229709AbhEHWo6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:44:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AF04E61415;
+        Sat,  8 May 2021 22:43:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513832;
-        bh=CPQTQGOgkOeoHm1lpbxgs1GVvy4JsuykuKqsUInyLI8=;
+        s=korg; t=1620513836;
+        bh=W6frtunQMTw6/4lH6cS7aT2/UEMat2OM6BU7ykmTntE=;
         h=Date:From:To:Subject:From;
-        b=XcMCQoACyHfpb3w5wxJ/dMdmk4aZs06FtZrhmHVPpjZaOvxedpBvMx/OtFwWSYaSC
-         GxuxR03KN8EvrWnsVctcbMvizfEe5bbEBB4pekswklqJnMr2An0J+56jH8PQH3ob79
-         anGIlNnEXBboYa5gzQ1TwBoJkTI0ALydaVgaPq3A=
-Date:   Sat, 08 May 2021 15:43:52 -0700
+        b=wgEtK4HyMRxPjyi+Zhs7m1iT3sPcmIq+wgzZYV7GWOq1N4tmkC1sAywoOCYKxzQWV
+         CEG7voAuc87I5JFdUZz9EOIEFvAIRtYpXi/8mUn9MVlbEnoEfhWtDlbWWj0GfFsOG1
+         g99zHYe3HNHteo2qx+3+w7EIt+PlhbgX0TAcdcWM=
+Date:   Sat, 08 May 2021 15:43:55 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, dvyukov@google.com, elver@google.com,
-        eugenis@google.com, glider@google.com, mm-commits@vger.kernel.org,
-        pcc@google.com
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
+        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
+        dvyukov@google.com, elver@google.com, eugenis@google.com,
+        glider@google.com, hch@infradead.org, kevin.brodsky@arm.com,
+        mm-commits@vger.kernel.org, pcc@google.com,
+        vincenzo.frascino@arm.com, will.deacon@arm.com
 Subject:  [merged]
- kasan-fix-kasan_byte_accessible-to-be-consistent-with-actual-checks.patch
- removed from -mm tree
-Message-ID: <20210508224352.c3xdmzBWA%akpm@linux-foundation.org>
+ kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch removed from -mm
+ tree
+Message-ID: <20210508224355.vAAQpCUVe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,85 +48,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: fix kasan_byte_accessible() to be consistent with actual checks
+     Subject: kasan: initialize shadow to TAG_INVALID for SW_TAGS
 has been removed from the -mm tree.  Its filename was
-     kasan-fix-kasan_byte_accessible-to-be-consistent-with-actual-checks.patch
+     kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Peter Collingbourne <pcc@google.com>
-Subject: kasan: fix kasan_byte_accessible() to be consistent with actual checks
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: initialize shadow to TAG_INVALID for SW_TAGS
 
-We can sometimes end up with kasan_byte_accessible() being called on
-non-slab memory.  For example ksize() and krealloc() may end up calling it
-on KFENCE allocated memory.  In this case the memory will be tagged with
-KASAN_SHADOW_INIT, which a subsequent patch ("kasan: initialize shadow to
-TAG_INVALID for SW_TAGS") will set to the same value as KASAN_TAG_INVALID,
-causing kasan_byte_accessible() to fail when called on non-slab memory.
+Currently, KASAN_SW_TAGS uses 0xFF as the default tag value for
+unallocated memory.  The underlying idea is that since that memory hasn't
+been allocated yet, it's only supposed to be dereferenced through a
+pointer with the native 0xFF tag.
 
-This highlighted the fact that the check in kasan_byte_accessible() was
-inconsistent with checks as implemented for loads and stores
-(kasan_check_range() in SW tags mode and hardware-implemented checks in HW
-tags mode).  kasan_check_range() does not have a check for
-KASAN_TAG_INVALID, and instead has a comparison against
-KASAN_SHADOW_START.  In HW tags mode, we do not have either, but we do set
-TCR_EL1.TCMA which corresponds with the comparison against
-KASAN_TAG_KERNEL.
+While this is a good idea in terms on consistency, practically it doesn't
+bring any benefit.  Since the 0xFF pointer tag is a match-all tag, it
+doesn't matter what tag the accessed memory has.  No accesses through
+0xFF-tagged pointers are considered buggy by KASAN.
 
-Therefore, update kasan_byte_accessible() for both SW and HW tags modes to
-correspond with the respective checks on loads and stores.
+This patch changes the default tag value for unallocated memory to 0xFE,
+which is the tag KASAN uses for inaccessible memory.  This doesn't affect
+accesses through 0xFF-tagged pointer to this memory, but this allows KASAN
+to detect wild and large out-of-bounds invalid memory accesses through
+otherwise-tagged pointers.
 
-Link: https://linux-review.googlesource.com/id/Ic6d40803c57dcc6331bd97fbb9a60b0d38a65a36
-Link: https://lkml.kernel.org/r/20210405220647.1965262-1-pcc@google.com
-Signed-off-by: Peter Collingbourne <pcc@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+This is a prepatory patch for the next one, which changes the tag-based
+KASAN modes to not poison the boot memory.
+
+Link: https://lkml.kernel.org/r/c8e93571c18b3528aac5eb33ade213bf133d10ad.1613692950.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h   |    3 +--
- mm/kasan/sw_tags.c |   10 +++++++---
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ include/linux/kasan.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/kasan/kasan.h~kasan-fix-kasan_byte_accessible-to-be-consistent-with-actual-checks
-+++ a/mm/kasan/kasan.h
-@@ -396,8 +396,7 @@ static inline bool kasan_byte_accessible
- 	u8 ptr_tag = get_tag(addr);
- 	u8 mem_tag = hw_get_mem_tag((void *)addr);
+--- a/include/linux/kasan.h~kasan-initialize-shadow-to-tag_invalid-for-sw_tags
++++ a/include/linux/kasan.h
+@@ -30,7 +30,8 @@ struct kunit_kasan_expectation {
+ /* Software KASAN implementations use shadow memory. */
  
--	return (mem_tag != KASAN_TAG_INVALID) &&
--		(ptr_tag == KASAN_TAG_KERNEL || ptr_tag == mem_tag);
-+	return ptr_tag == KASAN_TAG_KERNEL || ptr_tag == mem_tag;
- }
- 
- #else /* CONFIG_KASAN_HW_TAGS */
---- a/mm/kasan/sw_tags.c~kasan-fix-kasan_byte_accessible-to-be-consistent-with-actual-checks
-+++ a/mm/kasan/sw_tags.c
-@@ -121,10 +121,14 @@ bool kasan_check_range(unsigned long add
- bool kasan_byte_accessible(const void *addr)
- {
- 	u8 tag = get_tag(addr);
--	u8 shadow_byte = READ_ONCE(*(u8 *)kasan_mem_to_shadow(kasan_reset_tag(addr)));
-+	void *untagged_addr = kasan_reset_tag(addr);
-+	u8 shadow_byte;
- 
--	return (shadow_byte != KASAN_TAG_INVALID) &&
--		(tag == KASAN_TAG_KERNEL || tag == shadow_byte);
-+	if (untagged_addr < kasan_shadow_to_mem((void *)KASAN_SHADOW_START))
-+		return false;
-+
-+	shadow_byte = READ_ONCE(*(u8 *)kasan_mem_to_shadow(untagged_addr));
-+	return tag == KASAN_TAG_KERNEL || tag == shadow_byte;
- }
- 
- #define DEFINE_HWASAN_LOAD_STORE(size)					\
+ #ifdef CONFIG_KASAN_SW_TAGS
+-#define KASAN_SHADOW_INIT 0xFF
++/* This matches KASAN_TAG_INVALID. */
++#define KASAN_SHADOW_INIT 0xFE
+ #else
+ #define KASAN_SHADOW_INIT 0
+ #endif
 _
 
-Patches currently in -mm which might be from pcc@google.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
 
