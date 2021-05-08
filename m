@@ -7,34 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9B17C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 352E6C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD5836141E
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15DDD61421
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229549AbhEHWlW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:41:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44956 "EHLO mail.kernel.org"
+        id S229631AbhEHWl0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:41:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45020 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229577AbhEHWlV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:41:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 78D5B6140E;
-        Sat,  8 May 2021 22:40:19 +0000 (UTC)
+        id S229577AbhEHWlY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:41:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7C42B61402;
+        Sat,  8 May 2021 22:40:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513619;
-        bh=8Nyriucry1O3pQauhSPdL4cn85H6MShAl0YP1qJZSfc=;
+        s=korg; t=1620513621;
+        bh=YXy6GWcZ35B1UXrRn4+epmyhJYP9XvuJcasQsOgWMNU=;
         h=Date:From:To:Subject:From;
-        b=gyjk95gFqtyU/08C2082oIdKBI7doK1/+IPYHW2WhZ1uUl/ge/KXiKftubIuMi6LZ
-         8UyT/L2LolQgOKIs8SGTWtQSmlnNtZhu2Voj6fzzwHRn7bKfjTTDch6YX19joDAOvk
-         to4fyA6b8cn8ZELWSP+lSkZ+aWVwybGN9JqWXHiE=
-Date:   Sat, 08 May 2021 15:40:19 -0700
+        b=BDi8VKK44nml6gMtPEhBqYAOR/4DV3EWFG38gNaglg1/qIz5eS9zitWb7gtmAQ2bL
+         RF9lEbAQtY1TXZWJmmaccNHFN71CQ9wpj44ye6ptv/NBJD6c8gqgReMwd6iy+GqQ+H
+         xMhKP7eMpp3eJT5sbhuoYZVXFJ+sQGGBsfdtG39k=
+Date:   Sat, 08 May 2021 15:40:21 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, slyfox@gentoo.org, vbabka@suse.cz
-Subject:  [merged]
- mm-page_poison-print-page-owner-info-when-corruption-is-caught.patch
- removed from -mm tree
-Message-ID: <20210508224019.80C0USruh%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, benh@kernel.crashing.org,
+        catalin.marinas@arm.com, chris@zankel.net, jcmvbkbc@gmail.com,
+        linux@armlinux.org.uk, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org,
+        tglx@linutronix.de, tsbogend@alpha.franken.de, will@kernel.org
+Subject:  [merged] mm-memtest-add-arch_use_memtest.patch removed
+ from -mm tree
+Message-ID: <20210508224021._hcXF1GRe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,106 +46,136 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_poison: print page info when corruption is caught
+     Subject: mm/memtest: add ARCH_USE_MEMTEST
 has been removed from the -mm tree.  Its filename was
-     mm-page_poison-print-page-owner-info-when-corruption-is-caught.patch
+     mm-memtest-add-arch_use_memtest.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: mm: page_poison: print page info when corruption is caught
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/memtest: add ARCH_USE_MEMTEST
 
-When page_poison detects page corruption it's useful to see who freed a
-page recently to have a guess where write-after-free corruption happens.
+early_memtest() does not get called from all architectures.  Hence
+enabling CONFIG_MEMTEST and providing a valid memtest=[1..N] kernel
+command line option might not trigger the memory pattern tests as would be
+expected in normal circumstances.  This situation is misleading.
 
-After this change corruption report has extra page data.
-Example report from real corruption (includes only page_pwner part):
+The change here prevents the above mentioned problem after introducing a
+new config option ARCH_USE_MEMTEST that should be subscribed on platforms
+that call early_memtest(), in order to enable the config CONFIG_MEMTEST. 
+Conversely CONFIG_MEMTEST cannot be enabled on platforms where it would
+not be tested anyway.
 
-    pagealloc: memory corruption
-    e00000014cd61d10: 11 00 00 00 00 00 00 00 30 1d d2 ff ff 0f 00 60  ........0......`
-    e00000014cd61d20: b0 1d d2 ff ff 0f 00 60 90 fe 1c 00 08 00 00 20  .......`.......
-    ...
-    CPU: 1 PID: 220402 Comm: cc1plus Not tainted 5.12.0-rc5-00107-g9720c6f59ecf #245
-    Hardware name: hp server rx3600, BIOS 04.03 04/08/2008
-    ...
-    Call Trace:
-     [<a000000100015210>] show_stack+0x90/0xc0
-     [<a000000101163390>] dump_stack+0x150/0x1c0
-     [<a0000001003f1e90>] __kernel_unpoison_pages+0x410/0x440
-     [<a0000001003c2460>] get_page_from_freelist+0x1460/0x2ca0
-     [<a0000001003c6be0>] __alloc_pages_nodemask+0x3c0/0x660
-     [<a0000001003ed690>] alloc_pages_vma+0xb0/0x500
-     [<a00000010037deb0>] __handle_mm_fault+0x1230/0x1fe0
-     [<a00000010037ef70>] handle_mm_fault+0x310/0x4e0
-     [<a00000010005dc70>] ia64_do_page_fault+0x1f0/0xb80
-     [<a00000010000ca00>] ia64_leave_kernel+0x0/0x270
-    page_owner tracks the page as freed
-    page allocated via order 0, migratetype Movable,
-      gfp_mask 0x100dca(GFP_HIGHUSER_MOVABLE|__GFP_ZERO), pid 37, ts 8173444098740
-     __reset_page_owner+0x40/0x200
-     free_pcp_prepare+0x4d0/0x600
-     free_unref_page+0x20/0x1c0
-     __put_page+0x110/0x1a0
-     migrate_pages+0x16d0/0x1dc0
-     compact_zone+0xfc0/0x1aa0
-     proactive_compact_node+0xd0/0x1e0
-     kcompactd+0x550/0x600
-     kthread+0x2c0/0x2e0
-     call_payload+0x50/0x80
-
-Here we can see that page was freed by page migration but something
-managed to write to it afterwards.
-
-[slyfox@gentoo.org: s/dump_page_owner/dump_page/, per Vlastimil]
-  Link: https://lkml.kernel.org/r/20210407230800.1086854-1-slyfox@gentoo.org
-Link: https://lkml.kernel.org/r/20210404141735.2152984-1-slyfox@gentoo.org
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/1617269193-22294-1-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com> (arm64)
+Reviewed-by: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Will Deacon <will@kernel.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_poison.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/arm/Kconfig     |    1 +
+ arch/arm64/Kconfig   |    1 +
+ arch/mips/Kconfig    |    1 +
+ arch/powerpc/Kconfig |    1 +
+ arch/x86/Kconfig     |    1 +
+ arch/xtensa/Kconfig  |    1 +
+ lib/Kconfig.debug    |    9 ++++++++-
+ 7 files changed, 14 insertions(+), 1 deletion(-)
 
---- a/mm/page_poison.c~mm-page_poison-print-page-owner-info-when-corruption-is-caught
-+++ a/mm/page_poison.c
-@@ -2,6 +2,7 @@
- #include <linux/kernel.h>
- #include <linux/string.h>
- #include <linux/mm.h>
-+#include <linux/mmdebug.h>
- #include <linux/highmem.h>
- #include <linux/page_ext.h>
- #include <linux/poison.h>
-@@ -45,7 +46,7 @@ static bool single_bit_flip(unsigned cha
- 	return error && !(error & (error - 1));
- }
+--- a/arch/arm64/Kconfig~mm-memtest-add-arch_use_memtest
++++ a/arch/arm64/Kconfig
+@@ -67,6 +67,7 @@ config ARM64
+ 	select ARCH_KEEP_MEMBLOCK
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+ 	select ARCH_USE_GNU_PROPERTY
++	select ARCH_USE_MEMTEST
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
+ 	select ARCH_USE_SYM_ANNOTATIONS
+--- a/arch/arm/Kconfig~mm-memtest-add-arch_use_memtest
++++ a/arch/arm/Kconfig
+@@ -33,6 +33,7 @@ config ARM
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_CMPXCHG_LOCKREF
++	select ARCH_USE_MEMTEST
+ 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT if MMU
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select ARCH_WANT_LD_ORPHAN_WARN
+--- a/arch/mips/Kconfig~mm-memtest-add-arch_use_memtest
++++ a/arch/mips/Kconfig
+@@ -16,6 +16,7 @@ config MIPS
+ 	select ARCH_SUPPORTS_UPROBES
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_CMPXCHG_LOCKREF if 64BIT
++	select ARCH_USE_MEMTEST
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
+ 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT if MMU
+--- a/arch/powerpc/Kconfig~mm-memtest-add-arch_use_memtest
++++ a/arch/powerpc/Kconfig
+@@ -149,6 +149,7 @@ config PPC
+ 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC	if PPC32 || PPC_BOOK3S_64
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_CMPXCHG_LOCKREF		if PPC64
++	select ARCH_USE_MEMTEST
+ 	select ARCH_USE_QUEUED_RWLOCKS		if PPC_QUEUED_SPINLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS	if PPC_QUEUED_SPINLOCKS
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+--- a/arch/x86/Kconfig~mm-memtest-add-arch_use_memtest
++++ a/arch/x86/Kconfig
+@@ -100,6 +100,7 @@ config X86
+ 	select ARCH_SUPPORTS_LTO_CLANG		if X86_64
+ 	select ARCH_SUPPORTS_LTO_CLANG_THIN	if X86_64
+ 	select ARCH_USE_BUILTIN_BSWAP
++	select ARCH_USE_MEMTEST
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
+ 	select ARCH_USE_SYM_ANNOTATIONS
+--- a/arch/xtensa/Kconfig~mm-memtest-add-arch_use_memtest
++++ a/arch/xtensa/Kconfig
+@@ -7,6 +7,7 @@ config XTENSA
+ 	select ARCH_HAS_SYNC_DMA_FOR_CPU if MMU
+ 	select ARCH_HAS_SYNC_DMA_FOR_DEVICE if MMU
+ 	select ARCH_HAS_DMA_SET_UNCACHED if MMU
++	select ARCH_USE_MEMTEST
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
+ 	select ARCH_WANT_FRAME_POINTERS
+--- a/lib/Kconfig.debug~mm-memtest-add-arch_use_memtest
++++ a/lib/Kconfig.debug
+@@ -2578,11 +2578,18 @@ config TEST_FPU
  
--static void check_poison_mem(unsigned char *mem, size_t bytes)
-+static void check_poison_mem(struct page *page, unsigned char *mem, size_t bytes)
- {
- 	static DEFINE_RATELIMIT_STATE(ratelimit, 5 * HZ, 10);
- 	unsigned char *start;
-@@ -70,6 +71,7 @@ static void check_poison_mem(unsigned ch
- 	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 16, 1, start,
- 			end - start + 1, 1);
- 	dump_stack();
-+	dump_page(page, "pagealloc: corrupted page details");
- }
+ endif # RUNTIME_TESTING_MENU
  
- static void unpoison_page(struct page *page)
-@@ -83,7 +85,7 @@ static void unpoison_page(struct page *p
- 	 * that is freed to buddy. Thus no extra check is done to
- 	 * see if a page was poisoned.
- 	 */
--	check_poison_mem(kasan_reset_tag(addr), PAGE_SIZE);
-+	check_poison_mem(page, kasan_reset_tag(addr), PAGE_SIZE);
- 	kasan_enable_current();
- 	kunmap_atomic(addr);
- }
++config ARCH_USE_MEMTEST
++	bool
++	help
++	  An architecture should select this when it uses early_memtest()
++	  during boot process.
++
+ config MEMTEST
+ 	bool "Memtest"
++	depends on ARCH_USE_MEMTEST
+ 	help
+ 	  This option adds a kernel parameter 'memtest', which allows memtest
+-	  to be set.
++	  to be set and executed.
+ 	        memtest=0, mean disabled; -- default
+ 	        memtest=1, mean do 1 test pattern;
+ 	        ...
 _
 
-Patches currently in -mm which might be from slyfox@gentoo.org are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
 
