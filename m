@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6753DC433ED
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C6E3C433B4
 	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 446DA61424
+	by mail.kernel.org (Postfix) with ESMTP id 3997261426
 	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229712AbhEHWnf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:43:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49174 "EHLO mail.kernel.org"
+        id S229679AbhEHWnZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:43:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49002 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229699AbhEHWn1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:43:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C017613C5;
-        Sat,  8 May 2021 22:42:24 +0000 (UTC)
+        id S229693AbhEHWnY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:43:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9295C6100C;
+        Sat,  8 May 2021 22:42:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513744;
-        bh=u9NUj5EAyiCNpzFZsSzlnUMOuMyGdQ8RFGvgvwFIA6k=;
+        s=korg; t=1620513742;
+        bh=t2eaZlu1FtelaSqoiwH3tV/BxlQOeGkP2PoAq+OzAI8=;
         h=Date:From:To:Subject:From;
-        b=Xmj2ss8YEQf7ZbdXoSuGloZ5kc6uZV0A39fyC3aHgzhFO7QUJ/s6vNFVqwfc/nNBB
-         5VN+eqE+6f2V27/C4VVPwI3daF0NKIVWko8QU3rY2UQawdymZZUtDCHL8FuwacvKlD
-         ZLZD4WaTbFLkAHTN2uxaIuIjUbwn7uWj8zAopVOQ=
-Date:   Sat, 08 May 2021 15:42:24 -0700
+        b=P0SnIiiK126BbpdVKn8ecE4tOZHqCNDw0TkWi5A9DvhaPc4ciUhKOH9+w3b39SlFd
+         T3SLSENuT9187fyNtDz/Vzei3/zY1gENcaKi3yTc9XezlX2taXYT2jzBu1tXRk7S3N
+         Bsp+ekdAfmDJDgo6H9b81IRMbZ5Z4OPHlJHX9BJ4=
+Date:   Sat, 08 May 2021 15:42:22 -0700
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, kwankhede@nvidia.com, mm-commits@vger.kernel.org
+To:     david@redhat.com, mm-commits@vger.kernel.org, osalvador@suse.de,
+        pasha.tatashin@oracle.com, wangwensheng4@huawei.com
 Subject:  [merged]
- samples-vfio-mdev-mdpy-use-remap_vmalloc_range.patch removed from -mm tree
-Message-ID: <20210508224224.0yT9s3df8%akpm@linux-foundation.org>
+ mm-sparse-add-the-missing-sparse_buffer_fini-in-error-branch.patch removed
+ from -mm tree
+Message-ID: <20210508224222.Uvo0pCAcW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,52 +44,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: samples/vfio-mdev/mdpy: use remap_vmalloc_range
+     Subject: mm/sparse: add the missing sparse_buffer_fini() in error branch
 has been removed from the -mm tree.  Its filename was
-     samples-vfio-mdev-mdpy-use-remap_vmalloc_range.patch
+     mm-sparse-add-the-missing-sparse_buffer_fini-in-error-branch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: samples/vfio-mdev/mdpy: use remap_vmalloc_range
+From: Wang Wensheng <wangwensheng4@huawei.com>
+Subject: mm/sparse: add the missing sparse_buffer_fini() in error branch
 
-Patch series "remap_vmalloc_range cleanups".
+sparse_buffer_init() and sparse_buffer_fini() should appear in pair, or a
+WARN issue would be through the next time sparse_buffer_init() runs.
 
-This series removes an open coded instance of remap_vmalloc_range and
-removes the unused remap_vmalloc_range_partial export.
+Add the missing sparse_buffer_fini() in error branch.
 
-
-This patch (of 2):
-
-Use remap_vmalloc_range instead of open coding it using
-remap_vmalloc_range_partial.
-
-Link: https://lkml.kernel.org/r/20210301082235.932968-1-hch@lst.de
-Link: https://lkml.kernel.org/r/20210301082235.932968-2-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Kirti Wankhede <kwankhede@nvidia.com>
+Link: https://lkml.kernel.org/r/20210325113155.118574-1-wangwensheng4@huawei.com
+Fixes: 85c77f791390 ("mm/sparse: add new sparse_init_nid() and sparse_init()")
+Signed-off-by: Wang Wensheng <wangwensheng4@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/vfio-mdev/mdpy.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/sparse.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/samples/vfio-mdev/mdpy.c~samples-vfio-mdev-mdpy-use-remap_vmalloc_range
-+++ a/samples/vfio-mdev/mdpy.c
-@@ -406,9 +406,7 @@ static int mdpy_mmap(struct mdev_device
- 	if ((vma->vm_flags & VM_SHARED) == 0)
- 		return -EINVAL;
- 
--	return remap_vmalloc_range_partial(vma, vma->vm_start,
--					   mdev_state->memblk, 0,
--					   vma->vm_end - vma->vm_start);
-+	return remap_vmalloc_range(vma, mdev_state->memblk, 0);
- }
- 
- static int mdpy_get_region_info(struct mdev_device *mdev,
+--- a/mm/sparse.c~mm-sparse-add-the-missing-sparse_buffer_fini-in-error-branch
++++ a/mm/sparse.c
+@@ -547,6 +547,7 @@ static void __init sparse_init_nid(int n
+ 			pr_err("%s: node[%d] memory map backing failed. Some memory will not be available.",
+ 			       __func__, nid);
+ 			pnum_begin = pnum;
++			sparse_buffer_fini();
+ 			goto failed;
+ 		}
+ 		check_usemap_section_nr(nid, usage);
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from wangwensheng4@huawei.com are
 
 
