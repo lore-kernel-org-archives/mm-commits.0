@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F091C433B4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E737AC43460
 	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2333661402
+	by mail.kernel.org (Postfix) with ESMTP id CA200613EA
 	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229675AbhEHWpi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229726AbhEHWpi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 8 May 2021 18:45:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54098 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54244 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229696AbhEHWpd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:45:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 89F50613C5;
-        Sat,  8 May 2021 22:44:30 +0000 (UTC)
+        id S229552AbhEHWpg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:45:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8EB9C613EA;
+        Sat,  8 May 2021 22:44:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513870;
-        bh=/G0kpeG3BpYT14ICUgPgFpH1o9zIENXIB1GABxeowMQ=;
+        s=korg; t=1620513874;
+        bh=gdoRmAsYpo45S+Hd+7/hz+BI4NFCKtITCNwhJDjVFLU=;
         h=Date:From:To:Subject:From;
-        b=p6k/CVlfKaeMF//cX7tRRZa0R63v2Z4u4DaI3suDPhBipllxVWtAhCpYagXPnwhkM
-         yF+RucI9rcaw4L+ACtklZ8FnW7fw07U5N6LPfsRuTgOtPjY2WI0eCDpCfKrYqtMK3O
-         FRijZrEcLhPqVrJV4pp8MMDywJaRm9/44pon8hIM=
-Date:   Sat, 08 May 2021 15:44:30 -0700
+        b=CeJ6Y6JcJkJia5j4EU2AhZLbnDBJokiiMk0LuSg7cyLMBptXyVJNMQToesFhRsSX5
+         4sN1JNrNMTxfheqIY/gd/58HocDVhTKet1qbkQuu4CrrWX6eXXsqUuQBhiDc+VY1P4
+         KwBgC1Toyfh38jK7N5wgyitHe1hCU6gaL8IDf9aw=
+Date:   Sat, 08 May 2021 15:44:34 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com,
         elver@google.com, glider@google.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- kasan-docs-update-hw_tags-implementation-details-section.patch removed from
- -mm tree
-Message-ID: <20210508224430.JOxWxO_ZB%akpm@linux-foundation.org>
+ kasan-docs-update-ignoring-accesses-section.patch removed from -mm tree
+Message-ID: <20210508224434.56CutwvjI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,21 +43,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: docs: update HW_TAGS implementation details section
+     Subject: kasan: docs: update ignoring accesses section
 has been removed from the -mm tree.  Its filename was
-     kasan-docs-update-hw_tags-implementation-details-section.patch
+     kasan-docs-update-ignoring-accesses-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: docs: update HW_TAGS implementation details section
+Subject: kasan: docs: update ignoring accesses section
 
-Update the "Implementation details" section for HW_TAGS KASAN:
+Update the "Ignoring accesses" section in KASAN documentation:
 
-- Punctuation, readability, and other minor clean-ups.
+- Mention __no_sanitize_address/noinstr.
+- Mention kasan_disable/enable_current().
+- Mention kasan_reset_tag()/page_kasan_tag_reset().
+- Readability and punctuation clean-ups.
 
-Link: https://lkml.kernel.org/r/ee2caf4c138cc1fd239822c2abefd5af6c057744.1615559068.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/4531ba5f3eca61f6aade863c136778cc8c807a64.1615559068.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -67,60 +69,61 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ Documentation/dev-tools/kasan.rst |   34 ++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-hw_tags-implementation-details-section
+--- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-ignoring-accesses-section
 +++ a/Documentation/dev-tools/kasan.rst
-@@ -279,35 +279,35 @@ memory.
- Hardware tag-based KASAN
- ~~~~~~~~~~~~~~~~~~~~~~~~
+@@ -377,12 +377,18 @@ Ignoring accesses
+ ~~~~~~~~~~~~~~~~~
  
--Hardware tag-based KASAN is similar to the software mode in concept, but uses
-+Hardware tag-based KASAN is similar to the software mode in concept but uses
- hardware memory tagging support instead of compiler instrumentation and
- shadow memory.
+ Software KASAN modes use compiler instrumentation to insert validity checks.
+-Such instrumentation might be incompatible with some part of the kernel, and
+-therefore needs to be disabled. To disable instrumentation for specific files
+-or directories, add a line similar to the following to the respective kernel
++Such instrumentation might be incompatible with some parts of the kernel, and
++therefore needs to be disabled.
++
++Other parts of the kernel might access metadata for allocated objects.
++Normally, KASAN detects and reports such accesses, but in some cases (e.g.,
++in memory allocators), these accesses are valid.
++
++For software KASAN modes, to disable instrumentation for a specific file or
++directory, add a ``KASAN_SANITIZE`` annotation to the respective kernel
+ Makefile:
  
- Hardware tag-based KASAN is currently only implemented for arm64 architecture
- and based on both arm64 Memory Tagging Extension (MTE) introduced in ARMv8.5
--Instruction Set Architecture, and Top Byte Ignore (TBI).
-+Instruction Set Architecture and Top Byte Ignore (TBI).
+-- For a single file (e.g. main.o)::
++- For a single file (e.g., main.o)::
  
- Special arm64 instructions are used to assign memory tags for each allocation.
- Same tags are assigned to pointers to those allocations. On every memory
--access, hardware makes sure that tag of the memory that is being accessed is
--equal to tag of the pointer that is used to access this memory. In case of a
--tag mismatch a fault is generated and a report is printed.
-+access, hardware makes sure that the tag of the memory that is being accessed is
-+equal to the tag of the pointer that is used to access this memory. In case of a
-+tag mismatch, a fault is generated, and a report is printed.
+     KASAN_SANITIZE_main.o := n
  
- Hardware tag-based KASAN uses 0xFF as a match-all pointer tag (accesses through
--pointers with 0xFF pointer tag aren't checked). The value 0xFE is currently
-+pointers with the 0xFF pointer tag are not checked). The value 0xFE is currently
- reserved to tag freed memory regions.
+@@ -390,6 +396,26 @@ Makefile:
  
--Hardware tag-based KASAN currently only supports tagging of
--kmem_cache_alloc/kmalloc and page_alloc memory.
-+Hardware tag-based KASAN currently only supports tagging of slab and page_alloc
-+memory.
+     KASAN_SANITIZE := n
  
--If the hardware doesn't support MTE (pre ARMv8.5), hardware tag-based KASAN
--won't be enabled. In this case all boot parameters are ignored.
-+If the hardware does not support MTE (pre ARMv8.5), hardware tag-based KASAN
-+will not be enabled. In this case, all KASAN boot parameters are ignored.
++For software KASAN modes, to disable instrumentation on a per-function basis,
++use the KASAN-specific ``__no_sanitize_address`` function attribute or the
++generic ``noinstr`` one.
++
++Note that disabling compiler instrumentation (either on a per-file or a
++per-function basis) makes KASAN ignore the accesses that happen directly in
++that code for software KASAN modes. It does not help when the accesses happen
++indirectly (through calls to instrumented functions) or with the hardware
++tag-based mode that does not use compiler instrumentation.
++
++For software KASAN modes, to disable KASAN reports in a part of the kernel code
++for the current task, annotate this part of the code with a
++``kasan_disable_current()``/``kasan_enable_current()`` section. This also
++disables the reports for indirect accesses that happen through function calls.
++
++For tag-based KASAN modes (include the hardware one), to disable access
++checking, use ``kasan_reset_tag()`` or ``page_kasan_tag_reset()``. Note that
++temporarily disabling access checking via ``page_kasan_tag_reset()`` requires
++saving and restoring the per-page KASAN tag via
++``page_kasan_tag``/``page_kasan_tag_set``.
  
--Note, that enabling CONFIG_KASAN_HW_TAGS always results in in-kernel TBI being
--enabled. Even when kasan.mode=off is provided, or when the hardware doesn't
-+Note that enabling CONFIG_KASAN_HW_TAGS always results in in-kernel TBI being
-+enabled. Even when ``kasan.mode=off`` is provided or when the hardware does not
- support MTE (but supports TBI).
- 
--Hardware tag-based KASAN only reports the first found bug. After that MTE tag
-+Hardware tag-based KASAN only reports the first found bug. After that, MTE tag
- checking gets disabled.
- 
- Shadow memory
+ Tests
+ ~~~~~
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
