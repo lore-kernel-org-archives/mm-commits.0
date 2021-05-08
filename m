@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3629C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DDD1C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C90B661421
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 404F061424
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229620AbhEHWua (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:50:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35606 "EHLO mail.kernel.org"
+        id S229631AbhEHWui (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:50:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35756 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229656AbhEHWu3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:50:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6EC5D613EA;
-        Sat,  8 May 2021 22:49:27 +0000 (UTC)
+        id S229727AbhEHWuf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:50:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6BB7761402;
+        Sat,  8 May 2021 22:49:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514167;
-        bh=mrN/piK/ICePnBML0xkxswQuXXCuU0mJZdaPljXNAHo=;
+        s=korg; t=1620514173;
+        bh=Pky0LaPoAoR+Ql40aH3lwZk/CZfFcSTaCX8a95L80tg=;
         h=Date:From:To:Subject:From;
-        b=ZvKjRhdP5IuCxxUCfuDVrf5mJEh1nieXvj8gXqQif3cqprv5ru1AeSF6915L938NA
-         jzs4GKicLmzjZ1t43MnuqOspeQ4u92c8xcJB5HW4OJJFLqAdiPrvOiF8ngEDoWPe85
-         2RgaEvj5G1kQX8EaKFoaXcm/O6Fg5tEql4nIIS8E=
-Date:   Sat, 08 May 2021 15:49:27 -0700
+        b=dWcK0rubpxy0marcSI7pjLf2XlruoelBgyU/oM9/BkMQ6ZQDsz1iemcKl9S1qtAXf
+         dckP+hM32KpjPdWvzBnzWePvRjM3U8xtZcWaGWH8qj4p81Zvbv5e1TBWsbvIjIZNiY
+         GbinXHNS5wdLu90uP6nkbbWjPdOVs/eWCuufVxb8=
+Date:   Sat, 08 May 2021 15:49:33 -0700
 From:   akpm@linux-foundation.org
-To:     georgi.djakov@linaro.org, lmark@codeaurora.org, minchan@kernel.org,
-        mm-commits@vger.kernel.org
+To:     hughd@google.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-cma-add-the-cma-instance-name-to-cma-trace-events.patch removed from -mm
- tree
-Message-ID: <20210508224927.Oca-ycsDR%akpm@linux-foundation.org>
+ =?US-ASCII?Q?ksm-use-get=5Fksm=5Fpage=5Fnolock-to-get-ksm-page-in-remo?=
+ =?US-ASCII?Q?ve=5Frmap=5Fitem=5Ffrom=5Ftree.patch?= removed from -mm tree
+Message-ID: <20210508224933.G4KD0HG6O%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,155 +45,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: add the CMA instance name to cma trace events
+     Subject: ksm: use GET_KSM_PAGE_NOLOCK to get ksm page in remove_rmap_item_from_tree()
 has been removed from the -mm tree.  Its filename was
-     mm-cma-add-the-cma-instance-name-to-cma-trace-events.patch
+     ksm-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: cma: add the CMA instance name to cma trace events
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: ksm: use GET_KSM_PAGE_NOLOCK to get ksm page in remove_rmap_item_from_tree()
 
-There were missing places to add cma instance name.  To identify each CMA
-instance, let's add the name for every cma trace.  This patch also changes
-the existing cma_trace_alloc to cma_trace_finish since we have
-cma_alloc_start[1].
+It's unnecessary to lock the page when get ksm page if we're going to
+remove the rmap item as page migration is irrelevant in this case.  Use
+GET_KSM_PAGE_NOLOCK instead to save some page lock cycles.
 
-[1] https://lore.kernel.org/linux-mm/20210324160740.15901-1-georgi.djakov@linaro.org
-
-Link: https://lkml.kernel.org/r/20210330220237.748899-1-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Liam Mark <lmark@codeaurora.org>
-Cc: Georgi Djakov <georgi.djakov@linaro.org>
+Link: https://lkml.kernel.org/r/20210330140228.45635-3-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/cma.h |   28 +++++++++++++++++-----------
- mm/cma.c                   |    7 ++++---
- 2 files changed, 21 insertions(+), 14 deletions(-)
+ mm/ksm.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/trace/events/cma.h~mm-cma-add-the-cma-instance-name-to-cma-trace-events
-+++ a/include/trace/events/cma.h
-@@ -10,12 +10,13 @@
+--- a/mm/ksm.c~ksm-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree
++++ a/mm/ksm.c
+@@ -778,12 +778,11 @@ static void remove_rmap_item_from_tree(s
+ 		struct page *page;
  
- DECLARE_EVENT_CLASS(cma_alloc_class,
+ 		stable_node = rmap_item->head;
+-		page = get_ksm_page(stable_node, GET_KSM_PAGE_LOCK);
++		page = get_ksm_page(stable_node, GET_KSM_PAGE_NOLOCK);
+ 		if (!page)
+ 			goto out;
  
--	TP_PROTO(unsigned long pfn, const struct page *page,
-+	TP_PROTO(const char *name, unsigned long pfn, const struct page *page,
- 		 unsigned int count, unsigned int align),
+ 		hlist_del(&rmap_item->hlist);
+-		unlock_page(page);
+ 		put_page(page);
  
--	TP_ARGS(pfn, page, count, align),
-+	TP_ARGS(name, pfn, page, count, align),
- 
- 	TP_STRUCT__entry(
-+		__string(name, name)
- 		__field(unsigned long, pfn)
- 		__field(const struct page *, page)
- 		__field(unsigned int, count)
-@@ -23,13 +24,15 @@ DECLARE_EVENT_CLASS(cma_alloc_class,
- 	),
- 
- 	TP_fast_assign(
-+		__assign_str(name, name);
- 		__entry->pfn = pfn;
- 		__entry->page = page;
- 		__entry->count = count;
- 		__entry->align = align;
- 	),
- 
--	TP_printk("pfn=%lx page=%p count=%u align=%u",
-+	TP_printk("name=%s pfn=%lx page=%p count=%u align=%u",
-+		  __get_str(name),
- 		  __entry->pfn,
- 		  __entry->page,
- 		  __entry->count,
-@@ -38,24 +41,27 @@ DECLARE_EVENT_CLASS(cma_alloc_class,
- 
- TRACE_EVENT(cma_release,
- 
--	TP_PROTO(unsigned long pfn, const struct page *page,
-+	TP_PROTO(const char *name, unsigned long pfn, const struct page *page,
- 		 unsigned int count),
- 
--	TP_ARGS(pfn, page, count),
-+	TP_ARGS(name, pfn, page, count),
- 
- 	TP_STRUCT__entry(
-+		__string(name, name)
- 		__field(unsigned long, pfn)
- 		__field(const struct page *, page)
- 		__field(unsigned int, count)
- 	),
- 
- 	TP_fast_assign(
-+		__assign_str(name, name);
- 		__entry->pfn = pfn;
- 		__entry->page = page;
- 		__entry->count = count;
- 	),
- 
--	TP_printk("pfn=%lx page=%p count=%u",
-+	TP_printk("name=%s pfn=%lx page=%p count=%u",
-+		  __get_str(name),
- 		  __entry->pfn,
- 		  __entry->page,
- 		  __entry->count)
-@@ -85,20 +91,20 @@ TRACE_EVENT(cma_alloc_start,
- 		  __entry->align)
- );
- 
--DEFINE_EVENT(cma_alloc_class, cma_alloc,
-+DEFINE_EVENT(cma_alloc_class, cma_alloc_finish,
- 
--	TP_PROTO(unsigned long pfn, const struct page *page,
-+	TP_PROTO(const char *name, unsigned long pfn, const struct page *page,
- 		 unsigned int count, unsigned int align),
- 
--	TP_ARGS(pfn, page, count, align)
-+	TP_ARGS(name, pfn, page, count, align)
- );
- 
- DEFINE_EVENT(cma_alloc_class, cma_alloc_busy_retry,
- 
--	TP_PROTO(unsigned long pfn, const struct page *page,
-+	TP_PROTO(const char *name, unsigned long pfn, const struct page *page,
- 		 unsigned int count, unsigned int align),
- 
--	TP_ARGS(pfn, page, count, align)
-+	TP_ARGS(name, pfn, page, count, align)
- );
- 
- #endif /* _TRACE_CMA_H */
---- a/mm/cma.c~mm-cma-add-the-cma-instance-name-to-cma-trace-events
-+++ a/mm/cma.c
-@@ -486,12 +486,13 @@ struct page *cma_alloc(struct cma *cma,
- 		pr_debug("%s(): memory range at %p is busy, retrying\n",
- 			 __func__, pfn_to_page(pfn));
- 
--		trace_cma_alloc_busy_retry(pfn, pfn_to_page(pfn), count, align);
-+		trace_cma_alloc_busy_retry(cma->name, pfn, pfn_to_page(pfn),
-+					   count, align);
- 		/* try again with a bit different memory target */
- 		start = bitmap_no + mask + 1;
- 	}
- 
--	trace_cma_alloc(pfn, page, count, align);
-+	trace_cma_alloc_finish(cma->name, pfn, page, count, align);
- 
- 	/*
- 	 * CMA can allocate multiple page blocks, which results in different
-@@ -551,7 +552,7 @@ bool cma_release(struct cma *cma, const
- 
- 	free_contig_range(pfn, count);
- 	cma_clear_bitmap(cma, pfn, count);
--	trace_cma_release(pfn, pages, count);
-+	trace_cma_release(cma->name, pfn, pages, count);
- 
- 	return true;
- }
+ 		if (!hlist_empty(&stable_node->hlist))
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
 
