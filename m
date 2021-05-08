@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 871E9C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A08E3C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 66B0861415
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 82DBA6141E
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229631AbhEHWl5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:41:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45878 "EHLO mail.kernel.org"
+        id S229609AbhEHWl7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:41:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45950 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229559AbhEHWl5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:41:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6E04F613EA;
-        Sat,  8 May 2021 22:40:54 +0000 (UTC)
+        id S229559AbhEHWl7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:41:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 91B1D61402;
+        Sat,  8 May 2021 22:40:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513654;
-        bh=vxImgkbikjaW7SMfXcut7SxJ9fy6iV42H/+qDAtzxUk=;
+        s=korg; t=1620513656;
+        bh=DLvnMAsbNjpERaG1O/2WB7Qq11RAIgeXQPIf+3TXgsQ=;
         h=Date:From:To:Subject:From;
-        b=p3ExdDzp1BngO3BcNhYPx+QVpwqGuUBQDYndYA2ayKQWswlLwUxKNWq/65PlY6hze
-         FcBDiaKG7M9zZNbNcYSsr/iVRVp4xjYMEsLlqbHRdwq1zbZj3WDWTVtXoD8D++vdn1
-         fDTzFsFXfZ595se0O+RM+NybuxkGfXBzq4mN2cVk=
-Date:   Sat, 08 May 2021 15:40:54 -0700
+        b=Xh8EbQuNxQUbuz+nB87yHCPV4+UdhAw9EJTtOGRd4OSGZ/fJkEii0MwpJ3ihwn2Uh
+         N1rTOzI50j/UZypwEtEzVugUU29zlal/yvDXh+Nb2fzC3rhrSYHv4wWiOtjqGI5z3H
+         27DZj+MbgHq3AnDhaj9szbEsjokpJwpvLDGG60QQ=
+Date:   Sat, 08 May 2021 15:40:56 -0700
 From:   akpm@linux-foundation.org
-To:     daizhiyuan@phytium.com.cn, mm-commits@vger.kernel.org
-Subject:  [merged]
- mm-memremap-fixes-improper-spdx-comment-style.patch removed from -mm tree
-Message-ID: <20210508224054.EITHDZdgm%akpm@linux-foundation.org>
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, shakeelb@google.com,
+        songmuchun@bytedance.com
+Subject:  [merged] mm-memcontrol-fix-kernel-stack-account.patch
+ removed from -mm tree
+Message-ID: <20210508224056.gcv_0wqcz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,38 +44,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memremap.c: fix improper SPDX comment style
+     Subject: mm: memcontrol: fix kernel stack account
 has been removed from the -mm tree.  Its filename was
-     mm-memremap-fixes-improper-spdx-comment-style.patch
+     mm-memcontrol-fix-kernel-stack-account.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
-Subject: mm/memremap.c: fix improper SPDX comment style
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcontrol: fix kernel stack account
 
-Replace /* */ comment with //, fix SPDX comment style.
+For simplification 991e7673859e ("mm: memcontrol: account kernel stack per
+node") has changed the per zone vmalloc backed stack pages accounting to
+per node.  By doing that we have lost a certain precision because those
+pages might live in different NUMA nodes.  In the end NR_KERNEL_STACK_KB
+exported to the userspace might be over estimated on some nodes while
+underestimated on others.  But this is not a real world problem, just a
+problem found by reading the code.  So there is no actual data to showing
+how much impact it has on users.
 
-see: Documentation/process/license-rules.rst
+This doesn't impose any real problem to correctnes of the kernel behavior
+as the counter is not used for any internal processing but it can cause
+some confusion to the userspace.
 
-Link: https://lkml.kernel.org/r/1614223348-15516-1-git-send-email-daizhiyuan@phytium.com.cn
-Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+Address the problem by accounting each vmalloc backing page to its own
+node.
+
+Link: https://lkml.kernel.org/r/20210303151843.81156-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memremap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/fork.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
---- a/mm/memremap.c~mm-memremap-fixes-improper-spdx-comment-style
-+++ a/mm/memremap.c
-@@ -1,4 +1,4 @@
--/* SPDX-License-Identifier: GPL-2.0 */
-+// SPDX-License-Identifier: GPL-2.0
- /* Copyright(c) 2015 Intel Corporation. All rights reserved. */
- #include <linux/device.h>
- #include <linux/io.h>
+--- a/kernel/fork.c~mm-memcontrol-fix-kernel-stack-account
++++ a/kernel/fork.c
+@@ -380,14 +380,17 @@ static void account_kernel_stack(struct
+ 	void *stack = task_stack_page(tsk);
+ 	struct vm_struct *vm = task_stack_vm_area(tsk);
+ 
++	if (vm) {
++		int i;
+ 
+-	/* All stack pages are in the same node. */
+-	if (vm)
+-		mod_lruvec_page_state(vm->pages[0], NR_KERNEL_STACK_KB,
+-				      account * (THREAD_SIZE / 1024));
+-	else
++		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++)
++			mod_lruvec_page_state(vm->pages[i], NR_KERNEL_STACK_KB,
++					      account * (PAGE_SIZE / 1024));
++	} else {
++		/* All stack pages are in the same node. */
+ 		mod_lruvec_kmem_state(stack, NR_KERNEL_STACK_KB,
+ 				      account * (THREAD_SIZE / 1024));
++	}
+ }
+ 
+ static int memcg_charge_kernel_stack(struct task_struct *tsk)
 _
 
-Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 
