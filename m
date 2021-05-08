@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEF2DC43460
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 599C0C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D51B4613EA
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3C1BD61415
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229728AbhEHWpo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:45:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54532 "EHLO mail.kernel.org"
+        id S229696AbhEHWpl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:45:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54418 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229552AbhEHWpn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:45:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8F30A61402;
-        Sat,  8 May 2021 22:44:41 +0000 (UTC)
+        id S229552AbhEHWpk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:45:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B49D613EA;
+        Sat,  8 May 2021 22:44:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513881;
-        bh=O60Apl7954ZCyeeBqInAjbWDVVV9VjS1Ks0ohugdte4=;
+        s=korg; t=1620513879;
+        bh=LRqaXBMK2Eh+e+y593SfbKtgWxWxfk57cw8RgX+WKQ0=;
         h=Date:From:To:Subject:From;
-        b=muYktO2oiVQJqW0L4DVBs7TEDGBBRGXJQZGSUK+S5s/rOelr8I0IgkvpVBPkkRQmO
-         Yi7uRigziZuacqBJFNsy8eMQZtrhZ40BU2vgft5QJS2BTC5raKxWZFmqeli4R73uFR
-         5KfuOsAR1GXtbq+rnA/mKbbVQIGLvYa+6GO3vfU8=
-Date:   Sat, 08 May 2021 15:44:41 -0700
+        b=HssQva0zM2GZ2HqxSK0BjxEvn488wj3wLLMiJFuTpdTNvhIpcU62cx55zFRH4RMUa
+         1mbYMTszsAu/2dx1dYZFhftr+zFpf+7Z0B+iAhw/NeH21i+KRHgL7FJ+3lWbZpzGq3
+         csk29lnA2Sr2Kr23aIW/7NSRTbnUAZEqNmIZt35M=
+Date:   Sat, 08 May 2021 15:44:38 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com,
-        elver@google.com, glider@google.com, mm-commits@vger.kernel.org
-Subject:  [merged] kasan-detect-false-positives-in-tests.patch
- removed from -mm tree
-Message-ID: <20210508224441.DYXtzm18c%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com, axboe@kernel.dk,
+        dvyukov@google.com, glider@google.com, matthias.bgg@gmail.com,
+        mm-commits@vger.kernel.org, oleg@redhat.com,
+        ryabinin.a.a@gmail.com, walter-zh.wu@mediatek.com
+Subject:  [merged]
+ task_work-kasan-record-task_work_add-call-stack.patch removed from -mm tree
+Message-ID: <20210508224438.pn3rzsDH2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,124 +45,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: detect false-positives in tests
+     Subject: kasan: record task_work_add() call stack
 has been removed from the -mm tree.  Its filename was
-     kasan-detect-false-positives-in-tests.patch
+     task_work-kasan-record-task_work_add-call-stack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: detect false-positives in tests
+From: Walter Wu <walter-zh.wu@mediatek.com>
+Subject: kasan: record task_work_add() call stack
 
-Currently, KASAN-KUnit tests can check that a particular annotated part of
-code causes a KASAN report.  However, they do not check that no unwanted
-reports happen between the annotated parts.
+Why record task_work_add() call stack?  Syzbot reports many use-after-free
+issues for task_work, see [1].  After seeing the free stack and the
+current auxiliary stack, we think they are useless, we don't know where
+the work was registered.  This work may be the free call stack, so we miss
+the root cause and don't solve the use-after-free.
 
-This patch implements these checks.
+Add the task_work_add() call stack into the KASAN auxiliary stack in order
+to improve KASAN reports.  It helps programmers solve use-after-free
+issues.
 
-It is done by setting report_data.report_found to false in
-kasan_test_init() and at the end of KUNIT_EXPECT_KASAN_FAIL() and then
-checking that it remains false at the beginning of
-KUNIT_EXPECT_KASAN_FAIL() and in kasan_test_exit().
+[1]: https://groups.google.com/g/syzkaller-bugs/search?q=kasan%20use-after-free%20task_work_run
 
-kunit_add_named_resource() call is moved to kasan_test_init(), and the
-value of fail_data.report_expected is kept as false in between
-KUNIT_EXPECT_KASAN_FAIL() annotations for consistency.
-
-Link: https://lkml.kernel.org/r/48079c52cc329fbc52f4386996598d58022fb872.1617207873.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
+Link: https://lkml.kernel.org/r/20210316024410.19967-1-walter-zh.wu@mediatek.com
+Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
+Suggested-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Jens Axboe <axboe@kernel.dk>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   55 +++++++++++++++++++++++----------------------
- 1 file changed, 29 insertions(+), 26 deletions(-)
+ kernel/task_work.c |    3 +++
+ mm/kasan/kasan.h   |    2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/lib/test_kasan.c~kasan-detect-false-positives-in-tests
-+++ a/lib/test_kasan.c
-@@ -54,6 +54,10 @@ static int kasan_test_init(struct kunit
- 
- 	multishot = kasan_save_enable_multi_shot();
- 	kasan_set_tagging_report_once(false);
-+	fail_data.report_found = false;
-+	fail_data.report_expected = false;
-+	kunit_add_named_resource(test, NULL, NULL, &resource,
-+					"kasan_data", &fail_data);
- 	return 0;
- }
- 
-@@ -61,6 +65,7 @@ static void kasan_test_exit(struct kunit
+--- a/kernel/task_work.c~task_work-kasan-record-task_work_add-call-stack
++++ a/kernel/task_work.c
+@@ -34,6 +34,9 @@ int task_work_add(struct task_struct *ta
  {
- 	kasan_set_tagging_report_once(true);
- 	kasan_restore_multi_shot(multishot);
-+	KUNIT_EXPECT_FALSE(test, fail_data.report_found);
- }
+ 	struct callback_head *head;
  
- /**
-@@ -78,33 +83,31 @@ static void kasan_test_exit(struct kunit
-  * fields, it can reorder or optimize away the accesses to those fields.
-  * Use READ/WRITE_ONCE() for the accesses and compiler barriers around the
-  * expression to prevent that.
-+ *
-+ * In between KUNIT_EXPECT_KASAN_FAIL checks, fail_data.report_found is kept as
-+ * false. This allows detecting KASAN reports that happen outside of the checks
-+ * by asserting !fail_data.report_found at the start of KUNIT_EXPECT_KASAN_FAIL
-+ * and in kasan_test_exit.
-  */
--#define KUNIT_EXPECT_KASAN_FAIL(test, expression) do {		\
--	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS) &&			\
--	    !kasan_async_mode_enabled())			\
--		migrate_disable();				\
--	WRITE_ONCE(fail_data.report_expected, true);		\
--	WRITE_ONCE(fail_data.report_found, false);		\
--	kunit_add_named_resource(test,				\
--				NULL,				\
--				NULL,				\
--				&resource,			\
--				"kasan_data", &fail_data);	\
--	barrier();						\
--	expression;						\
--	barrier();						\
--	if (kasan_async_mode_enabled())				\
--		kasan_force_async_fault();			\
--	barrier();						\
--	KUNIT_EXPECT_EQ(test,					\
--			READ_ONCE(fail_data.report_expected),	\
--			READ_ONCE(fail_data.report_found));	\
--	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS) &&			\
--	    !kasan_async_mode_enabled()) {			\
--		if (READ_ONCE(fail_data.report_found))		\
--			kasan_enable_tagging_sync();		\
--		migrate_enable();				\
--	}							\
-+#define KUNIT_EXPECT_KASAN_FAIL(test, expression) do {			\
-+	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS) &&				\
-+	    !kasan_async_mode_enabled())				\
-+		migrate_disable();					\
-+	KUNIT_EXPECT_FALSE(test, READ_ONCE(fail_data.report_found));	\
-+	WRITE_ONCE(fail_data.report_expected, true);			\
-+	barrier();							\
-+	expression;							\
-+	barrier();							\
-+	KUNIT_EXPECT_EQ(test,						\
-+			READ_ONCE(fail_data.report_expected),		\
-+			READ_ONCE(fail_data.report_found));		\
-+	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS)) {				\
-+		if (READ_ONCE(fail_data.report_found))			\
-+			kasan_enable_tagging_sync();			\
-+		migrate_enable();					\
-+	}								\
-+	WRITE_ONCE(fail_data.report_found, false);			\
-+	WRITE_ONCE(fail_data.report_expected, false);			\
- } while (0)
- 
- #define KASAN_TEST_NEEDS_CONFIG_ON(test, config) do {			\
++	/* record the work call stack in order to print it in KASAN reports */
++	kasan_record_aux_stack(work);
++
+ 	do {
+ 		head = READ_ONCE(task->task_works);
+ 		if (unlikely(head == &work_exited))
+--- a/mm/kasan/kasan.h~task_work-kasan-record-task_work_add-call-stack
++++ a/mm/kasan/kasan.h
+@@ -163,7 +163,7 @@ struct kasan_alloc_meta {
+ 	struct kasan_track alloc_track;
+ #ifdef CONFIG_KASAN_GENERIC
+ 	/*
+-	 * call_rcu() call stack is stored into struct kasan_alloc_meta.
++	 * The auxiliary stack is stored into struct kasan_alloc_meta.
+ 	 * The free stack is stored into struct kasan_free_meta.
+ 	 */
+ 	depot_stack_handle_t aux_stack[2];
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
 
 
