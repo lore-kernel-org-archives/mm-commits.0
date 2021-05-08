@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F2E2C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3568C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 01F3661415
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF5E46141E
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229656AbhEHWrP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:47:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58022 "EHLO mail.kernel.org"
+        id S229664AbhEHWrT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:47:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58148 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229522AbhEHWrP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:47:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0838A6100C;
-        Sat,  8 May 2021 22:46:12 +0000 (UTC)
+        id S229522AbhEHWrS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:47:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EFAB5613EA;
+        Sat,  8 May 2021 22:46:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513973;
-        bh=zYUigdFdDNUPUYX6ZECm29gl1L3JHJ/FOS9QDWE41x0=;
+        s=korg; t=1620513977;
+        bh=cfmDZbaLO2vO58MLL86OXKXcQmnqu/Unp3gpjDJcjno=;
         h=Date:From:To:Subject:From;
-        b=LlShGeUmOiDfRHWBDGu8pVNmkJDBSHpQjkEOFuJiUGYpUQ1d7o+6hYVfOnIE1J2/Z
-         No4Q8kr1Y7MGzWbyzgGkdMB0hsvbCpBw9AngOaOrktflwHnnm1ZlZI/cf8gcuqNvkI
-         NmwXRkxJONRuGp2ITRtQ98YmzAtmjPpH5Vqz+/14=
-Date:   Sat, 08 May 2021 15:46:11 -0700
+        b=tI9Hyx90VK4QhmVjq2MLj8Akf5ROSGhfXfq6NcHkumH9OJHI1iQRnxjbzha/dsOg7
+         hXRVxY2Pd2S7ctMvombItVq/oOFL80itIT5/lsW8mKrC3xGUM3FOBQ4opat5S52jjT
+         FnqqQ20ewWvz8GrnCJ0okGl4FxifdeueAPbYX1VM=
+Date:   Sat, 08 May 2021 15:46:15 -0700
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, adobriyan@gmail.com, almasrymina@google.com,
         anshuman.khandual@arm.com, axelrasmussen@google.com,
@@ -36,17 +36,16 @@ To:     aarcange@redhat.com, adobriyan@gmail.com, almasrymina@google.com,
         chinwen.chang@mediatek.com, dgilbert@redhat.com, jannh@google.com,
         jglisse@redhat.com, kirill@shutemov.name, lokeshgidra@google.com,
         mike.kravetz@oracle.com, mingo@redhat.com, mkoutny@suse.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        naresh.kamboju@linaro.org, npiggin@gmail.com, oupton@google.com,
-        peterx@redhat.com, rientjes@google.com, rostedt@goodmis.org,
-        rppt@linux.vnet.ibm.com, ruprecht@google.com, shawn@anastas.io,
-        shli@fb.com, steven.price@arm.com, vbabka@suse.cz,
-        viro@zeniv.linux.org.uk, walken@google.com, willy@infradead.org,
-        ying.huang@intel.com
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
+        oupton@google.com, peterx@redhat.com, rientjes@google.com,
+        rostedt@goodmis.org, rppt@linux.vnet.ibm.com, ruprecht@google.com,
+        shawn@anastas.io, shli@fb.com, steven.price@arm.com,
+        vbabka@suse.cz, viro@zeniv.linux.org.uk, walken@google.com,
+        willy@infradead.org, ying.huang@intel.com
 Subject:  [merged]
- hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch removed
- from -mm tree
-Message-ID: <20210508224611.LKUjzhPU4%akpm@linux-foundation.org>
+ mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch removed from
+ -mm tree
+Message-ID: <20210508224615.iRtG7RTwE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,46 +54,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb/userfaultfd: forbid huge pmd sharing when uffd enabled
+     Subject: mm/hugetlb: move flush_hugetlb_tlb_range() into hugetlb.h
 has been removed from the -mm tree.  Its filename was
-     hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled.patch
+     mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: hugetlb/userfaultfd: forbid huge pmd sharing when uffd enabled
+Subject: mm/hugetlb: move flush_hugetlb_tlb_range() into hugetlb.h
 
-Huge pmd sharing could bring problem to userfaultfd.  The thing is that
-userfaultfd is running its logic based on the special bits on page table
-entries, however the huge pmd sharing could potentially share page table
-entries for different address ranges.  That could cause issues on either:
+Prepare for it to be called outside of mm/hugetlb.c.
 
-  - When sharing huge pmd page tables for an uffd write protected range, the
-    newly mapped huge pmd range will also be write protected unexpectedly, or,
-
-  - When we try to write protect a range of huge pmd shared range, we'll first
-    do huge_pmd_unshare() in hugetlb_change_protection(), however that also
-    means the UFFDIO_WRITEPROTECT could be silently skipped for the shared
-    region, which could lead to data loss.
-
-Since at it, a few other things are done altogether:
-
-  - Move want_pmd_share() from mm/hugetlb.c into linux/hugetlb.h, because
-    that's definitely something that arch code would like to use too
-
-  - ARM64 currently directly check against CONFIG_ARCH_WANT_HUGE_PMD_SHARE when
-    trying to share huge pmd.  Switch to the want_pmd_share() helper.
-
-Since at it, move vma_shareable() from huge_pmd_share() into want_pmd_share().
-
-[peterx@redhat.com: fix build with !ARCH_WANT_HUGE_PMD_SHARE]
-  Link: https://lkml.kernel.org/r/20210310185359.88297-1-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20210218231202.15426-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20210218231204.15474-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
-Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
 Cc: Adam Ruprecht <ruprecht@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
@@ -127,110 +102,42 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/hugetlbpage.c   |    3 +--
- include/linux/hugetlb.h       |    2 ++
- include/linux/userfaultfd_k.h |    9 +++++++++
- mm/hugetlb.c                  |   22 ++++++++++++++++------
- 4 files changed, 28 insertions(+), 8 deletions(-)
+ include/linux/hugetlb.h |    8 ++++++++
+ mm/hugetlb.c            |    8 --------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
---- a/arch/arm64/mm/hugetlbpage.c~hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled
-+++ a/arch/arm64/mm/hugetlbpage.c
-@@ -284,8 +284,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 		 */
- 		ptep = pte_alloc_map(mm, pmdp, addr);
- 	} else if (sz == PMD_SIZE) {
--		if (IS_ENABLED(CONFIG_ARCH_WANT_HUGE_PMD_SHARE) &&
--		    pud_none(READ_ONCE(*pudp)))
-+		if (want_pmd_share(vma, addr) && pud_none(READ_ONCE(*pudp)))
- 			ptep = huge_pmd_share(mm, vma, addr, pudp);
- 		else
- 			ptep = (pte_t *)pmd_alloc(mm, pudp, addr);
---- a/include/linux/hugetlb.h~hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled
+--- a/include/linux/hugetlb.h~mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh
 +++ a/include/linux/hugetlb.h
-@@ -1040,4 +1040,6 @@ static inline __init void hugetlb_cma_ch
- }
- #endif
+@@ -1042,4 +1042,12 @@ static inline __init void hugetlb_cma_ch
  
-+bool want_pmd_share(struct vm_area_struct *vma, unsigned long addr);
+ bool want_pmd_share(struct vm_area_struct *vma, unsigned long addr);
+ 
++#ifndef __HAVE_ARCH_FLUSH_HUGETLB_TLB_RANGE
++/*
++ * ARCHes with special requirements for evicting HUGETLB backing TLB entries can
++ * implement this.
++ */
++#define flush_hugetlb_tlb_range(vma, addr, end)	flush_tlb_range(vma, addr, end)
++#endif
 +
  #endif /* _LINUX_HUGETLB_H */
---- a/include/linux/userfaultfd_k.h~hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled
-+++ a/include/linux/userfaultfd_k.h
-@@ -52,6 +52,15 @@ static inline bool is_mergeable_vm_userf
- 	return vma->vm_userfaultfd_ctx.ctx == vm_ctx.ctx;
- }
- 
-+/*
-+ * Never enable huge pmd sharing on uffd-wp registered vmas, because uffd-wp
-+ * protect information is per pgtable entry.
-+ */
-+static inline bool uffd_disable_huge_pmd_share(struct vm_area_struct *vma)
-+{
-+	return vma->vm_flags & VM_UFFD_WP;
-+}
-+
- static inline bool userfaultfd_missing(struct vm_area_struct *vma)
- {
- 	return vma->vm_flags & VM_UFFD_MISSING;
---- a/mm/hugetlb.c~hugetlb-userfaultfd-forbid-huge-pmd-sharing-when-uffd-enabled
+--- a/mm/hugetlb.c~mm-hugetlb-move-flush_hugetlb_tlb_range-into-hugetlbh
 +++ a/mm/hugetlb.c
-@@ -5326,6 +5326,15 @@ static bool vma_shareable(struct vm_area
- 	return false;
+@@ -4996,14 +4996,6 @@ long follow_hugetlb_page(struct mm_struc
+ 	return i ? i : err;
  }
  
-+bool want_pmd_share(struct vm_area_struct *vma, unsigned long addr)
-+{
-+#ifdef CONFIG_USERFAULTFD
-+	if (uffd_disable_huge_pmd_share(vma))
-+		return false;
-+#endif
-+	return vma_shareable(vma, addr);
-+}
-+
- /*
-  * Determine if start,end range within vma could be mapped by shared pmd.
-  * If yes, adjust start and end to cover range associated with possible
-@@ -5382,9 +5391,6 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	pte_t *pte;
- 	spinlock_t *ptl;
- 
--	if (!vma_shareable(vma, addr))
--		return (pte_t *)pmd_alloc(mm, pud, addr);
+-#ifndef __HAVE_ARCH_FLUSH_HUGETLB_TLB_RANGE
+-/*
+- * ARCHes with special requirements for evicting HUGETLB backing TLB entries can
+- * implement this.
+- */
+-#define flush_hugetlb_tlb_range(vma, addr, end)	flush_tlb_range(vma, addr, end)
+-#endif
 -
- 	i_mmap_assert_locked(mapping);
- 	vma_interval_tree_foreach(svma, &mapping->i_mmap, idx, idx) {
- 		if (svma == vma)
-@@ -5448,7 +5454,7 @@ int huge_pmd_unshare(struct mm_struct *m
- 	*addr = ALIGN(*addr, HPAGE_SIZE * PTRS_PER_PTE) - HPAGE_SIZE;
- 	return 1;
- }
--#define want_pmd_share()	(1)
-+
- #else /* !CONFIG_ARCH_WANT_HUGE_PMD_SHARE */
- pte_t *huge_pmd_share(struct mm_struct *mm, struct vm_area_struct *vma,
- 		      unsigned long addr, pud_t *pud)
-@@ -5466,7 +5472,11 @@ void adjust_range_if_pmd_sharing_possibl
- 				unsigned long *start, unsigned long *end)
+ unsigned long hugetlb_change_protection(struct vm_area_struct *vma,
+ 		unsigned long address, unsigned long end, pgprot_t newprot)
  {
- }
--#define want_pmd_share()	(0)
-+
-+bool want_pmd_share(struct vm_area_struct *vma, unsigned long addr)
-+{
-+	return false;
-+}
- #endif /* CONFIG_ARCH_WANT_HUGE_PMD_SHARE */
- 
- #ifdef CONFIG_ARCH_WANT_GENERAL_HUGETLB
-@@ -5488,7 +5498,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 			pte = (pte_t *)pud;
- 		} else {
- 			BUG_ON(sz != PMD_SIZE);
--			if (want_pmd_share() && pud_none(*pud))
-+			if (want_pmd_share(vma, addr) && pud_none(*pud))
- 				pte = huge_pmd_share(mm, vma, addr, pud);
- 			else
- 				pte = (pte_t *)pmd_alloc(mm, pud, addr);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
