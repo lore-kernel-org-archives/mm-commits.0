@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 130E0C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6F18C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DDCD36141E
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B2A9961424
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229667AbhEHWoL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:44:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51362 "EHLO mail.kernel.org"
+        id S229679AbhEHWoO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:44:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51458 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229559AbhEHWoL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:44:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B361C613C5;
-        Sat,  8 May 2021 22:43:08 +0000 (UTC)
+        id S229559AbhEHWoN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:44:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7AEB961415;
+        Sat,  8 May 2021 22:43:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513789;
-        bh=NRgUULgHcpuhz5SX66fdHcF2lulRnvPiqLmrV8L89aw=;
+        s=korg; t=1620513791;
+        bh=RoOTyYXtSKqZ0fBKoMkMTmxIkxfu8BXyiKw1h8GKtbc=;
         h=Date:From:To:Subject:From;
-        b=lFSfgRL6Xd12VP7HK2q9t72wKt5IT0ofhZG6IPAFLIP7lRi+4vFtgE4JKaImmElZg
-         Xx4lPsJkZVayK7VDT8H7oegOztgC8qfdWlhclW7i5xlwcA/jES7vmoCD+rszPfAuyI
-         3D17nMjEtts5+OxmpYJD9R+Ifq1fMu38iI4CG180=
-Date:   Sat, 08 May 2021 15:43:08 -0700
+        b=i826aF2gDz7Q1Rt+jfDxJYqw3Qy9yEdMk1e/OXHyGevCqh4GNUultuk+n5xloND54
+         LlQOIFnfPDMl9zo87QQO15KGXw9z+CUKg56WRxcdyqaBdBmmAkruYGCgTI4EnMFDMm
+         RJjU7KVseszdDA3NmUmNj0jLaLe9aceOaCFtVI9U=
+Date:   Sat, 08 May 2021 15:43:11 -0700
 From:   akpm@linux-foundation.org
-To:     bp@alien8.de, catalin.marinas@arm.com, dingtianhong@huawei.com,
-        hch@lst.de, hpa@zytor.com, linmiaohe@huawei.com,
-        linux@armlinux.org.uk, mingo@redhat.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
-        tglx@linutronix.de, urezki@gmail.com, will@kernel.org
-Subject:  [merged] mm-vmalloc-hugepage-vmalloc-mappings.patch
- removed from -mm tree
-Message-ID: <20210508224308.rma1ylJzi%akpm@linux-foundation.org>
+To:     clg@kaod.org, hch@lst.de, mm-commits@vger.kernel.org,
+        npiggin@gmail.com, urezki@gmail.com
+Subject:  [merged] mm-vmalloc-remove-map_kernel_range.patch removed
+ from -mm tree
+Message-ID: <20210508224311.Nf0sEvzoM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,513 +46,242 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: hugepage vmalloc mappings
+     Subject: mm/vmalloc: remove map_kernel_range
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-hugepage-vmalloc-mappings.patch
+     mm-vmalloc-remove-map_kernel_range.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: mm/vmalloc: hugepage vmalloc mappings
+=46rom: Nicholas Piggin <npiggin@gmail.com>
+Subject: mm/vmalloc: remove map_kernel_range
 
-Support huge page vmalloc mappings.  Config option HAVE_ARCH_HUGE_VMALLOC
-enables support on architectures that define HAVE_ARCH_HUGE_VMAP and
-supports PMD sized vmap mappings.
+Patch series "mm/vmalloc: cleanup after hugepage series", v2.
 
-vmalloc will attempt to allocate PMD-sized pages if allocating PMD size or
-larger, and fall back to small pages if that was unsuccessful.
+Christoph pointed out some overdue cleanups required after the huge
+vmalloc series, and I had another failure error message improvement as
+well.
 
-Architectures must ensure that any arch specific vmalloc allocations that
-require PAGE_SIZE mappings (e.g., module allocations vs strict module rwx)
-use the VM_NOHUGE flag to inhibit larger mappings.
 
-This can result in more internal fragmentation and memory overhead for a
-given allocation, an option nohugevmalloc is added to disable at boot.
+This patch (of 5):
 
-[colin.king@canonical.com: fix read of uninitialized pointer area]
-  Link: https://lkml.kernel.org/r/20210318155955.18220-1-colin.king@canonical.com
-Link: https://lkml.kernel.org/r/20210317062402.533919-14-npiggin@gmail.com
+This is a shim around vmap_pages_range, get rid of it.
+
+Move the main API comment from the _noflush variant to the normal variant,
+and make _noflush internal to mm/.
+
+Link: https://lkml.kernel.org/r/20210322021806.892164-1-npiggin@gmail.com
+Link: https://lkml.kernel.org/r/20210322021806.892164-2-npiggin@gmail.com
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ding Tianhong <dingtianhong@huawei.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Will Deacon <will@kernel.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Uladzislau Rezki <urezki@gmail.com>
+Cc: C=C3=A9dric Le Goater <clg@kaod.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig            |   11 +
- include/linux/vmalloc.h |   21 +++
- mm/page_alloc.c         |    5 
- mm/vmalloc.c            |  220 +++++++++++++++++++++++++++++---------
- 4 files changed, 209 insertions(+), 48 deletions(-)
+ Documentation/core-api/cachetlb.rst |    2=20
+ include/linux/vmalloc.h             |   11 ----
+ mm/internal.h                       |    6 ++
+ mm/percpu-vm.c                      |    5 +-
+ mm/vmalloc.c                        |   65 +++++++++++---------------
+ 5 files changed, 38 insertions(+), 51 deletions(-)
 
---- a/arch/Kconfig~mm-vmalloc-hugepage-vmalloc-mappings
-+++ a/arch/Kconfig
-@@ -829,6 +829,17 @@ config HAVE_ARCH_TRANSPARENT_HUGEPAGE_PU
- config HAVE_ARCH_HUGE_VMAP
- 	bool
- 
-+#
-+#  Archs that select this would be capable of PMD-sized vmaps (i.e.,
-+#  arch_vmap_pmd_supported() returns true), and they must make no assumptions
-+#  that vmalloc memory is mapped with PAGE_SIZE ptes. The VM_NO_HUGE_VMAP flag
-+#  can be used to prohibit arch-specific allocations from using hugepages to
-+#  help with this (e.g., modules may require it).
-+#
-+config HAVE_ARCH_HUGE_VMALLOC
-+	depends on HAVE_ARCH_HUGE_VMAP
-+	bool
-+
- config ARCH_WANT_HUGE_PMD_SHARE
- 	bool
- 
---- a/include/linux/vmalloc.h~mm-vmalloc-hugepage-vmalloc-mappings
+--- a/Documentation/core-api/cachetlb.rst~mm-vmalloc-remove-map_kernel_range
++++ a/Documentation/core-api/cachetlb.rst
+@@ -213,7 +213,7 @@ Here are the routines, one by one:
+ 	there will be no entries in the cache for the kernel address
+ 	space for virtual addresses in the range 'start' to 'end-1'.
+=20
+-	The first of these two routines is invoked after map_kernel_range()
++	The first of these two routines is invoked after vmap_range()
+ 	has installed the page table entries.  The second is invoked
+ 	before unmap_kernel_range() deletes the page table entries.
+=20
+--- a/include/linux/vmalloc.h~mm-vmalloc-remove-map_kernel_range
 +++ a/include/linux/vmalloc.h
-@@ -26,6 +26,7 @@ struct notifier_block;		/* in notifier.h
- #define VM_KASAN		0x00000080      /* has allocated kasan shadow memory */
- #define VM_FLUSH_RESET_PERMS	0x00000100	/* reset direct map and flush TLB on unmap, can't be freed in atomic context */
- #define VM_MAP_PUT_PAGES	0x00000200	/* put pages and free array in vfree */
-+#define VM_NO_HUGE_VMAP		0x00000400	/* force PAGE_SIZE pte mapping */
- 
- /*
-  * VM_KASAN is used slighly differently depending on CONFIG_KASAN_VMALLOC.
-@@ -54,6 +55,9 @@ struct vm_struct {
- 	unsigned long		size;
- 	unsigned long		flags;
- 	struct page		**pages;
-+#ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
-+	unsigned int		page_order;
-+#endif
- 	unsigned int		nr_pages;
- 	phys_addr_t		phys_addr;
- 	const void		*caller;
-@@ -188,6 +192,22 @@ void free_vm_area(struct vm_struct *area
- extern struct vm_struct *remove_vm_area(const void *addr);
- extern struct vm_struct *find_vm_area(const void *addr);
- 
-+static inline bool is_vm_area_hugepages(const void *addr)
-+{
-+	/*
-+	 * This may not 100% tell if the area is mapped with > PAGE_SIZE
-+	 * page table entries, if for some reason the architecture indicates
-+	 * larger sizes are available but decides not to use them, nothing
-+	 * prevents that. This only indicates the size of the physical page
-+	 * allocated in the vmalloc layer.
-+	 */
-+#ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
-+	return find_vm_area(addr)->page_order > 0;
-+#else
-+	return false;
-+#endif
-+}
-+
- #ifdef CONFIG_MMU
+@@ -212,10 +212,6 @@ static inline bool is_vm_area_hugepages(
  int vmap_range(unsigned long addr, unsigned long end,
  			phys_addr_t phys_addr, pgprot_t prot,
-@@ -205,6 +225,7 @@ static inline void set_vm_flush_reset_pe
- 	if (vm)
- 		vm->flags |= VM_FLUSH_RESET_PERMS;
+ 			unsigned int max_page_shift);
+-extern int map_kernel_range_noflush(unsigned long start, unsigned long siz=
+e,
+-				    pgprot_t prot, struct page **pages);
+-int map_kernel_range(unsigned long start, unsigned long size, pgprot_t pro=
+t,
+-		struct page **pages);
+ extern void unmap_kernel_range_noflush(unsigned long addr, unsigned long s=
+ize);
+ extern void unmap_kernel_range(unsigned long addr, unsigned long size);
+ static inline void set_vm_flush_reset_perms(void *addr)
+@@ -227,13 +223,6 @@ static inline void set_vm_flush_reset_pe
  }
-+
+=20
  #else
- static inline int
- map_kernel_range_noflush(unsigned long start, unsigned long size,
---- a/mm/page_alloc.c~mm-vmalloc-hugepage-vmalloc-mappings
-+++ a/mm/page_alloc.c
-@@ -72,6 +72,7 @@
- #include <linux/padata.h>
- #include <linux/khugepaged.h>
- #include <linux/buffer_head.h>
-+#include <linux/vmalloc.h>
- 
- #include <asm/sections.h>
- #include <asm/tlbflush.h>
-@@ -8222,6 +8223,7 @@ void *__init alloc_large_system_hash(con
- 	void *table = NULL;
- 	gfp_t gfp_flags;
- 	bool virt;
-+	bool huge;
- 
- 	/* allow the kernel cmdline to have a say */
- 	if (!numentries) {
-@@ -8289,6 +8291,7 @@ void *__init alloc_large_system_hash(con
- 		} else if (get_order(size) >= MAX_ORDER || hashdist) {
- 			table = __vmalloc(size, gfp_flags);
- 			virt = true;
-+			huge = is_vm_area_hugepages(table);
- 		} else {
- 			/*
- 			 * If bucketsize is not a power-of-two, we may free
-@@ -8305,7 +8308,7 @@ void *__init alloc_large_system_hash(con
- 
- 	pr_info("%s hash table entries: %ld (order: %d, %lu bytes, %s)\n",
- 		tablename, 1UL << log2qty, ilog2(size) - PAGE_SHIFT, size,
--		virt ? "vmalloc" : "linear");
-+		virt ? (huge ? "vmalloc hugepage" : "vmalloc") : "linear");
- 
- 	if (_hash_shift)
- 		*_hash_shift = log2qty;
---- a/mm/vmalloc.c~mm-vmalloc-hugepage-vmalloc-mappings
-+++ a/mm/vmalloc.c
-@@ -42,6 +42,19 @@
- #include "internal.h"
- #include "pgalloc-track.h"
- 
-+#ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
-+static bool __ro_after_init vmap_allow_huge = true;
-+
-+static int __init set_nohugevmalloc(char *str)
-+{
-+	vmap_allow_huge = false;
-+	return 0;
-+}
-+early_param("nohugevmalloc", set_nohugevmalloc);
-+#else /* CONFIG_HAVE_ARCH_HUGE_VMALLOC */
-+static const bool vmap_allow_huge = false;
-+#endif	/* CONFIG_HAVE_ARCH_HUGE_VMALLOC */
-+
- bool is_vmalloc_addr(const void *x)
+-static inline int
+-map_kernel_range_noflush(unsigned long start, unsigned long size,
+-			pgprot_t prot, struct page **pages)
+-{
+-	return size >> PAGE_SHIFT;
+-}
+-#define map_kernel_range map_kernel_range_noflush
+ static inline void
+ unmap_kernel_range_noflush(unsigned long addr, unsigned long size)
  {
- 	unsigned long addr = (unsigned long)x;
-@@ -483,31 +496,12 @@ static int vmap_pages_p4d_range(pgd_t *p
+--- a/mm/internal.h~mm-vmalloc-remove-map_kernel_range
++++ a/mm/internal.h
+@@ -637,4 +637,10 @@ struct migration_target_control {
+ 	gfp_t gfp_mask;
+ };
+=20
++/*
++ * mm/vmalloc.c
++ */
++int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
++                pgprot_t prot, struct page **pages, unsigned int page_shif=
+t);
++
+ #endif	/* __MM_INTERNAL_H */
+--- a/mm/percpu-vm.c~mm-vmalloc-remove-map_kernel_range
++++ a/mm/percpu-vm.c
+@@ -8,6 +8,7 @@
+  * Chunks are mapped into vmalloc areas and populated page by page.
+  * This is the default chunk allocator.
+  */
++#include "internal.h"
+=20
+ static struct page *pcpu_chunk_page(struct pcpu_chunk *chunk,
+ 				    unsigned int cpu, int page_idx)
+@@ -192,8 +193,8 @@ static void pcpu_post_unmap_tlb_flush(st
+ static int __pcpu_map_pages(unsigned long addr, struct page **pages,
+ 			    int nr_pages)
+ {
+-	return map_kernel_range_noflush(addr, nr_pages << PAGE_SHIFT,
+-					PAGE_KERNEL, pages);
++	return vmap_pages_range_noflush(addr, addr + (nr_pages << PAGE_SHIFT),
++					PAGE_KERNEL, pages, PAGE_SHIFT);
+ }
+=20
+ /**
+--- a/mm/vmalloc.c~mm-vmalloc-remove-map_kernel_range
++++ a/mm/vmalloc.c
+@@ -523,7 +523,16 @@ static int vmap_small_pages_range_noflus
  	return 0;
  }
- 
--/**
+=20
+-static int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
++/*
++ * vmap_pages_range_noflush is similar to vmap_pages_range, but does not
++ * flush caches.
++ *
++ * The caller is responsible for calling flush_cache_vmap() after this
++ * function returns successfully and before the addresses are accessed.
++ *
++ * This is an internal function only. Do not use outside mm/.
++ */
++int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+ 		pgprot_t prot, struct page **pages, unsigned int page_shift)
+ {
+ 	unsigned int i, nr =3D (end - addr) >> PAGE_SHIFT;
+@@ -549,48 +558,26 @@ static int vmap_pages_range_noflush(unsi
+ 	return 0;
+ }
+=20
+-static int vmap_pages_range(unsigned long addr, unsigned long end,
+-		pgprot_t prot, struct page **pages, unsigned int page_shift)
+-{
+-	int err;
+-
+-	err =3D vmap_pages_range_noflush(addr, end, prot, pages, page_shift);
+-	flush_cache_vmap(addr, end);
+-	return err;
+-}
+-
+ /**
 - * map_kernel_range_noflush - map kernel VM area with the specified pages
-- * @addr: start of the VM area to map
++ * vmap_pages_range - map pages to a kernel virtual address
+  * @addr: start of the VM area to map
 - * @size: size of the VM area to map
-- * @prot: page protection flags to use
++ * @end: end of the VM area to map (non-inclusive)
+  * @prot: page protection flags to use
 - * @pages: pages to map
 - *
-- * Map PFN_UP(@size) pages at @addr.  The VM area @addr and @size specify should
+- * Map PFN_UP(@size) pages at @addr.  The VM area @addr and @size specify =
+should
 - * have been allocated using get_vm_area() and its friends.
 - *
 - * NOTE:
-- * This function does NOT do any cache flushing.  The caller is responsible for
+- * This function does NOT do any cache flushing.  The caller is responsibl=
+e for
 - * calling flush_cache_vmap() on to-be-mapped areas before calling this
 - * function.
-- *
-- * RETURNS:
-- * 0 on success, -errno on failure.
-- */
++ * @pages: pages to map (always PAGE_SIZE pages)
++ * @page_shift: maximum shift that the pages may be mapped with, @pages mu=
+st
++ * be aligned and contiguous up to at least this shift.
+  *
+  * RETURNS:
+  * 0 on success, -errno on failure.
+  */
 -int map_kernel_range_noflush(unsigned long addr, unsigned long size,
 -			     pgprot_t prot, struct page **pages)
-+static int vmap_small_pages_range_noflush(unsigned long addr, unsigned long end,
-+		pgprot_t prot, struct page **pages)
- {
- 	unsigned long start = addr;
--	unsigned long end = addr + size;
--	unsigned long next;
- 	pgd_t *pgd;
-+	unsigned long next;
- 	int err = 0;
- 	int nr = 0;
- 	pgtbl_mod_mask mask = 0;
-@@ -529,6 +523,66 @@ int map_kernel_range_noflush(unsigned lo
- 	return 0;
- }
- 
-+static int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-+		pgprot_t prot, struct page **pages, unsigned int page_shift)
-+{
-+	unsigned int i, nr = (end - addr) >> PAGE_SHIFT;
-+
-+	WARN_ON(page_shift < PAGE_SHIFT);
-+
-+	if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMALLOC) ||
-+			page_shift == PAGE_SHIFT)
-+		return vmap_small_pages_range_noflush(addr, end, prot, pages);
-+
-+	for (i = 0; i < nr; i += 1U << (page_shift - PAGE_SHIFT)) {
-+		int err;
-+
-+		err = vmap_range_noflush(addr, addr + (1UL << page_shift),
-+					__pa(page_address(pages[i])), prot,
-+					page_shift);
-+		if (err)
-+			return err;
-+
-+		addr += 1UL << page_shift;
-+	}
-+
-+	return 0;
-+}
-+
+-{
+-	return vmap_pages_range_noflush(addr, addr + size, prot, pages, PAGE_SHIF=
+T);
+-}
+-
+-int map_kernel_range(unsigned long start, unsigned long size, pgprot_t pro=
+t,
+-		struct page **pages)
 +static int vmap_pages_range(unsigned long addr, unsigned long end,
 +		pgprot_t prot, struct page **pages, unsigned int page_shift)
-+{
+ {
+-	int ret;
 +	int err;
-+
-+	err = vmap_pages_range_noflush(addr, end, prot, pages, page_shift);
+=20
+-	ret =3D map_kernel_range_noflush(start, size, prot, pages);
+-	flush_cache_vmap(start, start + size);
+-	return ret;
++	err =3D vmap_pages_range_noflush(addr, end, prot, pages, page_shift);
 +	flush_cache_vmap(addr, end);
 +	return err;
-+}
-+
-+/**
-+ * map_kernel_range_noflush - map kernel VM area with the specified pages
-+ * @addr: start of the VM area to map
-+ * @size: size of the VM area to map
-+ * @prot: page protection flags to use
-+ * @pages: pages to map
-+ *
-+ * Map PFN_UP(@size) pages at @addr.  The VM area @addr and @size specify should
-+ * have been allocated using get_vm_area() and its friends.
-+ *
-+ * NOTE:
-+ * This function does NOT do any cache flushing.  The caller is responsible for
-+ * calling flush_cache_vmap() on to-be-mapped areas before calling this
-+ * function.
-+ *
-+ * RETURNS:
-+ * 0 on success, -errno on failure.
-+ */
-+int map_kernel_range_noflush(unsigned long addr, unsigned long size,
-+			     pgprot_t prot, struct page **pages)
-+{
-+	return vmap_pages_range_noflush(addr, addr + size, prot, pages, PAGE_SHIFT);
-+}
-+
- int map_kernel_range(unsigned long start, unsigned long size, pgprot_t prot,
- 		struct page **pages)
- {
-@@ -2112,6 +2166,24 @@ EXPORT_SYMBOL(vm_map_ram);
- 
- static struct vm_struct *vmlist __initdata;
- 
-+static inline unsigned int vm_area_page_order(struct vm_struct *vm)
-+{
-+#ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
-+	return vm->page_order;
-+#else
-+	return 0;
-+#endif
-+}
-+
-+static inline void set_vm_area_page_order(struct vm_struct *vm, unsigned int order)
-+{
-+#ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
-+	vm->page_order = order;
-+#else
-+	BUG_ON(order != 0);
-+#endif
-+}
-+
- /**
-  * vm_area_add_early - add vmap area early during boot
-  * @vm: vm_struct to add
-@@ -2422,6 +2494,7 @@ static inline void set_area_direct_map(c
- {
- 	int i;
- 
-+	/* HUGE_VMALLOC passes small pages to set_direct_map */
- 	for (i = 0; i < area->nr_pages; i++)
- 		if (page_address(area->pages[i]))
- 			set_direct_map(area->pages[i]);
-@@ -2431,6 +2504,7 @@ static inline void set_area_direct_map(c
- static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
- {
- 	unsigned long start = ULONG_MAX, end = 0;
-+	unsigned int page_order = vm_area_page_order(area);
- 	int flush_reset = area->flags & VM_FLUSH_RESET_PERMS;
- 	int flush_dmap = 0;
- 	int i;
-@@ -2455,11 +2529,14 @@ static void vm_remove_mappings(struct vm
- 	 * map. Find the start and end range of the direct mappings to make sure
- 	 * the vm_unmap_aliases() flush includes the direct map.
- 	 */
--	for (i = 0; i < area->nr_pages; i++) {
-+	for (i = 0; i < area->nr_pages; i += 1U << page_order) {
- 		unsigned long addr = (unsigned long)page_address(area->pages[i]);
- 		if (addr) {
-+			unsigned long page_size;
-+
-+			page_size = PAGE_SIZE << page_order;
- 			start = min(addr, start);
--			end = max(addr + PAGE_SIZE, end);
-+			end = max(addr + page_size, end);
- 			flush_dmap = 1;
- 		}
- 	}
-@@ -2500,13 +2577,14 @@ static void __vunmap(const void *addr, i
- 	vm_remove_mappings(area, deallocate_pages);
- 
- 	if (deallocate_pages) {
-+		unsigned int page_order = vm_area_page_order(area);
- 		int i;
- 
--		for (i = 0; i < area->nr_pages; i++) {
-+		for (i = 0; i < area->nr_pages; i += 1U << page_order) {
- 			struct page *page = area->pages[i];
- 
- 			BUG_ON(!page);
--			__free_pages(page, 0);
-+			__free_pages(page, page_order);
- 		}
- 		atomic_long_sub(area->nr_pages, &nr_vmalloc_pages);
- 
-@@ -2697,15 +2775,19 @@ EXPORT_SYMBOL_GPL(vmap_pfn);
- #endif /* CONFIG_VMAP_PFN */
- 
- static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
--				 pgprot_t prot, int node)
-+				 pgprot_t prot, unsigned int page_shift,
-+				 int node)
- {
- 	const gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
--	unsigned int nr_pages = get_vm_area_size(area) >> PAGE_SHIFT;
-+	unsigned long addr = (unsigned long)area->addr;
-+	unsigned long size = get_vm_area_size(area);
- 	unsigned long array_size;
--	unsigned int i;
-+	unsigned int nr_small_pages = size >> PAGE_SHIFT;
-+	unsigned int page_order;
- 	struct page **pages;
-+	unsigned int i;
- 
--	array_size = (unsigned long)nr_pages * sizeof(struct page *);
-+	array_size = (unsigned long)nr_small_pages * sizeof(struct page *);
- 	gfp_mask |= __GFP_NOWARN;
- 	if (!(gfp_mask & (GFP_DMA | GFP_DMA32)))
- 		gfp_mask |= __GFP_HIGHMEM;
-@@ -2724,30 +2806,38 @@ static void *__vmalloc_area_node(struct
- 	}
- 
- 	area->pages = pages;
--	area->nr_pages = nr_pages;
-+	area->nr_pages = nr_small_pages;
-+	set_vm_area_page_order(area, page_shift - PAGE_SHIFT);
- 
--	for (i = 0; i < area->nr_pages; i++) {
--		struct page *page;
-+	page_order = vm_area_page_order(area);
- 
--		if (node == NUMA_NO_NODE)
--			page = alloc_page(gfp_mask);
--		else
--			page = alloc_pages_node(node, gfp_mask, 0);
-+	/*
-+	 * Careful, we allocate and map page_order pages, but tracking is done
-+	 * per PAGE_SIZE page so as to keep the vm_struct APIs independent of
-+	 * the physical/mapped size.
-+	 */
-+	for (i = 0; i < area->nr_pages; i += 1U << page_order) {
-+		struct page *page;
-+		int p;
- 
-+		/* Compound pages required for remap_vmalloc_page */
-+		page = alloc_pages_node(node, gfp_mask | __GFP_COMP, page_order);
- 		if (unlikely(!page)) {
- 			/* Successfully allocated i pages, free them in __vfree() */
- 			area->nr_pages = i;
- 			atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
- 			goto fail;
- 		}
--		area->pages[i] = page;
-+
-+		for (p = 0; p < (1U << page_order); p++)
-+			area->pages[i + p] = page + p;
-+
- 		if (gfpflags_allow_blocking(gfp_mask))
- 			cond_resched();
- 	}
- 	atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
- 
--	if (map_kernel_range((unsigned long)area->addr, get_vm_area_size(area),
--			prot, pages) < 0)
-+	if (vmap_pages_range(addr, addr + size, prot, pages, page_shift) < 0)
- 		goto fail;
- 
- 	return area->addr;
-@@ -2755,7 +2845,7 @@ static void *__vmalloc_area_node(struct
- fail:
- 	warn_alloc(gfp_mask, NULL,
- 			  "vmalloc: allocation failure, allocated %ld of %ld bytes",
--			  (area->nr_pages*PAGE_SIZE), area->size);
-+			  (area->nr_pages*PAGE_SIZE), size);
- 	__vfree(area->addr);
- 	return NULL;
  }
-@@ -2786,19 +2876,45 @@ void *__vmalloc_node_range(unsigned long
+=20
+ int is_vmalloc_or_module_addr(const void *x)
+@@ -2156,10 +2143,12 @@ void *vm_map_ram(struct page **pages, un
+=20
+ 	kasan_unpoison_vmalloc(mem, size);
+=20
+-	if (map_kernel_range(addr, size, PAGE_KERNEL, pages) < 0) {
++	if (vmap_pages_range(addr, addr + size, PAGE_KERNEL,
++				pages, PAGE_SHIFT) < 0) {
+ 		vm_unmap_ram(mem, count);
+ 		return NULL;
+ 	}
++
+ 	return mem;
+ }
+ EXPORT_SYMBOL(vm_map_ram);
+@@ -2703,6 +2692,7 @@ void *vmap(struct page **pages, unsigned
+ 	   unsigned long flags, pgprot_t prot)
+ {
  	struct vm_struct *area;
- 	void *addr;
- 	unsigned long real_size = size;
-+	unsigned long real_align = align;
-+	unsigned int shift = PAGE_SHIFT;
- 
--	size = PAGE_ALIGN(size);
--	if (!size || (size >> PAGE_SHIFT) > totalram_pages())
-+	if (!size || (size >> PAGE_SHIFT) > totalram_pages()) {
-+		area = NULL;
- 		goto fail;
-+	}
-+
-+	if (vmap_allow_huge && !(vm_flags & VM_NO_HUGE_VMAP) &&
-+			arch_vmap_pmd_supported(prot)) {
-+		unsigned long size_per_node;
- 
--	area = __get_vm_area_node(real_size, align, VM_ALLOC | VM_UNINITIALIZED |
-+		/*
-+		 * Try huge pages. Only try for PAGE_KERNEL allocations,
-+		 * others like modules don't yet expect huge pages in
-+		 * their allocations due to apply_to_page_range not
-+		 * supporting them.
-+		 */
-+
-+		size_per_node = size;
-+		if (node == NUMA_NO_NODE)
-+			size_per_node /= num_online_nodes();
-+		if (size_per_node >= PMD_SIZE) {
-+			shift = PMD_SHIFT;
-+			align = max(real_align, 1UL << shift);
-+			size = ALIGN(real_size, 1UL << shift);
-+		}
-+	}
-+
-+again:
-+	size = PAGE_ALIGN(size);
-+	area = __get_vm_area_node(size, align, VM_ALLOC | VM_UNINITIALIZED |
- 				vm_flags, start, end, node, gfp_mask, caller);
++	unsigned long addr;
+ 	unsigned long size;		/* In bytes */
+=20
+ 	might_sleep();
+@@ -2715,8 +2705,9 @@ void *vmap(struct page **pages, unsigned
  	if (!area)
- 		goto fail;
- 
--	addr = __vmalloc_area_node(area, gfp_mask, prot, node);
-+	addr = __vmalloc_area_node(area, gfp_mask, prot, shift, node);
- 	if (!addr)
--		return NULL;
-+		goto fail;
- 
- 	/*
- 	 * In this function, newly allocated vm_struct has VM_UNINITIALIZED
-@@ -2812,8 +2928,18 @@ void *__vmalloc_node_range(unsigned long
- 	return addr;
- 
- fail:
--	warn_alloc(gfp_mask, NULL,
-+	if (shift > PAGE_SHIFT) {
-+		shift = PAGE_SHIFT;
-+		align = real_align;
-+		size = real_size;
-+		goto again;
-+	}
-+
-+	if (!area) {
-+		/* Warn for area allocation, page allocations already warn */
-+		warn_alloc(gfp_mask, NULL,
- 			  "vmalloc: allocation failure: %lu bytes", real_size);
-+	}
- 	return NULL;
- }
- 
+ 		return NULL;
+=20
+-	if (map_kernel_range((unsigned long)area->addr, size, pgprot_nx(prot),
+-			pages) < 0) {
++	addr =3D (unsigned long)area->addr;
++	if (vmap_pages_range(addr, addr + size, pgprot_nx(prot),
++				pages, PAGE_SHIFT) < 0) {
+ 		vunmap(area->addr);
+ 		return NULL;
+ 	}
 _
 
 Patches currently in -mm which might be from npiggin@gmail.com are
