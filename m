@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3105BC43461
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2A8BC43460
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1A62D61415
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5FDA6141D
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229577AbhEHWle (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:41:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45250 "EHLO mail.kernel.org"
+        id S229685AbhEHWld (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:41:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45094 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229675AbhEHWle (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:41:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8FBDF61415;
-        Sat,  8 May 2021 22:40:30 +0000 (UTC)
+        id S229577AbhEHWl2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:41:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 720CF6140E;
+        Sat,  8 May 2021 22:40:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513630;
-        bh=q1QmDXdMffAKwtUTnAXv5IFiip6QdpyAx4/8JFYhu68=;
+        s=korg; t=1620513624;
+        bh=risGR5A+PxuE70jqmcuA+3UwwkkZrA+VU3Hsj0Qaw9E=;
         h=Date:From:To:Subject:From;
-        b=HbWTf1o5eLelq9gn99tJRnq6A+gI+CKjOGZDWBMcTugsgEr1EVCayXdofO0N/5FDy
-         JdlIviG8i3FW//z/bUNrYtp2eLx5hTBFcclO2/lRziyd2bbyexLncoGkCfzi610oet
-         v+rHniEipg3G3g+q2YUDZvc27nWqZ7TnyJ5X6TCI=
-Date:   Sat, 08 May 2021 15:40:30 -0700
+        b=blpb8Qj3pHXlfvFXXUOrZ59Nx1Jp0I4a3Eq0Wl5KFmFUAYZJMP4/ik1vCk+JD2Wjh
+         CshJjzIGUFBKN4It7N5vOmvRhyGCjFIFbFVyT1u3hhnA9OdOUBnBGJxOGYyoBpUVtO
+         ZdsGg7J3HI0udB7JytrqSEiAHv+16Mwmn+aoll7Q=
+Date:   Sat, 08 May 2021 15:40:24 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, hch@lst.de, kent.overstreet@gmail.com,
-        mm-commits@vger.kernel.org, willy@infradead.org
+To:     axboe@kernel.dk, jack@suse.cz, mm-commits@vger.kernel.org,
+        willy@infradead.org
 Subject:  [merged]
- mm-filemap-use-filemap_read_page-in-filemap_fault.patch removed from -mm
- tree
-Message-ID: <20210508224030.tTug-2GZL%akpm@linux-foundation.org>
+ mm-provide-filemap_range_needs_writeback-helper.patch removed from -mm tree
+Message-ID: <20210508224024.KZxLbwkGL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,74 +43,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: use filemap_read_page in filemap_fault
+     Subject: mm: provide filemap_range_needs_writeback() helper
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-use-filemap_read_page-in-filemap_fault.patch
+     mm-provide-filemap_range_needs_writeback-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: use filemap_read_page in filemap_fault
+From: Jens Axboe <axboe@kernel.dk>
+Subject: mm: provide filemap_range_needs_writeback() helper
 
-After splitting generic_file_buffered_read() into smaller parts, it turns
-out we can reuse one of the parts in filemap_fault().  This fixes an
-oversight -- waiting for the I/O to complete is now interruptible by a
-fatal signal.  And it saves us a few bytes of text in an unlikely path.
+Patch series "Improve IOCB_NOWAIT O_DIRECT reads", v3.
 
-$ ./scripts/bloat-o-meter before.o after.o
-add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-207 (-207)
-Function                                     old     new   delta
-filemap_fault                               2187    1980    -207
-Total: Before=37491, After=37284, chg -0.55%
+An internal workload complained because it was using too much CPU, and
+when I took a look, we had a lot of io_uring workers going to town. 
+For an async buffered read like workload, I am normally expecting
+_zero_ offloads to a worker thread, but this one had tons of them.  I'd
+drop caches and things would look good again, but then a minute later
+we'd regress back to using workers.  Turns out that every minute
+something was reading parts of the device, which would add page cache
+for that inode.  I put patches like these in for our kernel, and the
+problem was solved.
 
-Link: https://lkml.kernel.org/r/20210226140011.2883498-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Don't -EAGAIN IOCB_NOWAIT dio reads just because we have page cache
+entries for the given range.  This causes unnecessary work from the
+callers side, when the IO could have been issued totally fine without
+blocking on writeback when there is none.
+
+
+This patch (of 3):
+
+For O_DIRECT reads/writes, we check if we need to issue a call to
+filemap_write_and_wait_range() to issue and/or wait for writeback for any
+page in the given range.  The existing mechanism just checks for a page in
+the range, which is suboptimal for IOCB_NOWAIT as we'll fallback to the
+slow path (and needing retry) if there's just a clean page cache page in
+the range.
+
+Provide filemap_range_needs_writeback() which tries a little harder to
+check if we actually need to issue and/or wait for writeback in the range.
+
+Link: https://lkml.kernel.org/r/20210224164455.1096727-1-axboe@kernel.dk
+Link: https://lkml.kernel.org/r/20210224164455.1096727-2-axboe@kernel.dk
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ include/linux/fs.h |    2 ++
+ mm/filemap.c       |   43 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 45 insertions(+)
 
---- a/mm/filemap.c~mm-filemap-use-filemap_read_page-in-filemap_fault
+--- a/include/linux/fs.h~mm-provide-filemap_range_needs_writeback-helper
++++ a/include/linux/fs.h
+@@ -2878,6 +2878,8 @@ static inline int filemap_fdatawait(stru
+ 
+ extern bool filemap_range_has_page(struct address_space *, loff_t lstart,
+ 				  loff_t lend);
++extern bool filemap_range_needs_writeback(struct address_space *,
++					  loff_t lstart, loff_t lend);
+ extern int filemap_write_and_wait_range(struct address_space *mapping,
+ 				        loff_t lstart, loff_t lend);
+ extern int __filemap_fdatawrite_range(struct address_space *mapping,
+--- a/mm/filemap.c~mm-provide-filemap_range_needs_writeback-helper
 +++ a/mm/filemap.c
-@@ -2980,7 +2980,6 @@ vm_fault_t filemap_fault(struct vm_fault
- 	struct file *file = vmf->vma->vm_file;
- 	struct file *fpin = NULL;
- 	struct address_space *mapping = file->f_mapping;
--	struct file_ra_state *ra = &file->f_ra;
- 	struct inode *inode = mapping->host;
- 	pgoff_t offset = vmf->pgoff;
- 	pgoff_t max_off;
-@@ -3067,14 +3066,8 @@ page_not_uptodate:
- 	 * because there really aren't any performance issues here
- 	 * and we need to check for errors.
- 	 */
--	ClearPageError(page);
- 	fpin = maybe_unlock_mmap_for_io(vmf, fpin);
--	error = mapping->a_ops->readpage(file, page);
--	if (!error) {
--		wait_on_page_locked(page);
--		if (!PageUptodate(page))
--			error = -EIO;
--	}
-+	error = filemap_read_page(file, mapping, page);
- 	if (fpin)
- 		goto out_retry;
- 	put_page(page);
-@@ -3082,7 +3075,6 @@ page_not_uptodate:
- 	if (!error || error == AOP_TRUNCATED_PAGE)
- 		goto retry_find;
+@@ -636,6 +636,49 @@ static bool mapping_needs_writeback(stru
+ }
  
--	shrink_readahead_size_eio(ra);
- 	return VM_FAULT_SIGBUS;
- 
- out_retry:
+ /**
++ * filemap_range_needs_writeback - check if range potentially needs writeback
++ * @mapping:           address space within which to check
++ * @start_byte:        offset in bytes where the range starts
++ * @end_byte:          offset in bytes where the range ends (inclusive)
++ *
++ * Find at least one page in the range supplied, usually used to check if
++ * direct writing in this range will trigger a writeback. Used by O_DIRECT
++ * read/write with IOCB_NOWAIT, to see if the caller needs to do
++ * filemap_write_and_wait_range() before proceeding.
++ *
++ * Return: %true if the caller should do filemap_write_and_wait_range() before
++ * doing O_DIRECT to a page in this range, %false otherwise.
++ */
++bool filemap_range_needs_writeback(struct address_space *mapping,
++				   loff_t start_byte, loff_t end_byte)
++{
++	XA_STATE(xas, &mapping->i_pages, start_byte >> PAGE_SHIFT);
++	pgoff_t max = end_byte >> PAGE_SHIFT;
++	struct page *page;
++
++	if (!mapping_needs_writeback(mapping))
++		return false;
++	if (!mapping_tagged(mapping, PAGECACHE_TAG_DIRTY) &&
++	    !mapping_tagged(mapping, PAGECACHE_TAG_WRITEBACK))
++		return false;
++	if (end_byte < start_byte)
++		return false;
++
++	rcu_read_lock();
++	xas_for_each(&xas, page, max) {
++		if (xas_retry(&xas, page))
++			continue;
++		if (xa_is_value(page))
++			continue;
++		if (PageDirty(page) || PageLocked(page) || PageWriteback(page))
++			break;
++	}
++	rcu_read_unlock();
++	return page != NULL;
++}
++EXPORT_SYMBOL_GPL(filemap_range_needs_writeback);
++
++/**
+  * filemap_write_and_wait_range - write out & wait on a file range
+  * @mapping:	the address_space for the pages
+  * @lstart:	offset in bytes where the range starts
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from axboe@kernel.dk are
 
 
