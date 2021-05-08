@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B9CBC433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 360EFC433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 08E4E6143B
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1A87F61448
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229620AbhEHWzJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:55:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43106 "EHLO mail.kernel.org"
+        id S229601AbhEHWzM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:55:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229522AbhEHWzJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:55:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9822C61402;
-        Sat,  8 May 2021 22:54:06 +0000 (UTC)
+        id S229522AbhEHWzM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:55:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8534261424;
+        Sat,  8 May 2021 22:54:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514447;
-        bh=R2e+HlcPxtWWQKQDuI1s8BjY4DOgj/i4RTuDMfq/IXw=;
+        s=korg; t=1620514450;
+        bh=UIM5JZTppN3dTa5Y8RJlGreSL/eTTe1JW0sam4ayq30=;
         h=Date:From:To:Subject:From;
-        b=XdTZorTy5aDd0qJMhR9siSvN06sxq+o8FtElrXl27qsaUsw9tFDzbRJ4FLkumXW7d
-         Mbmto2Ts73ACo2LT+wYm3N8WB7JlO/ExSP1f5T79PHQQpQjt0Q9JueNG1Cewifp3u7
-         sIK4YvAWK+6+IqJYgJRZWNElFa5CaZVKSTfyeG8o=
-Date:   Sat, 08 May 2021 15:54:06 -0700
+        b=ObC1uIUWUq4vx/XegRd74s5zJ2df9ehMZztiSRhml+6Dhv9zST+NvueEFFT30DrDQ
+         qjv4zPwGx5D8iL/uU122J0SdFiSd8pzxy5SKAZL3p52wHe/49nmVbs8UFojEcE7ay0
+         thpY+SJ2EzbnN7j5PcA0asNve5I+/OAvYv56IKmE=
+Date:   Sat, 08 May 2021 15:54:09 -0700
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, bhe@redhat.com, bp@alien8.de,
         brijesh.singh@amd.com, cai@lca.pw, dan.j.williams@intel.com,
@@ -39,12 +39,10 @@ To:     andriy.shevchenko@linux.intel.com, bhe@redhat.com, bp@alien8.de,
         mm-commits@vger.kernel.org, osalvador@suse.de, tglx@linutronix.de,
         thomas.lendacky@amd.com, vgoyal@redhat.com
 Subject:  [merged]
- =?US-ASCII?Q?kernel-resource-make-walk=5Fmem=5Fres-find-all-busy-ioreso?=
- =?US-ASCII?Q?urce=5Fmem-resources.patch?= removed from -mm tree
-Message-ID: <20210508225406.I3RvZ99UT%akpm@linux-foundation.org>
+ kernel-resource-remove-first_lvl-siblings_only-logic.patch removed from -mm
+ tree
+Message-ID: <20210508225409.76iCf4ToT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,39 +50,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/resource: make walk_mem_res() find all busy IORESOURCE_MEM resources
+     Subject: kernel/resource: remove first_lvl / siblings_only logic
 has been removed from the -mm tree.  Its filename was
-     kernel-resource-make-walk_mem_res-find-all-busy-ioresource_mem-resources.patch
+     kernel-resource-remove-first_lvl-siblings_only-logic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: kernel/resource: make walk_mem_res() find all busy IORESOURCE_MEM resources
+Subject: kernel/resource: remove first_lvl / siblings_only logic
 
-It used to be true that we can have system RAM (IORESOURCE_SYSTEM_RAM |
-IORESOURCE_BUSY) only on the first level in the resource tree.  However,
-this is no longer holds for driver-managed system RAM (i.e., added via
-dax/kmem and virtio-mem), which gets added on lower levels, for example,
-inside device containers.
+All functions that search for IORESOURCE_SYSTEM_RAM or IORESOURCE_MEM
+resources now properly consider the whole resource tree, not just the
+first level.  Let's drop the unused first_lvl / siblings_only logic.
 
-IORESOURCE_SYSTEM_RAM is defined as IORESOURCE_MEM | IORESOURCE_SYSRAM and
-just a special type of IORESOURCE_MEM.
+Remove documentation that indicates that some functions behave differently,
+all consider the full resource tree now.
 
-The function walk_mem_res() only considers the first level and is used in
-arch/x86/mm/ioremap.c:__ioremap_check_mem() only.  We currently fail to
-identify System RAM added by dax/kmem and virtio-mem as
-"IORES_MAP_SYSTEM_RAM", for example, allowing for remapping of such
-"normal RAM" in __ioremap_caller().
-
-Let's find all IORESOURCE_MEM | IORESOURCE_BUSY resources, making the
-function behave similar to walk_system_ram_res().
-
-Link: https://lkml.kernel.org/r/20210325115326.7826-3-david@redhat.com
-Fixes: ebf71552bb0e ("virtio-mem: Add parent resource for all added "System RAM"")
-Fixes: c221c0b0308f ("device-dax: "Hotplug" persistent memory for use like normal RAM")
+Link: https://lkml.kernel.org/r/20210325115326.7826-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
@@ -108,20 +94,158 @@ Cc: Brijesh Singh <brijesh.singh@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/resource.c |   45 +++++++++++---------------------------------
+ 1 file changed, 12 insertions(+), 33 deletions(-)
 
---- a/kernel/resource.c~kernel-resource-make-walk_mem_res-find-all-busy-ioresource_mem-resources
+--- a/kernel/resource.c~kernel-resource-remove-first_lvl-siblings_only-logic
 +++ a/kernel/resource.c
-@@ -470,7 +470,7 @@ int walk_mem_res(u64 start, u64 end, voi
+@@ -64,12 +64,8 @@ static DEFINE_RWLOCK(resource_lock);
+ static struct resource *bootmem_resource_free;
+ static DEFINE_SPINLOCK(bootmem_resource_lock);
+ 
+-static struct resource *next_resource(struct resource *p, bool sibling_only)
++static struct resource *next_resource(struct resource *p)
+ {
+-	/* Caller wants to traverse through siblings only */
+-	if (sibling_only)
+-		return p->sibling;
+-
+ 	if (p->child)
+ 		return p->child;
+ 	while (!p->sibling && p->parent)
+@@ -81,7 +77,7 @@ static void *r_next(struct seq_file *m,
+ {
+ 	struct resource *p = v;
+ 	(*pos)++;
+-	return (void *)next_resource(p, false);
++	return (void *)next_resource(p);
+ }
+ 
+ #ifdef CONFIG_PROC_FS
+@@ -330,14 +326,10 @@ EXPORT_SYMBOL(release_resource);
+  * of the resource that's within [@start..@end]; if none is found, returns
+  * -ENODEV.  Returns -EINVAL for invalid parameters.
+  *
+- * This function walks the whole tree and not just first level children
+- * unless @first_lvl is true.
+- *
+  * @start:	start address of the resource searched for
+  * @end:	end address of same resource
+  * @flags:	flags which the resource must have
+  * @desc:	descriptor the resource must have
+- * @first_lvl:	walk only the first level children, if set
+  * @res:	return ptr, if resource found
+  *
+  * The caller must specify @start, @end, @flags, and @desc
+@@ -345,9 +337,8 @@ EXPORT_SYMBOL(release_resource);
+  */
+ static int find_next_iomem_res(resource_size_t start, resource_size_t end,
+ 			       unsigned long flags, unsigned long desc,
+-			       bool first_lvl, struct resource *res)
++			       struct resource *res)
+ {
+-	bool siblings_only = true;
+ 	struct resource *p;
+ 
+ 	if (!res)
+@@ -358,7 +349,7 @@ static int find_next_iomem_res(resource_
+ 
+ 	read_lock(&resource_lock);
+ 
+-	for (p = iomem_resource.child; p; p = next_resource(p, siblings_only)) {
++	for (p = iomem_resource.child; p; p = next_resource(p)) {
+ 		/* If we passed the resource we are looking for, stop */
+ 		if (p->start > end) {
+ 			p = NULL;
+@@ -369,13 +360,6 @@ static int find_next_iomem_res(resource_
+ 		if (p->end < start)
+ 			continue;
+ 
+-		/*
+-		 * Now that we found a range that matches what we look for,
+-		 * check the flags and the descriptor. If we were not asked to
+-		 * use only the first level, start looking at children as well.
+-		 */
+-		siblings_only = first_lvl;
+-
+ 		if ((p->flags & flags) != flags)
+ 			continue;
+ 		if ((desc != IORES_DESC_NONE) && (desc != p->desc))
+@@ -402,14 +386,14 @@ static int find_next_iomem_res(resource_
+ 
+ static int __walk_iomem_res_desc(resource_size_t start, resource_size_t end,
+ 				 unsigned long flags, unsigned long desc,
+-				 bool first_lvl, void *arg,
++				 void *arg,
+ 				 int (*func)(struct resource *, void *))
+ {
+ 	struct resource res;
+ 	int ret = -EINVAL;
+ 
+ 	while (start < end &&
+-	       !find_next_iomem_res(start, end, flags, desc, first_lvl, &res)) {
++	       !find_next_iomem_res(start, end, flags, desc, &res)) {
+ 		ret = (*func)(&res, arg);
+ 		if (ret)
+ 			break;
+@@ -431,7 +415,6 @@ static int __walk_iomem_res_desc(resourc
+  * @arg: function argument for the callback @func
+  * @func: callback function that is called for each qualifying resource area
+  *
+- * This walks through whole tree and not just first level children.
+  * All the memory ranges which overlap start,end and also match flags and
+  * desc are valid candidates.
+  *
+@@ -441,7 +424,7 @@ static int __walk_iomem_res_desc(resourc
+ int walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start,
+ 		u64 end, void *arg, int (*func)(struct resource *, void *))
+ {
+-	return __walk_iomem_res_desc(start, end, flags, desc, false, arg, func);
++	return __walk_iomem_res_desc(start, end, flags, desc, arg, func);
+ }
+ EXPORT_SYMBOL_GPL(walk_iomem_res_desc);
+ 
+@@ -457,8 +440,8 @@ int walk_system_ram_res(u64 start, u64 e
+ {
+ 	unsigned long flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+ 
+-	return __walk_iomem_res_desc(start, end, flags, IORES_DESC_NONE, false,
+-				     arg, func);
++	return __walk_iomem_res_desc(start, end, flags, IORES_DESC_NONE, arg,
++				     func);
+ }
+ 
+ /*
+@@ -470,17 +453,14 @@ int walk_mem_res(u64 start, u64 end, voi
  {
  	unsigned long flags = IORESOURCE_MEM | IORESOURCE_BUSY;
  
--	return __walk_iomem_res_desc(start, end, flags, IORES_DESC_NONE, true,
-+	return __walk_iomem_res_desc(start, end, flags, IORES_DESC_NONE, false,
- 				     arg, func);
+-	return __walk_iomem_res_desc(start, end, flags, IORES_DESC_NONE, false,
+-				     arg, func);
++	return __walk_iomem_res_desc(start, end, flags, IORES_DESC_NONE, arg,
++				     func);
  }
  
+ /*
+  * This function calls the @func callback against all memory ranges of type
+  * System RAM which are marked as IORESOURCE_SYSTEM_RAM and IORESOUCE_BUSY.
+  * It is to be used only for System RAM.
+- *
+- * This will find System RAM ranges that are children of top-level resources
+- * in addition to top-level System RAM resources.
+  */
+ int walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
+ 			  void *arg, int (*func)(unsigned long, unsigned long, void *))
+@@ -495,8 +475,7 @@ int walk_system_ram_range(unsigned long
+ 	end = ((u64)(start_pfn + nr_pages) << PAGE_SHIFT) - 1;
+ 	flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+ 	while (start < end &&
+-	       !find_next_iomem_res(start, end, flags, IORES_DESC_NONE,
+-				    false, &res)) {
++	       !find_next_iomem_res(start, end, flags, IORES_DESC_NONE, &res)) {
+ 		pfn = PFN_UP(res.start);
+ 		end_pfn = PFN_DOWN(res.end + 1);
+ 		if (end_pfn > pfn)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
