@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAA02C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:48:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACA30C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 85881613EA
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:48:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 912BD61421
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229552AbhEHWuA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:50:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34772 "EHLO mail.kernel.org"
+        id S229667AbhEHWuC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:50:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34832 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229713AbhEHWt7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:49:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6DD9961402;
-        Sat,  8 May 2021 22:48:57 +0000 (UTC)
+        id S229723AbhEHWuB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:50:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9E3F66101D;
+        Sat,  8 May 2021 22:48:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514137;
-        bh=lDUPDQksbeGL/yuizBdBIe6sI2b2vwCa2hTXfoqol08=;
+        s=korg; t=1620514139;
+        bh=IKrlLNc56bnXSbvHlig1y+PRKVmkx+pDvbYRpavJYuI=;
         h=Date:From:To:Subject:From;
-        b=gLBPK1Nb/r5PqWEIx8I3X+7wyxZvK8qATwIX/kEck9ebHynyJIY30o4XPlVWz4+pG
-         PvF/G4eXyLWK5FyFvAfJ/OVmIUXsDg/TJr1S58OX/XD1HXObkAtKX4fSjseZXNUTRQ
-         bQCer16TUl5Vqf4jetsbkjZ5JL8A6E7RL8f+SK9U=
-Date:   Sat, 08 May 2021 15:48:57 -0700
+        b=nAGsSzolURqYHKwqHUxFZ/eNc/Sth7CfZ2XtM1LwSueE4KCyYYR0RcCdbZSvXLhgK
+         E+EoQjPybffIYxNDmHjy+PhmXXseUX53Uk0ktc44A7P4fBNO0mLfcff+HQJ22Jfy/1
+         a04oqYhjO8u16/4oxilqvY7T35wINP9b44iJQb3M=
+Date:   Sat, 08 May 2021 15:48:59 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, pintu.ping@gmail.com,
-        pintu@codeaurora.org, vbabka@suse.cz
+To:     charante@codeaurora.org, mm-commits@vger.kernel.org,
+        rientjes@google.com, vbabka@suse.cz
 Subject:  [merged]
- mm-compaction-remove-unused-variable-sysctl_compact_memory.patch removed
- from -mm tree
-Message-ID: <20210508224857.5szeTKU3U%akpm@linux-foundation.org>
+ mm-compaction-update-the-compact-events-properly.patch removed from -mm
+ tree
+Message-ID: <20210508224859.cKBJI95qY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,71 +44,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: remove unused variable sysctl_compact_memory
+     Subject: mm: compaction: update the COMPACT[STALL|FAIL] events properly
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-remove-unused-variable-sysctl_compact_memory.patch
+     mm-compaction-update-the-compact-events-properly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pintu Kumar <pintu@codeaurora.org>
-Subject: mm/compaction: remove unused variable sysctl_compact_memory
+From: Charan Teja Reddy <charante@codeaurora.org>
+Subject: mm: compaction: update the COMPACT[STALL|FAIL] events properly
 
-The sysctl_compact_memory is mostly unused in mm/compaction.c
-It just acts as a place holder for sysctl to store .data.
+By definition, COMPACT[STALL|FAIL] events needs to be counted when there
+is 'At least in one zone compaction wasn't deferred or skipped from the
+direct compaction'.  And when compaction is skipped or deferred,
+COMPACT_SKIPPED will be returned but it will still go and update these
+compaction events which is wrong in the sense that COMPACT[STALL|FAIL] is
+counted without even trying the compaction.
 
-But the .data itself is not needed here.
-So we can get ride of this variable completely and make .data as NULL.
-This will also eliminate the extern declaration from header file.
-No functionality is broken or changed this way.
+Correct this by skipping the counting of these events when COMPACT_SKIPPED
+is returned for compaction.  This indirectly also avoid the unnecessary
+try into the get_page_from_freelist() when compaction is not even tried.
 
-Link: https://lkml.kernel.org/r/1614852224-14671-1-git-send-email-pintu@codeaurora.org
-Signed-off-by: Pintu Kumar <pintu@codeaurora.org>
-Signed-off-by: Pintu Agarwal <pintu.ping@gmail.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+There is a corner case where compaction is skipped but still count
+COMPACTSTALL event, which is that IRQ came and freed the page and the same
+is captured in capture_control.
+
+Link: https://lkml.kernel.org/r/1613151184-21213-1-git-send-email-charante@codeaurora.org
+Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    1 -
- kernel/sysctl.c            |    2 +-
- mm/compaction.c            |    3 ---
- 3 files changed, 1 insertion(+), 5 deletions(-)
+ mm/compaction.c |    8 ++++++++
+ mm/page_alloc.c |    2 ++
+ 2 files changed, 10 insertions(+)
 
---- a/include/linux/compaction.h~mm-compaction-remove-unused-variable-sysctl_compact_memory
-+++ a/include/linux/compaction.h
-@@ -81,7 +81,6 @@ static inline unsigned long compact_gap(
- }
- 
- #ifdef CONFIG_COMPACTION
--extern int sysctl_compact_memory;
- extern unsigned int sysctl_compaction_proactiveness;
- extern int sysctl_compaction_handler(struct ctl_table *table, int write,
- 			void *buffer, size_t *length, loff_t *ppos);
---- a/kernel/sysctl.c~mm-compaction-remove-unused-variable-sysctl_compact_memory
-+++ a/kernel/sysctl.c
-@@ -2830,7 +2830,7 @@ static struct ctl_table vm_table[] = {
- #ifdef CONFIG_COMPACTION
- 	{
- 		.procname	= "compact_memory",
--		.data		= &sysctl_compact_memory,
-+		.data		= NULL,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0200,
- 		.proc_handler	= sysctl_compaction_handler,
---- a/mm/compaction.c~mm-compaction-remove-unused-variable-sysctl_compact_memory
+--- a/mm/compaction.c~mm-compaction-update-the-compact-events-properly
 +++ a/mm/compaction.c
-@@ -2692,9 +2692,6 @@ static void compact_nodes(void)
- 		compact_node(nid);
- }
+@@ -2529,6 +2529,14 @@ static enum compact_result compact_zone_
+ 	 */
+ 	WRITE_ONCE(current->capture_control, NULL);
+ 	*capture = READ_ONCE(capc.page);
++	/*
++	 * Technically, it is also possible that compaction is skipped but
++	 * the page is still captured out of luck(IRQ came and freed the page).
++	 * Returning COMPACT_SUCCESS in such cases helps in properly accounting
++	 * the COMPACT[STALL|FAIL] when compaction is skipped.
++	 */
++	if (*capture)
++		ret = COMPACT_SUCCESS;
  
--/* The written value is actually unused, all memory is compacted */
--int sysctl_compact_memory;
--
- /*
-  * Tunable for proactive compaction. It determines how
-  * aggressively the kernel should compact memory in the
+ 	return ret;
+ }
+--- a/mm/page_alloc.c~mm-compaction-update-the-compact-events-properly
++++ a/mm/page_alloc.c
+@@ -4204,6 +4204,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+ 	psi_memstall_leave(&pflags);
+ 
++	if (*compact_result == COMPACT_SKIPPED)
++		return NULL;
+ 	/*
+ 	 * At least in one zone compaction wasn't deferred or skipped, so let's
+ 	 * count a compaction stall
 _
 
-Patches currently in -mm which might be from pintu@codeaurora.org are
+Patches currently in -mm which might be from charante@codeaurora.org are
 
 
