@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74B6DC433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DEFAC433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 584C260E0B
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 57ADA610FA
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229691AbhEHWz6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:55:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44696 "EHLO mail.kernel.org"
+        id S229692AbhEHW4A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:56:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229660AbhEHWz6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:55:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8073061432;
-        Sat,  8 May 2021 22:54:56 +0000 (UTC)
+        id S229660AbhEHW4A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:56:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7B21B6142D;
+        Sat,  8 May 2021 22:54:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514496;
-        bh=fQqk3XdcH9OgU765n0IYFkyZdi9tnGRshGyZh35Tkgs=;
+        s=korg; t=1620514498;
+        bh=YurC2Q/NdpiTuqmisUQSLYp2FwHSQR/3sbzT4kiufA4=;
         h=Date:From:To:Subject:From;
-        b=FSx6u4tUGRzPsGXgOixhu8qmjyYd6ucmZ63yiLJ5YrqymcCbHv+1rTXlm7qd+Sfy0
-         KTQyOBKXBqYXNFbeCvOU0VUH17BpQfA4yJZLE550yLsHy+Cx0nBOJwqsj/Dw/l1Tum
-         83/pVm78PsT5RB2fP9HykN9WGUSWwS+MqUe5CL/k=
-Date:   Sat, 08 May 2021 15:54:56 -0700
+        b=lNrwMzklAhZUjYCficzlwx0I3ijUFIKl0YktyZyntwrI///rIJRGCYn6skDCESqYH
+         1qIJSKRngIiu24SwPeuUokaQKDyCqlE4kAoLnrL7oMoaKV9UhtwFpYSlZLoKCBtrrX
+         eEZAWiJMVH4aQO7yz/5FgaegAUccEhq594RuuSrg=
+Date:   Sat, 08 May 2021 15:54:58 -0700
 From:   akpm@linux-foundation.org
-To:     drew@beagleboard.org, gustavoars@kernel.org,
-        mm-commits@vger.kernel.org
-Subject:  [merged] scripts-spellingtxt-add-overflw.patch removed
- from -mm tree
-Message-ID: <20210508225456.X3QBZrrv7%akpm@linux-foundation.org>
+To:     colin.king@canonical.com, mm-commits@vger.kernel.org
+Subject:  [merged]
+ mm-slab-fix-spelling-mistake-disired-desired.patch removed from -mm tree
+Message-ID: <20210508225458.0N7afFp5q%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,41 +42,39 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "overflw"
+     Subject: mm/slab.c: fix spelling mistake "disired" -> "desired"
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-overflw.patch
+     mm-slab-fix-spelling-mistake-disired-desired.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Drew Fustini <drew@beagleboard.org>
-Subject: scripts/spelling.txt: add "overflw"
+From: Colin Ian King <colin.king@canonical.com>
+Subject: mm/slab.c: fix spelling mistake "disired" -> "desired"
 
-Add typo "overflw" for "overflow".  This typo was found and fixed in
-drivers/clocksource/timer-pistachio.c.
+There is a spelling mistake in a comment. Fix it.
 
-Link: https://lore.kernel.org/lkml/20210305090315.384547-1-drew@beagleboard.org/
-Link: https://lkml.kernel.org/r/20210305095151.388182-1-drew@beagleboard.org
-Signed-off-by: Drew Fustini <drew@beagleboard.org>
-Suggested-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Link: https://lkml.kernel.org/r/20210317094158.5762-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |    1 +
- 1 file changed, 1 insertion(+)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/spelling.txt~scripts-spellingtxt-add-overflw
-+++ a/scripts/spelling.txt
-@@ -1028,6 +1028,7 @@ oustanding||outstanding
- overaall||overall
- overhread||overhead
- overlaping||overlapping
-+overflw||overflow
- overlfow||overflow
- overide||override
- overrided||overridden
+--- a/mm/slab.c~mm-slab-fix-spelling-mistake-disired-desired
++++ a/mm/slab.c
+@@ -2284,7 +2284,7 @@ void __kmem_cache_release(struct kmem_ca
+  * Because if it is the case, that means we defer the creation of
+  * the kmalloc_{dma,}_cache of size sizeof(slab descriptor) to this point.
+  * And we eventually call down to __kmem_cache_create(), which
+- * in turn looks up in the kmalloc_{dma,}_caches for the disired-size one.
++ * in turn looks up in the kmalloc_{dma,}_caches for the desired-size one.
+  * This is a "chicken-and-egg" problem.
+  *
+  * So the off-slab slab descriptor shall come from the kmalloc_{dma,}_caches,
 _
 
-Patches currently in -mm which might be from drew@beagleboard.org are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
 
