@@ -4,38 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94777C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98BBBC433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7B1416101D
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 791FD61426
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229549AbhEHWre (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229641AbhEHWre (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 8 May 2021 18:47:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58572 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58634 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229602AbhEHWrc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:47:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8252661421;
-        Sat,  8 May 2021 22:46:30 +0000 (UTC)
+        id S229552AbhEHWre (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:47:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 85C73613E8;
+        Sat,  8 May 2021 22:46:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513990;
-        bh=ZvaU+bm8MNANRlZdjvpc6qnTqGikBtHHcDAIkISGymc=;
+        s=korg; t=1620513992;
+        bh=PFGUIhwOZAtAKZF597RVIpZKqqJk1j2k0NFGFCUlthw=;
         h=Date:From:To:Subject:From;
-        b=0uYCF7SzSbe/amwiU2XXLGrXNZC/NXRcVTj7XpSXF/bp3m5r/MTVwJsK2Uzj29mK9
-         FJL+XOx7RfV89CqXeOKnYPjr33aAokbqeoXQGLeSxDSmJrw10AwcZMnovTkPpr2Quf
-         rceRUv4rT5/5Os56MitBITqP2eu6dNV02v7j8mdI=
-Date:   Sat, 08 May 2021 15:46:30 -0700
+        b=dgvT5TSIBL1Fd38Vyx+QykOWzsCxw5aaK5czZR8OUvcz/sHz1Q5KB7kTeCXJaeE8K
+         V1x4WgyafERcOzGUZREH1QmN0LnBeUrRmpZSJ60UV03+FT31JXIstGt/xochLe3ZTw
+         NiHi2lcXZID3g3nJrWqWka/cvNEHBmo7jtvVIHqQ=
+Date:   Sat, 08 May 2021 15:46:32 -0700
 From:   akpm@linux-foundation.org
 To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org
 Subject:  [merged]
- =?US-ASCII?Q?mm-hugetlb-optimize-the-surplus-state-transfer-code-in-move?=
- =?US-ASCII?Q?=5Fhugetlb=5Fstate.patch?= removed from -mm tree
-Message-ID: <20210508224630.yfDoBrbDh%akpm@linux-foundation.org>
+ =?US-ASCII?Q?hugetlb=5Fcgroup-remove-unnecessary-vm=5Fbug=5Fon=5Fpage-in-?=
+ =?US-ASCII?Q?hugetlb=5Fcgroup=5Fmigrate.patch?= removed from -mm tree
+Message-ID: <20210508224632.u8g0LQv-v%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -46,43 +46,38 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: optimize the surplus state transfer code in move_hugetlb_state()
+     Subject: mm/hugetlb_cgroup: remove unnecessary VM_BUG_ON_PAGE in hugetlb_cgroup_migrate()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-optimize-the-surplus-state-transfer-code-in-move_hugetlb_state.patch
+     hugetlb_cgroup-remove-unnecessary-vm_bug_on_page-in-hugetlb_cgroup_migrate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: optimize the surplus state transfer code in move_hugetlb_state()
+Subject: mm/hugetlb_cgroup: remove unnecessary VM_BUG_ON_PAGE in hugetlb_cgroup_migrate()
 
-We should not transfer the per-node surplus state when we do not cross the
-node in order to save some cpu cycles
+!PageHuge(oldhpage) is implicitly checked in page_hstate() above, so we
+remove this explicit one.
 
-Link: https://lkml.kernel.org/r/20210308112809.26107-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210308112809.26107-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/hugetlb_cgroup.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-optimize-the-surplus-state-transfer-code-in-move_hugetlb_state
-+++ a/mm/hugetlb.c
-@@ -5682,6 +5682,12 @@ void move_hugetlb_state(struct page *old
- 		SetHPageTemporary(oldpage);
- 		ClearHPageTemporary(newpage);
+--- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-remove-unnecessary-vm_bug_on_page-in-hugetlb_cgroup_migrate
++++ a/mm/hugetlb_cgroup.c
+@@ -784,7 +784,6 @@ void hugetlb_cgroup_migrate(struct page
+ 	if (hugetlb_cgroup_disabled())
+ 		return;
  
-+		/*
-+		 * There is no need to transfer the per-node surplus state
-+		 * when we do not cross the node.
-+		 */
-+		if (new_nid == old_nid)
-+			return;
- 		spin_lock(&hugetlb_lock);
- 		if (h->surplus_huge_pages_node[old_nid]) {
- 			h->surplus_huge_pages_node[old_nid]--;
+-	VM_BUG_ON_PAGE(!PageHuge(oldhpage), oldhpage);
+ 	spin_lock(&hugetlb_lock);
+ 	h_cg = hugetlb_cgroup_from_page(oldhpage);
+ 	h_cg_rsvd = hugetlb_cgroup_from_page_rsvd(oldhpage);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
