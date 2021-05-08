@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D03D0C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F786C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BA8DF6100C
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 31B7061415
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229644AbhEHWrE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:47:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57696 "EHLO mail.kernel.org"
+        id S229647AbhEHWrH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:47:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57750 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229552AbhEHWrD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:47:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 83D8C613C5;
-        Sat,  8 May 2021 22:46:01 +0000 (UTC)
+        id S229693AbhEHWrF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:47:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 814356100C;
+        Sat,  8 May 2021 22:46:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513961;
-        bh=xlsMvXaQdsb0iWwBi3ZV9wBLTTdgo32D0gI8aZSwF+U=;
+        s=korg; t=1620513963;
+        bh=BUqX4DX/bPpvdsbPkGGLhAV/AWas1YgAHxHKMAhZ57Y=;
         h=Date:From:To:Subject:From;
-        b=HyEuFfnAhPaqXKEVUlDQTJYilVqiBZ4+3wI9ADPGlkxm2RTHFBdl//f5h040QWvog
-         4HO78oVTR/QdxF3GI2zSIPSbaeXrzLIdgWyPUUtWFjbLOEdmaochKrwOd9Jx4qeNBK
-         bETQzfCgeFeybB9WDX1832SeN8RfPJdZ+ML7uZBc=
-Date:   Sat, 08 May 2021 15:46:01 -0700
+        b=RqytrzyCdAgwAq228ivHb9eW0S2SJbMkZej7Wk1VCr4ZYz9BkbUTJvoxZl1ftVPyc
+         HvMZUzLXFmcDQuCbOCiIK1NOc90EXAYSIEI+uQ7r79l6TPUL9WkWZ8hnQhwXyFWpyh
+         csLfi4M3qzDNuzs4w5/IQYYTJkk7VAl73hUm6jdU=
+Date:   Sat, 08 May 2021 15:46:03 -0700
 From:   akpm@linux-foundation.org
 To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org,
         vishal.l.verma@intel.com, willy@infradead.org
-Subject:  [merged] dax-account-dax-entries-as-nrpages.patch removed
+Subject:  [merged] mm-remove-nrexceptional-from-inode.patch removed
  from -mm tree
-Message-ID: <20210508224601.g6c8d7xTi%akpm@linux-foundation.org>
+Message-ID: <20210508224603.XsJqskBAy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,71 +43,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: account DAX entries as nrpages
+     Subject: mm: remove nrexceptional from inode
 has been removed from the -mm tree.  Its filename was
-     dax-account-dax-entries-as-nrpages.patch
+     mm-remove-nrexceptional-from-inode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: dax: account DAX entries as nrpages
+Subject: mm: remove nrexceptional from inode
 
-Simplify mapping_needs_writeback() by accounting DAX entries as pages
-instead of exceptional entries.
+We no longer track anything in nrexceptional, so remove it, saving 8 bytes
+per inode.
 
-Link: https://lkml.kernel.org/r/20201026151849.24232-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20201026151849.24232-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Tested-by: Vishal Verma <vishal.l.verma@intel.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c     |    6 +++---
- mm/filemap.c |    3 ---
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ fs/inode.c         |    2 +-
+ include/linux/fs.h |    2 --
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
---- a/fs/dax.c~dax-account-dax-entries-as-nrpages
-+++ a/fs/dax.c
-@@ -525,7 +525,7 @@ retry:
- 		dax_disassociate_entry(entry, mapping, false);
- 		xas_store(xas, NULL);	/* undo the PMD join */
- 		dax_wake_entry(xas, entry, true);
--		mapping->nrexceptional--;
-+		mapping->nrpages -= PG_PMD_NR;
- 		entry = NULL;
- 		xas_set(xas, index);
- 	}
-@@ -541,7 +541,7 @@ retry:
- 		dax_lock_entry(xas, entry);
- 		if (xas_error(xas))
- 			goto out_unlock;
--		mapping->nrexceptional++;
-+		mapping->nrpages += 1UL << order;
- 	}
- 
- out_unlock:
-@@ -661,7 +661,7 @@ static int __dax_invalidate_entry(struct
- 		goto out;
- 	dax_disassociate_entry(entry, mapping, trunc);
- 	xas_store(&xas, NULL);
--	mapping->nrexceptional--;
-+	mapping->nrpages -= 1UL << dax_entry_order(entry);
- 	ret = 1;
- out:
- 	put_unlocked_entry(&xas, entry);
---- a/mm/filemap.c~dax-account-dax-entries-as-nrpages
-+++ a/mm/filemap.c
-@@ -618,9 +618,6 @@ EXPORT_SYMBOL(filemap_fdatawait_keep_err
- /* Returns true if writeback might be needed or already in progress. */
- static bool mapping_needs_writeback(struct address_space *mapping)
- {
--	if (dax_mapping(mapping))
--		return mapping->nrexceptional;
--
- 	return mapping->nrpages;
- }
- 
+--- a/fs/inode.c~mm-remove-nrexceptional-from-inode
++++ a/fs/inode.c
+@@ -529,7 +529,7 @@ void clear_inode(struct inode *inode)
+ 	 */
+ 	xa_lock_irq(&inode->i_data.i_pages);
+ 	BUG_ON(inode->i_data.nrpages);
+-	BUG_ON(inode->i_data.nrexceptional);
++	BUG_ON(!mapping_empty(&inode->i_data));
+ 	xa_unlock_irq(&inode->i_data.i_pages);
+ 	BUG_ON(!list_empty(&inode->i_data.private_list));
+ 	BUG_ON(!(inode->i_state & I_FREEING));
+--- a/include/linux/fs.h~mm-remove-nrexceptional-from-inode
++++ a/include/linux/fs.h
+@@ -442,7 +442,6 @@ int pagecache_write_end(struct file *, s
+  * @i_mmap: Tree of private and shared mappings.
+  * @i_mmap_rwsem: Protects @i_mmap and @i_mmap_writable.
+  * @nrpages: Number of page entries, protected by the i_pages lock.
+- * @nrexceptional: Shadow or DAX entries, protected by the i_pages lock.
+  * @writeback_index: Writeback starts here.
+  * @a_ops: Methods.
+  * @flags: Error bits and flags (AS_*).
+@@ -463,7 +462,6 @@ struct address_space {
+ 	struct rb_root_cached	i_mmap;
+ 	struct rw_semaphore	i_mmap_rwsem;
+ 	unsigned long		nrpages;
+-	unsigned long		nrexceptional;
+ 	pgoff_t			writeback_index;
+ 	const struct address_space_operations *a_ops;
+ 	unsigned long		flags;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
