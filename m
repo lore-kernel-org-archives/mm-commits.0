@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC395C43460
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B975AC433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8EB5F61421
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F3006141E
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229644AbhEHWpT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:45:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53564 "EHLO mail.kernel.org"
+        id S229672AbhEHWpV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:45:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53636 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229641AbhEHWpS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:45:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8CFDC6100C;
-        Sat,  8 May 2021 22:44:16 +0000 (UTC)
+        id S229641AbhEHWpU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:45:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8BECB613EA;
+        Sat,  8 May 2021 22:44:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513856;
-        bh=c7Jdj+r/CtvPA4yFeCfNbsJ0kFInDgiAmkOF49rvoJU=;
+        s=korg; t=1620513858;
+        bh=SkZQqwFYoeUsPk/hnvtW0CYYyYS+HDo6/R50Hr+4Axc=;
         h=Date:From:To:Subject:From;
-        b=IWM8a63IPb5cI1usbQyoP/uw2oj5d/3QvVoXr6LyoRR+5ju2l1y3Oibw283FK+VQx
-         o58EhZcp7Y4yRK9DonMyCHIrhdr0B/0Wi7VgmgUsXwb8UQ9UovV+n8lTVZYE8JeZnh
-         cxgtPxm/OMSmeeRmyCvdNTLteaUTr9hc9uNcrYpw=
-Date:   Sat, 08 May 2021 15:44:16 -0700
+        b=UqVNkzn50HSbpNo5aJzgXvMbqqt5Z0UdXb5G8IRiM2xhoFBGZ63y0nl2VlQHyqttY
+         6uYms6xz32lF6VYCSvY9BhEyxlbXlRPzl5TnIcdIa/7l/R7LQeSejAVqIq/N6u32ci
+         74xb4vtyaGTwduK5vgzMYZmd5wyNfqbqqFMX8unw=
+Date:   Sat, 08 May 2021 15:44:18 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com,
         elver@google.com, glider@google.com, mm-commits@vger.kernel.org
-Subject:  [merged] kasan-docs-clean-up-sections.patch removed from
- -mm tree
-Message-ID: <20210508224416.eRMzitR2g%akpm@linux-foundation.org>
+Subject:  [merged] kasan-docs-update-overview-section.patch removed
+ from -mm tree
+Message-ID: <20210508224418.5_EXtyZlb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,23 +43,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: docs: clean up sections
+     Subject: kasan: docs: update overview section
 has been removed from the -mm tree.  Its filename was
-     kasan-docs-clean-up-sections.patch
+     kasan-docs-update-overview-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: docs: clean up sections
+Subject: kasan: docs: update overview section
 
-Update KASAN documentation:
+Update the "Overview" section in KASAN documentation:
 
-- Give some sections clearer names.
-- Remove unneeded subsections in the "Tests" section.
-- Move the "For developers" section and split into subsections.
+- Outline main use cases for each mode.
+- Mention that HW_TAGS mode need compiler support too.
+- Move the part about SLUB/SLAB support from "Usage" to "Overview".
+- Punctuation, readability, and other minor clean-ups.
 
-Link: https://lkml.kernel.org/r/c2bbb56eaea80ad484f0ee85bb71959a3a63f1d7.1615559068.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/1486fba8514de3d7db2f47df2192db59228b0a7b.1615559068.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -68,112 +69,58 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   54 ++++++++++++++--------------
- 1 file changed, 27 insertions(+), 27 deletions(-)
+ Documentation/dev-tools/kasan.rst |   27 +++++++++++++++++++--------
+ 1 file changed, 19 insertions(+), 8 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-docs-clean-up-sections
+--- a/Documentation/dev-tools/kasan.rst~kasan-docs-update-overview-section
 +++ a/Documentation/dev-tools/kasan.rst
-@@ -177,24 +177,6 @@ particular KASAN features.
-   report or also panic the kernel (default: ``report``). Note, that tag
-   checking gets disabled after the first reported bug.
+@@ -11,17 +11,31 @@ designed to find out-of-bound and use-af
+ 2. software tag-based KASAN (similar to userspace HWASan),
+ 3. hardware tag-based KASAN (based on hardware memory tagging).
  
--For developers
--~~~~~~~~~~~~~~
+-Software KASAN modes (1 and 2) use compile-time instrumentation to insert
+-validity checks before every memory access, and therefore require a compiler
++Generic KASAN is mainly used for debugging due to a large memory overhead.
++Software tag-based KASAN can be used for dogfood testing as it has a lower
++memory overhead that allows using it with real workloads. Hardware tag-based
++KASAN comes with low memory and performance overheads and, therefore, can be
++used in production. Either as an in-field memory bug detector or as a security
++mitigation.
++
++Software KASAN modes (#1 and #2) use compile-time instrumentation to insert
++validity checks before every memory access and, therefore, require a compiler
+ version that supports that.
+ 
+-Generic KASAN is supported in both GCC and Clang. With GCC it requires version
++Generic KASAN is supported in GCC and Clang. With GCC, it requires version
+ 8.3.0 or later. Any supported Clang version is compatible, but detection of
+ out-of-bounds accesses for global variables is only supported since Clang 11.
+ 
+-Tag-based KASAN is only supported in Clang.
++Software tag-based KASAN mode is only supported in Clang.
++
++The hardware KASAN mode (#3) relies on hardware to perform the checks but
++still requires a compiler version that supports memory tagging instructions.
++This mode is supported in GCC 10+ and Clang 11+.
+ 
+-Currently generic KASAN is supported for the x86_64, arm, arm64, xtensa, s390
++Both software KASAN modes work with SLUB and SLAB memory allocators,
++while the hardware tag-based KASAN currently only supports SLUB.
++
++Currently, generic KASAN is supported for the x86_64, arm, arm64, xtensa, s390,
+ and riscv architectures, and tag-based KASAN modes are supported only for arm64.
+ 
+ Usage
+@@ -39,9 +53,6 @@ For software modes, you also need to cho
+ CONFIG_KASAN_INLINE. Outline and inline are compiler instrumentation types.
+ The former produces smaller binary while the latter is 1.1 - 2 times faster.
+ 
+-Both software KASAN modes work with both SLUB and SLAB memory allocators,
+-while the hardware tag-based KASAN currently only support SLUB.
 -
--Software KASAN modes use compiler instrumentation to insert validity checks.
--Such instrumentation might be incompatible with some part of the kernel, and
--therefore needs to be disabled. To disable instrumentation for specific files
--or directories, add a line similar to the following to the respective kernel
--Makefile:
--
--- For a single file (e.g. main.o)::
--
--    KASAN_SANITIZE_main.o := n
--
--- For all files in one directory::
--
--    KASAN_SANITIZE := n
--
--
- Implementation details
- ----------------------
+ For better error reports that include stack traces, enable CONFIG_STACKTRACE.
  
-@@ -308,8 +290,8 @@ support MTE (but supports TBI).
- Hardware tag-based KASAN only reports the first found bug. After that MTE tag
- checking gets disabled.
- 
--What memory accesses are sanitised by KASAN?
----------------------------------------------
-+Shadow memory
-+-------------
- 
- The kernel maps memory in a number of different parts of the address
- space. This poses something of a problem for KASAN, which requires
-@@ -320,8 +302,8 @@ The range of kernel virtual addresses is
- real memory to support a real shadow region for every address that
- could be accessed by the kernel.
- 
--By default
--~~~~~~~~~~
-+Default behaviour
-+~~~~~~~~~~~~~~~~~
- 
- By default, architectures only map real memory over the shadow region
- for the linear mapping (and potentially other small areas). For all
-@@ -371,8 +353,29 @@ unmapped. This will require changes in a
- This allows ``VMAP_STACK`` support on x86, and can simplify support of
- architectures that do not have a fixed module region.
- 
--CONFIG_KASAN_KUNIT_TEST and CONFIG_KASAN_MODULE_TEST
------------------------------------------------------
-+For developers
-+--------------
-+
-+Ignoring accesses
-+~~~~~~~~~~~~~~~~~
-+
-+Software KASAN modes use compiler instrumentation to insert validity checks.
-+Such instrumentation might be incompatible with some part of the kernel, and
-+therefore needs to be disabled. To disable instrumentation for specific files
-+or directories, add a line similar to the following to the respective kernel
-+Makefile:
-+
-+- For a single file (e.g. main.o)::
-+
-+    KASAN_SANITIZE_main.o := n
-+
-+- For all files in one directory::
-+
-+    KASAN_SANITIZE := n
-+
-+
-+Tests
-+~~~~~
- 
- KASAN tests consist of two parts:
- 
-@@ -418,21 +421,18 @@ Or, if one of the tests failed::
- There are a few ways to run KUnit-compatible KASAN tests.
- 
- 1. Loadable module
--~~~~~~~~~~~~~~~~~~
- 
- With ``CONFIG_KUNIT`` enabled, ``CONFIG_KASAN_KUNIT_TEST`` can be built as
- a loadable module and run on any architecture that supports KASAN by loading
- the module with insmod or modprobe. The module is called ``test_kasan``.
- 
- 2. Built-In
--~~~~~~~~~~~
- 
- With ``CONFIG_KUNIT`` built-in, ``CONFIG_KASAN_KUNIT_TEST`` can be built-in
- on any architecure that supports KASAN. These and any other KUnit tests enabled
- will run and print the results at boot as a late-init call.
- 
- 3. Using kunit_tool
--~~~~~~~~~~~~~~~~~~~
- 
- With ``CONFIG_KUNIT`` and ``CONFIG_KASAN_KUNIT_TEST`` built-in, it's also
- possible use ``kunit_tool`` to see the results of these and other KUnit tests
+ To augment reports with last allocation and freeing stack of the physical page,
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
