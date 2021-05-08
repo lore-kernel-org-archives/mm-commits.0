@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DD89C43460
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 437C4C43461
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F42B61430
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22F1E613C5
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229667AbhEHWng (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229616AbhEHWng (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 8 May 2021 18:43:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49374 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49548 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229616AbhEHWn2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:43:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 868FE61415;
-        Sat,  8 May 2021 22:42:26 +0000 (UTC)
+        id S229696AbhEHWna (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:43:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 953C461402;
+        Sat,  8 May 2021 22:42:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513746;
-        bh=/HV3CPA2Pho817X2DOZ64HGFARQL2quvburVNty0wiY=;
+        s=korg; t=1620513748;
+        bh=rQ4wpSx4kgTMyIFJAbgXLh4Nm1ZSqxPtrN4Koc0NJjA=;
         h=Date:From:To:Subject:From;
-        b=Y+nHfDLfh1X4CrB4nAvPyeN9bmzgsruMnk2qnFhAgBrdJ0Pw7HYDVoQU8Ozo1k527
-         z/4SnQVsDxaLDkNuTZi2Mkl26KWhJPL1MhDfBvHh8yt0et7sKG1SAhL+13fCExE5zF
-         cu5ka5+CY/K4G2ZOn07jtxGMM55L82q+DxsHfOWM=
-Date:   Sat, 08 May 2021 15:42:26 -0700
+        b=MHR6rwIuU0I6SLeaTjbO3b1/0kH3RAs+Rt2oDqnRVkmzU7mR7oqPfe3K43x4OVCce
+         i0fLKkm27yVYWexlYmIMpsS4x0X1Y5nAb+03fQTiOaZjfCe5CfisrHze6KJvMlaAAg
+         oZk1zkM/laHnuSTZn44Dugrupeuw9W8baF1qnLwY=
+Date:   Sat, 08 May 2021 15:42:28 -0700
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, kwankhede@nvidia.com, mm-commits@vger.kernel.org
-Subject:  [merged] mm-unexport-remap_vmalloc_range_partial.patch
- removed from -mm tree
-Message-ID: <20210508224226.LDeOP-d4g%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, serapheim.dimitro@delphix.com,
+        serapheim@delphix.com, urezki@gmail.com
+Subject:  [merged]
+ mm-vmalloc-use-rb_tree-instead-of-list-for-vread-lookups.patch removed from
+ -mm tree
+Message-ID: <20210508224228.4RZ7q71ky%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,40 +44,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: unexport remap_vmalloc_range_partial
+     Subject: mm/vmalloc: use rb_tree instead of list for vread() lookups
 has been removed from the -mm tree.  Its filename was
-     mm-unexport-remap_vmalloc_range_partial.patch
+     mm-vmalloc-use-rb_tree-instead-of-list-for-vread-lookups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: unexport remap_vmalloc_range_partial
+From: Serapheim Dimitropoulos <serapheim.dimitro@delphix.com>
+Subject: mm/vmalloc: use rb_tree instead of list for vread() lookups
 
-remap_vmalloc_range_partial is only used to implement remap_vmalloc_range
-and by procfs.  Unexport it.
+vread() has been linearly searching vmap_area_list for looking up vmalloc
+areas to read from.  These same areas are also tracked by a rb_tree
+(vmap_area_root) which offers logarithmic lookup.
 
-Link: https://lkml.kernel.org/r/20210301082235.932968-3-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Kirti Wankhede <kwankhede@nvidia.com>
+This patch modifies vread() to use the rb_tree structure instead of the
+list and the speedup for heavy /proc/kcore readers can be pretty
+significant.  Below are the wall clock measurements of a Python
+application that leverages the drgn debugging library to read and
+interpret data read from /proc/kcore.
+
+Before the patch:
+-----
+$ time sudo sdb -e 'dbuf | head 3000 | wc'
+(unsigned long)3000
+
+real	0m22.446s
+user	0m2.321s
+sys	0m20.690s
+-----
+
+With the patch:
+-----
+$ time sudo sdb -e 'dbuf | head 3000 | wc'
+(unsigned long)3000
+
+real	0m2.104s
+user	0m2.043s
+sys	0m0.921s
+-----
+
+Link: https://lkml.kernel.org/r/20210209190253.108763-1-serapheim@delphix.com
+Signed-off-by: Serapheim Dimitropoulos <serapheim@delphix.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmalloc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-unexport-remap_vmalloc_range_partial
+--- a/mm/vmalloc.c~mm-vmalloc-use-rb_tree-instead-of-list-for-vread-lookups
 +++ a/mm/vmalloc.c
-@@ -3072,7 +3072,6 @@ int remap_vmalloc_range_partial(struct v
+@@ -2894,7 +2894,10 @@ long vread(char *buf, char *addr, unsign
+ 		count = -(unsigned long) addr;
  
- 	return 0;
- }
--EXPORT_SYMBOL(remap_vmalloc_range_partial);
+ 	spin_lock(&vmap_area_lock);
+-	list_for_each_entry(va, &vmap_area_list, list) {
++	va = __find_vmap_area((unsigned long)addr);
++	if (!va)
++		goto finished;
++	list_for_each_entry_from(va, &vmap_area_list, list) {
+ 		if (!count)
+ 			break;
  
- /**
-  * remap_vmalloc_range - map vmalloc pages to userspace
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from serapheim.dimitro@delphix.com are
 
 
