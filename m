@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93381C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A39C1C43460
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 79ECB61402
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 878A961424
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229522AbhEHWuX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:50:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35402 "EHLO mail.kernel.org"
+        id S229713AbhEHWuZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:50:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35460 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229662AbhEHWuW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:50:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 73F506100C;
-        Sat,  8 May 2021 22:49:20 +0000 (UTC)
+        id S229662AbhEHWuY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:50:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 86688613EA;
+        Sat,  8 May 2021 22:49:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514160;
-        bh=wL80BQ1oMZDv7B2lKQaQHVdy+GA/NjrkzlMDvKjsdzs=;
+        s=korg; t=1620514162;
+        bh=mZrmXBovMZHJ+fnJhzYn6tFauS9o9j2ekZLNmIQbpgU=;
         h=Date:From:To:Subject:From;
-        b=KJ1yFe/3Opi0xOLksNtJvE1842+MZPaMZZx6x7BBuV8lG9eW/Xs7i+w8DUG1v+q/s
-         cT8hVMdqpZ9GCeFXLx4njHFEwpNrXwmiSjNnJQ6fGVKGiHTi+b/mQYw45m7BYWqdKr
-         CX21zVN5u2ZGh1twx/hrlQld/SUbSTBv+IQd6p44=
-Date:   Sat, 08 May 2021 15:49:20 -0700
+        b=Api94v0EljQdvAQ61+lhUy2de2tmQFOph3IcjGmLnBLANo5Le+KQbu1awSndJb5+J
+         PLiIvioH8YGSeE6zkiOyb8En7C81ouQ57aMJY8YVl7QaA5Qvit57qzwtbvoocrEW6o
+         dmbahTJZhszJiqUZssFZ6j5or+f5CQY17I5uuYKk=
+Date:   Sat, 08 May 2021 15:49:22 -0700
 From:   akpm@linux-foundation.org
-To:     jhubbard@nvidia.com, joaodias@google.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, surenb@google.com
-Subject:  [merged] mm-vmstat-add-cma-statistics.patch removed from
- -mm tree
-Message-ID: <20210508224920.Vf8cFHQXt%akpm@linux-foundation.org>
+To:     baolin.wang@linux.alibaba.com, david@redhat.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org
+Subject:  [merged]
+ mm-cma-use-pr_err_ratelimited-for-cma-warning.patch removed from -mm tree
+Message-ID: <20210508224922.mKlZiEypu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,101 +43,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmstat: add cma statistics
+     Subject: mm: cma: use pr_err_ratelimited for CMA warning
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-add-cma-statistics.patch
+     mm-cma-use-pr_err_ratelimited-for-cma-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: vmstat: add cma statistics
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: cma: use pr_err_ratelimited for CMA warning
 
-Since CMA is used more widely, it's worth to have CMA allocation
-statistics into vmstat.  With it, we could know how agressively system
-uses cma allocation and how often it fails.
+If we did not reserve extra CMA memory, the log buffer can be easily
+filled up by CMA failure warning when the devices calling
+dmam_alloc_coherent() to alloc DMA memory.  Thus we can use
+pr_err_ratelimited() instead to reduce the duplicate CMA warning.
 
-Link: https://lkml.kernel.org/r/20210302183346.3707237-1-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: John Dias <joaodias@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/ce2251ef49e1727a9a40531d1996660b05462bd2.1615279825.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    4 ++++
- mm/cma.c                      |   12 +++++++++---
- mm/vmstat.c                   |    4 ++++
- 3 files changed, 17 insertions(+), 3 deletions(-)
+ mm/cma.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/vm_event_item.h~mm-vmstat-add-cma-statistics
-+++ a/include/linux/vm_event_item.h
-@@ -71,6 +71,10 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- #ifdef CONFIG_HUGETLB_PAGE
- 		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
- #endif
-+#ifdef CONFIG_CMA
-+		CMA_ALLOC_SUCCESS,
-+		CMA_ALLOC_FAIL,
-+#endif
- 		UNEVICTABLE_PGCULLED,	/* culled to noreclaim list */
- 		UNEVICTABLE_PGSCANNED,	/* scanned for reclaimability */
- 		UNEVICTABLE_PGRESCUED,	/* rescued from noreclaim list */
---- a/mm/cma.c~mm-vmstat-add-cma-statistics
+--- a/mm/cma.c~mm-cma-use-pr_err_ratelimited-for-cma-warning
 +++ a/mm/cma.c
-@@ -435,13 +435,13 @@ struct page *cma_alloc(struct cma *cma,
- 	int ret = -ENOMEM;
- 
- 	if (!cma || !cma->count || !cma->bitmap)
--		return NULL;
-+		goto out;
- 
- 	pr_debug("%s(cma %p, count %zu, align %d)\n", __func__, (void *)cma,
- 		 count, align);
- 
- 	if (!count)
--		return NULL;
-+		goto out;
- 
- 	mask = cma_bitmap_aligned_mask(cma, align);
- 	offset = cma_bitmap_aligned_offset(cma, align);
-@@ -449,7 +449,7 @@ struct page *cma_alloc(struct cma *cma,
- 	bitmap_count = cma_bitmap_pages_to_bits(cma, count);
- 
- 	if (bitmap_count > bitmap_maxno)
--		return NULL;
-+		goto out;
- 
- 	for (;;) {
- 		spin_lock_irq(&cma->lock);
-@@ -506,6 +506,12 @@ struct page *cma_alloc(struct cma *cma,
+@@ -500,8 +500,8 @@ struct page *cma_alloc(struct cma *cma,
  	}
  
- 	pr_debug("%s(): returned %p\n", __func__, page);
-+out:
-+	if (page)
-+		count_vm_event(CMA_ALLOC_SUCCESS);
-+	else
-+		count_vm_event(CMA_ALLOC_FAIL);
-+
- 	return page;
- }
+ 	if (ret && !no_warn) {
+-		pr_err("%s: %s: alloc failed, req-size: %zu pages, ret: %d\n",
+-		       __func__, cma->name, count, ret);
++		pr_err_ratelimited("%s: %s: alloc failed, req-size: %zu pages, ret: %d\n",
++				   __func__, cma->name, count, ret);
+ 		cma_debug_show_areas(cma);
+ 	}
  
---- a/mm/vmstat.c~mm-vmstat-add-cma-statistics
-+++ a/mm/vmstat.c
-@@ -1313,6 +1313,10 @@ const char * const vmstat_text[] = {
- 	"htlb_buddy_alloc_success",
- 	"htlb_buddy_alloc_fail",
- #endif
-+#ifdef CONFIG_CMA
-+	"cma_alloc_success",
-+	"cma_alloc_fail",
-+#endif
- 	"unevictable_pgs_culled",
- 	"unevictable_pgs_scanned",
- 	"unevictable_pgs_rescued",
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
 
