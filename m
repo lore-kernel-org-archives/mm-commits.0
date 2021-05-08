@@ -7,42 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33498C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8D81C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0660261421
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97EE961421
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229567AbhEHWvP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:51:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36842 "EHLO mail.kernel.org"
+        id S229631AbhEHWvW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:51:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37072 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229549AbhEHWvO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:51:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D80E9613EA;
-        Sat,  8 May 2021 22:50:11 +0000 (UTC)
+        id S229609AbhEHWvV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:51:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E1A56101D;
+        Sat,  8 May 2021 22:50:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514212;
-        bh=8VvgEjX+fnFYYZaYKV/1JE+m9d78druAJY11p9OYh10=;
+        s=korg; t=1620514219;
+        bh=9jV47vRm8HZyFc9Mo8fvumFe4rfd7jPHBRDe/c46zQ0=;
         h=Date:From:To:Subject:From;
-        b=mMrxZ85SeWjGIHnLjVpguJi5skcSclV9PnUVBYdQWKVN0M8U2pAz608JRR7VK0b4l
-         3Qvst4k/1QNQYOqqTftwC/lEK5V85JS2cT9vHHcrhs4Ln2nF7G7B4wOFJZL6n+OcHT
-         DmuN5iF1NnM+4+Jn2l7jgnw8WIj8x0WJYAqJlePo=
-Date:   Sat, 08 May 2021 15:50:11 -0700
+        b=D8gQpY7T8Fie2jhUsBHuVKOunj76q4yJrQx3+k29iQDFhq5pERWjDsTtQifWe9j9q
+         9L+OpoKqQnucBMmsbYqWMZgmeQ7foxfqXjxGFguBL2m40p0VFiGIzolShwRBA5DpmW
+         7dFJk+YvpozjSNr+tv1sHujA6jEFM93Xe8t16/JU=
+Date:   Sat, 08 May 2021 15:50:19 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, aou@eecs.berkeley.edu, arnd@arndb.de,
-        benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de,
-        catalin.marinas@arm.com, dalias@libc.org, deller@gmx.de,
-        gor@linux.ibm.com, hca@linux.ibm.com, hpa@zytor.com,
-        James.Bottomley@HansenPartnership.com, linux@armlinux.org.uk,
-        mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        palmerdabbelt@google.com, paul.walmsley@sifive.com,
-        paulus@samba.org, tglx@linutronix.de, tsbogend@alpha.franken.de,
-        vgupta@synopsys.com, viro@zeniv.linux.org.uk, will@kernel.org,
-        ysato@users.sourceforge.jp
-Subject:  [merged]
- mm-drop-redundant-arch_enable_split_pmd_ptlock.patch removed from -mm tree
-Message-ID: <20210508225011.dpo27H266%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, joe@perches.com,
+        mm-commits@vger.kernel.org
+Subject:  [merged] mm-reduce-mem_dump_obj-object-size.patch removed
+ from -mm tree
+Message-ID: <20210508225019.RRdJ5yMUu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,139 +43,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: drop redundant ARCH_ENABLE_SPLIT_PMD_PTLOCK
+     Subject: mm/util.c: reduce mem_dump_obj() object size
 has been removed from the -mm tree.  Its filename was
-     mm-drop-redundant-arch_enable_split_pmd_ptlock.patch
+     mm-reduce-mem_dump_obj-object-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: drop redundant ARCH_ENABLE_SPLIT_PMD_PTLOCK
+From: Joe Perches <joe@perches.com>
+Subject: mm/util.c: reduce mem_dump_obj() object size
 
-ARCH_ENABLE_SPLIT_PMD_PTLOCKS has duplicate definitions on platforms that
-subscribe it.  Drop these redundant definitions and instead just select it
-on applicable platforms.
+Simplify the code by using a temporary and reduce the object size by using
+a single call to pr_cont().  Reverse a test and unindent a block too.
 
-Link: https://lkml.kernel.org/r/1617259448-22529-6-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
-Acked-by: Heiko Carstens <hca@linux.ibm.com>		[s390]
-Cc: Will Deacon <will@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Palmer Dabbelt <palmerdabbelt@google.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Vineet Gupta <vgupta@synopsys.com>
+$ size mm/util.o* (defconfig x86-64)
+   text	   data	    bss	    dec	    hex	filename
+   7419	    372	     40	   7831	   1e97	mm/util.o.new
+   7477	    372	     40	   7889	   1ed1	mm/util.o.old
+
+Link: https://lkml.kernel.org/r/a6e105886338f68afd35f7a13d73bcf06b0cc732.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig                     |    4 +---
- arch/powerpc/platforms/Kconfig.cputype |    5 +----
- arch/s390/Kconfig                      |    4 +---
- arch/x86/Kconfig                       |    5 +----
- 4 files changed, 4 insertions(+), 14 deletions(-)
+ mm/util.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
---- a/arch/arm64/Kconfig~mm-drop-redundant-arch_enable_split_pmd_ptlock
-+++ a/arch/arm64/Kconfig
-@@ -14,6 +14,7 @@ config ARM64
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_MEMORY_HOTPLUG
- 	select ARCH_ENABLE_MEMORY_HOTREMOVE
-+	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if PGTABLE_LEVELS > 2
- 	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_CACHE_LINE_SIZE
- 	select ARCH_HAS_DEBUG_VIRTUAL
-@@ -1074,9 +1075,6 @@ config HW_PERF_EVENTS
- config ARCH_HAS_FILTER_PGPROT
- 	def_bool y
- 
--config ARCH_ENABLE_SPLIT_PMD_PTLOCK
--	def_bool y if PGTABLE_LEVELS > 2
--
- # Supported by clang >= 7.0
- config CC_HAVE_SHADOW_CALL_STACK
- 	def_bool $(cc-option, -fsanitize=shadow-call-stack -ffixed-x18)
---- a/arch/powerpc/platforms/Kconfig.cputype~mm-drop-redundant-arch_enable_split_pmd_ptlock
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -97,6 +97,7 @@ config PPC_BOOK3S_64
- 	select PPC_HAVE_PMU_SUPPORT
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
-+	select ARCH_ENABLE_PMD_SPLIT_PTLOCK
- 	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
- 	select ARCH_SUPPORTS_HUGETLBFS
- 	select ARCH_SUPPORTS_NUMA_BALANCING
-@@ -356,10 +357,6 @@ config SPE
- 
- 	  If in doubt, say Y here.
- 
--config ARCH_ENABLE_SPLIT_PMD_PTLOCK
--	def_bool y
--	depends on PPC_BOOK3S_64
--
- config PPC_RADIX_MMU
- 	bool "Radix MMU Support"
- 	depends on PPC_BOOK3S_64
---- a/arch/s390/Kconfig~mm-drop-redundant-arch_enable_split_pmd_ptlock
-+++ a/arch/s390/Kconfig
-@@ -62,6 +62,7 @@ config S390
- 	select ARCH_BINFMT_ELF_STATE
- 	select ARCH_ENABLE_MEMORY_HOTPLUG if SPARSEMEM
- 	select ARCH_ENABLE_MEMORY_HOTREMOVE
-+	select ARCH_ENABLE_SPLIT_PMD_PTLOCK
- 	select ARCH_HAS_DEBUG_VM_PGTABLE
- 	select ARCH_HAS_DEBUG_WX
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
-@@ -628,9 +629,6 @@ config ARCH_SPARSEMEM_ENABLE
- config ARCH_SPARSEMEM_DEFAULT
- 	def_bool y
- 
--config ARCH_ENABLE_SPLIT_PMD_PTLOCK
--	def_bool y
--
- config MAX_PHYSMEM_BITS
- 	int "Maximum size of supported physical memory in bits (42-53)"
- 	range 42 53
---- a/arch/x86/Kconfig~mm-drop-redundant-arch_enable_split_pmd_ptlock
-+++ a/arch/x86/Kconfig
-@@ -63,6 +63,7 @@ config X86
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if X86_64 && HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_MEMORY_HOTPLUG if X86_64 || (X86_32 && HIGHMEM)
- 	select ARCH_ENABLE_MEMORY_HOTREMOVE if MEMORY_HOTPLUG
-+	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if X86_64 || X86_PAE
- 	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
- 	select ARCH_HAS_CACHE_LINE_SIZE
-@@ -2435,10 +2436,6 @@ config USE_PERCPU_NUMA_NODE_ID
- 	def_bool y
- 	depends on NUMA
- 
--config ARCH_ENABLE_SPLIT_PMD_PTLOCK
--	def_bool y
--	depends on X86_64 || X86_PAE
--
- menu "Power management and ACPI options"
- 
- config ARCH_HIBERNATION_HEADER
+--- a/mm/util.c~mm-reduce-mem_dump_obj-object-size
++++ a/mm/util.c
+@@ -987,22 +987,26 @@ int __weak memcmp_pages(struct page *pag
+  */
+ void mem_dump_obj(void *object)
+ {
++	const char *type;
++
+ 	if (kmem_valid_obj(object)) {
+ 		kmem_dump_obj(object);
+ 		return;
+ 	}
++
+ 	if (vmalloc_dump_obj(object))
+ 		return;
+-	if (!virt_addr_valid(object)) {
+-		if (object == NULL)
+-			pr_cont(" NULL pointer.\n");
+-		else if (object == ZERO_SIZE_PTR)
+-			pr_cont(" zero-size pointer.\n");
+-		else
+-			pr_cont(" non-paged memory.\n");
+-		return;
+-	}
+-	pr_cont(" non-slab/vmalloc memory.\n");
++
++	if (virt_addr_valid(object))
++		type = "non-slab/vmalloc memory";
++	else if (object == NULL)
++		type = "NULL pointer";
++	else if (object == ZERO_SIZE_PTR)
++		type = "zero-size pointer";
++	else
++		type = "non-paged memory";
++
++	pr_cont(" %s\n", type);
+ }
+ EXPORT_SYMBOL_GPL(mem_dump_obj);
+ #endif
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 
