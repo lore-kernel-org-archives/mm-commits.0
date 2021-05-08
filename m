@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B0D2C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70781C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 220B661415
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 50339613EA
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229522AbhEHWnE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:43:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47968 "EHLO mail.kernel.org"
+        id S229647AbhEHWnG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:43:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48054 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229552AbhEHWnE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:43:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7735461402;
-        Sat,  8 May 2021 22:42:01 +0000 (UTC)
+        id S229552AbhEHWnG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:43:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7543B6141D;
+        Sat,  8 May 2021 22:42:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513721;
-        bh=UoQwhnAfCsjnr0fBRnILXDs6dveVAiEod5HdFT8jqaU=;
+        s=korg; t=1620513723;
+        bh=Ly1axrcbD7s4vd02bz7dI1vx33oj6TwhpjbHlCzRudM=;
         h=Date:From:To:Subject:From;
-        b=hTju6vMXpembC9JOWang4goywtpiQAELa7jgb5AImGMRcLS+DPa0ZNzdxMpVQllVf
-         KW6SYbgmIksOv6LRhsFLm44uSsT8ert0oIGgPQocp142JpOGiIjJEX8Pi3TQHedwgI
-         OqFC5Pp0+NM7aHbGCC3qR3CQIKNH58NnHTOQS2eM=
-Date:   Sat, 08 May 2021 15:42:01 -0700
+        b=xfjSkMYgkQ9Vf5GeFUaXjgKj/tKe4TjZ4rip3GjVlZgf3eza1p8smYkubxp3Bq5vh
+         LvNYiH8b0XdcYfTM7898LzFw4q3h0jjCa1fDkHzkq5R8vQ1LmMP1kDPcOD6wZFT16Z
+         1dxxpfTzYY+QhvjGEIP6X2kTboqsLIp80yn+RZ3M=
+Date:   Sat, 08 May 2021 15:42:03 -0700
 From:   akpm@linux-foundation.org
 To:     chris@chris-wilson.co.uk, daniel.vetter@ffwll.ch, hch@lst.de,
         jani.nikula@linux.intel.com, joonas.lahtinen@linux.intel.com,
         mm-commits@vger.kernel.org, peterz@infradead.org,
         rodrigo.vivi@intel.com
-Subject:  [merged] mm-add-a-io_mapping_map_user-helper.patch
- removed from -mm tree
-Message-ID: <20210508224201.Fma6sCd40%akpm@linux-foundation.org>
+Subject:  [merged] i915-use-io_mapping_map_user.patch removed from
+ -mm tree
+Message-ID: <20210508224203.nh-Mmt7_f%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,21 +45,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add a io_mapping_map_user helper
+     Subject: i915: use io_mapping_map_user
 has been removed from the -mm tree.  Its filename was
-     mm-add-a-io_mapping_map_user-helper.patch
+     i915-use-io_mapping_map_user.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: add a io_mapping_map_user helper
+Subject: i915: use io_mapping_map_user
 
-Add a helper that calls remap_pfn_range for an struct io_mapping, relying
-on the pgprot pre-validation done when creating the mapping instead of
-doing it at runtime.
+Replace the home-grown remap_io_mapping that abuses apply_to_page_range
+with the proper io_mapping_map_user interface.
 
-Link: https://lkml.kernel.org/r/20210326055505.1424432-3-hch@lst.de
+Link: https://lkml.kernel.org/r/20210326055505.1424432-4-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Chris Wilson <chris@chris-wilson.co.uk>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
@@ -70,70 +69,113 @@ Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/io-mapping.h |    3 +++
- mm/Kconfig                 |    3 +++
- mm/Makefile                |    1 +
- mm/io-mapping.c            |   29 +++++++++++++++++++++++++++++
- 4 files changed, 36 insertions(+)
+ drivers/gpu/drm/i915/Kconfig             |    1 
+ drivers/gpu/drm/i915/gem/i915_gem_mman.c |    9 +---
+ drivers/gpu/drm/i915/i915_drv.h          |    3 -
+ drivers/gpu/drm/i915/i915_mm.c           |   44 ---------------------
+ 4 files changed, 5 insertions(+), 52 deletions(-)
 
---- a/include/linux/io-mapping.h~mm-add-a-io_mapping_map_user-helper
-+++ a/include/linux/io-mapping.h
-@@ -220,3 +220,6 @@ io_mapping_free(struct io_mapping *iomap
+--- a/drivers/gpu/drm/i915/gem/i915_gem_mman.c~i915-use-io_mapping_map_user
++++ a/drivers/gpu/drm/i915/gem/i915_gem_mman.c
+@@ -367,11 +367,10 @@ retry:
+ 		goto err_unpin;
+ 
+ 	/* Finally, remap it using the new GTT offset */
+-	ret = remap_io_mapping(area,
+-			       area->vm_start + (vma->ggtt_view.partial.offset << PAGE_SHIFT),
+-			       (ggtt->gmadr.start + vma->node.start) >> PAGE_SHIFT,
+-			       min_t(u64, vma->size, area->vm_end - area->vm_start),
+-			       &ggtt->iomap);
++	ret = io_mapping_map_user(&ggtt->iomap, area, area->vm_start +
++			(vma->ggtt_view.partial.offset << PAGE_SHIFT),
++			(ggtt->gmadr.start + vma->node.start) >> PAGE_SHIFT,
++			min_t(u64, vma->size, area->vm_end - area->vm_start));
+ 	if (ret)
+ 		goto err_fence;
+ 
+--- a/drivers/gpu/drm/i915/i915_drv.h~i915-use-io_mapping_map_user
++++ a/drivers/gpu/drm/i915/i915_drv.h
+@@ -1905,9 +1905,6 @@ int i915_reg_read_ioctl(struct drm_devic
+ 			struct drm_file *file);
+ 
+ /* i915_mm.c */
+-int remap_io_mapping(struct vm_area_struct *vma,
+-		     unsigned long addr, unsigned long pfn, unsigned long size,
+-		     struct io_mapping *iomap);
+ int remap_io_sg(struct vm_area_struct *vma,
+ 		unsigned long addr, unsigned long size,
+ 		struct scatterlist *sgl, resource_size_t iobase);
+--- a/drivers/gpu/drm/i915/i915_mm.c~i915-use-io_mapping_map_user
++++ a/drivers/gpu/drm/i915/i915_mm.c
+@@ -37,17 +37,6 @@ struct remap_pfn {
+ 	resource_size_t iobase;
+ };
+ 
+-static int remap_pfn(pte_t *pte, unsigned long addr, void *data)
+-{
+-	struct remap_pfn *r = data;
+-
+-	/* Special PTE are not associated with any struct page */
+-	set_pte_at(r->mm, addr, pte, pte_mkspecial(pfn_pte(r->pfn, r->prot)));
+-	r->pfn++;
+-
+-	return 0;
+-}
+-
+ #define use_dma(io) ((io) != -1)
+ 
+ static inline unsigned long sgt_pfn(const struct remap_pfn *r)
+@@ -77,40 +66,7 @@ static int remap_sg(pte_t *pte, unsigned
+ 	return 0;
  }
  
- #endif /* _LINUX_IO_MAPPING_H */
-+
-+int io_mapping_map_user(struct io_mapping *iomap, struct vm_area_struct *vma,
-+		unsigned long addr, unsigned long pfn, unsigned long size);
---- /dev/null
-+++ a/mm/io-mapping.c
-@@ -0,0 +1,29 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+
-+#include <linux/mm.h>
-+#include <linux/io-mapping.h>
-+
-+/**
-+ * io_mapping_map_user - remap an I/O mapping to userspace
-+ * @iomap: the source io_mapping
-+ * @vma: user vma to map to
-+ * @addr: target user address to start at
-+ * @pfn: physical address of kernel memory
-+ * @size: size of map area
-+ *
-+ *  Note: this is only safe if the mm semaphore is held when called.
-+ */
-+int io_mapping_map_user(struct io_mapping *iomap, struct vm_area_struct *vma,
-+		unsigned long addr, unsigned long pfn, unsigned long size)
-+{
-+	vm_flags_t expected_flags = VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+
-+	if (WARN_ON_ONCE((vma->vm_flags & expected_flags) != expected_flags))
-+		return -EINVAL;
-+
-+	/* We rely on prevalidation of the io-mapping to skip track_pfn(). */
-+	return remap_pfn_range_notrack(vma, addr, pfn, size,
-+		__pgprot((pgprot_val(iomap->prot) & _PAGE_CACHE_MASK) |
-+			 (pgprot_val(vma->vm_page_prot) & ~_PAGE_CACHE_MASK)));
-+}
-+EXPORT_SYMBOL_GPL(io_mapping_map_user);
---- a/mm/Kconfig~mm-add-a-io_mapping_map_user-helper
-+++ a/mm/Kconfig
-@@ -871,4 +871,7 @@ config MAPPING_DIRTY_HELPERS
- config KMAP_LOCAL
- 	bool
+-/**
+- * remap_io_mapping - remap an IO mapping to userspace
+- * @vma: user vma to map to
+- * @addr: target user address to start at
+- * @pfn: physical address of kernel memory
+- * @size: size of map area
+- * @iomap: the source io_mapping
+- *
+- *  Note: this is only safe if the mm semaphore is held when called.
+- */
+-int remap_io_mapping(struct vm_area_struct *vma,
+-		     unsigned long addr, unsigned long pfn, unsigned long size,
+-		     struct io_mapping *iomap)
+-{
+-	struct remap_pfn r;
+-	int err;
+-
+ #define EXPECTED_FLAGS (VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP)
+-	GEM_BUG_ON((vma->vm_flags & EXPECTED_FLAGS) != EXPECTED_FLAGS);
+-
+-	/* We rely on prevalidation of the io-mapping to skip track_pfn(). */
+-	r.mm = vma->vm_mm;
+-	r.pfn = pfn;
+-	r.prot = __pgprot((pgprot_val(iomap->prot) & _PAGE_CACHE_MASK) |
+-			  (pgprot_val(vma->vm_page_prot) & ~_PAGE_CACHE_MASK));
+-
+-	err = apply_to_page_range(r.mm, addr, size, remap_pfn, &r);
+-	if (unlikely(err)) {
+-		zap_vma_ptes(vma, addr, (r.pfn - pfn) << PAGE_SHIFT);
+-		return err;
+-	}
+-
+-	return 0;
+-}
  
-+# struct io_mapping based helper.  Selected by drivers that need them
-+config IO_MAPPING
-+	bool
- endmenu
---- a/mm/Makefile~mm-add-a-io_mapping_map_user-helper
-+++ a/mm/Makefile
-@@ -120,3 +120,4 @@ obj-$(CONFIG_MEMFD_CREATE) += memfd.o
- obj-$(CONFIG_MAPPING_DIRTY_HELPERS) += mapping_dirty_helpers.o
- obj-$(CONFIG_PTDUMP_CORE) += ptdump.o
- obj-$(CONFIG_PAGE_REPORTING) += page_reporting.o
-+obj-$(CONFIG_IO_MAPPING) += io-mapping.o
+ /**
+  * remap_io_sg - remap an IO mapping to userspace
+--- a/drivers/gpu/drm/i915/Kconfig~i915-use-io_mapping_map_user
++++ a/drivers/gpu/drm/i915/Kconfig
+@@ -20,6 +20,7 @@ config DRM_I915
+ 	select INPUT if ACPI
+ 	select ACPI_VIDEO if ACPI
+ 	select ACPI_BUTTON if ACPI
++	select IO_MAPPING
+ 	select SYNC_FILE
+ 	select IOSF_MBI
+ 	select CRC32
 _
 
 Patches currently in -mm which might be from hch@lst.de are
