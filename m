@@ -4,38 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E753BC433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0FECC433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CF5A061426
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D37F861415
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229696AbhEHWoi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:44:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52296 "EHLO mail.kernel.org"
+        id S229620AbhEHWol (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:44:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52398 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229675AbhEHWoh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:44:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9177261424;
-        Sat,  8 May 2021 22:43:35 +0000 (UTC)
+        id S229631AbhEHWok (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:44:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A99961402;
+        Sat,  8 May 2021 22:43:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513815;
-        bh=cOAQ0ST75w1j3/w6zf3vOAFi2QshaxnHzYzS+Irxfzg=;
+        s=korg; t=1620513818;
+        bh=dOG9/OQAPQXk36rJ4M9nJGNgwiUhX0cLkwDqsXOyjGY=;
         h=Date:From:To:Subject:From;
-        b=qrJR2C/GThq6unFoqe3p3wwAZ84TzAcMiDr9T9lPZ8aQKNAysTxK6GQj0ijNbYb09
-         GoPU2zbMATQLa2p98POAOb6QCNPrcUmkB0nrimAoQ9e8YiNbb3f9+C6I9vXqE1Uv9U
-         5IOPsJypGsNPAgCrdP2zWsbPsfFgHniwp0EdRQms=
-Date:   Sat, 08 May 2021 15:43:35 -0700
+        b=cyfoKbnlVpcpH1icG5txg3CuVyxegoEgIyY4PJ8pjPr6vk4dgbVBT4ZfQCFsgabvT
+         FRjvIRSbogMgq+ik40ivEHjR1qSIQaOXO1Q2TQZXrTaYwr/mpFr2Hq1fK3xb7Np0Ke
+         1zoq+zbR5CloVTUu9c9y4GSOVdH6HxtmsbkeUUHw=
+Date:   Sat, 08 May 2021 15:43:38 -0700
 From:   akpm@linux-foundation.org
-To:     hdanton@sina.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        oleksiy.avramchenko@sonymobile.com, rostedt@goodmis.org,
-        shuah@kernel.org, urezki@gmail.com, willy@infradead.org
-Subject:  [merged] mm-vmalloc-remove-an-empty-line.patch removed
- from -mm tree
-Message-ID: <20210508224335.yq7LXaeEI%akpm@linux-foundation.org>
+To:     corbet@lwn.net, jhubbard@nvidia.com, mm-commits@vger.kernel.org,
+        rppt@linux.ibm.com, willy@infradead.org
+Subject:  [merged]
+ mm-doc-fix-fault_flag_allow_retry_first-kerneldoc.patch removed from -mm
+ tree
+Message-ID: <20210508224338.6SyNTmUEq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,42 +44,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: remove an empty line
+     Subject: mm/doc: fix fault_flag_allow_retry_first kerneldoc
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-remove-an-empty-line.patch
+     mm-doc-fix-fault_flag_allow_retry_first-kerneldoc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: remove an empty line
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/doc: fix fault_flag_allow_retry_first kerneldoc
 
-Link: https://lkml.kernel.org/r/20210402202237.20334-5-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+make htmldocs reports:
+
+./include/linux/mm.h:496: warning: Function parameter or member 'flags' not described in 'fault_flag_allow_retry_first'
+
+Add a description.
+
+Link: https://lkml.kernel.org/r/20210322195022.2143603-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/mm.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-remove-an-empty-line
-+++ a/mm/vmalloc.c
-@@ -1503,7 +1503,6 @@ retry:
- 	va->va_end = addr + size;
- 	va->vm = NULL;
+--- a/include/linux/mm.h~mm-doc-fix-fault_flag_allow_retry_first-kerneldoc
++++ a/include/linux/mm.h
+@@ -485,6 +485,7 @@ extern pgprot_t protection_map[16];
  
--
- 	spin_lock(&vmap_area_lock);
- 	insert_vmap_area(va, &vmap_area_root, &vmap_area_list);
- 	spin_unlock(&vmap_area_lock);
+ /**
+  * fault_flag_allow_retry_first - check ALLOW_RETRY the first time
++ * @flags: Fault flags.
+  *
+  * This is mostly used for places where we want to try to avoid taking
+  * the mmap_lock for too long a time when waiting for another condition
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
