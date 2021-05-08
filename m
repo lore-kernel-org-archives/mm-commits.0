@@ -7,45 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1F43C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:48:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 839B6C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:48:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B5BAF61426
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:48:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 623CB61430
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:48:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229620AbhEHWtP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:49:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33546 "EHLO mail.kernel.org"
+        id S229656AbhEHWtS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:49:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33638 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229616AbhEHWtO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:49:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0CAE26142D;
-        Sat,  8 May 2021 22:48:12 +0000 (UTC)
+        id S229616AbhEHWtS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:49:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A6A2B6100C;
+        Sat,  8 May 2021 22:48:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514093;
-        bh=6ic8cRUJK/NzOJBNtdc5WNuAsfZhKjcp3ZFL+SmGrxg=;
+        s=korg; t=1620514096;
+        bh=4G/WimrDpOrgIKw9CGesea8pjLVd2lV3uNhxWUJHnws=;
         h=Date:From:To:Subject:From;
-        b=OlEZ9p71aQ4NkQUpOedmywARluhzBvTt6iY01Qgn+3FH2acF2ozzarok2eAJMAsIJ
-         wP+mCJdv6rjuLBw3BVFVuxaKw6TjR3MM9GxhCv7whGTQxS2Dwqc0ATm/hGjSRIhU4X
-         CmwR2dm4WXxj7APyazv5KVAcEl7I57NKd5iNVVn4=
-Date:   Sat, 08 May 2021 15:48:11 -0700
+        b=j1aZ+gigxLGPv7NcWUlNmCxe59RtO1XlCkZOAT4PgF3Jc0RWZHKibHQiLRz5xSu77
+         LoauK41lgJkHeTDz0zkBUgWSUEvpMb1COM036n5gv3D8RcGju/y3LG9N1q5MAup3xU
+         Ts/9ZB9qxOsMOyXvHIf1h5jZsG8Rkso3tXy+ZRhw=
+Date:   Sat, 08 May 2021 15:48:15 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, adobriyan@gmail.com, almasrymina@google.com,
-        anshuman.khandual@arm.com, axelrasmussen@google.com,
-        cannonmatthews@google.com, catalin.marinas@arm.com,
-        chinwen.chang@mediatek.com, dgilbert@redhat.com, jannh@google.com,
-        jglisse@redhat.com, kirill@shutemov.name, lokeshgidra@google.com,
-        mike.kravetz@oracle.com, mingo@redhat.com, mkoutny@suse.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
-        oupton@google.com, peterx@redhat.com, rientjes@google.com,
-        rostedt@goodmis.org, rppt@linux.vnet.ibm.com, ruprecht@google.com,
-        shawn@anastas.io, shli@fb.com, steven.price@arm.com,
-        vbabka@suse.cz, viro@zeniv.linux.org.uk, walken@google.com,
-        willy@infradead.org, ying.huang@intel.com
-Subject:  [merged]
- userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch
+To:     alex.shi@linux.alibaba.com, ben.widawsky@intel.com, cai@lca.pw,
+        cl@linux.com, dan.j.williams@intel.com,
+        dave.hansen@linux.intel.com, dwagner@suse.de,
+        mm-commits@vger.kernel.org, osalvador@suse.de, rientjes@google.com,
+        tobin@kernel.org, ying.huang@intel.com
+Subject:  [merged] mm-vmscan-move-reclaim-bits-to-uapi-header.patch
  removed from -mm tree
-Message-ID: <20210508224811.LmhjAyXdo%akpm@linux-foundation.org>
+Message-ID: <20210508224815._loiMu_Bo%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,369 +46,76 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/selftests: add test exercising minor fault handling
+     Subject: mm/vmscan: move RECLAIM* bits to uapi header
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftests-add-test-exercising-minor-fault-handling.patch
+     mm-vmscan-move-reclaim-bits-to-uapi-header.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/selftests: add test exercising minor fault handling
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm/vmscan: move RECLAIM* bits to uapi header
 
-Fix a dormant bug in userfaultfd_events_test(), where we did `return
-faulting_process(0)` instead of `exit(faulting_process(0))`.  This caused
-the forked process to keep running, trying to execute any further test
-cases after the events test in parallel with the "real" process.
+It is currently not obvious that the RECLAIM_* bits are part of the uapi
+since they are defined in vmscan.c.  Move them to a uapi header to make it
+obvious.
 
-Add a simple test case which exercises minor faults. In short, it does
-the following:
+This should have no functional impact.
 
-1. "Sets up" an area (area_dst) and a second shared mapping to the same
-   underlying pages (area_dst_alias).
-
-2. Register one of these areas with userfaultfd, in minor fault mode.
-
-3. Start a second thread to handle any minor faults.
-
-4. Populate the underlying pages with the non-UFFD-registered side of
-   the mapping. Basically, memset() each page with some arbitrary
-   contents.
-
-5. Then, using the UFFD-registered mapping, read all of the page
-   contents, asserting that the contents match expectations (we expect
-   the minor fault handling thread can modify the page contents before
-   resolving the fault).
-
-The minor fault handling thread, upon receiving an event, flips all the
-bits (~) in that page, just to prove that it can modify it in some
-arbitrary way.  Then it issues a UFFDIO_CONTINUE ioctl, to setup the
-mapping and resolve the fault.  The reading thread should wake up and see
-this modification.
-
-Currently the minor fault test is only enabled in hugetlb_shared mode, as
-this is the only configuration the kernel feature supports.
-
-Link: https://lkml.kernel.org/r/20210301222728.176417-7-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Adam Ruprecht <ruprecht@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Cannon Matthews <cannonmatthews@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
+Link: https://lkml.kernel.org/r/20210219172557.08074910@viggo.jf.intel.com
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Daniel Wagner <dwagner@suse.de>
+Cc: "Tobin C. Harding" <tobin@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Huang Ying <ying.huang@intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Michal Koutn" <mkoutny@suse.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oliver Upton <oupton@google.com>
-Cc: Shaohua Li <shli@fb.com>
-Cc: Shawn Anastasio <shawn@anastas.io>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Qian Cai <cai@lca.pw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |  164 ++++++++++++++++++++-
- 1 file changed, 158 insertions(+), 6 deletions(-)
+ include/uapi/linux/mempolicy.h |    7 +++++++
+ mm/vmscan.c                    |    8 --------
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-add-test-exercising-minor-fault-handling
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -81,6 +81,8 @@ static volatile bool test_uffdio_copy_ee
- static volatile bool test_uffdio_zeropage_eexist = true;
- /* Whether to test uffd write-protection */
- static bool test_uffdio_wp = false;
-+/* Whether to test uffd minor faults */
-+static bool test_uffdio_minor = false;
+--- a/include/uapi/linux/mempolicy.h~mm-vmscan-move-reclaim-bits-to-uapi-header
++++ a/include/uapi/linux/mempolicy.h
+@@ -64,5 +64,12 @@ enum {
+ #define MPOL_F_MOF	(1 << 3) /* this policy wants migrate on fault */
+ #define MPOL_F_MORON	(1 << 4) /* Migrate On protnone Reference On Node */
  
- static bool map_shared;
- static int huge_fd;
-@@ -96,6 +98,7 @@ struct uffd_stats {
- 	int cpu;
- 	unsigned long missing_faults;
- 	unsigned long wp_faults;
-+	unsigned long minor_faults;
- };
++/*
++ * These bit locations are exposed in the vm.zone_reclaim_mode sysctl
++ * ABI.  New bits are OK, but existing bits can never change.
++ */
++#define RECLAIM_ZONE	(1<<0)	/* Run shrink_inactive_list on the zone */
++#define RECLAIM_WRITE	(1<<1)	/* Writeout pages during reclaim */
++#define RECLAIM_UNMAP	(1<<2)	/* Unmap pages during reclaim */
  
- /* pthread_mutex_t starts at page offset 0 */
-@@ -153,17 +156,19 @@ static void uffd_stats_reset(struct uffd
- 		uffd_stats[i].cpu = i;
- 		uffd_stats[i].missing_faults = 0;
- 		uffd_stats[i].wp_faults = 0;
-+		uffd_stats[i].minor_faults = 0;
- 	}
- }
- 
- static void uffd_stats_report(struct uffd_stats *stats, int n_cpus)
- {
- 	int i;
--	unsigned long long miss_total = 0, wp_total = 0;
-+	unsigned long long miss_total = 0, wp_total = 0, minor_total = 0;
- 
- 	for (i = 0; i < n_cpus; i++) {
- 		miss_total += stats[i].missing_faults;
- 		wp_total += stats[i].wp_faults;
-+		minor_total += stats[i].minor_faults;
- 	}
- 
- 	printf("userfaults: %llu missing (", miss_total);
-@@ -172,6 +177,9 @@ static void uffd_stats_report(struct uff
- 	printf("\b), %llu wp (", wp_total);
- 	for (i = 0; i < n_cpus; i++)
- 		printf("%lu+", stats[i].wp_faults);
-+	printf("\b), %llu minor (", minor_total);
-+	for (i = 0; i < n_cpus; i++)
-+		printf("%lu+", stats[i].minor_faults);
- 	printf("\b)\n");
- }
- 
-@@ -328,7 +336,7 @@ static struct uffd_test_ops shmem_uffd_t
- };
- 
- static struct uffd_test_ops hugetlb_uffd_test_ops = {
--	.expected_ioctls = UFFD_API_RANGE_IOCTLS_BASIC,
-+	.expected_ioctls = UFFD_API_RANGE_IOCTLS_BASIC & ~(1 << _UFFDIO_CONTINUE),
- 	.allocate_area	= hugetlb_allocate_area,
- 	.release_pages	= hugetlb_release_pages,
- 	.alias_mapping = hugetlb_alias_mapping,
-@@ -362,6 +370,22 @@ static void wp_range(int ufd, __u64 star
- 	}
- }
- 
-+static void continue_range(int ufd, __u64 start, __u64 len)
-+{
-+	struct uffdio_continue req;
-+
-+	req.range.start = start;
-+	req.range.len = len;
-+	req.mode = 0;
-+
-+	if (ioctl(ufd, UFFDIO_CONTINUE, &req)) {
-+		fprintf(stderr,
-+			"UFFDIO_CONTINUE failed for address 0x%" PRIx64 "\n",
-+			(uint64_t)start);
-+		exit(1);
-+	}
-+}
-+
- static void *locking_thread(void *arg)
- {
- 	unsigned long cpu = (unsigned long) arg;
-@@ -569,8 +593,32 @@ static void uffd_handle_page_fault(struc
- 	}
- 
- 	if (msg->arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WP) {
-+		/* Write protect page faults */
- 		wp_range(uffd, msg->arg.pagefault.address, page_size, false);
- 		stats->wp_faults++;
-+	} else if (msg->arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_MINOR) {
-+		uint8_t *area;
-+		int b;
-+
-+		/*
-+		 * Minor page faults
-+		 *
-+		 * To prove we can modify the original range for testing
-+		 * purposes, we're going to bit flip this range before
-+		 * continuing.
-+		 *
-+		 * Note that this requires all minor page fault tests operate on
-+		 * area_dst (non-UFFD-registered) and area_dst_alias
-+		 * (UFFD-registered).
-+		 */
-+
-+		area = (uint8_t *)(area_dst +
-+				   ((char *)msg->arg.pagefault.address -
-+				    area_dst_alias));
-+		for (b = 0; b < page_size; ++b)
-+			area[b] = ~area[b];
-+		continue_range(uffd, msg->arg.pagefault.address, page_size);
-+		stats->minor_faults++;
- 	} else {
- 		/* Missing page faults */
- 		if (bounces & BOUNCE_VERIFY &&
-@@ -779,7 +827,7 @@ static int stress(struct uffd_stats *uff
- 	return 0;
- }
- 
--static int userfaultfd_open(int features)
-+static int userfaultfd_open_ext(uint64_t *features)
- {
- 	struct uffdio_api uffdio_api;
- 
-@@ -792,7 +840,7 @@ static int userfaultfd_open(int features
- 	uffd_flags = fcntl(uffd, F_GETFD, NULL);
- 
- 	uffdio_api.api = UFFD_API;
--	uffdio_api.features = features;
-+	uffdio_api.features = *features;
- 	if (ioctl(uffd, UFFDIO_API, &uffdio_api)) {
- 		fprintf(stderr, "UFFDIO_API failed.\nPlease make sure to "
- 			"run with either root or ptrace capability.\n");
-@@ -804,9 +852,15 @@ static int userfaultfd_open(int features
- 		return 1;
- 	}
- 
-+	*features = uffdio_api.features;
- 	return 0;
- }
- 
-+static int userfaultfd_open(uint64_t features)
-+{
-+	return userfaultfd_open_ext(&features);
-+}
-+
- sigjmp_buf jbuf, *sigbuf;
- 
- static void sighndl(int sig, siginfo_t *siginfo, void *ptr)
-@@ -1112,7 +1166,7 @@ static int userfaultfd_events_test(void)
- 	}
- 
- 	if (!pid)
--		return faulting_process(0);
-+		exit(faulting_process(0));
- 
- 	waitpid(pid, &err, 0);
- 	if (err) {
-@@ -1215,6 +1269,102 @@ static int userfaultfd_sig_test(void)
- 	return userfaults != 0;
- }
- 
-+static int userfaultfd_minor_test(void)
-+{
-+	struct uffdio_register uffdio_register;
-+	unsigned long expected_ioctls;
-+	unsigned long p;
-+	pthread_t uffd_mon;
-+	uint8_t expected_byte;
-+	void *expected_page;
-+	char c;
-+	struct uffd_stats stats = { 0 };
-+	uint64_t features = UFFD_FEATURE_MINOR_HUGETLBFS;
-+
-+	if (!test_uffdio_minor)
-+		return 0;
-+
-+	printf("testing minor faults: ");
-+	fflush(stdout);
-+
-+	if (uffd_test_ops->release_pages(area_dst))
-+		return 1;
-+
-+	if (userfaultfd_open_ext(&features))
-+		return 1;
-+	/* If kernel reports the feature isn't supported, skip the test. */
-+	if (!(features & UFFD_FEATURE_MINOR_HUGETLBFS)) {
-+		printf("skipping test due to lack of feature support\n");
-+		fflush(stdout);
-+		return 0;
-+	}
-+
-+	uffdio_register.range.start = (unsigned long)area_dst_alias;
-+	uffdio_register.range.len = nr_pages * page_size;
-+	uffdio_register.mode = UFFDIO_REGISTER_MODE_MINOR;
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register)) {
-+		fprintf(stderr, "register failure\n");
-+		exit(1);
-+	}
-+
-+	expected_ioctls = uffd_test_ops->expected_ioctls;
-+	expected_ioctls |= 1 << _UFFDIO_CONTINUE;
-+	if ((uffdio_register.ioctls & expected_ioctls) != expected_ioctls) {
-+		fprintf(stderr, "unexpected missing ioctl(s)\n");
-+		exit(1);
-+	}
-+
-+	/*
-+	 * After registering with UFFD, populate the non-UFFD-registered side of
-+	 * the shared mapping. This should *not* trigger any UFFD minor faults.
-+	 */
-+	for (p = 0; p < nr_pages; ++p) {
-+		memset(area_dst + (p * page_size), p % ((uint8_t)-1),
-+		       page_size);
-+	}
-+
-+	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats)) {
-+		perror("uffd_poll_thread create");
-+		exit(1);
-+	}
-+
-+	/*
-+	 * Read each of the pages back using the UFFD-registered mapping. We
-+	 * expect that the first time we touch a page, it will result in a minor
-+	 * fault. uffd_poll_thread will resolve the fault by bit-flipping the
-+	 * page's contents, and then issuing a CONTINUE ioctl.
-+	 */
-+
-+	if (posix_memalign(&expected_page, page_size, page_size)) {
-+		fprintf(stderr, "out of memory\n");
-+		return 1;
-+	}
-+
-+	for (p = 0; p < nr_pages; ++p) {
-+		expected_byte = ~((uint8_t)(p % ((uint8_t)-1)));
-+		memset(expected_page, expected_byte, page_size);
-+		if (my_bcmp(expected_page, area_dst_alias + (p * page_size),
-+			    page_size)) {
-+			fprintf(stderr,
-+				"unexpected page contents after minor fault\n");
-+			exit(1);
-+		}
-+	}
-+
-+	if (write(pipefd[1], &c, sizeof(c)) != sizeof(c)) {
-+		perror("pipe write");
-+		exit(1);
-+	}
-+	if (pthread_join(uffd_mon, NULL))
-+		return 1;
-+
-+	close(uffd);
-+
-+	uffd_stats_report(&stats, 1);
-+
-+	return stats.missing_faults != 0 || stats.minor_faults != nr_pages;
-+}
-+
- static int userfaultfd_stress(void)
- {
- 	void *area;
-@@ -1413,7 +1563,7 @@ static int userfaultfd_stress(void)
- 
- 	close(uffd);
- 	return userfaultfd_zeropage_test() || userfaultfd_sig_test()
--		|| userfaultfd_events_test();
-+		|| userfaultfd_events_test() || userfaultfd_minor_test();
- }
+ #endif /* _UAPI_LINUX_MEMPOLICY_H */
+--- a/mm/vmscan.c~mm-vmscan-move-reclaim-bits-to-uapi-header
++++ a/mm/vmscan.c
+@@ -4087,14 +4087,6 @@ module_init(kswapd_init)
+ int node_reclaim_mode __read_mostly;
  
  /*
-@@ -1454,6 +1604,8 @@ static void set_test_type(const char *ty
- 		map_shared = true;
- 		test_type = TEST_HUGETLB;
- 		uffd_test_ops = &hugetlb_uffd_test_ops;
-+		/* Minor faults require shared hugetlb; only enable here. */
-+		test_uffdio_minor = true;
- 	} else if (!strcmp(type, "shmem")) {
- 		map_shared = true;
- 		test_type = TEST_SHMEM;
+- * These bit locations are exposed in the vm.zone_reclaim_mode sysctl
+- * ABI.  New bits are OK, but existing bits can never change.
+- */
+-#define RECLAIM_ZONE  (1<<0)   /* Run shrink_inactive_list on the zone */
+-#define RECLAIM_WRITE (1<<1)   /* Writeout pages during reclaim */
+-#define RECLAIM_UNMAP (1<<2)   /* Unmap pages during reclaim */
+-
+-/*
+  * Priority for NODE_RECLAIM. This determines the fraction of pages
+  * of a node considered for each zone_reclaim. 4 scans 1/16th of
+  * a zone.
 _
 
-Patches currently in -mm which might be from axelrasmussen@google.com are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
 
