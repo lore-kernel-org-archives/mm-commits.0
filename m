@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08113C43460
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6753DC433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DFB746141E
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 446DA61424
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229644AbhEHWnX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:43:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48854 "EHLO mail.kernel.org"
+        id S229712AbhEHWnf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:43:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49174 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229689AbhEHWnW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:43:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7362461402;
-        Sat,  8 May 2021 22:42:20 +0000 (UTC)
+        id S229699AbhEHWn1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:43:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C017613C5;
+        Sat,  8 May 2021 22:42:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513740;
-        bh=gHCj2wcDzytQ7SFSIZWPma6tfSjbx9Dkx1YTLtjfQ+U=;
+        s=korg; t=1620513744;
+        bh=u9NUj5EAyiCNpzFZsSzlnUMOuMyGdQ8RFGvgvwFIA6k=;
         h=Date:From:To:Subject:From;
-        b=YNo9d6immeNvR0xFiB1H317sV5SJ15xEOIDzJRpKpHo1/4czKIvqyat6mggAE/bSS
-         0Nj3hfYWcayEny3Nh3Ou71gJCLS1urfnu4MtktFAxF9kuyJiG98O22DVNBqAAhdrn1
-         3CqlWuy9hypWHd3Lby99qQCzO3oQ78wiGSLrIpbY=
-Date:   Sat, 08 May 2021 15:42:20 -0700
+        b=Xmj2ss8YEQf7ZbdXoSuGloZ5kc6uZV0A39fyC3aHgzhFO7QUJ/s6vNFVqwfc/nNBB
+         5VN+eqE+6f2V27/C4VVPwI3daF0NKIVWko8QU3rY2UQawdymZZUtDCHL8FuwacvKlD
+         ZLZD4WaTbFLkAHTN2uxaIuIjUbwn7uWj8zAopVOQ=
+Date:   Sat, 08 May 2021 15:42:24 -0700
 From:   akpm@linux-foundation.org
-To:     daizhiyuan@phytium.com.cn, mm-commits@vger.kernel.org
-Subject:  [merged] mm-dmapool-switch-from-strlcpy-to-strscpy.patch
- removed from -mm tree
-Message-ID: <20210508224220.rUR43ALUE%akpm@linux-foundation.org>
+To:     hch@lst.de, kwankhede@nvidia.com, mm-commits@vger.kernel.org
+Subject:  [merged]
+ samples-vfio-mdev-mdpy-use-remap_vmalloc_range.patch removed from -mm tree
+Message-ID: <20210508224224.0yT9s3df8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,42 +42,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/dmapool: switch from strlcpy to strscpy
+     Subject: samples/vfio-mdev/mdpy: use remap_vmalloc_range
 has been removed from the -mm tree.  Its filename was
-     mm-dmapool-switch-from-strlcpy-to-strscpy.patch
+     samples-vfio-mdev-mdpy-use-remap_vmalloc_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
-Subject: mm/dmapool: switch from strlcpy to strscpy
+From: Christoph Hellwig <hch@lst.de>
+Subject: samples/vfio-mdev/mdpy: use remap_vmalloc_range
 
-strlcpy is marked as deprecated in Documentation/process/deprecated.rst,
-and there is no functional difference when the caller expects truncation
-(when not checking the return value). strscpy is relatively better as it
-also avoids scanning the whole source string.
+Patch series "remap_vmalloc_range cleanups".
 
-Link: https://lkml.kernel.org/r/1613962050-14188-1-git-send-email-daizhiyuan@phytium.com.cn
-Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+This series removes an open coded instance of remap_vmalloc_range and
+removes the unused remap_vmalloc_range_partial export.
+
+
+This patch (of 2):
+
+Use remap_vmalloc_range instead of open coding it using
+remap_vmalloc_range_partial.
+
+Link: https://lkml.kernel.org/r/20210301082235.932968-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20210301082235.932968-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Kirti Wankhede <kwankhede@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/dmapool.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ samples/vfio-mdev/mdpy.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/dmapool.c~mm-dmapool-switch-from-strlcpy-to-strscpy
-+++ a/mm/dmapool.c
-@@ -157,7 +157,7 @@ struct dma_pool *dma_pool_create(const c
- 	if (!retval)
- 		return retval;
+--- a/samples/vfio-mdev/mdpy.c~samples-vfio-mdev-mdpy-use-remap_vmalloc_range
++++ a/samples/vfio-mdev/mdpy.c
+@@ -406,9 +406,7 @@ static int mdpy_mmap(struct mdev_device
+ 	if ((vma->vm_flags & VM_SHARED) == 0)
+ 		return -EINVAL;
  
--	strlcpy(retval->name, name, sizeof(retval->name));
-+	strscpy(retval->name, name, sizeof(retval->name));
+-	return remap_vmalloc_range_partial(vma, vma->vm_start,
+-					   mdev_state->memblk, 0,
+-					   vma->vm_end - vma->vm_start);
++	return remap_vmalloc_range(vma, mdev_state->memblk, 0);
+ }
  
- 	retval->dev = dev;
- 
+ static int mdpy_get_region_info(struct mdev_device *mdev,
 _
 
-Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
+Patches currently in -mm which might be from hch@lst.de are
 
 
