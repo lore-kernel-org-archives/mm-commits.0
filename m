@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F874C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30D58C43460
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A708613EA
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 14CFD610D2
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229567AbhEHWr5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:47:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59188 "EHLO mail.kernel.org"
+        id S229549AbhEHWr7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:47:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59274 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229559AbhEHWr5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:47:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ABD23610D2;
-        Sat,  8 May 2021 22:46:53 +0000 (UTC)
+        id S229616AbhEHWr7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:47:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A64326101D;
+        Sat,  8 May 2021 22:46:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514014;
-        bh=jI+M7AQYpodpxQrMh1QF8cEMl1aXg4Id6Xlhj/iPEnM=;
+        s=korg; t=1620514017;
+        bh=YPKw1li7Vt8GAmUiBZCNHIq4xw791fTrfW+O78jcmxw=;
         h=Date:From:To:Subject:From;
-        b=CgiCHZ3LLvkMtpqgSWqOAKGAoZ68zpvLZOKa/koSg3hwAbSaZyJjOD4T5m/WRPfaL
-         xp/YRhFb4htEI7fJOH0k/vOlVa3Gi2vysQ9l+6XNxAU5DuTTotkSOTq+yQa89pQvFj
-         Y545TuWtLX+eNPENh+CEmcIqgOf/ahRHS//FP5eE=
-Date:   Sat, 08 May 2021 15:46:53 -0700
+        b=cTYp8STQIZlplNiM6EbgrD0GcRPJVzVD85lTyypGd4uWgxSOvomaqP2+csIR1SR1P
+         dag0p9+IH7SozRETA+qdyRwp6erfeFXZEESDc8fCPc6tApYHJyKKct2xma+Rhat2SX
+         wMoFeNuKZc3Hd7k0OwKBj8fADLrhVs/XNJzPXS0w=
+Date:   Sat, 08 May 2021 15:46:56 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, linmiaohe@huawei.com,
         mm-commits@vger.kernel.org, peterx@redhat.com,
@@ -37,9 +37,9 @@ To:     aneesh.kumar@linux.ibm.com, linmiaohe@huawei.com,
         william.kucharski@oracle.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, yulei.kernel@gmail.com, ziy@nvidia.com
 Subject:  [merged]
- mm-huge_memoryc-make-get_huge_zero_page-return-bool.patch removed from -mm
- tree
-Message-ID: <20210508224653.zoKyYwxrG%akpm@linux-foundation.org>
+ mm-huge_memoryc-rework-the-function-do_huge_pmd_numa_page-slightly.patch
+ removed from -mm tree
+Message-ID: <20210508224656.-sZzvAFi0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,24 +48,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: make get_huge_zero_page() return bool
+     Subject: mm/huge_memory.c: rework the function do_huge_pmd_numa_page() slightly
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memoryc-make-get_huge_zero_page-return-bool.patch
+     mm-huge_memoryc-rework-the-function-do_huge_pmd_numa_page-slightly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory.c: make get_huge_zero_page() return bool
+Subject: mm/huge_memory.c: rework the function do_huge_pmd_numa_page() slightly
 
-It's guaranteed that huge_zero_page will not be NULL if huge_zero_refcount
-is increased successfully.  When READ_ONCE(huge_zero_page) is returned,
-there must be a huge_zero_page and it can be replaced with returning
-'true' when we do not care about the value of huge_zero_page.  We can thus
-make it return bool to save READ_ONCE cpu cycles as the return value is
-just used to check if huge_zero_page exists.
+The current code that checks if migrating misplaced transhuge page is
+needed is pretty hard to follow.  Rework it and add a comment to make its
+logic more clear and improve readability.
 
-Link: https://lkml.kernel.org/r/20210318122722.13135-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210318122722.13135-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Peter Xu <peterx@redhat.com>
@@ -82,42 +79,36 @@ Cc: yuleixzhang <yulei.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-make-get_huge_zero_page-return-bool
+--- a/mm/huge_memory.c~mm-huge_memoryc-rework-the-function-do_huge_pmd_numa_page-slightly
 +++ a/mm/huge_memory.c
-@@ -77,18 +77,18 @@ bool transparent_hugepage_enabled(struct
- 	return false;
- }
- 
--static struct page *get_huge_zero_page(void)
-+static bool get_huge_zero_page(void)
- {
- 	struct page *zero_page;
- retry:
- 	if (likely(atomic_inc_not_zero(&huge_zero_refcount)))
--		return READ_ONCE(huge_zero_page);
-+		return true;
- 
- 	zero_page = alloc_pages((GFP_TRANSHUGE | __GFP_ZERO) & ~__GFP_MOVABLE,
- 			HPAGE_PMD_ORDER);
- 	if (!zero_page) {
- 		count_vm_event(THP_ZERO_PAGE_ALLOC_FAILED);
--		return NULL;
-+		return false;
+@@ -1462,12 +1462,6 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 	 */
+ 	page_locked = trylock_page(page);
+ 	target_nid = mpol_misplaced(page, vma, haddr);
+-	if (target_nid == NUMA_NO_NODE) {
+-		/* If the page was locked, there are no parallel migrations */
+-		if (page_locked)
+-			goto clear_pmdnuma;
+-	}
+-
+ 	/* Migration could have started since the pmd_trans_migrating check */
+ 	if (!page_locked) {
+ 		page_nid = NUMA_NO_NODE;
+@@ -1476,6 +1470,11 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 		spin_unlock(vmf->ptl);
+ 		put_and_wait_on_page_locked(page, TASK_UNINTERRUPTIBLE);
+ 		goto out;
++	} else if (target_nid == NUMA_NO_NODE) {
++		/* There are no parallel migrations and page is in the right
++		 * node. Clear the numa hinting info in this pmd.
++		 */
++		goto clear_pmdnuma;
  	}
- 	count_vm_event(THP_ZERO_PAGE_ALLOC);
- 	preempt_disable();
-@@ -101,7 +101,7 @@ retry:
- 	/* We take additional reference here. It will be put back by shrinker */
- 	atomic_set(&huge_zero_refcount, 2);
- 	preempt_enable();
--	return READ_ONCE(huge_zero_page);
-+	return true;
- }
  
- static void put_huge_zero_page(void)
+ 	/*
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
