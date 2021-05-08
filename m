@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4032DC433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FD58C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2391461421
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 26D0D61424
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229649AbhEHWlH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:41:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44560 "EHLO mail.kernel.org"
+        id S229660AbhEHWlJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:41:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44608 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229641AbhEHWlH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:41:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 97BB761402;
-        Sat,  8 May 2021 22:40:04 +0000 (UTC)
+        id S229641AbhEHWlI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:41:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 79C51613EA;
+        Sat,  8 May 2021 22:40:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513604;
-        bh=TZMT8oB3AhwRqmNso11SjOf3jwuhkd+bUdbxKEKNT28=;
+        s=korg; t=1620513606;
+        bh=MmHUNb93lsoPK6GBGlo7ZM1hLH96y6iTeJYXj0zhWqA=;
         h=Date:From:To:Subject:From;
-        b=P4qlyd8cpzXDHv8WevfK6SroUp+0ivwqJILW6ZdTeAzP3U1IkU/2aAj1T+kvj63Zi
-         1ksZWzP6Jjy4P+sGNhPW/sEQQXOtrKP+zLxFN8Y9E9MbdHHuoZ1F8GeysA3q8YdC2z
-         BorZzM6L3zquBdLjPGdJZbpm4zvvy/+G3Z7j4jRM=
-Date:   Sat, 08 May 2021 15:40:04 -0700
+        b=xJAKgjC//a1pDZerrxrQq2EEf+Osdr+VGDPOnNz7qr1p4JzPy2iWiLjy3NsQ5bJBH
+         6v5zgjqsUybKlmj3va7/+iEHN1TWEw3XSBJqnWqzxWBqRYqzpRiMiM0Xd5Wg+7jS8i
+         OXiikehotVSSXtR+S36Blq3W/wOtVNmFdMCpSbB8=
+Date:   Sat, 08 May 2021 15:40:06 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
         unixbhaskar@gmail.com
-Subject:  [merged] mm-slubc-trivial-typo-fixes.patch removed from
- -mm tree
-Message-ID: <20210508224004.ujmUdFu5S%akpm@linux-foundation.org>
+Subject:  [merged] mm-kmemleak-fix-a-typo.patch removed from -mm
+ tree
+Message-ID: <20210508224006.u6wB20tjm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,67 +43,38 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub.c: trivial typo fixes
+     Subject: mm/kmemleak.c: fix a typo
 has been removed from the -mm tree.  Its filename was
-     mm-slubc-trivial-typo-fixes.patch
+     mm-kmemleak-fix-a-typo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Subject: mm/slub.c: trivial typo fixes
+Subject: mm/kmemleak.c: fix a typo
 
-s/operatios/operations/
-s/Mininum/Minimum/
-s/mininum/minimum/  ......two different places.
+s/interruptable/interruptible/
 
-Link: https://lkml.kernel.org/r/20210325044940.14516-1-unixbhaskar@gmail.com
+Link: https://lkml.kernel.org/r/20210319214140.23304-1-unixbhaskar@gmail.com
 Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
 Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/kmemleak.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slub.c~mm-slubc-trivial-typo-fixes
-+++ a/mm/slub.c
-@@ -3,7 +3,7 @@
-  * SLUB: A slab allocator that limits cache line use instead of queuing
-  * objects in per cpu and per node lists.
-  *
-- * The allocator synchronizes using per slab locks or atomic operatios
-+ * The allocator synchronizes using per slab locks or atomic operations
-  * and only uses a centralized lock to manage a pool of partial slabs.
-  *
-  * (C) 2007 SGI, Christoph Lameter
-@@ -157,7 +157,7 @@ static inline bool kmem_cache_has_cpu_pa
- #undef SLUB_DEBUG_CMPXCHG
+--- a/mm/kmemleak.c~mm-kmemleak-fix-a-typo
++++ a/mm/kmemleak.c
+@@ -1203,7 +1203,7 @@ static void update_refs(struct kmemleak_
+ }
  
  /*
-- * Mininum number of partial slabs. These will be left on the partial
-+ * Minimum number of partial slabs. These will be left on the partial
-  * lists even if they are empty. kmem_cache_shrink may reclaim them.
+- * Memory scanning is a long process and it needs to be interruptable. This
++ * Memory scanning is a long process and it needs to be interruptible. This
+  * function checks whether such interrupt condition occurred.
   */
- #define MIN_PARTIAL 5
-@@ -838,7 +838,7 @@ static int check_bytes_and_report(struct
-  *
-  * 	A. Free pointer (if we cannot overwrite object on free)
-  * 	B. Tracking data for SLAB_STORE_USER
-- * 	C. Padding to reach required alignment boundary or at mininum
-+ *	C. Padding to reach required alignment boundary or at minimum
-  * 		one word if debugging is on to be able to detect writes
-  * 		before the word boundary.
-  *
-@@ -3434,7 +3434,7 @@ static unsigned int slub_min_objects;
-  *
-  * Higher order allocations also allow the placement of more objects in a
-  * slab and thereby reduce object handling overhead. If the user has
-- * requested a higher mininum order then we start with that one instead of
-+ * requested a higher minimum order then we start with that one instead of
-  * the smallest order which will fit the object.
-  */
- static inline unsigned int slab_order(unsigned int size,
+ static int scan_should_stop(void)
 _
 
 Patches currently in -mm which might be from unixbhaskar@gmail.com are
