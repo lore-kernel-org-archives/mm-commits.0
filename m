@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C44FC433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:45:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 160B8C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:45:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 722A961402
+	by mail.kernel.org (Postfix) with ESMTP id ECC1461415
 	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:45:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229662AbhEHWqc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:46:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56514 "EHLO mail.kernel.org"
+        id S229522AbhEHWqd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:46:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56634 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229522AbhEHWqa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:46:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AE27A613C5;
-        Sat,  8 May 2021 22:45:26 +0000 (UTC)
+        id S229699AbhEHWqb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:46:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A1A906100C;
+        Sat,  8 May 2021 22:45:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513927;
-        bh=Jcc9xtJCliAYJ7yb2QylXnqb+XTJNE0XhWT7cTkYw/A=;
+        s=korg; t=1620513930;
+        bh=xoh9BSVDj16rfjCq+UByvLAZV+kbyKpNjbJL2qH+GFE=;
         h=Date:From:To:Subject:From;
-        b=pexRuKRKn5YXMKoyKH8+QVGLnmoFovQEnzk/tyaXmOJTf1gu3v6tqrDRrDQTg0sG/
-         aL6H0Kt7yZdB6bqPrnr4AI69Ag3rP8dA6JUbApLmmxfe15nRGjYg0b2qLL6km2t1+d
-         dB7a3yynoKFeUkCM53SuNWws7fVNSOFlUqFz1K8U=
-Date:   Sat, 08 May 2021 15:45:26 -0700
+        b=N6+ORPycdBwpwXVN/Uq7VW1TgdrQ1ztzxGYD2tcT8/uOjsuPUhuNFTyHW8H1EdDFv
+         hre7G5jJ669o7JwGG0O3x+nVLX4wWqAXymeleoeSAcLdSxxlbJeFVWzYo3mm6KHNwt
+         uqJb1uQeH6cjP6firqWVWgNGRnx/ac3BjF/vG5s8=
+Date:   Sat, 08 May 2021 15:45:29 -0700
 From:   akpm@linux-foundation.org
 To:     alexander.duyck@gmail.com, alobakin@pm.me, brouer@redhat.com,
-        chuck.lever@oracle.com, colin.king@canonical.com,
-        davem@davemloft.net, hch@infradead.org,
+        chuck.lever@oracle.com, davem@davemloft.net, hch@infradead.org,
         ilias.apalodimas@linaro.org, mgorman@techsingularity.net,
         mm-commits@vger.kernel.org, vbabka@suse.cz, willy@infradead.org
-Subject:  [merged] mm-page_alloc-add-a-bulk-page-allocator.patch
+Subject:  [merged]
+ mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator.patch
  removed from -mm tree
-Message-ID: <20210508224526.zH5tTZcTt%akpm@linux-foundation.org>
+Message-ID: <20210508224529.zCjt2I6m_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,42 +46,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: add a bulk page allocator
+     Subject: mm/page_alloc: add an array-based interface to the bulk page allocator
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-add-a-bulk-page-allocator.patch
+     mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: add a bulk page allocator
+Subject: mm/page_alloc: add an array-based interface to the bulk page allocator
 
-This patch adds a new page allocator interface via alloc_pages_bulk, and
-__alloc_pages_bulk_nodemask.  A caller requests a number of pages to be
-allocated and added to a list.
+The proposed callers for the bulk allocator store pages from the bulk
+allocator in an array.  This patch adds an array-based interface to the
+API to avoid multiple list iterations.  The page list interface is
+preserved to avoid requiring all users of the bulk API to allocate and
+manage enough storage to store the pages.
 
-The API is not guaranteed to return the requested number of pages and may
-fail if the preferred allocation zone has limited free memory, the cpuset
-changes during the allocation or page debugging decides to fail an
-allocation.  It's up to the caller to request more pages in batch if
-necessary.
-
-Note that this implementation is not very efficient and could be improved
-but it would require refactoring.  The intent is to make it available
-early to determine what semantics are required by different callers.  Once
-the full semantics are nailed down, it can be refactored.
-
-[mgorman@techsingularity.net: fix alloc_pages_bulk() return type, per Matthew]
-  Link: https://lkml.kernel.org/r/20210325123713.GQ3697@techsingularity.net
-[mgorman@techsingularity.net: fix uninit var warning]
-  Link: https://lkml.kernel.org/r/20210330114847.GX3697@techsingularity.net
-[mgorman@techsingularity.net: fix comment, per Vlastimil]
-  Link: https://lkml.kernel.org/r/20210412110255.GV3697@techsingularity.net
-Link: https://lkml.kernel.org/r/20210325114228.27719-3-mgorman@techsingularity.net
+[akpm@linux-foundation.org: remove now unused local `allocated']
+Link: https://lkml.kernel.org/r/20210325114228.27719-4-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Alexander Lobakin <alobakin@pm.me>
-Tested-by: Colin Ian King <colin.king@canonical.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Chuck Lever <chuck.lever@oracle.com>
@@ -92,157 +77,157 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |   11 +++
- mm/page_alloc.c     |  118 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 129 insertions(+)
+ include/linux/gfp.h |   13 +++++++--
+ mm/page_alloc.c     |   60 ++++++++++++++++++++++++++++++------------
+ 2 files changed, 54 insertions(+), 19 deletions(-)
 
---- a/include/linux/gfp.h~mm-page_alloc-add-a-bulk-page-allocator
+--- a/include/linux/gfp.h~mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator
 +++ a/include/linux/gfp.h
-@@ -518,6 +518,17 @@ static inline int arch_make_page_accessi
- struct page *__alloc_pages(gfp_t gfp, unsigned int order, int preferred_nid,
- 		nodemask_t *nodemask);
+@@ -520,13 +520,20 @@ struct page *__alloc_pages(gfp_t gfp, un
  
-+unsigned long __alloc_pages_bulk(gfp_t gfp, int preferred_nid,
-+				nodemask_t *nodemask, int nr_pages,
-+				struct list_head *list);
-+
-+/* Bulk allocate order-0 pages */
-+static inline unsigned long
-+alloc_pages_bulk(gfp_t gfp, unsigned long nr_pages, struct list_head *list)
-+{
-+	return __alloc_pages_bulk(gfp, numa_mem_id(), NULL, nr_pages, list);
+ unsigned long __alloc_pages_bulk(gfp_t gfp, int preferred_nid,
+ 				nodemask_t *nodemask, int nr_pages,
+-				struct list_head *list);
++				struct list_head *page_list,
++				struct page **page_array);
+ 
+ /* Bulk allocate order-0 pages */
+ static inline unsigned long
+-alloc_pages_bulk(gfp_t gfp, unsigned long nr_pages, struct list_head *list)
++alloc_pages_bulk_list(gfp_t gfp, unsigned long nr_pages, struct list_head *list)
+ {
+-	return __alloc_pages_bulk(gfp, numa_mem_id(), NULL, nr_pages, list);
++	return __alloc_pages_bulk(gfp, numa_mem_id(), NULL, nr_pages, list, NULL);
 +}
 +
- /*
-  * Allocate pages, preferring the node given as nid. The node must be valid and
-  * online. For more general interface, see alloc_pages_node().
---- a/mm/page_alloc.c~mm-page_alloc-add-a-bulk-page-allocator
-+++ a/mm/page_alloc.c
-@@ -5007,6 +5007,124 @@ static inline bool prepare_alloc_pages(g
++static inline unsigned long
++alloc_pages_bulk_array(gfp_t gfp, unsigned long nr_pages, struct page **page_array)
++{
++	return __alloc_pages_bulk(gfp, numa_mem_id(), NULL, nr_pages, NULL, page_array);
  }
  
  /*
-+ * __alloc_pages_bulk - Allocate a number of order-0 pages to a list
-+ * @gfp: GFP flags for the allocation
-+ * @preferred_nid: The preferred NUMA node ID to allocate from
-+ * @nodemask: Set of nodes to allocate from, may be NULL
-+ * @nr_pages: The number of pages desired on the list
-+ * @page_list: List to store the allocated pages
+--- a/mm/page_alloc.c~mm-page_alloc-add-an-array-based-interface-to-the-bulk-page-allocator
++++ a/mm/page_alloc.c
+@@ -5007,21 +5007,29 @@ static inline bool prepare_alloc_pages(g
+ }
+ 
+ /*
+- * __alloc_pages_bulk - Allocate a number of order-0 pages to a list
++ * __alloc_pages_bulk - Allocate a number of order-0 pages to a list or array
+  * @gfp: GFP flags for the allocation
+  * @preferred_nid: The preferred NUMA node ID to allocate from
+  * @nodemask: Set of nodes to allocate from, may be NULL
+- * @nr_pages: The number of pages desired on the list
+- * @page_list: List to store the allocated pages
++ * @nr_pages: The number of pages desired on the list or array
++ * @page_list: Optional list to store the allocated pages
++ * @page_array: Optional array to store the pages
+  *
+  * This is a batched version of the page allocator that attempts to
+- * allocate nr_pages quickly and add them to a list.
++ * allocate nr_pages quickly. Pages are added to page_list if page_list
++ * is not NULL, otherwise it is assumed that the page_array is valid.
+  *
+- * Returns the number of pages on the list.
++ * For lists, nr_pages is the number of pages that should be allocated.
 + *
-+ * This is a batched version of the page allocator that attempts to
-+ * allocate nr_pages quickly and add them to a list.
++ * For arrays, only NULL elements are populated with pages and nr_pages
++ * is the maximum number of pages that will be stored in the array.
 + *
-+ * Returns the number of pages on the list.
-+ */
-+unsigned long __alloc_pages_bulk(gfp_t gfp, int preferred_nid,
-+			nodemask_t *nodemask, int nr_pages,
-+			struct list_head *page_list)
-+{
-+	struct page *page;
-+	unsigned long flags;
-+	struct zone *zone;
-+	struct zoneref *z;
-+	struct per_cpu_pages *pcp;
-+	struct list_head *pcp_list;
-+	struct alloc_context ac;
-+	gfp_t alloc_gfp;
-+	unsigned int alloc_flags = ALLOC_WMARK_LOW;
-+	int allocated = 0;
++ * Returns the number of pages on the list or array.
+  */
+ unsigned long __alloc_pages_bulk(gfp_t gfp, int preferred_nid,
+ 			nodemask_t *nodemask, int nr_pages,
+-			struct list_head *page_list)
++			struct list_head *page_list,
++			struct page **page_array)
+ {
+ 	struct page *page;
+ 	unsigned long flags;
+@@ -5032,13 +5040,20 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 	struct alloc_context ac;
+ 	gfp_t alloc_gfp;
+ 	unsigned int alloc_flags = ALLOC_WMARK_LOW;
+-	int allocated = 0;
++	int nr_populated = 0;
+ 
+ 	if (WARN_ON_ONCE(nr_pages <= 0))
+ 		return 0;
+ 
++	/*
++	 * Skip populated array elements to determine if any pages need
++	 * to be allocated before disabling IRQs.
++	 */
++	while (page_array && page_array[nr_populated] && nr_populated < nr_pages)
++		nr_populated++;
 +
-+	if (WARN_ON_ONCE(nr_pages <= 0))
-+		return 0;
+ 	/* Use the single page allocator for one page. */
+-	if (nr_pages == 1)
++	if (nr_pages - nr_populated == 1)
+ 		goto failed;
+ 
+ 	/* May set ALLOC_NOFRAGMENT, fragmentation will return 1 page. */
+@@ -5082,12 +5097,19 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
+ 	pcp_list = &pcp->lists[ac.migratetype];
+ 
+-	while (allocated < nr_pages) {
++	while (nr_populated < nr_pages) {
 +
-+	/* Use the single page allocator for one page. */
-+	if (nr_pages == 1)
-+		goto failed;
-+
-+	/* May set ALLOC_NOFRAGMENT, fragmentation will return 1 page. */
-+	gfp &= gfp_allowed_mask;
-+	alloc_gfp = gfp;
-+	if (!prepare_alloc_pages(gfp, 0, preferred_nid, nodemask, &ac, &alloc_gfp, &alloc_flags))
-+		return 0;
-+	gfp = alloc_gfp;
-+
-+	/* Find an allowed local zone that meets the low watermark. */
-+	for_each_zone_zonelist_nodemask(zone, z, ac.zonelist, ac.highest_zoneidx, ac.nodemask) {
-+		unsigned long mark;
-+
-+		if (cpusets_enabled() && (alloc_flags & ALLOC_CPUSET) &&
-+		    !__cpuset_zone_allowed(zone, gfp)) {
++		/* Skip existing pages */
++		if (page_array && page_array[nr_populated]) {
++			nr_populated++;
 +			continue;
 +		}
 +
-+		if (nr_online_nodes > 1 && zone != ac.preferred_zoneref->zone &&
-+		    zone_to_nid(zone) != zone_to_nid(ac.preferred_zoneref->zone)) {
-+			goto failed;
-+		}
-+
-+		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK) + nr_pages;
-+		if (zone_watermark_fast(zone, 0,  mark,
-+				zonelist_zone_idx(ac.preferred_zoneref),
-+				alloc_flags, gfp)) {
-+			break;
-+		}
-+	}
-+
-+	/*
-+	 * If there are no allowed local zones that meets the watermarks then
-+	 * try to allocate a single page and reclaim if necessary.
-+	 */
-+	if (!zone)
-+		goto failed;
-+
-+	/* Attempt the batch allocation */
-+	local_irq_save(flags);
-+	pcp = &this_cpu_ptr(zone->pageset)->pcp;
-+	pcp_list = &pcp->lists[ac.migratetype];
-+
-+	while (allocated < nr_pages) {
-+		page = __rmqueue_pcplist(zone, ac.migratetype, alloc_flags,
-+								pcp, pcp_list);
-+		if (!page) {
-+			/* Try and get at least one page */
-+			if (!allocated)
-+				goto failed_irq;
-+			break;
-+		}
-+
-+		/*
-+		 * Ideally this would be batched but the best way to do
-+		 * that cheaply is to first convert zone_statistics to
-+		 * be inaccurate per-cpu counter like vm_events to avoid
-+		 * a RMW cycle then do the accounting with IRQs enabled.
-+		 */
-+		__count_zid_vm_events(PGALLOC, zone_idx(zone), 1);
-+		zone_statistics(ac.preferred_zoneref->zone, zone);
-+
-+		prep_new_page(page, 0, gfp, 0);
-+		list_add(&page->lru, page_list);
-+		allocated++;
-+	}
-+
-+	local_irq_restore(flags);
-+
-+	return allocated;
-+
-+failed_irq:
-+	local_irq_restore(flags);
-+
-+failed:
-+	page = __alloc_pages(gfp, 0, preferred_nid, nodemask);
-+	if (page) {
-+		list_add(&page->lru, page_list);
-+		allocated = 1;
-+	}
-+
-+	return allocated;
-+}
-+EXPORT_SYMBOL_GPL(__alloc_pages_bulk);
-+
-+/*
-  * This is the 'heart' of the zoned buddy allocator.
-  */
- struct page *__alloc_pages(gfp_t gfp, unsigned int order, int preferred_nid,
+ 		page = __rmqueue_pcplist(zone, ac.migratetype, alloc_flags,
+ 								pcp, pcp_list);
+ 		if (!page) {
+ 			/* Try and get at least one page */
+-			if (!allocated)
++			if (!nr_populated)
+ 				goto failed_irq;
+ 			break;
+ 		}
+@@ -5102,13 +5124,16 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 		zone_statistics(ac.preferred_zoneref->zone, zone);
+ 
+ 		prep_new_page(page, 0, gfp, 0);
+-		list_add(&page->lru, page_list);
+-		allocated++;
++		if (page_list)
++			list_add(&page->lru, page_list);
++		else
++			page_array[nr_populated] = page;
++		nr_populated++;
+ 	}
+ 
+ 	local_irq_restore(flags);
+ 
+-	return allocated;
++	return nr_populated;
+ 
+ failed_irq:
+ 	local_irq_restore(flags);
+@@ -5116,11 +5141,14 @@ failed_irq:
+ failed:
+ 	page = __alloc_pages(gfp, 0, preferred_nid, nodemask);
+ 	if (page) {
+-		list_add(&page->lru, page_list);
+-		allocated = 1;
++		if (page_list)
++			list_add(&page->lru, page_list);
++		else
++			page_array[nr_populated] = page;
++		nr_populated++;
+ 	}
+ 
+-	return allocated;
++	return nr_populated;
+ }
+ EXPORT_SYMBOL_GPL(__alloc_pages_bulk);
+ 
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
