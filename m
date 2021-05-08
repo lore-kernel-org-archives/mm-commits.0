@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9380CC433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:55:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 986EDC433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:55:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7429B61432
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:55:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7108460E0B
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:55:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229647AbhEHW4H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:56:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45002 "EHLO mail.kernel.org"
+        id S229631AbhEHW4J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:56:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45062 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229631AbhEHW4H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:56:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7CF9B610FA;
-        Sat,  8 May 2021 22:55:05 +0000 (UTC)
+        id S229602AbhEHW4J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:56:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 792B661430;
+        Sat,  8 May 2021 22:55:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514505;
-        bh=jvP4+67B7NRHWkx2vk/UpcU6rqzZW7tYefgcdeysIVo=;
+        s=korg; t=1620514507;
+        bh=1DILfNn/SEARDrj6IIpLRdTYsyJnR/PVQqq0a/Pki1Y=;
         h=Date:From:To:Subject:From;
-        b=ItX227wOTlafKpH2VzyeAC3mnfd0TYZSy6aXwNiNE/N+7pugbpXziBs2PaEtYByU/
-         4wEVAGzZtNRN+nvCQs9nQWpDaxHSHBhfzKoZfQ6rEtEWQhvfUFm9Viph1zA2h/xIcy
-         5Ua/3gTLD8OMKOpBCt4oYpjsgLAMPahaCkSC8rj4=
-Date:   Sat, 08 May 2021 15:55:05 -0700
+        b=lXMXFJGcCStJ9UnvOAxLhVtU5Dawfy/AN/QDsM0p4sB6dtGU4vCAzvma2+9VREe/D
+         DeEzTBYEZsdrerb/whdy3xLC8eLfAI2SMYdQ4LiIK8lhQHJudX8F1zwsdZ9HAvCXgg
+         Nw6LZpdi18qZCpgIa0/wdfD5N1m67aVKTG+lEo1Q=
+Date:   Sat, 08 May 2021 15:55:07 -0700
 From:   akpm@linux-foundation.org
-To:     caoxiaofeng@yulong.com, cxfcosmos@gmail.com,
-        mm-commits@vger.kernel.org
-Subject:  [merged] kernel-user_namespace-fix-typo-issue.patch
- removed from -mm tree
-Message-ID: <20210508225505.e6VP4D8B8%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, unixbhaskar@gmail.com
+Subject:  [merged] kernel-fix-a-typo-in-the-file-upc.patch removed
+ from -mm tree
+Message-ID: <20210508225507.cDk4RFf-2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,59 +42,39 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/user_namespace.c: fix typos
+     Subject: kernel/up.c: fix typo
 has been removed from the -mm tree.  Its filename was
-     kernel-user_namespace-fix-typo-issue.patch
+     kernel-fix-a-typo-in-the-file-upc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xiaofeng Cao <cxfcosmos@gmail.com>
-Subject: kernel/user_namespace.c: fix typos
+From: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Subject: kernel/up.c: fix typo
 
-change 'verifing' to 'verifying'
-change 'certaint' to 'certain'
-change 'approprpiate' to 'appropriate'
+s/condtions/conditions/
 
-Link: https://lkml.kernel.org/r/20210317100129.12440-1-caoxiaofeng@yulong.com
-Signed-off-by: Xiaofeng Cao <caoxiaofeng@yulong.com>
+Link: https://lkml.kernel.org/r/20210317032732.3260835-1-unixbhaskar@gmail.com
+Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user_namespace.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/up.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/user_namespace.c~kernel-user_namespace-fix-typo-issue
-+++ a/kernel/user_namespace.c
-@@ -85,7 +85,7 @@ int create_user_ns(struct cred *new)
- 	/*
- 	 * Verify that we can not violate the policy of which files
- 	 * may be accessed that is specified by the root directory,
--	 * by verifing that the root directory is at the root of the
-+	 * by verifying that the root directory is at the root of the
- 	 * mount namespace which allows all files to be accessed.
- 	 */
- 	ret = -EPERM;
-@@ -1014,7 +1014,7 @@ static ssize_t map_write(struct file *fi
- 			goto out;
- 		ret = -EINVAL;
- 	}
--	/* Be very certaint the new map actually exists */
-+	/* Be very certain the new map actually exists */
- 	if (new_map.nr_extents == 0)
- 		goto out;
+--- a/kernel/up.c~kernel-fix-a-typo-in-the-file-upc
++++ a/kernel/up.c
+@@ -38,7 +38,7 @@ EXPORT_SYMBOL(smp_call_function_single_a
  
-@@ -1169,7 +1169,7 @@ static bool new_idmap_permitted(const st
- 
- 	/* Allow the specified ids if we have the appropriate capability
- 	 * (CAP_SETUID or CAP_SETGID) over the parent user namespace.
--	 * And the opener of the id file also had the approprpiate capability.
-+	 * And the opener of the id file also has the appropriate capability.
- 	 */
- 	if (ns_capable(ns->parent, cap_setid) &&
- 	    file_ns_capable(file, ns->parent, cap_setid))
+ /*
+  * Preemption is disabled here to make sure the cond_func is called under the
+- * same condtions in UP and SMP.
++ * same conditions in UP and SMP.
+  */
+ void on_each_cpu_cond_mask(smp_cond_func_t cond_func, smp_call_func_t func,
+ 			   void *info, bool wait, const struct cpumask *mask)
 _
 
-Patches currently in -mm which might be from cxfcosmos@gmail.com are
+Patches currently in -mm which might be from unixbhaskar@gmail.com are
 
 
