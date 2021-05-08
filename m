@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7571C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:48:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A834C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:48:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 868B461421
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:48:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 28DFC61421
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:48:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229644AbhEHWtn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:49:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34322 "EHLO mail.kernel.org"
+        id S229609AbhEHWts (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:49:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229577AbhEHWtm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:49:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7C0426101D;
-        Sat,  8 May 2021 22:48:40 +0000 (UTC)
+        id S229552AbhEHWtr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:49:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AA6B36101D;
+        Sat,  8 May 2021 22:48:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514120;
-        bh=PjcgXyUNWsSu09UgtfQFWrquIs5Y/x8UQGob7vHTfxc=;
+        s=korg; t=1620514126;
+        bh=fhAJ+DXHNzyBgL8WORaO8f/VBELIwEnHP8yKC8RsNlU=;
         h=Date:From:To:Subject:From;
-        b=XMYFK4ob9VAIrl6mTiVvwWH9cgY+rk/DYbk1H1W6Qj5WTFzFhZONiYvjYG6JyP3o6
-         JZa5QoVnu+Fy3CYS0Vvmc7kpzl8E4ehGujReFPKKxVq9MVh4YGtpeVVFV5J1PdxsJu
-         ylkdYJ7KyH9Bv4Iads8S+MVC66KjZGUGbXg+UQAg=
-Date:   Sat, 08 May 2021 15:48:40 -0700
+        b=hyjbCZkIDlLJDVxspl14EeTCrsRKi8PX5GvOwwIedOYOis+3mm+cpeRNkEYGl9Np/
+         2iHdYoSgivsFLm6umVLuE4s0/sD8ZgVk+LVukjsFytIodJYDeXIQKo6FpOxLOO2q+7
+         diuJUX8gKnz0/FrFSGmbIMaS0rE++BfQxb1m042Q=
+Date:   Sat, 08 May 2021 15:48:45 -0700
 From:   akpm@linux-foundation.org
 To:     david@fromorbit.com, guro@fb.com, hannes@cmpxchg.org,
         ktkhai@virtuozzo.com, mhocko@suse.com, mm-commits@vger.kernel.org,
         shakeelb@google.com, shy828301@gmail.com, vbabka@suse.cz
 Subject:  [merged]
- mm-vmscan-use-a-new-flag-to-indicate-shrinker-is-registered.patch removed
- from -mm tree
-Message-ID: <20210508224840.ZOkGVvSrb%akpm@linux-foundation.org>
+ mm-vmscan-use-per-memcg-nr_deferred-of-shrinker.patch removed from -mm tree
+Message-ID: <20210508224845.T-X3H68k9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,158 +44,165 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: use a new flag to indicate shrinker is registered
+     Subject: mm: vmscan: use per memcg nr_deferred of shrinker
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-use-a-new-flag-to-indicate-shrinker-is-registered.patch
+     mm-vmscan-use-per-memcg-nr_deferred-of-shrinker.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: vmscan: use a new flag to indicate shrinker is registered
+Subject: mm: vmscan: use per memcg nr_deferred of shrinker
 
-Currently registered shrinker is indicated by non-NULL
-shrinker->nr_deferred.  This approach is fine with nr_deferred at the
-shrinker level, but the following patches will move MEMCG_AWARE shrinkers'
-nr_deferred to memcg level, so their shrinker->nr_deferred would always be
-NULL.  This would prevent the shrinkers from unregistering correctly.
+Use per memcg's nr_deferred for memcg aware shrinkers.  The shrinker's
+nr_deferred will be used in the following cases:
 
-Remove SHRINKER_REGISTERING since we could check if shrinker is registered
-successfully by the new flag.
+    1. Non memcg aware shrinkers
+    2. !CONFIG_MEMCG
+    3. memcg is disabled by boot parameter
 
-Link: https://lkml.kernel.org/r/20210311190845.9708-9-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20210311190845.9708-11-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Kirill Tkhai <ktkhai@virtuozzo.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shrinker.h |    7 +++---
- mm/vmscan.c              |   40 +++++++++++++------------------------
- 2 files changed, 19 insertions(+), 28 deletions(-)
+ mm/vmscan.c |   78 ++++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 66 insertions(+), 12 deletions(-)
 
---- a/include/linux/shrinker.h~mm-vmscan-use-a-new-flag-to-indicate-shrinker-is-registered
-+++ a/include/linux/shrinker.h
-@@ -79,13 +79,14 @@ struct shrinker {
- #define DEFAULT_SEEKS 2 /* A good number if you don't know better. */
- 
- /* Flags */
--#define SHRINKER_NUMA_AWARE	(1 << 0)
--#define SHRINKER_MEMCG_AWARE	(1 << 1)
-+#define SHRINKER_REGISTERED	(1 << 0)
-+#define SHRINKER_NUMA_AWARE	(1 << 1)
-+#define SHRINKER_MEMCG_AWARE	(1 << 2)
- /*
-  * It just makes sense when the shrinker is also MEMCG_AWARE for now,
-  * non-MEMCG_AWARE shrinker should not have this flag set.
-  */
--#define SHRINKER_NONSLAB	(1 << 2)
-+#define SHRINKER_NONSLAB	(1 << 3)
- 
- extern int prealloc_shrinker(struct shrinker *shrinker);
- extern void register_shrinker_prepared(struct shrinker *shrinker);
---- a/mm/vmscan.c~mm-vmscan-use-a-new-flag-to-indicate-shrinker-is-registered
+--- a/mm/vmscan.c~mm-vmscan-use-per-memcg-nr_deferred-of-shrinker
 +++ a/mm/vmscan.c
-@@ -316,19 +316,6 @@ void set_shrinker_bit(struct mem_cgroup
- 	}
- }
- 
--/*
-- * We allow subsystems to populate their shrinker-related
-- * LRU lists before register_shrinker_prepared() is called
-- * for the shrinker, since we don't want to impose
-- * restrictions on their internal registration order.
-- * In this case shrink_slab_memcg() may find corresponding
-- * bit is set in the shrinkers map.
-- *
-- * This value is used by the function to detect registering
-- * shrinkers and to skip do_shrink_slab() calls for them.
-- */
--#define SHRINKER_REGISTERING ((struct shrinker *)~0UL)
--
- static DEFINE_IDR(shrinker_idr);
- 
- static int prealloc_memcg_shrinker(struct shrinker *shrinker)
-@@ -337,7 +324,7 @@ static int prealloc_memcg_shrinker(struc
- 
- 	down_write(&shrinker_rwsem);
- 	/* This may call shrinker, so it must use down_read_trylock() */
--	id = idr_alloc(&shrinker_idr, SHRINKER_REGISTERING, 0, 0, GFP_KERNEL);
-+	id = idr_alloc(&shrinker_idr, shrinker, 0, 0, GFP_KERNEL);
- 	if (id < 0)
- 		goto unlock;
- 
-@@ -360,9 +347,9 @@ static void unregister_memcg_shrinker(st
- 
- 	BUG_ON(id < 0);
- 
--	down_write(&shrinker_rwsem);
-+	lockdep_assert_held(&shrinker_rwsem);
-+
+@@ -376,6 +376,24 @@ static void unregister_memcg_shrinker(st
  	idr_remove(&shrinker_idr, id);
--	up_write(&shrinker_rwsem);
  }
  
++static long xchg_nr_deferred_memcg(int nid, struct shrinker *shrinker,
++				   struct mem_cgroup *memcg)
++{
++	struct shrinker_info *info;
++
++	info = shrinker_info_protected(memcg, nid);
++	return atomic_long_xchg(&info->nr_deferred[shrinker->id], 0);
++}
++
++static long add_nr_deferred_memcg(long nr, int nid, struct shrinker *shrinker,
++				  struct mem_cgroup *memcg)
++{
++	struct shrinker_info *info;
++
++	info = shrinker_info_protected(memcg, nid);
++	return atomic_long_add_return(nr, &info->nr_deferred[shrinker->id]);
++}
++
  static bool cgroup_reclaim(struct scan_control *sc)
-@@ -490,8 +477,11 @@ void free_prealloced_shrinker(struct shr
- 	if (!shrinker->nr_deferred)
- 		return;
- 
--	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
-+	if (shrinker->flags & SHRINKER_MEMCG_AWARE) {
-+		down_write(&shrinker_rwsem);
- 		unregister_memcg_shrinker(shrinker);
-+		up_write(&shrinker_rwsem);
-+	}
- 
- 	kfree(shrinker->nr_deferred);
- 	shrinker->nr_deferred = NULL;
-@@ -501,10 +491,7 @@ void register_shrinker_prepared(struct s
  {
- 	down_write(&shrinker_rwsem);
- 	list_add_tail(&shrinker->list, &shrinker_list);
--#ifdef CONFIG_MEMCG
--	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
--		idr_replace(&shrinker_idr, shrinker, shrinker->id);
--#endif
-+	shrinker->flags |= SHRINKER_REGISTERED;
- 	up_write(&shrinker_rwsem);
+ 	return sc->target_mem_cgroup;
+@@ -414,6 +432,18 @@ static void unregister_memcg_shrinker(st
+ {
  }
  
-@@ -524,13 +511,16 @@ EXPORT_SYMBOL(register_shrinker);
-  */
- void unregister_shrinker(struct shrinker *shrinker)
++static long xchg_nr_deferred_memcg(int nid, struct shrinker *shrinker,
++				   struct mem_cgroup *memcg)
++{
++	return 0;
++}
++
++static long add_nr_deferred_memcg(long nr, int nid, struct shrinker *shrinker,
++				  struct mem_cgroup *memcg)
++{
++	return 0;
++}
++
+ static bool cgroup_reclaim(struct scan_control *sc)
  {
--	if (!shrinker->nr_deferred)
-+	if (!(shrinker->flags & SHRINKER_REGISTERED))
- 		return;
--	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
--		unregister_memcg_shrinker(shrinker);
-+
- 	down_write(&shrinker_rwsem);
- 	list_del(&shrinker->list);
-+	shrinker->flags &= ~SHRINKER_REGISTERED;
-+	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
-+		unregister_memcg_shrinker(shrinker);
- 	up_write(&shrinker_rwsem);
-+
- 	kfree(shrinker->nr_deferred);
- 	shrinker->nr_deferred = NULL;
+ 	return false;
+@@ -425,6 +455,39 @@ static bool writeback_throttling_sane(st
  }
-@@ -695,7 +685,7 @@ static unsigned long shrink_slab_memcg(g
- 		struct shrinker *shrinker;
+ #endif
  
- 		shrinker = idr_find(&shrinker_idr, i);
--		if (unlikely(!shrinker || shrinker == SHRINKER_REGISTERING)) {
-+		if (unlikely(!shrinker || !(shrinker->flags & SHRINKER_REGISTERED))) {
- 			if (!shrinker)
- 				clear_bit(i, info->map);
- 			continue;
++static long xchg_nr_deferred(struct shrinker *shrinker,
++			     struct shrink_control *sc)
++{
++	int nid = sc->nid;
++
++	if (!(shrinker->flags & SHRINKER_NUMA_AWARE))
++		nid = 0;
++
++	if (sc->memcg &&
++	    (shrinker->flags & SHRINKER_MEMCG_AWARE))
++		return xchg_nr_deferred_memcg(nid, shrinker,
++					      sc->memcg);
++
++	return atomic_long_xchg(&shrinker->nr_deferred[nid], 0);
++}
++
++
++static long add_nr_deferred(long nr, struct shrinker *shrinker,
++			    struct shrink_control *sc)
++{
++	int nid = sc->nid;
++
++	if (!(shrinker->flags & SHRINKER_NUMA_AWARE))
++		nid = 0;
++
++	if (sc->memcg &&
++	    (shrinker->flags & SHRINKER_MEMCG_AWARE))
++		return add_nr_deferred_memcg(nr, nid, shrinker,
++					     sc->memcg);
++
++	return atomic_long_add_return(nr, &shrinker->nr_deferred[nid]);
++}
++
+ /*
+  * This misses isolated pages which are not accounted for to save counters.
+  * As the data only determines if reclaim or compaction continues, it is
+@@ -561,14 +624,10 @@ static unsigned long do_shrink_slab(stru
+ 	long freeable;
+ 	long nr;
+ 	long new_nr;
+-	int nid = shrinkctl->nid;
+ 	long batch_size = shrinker->batch ? shrinker->batch
+ 					  : SHRINK_BATCH;
+ 	long scanned = 0, next_deferred;
+ 
+-	if (!(shrinker->flags & SHRINKER_NUMA_AWARE))
+-		nid = 0;
+-
+ 	freeable = shrinker->count_objects(shrinker, shrinkctl);
+ 	if (freeable == 0 || freeable == SHRINK_EMPTY)
+ 		return freeable;
+@@ -578,7 +637,7 @@ static unsigned long do_shrink_slab(stru
+ 	 * and zero it so that other concurrent shrinker invocations
+ 	 * don't also do this scanning work.
+ 	 */
+-	nr = atomic_long_xchg(&shrinker->nr_deferred[nid], 0);
++	nr = xchg_nr_deferred(shrinker, shrinkctl);
+ 
+ 	total_scan = nr;
+ 	if (shrinker->seeks) {
+@@ -669,14 +728,9 @@ static unsigned long do_shrink_slab(stru
+ 		next_deferred = 0;
+ 	/*
+ 	 * move the unused scan count back into the shrinker in a
+-	 * manner that handles concurrent updates. If we exhausted the
+-	 * scan, there is no need to do an update.
++	 * manner that handles concurrent updates.
+ 	 */
+-	if (next_deferred > 0)
+-		new_nr = atomic_long_add_return(next_deferred,
+-						&shrinker->nr_deferred[nid]);
+-	else
+-		new_nr = atomic_long_read(&shrinker->nr_deferred[nid]);
++	new_nr = add_nr_deferred(next_deferred, shrinker, shrinkctl);
+ 
+ 	trace_mm_shrink_slab_end(shrinker, shrinkctl->nid, freed, nr, new_nr, total_scan);
+ 	return freed;
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
