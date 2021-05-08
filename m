@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67D7DC433ED
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9E1EC433B4
 	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4960261415
+	by mail.kernel.org (Postfix) with ESMTP id 9D01261415
 	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229609AbhEHWkU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229620AbhEHWkU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 8 May 2021 18:40:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43284 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43316 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229620AbhEHWkR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:40:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 88C4061402;
-        Sat,  8 May 2021 22:39:15 +0000 (UTC)
+        id S229664AbhEHWkT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:40:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 709166140E;
+        Sat,  8 May 2021 22:39:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513555;
-        bh=ywjewyhGcwzH9+ixPmAs+T1RNj92Qm+n+z738tkvswg=;
+        s=korg; t=1620513557;
+        bh=wDwL/wwxTj2nP+ETsgPhLI1r/bKJvZ+wu9Sysu5EM1o=;
         h=Date:From:To:Subject:From;
-        b=umnXnCGkzU23tm7sDvr2klmufSddLbe1xBb2rsDJfivUwtxKIxNBUREReDQSz7pkc
-         ULsO4iw5uQSw2K8q3k6acjB24KxHjYwv+TnxOOJD96K0eqm5d2M20GLC+027jAT6z+
-         CHo/z9ApE6gA44l9DUQRmF/lJ/qdvmQCS+BsLfpA=
-Date:   Sat, 08 May 2021 15:39:15 -0700
+        b=nZSVrddu/JMPRvTEXu6ieAd8aL7hBRPBOCsOzwKHb8kMcZ3g1kPqfkPC4fo0R9o+U
+         tXYB0DXKeuYbr8FYlEi1Ti90Syuov5ZLemNl0eKMrY+3WJ8QSb4UDgA1dZ52qnCXAi
+         ivNO1W3xcpjo8ULh6iEdPanUwn27++wXaaw2lcq0=
+Date:   Sat, 08 May 2021 15:39:17 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, slyfox@gentoo.org
-Subject:  [merged] ia64-module-fix-symbolizer-crash-on-fdescr.patch
- removed from -mm tree
-Message-ID: <20210508223915.M6SP88xou%akpm@linux-foundation.org>
+To:     arnd@arndb.de, luc.vanoostenryck@gmail.com,
+        mm-commits@vger.kernel.org, ojeda@kernel.org
+Subject:  [merged]
+ sparse-can-do-constant-folding-of-__builtin_bswap.patch removed from -mm
+ tree
+Message-ID: <20210508223917.20nsK5MrE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,121 +44,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: module: fix symbolizer crash on fdescr
+     Subject: include/linux/compiler-gcc.h: sparse can do constant folding of __builtin_bswap*()
 has been removed from the -mm tree.  Its filename was
-     ia64-module-fix-symbolizer-crash-on-fdescr.patch
+     sparse-can-do-constant-folding-of-__builtin_bswap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: ia64: module: fix symbolizer crash on fdescr
+From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Subject: include/linux/compiler-gcc.h: sparse can do constant folding of __builtin_bswap*()
 
-Noticed failure as a crash on ia64 when tried to symbolize all backtraces
-collected by page_owner=on:
+Sparse can do constant folding of __builtin_bswap*() since 2017.  Also, a
+much recent version of Sparse is needed anyway, see commit 6ec4476ac825
+("Raise gcc version requirement to 4.9").
 
-    $ cat /sys/kernel/debug/page_owner
-    <oops>
+So, remove the comment about sparse not being yet able to constant fold
+__builtin_bswap*() and remove the corresponding test of __CHECKER__.
 
-    CPU: 1 PID: 2074 Comm: cat Not tainted 5.12.0-rc4 #226
-    Hardware name: hp server rx3600, BIOS 04.03 04/08/2008
-    ip is at dereference_module_function_descriptor+0x41/0x100
-
-Crash happens at dereference_module_function_descriptor() due to
-use-after-free when dereferencing ".opd" section header.
-
-All section headers are already freed after module is laoded successfully.
-
-To keep symbolizer working the change stores ".opd" address and size after
-module is relocated to a new place and before section headers are
-discarded.
-
-To make similar errors less obscure module_finalize() now zeroes out all
-variables relevant to module loading only.
-
-Link: https://lkml.kernel.org/r/20210403074803.3309096-1-slyfox@gentoo.org
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Link: https://lkml.kernel.org/r/20210226092236.99369-1-luc.vanoostenryck@gmail.com
+Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Miguel Ojeda <ojeda@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/module.h |    6 +++++-
- arch/ia64/kernel/module.c      |   29 +++++++++++++++++++++++++----
- 2 files changed, 30 insertions(+), 5 deletions(-)
+ include/linux/compiler-gcc.h |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/arch/ia64/include/asm/module.h~ia64-module-fix-symbolizer-crash-on-fdescr
-+++ a/arch/ia64/include/asm/module.h
-@@ -14,16 +14,20 @@
- struct elf64_shdr;			/* forward declration */
+--- a/include/linux/compiler-gcc.h~sparse-can-do-constant-folding-of-__builtin_bswap
++++ a/include/linux/compiler-gcc.h
+@@ -90,15 +90,11 @@
+  */
+ #define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
  
- struct mod_arch_specific {
-+	/* Used only at module load time. */
- 	struct elf64_shdr *core_plt;	/* core PLT section */
- 	struct elf64_shdr *init_plt;	/* init PLT section */
- 	struct elf64_shdr *got;		/* global offset table */
- 	struct elf64_shdr *opd;		/* official procedure descriptors */
- 	struct elf64_shdr *unwind;	/* unwind-table section */
- 	unsigned long gp;		/* global-pointer for module */
-+	unsigned int next_got_entry;	/* index of next available got entry */
+-/*
+- * sparse (__CHECKER__) pretends to be gcc, but can't do constant
+- * folding in __builtin_bswap*() (yet), so don't set these for it.
+- */
+-#if defined(CONFIG_ARCH_USE_BUILTIN_BSWAP) && !defined(__CHECKER__)
++#if defined(CONFIG_ARCH_USE_BUILTIN_BSWAP)
+ #define __HAVE_BUILTIN_BSWAP32__
+ #define __HAVE_BUILTIN_BSWAP64__
+ #define __HAVE_BUILTIN_BSWAP16__
+-#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP && !__CHECKER__ */
++#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
  
-+	/* Used at module run and cleanup time. */
- 	void *core_unw_table;		/* core unwind-table cookie returned by unwinder */
- 	void *init_unw_table;		/* init unwind-table cookie returned by unwinder */
--	unsigned int next_got_entry;	/* index of next available got entry */
-+	void *opd_addr;			/* symbolize uses .opd to get to actual function */
-+	unsigned long opd_size;
- };
- 
- #define ARCH_SHF_SMALL	SHF_IA_64_SHORT
---- a/arch/ia64/kernel/module.c~ia64-module-fix-symbolizer-crash-on-fdescr
-+++ a/arch/ia64/kernel/module.c
-@@ -905,9 +905,31 @@ register_unwind_table (struct module *mo
- int
- module_finalize (const Elf_Ehdr *hdr, const Elf_Shdr *sechdrs, struct module *mod)
- {
-+	struct mod_arch_specific *mas = &mod->arch;
-+
- 	DEBUGP("%s: init: entry=%p\n", __func__, mod->init);
--	if (mod->arch.unwind)
-+	if (mas->unwind)
- 		register_unwind_table(mod);
-+
-+	/*
-+	 * ".opd" was already relocated to the final destination. Store
-+	 * it's address for use in symbolizer.
-+	 */
-+	mas->opd_addr = (void *)mas->opd->sh_addr;
-+	mas->opd_size = mas->opd->sh_size;
-+
-+	/*
-+	 * Module relocation was already done at this point. Section
-+	 * headers are about to be deleted. Wipe out load-time context.
-+	 */
-+	mas->core_plt = NULL;
-+	mas->init_plt = NULL;
-+	mas->got = NULL;
-+	mas->opd = NULL;
-+	mas->unwind = NULL;
-+	mas->gp = 0;
-+	mas->next_got_entry = 0;
-+
- 	return 0;
- }
- 
-@@ -926,10 +948,9 @@ module_arch_cleanup (struct module *mod)
- 
- void *dereference_module_function_descriptor(struct module *mod, void *ptr)
- {
--	Elf64_Shdr *opd = mod->arch.opd;
-+	struct mod_arch_specific *mas = &mod->arch;
- 
--	if (ptr < (void *)opd->sh_addr ||
--			ptr >= (void *)(opd->sh_addr + opd->sh_size))
-+	if (ptr < mas->opd_addr || ptr >= mas->opd_addr + mas->opd_size)
- 		return ptr;
- 
- 	return dereference_function_descriptor(ptr);
+ #if GCC_VERSION >= 70000
+ #define KASAN_ABI_VERSION 5
 _
 
-Patches currently in -mm which might be from slyfox@gentoo.org are
+Patches currently in -mm which might be from luc.vanoostenryck@gmail.com are
 
 
