@@ -4,31 +4,31 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8734EC433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82DCEC433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5D523613C5
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5ADC061415
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229631AbhEHWo6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:44:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52914 "EHLO mail.kernel.org"
+        id S229662AbhEHWpB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:45:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53004 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229709AbhEHWo6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:44:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AF04E61415;
-        Sat,  8 May 2021 22:43:55 +0000 (UTC)
+        id S229644AbhEHWpB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:45:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BCA286100C;
+        Sat,  8 May 2021 22:43:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513836;
-        bh=W6frtunQMTw6/4lH6cS7aT2/UEMat2OM6BU7ykmTntE=;
+        s=korg; t=1620513839;
+        bh=qDDA5DZmT7FhAHWKqQKJCiPX6twkpHr9/CUgGIAhX7I=;
         h=Date:From:To:Subject:From;
-        b=wgEtK4HyMRxPjyi+Zhs7m1iT3sPcmIq+wgzZYV7GWOq1N4tmkC1sAywoOCYKxzQWV
-         CEG7voAuc87I5JFdUZz9EOIEFvAIRtYpXi/8mUn9MVlbEnoEfhWtDlbWWj0GfFsOG1
-         g99zHYe3HNHteo2qx+3+w7EIt+PlhbgX0TAcdcWM=
-Date:   Sat, 08 May 2021 15:43:55 -0700
+        b=ACSeuwttZbZ5MrfmB2lEHd6sAmiKP3SZiz1hgnRiwWiOzywL7nYyLJxwUw01Jzzzv
+         LE2C59e/BIFtscaROdz0UPQGMmuSLKZ+L21E4RrECIznzNAD94rBk41Q5vd0fpjv53
+         AXa0IMak9Gl4BMIG2ezNaaGEBOAjyMDylfKJUbBI=
+Date:   Sat, 08 May 2021 15:43:58 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -37,9 +37,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
 Subject:  [merged]
- kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch removed from -mm
- tree
-Message-ID: <20210508224355.vAAQpCUVe%akpm@linux-foundation.org>
+ mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch removed from
+ -mm tree
+Message-ID: <20210508224358.e_v3cmFIW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,67 +48,183 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: initialize shadow to TAG_INVALID for SW_TAGS
+     Subject: mm, kasan: don't poison boot memory with tag-based modes
 has been removed from the -mm tree.  Its filename was
-     kasan-initialize-shadow-to-tag_invalid-for-sw_tags.patch
+     mm-kasan-dont-poison-boot-memory-with-tag-based-modes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: initialize shadow to TAG_INVALID for SW_TAGS
+Subject: mm, kasan: don't poison boot memory with tag-based modes
 
-Currently, KASAN_SW_TAGS uses 0xFF as the default tag value for
-unallocated memory.  The underlying idea is that since that memory hasn't
-been allocated yet, it's only supposed to be dereferenced through a
-pointer with the native 0xFF tag.
+During boot, all non-reserved memblock memory is exposed to page_alloc via
+memblock_free_pages->__free_pages_core().  This results in
+kasan_free_pages() being called, which poisons that memory.
 
-While this is a good idea in terms on consistency, practically it doesn't
-bring any benefit.  Since the 0xFF pointer tag is a match-all tag, it
-doesn't matter what tag the accessed memory has.  No accesses through
-0xFF-tagged pointers are considered buggy by KASAN.
+Poisoning all that memory lengthens boot time.  The most noticeable effect
+is observed with the HW_TAGS mode.  A boot-time impact may potentially
+also affect systems with large amount of RAM.
 
-This patch changes the default tag value for unallocated memory to 0xFE,
-which is the tag KASAN uses for inaccessible memory.  This doesn't affect
-accesses through 0xFF-tagged pointer to this memory, but this allows KASAN
-to detect wild and large out-of-bounds invalid memory accesses through
-otherwise-tagged pointers.
+This patch changes the tag-based modes to not poison the memory during the
+memblock->page_alloc transition.
 
-This is a prepatory patch for the next one, which changes the tag-based
-KASAN modes to not poison the boot memory.
+An exception is made for KASAN_GENERIC.  Since it marks all new memory as
+accessible, not poisoning the memory released from memblock will lead to
+KASAN missing invalid boot-time accesses to that memory.
 
-Link: https://lkml.kernel.org/r/c8e93571c18b3528aac5eb33ade213bf133d10ad.1613692950.git.andreyknvl@google.com
+With KASAN_SW_TAGS, as it uses the invalid 0xFE tag as the default tag for
+all memory, it won't miss bad boot-time accesses even if the poisoning of
+memblock memory is removed.
+
+With KASAN_HW_TAGS, the default memory tags values are unspecified. 
+Therefore, if memblock poisoning is removed, this KASAN mode will miss the
+mentioned type of boot-time bugs with a 1/16 probability.  This is taken
+as an acceptable trafe-off.
+
+Internally, the poisoning is removed as follows.  __free_pages_core() is
+used when exposing fresh memory during system boot and when onlining
+memory during hotplug.  This patch adds a new FPI_SKIP_KASAN_POISON flag
+and passes it to __free_pages_ok() through free_pages_prepare() from
+__free_pages_core().  If FPI_SKIP_KASAN_POISON is set, kasan_free_pages()
+is not called.
+
+All memory allocated normally when the boot is over keeps getting poisoned
+as usual.
+
+Link: https://lkml.kernel.org/r/a0570dc1e3a8f39a55aa343a1fc08cd5c2d4cad6.1613692950.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Peter Collingbourne <pcc@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   45 ++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 34 insertions(+), 11 deletions(-)
 
---- a/include/linux/kasan.h~kasan-initialize-shadow-to-tag_invalid-for-sw_tags
-+++ a/include/linux/kasan.h
-@@ -30,7 +30,8 @@ struct kunit_kasan_expectation {
- /* Software KASAN implementations use shadow memory. */
+--- a/mm/page_alloc.c~mm-kasan-dont-poison-boot-memory-with-tag-based-modes
++++ a/mm/page_alloc.c
+@@ -109,6 +109,17 @@ typedef int __bitwise fpi_t;
+  */
+ #define FPI_TO_TAIL		((__force fpi_t)BIT(1))
  
- #ifdef CONFIG_KASAN_SW_TAGS
--#define KASAN_SHADOW_INIT 0xFF
-+/* This matches KASAN_TAG_INVALID. */
-+#define KASAN_SHADOW_INIT 0xFE
++/*
++ * Don't poison memory with KASAN (only for the tag-based modes).
++ * During boot, all non-reserved memblock memory is exposed to page_alloc.
++ * Poisoning all that memory lengthens boot time, especially on systems with
++ * large amount of RAM. This flag is used to skip that poisoning.
++ * This is only done for the tag-based KASAN modes, as those are able to
++ * detect memory corruptions with the memory tags assigned by default.
++ * All memory allocated normally after boot gets poisoned as usual.
++ */
++#define FPI_SKIP_KASAN_POISON	((__force fpi_t)BIT(2))
++
+ /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
+ static DEFINE_MUTEX(pcp_batch_high_lock);
+ #define MIN_PERCPU_PAGELIST_FRACTION	(8)
+@@ -385,10 +396,15 @@ static DEFINE_STATIC_KEY_TRUE(deferred_p
+  * on-demand allocation and then freed again before the deferred pages
+  * initialization is done, but this is not likely to happen.
+  */
+-static inline void kasan_free_nondeferred_pages(struct page *page, int order)
++static inline void kasan_free_nondeferred_pages(struct page *page, int order,
++							fpi_t fpi_flags)
+ {
+-	if (!static_branch_unlikely(&deferred_pages))
+-		kasan_free_pages(page, order);
++	if (static_branch_unlikely(&deferred_pages))
++		return;
++	if (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
++			(fpi_flags & FPI_SKIP_KASAN_POISON))
++		return;
++	kasan_free_pages(page, order);
+ }
+ 
+ /* Returns true if the struct page for the pfn is uninitialised */
+@@ -439,7 +455,14 @@ defer_init(int nid, unsigned long pfn, u
+ 	return false;
+ }
  #else
- #define KASAN_SHADOW_INIT 0
- #endif
+-#define kasan_free_nondeferred_pages(p, o)	kasan_free_pages(p, o)
++static inline void kasan_free_nondeferred_pages(struct page *page, int order,
++							fpi_t fpi_flags)
++{
++	if (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
++			(fpi_flags & FPI_SKIP_KASAN_POISON))
++		return;
++	kasan_free_pages(page, order);
++}
+ 
+ static inline bool early_page_uninitialised(unsigned long pfn)
+ {
+@@ -1217,7 +1240,7 @@ static void kernel_init_free_pages(struc
+ }
+ 
+ static __always_inline bool free_pages_prepare(struct page *page,
+-					unsigned int order, bool check_free)
++			unsigned int order, bool check_free, fpi_t fpi_flags)
+ {
+ 	int bad = 0;
+ 
+@@ -1286,7 +1309,7 @@ static __always_inline bool free_pages_p
+ 	 * With hardware tag-based KASAN, memory tags must be set before the
+ 	 * page becomes unavailable via debug_pagealloc or arch_free_page.
+ 	 */
+-	kasan_free_nondeferred_pages(page, order);
++	kasan_free_nondeferred_pages(page, order, fpi_flags);
+ 
+ 	/*
+ 	 * arch_free_page() can make the page's contents inaccessible.  s390
+@@ -1308,7 +1331,7 @@ static __always_inline bool free_pages_p
+  */
+ static bool free_pcp_prepare(struct page *page)
+ {
+-	return free_pages_prepare(page, 0, true);
++	return free_pages_prepare(page, 0, true, FPI_NONE);
+ }
+ 
+ static bool bulkfree_pcp_prepare(struct page *page)
+@@ -1328,9 +1351,9 @@ static bool bulkfree_pcp_prepare(struct
+ static bool free_pcp_prepare(struct page *page)
+ {
+ 	if (debug_pagealloc_enabled_static())
+-		return free_pages_prepare(page, 0, true);
++		return free_pages_prepare(page, 0, true, FPI_NONE);
+ 	else
+-		return free_pages_prepare(page, 0, false);
++		return free_pages_prepare(page, 0, false, FPI_NONE);
+ }
+ 
+ static bool bulkfree_pcp_prepare(struct page *page)
+@@ -1538,7 +1561,7 @@ static void __free_pages_ok(struct page
+ 	int migratetype;
+ 	unsigned long pfn = page_to_pfn(page);
+ 
+-	if (!free_pages_prepare(page, order, true))
++	if (!free_pages_prepare(page, order, true, fpi_flags))
+ 		return;
+ 
+ 	migratetype = get_pfnblock_migratetype(page, pfn);
+@@ -1575,7 +1598,7 @@ void __free_pages_core(struct page *page
+ 	 * Bypass PCP and place fresh pages right to the tail, primarily
+ 	 * relevant for memory onlining.
+ 	 */
+-	__free_pages_ok(page, order, FPI_TO_TAIL);
++	__free_pages_ok(page, order, FPI_TO_TAIL | FPI_SKIP_KASAN_POISON);
+ }
+ 
+ #ifdef CONFIG_NEED_MULTIPLE_NODES
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
