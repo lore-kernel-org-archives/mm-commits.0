@@ -7,39 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19A04C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:41:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EC07C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:41:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ECB7A6141D
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:41:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F9BE61421
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:41:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229675AbhEHWmW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:42:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46532 "EHLO mail.kernel.org"
+        id S229647AbhEHWmY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:42:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46594 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229522AbhEHWmV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:42:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7E0BE6140E;
-        Sat,  8 May 2021 22:41:18 +0000 (UTC)
+        id S229522AbhEHWmX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:42:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 797ED61402;
+        Sat,  8 May 2021 22:41:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513678;
-        bh=nQlyz32QkN2Qd6JsaB3u08U6n//aAEE0KoUcKTe4Nhg=;
+        s=korg; t=1620513680;
+        bh=Ruu6ySKDmycXb9EcpunUvtKS/Nwc6ap8kP8c4kVtFHI=;
         h=Date:From:To:Subject:From;
-        b=VSuar1ji9cKAcJcBpF4cPhuiNWIcL4Ph4Y1arY5QEeN18oj+trIiZ46PLx8xa94JR
-         kRYiw9apu8H21zBFhccZrotm+H5nb/55q+TNi/ofwF467LwZrIuKChGnzPRmTJPkyc
-         k5X5y17/dg3AOCDwd+vU7erf1SwFVUZa4RL8u2MA=
-Date:   Sat, 08 May 2021 15:41:18 -0700
+        b=yKeIei82z9M0VkG2/mBKorKTlaev7Dq6dttsWedKntR5se+b+2HxAf+HkacMTbIMM
+         shHop9jfiy8udSUF/BWhWlHUkrVsWgD51WIJZ4y+bOiJDGt3/fpQBdEsTO1KgpLAKN
+         Wildfe1UEyS+cnz78SbaAHsc6pmbk3MG9pHx7Axs=
+Date:   Sat, 08 May 2021 15:41:20 -0700
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mkoutny@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com, tj@kernel.org
+To:     borntraeger@de.ibm.com, guro@fb.com, hannes@cmpxchg.org,
+        hca@linux.ibm.com, hughd@google.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        shakeelb@google.com
 Subject:  [merged]
- kselftests-cgroup-update-kmem-test-for-new-vmstat-implementation.patch
- removed from -mm tree
-Message-ID: <20210508224118.PhSt6lIIw%akpm@linux-foundation.org>
+ memcg-charge-before-adding-to-swapcache-on-swapin.patch removed from -mm
+ tree
+Message-ID: <20210508224120.myRt2tgUO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,100 +46,317 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kselftests: cgroup: update kmem test for new vmstat implement=
-ation
+     Subject: memcg: charge before adding to swapcache on swapin
 has been removed from the -mm tree.  Its filename was
-     kselftests-cgroup-update-kmem-test-for-new-vmstat-implementation.patch
+     memcg-charge-before-adding-to-swapcache-on-swapin.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Johannes Weiner <hannes@cmpxchg.org>
-Subject: kselftests: cgroup: update kmem test for new vmstat implementation
+From: Shakeel Butt <shakeelb@google.com>
+Subject: memcg: charge before adding to swapcache on swapin
 
-With memcg having switched to rstat, memory.stat output is precise.=20
-Update the cgroup selftest to reflect the expectations and error
-tolerances of the new implementation.
+Currently the kernel adds the page, allocated for swapin, to the swapcache
+before charging the page.  This is fine but now we want a per-memcg
+swapcache stat which is essential for folks who wants to transparently
+migrate from cgroup v1's memsw to cgroup v2's memory and swap counters. 
+In addition charging a page before exposing it to other parts of the
+kernel is a step in the right direction.
 
-Also add newly tracked types of memory to the memory.stat side of the
-equation, since they're included in memory.current and could throw false
-positives.
+To correctly maintain the per-memcg swapcache stat, this patch has adopted
+to charge the page before adding it to swapcache.  One challenge in this
+option is the failure case of add_to_swap_cache() on which we need to undo
+the mem_cgroup_charge().  Specifically undoing mem_cgroup_uncharge_swap()
+is not simple.
 
-Link: https://lkml.kernel.org/r/20210209163304.77088-9-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Michal Koutn=C3=BD <mkoutny@suse.com>
+To resolve the issue, this patch decouples the charging for swapin pages
+from mem_cgroup_charge().  Two new functions are introduced,
+mem_cgroup_swapin_charge_page() for just charging the swapin page and
+mem_cgroup_swapin_uncharge_swap() for uncharging the swap slot once the
+page has been successfully added to the swapcache.
+
+[shakeelb@google.com: set page->private before calling swap_readpage]
+  Link: https://lkml.kernel.org/r/20210318015959.2986837-1-shakeelb@google.com
+Link: https://lkml.kernel.org/r/20210305212639.775498-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Tejun Heo <tj@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Hugh Dickins <hughd@google.com>
+Tested-by: Heiko Carstens <hca@linux.ibm.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_kmem.c |   22 ++++++++++++-------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ include/linux/memcontrol.h |   13 +++
+ mm/memcontrol.c            |  119 ++++++++++++++++++++++-------------
+ mm/memory.c                |   16 ++--
+ mm/swap_state.c            |   13 +--
+ 4 files changed, 101 insertions(+), 60 deletions(-)
 
---- a/tools/testing/selftests/cgroup/test_kmem.c~kselftests-cgroup-update-k=
-mem-test-for-new-vmstat-implementation
-+++ a/tools/testing/selftests/cgroup/test_kmem.c
-@@ -19,12 +19,12 @@
-=20
-=20
- /*
-- * Memory cgroup charging and vmstat data aggregation is performed using
-- * percpu batches 32 pages big (look at MEMCG_CHARGE_BATCH). So the maximum
-- * discrepancy between charge and vmstat entries is number of cpus multipl=
-ied
-- * by 32 pages multiplied by 2.
-+ * Memory cgroup charging is performed using percpu batches 32 pages
-+ * big (look at MEMCG_CHARGE_BATCH), whereas memory.stat is exact. So
-+ * the maximum discrepancy between charge and vmstat entries is number
-+ * of cpus multiplied by 32 pages.
-  */
--#define MAX_VMSTAT_ERROR (4096 * 32 * 2 * get_nprocs())
-+#define MAX_VMSTAT_ERROR (4096 * 32 * get_nprocs())
-=20
-=20
- static int alloc_dcache(const char *cgroup, void *arg)
-@@ -162,7 +162,7 @@ static int cg_run_in_subcgroups(const ch
-  */
- static int test_kmem_memcg_deletion(const char *root)
+--- a/include/linux/memcontrol.h~memcg-charge-before-adding-to-swapcache-on-swapin
++++ a/include/linux/memcontrol.h
+@@ -609,6 +609,9 @@ static inline bool mem_cgroup_below_min(
+ }
+ 
+ int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask);
++int mem_cgroup_swapin_charge_page(struct page *page, struct mm_struct *mm,
++				  gfp_t gfp, swp_entry_t entry);
++void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry);
+ 
+ void mem_cgroup_uncharge(struct page *page);
+ void mem_cgroup_uncharge_list(struct list_head *page_list);
+@@ -1112,6 +1115,16 @@ static inline int mem_cgroup_charge(stru
+ 	return 0;
+ }
+ 
++static inline int mem_cgroup_swapin_charge_page(struct page *page,
++			struct mm_struct *mm, gfp_t gfp, swp_entry_t entry)
++{
++	return 0;
++}
++
++static inline void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry)
++{
++}
++
+ static inline void mem_cgroup_uncharge(struct page *page)
  {
--	long current, slab, anon, file, kernel_stack, sum;
-+	long current, slab, anon, file, kernel_stack, pagetables, percpu, sock, s=
-um;
- 	int ret =3D KSFT_FAIL;
- 	char *parent;
-=20
-@@ -184,11 +184,14 @@ static int test_kmem_memcg_deletion(cons
- 	anon =3D cg_read_key_long(parent, "memory.stat", "anon ");
- 	file =3D cg_read_key_long(parent, "memory.stat", "file ");
- 	kernel_stack =3D cg_read_key_long(parent, "memory.stat", "kernel_stack ");
-+	pagetables =3D cg_read_key_long(parent, "memory.stat", "pagetables ");
-+	percpu =3D cg_read_key_long(parent, "memory.stat", "percpu ");
-+	sock =3D cg_read_key_long(parent, "memory.stat", "sock ");
- 	if (current < 0 || slab < 0 || anon < 0 || file < 0 ||
--	    kernel_stack < 0)
-+	    kernel_stack < 0 || pagetables < 0 || percpu < 0 || sock < 0)
- 		goto cleanup;
-=20
--	sum =3D slab + anon + file + kernel_stack;
-+	sum =3D slab + anon + file + kernel_stack + pagetables + percpu + sock;
- 	if (abs(sum - current) < MAX_VMSTAT_ERROR) {
- 		ret =3D KSFT_PASS;
- 	} else {
-@@ -198,6 +201,9 @@ static int test_kmem_memcg_deletion(cons
- 		printf("anon =3D %ld\n", anon);
- 		printf("file =3D %ld\n", file);
- 		printf("kernel_stack =3D %ld\n", kernel_stack);
-+		printf("pagetables =3D %ld\n", pagetables);
-+		printf("percpu =3D %ld\n", percpu);
-+		printf("sock =3D %ld\n", sock);
+ }
+--- a/mm/memcontrol.c~memcg-charge-before-adding-to-swapcache-on-swapin
++++ a/mm/memcontrol.c
+@@ -6644,6 +6644,27 @@ void mem_cgroup_calculate_protection(str
+ 			atomic_long_read(&parent->memory.children_low_usage)));
+ }
+ 
++static int __mem_cgroup_charge(struct page *page, struct mem_cgroup *memcg,
++			       gfp_t gfp)
++{
++	unsigned int nr_pages = thp_nr_pages(page);
++	int ret;
++
++	ret = try_charge(memcg, gfp, nr_pages);
++	if (ret)
++		goto out;
++
++	css_get(&memcg->css);
++	commit_charge(page, memcg);
++
++	local_irq_disable();
++	mem_cgroup_charge_statistics(memcg, page, nr_pages);
++	memcg_check_events(memcg, page);
++	local_irq_enable();
++out:
++	return ret;
++}
++
+ /**
+  * mem_cgroup_charge - charge a newly allocated page to a cgroup
+  * @page: page to charge
+@@ -6653,55 +6674,71 @@ void mem_cgroup_calculate_protection(str
+  * Try to charge @page to the memcg that @mm belongs to, reclaiming
+  * pages according to @gfp_mask if necessary.
+  *
++ * Do not use this for pages allocated for swapin.
++ *
+  * Returns 0 on success. Otherwise, an error code is returned.
+  */
+ int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask)
+ {
+-	unsigned int nr_pages = thp_nr_pages(page);
+-	struct mem_cgroup *memcg = NULL;
+-	int ret = 0;
++	struct mem_cgroup *memcg;
++	int ret;
+ 
+ 	if (mem_cgroup_disabled())
+-		goto out;
++		return 0;
+ 
+-	if (PageSwapCache(page)) {
+-		swp_entry_t ent = { .val = page_private(page), };
+-		unsigned short id;
++	memcg = get_mem_cgroup_from_mm(mm);
++	ret = __mem_cgroup_charge(page, memcg, gfp_mask);
++	css_put(&memcg->css);
+ 
+-		/*
+-		 * Every swap fault against a single page tries to charge the
+-		 * page, bail as early as possible.  shmem_unuse() encounters
+-		 * already charged pages, too.  page and memcg binding is
+-		 * protected by the page lock, which serializes swap cache
+-		 * removal, which in turn serializes uncharging.
+-		 */
+-		VM_BUG_ON_PAGE(!PageLocked(page), page);
+-		if (page_memcg(compound_head(page)))
+-			goto out;
+-
+-		id = lookup_swap_cgroup_id(ent);
+-		rcu_read_lock();
+-		memcg = mem_cgroup_from_id(id);
+-		if (memcg && !css_tryget_online(&memcg->css))
+-			memcg = NULL;
+-		rcu_read_unlock();
+-	}
++	return ret;
++}
+ 
+-	if (!memcg)
+-		memcg = get_mem_cgroup_from_mm(mm);
++/**
++ * mem_cgroup_swapin_charge_page - charge a newly allocated page for swapin
++ * @page: page to charge
++ * @mm: mm context of the victim
++ * @gfp: reclaim mode
++ * @entry: swap entry for which the page is allocated
++ *
++ * This function charges a page allocated for swapin. Please call this before
++ * adding the page to the swapcache.
++ *
++ * Returns 0 on success. Otherwise, an error code is returned.
++ */
++int mem_cgroup_swapin_charge_page(struct page *page, struct mm_struct *mm,
++				  gfp_t gfp, swp_entry_t entry)
++{
++	struct mem_cgroup *memcg;
++	unsigned short id;
++	int ret;
+ 
+-	ret = try_charge(memcg, gfp_mask, nr_pages);
+-	if (ret)
+-		goto out_put;
++	if (mem_cgroup_disabled())
++		return 0;
+ 
+-	css_get(&memcg->css);
+-	commit_charge(page, memcg);
++	id = lookup_swap_cgroup_id(entry);
++	rcu_read_lock();
++	memcg = mem_cgroup_from_id(id);
++	if (!memcg || !css_tryget_online(&memcg->css))
++		memcg = get_mem_cgroup_from_mm(mm);
++	rcu_read_unlock();
+ 
+-	local_irq_disable();
+-	mem_cgroup_charge_statistics(memcg, page, nr_pages);
+-	memcg_check_events(memcg, page);
+-	local_irq_enable();
++	ret = __mem_cgroup_charge(page, memcg, gfp);
+ 
++	css_put(&memcg->css);
++	return ret;
++}
++
++/*
++ * mem_cgroup_swapin_uncharge_swap - uncharge swap slot
++ * @entry: swap entry for which the page is charged
++ *
++ * Call this function after successfully adding the charged page to swapcache.
++ *
++ * Note: This function assumes the page for which swap slot is being uncharged
++ * is order 0 page.
++ */
++void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry)
++{
+ 	/*
+ 	 * Cgroup1's unified memory+swap counter has been charged with the
+ 	 * new swapcache page, finish the transfer by uncharging the swap
+@@ -6714,20 +6751,14 @@ int mem_cgroup_charge(struct page *page,
+ 	 * correspond 1:1 to page and swap slot lifetimes: we charge the
+ 	 * page to memory here, and uncharge swap when the slot is freed.
+ 	 */
+-	if (do_memsw_account() && PageSwapCache(page)) {
+-		swp_entry_t entry = { .val = page_private(page) };
++	if (!mem_cgroup_disabled() && do_memsw_account()) {
+ 		/*
+ 		 * The swap entry might not get freed for a long time,
+ 		 * let's not wait for it.  The page already received a
+ 		 * memory+swap charge, drop the swap entry duplicate.
+ 		 */
+-		mem_cgroup_uncharge_swap(entry, nr_pages);
++		mem_cgroup_uncharge_swap(entry, 1);
  	}
-=20
- cleanup:
+-
+-out_put:
+-	css_put(&memcg->css);
+-out:
+-	return ret;
+ }
+ 
+ struct uncharge_gather {
+--- a/mm/memory.c~memcg-charge-before-adding-to-swapcache-on-swapin
++++ a/mm/memory.c
+@@ -3309,28 +3309,26 @@ vm_fault_t do_swap_page(struct vm_fault
+ 			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma,
+ 							vmf->address);
+ 			if (page) {
+-				int err;
+-
+ 				__SetPageLocked(page);
+ 				__SetPageSwapBacked(page);
+-				set_page_private(page, entry.val);
+ 
+-				/* Tell memcg to use swap ownership records */
+-				SetPageSwapCache(page);
+-				err = mem_cgroup_charge(page, vma->vm_mm,
+-							GFP_KERNEL);
+-				ClearPageSwapCache(page);
+-				if (err) {
++				if (mem_cgroup_swapin_charge_page(page,
++					vma->vm_mm, GFP_KERNEL, entry)) {
+ 					ret = VM_FAULT_OOM;
+ 					goto out_page;
+ 				}
++				mem_cgroup_swapin_uncharge_swap(entry);
+ 
+ 				shadow = get_shadow_from_swap_cache(entry);
+ 				if (shadow)
+ 					workingset_refault(page, shadow);
+ 
+ 				lru_cache_add(page);
++
++				/* To provide entry to swap_readpage() */
++				set_page_private(page, entry.val);
+ 				swap_readpage(page, true);
++				set_page_private(page, 0);
+ 			}
+ 		} else {
+ 			page = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
+--- a/mm/swap_state.c~memcg-charge-before-adding-to-swapcache-on-swapin
++++ a/mm/swap_state.c
+@@ -497,16 +497,14 @@ struct page *__read_swap_cache_async(swp
+ 	__SetPageLocked(page);
+ 	__SetPageSwapBacked(page);
+ 
+-	/* May fail (-ENOMEM) if XArray node allocation failed. */
+-	if (add_to_swap_cache(page, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow)) {
+-		put_swap_page(page, entry);
++	if (mem_cgroup_swapin_charge_page(page, NULL, gfp_mask, entry))
+ 		goto fail_unlock;
+-	}
+ 
+-	if (mem_cgroup_charge(page, NULL, gfp_mask)) {
+-		delete_from_swap_cache(page);
++	/* May fail (-ENOMEM) if XArray node allocation failed. */
++	if (add_to_swap_cache(page, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
+ 		goto fail_unlock;
+-	}
++
++	mem_cgroup_swapin_uncharge_swap(entry);
+ 
+ 	if (shadow)
+ 		workingset_refault(page, shadow);
+@@ -517,6 +515,7 @@ struct page *__read_swap_cache_async(swp
+ 	return page;
+ 
+ fail_unlock:
++	put_swap_page(page, entry);
+ 	unlock_page(page);
+ 	put_page(page);
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from shakeelb@google.com are
 
 
