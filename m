@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDC0CC433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E4E0C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D74C610FA
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E268961402
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229732AbhEHWyZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:54:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42056 "EHLO mail.kernel.org"
+        id S229691AbhEHWy1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:54:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42094 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229567AbhEHWyY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:54:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 91126610FA;
-        Sat,  8 May 2021 22:53:22 +0000 (UTC)
+        id S229685AbhEHWy0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:54:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 82F9B60E0B;
+        Sat,  8 May 2021 22:53:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514402;
-        bh=zW13CdvaHZ5C4zpuEorTN7tY1r46BpUKMgofSzVUPIM=;
+        s=korg; t=1620514404;
+        bh=vImt75HXfuIWaPLdKBuK8KDRGF3PWy3BaEoUaNCczv4=;
         h=Date:From:To:Subject:From;
-        b=TNVIQlkaHRx8P3EWxjvBnug4PzGaef1p8m0Cj+pul//yfenshq7q8/y7mP2FRQx8o
-         0ac87HmEiIDMQxBt9/c+MiXicPCeboh0vKnfkecPaE4oqWmF27xuJ7IfIGEb/w9l15
-         14vD9BEt2yJU4z15bxgcgo1DkH6YIJqLXwT5p3c4=
-Date:   Sat, 08 May 2021 15:53:22 -0700
+        b=KFo+Ou7gVTxpN8JEP5wMQjQ0fmJ8ehWJEPueWj7O3hw1bWEP3CNP3B6e7uqMrnT05
+         IScXOj6fa4XGlecDZuXJSUlR7tAHW8l5RfTzV3PXSC9oUlbrX4zBzmaqbIcDPGNiFs
+         czZNUhqWn7/2WMS8+Y1z7fEAPFuLRp/ZcoRxBrvg=
+Date:   Sat, 08 May 2021 15:53:24 -0700
 From:   akpm@linux-foundation.org
-To:     gustavoars@kernel.org, mm-commits@vger.kernel.org
-Subject:  [merged] isofs-fix-fall-through-warnings-for-clang.patch
- removed from -mm tree
-Message-ID: <20210508225322.oDa6uIQ8O%akpm@linux-foundation.org>
+To:     konishi.ryusuke@gmail.com, liu.xuzhi@zte.com.cn,
+        mm-commits@vger.kernel.org
+Subject:  [merged]
+ fs-nilfs2-fix-misspellings-using-codespell-tool.patch removed from -mm tree
+Message-ID: <20210508225324.Yemi78BxR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,42 +43,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: isofs: fix fall-through warnings for Clang
+     Subject: fs/nilfs2: fix misspellings using codespell tool
 has been removed from the -mm tree.  Its filename was
-     isofs-fix-fall-through-warnings-for-clang.patch
+     fs-nilfs2-fix-misspellings-using-codespell-tool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Subject: isofs: fix fall-through warnings for Clang
+From: Liu xuzhi <liu.xuzhi@zte.com.cn>
+Subject: fs/nilfs2: fix misspellings using codespell tool
 
-In preparation to enable -Wimplicit-fallthrough for Clang, fix a warning
-by explicitly adding a break statement instead of just letting the code
-fall through to the next case.
+Two typos are found out by codespell tool \
+in 2217th and 2254th lines of segment.c:
 
-Link: https://github.com/KSPP/linux/issues/115
-Link: https://lkml.kernel.org/r/5b7caa73958588065fabc59032c340179b409ef5.1605896059.git.gustavoars@kernel.org
-Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+$ codespell ./fs/nilfs2/
+./segment.c:2217 :retured  ==> returned
+./segment.c:2254: retured  ==> returned
+
+Fix two typos found by codespell.
+
+Link: https://lkml.kernel.org/r/1617864087-8198-1-git-send-email-konishi.ryusuke@gmail.com
+Signed-off-by: Liu xuzhi <liu.xuzhi@zte.com.cn>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/rock.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/nilfs2/segment.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/isofs/rock.c~isofs-fix-fall-through-warnings-for-clang
-+++ a/fs/isofs/rock.c
-@@ -767,6 +767,7 @@ repeat:
- 			rs.cont_extent = isonum_733(rr->u.CE.extent);
- 			rs.cont_offset = isonum_733(rr->u.CE.offset);
- 			rs.cont_size = isonum_733(rr->u.CE.size);
-+			break;
- 		default:
- 			break;
- 		}
+--- a/fs/nilfs2/segment.c~fs-nilfs2-fix-misspellings-using-codespell-tool
++++ a/fs/nilfs2/segment.c
+@@ -2214,7 +2214,7 @@ static void nilfs_segctor_wakeup(struct
+  * nilfs_construct_segment - construct a logical segment
+  * @sb: super block
+  *
+- * Return Value: On success, 0 is retured. On errors, one of the following
++ * Return Value: On success, 0 is returned. On errors, one of the following
+  * negative error code is returned.
+  *
+  * %-EROFS - Read only filesystem.
+@@ -2251,7 +2251,7 @@ int nilfs_construct_segment(struct super
+  * @start: start byte offset
+  * @end: end byte offset (inclusive)
+  *
+- * Return Value: On success, 0 is retured. On errors, one of the following
++ * Return Value: On success, 0 is returned. On errors, one of the following
+  * negative error code is returned.
+  *
+  * %-EROFS - Read only filesystem.
 _
 
-Patches currently in -mm which might be from gustavoars@kernel.org are
+Patches currently in -mm which might be from liu.xuzhi@zte.com.cn are
 
-hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
 
