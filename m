@@ -7,38 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5DABC433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9B17C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C9C616141D
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD5836141E
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229616AbhEHWlU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:41:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44870 "EHLO mail.kernel.org"
+        id S229549AbhEHWlW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:41:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44956 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229577AbhEHWlT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:41:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 97238613EA;
-        Sat,  8 May 2021 22:40:16 +0000 (UTC)
+        id S229577AbhEHWlV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:41:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 78D5B6140E;
+        Sat,  8 May 2021 22:40:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513617;
-        bh=8sqDtVYSubo0DDEAPe7gdGJ/CJiM1ReM4JHCK+7RA70=;
+        s=korg; t=1620513619;
+        bh=8Nyriucry1O3pQauhSPdL4cn85H6MShAl0YP1qJZSfc=;
         h=Date:From:To:Subject:From;
-        b=jFx2VDlyo7grKIbc/3CIN+A7KSmJlMA7Mt7BinK4uJH+mXDHN/S6O8SRQ3EFZZkV5
-         rXxWnag+zYErHlGQFHIVkouHj5iyDygEn0wl2qbY9jZTTB/AXLSO/DDUKwwdtPExHY
-         iRxtv3katwctm3rOovvZxEEbC8gs2tJgxZ37e/Zs=
-Date:   Sat, 08 May 2021 15:40:16 -0700
+        b=gyjk95gFqtyU/08C2082oIdKBI7doK1/+IPYHW2WhZ1uUl/ge/KXiKftubIuMi6LZ
+         8UyT/L2LolQgOKIs8SGTWtQSmlnNtZhu2Voj6fzzwHRn7bKfjTTDch6YX19joDAOvk
+         to4fyA6b8cn8ZELWSP+lSkZ+aWVwybGN9JqWXHiE=
+Date:   Sat, 08 May 2021 15:40:19 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, bristot@redhat.com, bsegall@google.com,
-        dietmar.eggemann@arm.com, juri.lelli@redhat.com, mgorman@suse.de,
-        mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org,
-        rostedt@goodmis.org, slyfox@gentoo.org, vbabka@suse.cz,
-        vincent.guittot@linaro.org
+To:     mm-commits@vger.kernel.org, slyfox@gentoo.org, vbabka@suse.cz
 Subject:  [merged]
- mm-page_owner-detect-page_owner-recursion-via-task_struct.patch removed
- from -mm tree
-Message-ID: <20210508224016.uE_ufQJU8%akpm@linux-foundation.org>
+ mm-page_poison-print-page-owner-info-when-corruption-is-caught.patch
+ removed from -mm tree
+Message-ID: <20210508224019.80C0USruh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,127 +43,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_owner: detect page_owner recursion via task_struct
+     Subject: mm: page_poison: print page info when corruption is caught
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-detect-page_owner-recursion-via-task_struct.patch
+     mm-page_poison-print-page-owner-info-when-corruption-is-caught.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: mm: page_owner: detect page_owner recursion via task_struct
+Subject: mm: page_poison: print page info when corruption is caught
 
-Before the change page_owner recursion was detected via fetching
-backtrace and inspecting it for current instruction pointer.
-It has a few problems:
-- it is slightly slow as it requires extra backtrace and a linear
-  stack scan of the result
-- it is too late to check if backtrace fetching required memory
-  allocation itself (ia64's unwinder requires it).
+When page_poison detects page corruption it's useful to see who freed a
+page recently to have a guess where write-after-free corruption happens.
 
-To simplify recursion tracking let's use page_owner recursion flag
-in 'struct task_struct'.
+After this change corruption report has extra page data.
+Example report from real corruption (includes only page_pwner part):
 
-The change make page_owner=on work on ia64 by avoiding infinite
-recursion in:
-  kmalloc()
-  -> __set_page_owner()
-  -> save_stack()
-  -> unwind() [ia64-specific]
-  -> build_script()
-  -> kmalloc()
-  -> __set_page_owner() [we short-circuit here]
-  -> save_stack()
-  -> unwind() [recursion]
+    pagealloc: memory corruption
+    e00000014cd61d10: 11 00 00 00 00 00 00 00 30 1d d2 ff ff 0f 00 60  ........0......`
+    e00000014cd61d20: b0 1d d2 ff ff 0f 00 60 90 fe 1c 00 08 00 00 20  .......`.......
+    ...
+    CPU: 1 PID: 220402 Comm: cc1plus Not tainted 5.12.0-rc5-00107-g9720c6f59ecf #245
+    Hardware name: hp server rx3600, BIOS 04.03 04/08/2008
+    ...
+    Call Trace:
+     [<a000000100015210>] show_stack+0x90/0xc0
+     [<a000000101163390>] dump_stack+0x150/0x1c0
+     [<a0000001003f1e90>] __kernel_unpoison_pages+0x410/0x440
+     [<a0000001003c2460>] get_page_from_freelist+0x1460/0x2ca0
+     [<a0000001003c6be0>] __alloc_pages_nodemask+0x3c0/0x660
+     [<a0000001003ed690>] alloc_pages_vma+0xb0/0x500
+     [<a00000010037deb0>] __handle_mm_fault+0x1230/0x1fe0
+     [<a00000010037ef70>] handle_mm_fault+0x310/0x4e0
+     [<a00000010005dc70>] ia64_do_page_fault+0x1f0/0xb80
+     [<a00000010000ca00>] ia64_leave_kernel+0x0/0x270
+    page_owner tracks the page as freed
+    page allocated via order 0, migratetype Movable,
+      gfp_mask 0x100dca(GFP_HIGHUSER_MOVABLE|__GFP_ZERO), pid 37, ts 8173444098740
+     __reset_page_owner+0x40/0x200
+     free_pcp_prepare+0x4d0/0x600
+     free_unref_page+0x20/0x1c0
+     __put_page+0x110/0x1a0
+     migrate_pages+0x16d0/0x1dc0
+     compact_zone+0xfc0/0x1aa0
+     proactive_compact_node+0xd0/0x1e0
+     kcompactd+0x550/0x600
+     kthread+0x2c0/0x2e0
+     call_payload+0x50/0x80
 
-Link: https://lkml.kernel.org/r/20210402115342.1463781-1-slyfox@gentoo.org
+Here we can see that page was freed by page migration but something
+managed to write to it afterwards.
+
+[slyfox@gentoo.org: s/dump_page_owner/dump_page/, per Vlastimil]
+  Link: https://lkml.kernel.org/r/20210407230800.1086854-1-slyfox@gentoo.org
+Link: https://lkml.kernel.org/r/20210404141735.2152984-1-slyfox@gentoo.org
 Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    4 ++++
- mm/page_owner.c       |   32 ++++++++++----------------------
- 2 files changed, 14 insertions(+), 22 deletions(-)
+ mm/page_poison.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/linux/sched.h~mm-page_owner-detect-page_owner-recursion-via-task_struct
-+++ a/include/linux/sched.h
-@@ -841,6 +841,10 @@ struct task_struct {
- 	/* Stalled due to lack of memory */
- 	unsigned			in_memstall:1;
- #endif
-+#ifdef CONFIG_PAGE_OWNER
-+	/* Used by page_owner=on to detect recursion in page tracking. */
-+	unsigned			in_page_owner:1;
-+#endif
- 
- 	unsigned long			atomic_flags; /* Flags requiring atomic access. */
- 
---- a/mm/page_owner.c~mm-page_owner-detect-page_owner-recursion-via-task_struct
-+++ a/mm/page_owner.c
-@@ -98,42 +98,30 @@ static inline struct page_owner *get_pag
- 	return (void *)page_ext + page_owner_ops.offset;
+--- a/mm/page_poison.c~mm-page_poison-print-page-owner-info-when-corruption-is-caught
++++ a/mm/page_poison.c
+@@ -2,6 +2,7 @@
+ #include <linux/kernel.h>
+ #include <linux/string.h>
+ #include <linux/mm.h>
++#include <linux/mmdebug.h>
+ #include <linux/highmem.h>
+ #include <linux/page_ext.h>
+ #include <linux/poison.h>
+@@ -45,7 +46,7 @@ static bool single_bit_flip(unsigned cha
+ 	return error && !(error & (error - 1));
  }
  
--static inline bool check_recursive_alloc(unsigned long *entries,
--					 unsigned int nr_entries,
--					 unsigned long ip)
--{
--	unsigned int i;
--
--	for (i = 0; i < nr_entries; i++) {
--		if (entries[i] == ip)
--			return true;
--	}
--	return false;
--}
--
- static noinline depot_stack_handle_t save_stack(gfp_t flags)
+-static void check_poison_mem(unsigned char *mem, size_t bytes)
++static void check_poison_mem(struct page *page, unsigned char *mem, size_t bytes)
  {
- 	unsigned long entries[PAGE_OWNER_STACK_DEPTH];
- 	depot_stack_handle_t handle;
- 	unsigned int nr_entries;
- 
--	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 2);
--
- 	/*
--	 * We need to check recursion here because our request to
--	 * stackdepot could trigger memory allocation to save new
--	 * entry. New memory allocation would reach here and call
--	 * stack_depot_save_entries() again if we don't catch it. There is
--	 * still not enough memory in stackdepot so it would try to
--	 * allocate memory again and loop forever.
-+	 * Avoid recursion.
-+	 *
-+	 * Sometimes page metadata allocation tracking requires more
-+	 * memory to be allocated:
-+	 * - when new stack trace is saved to stack depot
-+	 * - when backtrace itself is calculated (ia64)
- 	 */
--	if (check_recursive_alloc(entries, nr_entries, _RET_IP_))
-+	if (current->in_page_owner)
- 		return dummy_handle;
-+	current->in_page_owner = 1;
- 
-+	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 2);
- 	handle = stack_depot_save(entries, nr_entries, flags);
- 	if (!handle)
- 		handle = failure_handle;
- 
-+	current->in_page_owner = 0;
- 	return handle;
+ 	static DEFINE_RATELIMIT_STATE(ratelimit, 5 * HZ, 10);
+ 	unsigned char *start;
+@@ -70,6 +71,7 @@ static void check_poison_mem(unsigned ch
+ 	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 16, 1, start,
+ 			end - start + 1, 1);
+ 	dump_stack();
++	dump_page(page, "pagealloc: corrupted page details");
  }
  
+ static void unpoison_page(struct page *page)
+@@ -83,7 +85,7 @@ static void unpoison_page(struct page *p
+ 	 * that is freed to buddy. Thus no extra check is done to
+ 	 * see if a page was poisoned.
+ 	 */
+-	check_poison_mem(kasan_reset_tag(addr), PAGE_SIZE);
++	check_poison_mem(page, kasan_reset_tag(addr), PAGE_SIZE);
+ 	kasan_enable_current();
+ 	kunmap_atomic(addr);
+ }
 _
 
 Patches currently in -mm which might be from slyfox@gentoo.org are
