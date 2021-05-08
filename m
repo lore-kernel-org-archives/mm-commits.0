@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F786C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC88BC433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 31B7061415
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 970DC61415
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229647AbhEHWrH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:47:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57750 "EHLO mail.kernel.org"
+        id S229577AbhEHWrJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:47:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57800 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229693AbhEHWrF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:47:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 814356100C;
-        Sat,  8 May 2021 22:46:03 +0000 (UTC)
+        id S229552AbhEHWrI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:47:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 69A516100C;
+        Sat,  8 May 2021 22:46:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513963;
-        bh=BUqX4DX/bPpvdsbPkGGLhAV/AWas1YgAHxHKMAhZ57Y=;
+        s=korg; t=1620513965;
+        bh=ZUvYUiBS+0EuGlEwI7hg6thg/SDmfF5NEC6XhUfb5y0=;
         h=Date:From:To:Subject:From;
-        b=RqytrzyCdAgwAq228ivHb9eW0S2SJbMkZej7Wk1VCr4ZYz9BkbUTJvoxZl1ftVPyc
-         HvMZUzLXFmcDQuCbOCiIK1NOc90EXAYSIEI+uQ7r79l6TPUL9WkWZ8hnQhwXyFWpyh
-         csLfi4M3qzDNuzs4w5/IQYYTJkk7VAl73hUm6jdU=
-Date:   Sat, 08 May 2021 15:46:03 -0700
+        b=q6RBe+2QTdttBla0avdTrvWCN6v6kHJB/x3UcfyKlJKKJm6/As91Fx8YlGH4fEslY
+         DsXQ7AVYvrZaS+RuQPEqMPvJtGopof43rRzEIyueL8i/9wZf4gMAd3AzzeEncYodiy
+         UgfrSfrDGmlsiC9pjLvV7oZFRTyquEZi3zl2tLCU=
+Date:   Sat, 08 May 2021 15:46:05 -0700
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org,
-        vishal.l.verma@intel.com, willy@infradead.org
-Subject:  [merged] mm-remove-nrexceptional-from-inode.patch removed
- from -mm tree
-Message-ID: <20210508224603.XsJqskBAy%akpm@linux-foundation.org>
+To:     hughd@google.com, mm-commits@vger.kernel.org, willy@infradead.org
+Subject:  [merged]
+ mm-remove-nrexceptional-from-inode-remove-bug_on.patch removed from -mm
+ tree
+Message-ID: <20210508224605.GGqixCY8z%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,61 +43,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove nrexceptional from inode
+     Subject: mm: remove nrexceptional from inode: remove BUG_ON
 has been removed from the -mm tree.  Its filename was
-     mm-remove-nrexceptional-from-inode.patch
+     mm-remove-nrexceptional-from-inode-remove-bug_on.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove nrexceptional from inode
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: remove nrexceptional from inode: remove BUG_ON
 
-We no longer track anything in nrexceptional, so remove it, saving 8 bytes
-per inode.
+clear_inode()'s BUG_ON(!mapping_empty(&inode->i_data)) is unsafe: we know
+of two ways in which nodes can and do (on rare occasions) get left behind.
+Until those are fixed, do not BUG_ON() nor even WARN_ON().  Yes, this
+will then leak those nodes (or the next user of the struct inode may use
+them); but this has been happening for years, and the new
+BUG_ON(!mapping_empty) was only guilty of revealing that.  A proper fix
+will follow, but no hurry.
 
-Link: https://lkml.kernel.org/r/20201026151849.24232-5-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Tested-by: Vishal Verma <vishal.l.verma@intel.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2104292229380.16080@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c         |    2 +-
- include/linux/fs.h |    2 --
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ fs/inode.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/fs/inode.c~mm-remove-nrexceptional-from-inode
+--- a/fs/inode.c~mm-remove-nrexceptional-from-inode-remove-bug_on
 +++ a/fs/inode.c
-@@ -529,7 +529,7 @@ void clear_inode(struct inode *inode)
+@@ -529,7 +529,14 @@ void clear_inode(struct inode *inode)
  	 */
  	xa_lock_irq(&inode->i_data.i_pages);
  	BUG_ON(inode->i_data.nrpages);
--	BUG_ON(inode->i_data.nrexceptional);
-+	BUG_ON(!mapping_empty(&inode->i_data));
+-	BUG_ON(!mapping_empty(&inode->i_data));
++	/*
++	 * Almost always, mapping_empty(&inode->i_data) here; but there are
++	 * two known and long-standing ways in which nodes may get left behind
++	 * (when deep radix-tree node allocation failed partway; or when THP
++	 * collapse_file() failed). Until those two known cases are cleaned up,
++	 * or a cleanup function is called here, do not BUG_ON(!mapping_empty),
++	 * nor even WARN_ON(!mapping_empty).
++	 */
  	xa_unlock_irq(&inode->i_data.i_pages);
  	BUG_ON(!list_empty(&inode->i_data.private_list));
  	BUG_ON(!(inode->i_state & I_FREEING));
---- a/include/linux/fs.h~mm-remove-nrexceptional-from-inode
-+++ a/include/linux/fs.h
-@@ -442,7 +442,6 @@ int pagecache_write_end(struct file *, s
-  * @i_mmap: Tree of private and shared mappings.
-  * @i_mmap_rwsem: Protects @i_mmap and @i_mmap_writable.
-  * @nrpages: Number of page entries, protected by the i_pages lock.
-- * @nrexceptional: Shadow or DAX entries, protected by the i_pages lock.
-  * @writeback_index: Writeback starts here.
-  * @a_ops: Methods.
-  * @flags: Error bits and flags (AS_*).
-@@ -463,7 +462,6 @@ struct address_space {
- 	struct rb_root_cached	i_mmap;
- 	struct rw_semaphore	i_mmap_rwsem;
- 	unsigned long		nrpages;
--	unsigned long		nrexceptional;
- 	pgoff_t			writeback_index;
- 	const struct address_space_operations *a_ops;
- 	unsigned long		flags;
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from hughd@google.com are
 
 
