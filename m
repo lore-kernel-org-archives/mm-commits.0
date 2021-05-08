@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55D22C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28AADC433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 38B14613EA
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 043F661421
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229648AbhEHWuF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:50:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34914 "EHLO mail.kernel.org"
+        id S229559AbhEHWuI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:50:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34988 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229723AbhEHWuF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:50:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A945F6100C;
-        Sat,  8 May 2021 22:49:02 +0000 (UTC)
+        id S229549AbhEHWuH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:50:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7417061402;
+        Sat,  8 May 2021 22:49:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514143;
-        bh=33ynUwwVwkbOEmUfrzPf8Q/fYc1l7j7XEaK6vd0ExJs=;
+        s=korg; t=1620514145;
+        bh=54MOuvyH2Q0X3XxghIuTpMhPEWuLYHGXMzGjjwSd0eE=;
         h=Date:From:To:Subject:From;
-        b=E/Br/sB6GJ//bzZ3sHWab9BOpezc0EPt/08yh7dQ7MknB1iFxeHOzebLUpIKLxMtT
-         eAv8m2z/TONsiYh83tQaL3LhAbWRX+S0A4szDGEjdqJr9yTfoAJx/VIFW+7+2U+xSm
-         cTIUYDXO6l9mlAXnuIZNMZkPao45G/FiQ3eFYj/I=
-Date:   Sat, 08 May 2021 15:49:02 -0700
+        b=dQRqa1l4kPgWaKgBmIeg/TdmeZ5AR1S88PO2XGivZxVrx5av/PbZ0449V8TPsib6C
+         Sa0gyw0uQs0IQ+gbTi0pjM1Wev6LFPb49mmkvWjEqleZiAMIewD4+/yXO7zzRQ+VVj
+         GMVfMV5Fz0yw986N6NY04DbqUUWYszPCuF6R1wss=
+Date:   Sat, 08 May 2021 15:49:05 -0700
 From:   akpm@linux-foundation.org
 To:     cgoldswo@codeaurora.org, david@redhat.com, joaodias@google.com,
         mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org,
         oliver.sang@intel.com, surenb@google.com, vbabka@suse.cz,
         willy@infradead.org
-Subject:  [merged]
- mm-disable-lru-pagevec-during-the-migration-temporarily.patch removed from
- -mm tree
-Message-ID: <20210508224902.oG5SSoEnD%akpm@linux-foundation.org>
+Subject:  [merged] mm-replace-migrate_-with-lru_cache_.patch
+ removed from -mm tree
+Message-ID: <20210508224905.dr6ZFhp3L%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,356 +45,191 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: disable LRU pagevec during the migration temporarily
+     Subject: mm: replace migrate_[prep|finish] with lru_cache_[disable|enable]
 has been removed from the -mm tree.  Its filename was
-     mm-disable-lru-pagevec-during-the-migration-temporarily.patch
+     mm-replace-migrate_-with-lru_cache_.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: disable LRU pagevec during the migration temporarily
+Subject: mm: replace migrate_[prep|finish] with lru_cache_[disable|enable]
 
-LRU pagevec holds refcount of pages until the pagevec are drained.  It
-could prevent migration since the refcount of the page is greater than the
-expection in migration logic.  To mitigate the issue, callers of
-migrate_pages drains LRU pagevec via migrate_prep or lru_add_drain_all
-before migrate_pages call.
+Currently, migrate_[prep|finish] is merely a wrapper of
+lru_cache_[disable|enable].  There is not much to gain from having
+additional abstraction.
 
-However, it's not enough because pages coming into pagevec after the
-draining call still could stay at the pagevec so it could keep preventing
-page migration.  Since some callers of migrate_pages have retrial logic
-with LRU draining, the page would migrate at next trail but it is still
-fragile in that it doesn't close the fundamental race between upcoming LRU
-pages into pagvec and migration so the migration failure could cause
-contiguous memory allocation failure in the end.
+Use lru_cache_[disable|enable] instead of migrate_[prep|finish], which
+would be more descriptive.
 
-To close the race, this patch disables lru caches(i.e, pagevec) during
-ongoing migration until migrate is done.
+note: migrate_prep_local in compaction.c changed into lru_add_drain to
+avoid CPU schedule cost with involving many other CPUs to keep old
+behavior.
 
-Since it's really hard to reproduce, I measured how many times
-migrate_pages retried with force mode(it is about a fallback to a sync
-migration) with below debug code.
-
-int migrate_pages(struct list_head *from, new_page_t get_new_page,
-			..
-			..
-
-if (rc && reason == MR_CONTIG_RANGE && pass > 2) {
-       printk(KERN_ERR, "pfn 0x%lx reason %d
-", page_to_pfn(page), rc);
-       dump_page(page, "fail to migrate");
-}
-
-The test was repeating android apps launching with cma allocation in
-background every five seconds.  Total cma allocation count was about 500
-during the testing.  With this patch, the dump_page count was reduced from
-400 to 30.
-
-The new interface is also useful for memory hotplug which currently drains
-lru pcp caches after each migration failure.  This is rather suboptimal as
-it has to disrupt others running during the operation.  With the new
-interface the operation happens only once.  This is also in line with pcp
-allocator cache which are disabled for the offlining as well.
-
-Link: https://lkml.kernel.org/r/20210319175127.886124-1-minchan@kernel.org
+Link: https://lkml.kernel.org/r/20210319175127.886124-2-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Chris Goldsworthy <cgoldswo@codeaurora.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Chris Goldsworthy <cgoldswo@codeaurora.org>
 Cc: John Dias <joaodias@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Oliver Sang <oliver.sang@intel.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    2 +
- include/linux/swap.h    |   14 ++++++++
- mm/memory_hotplug.c     |    3 +
- mm/mempolicy.c          |    4 ++
- mm/migrate.c            |   11 ++++--
- mm/page_alloc.c         |    2 +
- mm/swap.c               |   64 ++++++++++++++++++++++++++++++++------
- 7 files changed, 86 insertions(+), 14 deletions(-)
+ include/linux/migrate.h |    7 -------
+ mm/compaction.c         |    3 ++-
+ mm/mempolicy.c          |    8 ++++----
+ mm/migrate.c            |   28 ++--------------------------
+ mm/page_alloc.c         |    4 ++--
+ 5 files changed, 10 insertions(+), 40 deletions(-)
 
---- a/include/linux/migrate.h~mm-disable-lru-pagevec-during-the-migration-temporarily
+--- a/include/linux/migrate.h~mm-replace-migrate_-with-lru_cache_
 +++ a/include/linux/migrate.h
-@@ -46,6 +46,7 @@ extern int isolate_movable_page(struct p
+@@ -45,9 +45,6 @@ extern struct page *alloc_migration_targ
+ extern int isolate_movable_page(struct page *page, isolate_mode_t mode);
  extern void putback_movable_page(struct page *page);
  
- extern void migrate_prep(void);
-+extern void migrate_finish(void);
- extern void migrate_prep_local(void);
+-extern void migrate_prep(void);
+-extern void migrate_finish(void);
+-extern void migrate_prep_local(void);
  extern void migrate_page_states(struct page *newpage, struct page *page);
  extern void migrate_page_copy(struct page *newpage, struct page *page);
-@@ -67,6 +68,7 @@ static inline int isolate_movable_page(s
+ extern int migrate_huge_page_move_mapping(struct address_space *mapping,
+@@ -67,10 +64,6 @@ static inline struct page *alloc_migrati
+ static inline int isolate_movable_page(struct page *page, isolate_mode_t mode)
  	{ return -EBUSY; }
  
- static inline int migrate_prep(void) { return -ENOSYS; }
-+static inline int migrate_finish(void) { return -ENOSYS; }
- static inline int migrate_prep_local(void) { return -ENOSYS; }
- 
+-static inline int migrate_prep(void) { return -ENOSYS; }
+-static inline int migrate_finish(void) { return -ENOSYS; }
+-static inline int migrate_prep_local(void) { return -ENOSYS; }
+-
  static inline void migrate_page_states(struct page *newpage, struct page *page)
---- a/include/linux/swap.h~mm-disable-lru-pagevec-during-the-migration-temporarily
-+++ a/include/linux/swap.h
-@@ -340,6 +340,20 @@ extern void lru_note_cost(struct lruvec
- extern void lru_note_cost_page(struct page *);
- extern void lru_cache_add(struct page *);
- extern void mark_page_accessed(struct page *);
-+
-+extern atomic_t lru_disable_count;
-+
-+static inline bool lru_cache_disabled(void)
-+{
-+	return atomic_read(&lru_disable_count);
-+}
-+
-+static inline void lru_cache_enable(void)
-+{
-+	atomic_dec(&lru_disable_count);
-+}
-+
-+extern void lru_cache_disable(void);
- extern void lru_add_drain(void);
- extern void lru_add_drain_cpu(int cpu);
- extern void lru_add_drain_cpu_zone(struct zone *zone);
---- a/mm/memory_hotplug.c~mm-disable-lru-pagevec-during-the-migration-temporarily
-+++ a/mm/memory_hotplug.c
-@@ -1611,6 +1611,7 @@ int __ref offline_pages(unsigned long st
- 	 * in a way that pages from isolated pageblock are left on pcplists.
- 	 */
- 	zone_pcp_disable(zone);
+ {
+ }
+--- a/mm/compaction.c~mm-replace-migrate_-with-lru_cache_
++++ a/mm/compaction.c
+@@ -2354,7 +2354,8 @@ compact_zone(struct compact_control *cc,
+ 	trace_mm_compaction_begin(start_pfn, cc->migrate_pfn,
+ 				cc->free_pfn, end_pfn, sync);
+ 
+-	migrate_prep_local();
++	/* lru_add_drain_all could be expensive with involving other CPUs */
++	lru_add_drain();
+ 
+ 	while ((ret = compact_finished(cc)) == COMPACT_CONTINUE) {
+ 		int err;
+--- a/mm/mempolicy.c~mm-replace-migrate_-with-lru_cache_
++++ a/mm/mempolicy.c
+@@ -1124,7 +1124,7 @@ int do_migrate_pages(struct mm_struct *m
+ 	int err = 0;
+ 	nodemask_t tmp;
+ 
+-	migrate_prep();
 +	lru_cache_disable();
  
- 	/* set above range as isolated */
- 	ret = start_isolate_page_range(start_pfn, end_pfn,
-@@ -1642,7 +1643,6 @@ int __ref offline_pages(unsigned long st
- 			}
+ 	mmap_read_lock(mm);
  
- 			cond_resched();
--			lru_add_drain_all();
- 
- 			ret = scan_movable_pages(pfn, end_pfn, &pfn);
- 			if (!ret) {
-@@ -1687,6 +1687,7 @@ int __ref offline_pages(unsigned long st
- 	zone->nr_isolate_pageblock -= nr_pages / pageblock_nr_pages;
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 
-+	lru_cache_enable();
- 	zone_pcp_enable(zone);
- 
- 	/* removal success */
---- a/mm/mempolicy.c~mm-disable-lru-pagevec-during-the-migration-temporarily
-+++ a/mm/mempolicy.c
-@@ -1208,6 +1208,8 @@ int do_migrate_pages(struct mm_struct *m
- 			break;
+@@ -1209,7 +1209,7 @@ int do_migrate_pages(struct mm_struct *m
  	}
  	mmap_read_unlock(mm);
-+
-+	migrate_finish();
+ 
+-	migrate_finish();
++	lru_cache_enable();
  	if (err < 0)
  		return err;
  	return busy;
-@@ -1371,6 +1373,8 @@ up_out:
- 	mmap_write_unlock(mm);
+@@ -1325,7 +1325,7 @@ static long do_mbind(unsigned long start
+ 
+ 	if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) {
+ 
+-		migrate_prep();
++		lru_cache_disable();
+ 	}
+ 	{
+ 		NODEMASK_SCRATCH(scratch);
+@@ -1374,7 +1374,7 @@ up_out:
  mpol_out:
  	mpol_put(new);
-+	if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
-+		migrate_finish();
+ 	if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
+-		migrate_finish();
++		lru_cache_enable();
  	return err;
  }
  
---- a/mm/migrate.c~mm-disable-lru-pagevec-during-the-migration-temporarily
+--- a/mm/migrate.c~mm-replace-migrate_-with-lru_cache_
 +++ a/mm/migrate.c
-@@ -66,11 +66,13 @@ void migrate_prep(void)
- {
- 	/*
- 	 * Clear the LRU lists so pages can be isolated.
--	 * Note that pages may be moved off the LRU after we have
--	 * drained them. Those pages will fail to migrate like other
--	 * pages that may be busy.
- 	 */
--	lru_add_drain_all();
-+	lru_cache_disable();
-+}
-+
-+void migrate_finish(void)
-+{
-+	lru_cache_enable();
- }
+@@ -57,30 +57,6 @@
  
- /* Do the necessary work of migrate_prep but not if it involves other CPUs */
-@@ -1838,6 +1840,7 @@ out_flush:
+ #include "internal.h"
+ 
+-/*
+- * migrate_prep() needs to be called before we start compiling a list of pages
+- * to be migrated using isolate_lru_page(). If scheduling work on other CPUs is
+- * undesirable, use migrate_prep_local()
+- */
+-void migrate_prep(void)
+-{
+-	/*
+-	 * Clear the LRU lists so pages can be isolated.
+-	 */
+-	lru_cache_disable();
+-}
+-
+-void migrate_finish(void)
+-{
+-	lru_cache_enable();
+-}
+-
+-/* Do the necessary work of migrate_prep but not if it involves other CPUs */
+-void migrate_prep_local(void)
+-{
+-	lru_add_drain();
+-}
+-
+ int isolate_movable_page(struct page *page, isolate_mode_t mode)
+ {
+ 	struct address_space *mapping;
+@@ -1771,7 +1747,7 @@ static int do_pages_move(struct mm_struc
+ 	int start, i;
+ 	int err = 0, err1;
+ 
+-	migrate_prep();
++	lru_cache_disable();
+ 
+ 	for (i = start = 0; i < nr_pages; i++) {
+ 		const void __user *p;
+@@ -1840,7 +1816,7 @@ out_flush:
  	if (err >= 0)
  		err = err1;
  out:
-+	migrate_finish();
+-	migrate_finish();
++	lru_cache_enable();
  	return err;
  }
  
---- a/mm/page_alloc.c~mm-disable-lru-pagevec-during-the-migration-temporarily
+--- a/mm/page_alloc.c~mm-replace-migrate_-with-lru_cache_
 +++ a/mm/page_alloc.c
-@@ -8715,6 +8715,8 @@ static int __alloc_contig_migrate_range(
- 		if (ret == -ENOMEM)
+@@ -8681,7 +8681,7 @@ static int __alloc_contig_migrate_range(
+ 		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
+ 	};
+ 
+-	migrate_prep();
++	lru_cache_disable();
+ 
+ 	while (pfn < end || !list_empty(&cc->migratepages)) {
+ 		if (fatal_signal_pending(current)) {
+@@ -8716,7 +8716,7 @@ static int __alloc_contig_migrate_range(
  			break;
  	}
-+
-+	migrate_finish();
+ 
+-	migrate_finish();
++	lru_cache_enable();
  	if (ret < 0) {
  		alloc_contig_dump_pages(&cc->migratepages);
  		putback_movable_pages(&cc->migratepages);
---- a/mm/swap.c~mm-disable-lru-pagevec-during-the-migration-temporarily
-+++ a/mm/swap.c
-@@ -235,6 +235,18 @@ static void pagevec_move_tail_fn(struct
- 	}
- }
- 
-+/* return true if pagevec needs to drain */
-+static bool pagevec_add_and_need_flush(struct pagevec *pvec, struct page *page)
-+{
-+	bool ret = false;
-+
-+	if (!pagevec_add(pvec, page) || PageCompound(page) ||
-+			lru_cache_disabled())
-+		ret = true;
-+
-+	return ret;
-+}
-+
- /*
-  * Writeback is about to end against a page which has been marked for immediate
-  * reclaim.  If it still appears to be reclaimable, move it to the tail of the
-@@ -252,7 +264,7 @@ void rotate_reclaimable_page(struct page
- 		get_page(page);
- 		local_lock_irqsave(&lru_rotate.lock, flags);
- 		pvec = this_cpu_ptr(&lru_rotate.pvec);
--		if (!pagevec_add(pvec, page) || PageCompound(page))
-+		if (pagevec_add_and_need_flush(pvec, page))
- 			pagevec_lru_move_fn(pvec, pagevec_move_tail_fn);
- 		local_unlock_irqrestore(&lru_rotate.lock, flags);
- 	}
-@@ -343,7 +355,7 @@ static void activate_page(struct page *p
- 		local_lock(&lru_pvecs.lock);
- 		pvec = this_cpu_ptr(&lru_pvecs.activate_page);
- 		get_page(page);
--		if (!pagevec_add(pvec, page) || PageCompound(page))
-+		if (pagevec_add_and_need_flush(pvec, page))
- 			pagevec_lru_move_fn(pvec, __activate_page);
- 		local_unlock(&lru_pvecs.lock);
- 	}
-@@ -458,7 +470,7 @@ void lru_cache_add(struct page *page)
- 	get_page(page);
- 	local_lock(&lru_pvecs.lock);
- 	pvec = this_cpu_ptr(&lru_pvecs.lru_add);
--	if (!pagevec_add(pvec, page) || PageCompound(page))
-+	if (pagevec_add_and_need_flush(pvec, page))
- 		__pagevec_lru_add(pvec);
- 	local_unlock(&lru_pvecs.lock);
- }
-@@ -654,7 +666,7 @@ void deactivate_file_page(struct page *p
- 		local_lock(&lru_pvecs.lock);
- 		pvec = this_cpu_ptr(&lru_pvecs.lru_deactivate_file);
- 
--		if (!pagevec_add(pvec, page) || PageCompound(page))
-+		if (pagevec_add_and_need_flush(pvec, page))
- 			pagevec_lru_move_fn(pvec, lru_deactivate_file_fn);
- 		local_unlock(&lru_pvecs.lock);
- 	}
-@@ -676,7 +688,7 @@ void deactivate_page(struct page *page)
- 		local_lock(&lru_pvecs.lock);
- 		pvec = this_cpu_ptr(&lru_pvecs.lru_deactivate);
- 		get_page(page);
--		if (!pagevec_add(pvec, page) || PageCompound(page))
-+		if (pagevec_add_and_need_flush(pvec, page))
- 			pagevec_lru_move_fn(pvec, lru_deactivate_fn);
- 		local_unlock(&lru_pvecs.lock);
- 	}
-@@ -698,7 +710,7 @@ void mark_page_lazyfree(struct page *pag
- 		local_lock(&lru_pvecs.lock);
- 		pvec = this_cpu_ptr(&lru_pvecs.lru_lazyfree);
- 		get_page(page);
--		if (!pagevec_add(pvec, page) || PageCompound(page))
-+		if (pagevec_add_and_need_flush(pvec, page))
- 			pagevec_lru_move_fn(pvec, lru_lazyfree_fn);
- 		local_unlock(&lru_pvecs.lock);
- 	}
-@@ -735,7 +747,7 @@ static void lru_add_drain_per_cpu(struct
-  * Calling this function with cpu hotplug locks held can actually lead
-  * to obscure indirect dependencies via WQ context.
-  */
--void lru_add_drain_all(void)
-+inline void __lru_add_drain_all(bool force_all_cpus)
- {
- 	/*
- 	 * lru_drain_gen - Global pages generation number
-@@ -780,7 +792,7 @@ void lru_add_drain_all(void)
- 	 * (C) Exit the draining operation if a newer generation, from another
- 	 * lru_add_drain_all(), was already scheduled for draining. Check (A).
- 	 */
--	if (unlikely(this_gen != lru_drain_gen))
-+	if (unlikely(this_gen != lru_drain_gen && !force_all_cpus))
- 		goto done;
- 
- 	/*
-@@ -810,7 +822,8 @@ void lru_add_drain_all(void)
- 	for_each_online_cpu(cpu) {
- 		struct work_struct *work = &per_cpu(lru_add_drain_work, cpu);
- 
--		if (pagevec_count(&per_cpu(lru_pvecs.lru_add, cpu)) ||
-+		if (force_all_cpus ||
-+		    pagevec_count(&per_cpu(lru_pvecs.lru_add, cpu)) ||
- 		    data_race(pagevec_count(&per_cpu(lru_rotate.pvec, cpu))) ||
- 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate_file, cpu)) ||
- 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate, cpu)) ||
-@@ -828,6 +841,11 @@ void lru_add_drain_all(void)
- done:
- 	mutex_unlock(&lock);
- }
-+
-+void lru_add_drain_all(void)
-+{
-+	__lru_add_drain_all(false);
-+}
- #else
- void lru_add_drain_all(void)
- {
-@@ -835,6 +853,34 @@ void lru_add_drain_all(void)
- }
- #endif /* CONFIG_SMP */
- 
-+atomic_t lru_disable_count = ATOMIC_INIT(0);
-+
-+/*
-+ * lru_cache_disable() needs to be called before we start compiling
-+ * a list of pages to be migrated using isolate_lru_page().
-+ * It drains pages on LRU cache and then disable on all cpus until
-+ * lru_cache_enable is called.
-+ *
-+ * Must be paired with a call to lru_cache_enable().
-+ */
-+void lru_cache_disable(void)
-+{
-+	atomic_inc(&lru_disable_count);
-+#ifdef CONFIG_SMP
-+	/*
-+	 * lru_add_drain_all in the force mode will schedule draining on
-+	 * all online CPUs so any calls of lru_cache_disabled wrapped by
-+	 * local_lock or preemption disabled would be ordered by that.
-+	 * The atomic operation doesn't need to have stronger ordering
-+	 * requirements because that is enforeced by the scheduling
-+	 * guarantees.
-+	 */
-+	__lru_add_drain_all(true);
-+#else
-+	lru_add_drain();
-+#endif
-+}
-+
- /**
-  * release_pages - batched put_page()
-  * @pages: array of pages to release
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
