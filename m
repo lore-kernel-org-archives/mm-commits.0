@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75D51C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:45:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC7BDC433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:45:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 506EB61402
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:45:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B054361402
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:45:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229672AbhEHWqu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:46:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57254 "EHLO mail.kernel.org"
+        id S229694AbhEHWqx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:46:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57342 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229647AbhEHWqu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:46:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B01606100C;
-        Sat,  8 May 2021 22:45:47 +0000 (UTC)
+        id S229647AbhEHWqw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:46:52 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 993DB613C5;
+        Sat,  8 May 2021 22:45:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513948;
-        bh=08ZeA9s/74i/1/3mxqNSy/8XSkEid5FsZOvXCNFJrvA=;
+        s=korg; t=1620513950;
+        bh=YGUjy9mJpvI5u/waify9gCoujIrd+MYbPBIEKTSHggY=;
         h=Date:From:To:Subject:From;
-        b=0dM/W6EJAINmdyiZhzGWq7arkSqcigDvuvmfwqpKh5TrgUKb4+t5Aet3jbhUMqC9E
-         ydy/uIdZY3gq7Pk9rmuiTqxsiJbgMHPygAJmOwGUR34JS5ZSMTxZuEDLJLoI+hdRSO
-         ykeVvMPuqgmMm+08Ac0LomKarX+RQW0P3Aw2XMqI=
-Date:   Sat, 08 May 2021 15:45:47 -0700
+        b=DV86O6TYJBXRYhKQtFmEBfnqzC0NDNyTU/K1xTZVDYy5VoIW+XfcPnZe80vWDrctH
+         JHoIdJ90WcLi+dm6paCykTjf6UH2qm1fcFDsZvhoB4gpIPewRzcbE2KY+glq+pPrc0
+         6xBgwkuTiWU1OFlyC+tHDbuet3qWlZnVEoGg70E4=
+Date:   Sat, 08 May 2021 15:45:50 -0700
 From:   akpm@linux-foundation.org
-To:     alexander.duyck@gmail.com, alobakin@pm.me, brouer@redhat.com,
-        chuck.lever@oracle.com, davem@davemloft.net, hch@infradead.org,
-        ilias.apalodimas@linaro.org, mgorman@techsingularity.net,
-        mm-commits@vger.kernel.org, vbabka@suse.cz, willy@infradead.org
+To:     andreyknvl@gmail.com, david@redhat.com, mm-commits@vger.kernel.org,
+        slyfox@gentoo.org, stable@vger.kernel.org, vbabka@suse.cz
 Subject:  [merged]
- net-page_pool-use-alloc_pages_bulk-in-refill-code-path.patch removed from
- -mm tree
-Message-ID: <20210508224547.E8YWyN6pY%akpm@linux-foundation.org>
+ mm-page_alloc-ignore-init_on_free=1-for-debug_pagealloc=1.patch removed
+ from -mm tree
+Message-ID: <20210508224550.8IA6LEG6j%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,175 +44,111 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net: page_pool: use alloc_pages_bulk in refill code path
+     Subject: mm: page_alloc: ignore init_on_free=1 for debug_pagealloc=1
 has been removed from the -mm tree.  Its filename was
-     net-page_pool-use-alloc_pages_bulk-in-refill-code-path.patch
+     mm-page_alloc-ignore-init_on_free=1-for-debug_pagealloc=1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: net: page_pool: use alloc_pages_bulk in refill code path
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Subject: mm: page_alloc: ignore init_on_free=1 for debug_pagealloc=1
 
-There are cases where the page_pool need to refill with pages from the
-page allocator.  Some workloads cause the page_pool to release pages
-instead of recycling these pages.
+On !ARCH_SUPPORTS_DEBUG_PAGEALLOC (like ia64) debug_pagealloc=1 implies
+page_poison=on:
 
-For these workload it can improve performance to bulk alloc pages from the
-page-allocator to refill the alloc cache.
+    if (page_poisoning_enabled() ||
+         (!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC) &&
+          debug_pagealloc_enabled()))
+            static_branch_enable(&_page_poisoning_enabled);
 
-For XDP-redirect workload with 100G mlx5 driver (that use page_pool)
-redirecting xdp_frame packets into a veth, that does XDP_PASS to create an
-SKB from the xdp_frame, which then cannot return the page to the
-page_pool.
+page_poison=on needs to override init_on_free=1.
 
-Performance results under GitHub xdp-project[1]:
- [1] https://github.com/xdp-project/xdp-project/blob/master/areas/mem/page_pool06_alloc_pages_bulk.org
+Before the change it did not work as expected for the following case:
+- have PAGE_POISONING=y
+- have page_poison unset
+- have !ARCH_SUPPORTS_DEBUG_PAGEALLOC arch (like ia64)
+- have init_on_free=1
+- have debug_pagealloc=1
 
-Mel: The patch "net: page_pool: convert to use alloc_pages_bulk_array
-variant" was squashed with this patch. From the test page, the array
-variant was superior with one of the test results as follows.
+That way we get both keys enabled:
+- static_branch_enable(&init_on_free);
+- static_branch_enable(&_page_poisoning_enabled);
 
-	Kernel		XDP stats       CPU     pps           Delta
-	Baseline	XDP-RX CPU      total   3,771,046       n/a
-	List		XDP-RX CPU      total   3,940,242    +4.49%
-	Array		XDP-RX CPU      total   4,249,224   +12.68%
+which leads to poisoned pages returned for __GFP_ZERO pages.
 
-Link: https://lkml.kernel.org/r/20210325114228.27719-10-mgorman@techsingularity.net
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reviewed-by: Alexander Lobakin <alobakin@pm.me>
-Cc: Alexander Duyck <alexander.duyck@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Ilias Apalodimas <ilias.apalodimas@linaro.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+After the change we execute only:
+- static_branch_enable(&_page_poisoning_enabled);
+  and ignore init_on_free=1.
+
+Link: https://lkml.kernel.org/r/20210329222555.3077928-1-slyfox@gentoo.org
+Link: https://lkml.org/lkml/2021/3/26/443
+Fixes: 8db26a3d4735 ("mm, page_poison: use static key more efficiently")
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/page_pool.h |    2 
- net/core/page_pool.c    |   82 +++++++++++++++++++++++++-------------
- 2 files changed, 57 insertions(+), 27 deletions(-)
+ mm/page_alloc.c |   30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
---- a/include/net/page_pool.h~net-page_pool-use-alloc_pages_bulk-in-refill-code-path
-+++ a/include/net/page_pool.h
-@@ -65,7 +65,7 @@
- #define PP_ALLOC_CACHE_REFILL	64
- struct pp_alloc_cache {
- 	u32 count;
--	void *cache[PP_ALLOC_CACHE_SIZE];
-+	struct page *cache[PP_ALLOC_CACHE_SIZE];
- };
- 
- struct page_pool_params {
---- a/net/core/page_pool.c~net-page_pool-use-alloc_pages_bulk-in-refill-code-path
-+++ a/net/core/page_pool.c
-@@ -203,38 +203,17 @@ static bool page_pool_dma_map(struct pag
- 	return true;
- }
- 
--/* slow path */
--noinline
--static struct page *__page_pool_alloc_pages_slow(struct page_pool *pool,
--						 gfp_t _gfp)
-+static struct page *__page_pool_alloc_page_order(struct page_pool *pool,
-+						 gfp_t gfp)
+--- a/mm/page_alloc.c~mm-page_alloc-ignore-init_on_free=1-for-debug_pagealloc=1
++++ a/mm/page_alloc.c
+@@ -786,32 +786,36 @@ static inline void clear_page_guard(stru
+  */
+ void init_mem_debugging_and_hardening(void)
  {
--	unsigned int pp_flags = pool->p.flags;
- 	struct page *page;
--	gfp_t gfp = _gfp;
- 
--	/* We could always set __GFP_COMP, and avoid this branch, as
--	 * prep_new_page() can handle order-0 with __GFP_COMP.
--	 */
--	if (pool->p.order)
--		gfp |= __GFP_COMP;
--
--	/* FUTURE development:
--	 *
--	 * Current slow-path essentially falls back to single page
--	 * allocations, which doesn't improve performance.  This code
--	 * need bulk allocation support from the page allocator code.
--	 */
--
--	/* Cache was empty, do real allocation */
--#ifdef CONFIG_NUMA
-+	gfp |= __GFP_COMP;
- 	page = alloc_pages_node(pool->p.nid, gfp, pool->p.order);
--#else
--	page = alloc_pages(gfp, pool->p.order);
--#endif
--	if (!page)
-+	if (unlikely(!page))
- 		return NULL;
- 
--	if ((pp_flags & PP_FLAG_DMA_MAP) &&
-+	if ((pool->p.flags & PP_FLAG_DMA_MAP) &&
- 	    unlikely(!page_pool_dma_map(pool, page))) {
- 		put_page(page);
- 		return NULL;
-@@ -243,6 +222,57 @@ static struct page *__page_pool_alloc_pa
- 	/* Track how many pages are held 'in-flight' */
- 	pool->pages_state_hold_cnt++;
- 	trace_page_pool_state_hold(pool, page, pool->pages_state_hold_cnt);
-+	return page;
-+}
++	bool page_poisoning_requested = false;
 +
-+/* slow path */
-+noinline
-+static struct page *__page_pool_alloc_pages_slow(struct page_pool *pool,
-+						 gfp_t gfp)
-+{
-+	const int bulk = PP_ALLOC_CACHE_REFILL;
-+	unsigned int pp_flags = pool->p.flags;
-+	unsigned int pp_order = pool->p.order;
-+	struct page *page;
-+	int i, nr_pages;
-+
-+	/* Don't support bulk alloc for high-order pages */
-+	if (unlikely(pp_order))
-+		return __page_pool_alloc_page_order(pool, gfp);
-+
-+	/* Unnecessary as alloc cache is empty, but guarantees zero count */
-+	if (unlikely(pool->alloc.count > 0))
-+		return pool->alloc.cache[--pool->alloc.count];
-+
-+	/* Mark empty alloc.cache slots "empty" for alloc_pages_bulk_array */
-+	memset(&pool->alloc.cache, 0, sizeof(void *) * bulk);
-+
-+	nr_pages = alloc_pages_bulk_array(gfp, bulk, pool->alloc.cache);
-+	if (unlikely(!nr_pages))
-+		return NULL;
-+
-+	/* Pages have been filled into alloc.cache array, but count is zero and
-+	 * page element have not been (possibly) DMA mapped.
++#ifdef CONFIG_PAGE_POISONING
++	/*
++	 * Page poisoning is debug page alloc for some arches. If
++	 * either of those options are enabled, enable poisoning.
 +	 */
-+	for (i = 0; i < nr_pages; i++) {
-+		page = pool->alloc.cache[i];
-+		if ((pp_flags & PP_FLAG_DMA_MAP) &&
-+		    unlikely(!page_pool_dma_map(pool, page))) {
-+			put_page(page);
-+			continue;
-+		}
-+		pool->alloc.cache[pool->alloc.count++] = page;
-+		/* Track how many pages are held 'in-flight' */
-+		pool->pages_state_hold_cnt++;
-+		trace_page_pool_state_hold(pool, page,
-+					   pool->pages_state_hold_cnt);
++	if (page_poisoning_enabled() ||
++	     (!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC) &&
++	      debug_pagealloc_enabled())) {
++		static_branch_enable(&_page_poisoning_enabled);
++		page_poisoning_requested = true;
 +	}
++#endif
 +
-+	/* Return last page */
-+	if (likely(pool->alloc.count > 0))
-+		page = pool->alloc.cache[--pool->alloc.count];
-+	else
-+		page = NULL;
+ 	if (_init_on_alloc_enabled_early) {
+-		if (page_poisoning_enabled())
++		if (page_poisoning_requested)
+ 			pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
+ 				"will take precedence over init_on_alloc\n");
+ 		else
+ 			static_branch_enable(&init_on_alloc);
+ 	}
+ 	if (_init_on_free_enabled_early) {
+-		if (page_poisoning_enabled())
++		if (page_poisoning_requested)
+ 			pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
+ 				"will take precedence over init_on_free\n");
+ 		else
+ 			static_branch_enable(&init_on_free);
+ 	}
  
- 	/* When page just alloc'ed is should/must have refcnt 1. */
- 	return page;
+-#ifdef CONFIG_PAGE_POISONING
+-	/*
+-	 * Page poisoning is debug page alloc for some arches. If
+-	 * either of those options are enabled, enable poisoning.
+-	 */
+-	if (page_poisoning_enabled() ||
+-	     (!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC) &&
+-	      debug_pagealloc_enabled()))
+-		static_branch_enable(&_page_poisoning_enabled);
+-#endif
+-
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ 	if (!debug_pagealloc_enabled())
+ 		return;
 _
 
-Patches currently in -mm which might be from brouer@redhat.com are
+Patches currently in -mm which might be from slyfox@gentoo.org are
 
 
