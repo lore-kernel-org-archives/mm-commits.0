@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41642C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20682C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:45:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2497261415
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:44:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3BE361402
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:45:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229660AbhEHWp7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:45:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55162 "EHLO mail.kernel.org"
+        id S229552AbhEHWqC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:46:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55254 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229552AbhEHWp6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:45:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7CC1E613C5;
-        Sat,  8 May 2021 22:44:56 +0000 (UTC)
+        id S229693AbhEHWqB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:46:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E6D6613EA;
+        Sat,  8 May 2021 22:44:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513896;
-        bh=9EwuJPXQ1fWGbPQOR90asusC00pjRDU9QjDzC9MerEc=;
+        s=korg; t=1620513898;
+        bh=OnSwvCXVo0I5qIcYN8etDP8GSMy4SalzfvOjwgkP0JI=;
         h=Date:From:To:Subject:From;
-        b=f20DH9fOS8deK2BeNirUT/TM0Fpy8Ov5Z6v1PSy353JNI/Pz9KwDoPBq3wMhb6BGD
-         yeUrZzmXUSNfg7CO/2Fz/GN5/U6fxA/rcqGUK/144/VF2a81lwMosXbp0RngDt5h/z
-         m2oJeeVaPhlCf1YTn9/KFP13LX8KbArMAD2kQym8=
-Date:   Sat, 08 May 2021 15:44:56 -0700
+        b=RT0mynvGPVnJ+bWxxuPrr910KEV9w6lXgB9SrZ1j6K1ipKHGlYCCDK5xLlT6RLjV0
+         cdgZrqOtlX76oNwMDJGqV+rzIdxH2G18jdBxF/pBcM5bqjTCKSqev0ueTbvSXHHTni
+         +ZBznSOxNcH2/NjGSlRYxDdTWaDm36rihDYeixaM=
+Date:   Sat, 08 May 2021 15:44:58 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org, yuzhao@google.com
+To:     mhocko@suse.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        vbabka@suse.cz, willy@infradead.org
 Subject:  [merged]
- mm-clean-up-include-linux-page-flags-layouth.patch removed from -mm tree
-Message-ID: <20210508224456.io_SeolSd%akpm@linux-foundation.org>
+ mm-page_alloc-rename-alloc_mask-to-alloc_gfp.patch removed from -mm tree
+Message-ID: <20210508224458.wL_SUB-Cm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,147 +43,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/page-flags-layout.h: cleanups
+     Subject: mm/page_alloc: rename alloc_mask to alloc_gfp
 has been removed from the -mm tree.  Its filename was
-     mm-clean-up-include-linux-page-flags-layouth.patch
+     mm-page_alloc-rename-alloc_mask-to-alloc_gfp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: include/linux/page-flags-layout.h: cleanups
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/page_alloc: rename alloc_mask to alloc_gfp
 
-Tidy things up and delete comments stating the obvious with typos or
-making no sense.
+Patch series "Rationalise __alloc_pages wrappers", v3.
 
-Link: https://lkml.kernel.org/r/20210303071609.797782-2-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+I was poking around the __alloc_pages variants trying to understand why
+they each exist, and couldn't really find a good justification for keeping
+__alloc_pages and __alloc_pages_nodemask as separate functions.  That led
+to getting rid of alloc_pages_current() and then I noticed the
+documentation was bad, and then I noticed the mempolicy documentation
+wasn't included.
+
+Anyway, this is all cleanups & doc fixes.
+
+
+This patch (of 7):
+
+We have two masks involved -- the nodemask and the gfp mask, so alloc_mask
+is an unclear name.
+
+Link: https://lkml.kernel.org/r/20210225150642.2582252-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags-layout.h |   62 +++++++++++++---------------
- mm/mm_init.c                      |    4 -
- 2 files changed, 29 insertions(+), 37 deletions(-)
+ mm/page_alloc.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
---- a/include/linux/page-flags-layout.h~mm-clean-up-include-linux-page-flags-layouth
-+++ a/include/linux/page-flags-layout.h
-@@ -21,16 +21,17 @@
- #elif MAX_NR_ZONES <= 8
- #define ZONES_SHIFT 3
- #else
--#error ZONES_SHIFT -- too many zones configured adjust calculation
-+#error ZONES_SHIFT "Too many zones configured"
- #endif
+--- a/mm/page_alloc.c~mm-page_alloc-rename-alloc_mask-to-alloc_gfp
++++ a/mm/page_alloc.c
+@@ -4966,7 +4966,7 @@ got_pg:
  
-+#define ZONES_WIDTH		ZONES_SHIFT
-+
- #ifdef CONFIG_SPARSEMEM
- #include <asm/sparsemem.h>
--
--/* SECTION_SHIFT	#bits space required to store a section # */
- #define SECTIONS_SHIFT	(MAX_PHYSMEM_BITS - SECTION_SIZE_BITS)
--
--#endif /* CONFIG_SPARSEMEM */
-+#else
-+#define SECTIONS_SHIFT	0
-+#endif
- 
- #ifndef BUILD_VDSO32_64
- /*
-@@ -54,17 +55,28 @@
- #define SECTIONS_WIDTH		0
- #endif
- 
--#define ZONES_WIDTH		ZONES_SHIFT
--
--#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= BITS_PER_LONG - NR_PAGEFLAGS
-+#if ZONES_WIDTH + SECTIONS_WIDTH + NODES_SHIFT <= BITS_PER_LONG - NR_PAGEFLAGS
- #define NODES_WIDTH		NODES_SHIFT
--#else
--#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+#elif defined(CONFIG_SPARSEMEM_VMEMMAP)
- #error "Vmemmap: No space for nodes field in page flags"
--#endif
-+#else
- #define NODES_WIDTH		0
- #endif
- 
-+/*
-+ * Note that this #define MUST have a value so that it can be tested with
-+ * the IS_ENABLED() macro.
-+ */
-+#if NODES_SHIFT != 0 && NODES_WIDTH == 0
-+#define NODE_NOT_IN_PAGE_FLAGS	1
-+#endif
-+
-+#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
-+#define KASAN_TAG_WIDTH 8
-+#else
-+#define KASAN_TAG_WIDTH 0
-+#endif
-+
- #ifdef CONFIG_NUMA_BALANCING
- #define LAST__PID_SHIFT 8
- #define LAST__PID_MASK  ((1 << LAST__PID_SHIFT)-1)
-@@ -77,36 +89,20 @@
- #define LAST_CPUPID_SHIFT 0
- #endif
- 
--#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
--#define KASAN_TAG_WIDTH 8
--#else
--#define KASAN_TAG_WIDTH 0
--#endif
--
--#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_WIDTH+LAST_CPUPID_SHIFT+KASAN_TAG_WIDTH \
-+#if ZONES_WIDTH + SECTIONS_WIDTH + NODES_WIDTH + KASAN_TAG_WIDTH + LAST_CPUPID_SHIFT \
- 	<= BITS_PER_LONG - NR_PAGEFLAGS
- #define LAST_CPUPID_WIDTH LAST_CPUPID_SHIFT
- #else
- #define LAST_CPUPID_WIDTH 0
- #endif
- 
--#if SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH+LAST_CPUPID_WIDTH+KASAN_TAG_WIDTH \
--	> BITS_PER_LONG - NR_PAGEFLAGS
--#error "Not enough bits in page flags"
--#endif
--
--/*
-- * We are going to use the flags for the page to node mapping if its in
-- * there.  This includes the case where there is no node, so it is implicit.
-- * Note that this #define MUST have a value so that it can be tested with
-- * the IS_ENABLED() macro.
-- */
--#if !(NODES_WIDTH > 0 || NODES_SHIFT == 0)
--#define NODE_NOT_IN_PAGE_FLAGS 1
-+#if LAST_CPUPID_SHIFT != 0 && LAST_CPUPID_WIDTH == 0
-+#define LAST_CPUPID_NOT_IN_PAGE_FLAGS
- #endif
- 
--#if defined(CONFIG_NUMA_BALANCING) && LAST_CPUPID_WIDTH == 0
--#define LAST_CPUPID_NOT_IN_PAGE_FLAGS
-+#if ZONES_WIDTH + SECTIONS_WIDTH + NODES_WIDTH + KASAN_TAG_WIDTH + LAST_CPUPID_WIDTH \
-+	> BITS_PER_LONG - NR_PAGEFLAGS
-+#error "Not enough bits in page flags"
- #endif
- 
- #endif
---- a/mm/mm_init.c~mm-clean-up-include-linux-page-flags-layouth
-+++ a/mm/mm_init.c
-@@ -19,10 +19,6 @@
- #ifdef CONFIG_DEBUG_MEMORY_INIT
- int __meminitdata mminit_loglevel;
- 
--#ifndef SECTIONS_SHIFT
--#define SECTIONS_SHIFT	0
--#endif
--
- /* The zonelists are simply reported, validation is manual. */
- void __init mminit_verify_zonelist(void)
+ static inline bool prepare_alloc_pages(gfp_t gfp_mask, unsigned int order,
+ 		int preferred_nid, nodemask_t *nodemask,
+-		struct alloc_context *ac, gfp_t *alloc_mask,
++		struct alloc_context *ac, gfp_t *alloc_gfp,
+ 		unsigned int *alloc_flags)
  {
+ 	ac->highest_zoneidx = gfp_zone(gfp_mask);
+@@ -4975,7 +4975,7 @@ static inline bool prepare_alloc_pages(g
+ 	ac->migratetype = gfp_migratetype(gfp_mask);
+ 
+ 	if (cpusets_enabled()) {
+-		*alloc_mask |= __GFP_HARDWALL;
++		*alloc_gfp |= __GFP_HARDWALL;
+ 		/*
+ 		 * When we are in the interrupt context, it is irrelevant
+ 		 * to the current task context. It means that any node ok.
+@@ -5019,7 +5019,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ {
+ 	struct page *page;
+ 	unsigned int alloc_flags = ALLOC_WMARK_LOW;
+-	gfp_t alloc_mask; /* The gfp_t that was actually used for allocation */
++	gfp_t alloc_gfp; /* The gfp_t that was actually used for allocation */
+ 	struct alloc_context ac = { };
+ 
+ 	/*
+@@ -5032,8 +5032,9 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	}
+ 
+ 	gfp_mask &= gfp_allowed_mask;
+-	alloc_mask = gfp_mask;
+-	if (!prepare_alloc_pages(gfp_mask, order, preferred_nid, nodemask, &ac, &alloc_mask, &alloc_flags))
++	alloc_gfp = gfp_mask;
++	if (!prepare_alloc_pages(gfp_mask, order, preferred_nid, nodemask, &ac,
++			&alloc_gfp, &alloc_flags))
+ 		return NULL;
+ 
+ 	/*
+@@ -5043,7 +5044,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	alloc_flags |= alloc_flags_nofragment(ac.preferred_zoneref->zone, gfp_mask);
+ 
+ 	/* First allocation attempt */
+-	page = get_page_from_freelist(alloc_mask, order, alloc_flags, &ac);
++	page = get_page_from_freelist(alloc_gfp, order, alloc_flags, &ac);
+ 	if (likely(page))
+ 		goto out;
+ 
+@@ -5053,7 +5054,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	 * from a particular context which has been marked by
+ 	 * memalloc_no{fs,io}_{save,restore}.
+ 	 */
+-	alloc_mask = current_gfp_context(gfp_mask);
++	alloc_gfp = current_gfp_context(gfp_mask);
+ 	ac.spread_dirty_pages = false;
+ 
+ 	/*
+@@ -5062,7 +5063,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	 */
+ 	ac.nodemask = nodemask;
+ 
+-	page = __alloc_pages_slowpath(alloc_mask, order, &ac);
++	page = __alloc_pages_slowpath(alloc_gfp, order, &ac);
+ 
+ out:
+ 	if (memcg_kmem_enabled() && (gfp_mask & __GFP_ACCOUNT) && page &&
+@@ -5071,7 +5072,7 @@ out:
+ 		page = NULL;
+ 	}
+ 
+-	trace_mm_page_alloc(page, order, alloc_mask, ac.migratetype);
++	trace_mm_page_alloc(page, order, alloc_gfp, ac.migratetype);
+ 
+ 	return page;
+ }
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
