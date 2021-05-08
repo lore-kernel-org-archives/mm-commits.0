@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3A4BC433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D164C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADEBA61421
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDBCE61415
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:39:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229648AbhEHWkJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:40:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42982 "EHLO mail.kernel.org"
+        id S229649AbhEHWkM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:40:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43038 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229620AbhEHWkJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:40:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7C18C6141D;
-        Sat,  8 May 2021 22:39:07 +0000 (UTC)
+        id S229620AbhEHWkL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:40:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 73ACD61415;
+        Sat,  8 May 2021 22:39:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513547;
-        bh=Mi7C6hxj5kzjOpej3V2kCWjqbVOBvT/GZegEnuWI2/4=;
+        s=korg; t=1620513549;
+        bh=spFV1LzMYqLUFgMM34GYEX55fvUt1sXpxy1S6I6p8og=;
         h=Date:From:To:Subject:From;
-        b=StaFFQij0Q+hd8dF3XUXZq2vXfQ3fmcOvpQvyymu4RnqwyrElzKYSJbVkRUysZwTO
-         5yHleqx4UbsyOASFvk+/JON9qOFgjRSuS83mkl1hF/31IGYn8P6qp2olO/FoAe2MLd
-         LxFPvKt5Y0DAEervowjvJqfBIlZ0ceGXDBFR3DMw=
-Date:   Sat, 08 May 2021 15:39:07 -0700
+        b=p8v6PLZMlV/d42fMKSFOm88bkdv1csKsSjVujffyTCu6nrB7cahuWNSBQN3qpg6eU
+         qdk9wNoxkg/gtK1KhiNVW7uaeo3z9MqB8Kezr25AaHRrenRL96APC9q8c2fLi2Ia4A
+         duwcGK6slZjvE/vsveogxAq5oBiPnX1xeMODEetY=
+Date:   Sat, 08 May 2021 15:39:09 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        unixbhaskar@gmail.com
-Subject:  [merged] ia64-trivial-spelling-fixes.patch removed from
- -mm tree
-Message-ID: <20210508223907.yArO0zjTW%akpm@linux-foundation.org>
+To:     ardb@kernel.org, mm-commits@vger.kernel.org, slyfox@gentoo.org
+Subject:  [merged] ia64-fix-efi_debug-build.patch removed from -mm
+ tree
+Message-ID: <20210508223909.7Zwjh7Zvd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,58 +42,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: trivial spelling fixes
+     Subject: ia64: fix EFI_DEBUG build
 has been removed from the -mm tree.  Its filename was
-     ia64-trivial-spelling-fixes.patch
+     ia64-fix-efi_debug-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Subject: ia64: trivial spelling fixes
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Subject: ia64: fix EFI_DEBUG build
 
-s/seralize/serialize/ .....three different places
+When enabled local debugging via `#define EFI_DEBUG 1` noticed build
+failure:
 
-Link: https://lkml.kernel.org/r/YFY+9uwvNLeb/3Ab@Gentoo
-Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
+    arch/ia64/kernel/efi.c:564:8: error: 'i' undeclared (first use in this function)
+
+While at it fixed benign string format mismatches visible only when
+EFI_DEBUG is enabled:
+
+    arch/ia64/kernel/efi.c:589:11:
+        warning: format '%lx' expects argument of type 'long unsigned int',
+        but argument 5 has type 'u64' {aka 'long long unsigned int'} [-Wformat=]
+
+Link: https://lkml.kernel.org/r/20210328212246.685601-1-slyfox@gentoo.org
+Fixes: 14fb42090943559 ("efi: Merge EFI system table revision and vendor checks")
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/pal.S |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/ia64/kernel/efi.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/arch/ia64/kernel/pal.S~ia64-trivial-spelling-fixes
-+++ a/arch/ia64/kernel/pal.S
-@@ -86,7 +86,7 @@ GLOBAL_ENTRY(ia64_pal_call_static)
- 	mov ar.pfs = loc1
- 	mov rp = loc0
- 	;;
--	srlz.d				// seralize restoration of psr.l
-+	srlz.d				// serialize restoration of psr.l
- 	br.ret.sptk.many b0
- END(ia64_pal_call_static)
- EXPORT_SYMBOL(ia64_pal_call_static)
-@@ -194,7 +194,7 @@ GLOBAL_ENTRY(ia64_pal_call_phys_static)
- 	mov rp = loc0
- 	;;
- 	mov ar.rsc=loc4			// restore RSE configuration
--	srlz.d				// seralize restoration of psr.l
-+	srlz.d				// serialize restoration of psr.l
- 	br.ret.sptk.many b0
- END(ia64_pal_call_phys_static)
- EXPORT_SYMBOL(ia64_pal_call_phys_static)
-@@ -252,7 +252,7 @@ GLOBAL_ENTRY(ia64_pal_call_phys_stacked)
- 	mov rp = loc0
- 	;;
- 	mov ar.rsc=loc4			// restore RSE configuration
--	srlz.d				// seralize restoration of psr.l
-+	srlz.d				// serialize restoration of psr.l
- 	br.ret.sptk.many b0
- END(ia64_pal_call_phys_stacked)
- EXPORT_SYMBOL(ia64_pal_call_phys_stacked)
+--- a/arch/ia64/kernel/efi.c~ia64-fix-efi_debug-build
++++ a/arch/ia64/kernel/efi.c
+@@ -415,10 +415,10 @@ efi_get_pal_addr (void)
+ 		mask  = ~((1 << IA64_GRANULE_SHIFT) - 1);
+ 
+ 		printk(KERN_INFO "CPU %d: mapping PAL code "
+-                       "[0x%lx-0x%lx) into [0x%lx-0x%lx)\n",
+-                       smp_processor_id(), md->phys_addr,
+-                       md->phys_addr + efi_md_size(md),
+-                       vaddr & mask, (vaddr & mask) + IA64_GRANULE_SIZE);
++			"[0x%llx-0x%llx) into [0x%llx-0x%llx)\n",
++			smp_processor_id(), md->phys_addr,
++			md->phys_addr + efi_md_size(md),
++			vaddr & mask, (vaddr & mask) + IA64_GRANULE_SIZE);
+ #endif
+ 		return __va(md->phys_addr);
+ 	}
+@@ -560,6 +560,7 @@ efi_init (void)
+ 	{
+ 		efi_memory_desc_t *md;
+ 		void *p;
++		unsigned int i;
+ 
+ 		for (i = 0, p = efi_map_start; p < efi_map_end;
+ 		     ++i, p += efi_desc_size)
+@@ -586,7 +587,7 @@ efi_init (void)
+ 			}
+ 
+ 			printk("mem%02d: %s "
+-			       "range=[0x%016lx-0x%016lx) (%4lu%s)\n",
++			       "range=[0x%016llx-0x%016llx) (%4lu%s)\n",
+ 			       i, efi_md_typeattr_format(buf, sizeof(buf), md),
+ 			       md->phys_addr,
+ 			       md->phys_addr + efi_md_size(md), size, unit);
 _
 
-Patches currently in -mm which might be from unixbhaskar@gmail.com are
+Patches currently in -mm which might be from slyfox@gentoo.org are
 
 
