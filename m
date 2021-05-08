@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77075C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95E37C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5482C6143B
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76B9C6143B
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229559AbhEHWvs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:51:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37980 "EHLO mail.kernel.org"
+        id S229616AbhEHWvu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:51:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229552AbhEHWvs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:51:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D09B56101D;
-        Sat,  8 May 2021 22:50:45 +0000 (UTC)
+        id S229552AbhEHWvu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:51:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DF60561424;
+        Sat,  8 May 2021 22:50:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514246;
-        bh=OFFH7i3QzSy32eoNN1pbyGhZs7yVVRmBjhtSCfogg+I=;
+        s=korg; t=1620514248;
+        bh=GQyEEUkXJ0HZpc8tO61NaSrzNjRXqqnnlNo/F4j6KCk=;
         h=Date:From:To:Subject:From;
-        b=eZQxUH2p1SFcrXJvfczBdus1xLBLRs92P/pSZnB9Yg+rLXilAJESMTs/dpa4GnBu5
-         715C2ZKtIUDoI9NZ8ycUg1wGhN+KI0QmUEVnv36lpV/KN0TVDzpfn+vQZ8SVuwJOdp
-         mzcuNf8HQsk/IkpAjyly61wF+3S5IFQ6Llm3z/Cs=
-Date:   Sat, 08 May 2021 15:50:45 -0700
+        b=EyKsdbk3d8n3MydIk8gAvfZnkDdcOBYCDWOycYjCbzhhzfARRU481z5z3pEeU5QXw
+         djqXSSQv52j4X0Re/prsDV1xxhjvD4Wc96v+ouPQep/u5CxMjWmEyYRXqvK7lGxSQF
+         GhGSe1YHCT11CN3YGKxTi5wooJ1JdaMqsVSUbnco=
+Date:   Sat, 08 May 2021 15:50:47 -0700
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -39,9 +39,9 @@ To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
         tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
 Subject:  [merged]
- memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning.patch
- removed from -mm tree
-Message-ID: <20210508225045.mOXhGgRh2%akpm@linux-foundation.org>
+ mm-gup-change-index-type-to-long-as-it-counts-pages.patch removed from -mm
+ tree
+Message-ID: <20210508225047.jTK0yEaY4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,23 +50,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug.rst: add a note about ZONE_MOVABLE and page pinning
+     Subject: mm/gup: change index type to long as it counts pages
 has been removed from the -mm tree.  Its filename was
-     memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning.patch
+     mm-gup-change-index-type-to-long-as-it-counts-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: memory-hotplug.rst: add a note about ZONE_MOVABLE and page pinning
+Subject: mm/gup: change index type to long as it counts pages
 
-Document the special handling of page pinning when ZONE_MOVABLE present.
+In __get_user_pages_locked() i counts number of pages which should be
+long, as long is used in all other places to contain number of pages, and
+32-bit becomes increasingly small for handling page count proportional
+values.
 
-Link: https://lkml.kernel.org/r/20210215161349.246722-11-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20210215161349.246722-12-pasha.tatashin@soleen.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
@@ -88,27 +91,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/memory-hotplug.rst |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/memory-hotplug.rst~memory-hotplugrst-add-a-note-about-zone_movable-and-page-pinning
-+++ a/Documentation/admin-guide/mm/memory-hotplug.rst
-@@ -357,6 +357,15 @@ creates ZONE_MOVABLE as following.
-    Unfortunately, there is no information to show which memory block belongs
-    to ZONE_MOVABLE. This is TBD.
+--- a/mm/gup.c~mm-gup-change-index-type-to-long-as-it-counts-pages
++++ a/mm/gup.c
+@@ -1528,7 +1528,7 @@ static long __get_user_pages_locked(stru
+ {
+ 	struct vm_area_struct *vma;
+ 	unsigned long vm_flags;
+-	int i;
++	long i;
  
-+.. note::
-+   Techniques that rely on long-term pinnings of memory (especially, RDMA and
-+   vfio) are fundamentally problematic with ZONE_MOVABLE and, therefore, memory
-+   hot remove. Pinned pages cannot reside on ZONE_MOVABLE, to guarantee that
-+   memory can still get hot removed - be aware that pinning can fail even if
-+   there is plenty of free memory in ZONE_MOVABLE. In addition, using
-+   ZONE_MOVABLE might make page pinning more expensive, because pages have to be
-+   migrated off that zone first.
-+
- .. _memory_hotplug_how_to_offline_memory:
- 
- How to offline memory
+ 	/* calculate required read or write permissions.
+ 	 * If FOLL_FORCE is set, we only require the "MAY" flags.
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
