@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C619AC433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EA6AC433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A449F6142D
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24B1461424
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229522AbhEHWzd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:55:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43774 "EHLO mail.kernel.org"
+        id S229602AbhEHWzj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:55:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229567AbhEHWzc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:55:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C052610FA;
-        Sat,  8 May 2021 22:54:29 +0000 (UTC)
+        id S229567AbhEHWzf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:55:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 86F8B60E0B;
+        Sat,  8 May 2021 22:54:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514470;
-        bh=ooSrzkzwKer8KTaTDaOQzQInIm1jkdITqHXSXXtW4mY=;
+        s=korg; t=1620514472;
+        bh=f6iNYvmjSlwVaNfGYCcwe7qv0hrK+3gBqlAWO+NcV34=;
         h=Date:From:To:Subject:From;
-        b=cscIqh34uR2UytKriW8FR7s13YpI6ttU9no+0+HgzUgKEFxZ1+K/lwnp3LVLKoimA
-         bDA2fQIxL1JX6YUJWhSkMedIiR91jM++XIxhTY8R12LOHTEOOdjDeGsj3DfTEV3Izw
-         i0xFzCJSQMJmZqd/peQa5nE7/Y9M9ZD7dqFg3JxI=
-Date:   Sat, 08 May 2021 15:54:29 -0700
+        b=U94nZlsCZu1/uhHY589OXYcBzoQpHfuqtA3ONjmt6ZP5y729i8KBUiFTMscYyTBYY
+         R4Sv4q4TWi/5KKulnrPLhrwkh3rPt10FPGr3MkBsIo8A6k8O85JRDUzlcJIzNYcdpS
+         l3075+WNj1HHIas+OEuqq5a3V5QRBLCp0+ZLHbP8=
+Date:   Sat, 08 May 2021 15:54:32 -0700
 From:   akpm@linux-foundation.org
-To:     bp@alien8.de, corbet@lwn.net, gregkh@linuxfoundation.org,
-        jeyu@kernel.org, linux@rasmusvillemoes.dk, mcgrof@kernel.org,
-        mm-commits@vger.kernel.org, ndesaulniers@google.com, tiwai@suse.de
-Subject:  [merged] modules-add-config_modprobe_path.patch removed
- from -mm tree
-Message-ID: <20210508225429.EB9syQwOu%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        unixbhaskar@gmail.com
+Subject:  [merged] ipc-semc-mundane-typo-fixes.patch removed from
+ -mm tree
+Message-ID: <20210508225432.OE2360UJ9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,93 +43,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: modules: add CONFIG_MODPROBE_PATH
+     Subject: ipc/sem.c: mundane typo fixes
 has been removed from the -mm tree.  Its filename was
-     modules-add-config_modprobe_path.patch
+     ipc-semc-mundane-typo-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: modules: add CONFIG_MODPROBE_PATH
+From: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Subject: ipc/sem.c: mundane typo fixes
 
-Allow the developer to specifiy the initial value of the modprobe_path[]
-string.  This can be used to set it to the empty string initially, thus
-effectively disabling request_module() during early boot until userspace
-writes a new value via the /proc/sys/kernel/modprobe interface.  [1]
+s/runtine/runtime/
+s/AQUIRE/ACQUIRE/
+s/seperately/separately/
+s/wont/won\'t/
+s/succesfull/successful/
 
-When building a custom kernel (often for an embedded target), it's normal
-to build everything into the kernel that is needed for booting, and indeed
-the initramfs often contains no modules at all, so every such
-request_module() done before userspace init has mounted the real rootfs is
-a waste of time.
-
-This is particularly useful when combined with the previous patch, which
-made the initramfs unpacking asynchronous - for that to work, it had to
-make any usermodehelper call wait for the unpacking to finish before
-attempting to invoke the userspace helper.  By eliminating all such
-(known-to-be-futile) calls of usermodehelper, the initramfs unpacking and
-the {device,late}_initcalls can proceed in parallel for much longer.
-
-For a relatively slow ppc board I'm working on, the two patches combined
-lead to 0.2s faster boot - but more importantly, the fact that the
-initramfs unpacking proceeds completely in the background while devices
-get probed means I get to handle the gpio watchdog in time without getting
-reset.
-
-[1] __request_module() already has an early -ENOENT return when
-modprobe_path is the empty string.
-
-Link: https://lkml.kernel.org/r/20210313212528.2956377-3-linux@rasmusvillemoes.dk
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Acked-by: Jessica Yu <jeyu@kernel.org>
-Acked-by: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+Link: https://lkml.kernel.org/r/20210326022240.26375-1-unixbhaskar@gmail.com
+Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig  |   12 ++++++++++++
- kernel/kmod.c |    2 +-
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ ipc/sem.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/init/Kconfig~modules-add-config_modprobe_path
-+++ a/init/Kconfig
-@@ -2299,6 +2299,18 @@ config MODULE_ALLOW_MISSING_NAMESPACE_IM
+--- a/ipc/sem.c~ipc-semc-mundane-typo-fixes
++++ a/ipc/sem.c
+@@ -36,7 +36,7 @@
+  * - two Linux specific semctl() commands: SEM_STAT, SEM_INFO.
+  * - undo adjustments at process exit are limited to 0..SEMVMX.
+  * - namespace are supported.
+- * - SEMMSL, SEMMNS, SEMOPM and SEMMNI can be configured at runtine by writing
++ * - SEMMSL, SEMMNS, SEMOPM and SEMMNI can be configured at runtime by writing
+  *   to /proc/sys/kernel/sem.
+  * - statistics about the usage are reported in /proc/sysvipc/sem.
+  *
+@@ -224,7 +224,7 @@ static int sysvipc_sem_proc_show(struct
+  * Setting it to a result code is a RELEASE, this is ensured by both a
+  * smp_store_release() (for case a) and while holding sem_lock()
+  * (for case b).
+- * The AQUIRE when reading the result code without holding sem_lock() is
++ * The ACQUIRE when reading the result code without holding sem_lock() is
+  * achieved by using READ_ONCE() + smp_acquire__after_ctrl_dep().
+  * (case a above).
+  * Reading the result code while holding sem_lock() needs no further barriers,
+@@ -821,7 +821,7 @@ static inline int check_restart(struct s
  
- 	  If unsure, say N.
+ 	/* It is impossible that someone waits for the new value:
+ 	 * - complex operations always restart.
+-	 * - wait-for-zero are handled seperately.
++	 * - wait-for-zero are handled separately.
+ 	 * - q is a previously sleeping simple operation that
+ 	 *   altered the array. It must be a decrement, because
+ 	 *   simple increments never sleep.
+@@ -1046,7 +1046,7 @@ static void do_smart_update(struct sem_a
+ 			 * - No complex ops, thus all sleeping ops are
+ 			 *   decrease.
+ 			 * - if we decreased the value, then any sleeping
+-			 *   semaphore ops wont be able to run: If the
++			 *   semaphore ops won't be able to run: If the
+ 			 *   previous value was too small, then the new
+ 			 *   value will be too small, too.
+ 			 */
+@@ -2108,7 +2108,7 @@ static long do_semtimedop(int semid, str
+ 	queue.dupsop = dupsop;
  
-+config MODPROBE_PATH
-+	string "Path to modprobe binary"
-+	default "/sbin/modprobe"
-+	help
-+	  When kernel code requests a module, it does so by calling
-+	  the "modprobe" userspace utility. This option allows you to
-+	  set the path where that binary is found. This can be changed
-+	  at runtime via the sysctl file
-+	  /proc/sys/kernel/modprobe. Setting this to the empty string
-+	  removes the kernel's ability to request modules (but
-+	  userspace can still load modules explicitly).
-+
- config TRIM_UNUSED_KSYMS
- 	bool "Trim unused exported kernel symbols" if EXPERT
- 	depends on !COMPILE_TEST
---- a/kernel/kmod.c~modules-add-config_modprobe_path
-+++ a/kernel/kmod.c
-@@ -58,7 +58,7 @@ static DECLARE_WAIT_QUEUE_HEAD(kmod_wq);
- /*
- 	modprobe_path is set via /proc/sys.
- */
--char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
-+char modprobe_path[KMOD_PATH_LEN] = CONFIG_MODPROBE_PATH;
+ 	error = perform_atomic_semop(sma, &queue);
+-	if (error == 0) { /* non-blocking succesfull path */
++	if (error == 0) { /* non-blocking successful path */
+ 		DEFINE_WAKE_Q(wake_q);
  
- static void free_modprobe_argv(struct subprocess_info *info)
- {
+ 		/*
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from unixbhaskar@gmail.com are
 
 
