@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB961C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1B9CC433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9FC1A61415
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CDD61613E8
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229601AbhEHWro (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:47:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58864 "EHLO mail.kernel.org"
+        id S229620AbhEHWrq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:47:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58924 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229567AbhEHWrn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:47:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8DB986100C;
-        Sat,  8 May 2021 22:46:41 +0000 (UTC)
+        id S229567AbhEHWrp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:47:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C5EC610D2;
+        Sat,  8 May 2021 22:46:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514001;
-        bh=Un/8aFiEMZZ2ebuFD36KIbKTElEowNo2sBQjGhNjy0c=;
+        s=korg; t=1620514003;
+        bh=rqmv9kjWJ+elIkY+mJRy5KMZtYjUuaZqdorNuXi99zw=;
         h=Date:From:To:Subject:From;
-        b=DBDK/ccj8CINUSjDDJuV5ll+AV/h/1C04jr3t947vGbBYTmq0Lz64g0c1qQi05zL8
-         CCdLwWM189MuaL2gQG1LH/76BMrMfKBhLhgts28KPcfh3q+M4C/ovnQsifKkfdNJz2
-         T2hR9Ytc833ix1gw5MaUIzopCuZkZRC0xQ9OzJOw=
-Date:   Sat, 08 May 2021 15:46:41 -0700
+        b=lLEppO4naKvee7jhfOKZvuD2rqJ/DXHUiweQDOcp6soXQXInY1Y5K9+pC99zLMNZu
+         eBMCivPUnkjaOUEp7Y79kGuj+8m//r/I7AdVO6ooX2MdSHF5tVpt1plqekPh2iLuWM
+         Dqom7NJp9ubUe4PqSP0jf+JdDjNdWivN6WzNf7QM=
+Date:   Sat, 08 May 2021 15:46:43 -0700
 From:   akpm@linux-foundation.org
 To:     dan.carpenter@oracle.com, ebru.akagunduz@gmail.com,
         kirill.shutemov@linux.intel.com, linmiaohe@huawei.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         riel@redhat.com
 Subject:  [merged]
- khugepaged-reuse-the-smp_wmb-inside-__setpageuptodate.patch removed from
- -mm tree
-Message-ID: <20210508224641.epnDlILob%akpm@linux-foundation.org>
+ khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
+ removed from -mm tree
+Message-ID: <20210508224643.7VIggcTC7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,21 +46,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: reuse the smp_wmb() inside __SetPageUptodate()
+     Subject: khugepaged: use helper khugepaged_test_exit() in __khugepaged_enter()
 has been removed from the -mm tree.  Its filename was
-     khugepaged-reuse-the-smp_wmb-inside-__setpageuptodate.patch
+     khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: khugepaged: reuse the smp_wmb() inside __SetPageUptodate()
+Subject: khugepaged: use helper khugepaged_test_exit() in __khugepaged_enter()
 
-smp_wmb() is needed to avoid the copy_huge_page writes to become visible
-after the set_pmd_at() write here.  But we can reuse the smp_wmb() inside
-__SetPageUptodate() to remove this redundant one.
+Commit 4d45e75a9955 ("mm: remove the now-unnecessary mmget_still_valid()
+hack") have made khugepaged_test_exit() suitable for check mm->mm_users
+against 0.  Use this helper here.
 
-Link: https://lkml.kernel.org/r/20210306032947.35921-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210306032947.35921-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Dan Carpenter <dan.carpenter@oracle.com>
@@ -70,37 +70,20 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ mm/khugepaged.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~khugepaged-reuse-the-smp_wmb-inside-__setpageuptodate
+--- a/mm/khugepaged.c~khugepaged-use-helper-khugepaged_test_exit-in-__khugepaged_enter
 +++ a/mm/khugepaged.c
-@@ -1183,19 +1183,18 @@ static void collapse_huge_page(struct mm
- 	__collapse_huge_page_copy(pte, new_page, vma, address, pte_ptl,
- 			&compound_pagelist);
- 	pte_unmap(pte);
-+	/*
-+	 * spin_lock() below is not the equivalent of smp_wmb(), but
-+	 * the smp_wmb() inside __SetPageUptodate() can be reused to
-+	 * avoid the copy_huge_page writes to become visible after
-+	 * the set_pmd_at() write.
-+	 */
- 	__SetPageUptodate(new_page);
- 	pgtable = pmd_pgtable(_pmd);
+@@ -481,7 +481,7 @@ int __khugepaged_enter(struct mm_struct
+ 		return -ENOMEM;
  
- 	_pmd = mk_huge_pmd(new_page, vma->vm_page_prot);
- 	_pmd = maybe_pmd_mkwrite(pmd_mkdirty(_pmd), vma);
- 
--	/*
--	 * spin_lock() below is not the equivalent of smp_wmb(), so
--	 * this is needed to avoid the copy_huge_page writes to become
--	 * visible after the set_pmd_at() write.
--	 */
--	smp_wmb();
--
- 	spin_lock(pmd_ptl);
- 	BUG_ON(!pmd_none(*pmd));
- 	page_add_new_anon_rmap(new_page, vma, address, true);
+ 	/* __khugepaged_exit() must not run from under us */
+-	VM_BUG_ON_MM(atomic_read(&mm->mm_users) == 0, mm);
++	VM_BUG_ON_MM(khugepaged_test_exit(mm), mm);
+ 	if (unlikely(test_and_set_bit(MMF_VM_HUGEPAGE, &mm->flags))) {
+ 		free_mm_slot(mm_slot);
+ 		return 0;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
