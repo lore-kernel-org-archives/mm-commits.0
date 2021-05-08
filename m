@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1827C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C483EC433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9FA606142D
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A343E61432
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229699AbhEHWou (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:44:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52700 "EHLO mail.kernel.org"
+        id S229648AbhEHWoy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:44:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229631AbhEHWou (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:44:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A9D261402;
-        Sat,  8 May 2021 22:43:48 +0000 (UTC)
+        id S229631AbhEHWox (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:44:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 827D361421;
+        Sat,  8 May 2021 22:43:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513828;
-        bh=aanz4jpL/vZbUv2NlRY5e2LQxbJwSb4LtLNB36fpDEo=;
+        s=korg; t=1620513830;
+        bh=O6nTQ/Bexbzmh5hhlqPBRaTQZctfTDPHmq2ts53iyQU=;
         h=Date:From:To:Subject:From;
-        b=w4BJc1RC4vIbSE7BQSZfurWWhe/CrcP5oKGyYqNVg1DQS0U5lFDZ0OULsp+jLYkvq
-         Mf1bSurgA6AEckxJTKz11sV0BtfxH4x1LAd5BZSqesY10Bqop+BdiQBg32YCH612Td
-         xooVx1Sjcg8eX6BWFn58LgK7lbA+QAnGhzF+pKv8=
-Date:   Sat, 08 May 2021 15:43:48 -0700
+        b=fopee+REDrn7GQHEooAZI3D4WHlveXUILasi6T17DBUWVKXsnuRFDEjuFfpUSy8lk
+         eKJB2LJUCPd8R+cva8895ExmbZIq7XeAynn/OFtPjZiapY4BvGmCRfHgsZ01Js8i0z
+         1BsdNhqBskrXE9hLDuwoMzx0sszjofoyOruQPZ6s=
+Date:   Sat, 08 May 2021 15:43:50 -0700
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, joe@perches.com, lukas.bulwahn@gmail.com,
-        mm-commits@vger.kernel.org, ralf.ramsauer@oth-regensburg.de
-Subject:  [merged]
- pagewalk-prefix-struct-kernel-doc-descriptions.patch removed from -mm tree
-Message-ID: <20210508224348.BjSpIrgQL%akpm@linux-foundation.org>
+To:     andreyknvl@gmail.com, daizhiyuan@phytium.com.cn, glider@google.com,
+        mm-commits@vger.kernel.org
+Subject:  [merged] mm-kasan-switch-from-strlcpy-to-strscpy.patch
+ removed from -mm tree
+Message-ID: <20210508224350.eefhPEvHe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,58 +43,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pagewalk: prefix struct kernel-doc descriptions
+     Subject: mm/kasan: switch from strlcpy to strscpy
 has been removed from the -mm tree.  Its filename was
-     pagewalk-prefix-struct-kernel-doc-descriptions.patch
+     mm-kasan-switch-from-strlcpy-to-strscpy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: pagewalk: prefix struct kernel-doc descriptions
+From: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+Subject: mm/kasan: switch from strlcpy to strscpy
 
-The script './scripts/kernel-doc -none ./include/linux/pagewalk.h' reports:
+strlcpy is marked as deprecated in Documentation/process/deprecated.rst,
+and there is no functional difference when the caller expects truncation
+(when not checking the return value).  strscpy is relatively better as it
+also avoids scanning the whole source string.
 
-  include/linux/pagewalk.h:37: warning: cannot understand function prototype: 'struct mm_walk_ops '
-  include/linux/pagewalk.h:85: warning: cannot understand function prototype: 'struct mm_walk '
-
-A kernel-doc description for a structure requires to prefix the struct
-name with the keyword 'struct'.  So, do that such that no further
-kernel-doc warnings are reported for this file.
-
-Link: https://lkml.kernel.org/r/20210322122542.15072-3-lukas.bulwahn@gmail.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
+Link: https://lkml.kernel.org/r/1613970647-23272-1-git-send-email-daizhiyuan@phytium.com.cn
+Signed-off-by: Zhiyuan Dai <daizhiyuan@phytium.com.cn>
+Acked-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagewalk.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/kasan/report_generic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/pagewalk.h~pagewalk-prefix-struct-kernel-doc-descriptions
-+++ a/include/linux/pagewalk.h
-@@ -7,7 +7,7 @@
- struct mm_walk;
+--- a/mm/kasan/report_generic.c~mm-kasan-switch-from-strlcpy-to-strscpy
++++ a/mm/kasan/report_generic.c
+@@ -148,7 +148,7 @@ static bool __must_check tokenize_frame_
+ 		}
  
- /**
-- * mm_walk_ops - callbacks for walk_page_range
-+ * struct mm_walk_ops - callbacks for walk_page_range
-  * @pgd_entry:		if set, called for each non-empty PGD (top-level) entry
-  * @p4d_entry:		if set, called for each non-empty P4D entry
-  * @pud_entry:		if set, called for each non-empty PUD entry
-@@ -71,7 +71,7 @@ enum page_walk_action {
- };
+ 		/* Copy token (+ 1 byte for '\0'). */
+-		strlcpy(token, *frame_descr, tok_len + 1);
++		strscpy(token, *frame_descr, tok_len + 1);
+ 	}
  
- /**
-- * mm_walk - walk_page_range data
-+ * struct mm_walk - walk_page_range data
-  * @ops:	operation to call during the walk
-  * @mm:		mm_struct representing the target process of page table walk
-  * @pgd:	pointer to PGD; only valid with no_vma (otherwise set to NULL)
+ 	/* Advance frame_descr past separator. */
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from daizhiyuan@phytium.com.cn are
 
 
