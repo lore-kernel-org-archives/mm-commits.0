@@ -7,37 +7,48 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2947C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6C08C43460
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B86DC61430
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C34B26142D
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:54:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229685AbhEHWzt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:55:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44382 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229660AbhEHWzs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S229672AbhEHWzs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 8 May 2021 18:55:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 96B2861424;
-        Sat,  8 May 2021 22:54:46 +0000 (UTC)
+Received: from mail.kernel.org ([198.145.29.99]:44282 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229662AbhEHWzq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:55:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 38C3161402;
+        Sat,  8 May 2021 22:54:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514486;
-        bh=YGMscAarPj1Steogc7jlGbIqY22r6XO8bSa3meIeK7c=;
+        s=korg; t=1620514484;
+        bh=f20aYNkyOa7RlM4gerRicGa5ynuGVQLz8agsyB41UaA=;
         h=Date:From:To:Subject:From;
-        b=Txxpkp9dcGt2ZMZHkTHxMNJ+eeHrQf01a269gSeXejRxSXuazwRFaTOpXE29qs7Yr
-         UbrfyDJcNQ7cXB4sqCKhgEjy0ppjZRikW9Pj/gCxCcIq68W9XzUoyezGK3cfeQGKnq
-         +HIEHJ7AsIEDHoisrUzshX0rdgAkN682aaKJayZA=
-Date:   Sat, 08 May 2021 15:54:46 -0700
+        b=Q4VCwB0M8R1cGdoy7lxqEhRIyJqDNuqV+Qx09ti/o7VK1eB5sAq50YeBy+4MyzhQD
+         J8sK3XKdEemMoR564seKcZhU0EfYp3EMK7f6FBTKf4qn5n1wy3AhV+8SKqdZQOpFpP
+         hatsthOBzEMfNQNP/oVYRjTKWwK9B9tF1VyvqqFc=
+Date:   Sat, 08 May 2021 15:54:42 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, gregkh@linuxfoundation.org, hdanton@sina.com,
-        huang.ying.caritas@gmail.com, mhocko@suse.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, oleksiy.avramchenko@sonymobile.com,
-        rostedt@goodmis.org, torvalds@linux-foundation.org,
-        willy@infradead.org
-Subject:  [merged] mm-vmalloc-remove-vwrite.patch removed from -mm
- tree
-Message-ID: <20210508225446.CsU67p3S0%akpm@linux-foundation.org>
+To:     arnd@arndb.de, bcain@codeaurora.org, benh@kernel.crashing.org,
+        bigeasy@linutronix.de, borntraeger@de.ibm.com,
+        christophe.leroy@csgroup.eu, dalias@libc.org, davem@davemloft.net,
+        david@redhat.com, deller@gmx.de, geert@linux-m68k.org,
+        gerald.schaefer@linux.ibm.com, gor@linux.ibm.com,
+        green.hu@gmail.com, gregkh@linuxfoundation.org, hca@linux.ibm.com,
+        ink@jurassic.park.msu.ru, James.Bottomley@HansenPartnership.com,
+        jiaxun.yang@flygoat.com, krzk@kernel.org,
+        kuninori.morimoto.gx@renesas.com, linux@armlinux.org.uk,
+        luc.vanoostenryck@gmail.com, mattst88@gmail.com, mcgrof@kernel.org,
+        mhocko@suse.com, mingo@kernel.org, mm-commits@vger.kernel.org,
+        mpatocka@redhat.com, mpe@ellerman.id.au, palmerdabbelt@google.com,
+        paulus@samba.org, peterz@infradead.org, pmorel@linux.ibm.com,
+        rdunlap@infradead.org, rppt@kernel.org, rth@twiddle.net,
+        schnelle@linux.ibm.com, torvalds@linux-foundation.org,
+        tsbogend@alpha.franken.de, ysato@users.sourceforge.jp
+Subject:  [merged] mm-remove-xlate_dev_kmem_ptr.patch removed from
+ -mm tree
+Message-ID: <20210508225442.tVNlY3MrN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,205 +57,271 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: remove vwrite()
+     Subject: mm: remove xlate_dev_kmem_ptr()
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-remove-vwrite.patch
+     mm-remove-xlate_dev_kmem_ptr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/vmalloc: remove vwrite()
+Subject: mm: remove xlate_dev_kmem_ptr()
 
-The last user (/dev/kmem) is gone. Let's drop it.
+Since /dev/kmem has been removed, let's remove the xlate_dev_kmem_ptr()
+leftovers.
 
-Link: https://lkml.kernel.org/r/20210324102351.6932-4-david@redhat.com
+Link: https://lkml.kernel.org/r/20210324102351.6932-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: huang ying <huang.ying.caritas@gmail.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Brian Cain <bcain@codeaurora.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Palmer Dabbelt <palmerdabbelt@google.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Niklas Schnelle <schnelle@linux.ibm.com>
+Cc: Pierre Morel <pmorel@linux.ibm.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    1 
- mm/nommu.c              |   10 ---
- mm/vmalloc.c            |  116 --------------------------------------
- 3 files changed, 1 insertion(+), 126 deletions(-)
+ arch/alpha/include/asm/io.h     |    5 -----
+ arch/arm/include/asm/io.h       |    5 -----
+ arch/hexagon/include/asm/io.h   |    1 -
+ arch/ia64/include/asm/io.h      |    1 -
+ arch/ia64/include/asm/uaccess.h |   18 ------------------
+ arch/m68k/include/asm/io_mm.h   |    5 -----
+ arch/mips/include/asm/io.h      |    5 -----
+ arch/parisc/include/asm/io.h    |    5 -----
+ arch/powerpc/include/asm/io.h   |    5 -----
+ arch/s390/include/asm/io.h      |    5 -----
+ arch/sh/include/asm/io.h        |    5 -----
+ arch/sparc/include/asm/io_64.h  |    5 -----
+ include/asm-generic/io.h        |   11 -----------
+ 13 files changed, 76 deletions(-)
 
---- a/include/linux/vmalloc.h~mm-vmalloc-remove-vwrite
-+++ a/include/linux/vmalloc.h
-@@ -229,7 +229,6 @@ static inline void set_vm_flush_reset_pe
+--- a/arch/alpha/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
++++ a/arch/alpha/include/asm/io.h
+@@ -602,11 +602,6 @@ extern void outsl (unsigned long port, c
+  */
+ #define xlate_dev_mem_ptr(p)	__va(p)
  
- /* for /proc/kcore */
- extern long vread(char *buf, char *addr, unsigned long count);
--extern long vwrite(char *buf, char *addr, unsigned long count);
- 
- /*
-  *	Internals.  Dont't use..
---- a/mm/nommu.c~mm-vmalloc-remove-vwrite
-+++ a/mm/nommu.c
-@@ -210,16 +210,6 @@ long vread(char *buf, char *addr, unsign
- 	return count;
- }
- 
--long vwrite(char *buf, char *addr, unsigned long count)
--{
--	/* Don't allow overflow */
--	if ((unsigned long) addr + count < count)
--		count = -(unsigned long) addr;
--
--	memcpy(addr, buf, count);
--	return count;
--}
--
- /*
-  *	vmalloc  -  allocate virtually contiguous memory
-  *
---- a/mm/vmalloc.c~mm-vmalloc-remove-vwrite
-+++ a/mm/vmalloc.c
-@@ -3146,10 +3146,7 @@ static int aligned_vread(char *buf, char
- 		 * kmap() and get small overhead in this access function.
- 		 */
- 		if (p) {
--			/*
--			 * we can expect USER0 is not used (see vread/vwrite's
--			 * function description)
--			 */
-+			/* We can expect USER0 is not used -- see vread() */
- 			void *map = kmap_atomic(p);
- 			memcpy(buf, map + offset, length);
- 			kunmap_atomic(map);
-@@ -3164,43 +3161,6 @@ static int aligned_vread(char *buf, char
- 	return copied;
- }
- 
--static int aligned_vwrite(char *buf, char *addr, unsigned long count)
--{
--	struct page *p;
--	int copied = 0;
--
--	while (count) {
--		unsigned long offset, length;
--
--		offset = offset_in_page(addr);
--		length = PAGE_SIZE - offset;
--		if (length > count)
--			length = count;
--		p = vmalloc_to_page(addr);
--		/*
--		 * To do safe access to this _mapped_ area, we need
--		 * lock. But adding lock here means that we need to add
--		 * overhead of vmalloc()/vfree() calles for this _debug_
--		 * interface, rarely used. Instead of that, we'll use
--		 * kmap() and get small overhead in this access function.
--		 */
--		if (p) {
--			/*
--			 * we can expect USER0 is not used (see vread/vwrite's
--			 * function description)
--			 */
--			void *map = kmap_atomic(p);
--			memcpy(map + offset, buf, length);
--			kunmap_atomic(map);
--		}
--		addr += length;
--		buf += length;
--		copied += length;
--		count -= length;
--	}
--	return copied;
--}
--
- /**
-  * vread() - read vmalloc area in a safe way.
-  * @buf:     buffer for reading data
-@@ -3283,80 +3243,6 @@ finished:
- 	return buflen;
- }
- 
--/**
-- * vwrite() - write vmalloc area in a safe way.
-- * @buf:      buffer for source data
-- * @addr:     vm address.
-- * @count:    number of bytes to be read.
-- *
-- * This function checks that addr is a valid vmalloc'ed area, and
-- * copy data from a buffer to the given addr. If specified range of
-- * [addr...addr+count) includes some valid address, data is copied from
-- * proper area of @buf. If there are memory holes, no copy to hole.
-- * IOREMAP area is treated as memory hole and no copy is done.
-- *
-- * If [addr...addr+count) doesn't includes any intersects with alive
-- * vm_struct area, returns 0. @buf should be kernel's buffer.
-- *
-- * Note: In usual ops, vwrite() is never necessary because the caller
-- * should know vmalloc() area is valid and can use memcpy().
-- * This is for routines which have to access vmalloc area without
-- * any information, as /dev/kmem.
-- *
-- * Return: number of bytes for which addr and buf should be
-- * increased (same number as @count) or %0 if [addr...addr+count)
-- * doesn't include any intersection with valid vmalloc area
+-/*
+- * Convert a virtual cached pointer to an uncached pointer
 - */
--long vwrite(char *buf, char *addr, unsigned long count)
+-#define xlate_dev_kmem_ptr(p)	p
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif /* __ALPHA_IO_H */
+--- a/arch/arm/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
++++ a/arch/arm/include/asm/io.h
+@@ -430,11 +430,6 @@ extern void pci_iounmap(struct pci_dev *
+  */
+ #define xlate_dev_mem_ptr(p)	__va(p)
+ 
+-/*
+- * Convert a virtual cached pointer to an uncached pointer
+- */
+-#define xlate_dev_kmem_ptr(p)	p
+-
+ #include <asm-generic/io.h>
+ 
+ #ifdef CONFIG_MMU
+--- a/arch/hexagon/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
++++ a/arch/hexagon/include/asm/io.h
+@@ -64,7 +64,6 @@ static inline void *phys_to_virt(unsigne
+  * convert a physical pointer to a virtual kernel pointer for
+  * /dev/mem access.
+  */
+-#define xlate_dev_kmem_ptr(p)    __va(p)
+ #define xlate_dev_mem_ptr(p)    __va(p)
+ 
+ /*
+--- a/arch/ia64/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
++++ a/arch/ia64/include/asm/io.h
+@@ -277,7 +277,6 @@ extern void memset_io(volatile void __io
+ #define memcpy_fromio memcpy_fromio
+ #define memcpy_toio memcpy_toio
+ #define memset_io memset_io
+-#define xlate_dev_kmem_ptr xlate_dev_kmem_ptr
+ #define xlate_dev_mem_ptr xlate_dev_mem_ptr
+ #include <asm-generic/io.h>
+ #undef PCI_IOBASE
+--- a/arch/ia64/include/asm/uaccess.h~mm-remove-xlate_dev_kmem_ptr
++++ a/arch/ia64/include/asm/uaccess.h
+@@ -272,22 +272,4 @@ xlate_dev_mem_ptr(phys_addr_t p)
+ 	return ptr;
+ }
+ 
+-/*
+- * Convert a virtual cached kernel memory pointer to an uncached pointer
+- */
+-static __inline__ void *
+-xlate_dev_kmem_ptr(void *p)
 -{
--	struct vmap_area *va;
--	struct vm_struct *vm;
--	char *vaddr;
--	unsigned long n, buflen;
--	int copied = 0;
+-	struct page *page;
+-	void *ptr;
 -
--	/* Don't allow overflow */
--	if ((unsigned long) addr + count < count)
--		count = -(unsigned long) addr;
--	buflen = count;
+-	page = virt_to_page((unsigned long)p);
+-	if (PageUncached(page))
+-		ptr = (void *)__pa(p) + __IA64_UNCACHED_OFFSET;
+-	else
+-		ptr = p;
 -
--	spin_lock(&vmap_area_lock);
--	list_for_each_entry(va, &vmap_area_list, list) {
--		if (!count)
--			break;
--
--		if (!va->vm)
--			continue;
--
--		vm = va->vm;
--		vaddr = (char *) vm->addr;
--		if (addr >= vaddr + get_vm_area_size(vm))
--			continue;
--		while (addr < vaddr) {
--			if (count == 0)
--				goto finished;
--			buf++;
--			addr++;
--			count--;
--		}
--		n = vaddr + get_vm_area_size(vm) - addr;
--		if (n > count)
--			n = count;
--		if (!(vm->flags & VM_IOREMAP)) {
--			aligned_vwrite(buf, addr, n);
--			copied++;
--		}
--		buf += n;
--		addr += n;
--		count -= n;
--	}
--finished:
--	spin_unlock(&vmap_area_lock);
--	if (!copied)
--		return 0;
--	return buflen;
+-	return ptr;
 -}
 -
- /**
-  * remap_vmalloc_range_partial - map vmalloc pages to userspace
-  * @vma:		vma to cover
+ #endif /* _ASM_IA64_UACCESS_H */
+--- a/arch/m68k/include/asm/io_mm.h~mm-remove-xlate_dev_kmem_ptr
++++ a/arch/m68k/include/asm/io_mm.h
+@@ -397,11 +397,6 @@ static inline void isa_delay(void)
+  */
+ #define xlate_dev_mem_ptr(p)	__va(p)
+ 
+-/*
+- * Convert a virtual cached pointer to an uncached pointer
+- */
+-#define xlate_dev_kmem_ptr(p)	p
+-
+ #define readb_relaxed(addr)	readb(addr)
+ #define readw_relaxed(addr)	readw(addr)
+ #define readl_relaxed(addr)	readl(addr)
+--- a/arch/mips/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
++++ a/arch/mips/include/asm/io.h
+@@ -564,11 +564,6 @@ extern void (*_dma_cache_inv)(unsigned l
+  */
+ #define xlate_dev_mem_ptr(p)	__va(p)
+ 
+-/*
+- * Convert a virtual cached pointer to an uncached pointer
+- */
+-#define xlate_dev_kmem_ptr(p)	p
+-
+ void __ioread64_copy(void *to, const void __iomem *from, size_t count);
+ 
+ #endif /* _ASM_IO_H */
+--- a/arch/parisc/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
++++ a/arch/parisc/include/asm/io.h
+@@ -316,11 +316,6 @@ extern void iowrite64be(u64 val, void __
+  */
+ #define xlate_dev_mem_ptr(p)	__va(p)
+ 
+-/*
+- * Convert a virtual cached pointer to an uncached pointer
+- */
+-#define xlate_dev_kmem_ptr(p)	p
+-
+ extern int devmem_is_allowed(unsigned long pfn);
+ 
+ #endif
+--- a/arch/powerpc/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
++++ a/arch/powerpc/include/asm/io.h
+@@ -663,11 +663,6 @@ static inline void name at					\
+ #define xlate_dev_mem_ptr(p)	__va(p)
+ 
+ /*
+- * Convert a virtual cached pointer to an uncached pointer
+- */
+-#define xlate_dev_kmem_ptr(p)	p
+-
+-/*
+  * We don't do relaxed operations yet, at least not with this semantic
+  */
+ #define readb_relaxed(addr)	readb(addr)
+--- a/arch/s390/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
++++ a/arch/s390/include/asm/io.h
+@@ -20,11 +20,6 @@ void *xlate_dev_mem_ptr(phys_addr_t phys
+ #define unxlate_dev_mem_ptr unxlate_dev_mem_ptr
+ void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
+ 
+-/*
+- * Convert a virtual cached pointer to an uncached pointer
+- */
+-#define xlate_dev_kmem_ptr(p)	p
+-
+ #define IO_SPACE_LIMIT 0
+ 
+ void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot);
+--- a/arch/sh/include/asm/io.h~mm-remove-xlate_dev_kmem_ptr
++++ a/arch/sh/include/asm/io.h
+@@ -283,11 +283,6 @@ static inline void __iomem *ioremap_prot
+  */
+ #define xlate_dev_mem_ptr(p)	__va(p)
+ 
+-/*
+- * Convert a virtual cached pointer to an uncached pointer
+- */
+-#define xlate_dev_kmem_ptr(p)	p
+-
+ #define ARCH_HAS_VALID_PHYS_ADDR_RANGE
+ int valid_phys_addr_range(phys_addr_t addr, size_t size);
+ int valid_mmap_phys_addr_range(unsigned long pfn, size_t size);
+--- a/arch/sparc/include/asm/io_64.h~mm-remove-xlate_dev_kmem_ptr
++++ a/arch/sparc/include/asm/io_64.h
+@@ -454,11 +454,6 @@ void sbus_set_sbus64(struct device *, in
+  */
+ #define xlate_dev_mem_ptr(p)	__va(p)
+ 
+-/*
+- * Convert a virtual cached pointer to an uncached pointer
+- */
+-#define xlate_dev_kmem_ptr(p)	p
+-
+ #endif
+ 
+ #endif /* !(__SPARC64_IO_H) */
+--- a/include/asm-generic/io.h~mm-remove-xlate_dev_kmem_ptr
++++ a/include/asm-generic/io.h
+@@ -1064,17 +1064,6 @@ static inline void pci_iounmap(struct pc
+ #endif
+ #endif /* CONFIG_GENERIC_IOMAP */
+ 
+-/*
+- * Convert a virtual cached pointer to an uncached pointer
+- */
+-#ifndef xlate_dev_kmem_ptr
+-#define xlate_dev_kmem_ptr xlate_dev_kmem_ptr
+-static inline void *xlate_dev_kmem_ptr(void *addr)
+-{
+-	return addr;
+-}
+-#endif
+-
+ #ifndef xlate_dev_mem_ptr
+ #define xlate_dev_mem_ptr xlate_dev_mem_ptr
+ static inline void *xlate_dev_mem_ptr(phys_addr_t addr)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
