@@ -5,35 +5,42 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB270C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:38:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFAF2C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:38:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B4C4F610D2
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:38:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91EAF613EA
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:38:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229549AbhEHWj0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:39:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41956 "EHLO mail.kernel.org"
+        id S229559AbhEHWjo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:39:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42258 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229522AbhEHWjZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:39:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AE4EA610D2;
-        Sat,  8 May 2021 22:38:22 +0000 (UTC)
+        id S229522AbhEHWjn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:39:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7587F613E8;
+        Sat,  8 May 2021 22:38:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513502;
-        bh=kb+4N4wXKb4gD7KaZuVl9aFhlDdlwnKI017eZNqwUgs=;
+        s=korg; t=1620513521;
+        bh=cR3QH7Y2U9Hv+yhn9D2Jc07PvejJ9mO0KNXxDuhR/lI=;
         h=Date:From:To:Subject:From;
-        b=sgQv6HuDITt/wBNbDOqrQc/nXxmfXXHu+FzgvjILu+gn0fmtxQSlWIDtgQlaXouzt
-         SkmBishPsZ6xd6Dswn1VsLr0SW3wXY688POdrbHqoFM4PpjTxwR/QrAnZCnCNMUr7A
-         5pJppw28e86CXf9swry09wntfa/oLdZO2YyW8b9Y=
-Date:   Sat, 08 May 2021 15:38:22 -0700
+        b=Acew8q7X+mqpIYOdJi1JU0klWF3ORGFgx2txEEBUuM03ZcQzF/mdvZvSWBOTHKgg1
+         132Dg4WbUEL39BzTzOqOggZcHYrUc01tPW/cQx3XcD9GRLZV0uF0llftG24k26OpCg
+         aPoaukmE7TGR2Yo0fod1pd2GRTcwCLuqQeaGG1VU=
+Date:   Sat, 08 May 2021 15:38:41 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] cifsd-is-broken.patch removed from -mm tree
-Message-ID: <20210508223822.mG6cUr8lG%akpm@linux-foundation.org>
+To:     christian.koenig@amd.com, daniel.vetter@ffwll.ch,
+        jaharkes@cs.cmu.edu, jgg@ziepe.ca, miklos@szeredi.hu,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org
+Subject:  [merged]
+ coda-fix-reference-counting-in-coda_file_mmap-error-path.patch removed from
+ -mm tree
+Message-ID: <20210508223841.ohzKO1QvQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,37 +48,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cifsd-is-broken
+     Subject: coda: fix reference counting in coda_file_mmap error path
 has been removed from the -mm tree.  Its filename was
-     cifsd-is-broken.patch
+     coda-fix-reference-counting-in-coda_file_mmap-error-path.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cifsd-is-broken
+=46rom: Christian K=C3=B6nig <christian.koenig@amd.com>
+Subject: coda: fix reference counting in coda_file_mmap error path
 
+mmap_region() now calls fput() on the vma->vm_file.
+
+So we need to drop the extra reference on the coda file instead of the
+host file.
+
+Link: https://lkml.kernel.org/r/20210421132012.82354-1-christian.koenig@amd=
+.com
+Fixes: 1527f926fd04 ("mm: mmap: fix fput in error path v2")
+Signed-off-by: Christian K=C3=B6nig <christian.koenig@amd.com>
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Acked-by: Jan Harkes <jaharkes@cs.cmu.edu>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: <stable@vger.kernel.org>	[5.11+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifsd/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/coda/file.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/fs/cifsd/Kconfig~cifsd-is-broken
-+++ a/fs/cifsd/Kconfig
-@@ -3,6 +3,7 @@ config SMB_SERVER
- 	depends on INET
- 	depends on MULTIUSER
- 	depends on FILE_LOCKING
-+	depends on BROKEN
- 	select NLS
- 	select NLS_UTF8
- 	select CRYPTO
+--- a/fs/coda/file.c~coda-fix-reference-counting-in-coda_file_mmap-error-pa=
+th
++++ a/fs/coda/file.c
+@@ -175,10 +175,10 @@ coda_file_mmap(struct file *coda_file, s
+ 	ret =3D call_mmap(vma->vm_file, vma);
+=20
+ 	if (ret) {
+-		/* if call_mmap fails, our caller will put coda_file so we
+-		 * should drop the reference to the host_file that we got.
++		/* if call_mmap fails, our caller will put host_file so we
++		 * should drop the reference to the coda_file that we got.
+ 		 */
+-		fput(host_file);
++		fput(coda_file);
+ 		kfree(cvm_ops);
+ 	} else {
+ 		/* here we add redirects for the open/close vm_operations */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from christian.koenig@amd.com are
 
-mm.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
