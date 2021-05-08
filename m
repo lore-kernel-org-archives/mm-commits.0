@@ -4,37 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABCB7C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04E02C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8CA0B61426
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D2F7261426
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229675AbhEHWnu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:43:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50580 "EHLO mail.kernel.org"
+        id S229672AbhEHWnx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:43:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50654 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229672AbhEHWnu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:43:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 869F3613C5;
-        Sat,  8 May 2021 22:42:48 +0000 (UTC)
+        id S229559AbhEHWnx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:43:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AE4F26141E;
+        Sat,  8 May 2021 22:42:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513768;
-        bh=FFYtGUHgE4Vb4SmjZVjG7qz0Jmro+b0ATTX5yJKfiHk=;
+        s=korg; t=1620513771;
+        bh=f1/W8OtWfw7UD6zmRPSp6kbc6mD73dKenWJtCzitWbw=;
         h=Date:From:To:Subject:From;
-        b=w1ZHqaCjVpar1U3mt4LC7FgghsH+5vlBQARMvVb0/qXZK5pLTIFpKwCZTmQsRlGNK
-         QLCsGv+CD0HOa03AthhMxZxMCKFY01OiV+IDpu4Anx26u7sfvuWyA3Pik9QyxkNPNx
-         bRcTWrNzPeZAkSug7wkGG8yoQtLXgl3Tld3u/e3g=
-Date:   Sat, 08 May 2021 15:42:48 -0700
+        b=uIH8rTMsVxyq8myvfawh7jeyYmpZZPVXtRLLYYqi5+jXFz3YYmU1Hd5zXAgqYtcfF
+         09v7dQlrv7/JAtqJ2ZNJ+HMHSA/WackOGWfwoKMQQczC9a1PMRAjkmYe7N1VwDv9/N
+         hDA6Lf6sYgu34NIPCkQhvrPRiYKLM1epf1ugI/Ok=
+Date:   Sat, 08 May 2021 15:42:50 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, christophe.leroy@csgroup.eu,
-        mm-commits@vger.kernel.org, npiggin@gmail.com
-Subject:  [merged] mm-huge_vmap-arch-support-cleanup-fix.patch
- removed from -mm tree
-Message-ID: <20210508224248.4LkZrRbbf%akpm@linux-foundation.org>
+To:     bp@alien8.de, catalin.marinas@arm.com, dingtianhong@huawei.com,
+        hch@lst.de, hpa@zytor.com, linmiaohe@huawei.com,
+        linux@armlinux.org.uk, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
+        tglx@linutronix.de, urezki@gmail.com, will@kernel.org
+Subject:  [merged]
+ powerpc-inline-huge-vmap-supported-functions.patch removed from -mm tree
+Message-ID: <20210508224250.6loF9WTu5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,54 +46,107 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ioremap: fix iomap_max_page_shift
+     Subject: powerpc: inline huge vmap supported functions
 has been removed from the -mm tree.  Its filename was
-     mm-huge_vmap-arch-support-cleanup-fix.patch
+     powerpc-inline-huge-vmap-supported-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: mm/ioremap: fix iomap_max_page_shift
+From: Nicholas Piggin <npiggin@gmail.com>
+Subject: powerpc: inline huge vmap supported functions
 
-iomap_max_page_shift is expected to contain a page shift,
-so it can't be a 'bool', has to be an 'unsigned int'
+This allows unsupported levels to be constant folded away, and so
+p4d_free_pud_page can be removed because it's no longer linked to.
 
-And fix the default values: P4D_SHIFT is when huge iomap is allowed.
-
-Link: https://lkml.kernel.org/r/0d615a242c4470462da547dc332e4ec5f00479dd.1619855673.git.christophe.leroy@csgroup.eu
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Reviewed-by: Nicholas Piggin <npiggin@gmail.com>
+Link: https://lkml.kernel.org/r/20210317062402.533919-8-npiggin@gmail.com
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ding Tianhong <dingtianhong@huawei.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ioremap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/powerpc/include/asm/vmalloc.h       |   19 ++++++++++++++++---
+ arch/powerpc/mm/book3s64/radix_pgtable.c |   21 ---------------------
+ 2 files changed, 16 insertions(+), 24 deletions(-)
 
---- a/mm/ioremap.c~mm-huge_vmap-arch-support-cleanup-fix
-+++ a/mm/ioremap.c
-@@ -16,16 +16,16 @@
- #include "pgalloc-track.h"
+--- a/arch/powerpc/include/asm/vmalloc.h~powerpc-inline-huge-vmap-supported-functions
++++ a/arch/powerpc/include/asm/vmalloc.h
+@@ -1,12 +1,25 @@
+ #ifndef _ASM_POWERPC_VMALLOC_H
+ #define _ASM_POWERPC_VMALLOC_H
+ 
++#include <asm/mmu.h>
+ #include <asm/page.h>
  
  #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
--static bool __ro_after_init iomap_max_page_shift = PAGE_SHIFT;
-+static unsigned int __ro_after_init iomap_max_page_shift = P4D_SHIFT;
+-bool arch_vmap_p4d_supported(pgprot_t prot);
+-bool arch_vmap_pud_supported(pgprot_t prot);
+-bool arch_vmap_pmd_supported(pgprot_t prot);
++static inline bool arch_vmap_p4d_supported(pgprot_t prot)
++{
++	return false;
++}
++
++static inline bool arch_vmap_pud_supported(pgprot_t prot)
++{
++	/* HPT does not cope with large pages in the vmalloc area */
++	return radix_enabled();
++}
++
++static inline bool arch_vmap_pmd_supported(pgprot_t prot)
++{
++	return radix_enabled();
++}
+ #endif
  
- static int __init set_nohugeiomap(char *str)
- {
--	iomap_max_page_shift = P4D_SHIFT;
-+	iomap_max_page_shift = PAGE_SHIFT;
- 	return 0;
+ #endif /* _ASM_POWERPC_VMALLOC_H */
+--- a/arch/powerpc/mm/book3s64/radix_pgtable.c~powerpc-inline-huge-vmap-supported-functions
++++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
+@@ -1082,22 +1082,6 @@ void radix__ptep_modify_prot_commit(stru
+ 	set_pte_at(mm, addr, ptep, pte);
  }
- early_param("nohugeiomap", set_nohugeiomap);
- #else /* CONFIG_HAVE_ARCH_HUGE_VMAP */
--static const bool iomap_max_page_shift = PAGE_SHIFT;
-+static const unsigned int iomap_max_page_shift = PAGE_SHIFT;
- #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
  
- static int vmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+-bool arch_vmap_pud_supported(pgprot_t prot)
+-{
+-	/* HPT does not cope with large pages in the vmalloc area */
+-	return radix_enabled();
+-}
+-
+-bool arch_vmap_pmd_supported(pgprot_t prot)
+-{
+-	return radix_enabled();
+-}
+-
+-int p4d_free_pud_page(p4d_t *p4d, unsigned long addr)
+-{
+-	return 0;
+-}
+-
+ int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
+ {
+ 	pte_t *ptep = (pte_t *)pud;
+@@ -1181,8 +1165,3 @@ int pmd_free_pte_page(pmd_t *pmd, unsign
+ 
+ 	return 1;
+ }
+-
+-bool arch_vmap_p4d_supported(pgprot_t prot)
+-{
+-	return false;
+-}
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from npiggin@gmail.com are
 
 
