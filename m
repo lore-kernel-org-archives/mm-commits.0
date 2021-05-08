@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A08E3C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C753C43460
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:41:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 82DBA6141E
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 828926141D
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:41:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229609AbhEHWl7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:41:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45950 "EHLO mail.kernel.org"
+        id S229672AbhEHWmC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:42:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45996 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229559AbhEHWl7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:41:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 91B1D61402;
-        Sat,  8 May 2021 22:40:56 +0000 (UTC)
+        id S229559AbhEHWmA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:42:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8D55D61415;
+        Sat,  8 May 2021 22:40:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513656;
-        bh=DLvnMAsbNjpERaG1O/2WB7Qq11RAIgeXQPIf+3TXgsQ=;
+        s=korg; t=1620513658;
+        bh=5l7iT9SERMpOwEopw7NBu0YkZq+QCtvVV/r7AMs/52Q=;
         h=Date:From:To:Subject:From;
-        b=Xh8EbQuNxQUbuz+nB87yHCPV4+UdhAw9EJTtOGRd4OSGZ/fJkEii0MwpJ3ihwn2Uh
-         N1rTOzI50j/UZypwEtEzVugUU29zlal/yvDXh+Nb2fzC3rhrSYHv4wWiOtjqGI5z3H
-         27DZj+MbgHq3AnDhaj9szbEsjokpJwpvLDGG60QQ=
-Date:   Sat, 08 May 2021 15:40:56 -0700
+        b=D+JCMXyCAtKbWz80U/GQRXcjajBTnIHCGDOwv2QHiZ4NOKgDiRS0MBM639Zn2IbKT
+         DyRXb2UcpKDXULnCntMoflbR5H7fGzi+X2H3oTvhlK1Gjg9oKkOSjEeao8cjySnkYS
+         IotaC06nKmo2iSzjfr91yzYo2DCfGkLiPC5rzISE=
+Date:   Sat, 08 May 2021 15:40:58 -0700
 From:   akpm@linux-foundation.org
 To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com,
-        songmuchun@bytedance.com
-Subject:  [merged] mm-memcontrol-fix-kernel-stack-account.patch
- removed from -mm tree
-Message-ID: <20210508224056.gcv_0wqcz%akpm@linux-foundation.org>
+        mm-commits@vger.kernel.org, shakeelb@google.com
+Subject:  [merged] memcg-cleanup-root-memcg-checks.patch removed
+ from -mm tree
+Message-ID: <20210508224058.uf8exWgy0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,71 +43,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fix kernel stack account
+     Subject: memcg: cleanup root memcg checks
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-kernel-stack-account.patch
+     memcg-cleanup-root-memcg-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: fix kernel stack account
+From: Shakeel Butt <shakeelb@google.com>
+Subject: memcg: cleanup root memcg checks
 
-For simplification 991e7673859e ("mm: memcontrol: account kernel stack per
-node") has changed the per zone vmalloc backed stack pages accounting to
-per node.  By doing that we have lost a certain precision because those
-pages might live in different NUMA nodes.  In the end NR_KERNEL_STACK_KB
-exported to the userspace might be over estimated on some nodes while
-underestimated on others.  But this is not a real world problem, just a
-problem found by reading the code.  So there is no actual data to showing
-how much impact it has on users.
+Replace the implicit checking of root memcg with explicit root memcg
+checking i.e.  !css->parent with mem_cgroup_is_root().
 
-This doesn't impose any real problem to correctnes of the kernel behavior
-as the counter is not used for any internal processing but it can cause
-some confusion to the userspace.
-
-Address the problem by accounting each vmalloc backing page to its own
-node.
-
-Link: https://lkml.kernel.org/r/20210303151843.81156-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20210223205625.2792891-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/fork.c~mm-memcontrol-fix-kernel-stack-account
-+++ a/kernel/fork.c
-@@ -380,14 +380,17 @@ static void account_kernel_stack(struct
- 	void *stack = task_stack_page(tsk);
- 	struct vm_struct *vm = task_stack_vm_area(tsk);
+--- a/mm/memcontrol.c~memcg-cleanup-root-memcg-checks
++++ a/mm/memcontrol.c
+@@ -4123,7 +4123,7 @@ static int mem_cgroup_swappiness_write(s
+ 	if (val > 100)
+ 		return -EINVAL;
  
-+	if (vm) {
-+		int i;
+-	if (css->parent)
++	if (!mem_cgroup_is_root(memcg))
+ 		memcg->swappiness = val;
+ 	else
+ 		vm_swappiness = val;
+@@ -4473,7 +4473,7 @@ static int mem_cgroup_oom_control_write(
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
  
--	/* All stack pages are in the same node. */
--	if (vm)
--		mod_lruvec_page_state(vm->pages[0], NR_KERNEL_STACK_KB,
--				      account * (THREAD_SIZE / 1024));
--	else
-+		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++)
-+			mod_lruvec_page_state(vm->pages[i], NR_KERNEL_STACK_KB,
-+					      account * (PAGE_SIZE / 1024));
-+	} else {
-+		/* All stack pages are in the same node. */
- 		mod_lruvec_kmem_state(stack, NR_KERNEL_STACK_KB,
- 				      account * (THREAD_SIZE / 1024));
-+	}
- }
+ 	/* cannot set to root cgroup and only 0 and 1 are allowed */
+-	if (!css->parent || !((val == 0) || (val == 1)))
++	if (mem_cgroup_is_root(memcg) || !((val == 0) || (val == 1)))
+ 		return -EINVAL;
  
- static int memcg_charge_kernel_stack(struct task_struct *tsk)
+ 	memcg->oom_kill_disable = val;
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
 
