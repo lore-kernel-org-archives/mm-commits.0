@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8597AC433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1654C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6522661424
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B447B6141E
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:43:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229616AbhEHWoX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:44:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51812 "EHLO mail.kernel.org"
+        id S229644AbhEHWo0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:44:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51868 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229559AbhEHWoX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:44:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8732061415;
-        Sat,  8 May 2021 22:43:21 +0000 (UTC)
+        id S229559AbhEHWoZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:44:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9740B61421;
+        Sat,  8 May 2021 22:43:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513801;
-        bh=QE1/iIcG3mpHMtyz3dY5cYURXKWuKkRaXsOsW0ScqFQ=;
+        s=korg; t=1620513803;
+        bh=pc55oGkDiUZGUWq7JNWAyU17Wkn9J3HeJ8V+uBuNH1Y=;
         h=Date:From:To:Subject:From;
-        b=ZDMXkUAVDaaxbLtnzi2ieOI7vJu0uBIw+iVtvLzwfLZEmzd7wfI2JPuRtqXs0Pgx3
-         Cr2zSf8pGLPDEIL8f4PiejEs03f5pOwd3957gRp3M7L7f+MGfnIxt9UDW0b3YFht3F
-         rGJW+XkiSBN6tp5r9p4kq5+p0wDYk0wO+RZjemq4=
-Date:   Sat, 08 May 2021 15:43:21 -0700
+        b=vaIM1SbE52/jCsjcjSTZNcUvWDj4PV7wl40LaDSO2TTdlec1CIbhZj2dS2V3CAL2j
+         W3n6JzrRznHV3A3XwEEBlwQBC7BF8tBT/x4WwzUmEKCXLnpR2RJ057KaErCbIXR1cT
+         POIuHLDPpnBxmLgdOYM6aZhlxXvkMUCOmoZvIQG8=
+Date:   Sat, 08 May 2021 15:43:23 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, urezki@gmail.com, vjitta@codeaurora.org
+To:     hdanton@sina.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        oleksiy.avramchenko@sonymobile.com, rostedt@goodmis.org,
+        shuah@kernel.org, urezki@gmail.com, willy@infradead.org
 Subject:  [merged]
- mm-vmalloc-prevent-use-after-free-in-_vm_unmap_aliases.patch removed from
- -mm tree
-Message-ID: <20210508224321.CQR8HrDUV%akpm@linux-foundation.org>
+ lib-test_vmallocc-remove-two-kvfree_rcu-tests.patch removed from -mm tree
+Message-ID: <20210508224323.8CJbsR9DZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,62 +44,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmalloc: prevent use after free in _vm_unmap_aliases
+     Subject: lib/test_vmalloc.c: remove two kvfree_rcu() tests
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-prevent-use-after-free-in-_vm_unmap_aliases.patch
+     lib-test_vmallocc-remove-two-kvfree_rcu-tests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vijayanand Jitta <vjitta@codeaurora.org>
-Subject: mm: vmalloc: prevent use after free in _vm_unmap_aliases
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: lib/test_vmalloc.c: remove two kvfree_rcu() tests
 
-A potential use after free can occur in _vm_unmap_aliases where an already
-freed vmap_area could be accessed, Consider the following scenario:
+Remove two test cases related to kvfree_rcu() and SLAB.  Those are
+considered as redundant now, because similar test functionality has
+recently been introduced in the "rcuscale" RCU test-suite.
 
-Process 1						Process 2
-
-__vm_unmap_aliases					__vm_unmap_aliases
-	purge_fragmented_blocks_allcpus				rcu_read_lock()
-		rcu_read_lock()
-			list_del_rcu(&vb->free_list)
-									list_for_each_entry_rcu(vb .. )
-	__purge_vmap_area_lazy
-		kmem_cache_free(va)
-										va_start = vb->va->va_start
-
-Here Process 1 is in purge path and it does list_del_rcu on vmap_block and
-later frees the vmap_area, since Process 2 was holding the rcu lock at
-this time vmap_block will still be present in and Process 2 accesse it and
-thereby it tries to access vmap_area of that vmap_block which was already
-freed by Process 1 and this results in use after free.
-
-Fix this by adding a check for vb->dirty before accessing vmap_area
-structure since vb->dirty will be set to VMAP_BBMAP_BITS in purge path
-checking for this will prevent the use after free.
-
-Link: https://lkml.kernel.org/r/1616062105-23263-1-git-send-email-vjitta@codeaurora.org
-Signed-off-by: Vijayanand Jitta <vjitta@codeaurora.org>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/20210402202237.20334-1-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_vmalloc.c |   40 ----------------------------------------
+ 1 file changed, 40 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-prevent-use-after-free-in-_vm_unmap_aliases
-+++ a/mm/vmalloc.c
-@@ -2040,7 +2040,7 @@ static void _vm_unmap_aliases(unsigned l
- 		rcu_read_lock();
- 		list_for_each_entry_rcu(vb, &vbq->free, free_list) {
- 			spin_lock(&vb->lock);
--			if (vb->dirty) {
-+			if (vb->dirty && vb->dirty != VMAP_BBMAP_BITS) {
- 				unsigned long va_start = vb->va->va_start;
- 				unsigned long s, e;
+--- a/lib/test_vmalloc.c~lib-test_vmallocc-remove-two-kvfree_rcu-tests
++++ a/lib/test_vmalloc.c
+@@ -47,8 +47,6 @@ __param(int, run_test_mask, INT_MAX,
+ 		"\t\tid: 128,  name: pcpu_alloc_test\n"
+ 		"\t\tid: 256,  name: kvfree_rcu_1_arg_vmalloc_test\n"
+ 		"\t\tid: 512,  name: kvfree_rcu_2_arg_vmalloc_test\n"
+-		"\t\tid: 1024, name: kvfree_rcu_1_arg_slab_test\n"
+-		"\t\tid: 2048, name: kvfree_rcu_2_arg_slab_test\n"
+ 		/* Add a new test case description here. */
+ );
+ 
+@@ -363,42 +361,6 @@ kvfree_rcu_2_arg_vmalloc_test(void)
+ 	return 0;
+ }
+ 
+-static int
+-kvfree_rcu_1_arg_slab_test(void)
+-{
+-	struct test_kvfree_rcu *p;
+-	int i;
+-
+-	for (i = 0; i < test_loop_count; i++) {
+-		p = kmalloc(sizeof(*p), GFP_KERNEL);
+-		if (!p)
+-			return -1;
+-
+-		p->array[0] = 'a';
+-		kvfree_rcu(p);
+-	}
+-
+-	return 0;
+-}
+-
+-static int
+-kvfree_rcu_2_arg_slab_test(void)
+-{
+-	struct test_kvfree_rcu *p;
+-	int i;
+-
+-	for (i = 0; i < test_loop_count; i++) {
+-		p = kmalloc(sizeof(*p), GFP_KERNEL);
+-		if (!p)
+-			return -1;
+-
+-		p->array[0] = 'a';
+-		kvfree_rcu(p, rcu);
+-	}
+-
+-	return 0;
+-}
+-
+ struct test_case_desc {
+ 	const char *test_name;
+ 	int (*test_func)(void);
+@@ -415,8 +377,6 @@ static struct test_case_desc test_case_a
+ 	{ "pcpu_alloc_test", pcpu_alloc_test },
+ 	{ "kvfree_rcu_1_arg_vmalloc_test", kvfree_rcu_1_arg_vmalloc_test },
+ 	{ "kvfree_rcu_2_arg_vmalloc_test", kvfree_rcu_2_arg_vmalloc_test },
+-	{ "kvfree_rcu_1_arg_slab_test", kvfree_rcu_1_arg_slab_test },
+-	{ "kvfree_rcu_2_arg_slab_test", kvfree_rcu_2_arg_slab_test },
+ 	/* Add a new test case here. */
+ };
  
 _
 
-Patches currently in -mm which might be from vjitta@codeaurora.org are
+Patches currently in -mm which might be from urezki@gmail.com are
 
 
