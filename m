@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EEE9C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 185C7C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 827BA61402
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F117961448
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229728AbhEHWyS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:54:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41902 "EHLO mail.kernel.org"
+        id S229609AbhEHWyU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:54:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41946 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229641AbhEHWyR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:54:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8107961424;
-        Sat,  8 May 2021 22:53:15 +0000 (UTC)
+        id S229732AbhEHWyT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:54:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 90EAF60E0B;
+        Sat,  8 May 2021 22:53:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514395;
-        bh=P/8dyPPaTyboNtrLzFuekNlA76TGdkUHRvuhkoPvFag=;
+        s=korg; t=1620514397;
+        bh=FEh6MwpsEZ5RJ361edmp1616wYUdjCH4FoGcHO9HFU8=;
         h=Date:From:To:Subject:From;
-        b=aENxyjdkMB717NhWjTpUHgyHruW/mid45q2/yWrQbPhn39hGc2tNTXpmaWARQKpoe
-         qRgkK3IeSCO38xrUfoxG4h/ilLC4bOgUgLLC8M1ZGUnI/TFLHsGE2e1ndVOCw8ZcVM
-         /FdcN9IW5IJPbseXMx1Vc7mucfsa2FqiehEUPnDQ=
-Date:   Sat, 08 May 2021 15:53:15 -0700
+        b=ld0kWSWjnCXCbgyGe8ymh4W/fLvfWEIMNh6oC4PvqQ1FsJ8HbACX5tWLsgWLVZ9di
+         AA1+hq4jD9fNjMZGKRkL53iCSrPJ64o+7XYrMLhEu1sBCR0B0vaq+iB05TDRMIGqkp
+         obJ3AX9G2aTDE7PkvK9FXxHuFKGotsQmabBhxy7Q=
+Date:   Sat, 08 May 2021 15:53:17 -0700
 From:   akpm@linux-foundation.org
-To:     christophe.jaillet@wanadoo.fr, joe@perches.com,
-        mm-commits@vger.kernel.org
-Subject:  [merged] checkpatch-improve-alloc_array_args-test.patch
+To:     dave@stgolabs.net, dbueso@suse.de, jbaron@akamai.com,
+        mm-commits@vger.kernel.org, rpenyaev@suse.de,
+        viro@zeniv.linux.org.uk
+Subject:  [merged] kselftest-introduce-new-epoll-test-case.patch
  removed from -mm tree
-Message-ID: <20210508225315.kmBbo5yVK%akpm@linux-foundation.org>
+Message-ID: <20210508225317.bNmBJZ2Sw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,41 +44,102 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve ALLOC_ARRAY_ARGS test
+     Subject: kselftest: introduce new epoll test case
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-alloc_array_args-test.patch
+     kselftest-introduce-new-epoll-test-case.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: checkpatch: improve ALLOC_ARRAY_ARGS test
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: kselftest: introduce new epoll test case
 
-The devm_ variant of 'kcalloc()' and 'kmalloc_array()' are not tested
-Add the corresponding check.
+Patch series "fs/epoll: restore user-visible behavior upon event ready".
 
-Link: https://lkml.kernel.org/r/205fc4847972fb6779abcc8818f39c14d1b45af1.1618595794.git.christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Acked-by: Joe Perches <joe@perches.com>
+This series tries to address a change in user visible behavior, reported
+in https://bugzilla.kernel.org/show_bug.cgi?id=208943.
+
+Epoll does not report an event to all the threads running epoll_wait()
+on the same epoll descriptor. Unsurprisingly, this was bisected back to
+339ddb53d373 (fs/epoll: remove unnecessary wakeups of nested epoll), which
+has had various problems in the past, beyond only nested epoll usage.
+
+
+This patch (of 2):
+
+This incorporates the testcase originally reported in:
+
+     https://bugzilla.kernel.org/show_bug.cgi?id=208943
+
+Which ensures an event is reported to all threads blocked on the same
+epoll descriptor, otherwise only a single thread will receive the wakeup
+once the event become ready.
+
+Link: https://lkml.kernel.org/r/20210405231025.33829-1-dave@stgolabs.net
+Link: https://lkml.kernel.org/r/20210405231025.33829-2-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: Roman Penyaev <rpenyaev@suse.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c |   44 ++++++++++
+ 1 file changed, 44 insertions(+)
 
---- a/scripts/checkpatch.pl~checkpatch-improve-alloc_array_args-test
-+++ a/scripts/checkpatch.pl
-@@ -7006,7 +7006,7 @@ sub process {
- 		}
+--- a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c~kselftest-introduce-new-epoll-test-case
++++ a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c
+@@ -3449,4 +3449,48 @@ TEST(epoll63)
+ 	close(sfd[1]);
+ }
  
- # check for alloc argument mismatch
--		if ($line =~ /\b(kcalloc|kmalloc_array)\s*\(\s*sizeof\b/) {
-+		if ($line =~ /\b((?:devm_)?(?:kcalloc|kmalloc_array))\s*\(\s*sizeof\b/) {
- 			WARN("ALLOC_ARRAY_ARGS",
- 			     "$1 uses number as first arg, sizeof is generally wrong\n" . $herecurr);
- 		}
++/*
++ *        t0    t1
++ *     (ew) \  / (ew)
++ *           e0
++ *            | (lt)
++ *           s0
++ */
++TEST(epoll64)
++{
++	pthread_t waiter[2];
++	struct epoll_event e;
++	struct epoll_mtcontext ctx = { 0 };
++
++	signal(SIGUSR1, signal_handler);
++
++	ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, ctx.sfd), 0);
++
++	ctx.efd[0] = epoll_create(1);
++	ASSERT_GE(ctx.efd[0], 0);
++
++	e.events = EPOLLIN;
++	ASSERT_EQ(epoll_ctl(ctx.efd[0], EPOLL_CTL_ADD, ctx.sfd[0], &e), 0);
++
++	/*
++	 * main will act as the emitter once both waiter threads are
++	 * blocked and expects to both be awoken upon the ready event.
++	 */
++	ctx.main = pthread_self();
++	ASSERT_EQ(pthread_create(&waiter[0], NULL, waiter_entry1a, &ctx), 0);
++	ASSERT_EQ(pthread_create(&waiter[1], NULL, waiter_entry1a, &ctx), 0);
++
++	usleep(100000);
++	ASSERT_EQ(write(ctx.sfd[1], "w", 1), 1);
++
++	ASSERT_EQ(pthread_join(waiter[0], NULL), 0);
++	ASSERT_EQ(pthread_join(waiter[1], NULL), 0);
++
++	EXPECT_EQ(ctx.count, 2);
++
++	close(ctx.efd[0]);
++	close(ctx.sfd[0]);
++	close(ctx.sfd[1]);
++}
++
+ TEST_HARNESS_MAIN
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
