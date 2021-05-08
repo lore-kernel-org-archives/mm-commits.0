@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09927C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:38:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFEA7C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:38:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DED7D610D2
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:38:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C1782613E8
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:38:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229616AbhEHWjw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:39:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42524 "EHLO mail.kernel.org"
+        id S229552AbhEHWj4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:39:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42612 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229522AbhEHWjw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:39:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AD752613EA;
-        Sat,  8 May 2021 22:38:49 +0000 (UTC)
+        id S229522AbhEHWjz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:39:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9ECC6610D2;
+        Sat,  8 May 2021 22:38:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513530;
-        bh=bI2izRbDUbmrGj5ge5eMiFATHn9yS7+UXt7rqH2DEAI=;
+        s=korg; t=1620513532;
+        bh=iKKaRM1uA1US5AsPnydvgJdlqk5SsZeOu4vbOXhTydE=;
         h=Date:From:To:Subject:From;
-        b=TW7Sy0TbgNuCrMQdBAZDYg9t6aa4cz/u2pspIkMz16sspsWb6JU3poEaf2E1RuWml
-         KU4pFxVrwYskBVfVKb3hKgzkHVPjxzNxxmy3ZbfdKc1GG/d5hzFVYxt4vEoi8IF/Ls
-         T2yCkBckxja5TbjcMJnAWLdZrCzEZF7sJ8nNRgso=
-Date:   Sat, 08 May 2021 15:38:49 -0700
+        b=QAsuqolCg+zhfI2RL8oaSj5uJdEEnbuI+nd+zCzNB9GTyYcmkoKby11R+X5s935dc
+         ugrZsx9eJnEET10xCKZ3GVzT7elJCTZVJr3qoznm6RV6XE+NvK2HT4yNX9jjlL3aZ8
+         4vElbjtn7G8B1/3bQ3RADmlWhcyOXzF27+v5uDls=
+Date:   Sat, 08 May 2021 15:38:52 -0700
 From:   akpm@linux-foundation.org
-To:     dchinner@redhat.com, hannes@cmpxchg.org, hch@lst.de,
-        hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com,
-        mm-commits@vger.kernel.org, william.kucharski@oracle.com,
-        willy@infradead.org, yang.shi@linux.alibaba.com
+To:     guro@fb.com, mhocko@kernel.org, mm-commits@vger.kernel.org,
+        vvs@virtuozzo.com
 Subject:  [merged]
- mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit.patch removed from -mm
- tree
-Message-ID: <20210508223849.6sFMYaBYt%akpm@linux-foundation.org>
+ tools-cgroup-slabinfopy-updated-to-work-on-current-kernel.patch removed
+ from -mm tree
+Message-ID: <20210508223852.fN5U_mlMX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,112 +44,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: fix mapping_seek_hole_data on THP & 32-bit
+     Subject: tools/cgroup/slabinfo.py: updated to work on current kernel
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit.patch
+     tools-cgroup-slabinfopy-updated-to-work-on-current-kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/filemap: fix mapping_seek_hole_data on THP & 32-bit
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: tools/cgroup/slabinfo.py: updated to work on current kernel
 
-No problem on 64-bit without huge pages, but xfstests generic/285 and
-other SEEK_HOLE/SEEK_DATA tests have regressed on huge tmpfs, and on
-32-bit architectures, with the new mapping_seek_hole_data().  Several
-different bugs turned out to need fixing.
+slabinfo.py script does not work with actual kernel version.
+First, it was unable to recognise SLUB susbsytem,
+when I specified it manually, it was failed again with
+AttributeError: 'struct page' has no member 'obj_cgroups'
+... and then again with
+  File "tools/cgroup/memcg_slabinfo.py", line 221, in main
+    memcg.kmem_caches.address_of_(),
+AttributeError: 'struct mem_cgroup' has no member 'kmem_caches'
 
-u64 cast to stop losing bits when converting unsigned long to loff_t (and
-let's use shifts throughout, rather than mixed with * and /).
-
-Use round_up() when advancing pos, to stop assuming that pos was already
-THP-aligned when advancing it by THP-size.  (This use of round_up()
-assumes that any THP has THP-aligned index: true at present and true going
-forward, but could be recoded to avoid the assumption.)
-
-Use xas_set() when iterating away from a THP, so that xa_index stays in
-synch with start, instead of drifting away to return bogus offset.
-
-Check start against end to avoid wrapping 32-bit xa_index to 0 (and to
-handle these additional cases, seek_data or not, it's easier to break the
-loop than goto: so rearrange exit from the function).
-
-[hughd@google.com: remove unneeded u64 casts, per Matthew]
-  Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2104221347240.1170@eggly.anvils
-Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2104211737410.3299@eggly.anvils
-Fixes: 41139aa4c3a3 ("mm/filemap: add mapping_seek_hole_data")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/cec1a75e-43b4-3d64-2084-d9f98fda037f@virtuozzo.com
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Tested-by: Roman Gushchin <guro@fb.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ tools/cgroup/memcg_slabinfo.py |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-fix-mapping_seek_hole_data-on-thp-32-bit
-+++ a/mm/filemap.c
-@@ -2678,7 +2678,7 @@ loff_t mapping_seek_hole_data(struct add
- 		loff_t end, int whence)
- {
- 	XA_STATE(xas, &mapping->i_pages, start >> PAGE_SHIFT);
--	pgoff_t max = (end - 1) / PAGE_SIZE;
-+	pgoff_t max = (end - 1) >> PAGE_SHIFT;
- 	bool seek_data = (whence == SEEK_DATA);
- 	struct page *page;
+--- a/tools/cgroup/memcg_slabinfo.py~tools-cgroup-slabinfopy-updated-to-work-on-current-kernel
++++ a/tools/cgroup/memcg_slabinfo.py
+@@ -128,9 +128,9 @@ def detect_kernel_config():
  
-@@ -2687,7 +2687,8 @@ loff_t mapping_seek_hole_data(struct add
+     cfg['nr_nodes'] = prog['nr_online_nodes'].value_()
  
- 	rcu_read_lock();
- 	while ((page = find_get_entry(&xas, max, XA_PRESENT))) {
--		loff_t pos = xas.xa_index * PAGE_SIZE;
-+		loff_t pos = (u64)xas.xa_index << PAGE_SHIFT;
-+		unsigned int seek_size;
+-    if prog.type('struct kmem_cache').members[1][1] == 'flags':
++    if prog.type('struct kmem_cache').members[1].name == 'flags':
+         cfg['allocator'] = 'SLUB'
+-    elif prog.type('struct kmem_cache').members[1][1] == 'batchcount':
++    elif prog.type('struct kmem_cache').members[1].name == 'batchcount':
+         cfg['allocator'] = 'SLAB'
+     else:
+         err('Can\'t determine the slab allocator')
+@@ -193,7 +193,7 @@ def main():
+         # look over all slab pages, belonging to non-root memcgs
+         # and look for objects belonging to the given memory cgroup
+         for page in for_each_slab_page(prog):
+-            objcg_vec_raw = page.obj_cgroups.value_()
++            objcg_vec_raw = page.memcg_data.value_()
+             if objcg_vec_raw == 0:
+                 continue
+             cache = page.slab_cache
+@@ -202,7 +202,7 @@ def main():
+             addr = cache.value_()
+             caches[addr] = cache
+             # clear the lowest bit to get the true obj_cgroups
+-            objcg_vec = Object(prog, page.obj_cgroups.type_,
++            objcg_vec = Object(prog, 'struct obj_cgroup **',
+                                value=objcg_vec_raw & ~1)
  
- 		if (start < pos) {
- 			if (!seek_data)
-@@ -2695,25 +2696,25 @@ loff_t mapping_seek_hole_data(struct add
- 			start = pos;
- 		}
- 
--		pos += seek_page_size(&xas, page);
-+		seek_size = seek_page_size(&xas, page);
-+		pos = round_up(pos + 1, seek_size);
- 		start = page_seek_hole_data(&xas, mapping, page, start, pos,
- 				seek_data);
- 		if (start < pos)
- 			goto unlock;
-+		if (start >= end)
-+			break;
-+		if (seek_size > PAGE_SIZE)
-+			xas_set(&xas, pos >> PAGE_SHIFT);
- 		if (!xa_is_value(page))
- 			put_page(page);
- 	}
--	rcu_read_unlock();
--
- 	if (seek_data)
--		return -ENXIO;
--	goto out;
--
-+		start = -ENXIO;
- unlock:
- 	rcu_read_unlock();
--	if (!xa_is_value(page))
-+	if (page && !xa_is_value(page))
- 		put_page(page);
--out:
- 	if (start > end)
- 		return end;
- 	return start;
+             if addr not in stats:
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from vvs@virtuozzo.com are
 
 
