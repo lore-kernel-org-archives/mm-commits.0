@@ -2,40 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93770C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78F32C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 78059613EA
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 569EF613E8
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:46:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229647AbhEHWru (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:47:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59042 "EHLO mail.kernel.org"
+        id S229648AbhEHWry (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:47:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59110 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229567AbhEHWru (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:47:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 82A8B610D2;
-        Sat,  8 May 2021 22:46:48 +0000 (UTC)
+        id S229559AbhEHWry (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:47:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B17D3613C5;
+        Sat,  8 May 2021 22:46:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514008;
-        bh=Lv3DuEzxli1FA1N4jFKG0ZxZGeNYpOnvY0+x1rZNNn8=;
+        s=korg; t=1620514011;
+        bh=mR8YMW5SkxEjlqcyPmPl2d1KZBQNOiJdw7eFxuvl2fs=;
         h=Date:From:To:Subject:From;
-        b=yQqwjrnrikAeSzkscYpepBICFOhJNS6t2w7Z6fwpwbdfqFmvoOZH7xeddkvt3Vhk+
-         q95gpYg3dVYdMIO7OMUHRxZ7JFO36m/iSo7BGMnRKXI1nsmrk76uMMrIsDxvyFM2un
-         pxQwWP+vNXOln1qqgrFNqhvDMt18A+4gAcjQjxdA=
-Date:   Sat, 08 May 2021 15:46:48 -0700
+        b=xjSnDDUTQXWlTtYPx19pYKIIERfxxSWRTPwTWR2Ht5oUY3cyCBpBGdAz4SXj08K02
+         fz3J9zVshQ3seFEbs++jUqVy4T5ngoDzVWIxJ1kmFioCngTseHbC62GUBbZ7IvYx1e
+         CQLk1jHvsuAIMhC1d2pgQx+Jfg/h5p+pCPDxZvi0=
+Date:   Sat, 08 May 2021 15:46:50 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org
+To:     aneesh.kumar@linux.ibm.com, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org, peterx@redhat.com,
+        rcampbell@nvidia.com, richard.weiyang@linux.alibaba.com,
+        thomas_os@shipmail.org, vbabka@suse.cz, walken@google.com,
+        william.kucharski@oracle.com, willy@infradead.org,
+        yang.shi@linux.alibaba.com, yulei.kernel@gmail.com, ziy@nvidia.com
 Subject:  [merged]
- mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch removed from
- -mm tree
-Message-ID: <20210508224648.feJRybDOv%akpm@linux-foundation.org>
+ mm-huge_memoryc-rework-the-function-vma_adjust_trans_huge.patch removed
+ from -mm tree
+Message-ID: <20210508224650.enNiPlq4L%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,49 +48,117 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: remove unnecessary local variable ret2
+     Subject: mm/huge_memory.c: rework the function vma_adjust_trans_huge()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memoryc-remove-unnecessary-local-variable-ret2.patch
+     mm-huge_memoryc-rework-the-function-vma_adjust_trans_huge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory.c: remove unnecessary local variable ret2
+Subject: mm/huge_memory.c: rework the function vma_adjust_trans_huge()
 
-There is no need to use a new local variable ret2 to get the return value
-of handle_userfault(). Use ret directly to make code more succinct.
+Patch series "Some cleanups for huge_memory", v3.
 
-Link: https://lkml.kernel.org/r/20210210072409.60587-1-linmiaohe@huawei.com
+This series contains cleanups to rework some function logics to make it
+more readable, use helper function and so on.  More details can be found
+in the respective changelogs.
+
+
+This patch (of 6):
+
+The current implementation of vma_adjust_trans_huge() contains some
+duplicated codes.  Add helper function to get rid of these codes to make
+it more succinct.
+
+Link: https://lkml.kernel.org/r/20210318122722.13135-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210318122722.13135-2-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: yuleixzhang <yulei.kernel@gmail.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Thomas Hellstrm (Intel) <thomas_os@shipmail.org>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/huge_memory.c |   44 +++++++++++++++++++-------------------------
+ 1 file changed, 19 insertions(+), 25 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-remove-unnecessary-local-variable-ret2
+--- a/mm/huge_memory.c~mm-huge_memoryc-rework-the-function-vma_adjust_trans_huge
 +++ a/mm/huge_memory.c
-@@ -624,14 +624,12 @@ static vm_fault_t __do_huge_pmd_anonymou
+@@ -2301,44 +2301,38 @@ void split_huge_pmd_address(struct vm_ar
+ 	__split_huge_pmd(vma, pmd, address, freeze, page);
+ }
  
- 		/* Deliver the page fault to userland */
- 		if (userfaultfd_missing(vma)) {
--			vm_fault_t ret2;
--
- 			spin_unlock(vmf->ptl);
- 			put_page(page);
- 			pte_free(vma->vm_mm, pgtable);
--			ret2 = handle_userfault(vmf, VM_UFFD_MISSING);
--			VM_BUG_ON(ret2 & VM_FAULT_FALLBACK);
--			return ret2;
-+			ret = handle_userfault(vmf, VM_UFFD_MISSING);
-+			VM_BUG_ON(ret & VM_FAULT_FALLBACK);
-+			return ret;
- 		}
++static inline void split_huge_pmd_if_needed(struct vm_area_struct *vma, unsigned long address)
++{
++	/*
++	 * If the new address isn't hpage aligned and it could previously
++	 * contain an hugepage: check if we need to split an huge pmd.
++	 */
++	if (!IS_ALIGNED(address, HPAGE_PMD_SIZE) &&
++	    range_in_vma(vma, ALIGN_DOWN(address, HPAGE_PMD_SIZE),
++			 ALIGN(address, HPAGE_PMD_SIZE)))
++		split_huge_pmd_address(vma, address, false, NULL);
++}
++
+ void vma_adjust_trans_huge(struct vm_area_struct *vma,
+ 			     unsigned long start,
+ 			     unsigned long end,
+ 			     long adjust_next)
+ {
+-	/*
+-	 * If the new start address isn't hpage aligned and it could
+-	 * previously contain an hugepage: check if we need to split
+-	 * an huge pmd.
+-	 */
+-	if (start & ~HPAGE_PMD_MASK &&
+-	    (start & HPAGE_PMD_MASK) >= vma->vm_start &&
+-	    (start & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= vma->vm_end)
+-		split_huge_pmd_address(vma, start, false, NULL);
++	/* Check if we need to split start first. */
++	split_huge_pmd_if_needed(vma, start);
  
- 		entry = mk_huge_pmd(page, vma->vm_page_prot);
+-	/*
+-	 * If the new end address isn't hpage aligned and it could
+-	 * previously contain an hugepage: check if we need to split
+-	 * an huge pmd.
+-	 */
+-	if (end & ~HPAGE_PMD_MASK &&
+-	    (end & HPAGE_PMD_MASK) >= vma->vm_start &&
+-	    (end & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= vma->vm_end)
+-		split_huge_pmd_address(vma, end, false, NULL);
++	/* Check if we need to split end next. */
++	split_huge_pmd_if_needed(vma, end);
+ 
+ 	/*
+-	 * If we're also updating the vma->vm_next->vm_start, if the new
+-	 * vm_next->vm_start isn't hpage aligned and it could previously
+-	 * contain an hugepage: check if we need to split an huge pmd.
++	 * If we're also updating the vma->vm_next->vm_start,
++	 * check if we need to split it.
+ 	 */
+ 	if (adjust_next > 0) {
+ 		struct vm_area_struct *next = vma->vm_next;
+ 		unsigned long nstart = next->vm_start;
+ 		nstart += adjust_next;
+-		if (nstart & ~HPAGE_PMD_MASK &&
+-		    (nstart & HPAGE_PMD_MASK) >= next->vm_start &&
+-		    (nstart & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= next->vm_end)
+-			split_huge_pmd_address(next, nstart, false, NULL);
++		split_huge_pmd_if_needed(next, nstart);
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
