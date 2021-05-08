@@ -7,33 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C399C43460
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD34EC43470
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1AEE6610FA
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5E9961402
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:53:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229689AbhEHWyt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:54:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42560 "EHLO mail.kernel.org"
+        id S229739AbhEHWyv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:54:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42624 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229690AbhEHWys (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:54:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 988FE61402;
-        Sat,  8 May 2021 22:53:46 +0000 (UTC)
+        id S229690AbhEHWyu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:54:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B124610FA;
+        Sat,  8 May 2021 22:53:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514426;
-        bh=LefW1LwgxsDNiq2aA4UNyH6TFW+STmJ3AKZgSURtyHw=;
+        s=korg; t=1620514428;
+        bh=zfSmjkyAsASgvwvsdqHAsyhhfF6Uq0gwaDEdUQb+RlM=;
         h=Date:From:To:Subject:From;
-        b=uMkJGuSJhAZcKUEV20p5KAis0/7WNBxvP3PbBf5oy4TTLYU6tR1XyVnfUL9LGsG1P
-         /81XXpV/Cmw4zLaihCSErikGMDeM88UERqGIMnDJGq7N8//Z8KCP7ZKzEz/tr65muA
-         ZxCzor8+YS2K8VGxMLvqv3bl5vcIjuLZh59dQUhc=
-Date:   Sat, 08 May 2021 15:53:46 -0700
+        b=hioZcN5oPa1VdGbKfEZTW3Jpg2Jlr/puUYm20yKhGupDpGbFhPsyFp1RzRcpFJoZx
+         a49DtQlDCY4qMCl0tbIaZ5Ynn0ipVcyuNBqS2KO53gQi7N+18iL6VgmeS+h0fhSfK3
+         2dFpJHS85ACtuDmiJ7VDHWVxdW0jPHNMzKMWHGqw=
+Date:   Sat, 08 May 2021 15:53:48 -0700
 From:   akpm@linux-foundation.org
-To:     johannes.berg@intel.com, mm-commits@vger.kernel.org,
-        ndesaulniers@google.com, oberpar@linux.ibm.com
-Subject:  [merged] gcov-use-kvmalloc.patch removed from -mm tree
-Message-ID: <20210508225346.x8Eixwf3E%akpm@linux-foundation.org>
+To:     johannes.berg@intel.com, maskray@google.com,
+        mm-commits@vger.kernel.org, nathan@kernel.org,
+        ndesaulniers@google.com, oberpar@linux.ibm.com,
+        psodagud@quicinc.com
+Subject:  [merged]
+ gcov-clang-drop-support-for-clang-10-and-older.patch removed from -mm tree
+Message-ID: <20210508225348.txSDYzAqC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,145 +45,237 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gcov: use kvmalloc()
+     Subject: gcov: clang: drop support for clang-10 and older
 has been removed from the -mm tree.  Its filename was
-     gcov-use-kvmalloc.patch
+     gcov-clang-drop-support-for-clang-10-and-older.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Berg <johannes.berg@intel.com>
-Subject: gcov: use kvmalloc()
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: gcov: clang: drop support for clang-10 and older
 
-Using vmalloc() in gcov is really quite wasteful, many of the objects
-allocated are really small (e.g.  I've seen 24 bytes.) Use kvmalloc() to
-automatically pick the better of kmalloc() or vmalloc() depending on the
-size.
+LLVM changed the expected function signatures for llvm_gcda_start_file()
+and llvm_gcda_emit_function() in the clang-11 release.  Drop the older
+implementations and require folks to upgrade their compiler if they're
+interested in GCOV support.
 
-[johannes.berg@intel.com: fix clang-11+ build]
-  Link: https://lkml.kernel.org/r/20210412214210.6e1ecca9cdc5.I24459763acf0591d5e6b31c7e3a59890d802f79c@changeid
-Link: https://lkml.kernel.org/r/20210315235453.799e7a9d627d.I741d0db096c6f312910f7f1bcdfde0fda20801a4@changeid
-Signed-off-by: Johannes Berg <johannes.berg@intel.com>
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-Tested-by: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
+Link: https://reviews.llvm.org/rGcdd683b516d147925212724b09ec6fb792a40041
+Link: https://reviews.llvm.org/rG13a633b438b6500ecad9e4f936ebadf3411d0f44
+Link: https://lkml.kernel.org/r/20210312224132.3413602-3-ndesaulniers@google.com
+Link: https://lkml.kernel.org/r/20210413183113.2977432-1-ndesaulniers@google.com
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Suggested-by: Nathan Chancellor <nathan@kernel.org>
+Acked-by: Peter Oberparleiter <oberpar@linux.ibm.com>
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
+Reviewed-by: Fangrui Song <maskray@google.com>
+Cc: Prasad Sodagudi <psodagud@quicinc.com>
+Cc: Johannes Berg <johannes.berg@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/clang.c   |   12 ++++++------
- kernel/gcov/fs.c      |    6 +++---
- kernel/gcov/gcc_4_7.c |    6 +++---
- 3 files changed, 12 insertions(+), 12 deletions(-)
+ kernel/gcov/Kconfig |    1 
+ kernel/gcov/clang.c |  103 ------------------------------------------
+ 2 files changed, 1 insertion(+), 103 deletions(-)
 
---- a/kernel/gcov/clang.c~gcov-use-kvmalloc
+--- a/kernel/gcov/clang.c~gcov-clang-drop-support-for-clang-10-and-older
 +++ a/kernel/gcov/clang.c
-@@ -49,7 +49,7 @@
- #include <linux/printk.h>
- #include <linux/ratelimit.h>
- #include <linux/slab.h>
--#include <linux/vmalloc.h>
-+#include <linux/mm.h>
- #include "gcov.h"
+@@ -69,16 +69,10 @@ struct gcov_fn_info {
  
- typedef void (*llvm_gcov_callback)(void);
-@@ -333,8 +333,8 @@ void gcov_info_add(struct gcov_info *dst
+ 	u32 ident;
+ 	u32 checksum;
+-#if CONFIG_CLANG_VERSION < 110000
+-	u8 use_extra_checksum;
+-#endif
+ 	u32 cfg_checksum;
+ 
+ 	u32 num_counters;
+ 	u64 *counters;
+-#if CONFIG_CLANG_VERSION < 110000
+-	const char *function_name;
+-#endif
+ };
+ 
+ static struct gcov_info *current_info;
+@@ -108,16 +102,6 @@ void llvm_gcov_init(llvm_gcov_callback w
+ }
+ EXPORT_SYMBOL(llvm_gcov_init);
+ 
+-#if CONFIG_CLANG_VERSION < 110000
+-void llvm_gcda_start_file(const char *orig_filename, const char version[4],
+-		u32 checksum)
+-{
+-	current_info->filename = orig_filename;
+-	memcpy(&current_info->version, version, sizeof(current_info->version));
+-	current_info->checksum = checksum;
+-}
+-EXPORT_SYMBOL(llvm_gcda_start_file);
+-#else
+ void llvm_gcda_start_file(const char *orig_filename, u32 version, u32 checksum)
+ {
+ 	current_info->filename = orig_filename;
+@@ -125,28 +109,7 @@ void llvm_gcda_start_file(const char *or
+ 	current_info->checksum = checksum;
+ }
+ EXPORT_SYMBOL(llvm_gcda_start_file);
+-#endif
+ 
+-#if CONFIG_CLANG_VERSION < 110000
+-void llvm_gcda_emit_function(u32 ident, const char *function_name,
+-		u32 func_checksum, u8 use_extra_checksum, u32 cfg_checksum)
+-{
+-	struct gcov_fn_info *info = kzalloc(sizeof(*info), GFP_KERNEL);
+-
+-	if (!info)
+-		return;
+-
+-	INIT_LIST_HEAD(&info->head);
+-	info->ident = ident;
+-	info->checksum = func_checksum;
+-	info->use_extra_checksum = use_extra_checksum;
+-	info->cfg_checksum = cfg_checksum;
+-	if (function_name)
+-		info->function_name = kstrdup(function_name, GFP_KERNEL);
+-
+-	list_add_tail(&info->head, &current_info->functions);
+-}
+-#else
+ void llvm_gcda_emit_function(u32 ident, u32 func_checksum, u32 cfg_checksum)
+ {
+ 	struct gcov_fn_info *info = kzalloc(sizeof(*info), GFP_KERNEL);
+@@ -160,7 +123,6 @@ void llvm_gcda_emit_function(u32 ident,
+ 	info->cfg_checksum = cfg_checksum;
+ 	list_add_tail(&info->head, &current_info->functions);
+ }
+-#endif
+ EXPORT_SYMBOL(llvm_gcda_emit_function);
+ 
+ void llvm_gcda_emit_arcs(u32 num_counters, u64 *counters)
+@@ -291,16 +253,8 @@ int gcov_info_is_compatible(struct gcov_
+ 		!list_is_last(&fn_ptr2->head, &info2->functions)) {
+ 		if (fn_ptr1->checksum != fn_ptr2->checksum)
+ 			return false;
+-#if CONFIG_CLANG_VERSION < 110000
+-		if (fn_ptr1->use_extra_checksum != fn_ptr2->use_extra_checksum)
+-			return false;
+-		if (fn_ptr1->use_extra_checksum &&
+-			fn_ptr1->cfg_checksum != fn_ptr2->cfg_checksum)
+-			return false;
+-#else
+ 		if (fn_ptr1->cfg_checksum != fn_ptr2->cfg_checksum)
+ 			return false;
+-#endif
+ 		fn_ptr1 = list_next_entry(fn_ptr1, head);
+ 		fn_ptr2 = list_next_entry(fn_ptr2, head);
+ 	}
+@@ -329,35 +283,6 @@ void gcov_info_add(struct gcov_info *dst
+ 	}
+ }
+ 
+-#if CONFIG_CLANG_VERSION < 110000
+-static struct gcov_fn_info *gcov_fn_info_dup(struct gcov_fn_info *fn)
+-{
+-	size_t cv_size; /* counter values size */
+-	struct gcov_fn_info *fn_dup = kmemdup(fn, sizeof(*fn), GFP_KERNEL);
+-
+-	if (!fn_dup)
+-		return NULL;
+-	INIT_LIST_HEAD(&fn_dup->head);
+-
+-	fn_dup->function_name = kstrdup(fn->function_name, GFP_KERNEL);
+-	if (!fn_dup->function_name)
+-		goto err_name;
+-
+-	cv_size = fn->num_counters * sizeof(fn->counters[0]);
+-	fn_dup->counters = kvmalloc(cv_size, GFP_KERNEL);
+-	if (!fn_dup->counters)
+-		goto err_counters;
+-	memcpy(fn_dup->counters, fn->counters, cv_size);
+-
+-	return fn_dup;
+-
+-err_counters:
+-	kfree(fn_dup->function_name);
+-err_name:
+-	kfree(fn_dup);
+-	return NULL;
+-}
+-#else
  static struct gcov_fn_info *gcov_fn_info_dup(struct gcov_fn_info *fn)
  {
  	size_t cv_size; /* counter values size */
--	struct gcov_fn_info *fn_dup = kmemdup(fn, sizeof(*fn),
--			GFP_KERNEL);
-+	struct gcov_fn_info *fn_dup = kmemdup(fn, sizeof(*fn), GFP_KERNEL);
-+
- 	if (!fn_dup)
- 		return NULL;
- 	INIT_LIST_HEAD(&fn_dup->head);
-@@ -344,7 +344,7 @@ static struct gcov_fn_info *gcov_fn_info
- 		goto err_name;
+@@ -378,7 +303,6 @@ static struct gcov_fn_info *gcov_fn_info
  
- 	cv_size = fn->num_counters * sizeof(fn->counters[0]);
--	fn_dup->counters = vmalloc(cv_size);
-+	fn_dup->counters = kvmalloc(cv_size, GFP_KERNEL);
- 	if (!fn_dup->counters)
- 		goto err_counters;
- 	memcpy(fn_dup->counters, fn->counters, cv_size);
-@@ -368,7 +368,7 @@ static struct gcov_fn_info *gcov_fn_info
- 	INIT_LIST_HEAD(&fn_dup->head);
- 
- 	cv_size = fn->num_counters * sizeof(fn->counters[0]);
--	fn_dup->counters = vmalloc(cv_size);
-+	fn_dup->counters = kvmalloc(cv_size, GFP_KERNEL);
- 	if (!fn_dup->counters) {
- 		kfree(fn_dup);
- 		return NULL;
-@@ -439,7 +439,7 @@ void gcov_info_free(struct gcov_info *in
- 	struct gcov_fn_info *fn, *tmp;
- 
- 	list_for_each_entry_safe(fn, tmp, &info->functions, head) {
--		vfree(fn->counters);
-+		kvfree(fn->counters);
- 		list_del(&fn->head);
- 		kfree(fn);
- 	}
---- a/kernel/gcov/fs.c~gcov-use-kvmalloc
-+++ a/kernel/gcov/fs.c
-@@ -26,7 +26,7 @@
- #include <linux/slab.h>
- #include <linux/mutex.h>
- #include <linux/seq_file.h>
--#include <linux/vmalloc.h>
-+#include <linux/mm.h>
- #include "gcov.h"
- 
- /**
-@@ -116,7 +116,7 @@ static struct gcov_iterator *gcov_iter_n
- 	/* Dry-run to get the actual buffer size. */
- 	size = convert_to_gcda(NULL, info);
- 
--	iter = vmalloc(struct_size(iter, buffer, size));
-+	iter = kvmalloc(struct_size(iter, buffer, size), GFP_KERNEL);
- 	if (!iter)
- 		return NULL;
- 
-@@ -134,7 +134,7 @@ static struct gcov_iterator *gcov_iter_n
-  */
- static void gcov_iter_free(struct gcov_iterator *iter)
- {
--	vfree(iter);
-+	kvfree(iter);
+ 	return fn_dup;
  }
+-#endif
  
  /**
---- a/kernel/gcov/gcc_4_7.c~gcov-use-kvmalloc
-+++ a/kernel/gcov/gcc_4_7.c
-@@ -15,7 +15,7 @@
- #include <linux/errno.h>
- #include <linux/slab.h>
- #include <linux/string.h>
--#include <linux/vmalloc.h>
-+#include <linux/mm.h>
- #include "gcov.h"
+  * gcov_info_dup - duplicate profiling data set
+@@ -419,21 +343,6 @@ err:
+  * gcov_info_free - release memory for profiling data set duplicate
+  * @info: profiling data set duplicate to free
+  */
+-#if CONFIG_CLANG_VERSION < 110000
+-void gcov_info_free(struct gcov_info *info)
+-{
+-	struct gcov_fn_info *fn, *tmp;
+-
+-	list_for_each_entry_safe(fn, tmp, &info->functions, head) {
+-		kfree(fn->function_name);
+-		vfree(fn->counters);
+-		list_del(&fn->head);
+-		kfree(fn);
+-	}
+-	kfree(info->filename);
+-	kfree(info);
+-}
+-#else
+ void gcov_info_free(struct gcov_info *info)
+ {
+ 	struct gcov_fn_info *fn, *tmp;
+@@ -446,7 +355,6 @@ void gcov_info_free(struct gcov_info *in
+ 	kfree(info->filename);
+ 	kfree(info);
+ }
+-#endif
  
- #if (__GNUC__ >= 10)
-@@ -309,7 +309,7 @@ struct gcov_info *gcov_info_dup(struct g
+ /**
+  * convert_to_gcda - convert profiling data set to gcda file format
+@@ -469,21 +377,10 @@ size_t convert_to_gcda(char *buffer, str
+ 		u32 i;
  
- 			cv_size = sizeof(gcov_type) * sci_ptr->num;
- 
--			dci_ptr->values = vmalloc(cv_size);
-+			dci_ptr->values = kvmalloc(cv_size, GFP_KERNEL);
- 
- 			if (!dci_ptr->values)
- 				goto err_free;
-@@ -351,7 +351,7 @@ void gcov_info_free(struct gcov_info *in
- 		ci_ptr = info->functions[fi_idx]->ctrs;
- 
- 		for (ct_idx = 0; ct_idx < active; ct_idx++, ci_ptr++)
--			vfree(ci_ptr->values);
-+			kvfree(ci_ptr->values);
- 
- 		kfree(info->functions[fi_idx]);
- 	}
+ 		pos += store_gcov_u32(buffer, pos, GCOV_TAG_FUNCTION);
+-#if CONFIG_CLANG_VERSION < 110000
+-		pos += store_gcov_u32(buffer, pos,
+-			fi_ptr->use_extra_checksum ? 3 : 2);
+-#else
+ 		pos += store_gcov_u32(buffer, pos, 3);
+-#endif
+ 		pos += store_gcov_u32(buffer, pos, fi_ptr->ident);
+ 		pos += store_gcov_u32(buffer, pos, fi_ptr->checksum);
+-#if CONFIG_CLANG_VERSION < 110000
+-		if (fi_ptr->use_extra_checksum)
+-			pos += store_gcov_u32(buffer, pos, fi_ptr->cfg_checksum);
+-#else
+ 		pos += store_gcov_u32(buffer, pos, fi_ptr->cfg_checksum);
+-#endif
+-
+ 		pos += store_gcov_u32(buffer, pos, GCOV_TAG_COUNTER_BASE);
+ 		pos += store_gcov_u32(buffer, pos, fi_ptr->num_counters * 2);
+ 		for (i = 0; i < fi_ptr->num_counters; i++)
+--- a/kernel/gcov/Kconfig~gcov-clang-drop-support-for-clang-10-and-older
++++ a/kernel/gcov/Kconfig
+@@ -4,6 +4,7 @@ menu "GCOV-based kernel profiling"
+ config GCOV_KERNEL
+ 	bool "Enable gcov-based kernel profiling"
+ 	depends on DEBUG_FS
++	depends on !CC_IS_CLANG || CLANG_VERSION >= 110000
+ 	select CONSTRUCTORS
+ 	default n
+ 	help
 _
 
-Patches currently in -mm which might be from johannes.berg@intel.com are
+Patches currently in -mm which might be from ndesaulniers@google.com are
 
 
