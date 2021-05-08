@@ -2,45 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BB6EC43460
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:47:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 944ADC433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:47:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4585561402
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:47:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 78E4F61402
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:47:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229602AbhEHWsI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:48:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59504 "EHLO mail.kernel.org"
+        id S229656AbhEHWsM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:48:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59640 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229522AbhEHWsH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:48:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7C3A4613E8;
-        Sat,  8 May 2021 22:47:05 +0000 (UTC)
+        id S229647AbhEHWsM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:48:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6FBC4613E8;
+        Sat,  8 May 2021 22:47:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514025;
-        bh=jOPCDKUYGf3W79kwKca3JDq4BG/WBJixdfpXP2lvefs=;
+        s=korg; t=1620514030;
+        bh=vkKtpdsx+2kakMeuAuOxzORqahfUI/1Bu/NdaSrvhu4=;
         h=Date:From:To:Subject:From;
-        b=p7LPjiPmPJdMzyJ79izG6nO1AQskvjVY8mFBiQ2U4rFDD/rVImrC6v1L+8GyV+3O2
-         6zOVzhg2kBTkVrJa8oVZAFQs2Ik1hJC+FdTkIr591L7t7vlIEp7F3/yTYDiL5E70SX
-         X09WDhXfBjxuYd/b0zgEfkf5wmyy+x5pCnAWSZHQ=
-Date:   Sat, 08 May 2021 15:47:05 -0700
+        b=LUq0Nxn6fvkJxvnjKz82aRMfnSkxRxT6C4FShKbbSC5QX+KUkJE5KM+dnYOWLe9e+
+         B6tU63VQXX67oONgwfk+Vb8LEIXRimTO22+60xoux571iF/9Hki3EgHgUQd1k9V3OS
+         gQXpKZme0ePSd1tvN8WXFJPXEYIpd3wk18rK0afk=
+Date:   Sat, 08 May 2021 15:47:10 -0700
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, linmiaohe@huawei.com,
-        mm-commits@vger.kernel.org, peterx@redhat.com,
-        rcampbell@nvidia.com, richard.weiyang@linux.alibaba.com,
-        thomas_os@shipmail.org, vbabka@suse.cz, walken@google.com,
-        william.kucharski@oracle.com, willy@infradead.org,
-        yang.shi@linux.alibaba.com, yulei.kernel@gmail.com, ziy@nvidia.com
+To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, ziy@nvidia.com
 Subject:  [merged]
- mm-huge_memoryc-use-helper-function-migration_entry_to_page.patch removed
- from -mm tree
-Message-ID: <20210508224705.kX4XB7XC4%akpm@linux-foundation.org>
+ =?US-ASCII?Q?khugepaged-use-helper-function-range=5Fin=5Fvma-in-colla?=
+ =?US-ASCII?Q?pse=5Fpte=5Fmapped=5Fthp.patch?= removed from -mm tree
+Message-ID: <20210508224710.dnPIrtBwX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,60 +46,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: use helper function migration_entry_to_page()
+     Subject: khugepaged: use helper function range_in_vma() in collapse_pte_mapped_thp()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memoryc-use-helper-function-migration_entry_to_page.patch
+     khugepaged-use-helper-function-range_in_vma-in-collapse_pte_mapped_thp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory.c: use helper function migration_entry_to_page()
+Subject: khugepaged: use helper function range_in_vma() in collapse_pte_mapped_thp()
 
-It's more recommended to use helper function migration_entry_to_page() to
-get the page via migration entry.  We can also enjoy the PageLocked()
-check there.
+Patch series "Cleanup for khugepaged".
 
-Link: https://lkml.kernel.org/r/20210318122722.13135-7-linmiaohe@huawei.com
+This series contains cleanups to remove unnecessary out label and
+meaningless !pte_present() check.  Also use helper function to simplify
+the code.  More details can be found in the respective changelogs.
+
+
+This patch (of 3):
+
+We could use helper function range_in_vma() to check whether the desired
+range is inside the vma to simplify the code.
+
+Link: https://lkml.kernel.org/r/20210325135647.64106-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210325135647.64106-2-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Thomas Hellstrm (Intel) <thomas_os@shipmail.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: yuleixzhang <yulei.kernel@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-use-helper-function-migration_entry_to_page
-+++ a/mm/huge_memory.c
-@@ -1693,7 +1693,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+--- a/mm/khugepaged.c~khugepaged-use-helper-function-range_in_vma-in-collapse_pte_mapped_thp
++++ a/mm/khugepaged.c
+@@ -1446,7 +1446,7 @@ void collapse_pte_mapped_thp(struct mm_s
+ 	int i;
  
- 			VM_BUG_ON(!is_pmd_migration_entry(orig_pmd));
- 			entry = pmd_to_swp_entry(orig_pmd);
--			page = pfn_to_page(swp_offset(entry));
-+			page = migration_entry_to_page(entry);
- 			flush_needed = 0;
- 		} else
- 			WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
-@@ -2101,7 +2101,7 @@ static void __split_huge_pmd_locked(stru
- 		swp_entry_t entry;
+ 	if (!vma || !vma->vm_file ||
+-	    vma->vm_start > haddr || vma->vm_end < haddr + HPAGE_PMD_SIZE)
++	    !range_in_vma(vma, haddr, haddr + HPAGE_PMD_SIZE))
+ 		return;
  
- 		entry = pmd_to_swp_entry(old_pmd);
--		page = pfn_to_page(swp_offset(entry));
-+		page = migration_entry_to_page(entry);
- 		write = is_write_migration_entry(entry);
- 		young = false;
- 		soft_dirty = pmd_swp_soft_dirty(old_pmd);
+ 	/*
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
