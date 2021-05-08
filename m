@@ -4,42 +4,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42000C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7B71C433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1735261402
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BADA46141E
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:42:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229648AbhEHWnS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:43:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48508 "EHLO mail.kernel.org"
+        id S229662AbhEHWnV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:43:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48664 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229631AbhEHWnS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:43:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 910BC6100C;
-        Sat,  8 May 2021 22:42:14 +0000 (UTC)
+        id S229631AbhEHWnU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:43:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DDEC061415;
+        Sat,  8 May 2021 22:42:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513735;
-        bh=dGUBPWtPu+7Aa4KLzGJmUqCp/yPb4lFYaX6ta0/VfRM=;
+        s=korg; t=1620513738;
+        bh=6E8jwudiVxNe65KUZG292eDzOLDpcHAnGx5o8Hm5Gow=;
         h=Date:From:To:Subject:From;
-        b=nxK3KnOxcS3FlI+/K9St+1Yx0o+VeJGSXKwTJMAKPAPhBKhMX1S5tzaPXyERjWNpk
-         bXu5SeQ9/c5HUwBY5YpvuVOMl72uaj0mHP+DV8/7S+O4WjwOSDWqGYle/fwoSO6gxq
-         nu7aclcOVou5JXB/qYuvY6m16VrGlQkTs+uJUgnk=
-Date:   Sat, 08 May 2021 15:42:14 -0700
+        b=TzjmWa/QaZNKdo2tvtOy0gLon3kjpJaUa2lpUiY1vNxJaXKTVg3FYqteKQZwl4QKb
+         qQyeRuZc6/jWRyOcxerctQuuIAcqi/ELHLZRRsY88vCxNKopLbc3Od3FEqCJQNDKBy
+         A87OMr+PBLSCSM89hrMGJSE63srM6m8SpsJRHDNo=
+Date:   Sat, 08 May 2021 15:42:17 -0700
 From:   akpm@linux-foundation.org
-To:     0x7f454c46@gmail.com, aarcange@redhat.com, alx.manpages@gmail.com,
-        axelrasmussen@google.com, bgeffon@google.com, hughd@google.com,
-        kirill@shutemov.name, lokeshgidra@google.com, luto@amacapital.net,
-        minchan@kernel.org, mm-commits@vger.kernel.org, mst@redhat.com,
-        mtk.manpages@gmail.com, peterx@redhat.com, rppt@linux.vnet.ibm.com,
-        sonnyrao@google.com, vbabka@suse.cz
+To:     aarcange@redhat.com, alx.manpages@gmail.com,
+        axelrasmussen@google.com, bgeffon@google.com, dima@arista.com,
+        hughd@google.com, kirill@shutemov.name, lokeshgidra@google.com,
+        luto@amacapital.net, minchan@kernel.org,
+        mm-commits@vger.kernel.org, mst@redhat.com, mtk.manpages@gmail.com,
+        peterx@redhat.com, rppt@linux.vnet.ibm.com, sonnyrao@google.com,
+        vbabka@suse.cz
 Subject:  [merged]
- revert-mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio.patch
- removed from -mm tree
-Message-ID: <20210508224214.zhS6M8Lc4%akpm@linux-foundation.org>
+ selftests-add-a-mremap_dontunmap-selftest-for-shmem.patch removed from -mm
+ tree
+Message-ID: <20210508224217.VwLpWxkD4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,125 +49,111 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "mremap: don't allow MREMAP_DONTUNMAP on special_mappings and aio"
+     Subject: selftests: add a MREMAP_DONTUNMAP selftest for shmem
 has been removed from the -mm tree.  Its filename was
-     revert-mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio.patch
+     selftests-add-a-mremap_dontunmap-selftest-for-shmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Brian Geffon <bgeffon@google.com>
-Subject: Revert "mremap: don't allow MREMAP_DONTUNMAP on special_mappings and aio"
+Subject: selftests: add a MREMAP_DONTUNMAP selftest for shmem
 
-This reverts commit cd544fd1dc9293c6702fab6effa63dac1cc67e99.
+This test extends the current mremap tests to validate that the
+MREMAP_DONTUNMAP operation can be performed on shmem mappings.
 
-As discussed in [1] this commit was a no-op because the mapping type was
-checked in vma_to_resize before move_vma is ever called.  This meant that
-vm_ops->mremap() would never be called on such mappings.  Furthermore,
-we've since expanded support of MREMAP_DONTUNMAP to non-anonymous
-mappings, and these special mappings are still protected by the existing
-check of !VM_DONTEXPAND and !VM_PFNMAP which will result in a -EINVAL.
-
-1. https://lkml.org/lkml/2020/12/28/2340
-
-Link: https://lkml.kernel.org/r/20210323182520.2712101-2-bgeffon@google.com
+Link: https://lkml.kernel.org/r/20210323182520.2712101-3-bgeffon@google.com
 Signed-off-by: Brian Geffon <bgeffon@google.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: Alejandro Colomar <alx.manpages@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
 Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: "Michael S . Tsirkin" <mst@redhat.com>
 Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: Sonny Rao <sonnyrao@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Michael S . Tsirkin" <mst@redhat.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Sonny Rao <sonnyrao@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Dmitry Safonov <dima@arista.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Alejandro Colomar <alx.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/resctrl/pseudo_lock.c |    2 +-
- fs/aio.c                                  |    5 +----
- include/linux/mm.h                        |    2 +-
- mm/mmap.c                                 |    6 +-----
- mm/mremap.c                               |    2 +-
- 5 files changed, 5 insertions(+), 12 deletions(-)
+ tools/testing/selftests/vm/mremap_dontunmap.c |   52 ++++++++++++++++
+ 1 file changed, 52 insertions(+)
 
---- a/arch/x86/kernel/cpu/resctrl/pseudo_lock.c~revert-mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
-+++ a/arch/x86/kernel/cpu/resctrl/pseudo_lock.c
-@@ -1458,7 +1458,7 @@ static int pseudo_lock_dev_release(struc
- 	return 0;
+--- a/tools/testing/selftests/vm/mremap_dontunmap.c~selftests-add-a-mremap_dontunmap-selftest-for-shmem
++++ a/tools/testing/selftests/vm/mremap_dontunmap.c
+@@ -127,6 +127,57 @@ static void mremap_dontunmap_simple()
+ 	       "unable to unmap source mapping");
  }
  
--static int pseudo_lock_dev_mremap(struct vm_area_struct *area, unsigned long flags)
-+static int pseudo_lock_dev_mremap(struct vm_area_struct *area)
- {
- 	/* Not supported */
- 	return -EINVAL;
---- a/fs/aio.c~revert-mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
-+++ a/fs/aio.c
-@@ -323,16 +323,13 @@ static void aio_free_ring(struct kioctx
- 	}
- }
++// This test validates that MREMAP_DONTUNMAP on a shared mapping works as expected.
++static void mremap_dontunmap_simple_shmem()
++{
++	unsigned long num_pages = 5;
++
++	int mem_fd = memfd_create("memfd", MFD_CLOEXEC);
++	BUG_ON(mem_fd < 0, "memfd_create");
++
++	BUG_ON(ftruncate(mem_fd, num_pages * page_size) < 0,
++			"ftruncate");
++
++	void *source_mapping =
++	    mmap(NULL, num_pages * page_size, PROT_READ | PROT_WRITE,
++		 MAP_FILE | MAP_SHARED, mem_fd, 0);
++	BUG_ON(source_mapping == MAP_FAILED, "mmap");
++
++	BUG_ON(close(mem_fd) < 0, "close");
++
++	memset(source_mapping, 'a', num_pages * page_size);
++
++	// Try to just move the whole mapping anywhere (not fixed).
++	void *dest_mapping =
++	    mremap(source_mapping, num_pages * page_size, num_pages * page_size,
++		   MREMAP_DONTUNMAP | MREMAP_MAYMOVE, NULL);
++	if (dest_mapping == MAP_FAILED && errno == EINVAL) {
++		// Old kernel which doesn't support MREMAP_DONTUNMAP on shmem.
++		BUG_ON(munmap(source_mapping, num_pages * page_size) == -1,
++			"unable to unmap source mapping");
++		return;
++	}
++
++	BUG_ON(dest_mapping == MAP_FAILED, "mremap");
++
++	// Validate that the pages have been moved, we know they were moved if
++	// the dest_mapping contains a's.
++	BUG_ON(check_region_contains_byte
++	       (dest_mapping, num_pages * page_size, 'a') != 0,
++	       "pages did not migrate");
++
++	// Because the region is backed by shmem, we will actually see the same
++	// memory at the source location still.
++	BUG_ON(check_region_contains_byte
++	       (source_mapping, num_pages * page_size, 'a') != 0,
++	       "source should have no ptes");
++
++	BUG_ON(munmap(dest_mapping, num_pages * page_size) == -1,
++	       "unable to unmap destination mapping");
++	BUG_ON(munmap(source_mapping, num_pages * page_size) == -1,
++	       "unable to unmap source mapping");
++}
++
+ // This test validates MREMAP_DONTUNMAP will move page tables to a specific
+ // destination using MREMAP_FIXED, also while validating that the source
+ // remains intact.
+@@ -300,6 +351,7 @@ int main(void)
+ 	BUG_ON(page_buffer == MAP_FAILED, "unable to mmap a page.");
  
--static int aio_ring_mremap(struct vm_area_struct *vma, unsigned long flags)
-+static int aio_ring_mremap(struct vm_area_struct *vma)
- {
- 	struct file *file = vma->vm_file;
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct kioctx_table *table;
- 	int i, res = -EINVAL;
- 
--	if (flags & MREMAP_DONTUNMAP)
--		return -EINVAL;
--
- 	spin_lock(&mm->ioctx_lock);
- 	rcu_read_lock();
- 	table = rcu_dereference(mm->ioctx_table);
---- a/include/linux/mm.h~revert-mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
-+++ a/include/linux/mm.h
-@@ -580,7 +580,7 @@ struct vm_operations_struct {
- 	void (*close)(struct vm_area_struct * area);
- 	/* Called any time before splitting to check if it's allowed */
- 	int (*may_split)(struct vm_area_struct *area, unsigned long addr);
--	int (*mremap)(struct vm_area_struct *area, unsigned long flags);
-+	int (*mremap)(struct vm_area_struct *area);
- 	/*
- 	 * Called by mprotect() to make driver-specific permission
- 	 * checks before mprotect() is finalised.   The VMA must not
---- a/mm/mmap.c~revert-mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
-+++ a/mm/mmap.c
-@@ -3409,14 +3409,10 @@ static const char *special_mapping_name(
- 	return ((struct vm_special_mapping *)vma->vm_private_data)->name;
- }
- 
--static int special_mapping_mremap(struct vm_area_struct *new_vma,
--				  unsigned long flags)
-+static int special_mapping_mremap(struct vm_area_struct *new_vma)
- {
- 	struct vm_special_mapping *sm = new_vma->vm_private_data;
- 
--	if (flags & MREMAP_DONTUNMAP)
--		return -EINVAL;
--
- 	if (WARN_ON_ONCE(current->mm != new_vma->vm_mm))
- 		return -EFAULT;
- 
---- a/mm/mremap.c~revert-mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
-+++ a/mm/mremap.c
-@@ -545,7 +545,7 @@ static unsigned long move_vma(struct vm_
- 	if (moved_len < old_len) {
- 		err = -ENOMEM;
- 	} else if (vma->vm_ops && vma->vm_ops->mremap) {
--		err = vma->vm_ops->mremap(new_vma, flags);
-+		err = vma->vm_ops->mremap(new_vma);
- 	}
- 
- 	if (unlikely(err)) {
+ 	mremap_dontunmap_simple();
++	mremap_dontunmap_simple_shmem();
+ 	mremap_dontunmap_simple_fixed();
+ 	mremap_dontunmap_partial_mapping();
+ 	mremap_dontunmap_partial_mapping_overwrite();
 _
 
 Patches currently in -mm which might be from bgeffon@google.com are
