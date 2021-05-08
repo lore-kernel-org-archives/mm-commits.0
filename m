@@ -2,46 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DABC7C433ED
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61054C433B4
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A97DE61421
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DBEF61421
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:50:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229620AbhEHWv7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:51:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38372 "EHLO mail.kernel.org"
+        id S229648AbhEHWwA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:52:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229522AbhEHWv6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:51:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E407761448;
-        Sat,  8 May 2021 22:50:55 +0000 (UTC)
+        id S229522AbhEHWwA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:52:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CB1896144F;
+        Sat,  8 May 2021 22:50:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514256;
-        bh=9aSgDXL1EijkpM3QuEKhYgirMB/Z2Fjm4X4Q2iWMpKU=;
+        s=korg; t=1620514258;
+        bh=4KxeEJu/3lKnmViH63K988EyvqSsPvWdSKjcVyqr+uY=;
         h=Date:From:To:Subject:From;
-        b=u8t63brUKiHoMJhg4R74BHUy+G6Eh+y+5i23HCuDniEyk15K6K9s0KplSD+6RcI+H
-         x/5P+wqf+fTvl3riSdbW6KBE47YO7WoUr1YutxMykRkllvucuM44NUVS5M9zxjzL1n
-         LRb9z8I/EEx9CVMxamoOtDhKHv9KQ7Ty3CTW2OGQ=
-Date:   Sat, 08 May 2021 15:50:55 -0700
+        b=TPnbHCzHStUNuHFLuEhRvklcf8ah3Y1NicQHOZIIcfKFCtq1LTUyuq+e77gc8/5gZ
+         sQC3uu/RCjNwo5RmUjjqQdZOFNPUkKIRGqRCBhRVKnvUeo7LIec3dRMZtOzy58yrBv
+         hc+rAHL8ebT33fQsZL6YGGRCevx5/LRhazVHfI3U=
+Date:   Sat, 08 May 2021 15:50:57 -0700
 From:   akpm@linux-foundation.org
-To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
-        ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
-        jhubbard@nvidia.com, jmorris@namei.org, mgorman@suse.de,
-        mhocko@kernel.org, mhocko@suse.com, mike.kravetz@oracle.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, osalvador@suse.de,
-        pasha.tatashin@soleen.com, peterz@infradead.org,
-        rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
-        tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
+To:     alexander.h.duyck@linux.intel.com, david@redhat.com,
+        mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, mst@redhat.com, osalvador@suse.de,
+        vbabka@suse.cz
 Subject:  [merged]
- =?US-ASCII?Q?selftests-vm-gup=5Ftest-test-faulting-in-kernel-and-verify-?=
- =?US-ASCII?Q?pinnable-pages.patch?= removed from -mm tree
-Message-ID: <20210508225055.tgyHJkNZT%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-memory=5Fhotplug-make-unpopulated-zones-pcp-structures?=
+ =?US-ASCII?Q?-unreachable-during-hot-remove.patch?= removed from -mm tree
+Message-ID: <20210508225057.5AubXj45K%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -52,138 +48,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: gup_test: test faulting in kernel, and verify pinnable pages
+     Subject: mm/memory_hotplug: remove broken locking of zone PCP structures during hot remove
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages.patch
+     mm-memory_hotplug-make-unpopulated-zones-pcp-structures-unreachable-during-hot-remove.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: selftests/vm: gup_test: test faulting in kernel, and verify pinnable pages
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/memory_hotplug: remove broken locking of zone PCP structures during hot remove
 
-When pages are pinned they can be faulted in userland and migrated, and
-they can be faulted right in kernel without migration.
+zone_pcp_reset allegedly protects against a race with drain_pages using
+local_irq_save but this is bogus.  local_irq_save only operates on the
+local CPU.  If memory hotplug is running on CPU A and drain_pages is
+running on CPU B, disabling IRQs on CPU A does not affect CPU B and offers
+no protection.
 
-In either case, the pinned pages must end-up being pinnable (not movable).
+This patch deletes IRQ disable/enable on the grounds that IRQs protect
+nothing and assumes the existing hotplug paths guarantees the PCP cannot
+be used after zone_pcp_enable().  That should be the case already because
+all the pages have been freed and there is no page to put on the PCP
+lists.
 
-Add a new test to gup_test, to help verify that the gup/pup
-(get_user_pages() / pin_user_pages()) behavior with respect to pinnable
-and movable pages is reasonable and correct.  Specifically, provide a way
-to:
-
-1) Verify that only "pinnable" pages are pinned.  This is checked
-   automatically for you.
-
-2) Verify that gup/pup performance is reasonable.  This requires
-   comparing benchmarks between doing gup/pup on pages that have been
-   pre-faulted in from user space, vs.  doing gup/pup on pages that are
-   not faulted in until gup/pup time (via FOLL_TOUCH).  This decision is
-   controlled with the new -z command line option.
-
-Link: https://lkml.kernel.org/r/20210215161349.246722-15-pasha.tatashin@soleen.com
-Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sasha Levin <sashal@kernel.org>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
+Link: https://lkml.kernel.org/r/20210412090346.GQ3697@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup_test.c                         |    6 ++++++
- tools/testing/selftests/vm/gup_test.c |   23 +++++++++++++++++++----
- 2 files changed, 25 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/gup_test.c~selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages
-+++ a/mm/gup_test.c
-@@ -52,6 +52,12 @@ static void verify_dma_pinned(unsigned i
+--- a/mm/page_alloc.c~mm-memory_hotplug-make-unpopulated-zones-pcp-structures-unreachable-during-hot-remove
++++ a/mm/page_alloc.c
+@@ -9020,12 +9020,9 @@ void zone_pcp_enable(struct zone *zone)
  
- 				dump_page(page, "gup_test failure");
- 				break;
-+			} else if (cmd == PIN_LONGTERM_BENCHMARK &&
-+				WARN(!is_pinnable_page(page),
-+				     "pages[%lu] is NOT pinnable but pinned\n",
-+				     i)) {
-+				dump_page(page, "gup_test failure");
-+				break;
- 			}
- 		}
- 		break;
---- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-gup_test-test-faulting-in-kernel-and-verify-pinnable-pages
-+++ a/tools/testing/selftests/vm/gup_test.c
-@@ -13,6 +13,7 @@
- 
- /* Just the flags we need, copied from mm.h: */
- #define FOLL_WRITE	0x01	/* check pte is writable */
-+#define FOLL_TOUCH	0x02	/* mark page accessed */
- 
- static char *cmd_to_str(unsigned long cmd)
+ void zone_pcp_reset(struct zone *zone)
  {
-@@ -39,11 +40,11 @@ int main(int argc, char **argv)
- 	unsigned long size = 128 * MB;
- 	int i, fd, filed, opt, nr_pages = 1, thp = -1, repeats = 1, write = 1;
- 	unsigned long cmd = GUP_FAST_BENCHMARK;
--	int flags = MAP_PRIVATE;
-+	int flags = MAP_PRIVATE, touch = 0;
- 	char *file = "/dev/zero";
- 	char *p;
+-	unsigned long flags;
+ 	int cpu;
+ 	struct per_cpu_pageset *pset;
  
--	while ((opt = getopt(argc, argv, "m:r:n:F:f:abctTLUuwWSHp")) != -1) {
-+	while ((opt = getopt(argc, argv, "m:r:n:F:f:abctTLUuwWSHpz")) != -1) {
- 		switch (opt) {
- 		case 'a':
- 			cmd = PIN_FAST_BENCHMARK;
-@@ -110,6 +111,10 @@ int main(int argc, char **argv)
- 		case 'H':
- 			flags |= (MAP_HUGETLB | MAP_ANONYMOUS);
- 			break;
-+		case 'z':
-+			/* fault pages in gup, do not fault in userland */
-+			touch = 1;
-+			break;
- 		default:
- 			return -1;
- 		}
-@@ -167,8 +172,18 @@ int main(int argc, char **argv)
- 	else if (thp == 0)
- 		madvise(p, size, MADV_NOHUGEPAGE);
+-	/* avoid races with drain_pages()  */
+-	local_irq_save(flags);
+ 	if (zone->pageset != &boot_pageset) {
+ 		for_each_online_cpu(cpu) {
+ 			pset = per_cpu_ptr(zone->pageset, cpu);
+@@ -9034,7 +9031,6 @@ void zone_pcp_reset(struct zone *zone)
+ 		free_percpu(zone->pageset);
+ 		zone->pageset = &boot_pageset;
+ 	}
+-	local_irq_restore(flags);
+ }
  
--	for (; (unsigned long)p < gup.addr + size; p += PAGE_SIZE)
--		p[0] = 0;
-+	/*
-+	 * FOLL_TOUCH, in gup_test, is used as an either/or case: either
-+	 * fault pages in from the kernel via FOLL_TOUCH, or fault them
-+	 * in here, from user space. This allows comparison of performance
-+	 * between those two cases.
-+	 */
-+	if (touch) {
-+		gup.gup_flags |= FOLL_TOUCH;
-+	} else {
-+		for (; (unsigned long)p < gup.addr + size; p += PAGE_SIZE)
-+			p[0] = 0;
-+	}
- 
- 	/* Only report timing information on the *_BENCHMARK commands: */
- 	if ((cmd == PIN_FAST_BENCHMARK) || (cmd == GUP_FAST_BENCHMARK) ||
+ #ifdef CONFIG_MEMORY_HOTREMOVE
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
 
