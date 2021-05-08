@@ -4,37 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B60EFC433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC9BEC433ED
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8CC3E61421
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D202D613EA
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:40:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229656AbhEHWlo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:41:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45540 "EHLO mail.kernel.org"
+        id S229662AbhEHWlq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:41:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45594 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229647AbhEHWlm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:41:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8CAE961402;
-        Sat,  8 May 2021 22:40:40 +0000 (UTC)
+        id S229647AbhEHWlp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:41:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A29F761415;
+        Sat,  8 May 2021 22:40:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620513640;
-        bh=BOfY913Grfd1rKG26DHYljIhs6NS6o0kKRog/O5WWWI=;
+        s=korg; t=1620513642;
+        bh=9NBMVxX2a+Y0e7KikW5g0wqKR/1yABCtjIM2lMeKEMU=;
         h=Date:From:To:Subject:From;
-        b=F3HCA29Q5MGCl1MTGvatNQLlnMpk/aO0TkJdoUc/1c2//ya+2xX84EbQkhGQJmhM8
-         PT6f6oMsxfAuKXp5ajW0u3ZYCUnMBx2QmpnbB+RgPHWDt19V0TmEYUkG9wgSGEG91h
-         wPzwqKno0I7mriPFiurxzVCTCfk5lMEHjvtDCL3Q=
-Date:   Sat, 08 May 2021 15:40:40 -0700
+        b=JCGXNfkUtwQmaqL3s+rzM5dWujU4K8Zw3wj0WC7xPjim/AVUN1Rm3iSPY6LxKLjV0
+         q8u+PDZ3JkmsJIoMtVFDOiqsoHNnADKdmKowkW2Ia7+j/9M3+6EO+bLzhqQadq2P2X
+         3O/KMSdJZd6nkapqT95EpUFa7Z4VimwYaOEvIKeg=
+Date:   Sat, 08 May 2021 15:40:42 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sh1r4s3@mail.si-head.nl, vbabka@suse.cz
-Subject:  [merged]
- mm-msync-exit-early-when-the-flags-is-an-ms_async-and-start-vm_start.patch
+To:     dledford@redhat.com, hch@infradead.org, jgg@nvidia.com,
+        jhubbard@nvidia.com, joao.m.martins@oracle.com,
+        mm-commits@vger.kernel.org, willy@infradead.org
+Subject:  [merged] mm-gup-add-compound-page-list-iterator.patch
  removed from -mm tree
-Message-ID: <20210508224040.DNZ2Qp8xO%akpm@linux-foundation.org>
+Message-ID: <20210508224042.97lCCzH4c%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,53 +44,98 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/msync: exit early when the flags is an MS_ASYNC and start < vm_start
+     Subject: mm/gup: add compound page list iterator
 has been removed from the -mm tree.  Its filename was
-     mm-msync-exit-early-when-the-flags-is-an-ms_async-and-start-vm_start.patch
+     mm-gup-add-compound-page-list-iterator.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nikita Ermakov <sh1r4s3@mail.si-head.nl>
-Subject: mm/msync: exit early when the flags is an MS_ASYNC and start < vm_start
+From: Joao Martins <joao.m.martins@oracle.com>
+Subject: mm/gup: add compound page list iterator
 
-If an unmapped region was found and the flag is MS_ASYNC (without
-MS_INVALIDATE) there is nothing to do and the result would be always
--ENOMEM, so return immediately.
+Patch series "mm/gup: page unpining improvements", v4.
 
-Link: https://lkml.kernel.org/r/20201025092901.56399-1-sh1r4s3@mail.si-head.nl
-Signed-off-by: Nikita Ermakov <sh1r4s3@mail.si-head.nl>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This series improves page unpinning, with an eye on improving MR
+deregistration for big swaths of memory (which is bound by the page
+unpining), particularly:
+
+1) Decrement the head page by @ntails and thus reducing a lot the
+   number of atomic operations per compound page.  This is done by
+   comparing individual tail pages heads, and counting number of
+   consecutive tails on which they match heads and based on that update
+   head page refcount.  Should have a visible improvement in all page
+   (un)pinners which use compound pages
+
+2) Introducing a new API for unpinning page ranges (to avoid the trick
+   in the previous item and be based on math), and use that in RDMA
+   ib_mem_release (used for mr deregistration).
+
+Performance improvements: unpin_user_pages() for hugetlbfs and THP
+improves ~3x (through gup_test) and RDMA MR dereg improves ~4.5x with the
+new API.  See patches 2 and 4 for those.
+
+
+This patch (of 4):
+
+Add a helper that iterates over head pages in a list of pages.  It
+essentially counts the tails until the next page to process has a
+different head that the current.  This is going to be used by
+unpin_user_pages() family of functions, to batch the head page refcount
+updates once for all passed consecutive tail pages.
+
+Link: https://lkml.kernel.org/r/20210212130843.13865-1-joao.m.martins@oracle.com
+Link: https://lkml.kernel.org/r/20210212130843.13865-2-joao.m.martins@oracle.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/msync.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/gup.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
---- a/mm/msync.c~mm-msync-exit-early-when-the-flags-is-an-ms_async-and-start-vm_start
-+++ a/mm/msync.c
-@@ -55,7 +55,9 @@ SYSCALL_DEFINE3(msync, unsigned long, st
- 		goto out;
- 	/*
- 	 * If the interval [start,end) covers some unmapped address ranges,
--	 * just ignore them, but return -ENOMEM at the end.
-+	 * just ignore them, but return -ENOMEM at the end. Besides, if the
-+	 * flag is MS_ASYNC (w/o MS_INVALIDATE) the result would be -ENOMEM
-+	 * anyway and there is nothing left to do, so return immediately.
- 	 */
- 	mmap_read_lock(mm);
- 	vma = find_vma(mm, start);
-@@ -69,6 +71,8 @@ SYSCALL_DEFINE3(msync, unsigned long, st
- 			goto out_unlock;
- 		/* Here start < vma->vm_end. */
- 		if (start < vma->vm_start) {
-+			if (flags == MS_ASYNC)
-+				goto out_unlock;
- 			start = vma->vm_start;
- 			if (start >= end)
- 				goto out_unlock;
+--- a/mm/gup.c~mm-gup-add-compound-page-list-iterator
++++ a/mm/gup.c
+@@ -213,6 +213,32 @@ void unpin_user_page(struct page *page)
+ }
+ EXPORT_SYMBOL(unpin_user_page);
+ 
++static inline void compound_next(unsigned long i, unsigned long npages,
++				 struct page **list, struct page **head,
++				 unsigned int *ntails)
++{
++	struct page *page;
++	unsigned int nr;
++
++	if (i >= npages)
++		return;
++
++	page = compound_head(list[i]);
++	for (nr = i + 1; nr < npages; nr++) {
++		if (compound_head(list[nr]) != page)
++			break;
++	}
++
++	*head = page;
++	*ntails = nr - i;
++}
++
++#define for_each_compound_head(__i, __list, __npages, __head, __ntails) \
++	for (__i = 0, \
++	     compound_next(__i, __npages, __list, &(__head), &(__ntails)); \
++	     __i < __npages; __i += __ntails, \
++	     compound_next(__i, __npages, __list, &(__head), &(__ntails)))
++
+ /**
+  * unpin_user_pages_dirty_lock() - release and optionally dirty gup-pinned pages
+  * @pages:  array of pages to be maybe marked dirty, and definitely released.
 _
 
-Patches currently in -mm which might be from sh1r4s3@mail.si-head.nl are
+Patches currently in -mm which might be from joao.m.martins@oracle.com are
 
 
