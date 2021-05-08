@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CC03C433B4
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D24ACC43460
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2178D6100C
-	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B528261402
+	for <mm-commits@archiver.kernel.org>; Sat,  8 May 2021 22:49:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229641AbhEHWuL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 18:50:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35054 "EHLO mail.kernel.org"
+        id S229699AbhEHWuM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 18:50:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35134 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229549AbhEHWuJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 18:50:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7ED34613EA;
-        Sat,  8 May 2021 22:49:07 +0000 (UTC)
+        id S229549AbhEHWuM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 18:50:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 750386101D;
+        Sat,  8 May 2021 22:49:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620514147;
-        bh=bpdYTMvSecPh2ShNOGsycb1EwO1dJhqtqf5/7lVkGuI=;
+        s=korg; t=1620514150;
+        bh=ywxp5bkRymOoGK8PdaozTbzfSvHrQDTMrIa0h6ODN3Q=;
         h=Date:From:To:Subject:From;
-        b=XySXRjooWfh+ApHnrxGoJ/EHV+RurkrDueUmieCDluoaA8JwxyDlD9pmzyapJU2lw
-         T/6dErhF1A6lD9Alqd6O+KWEhptFd0yF3LKdACG3O5Qz6KAC4qNdd2IstqblVbgQFX
-         nNiOKh3ukjHKXelv1rBEoLv2Weq4c4hwIRxK+/oo=
-Date:   Sat, 08 May 2021 15:49:07 -0700
+        b=H4XNfkZpLAqEH8AvpMsIOz2Tnrzno5xrPeXxSsL4rR16J2sG4BV/Ftb64dqNyafRN
+         lme2ga9JaiVsCmram/lE5/igmQIobucO3y6OlroBCjTJ1Tzz/OEoZFt/MDbhAdKQXf
+         OtzmgJUkCcp97lZlcEmZXLm7ZskLhzFcvDdFpVDo=
+Date:   Sat, 08 May 2021 15:49:10 -0700
 From:   akpm@linux-foundation.org
-To:     cgoldswo@codeaurora.org, david@redhat.com, joaodias@google.com,
-        labbott@kernel.org, mhocko@suse.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, oliver.sang@intel.com,
-        surenb@google.com, vbabka@suse.cz, willy@infradead.org
+To:     apopple@nvidia.com, aquini@redhat.com, david@redhat.com,
+        jglisse@redhat.com, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org, shy828301@gmail.com
 Subject:  [merged]
- mm-fs-invalidate-bh-lru-during-page-migration.patch removed from -mm tree
-Message-ID: <20210508224907.xI65zoKH9%akpm@linux-foundation.org>
+ mm-migratec-make-putback_movable_page-static.patch removed from -mm tree
+Message-ID: <20210508224910.CoLxzhiNS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,167 +44,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fs: invalidate BH LRU during page migration
+     Subject: mm/migrate.c: make putback_movable_page() static
 has been removed from the -mm tree.  Its filename was
-     mm-fs-invalidate-bh-lru-during-page-migration.patch
+     mm-migratec-make-putback_movable_page-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: fs: invalidate BH LRU during page migration
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/migrate.c: make putback_movable_page() static
 
-Pages containing buffer_heads that are in one of the per-CPU buffer_head
-LRU caches will be pinned and thus cannot be migrated.  This can prevent
-CMA allocations from succeeding, which are often used on platforms with
-co-processors (such as a DSP) that can only use physically contiguous
-memory.  It can also prevent memory hot-unplugging from succeeding, which
-involves migrating at least MIN_MEMORY_BLOCK_SIZE bytes of memory, which
-ranges from 8 MiB to 1 GiB based on the architecture in use.
+Patch series "Cleanup and fixup for mm/migrate.c", v3.
 
-Correspondingly, invalidate the BH LRU caches before a migration starts
-and stop any buffer_head from being cached in the LRU caches, until
-migration has finished.
+This series contains cleanups to remove unnecessary VM_BUG_ON_PAGE and rc
+!= MIGRATEPAGE_SUCCESS check.  Also use helper function to remove some
+duplicated codes.  What's more, this fixes potential deadlock in NUMA
+balancing shared exec THP case and so on.  More details can be found in
+the respective changelogs.
 
-Link: https://lkml.kernel.org/r/20210319175127.886124-3-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Chris Goldsworthy <cgoldswo@codeaurora.org>
-Reported-by: Laura Abbott <labbott@kernel.org>
-Tested-by: Oliver Sang <oliver.sang@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: John Dias <joaodias@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+
+This patch (of 5):
+
+The putback_movable_page() is just called by putback_movable_pages() and
+we know the page is locked and both PageMovable() and PageIsolated() is
+checked right before calling putback_movable_page().  So we make it static
+and remove all the 3 VM_BUG_ON_PAGE().
+
+Link: https://lkml.kernel.org/r/20210325131524.48181-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210325131524.48181-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |   36 ++++++++++++++++++++++++++++------
- include/linux/buffer_head.h |    4 +++
- mm/swap.c                   |    5 +++-
- 3 files changed, 38 insertions(+), 7 deletions(-)
+ include/linux/migrate.h |    1 -
+ mm/migrate.c            |    7 +------
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
---- a/fs/buffer.c~mm-fs-invalidate-bh-lru-during-page-migration
-+++ a/fs/buffer.c
-@@ -1264,6 +1264,15 @@ static void bh_lru_install(struct buffer
- 	int i;
+--- a/include/linux/migrate.h~mm-migratec-make-putback_movable_page-static
++++ a/include/linux/migrate.h
+@@ -43,7 +43,6 @@ extern int migrate_pages(struct list_hea
+ 		unsigned long private, enum migrate_mode mode, int reason);
+ extern struct page *alloc_migration_target(struct page *page, unsigned long private);
+ extern int isolate_movable_page(struct page *page, isolate_mode_t mode);
+-extern void putback_movable_page(struct page *page);
  
- 	check_irqs_on();
-+	/*
-+	 * the refcount of buffer_head in bh_lru prevents dropping the
-+	 * attached page(i.e., try_to_free_buffers) so it could cause
-+	 * failing page migration.
-+	 * Skip putting upcoming bh into bh_lru until migration is done.
-+	 */
-+	if (lru_cache_disabled())
-+		return;
-+
- 	bh_lru_lock();
- 
- 	b = this_cpu_ptr(&bh_lrus);
-@@ -1404,6 +1413,15 @@ __bread_gfp(struct block_device *bdev, s
+ extern void migrate_page_states(struct page *newpage, struct page *page);
+ extern void migrate_page_copy(struct page *newpage, struct page *page);
+--- a/mm/migrate.c~mm-migratec-make-putback_movable_page-static
++++ a/mm/migrate.c
+@@ -118,15 +118,10 @@ out:
+ 	return -EBUSY;
  }
- EXPORT_SYMBOL(__bread_gfp);
  
-+static void __invalidate_bh_lrus(struct bh_lru *b)
-+{
-+	int i;
-+
-+	for (i = 0; i < BH_LRU_SIZE; i++) {
-+		brelse(b->bhs[i]);
-+		b->bhs[i] = NULL;
-+	}
-+}
- /*
-  * invalidate_bh_lrus() is called rarely - but not only at unmount.
-  * This doesn't race because it runs in each cpu either in irq
-@@ -1412,16 +1430,12 @@ EXPORT_SYMBOL(__bread_gfp);
- static void invalidate_bh_lru(void *arg)
+-/* It should be called on page which is PG_movable */
+-void putback_movable_page(struct page *page)
++static void putback_movable_page(struct page *page)
  {
- 	struct bh_lru *b = &get_cpu_var(bh_lrus);
--	int i;
+ 	struct address_space *mapping;
  
--	for (i = 0; i < BH_LRU_SIZE; i++) {
--		brelse(b->bhs[i]);
--		b->bhs[i] = NULL;
--	}
-+	__invalidate_bh_lrus(b);
- 	put_cpu_var(bh_lrus);
- }
- 
--static bool has_bh_in_lru(int cpu, void *dummy)
-+bool has_bh_in_lru(int cpu, void *dummy)
- {
- 	struct bh_lru *b = per_cpu_ptr(&bh_lrus, cpu);
- 	int i;
-@@ -1440,6 +1454,16 @@ void invalidate_bh_lrus(void)
- }
- EXPORT_SYMBOL_GPL(invalidate_bh_lrus);
- 
-+void invalidate_bh_lrus_cpu(int cpu)
-+{
-+	struct bh_lru *b;
-+
-+	bh_lru_lock();
-+	b = per_cpu_ptr(&bh_lrus, cpu);
-+	__invalidate_bh_lrus(b);
-+	bh_lru_unlock();
-+}
-+
- void set_bh_page(struct buffer_head *bh,
- 		struct page *page, unsigned long offset)
- {
---- a/include/linux/buffer_head.h~mm-fs-invalidate-bh-lru-during-page-migration
-+++ a/include/linux/buffer_head.h
-@@ -194,6 +194,8 @@ void __breadahead_gfp(struct block_devic
- struct buffer_head *__bread_gfp(struct block_device *,
- 				sector_t block, unsigned size, gfp_t gfp);
- void invalidate_bh_lrus(void);
-+void invalidate_bh_lrus_cpu(int cpu);
-+bool has_bh_in_lru(int cpu, void *dummy);
- struct buffer_head *alloc_buffer_head(gfp_t gfp_flags);
- void free_buffer_head(struct buffer_head * bh);
- void unlock_buffer(struct buffer_head *bh);
-@@ -406,6 +408,8 @@ static inline int inode_has_buffers(stru
- static inline void invalidate_inode_buffers(struct inode *inode) {}
- static inline int remove_inode_buffers(struct inode *inode) { return 1; }
- static inline int sync_mapping_buffers(struct address_space *mapping) { return 0; }
-+static inline void invalidate_bh_lrus_cpu(int cpu) {}
-+static inline bool has_bh_in_lru(int cpu, void *dummy) { return 0; }
- #define buffer_heads_over_limit 0
- 
- #endif /* CONFIG_BLOCK */
---- a/mm/swap.c~mm-fs-invalidate-bh-lru-during-page-migration
-+++ a/mm/swap.c
-@@ -36,6 +36,7 @@
- #include <linux/hugetlb.h>
- #include <linux/page_idle.h>
- #include <linux/local_lock.h>
-+#include <linux/buffer_head.h>
- 
- #include "internal.h"
- 
-@@ -641,6 +642,7 @@ void lru_add_drain_cpu(int cpu)
- 		pagevec_lru_move_fn(pvec, lru_lazyfree_fn);
- 
- 	activate_page_drain(cpu);
-+	invalidate_bh_lrus_cpu(cpu);
- }
- 
- /**
-@@ -828,7 +830,8 @@ inline void __lru_add_drain_all(bool for
- 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate_file, cpu)) ||
- 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate, cpu)) ||
- 		    pagevec_count(&per_cpu(lru_pvecs.lru_lazyfree, cpu)) ||
--		    need_activate_page_drain(cpu)) {
-+		    need_activate_page_drain(cpu) ||
-+		    has_bh_in_lru(cpu, NULL)) {
- 			INIT_WORK(work, lru_add_drain_per_cpu);
- 			queue_work_on(cpu, mm_percpu_wq, work);
- 			__cpumask_set_cpu(cpu, &has_work);
+-	VM_BUG_ON_PAGE(!PageLocked(page), page);
+-	VM_BUG_ON_PAGE(!PageMovable(page), page);
+-	VM_BUG_ON_PAGE(!PageIsolated(page), page);
+-
+ 	mapping = page_mapping(page);
+ 	mapping->a_ops->putback_page(page);
+ 	__ClearPageIsolated(page);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
 
