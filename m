@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91496C433B4
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2DA6C43460
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73DF861421
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5C5F61401
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229617AbhEIELt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 May 2021 00:11:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34056 "EHLO mail.kernel.org"
+        id S229618AbhEIELv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 May 2021 00:11:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34140 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229605AbhEIELt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 May 2021 00:11:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1C6FD613FA;
-        Sun,  9 May 2021 04:10:45 +0000 (UTC)
+        id S229605AbhEIELv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 May 2021 00:11:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 193776135F;
+        Sun,  9 May 2021 04:10:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620533445;
-        bh=djeFEKvN3XSC2Zlg8gMCPLUpfQOPUCcv+RGSl3019Mc=;
+        s=korg; t=1620533448;
+        bh=5MCqR5g5LvejFV9Q8KmlWBFlXgn7BeGghKoY/zgHtcQ=;
         h=Date:From:To:Subject:From;
-        b=RwSDY/Hmf7FxVTg4XZg5H0ZxVyuEoc3hhw1UoRjXUdD27B+RwNnIdY17lvkIrAsmR
-         dE7woZSWEKGqjwZ0qRTbOQgvVf69EZrv1QUJEq2xAdOUnTBfh3BH4ceLj6MGxlpn/V
-         5l+r95b99t5OKlhVMWHaQXCongt2E9WufDU1172A=
-Date:   Sat, 08 May 2021 21:10:44 -0700
+        b=unqyhjYYSZugxJPRoq646jYp43Hh9TzZ0qbCNC0bCMidnAjU3Mu1LCLufutMSstuO
+         mWntBwFWopo9t9p44U2OFtzCdpQi77gZUZlZnj+rIfb66Hlc1os9V9jZZpm8zR/Ull
+         wx4xz4cTtWPJSiQHLMcTJZPHIF4exVVDyw11cnpc=
+Date:   Sat, 08 May 2021 21:10:47 -0700
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, almasrymina@google.com,
         axelrasmussen@google.com, bgeffon@google.com, dgilbert@redhat.com,
@@ -39,9 +39,9 @@ To:     aarcange@redhat.com, almasrymina@google.com,
         sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
         viro@zeniv.linux.org.uk, wangqing@vivo.com
 Subject:  +
- userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte.patch
- added to -mm tree
-Message-ID: <20210509041044.dK77vQip5%akpm@linux-foundation.org>
+ userfaultfd-selftests-use-memfd_create-for-shmem-test-type.patch added to
+ -mm tree
+Message-ID: <20210509041047.Un_UsYgNf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/shmem: modify shmem_mfill_atomic_pte to use install_pte()
+     Subject: userfaultfd/selftests: use memfd_create for shmem test type
 has been added to the -mm tree.  Its filename is
-     userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte.patch
+     userfaultfd-selftests-use-memfd_create-for-shmem-test-type.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-use-memfd_create-for-shmem-test-type.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-use-memfd_create-for-shmem-test-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,37 +72,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/shmem: modify shmem_mfill_atomic_pte to use install_pte()
+Subject: userfaultfd/selftests: use memfd_create for shmem test type
 
-In a previous commit, we added the mfill_atomic_install_pte() helper. 
-This helper does the job of setting up PTEs for an existing page, to map
-it into a given VMA.  It deals with both the anon and shmem cases, as well
-as the shared and private cases.
+This is a preparatory commit.  In the future, we want to be able to setup
+alias mappings for area_src and area_dst in the shmem test, like we do in
+the hugetlb_shared test.  With a VMA obtained via mmap(MAP_ANONYMOUS |
+MAP_SHARED), it isn't clear how to do this.
 
-In other words, shmem_mfill_atomic_pte() duplicates a case it already
-handles.  So, expose it, and let shmem_mfill_atomic_pte() use it directly,
-to reduce code duplication.
+So, mmap() with an fd, so we can create alias mappings.  Use memfd_create
+instead of actually passing in a tmpfs path like hugetlb does, since it's
+more convenient / simpler to run, and works just as well.
 
-This requires that we refactor shmem_mfill_atomic_pte() a bit:
+Future commits will:
 
-Instead of doing accounting (shmem_recalc_inode() et al) part-way through
-the PTE setup, do it afterward.  This frees up mfill_atomic_install_pte()
-from having to care about this accounting, and means we don't need to e.g.
-shmem_uncharge() in the error path.
+1. Setup the alias mappings.
+2. Extend our tests to actually take advantage of this, to test new
+   userfaultfd behavior being introduced in this series.
 
-A side effect is this switches shmem_mfill_atomic_pte() to use
-lru_cache_add_inactive_or_unevictable() instead of just lru_cache_add(). 
-This wrapper does some extra accounting in an exceptional case, if
-appropriate, so it's actually the more correct thing to use.
+Also, a small fix in the area we're changing: when the hugetlb setup fails
+in main(), pass in the right argv[] so we actually print out the hugetlb
+file path.
 
-Link: https://lkml.kernel.org/r/20210503180737.2487560-7-axelrasmussen@google.com
+Link: https://lkml.kernel.org/r/20210503180737.2487560-8-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
 Reviewed-by: Peter Xu <peterx@redhat.com>
-Acked-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
@@ -118,135 +116,49 @@ Cc: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/userfaultfd_k.h |    5 +++
- mm/shmem.c                    |   52 ++++++--------------------------
- mm/userfaultfd.c              |   17 +++-------
- 3 files changed, 21 insertions(+), 53 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
---- a/include/linux/userfaultfd_k.h~userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte
-+++ a/include/linux/userfaultfd_k.h
-@@ -53,6 +53,11 @@ enum mcopy_atomic_mode {
- 	MCOPY_ATOMIC_CONTINUE,
- };
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-use-memfd_create-for-shmem-test-type
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -85,6 +85,7 @@ static bool test_uffdio_wp = false;
+ static bool test_uffdio_minor = false;
  
-+extern int mfill_atomic_install_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
-+				    struct vm_area_struct *dst_vma,
-+				    unsigned long dst_addr, struct page *page,
-+				    bool newly_allocated, bool wp_copy);
-+
- extern ssize_t mcopy_atomic(struct mm_struct *dst_mm, unsigned long dst_start,
- 			    unsigned long src_start, unsigned long len,
- 			    bool *mmap_changing, __u64 mode);
---- a/mm/shmem.c~userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte
-+++ a/mm/shmem.c
-@@ -2390,9 +2390,9 @@ int shmem_mfill_atomic_pte(struct mm_str
- 			/* fallback to copy_from_user outside mmap_lock */
- 			if (unlikely(ret)) {
- 				*pagep = page;
--				shmem_inode_unacct_blocks(inode, 1);
-+				ret = -ENOENT;
- 				/* don't free the page */
--				return -ENOENT;
-+				goto out_unacct_blocks;
- 			}
- 		} else {		/* ZEROPAGE */
- 			clear_highpage(page);
-@@ -2418,32 +2418,10 @@ int shmem_mfill_atomic_pte(struct mm_str
- 	if (ret)
- 		goto out_release;
+ static bool map_shared;
++static int shm_fd;
+ static int huge_fd;
+ static char *huge_fd_off0;
+ static unsigned long long *count_verify;
+@@ -277,8 +278,11 @@ static void shmem_release_pages(char *re
  
--	_dst_pte = mk_pte(page, dst_vma->vm_page_prot);
--	if (dst_vma->vm_flags & VM_WRITE)
--		_dst_pte = pte_mkwrite(pte_mkdirty(_dst_pte));
--	else {
--		/*
--		 * We don't set the pte dirty if the vma has no
--		 * VM_WRITE permission, so mark the page dirty or it
--		 * could be freed from under us. We could do it
--		 * unconditionally before unlock_page(), but doing it
--		 * only if VM_WRITE is not set is faster.
--		 */
--		set_page_dirty(page);
--	}
--
--	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
--
--	ret = -EFAULT;
--	max_off = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
--	if (unlikely(pgoff >= max_off))
--		goto out_release_unlock;
--
--	ret = -EEXIST;
--	if (!pte_none(*dst_pte))
--		goto out_release_unlock;
--
--	lru_cache_add(page);
-+	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
-+				       page, true, false);
-+	if (ret)
-+		goto out_delete_from_cache;
- 
- 	spin_lock_irq(&info->lock);
- 	info->alloced++;
-@@ -2451,27 +2429,17 @@ int shmem_mfill_atomic_pte(struct mm_str
- 	shmem_recalc_inode(inode);
- 	spin_unlock_irq(&info->lock);
- 
--	inc_mm_counter(dst_mm, mm_counter_file(page));
--	page_add_file_rmap(page, false);
--	set_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
--
--	/* No need to invalidate - it was non-present before */
--	update_mmu_cache(dst_vma, dst_addr, dst_pte);
--	pte_unmap_unlock(dst_pte, ptl);
-+	SetPageDirty(page);
- 	unlock_page(page);
--	ret = 0;
--out:
--	return ret;
--out_release_unlock:
--	pte_unmap_unlock(dst_pte, ptl);
--	ClearPageDirty(page);
-+	return 0;
-+out_delete_from_cache:
- 	delete_from_page_cache(page);
- out_release:
- 	unlock_page(page);
- 	put_page(page);
- out_unacct_blocks:
- 	shmem_inode_unacct_blocks(inode, 1);
--	goto out;
-+	return ret;
- }
- #endif /* CONFIG_USERFAULTFD */
- 
---- a/mm/userfaultfd.c~userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte
-+++ a/mm/userfaultfd.c
-@@ -51,18 +51,13 @@ struct vm_area_struct *find_dst_vma(stru
- /*
-  * Install PTEs, to map dst_addr (within dst_vma) to page.
-  *
-- * This function handles MCOPY_ATOMIC_CONTINUE (which is always file-backed),
-- * whether or not dst_vma is VM_SHARED. It also handles the more general
-- * MCOPY_ATOMIC_NORMAL case, when dst_vma is *not* VM_SHARED (it may be file
-- * backed, or not).
-- *
-- * Note that MCOPY_ATOMIC_NORMAL for a VM_SHARED dst_vma is handled by
-- * shmem_mcopy_atomic_pte instead.
-+ * This function handles both MCOPY_ATOMIC_NORMAL and _CONTINUE for both shmem
-+ * and anon, and for both shared and private VMAs.
-  */
--static int mfill_atomic_install_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
--				    struct vm_area_struct *dst_vma,
--				    unsigned long dst_addr, struct page *page,
--				    bool newly_allocated, bool wp_copy)
-+int mfill_atomic_install_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
-+			     struct vm_area_struct *dst_vma,
-+			     unsigned long dst_addr, struct page *page,
-+			     bool newly_allocated, bool wp_copy)
+ static void shmem_allocate_area(void **alloc_area)
  {
- 	int ret;
- 	pte_t _dst_pte, *dst_pte;
++	unsigned long offset =
++		alloc_area == (void **)&area_src ? 0 : nr_pages * page_size;
++
+ 	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
+-			   MAP_ANONYMOUS | MAP_SHARED, -1, 0);
++			   MAP_SHARED, shm_fd, offset);
+ 	if (*alloc_area == MAP_FAILED)
+ 		err("mmap of memfd failed");
+ }
+@@ -1602,6 +1606,16 @@ int main(int argc, char **argv)
+ 			err("Open of %s failed", argv[4]);
+ 		if (ftruncate(huge_fd, 0))
+ 			err("ftruncate %s to size 0 failed", argv[4]);
++	} else if (test_type == TEST_SHMEM) {
++		shm_fd = memfd_create(argv[0], 0);
++		if (shm_fd < 0)
++			err("memfd_create");
++		if (ftruncate(shm_fd, nr_pages * page_size * 2))
++			err("ftruncate");
++		if (fallocate(shm_fd,
++			      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 0,
++			      nr_pages * page_size * 2))
++			err("fallocate");
+ 	}
+ 	printf("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
+ 	       nr_pages, nr_pages_per_cpu);
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
