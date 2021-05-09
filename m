@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B002FC433ED
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91496C433B4
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8F6BD6142B
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 73DF861421
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229616AbhEIELq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 May 2021 00:11:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33972 "EHLO mail.kernel.org"
+        id S229617AbhEIELt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 May 2021 00:11:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34056 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229605AbhEIELp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 May 2021 00:11:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0E0586135F;
-        Sun,  9 May 2021 04:10:42 +0000 (UTC)
+        id S229605AbhEIELt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 May 2021 00:11:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1C6FD613FA;
+        Sun,  9 May 2021 04:10:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620533442;
-        bh=s+7aaRLS34YqiZFaQUgy1BGxI7HP1uWV5H09JSZHTjg=;
+        s=korg; t=1620533445;
+        bh=djeFEKvN3XSC2Zlg8gMCPLUpfQOPUCcv+RGSl3019Mc=;
         h=Date:From:To:Subject:From;
-        b=0uOAfgKXvhyCb5ap9HALNwxqT7FTKUbfS8kBy9pkhu8noUfpe6xGm5em8VM1XObrY
-         pufi4atEckHgYPnBN9ij14ZAwpB4dEZV28O+a08nN/tqqIiNUcOeizbUsfJRC9q3FL
-         5N1y1m9Wfa5lHJpe44ET0NjmJ+QIfkQOkysusKXI=
-Date:   Sat, 08 May 2021 21:10:41 -0700
+        b=RwSDY/Hmf7FxVTg4XZg5H0ZxVyuEoc3hhw1UoRjXUdD27B+RwNnIdY17lvkIrAsmR
+         dE7woZSWEKGqjwZ0qRTbOQgvVf69EZrv1QUJEq2xAdOUnTBfh3BH4ceLj6MGxlpn/V
+         5l+r95b99t5OKlhVMWHaQXCongt2E9WufDU1172A=
+Date:   Sat, 08 May 2021 21:10:44 -0700
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, almasrymina@google.com,
         axelrasmussen@google.com, bgeffon@google.com, dgilbert@redhat.com,
@@ -39,9 +39,9 @@ To:     aarcange@redhat.com, almasrymina@google.com,
         sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
         viro@zeniv.linux.org.uk, wangqing@vivo.com
 Subject:  +
- userfaultfd-shmem-advertise-shmem-minor-fault-support.patch added to -mm
- tree
-Message-ID: <20210509041041.ho11MPtRj%akpm@linux-foundation.org>
+ userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte.patch
+ added to -mm tree
+Message-ID: <20210509041044.dK77vQip5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/shmem: advertise shmem minor fault support
+     Subject: userfaultfd/shmem: modify shmem_mfill_atomic_pte to use install_pte()
 has been added to the -mm tree.  Its filename is
-     userfaultfd-shmem-advertise-shmem-minor-fault-support.patch
+     userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-shmem-advertise-shmem-minor-fault-support.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-shmem-advertise-shmem-minor-fault-support.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,16 +72,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/shmem: advertise shmem minor fault support
+Subject: userfaultfd/shmem: modify shmem_mfill_atomic_pte to use install_pte()
 
-Now that the feature is fully implemented (the faulting path hooks exist
-so userspace is notified, and the ioctl to resolve such faults is
-available), advertise this as a supported feature.
+In a previous commit, we added the mfill_atomic_install_pte() helper. 
+This helper does the job of setting up PTEs for an existing page, to map
+it into a given VMA.  It deals with both the anon and shmem cases, as well
+as the shared and private cases.
 
-Link: https://lkml.kernel.org/r/20210503180737.2487560-6-axelrasmussen@google.com
+In other words, shmem_mfill_atomic_pte() duplicates a case it already
+handles.  So, expose it, and let shmem_mfill_atomic_pte() use it directly,
+to reduce code duplication.
+
+This requires that we refactor shmem_mfill_atomic_pte() a bit:
+
+Instead of doing accounting (shmem_recalc_inode() et al) part-way through
+the PTE setup, do it afterward.  This frees up mfill_atomic_install_pte()
+from having to care about this accounting, and means we don't need to e.g.
+shmem_uncharge() in the error path.
+
+A side effect is this switches shmem_mfill_atomic_pte() to use
+lru_cache_add_inactive_or_unevictable() instead of just lru_cache_add(). 
+This wrapper does some extra accounting in an exceptional case, if
+appropriate, so it's actually the more correct thing to use.
+
+Link: https://lkml.kernel.org/r/20210503180737.2487560-7-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
 Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Peter Xu <peterx@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Brian Geffon <bgeffon@google.com>
@@ -101,65 +118,135 @@ Cc: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/userfaultfd.rst |    3 ++-
- fs/userfaultfd.c                             |    3 ++-
- include/uapi/linux/userfaultfd.h             |    7 ++++++-
- 3 files changed, 10 insertions(+), 3 deletions(-)
+ include/linux/userfaultfd_k.h |    5 +++
+ mm/shmem.c                    |   52 ++++++--------------------------
+ mm/userfaultfd.c              |   17 +++-------
+ 3 files changed, 21 insertions(+), 53 deletions(-)
 
---- a/Documentation/admin-guide/mm/userfaultfd.rst~userfaultfd-shmem-advertise-shmem-minor-fault-support
-+++ a/Documentation/admin-guide/mm/userfaultfd.rst
-@@ -77,7 +77,8 @@ events, except page fault notifications,
+--- a/include/linux/userfaultfd_k.h~userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte
++++ a/include/linux/userfaultfd_k.h
+@@ -53,6 +53,11 @@ enum mcopy_atomic_mode {
+ 	MCOPY_ATOMIC_CONTINUE,
+ };
  
- - ``UFFD_FEATURE_MINOR_HUGETLBFS`` indicates that the kernel supports
-   ``UFFDIO_REGISTER_MODE_MINOR`` registration for hugetlbfs virtual memory
--  areas.
-+  areas. ``UFFD_FEATURE_MINOR_SHMEM`` is the analogous feature indicating
-+  support for shmem virtual memory areas.
++extern int mfill_atomic_install_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
++				    struct vm_area_struct *dst_vma,
++				    unsigned long dst_addr, struct page *page,
++				    bool newly_allocated, bool wp_copy);
++
+ extern ssize_t mcopy_atomic(struct mm_struct *dst_mm, unsigned long dst_start,
+ 			    unsigned long src_start, unsigned long len,
+ 			    bool *mmap_changing, __u64 mode);
+--- a/mm/shmem.c~userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte
++++ a/mm/shmem.c
+@@ -2390,9 +2390,9 @@ int shmem_mfill_atomic_pte(struct mm_str
+ 			/* fallback to copy_from_user outside mmap_lock */
+ 			if (unlikely(ret)) {
+ 				*pagep = page;
+-				shmem_inode_unacct_blocks(inode, 1);
++				ret = -ENOENT;
+ 				/* don't free the page */
+-				return -ENOENT;
++				goto out_unacct_blocks;
+ 			}
+ 		} else {		/* ZEROPAGE */
+ 			clear_highpage(page);
+@@ -2418,32 +2418,10 @@ int shmem_mfill_atomic_pte(struct mm_str
+ 	if (ret)
+ 		goto out_release;
  
- The userland application should set the feature flags it intends to use
- when invoking the ``UFFDIO_API`` ioctl, to request that those features be
---- a/fs/userfaultfd.c~userfaultfd-shmem-advertise-shmem-minor-fault-support
-+++ a/fs/userfaultfd.c
-@@ -1944,7 +1944,8 @@ static int userfaultfd_api(struct userfa
- 	/* report all available features and ioctls to userland */
- 	uffdio_api.features = UFFD_API_FEATURES;
- #ifndef CONFIG_HAVE_ARCH_USERFAULTFD_MINOR
--	uffdio_api.features &= ~UFFD_FEATURE_MINOR_HUGETLBFS;
-+	uffdio_api.features &=
-+		~(UFFD_FEATURE_MINOR_HUGETLBFS | UFFD_FEATURE_MINOR_SHMEM);
- #endif
- #ifndef CONFIG_HAVE_ARCH_USERFAULTFD_WP
- 	uffdio_api.features &= ~UFFD_FEATURE_PAGEFAULT_FLAG_WP;
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-shmem-advertise-shmem-minor-fault-support
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -31,7 +31,8 @@
- 			   UFFD_FEATURE_MISSING_SHMEM |		\
- 			   UFFD_FEATURE_SIGBUS |		\
- 			   UFFD_FEATURE_THREAD_ID |		\
--			   UFFD_FEATURE_MINOR_HUGETLBFS)
-+			   UFFD_FEATURE_MINOR_HUGETLBFS |	\
-+			   UFFD_FEATURE_MINOR_SHMEM)
- #define UFFD_API_IOCTLS				\
- 	((__u64)1 << _UFFDIO_REGISTER |		\
- 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
-@@ -185,6 +186,9 @@ struct uffdio_api {
- 	 * UFFD_FEATURE_MINOR_HUGETLBFS indicates that minor faults
- 	 * can be intercepted (via REGISTER_MODE_MINOR) for
- 	 * hugetlbfs-backed pages.
-+	 *
-+	 * UFFD_FEATURE_MINOR_SHMEM indicates the same support as
-+	 * UFFD_FEATURE_MINOR_HUGETLBFS, but for shmem-backed pages instead.
- 	 */
- #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
- #define UFFD_FEATURE_EVENT_FORK			(1<<1)
-@@ -196,6 +200,7 @@ struct uffdio_api {
- #define UFFD_FEATURE_SIGBUS			(1<<7)
- #define UFFD_FEATURE_THREAD_ID			(1<<8)
- #define UFFD_FEATURE_MINOR_HUGETLBFS		(1<<9)
-+#define UFFD_FEATURE_MINOR_SHMEM		(1<<10)
- 	__u64 features;
+-	_dst_pte = mk_pte(page, dst_vma->vm_page_prot);
+-	if (dst_vma->vm_flags & VM_WRITE)
+-		_dst_pte = pte_mkwrite(pte_mkdirty(_dst_pte));
+-	else {
+-		/*
+-		 * We don't set the pte dirty if the vma has no
+-		 * VM_WRITE permission, so mark the page dirty or it
+-		 * could be freed from under us. We could do it
+-		 * unconditionally before unlock_page(), but doing it
+-		 * only if VM_WRITE is not set is faster.
+-		 */
+-		set_page_dirty(page);
+-	}
+-
+-	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
+-
+-	ret = -EFAULT;
+-	max_off = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
+-	if (unlikely(pgoff >= max_off))
+-		goto out_release_unlock;
+-
+-	ret = -EEXIST;
+-	if (!pte_none(*dst_pte))
+-		goto out_release_unlock;
+-
+-	lru_cache_add(page);
++	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
++				       page, true, false);
++	if (ret)
++		goto out_delete_from_cache;
  
- 	__u64 ioctls;
+ 	spin_lock_irq(&info->lock);
+ 	info->alloced++;
+@@ -2451,27 +2429,17 @@ int shmem_mfill_atomic_pte(struct mm_str
+ 	shmem_recalc_inode(inode);
+ 	spin_unlock_irq(&info->lock);
+ 
+-	inc_mm_counter(dst_mm, mm_counter_file(page));
+-	page_add_file_rmap(page, false);
+-	set_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
+-
+-	/* No need to invalidate - it was non-present before */
+-	update_mmu_cache(dst_vma, dst_addr, dst_pte);
+-	pte_unmap_unlock(dst_pte, ptl);
++	SetPageDirty(page);
+ 	unlock_page(page);
+-	ret = 0;
+-out:
+-	return ret;
+-out_release_unlock:
+-	pte_unmap_unlock(dst_pte, ptl);
+-	ClearPageDirty(page);
++	return 0;
++out_delete_from_cache:
+ 	delete_from_page_cache(page);
+ out_release:
+ 	unlock_page(page);
+ 	put_page(page);
+ out_unacct_blocks:
+ 	shmem_inode_unacct_blocks(inode, 1);
+-	goto out;
++	return ret;
+ }
+ #endif /* CONFIG_USERFAULTFD */
+ 
+--- a/mm/userfaultfd.c~userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte
++++ a/mm/userfaultfd.c
+@@ -51,18 +51,13 @@ struct vm_area_struct *find_dst_vma(stru
+ /*
+  * Install PTEs, to map dst_addr (within dst_vma) to page.
+  *
+- * This function handles MCOPY_ATOMIC_CONTINUE (which is always file-backed),
+- * whether or not dst_vma is VM_SHARED. It also handles the more general
+- * MCOPY_ATOMIC_NORMAL case, when dst_vma is *not* VM_SHARED (it may be file
+- * backed, or not).
+- *
+- * Note that MCOPY_ATOMIC_NORMAL for a VM_SHARED dst_vma is handled by
+- * shmem_mcopy_atomic_pte instead.
++ * This function handles both MCOPY_ATOMIC_NORMAL and _CONTINUE for both shmem
++ * and anon, and for both shared and private VMAs.
+  */
+-static int mfill_atomic_install_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
+-				    struct vm_area_struct *dst_vma,
+-				    unsigned long dst_addr, struct page *page,
+-				    bool newly_allocated, bool wp_copy)
++int mfill_atomic_install_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
++			     struct vm_area_struct *dst_vma,
++			     unsigned long dst_addr, struct page *page,
++			     bool newly_allocated, bool wp_copy)
+ {
+ 	int ret;
+ 	pte_t _dst_pte, *dst_pte;
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
