@@ -2,47 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0493AC433ED
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 00:47:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74A5FC433ED
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 00:48:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BB04A6142D
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 00:47:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4247961400
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 00:48:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229616AbhEIAsp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 20:48:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36952 "EHLO mail.kernel.org"
+        id S229616AbhEIAtv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 20:49:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37604 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229601AbhEIAsp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 20:48:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 335C061400;
-        Sun,  9 May 2021 00:47:42 +0000 (UTC)
+        id S229601AbhEIAtu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 20:49:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A44EB61155;
+        Sun,  9 May 2021 00:48:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620521262;
-        bh=ef9vy1zh3dainnvhRp0c20oCGAS2wiLE2sneLvFS6Wk=;
+        s=korg; t=1620521328;
+        bh=yP+25KcFZ9CqaYGxxZHiwzvaOdlM28Uz6GdwPBptdNo=;
         h=Date:From:To:Subject:From;
-        b=xrgKSdlpeu4cekV8Y7sLA6xlx0/BWr4r2kcX66xoOVc9CCCloO6X26rOdepd6iVpq
-         RqminF0PtR+VV3OnwqV/vvE/E1PzxibkdVKavC7XsM/h3+cPW6ofwEqOjoCcwwSx7X
-         6gwIqd7u7vR7hjRRvfu88Hc+Jc2y/Fr8TMWorLLA=
-Date:   Sat, 08 May 2021 17:47:41 -0700
+        b=w8o+y0zTcz07QtzmNHVdk/I3d3HZEgGQB3Gwz2fFzS4WUrDe0rk+FTBEhSmZk5e0J
+         JFYp0+bnFJx/qBQT/YDLIx622H2q2lBeTUsLPmvgxEWGkX86WRrTXUrmbpKnoAmyzO
+         5cMvBB1hGql5DgUm7ClCQlIXgPYitUBq+noAhXgU=
+Date:   Sat, 08 May 2021 17:48:48 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
-        chris@chrisdown.name, cl@linux.com, guro@fb.com,
-        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, laoar.shao@gmail.com,
-        longman@redhat.com, mhocko@kernel.org, mm-commits@vger.kernel.org,
-        msys.mizuma@gmail.com, penberg@kernel.org,
-        richard.weiyang@gmail.com, rientjes@google.com,
-        shakeelb@google.com, songmuchun@bytedance.com, tj@kernel.org,
-        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
-        zhengjun.xing@linux.intel.com
+To:     mm-commits@vger.kernel.org, tangbin@cmss.chinamobile.com,
+        zhangshengju@cmss.chinamobile.com
 Subject:  +
- mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
- added to -mm tree
-Message-ID: <20210509004741.kIbOoDt_Z%akpm@linux-foundation.org>
+ tools-vm-page_owner_sortc-fix-the-potential-stack-overflow-risk.patch added
+ to -mm tree
+Message-ID: <20210509004848.3uYusJiEs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes
+     Subject: tools/vm/page_owner_sort.c: check malloc return
 has been added to the -mm tree.  Its filename is
-     mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+     tools-vm-page_owner_sortc-fix-the-potential-stack-overflow-risk.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner_sortc-fix-the-potential-stack-overflow-risk.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner_sortc-fix-the-potential-stack-overflow-risk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,77 +65,34 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes
+From: Tang Bin <tangbin@cmss.chinamobile.com>
+Subject: tools/vm/page_owner_sort.c: check malloc return
 
-WARNING: else is not generally useful after a break or return
-#138: FILE: mm/memcontrol.c:2121:
-+		return &stock->task_obj;
-+	} else {
-
-total: 0 errors, 1 warnings, 193 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-memcg-optimize-user-context-object-stock-access.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Xing Zhengjun <zhengjun.xing@linux.intel.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
+Link: https://lkml.kernel.org/r/20210506131402.10416-1-tangbin@cmss.chinamobile.com
+Signed-off-by: Zhang Shengju <zhangshengju@cmss.chinamobile.com>
+Signed-off-by: Tang Bin <tangbin@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ tools/vm/page_owner_sort.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/memcontrol.c~mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes
-+++ a/mm/memcontrol.c
-@@ -2118,11 +2118,11 @@ static inline struct obj_stock *get_obj_
- 		preempt_disable();
- 		stock = this_cpu_ptr(&memcg_stock);
- 		return &stock->task_obj;
--	} else {
--		local_irq_save(*pflags);
--		stock = this_cpu_ptr(&memcg_stock);
--		return &stock->irq_obj;
- 	}
-+
-+	local_irq_save(*pflags);
-+	stock = this_cpu_ptr(&memcg_stock);
-+	return &stock->irq_obj;
- }
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-fix-the-potential-stack-overflow-risk
++++ a/tools/vm/page_owner_sort.c
+@@ -132,6 +132,10 @@ int main(int argc, char **argv)
+ 	qsort(list, list_size, sizeof(list[0]), compare_txt);
  
- static inline void put_obj_stock(unsigned long flags)
+ 	list2 = malloc(sizeof(*list) * list_size);
++	if (!list2) {
++		printf("Out of memory\n");
++		exit(1);
++	}
+ 
+ 	printf("culling\n");
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tangbin@cmss.chinamobile.com are
 
-mm.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+tools-vm-page_owner_sortc-fix-the-potential-stack-overflow-risk.patch
 
