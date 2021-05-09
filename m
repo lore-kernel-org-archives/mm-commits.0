@@ -2,46 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B7C9C43461
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 23:28:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FB7BC433B4
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 23:36:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0ACFE61421
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 23:28:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 236FE613D0
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 23:36:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230017AbhEIX33 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 May 2021 19:29:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46920 "EHLO mail.kernel.org"
+        id S229995AbhEIXhr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 May 2021 19:37:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49436 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230019AbhEIX32 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 May 2021 19:29:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F072B613C2;
-        Sun,  9 May 2021 23:28:23 +0000 (UTC)
+        id S229920AbhEIXhq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 May 2021 19:37:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9FE2E613D0;
+        Sun,  9 May 2021 23:36:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620602904;
-        bh=LTXZgXE/w4L+KWsj0trVmaJH2BTGTunG9XJY/yWZ3WY=;
+        s=korg; t=1620603402;
+        bh=7lEuw6/KYmXnlqT3xWep6SaKnV7NnmpWD4QrUSUkb3I=;
         h=Date:From:To:Subject:From;
-        b=0GXkMi+6OYW69SXrwVM818HfkrNLBaFoA4CDwIYbmN76ULNh6lLwRjJJva5Sj+MEa
-         6JB7EiH/wUq7tP/1iXEir3ZMro3z3c9srUoDPAYN8oiW6W7UEJIjmGODzECaH6suTu
-         m2XBNECEIeIN+531VQePQMyf0uzHBRIKzrb7EG5k=
-Date:   Sun, 09 May 2021 16:28:23 -0700
+        b=K41kqI7rdJbg57lQaHo8ZZV/15jV69Mje3ZiAD0t3gIR3BpOwGdykGW8FtwDXzRTl
+         WsG+xur8ZqFTDq3/eZXoO0OgWJnb3lUzA/eDLymh00V747O3F6zrhhL1JsxlFoegHl
+         /cErw9WWLPcpKkvW06VfUegsnGeDjsdUJ5sTfefU=
+Date:   Sun, 09 May 2021 16:36:42 -0700
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, gpiccoli@canonical.com, joe@perches.com,
-        keescook@chromium.org, mchehab+huawei@kernel.org,
-        mm-commits@vger.kernel.org, pmladek@suse.com, qais.yousef@arm.com,
-        rdunlap@infradead.org, santosh@fossix.org, steve@sk2.org,
-        vbabka@suse.cz, wangqing@vivo.com
+To:     mm-commits@vger.kernel.org, wuchi.zero@gmail.com
 Subject:  +
- doc-watchdog-modify-the-doc-related-to-watchdog-%u.patch added to -mm tree
-Message-ID: <20210509232823.QrZHmhPUu%akpm@linux-foundation.org>
+ mm-page-writeback-fix-performance-when-bdis-share-of-ratio-is-0.patch added
+ to -mm tree
+Message-ID: <20210509233642.44pLNclWk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,16 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: doc: watchdog: modify the doc related to "watchdog/%u"
+     Subject: mm/page-writeback: Fix performance when BDI's share of ratio is 0.
 has been added to the -mm tree.  Its filename is
-     doc-watchdog-modify-the-doc-related-to-watchdog-%u.patch
+     mm-page-writeback-fix-performance-when-bdis-share-of-ratio-is-0.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/doc-watchdog-modify-the-doc-r=
-elated-to-watchdog-%25u.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page-writeback-fix-performance-when-bdis-share-of-ratio-is-0.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/doc-watchdog-modify-the-doc-r=
-elated-to-watchdog-%25u.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writeback-fix-performance-when-bdis-share-of-ratio-is-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,70 +58,92 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Wang Qing <wangqing@vivo.com>
-Subject: doc: watchdog: modify the doc related to "watchdog/%u"
+From: Chi Wu <wuchi.zero@gmail.com>
+Subject: mm/page-writeback: Fix performance when BDI's share of ratio is 0.
 
-"watchdog/%u" threads has be replaced by cpu_stop_work.  The current
-description is extremely misleading.
+Fix performance when BDI's share of ratio is 0.
 
-Link: https://lkml.kernel.org/r/1619687073-24686-5-git-send-email-wangqing@=
-vivo.com
-Signed-off-by: Wang Qing <wangqing@vivo.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Cc: "Guilherme G. Piccoli" <gpiccoli@canonical.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Qais Yousef <qais.yousef@arm.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Santosh Sivaraj <santosh@fossix.org>
-Cc: Stephen Kitt <steve@sk2.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The issue is similar to commit 74d369443325 ("writeback: Fix
+performance regression in wb_over_bg_thresh()").
+
+Balance_dirty_pages and the writeback worker will also disagree on
+whether writeback when a BDI uses BDI_CAP_STRICTLIMIT and BDI's share
+of the thresh ratio is zero.
+
+For example, A thread on cpu0 writes 32 pages and then
+balance_dirty_pages, it will wake up background writeback and pauses
+because wb_dirty > wb->wb_thresh = 0 (share of thresh ratio is zero).
+A thread may runs on cpu0 again because scheduler prefers pre_cpu.
+Then writeback worker may runs on other cpus(1,2..) which causes the
+value of wb_stat(wb, WB_RECLAIMABLE) in wb_over_bg_thresh is 0 and does
+not writeback and returns.
+
+Thus, balance_dirty_pages keeps looping, sleeping and then waking up the
+worker who will do nothing. It remains stuck in this state until the
+writeback worker hit the right dirty cpu or the dirty pages expire.
+
+The fix that we should get the wb_stat_sum radically when thresh is low.
+
+Link: https://lkml.kernel.org/r/20210428225046.16301-1-wuchi.zero@gmail.com
+Signed-off-by: Chi Wu <wuchi.zero@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/page-writeback.c |   20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~doc-watchdog-modify-the-d=
-oc-related-to-watchdog-%u
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -1282,11 +1282,11 @@ This parameter can be used to control th
- =3D =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=20
- The soft lockup detector monitors CPUs for threads that are hogging the CP=
-Us
--without rescheduling voluntarily, and thus prevent the 'watchdog/N' threads
--from running. The mechanism depends on the CPUs ability to respond to timer
--interrupts which are needed for the 'watchdog/N' threads to be woken up by
--the watchdog timer function, otherwise the NMI watchdog =E2=80=94 if enabl=
-ed =E2=80=94 can
--detect a hard lockup condition.
-+without rescheduling voluntarily, and thus prevent the 'migration/N' threa=
-ds
-+from running, causing the watchdog work fail to execute. The mechanism dep=
-ends
-+on the CPUs ability to respond to timer interrupts which are needed for the
-+watchdog work to be queued by the watchdog timer function, otherwise the N=
-MI
-+watchdog =E2=80=94 if enabled =E2=80=94 can detect a hard lockup condition.
-=20
-=20
- stack_erasing
+--- a/mm/page-writeback.c~mm-page-writeback-fix-performance-when-bdis-share-of-ratio-is-0
++++ a/mm/page-writeback.c
+@@ -1944,6 +1944,8 @@ bool wb_over_bg_thresh(struct bdi_writeb
+ 	struct dirty_throttle_control * const gdtc = &gdtc_stor;
+ 	struct dirty_throttle_control * const mdtc = mdtc_valid(&mdtc_stor) ?
+ 						     &mdtc_stor : NULL;
++	unsigned long reclaimable;
++	unsigned long thresh;
+ 
+ 	/*
+ 	 * Similar to balance_dirty_pages() but ignores pages being written
+@@ -1956,8 +1958,13 @@ bool wb_over_bg_thresh(struct bdi_writeb
+ 	if (gdtc->dirty > gdtc->bg_thresh)
+ 		return true;
+ 
+-	if (wb_stat(wb, WB_RECLAIMABLE) >
+-	    wb_calc_thresh(gdtc->wb, gdtc->bg_thresh))
++	thresh = wb_calc_thresh(gdtc->wb, gdtc->bg_thresh);
++	if (thresh < 2 * wb_stat_error())
++		reclaimable = wb_stat_sum(wb, WB_RECLAIMABLE);
++	else
++		reclaimable = wb_stat(wb, WB_RECLAIMABLE);
++
++	if (reclaimable > thresh)
+ 		return true;
+ 
+ 	if (mdtc) {
+@@ -1971,8 +1978,13 @@ bool wb_over_bg_thresh(struct bdi_writeb
+ 		if (mdtc->dirty > mdtc->bg_thresh)
+ 			return true;
+ 
+-		if (wb_stat(wb, WB_RECLAIMABLE) >
+-		    wb_calc_thresh(mdtc->wb, mdtc->bg_thresh))
++		thresh = wb_calc_thresh(mdtc->wb, mdtc->bg_thresh);
++		if (thresh < 2 * wb_stat_error())
++			reclaimable = wb_stat_sum(wb, WB_RECLAIMABLE);
++		else
++			reclaimable = wb_stat(wb, WB_RECLAIMABLE);
++
++		if (reclaimable > thresh)
+ 			return true;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from wangqing@vivo.com are
+Patches currently in -mm which might be from wuchi.zero@gmail.com are
 
-kernel-watchdog-modify-the-explanation-related-to-watchdog-thread.patch
-doc-watchdog-modify-the-explanation-related-to-watchdog-thread.patch
-doc-watchdog-modify-the-doc-related-to-watchdog-%u.patch
+mm-page-writeback-fix-performance-when-bdis-share-of-ratio-is-0.patch
 
