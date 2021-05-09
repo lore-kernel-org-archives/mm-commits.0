@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64348C433B4
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 03:48:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1AF0C433B4
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 03:48:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 42B2361421
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 03:48:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7E316142B
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 03:48:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229585AbhEIDti (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 23:49:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48184 "EHLO mail.kernel.org"
+        id S229593AbhEIDto (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 23:49:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48216 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229558AbhEIDti (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 23:49:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C5F8A61401;
-        Sun,  9 May 2021 03:48:35 +0000 (UTC)
+        id S229558AbhEIDtk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 23:49:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CD27B6142B;
+        Sun,  9 May 2021 03:48:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620532116;
-        bh=O+W/KIl2uxGBsm0YxBLJlD+cwIUnSJR3G/83+FufKO8=;
+        s=korg; t=1620532118;
+        bh=lcxJGzO1lWvbZsruFRa8UVe2iPAm+QOEURR4jYXVGH8=;
         h=Date:From:To:Subject:From;
-        b=RdBl2mTE1EDRddEUqRelzDQ/9i2o2N183krmqVuSevIVxSi42W0gnuf+BDHnZt97B
-         V5XQcCzgV/23pQIFcoOiH71LK2Q/gv6k9wKuI+jaMFKSKd2Lzr1T3o0jGhwiJgnuHe
-         KXxLS8X28AagAUOg/jFUbbRxmRrQ08B9Vd4XHSXg=
-Date:   Sat, 08 May 2021 20:48:35 -0700
+        b=g5RKWDBMZ3H2e5SshRgYf+ah8rahijyVv68n/qqFeTwx/hU4GvEgrOKGX28YrW3nA
+         JqXOv4hexhxvPmTA0oU0psjjQIP+zifrKBHh+ilUKoWmSkgK0HL8DDu6DR8R8Os5Rz
+         ZaSZ0zP9DA5MjR7rhBqN9o62VAa+VyfOr5hN3ywg=
+Date:   Sat, 08 May 2021 20:48:37 -0700
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, bfields@fieldses.org,
         chuck.lever@oracle.com, mm-commits@vger.kernel.org,
         viro@zeniv.linux.org.uk
 Subject:  +
- lib-string_helpers-drop-indentation-level-in-string_escape_mem.patch added
+ lib-string_helpers-introduce-escape_na-for-escaping-non-ascii.patch added
  to -mm tree
-Message-ID: <20210509034835.SDH3cJCSc%akpm@linux-foundation.org>
+Message-ID: <20210509034837.gHQ8FGTcx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/string_helpers: drop indentation level in string_escape_mem()
+     Subject: lib/string_helpers: introduce ESCAPE_NA for escaping non-ASCII
 has been added to the -mm tree.  Its filename is
-     lib-string_helpers-drop-indentation-level-in-string_escape_mem.patch
+     lib-string_helpers-introduce-escape_na-for-escaping-non-ascii.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-string_helpers-drop-indentation-level-in-string_escape_mem.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-string_helpers-introduce-escape_na-for-escaping-non-ascii.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-string_helpers-drop-indentation-level-in-string_escape_mem.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-string_helpers-introduce-escape_na-for-escaping-non-ascii.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,12 +67,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/string_helpers: drop indentation level in string_escape_mem()
+Subject: lib/string_helpers: introduce ESCAPE_NA for escaping non-ASCII
 
-The only one conditional is left on the upper level, move the rest to the
-same level and drop indentation level.  No functional changes.
+Some users may want to have an ASCII based filter, provided by isascii()
+function.  Here is the addition of a such.
 
-Link: https://lkml.kernel.org/r/20210504180819.73127-4-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20210504180819.73127-5-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Chuck Lever <chuck.lever@oracle.com>
@@ -80,64 +80,82 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string_helpers.c |   46 ++++++++++++++++++++---------------------
- 1 file changed, 23 insertions(+), 23 deletions(-)
+ include/linux/string_helpers.h |    1 +
+ lib/string_helpers.c           |   21 +++++++++++++++++----
+ 2 files changed, 18 insertions(+), 4 deletions(-)
 
---- a/lib/string_helpers.c~lib-string_helpers-drop-indentation-level-in-string_escape_mem
-+++ a/lib/string_helpers.c
-@@ -515,29 +515,29 @@ int string_escape_mem(const char *src, s
- 		 * In these cases we just pass through a character to the
- 		 * output buffer.
- 		 */
--		if (is_dict && !strchr(only, c)) {
--			/* do nothing */
--		} else {
--			if (isprint(c) &&
--			    flags & ESCAPE_NP && escape_passthrough(c, &p, end))
--				continue;
--
--			if (flags & ESCAPE_SPACE && escape_space(c, &p, end))
--				continue;
--
--			if (flags & ESCAPE_SPECIAL && escape_special(c, &p, end))
--				continue;
--
--			if (flags & ESCAPE_NULL && escape_null(c, &p, end))
--				continue;
--
--			/* ESCAPE_OCTAL and ESCAPE_HEX always go last */
--			if (flags & ESCAPE_OCTAL && escape_octal(c, &p, end))
--				continue;
--
--			if (flags & ESCAPE_HEX && escape_hex(c, &p, end))
--				continue;
--		}
-+		if (is_dict && !strchr(only, c) &&
-+					  escape_passthrough(c, &p, end))
-+			continue;
-+
-+		if (isprint(c) &&
-+		    flags & ESCAPE_NP && escape_passthrough(c, &p, end))
-+			continue;
-+
-+		if (flags & ESCAPE_SPACE && escape_space(c, &p, end))
-+			continue;
-+
-+		if (flags & ESCAPE_SPECIAL && escape_special(c, &p, end))
-+			continue;
-+
-+		if (flags & ESCAPE_NULL && escape_null(c, &p, end))
-+			continue;
-+
-+		/* ESCAPE_OCTAL and ESCAPE_HEX always go last */
-+		if (flags & ESCAPE_OCTAL && escape_octal(c, &p, end))
-+			continue;
-+
-+		if (flags & ESCAPE_HEX && escape_hex(c, &p, end))
-+			continue;
+--- a/include/linux/string_helpers.h~lib-string_helpers-introduce-escape_na-for-escaping-non-ascii
++++ a/include/linux/string_helpers.h
+@@ -52,6 +52,7 @@ static inline int string_unescape_any_in
+ #define ESCAPE_NP		BIT(4)
+ #define ESCAPE_ANY_NP		(ESCAPE_ANY | ESCAPE_NP)
+ #define ESCAPE_HEX		BIT(5)
++#define ESCAPE_NA		BIT(6)
  
- 		escape_passthrough(c, &p, end);
- 	}
+ int string_escape_mem(const char *src, size_t isz, char *dst, size_t osz,
+ 		unsigned int flags, const char *only);
+--- a/lib/string_helpers.c~lib-string_helpers-introduce-escape_na-for-escaping-non-ascii
++++ a/lib/string_helpers.c
+@@ -454,8 +454,8 @@ static bool escape_hex(unsigned char c,
+  *
+  *	1. The character is not matched to the one from @only string and thus
+  *	   must go as-is to the output.
+- *	2. The character is matched to the printable class, if asked, and in
+- *	   case of match it passes through to the output.
++ *	2. The character is matched to the printable or ASCII class, if asked,
++ *	   and in case of match it passes through to the output.
+  *	3. The character is checked if it falls into the class given by @flags.
+  *	   %ESCAPE_OCTAL and %ESCAPE_HEX are going last since they cover any
+  *	   character. Note that they actually can't go together, otherwise
+@@ -463,7 +463,7 @@ static bool escape_hex(unsigned char c,
+  *
+  * Caller must provide valid source and destination pointers. Be aware that
+  * destination buffer will not be NULL-terminated, thus caller have to append
+- * it if needs.   The supported flags are::
++ * it if needs. The supported flags are::
+  *
+  *	%ESCAPE_SPACE: (special white space, not space itself)
+  *		'\f' - form feed
+@@ -482,11 +482,18 @@ static bool escape_hex(unsigned char c,
+  *	%ESCAPE_ANY:
+  *		all previous together
+  *	%ESCAPE_NP:
+- *		escape only non-printable characters (checked by isprint)
++ *		escape only non-printable characters, checked by isprint()
+  *	%ESCAPE_ANY_NP:
+  *		all previous together
+  *	%ESCAPE_HEX:
+  *		'\xHH' - byte with hexadecimal value HH (2 digits)
++ *	%ESCAPE_NA:
++ *		escape only non-ascii characters, checked by isascii()
++ *
++ * One notable caveat, the %ESCAPE_NP and %ESCAPE_NA have higher priority
++ * than the rest of the flags (%ESCAPE_NP is higher than %ESCAPE_NA).
++ * It doesn't make much sense to use either of them without %ESCAPE_OCTAL
++ * or %ESCAPE_HEX, because they cover most of the other character classes.
+  *
+  * Return:
+  * The total size of the escaped output that would be generated for
+@@ -510,6 +517,8 @@ int string_escape_mem(const char *src, s
+ 		 *	  character under question
+ 		 *	- the character is printable, when @flags has
+ 		 *	  %ESCAPE_NP bit set
++		 *	- the character is ASCII, when @flags has
++		 *	  %ESCAPE_NA bit set
+ 		 *	- the character doesn't fall into a class of symbols
+ 		 *	  defined by given @flags
+ 		 * In these cases we just pass through a character to the
+@@ -523,6 +532,10 @@ int string_escape_mem(const char *src, s
+ 		    flags & ESCAPE_NP && escape_passthrough(c, &p, end))
+ 			continue;
+ 
++		if (isascii(c) &&
++		    flags & ESCAPE_NA && escape_passthrough(c, &p, end))
++			continue;
++
+ 		if (flags & ESCAPE_SPACE && escape_space(c, &p, end))
+ 			continue;
+ 
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
