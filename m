@@ -4,38 +4,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52625C433ED
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 00:40:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60875C433ED
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 00:45:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 26F3B613D6
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 00:40:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3291F6142D
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 00:45:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229616AbhEIAlE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 20:41:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60782 "EHLO mail.kernel.org"
+        id S229620AbhEIAqz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 20:46:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35742 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229601AbhEIAlE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 20:41:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2147A611F1;
-        Sun,  9 May 2021 00:40:02 +0000 (UTC)
+        id S229616AbhEIAqz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 20:46:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7184D61400;
+        Sun,  9 May 2021 00:45:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620520802;
-        bh=r9MmJbPD2iptxSjJW4Oxvy7WmnWp9MtDV8x1PWkBmNA=;
+        s=korg; t=1620521153;
+        bh=b7D7MrMRWrBQh6AVqj4pWbkxlloQDCJObNky+8Rakv0=;
         h=Date:From:To:Subject:From;
-        b=DSvBKNsKmCG7ri1KQ384kCh2OB1oFwqVgcm7x2diegOegjSM2fdhM951k5r4VABuh
-         l2erZNg36TO/qHfuWiJw9onhmpuXbVcMusEc3PSftb4cfKFx1iAL+UlG8SOoOyWjG6
-         fvrUNpRN30U46G4L/+e4KVsMIofK1NS545aEDL+o=
-Date:   Sat, 08 May 2021 17:40:01 -0700
+        b=ZOcnEQfKXoessnp2fSWjJC+CbpUDx93ixYaBpuP+bzYY0YFQqikt1NHxPFmJUMr4c
+         3u1qpu1XugObkiBD8gx9Md9sPojjkLYCSxbMm3MHaWW2bDvZiThqyQ4WfLOA+yYOzI
+         8oTyh7PnLlwbxYs0GWz+upOMwzIU1gHfnsC7+fMo=
+Date:   Sat, 08 May 2021 17:45:51 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        peterx@redhat.com
-Subject:  +
- mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch added to
- -mm tree
-Message-ID: <20210509004001.OOWaE2Wyv%akpm@linux-foundation.org>
+To:     alex.shi@linux.alibaba.com, chris@chrisdown.name, cl@linux.com,
+        guro@fb.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com,
+        laoar.shao@gmail.com, longman@redhat.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, msys.mizuma@gmail.com,
+        penberg@kernel.org, richard.weiyang@gmail.com, rientjes@google.com,
+        shakeelb@google.com, songmuchun@bytedance.com, tj@kernel.org,
+        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
+        zhengjun.xing@linux.intel.com
+Subject:  + mm-memcg-move-mod_objcg_state-to-memcontrolc.patch
+ added to -mm tree
+Message-ID: <20210509004551.NFBY0UiZZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes
+     Subject: mm/memcg: move mod_objcg_state() to memcontrol.c
 has been added to the -mm tree.  Its filename is
-     mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+     mm-memcg-move-mod_objcg_state-to-memcontrolc.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-move-mod_objcg_state-to-memcontrolc.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-move-mod_objcg_state-to-memcontrolc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,71 +70,208 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes
+From: Waiman Long <longman@redhat.com>
+Subject: mm/memcg: move mod_objcg_state() to memcontrol.c
 
-WARNING: Possible unwrapped commit description (prefer a maximum 75 chars per line)
-#25: 
-[peterx@redhat.com: fix build for task_mmu.c, introduce mm_set_has_pinned_flag, fix comments]
+Patch series "mm/memcg: Reduce kmemcache memory accounting overhead", v6.
 
-WARNING: please, no spaces at the start of a line
-#130: FILE: mm/gup.c:1280:
-+       if (!test_bit(MMF_HAS_PINNED, mm_flags))$
+With the recent introduction of the new slab memory controller, we
+eliminate the need for having separate kmemcaches for each memory cgroup
+and reduce overall kernel memory usage.  However, we also add additional
+memory accounting overhead to each call of kmem_cache_alloc() and
+kmem_cache_free().
 
-WARNING: suspect code indent for conditional statements (7, 15)
-#130: FILE: mm/gup.c:1280:
-+       if (!test_bit(MMF_HAS_PINNED, mm_flags))
-+               set_bit(MMF_HAS_PINNED, mm_flags);
+For workloads that require a lot of kmemcache allocations and
+de-allocations, they may experience performance regression as illustrated
+in [1] and [2].
 
-ERROR: code indent should use tabs where possible
-#131: FILE: mm/gup.c:1281:
-+               set_bit(MMF_HAS_PINNED, mm_flags);$
+A simple kernel module that performs repeated loop of 100,000,000
+kmem_cache_alloc() and kmem_cache_free() of either a small 32-byte object
+or a big 4k object at module init time with a batch size of 4 (4 kmalloc's
+followed by 4 kfree's) is used for benchmarking.  The benchmarking tool
+was run on a kernel based on linux-next-20210419.  The test was run on a
+CascadeLake server with turbo-boosting disable to reduce run-to-run
+variation.
 
-WARNING: please, no spaces at the start of a line
-#131: FILE: mm/gup.c:1281:
-+               set_bit(MMF_HAS_PINNED, mm_flags);$
+The small object test exercises mainly the object stock charging and
+vmstat update code paths.  The large object test also exercises the
+refill_obj_stock() and __memcg_kmem_charge()/__memcg_kmem_uncharge() code
+paths.
 
-total: 1 errors, 4 warnings, 90 lines checked
+With memory accounting disabled, the run time was 3.130s with both small
+object big object tests.
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
+With memory accounting enabled, both cgroup v1 and v2 showed similar
+results in the small object test.  The performance results of the large
+object test, however, differed between cgroup v1 and v2.
 
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
+The execution times with the application of various patches in the
+patchset were:
 
-./patches/mm-gup-pack-has_pinned-in-mmf_has_pinned.patch has style problems, please review.
+  Applied patches   Run time   Accounting overhead   %age 1   %age 2
+  ---------------   --------   -------------------   ------   ------
 
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+  Small 32-byte object:
+       None          11.634s         8.504s          100.0%   271.7%
+        1-2           9.425s         6.295s           74.0%   201.1%
+        1-3           9.708s         6.578s           77.4%   210.2%
+        1-4           8.062s         4.932s           58.0%   157.6%
 
-Please run checkpatch prior to sending patches
+  Large 4k object (v2):
+       None          22.107s        18.977s          100.0%   606.3%
+        1-2          20.960s        17.830s           94.0%   569.6%
+        1-3          14.238s        11.108s           58.5%   354.9%
+        1-4          11.329s         8.199s           43.2%   261.9%
 
-Cc: Peter Xu <peterx@redhat.com>
+  Large 4k object (v1):
+       None          36.807s        33.677s          100.0%  1075.9%
+        1-2          36.648s        33.518s           99.5%  1070.9%
+        1-3          22.345s        19.215s           57.1%   613.9%
+        1-4          18.662s        15.532s           46.1%   496.2%
+
+  N.B. %age 1 = overhead/unpatched overhead
+       %age 2 = overhead/accounting disabled time
+
+Patch 2 (vmstat data stock caching) helps in both the small object test
+and the large v2 object test. It doesn't help much in v1 big object test.
+
+Patch 3 (refill_obj_stock improvement) does help the small object test
+but offer significant performance improvement for the large object test
+(both v1 and v2).
+
+Patch 4 (eliminating irq disable/enable) helps in all test cases.
+
+To test for the extreme case, a multi-threaded kmalloc/kfree
+microbenchmark was run on the 2-socket 48-core 96-thread system with
+96 testing threads in the same memcg doing kmalloc+kfree of a 4k object
+with accounting enabled for 10s. The total number of kmalloc+kfree done
+in kilo operations per second (kops/s) were as follows:
+
+  Applied patches   v1 kops/s   v1 change   v2 kops/s   v2 change
+  ---------------   ---------   ---------   ---------   ---------
+       None           3,520        1.00X      6,242        1.00X
+        1-2           4,304        1.22X      8,478        1.36X
+        1-3           4,731        1.34X    418,142       66.99X
+        1-4           4,587        1.30X    438,838       70.30X
+
+With memory accounting disabled, the kmalloc/kfree rate was 1,481,291
+kop/s. This test shows how significant the memory accouting overhead
+can be in some extreme situations.
+
+For this multithreaded test, the improvement from patch 2 mainly
+comes from the conditional atomic xchg of objcg->nr_charged_bytes in
+mod_objcg_state(). By using an unconditional xchg, the operation rates
+were similar to the unpatched kernel.
+
+Patch 3 elminates the single highly contended cacheline of
+objcg->nr_charged_bytes for cgroup v2 leading to a huge performance
+improvement. Cgroup v1, however, still has another highly contended
+cacheline in the shared page counter &memcg->kmem. So the improvement
+is only modest.
+
+Patch 4 helps in cgroup v2, but performs worse in cgroup v1 as
+eliminating the irq_disable/irq_enable overhead seems to aggravate the
+cacheline contention.
+
+[1] https://lore.kernel.org/linux-mm/20210408193948.vfktg3azh2wrt56t@gabell/T/#u
+[2] https://lore.kernel.org/lkml/20210114025151.GA22932@xsang-OptiPlex-9020/
+
+
+This patch (of 4):
+
+mod_objcg_state() is moved from mm/slab.h to mm/memcontrol.c so that
+further optimization can be done to it in later patches without exposing
+unnecessary details to other mm components.
+
+Link: https://lkml.kernel.org/r/20210506150007.16288-1-longman@redhat.com
+Link: https://lkml.kernel.org/r/20210506150007.16288-2-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Xing Zhengjun <zhengjun.xing@linux.intel.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   13 +++++++++++++
+ mm/slab.h       |   16 ++--------------
+ 2 files changed, 15 insertions(+), 14 deletions(-)
 
---- a/mm/gup.c~mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes
-+++ a/mm/gup.c
-@@ -1277,8 +1277,8 @@ EXPORT_SYMBOL_GPL(fixup_user_fault);
-  */
- static inline void mm_set_has_pinned_flag(unsigned long *mm_flags)
- {
--       if (!test_bit(MMF_HAS_PINNED, mm_flags))
--               set_bit(MMF_HAS_PINNED, mm_flags);
-+	if (!test_bit(MMF_HAS_PINNED, mm_flags))
-+		set_bit(MMF_HAS_PINNED, mm_flags);
+--- a/mm/memcontrol.c~mm-memcg-move-mod_objcg_state-to-memcontrolc
++++ a/mm/memcontrol.c
+@@ -782,6 +782,19 @@ void __mod_lruvec_kmem_state(void *p, en
+ 	rcu_read_unlock();
  }
  
- /*
++void mod_objcg_state(struct obj_cgroup *objcg, struct pglist_data *pgdat,
++		     enum node_stat_item idx, int nr)
++{
++	struct mem_cgroup *memcg;
++	struct lruvec *lruvec;
++
++	rcu_read_lock();
++	memcg = obj_cgroup_memcg(objcg);
++	lruvec = mem_cgroup_lruvec(memcg, pgdat);
++	mod_memcg_lruvec_state(lruvec, idx, nr);
++	rcu_read_unlock();
++}
++
+ /**
+  * __count_memcg_events - account VM events in a cgroup
+  * @memcg: the memory cgroup
+--- a/mm/slab.h~mm-memcg-move-mod_objcg_state-to-memcontrolc
++++ a/mm/slab.h
+@@ -239,6 +239,8 @@ static inline bool kmem_cache_debug_flag
+ #ifdef CONFIG_MEMCG_KMEM
+ int memcg_alloc_page_obj_cgroups(struct page *page, struct kmem_cache *s,
+ 				 gfp_t gfp, bool new_page);
++void mod_objcg_state(struct obj_cgroup *objcg, struct pglist_data *pgdat,
++		     enum node_stat_item idx, int nr);
+ 
+ static inline void memcg_free_page_obj_cgroups(struct page *page)
+ {
+@@ -283,20 +285,6 @@ static inline bool memcg_slab_pre_alloc_
+ 	return true;
+ }
+ 
+-static inline void mod_objcg_state(struct obj_cgroup *objcg,
+-				   struct pglist_data *pgdat,
+-				   enum node_stat_item idx, int nr)
+-{
+-	struct mem_cgroup *memcg;
+-	struct lruvec *lruvec;
+-
+-	rcu_read_lock();
+-	memcg = obj_cgroup_memcg(objcg);
+-	lruvec = mem_cgroup_lruvec(memcg, pgdat);
+-	mod_memcg_lruvec_state(lruvec, idx, nr);
+-	rcu_read_unlock();
+-}
+-
+ static inline void memcg_slab_post_alloc_hook(struct kmem_cache *s,
+ 					      struct obj_cgroup *objcg,
+ 					      gfp_t flags, size_t size,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from longman@redhat.com are
 
-mm.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-memcg-move-mod_objcg_state-to-memcontrolc.patch
+mm-memcg-cache-vmstat-data-in-percpu-memcg_stock_pcp.patch
+mm-memcg-improve-refill_obj_stock-performance.patch
+mm-memcg-optimize-user-context-object-stock-access.patch
 
