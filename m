@@ -2,43 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAB0BC433B4
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 03:20:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAE41C433ED
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 03:24:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7855D613D8
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 03:20:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F6CC613DD
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 03:24:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229558AbhEIDVw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 23:21:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33508 "EHLO mail.kernel.org"
+        id S229560AbhEIDZQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 23:25:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34902 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229553AbhEIDVw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 23:21:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CE7C36128C;
-        Sun,  9 May 2021 03:20:48 +0000 (UTC)
+        id S229553AbhEIDZQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 23:25:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C34BA6137D;
+        Sun,  9 May 2021 03:24:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620530449;
-        bh=+xWFBBJI0ef9box8LT9PgNdKd+CTbP0EbcS+WASVt+g=;
+        s=korg; t=1620530654;
+        bh=KIumy8B6OSWLeAfF5zgLeEMAauqAMTyrYht4DTnWp0E=;
         h=Date:From:To:Subject:From;
-        b=RKGAHcxTX4qKnKvn0MrVGw6T104JWNGH3itliVNr7hHAAkQx/E7D5Fev7prSZXA6+
-         K10qSI53Fk3hDXMLagRJqy1JVaaMYH7c/AIizoLxJHQR6SGhAbCmyv7RQ0GMvPXs4A
-         8Olbv1KYG2Ya+ARj2d74KchQfWJA18XyvY8icetQ=
-Date:   Sat, 08 May 2021 20:20:48 -0700
+        b=LvxhQChQqN7aQN+V4taGw+63nras4S93h9lQbboymclWyoCwhjVQIgX3vsu1lCUEc
+         qqVQjDKbJMsktk+I1F4kB6TA2Infl+P9z6+J9Br4+eN1Vx9zwwWQD7JcMlQEu3CP98
+         jz3kq+7F7RS9adgg2xsmhVBLEpByTeqhhvTbotZA=
+Date:   Sat, 08 May 2021 20:24:13 -0700
 From:   akpm@linux-foundation.org
-To:     ak@linux.intel.com, andi.kleen@intel.com,
-        andriy.shevchenko@intel.com, feng.tang@intel.com,
-        masahiroy@kernel.org, michal.lkml@markovi.net,
-        mm-commits@vger.kernel.org, tglx@linutronix.de,
-        ying.huang@intel.com
+To:     bert@biot.com, dwaipayanray1@gmail.com, joe@perches.com,
+        linux@roeck-us.net, lukas.bulwahn@gmail.com,
+        mm-commits@vger.kernel.org
 Subject:  +
- makefile-extend-32b-aligned-debug-option-to-64b-aligned.patch added to -mm
- tree
-Message-ID: <20210509032048.6MEV45l9N%akpm@linux-foundation.org>
+ checkpatch-scripts-spdxcheckpy-now-requires-python3.patch added to -mm tree
+Message-ID: <20210509032413.mb6qKQBmz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Makefile: extend 32B aligned debug option to 64B aligned
+     Subject: checkpatch: scripts/spdxcheck.py now requires python3
 has been added to the -mm tree.  Its filename is
-     makefile-extend-32b-aligned-debug-option-to-64b-aligned.patch
+     checkpatch-scripts-spdxcheckpy-now-requires-python3.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/makefile-extend-32b-aligned-debug-option-to-64b-aligned.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-scripts-spdxcheckpy-now-requires-python3.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/makefile-extend-32b-aligned-debug-option-to-64b-aligned.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-scripts-spdxcheckpy-now-requires-python3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,68 +65,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Feng Tang <feng.tang@intel.com>
-Subject: Makefile: extend 32B aligned debug option to 64B aligned
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: checkpatch: scripts/spdxcheck.py now requires python3
 
-commit 09c60546f04f ("./Makefile: add debug option to enable function
-aligned on 32 bytes") was introduced to help debugging strange kernel
-performance changes caused by code alignment change.
+Since commit d0259c42abff ("spdxcheck.py: Use Python 3"), spdxcheck.py
+explicitly expects to run as python3 script.  If "python" still points to
+python v2.7 and the script is executed with "python scripts/spdxcheck.py",
+the following error may be seen even if git-python is installed for
+python3.
 
-Recently we found 2 similar cases [1][2] caused by code-alignment changes,
-which can only be identified by forcing 64 bytes aligned for all
-functions.
+Traceback (most recent call last):
+  File "scripts/spdxcheck.py", line 10, in <module>
+    import git
+ImportError: No module named git
 
-Originally, 32 bytes was used mainly for not wasting too much text space,
-but this option is only for debug anyway where text space is not a big
-concern.  So extend the alignment to 64 bytes to cover more similar cases.
+To fix the problem, check for the existence of python3, check if
+the script is executable and not just for its existence, and execute
+it directly.
 
-[1].https://lore.kernel.org/lkml/20210427090013.GG32408@xsang-OptiPlex-9020/
-[2].https://lore.kernel.org/lkml/20210420030837.GB31773@xsang-OptiPlex-9020/
-Link: https://lkml.kernel.org/r/1620286499-40999-1-git-send-email-feng.tang@intel.com
-Signed-off-by: Feng Tang <feng.tang@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Michal Marek <michal.lkml@markovi.net>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@intel.com>
+Link: https://lkml.kernel.org/r/20210505211720.447111-1-linux@roeck-us.net
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Joe Perches <joe@perches.com>
+Cc: Bert Vermeulen <bert@biot.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Bert Vermeulen <bert@biot.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile          |    4 ++--
- lib/Kconfig.debug |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/Kconfig.debug~makefile-extend-32b-aligned-debug-option-to-64b-aligned
-+++ a/lib/Kconfig.debug
-@@ -400,8 +400,8 @@ config SECTION_MISMATCH_WARN_ONLY
+--- a/scripts/checkpatch.pl~checkpatch-scripts-spdxcheckpy-now-requires-python3
++++ a/scripts/checkpatch.pl
+@@ -1084,10 +1084,10 @@ sub is_maintained_obsolete {
+ sub is_SPDX_License_valid {
+ 	my ($license) = @_;
  
- 	  If unsure, say Y.
+-	return 1 if (!$tree || which("python") eq "" || !(-e "$root/scripts/spdxcheck.py") || !(-e "$gitroot"));
++	return 1 if (!$tree || which("python3") eq "" || !(-x "$root/scripts/spdxcheck.py") || !(-e "$gitroot"));
  
--config DEBUG_FORCE_FUNCTION_ALIGN_32B
--	bool "Force all function address 32B aligned" if EXPERT
-+config DEBUG_FORCE_FUNCTION_ALIGN_64B
-+	bool "Force all function address 64B aligned" if EXPERT
- 	help
- 	  There are cases that a commit from one domain changes the function
- 	  address alignment of other domains, and cause magic performance
---- a/Makefile~makefile-extend-32b-aligned-debug-option-to-64b-aligned
-+++ a/Makefile
-@@ -953,8 +953,8 @@ KBUILD_CFLAGS	+= $(CC_FLAGS_CFI)
- export CC_FLAGS_CFI
- endif
- 
--ifdef CONFIG_DEBUG_FORCE_FUNCTION_ALIGN_32B
--KBUILD_CFLAGS += -falign-functions=32
-+ifdef CONFIG_DEBUG_FORCE_FUNCTION_ALIGN_64B
-+KBUILD_CFLAGS += -falign-functions=64
- endif
- 
- # arch Makefile may override CC so keep this after arch Makefile is included
+ 	my $root_path = abs_path($root);
+-	my $status = `cd "$root_path"; echo "$license" | python scripts/spdxcheck.py -`;
++	my $status = `cd "$root_path"; echo "$license" | scripts/spdxcheck.py -`;
+ 	return 0 if ($status ne "");
+ 	return 1;
+ }
 _
 
-Patches currently in -mm which might be from feng.tang@intel.com are
+Patches currently in -mm which might be from linux@roeck-us.net are
 
-makefile-extend-32b-aligned-debug-option-to-64b-aligned.patch
+checkpatch-scripts-spdxcheckpy-now-requires-python3.patch
 
