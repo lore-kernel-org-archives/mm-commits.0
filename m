@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 932E3C433B4
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 00:37:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE9E5C433ED
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 00:37:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 605FF6137D
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 00:37:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B4FE61421
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 00:37:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229616AbhEIAiR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 May 2021 20:38:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58404 "EHLO mail.kernel.org"
+        id S229647AbhEIAiW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 May 2021 20:38:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58544 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229601AbhEIAiQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 8 May 2021 20:38:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4FA20611F1;
-        Sun,  9 May 2021 00:37:13 +0000 (UTC)
+        id S229620AbhEIAiU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 8 May 2021 20:38:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E281E611F1;
+        Sun,  9 May 2021 00:37:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620520633;
-        bh=H7X3s+/VnQQ+OsPefz4VBLKzTdcFVZb7eG+dvP51aIg=;
+        s=korg; t=1620520638;
+        bh=R+pRItm87ExVulx8QJCah1huUMR8rN0eOk+IYtb4KWg=;
         h=Date:From:To:Subject:From;
-        b=pyQTVTINTkgeLc3it1KqNSSFieeOAUWi05Xj2Z6Mdvefin/pkBu5qVIFW/zZG+MIh
-         ePhQSvcz7qd8fS5TJDGv6ETxg5Yi/jlG/dlXnSTsX1cJ7LbPTyQ9Dcpe54u+8X7VHq
-         +Jrqf8NUWm2Gu1NpbtbgUAzZDdpby//+4+61ZrFI=
-Date:   Sat, 08 May 2021 17:37:12 -0700
+        b=dFlsd/CVzivptvKjrkXWGfpEQViSCxDK3JE/AF4nfvfvRstQDenGO2TXoJa6vQlWz
+         YpECw7sChkulqDiZ7d/PzuHygRUkwnMf+A7933Tb49um8YeEzBxKToIAUg5HozYWPE
+         HKzqplBnqakTBCa3BcGmTgsSQKYDKmkR8QwCfjGA=
+Date:   Sat, 08 May 2021 17:37:17 -0700
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, hughd@google.com, jack@suse.cz,
         jannh@google.com, jgg@nvidia.com, jhubbard@nvidia.com,
         kirill@shutemov.name, ktkhai@virtuozzo.com, mhocko@suse.com,
         mm-commits@vger.kernel.org, oleg@redhat.com, peterx@redhat.com,
         willy@infradead.org
-Subject:  + mm-gup_benchmark-support-threading.patch added to -mm
- tree
-Message-ID: <20210509003712.1flUJtcO8%akpm@linux-foundation.org>
+Subject:  + mm-gup-pack-has_pinned-in-mmf_has_pinned.patch added to
+ -mm tree
+Message-ID: <20210509003717.qfa7XzNhZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup_benchmark: support threading
+     Subject: mm: gup: pack has_pinned in MMF_HAS_PINNED
 has been added to the -mm tree.  Its filename is
-     mm-gup_benchmark-support-threading.patch
+     mm-gup-pack-has_pinned-in-mmf_has_pinned.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup_benchmark-support-threading.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-pack-has_pinned-in-mmf_has_pinned.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup_benchmark-support-threading.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-pack-has_pinned-in-mmf_has_pinned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,311 +67,169 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/gup_benchmark: support threading
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: gup: pack has_pinned in MMF_HAS_PINNED
 
-Patch series "mm/gup: Fix pin page write cache bouncing on has_pinned", v2.
+has_pinned 32bit can be packed in the MMF_HAS_PINNED bit as a noop
+cleanup.
 
-This series contains 3 patches, the 1st one enables threading for
-gup_benchmark in the kselftest.  The latter two patches are collected from
-Andrea's local branch which can fix write cache bouncing issue with
-pinning fast-gup.
+Any atomic_inc/dec to the mm cacheline shared by all threads in pin-fast
+would reintroduce a loss of SMP scalability to pin-fast, so there's no
+future potential usefulness to keep an atomic in the mm for this.
 
-To be explicit on the latter two patches:
+set_bit(MMF_HAS_PINNED) will be theoretically a bit slower than WRITE_ONCE
+(atomic_set is equivalent to WRITE_ONCE), but the set_bit (just like
+atomic_set after this commit) has to be still issued only once per "mm",
+so the difference between the two will be lost in the noise.
 
-  - the 2nd patch fixes the perf degrade when introducing has_pinned, then
+will-it-scale "mmap2" shows no change in performance with enterprise
+config as expected.
 
-  - the last patch tries to remove the has_pinned with a bit in mm->flags
+will-it-scale "pin_fast" retains the > 4000% SMP scalability performance
+improvement against upstream as expected.
 
-For patch 3: originally I think we had a plan to reuse has_pinned into a
-counter very soon, however that's not happening at least until today, so
-maybe it proves that we can remove it until we really want such a counter
-for whatever reason.  As the commit message stated, it saves 4 bytes for
-each mm without observable regressions.
+This is a noop as far as overall performance and SMP scalability are
+concerned.
 
-Regarding testing: we can reference to the commit message of patch 2 for
-some detailed testing with will-is-scale.  Meanwhile I did patch 1 just
-because then we can even easily verify the patchset using the existing
-kselftest facilities or even regress test it in the future with the repo
-if we want.
-
-Below numbers are extra verification tests that I did besides commit
-message of patch 2 using the new gup_benchmark and 256 cpus.  Below test
-is done on 40 cpus host with Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz,
-and I can get similar result (of course the write cache bouncing get
-severe with even more cores).
-
-After patch 1 applied (only test patch, so using old kernel):
-
-  $ sudo chrt -f 1 ./gup_test -a  -m 512 -j 40
-  PIN_FAST_BENCHMARK: Time: get:459632 put:5990 us
-  PIN_FAST_BENCHMARK: Time: get:461967 put:5840 us
-  PIN_FAST_BENCHMARK: Time: get:464521 put:6140 us
-  PIN_FAST_BENCHMARK: Time: get:465176 put:7100 us
-  PIN_FAST_BENCHMARK: Time: get:465960 put:6733 us
-  PIN_FAST_BENCHMARK: Time: get:465324 put:6781 us
-  PIN_FAST_BENCHMARK: Time: get:466018 put:7130 us
-  PIN_FAST_BENCHMARK: Time: get:466362 put:7118 us
-  PIN_FAST_BENCHMARK: Time: get:465118 put:6975 us
-  PIN_FAST_BENCHMARK: Time: get:466422 put:6602 us
-  PIN_FAST_BENCHMARK: Time: get:465791 put:6818 us
-  PIN_FAST_BENCHMARK: Time: get:467091 put:6298 us
-  PIN_FAST_BENCHMARK: Time: get:467694 put:5432 us
-  PIN_FAST_BENCHMARK: Time: get:469575 put:5581 us
-  PIN_FAST_BENCHMARK: Time: get:468124 put:6055 us
-  PIN_FAST_BENCHMARK: Time: get:468877 put:6720 us
-  PIN_FAST_BENCHMARK: Time: get:467212 put:4961 us
-  PIN_FAST_BENCHMARK: Time: get:467834 put:6697 us
-  PIN_FAST_BENCHMARK: Time: get:470778 put:6398 us
-  PIN_FAST_BENCHMARK: Time: get:469788 put:6310 us
-  PIN_FAST_BENCHMARK: Time: get:488277 put:7113 us
-  PIN_FAST_BENCHMARK: Time: get:486613 put:7085 us
-  PIN_FAST_BENCHMARK: Time: get:486940 put:7202 us
-  PIN_FAST_BENCHMARK: Time: get:488728 put:7101 us
-  PIN_FAST_BENCHMARK: Time: get:487570 put:7327 us
-  PIN_FAST_BENCHMARK: Time: get:489260 put:7027 us
-  PIN_FAST_BENCHMARK: Time: get:488846 put:6866 us
-  PIN_FAST_BENCHMARK: Time: get:488521 put:6745 us
-  PIN_FAST_BENCHMARK: Time: get:489950 put:6459 us
-  PIN_FAST_BENCHMARK: Time: get:489777 put:6617 us
-  PIN_FAST_BENCHMARK: Time: get:488224 put:6591 us
-  PIN_FAST_BENCHMARK: Time: get:488644 put:6477 us
-  PIN_FAST_BENCHMARK: Time: get:488754 put:6711 us
-  PIN_FAST_BENCHMARK: Time: get:488875 put:6743 us
-  PIN_FAST_BENCHMARK: Time: get:489290 put:6657 us
-  PIN_FAST_BENCHMARK: Time: get:490264 put:6684 us
-  PIN_FAST_BENCHMARK: Time: get:489631 put:6737 us
-  PIN_FAST_BENCHMARK: Time: get:488434 put:6655 us
-  PIN_FAST_BENCHMARK: Time: get:492213 put:6297 us
-  PIN_FAST_BENCHMARK: Time: get:491124 put:6173 us
-
-After the whole series applied (new fixed kernel):
-
-  $ sudo chrt -f 1 ./gup_test -a  -m 512 -j 40
-  PIN_FAST_BENCHMARK: Time: get:82038 put:7041 us
-  PIN_FAST_BENCHMARK: Time: get:82144 put:6817 us
-  PIN_FAST_BENCHMARK: Time: get:83417 put:6674 us
-  PIN_FAST_BENCHMARK: Time: get:82540 put:6594 us
-  PIN_FAST_BENCHMARK: Time: get:83214 put:6681 us
-  PIN_FAST_BENCHMARK: Time: get:83444 put:6889 us
-  PIN_FAST_BENCHMARK: Time: get:83194 put:7499 us
-  PIN_FAST_BENCHMARK: Time: get:84876 put:7369 us
-  PIN_FAST_BENCHMARK: Time: get:86092 put:10289 us
-  PIN_FAST_BENCHMARK: Time: get:86153 put:10415 us
-  PIN_FAST_BENCHMARK: Time: get:85026 put:7751 us
-  PIN_FAST_BENCHMARK: Time: get:85458 put:7944 us
-  PIN_FAST_BENCHMARK: Time: get:85735 put:8154 us
-  PIN_FAST_BENCHMARK: Time: get:85851 put:8299 us
-  PIN_FAST_BENCHMARK: Time: get:86323 put:9617 us
-  PIN_FAST_BENCHMARK: Time: get:86288 put:10496 us
-  PIN_FAST_BENCHMARK: Time: get:87697 put:9346 us
-  PIN_FAST_BENCHMARK: Time: get:87980 put:8382 us
-  PIN_FAST_BENCHMARK: Time: get:88719 put:8400 us
-  PIN_FAST_BENCHMARK: Time: get:87616 put:8588 us
-  PIN_FAST_BENCHMARK: Time: get:86730 put:9563 us
-  PIN_FAST_BENCHMARK: Time: get:88167 put:8673 us
-  PIN_FAST_BENCHMARK: Time: get:86844 put:9777 us
-  PIN_FAST_BENCHMARK: Time: get:88068 put:11774 us
-  PIN_FAST_BENCHMARK: Time: get:86170 put:15676 us
-  PIN_FAST_BENCHMARK: Time: get:87967 put:12827 us
-  PIN_FAST_BENCHMARK: Time: get:95773 put:7652 us
-  PIN_FAST_BENCHMARK: Time: get:87734 put:13650 us
-  PIN_FAST_BENCHMARK: Time: get:89833 put:14237 us
-  PIN_FAST_BENCHMARK: Time: get:96186 put:8029 us
-  PIN_FAST_BENCHMARK: Time: get:95532 put:8886 us
-  PIN_FAST_BENCHMARK: Time: get:95351 put:5826 us
-  PIN_FAST_BENCHMARK: Time: get:96401 put:8407 us
-  PIN_FAST_BENCHMARK: Time: get:96473 put:8287 us
-  PIN_FAST_BENCHMARK: Time: get:97177 put:8430 us
-  PIN_FAST_BENCHMARK: Time: get:98120 put:5263 us
-  PIN_FAST_BENCHMARK: Time: get:96271 put:7757 us
-  PIN_FAST_BENCHMARK: Time: get:99628 put:10467 us
-  PIN_FAST_BENCHMARK: Time: get:99344 put:10045 us
-  PIN_FAST_BENCHMARK: Time: get:94212 put:15485 us
-
-Summary:
-
-  Old kernel: 477729.97 (+-3.79%)
-  New kernel:  89144.65 (+-11.76%)
-
-
-This patch (of 3):
-
-Add a new parameter "-j N" to support concurrent gup test.
-
-Link: https://lkml.kernel.org/r/20210507150553.208763-1-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20210507150553.208763-2-peterx@redhat.com
+[peterx@redhat.com: fix build for task_mmu.c, introduce mm_set_has_pinned_flag, fix comments]
+Link: https://lkml.kernel.org/r/20210507150553.208763-4-peterx@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Kirill Shutemov <kirill@shutemov.name>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Kirill Shutemov <kirill@shutemov.name>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/gup_test.c |   96 ++++++++++++++++--------
- 1 file changed, 65 insertions(+), 31 deletions(-)
+ fs/proc/task_mmu.c             |    2 +-
+ include/linux/mm.h             |    2 +-
+ include/linux/mm_types.h       |   10 ----------
+ include/linux/sched/coredump.h |    8 ++++++++
+ kernel/fork.c                  |    1 -
+ mm/gup.c                       |   19 +++++++++++++++----
+ 6 files changed, 25 insertions(+), 17 deletions(-)
 
---- a/tools/testing/selftests/vm/gup_test.c~mm-gup_benchmark-support-threading
-+++ a/tools/testing/selftests/vm/gup_test.c
-@@ -6,6 +6,8 @@
- #include <sys/mman.h>
- #include <sys/stat.h>
- #include <sys/types.h>
-+#include <pthread.h>
-+#include <assert.h>
- #include "../../../../mm/gup_test.h"
+--- a/fs/proc/task_mmu.c~mm-gup-pack-has_pinned-in-mmf_has_pinned
++++ a/fs/proc/task_mmu.c
+@@ -1047,7 +1047,7 @@ static inline bool pte_is_pinned(struct
+ 		return false;
+ 	if (!is_cow_mapping(vma->vm_flags))
+ 		return false;
+-	if (likely(!atomic_read(&vma->vm_mm->has_pinned)))
++	if (likely(!test_bit(MMF_HAS_PINNED, &vma->vm_mm->flags)))
+ 		return false;
+ 	page = vm_normal_page(vma, addr, pte);
+ 	if (!page)
+--- a/include/linux/mm.h~mm-gup-pack-has_pinned-in-mmf_has_pinned
++++ a/include/linux/mm.h
+@@ -1341,7 +1341,7 @@ static inline bool page_needs_cow_for_dm
+ 	if (!is_cow_mapping(vma->vm_flags))
+ 		return false;
  
- #define MB (1UL << 20)
-@@ -15,6 +17,12 @@
- #define FOLL_WRITE	0x01	/* check pte is writable */
- #define FOLL_TOUCH	0x02	/* mark page accessed */
+-	if (!atomic_read(&vma->vm_mm->has_pinned))
++	if (!test_bit(MMF_HAS_PINNED, &vma->vm_mm->flags))
+ 		return false;
  
-+static unsigned long cmd = GUP_FAST_BENCHMARK;
-+static int gup_fd, repeats = 1;
-+static unsigned long size = 128 * MB;
-+/* Serialize prints */
-+static pthread_mutex_t print_mutex = PTHREAD_MUTEX_INITIALIZER;
-+
- static char *cmd_to_str(unsigned long cmd)
- {
- 	switch (cmd) {
-@@ -34,17 +42,55 @@ static char *cmd_to_str(unsigned long cm
- 	return "Unknown command";
- }
+ 	return page_maybe_dma_pinned(page);
+--- a/include/linux/mm_types.h~mm-gup-pack-has_pinned-in-mmf_has_pinned
++++ a/include/linux/mm_types.h
+@@ -436,16 +436,6 @@ struct mm_struct {
+ 		atomic_t mm_count;
  
-+void *gup_thread(void *data)
+ 		/**
+-		 * @has_pinned: Whether this mm has pinned any pages.  This can
+-		 * be either replaced in the future by @pinned_vm when it
+-		 * becomes stable, or grow into a counter on its own. We're
+-		 * aggresive on this bit now - even if the pinned pages were
+-		 * unpinned later on, we'll still keep this bit set for the
+-		 * lifecycle of this mm just for simplicity.
+-		 */
+-		atomic_t has_pinned;
+-
+-		/**
+ 		 * @write_protect_seq: Locked when any thread is write
+ 		 * protecting pages mapped by this mm to enforce a later COW,
+ 		 * for instance during page table copying for fork().
+--- a/include/linux/sched/coredump.h~mm-gup-pack-has_pinned-in-mmf_has_pinned
++++ a/include/linux/sched/coredump.h
+@@ -73,6 +73,14 @@ static inline int get_dumpable(struct mm
+ #define MMF_OOM_VICTIM		25	/* mm is the oom victim */
+ #define MMF_OOM_REAP_QUEUED	26	/* mm was queued for oom_reaper */
+ #define MMF_MULTIPROCESS	27	/* mm is shared between processes */
++/*
++ * MMF_HAS_PINNED: Whether this mm has pinned any pages.  This can be either
++ * replaced in the future by mm.pinned_vm when it becomes stable, or grow into
++ * a counter on its own. We're aggresive on this bit for now: even if the
++ * pinned pages were unpinned later on, we'll still keep this bit set for the
++ * lifecycle of this mm, just for simplicity.
++ */
++#define MMF_HAS_PINNED		28	/* FOLL_PIN has run, never cleared */
+ #define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
+ 
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+--- a/kernel/fork.c~mm-gup-pack-has_pinned-in-mmf_has_pinned
++++ a/kernel/fork.c
+@@ -1029,7 +1029,6 @@ static struct mm_struct *mm_init(struct
+ 	mm_pgtables_bytes_init(mm);
+ 	mm->map_count = 0;
+ 	mm->locked_vm = 0;
+-	atomic_set(&mm->has_pinned, 0);
+ 	atomic64_set(&mm->pinned_vm, 0);
+ 	memset(&mm->rss_stat, 0, sizeof(mm->rss_stat));
+ 	spin_lock_init(&mm->page_table_lock);
+--- a/mm/gup.c~mm-gup-pack-has_pinned-in-mmf_has_pinned
++++ a/mm/gup.c
+@@ -1271,6 +1271,17 @@ retry:
+ EXPORT_SYMBOL_GPL(fixup_user_fault);
+ 
+ /*
++ * Set the MMF_HAS_PINNED if not set yet; after set it'll be there for the mm's
++ * lifecycle.  Avoid setting the bit unless necessary, or it might cause write
++ * cache bouncing on large SMP machines for concurrent pinned gups.
++ */
++static inline void mm_set_has_pinned_flag(unsigned long *mm_flags)
 +{
-+	struct gup_test gup = *(struct gup_test *)data;
-+	int i;
-+
-+	/* Only report timing information on the *_BENCHMARK commands: */
-+	if ((cmd == PIN_FAST_BENCHMARK) || (cmd == GUP_FAST_BENCHMARK) ||
-+	     (cmd == PIN_LONGTERM_BENCHMARK)) {
-+		for (i = 0; i < repeats; i++) {
-+			gup.size = size;
-+			if (ioctl(gup_fd, cmd, &gup))
-+				perror("ioctl"), exit(1);
-+
-+			pthread_mutex_lock(&print_mutex);
-+			printf("%s: Time: get:%lld put:%lld us",
-+			       cmd_to_str(cmd), gup.get_delta_usec,
-+			       gup.put_delta_usec);
-+			if (gup.size != size)
-+				printf(", truncated (size: %lld)", gup.size);
-+			printf("\n");
-+			pthread_mutex_unlock(&print_mutex);
-+		}
-+	} else {
-+		gup.size = size;
-+		if (ioctl(gup_fd, cmd, &gup)) {
-+			perror("ioctl");
-+			exit(1);
-+		}
-+
-+		pthread_mutex_lock(&print_mutex);
-+		printf("%s: done\n", cmd_to_str(cmd));
-+		if (gup.size != size)
-+			printf("Truncated (size: %lld)\n", gup.size);
-+		pthread_mutex_unlock(&print_mutex);
-+	}
-+
-+	return NULL;
++       if (!test_bit(MMF_HAS_PINNED, mm_flags))
++               set_bit(MMF_HAS_PINNED, mm_flags);
 +}
 +
- int main(int argc, char **argv)
- {
- 	struct gup_test gup = { 0 };
--	unsigned long size = 128 * MB;
--	int i, fd, filed, opt, nr_pages = 1, thp = -1, repeats = 1, write = 1;
--	unsigned long cmd = GUP_FAST_BENCHMARK;
-+	int filed, i, opt, nr_pages = 1, thp = -1, write = 1, nthreads = 1, ret;
- 	int flags = MAP_PRIVATE, touch = 0;
- 	char *file = "/dev/zero";
-+	pthread_t *tid;
- 	char *p;
- 
--	while ((opt = getopt(argc, argv, "m:r:n:F:f:abctTLUuwWSHpz")) != -1) {
-+	while ((opt = getopt(argc, argv, "m:r:n:F:f:abcj:tTLUuwWSHpz")) != -1) {
- 		switch (opt) {
- 		case 'a':
- 			cmd = PIN_FAST_BENCHMARK;
-@@ -74,6 +120,9 @@ int main(int argc, char **argv)
- 			/* strtol, so you can pass flags in hex form */
- 			gup.gup_flags = strtol(optarg, 0, 0);
- 			break;
-+		case 'j':
-+			nthreads = atoi(optarg);
-+			break;
- 		case 'm':
- 			size = atoi(optarg) * MB;
- 			break;
-@@ -154,8 +203,8 @@ int main(int argc, char **argv)
- 	if (write)
- 		gup.gup_flags |= FOLL_WRITE;
- 
--	fd = open("/sys/kernel/debug/gup_test", O_RDWR);
--	if (fd == -1) {
-+	gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
-+	if (gup_fd == -1) {
- 		perror("open");
- 		exit(1);
- 	}
-@@ -185,32 +234,17 @@ int main(int argc, char **argv)
- 			p[0] = 0;
++/*
+  * Please note that this function, unlike __get_user_pages will not
+  * return 0 for nr_pages > 0 without FOLL_NOWAIT
+  */
+@@ -1292,8 +1303,8 @@ static __always_inline long __get_user_p
+ 		BUG_ON(*locked != 1);
  	}
  
--	/* Only report timing information on the *_BENCHMARK commands: */
--	if ((cmd == PIN_FAST_BENCHMARK) || (cmd == GUP_FAST_BENCHMARK) ||
--	     (cmd == PIN_LONGTERM_BENCHMARK)) {
--		for (i = 0; i < repeats; i++) {
--			gup.size = size;
--			if (ioctl(fd, cmd, &gup))
--				perror("ioctl"), exit(1);
--
--			printf("%s: Time: get:%lld put:%lld us",
--			       cmd_to_str(cmd), gup.get_delta_usec,
--			       gup.put_delta_usec);
--			if (gup.size != size)
--				printf(", truncated (size: %lld)", gup.size);
--			printf("\n");
--		}
--	} else {
--		gup.size = size;
--		if (ioctl(fd, cmd, &gup)) {
--			perror("ioctl");
--			exit(1);
--		}
--
--		printf("%s: done\n", cmd_to_str(cmd));
--		if (gup.size != size)
--			printf("Truncated (size: %lld)\n", gup.size);
-+	tid = malloc(sizeof(pthread_t) * nthreads);
-+	assert(tid);
-+	for (i = 0; i < nthreads; i++) {
-+		ret = pthread_create(&tid[i], NULL, gup_thread, &gup);
-+		assert(ret == 0);
-+	}
-+	for (i = 0; i < nthreads; i++) {
-+		ret = pthread_join(tid[i], NULL);
-+		assert(ret == 0);
- 	}
-+	free(tid);
+-	if ((flags & FOLL_PIN) && !atomic_read(&mm->has_pinned))
+-		atomic_set(&mm->has_pinned, 1);
++	if (flags & FOLL_PIN)
++		mm_set_has_pinned_flag(&mm->flags);
  
- 	return 0;
- }
+ 	/*
+ 	 * FOLL_PIN and FOLL_GET are mutually exclusive. Traditional behavior
+@@ -2613,8 +2624,8 @@ static int internal_get_user_pages_fast(
+ 				       FOLL_FAST_ONLY)))
+ 		return -EINVAL;
+ 
+-	if ((gup_flags & FOLL_PIN) && !atomic_read(&current->mm->has_pinned))
+-		atomic_set(&current->mm->has_pinned, 1);
++	if (gup_flags & FOLL_PIN)
++		mm_set_has_pinned_flag(&current->mm->flags);
+ 
+ 	if (!(gup_flags & FOLL_FAST_ONLY))
+ 		might_lock_read(&current->mm->mmap_lock);
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-mm-hugetlb-fix-f_seal_future_write.patch
-mm-hugetlb-fix-cow-where-page-writtable-in-child.patch
-mm-gup_benchmark-support-threading.patch
+mm-gup-allow-foll_pin-to-scale-in-smp.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned.patch
 
