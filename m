@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB28CC433ED
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A727AC433ED
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADD376142D
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8819761421
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229453AbhEIELy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 May 2021 00:11:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34192 "EHLO mail.kernel.org"
+        id S229555AbhEIEL6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 May 2021 00:11:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229555AbhEIELy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 May 2021 00:11:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 151B1613FA;
-        Sun,  9 May 2021 04:10:51 +0000 (UTC)
+        id S229502AbhEIEL6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 May 2021 00:11:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 180E16135F;
+        Sun,  9 May 2021 04:10:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620533451;
-        bh=YL9py+ZSQWDbVs/l1C71daa24YBbMgzF2dLeL4rEjeM=;
+        s=korg; t=1620533454;
+        bh=99LRcWDluVZkU70U7gdcR7ZRVUmYS1VAsLv8188645M=;
         h=Date:From:To:Subject:From;
-        b=SlLMb9pkcCVe8NN61R+GhHRusPwmiz5EP5WRpMq+3UsYHDPbbK1wu5fi7I2yxCKq3
-         PYZMbD55mnzQ0olZw7gYBW5tZ23ebKikosNAiYz8CDy8UithC+oW7dJayaaiK7kEan
-         0t2hbpQ4RnsL6UbRlwDGrPCGRfsIA2+uibVsfmdE=
-Date:   Sat, 08 May 2021 21:10:50 -0700
+        b=k6uB4N5gAMQ33CNlzpgNGOIV9xFYT8bQUG25LwZ1i8UgKiRD1TpTiOdrDQ5zNBU/U
+         FO+mGfcMQ3wBixWyFqpj6eL3hZNA0VvXIRWfME/oihTt0t5y9YiRV7+0dv6W6YAvsC
+         kEZpFCjur+xwJgVhZp+JpOHspWJv34m1aYipuRHA=
+Date:   Sat, 08 May 2021 21:10:53 -0700
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, almasrymina@google.com,
         axelrasmussen@google.com, bgeffon@google.com, dgilbert@redhat.com,
@@ -39,9 +39,9 @@ To:     aarcange@redhat.com, almasrymina@google.com,
         sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
         viro@zeniv.linux.org.uk, wangqing@vivo.com
 Subject:  +
- userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch added
- to -mm tree
-Message-ID: <20210509041050.dcI4Ku3JK%akpm@linux-foundation.org>
+ userfaultfd-selftests-reinitialize-test-context-in-each-test.patch added to
+ -mm tree
+Message-ID: <20210509041053.YAn-mRk9d%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/selftests: create alias mappings in the shmem test
+     Subject: userfaultfd/selftests: reinitialize test context in each test
 has been added to the -mm tree.  Its filename is
-     userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch
+     userfaultfd-selftests-reinitialize-test-context-in-each-test.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-reinitialize-test-context-in-each-test.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-reinitialize-test-context-in-each-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,18 +72,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/selftests: create alias mappings in the shmem test
+Subject: userfaultfd/selftests: reinitialize test context in each test
 
-Previously, we just allocated two shm areas: area_src and area_dst.  With
-this commit, change this so we also allocate area_src_alias, and
-area_dst_alias.
+Currently, the context (fds, mmap-ed areas, etc.) are global.  Each test
+mutates this state in some way, in some cases really "clobbering it"
+(e.g., the events test mremap-ing area_dst over the top of area_src, or
+the minor faults tests overwriting the count_verify values in the test
+areas).  We run the tests in a particular order, each test is careful to
+make the right assumptions about its starting state, etc.
 
-area_*_alias and area_* (respectively) point to the same underlying
-physical pages, but are different VMAs.  In a future commit in this
-series, we'll leverage this setup to exercise minor fault handling support
-for shmem, just like we do in the hugetlb_shared test.
+But, this is fragile.  It's better for a test's success or failure to not
+depend on what some other prior test case did to the global state.
 
-Link: https://lkml.kernel.org/r/20210503180737.2487560-9-axelrasmussen@google.com
+To that end, clear and reinitialize the test context at the start of each
+test case, so whatever prior test cases did doesn't affect future tests.
+
+This is particularly relevant to this series because the events test's
+mremap of area_dst screws up assumptions the minor fault test was relying
+on.  This wasn't a problem for hugetlb, as we don't mremap in that case.
+
+Link: https://lkml.kernel.org/r/20210503180737.2487560-10-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
 Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -106,52 +114,331 @@ Cc: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   22 ++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |  216 +++++++++++----------
+ 1 file changed, 116 insertions(+), 100 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-create-alias-mappings-in-the-shmem-test
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-reinitialize-test-context-in-each-test
 +++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -278,13 +278,29 @@ static void shmem_release_pages(char *re
+@@ -89,7 +89,8 @@ static int shm_fd;
+ static int huge_fd;
+ static char *huge_fd_off0;
+ static unsigned long long *count_verify;
+-static int uffd, uffd_flags, finished, *pipefd;
++static int uffd = -1;
++static int uffd_flags, finished, *pipefd;
+ static char *area_src, *area_src_alias, *area_dst, *area_dst_alias;
+ static char *zeropage;
+ pthread_attr_t attr;
+@@ -342,6 +343,111 @@ static struct uffd_test_ops hugetlb_uffd
  
- static void shmem_allocate_area(void **alloc_area)
- {
--	unsigned long offset =
--		alloc_area == (void **)&area_src ? 0 : nr_pages * page_size;
-+	void *area_alias = NULL;
-+	bool is_src = alloc_area == (void **)&area_src;
-+	unsigned long offset = is_src ? 0 : nr_pages * page_size;
+ static struct uffd_test_ops *uffd_test_ops;
  
- 	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
- 			   MAP_SHARED, shm_fd, offset);
- 	if (*alloc_area == MAP_FAILED)
- 		err("mmap of memfd failed");
++static void userfaultfd_open(uint64_t *features)
++{
++	struct uffdio_api uffdio_api;
 +
-+	area_alias = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
-+			  MAP_SHARED, shm_fd, offset);
-+	if (area_alias == MAP_FAILED)
-+		err("mmap of memfd alias failed");
++	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY);
++	if (uffd < 0)
++		err("userfaultfd syscall not available in this kernel");
++	uffd_flags = fcntl(uffd, F_GETFD, NULL);
 +
-+	if (is_src)
-+		area_src_alias = area_alias;
-+	else
-+		area_dst_alias = area_alias;
++	uffdio_api.api = UFFD_API;
++	uffdio_api.features = *features;
++	if (ioctl(uffd, UFFDIO_API, &uffdio_api))
++		err("UFFDIO_API failed.\nPlease make sure to "
++		    "run with either root or ptrace capability.");
++	if (uffdio_api.api != UFFD_API)
++		err("UFFDIO_API error: %" PRIu64, (uint64_t)uffdio_api.api);
++
++	*features = uffdio_api.features;
 +}
 +
-+static void shmem_alias_mapping(__u64 *start, size_t len, unsigned long offset)
++static inline void munmap_area(void **area)
 +{
-+	*start = (unsigned long)area_dst_alias + offset;
++	if (*area)
++		if (munmap(*area, nr_pages * page_size))
++			err("munmap");
++
++	*area = NULL;
++}
++
++static void uffd_test_ctx_clear(void)
++{
++	size_t i;
++
++	if (pipefd) {
++		for (i = 0; i < nr_cpus * 2; ++i) {
++			if (close(pipefd[i]))
++				err("close pipefd");
++		}
++		free(pipefd);
++		pipefd = NULL;
++	}
++
++	if (count_verify) {
++		free(count_verify);
++		count_verify = NULL;
++	}
++
++	if (uffd != -1) {
++		if (close(uffd))
++			err("close uffd");
++		uffd = -1;
++	}
++
++	huge_fd_off0 = NULL;
++	munmap_area((void **)&area_src);
++	munmap_area((void **)&area_src_alias);
++	munmap_area((void **)&area_dst);
++	munmap_area((void **)&area_dst_alias);
++}
++
++static void uffd_test_ctx_init_ext(uint64_t *features)
++{
++	unsigned long nr, cpu;
++
++	uffd_test_ctx_clear();
++
++	uffd_test_ops->allocate_area((void **)&area_src);
++	uffd_test_ops->allocate_area((void **)&area_dst);
++
++	uffd_test_ops->release_pages(area_src);
++	uffd_test_ops->release_pages(area_dst);
++
++	userfaultfd_open(features);
++
++	count_verify = malloc(nr_pages * sizeof(unsigned long long));
++	if (!count_verify)
++		err("count_verify");
++
++	for (nr = 0; nr < nr_pages; nr++) {
++		*area_mutex(area_src, nr) =
++			(pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
++		count_verify[nr] = *area_count(area_src, nr) = 1;
++		/*
++		 * In the transition between 255 to 256, powerpc will
++		 * read out of order in my_bcmp and see both bytes as
++		 * zero, so leave a placeholder below always non-zero
++		 * after the count, to avoid my_bcmp to trigger false
++		 * positives.
++		 */
++		*(area_count(area_src, nr) + 1) = 1;
++	}
++
++	pipefd = malloc(sizeof(int) * nr_cpus * 2);
++	if (!pipefd)
++		err("pipefd");
++	for (cpu = 0; cpu < nr_cpus; cpu++)
++		if (pipe2(&pipefd[cpu * 2], O_CLOEXEC | O_NONBLOCK))
++			err("pipe");
++}
++
++static inline void uffd_test_ctx_init(uint64_t features)
++{
++	uffd_test_ctx_init_ext(&features);
++}
++
+ static int my_bcmp(char *str1, char *str2, size_t n)
+ {
+ 	unsigned long i;
+@@ -726,40 +832,6 @@ static int stress(struct uffd_stats *uff
+ 	return 0;
  }
  
- struct uffd_test_ops {
-@@ -314,7 +330,7 @@ static struct uffd_test_ops shmem_uffd_t
- 	.expected_ioctls = SHMEM_EXPECTED_IOCTLS,
- 	.allocate_area	= shmem_allocate_area,
- 	.release_pages	= shmem_release_pages,
--	.alias_mapping = noop_alias_mapping,
-+	.alias_mapping = shmem_alias_mapping,
- };
+-static int userfaultfd_open_ext(uint64_t *features)
+-{
+-	struct uffdio_api uffdio_api;
+-
+-	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY);
+-	if (uffd < 0) {
+-		fprintf(stderr,
+-			"userfaultfd syscall not available in this kernel\n");
+-		return 1;
+-	}
+-	uffd_flags = fcntl(uffd, F_GETFD, NULL);
+-
+-	uffdio_api.api = UFFD_API;
+-	uffdio_api.features = *features;
+-	if (ioctl(uffd, UFFDIO_API, &uffdio_api)) {
+-		fprintf(stderr, "UFFDIO_API failed.\nPlease make sure to "
+-			"run with either root or ptrace capability.\n");
+-		return 1;
+-	}
+-	if (uffdio_api.api != UFFD_API) {
+-		fprintf(stderr, "UFFDIO_API error: %" PRIu64 "\n",
+-			(uint64_t)uffdio_api.api);
+-		return 1;
+-	}
+-
+-	*features = uffdio_api.features;
+-	return 0;
+-}
+-
+-static int userfaultfd_open(uint64_t features)
+-{
+-	return userfaultfd_open_ext(&features);
+-}
+-
+ sigjmp_buf jbuf, *sigbuf;
  
- static struct uffd_test_ops hugetlb_uffd_test_ops = {
+ static void sighndl(int sig, siginfo_t *siginfo, void *ptr)
+@@ -868,6 +940,8 @@ static int faulting_process(int signal_t
+ 			  MREMAP_MAYMOVE | MREMAP_FIXED, area_src);
+ 	if (area_dst == MAP_FAILED)
+ 		err("mremap");
++	/* Reset area_src since we just clobbered it */
++	area_src = NULL;
+ 
+ 	for (; nr < nr_pages; nr++) {
+ 		count = *area_count(area_dst, nr);
+@@ -961,10 +1035,8 @@ static int userfaultfd_zeropage_test(voi
+ 	printf("testing UFFDIO_ZEROPAGE: ");
+ 	fflush(stdout);
+ 
+-	uffd_test_ops->release_pages(area_dst);
++	uffd_test_ctx_init(0);
+ 
+-	if (userfaultfd_open(0))
+-		return 1;
+ 	uffdio_register.range.start = (unsigned long) area_dst;
+ 	uffdio_register.range.len = nr_pages * page_size;
+ 	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
+@@ -981,7 +1053,6 @@ static int userfaultfd_zeropage_test(voi
+ 		if (my_bcmp(area_dst, zeropage, page_size))
+ 			err("zeropage is not zero");
+ 
+-	close(uffd);
+ 	printf("done.\n");
+ 	return 0;
+ }
+@@ -999,12 +1070,10 @@ static int userfaultfd_events_test(void)
+ 	printf("testing events (fork, remap, remove): ");
+ 	fflush(stdout);
+ 
+-	uffd_test_ops->release_pages(area_dst);
+-
+ 	features = UFFD_FEATURE_EVENT_FORK | UFFD_FEATURE_EVENT_REMAP |
+ 		UFFD_FEATURE_EVENT_REMOVE;
+-	if (userfaultfd_open(features))
+-		return 1;
++	uffd_test_ctx_init(features);
++
+ 	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
+ 
+ 	uffdio_register.range.start = (unsigned long) area_dst;
+@@ -1037,8 +1106,6 @@ static int userfaultfd_events_test(void)
+ 	if (pthread_join(uffd_mon, NULL))
+ 		return 1;
+ 
+-	close(uffd);
+-
+ 	uffd_stats_report(&stats, 1);
+ 
+ 	return stats.missing_faults != nr_pages;
+@@ -1058,11 +1125,9 @@ static int userfaultfd_sig_test(void)
+ 	printf("testing signal delivery: ");
+ 	fflush(stdout);
+ 
+-	uffd_test_ops->release_pages(area_dst);
+-
+ 	features = UFFD_FEATURE_EVENT_FORK|UFFD_FEATURE_SIGBUS;
+-	if (userfaultfd_open(features))
+-		return 1;
++	uffd_test_ctx_init(features);
++
+ 	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
+ 
+ 	uffdio_register.range.start = (unsigned long) area_dst;
+@@ -1103,7 +1168,6 @@ static int userfaultfd_sig_test(void)
+ 	printf("done.\n");
+ 	if (userfaults)
+ 		err("Signal test failed, userfaults: %ld", userfaults);
+-	close(uffd);
+ 
+ 	return userfaults != 0;
+ }
+@@ -1126,10 +1190,7 @@ static int userfaultfd_minor_test(void)
+ 	printf("testing minor faults: ");
+ 	fflush(stdout);
+ 
+-	uffd_test_ops->release_pages(area_dst);
+-
+-	if (userfaultfd_open_ext(&features))
+-		return 1;
++	uffd_test_ctx_init_ext(&features);
+ 	/* If kernel reports the feature isn't supported, skip the test. */
+ 	if (!(features & UFFD_FEATURE_MINOR_HUGETLBFS)) {
+ 		printf("skipping test due to lack of feature support\n");
+@@ -1183,8 +1244,6 @@ static int userfaultfd_minor_test(void)
+ 	if (pthread_join(uffd_mon, NULL))
+ 		return 1;
+ 
+-	close(uffd);
+-
+ 	uffd_stats_report(&stats, 1);
+ 
+ 	return stats.missing_faults != 0 || stats.minor_faults != nr_pages;
+@@ -1334,50 +1393,9 @@ static int userfaultfd_stress(void)
+ 	char *tmp_area;
+ 	unsigned long nr;
+ 	struct uffdio_register uffdio_register;
+-	unsigned long cpu;
+ 	struct uffd_stats uffd_stats[nr_cpus];
+ 
+-	uffd_test_ops->allocate_area((void **)&area_src);
+-	if (!area_src)
+-		return 1;
+-	uffd_test_ops->allocate_area((void **)&area_dst);
+-	if (!area_dst)
+-		return 1;
+-
+-	if (userfaultfd_open(0))
+-		return 1;
+-
+-	count_verify = malloc(nr_pages * sizeof(unsigned long long));
+-	if (!count_verify) {
+-		perror("count_verify");
+-		return 1;
+-	}
+-
+-	for (nr = 0; nr < nr_pages; nr++) {
+-		*area_mutex(area_src, nr) = (pthread_mutex_t)
+-			PTHREAD_MUTEX_INITIALIZER;
+-		count_verify[nr] = *area_count(area_src, nr) = 1;
+-		/*
+-		 * In the transition between 255 to 256, powerpc will
+-		 * read out of order in my_bcmp and see both bytes as
+-		 * zero, so leave a placeholder below always non-zero
+-		 * after the count, to avoid my_bcmp to trigger false
+-		 * positives.
+-		 */
+-		*(area_count(area_src, nr) + 1) = 1;
+-	}
+-
+-	pipefd = malloc(sizeof(int) * nr_cpus * 2);
+-	if (!pipefd) {
+-		perror("pipefd");
+-		return 1;
+-	}
+-	for (cpu = 0; cpu < nr_cpus; cpu++) {
+-		if (pipe2(&pipefd[cpu*2], O_CLOEXEC | O_NONBLOCK)) {
+-			perror("pipe");
+-			return 1;
+-		}
+-	}
++	uffd_test_ctx_init(0);
+ 
+ 	if (posix_memalign(&area, page_size, page_size))
+ 		err("out of memory");
+@@ -1498,8 +1516,6 @@ static int userfaultfd_stress(void)
+ 		uffd_stats_report(uffd_stats, nr_cpus);
+ 	}
+ 
+-	close(uffd);
+-
+ 	if (test_type == TEST_ANON) {
+ 		/*
+ 		 * shmem/hugetlb won't be able to run since they have different
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
