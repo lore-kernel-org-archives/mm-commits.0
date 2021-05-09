@@ -4,37 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FB7BC433B4
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 23:36:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CA5CC433ED
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 23:37:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 236FE613D0
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 23:36:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3659E613ED
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 23:37:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229995AbhEIXhr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 May 2021 19:37:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49436 "EHLO mail.kernel.org"
+        id S229920AbhEIXio (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 May 2021 19:38:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49578 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229920AbhEIXhq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 May 2021 19:37:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9FE2E613D0;
-        Sun,  9 May 2021 23:36:42 +0000 (UTC)
+        id S229853AbhEIXin (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 May 2021 19:38:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5B880613D6;
+        Sun,  9 May 2021 23:37:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620603402;
-        bh=7lEuw6/KYmXnlqT3xWep6SaKnV7NnmpWD4QrUSUkb3I=;
+        s=korg; t=1620603459;
+        bh=tzrfFQN7CpGNiSTvNW7QQbGewxH4ULuprpDU6JHW1aE=;
         h=Date:From:To:Subject:From;
-        b=K41kqI7rdJbg57lQaHo8ZZV/15jV69Mje3ZiAD0t3gIR3BpOwGdykGW8FtwDXzRTl
-         WsG+xur8ZqFTDq3/eZXoO0OgWJnb3lUzA/eDLymh00V747O3F6zrhhL1JsxlFoegHl
-         /cErw9WWLPcpKkvW06VfUegsnGeDjsdUJ5sTfefU=
-Date:   Sun, 09 May 2021 16:36:42 -0700
+        b=SdiKZ+yBbSRx3eJLQgSrhcPpZm5G342bFg6cd+HNyoQpAZcVvpTZfE7qECNwpXd2t
+         oUkS0qZpKxFQZiNKAOuEoe3nhk7Lki7cLURPvnyi2cC/3d18NRmgPd9L6fENXCUtW+
+         z6eKPQ4A3jUnCmYGEhnoeOw4ChG+MTEjLuFfZFsk=
+Date:   Sun, 09 May 2021 16:37:38 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, wuchi.zero@gmail.com
+To:     axboe@fb.com, jack@suse.cz, mm-commits@vger.kernel.org,
+        mszeredi@redhat.com, sedat.dilek@gmail.com, tj@kernel.org,
+        wuchi.zero@gmail.com
 Subject:  +
  mm-page-writeback-fix-performance-when-bdis-share-of-ratio-is-0.patch added
  to -mm tree
-Message-ID: <20210509233642.44pLNclWk%akpm@linux-foundation.org>
+Message-ID: <20210509233738.vB16fAwxZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -92,6 +94,11 @@ The fix that we should get the wb_stat_sum radically when thresh is low.
 
 Link: https://lkml.kernel.org/r/20210428225046.16301-1-wuchi.zero@gmail.com
 Signed-off-by: Chi Wu <wuchi.zero@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Sedat Dilek <sedat.dilek@gmail.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
