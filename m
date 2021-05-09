@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4804FC43461
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FDAAC433B4
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2AAFD61421
-	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E681461401
+	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229609AbhEIELh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 May 2021 00:11:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33434 "EHLO mail.kernel.org"
+        id S229611AbhEIELk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 May 2021 00:11:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229605AbhEIELe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 May 2021 00:11:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3716A613FA;
-        Sun,  9 May 2021 04:10:30 +0000 (UTC)
+        id S229605AbhEIELk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 May 2021 00:11:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2718B613FA;
+        Sun,  9 May 2021 04:10:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620533430;
-        bh=jc9pUrEHo9ye9NNSrMPE8SqG5j4JAjkuToVH38wxHl4=;
+        s=korg; t=1620533436;
+        bh=6htsc76DujtbxVzd5KH6febSZQlqwZ+pSZSycgIgzRI=;
         h=Date:From:To:Subject:From;
-        b=2NODIcCZean/lU8Tr6GU10YHUiOjZ1fVMbM9uqbg7lbpg1AkkDLVswrdtBNfGueIs
-         YMZZSgyDkHjvPTdfTT7hbmV3s5B6hXwKOCLUDZf2P2YNQtGbmBXmE4DfkYugOXC5lw
-         7ND4nCcCHefZ+tMrLGwyi0WMRdS/0VjLrYlk/pFU=
-Date:   Sat, 08 May 2021 21:10:29 -0700
+        b=SaWTCAdUQVlZpGAwIkZ2CdZe/H6Qb374d71ws1OBE0DhKZoHK7isyMp3cUbtE3lXD
+         72B80bn/WQ8ZiUuGtJwTS2WXQBaqkjZZZbpfo9KFWXPGmPGz8jDih0t4plAOXFAI63
+         RT/zcghnagix6daXCPHaF/6vM5EYp/ROkoN5polo=
+Date:   Sat, 08 May 2021 21:10:35 -0700
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, almasrymina@google.com,
         axelrasmussen@google.com, bgeffon@google.com, dgilbert@redhat.com,
@@ -39,9 +39,9 @@ To:     aarcange@redhat.com, almasrymina@google.com,
         sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
         viro@zeniv.linux.org.uk, wangqing@vivo.com
 Subject:  +
- userfaultfd-hugetlbfs-avoid-including-userfaultfd_kh-in-hugetlbh.patch
- added to -mm tree
-Message-ID: <20210509041029.PxEzlu4gy%akpm@linux-foundation.org>
+ userfaultfd-shmem-support-minor-fault-registration-for-shmem.patch added to
+ -mm tree
+Message-ID: <20210509041035.scNywgHgn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/hugetlbfs: avoid including userfaultfd_k.h in hugetlb.h
+     Subject: userfaultfd/shmem: support minor fault registration for shmem
 has been added to the -mm tree.  Its filename is
-     userfaultfd-hugetlbfs-avoid-including-userfaultfd_kh-in-hugetlbh.patch
+     userfaultfd-shmem-support-minor-fault-registration-for-shmem.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-hugetlbfs-avoid-including-userfaultfd_kh-in-hugetlbh.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-shmem-support-minor-fault-registration-for-shmem.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-hugetlbfs-avoid-including-userfaultfd_kh-in-hugetlbh.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-shmem-support-minor-fault-registration-for-shmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,109 +72,105 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/hugetlbfs: avoid including userfaultfd_k.h in hugetlb.h
+Subject: userfaultfd/shmem: support minor fault registration for shmem
 
-Patch series "userfaultfd: add minor fault handling for shmem", v6.
+This patch allows shmem-backed VMAs to be registered for minor faults. 
+Minor faults are appropriately relayed to userspace in the fault path, for
+VMAs with the relevant flag.
 
-Overview
-========
+This commit doesn't hook up the UFFDIO_CONTINUE ioctl for shmem-backed
+minor faults, though, so userspace doesn't yet have a way to resolve such
+faults.
 
-See the series which added minor faults for hugetlbfs [3] for a detailed
-overview of minor fault handling in general.  This series adds the same
-support for shmem-backed areas.
+Because of this, we also don't yet advertise this as a supported feature. 
+That will be done in a separate commit when the feature is fully
+implemented.
 
-This series is structured as follows:
-
-- Commits 1 and 2 are cleanups.
-- Commits 3 and 4 implement the new feature (minor fault handling for shmem).
-- Commit 5 advertises that the feature is now available since at this point it's
-  fully implemented.
-- Commit 6 is a final cleanup, modifying an existing code path to re-use a new
-  helper we've introduced.
-- Commits 7, 8, 9, 10 update the userfaultfd selftest to exercise the feature.
-
-Use Case
-========
-
-In some cases it is useful to have VM memory backed by tmpfs instead of
-hugetlbfs.  So, this feature will be used to support the same VM live
-migration use case described in my original series.
-
-Additionally, Android folks (Lokesh Gidra <lokeshgidra@google.com>) hope
-to optimize the Android Runtime garbage collector using this feature:
-
-"The plan is to use userfaultfd for concurrently compacting the heap. 
-With this feature, the heap can be shared-mapped at another location where
-the GC-thread(s) could continue the compaction operation without the need
-to invoke userfault ioctl(UFFDIO_COPY) each time.  OTOH, if and when Java
-threads get faults on the heap, UFFDIO_CONTINUE can be used to resume
-execution.  Furthermore, this feature enables updating references in the
-'non-moving' portion of the heap efficiently.  Without this feature,
-uneccessary page copying (ioctl(UFFDIO_COPY)) would be required."
-
-[1] https://lore.kernel.org/patchwork/cover/1388144/
-[2] https://lore.kernel.org/patchwork/patch/1408161/
-[3] https://lore.kernel.org/linux-fsdevel/20210301222728.176417-1-axelrasmussen@google.com/T/#t
-
-
-This patch (of 10):
-
-Minimizing header file inclusion is desirable.  In this case, we can do so
-just by forward declaring the enumeration our signature relies upon.
-
-Link: https://lkml.kernel.org/r/20210503180737.2487560-1-axelrasmussen@google.com
-Link: https://lkml.kernel.org/r/20210503180737.2487560-2-axelrasmussen@google.com
+Link: https://lkml.kernel.org/r/20210503180737.2487560-4-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
+Acked-by: Peter Xu <peterx@redhat.com>
 Acked-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: Joe Perches <joe@perches.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Lokesh Gidra <lokeshgidra@google.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Oliver Upton <oupton@google.com>
 Cc: Shaohua Li <shli@fb.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Wang Qing <wangqing@vivo.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Oliver Upton <oupton@google.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- mm/hugetlb.c            |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ fs/userfaultfd.c |    3 +--
+ mm/memory.c      |    8 +++++---
+ mm/shmem.c       |   12 +++++++++++-
+ 3 files changed, 17 insertions(+), 6 deletions(-)
 
---- a/include/linux/hugetlb.h~userfaultfd-hugetlbfs-avoid-including-userfaultfd_kh-in-hugetlbh
-+++ a/include/linux/hugetlb.h
-@@ -11,11 +11,11 @@
- #include <linux/kref.h>
- #include <linux/pgtable.h>
- #include <linux/gfp.h>
--#include <linux/userfaultfd_k.h>
+--- a/fs/userfaultfd.c~userfaultfd-shmem-support-minor-fault-registration-for-shmem
++++ a/fs/userfaultfd.c
+@@ -1267,8 +1267,7 @@ static inline bool vma_can_userfault(str
+ 	}
  
- struct ctl_table;
- struct user_struct;
- struct mmu_gather;
-+enum mcopy_atomic_mode;
+ 	if (vm_flags & VM_UFFD_MINOR) {
+-		/* FIXME: Add minor fault interception for shmem. */
+-		if (!is_vm_hugetlb_page(vma))
++		if (!(is_vm_hugetlb_page(vma) || vma_is_shmem(vma)))
+ 			return false;
+ 	}
  
- #ifndef is_hugepd
- typedef struct { unsigned long pd; } hugepd_t;
---- a/mm/hugetlb.c~userfaultfd-hugetlbfs-avoid-including-userfaultfd_kh-in-hugetlbh
-+++ a/mm/hugetlb.c
-@@ -40,6 +40,7 @@
- #include <linux/hugetlb_cgroup.h>
- #include <linux/node.h>
- #include <linux/page_owner.h>
-+#include <linux/userfaultfd_k.h>
- #include "internal.h"
+--- a/mm/memory.c~userfaultfd-shmem-support-minor-fault-registration-for-shmem
++++ a/mm/memory.c
+@@ -3973,9 +3973,11 @@ static vm_fault_t do_read_fault(struct v
+ 	 * something).
+ 	 */
+ 	if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT > 1) {
+-		ret = do_fault_around(vmf);
+-		if (ret)
+-			return ret;
++		if (likely(!userfaultfd_minor(vmf->vma))) {
++			ret = do_fault_around(vmf);
++			if (ret)
++				return ret;
++		}
+ 	}
  
- int hugetlb_max_hstate __read_mostly;
+ 	ret = __do_fault(vmf);
+--- a/mm/shmem.c~userfaultfd-shmem-support-minor-fault-registration-for-shmem
++++ a/mm/shmem.c
+@@ -1785,7 +1785,7 @@ unlock:
+  * vm. If we swap it in we mark it dirty since we also free the swap
+  * entry since a page cannot live in both the swap and page cache.
+  *
+- * vmf and fault_type are only supplied by shmem_fault:
++ * vma, vmf, and fault_type are only supplied by shmem_fault:
+  * otherwise they are NULL.
+  */
+ static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
+@@ -1820,6 +1820,16 @@ repeat:
+ 
+ 	page = pagecache_get_page(mapping, index,
+ 					FGP_ENTRY | FGP_HEAD | FGP_LOCK, 0);
++
++	if (page && vma && userfaultfd_minor(vma)) {
++		if (!xa_is_value(page)) {
++			unlock_page(page);
++			put_page(page);
++		}
++		*fault_type = handle_userfault(vmf, VM_UFFD_MINOR);
++		return 0;
++	}
++
+ 	if (xa_is_value(page)) {
+ 		error = shmem_swapin_page(inode, index, &page,
+ 					  sgp, gfp, vma, fault_type);
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
