@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BF5DC433ED
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD4BBC433B4
 	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C99E61421
+	by mail.kernel.org (Postfix) with ESMTP id 8C55B61421
 	for <mm-commits@archiver.kernel.org>; Sun,  9 May 2021 04:10:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229610AbhEIELh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229491AbhEIELh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 9 May 2021 00:11:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33096 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33686 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229491AbhEIELb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 May 2021 00:11:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 129BF61421;
-        Sun,  9 May 2021 04:10:27 +0000 (UTC)
+        id S229609AbhEIELg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 May 2021 00:11:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2CCE66135F;
+        Sun,  9 May 2021 04:10:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620533427;
-        bh=5NQBSyCMEux4JYTuArAyHO2a7gk65sn0tG3fNji54SI=;
+        s=korg; t=1620533433;
+        bh=ATiUXqTzCgKtcbhrnNLeCuhIlULdMnSih23KIQA2vok=;
         h=Date:From:To:Subject:From;
-        b=E0FNR5f2zyeo4ajVobWRmGbr8tIEIPPS6HWYks8lpSn2xkTrIJSXePtkjCPkmdKyG
-         gYEFgy6Y1CHT/d27r0MyXDBeV5ijH1700ynXYixEowXmo2bwCxiclvrvS6WHPcMjS5
-         2YzxW/MBMrscENAQj3NctgafpZ5xrV60CNN2BlGg=
-Date:   Sat, 08 May 2021 21:10:26 -0700
+        b=U+3+p5GWJcv4Nt1w/yTVL5wgauoApQr31PeSoZh605TRH3Tcrdp+XeGP0cJ3/jfF5
+         MQCt69s+ALJy/CSWspHA1DoP4Wu6dsuJSgY6LSeUlKoIAWjWTtXvzsVD0tPzATIxVG
+         ZqGPJvu/Z+pti9bkhnli/rgBk+rwE8L8XM6nuUHA=
+Date:   Sat, 08 May 2021 21:10:32 -0700
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, almasrymina@google.com,
         axelrasmussen@google.com, bgeffon@google.com, dgilbert@redhat.com,
@@ -38,9 +38,10 @@ To:     aarcange@redhat.com, almasrymina@google.com,
         oupton@google.com, peterx@redhat.com, rppt@linux.vnet.ibm.com,
         sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
         viro@zeniv.linux.org.uk, wangqing@vivo.com
-Subject:  + userfaultfd-selftests-add-pagemap-uffd-wp-test.patch
- added to -mm tree
-Message-ID: <20210509041026.SB5s966Ul%akpm@linux-foundation.org>
+Subject:  +
+ userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte.patch added
+ to -mm tree
+Message-ID: <20210509041032.NmVwFMyVb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/selftests: add pagemap uffd-wp test
+     Subject: userfaultfd/shmem: combine shmem_{mcopy_atomic,mfill_zeropage}_pte
 has been added to the -mm tree.  Its filename is
-     userfaultfd-selftests-add-pagemap-uffd-wp-test.patch
+     userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-add-pagemap-uffd-wp-test.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-add-pagemap-uffd-wp-test.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,25 +71,32 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: userfaultfd/selftests: add pagemap uffd-wp test
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: userfaultfd/shmem: combine shmem_{mcopy_atomic,mfill_zeropage}_pte
 
-Add one anonymous specific test to start using pagemap.  With pagemap
-support, we can directly read the uffd-wp bit from pgtable without
-triggering any fault, so it's easier to do sanity checks in unit tests.
+Previously, we did a dance where we had one calling path in userfaultfd.c
+(mfill_atomic_pte), but then we split it into two in shmem_fs.h
+(shmem_{mcopy_atomic,mfill_zeropage}_pte), and then rejoined into a single
+shared function in shmem.c (shmem_mfill_atomic_pte).
 
-Meanwhile this test also leverages the newly introduced MADV_PAGEOUT
-madvise function to test swap ptes with uffd-wp bit set, and across
-fork()s.
+This is all a bit overly complex.  Just call the single combined shmem
+function directly, allowing us to clean up various branches, boilerplate,
+etc.
 
-Link: https://lkml.kernel.org/r/20210428225030.9708-7-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
+While we're touching this function, two other small cleanup changes:
+- offset is equivalent to pgoff, so we can get rid of offset entirely.
+- Split two VM_BUG_ON cases into two statements. This means the line
+  number reported when the BUG is hit specifies exactly which condition
+  was true.
+
+Link: https://lkml.kernel.org/r/20210503180737.2487560-3-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
@@ -104,195 +112,184 @@ Cc: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |  154 +++++++++++++++++++++
- 1 file changed, 154 insertions(+)
+ include/linux/shmem_fs.h |   19 +++++--------
+ mm/shmem.c               |   52 +++++++++++--------------------------
+ mm/userfaultfd.c         |   10 ++-----
+ 3 files changed, 27 insertions(+), 54 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-add-pagemap-uffd-wp-test
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -1170,6 +1170,144 @@ static int userfaultfd_minor_test(void)
- 	return stats.missing_faults != 0 || stats.minor_faults != nr_pages;
+--- a/include/linux/shmem_fs.h~userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte
++++ a/include/linux/shmem_fs.h
+@@ -122,21 +122,18 @@ static inline bool shmem_file(struct fil
+ extern bool shmem_charge(struct inode *inode, long pages);
+ extern void shmem_uncharge(struct inode *inode, long pages);
+ 
++#ifdef CONFIG_USERFAULTFD
+ #ifdef CONFIG_SHMEM
+-extern int shmem_mcopy_atomic_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
++extern int shmem_mfill_atomic_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
+ 				  struct vm_area_struct *dst_vma,
+ 				  unsigned long dst_addr,
+ 				  unsigned long src_addr,
++				  bool zeropage,
+ 				  struct page **pagep);
+-extern int shmem_mfill_zeropage_pte(struct mm_struct *dst_mm,
+-				    pmd_t *dst_pmd,
+-				    struct vm_area_struct *dst_vma,
+-				    unsigned long dst_addr);
+-#else
+-#define shmem_mcopy_atomic_pte(dst_mm, dst_pte, dst_vma, dst_addr, \
+-			       src_addr, pagep)        ({ BUG(); 0; })
+-#define shmem_mfill_zeropage_pte(dst_mm, dst_pmd, dst_vma, \
+-				 dst_addr)      ({ BUG(); 0; })
+-#endif
++#else /* !CONFIG_SHMEM */
++#define shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma, dst_addr, \
++			       src_addr, zeropage, pagep)       ({ BUG(); 0; })
++#endif /* CONFIG_SHMEM */
++#endif /* CONFIG_USERFAULTFD */
+ 
+ #endif
+--- a/mm/shmem.c~userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte
++++ a/mm/shmem.c
+@@ -2340,13 +2340,14 @@ static struct inode *shmem_get_inode(str
+ 	return inode;
  }
  
-+#define BIT_ULL(nr)                   (1ULL << (nr))
-+#define PM_SOFT_DIRTY                 BIT_ULL(55)
-+#define PM_MMAP_EXCLUSIVE             BIT_ULL(56)
-+#define PM_UFFD_WP                    BIT_ULL(57)
-+#define PM_FILE                       BIT_ULL(61)
-+#define PM_SWAP                       BIT_ULL(62)
-+#define PM_PRESENT                    BIT_ULL(63)
-+
-+static int pagemap_open(void)
-+{
-+	int fd = open("/proc/self/pagemap", O_RDONLY);
-+
-+	if (fd < 0)
-+		err("open pagemap");
-+
-+	return fd;
-+}
-+
-+static uint64_t pagemap_read_vaddr(int fd, void *vaddr)
-+{
-+	uint64_t value;
-+	int ret;
-+
-+	ret = pread(fd, &value, sizeof(uint64_t),
-+		    ((uint64_t)vaddr >> 12) * sizeof(uint64_t));
-+	if (ret != sizeof(uint64_t))
-+		err("pread() on pagemap failed");
-+
-+	return value;
-+}
-+
-+/* This macro let __LINE__ works in err() */
-+#define  pagemap_check_wp(value, wp) do {				\
-+		if (!!(value & PM_UFFD_WP) != wp)			\
-+			err("pagemap uffd-wp bit error: 0x%"PRIx64, value); \
-+	} while (0)
-+
-+static int pagemap_test_fork(bool present)
-+{
-+	pid_t child = fork();
-+	uint64_t value;
-+	int fd, result;
-+
-+	if (!child) {
-+		/* Open the pagemap fd of the child itself */
-+		fd = pagemap_open();
-+		value = pagemap_read_vaddr(fd, area_dst);
-+		/*
-+		 * After fork() uffd-wp bit should be gone as long as we're
-+		 * without UFFD_FEATURE_EVENT_FORK
-+		 */
-+		pagemap_check_wp(value, false);
-+		/* Succeed */
-+		exit(0);
-+	}
-+	waitpid(child, &result, 0);
-+	return result;
-+}
-+
-+static void userfaultfd_pagemap_test(unsigned int test_pgsize)
-+{
-+	struct uffdio_register uffdio_register;
-+	int pagemap_fd;
-+	uint64_t value;
-+
-+	/* Pagemap tests uffd-wp only */
-+	if (!test_uffdio_wp)
-+		return;
-+
-+	/* Not enough memory to test this page size */
-+	if (test_pgsize > nr_pages * page_size)
-+		return;
-+
-+	printf("testing uffd-wp with pagemap (pgsize=%u): ", test_pgsize);
-+	/* Flush so it doesn't flush twice in parent/child later */
-+	fflush(stdout);
-+
-+	uffd_test_ops->release_pages(area_dst);
-+
-+	if (test_pgsize > page_size) {
-+		/* This is a thp test */
-+		if (madvise(area_dst, nr_pages * page_size, MADV_HUGEPAGE))
-+			err("madvise(MADV_HUGEPAGE) failed");
-+	} else if (test_pgsize == page_size) {
-+		/* This is normal page test; force no thp */
-+		if (madvise(area_dst, nr_pages * page_size, MADV_NOHUGEPAGE))
-+			err("madvise(MADV_NOHUGEPAGE) failed");
-+	}
-+
-+	if (userfaultfd_open(0))
-+		err("userfaultfd_open");
-+
-+	uffdio_register.range.start = (unsigned long) area_dst;
-+	uffdio_register.range.len = nr_pages * page_size;
-+	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
-+		err("register failed");
-+
-+	pagemap_fd = pagemap_open();
-+
-+	/* Touch the page */
-+	*area_dst = 1;
-+	wp_range(uffd, (uint64_t)area_dst, test_pgsize, true);
-+	value = pagemap_read_vaddr(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, true);
-+	/* Make sure uffd-wp bit dropped when fork */
-+	if (pagemap_test_fork(true))
-+		err("Detected stall uffd-wp bit in child");
-+
-+	/* Exclusive required or PAGEOUT won't work */
-+	if (!(value & PM_MMAP_EXCLUSIVE))
-+		err("multiple mapping detected: 0x%"PRIx64, value);
-+
-+	if (madvise(area_dst, test_pgsize, MADV_PAGEOUT))
-+		err("madvise(MADV_PAGEOUT) failed");
-+
-+	/* Uffd-wp should persist even swapped out */
-+	value = pagemap_read_vaddr(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, true);
-+	/* Make sure uffd-wp bit dropped when fork */
-+	if (pagemap_test_fork(false))
-+		err("Detected stall uffd-wp bit in child");
-+
-+	/* Unprotect; this tests swap pte modifications */
-+	wp_range(uffd, (uint64_t)area_dst, page_size, false);
-+	value = pagemap_read_vaddr(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, false);
-+
-+	/* Fault in the page from disk */
-+	*area_dst = 2;
-+	value = pagemap_read_vaddr(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, false);
-+
-+	close(pagemap_fd);
-+	close(uffd);
-+	printf("done\n");
-+}
-+
- static int userfaultfd_stress(void)
+-static int shmem_mfill_atomic_pte(struct mm_struct *dst_mm,
+-				  pmd_t *dst_pmd,
+-				  struct vm_area_struct *dst_vma,
+-				  unsigned long dst_addr,
+-				  unsigned long src_addr,
+-				  bool zeropage,
+-				  struct page **pagep)
++#ifdef CONFIG_USERFAULTFD
++int shmem_mfill_atomic_pte(struct mm_struct *dst_mm,
++			   pmd_t *dst_pmd,
++			   struct vm_area_struct *dst_vma,
++			   unsigned long dst_addr,
++			   unsigned long src_addr,
++			   bool zeropage,
++			   struct page **pagep)
  {
- 	void *area;
-@@ -1341,6 +1479,22 @@ static int userfaultfd_stress(void)
+ 	struct inode *inode = file_inode(dst_vma->vm_file);
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+@@ -2358,7 +2359,7 @@ static int shmem_mfill_atomic_pte(struct
+ 	struct page *page;
+ 	pte_t _dst_pte, *dst_pte;
+ 	int ret;
+-	pgoff_t offset, max_off;
++	pgoff_t max_off;
+ 
+ 	ret = -ENOMEM;
+ 	if (!shmem_inode_acct_block(inode, 1))
+@@ -2369,7 +2370,7 @@ static int shmem_mfill_atomic_pte(struct
+ 		if (!page)
+ 			goto out_unacct_blocks;
+ 
+-		if (!zeropage) {	/* mcopy_atomic */
++		if (!zeropage) {	/* COPY */
+ 			page_kaddr = kmap_atomic(page);
+ 			ret = copy_from_user(page_kaddr,
+ 					     (const void __user *)src_addr,
+@@ -2383,7 +2384,7 @@ static int shmem_mfill_atomic_pte(struct
+ 				/* don't free the page */
+ 				return -ENOENT;
+ 			}
+-		} else {		/* mfill_zeropage_atomic */
++		} else {		/* ZEROPAGE */
+ 			clear_highpage(page);
+ 		}
+ 	} else {
+@@ -2391,15 +2392,15 @@ static int shmem_mfill_atomic_pte(struct
+ 		*pagep = NULL;
  	}
  
- 	close(uffd);
-+
-+	if (test_type == TEST_ANON) {
-+		/*
-+		 * shmem/hugetlb won't be able to run since they have different
-+		 * behavior on fork() (file-backed memory normally drops ptes
-+		 * directly when fork), meanwhile the pagemap test will verify
-+		 * pgtable entry of fork()ed child.
-+		 */
-+		userfaultfd_pagemap_test(page_size);
-+		/*
-+		 * Hard-code for x86_64 for now for 2M THP, as x86_64 is
-+		 * currently the only one that supports uffd-wp
-+		 */
-+		userfaultfd_pagemap_test(page_size * 512);
-+	}
-+
- 	return userfaultfd_zeropage_test() || userfaultfd_sig_test()
- 		|| userfaultfd_events_test() || userfaultfd_minor_test();
+-	VM_BUG_ON(PageLocked(page) || PageSwapBacked(page));
++	VM_BUG_ON(PageLocked(page));
++	VM_BUG_ON(PageSwapBacked(page));
+ 	__SetPageLocked(page);
+ 	__SetPageSwapBacked(page);
+ 	__SetPageUptodate(page);
+ 
+ 	ret = -EFAULT;
+-	offset = linear_page_index(dst_vma, dst_addr);
+ 	max_off = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
+-	if (unlikely(offset >= max_off))
++	if (unlikely(pgoff >= max_off))
+ 		goto out_release;
+ 
+ 	ret = shmem_add_to_page_cache(page, mapping, pgoff, NULL,
+@@ -2425,7 +2426,7 @@ static int shmem_mfill_atomic_pte(struct
+ 
+ 	ret = -EFAULT;
+ 	max_off = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
+-	if (unlikely(offset >= max_off))
++	if (unlikely(pgoff >= max_off))
+ 		goto out_release_unlock;
+ 
+ 	ret = -EEXIST;
+@@ -2462,28 +2463,7 @@ out_unacct_blocks:
+ 	shmem_inode_unacct_blocks(inode, 1);
+ 	goto out;
  }
+-
+-int shmem_mcopy_atomic_pte(struct mm_struct *dst_mm,
+-			   pmd_t *dst_pmd,
+-			   struct vm_area_struct *dst_vma,
+-			   unsigned long dst_addr,
+-			   unsigned long src_addr,
+-			   struct page **pagep)
+-{
+-	return shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
+-				      dst_addr, src_addr, false, pagep);
+-}
+-
+-int shmem_mfill_zeropage_pte(struct mm_struct *dst_mm,
+-			     pmd_t *dst_pmd,
+-			     struct vm_area_struct *dst_vma,
+-			     unsigned long dst_addr)
+-{
+-	struct page *page = NULL;
+-
+-	return shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
+-				      dst_addr, 0, true, &page);
+-}
++#endif /* CONFIG_USERFAULTFD */
+ 
+ #ifdef CONFIG_TMPFS
+ static const struct inode_operations shmem_symlink_inode_operations;
+--- a/mm/userfaultfd.c~userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte
++++ a/mm/userfaultfd.c
+@@ -440,13 +440,9 @@ static __always_inline ssize_t mfill_ato
+ 						 dst_vma, dst_addr);
+ 	} else {
+ 		VM_WARN_ON_ONCE(wp_copy);
+-		if (!zeropage)
+-			err = shmem_mcopy_atomic_pte(dst_mm, dst_pmd,
+-						     dst_vma, dst_addr,
+-						     src_addr, page);
+-		else
+-			err = shmem_mfill_zeropage_pte(dst_mm, dst_pmd,
+-						       dst_vma, dst_addr);
++		err = shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
++					     dst_addr, src_addr, zeropage,
++					     page);
+ 	}
+ 
+ 	return err;
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-mm-hugetlb-fix-f_seal_future_write.patch
-mm-hugetlb-fix-cow-where-page-writtable-in-child.patch
-mm-gup_benchmark-support-threading.patch
-userfaultfd-selftests-use-user-mode-only.patch
-userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch
-userfaultfd-selftests-dropping-verify-check-in-locking_thread.patch
-userfaultfd-selftests-only-dump-counts-if-mode-enabled.patch
-userfaultfd-selftests-unify-error-handling.patch
-mm-thp-simplify-copying-of-huge-zero-page-pmd-when-fork.patch
-mm-userfaultfd-fix-uffd-wp-special-cases-for-fork.patch
-mm-userfaultfd-fix-a-few-thp-pmd-missing-uffd-wp-bit.patch
-mm-userfaultfd-fail-uffd-wp-registeration-if-not-supported.patch
-mm-pagemap-export-uffd-wp-protection-information.patch
-userfaultfd-selftests-add-pagemap-uffd-wp-test.patch
+userfaultfd-release-page-in-error-path-to-avoid-bug_on.patch
+userfaultfd-hugetlbfs-avoid-including-userfaultfd_kh-in-hugetlbh.patch
+userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte.patch
+userfaultfd-shmem-support-minor-fault-registration-for-shmem.patch
+userfaultfd-shmem-support-uffdio_continue-for-shmem.patch
+userfaultfd-shmem-advertise-shmem-minor-fault-support.patch
+userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte.patch
+userfaultfd-selftests-use-memfd_create-for-shmem-test-type.patch
+userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch
+userfaultfd-selftests-reinitialize-test-context-in-each-test.patch
+userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
 
