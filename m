@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D222C433ED
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:22:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33367C433ED
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:27:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 549CA613CD
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:22:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13CE96142D
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:27:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229574AbhEJEXr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 May 2021 00:23:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33030 "EHLO mail.kernel.org"
+        id S229967AbhEJE2K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 May 2021 00:28:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34882 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229483AbhEJEXr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 10 May 2021 00:23:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1683D60232;
-        Mon, 10 May 2021 04:22:43 +0000 (UTC)
+        id S229961AbhEJE2K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 10 May 2021 00:28:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D531861409;
+        Mon, 10 May 2021 04:27:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620620563;
-        bh=3vrXzwy74+5uu9e69YQ5zdEGG38ja/iPhFSuygXP7JA=;
+        s=korg; t=1620620826;
+        bh=mTxbcSB1urZIg8SFkHjdIvX6HjXlCBccdw1gz9EZfLI=;
         h=Date:From:To:Subject:From;
-        b=Sn1sWNzs9/QxgOaWIWLilms5b3wfaeUNFir04SHJxFuXBx6agqsPUvaOs1OBNe6rO
-         T8OmYrKbQurgfJA1kbT7qlfqqUrQLbcSjjQPW1CSUtDY/xg16iTU3f8Y87LUb9ti1d
-         G0FHV/nADLQBqpAW732fb2RKIbb+n8gtQ0M6tui8=
-Date:   Sun, 09 May 2021 21:22:42 -0700
+        b=kBKiumPCmRNH/oyYT495tudg6wIgE0UdouiYDb4o+gXhocgU/hOpm8E9Ajti9nqrW
+         f2uTTJNYLKFWzy1R1L56XUmVuJu2w0QLBwsgd8ChqZkyPAV/4sPl86yDSCiLyRMyl0
+         d//PlkSl4+BGnDLar1WHVd+zlhP4DZXw1BbsCl6s=
+Date:   Sun, 09 May 2021 21:27:05 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, david@redhat.com,
+To:     anshuman.khandual@arm.com, liushixin2@huawei.com,
         mm-commits@vger.kernel.org
 Subject:  +
- =?US-ASCII?Q?mm-madvise-introduce-madv=5Fpopulate=5Freadwrite-to-prefaul?=
- =?US-ASCII?Q?t-page-tables-checkpatch-fixes.patch?= added to -mm tree
-Message-ID: <20210510042242.XkEemgl7v%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-debug=5Fvm=5Fpgtable-move-pmd-pud=5Fhuge=5Ftests-out-of-c?=
+ =?US-ASCII?Q?onfig=5Ftransparent=5Fhugepage.patch?= added to -mm tree
+Message-ID: <20210510042705.Qh_lO8fTJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes
+     Subject: mm/debug_vm_pgtable: move {pmd/pud}_huge_tests out of CONFIG_TRANSPARENT_HUGEPAGE
 has been added to the -mm tree.  Its filename is
-     mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+     mm-debug_vm_pgtable-move-pmd-pud_huge_tests-out-of-config_transparent_hugepage.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-move-pmd-pud_huge_tests-out-of-config_transparent_hugepage.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-move-pmd-pud_huge_tests-out-of-config_transparent_hugepage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,65 +67,153 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes
+From: Shixin Liu <liushixin2@huawei.com>
+Subject: mm/debug_vm_pgtable: move {pmd/pud}_huge_tests out of CONFIG_TRANSPARENT_HUGEPAGE
 
-WARNING: please, no space before tabs
-#506: FILE: mm/gup.c:1513:
-+^I * ^I       the page dirty with FOLL_WRITE -- which doesn't make a$
+The functions {pmd/pud}_set_huge and {pmd/pud}_clear_huge are not
+dependent on THP.  Hence move {pmd/pud}_huge_tests out of
+CONFIG_TRANSPARENT_HUGEPAGE.
 
-WARNING: please, no space before tabs
-#507: FILE: mm/gup.c:1514:
-+^I * ^I       difference with !FOLL_FORCE, because the page is writable$
-
-WARNING: please, no space before tabs
-#508: FILE: mm/gup.c:1515:
-+^I * ^I       in the page table.$
-
-total: 0 errors, 3 warnings, 214 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20210419071820.750217-1-liushixin2@huawei.com
+Signed-off-by: Shixin Liu <liushixin2@huawei.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/debug_vm_pgtable.c |   91 +++++++++++++++++-----------------------
+ 1 file changed, 39 insertions(+), 52 deletions(-)
 
---- a/mm/gup.c~mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes
-+++ a/mm/gup.c
-@@ -1510,9 +1510,9 @@ long faultin_vma_page_range(struct vm_ar
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-move-pmd-pud_huge_tests-out-of-config_transparent_hugepage
++++ a/mm/debug_vm_pgtable.c
+@@ -242,29 +242,6 @@ static void __init pmd_leaf_tests(unsign
+ 	WARN_ON(!pmd_leaf(pmd));
+ }
  
- 	/*
- 	 * FOLL_TOUCH: Mark page accessed and thereby young; will also mark
--	 * 	       the page dirty with FOLL_WRITE -- which doesn't make a
--	 * 	       difference with !FOLL_FORCE, because the page is writable
--	 * 	       in the page table.
-+	 *	       the page dirty with FOLL_WRITE -- which doesn't make a
-+	 *	       difference with !FOLL_FORCE, because the page is writable
-+	 *	       in the page table.
- 	 * FOLL_HWPOISON: Return -EHWPOISON instead of -EFAULT when we hit
- 	 *		  a poisoned page.
- 	 * FOLL_POPULATE: Always populate memory with VM_LOCKONFAULT.
+-#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+-static void __init pmd_huge_tests(pmd_t *pmdp, unsigned long pfn, pgprot_t prot)
+-{
+-	pmd_t pmd;
+-
+-	if (!arch_vmap_pmd_supported(prot))
+-		return;
+-
+-	pr_debug("Validating PMD huge\n");
+-	/*
+-	 * X86 defined pmd_set_huge() verifies that the given
+-	 * PMD is not a populated non-leaf entry.
+-	 */
+-	WRITE_ONCE(*pmdp, __pmd(0));
+-	WARN_ON(!pmd_set_huge(pmdp, __pfn_to_phys(pfn), prot));
+-	WARN_ON(!pmd_clear_huge(pmdp));
+-	pmd = READ_ONCE(*pmdp);
+-	WARN_ON(!pmd_none(pmd));
+-}
+-#else /* CONFIG_HAVE_ARCH_HUGE_VMAP */
+-static void __init pmd_huge_tests(pmd_t *pmdp, unsigned long pfn, pgprot_t prot) { }
+-#endif /* CONFIG_HAVE_ARCH_HUGE_VMAP */
+-
+ static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot)
+ {
+ 	pmd_t pmd = pfn_pmd(pfn, prot);
+@@ -379,30 +356,6 @@ static void __init pud_leaf_tests(unsign
+ 	pud = pud_mkhuge(pud);
+ 	WARN_ON(!pud_leaf(pud));
+ }
+-
+-#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+-static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot)
+-{
+-	pud_t pud;
+-
+-	if (!arch_vmap_pud_supported(prot))
+-		return;
+-
+-	pr_debug("Validating PUD huge\n");
+-	/*
+-	 * X86 defined pud_set_huge() verifies that the given
+-	 * PUD is not a populated non-leaf entry.
+-	 */
+-	WRITE_ONCE(*pudp, __pud(0));
+-	WARN_ON(!pud_set_huge(pudp, __pfn_to_phys(pfn), prot));
+-	WARN_ON(!pud_clear_huge(pudp));
+-	pud = READ_ONCE(*pudp);
+-	WARN_ON(!pud_none(pud));
+-}
+-#else /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
+-static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot) { }
+-#endif /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
+-
+ #else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ static void __init pud_basic_tests(struct mm_struct *mm, unsigned long pfn, int idx) { }
+ static void __init pud_advanced_tests(struct mm_struct *mm,
+@@ -412,9 +365,6 @@ static void __init pud_advanced_tests(st
+ {
+ }
+ static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot) { }
+-static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot)
+-{
+-}
+ #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ #else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
+ static void __init pmd_basic_tests(unsigned long pfn, int idx) { }
+@@ -433,14 +383,51 @@ static void __init pud_advanced_tests(st
+ }
+ static void __init pmd_leaf_tests(unsigned long pfn, pgprot_t prot) { }
+ static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot) { }
++static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot) { }
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
++#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+ static void __init pmd_huge_tests(pmd_t *pmdp, unsigned long pfn, pgprot_t prot)
+ {
++	pmd_t pmd;
++
++	if (!arch_vmap_pmd_supported(prot))
++		return;
++
++	pr_debug("Validating PMD huge\n");
++	/*
++	 * X86 defined pmd_set_huge() verifies that the given
++	 * PMD is not a populated non-leaf entry.
++	 */
++	WRITE_ONCE(*pmdp, __pmd(0));
++	WARN_ON(!pmd_set_huge(pmdp, __pfn_to_phys(pfn), prot));
++	WARN_ON(!pmd_clear_huge(pmdp));
++	pmd = READ_ONCE(*pmdp);
++	WARN_ON(!pmd_none(pmd));
+ }
++
+ static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot)
+ {
++	pud_t pud;
++
++	if (!arch_vmap_pud_supported(prot))
++		return;
++
++	pr_debug("Validating PUD huge\n");
++	/*
++	 * X86 defined pud_set_huge() verifies that the given
++	 * PUD is not a populated non-leaf entry.
++	 */
++	WRITE_ONCE(*pudp, __pud(0));
++	WARN_ON(!pud_set_huge(pudp, __pfn_to_phys(pfn), prot));
++	WARN_ON(!pud_clear_huge(pudp));
++	pud = READ_ONCE(*pudp);
++	WARN_ON(!pud_none(pud));
+ }
+-static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot) { }
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++#else /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
++static void __init pmd_huge_tests(pmd_t *pmdp, unsigned long pfn, pgprot_t prot) { }
++static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot) { }
++#endif /* CONFIG_HAVE_ARCH_HUGE_VMAP */
+ 
+ static void __init p4d_basic_tests(unsigned long pfn, pgprot_t prot)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
-mm.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-debug_vm_pgtable-move-pmd-pud_huge_tests-out-of-config_transparent_hugepage.patch
+mm-debug_vm_pgtable-remove-redundant-pfn_pmd-pte-and-fix-one-comment-mistake.patch
 
