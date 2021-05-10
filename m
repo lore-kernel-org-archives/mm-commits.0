@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11879C433B4
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:36:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 116CEC43460
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:36:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E25FC61090
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:36:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E592F6101E
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:36:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230016AbhEJEh4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 May 2021 00:37:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39236 "EHLO mail.kernel.org"
+        id S230012AbhEJEh5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 May 2021 00:37:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39288 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229569AbhEJEhz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 10 May 2021 00:37:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C67856108B;
-        Mon, 10 May 2021 04:36:50 +0000 (UTC)
+        id S229569AbhEJEh5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 10 May 2021 00:37:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CC26B60720;
+        Mon, 10 May 2021 04:36:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620621411;
-        bh=5Vh8cZCN7G9c4yVUBp6UlixojvFAt5SFQ3fYZ3Qntxc=;
+        s=korg; t=1620621413;
+        bh=x8P+CcJCM60Z1aZT8xG7IKdFNw9wEkkiaJeoJoZcpzQ=;
         h=Date:From:To:Subject:From;
-        b=cN1qTaaNzTWi9KfAFw5Uv3vNiJTF1rZn/i5qyLjHAW2P+m8Crp1FS2LEv8V8OzPBf
-         kG3+J6QNrORzYDIsAJOgIVKx3IN9n1Ca+q1t+5ypUlbdQ0JRkzvhpBMbZWZ6Wm5ICh
-         +PbDaofqPpaw1xIL0mpmM3odL4q/AxxxtJZoEd0w=
-Date:   Sun, 09 May 2021 21:36:50 -0700
+        b=YIVIXgJny5FENFyqRrKkzhblWsueAlu8ZNBL9NAMKoUYLTtz649iaXVrvU8FK707T
+         DDeD1hELMxgMDal0QdU/sRiEORv/kl1tKYsLlgW98RAGxHEvwrXqlOfWbgbZP5EHbf
+         0kMx15n3eSFAKlZ9Ea2MfvcqihErU/v2BRm86vv4=
+Date:   Sun, 09 May 2021 21:36:52 -0700
 From:   akpm@linux-foundation.org
 To:     anshuman.khandual@arm.com, mm-commits@vger.kernel.org,
         vbabka@suse.cz, william.kucharski@oracle.com, willy@infradead.org
-Subject:  + mm-page_owner-constify-dump_page_owner.patch added to
+Subject:  + mm-make-compound_head-const-preserving.patch added to
  -mm tree
-Message-ID: <20210510043650.0tKMAfy-Q%akpm@linux-foundation.org>
+Message-ID: <20210510043652.i5fJ47hdW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_owner: constify dump_page_owner
+     Subject: mm: make compound_head const-preserving
 has been added to the -mm tree.  Its filename is
-     mm-page_owner-constify-dump_page_owner.patch
+     mm-make-compound_head-const-preserving.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-constify-dump_page_owner.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-make-compound_head-const-preserving.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-constify-dump_page_owner.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-make-compound_head-const-preserving.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,12 +65,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/page_owner: constify dump_page_owner
+Subject: mm: make compound_head const-preserving
 
-dump_page_owner() only uses struct page to find the page_ext, and
-lookup_page_ext() already takes a const argument.
+If you pass a const pointer to compound_head(), you get a const pointer
+back; if you pass a mutable pointer, you get a mutable pointer back.  Also
+remove an unnecessary forward definition of struct page; we're about to
+dereference page->compound_head, so it must already have been defined.
 
-Link: https://lkml.kernel.org/r/20210416231531.2521383-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210416231531.2521383-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -78,50 +80,34 @@ Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_owner.h |    6 +++---
- mm/page_owner.c            |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/page-flags.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/linux/page_owner.h~mm-page_owner-constify-dump_page_owner
-+++ a/include/linux/page_owner.h
-@@ -14,7 +14,7 @@ extern void __set_page_owner(struct page
- extern void __split_page_owner(struct page *page, unsigned int nr);
- extern void __copy_page_owner(struct page *oldpage, struct page *newpage);
- extern void __set_page_owner_migrate_reason(struct page *page, int reason);
--extern void __dump_page_owner(struct page *page);
-+extern void __dump_page_owner(const struct page *page);
- extern void pagetypeinfo_showmixedcount_print(struct seq_file *m,
- 					pg_data_t *pgdat, struct zone *zone);
+--- a/include/linux/page-flags.h~mm-make-compound_head-const-preserving
++++ a/include/linux/page-flags.h
+@@ -177,17 +177,17 @@ enum pageflags {
  
-@@ -46,7 +46,7 @@ static inline void set_page_owner_migrat
- 	if (static_branch_unlikely(&page_owner_inited))
- 		__set_page_owner_migrate_reason(page, reason);
- }
--static inline void dump_page_owner(struct page *page)
-+static inline void dump_page_owner(const struct page *page)
+ #ifndef __GENERATING_BOUNDS_H
+ 
+-struct page;	/* forward declaration */
+-
+-static inline struct page *compound_head(struct page *page)
++static inline unsigned long _compound_head(const struct page *page)
  {
- 	if (static_branch_unlikely(&page_owner_inited))
- 		__dump_page_owner(page);
-@@ -69,7 +69,7 @@ static inline void copy_page_owner(struc
- static inline void set_page_owner_migrate_reason(struct page *page, int reason)
- {
- }
--static inline void dump_page_owner(struct page *page)
-+static inline void dump_page_owner(const struct page *page)
- {
- }
- #endif /* CONFIG_PAGE_OWNER */
---- a/mm/page_owner.c~mm-page_owner-constify-dump_page_owner
-+++ a/mm/page_owner.c
-@@ -392,7 +392,7 @@ err:
- 	return -ENOMEM;
+ 	unsigned long head = READ_ONCE(page->compound_head);
+ 
+ 	if (unlikely(head & 1))
+-		return (struct page *) (head - 1);
+-	return page;
++		return head - 1;
++	return (unsigned long)page;
  }
  
--void __dump_page_owner(struct page *page)
-+void __dump_page_owner(const struct page *page)
++#define compound_head(page)	((typeof(page))_compound_head(page))
++
+ static __always_inline int PageTail(struct page *page)
  {
- 	struct page_ext *page_ext = lookup_page_ext(page);
- 	struct page_owner *page_owner;
+ 	return READ_ONCE(page->compound_head) & 1;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
