@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C49F4C43460
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 03:54:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD07FC433ED
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 03:55:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A44C661437
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 03:54:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B39B861430
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 03:55:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230127AbhEJD4C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 May 2021 23:56:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41740 "EHLO mail.kernel.org"
+        id S230129AbhEJD4G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 May 2021 23:56:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41924 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230029AbhEJD4B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 May 2021 23:56:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F21A061155;
-        Mon, 10 May 2021 03:54:56 +0000 (UTC)
+        id S230029AbhEJD4G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 May 2021 23:56:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 169436138C;
+        Mon, 10 May 2021 03:55:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620618897;
-        bh=9ZszTclrAUXMgHkoAcErPon5SbKfcVQ0gsVF704M+38=;
+        s=korg; t=1620618902;
+        bh=/AmHATeh1NSAPsIKJQz85hfp3+1+nAlZMqOz98f9cQo=;
         h=Date:From:To:Subject:From;
-        b=XKOwGN1XDzB7TQtDTxIXtu+lfWevoagVXofTn+/9WeVeGVk9qUOlWvjUiY/JcVakS
-         /P3qSbWZnrGyw/GqYBDME7qFnGrIVzQiDjdbb3gWIwVSiJ3ID+59/jS5iCSmoA/k61
-         adflCvnKNLivKuI4hzqjs4x0p7EGksL5IUlCpV58=
-Date:   Sun, 09 May 2021 20:54:56 -0700
+        b=H3oC77PvmPHAroYgl/a23C+DaWw++eVADKgBHhaWN5+X8ZTcQreI3EfatkhMSgePj
+         gv2h/uWPYtdYBj41lDl0B7rHw9VD79ypRtvZH8KfJhYxByFWEiUR3PiwmFcjGywRKT
+         1g2jBmEkRksdKqR66p9aKPQjBabdzp3RnYnzkc7A=
+Date:   Sun, 09 May 2021 20:55:00 -0700
 From:   akpm@linux-foundation.org
 To:     almasrymina@google.com, anshuman.khandual@arm.com,
         bodeddub@amazon.com, bp@alien8.de, bsingharora@gmail.com,
@@ -43,10 +43,12 @@ To:     almasrymina@google.com, anshuman.khandual@arm.com,
         song.bao.hua@hisilicon.com, songmuchun@bytedance.com,
         tglx@linutronix.de, viro@zeniv.linux.org.uk, willy@infradead.org
 Subject:  +
- mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap.patch added to -mm
- tree
-Message-ID: <20210510035456.vQNH6r0UP%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-memory=5Fhotplug-disable-memmap=5Fon=5Fmemory-when-hugetl?=
+ =?US-ASCII?Q?b=5Ffree=5Fvmemmap-enabled.patch?= added to -mm tree
+Message-ID: <20210510035500.mzjN1587T%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: add a kernel parameter hugetlb_free_vmemmap
+     Subject: mm: memory_hotplug: disable memmap_on_memory when hugetlb_free_vmemmap enabled
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap.patch
+     mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,28 +78,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb: add a kernel parameter hugetlb_free_vmemmap
+Subject: mm: memory_hotplug: disable memmap_on_memory when hugetlb_free_vmemmap enabled
 
-Add a kernel parameter hugetlb_free_vmemmap to enable the feature of
-freeing unused vmemmap pages associated with each hugetlb page on boot.
+The parameter of memory_hotplug.memmap_on_memory is not compatible with
+hugetlb_free_vmemmap.  So disable it when hugetlb_free_vmemmap is enabled.
 
-We disable PMD mapping of vmemmap pages for x86-64 arch when this feature
-is enabled.  Because vmemmap_remap_free() depends on vmemmap being base
-page mapped.
-
-Link: https://lkml.kernel.org/r/20210510030027.56044-8-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20210510030027.56044-9-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Barry Song <song.bao.hua@hisilicon.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Tested-by: Chen Huang <chenhuang5@huawei.com>
-Tested-by: Bodeddula Balasubramaniam <bodeddub@amazon.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Barry Song <song.bao.hua@hisilicon.com>
+Cc: Bodeddula Balasubramaniam <bodeddub@amazon.com>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: Chen Huang <chenhuang5@huawei.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -108,9 +104,11 @@ Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Joerg Roedel <jroedel@suse.de>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mina Almasry <almasrymina@google.com>
 Cc: Oliver Neukum <oneukum@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -120,164 +118,55 @@ Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |   17 +++++++++
- Documentation/admin-guide/mm/hugetlbpage.rst    |    3 +
- arch/x86/mm/init_64.c                           |    8 +++-
- include/linux/hugetlb.h                         |   19 +++++++++++
- mm/hugetlb_vmemmap.c                            |   24 ++++++++++++++
- 5 files changed, 69 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    8 ++++++++
+ drivers/acpi/acpi_memhotplug.c                  |    1 +
+ mm/memory_hotplug.c                             |    1 +
+ 3 files changed, 10 insertions(+)
 
---- a/arch/x86/mm/init_64.c~mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap
-+++ a/arch/x86/mm/init_64.c
-@@ -34,6 +34,7 @@
- #include <linux/gfp.h>
- #include <linux/kcore.h>
- #include <linux/bootmem_info.h>
-+#include <linux/hugetlb.h>
- 
- #include <asm/processor.h>
- #include <asm/bios_ebda.h>
-@@ -1609,7 +1610,8 @@ int __meminit vmemmap_populate(unsigned
- 	VM_BUG_ON(!IS_ALIGNED(start, PAGE_SIZE));
- 	VM_BUG_ON(!IS_ALIGNED(end, PAGE_SIZE));
- 
--	if (end - start < PAGES_PER_SECTION * sizeof(struct page))
-+	if ((is_hugetlb_free_vmemmap_enabled()  && !altmap) ||
-+	    end - start < PAGES_PER_SECTION * sizeof(struct page))
- 		err = vmemmap_populate_basepages(start, end, node, NULL);
- 	else if (boot_cpu_has(X86_FEATURE_PSE))
- 		err = vmemmap_populate_hugepages(start, end, node, altmap);
-@@ -1637,6 +1639,8 @@ void register_page_bootmem_memmap(unsign
- 	pmd_t *pmd;
- 	unsigned int nr_pmd_pages;
- 	struct page *page;
-+	bool base_mapping = !boot_cpu_has(X86_FEATURE_PSE) ||
-+			    is_hugetlb_free_vmemmap_enabled();
- 
- 	for (; addr < end; addr = next) {
- 		pte_t *pte = NULL;
-@@ -1662,7 +1666,7 @@ void register_page_bootmem_memmap(unsign
- 		}
- 		get_page_bootmem(section_nr, pud_page(*pud), MIX_SECTION_INFO);
- 
--		if (!boot_cpu_has(X86_FEATURE_PSE)) {
-+		if (base_mapping) {
- 			next = (addr + PAGE_SIZE) & PAGE_MASK;
- 			pmd = pmd_offset(pud, addr);
- 			if (pmd_none(*pmd))
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled
 +++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1567,6 +1567,23 @@
- 			Documentation/admin-guide/mm/hugetlbpage.rst.
- 			Format: size[KMG]
+@@ -1584,6 +1584,10 @@
+ 			on:  enable the feature
+ 			off: disable the feature
  
-+	hugetlb_free_vmemmap=
-+			[KNL] Reguires CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
-+			enabled.
-+			Allows heavy hugetlb users to free up some more
-+			memory (6 * PAGE_SIZE for each 2MB hugetlb page).
-+			This feauture is not free though. Large page
-+			tables are not used to back vmemmap pages which
-+			can lead to a performance degradation for some
-+			workloads. Also there will be memory allocation
-+			required when hugetlb pages are freed from the
-+			pool which can lead to corner cases under heavy
-+			memory pressure.
-+			Format: { on | off (default) }
-+
-+			on:  enable the feature
-+			off: disable the feature
++			This is not compatible with memory_hotplug.memmap_on_memory.
++			If both parameters are enabled, hugetlb_free_vmemmap takes
++			precedence over memory_hotplug.memmap_on_memory.
 +
  	hung_task_panic=
  			[KNL] Should the hung task detector generate panics.
  			Format: 0 | 1
---- a/Documentation/admin-guide/mm/hugetlbpage.rst~mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap
-+++ a/Documentation/admin-guide/mm/hugetlbpage.rst
-@@ -153,6 +153,9 @@ default_hugepagesz
+@@ -2850,6 +2854,10 @@
+ 			Note that even when enabled, there are a few cases where
+ 			the feature is not effective.
  
- 	will all result in 256 2M huge pages being allocated.  Valid default
- 	huge page size is architecture dependent.
-+hugetlb_free_vmemmap
-+	When CONFIG_HUGETLB_PAGE_FREE_VMEMMAP is set, this enables freeing
-+	unused vmemmap pages associated with each HugeTLB page.
++			This is not compatible with hugetlb_free_vmemmap. If
++			both parameters are enabled, hugetlb_free_vmemmap takes
++			precedence over memory_hotplug.memmap_on_memory.
++
+ 	memtest=	[KNL,X86,ARM,PPC,RISCV] Enable memtest
+ 			Format: <integer>
+ 			default : 0 <disable>
+--- a/drivers/acpi/acpi_memhotplug.c~mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled
++++ a/drivers/acpi/acpi_memhotplug.c
+@@ -15,6 +15,7 @@
+ #include <linux/acpi.h>
+ #include <linux/memory.h>
+ #include <linux/memory_hotplug.h>
++#include <linux/hugetlb.h>
  
- When multiple huge page sizes are supported, ``/proc/sys/vm/nr_hugepages``
- indicates the current number of pre-allocated huge pages of the default size.
---- a/include/linux/hugetlb.h~mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap
-+++ a/include/linux/hugetlb.h
-@@ -895,6 +895,20 @@ static inline void huge_ptep_modify_prot
- }
- #endif
+ #include "internal.h"
  
-+#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
-+extern bool hugetlb_free_vmemmap_enabled;
-+
-+static inline bool is_hugetlb_free_vmemmap_enabled(void)
-+{
-+	return hugetlb_free_vmemmap_enabled;
-+}
-+#else
-+static inline bool is_hugetlb_free_vmemmap_enabled(void)
-+{
-+	return false;
-+}
-+#endif
-+
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
- 
-@@ -1054,6 +1068,11 @@ static inline void set_huge_swap_pte_at(
- 					pte_t *ptep, pte_t pte, unsigned long sz)
- {
- }
-+
-+static inline bool is_hugetlb_free_vmemmap_enabled(void)
-+{
-+	return false;
-+}
- #endif	/* CONFIG_HUGETLB_PAGE */
- 
- static inline spinlock_t *huge_pte_lock(struct hstate *h,
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap
-+++ a/mm/hugetlb_vmemmap.c
-@@ -168,6 +168,8 @@
-  * (last) level. So this type of HugeTLB page can be optimized only when its
-  * size of the struct page structs is greater than 2 pages.
-  */
-+#define pr_fmt(fmt)	"HugeTLB: " fmt
-+
- #include "hugetlb_vmemmap.h"
- 
- /*
-@@ -180,6 +182,28 @@
- #define RESERVE_VMEMMAP_NR		2U
- #define RESERVE_VMEMMAP_SIZE		(RESERVE_VMEMMAP_NR << PAGE_SHIFT)
- 
-+bool hugetlb_free_vmemmap_enabled;
-+
-+static int __init early_hugetlb_free_vmemmap_param(char *buf)
-+{
-+	/* We cannot optimize if a "struct page" crosses page boundaries. */
-+	if ((!is_power_of_2(sizeof(struct page)))) {
-+		pr_warn("cannot free vmemmap pages because \"struct page\" crosses page boundaries\n");
-+		return 0;
-+	}
-+
-+	if (!buf)
-+		return -EINVAL;
-+
-+	if (!strcmp(buf, "on"))
-+		hugetlb_free_vmemmap_enabled = true;
-+	else if (strcmp(buf, "off"))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+early_param("hugetlb_free_vmemmap", early_hugetlb_free_vmemmap_param);
-+
- static inline unsigned long free_vmemmap_pages_size_per_hpage(struct hstate *h)
- {
- 	return (unsigned long)free_vmemmap_pages_per_hpage(h) << PAGE_SHIFT;
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled
++++ a/mm/memory_hotplug.c
+@@ -1056,6 +1056,7 @@ bool mhp_supports_memmap_on_memory(unsig
+ 	 *       populate a single PMD.
+ 	 */
+ 	return memmap_on_memory &&
++	       !is_hugetlb_free_vmemmap_enabled() &&
+ 	       IS_ENABLED(CONFIG_MHP_MEMMAP_ON_MEMORY) &&
+ 	       size == memory_block_size_bytes() &&
+ 	       IS_ALIGNED(vmemmap_size, PMD_SIZE) &&
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
