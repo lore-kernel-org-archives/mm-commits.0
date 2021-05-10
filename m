@@ -5,37 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3D2EC433B4
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 05:33:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9687C433B4
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 05:33:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B76E660FF2
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 05:33:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D4F26143C
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 05:33:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230061AbhEJFeN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 May 2021 01:34:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52830 "EHLO mail.kernel.org"
+        id S229986AbhEJFeu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 May 2021 01:34:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53232 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229986AbhEJFeF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 10 May 2021 01:34:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A375E60FF2;
-        Mon, 10 May 2021 05:33:00 +0000 (UTC)
+        id S230056AbhEJFet (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 10 May 2021 01:34:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B770460FF2;
+        Mon, 10 May 2021 05:33:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620624780;
-        bh=fa/65BgTYn/xk5a8L9Cy1+ebtAXPWoO8onJOhw84VP8=;
+        s=korg; t=1620624819;
+        bh=gM/aJSbq3DQ9Rbro5Qyk0Iv2OGxSteSR9ZllfE5VKLk=;
         h=Date:From:To:Subject:From;
-        b=VNgCKMxIsrKlMclslGZdVuYZuqrCImmJOfN3ItznuWDldn2AhaD3f9GsTMArGxq2h
-         OgpGZdl2pPVHDVgh8Ybvqv8yEpDyR+9evrBK2lfuOZa35bXWFfkkU85YCMLEicufUW
-         hJc2mQH2TosiJaHBTW0YBtHlXzRcCGdJZot1ECjU=
-Date:   Sun, 09 May 2021 22:33:00 -0700
+        b=S2WK7TZhwQK6tqS1fOrCl1TNb6cbGZXQRCEJ8IJ/qhP+fLyze+6DSNkVG7YeOsbjr
+         VQYeZms+uEKK/MbCRkJR50LaMlOzACxhTt4JWUzT3VvbCXA5SqPVTiZJb5JG/MCm+g
+         Nb0zIv+CRKUZvV4t0OjqDFLNhUyi9WsCyB5RNhFo=
+Date:   Sun, 09 May 2021 22:33:39 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, eugenis@google.com,
-        mm-commits@vger.kernel.org, pcc@google.com
+To:     axelrasmussen@google.com, hughd@google.com,
+        mm-commits@vger.kernel.org, peterx@redhat.com,
+        stable@vger.kernel.org
 Subject:  +
- mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch added
- to -mm tree
-Message-ID: <20210510053300.LOJNNSpK2%akpm@linux-foundation.org>
+ userfaultfd-release-page-in-error-path-to-avoid-bug_on.patch added to -mm
+ tree
+Message-ID: <20210510053339.91US3w9Em%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix
+     Subject: userfaultfd: release page in error path to avoid BUG_ON
 has been added to the -mm tree.  Its filename is
-     mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
+     userfaultfd-release-page-in-error-path-to-avoid-bug_on.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-release-page-in-error-path-to-avoid-bug_on.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-release-page-in-error-path-to-avoid-bug_on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,43 +66,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: userfaultfd: release page in error path to avoid BUG_ON
 
-avoid 80-column tricks
+Consider the following sequence of events:
 
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
+1. Userspace issues a UFFD ioctl, which ends up calling into
+   shmem_mfill_atomic_pte(). We successfully account the blocks, we
+   shmem_alloc_page(), but then the copy_from_user() fails. We return
+   -ENOENT. We don't release the page we allocated.
+2. Our caller detects this error code, tries the copy_from_user() after
+   dropping the mmap_lock, and retries, calling back into
+   shmem_mfill_atomic_pte().
+3. Meanwhile, let's say another process filled up the tmpfs being used.
+4. So shmem_mfill_atomic_pte() fails to account blocks this time, and
+   immediately returns - without releasing the page.
+
+This triggers a BUG_ON in our caller, which asserts that the page
+should always be consumed, unless -ENOENT is returned.
+
+To fix this, detect if we have such a "dangling" page when accounting
+fails, and if so, release it before returning.
+
+Link: https://lkml.kernel.org/r/20210428230858.348400-1-axelrasmussen@google.com
+Fixes: cb658a453b93 ("userfaultfd: shmem: avoid leaking blocks and used blocks in UFFDIO_COPY")
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Reported-by: Hugh Dickins <hughd@google.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/shmem.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/mm/mprotect.c~mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix
-+++ a/mm/mprotect.c
-@@ -47,8 +47,9 @@ static unsigned long change_pte_range(st
- 	bool prot_numa = cp_flags & MM_CP_PROT_NUMA;
- 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
- 	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
--	bool anon_writable =
--		vma_is_anonymous(vma) && (vma->vm_flags & VM_WRITE);
-+	bool anon_writable;
-+
-+	anon_writable = vma_is_anonymous(vma) && (vma->vm_flags & VM_WRITE);
+--- a/mm/shmem.c~userfaultfd-release-page-in-error-path-to-avoid-bug_on
++++ a/mm/shmem.c
+@@ -2361,8 +2361,18 @@ static int shmem_mfill_atomic_pte(struct
+ 	pgoff_t offset, max_off;
  
- 	/*
- 	 * Can be called with only the mmap_lock for reading by
+ 	ret = -ENOMEM;
+-	if (!shmem_inode_acct_block(inode, 1))
++	if (!shmem_inode_acct_block(inode, 1)) {
++		/*
++		 * We may have got a page, returned -ENOENT triggering a retry,
++		 * and now we find ourselves with -ENOMEM. Release the page, to
++		 * avoid a BUG_ON in our caller.
++		 */
++		if (unlikely(*pagep)) {
++			put_page(*pagep);
++			*pagep = NULL;
++		}
+ 		goto out;
++	}
+ 
+ 	if (!*pagep) {
+ 		page = shmem_alloc_page(gfp, info, pgoff);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-mm.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+userfaultfd-release-page-in-error-path-to-avoid-bug_on.patch
+userfaultfd-hugetlbfs-avoid-including-userfaultfd_kh-in-hugetlbh.patch
+userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte.patch
+userfaultfd-shmem-support-minor-fault-registration-for-shmem.patch
+userfaultfd-shmem-support-uffdio_continue-for-shmem.patch
+userfaultfd-shmem-advertise-shmem-minor-fault-support.patch
+userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte.patch
+userfaultfd-selftests-use-memfd_create-for-shmem-test-type.patch
+userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch
+userfaultfd-selftests-reinitialize-test-context-in-each-test.patch
+userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
 
