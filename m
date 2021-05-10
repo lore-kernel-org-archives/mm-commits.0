@@ -7,34 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F70FC433ED
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 00:45:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E317C433ED
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 00:49:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6187C613CF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 00:45:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D5871613D3
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 00:49:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230070AbhEJAqk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 May 2021 20:46:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58962 "EHLO mail.kernel.org"
+        id S230063AbhEJAuI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 May 2021 20:50:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60256 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230063AbhEJAqj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 May 2021 20:46:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B8326613CD;
-        Mon, 10 May 2021 00:45:35 +0000 (UTC)
+        id S229973AbhEJAuI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 May 2021 20:50:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2DB0A613CD;
+        Mon, 10 May 2021 00:49:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620607535;
-        bh=wbdJeiMOnhEchxNI2RPeFK8+7yj25Pb0rJXuhAt6HOw=;
+        s=korg; t=1620607743;
+        bh=Fon0nawYg3v7i+WjyYzE4//0yMUZOboU99Kj4qux2Ak=;
         h=Date:From:To:Subject:From;
-        b=PL1hZws10aRC9cphSelt2pi0vGwW5awZi6WYIzR7LeLvwI5M7KKZSBMDqAwhKmXZG
-         dZbE0xrThoBFGB9y8/8qbqKvM7TbvOmf6zje8uFwe4HL7e4RBLLH7xyGyEDmm8l7cf
-         UvAJT+pymL+YKRagSMlsIwFWeB/3f+Ysui+vvmn4=
-Date:   Sun, 09 May 2021 17:45:35 -0700
+        b=q7pwz4SOPUMRa0zCdBOSytw3HOcqgx9s+hcAGZBj3nCsDXdR3fNH2bYsdpL7+TjWE
+         inwJ7FasukOrUyHAar03ymVFUVAyJpn9MTS5qJZ7NOVNMC7tkiFLjKkM1Huuxoqk6U
+         aOkjiJveSy1GxZ4o7QYzEnHJhF4PijwBeZ6ZTOr0=
+Date:   Sun, 09 May 2021 17:49:02 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, corbet@lwn.net,
-        mm-commits@vger.kernel.org, rppt@linux.ibm.com, willy@infradead.org
-Subject:  + mm-mmzoneh-simplify-is_highmem_idx.patch added to -mm
- tree
-Message-ID: <20210510004535.VBCk98GST%akpm@linux-foundation.org>
+To:     alexs@kernel.org, david@redhat.com, dennis@kernel.org,
+        hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com,
+        linmiaohe@huawei.com, mhocko@suse.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
+        shy828301@gmail.com, tim.c.chen@linux.intel.com,
+        willy@infradead.org, ying.huang@intel.com, yuzhao@google.com
+Subject:  +
+ mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
+ added to -mm tree
+Message-ID: <20210510004902.eY_6ju7ot%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmzone.h: simplify is_highmem_idx()
+     Subject: mm/swapfile: use percpu_ref to serialize against concurrent swapoff
 has been added to the -mm tree.  Its filename is
-     mm-mmzoneh-simplify-is_highmem_idx.patch
+     mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmzoneh-simplify-is_highmem_idx.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmzoneh-simplify-is_highmem_idx.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,87 +69,262 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm/mmzone.h: simplify is_highmem_idx()
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/swapfile: use percpu_ref to serialize against concurrent swapoff
 
-There is a lot of historical ifdefery in is_highmem_idx() and its helper
-zone_movable_is_highmem() that was required because of two different paths
-for nodes and zones initialization that were selected at compile time.
+Patch series "close various race windows for swap", v6.
 
-Until commit 3f08a302f533 ("mm: remove CONFIG_HAVE_MEMBLOCK_NODE_MAP
-option") the movable_zone variable was only available for configurations
-that had CONFIG_HAVE_MEMBLOCK_NODE_MAP enabled so the test in
-zone_movable_is_highmem() used that variable only for such configurations.
-For other configurations the test checked if the index of ZONE_MOVABLE
-was greater by 1 than the index of ZONE_HIGMEM and then movable zone was
-considered a highmem zone.  Needless to say, ZONE_MOVABLE - 1 equals
-ZONE_HIGHMEM by definition when CONFIG_HIGHMEM=y.
+When I was investigating the swap code, I found some possible race
+windows.  This series aims to fix all these races.  But using current
+get/put_swap_device() to guard against concurrent swapoff for
+swap_readpage() looks terrible because swap_readpage() may take really
+long time.  And to reduce the performance overhead on the hot-path as much
+as possible, it appears we can use the percpu_ref to close this race
+window(as suggested by Huang, Ying).  The patch 1 adds percpu_ref support
+for swap and most of the remaining patches try to use this to close
+various race windows.  More details can be found in the respective
+changelogs.  
 
-Commit 3f08a302f533 ("mm: remove CONFIG_HAVE_MEMBLOCK_NODE_MAP option")
-made movable_zone variable always available.  Since this variable is set
-to ZONE_HIGHMEM if CONFIG_HIGHMEM is enabled and highmem zone is
-populated, it is enough to check whether
 
-	zone_idx == ZONE_MOVABLE && movable_zone == ZONE_HIGMEM
+This patch (of 4):
 
-to test if zone index points to a highmem zone.
+Using current get/put_swap_device() to guard against concurrent swapoff
+for some swap ops, e.g.  swap_readpage(), looks terrible because they
+might take really long time.  This patch adds the percpu_ref support to
+serialize against concurrent swapoff(as suggested by Huang, Ying).  Also
+we remove the SWP_VALID flag because it's used together with RCU solution.
 
-Remove zone_movable_is_highmem() that is not used anywhere except
-is_highmem_idx() and use the test above in is_highmem_idx() instead.
-
-Link: https://lkml.kernel.org/r/20210426141927.1314326-3-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lkml.kernel.org/r/20210426123316.806267-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210426123316.806267-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ include/linux/swap.h |    5 +-
+ mm/swapfile.c        |   79 +++++++++++++++++++++++++----------------
+ 2 files changed, 52 insertions(+), 32 deletions(-)
 
---- a/include/linux/mmzone.h~mm-mmzoneh-simplify-is_highmem_idx
-+++ a/include/linux/mmzone.h
-@@ -982,22 +982,11 @@ static inline void zone_set_nid(struct z
+--- a/include/linux/swap.h~mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff
++++ a/include/linux/swap.h
+@@ -177,7 +177,6 @@ enum {
+ 	SWP_PAGE_DISCARD = (1 << 10),	/* freed swap page-cluster discards */
+ 	SWP_STABLE_WRITES = (1 << 11),	/* no overwrite PG_writeback pages */
+ 	SWP_SYNCHRONOUS_IO = (1 << 12),	/* synchronous IO is efficient */
+-	SWP_VALID	= (1 << 13),	/* swap is valid to be operated on? */
+ 					/* add others here before... */
+ 	SWP_SCANNING	= (1 << 14),	/* refcount in scan_swap_map */
+ };
+@@ -240,6 +239,7 @@ struct swap_cluster_list {
+  * The in-memory structure used to track swap areas.
+  */
+ struct swap_info_struct {
++	struct percpu_ref users;	/* indicate and keep swap device valid. */
+ 	unsigned long	flags;		/* SWP_USED etc: see above */
+ 	signed short	prio;		/* swap priority of this type */
+ 	struct plist_node list;		/* entry in swap_active_head */
+@@ -260,6 +260,7 @@ struct swap_info_struct {
+ 	struct block_device *bdev;	/* swap device or bdev of swap file */
+ 	struct file *swap_file;		/* seldom referenced */
+ 	unsigned int old_block_size;	/* seldom referenced */
++	struct completion comp;		/* seldom referenced */
+ #ifdef CONFIG_FRONTSWAP
+ 	unsigned long *frontswap_map;	/* frontswap in-use, one bit per page */
+ 	atomic_t frontswap_pages;	/* frontswap pages in-use counter */
+@@ -511,7 +512,7 @@ sector_t swap_page_sector(struct page *p
  
- extern int movable_zone;
- 
--#ifdef CONFIG_HIGHMEM
--static inline int zone_movable_is_highmem(void)
--{
--#ifdef CONFIG_NEED_MULTIPLE_NODES
--	return movable_zone == ZONE_HIGHMEM;
--#else
--	return (ZONE_MOVABLE - 1) == ZONE_HIGHMEM;
--#endif
--}
--#endif
--
- static inline int is_highmem_idx(enum zone_type idx)
+ static inline void put_swap_device(struct swap_info_struct *si)
  {
- #ifdef CONFIG_HIGHMEM
- 	return (idx == ZONE_HIGHMEM ||
--		(idx == ZONE_MOVABLE && zone_movable_is_highmem()));
-+		(idx == ZONE_MOVABLE && movable_zone == ZONE_HIGHMEM));
- #else
- 	return 0;
- #endif
+-	rcu_read_unlock();
++	percpu_ref_put(&si->users);
+ }
+ 
+ #else /* CONFIG_SWAP */
+--- a/mm/swapfile.c~mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff
++++ a/mm/swapfile.c
+@@ -39,6 +39,7 @@
+ #include <linux/export.h>
+ #include <linux/swap_slots.h>
+ #include <linux/sort.h>
++#include <linux/completion.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <linux/swapops.h>
+@@ -511,6 +512,14 @@ static void swap_discard_work(struct wor
+ 	spin_unlock(&si->lock);
+ }
+ 
++static void swap_users_ref_free(struct percpu_ref *ref)
++{
++	struct swap_info_struct *si;
++
++	si = container_of(ref, struct swap_info_struct, users);
++	complete(&si->comp);
++}
++
+ static void alloc_cluster(struct swap_info_struct *si, unsigned long idx)
+ {
+ 	struct swap_cluster_info *ci = si->cluster_info;
+@@ -1270,18 +1279,12 @@ static unsigned char __swap_entry_free_l
+  * via preventing the swap device from being swapoff, until
+  * put_swap_device() is called.  Otherwise return NULL.
+  *
+- * The entirety of the RCU read critical section must come before the
+- * return from or after the call to synchronize_rcu() in
+- * enable_swap_info() or swapoff().  So if "si->flags & SWP_VALID" is
+- * true, the si->map, si->cluster_info, etc. must be valid in the
+- * critical section.
+- *
+  * Notice that swapoff or swapoff+swapon can still happen before the
+- * rcu_read_lock() in get_swap_device() or after the rcu_read_unlock()
+- * in put_swap_device() if there isn't any other way to prevent
+- * swapoff, such as page lock, page table lock, etc.  The caller must
+- * be prepared for that.  For example, the following situation is
+- * possible.
++ * percpu_ref_tryget_live() in get_swap_device() or after the
++ * percpu_ref_put() in put_swap_device() if there isn't any other way
++ * to prevent swapoff, such as page lock, page table lock, etc.  The
++ * caller must be prepared for that.  For example, the following
++ * situation is possible.
+  *
+  *   CPU1				CPU2
+  *   do_swap_page()
+@@ -1309,21 +1312,27 @@ struct swap_info_struct *get_swap_device
+ 	si = swp_swap_info(entry);
+ 	if (!si)
+ 		goto bad_nofile;
+-
+-	rcu_read_lock();
+-	if (data_race(!(si->flags & SWP_VALID)))
+-		goto unlock_out;
++	if (!percpu_ref_tryget_live(&si->users))
++		goto out;
++	/*
++	 * Guarantee the si->users are checked before accessing other
++	 * fields of swap_info_struct.
++	 *
++	 * Paired with the spin_unlock() after setup_swap_info() in
++	 * enable_swap_info().
++	 */
++	smp_rmb();
+ 	offset = swp_offset(entry);
+ 	if (offset >= si->max)
+-		goto unlock_out;
++		goto put_out;
+ 
+ 	return si;
+ bad_nofile:
+ 	pr_err("%s: %s%08lx\n", __func__, Bad_file, entry.val);
+ out:
+ 	return NULL;
+-unlock_out:
+-	rcu_read_unlock();
++put_out:
++	percpu_ref_put(&si->users);
+ 	return NULL;
+ }
+ 
+@@ -2466,7 +2475,7 @@ static void setup_swap_info(struct swap_
+ 
+ static void _enable_swap_info(struct swap_info_struct *p)
+ {
+-	p->flags |= SWP_WRITEOK | SWP_VALID;
++	p->flags |= SWP_WRITEOK;
+ 	atomic_long_add(p->pages, &nr_swap_pages);
+ 	total_swap_pages += p->pages;
+ 
+@@ -2497,10 +2506,9 @@ static void enable_swap_info(struct swap
+ 	spin_unlock(&p->lock);
+ 	spin_unlock(&swap_lock);
+ 	/*
+-	 * Guarantee swap_map, cluster_info, etc. fields are valid
+-	 * between get/put_swap_device() if SWP_VALID bit is set
++	 * Finished initializing swap device, now it's safe to reference it.
+ 	 */
+-	synchronize_rcu();
++	percpu_ref_resurrect(&p->users);
+ 	spin_lock(&swap_lock);
+ 	spin_lock(&p->lock);
+ 	_enable_swap_info(p);
+@@ -2616,16 +2624,16 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 
+ 	reenable_swap_slots_cache_unlock();
+ 
+-	spin_lock(&swap_lock);
+-	spin_lock(&p->lock);
+-	p->flags &= ~SWP_VALID;		/* mark swap device as invalid */
+-	spin_unlock(&p->lock);
+-	spin_unlock(&swap_lock);
+ 	/*
+-	 * wait for swap operations protected by get/put_swap_device()
+-	 * to complete
++	 * Wait for swap operations protected by get/put_swap_device()
++	 * to complete.
++	 *
++	 * We need synchronize_rcu() here to protect the accessing to
++	 * the swap cache data structure.
+ 	 */
++	percpu_ref_kill(&p->users);
+ 	synchronize_rcu();
++	wait_for_completion(&p->comp);
+ 
+ 	flush_work(&p->discard_work);
+ 
+@@ -2857,6 +2865,12 @@ static struct swap_info_struct *alloc_sw
+ 	if (!p)
+ 		return ERR_PTR(-ENOMEM);
+ 
++	if (percpu_ref_init(&p->users, swap_users_ref_free,
++			    PERCPU_REF_INIT_DEAD, GFP_KERNEL)) {
++		kvfree(p);
++		return ERR_PTR(-ENOMEM);
++	}
++
+ 	spin_lock(&swap_lock);
+ 	for (type = 0; type < nr_swapfiles; type++) {
+ 		if (!(swap_info[type]->flags & SWP_USED))
+@@ -2864,6 +2878,7 @@ static struct swap_info_struct *alloc_sw
+ 	}
+ 	if (type >= MAX_SWAPFILES) {
+ 		spin_unlock(&swap_lock);
++		percpu_ref_exit(&p->users);
+ 		kvfree(p);
+ 		return ERR_PTR(-EPERM);
+ 	}
+@@ -2891,9 +2906,13 @@ static struct swap_info_struct *alloc_sw
+ 		plist_node_init(&p->avail_lists[i], 0);
+ 	p->flags = SWP_USED;
+ 	spin_unlock(&swap_lock);
+-	kvfree(defer);
++	if (defer) {
++		percpu_ref_exit(&defer->users);
++		kvfree(defer);
++	}
+ 	spin_lock_init(&p->lock);
+ 	spin_lock_init(&p->cont_lock);
++	init_completion(&p->comp);
+ 
+ 	return p;
+ }
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-mmzoneh-simplify-is_highmem_idx.patch
-mmap-make-mlock_future_check-global.patch
-riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
-set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-2.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-3.patch
-pm-hibernate-disable-when-there-are-active-secretmem-users.patch
-arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
-arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch
-secretmem-test-add-basic-selftest-for-memfd_secret2.patch
-secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
+mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
+swap-fix-do_swap_page-race-with-swapoff.patch
+mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
+mm-shmem-fix-shmem_swapin-race-with-swapoff.patch
 
