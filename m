@@ -2,125 +2,195 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5AE6C433B4
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 01:37:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61D5AC433ED
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 01:56:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B19A2611F1
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 01:37:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39696613CF
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 01:56:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230073AbhEJBiZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 May 2021 21:38:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58956 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230034AbhEJBiZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 May 2021 21:38:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F15F6613DE;
-        Mon, 10 May 2021 01:37:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620610641;
-        bh=cBhz9fXvKQyfa1HS9X81GYXQoiKAZs8loarAGNab5Lk=;
-        h=Date:From:To:Subject:From;
-        b=s82hNvbxBGVdZG97iy2Hqt+8xsTd4DBS/MhYldreoel44X6zaG8Tv/7luPu4pB76E
-         K8Oge4zwcE2tOXkYBJ5uEXLg8ei0CW9a7FLhj9ANJwkaMbjyrp+wy90PK4g1qZUUoV
-         IR0awVdxsrB8ZahhKXvgjPXyz4Y2BBFWADirKt6Q=
-Date:   Sun, 09 May 2021 18:37:20 -0700
-From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, corbet@lwn.net,
-        jiangshanlai@gmail.com, joel@joelfernandes.org,
-        linux@rasmusvillemoes.dk, mathieu.desnoyers@efficios.com,
-        mm-commits@vger.kernel.org, palmerdabbelt@google.com,
-        paul.gortmaker@windriver.com, paulmck@kernel.org,
-        rdunlap@infradead.org, rostedt@goodmis.org, yury.norov@gmail.com
-Subject:  +
- rcu-tree_plugin-dont-handle-the-case-of-all-cpu-range.patch added to -mm
- tree
-Message-ID: <20210510013720.DiCIfcnJy%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S230096AbhEJB5H convert rfc822-to-8bit (ORCPT
+        <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 May 2021 21:57:07 -0400
+Received: from regular1.263xmail.com ([211.150.70.198]:54592 "EHLO
+        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230079AbhEJB5G (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 9 May 2021 21:57:06 -0400
+X-Greylist: delayed 366 seconds by postgrey-1.27 at vger.kernel.org; Sun, 09 May 2021 21:57:06 EDT
+Received: from localhost (unknown [192.168.167.69])
+        by regular1.263xmail.com (Postfix) with ESMTP id B663E721;
+        Mon, 10 May 2021 09:49:11 +0800 (CST)
+X-MAIL-GRAY: 0
+X-MAIL-DELIVERY: 1
+X-ADDR-CHECKED4: 1
+X-ANTISPAM-LEVEL: 2
+X-SKE-CHECKED: 1
+X-ABS-CHECKED: 1
+Received: from manjaro.uniontech.com (unknown [58.246.122.242])
+        by smtp.263.net (postfix) whith ESMTP id P19990T140047247578880S1620611350997414_;
+        Mon, 10 May 2021 09:49:11 +0800 (CST)
+X-IP-DOMAINF: 1
+X-UNIQUE-TAG: <25582c515e01310e114fb80fc20a4e83>
+X-RL-SENDER: chenli@uniontech.com
+X-SENDER: chenli@uniontech.com
+X-LOGIN-NAME: chenli@uniontech.com
+X-FST-TO: akpm@linux-foundation.org
+X-RCPT-COUNT: 6
+X-SENDER-IP: 58.246.122.242
+X-ATTACHMENT-NUM: 0
+X-System-Flag: 0
+Date:   Mon, 10 May 2021 09:49:11 +0800
+Message-ID: <87tunb2wa0.wl-chenli@uniontech.com>
+From:   Chen Li <chenli@uniontech.com>
+To:     akpm@linux-foundation.org
+Cc:     mm-commits@vger.kernel.org, David Hildenbrand <david@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2] nommu: remove __GFP_HIGHMEM in vmalloc/vzalloc
+In-Reply-To: <20210509041323.k6DtiMDiu%akpm@linux-foundation.org>
+References: <20210509041323.k6DtiMDiu%akpm@linux-foundation.org>
+User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
+ FLIM-LB/1.14.9 (=?ISO-8859-4?Q?Goj=F2?=) APEL-LB/10.8 EasyPG/1.0.0
+ Emacs/28.0.50 (x86_64-pc-linux-gnu) MULE/6.0 (HANACHIRUSATO)
+MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Sun, 09 May 2021 12:13:23 +0800,
+akpm@linux-foundation.org wrote:
+> 
+> 
+> The patch titled
+>      Subject: nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes
+> has been added to the -mm tree.  Its filename is
+>      nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+> 
+> This patch should soon appear at
+>     https://ozlabs.org/~akpm/mmots/broken-out/nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+> and later at
+>     https://ozlabs.org/~akpm/mmotm/broken-out/nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
+> 
+> ------------------------------------------------------
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Subject: nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes
+> 
+> Cc: Chen Li <chenli@uniontech.com>
+> 
+> WARNING: please, no spaces at the start of a line
+> #37: FILE: mm/nommu.c:226:
+> +       return __vmalloc(size, GFP_KERNEL);$
+> 
+> total: 0 errors, 1 warnings, 16 lines checked
+> 
+> NOTE: For some of the reported defects, checkpatch may be able to
+>       mechanically convert to the typical style using --fix or --fix-inplace.
+> 
+> ./patches/nommu-remove-__gfp_highmem-in-vmalloc-vzalloc.patch has style problems, please review.
+> 
+> NOTE: If any of the errors are false positives, please report
+>       them to the maintainer, see CHECKPATCH in MAINTAINERS.
+> 
+> Please run checkpatch prior to sending patches
+> 
+> Cc: Chen Li <chenli@uniontech.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  mm/nommu.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- a/mm/nommu.c~nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes
+> +++ a/mm/nommu.c
+> @@ -223,7 +223,7 @@ long vread(char *buf, char *addr, unsign
+>   */
+>  void *vmalloc(unsigned long size)
+>  {
+> -       return __vmalloc(size, GFP_KERNEL);
+> +	return __vmalloc(size, GFP_KERNEL);
+>  }
+>  EXPORT_SYMBOL(vmalloc);
+>  
+> _
+> 
+> Patches currently in -mm which might be from akpm@linux-foundation.org are
+> 
+> mm.patch
+> mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+> mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+> nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+> linux-next-git-rejects.patch
+> kernel-forkc-export-kernel_thread-to-modules.patch
+> 
+> 
+> 
 
-The patch titled
-     Subject: rcu/tree_plugin: don't handle the case of 'all' CPU range
-has been added to the -mm tree.  Its filename is
-     rcu-tree_plugin-dont-handle-the-case-of-all-cpu-range.patch
+From mm/nommu.c:
+void *__vmalloc(unsigned long size, gfp_t gfp_mask)
+{
+	/*
+	 *  You can't specify __GFP_HIGHMEM with kmalloc() since kmalloc()
+	 * returns only a logical address.
+	 */
+	return kmalloc(size, (gfp_mask | __GFP_COMP) & ~__GFP_HIGHMEM);
+}
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/rcu-tree_plugin-dont-handle-the-case-of-all-cpu-range.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/rcu-tree_plugin-dont-handle-the-case-of-all-cpu-range.patch
+__vmalloc just elimitate __GFP_HIGHMEM, so it makes no sense to add
+__GFP_HIGHMEM for nommu's vmalloc/vzalloc.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+changelog:
+ *v2: Also fix a space style warning reported from checkpatch, which is
+      introduced via commit 1da177e4c3f4 ("Linux-2.6.12-rc2")
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Yury Norov <yury.norov@gmail.com>
-Subject: rcu/tree_plugin: don't handle the case of 'all' CPU range
-
-The 'all' semantics is now supported by the bitmap_parselist() so we can
-drop supporting it as a special case in RCU code.  Since 'all' is properly
-supported in core bitmap code, drop legacy comment in RCU for it.
-
-This patch does not add any functional changes for existing users.
-
-Link: https://lkml.kernel.org/r/20210421031326.72816-3-yury.norov@gmail.com
-Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lai Jiangshan <jiangshanlai@gmail.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Palmer Dabbelt <palmerdabbelt@google.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Chen Li <chenli@uniontech.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 ---
+ mm/nommu.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
- kernel/rcu/tree_plugin.h |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
-
---- a/kernel/rcu/tree_plugin.h~rcu-tree_plugin-dont-handle-the-case-of-all-cpu-range
-+++ a/kernel/rcu/tree_plugin.h
-@@ -1535,13 +1535,10 @@ static void rcu_cleanup_after_idle(void)
- static int __init rcu_nocb_setup(char *str)
+diff --git a/mm/nommu.c b/mm/nommu.c
+index 5c9ab799c0e6..f1794e818348 100644
+--- a/mm/nommu.c
++++ b/mm/nommu.c
+@@ -233,7 +233,7 @@ long vwrite(char *buf, char *addr, unsigned long count)
+  */
+ void *vmalloc(unsigned long size)
  {
- 	alloc_bootmem_cpumask_var(&rcu_nocb_mask);
--	if (!strcasecmp(str, "all"))		/* legacy: use "0-N" instead */
-+	if (cpulist_parse(str, rcu_nocb_mask)) {
-+		pr_warn("rcu_nocbs= bad CPU range, all CPUs set\n");
- 		cpumask_setall(rcu_nocb_mask);
--	else
--		if (cpulist_parse(str, rcu_nocb_mask)) {
--			pr_warn("rcu_nocbs= bad CPU range, all CPUs set\n");
--			cpumask_setall(rcu_nocb_mask);
--		}
-+	}
- 	return 1;
+-       return __vmalloc(size, GFP_KERNEL | __GFP_HIGHMEM);
++	return __vmalloc(size, GFP_KERNEL);
  }
- __setup("rcu_nocbs=", rcu_nocb_setup);
-_
+ EXPORT_SYMBOL(vmalloc);
+ 
+@@ -251,7 +251,7 @@ EXPORT_SYMBOL(vmalloc);
+  */
+ void *vzalloc(unsigned long size)
+ {
+-	return __vmalloc(size, GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO);
++	return __vmalloc(size, GFP_KERNEL | __GFP_ZERO);
+ }
+ EXPORT_SYMBOL(vzalloc);
+ 
+-- 
+2.31.1
 
-Patches currently in -mm which might be from yury.norov@gmail.com are
 
-bitmap_parse-support-all-semantics.patch
-rcu-tree_plugin-dont-handle-the-case-of-all-cpu-range.patch
 
