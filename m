@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96536C433ED
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:29:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5BA4C433B4
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:32:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 64C516142D
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:29:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD28C610CA
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:32:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229561AbhEJEaL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 May 2021 00:30:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35608 "EHLO mail.kernel.org"
+        id S229936AbhEJEdG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 May 2021 00:33:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36836 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229533AbhEJEaL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 10 May 2021 00:30:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A3BAF61421;
-        Mon, 10 May 2021 04:29:06 +0000 (UTC)
+        id S229533AbhEJEdG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 10 May 2021 00:33:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2060961040;
+        Mon, 10 May 2021 04:32:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620620946;
-        bh=UvxyI4iMLe4g2RIkcotYnTNFrzx9dzDtusNeFZm3awg=;
+        s=korg; t=1620621122;
+        bh=ocwqR2RtJy2/7Z/PWpV4dJkTYHLee3Dd0nEs2JYqEnI=;
         h=Date:From:To:Subject:From;
-        b=1UNzxZepvWZAGth7tBLk9aakeoMY471jMOFAW0gffzIETf9ahkiQJ4DlhP3gYdpX6
-         R/9oc6gQ05xZujJjTQ6+h/f+z3wEhNzgJVjbv1AnhG8Crl1HoFnw5/Xf/sz6YlO0VD
-         Js6Fiina95Qv11Nftr1pXBrR70bipl0RUAf/UXQM=
-Date:   Sun, 09 May 2021 21:29:06 -0700
+        b=vw2VgHq0r3G7KYI+sRBk2yvLdw5sMcum0AKm1c9tXiyM8MEtfyxKDA2Xu12aBIQL7
+         Wp93KaJlfWXf3qKPqKF/y+QLD01qualOTmeR77mUBLtsQM4ps8HHQ2cesXcNFv27wF
+         JvgHlVxwPo58Z9hl0XlHN0HDOonoHGtmMpxAK0Cs=
+Date:   Sun, 09 May 2021 21:32:01 -0700
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, mm-commits@vger.kernel.org,
-        tsbogend@alpha.franken.de, wangkefeng.wang@huawei.com,
-        will@kernel.org
-Subject:  + mm-move-holes_in_zone-into-mm.patch added to -mm tree
-Message-ID: <20210510042906.yHaPauiek%akpm@linux-foundation.org>
+To:     duanxiongchun@bytedance.com, guro@fb.com, hannes@cmpxchg.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com,
+        songmuchun@bytedance.com, vdavydov.dev@gmail.com
+Subject:  +
+ mm-memcontrol-fix-page-charging-in-page-replacement.patch added to -mm tree
+Message-ID: <20210510043201.0KPmBwP80%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kconfig: move HOLES_IN_ZONE into mm
+     Subject: mm: memcontrol: fix page charging in page replacement
 has been added to the -mm tree.  Its filename is
-     mm-move-holes_in_zone-into-mm.patch
+     mm-memcontrol-fix-page-charging-in-page-replacement.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-move-holes_in_zone-into-mm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-page-charging-in-page-replacement.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-move-holes_in_zone-into-mm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-page-charging-in-page-replacement.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,90 +65,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm/kconfig: move HOLES_IN_ZONE into mm
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcontrol: fix page charging in page replacement
 
-commit a55749639dc1 ("ia64: drop marked broken DISCONTIGMEM and
-VIRTUAL_MEM_MAP") drop VIRTUAL_MEM_MAP, so there is no need HOLES_IN_ZONE
-on ia64.
+Patch series "memcontrol code cleanup and simplification", v3.
 
-Also move HOLES_IN_ZONE into mm/Kconfig, select it if architecture needs
-this feature.
 
-Link: https://lkml.kernel.org/r/20210417075946.181402-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
-Cc: Will Deacon <will@kernel.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+This patch (of 8):
+
+The pages aren't accounted at the root level, so do not charge the page to
+the root memcg in page replacement.  Although we do not display the value
+(mem_cgroup_usage) so there shouldn't be any actual problem, but there is
+a WARN_ON_ONCE in the page_counter_cancel().  Who knows if it will
+trigger?  So it is better to fix it.
+
+Link: https://lkml.kernel.org/r/20210417043538.9793-1-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20210417043538.9793-2-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    4 +---
- arch/ia64/Kconfig  |    3 ---
- arch/mips/Kconfig  |    3 ---
- mm/Kconfig         |    3 +++
- 4 files changed, 4 insertions(+), 9 deletions(-)
+ mm/memcontrol.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/Kconfig~mm-move-holes_in_zone-into-mm
-+++ a/arch/arm64/Kconfig
-@@ -201,6 +201,7 @@ config ARM64
- 	select HAVE_KPROBES
- 	select HAVE_KRETPROBES
- 	select HAVE_GENERIC_VDSO
-+	select HOLES_IN_ZONE
- 	select IOMMU_DMA if IOMMU_SUPPORT
- 	select IRQ_DOMAIN
- 	select IRQ_FORCED_THREADING
-@@ -1052,9 +1053,6 @@ config NEED_PER_CPU_EMBED_FIRST_CHUNK
- 	def_bool y
- 	depends on NUMA
+--- a/mm/memcontrol.c~mm-memcontrol-fix-page-charging-in-page-replacement
++++ a/mm/memcontrol.c
+@@ -6982,9 +6982,11 @@ void mem_cgroup_migrate(struct page *old
+ 	/* Force-charge the new page. The old one will be freed soon */
+ 	nr_pages = thp_nr_pages(newpage);
  
--config HOLES_IN_ZONE
--	def_bool y
--
- source "kernel/Kconfig.hz"
+-	page_counter_charge(&memcg->memory, nr_pages);
+-	if (do_memsw_account())
+-		page_counter_charge(&memcg->memsw, nr_pages);
++	if (!mem_cgroup_is_root(memcg)) {
++		page_counter_charge(&memcg->memory, nr_pages);
++		if (do_memsw_account())
++			page_counter_charge(&memcg->memsw, nr_pages);
++	}
  
- config ARCH_SPARSEMEM_ENABLE
---- a/arch/ia64/Kconfig~mm-move-holes_in_zone-into-mm
-+++ a/arch/ia64/Kconfig
-@@ -308,9 +308,6 @@ config NODES_SHIFT
- 	  MAX_NUMNODES will be 2^(This value).
- 	  If in doubt, use the default.
- 
--config HOLES_IN_ZONE
--	bool
--
- config HAVE_ARCH_NODEDATA_EXTENSION
- 	def_bool y
- 	depends on NUMA
---- a/arch/mips/Kconfig~mm-move-holes_in_zone-into-mm
-+++ a/arch/mips/Kconfig
-@@ -1233,9 +1233,6 @@ config HAVE_PLAT_MEMCPY
- config ISA_DMA_API
- 	bool
- 
--config HOLES_IN_ZONE
--	bool
--
- config SYS_SUPPORTS_RELOCATABLE
- 	bool
- 	help
---- a/mm/Kconfig~mm-move-holes_in_zone-into-mm
-+++ a/mm/Kconfig
-@@ -128,6 +128,9 @@ config HAVE_FAST_GUP
- 	depends on MMU
- 	bool
- 
-+config HOLES_IN_ZONE
-+	bool
-+
- # Don't discard allocated memory used to track "memory" and "reserved" memblocks
- # after early boot, so it can still be used to test for validity of memory.
- # Also, memblocks are updated with memory hot(un)plug.
+ 	css_get(&memcg->css);
+ 	commit_charge(newpage, memcg);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-page-writeback-kill-get_writeback_state-comments.patch
-mm-move-holes_in_zone-into-mm.patch
+mm-memcontrol-fix-root_mem_cgroup-charging.patch
+mm-memcontrol-fix-page-charging-in-page-replacement.patch
+mm-memcontrol-bail-out-early-when-mm-in-get_mem_cgroup_from_mm.patch
+mm-memcontrol-remove-the-pgdata-parameter-of-mem_cgroup_page_lruvec.patch
+mm-memcontrol-simplify-lruvec_holds_page_lru_lock.patch
+mm-memcontrol-rename-lruvec_holds_page_lru_lock-to-page_matches_lruvec.patch
+mm-memcontrol-simplify-the-logic-of-objcg-pinning-memcg.patch
+mm-memcontrol-move-obj_cgroup_uncharge_pages-out-of-css_set_lock.patch
+mm-vmscan-remove-noinline_for_stack.patch
+mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc.patch
+mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch
+mm-hugetlb-gather-discrete-indexes-of-tail-page.patch
+mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
+mm-hugetlb-defer-freeing-of-hugetlb-pages.patch
+mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
+mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled.patch
+mm-hugetlb-introduce-nr_free_vmemmap_pages-in-the-struct-hstate.patch
 
