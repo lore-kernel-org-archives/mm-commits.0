@@ -7,38 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3D58C433B4
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:27:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96536C433ED
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:29:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A5DC6613EE
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:27:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64C516142D
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 04:29:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229961AbhEJE2M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 May 2021 00:28:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34920 "EHLO mail.kernel.org"
+        id S229561AbhEJEaL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 May 2021 00:30:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35608 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229936AbhEJE2L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 10 May 2021 00:28:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BA1396142D;
-        Mon, 10 May 2021 04:27:07 +0000 (UTC)
+        id S229533AbhEJEaL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 10 May 2021 00:30:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A3BAF61421;
+        Mon, 10 May 2021 04:29:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620620827;
-        bh=b5g/H/fp0ITgoEgtmfdaTV8LTkfXKiFWzQnssLFIgu0=;
+        s=korg; t=1620620946;
+        bh=UvxyI4iMLe4g2RIkcotYnTNFrzx9dzDtusNeFZm3awg=;
         h=Date:From:To:Subject:From;
-        b=UYth1iaanGQ3ZgUNI8YYO6qbP6/19ZsyfTKfpSOxx2s5O03Tt3yLtyaChFIBgEj2n
-         xOVHsrCAR+T8FphsYbPee/8E4W0G6JMHAw3UMZlSJemmFm1RBEPN5HKXGdRf6tGCLm
-         u5EHwJfgnTcmHshcVIAzilRgPZK1LbF6+zjZPtVA=
-Date:   Sun, 09 May 2021 21:27:07 -0700
+        b=1UNzxZepvWZAGth7tBLk9aakeoMY471jMOFAW0gffzIETf9ahkiQJ4DlhP3gYdpX6
+         R/9oc6gQ05xZujJjTQ6+h/f+z3wEhNzgJVjbv1AnhG8Crl1HoFnw5/Xf/sz6YlO0VD
+         Js6Fiina95Qv11Nftr1pXBrR70bipl0RUAf/UXQM=
+Date:   Sun, 09 May 2021 21:29:06 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, liushixin2@huawei.com,
-        mm-commits@vger.kernel.org
-Subject:  +
- =?US-ASCII?Q?mm-debug=5Fvm=5Fpgtable-remove-redundant-pfn=5Fpmd-pte-and-f?=
- =?US-ASCII?Q?ix-one-comment-mistake.patch?= added to -mm tree
-Message-ID: <20210510042707.8c_DQKgFB%akpm@linux-foundation.org>
+To:     catalin.marinas@arm.com, mm-commits@vger.kernel.org,
+        tsbogend@alpha.franken.de, wangkefeng.wang@huawei.com,
+        will@kernel.org
+Subject:  + mm-move-holes_in_zone-into-mm.patch added to -mm tree
+Message-ID: <20210510042906.yHaPauiek%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: remove redundant pfn_{pmd/pte}() and fix one comment mistake
+     Subject: mm/kconfig: move HOLES_IN_ZONE into mm
 has been added to the -mm tree.  Its filename is
-     mm-debug_vm_pgtable-remove-redundant-pfn_pmd-pte-and-fix-one-comment-mistake.patch
+     mm-move-holes_in_zone-into-mm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-remove-redundant-pfn_pmd-pte-and-fix-one-comment-mistake.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-move-holes_in_zone-into-mm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-remove-redundant-pfn_pmd-pte-and-fix-one-comment-mistake.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-move-holes_in_zone-into-mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,81 +64,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shixin Liu <liushixin2@huawei.com>
-Subject: mm/debug_vm_pgtable: remove redundant pfn_{pmd/pte}() and fix one comment mistake
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm/kconfig: move HOLES_IN_ZONE into mm
 
-Remove redundant pfn_{pmd/pte}() in {pmd/pte}_advanced_tests() and adjust
-pfn_pud() in pud_advanced_tests() to make it similar with other two
-functions.
+commit a55749639dc1 ("ia64: drop marked broken DISCONTIGMEM and
+VIRTUAL_MEM_MAP") drop VIRTUAL_MEM_MAP, so there is no need HOLES_IN_ZONE
+on ia64.
 
-In addition, the branch condition should be CONFIG_TRANSPARENT_HUGEPAGE
-instead of CONFIG_ARCH_HAS_PTE_DEVMAP.
+Also move HOLES_IN_ZONE into mm/Kconfig, select it if architecture needs
+this feature.
 
-Link: https://lkml.kernel.org/r/20210419071820.750217-2-liushixin2@huawei.com
-Signed-off-by: Shixin Liu <liushixin2@huawei.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Link: https://lkml.kernel.org/r/20210417075946.181402-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
+Cc: Will Deacon <will@kernel.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ arch/arm64/Kconfig |    4 +---
+ arch/ia64/Kconfig  |    3 ---
+ arch/mips/Kconfig  |    3 ---
+ mm/Kconfig         |    3 +++
+ 4 files changed, 4 insertions(+), 9 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-remove-redundant-pfn_pmd-pte-and-fix-one-comment-mistake
-+++ a/mm/debug_vm_pgtable.c
-@@ -91,7 +91,7 @@ static void __init pte_advanced_tests(st
- 				      unsigned long pfn, unsigned long vaddr,
- 				      pgprot_t prot)
- {
--	pte_t pte = pfn_pte(pfn, prot);
-+	pte_t pte;
+--- a/arch/arm64/Kconfig~mm-move-holes_in_zone-into-mm
++++ a/arch/arm64/Kconfig
+@@ -201,6 +201,7 @@ config ARM64
+ 	select HAVE_KPROBES
+ 	select HAVE_KRETPROBES
+ 	select HAVE_GENERIC_VDSO
++	select HOLES_IN_ZONE
+ 	select IOMMU_DMA if IOMMU_SUPPORT
+ 	select IRQ_DOMAIN
+ 	select IRQ_FORCED_THREADING
+@@ -1052,9 +1053,6 @@ config NEED_PER_CPU_EMBED_FIRST_CHUNK
+ 	def_bool y
+ 	depends on NUMA
  
- 	/*
- 	 * Architectures optimize set_pte_at by avoiding TLB flush.
-@@ -185,7 +185,7 @@ static void __init pmd_advanced_tests(st
- 				      unsigned long pfn, unsigned long vaddr,
- 				      pgprot_t prot, pgtable_t pgtable)
- {
--	pmd_t pmd = pfn_pmd(pfn, prot);
-+	pmd_t pmd;
+-config HOLES_IN_ZONE
+-	def_bool y
+-
+ source "kernel/Kconfig.hz"
  
- 	if (!has_transparent_hugepage())
- 		return;
-@@ -300,7 +300,7 @@ static void __init pud_advanced_tests(st
- 				      unsigned long pfn, unsigned long vaddr,
- 				      pgprot_t prot)
- {
--	pud_t pud = pfn_pud(pfn, prot);
-+	pud_t pud;
+ config ARCH_SPARSEMEM_ENABLE
+--- a/arch/ia64/Kconfig~mm-move-holes_in_zone-into-mm
++++ a/arch/ia64/Kconfig
+@@ -308,9 +308,6 @@ config NODES_SHIFT
+ 	  MAX_NUMNODES will be 2^(This value).
+ 	  If in doubt, use the default.
  
- 	if (!has_transparent_hugepage())
- 		return;
-@@ -309,6 +309,7 @@ static void __init pud_advanced_tests(st
- 	/* Align the address wrt HPAGE_PUD_SIZE */
- 	vaddr = (vaddr & HPAGE_PUD_MASK) + HPAGE_PUD_SIZE;
+-config HOLES_IN_ZONE
+-	bool
+-
+ config HAVE_ARCH_NODEDATA_EXTENSION
+ 	def_bool y
+ 	depends on NUMA
+--- a/arch/mips/Kconfig~mm-move-holes_in_zone-into-mm
++++ a/arch/mips/Kconfig
+@@ -1233,9 +1233,6 @@ config HAVE_PLAT_MEMCPY
+ config ISA_DMA_API
+ 	bool
  
-+	pud = pfn_pud(pfn, prot);
- 	set_pud_at(mm, vaddr, pudp, pud);
- 	pudp_set_wrprotect(mm, vaddr, pudp);
- 	pud = READ_ONCE(*pudp);
-@@ -742,12 +743,12 @@ static void __init pmd_swap_soft_dirty_t
- 	WARN_ON(!pmd_swp_soft_dirty(pmd_swp_mksoft_dirty(pmd)));
- 	WARN_ON(pmd_swp_soft_dirty(pmd_swp_clear_soft_dirty(pmd)));
- }
--#else  /* !CONFIG_ARCH_HAS_PTE_DEVMAP */
-+#else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
- static void __init pmd_soft_dirty_tests(unsigned long pfn, pgprot_t prot) { }
- static void __init pmd_swap_soft_dirty_tests(unsigned long pfn, pgprot_t prot)
- {
- }
--#endif /* CONFIG_ARCH_HAS_PTE_DEVMAP */
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+-config HOLES_IN_ZONE
+-	bool
+-
+ config SYS_SUPPORTS_RELOCATABLE
+ 	bool
+ 	help
+--- a/mm/Kconfig~mm-move-holes_in_zone-into-mm
++++ a/mm/Kconfig
+@@ -128,6 +128,9 @@ config HAVE_FAST_GUP
+ 	depends on MMU
+ 	bool
  
- static void __init pte_swap_tests(unsigned long pfn, pgprot_t prot)
- {
++config HOLES_IN_ZONE
++	bool
++
+ # Don't discard allocated memory used to track "memory" and "reserved" memblocks
+ # after early boot, so it can still be used to test for validity of memory.
+ # Also, memblocks are updated with memory hot(un)plug.
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-debug_vm_pgtable-move-pmd-pud_huge_tests-out-of-config_transparent_hugepage.patch
-mm-debug_vm_pgtable-remove-redundant-pfn_pmd-pte-and-fix-one-comment-mistake.patch
+mm-page-writeback-kill-get_writeback_state-comments.patch
+mm-move-holes_in_zone-into-mm.patch
 
