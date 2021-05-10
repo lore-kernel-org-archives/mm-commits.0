@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC700C433ED
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 01:33:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F11EAC433B4
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 01:33:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B654E61132
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 01:33:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBFA0613DE
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 01:33:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229949AbhEJBej (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 May 2021 21:34:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55544 "EHLO mail.kernel.org"
+        id S229966AbhEJBen (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 May 2021 21:34:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55652 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229666AbhEJBei (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 May 2021 21:34:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 37E7561104;
-        Mon, 10 May 2021 01:33:34 +0000 (UTC)
+        id S229666AbhEJBem (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 May 2021 21:34:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1FE3E61132;
+        Mon, 10 May 2021 01:33:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620610414;
-        bh=f53Jt6AL2UF888KvXv5rvaNewznN24uM0qPZCsutzFM=;
+        s=korg; t=1620610418;
+        bh=Ks+eNn64y+Ypfl9Sh6ZCZirVa3pLjYAhRH3QUOQJMG0=;
         h=Date:From:To:Subject:From;
-        b=cGuzERi/0q7Iq2b4JTrjn3wSwvqzmsyJbpGzrZKO63xDm1sL45kGfJq9y4z85eL37
-         z3taRiS3DUs4l8gNfi3Z4RDu/Km9vyvphFiImLWZT4LuPIa1yHjjqCKYAaYhnYldGd
-         gxI2BH8q8KkJspneQnWEnoVVHKxMXlRn84GIzGjk=
-Date:   Sun, 09 May 2021 18:33:33 -0700
+        b=k61mOdH1d+CLeyISJjRZW4KP3PWc7TOeWkEo9okGr+0RXEm35XwUa7UoI6AaQluI7
+         BsOLaw26eRCbJigLCX1nJzaZtb0rpwBg1teqY3h+KV+T01Nh07/r522zQ/FyxxtpwJ
+         d8YiW3lR55Nwd8M6LPL0JrdMNhYUoaP2XStWfTZA=
+Date:   Sun, 09 May 2021 18:33:37 -0700
 From:   akpm@linux-foundation.org
 To:     acme@kernel.org, alexander.shishkin@linux.intel.com, bp@alien8.de,
         catalin.marinas@arm.com, david@redhat.com, dzickus@redhat.com,
@@ -38,9 +38,9 @@ To:     acme@kernel.org, alexander.shishkin@linux.intel.com, bp@alien8.de,
         mingo@redhat.com, mm-commits@vger.kernel.org, namhyung@kernel.org,
         peterz@infradead.org, rppt@kernel.org, tglx@linutronix.de,
         viro@zeniv.linux.org.uk
-Subject:  + binfmt-remove-in-tree-usage-of-map_executable.patch
- added to -mm tree
-Message-ID: <20210510013333._38FZc6A0%akpm@linux-foundation.org>
+Subject:  + mm-ignore-map_executable-in-ksys_mmap_pgoff.patch added
+ to -mm tree
+Message-ID: <20210510013337.a52O60-gC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: binfmt: remove in-tree usage of MAP_EXECUTABLE
+     Subject: mm: ignore MAP_EXECUTABLE in ksys_mmap_pgoff()
 has been added to the -mm tree.  Its filename is
-     binfmt-remove-in-tree-usage-of-map_executable.patch
+     mm-ignore-map_executable-in-ksys_mmap_pgoff.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/binfmt-remove-in-tree-usage-of-map_executable.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-ignore-map_executable-in-ksys_mmap_pgoff.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/binfmt-remove-in-tree-usage-of-map_executable.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-ignore-map_executable-in-ksys_mmap_pgoff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,13 +71,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: binfmt: remove in-tree usage of MAP_EXECUTABLE
+Subject: mm: ignore MAP_EXECUTABLE in ksys_mmap_pgoff()
 
-Ever since commit e9714acf8c43 ("mm: kill vma flag VM_EXECUTABLE and
-mm->num_exe_file_vmas"), VM_EXECUTABLE is gone and MAP_EXECUTABLE is
-essentially completely ignored.  Let's remove all usage of MAP_EXECUTABLE.
+Let's also remove masking off MAP_EXECUTABLE from ksys_mmap_pgoff(): the
+last in-tree occurrence of MAP_EXECUTABLE is now in LEGACY_MAP_MASK, which
+accepts the flag e.g., for MAP_SHARED_VALIDATE; however, the flag is
+ignored throughout the kernel now.
 
-Link: https://lkml.kernel.org/r/20210421093453.6904-3-david@redhat.com
+Add a comment to LEGACY_MAP_MASK stating that MAP_EXECUTABLE is ignored.
+
+Link: https://lkml.kernel.org/r/20210421093453.6904-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
@@ -102,110 +105,44 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32_aout.c |    4 ++--
- fs/binfmt_aout.c          |    4 ++--
- fs/binfmt_elf.c           |    2 +-
- fs/binfmt_elf_fdpic.c     |   11 ++---------
- fs/binfmt_flat.c          |    2 +-
- 5 files changed, 8 insertions(+), 15 deletions(-)
+ include/linux/mman.h |    2 ++
+ mm/mmap.c            |    2 +-
+ mm/nommu.c           |    2 +-
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
---- a/arch/x86/ia32/ia32_aout.c~binfmt-remove-in-tree-usage-of-map_executable
-+++ a/arch/x86/ia32/ia32_aout.c
-@@ -203,7 +203,7 @@ static int load_aout_binary(struct linux
- 		error = vm_mmap(bprm->file, N_TXTADDR(ex), ex.a_text,
- 				PROT_READ | PROT_EXEC,
- 				MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE |
--				MAP_EXECUTABLE | MAP_32BIT,
-+				MAP_32BIT,
- 				fd_offset);
- 
- 		if (error != N_TXTADDR(ex))
-@@ -212,7 +212,7 @@ static int load_aout_binary(struct linux
- 		error = vm_mmap(bprm->file, N_DATADDR(ex), ex.a_data,
- 				PROT_READ | PROT_WRITE | PROT_EXEC,
- 				MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE |
--				MAP_EXECUTABLE | MAP_32BIT,
-+				MAP_32BIT,
- 				fd_offset + ex.a_text);
- 		if (error != N_DATADDR(ex))
- 			return error;
---- a/fs/binfmt_aout.c~binfmt-remove-in-tree-usage-of-map_executable
-+++ a/fs/binfmt_aout.c
-@@ -222,7 +222,7 @@ static int load_aout_binary(struct linux
- 
- 		error = vm_mmap(bprm->file, N_TXTADDR(ex), ex.a_text,
- 			PROT_READ | PROT_EXEC,
--			MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE | MAP_EXECUTABLE,
-+			MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE;
- 			fd_offset);
- 
- 		if (error != N_TXTADDR(ex))
-@@ -230,7 +230,7 @@ static int load_aout_binary(struct linux
- 
- 		error = vm_mmap(bprm->file, N_DATADDR(ex), ex.a_data,
- 				PROT_READ | PROT_WRITE | PROT_EXEC,
--				MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE | MAP_EXECUTABLE,
-+				MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE;
- 				fd_offset + ex.a_text);
- 		if (error != N_DATADDR(ex))
- 			return error;
---- a/fs/binfmt_elf.c~binfmt-remove-in-tree-usage-of-map_executable
-+++ a/fs/binfmt_elf.c
-@@ -1070,7 +1070,7 @@ out_free_interp:
- 		elf_prot = make_prot(elf_ppnt->p_flags, &arch_state,
- 				     !!interpreter, false);
- 
--		elf_flags = MAP_PRIVATE | MAP_DENYWRITE | MAP_EXECUTABLE;
-+		elf_flags = MAP_PRIVATE | MAP_DENYWRITE;
- 
- 		vaddr = elf_ppnt->p_vaddr;
- 		/*
---- a/fs/binfmt_elf_fdpic.c~binfmt-remove-in-tree-usage-of-map_executable
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -928,7 +928,7 @@ static int elf_fdpic_map_file_constdisp_
- {
- 	struct elf32_fdpic_loadseg *seg;
- 	struct elf32_phdr *phdr;
--	unsigned long load_addr, base = ULONG_MAX, top = 0, maddr = 0, mflags;
-+	unsigned long load_addr, base = ULONG_MAX, top = 0, maddr = 0;
- 	int loop, ret;
- 
- 	load_addr = params->load_addr;
-@@ -948,12 +948,8 @@ static int elf_fdpic_map_file_constdisp_
+--- a/include/linux/mman.h~mm-ignore-map_executable-in-ksys_mmap_pgoff
++++ a/include/linux/mman.h
+@@ -31,6 +31,8 @@
+ /*
+  * The historical set of flags that all mmap implementations implicitly
+  * support when a ->mmap_validate() op is not provided in file_operations.
++ *
++ * MAP_EXECUTABLE is completely ignored throughout the kernel.
+  */
+ #define LEGACY_MAP_MASK (MAP_SHARED \
+ 		| MAP_PRIVATE \
+--- a/mm/mmap.c~mm-ignore-map_executable-in-ksys_mmap_pgoff
++++ a/mm/mmap.c
+@@ -1633,7 +1633,7 @@ unsigned long ksys_mmap_pgoff(unsigned l
+ 			return PTR_ERR(file);
  	}
  
- 	/* allocate one big anon block for everything */
--	mflags = MAP_PRIVATE;
--	if (params->flags & ELF_FDPIC_FLAG_EXECUTABLE)
--		mflags |= MAP_EXECUTABLE;
--
- 	maddr = vm_mmap(NULL, load_addr, top - base,
--			PROT_READ | PROT_WRITE | PROT_EXEC, mflags, 0);
-+			PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, 0);
- 	if (IS_ERR_VALUE(maddr))
- 		return (int) maddr;
+-	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
++	flags &= ~MAP_DENYWRITE;
  
-@@ -1046,9 +1042,6 @@ static int elf_fdpic_map_file_by_direct_
- 		if (phdr->p_flags & PF_X) prot |= PROT_EXEC;
+ 	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
+ out_fput:
+--- a/mm/nommu.c~mm-ignore-map_executable-in-ksys_mmap_pgoff
++++ a/mm/nommu.c
+@@ -1296,7 +1296,7 @@ unsigned long ksys_mmap_pgoff(unsigned l
+ 			goto out;
+ 	}
  
- 		flags = MAP_PRIVATE | MAP_DENYWRITE;
--		if (params->flags & ELF_FDPIC_FLAG_EXECUTABLE)
--			flags |= MAP_EXECUTABLE;
--
- 		maddr = 0;
+-	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
++	flags &= ~MAP_DENYWRITE;
  
- 		switch (params->flags & ELF_FDPIC_FLAG_ARRANGEMENT) {
---- a/fs/binfmt_flat.c~binfmt-remove-in-tree-usage-of-map_executable
-+++ a/fs/binfmt_flat.c
-@@ -573,7 +573,7 @@ static int load_flat_file(struct linux_b
- 		pr_debug("ROM mapping of file (we hope)\n");
+ 	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
  
- 		textpos = vm_mmap(bprm->file, 0, text_len, PROT_READ|PROT_EXEC,
--				  MAP_PRIVATE|MAP_EXECUTABLE, 0);
-+				  MAP_PRIVATE, 0);
- 		if (!textpos || IS_ERR_VALUE(textpos)) {
- 			ret = textpos;
- 			if (!textpos)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
