@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 376B2C433ED
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 00:53:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F0E9C433B4
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 01:04:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0EF08613D2
-	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 00:53:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA30F613D2
+	for <mm-commits@archiver.kernel.org>; Mon, 10 May 2021 01:04:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229973AbhEJAyD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 May 2021 20:54:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33408 "EHLO mail.kernel.org"
+        id S230057AbhEJBF1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 May 2021 21:05:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37068 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229941AbhEJAyD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 May 2021 20:54:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DDCEF60FD8;
-        Mon, 10 May 2021 00:52:57 +0000 (UTC)
+        id S229941AbhEJBF1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 May 2021 21:05:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 104CD613CE;
+        Mon, 10 May 2021 01:04:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620607978;
-        bh=jRgFMkF/SqVNtfx122n5LDWz2SSMAVe/GFoHn9S9fTA=;
+        s=korg; t=1620608663;
+        bh=ZPwNIqQgVwVWJGaG87QuekvE+/ggCIC8bnBpfmzX1uQ=;
         h=Date:From:To:Subject:From;
-        b=b7D+KUApLikvYM/49qaiKNFqCCN3pDCkcylRAwGvH5qjHCnTULjcmiXj7FyeYeF66
-         zv3ZhdZVTcRUxpL5ZDJd9takXc5q6eIJt0kZeAkPMlPm8eCRLLcOQp4B9twVx9s03F
-         n9GXoAY6/K4mfgVLu5KHhmuW4I/1IQjZ8iHX7BRc=
-Date:   Sun, 09 May 2021 17:52:57 -0700
+        b=ykhipzPF4qsy6SJjPEhGGXQOBHIfGuTRQHUfeGQUiKv8NQBAtBP+XivJYAYdqoyvu
+         2qY1RO9dhXVEcgqR6yE16FcGm8wpTkWd2Ds3Tl0eQcBUhtvZ0eoUmO98eP+vDUPBrd
+         15gUOZ5icFflQkp6MiV1S5lIBpNFJzHPunds2pN8=
+Date:   Sun, 09 May 2021 18:04:22 -0700
 From:   akpm@linux-foundation.org
-To:     duanxiongchun@bytedance.com, guro@fb.com, hannes@cmpxchg.org,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com,
-        songmuchun@bytedance.com, vdavydov.dev@gmail.com
-Subject:  + mm-memcontrol-fix-root_mem_cgroup-charging.patch
- tentatively added to -mm tree
-Message-ID: <20210510005257.d0VcCngV1%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, corbet@lwn.net, eric.dumazet@gmail.com,
+        mhocko@suse.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        vbabka@suse.cz, willy@infradead.org
+Subject:  +
+ docs-procrst-meminfo-briefly-describe-gaps-in-memory-accounting.patch added
+ to -mm tree
+Message-ID: <20210510010422.yGiRcHD5Q%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fix root_mem_cgroup charging
+     Subject: docs: proc.rst: meminfo: briefly describe gaps in memory accounting
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-fix-root_mem_cgroup-charging.patch
+     docs-procrst-meminfo-briefly-describe-gaps-in-memory-accounting.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-root_mem_cgroup-charging.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/docs-procrst-meminfo-briefly-describe-gaps-in-memory-accounting.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-root_mem_cgroup-charging.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/docs-procrst-meminfo-briefly-describe-gaps-in-memory-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,108 +66,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: fix root_mem_cgroup charging
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: docs: proc.rst: meminfo: briefly describe gaps in memory accounting
 
-The below scenario can cause the page counters of the root_mem_cgroup to
-be out of balance.
+Add a paragraph that explains that it may happen that the counters in
+/proc/meminfo do not add up to the overall memory usage.
 
-CPU0:                                   CPU1:
-
-objcg = get_obj_cgroup_from_current()
-obj_cgroup_charge_pages(objcg)
-                                        memcg_reparent_objcgs()
-                                            // reparent to root_mem_cgroup
-                                            WRITE_ONCE(iter->memcg, parent)
-    // memcg == root_mem_cgroup
-    memcg = get_mem_cgroup_from_objcg(objcg)
-    // do not charge to the root_mem_cgroup
-    try_charge(memcg)
-
-obj_cgroup_uncharge_pages(objcg)
-    memcg = get_mem_cgroup_from_objcg(objcg)
-    // uncharge from the root_mem_cgroup
-    refill_stock(memcg)
-        drain_stock(memcg)
-            page_counter_uncharge(&memcg->memory)
-
-get_obj_cgroup_from_current() never returns a root_mem_cgroup's objcg, so
-we never explicitly charge the root_mem_cgroup.  And it's not going to
-change.  It's all about a race when we got an obj_cgroup pointing at some
-non-root memcg, but before we were able to charge it, the cgroup was gone,
-objcg was reparented to the root and so we're skipping the charging.  Then
-we store the objcg pointer and later use to uncharge the root_mem_cgroup.
-
-This can cause the page counter to be less than the actual value. 
-Although we do not display the value (mem_cgroup_usage) so there shouldn't
-be any actual problem, but there is a WARN_ON_ONCE in the
-page_counter_cancel().  Who knows if it will trigger?  So it is better to
-fix it.
-
-Link: https://lkml.kernel.org/r/20210425075410.19255-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: https://lkml.kernel.org/r/20210421061127.1182723-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ Documentation/filesystems/proc.rst |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-fix-root_mem_cgroup-charging
-+++ a/mm/memcontrol.c
-@@ -2567,8 +2567,8 @@ out:
- 	css_put(&memcg->css);
- }
+--- a/Documentation/filesystems/proc.rst~docs-procrst-meminfo-briefly-describe-gaps-in-memory-accounting
++++ a/Documentation/filesystems/proc.rst
+@@ -933,8 +933,15 @@ meminfo
+ ~~~~~~~
  
--static int try_charge(struct mem_cgroup *memcg, gfp_t gfp_mask,
--		      unsigned int nr_pages)
-+static int try_charge_memcg(struct mem_cgroup *memcg, gfp_t gfp_mask,
-+			unsigned int nr_pages)
- {
- 	unsigned int batch = max(MEMCG_CHARGE_BATCH, nr_pages);
- 	int nr_retries = MAX_RECLAIM_RETRIES;
-@@ -2580,8 +2580,6 @@ static int try_charge(struct mem_cgroup
- 	bool drained = false;
- 	unsigned long pflags;
- 
--	if (mem_cgroup_is_root(memcg))
--		return 0;
- retry:
- 	if (consume_stock(memcg, nr_pages))
- 		return 0;
-@@ -2761,6 +2759,15 @@ done_restock:
- 	return 0;
- }
- 
-+static inline int try_charge(struct mem_cgroup *memcg, gfp_t gfp_mask,
-+			     unsigned int nr_pages)
-+{
-+	if (mem_cgroup_is_root(memcg))
-+		return 0;
+ Provides information about distribution and utilization of memory.  This
+-varies by architecture and compile options.  The following is from a
+-16GB PIII, which has highmem enabled.  You may not have all of these fields.
++varies by architecture and compile options.  Some of the counters reported
++here overlap.  The memory reported by the non overlapping counters may not
++add up to the overall memory usage and the difference for some workloads
++can be substantial.  In many cases there are other means to find out
++additional memory using subsystem specific interfaces, for instance
++/proc/net/sockstat for TCP memory allocations.
 +
-+	return try_charge_memcg(memcg, gfp_mask, nr_pages);
-+}
-+
- #if defined(CONFIG_MEMCG_KMEM) || defined(CONFIG_MMU)
- static void cancel_charge(struct mem_cgroup *memcg, unsigned int nr_pages)
- {
-@@ -2996,7 +3003,7 @@ static int obj_cgroup_charge_pages(struc
++The following is from a 16GB PIII, which has highmem enabled.
++You may not have all of these fields.
  
- 	memcg = get_mem_cgroup_from_objcg(objcg);
- 
--	ret = try_charge(memcg, gfp, nr_pages);
-+	ret = try_charge_memcg(memcg, gfp, nr_pages);
- 	if (ret)
- 		goto out;
+ ::
  
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-memcontrol-fix-root_mem_cgroup-charging.patch
+mm-mmzoneh-simplify-is_highmem_idx.patch
+docs-procrst-meminfo-briefly-describe-gaps-in-memory-accounting.patch
+mmap-make-mlock_future_check-global.patch
+riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-2.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-3.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
+arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
 
