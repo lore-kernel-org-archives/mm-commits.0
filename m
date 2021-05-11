@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71499C43460
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 21:40:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 234DDC433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 21:59:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 458B96191A
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 21:40:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D141E616EA
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 21:59:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229736AbhEKVlj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 May 2021 17:41:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52346 "EHLO mail.kernel.org"
+        id S229714AbhEKWAh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 May 2021 18:00:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60528 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229637AbhEKVlj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 May 2021 17:41:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ED10D6186A;
-        Tue, 11 May 2021 21:40:30 +0000 (UTC)
+        id S229637AbhEKWAg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 May 2021 18:00:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 54D2E616E9;
+        Tue, 11 May 2021 21:59:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620769231;
-        bh=PF0UxSuC0EIGWUJLGw5USlEXp81e23yYehm70MBVb1o=;
+        s=korg; t=1620770369;
+        bh=vl3LG/rRBdpZ/S+eT8eEBT59Rhs7jl+mnypTqUqT5to=;
         h=Date:From:To:Subject:From;
-        b=RY2KXl2pg18gy2dCFSdPXf4iWxKB/BnPRK8esoYp05mGoyNjmyWJe393ul5aYhQR9
-         FolYzBSdo8oNNNIO+OlCemHOSSWXCJ3PRC3tsWfmTk7v+mugds5RNwrnCqNBcsvmOB
-         wCOJ6JxJI0g7+Mu5sPO/fC8bb2SCTa32eQY7hHVE=
-Date:   Tue, 11 May 2021 14:40:30 -0700
+        b=g+wV1JeRhSzgggat8K8gfgYndFwbAAy6atBggEMbZotpvGuXTZeQzxknLijOFSaTp
+         dfzdX8XIIo96Bk3HiDfonYTPn1zPf2CyLuqgIqEtXg7CTlxyoAVEbA1i7P2EwvHZXU
+         r1hbSAZG6VmZssBIP+m+uX+1pTPnRgGoHmFfKlyk=
+Date:   Tue, 11 May 2021 14:59:28 -0700
 From:   akpm@linux-foundation.org
-To:     ahalaney@redhat.com, bp@suse.de, mm-commits@vger.kernel.org,
-        rostedt@goodmis.org
-Subject:  + init-print-out-unknown-kernel-parameters.patch added to
- -mm tree
-Message-ID: <20210511214030.BlHUS6AG9%akpm@linux-foundation.org>
+To:     brendanhiggins@google.com, cl@linux.com, dlatypov@google.com,
+        elver@google.com, glittao@gmail.com, iamjoonsoo.kim@lge.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, vbabka@suse.cz
+Subject:  + kunit-make-test-lock-irq-safe.patch added to -mm tree
+Message-ID: <20210511215928.wBN-lEHAZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init: print out unknown kernel parameters
+     Subject: kunit: make test->lock irq safe
 has been added to the -mm tree.  Its filename is
-     init-print-out-unknown-kernel-parameters.patch
+     kunit-make-test-lock-irq-safe.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/init-print-out-unknown-kernel-parameters.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kunit-make-test-lock-irq-safe.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/init-print-out-unknown-kernel-parameters.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kunit-make-test-lock-irq-safe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,104 +65,126 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Halaney <ahalaney@redhat.com>
-Subject: init: print out unknown kernel parameters
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: kunit: make test->lock irq safe
 
-It is easy to foobar setting a kernel parameter on the command line
-without realizing it, there's not much output that you can use to assess
-what the kernel did with that parameter by default.
+The upcoming SLUB kunit test will be calling kunit_find_named_resource()
+from a context with disabled interrupts.  That means kunit's test->lock
+needs to be IRQ safe to avoid potential deadlocks and lockdep splats.
 
-Make it a little more explicit which parameters on the command line
-_looked_ like a valid parameter for the kernel, but did not match anything
-and ultimately got tossed to init.  This is very similar to the unknown
-parameter message received when loading a module.
+This patch therefore changes the test->lock usage to spin_lock_irqsave()
+and spin_unlock_irqrestore().
 
-This assumes the parameters are processed in a normal fashion, some
-parameters (dyndbg= for example) don't register their parameter with the
-rest of the kernel's parameters, and therefore always show up in this list
-(and are also given to init - like the rest of this list).
-
-Another example is BOOT_IMAGE= is highlighted as an offender, which it
-technically is, but is passed by LILO and GRUB so most systems will see
-that complaint.
-
-An example output where "foobared" and "unrecognized" are intentionally
-invalid parameters:
-
-  Kernel command line: BOOT_IMAGE=/boot/vmlinuz-5.12-dirty debug log_buf_len=4M foobared unrecognized=foo
-  Unknown command line parameters: foobared BOOT_IMAGE=/boot/vmlinuz-5.12-dirty unrecognized=foo
-
-Link: https://lkml.kernel.org/r/20210511211009.42259-1-ahalaney@redhat.com
-Signed-off-by: Andrew Halaney <ahalaney@redhat.com>
-Suggested-by: Steven Rostedt <rostedt@goodmis.org>
-Suggested-by: Borislav Petkov <bp@suse.de>
+Link: https://lkml.kernel.org/r/20210511150734.3492-1-glittao@gmail.com
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Oliver Glitta <glittao@gmail.com>
+Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Daniel Latypov <dlatypov@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |   42 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ include/kunit/test.h |    5 +++--
+ lib/kunit/test.c     |   18 +++++++++++-------
+ 2 files changed, 14 insertions(+), 9 deletions(-)
 
---- a/init/main.c~init-print-out-unknown-kernel-parameters
-+++ a/init/main.c
-@@ -872,6 +872,47 @@ void __init __weak arch_call_rest_init(v
- 	rest_init();
- }
- 
-+static void __init print_unknown_bootoptions(void)
-+{
-+	char *unknown_options;
-+	char *end;
-+	const char *const *p;
-+	size_t len;
-+
-+	if (panic_later || (!argv_init[1] && !envp_init[2]))
-+		return;
-+
-+	/*
-+	 * Determine how many options we have to print out, plus a space
-+	 * before each
-+	 */
-+	len = 1; /* null terminator */
-+	for (p = &argv_init[1]; *p; p++) {
-+		len++;
-+		len += strlen(*p);
-+	}
-+	for (p = &envp_init[2]; *p; p++) {
-+		len++;
-+		len += strlen(*p);
-+	}
-+
-+	unknown_options = memblock_alloc(len, SMP_CACHE_BYTES);
-+	if (!unknown_options) {
-+		pr_err("%s: Failed to allocate %zu bytes\n",
-+			__func__, len);
-+		return;
-+	}
-+	end = unknown_options;
-+
-+	for (p = &argv_init[1]; *p; p++)
-+		end += sprintf(end, " %s", *p);
-+	for (p = &envp_init[2]; *p; p++)
-+		end += sprintf(end, " %s", *p);
-+
-+	pr_notice("Unknown command line parameters:%s\n", unknown_options);
-+	memblock_free(__pa(unknown_options), len);
-+}
-+
- asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
+--- a/include/kunit/test.h~kunit-make-test-lock-irq-safe
++++ a/include/kunit/test.h
+@@ -515,8 +515,9 @@ kunit_find_resource(struct kunit *test,
+ 		    void *match_data)
  {
- 	char *command_line;
-@@ -913,6 +954,7 @@ asmlinkage __visible void __init __no_sa
- 				  static_command_line, __start___param,
- 				  __stop___param - __start___param,
- 				  -1, -1, NULL, &unknown_bootoption);
-+	print_unknown_bootoptions();
- 	if (!IS_ERR_OR_NULL(after_dashes))
- 		parse_args("Setting init args", after_dashes, NULL, 0, -1, -1,
- 			   NULL, set_init_arg);
+ 	struct kunit_resource *res, *found = NULL;
++	unsigned long flags;
+ 
+-	spin_lock(&test->lock);
++	spin_lock_irqsave(&test->lock, flags);
+ 
+ 	list_for_each_entry_reverse(res, &test->resources, node) {
+ 		if (match(test, res, (void *)match_data)) {
+@@ -526,7 +527,7 @@ kunit_find_resource(struct kunit *test,
+ 		}
+ 	}
+ 
+-	spin_unlock(&test->lock);
++	spin_unlock_irqrestore(&test->lock, flags);
+ 
+ 	return found;
+ }
+--- a/lib/kunit/test.c~kunit-make-test-lock-irq-safe
++++ a/lib/kunit/test.c
+@@ -475,6 +475,7 @@ int kunit_add_resource(struct kunit *tes
+ 		       void *data)
+ {
+ 	int ret = 0;
++	unsigned long flags;
+ 
+ 	res->free = free;
+ 	kref_init(&res->refcount);
+@@ -487,10 +488,10 @@ int kunit_add_resource(struct kunit *tes
+ 		res->data = data;
+ 	}
+ 
+-	spin_lock(&test->lock);
++	spin_lock_irqsave(&test->lock, flags);
+ 	list_add_tail(&res->node, &test->resources);
+ 	/* refcount for list is established by kref_init() */
+-	spin_unlock(&test->lock);
++	spin_unlock_irqrestore(&test->lock, flags);
+ 
+ 	return ret;
+ }
+@@ -548,9 +549,11 @@ EXPORT_SYMBOL_GPL(kunit_alloc_and_get_re
+ 
+ void kunit_remove_resource(struct kunit *test, struct kunit_resource *res)
+ {
+-	spin_lock(&test->lock);
++	unsigned long flags;
++
++	spin_lock_irqsave(&test->lock, flags);
+ 	list_del(&res->node);
+-	spin_unlock(&test->lock);
++	spin_unlock_irqrestore(&test->lock, flags);
+ 	kunit_put_resource(res);
+ }
+ EXPORT_SYMBOL_GPL(kunit_remove_resource);
+@@ -630,6 +633,7 @@ EXPORT_SYMBOL_GPL(kunit_kfree);
+ void kunit_cleanup(struct kunit *test)
+ {
+ 	struct kunit_resource *res;
++	unsigned long flags;
+ 
+ 	/*
+ 	 * test->resources is a stack - each allocation must be freed in the
+@@ -641,9 +645,9 @@ void kunit_cleanup(struct kunit *test)
+ 	 * protect against the current node being deleted, not the next.
+ 	 */
+ 	while (true) {
+-		spin_lock(&test->lock);
++		spin_lock_irqsave(&test->lock, flags);
+ 		if (list_empty(&test->resources)) {
+-			spin_unlock(&test->lock);
++			spin_unlock_irqrestore(&test->lock, flags);
+ 			break;
+ 		}
+ 		res = list_last_entry(&test->resources,
+@@ -654,7 +658,7 @@ void kunit_cleanup(struct kunit *test)
+ 		 * resource, and this can't happen if the test->lock
+ 		 * is held.
+ 		 */
+-		spin_unlock(&test->lock);
++		spin_unlock_irqrestore(&test->lock, flags);
+ 		kunit_remove_resource(test, res);
+ 	}
+ 	current->kunit_test = NULL;
 _
 
-Patches currently in -mm which might be from ahalaney@redhat.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-init-print-out-unknown-kernel-parameters.patch
+mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex.patch
+kunit-make-test-lock-irq-safe.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-fix.patch
 
