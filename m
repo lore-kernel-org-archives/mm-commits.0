@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60692C433B4
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 21:13:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71499C43460
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 21:40:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2B63D611CA
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 21:13:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 458B96191A
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 21:40:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229996AbhEKVO4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 May 2021 17:14:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57720 "EHLO mail.kernel.org"
+        id S229736AbhEKVlj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 May 2021 17:41:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52346 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230002AbhEKVOx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 May 2021 17:14:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 53C40613C1;
-        Tue, 11 May 2021 21:13:28 +0000 (UTC)
+        id S229637AbhEKVlj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 May 2021 17:41:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ED10D6186A;
+        Tue, 11 May 2021 21:40:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620767608;
-        bh=FaNqLXn0xP+HfLPemhVvI3HjnZNesqWTpZFJgCh7Zg4=;
+        s=korg; t=1620769231;
+        bh=PF0UxSuC0EIGWUJLGw5USlEXp81e23yYehm70MBVb1o=;
         h=Date:From:To:Subject:From;
-        b=T6P9+S7gipP0bjOp+fzbAWbZRv94ckRkkIQXpTuFrVTwS30mzwnmya5xvGaUu/kTI
-         H69NG/X0dOI241HsBWotVr1iAyEjXerjD2Ecat+My1YIJT4YIIAjIhQgdYULNbSEB0
-         DOIheqA0MWiOQUF8KBmH2fqQr2EFK7sNhi/5NYJU=
-Date:   Tue, 11 May 2021 14:13:27 -0700
+        b=RY2KXl2pg18gy2dCFSdPXf4iWxKB/BnPRK8esoYp05mGoyNjmyWJe393ul5aYhQR9
+         FolYzBSdo8oNNNIO+OlCemHOSSWXCJ3PRC3tsWfmTk7v+mugds5RNwrnCqNBcsvmOB
+         wCOJ6JxJI0g7+Mu5sPO/fC8bb2SCTa32eQY7hHVE=
+Date:   Tue, 11 May 2021 14:40:30 -0700
 From:   akpm@linux-foundation.org
-To:     mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, songmuchun@bytedance.com,
-        stable@vger.kernel.org, tony.luck@intel.com
-Subject:  + mmhwpoison-fix-race-with-compound-page-allocation.patch
- added to -mm tree
-Message-ID: <20210511211327.ac1sYg2xy%akpm@linux-foundation.org>
+To:     ahalaney@redhat.com, bp@suse.de, mm-commits@vger.kernel.org,
+        rostedt@goodmis.org
+Subject:  + init-print-out-unknown-kernel-parameters.patch added to
+ -mm tree
+Message-ID: <20210511214030.BlHUS6AG9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: fix race with compound page allocation
+     Subject: init: print out unknown kernel parameters
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-fix-race-with-compound-page-allocation.patch
+     init-print-out-unknown-kernel-parameters.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-fix-race-with-compound-page-allocation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/init-print-out-unknown-kernel-parameters.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-fix-race-with-compound-page-allocation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/init-print-out-unknown-kernel-parameters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,120 +64,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm,hwpoison: fix race with compound page allocation
+From: Andrew Halaney <ahalaney@redhat.com>
+Subject: init: print out unknown kernel parameters
 
-When hugetlb page fault (under overcommiting situation) and
-memory_failure() race, VM_BUG_ON_PAGE() is triggered by the following
-race:
+It is easy to foobar setting a kernel parameter on the command line
+without realizing it, there's not much output that you can use to assess
+what the kernel did with that parameter by default.
 
-    CPU0:                           CPU1:
+Make it a little more explicit which parameters on the command line
+_looked_ like a valid parameter for the kernel, but did not match anything
+and ultimately got tossed to init.  This is very similar to the unknown
+parameter message received when loading a module.
 
-                                    gather_surplus_pages()
-                                      page = alloc_surplus_huge_page()
-    memory_failure_hugetlb()
-      get_hwpoison_page(page)
-        __get_hwpoison_page(page)
-          get_page_unless_zero(page)
-                                      zero = put_page_testzero(page)
-                                      VM_BUG_ON_PAGE(!zero, page)
-                                      enqueue_huge_page(h, page)
-      put_page(page)
+This assumes the parameters are processed in a normal fashion, some
+parameters (dyndbg= for example) don't register their parameter with the
+rest of the kernel's parameters, and therefore always show up in this list
+(and are also given to init - like the rest of this list).
 
-__get_hwpoison_page() only checks page refcount before taking additional
-one for memory error handling, which is wrong because there's time windows
-where compound pages have non-zero refcount during initialization.
+Another example is BOOT_IMAGE= is highlighted as an offender, which it
+technically is, but is passed by LILO and GRUB so most systems will see
+that complaint.
 
-So make __get_hwpoison_page() check page status a bit more for a few types
-of compound pages.  PageSlab() check is added because otherwise "non
-anonymous thp" path is wrongly chosen.
+An example output where "foobared" and "unrecognized" are intentionally
+invalid parameters:
 
-Link: https://lkml.kernel.org/r/20210511151016.2310627-2-nao.horiguchi@gmail.com
-Fixes: ead07f6a867b ("mm/memory-failure: introduce get_hwpoison_page() for consistent refcount handling")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: <stable@vger.kernel.org>	[5.12+]
+  Kernel command line: BOOT_IMAGE=/boot/vmlinuz-5.12-dirty debug log_buf_len=4M foobared unrecognized=foo
+  Unknown command line parameters: foobared BOOT_IMAGE=/boot/vmlinuz-5.12-dirty unrecognized=foo
+
+Link: https://lkml.kernel.org/r/20210511211009.42259-1-ahalaney@redhat.com
+Signed-off-by: Andrew Halaney <ahalaney@redhat.com>
+Suggested-by: Steven Rostedt <rostedt@goodmis.org>
+Suggested-by: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   55 +++++++++++++++++++++++++-----------------
- 1 file changed, 34 insertions(+), 21 deletions(-)
+ init/main.c |   42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
---- a/mm/memory-failure.c~mmhwpoison-fix-race-with-compound-page-allocation
-+++ a/mm/memory-failure.c
-@@ -960,30 +960,43 @@ static int __get_hwpoison_page(struct pa
- {
- 	struct page *head = compound_head(page);
- 
--	if (!PageHuge(head) && PageTransHuge(head)) {
--		/*
--		 * Non anonymous thp exists only in allocation/free time. We
--		 * can't handle such a case correctly, so let's give it up.
--		 * This should be better than triggering BUG_ON when kernel
--		 * tries to touch the "partially handled" page.
--		 */
--		if (!PageAnon(head)) {
--			pr_err("Memory failure: %#lx: non anonymous thp\n",
--				page_to_pfn(page));
--			return 0;
--		}
--	}
-+	if (PageCompound(page)) {
-+		if (PageSlab(page)) {
-+			return get_page_unless_zero(page);
-+		} else if (PageHuge(head)) {
-+			int ret = 0;
- 
--	if (get_page_unless_zero(head)) {
--		if (head == compound_head(page))
--			return 1;
--
--		pr_info("Memory failure: %#lx cannot catch tail\n",
--			page_to_pfn(page));
--		put_page(head);
-+			spin_lock(&hugetlb_lock);
-+			if (!PageHuge(head))
-+				ret = -EBUSY;
-+			else if (HPageFreed(head) || HPageMigratable(head))
-+				ret = get_page_unless_zero(head);
-+			spin_unlock(&hugetlb_lock);
-+			return ret;
-+		} else if (PageTransHuge(head)) {
-+			/*
-+			 * Non anonymous thp exists only in allocation/free time. We
-+			 * can't handle such a case correctly, so let's give it up.
-+			 * This should be better than triggering BUG_ON when kernel
-+			 * tries to touch the "partially handled" page.
-+			 */
-+			if (!PageAnon(head)) {
-+				pr_err("Memory failure: %#lx: non anonymous thp\n",
-+				       page_to_pfn(page));
-+				return 0;
-+			}
-+			if (get_page_unless_zero(head)) {
-+				if (head == compound_head(page))
-+					return 1;
-+				pr_info("Memory failure: %#lx cannot catch tail\n",
-+					page_to_pfn(page));
-+				put_page(head);
-+			}
-+		}
-+		return 0;
- 	}
- 
--	return 0;
-+	return get_page_unless_zero(page);
+--- a/init/main.c~init-print-out-unknown-kernel-parameters
++++ a/init/main.c
+@@ -872,6 +872,47 @@ void __init __weak arch_call_rest_init(v
+ 	rest_init();
  }
  
- /*
++static void __init print_unknown_bootoptions(void)
++{
++	char *unknown_options;
++	char *end;
++	const char *const *p;
++	size_t len;
++
++	if (panic_later || (!argv_init[1] && !envp_init[2]))
++		return;
++
++	/*
++	 * Determine how many options we have to print out, plus a space
++	 * before each
++	 */
++	len = 1; /* null terminator */
++	for (p = &argv_init[1]; *p; p++) {
++		len++;
++		len += strlen(*p);
++	}
++	for (p = &envp_init[2]; *p; p++) {
++		len++;
++		len += strlen(*p);
++	}
++
++	unknown_options = memblock_alloc(len, SMP_CACHE_BYTES);
++	if (!unknown_options) {
++		pr_err("%s: Failed to allocate %zu bytes\n",
++			__func__, len);
++		return;
++	}
++	end = unknown_options;
++
++	for (p = &argv_init[1]; *p; p++)
++		end += sprintf(end, " %s", *p);
++	for (p = &envp_init[2]; *p; p++)
++		end += sprintf(end, " %s", *p);
++
++	pr_notice("Unknown command line parameters:%s\n", unknown_options);
++	memblock_free(__pa(unknown_options), len);
++}
++
+ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
+ {
+ 	char *command_line;
+@@ -913,6 +954,7 @@ asmlinkage __visible void __init __no_sa
+ 				  static_command_line, __start___param,
+ 				  __stop___param - __start___param,
+ 				  -1, -1, NULL, &unknown_bootoption);
++	print_unknown_bootoptions();
+ 	if (!IS_ERR_OR_NULL(after_dashes))
+ 		parse_args("Setting init args", after_dashes, NULL, 0, -1, -1,
+ 			   NULL, set_init_arg);
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from ahalaney@redhat.com are
 
-mmhwpoison-fix-race-with-compound-page-allocation.patch
-mmhwpoison-make-get_hwpoison_page-call-get_any_page.patch
+init-print-out-unknown-kernel-parameters.patch
 
