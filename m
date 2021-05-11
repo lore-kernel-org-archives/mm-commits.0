@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA672C433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 00:27:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01C2DC433B4
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 00:36:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A6FE61448
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 00:27:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB8FC61613
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 00:36:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230396AbhEKA2H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 May 2021 20:28:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54322 "EHLO mail.kernel.org"
+        id S230134AbhEKAhW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 May 2021 20:37:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33646 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230227AbhEKA2G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 10 May 2021 20:28:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DE8BE610CA;
-        Tue, 11 May 2021 00:27:00 +0000 (UTC)
+        id S230153AbhEKAhV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 10 May 2021 20:37:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DF78A61464;
+        Tue, 11 May 2021 00:36:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620692821;
-        bh=K/imxfUUSnAqpb9Jy/G9G0gNExW+2OkQJM8H7BuF+Us=;
+        s=korg; t=1620693376;
+        bh=dyKarSDBfOLONuocDzI3ribY4O9ZiEgB9EO02Sfcdos=;
         h=Date:From:To:Subject:From;
-        b=Ws1gd+1lh5PxfKhU0LinKIpF7g1W6wefe82smVmNA3zSjuO8BRZJVuJZQhVavFVjm
-         MBnrqpQOJz/fiO7pL/M9OLqeSDwg2sgISotANCTEGkCxgW99I4gros3vQzV+8EBWne
-         Nofo7TnLD2Eql0OVyRhf5EWfT8E70h7fSPsmx4OQ=
-Date:   Mon, 10 May 2021 17:27:00 -0700
+        b=VyrZK8c3dkCRYD8o4/O0ST3k6WLYneo/DxfRqYT7Tov8iv4lw555vEycwWXAZ8J4q
+         yeoeEz02G1EyOGki9G+pxDT/7IXZuai4Y4wgg/CXlwzFt2zgaCiy6ajPvJ9PwTmn5W
+         +xLxoPQdWSFuaR0xjhKya71iuc3i9UOHHvBGu4qI=
+Date:   Mon, 10 May 2021 17:36:15 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, christophe.leroy@csgroup.eu,
-        mm-commits@vger.kernel.org, npiggin@gmail.com
-Subject:  + mm-ioremap-fix-iomap_max_page_shift.patch added to -mm
- tree
-Message-ID: <20210511002700.jpuFHBGjC%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        osalvador@suse.de, songmuchun@bytedance.com
+Subject:  +
+ =?US-ASCII?Q?mm-memory=5Fhotplug-disable-memmap=5Fon=5Fmemory-when-hugetl?=
+ =?US-ASCII?Q?b=5Ffree=5Fvmemmap-enabled-fix.patch?= added to -mm tree
+Message-ID: <20210511003615.QIPkGw1eH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ioremap: fix iomap_max_page_shift
+     Subject: mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix
 has been added to the -mm tree.  Its filename is
-     mm-ioremap-fix-iomap_max_page_shift.patch
+     mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-ioremap-fix-iomap_max_page_shift.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-ioremap-fix-iomap_max_page_shift.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,50 +67,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: mm/ioremap: fix iomap_max_page_shift
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix
 
-iomap_max_page_shift is expected to contain a page shift,
-so it can't be a 'bool', has to be an 'unsigned int'
+remove unneeded include, per Oscar
 
-And fix the default values: P4D_SHIFT is when huge iomap is allowed.
-
-Link: https://lkml.kernel.org/r/0d615a242c4470462da547dc332e4ec5f00479dd.1619855673.git.christophe.leroy@csgroup.eu
-Fixes: bbc180a5adb05ee ("mm: HUGE_VMAP arch support cleanup")
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Reviewed-by: Nicholas Piggin <npiggin@gmail.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ioremap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/ioremap.c~mm-ioremap-fix-iomap_max_page_shift
-+++ a/mm/ioremap.c
-@@ -16,16 +16,16 @@
- #include "pgalloc-track.h"
+--- a/drivers/acpi/acpi_memhotplug.c~mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix
++++ a/drivers/acpi/acpi_memhotplug.c
+@@ -15,7 +15,6 @@
+ #include <linux/acpi.h>
+ #include <linux/memory.h>
+ #include <linux/memory_hotplug.h>
+-#include <linux/hugetlb.h>
  
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
--static bool __ro_after_init iomap_max_page_shift = PAGE_SHIFT;
-+static unsigned int __ro_after_init iomap_max_page_shift = P4D_SHIFT;
+ #include "internal.h"
  
- static int __init set_nohugeiomap(char *str)
- {
--	iomap_max_page_shift = P4D_SHIFT;
-+	iomap_max_page_shift = PAGE_SHIFT;
- 	return 0;
- }
- early_param("nohugeiomap", set_nohugeiomap);
- #else /* CONFIG_HAVE_ARCH_HUGE_VMAP */
--static const bool iomap_max_page_shift = PAGE_SHIFT;
-+static const unsigned int iomap_max_page_shift = PAGE_SHIFT;
- #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
- 
- int ioremap_page_range(unsigned long addr,
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-ioremap-fix-iomap_max_page_shift.patch
+mm.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
