@@ -2,103 +2,170 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 341E0C43600
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 05:01:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3B53C433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 13:37:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D88326192A
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 05:01:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8278A61264
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 13:37:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230103AbhEKFCQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 May 2021 01:02:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33568 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229954AbhEKFCQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 May 2021 01:02:16 -0400
-Received: from mail-ot1-x334.google.com (mail-ot1-x334.google.com [IPv6:2607:f8b0:4864:20::334])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73FD7C061574
-        for <mm-commits@vger.kernel.org>; Mon, 10 May 2021 22:01:10 -0700 (PDT)
-Received: by mail-ot1-x334.google.com with SMTP id u25-20020a0568302319b02902ac3d54c25eso16529739ote.1
-        for <mm-commits@vger.kernel.org>; Mon, 10 May 2021 22:01:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:in-reply-to:references:from:user-agent:date:message-id
-         :subject:to;
-        bh=UDgyzdZNkh/OViJ9GacX+Ayr5FPdUp34YMagudoWCUw=;
-        b=G1z9TILc2qg8MpbZphYn25FJlbcSz7GbxYcPnIJfHTrUYDE+2GZagJQSyzurEMcJB1
-         qO4an39koSMWKW8IyPBVT2Y536WXh0Wkwdyzxrjs6SbgK1j19+RZjuaTeGiIU8R2CO8+
-         SLyjVg7RqBWCf9WRJZ5O0r2Dwr7bxZLRrpsgE=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:in-reply-to:references:from
-         :user-agent:date:message-id:subject:to;
-        bh=UDgyzdZNkh/OViJ9GacX+Ayr5FPdUp34YMagudoWCUw=;
-        b=gi6AuI0ExJTGDuCr78SWfS4MM9Io4MibON8op7zlErj/+YRGdXsSYhHgfT07yhjGfX
-         AFTS9OrxhVXwLW63AhW4doqPiG/xlpcqnzkZZAREmT3wgA/VqVzzA3Hu/cBy21IT7Phc
-         zskCqWZrhRKQ/MTr8rLm1+i5SQLO9NBTqBwT021dlwnu8eKBM/87gR89LbrkwhKkYa/K
-         zfsel1He1D96bZlBNf7EazAKf7LGN8EUPbUQ2uusd72t7fAyVvbAVh4nGYdoJ645EYb4
-         pjWR1D42yCxFNXDZqiJlsae2JBYuCKvIAJZcVxXSwM+gDhpsKUMCO7s0oiSxcvshJiJb
-         2Fcw==
-X-Gm-Message-State: AOAM530sUDn5O+bmkT8cqYxyxFxk0/Za3mlTAGxVs7V0/nPYRHbm+d/V
-        trMZc/Gzio0V3t3W+ovco0K9WvWWRoWleA+OOQsRzSWbb2s=
-X-Google-Smtp-Source: ABdhPJwkCi3nw/puL7jTPA4gSmJXbJRyZMrX4hu6xl/DiEKzWMnompb1R3zE2ftb4SDMh4YCIVeqJBPHD1fBgGYqHQU=
-X-Received: by 2002:a9d:425:: with SMTP id 34mr24643710otc.25.1620709269930;
- Mon, 10 May 2021 22:01:09 -0700 (PDT)
-Received: from 753933720722 named unknown by gmailapi.google.com with
- HTTPREST; Mon, 10 May 2021 22:01:09 -0700
+        id S231449AbhEKNiR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 May 2021 09:38:17 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:40282 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S231461AbhEKNiH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 May 2021 09:38:07 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1620740220;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=LwoQZZpKmJO7m3Oo47SDp/7gGXm1U8Gt4xm7MeAFyys=;
+        b=TPBI5pRLd1pJTW0yXBptOYUaHUlMTaLzsh4h3ZI3uE2ZNQk5CntQixIQ+KGqwsnhtQIhFz
+        i9mBBlbp79B3l4YbYm5QR9C3XUWICWA+aol9cVsHd2RlD7d5+PbwV7QTXTMr8Fa8efwGl1
+        nc1QcjSJ6sJlLvBVcm1kvWwxHjszmO4=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-384-1fJqAlQIM8O82D-uJuEWEw-1; Tue, 11 May 2021 09:36:57 -0400
+X-MC-Unique: 1fJqAlQIM8O82D-uJuEWEw-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 18C67192203D;
+        Tue, 11 May 2021 13:36:54 +0000 (UTC)
+Received: from localhost (ovpn-12-34.pek2.redhat.com [10.72.12.34])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id AF5FC5D6A8;
+        Tue, 11 May 2021 13:36:44 +0000 (UTC)
+Date:   Tue, 11 May 2021 21:36:41 +0800
+From:   Baoquan He <bhe@redhat.com>
+To:     David Hildenbrand <david@redhat.com>
+Cc:     Dave Young <dyoung@redhat.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        christian.brauner@ubuntu.com, colin.king@canonical.com,
+        corbet@lwn.net, frederic@kernel.org, gpiccoli@canonical.com,
+        john.p.donnelly@oracle.com, jpoimboe@redhat.com,
+        keescook@chromium.org, linux-mm@kvack.org, masahiroy@kernel.org,
+        mchehab+huawei@kernel.org, mike.kravetz@oracle.com,
+        mingo@kernel.org, mm-commits@vger.kernel.org, paulmck@kernel.org,
+        peterz@infradead.org, rdunlap@infradead.org, rostedt@goodmis.org,
+        rppt@kernel.org, saeed.mirzamohammadi@oracle.com,
+        samitolvanen@google.com, sboyd@kernel.org, tglx@linutronix.de,
+        torvalds@linux-foundation.org, vgoyal@redhat.com,
+        yifeifz2@illinois.edu, Michal Hocko <mhocko@kernel.org>,
+        kasong@redhat.com
+Subject: Re: [patch 48/91] kernel/crash_core: add crashkernel=auto for vmcore
+ creation
+Message-ID: <20210511133641.GE2834@localhost.localdomain>
+References: <20210507010432.IN24PudKT%akpm@linux-foundation.org>
+ <889c6b90-7335-71ce-c955-3596e6ac7c5a@redhat.com>
+ <20210508085133.GA2946@localhost.localdomain>
+ <2d0f53d9-51ca-da57-95a3-583dc81f35ef@redhat.com>
+ <20210510045338.GB2946@localhost.localdomain>
+ <4a544493-0622-ac6d-f14b-fb338e33b25e@redhat.com>
+ <20210510104359.GC2946@localhost.localdomain>
+ <e9332e4e-57bd-9c7c-b3ba-7e3b29fad7c8@redhat.com>
+ <YJkcsswrgAudo2vz@dhcp-128-65.nay.redhat.com>
+ <b111806c-9103-3f77-7135-f1f773d23b80@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20210511015955.j3w372K37%akpm@linux-foundation.org>
-References: <20210511015955.j3w372K37%akpm@linux-foundation.org>
-From:   Stephen Boyd <swboyd@chromium.org>
-User-Agent: alot/0.9.1
-Date:   Mon, 10 May 2021 22:01:09 -0700
-Message-ID: <CAE-0n51RLhb1a9RaBxM-Mj7fEGBAtyoSUF=0_eKi=nA=uakwNA@mail.gmail.com>
-Subject: Re: + module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
- added to -mm tree
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <b111806c-9103-3f77-7135-f1f773d23b80@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Quoting akpm@linux-foundation.org (2021-05-10 18:59:55)
->
-> The patch titled
->      Subject: module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix
-> has been added to the -mm tree.  Its filename is
->      module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
->
-> This patch should soon appear at
->     https://ozlabs.org/~akpm/mmots/broken-out/module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-> and later at
->     https://ozlabs.org/~akpm/mmotm/broken-out/module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
->
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
->
-> The -mm tree is included into linux-next and is updated
-> there every 3-4 working days
->
-> ------------------------------------------------------
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix
->
-> fix build with CONFIG_MODULES=n, tweak code layout
->
-> Cc: Stephen Boyd <swboyd@chromium.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
+On 05/10/21 at 01:56pm, David Hildenbrand wrote:
+> On 10.05.21 13:44, Dave Young wrote:
+> > Hi David,
+> 
+> Hi Dave,
+> 
+> > On 05/10/21 at 01:01pm, David Hildenbrand wrote:
+> > [snip]
+> > > It also bugged me for quite a bit that we don't have a sane way to achieve
+> > > what we're doing here upstream. It somewhat feels like "this doesn't belong
+> > > in the kernel and is user policy" but then, the existing kernel support is
+> > > suboptimal.
+> > > 
+> > > Maybe reserving some "maybe too big but okayish to boot the system in a sane
+> > > environment -- e.g., X% of system RAM and at least Y" size first and
+> > > shrinking it later as triggered by user space early (where we do seem to
+> > > have a way to pre-calculate things now) might actually be a good direction
+> > > to look into.
+> > 
+> > Hmm, that is also an option we considered before.  Even for your
+> > suggestion we still need a kernel option to set the default ratio/value.
+> > and the ratio/value should be another patch which expands crashkernel
+> > syntax.
+> 
+> Right.
+> 
+> > 
+> > Actually the kconfig help text in this patch is indeed misleading, it is
+> > not introducing crashkernel=a:b... and no need to explain about the
+> > crashkernel syntax, the config option is actually just some interface we
+> > can add any valid crashkernel settings to be used by default. So current
+> > patch help text describes the default value of crash auto str, instead
+> > of describes what crash auto str is.
+> 
+> Right. And I would much rather prefer either
+> 
+> a) handling "auto" completely in the kernel, not just setting some
+> questionable default at compile time
 
-Thanks for cleaning up that one.
+Thanks for the suggestions.
 
-Reviewed-by: Stephen Boyd <swboyd@chromium.org>
+If the way adding default value into kernel config is disliked,
+this a) option looks good. We can get value with x% of system RAM, but
+clamp it with CRASH_KERNEL_MIN/MAX. The CRASH_KERNEL_MIN/MAX may need be
+defined with a default value for different ARCHes. It's very close to
+our current implementation, and handling 'auto' in kernel.
+
+And kernel config provided so that people can tune the MIN/MAX value,
+but no need to post patch to do the tuning each time if have to?
+
+
+> b) passing it explicitly in via the cmdline
+> 
+> > 
+> > And crashkernel=auto makes this more flexibly. We can tune the values
+> > easily when upgrading.  But if we pass a fixed value in userspace we
+> > can not know if the value is set by distribution automatically or by user
+> > manually thus we can not blindly update it.
+> 
+> I think there are two different cases:
+> 
+> 
+> 1. kernel space updates the value later during boot. "crashkernel=auto"
+> really does the right thing, meaning
+> 
+> a) allocate something reasonable and safe during early boot
+> b) update the allocation during late boot when we know what kind of system
+> we're running on
+> 
+> Then, we indeed care about "crashkernel=auto" in the kernel and I think it
+> would be a nice thing to have. The only question is on how to make that a
+> little configurable, depending on different thingies we might want to run in
+> the crashkernel (assuming someone doesn't want kdump).
+> 
+> 
+> 2. user space updates the value later during boot
+> 
+> IMHO we don't really car who decided on the value as we do the update from
+> user space. If an admin messes with crashkernel=, the admin can also mess
+> with kdump not doing any overwrites (e.g., make that configurable, or detect
+> the overwrite in kdump somehow).
+> 
+> -- 
+> Thanks,
+> 
+> David / dhildenb
+> 
+
