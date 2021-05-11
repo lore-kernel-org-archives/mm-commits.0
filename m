@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58010C433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 23:39:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECC5EC43460
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 23:40:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 33EAB6187E
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 23:39:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF2CF617C9
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 23:40:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230096AbhEKXlE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 May 2021 19:41:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57782 "EHLO mail.kernel.org"
+        id S230035AbhEKXlH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 May 2021 19:41:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57860 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229637AbhEKXlC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 May 2021 19:41:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2F8A161433;
-        Tue, 11 May 2021 23:39:55 +0000 (UTC)
+        id S230075AbhEKXlF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 May 2021 19:41:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E94C161433;
+        Tue, 11 May 2021 23:39:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620776395;
-        bh=SWoLDUcCyjL2k88fvMVB38y9x3q8jrzxAeI5+IL5aWY=;
+        s=korg; t=1620776398;
+        bh=KdPubehr26f2wEPGbQONBffJn1icK9svc22czBszX+k=;
         h=Date:From:To:Subject:From;
-        b=jUttNTc5JmRqVqv0me+wroe60jvLEKK5VjyMj8HK6wqMYVORW62HXwECcR01uFEzg
-         nHC5tMmlxzS4KmOiSHjWgfmZIXnBJ54vhRSRIxgbc2XMNnTHhpZlCBqhTUV0zS1mZ0
-         Y0o8yI5IJ+gHDC1O1go9z1Lky6LFJJLdi8VEYFrg=
-Date:   Tue, 11 May 2021 16:39:54 -0700
+        b=yVnYCqslo5/Thrg6B3LG47ZI8xlTPHeNCGToUwItbIB1vxRXJmpCK6jdIWFNewbFy
+         BXmWLFYEgnh/hsdh6yr3/KuGq6jfYAvWAWgBHVibaPw3E70liHcbaYFC688n06bdLb
+         dsI5cqyAUmZKl9MePeA/J1KmFAvtAQUCLVkNz4Ow=
+Date:   Tue, 11 May 2021 16:39:57 -0700
 From:   akpm@linux-foundation.org
 To:     anshuman.khandual@arm.com, ardb@kernel.org,
         catalin.marinas@arm.com, david@redhat.com, mark.rutland@arm.com,
         maz@kernel.org, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
         will@kernel.org
-Subject:  +
- include-linux-mmzoneh-add-documentation-for-pfn_valid.patch added to -mm
- tree
-Message-ID: <20210511233954.psGLkNp75%akpm@linux-foundation.org>
+Subject:  + memblock-update-initialization-of-reserved-pages.patch
+ added to -mm tree
+Message-ID: <20210511233957.OOOCsJ700%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/mmzone.h: add documentation for pfn_valid()
+     Subject: memblock: update initialization of reserved pages
 has been added to the -mm tree.  Its filename is
-     include-linux-mmzoneh-add-documentation-for-pfn_valid.patch
+     memblock-update-initialization-of-reserved-pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/include-linux-mmzoneh-add-documentation-for-pfn_valid.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memblock-update-initialization-of-reserved-pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/include-linux-mmzoneh-add-documentation-for-pfn_valid.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memblock-update-initialization-of-reserved-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,72 +67,103 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: include/linux/mmzone.h: add documentation for pfn_valid()
+Subject: memblock: update initialization of reserved pages
 
-Patch series "arm64: drop pfn_valid_within() and simplify pfn_valid()", v4.
+The struct pages representing a reserved memory region are initialized
+using reserve_bootmem_range() function.  This function is called for each
+reserved region just before the memory is freed from memblock to the buddy
+page allocator.
 
-These patches aim to remove CONFIG_HOLES_IN_ZONE and essentially hardwire
-pfn_valid_within() to 1.  
+The struct pages for MEMBLOCK_NOMAP regions are kept with the default
+values set by the memory map initialization which makes it necessary to
+have a special treatment for such pages in pfn_valid() and
+pfn_valid_within().
 
-The idea is to mark NOMAP pages as reserved in the memory map and restore
-the intended semantics of pfn_valid() to designate availability of struct
-page for a pfn.
+Split out initialization of the reserved pages to a function with a
+meaningful name and treat the MEMBLOCK_NOMAP regions the same way as the
+reserved regions and mark struct pages for the NOMAP regions as
+PageReserved.
 
-With this the core mm will be able to cope with the fact that it cannot
-use NOMAP pages and the holes created by NOMAP ranges within MAX_ORDER
-blocks will be treated correctly even without the need for
-pfn_valid_within.
-
-
-This patch (of 4):
-
-Add comment describing the semantics of pfn_valid() that clarifies that
-pfn_valid() only checks for availability of a memory map entry (i.e. 
-struct page) for a PFN rather than availability of usable memory backing
-that PFN.
-
-The most "generic" version of pfn_valid() used by the configurations with
-SPARSEMEM enabled resides in include/linux/mmzone.h so this is the most
-suitable place for documentation about semantics of pfn_valid().
-
-Link: https://lkml.kernel.org/r/20210511100550.28178-1-rppt@kernel.org
-Link: https://lkml.kernel.org/r/20210511100550.28178-2-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210511100550.28178-3-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Suggested-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Acked-by: Ard Biesheuvel <ardb@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Marc Zyngier <maz@kernel.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ include/linux/memblock.h |    4 +++-
+ mm/memblock.c            |   28 ++++++++++++++++++++++++++--
+ 2 files changed, 29 insertions(+), 3 deletions(-)
 
---- a/include/linux/mmzone.h~include-linux-mmzoneh-add-documentation-for-pfn_valid
-+++ a/include/linux/mmzone.h
-@@ -1416,6 +1416,17 @@ static inline int pfn_section_valid(stru
- #endif
+--- a/include/linux/memblock.h~memblock-update-initialization-of-reserved-pages
++++ a/include/linux/memblock.h
+@@ -30,7 +30,9 @@ extern unsigned long long max_possible_p
+  * @MEMBLOCK_NONE: no special request
+  * @MEMBLOCK_HOTPLUG: hotpluggable region
+  * @MEMBLOCK_MIRROR: mirrored region
+- * @MEMBLOCK_NOMAP: don't add to kernel direct mapping
++ * @MEMBLOCK_NOMAP: don't add to kernel direct mapping and treat as
++ * reserved in the memory map; refer to memblock_mark_nomap() description
++ * for further details
+  */
+ enum memblock_flags {
+ 	MEMBLOCK_NONE		= 0x0,	/* No special request */
+--- a/mm/memblock.c~memblock-update-initialization-of-reserved-pages
++++ a/mm/memblock.c
+@@ -906,6 +906,11 @@ int __init_memblock memblock_mark_mirror
+  * @base: the base phys addr of the region
+  * @size: the size of the region
+  *
++ * The memory regions marked with %MEMBLOCK_NOMAP will not be added to the
++ * direct mapping of the physical memory. These regions will still be
++ * covered by the memory map. The struct page representing NOMAP memory
++ * frames in the memory map will be PageReserved()
++ *
+  * Return: 0 on success, -errno on failure.
+  */
+ int __init_memblock memblock_mark_nomap(phys_addr_t base, phys_addr_t size)
+@@ -2002,6 +2007,26 @@ static unsigned long __init __free_memor
+ 	return end_pfn - start_pfn;
+ }
  
- #ifndef CONFIG_HAVE_ARCH_PFN_VALID
-+/**
-+ * pfn_valid - check if there is a valid memory map entry for a PFN
-+ * @pfn: the page frame number to check
-+ *
-+ * Check if there is a valid memory map entry aka struct page for the @pfn.
-+ * Note, that availability of the memory map entry does not imply that
-+ * there is actual usable memory at that @pfn. The struct page may
-+ * represent a hole or an unusable page frame.
-+ *
-+ * Return: 1 for PFNs that have memory map entries and 0 otherwise
-+ */
- static inline int pfn_valid(unsigned long pfn)
++static void __init memmap_init_reserved_pages(void)
++{
++	struct memblock_region *region;
++	phys_addr_t start, end;
++	u64 i;
++
++	/* initialize struct pages for the reserved regions */
++	for_each_reserved_mem_range(i, &start, &end)
++		reserve_bootmem_region(start, end);
++
++	/* and also treat struct pages for the NOMAP regions as PageReserved */
++	for_each_mem_region(region) {
++		if (memblock_is_nomap(region)) {
++			start = region->base;
++			end = start + region->size;
++			reserve_bootmem_region(start, end);
++		}
++	}
++}
++
+ static unsigned long __init free_low_memory_core_early(void)
  {
- 	struct mem_section *ms;
+ 	unsigned long count = 0;
+@@ -2010,8 +2035,7 @@ static unsigned long __init free_low_mem
+ 
+ 	memblock_clear_hotplug(0, -1);
+ 
+-	for_each_reserved_mem_range(i, &start, &end)
+-		reserve_bootmem_region(start, end);
++	memmap_init_reserved_pages();
+ 
+ 	/*
+ 	 * We need to use NUMA_NO_NODE instead of NODE_DATA(0)->node_id
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
