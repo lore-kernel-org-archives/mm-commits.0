@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47BFAC433B4
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:35:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F7C4C433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:35:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2185D616E8
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:35:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 17F38616EA
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:35:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230009AbhEKBgH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 May 2021 21:36:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59938 "EHLO mail.kernel.org"
+        id S230103AbhEKBgL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 May 2021 21:36:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59994 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229628AbhEKBgG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 10 May 2021 21:36:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7EDB361629;
-        Tue, 11 May 2021 01:35:00 +0000 (UTC)
+        id S230061AbhEKBgK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 10 May 2021 21:36:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 244A8616E8;
+        Tue, 11 May 2021 01:35:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620696901;
-        bh=2Tcw3Y0skEcKPylN1NnfWtpCo2zx5X1qc9kcB7tSOuI=;
+        s=korg; t=1620696903;
+        bh=YVcbzZloBOyO/D7nSsEKIPXdEM/wGa8MLvRGRCU8HjI=;
         h=Date:From:To:Subject:From;
-        b=qVytmBk2SomqLH8bIiRoJf0RAHnQP+4IEfrEWxyDx4oIq2Y2bHdK7XNOPg7NkJBX/
-         ThiqB9MCEeViGrUu3uzKjIHKVvZPNNdTyV0T7MNvhjz2ijQqap7vl5tPM+BupucMhw
-         T271kKVzCUCZuRAJ/F9zeQmrbHyqSGQS0Lt0VPrU=
-Date:   Mon, 10 May 2021 18:35:00 -0700
+        b=NCc8GyetKxF2oqoX1GAsy6VY4jnpBjH9oom5V99kjyll7a5DYychSpmKy/kpa+/io
+         1KwXk3w0MxE8pzTmGUWdr/6i7hJvDnDMELJdChssli8WQtVlCQJLMQlhf0EUTkbQrF
+         CA8iZ/ov5VBY6exPoy4DfdO+YCNVh+Xe6+jPSA38=
+Date:   Mon, 10 May 2021 18:35:02 -0700
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, ast@kernel.org, bhe@redhat.com,
         bp@alien8.de, catalin.marinas@arm.com, dyoung@redhat.com,
@@ -39,10 +39,9 @@ To:     andriy.shevchenko@linux.intel.com, ast@kernel.org, bhe@redhat.com,
         sashal@kernel.org, sergey.senozhatsky@gmail.com,
         swboyd@chromium.org, tglx@linutronix.de, vgoyal@redhat.com,
         will@kernel.org, willy@infradead.org
-Subject:  +
- buildid-only-consider-gnu-notes-for-build-id-parsing.patch added to -mm
- tree
-Message-ID: <20210511013500.hgtb63Gkz%akpm@linux-foundation.org>
+Subject:  + buildid-add-api-to-parse-build-id-out-of-buffer.patch
+ added to -mm tree
+Message-ID: <20210511013502.2YpsHLymb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: buildid: only consider GNU notes for build ID parsing
+     Subject: buildid: add API to parse build ID out of buffer
 has been added to the -mm tree.  Its filename is
-     buildid-only-consider-gnu-notes-for-build-id-parsing.patch
+     buildid-add-api-to-parse-build-id-out-of-buffer.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/buildid-only-consider-gnu-notes-for-build-id-parsing.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/buildid-add-api-to-parse-build-id-out-of-buffer.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/buildid-only-consider-gnu-notes-for-build-id-parsing.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/buildid-add-api-to-parse-build-id-out-of-buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,83 +72,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Stephen Boyd <swboyd@chromium.org>
-Subject: buildid: only consider GNU notes for build ID parsing
+Subject: buildid: add API to parse build ID out of buffer
 
-Patch series "Add build ID to stacktraces", v6.
+Add an API that can parse the build ID out of a buffer, instead of a vma,
+to support printing a kernel module's build ID for stack traces.
 
-This series adds the kernel's build ID[1] to the stacktrace header printed
-in oops messages, warnings, etc.  and the build ID for any module that
-appears in the stacktrace after the module name.  The goal is to make the
-stacktrace more self-contained and descriptive by including the relevant
-build IDs in the kernel logs when something goes wrong.  This can be used
-by post processing tools like script/decode_stacktrace.sh and kernel
-developers to easily locate the debug info associated with a kernel crash
-and line up what line and file things started falling apart at.
-
-To show how this can be used I've included a patch to decode_stacktrace.sh
-that downloads the debuginfo from a debuginfod server.  This also includes
-some patches to make the buildid.c file use more const arguments and
-consolidate logic into buildid.c from kdump.  These are left to the end as
-they were mostly cleanup patches.
-
-Here's an example lkdtm stacktrace on arm64.
-
- WARNING: CPU: 4 PID: 3255 at drivers/misc/lkdtm/bugs.c:83 lkdtm_WARNING+0x28/0x30 [lkdtm]
- Modules linked in: lkdtm rfcomm algif_hash algif_skcipher af_alg xt_cgroup uinput xt_MASQUERADE
- CPU: 4 PID: 3255 Comm: bash Not tainted 5.11 #3 aa23f7a1231c229de205662d5a9e0d4c580f19a1
- Hardware name: Google Lazor (rev3+) with KB Backlight (DT)
- pstate: 00400009 (nzcv daif +PAN -UAO -TCO BTYPE=--)
- pc : lkdtm_WARNING+0x28/0x30 [lkdtm]
- lr : lkdtm_do_action+0x24/0x40 [lkdtm]
- sp : ffffffc0134fbca0
- x29: ffffffc0134fbca0 x28: ffffff92d53ba240
- x27: 0000000000000000 x26: 0000000000000000
- x25: 0000000000000000 x24: ffffffe3622352c0
- x23: 0000000000000020 x22: ffffffe362233366
- x21: ffffffe3622352e0 x20: ffffffc0134fbde0
- x19: 0000000000000008 x18: 0000000000000000
- x17: ffffff929b6536fc x16: 0000000000000000
- x15: 0000000000000000 x14: 0000000000000012
- x13: ffffffe380ed892c x12: ffffffe381d05068
- x11: 0000000000000000 x10: 0000000000000000
- x9 : 0000000000000001 x8 : ffffffe362237000
- x7 : aaaaaaaaaaaaaaaa x6 : 0000000000000000
- x5 : 0000000000000000 x4 : 0000000000000001
- x3 : 0000000000000008 x2 : ffffff93fef25a70
- x1 : ffffff93fef15788 x0 : ffffffe3622352e0
- Call trace:
-  lkdtm_WARNING+0x28/0x30 [lkdtm ed5019fdf5e53be37cb1ba7899292d7e143b259e]
-  direct_entry+0x16c/0x1b4 [lkdtm ed5019fdf5e53be37cb1ba7899292d7e143b259e]
-  full_proxy_write+0x74/0xa4
-  vfs_write+0xec/0x2e8
-  ksys_write+0x84/0xf0
-  __arm64_sys_write+0x24/0x30
-  el0_svc_common+0xf4/0x1c0
-  do_el0_svc_compat+0x28/0x3c
-  el0_svc_compat+0x10/0x1c
-  el0_sync_compat_handler+0xa8/0xcc
-  el0_sync_compat+0x178/0x180
- ---[ end trace 3d95032303e59e68 ]---
-
-
-This patch (of 13):
-
-Some kernel elf files have various notes that also happen to have an elf
-note type of '3', which matches NT_GNU_BUILD_ID but the note name isn't
-"GNU".  For example, this note trips up the existing logic:
-
- Owner  Data size   Description
- Xen    0x00000008  Unknown note type: (0x00000003) description data: 00 00 00 ffffff80 ffffffff ffffffff ffffffff ffffffff
-
-Let's make sure that it is a GNU note when parsing the build ID so that we
-can use this function to parse a vmlinux's build ID too.
-
-Link: https://lkml.kernel.org/r/20210511003845.2429846-1-swboyd@chromium.org
-Link: https://lkml.kernel.org/r/20210511003845.2429846-2-swboyd@chromium.org
-Fixes: bd7525dacd7e ("bpf: Move stack_map_get_build_id into lib")
+Link: https://lkml.kernel.org/r/20210511003845.2429846-3-swboyd@chromium.org
 Signed-off-by: Stephen Boyd <swboyd@chromium.org>
-Reported-by: Petr Mladek <pmladek@suse.com>
-Tested-by: Petr Mladek <pmladek@suse.com>
 Cc: Jiri Olsa <jolsa@kernel.org>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Jessica Yu <jeyu@kernel.org>
@@ -163,6 +92,7 @@ Cc: Dave Young <dyoung@redhat.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Petr Mladek <pmladek@suse.com>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Sasha Levin <sashal@kernel.org>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
@@ -173,19 +103,103 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/buildid.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/buildid.h |    1 
+ lib/buildid.c           |   50 ++++++++++++++++++++++++++++----------
+ 2 files changed, 38 insertions(+), 13 deletions(-)
 
---- a/lib/buildid.c~buildid-only-consider-gnu-notes-for-build-id-parsing
-+++ a/lib/buildid.c
-@@ -31,6 +31,7 @@ static inline int parse_build_id(void *p
+--- a/include/linux/buildid.h~buildid-add-api-to-parse-build-id-out-of-buffer
++++ a/include/linux/buildid.h
+@@ -8,5 +8,6 @@
  
- 		if (nhdr->n_type == BUILD_ID &&
- 		    nhdr->n_namesz == sizeof("GNU") &&
-+		    !strcmp((char *)(nhdr + 1), "GNU") &&
- 		    nhdr->n_descsz > 0 &&
- 		    nhdr->n_descsz <= BUILD_ID_SIZE_MAX) {
- 			memcpy(build_id,
+ int build_id_parse(struct vm_area_struct *vma, unsigned char *build_id,
+ 		   __u32 *size);
++int build_id_parse_buf(const void *buf, unsigned char *build_id, u32 buf_size);
+ 
+ #endif
+--- a/lib/buildid.c~buildid-add-api-to-parse-build-id-out-of-buffer
++++ a/lib/buildid.c
+@@ -2,30 +2,23 @@
+ 
+ #include <linux/buildid.h>
+ #include <linux/elf.h>
++#include <linux/kernel.h>
+ #include <linux/pagemap.h>
+ 
+ #define BUILD_ID 3
++
+ /*
+  * Parse build id from the note segment. This logic can be shared between
+  * 32-bit and 64-bit system, because Elf32_Nhdr and Elf64_Nhdr are
+  * identical.
+  */
+-static inline int parse_build_id(void *page_addr,
+-				 unsigned char *build_id,
+-				 __u32 *size,
+-				 void *note_start,
+-				 Elf32_Word note_size)
++static int parse_build_id_buf(unsigned char *build_id,
++			      __u32 *size,
++			      const void *note_start,
++			      Elf32_Word note_size)
+ {
+ 	Elf32_Word note_offs = 0, new_offs;
+ 
+-	/* check for overflow */
+-	if (note_start < page_addr || note_start + note_size < note_start)
+-		return -EINVAL;
+-
+-	/* only supports note that fits in the first page */
+-	if (note_start + note_size > page_addr + PAGE_SIZE)
+-		return -EINVAL;
+-
+ 	while (note_offs + sizeof(Elf32_Nhdr) < note_size) {
+ 		Elf32_Nhdr *nhdr = (Elf32_Nhdr *)(note_start + note_offs);
+ 
+@@ -50,9 +43,27 @@ static inline int parse_build_id(void *p
+ 			break;
+ 		note_offs = new_offs;
+ 	}
++
+ 	return -EINVAL;
+ }
+ 
++static inline int parse_build_id(void *page_addr,
++				 unsigned char *build_id,
++				 __u32 *size,
++				 void *note_start,
++				 Elf32_Word note_size)
++{
++	/* check for overflow */
++	if (note_start < page_addr || note_start + note_size < note_start)
++		return -EINVAL;
++
++	/* only supports note that fits in the first page */
++	if (note_start + note_size > page_addr + PAGE_SIZE)
++		return -EINVAL;
++
++	return parse_build_id_buf(build_id, size, note_start, note_size);
++}
++
+ /* Parse build ID from 32-bit ELF */
+ static int get_build_id_32(void *page_addr, unsigned char *build_id,
+ 			   __u32 *size)
+@@ -148,3 +159,16 @@ out:
+ 	put_page(page);
+ 	return ret;
+ }
++
++/**
++ * build_id_parse_buf - Get build ID from a buffer
++ * @buf:      Elf note section(s) to parse
++ * @buf_size: Size of @buf in bytes
++ * @build_id: Build ID parsed from @buf, at least BUILD_ID_SIZE_MAX long
++ *
++ * Return: 0 on success, -EINVAL otherwise
++ */
++int build_id_parse_buf(const void *buf, unsigned char *build_id, u32 buf_size)
++{
++	return parse_build_id_buf(build_id, NULL, buf, buf_size);
++}
 _
 
 Patches currently in -mm which might be from swboyd@chromium.org are
