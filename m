@@ -7,33 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93EDEC433B4
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 22:00:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51578C433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 22:05:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 707EC6162A
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 22:00:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CC976186A
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 22:05:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229736AbhEKWBh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 May 2021 18:01:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32962 "EHLO mail.kernel.org"
+        id S229736AbhEKWGQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 May 2021 18:06:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35988 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230118AbhEKWBh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 May 2021 18:01:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C9E1A616EA;
-        Tue, 11 May 2021 22:00:29 +0000 (UTC)
+        id S229637AbhEKWGQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 May 2021 18:06:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4F3D0616EA;
+        Tue, 11 May 2021 22:05:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620770430;
-        bh=xdbdCCYlzKezqXT/ZvDlYf+DnBra1mQfR8a8knSfMWQ=;
+        s=korg; t=1620770709;
+        bh=gCEccbcN+cdjmdM/wUBfLn2ehRkU7EEOX61cBhX43S4=;
         h=Date:From:To:Subject:From;
-        b=ucoz86USb8O9PHajQ2i1JmRd3qyL2NWf5nxeixl78nX9FuiJfGI7UdOpmQbKYC2r9
-         lewZ30Q1B+8aTfpgjHAk+Q46BATz+NQWReTbEDNyGe7z2ot3BaITutkNcgOAEw4KWk
-         DTkGY2alImMfWCikID7L+2V2Rm0/RGPn2SyE38og=
-Date:   Tue, 11 May 2021 15:00:29 -0700
+        b=RBrOk6dyNCPiCF2lJ2GsBK+J9wCYGCNqDCo2KkCzmnXW7bPlZSspCC+p99ThNF1lG
+         Qqok8FxWReoWD+zw0A9xcFrc0uemu6gkd2vxDtXmq6cqA38Ptpfi/CTOghIwlDc9RX
+         u0TR3Wrw5YfRPJ6YjlxhY5mZtsJ9abSBUyP6SF0s=
+Date:   Tue, 11 May 2021 15:05:07 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, peterx@redhat.com
-Subject:  + mm-gup-pack-has_pinned-in-mmf_has_pinned-fix.patch
- added to -mm tree
-Message-ID: <20210511220029.m6tGcxUIw%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, aneesh.kumar@linux.ibm.com,
+        anshuman.khandual@arm.com, david@redhat.com, hannes@cmpxchg.org,
+        hughd@google.com, kirill.shutemov@linux.intel.com,
+        linmiaohe@huawei.com, mike.kravetz@oracle.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, rcampbell@nvidia.com, riel@surriel.com,
+        shy828301@gmail.com, songliubraving@fb.com,
+        william.kucharski@oracle.com, willy@infradead.org, ziy@nvidia.com
+Subject:  +
+ mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch added
+ to -mm tree
+Message-ID: <20210511220507.BNn0Bh02X%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fixup! mm: gup: pack has_pinned in MMF_HAS_PINNED
+     Subject: mm/huge_memory.c: remove dedicated macro HPAGE_CACHE_INDEX_MASK
 has been added to the -mm tree.  Its filename is
-     mm-gup-pack-has_pinned-in-mmf_has_pinned-fix.patch
+     mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-pack-has_pinned-in-mmf_has_pinned-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-pack-has_pinned-in-mmf_has_pinned-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,74 +70,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: fixup! mm: gup: pack has_pinned in MMF_HAS_PINNED
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/huge_memory.c: remove dedicated macro HPAGE_CACHE_INDEX_MASK
 
-This fixes build issue with !CONFIG_MMU.
+Patch series "Cleanup and fixup for huge_memory:, v3.
 
-Link: https://lkml.kernel.org/r/YJqWESqyxa8OZA+2@t490s
-Signed-off-by: Peter Xu <peterx@redhat.com>
+This series contains cleanups to remove dedicated macro and remove
+unnecessary tlb_remove_page_size() for huge zero pmd.  Also this adds
+missing read-only THP checking for transparent_hugepage_enabled() and
+avoids discarding hugepage if other processes are mapping it.  More
+details can be found in the respective changelogs.
+
+
+Thi patch (of 5):
+
+Rewrite the pgoff checking logic to remove macro HPAGE_CACHE_INDEX_MASK
+which is only used here to simplify the code.
+
+Link: https://lkml.kernel.org/r/20210511134857.1581273-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210511134857.1581273-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ include/linux/huge_mm.h |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/gup.c~mm-gup-pack-has_pinned-in-mmf_has_pinned-fix
-+++ a/mm/gup.c
-@@ -392,6 +392,17 @@ void unpin_user_pages(struct page **page
- }
- EXPORT_SYMBOL(unpin_user_pages);
+--- a/include/linux/huge_mm.h~mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask
++++ a/include/linux/huge_mm.h
+@@ -152,15 +152,13 @@ static inline bool __transparent_hugepag
  
-+/*
-+ * Set the MMF_HAS_PINNED if not set yet; after set it'll be there for the mm's
-+ * lifecycle.  Avoid setting the bit unless necessary, or it might cause write
-+ * cache bouncing on large SMP machines for concurrent pinned gups.
-+ */
-+static inline void mm_set_has_pinned_flag(unsigned long *mm_flags)
-+{
-+	if (!test_bit(MMF_HAS_PINNED, mm_flags))
-+		set_bit(MMF_HAS_PINNED, mm_flags);
-+}
-+
- #ifdef CONFIG_MMU
- static struct page *no_page_table(struct vm_area_struct *vma,
- 		unsigned int flags)
-@@ -1271,17 +1282,6 @@ retry:
- EXPORT_SYMBOL_GPL(fixup_user_fault);
+ bool transparent_hugepage_enabled(struct vm_area_struct *vma);
  
- /*
-- * Set the MMF_HAS_PINNED if not set yet; after set it'll be there for the mm's
-- * lifecycle.  Avoid setting the bit unless necessary, or it might cause write
-- * cache bouncing on large SMP machines for concurrent pinned gups.
-- */
--static inline void mm_set_has_pinned_flag(unsigned long *mm_flags)
--{
--	if (!test_bit(MMF_HAS_PINNED, mm_flags))
--		set_bit(MMF_HAS_PINNED, mm_flags);
--}
+-#define HPAGE_CACHE_INDEX_MASK (HPAGE_PMD_NR - 1)
 -
--/*
-  * Please note that this function, unlike __get_user_pages will not
-  * return 0 for nr_pages > 0 without FOLL_NOWAIT
-  */
+ static inline bool transhuge_vma_suitable(struct vm_area_struct *vma,
+ 		unsigned long haddr)
+ {
+ 	/* Don't have to check pgoff for anonymous vma */
+ 	if (!vma_is_anonymous(vma)) {
+-		if (((vma->vm_start >> PAGE_SHIFT) & HPAGE_CACHE_INDEX_MASK) !=
+-			(vma->vm_pgoff & HPAGE_CACHE_INDEX_MASK))
++		if (!IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
++				HPAGE_PMD_NR))
+ 			return false;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-hugetlb-fix-f_seal_future_write.patch
-mm-hugetlb-fix-cow-where-page-writtable-in-child.patch
-mm-gup_benchmark-support-threading.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-fix.patch
-userfaultfd-selftests-use-user-mode-only.patch
-userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch
-userfaultfd-selftests-dropping-verify-check-in-locking_thread.patch
-userfaultfd-selftests-only-dump-counts-if-mode-enabled.patch
-userfaultfd-selftests-unify-error-handling.patch
-mm-thp-simplify-copying-of-huge-zero-page-pmd-when-fork.patch
-mm-userfaultfd-fix-uffd-wp-special-cases-for-fork.patch
-mm-userfaultfd-fix-a-few-thp-pmd-missing-uffd-wp-bit.patch
-mm-userfaultfd-fail-uffd-wp-registeration-if-not-supported.patch
-mm-pagemap-export-uffd-wp-protection-information.patch
-userfaultfd-selftests-add-pagemap-uffd-wp-test.patch
+mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
+swap-fix-do_swap_page-race-with-swapoff.patch
+mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
+mm-shmem-fix-shmem_swapin-race-with-swapoff.patch
+mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
+mm-huge_memoryc-use-page-deferred_list.patch
+mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled.patch
+mm-huge_memoryc-remove-unnecessary-tlb_remove_page_size-for-huge-zero-pmd.patch
+mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
 
