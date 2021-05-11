@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A173AC433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:56:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3502C433B4
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:59:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 749C96147E
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:56:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AAD966147D
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:59:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230428AbhEKB5H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 May 2021 21:57:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54864 "EHLO mail.kernel.org"
+        id S230137AbhEKCBC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 May 2021 22:01:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59038 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230427AbhEKB5H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 10 May 2021 21:57:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 943CE61554;
-        Tue, 11 May 2021 01:56:01 +0000 (UTC)
+        id S229948AbhEKCBC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 10 May 2021 22:01:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DADF46147E;
+        Tue, 11 May 2021 01:59:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620698161;
-        bh=kgyPECGLaQQ0xWJapHnIyOzvfV4OYKBhtKemu9x7Ltk=;
+        s=korg; t=1620698396;
+        bh=7Y+VZ0XlVOYNyzgI+kgWui8s/E1ea+wN5JIapBehdPw=;
         h=Date:From:To:Subject:From;
-        b=Y/NZsnx9Qnpl4Xi9BkInyTYgfmOewMQEU7KEXudhdPvK6m8h8RkyuJr7l1JPqZAqI
-         ADKsna4VbSbLjP8E8SkjJZDba0USDbvUABB2bNDfZ4jUlpy807OEWh+XkG/JS5R+ea
-         ohY2FyL11MDa4YentroUG+3J6EigW2E1r/XIFszg=
-Date:   Mon, 10 May 2021 18:56:01 -0700
+        b=cQRPN/+hNRuzEJlQ9foidmM53k5ss6N2e8buOW8wvGLij5UX2eCguR6Rf8/TYTQFx
+         sIgL+r4SX0qui/POkkVR8oCYseUTU1UPBJH1qT2fe6SZZfDlCR/UcnOjmkgSRebypK
+         aZhgKumqGYrUdAgjbBLY/I4xGr+mi9a/YkWk3RZM=
+Date:   Mon, 10 May 2021 18:59:55 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, Liam.Howlett@Oracle.com,
-        mm-commits@vger.kernel.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        swboyd@chromium.org
 Subject:  +
- mm-mmap-use-find_vma_intersection-in-do_mmap-for-overlap.patch added to -mm
- tree
-Message-ID: <20210511015601.OaDxwahgC%akpm@linux-foundation.org>
+ module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+ added to -mm tree
+Message-ID: <20210511015955.j3w372K37%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: use find_vma_intersection() in do_mmap() for overlap
+     Subject: module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix
 has been added to the -mm tree.  Its filename is
-     mm-mmap-use-find_vma_intersection-in-do_mmap-for-overlap.patch
+     module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-use-find_vma_intersection-in-do_mmap-for-overlap.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-use-find_vma_intersection-in-do_mmap-for-overlap.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,38 +65,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mm/mmap: use find_vma_intersection() in do_mmap() for overlap
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix
 
-Using find_vma_intersection() avoids the need for a temporary variable and
-makes the code cleaner.
+fix build with CONFIG_MODULES=n, tweak code layout
 
-Link: https://lkml.kernel.org/r/20210511014328.2902782-1-Liam.Howlett@Oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Stephen Boyd <swboyd@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/module.h |    1 +
+ kernel/module.c        |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/mmap.c~mm-mmap-use-find_vma_intersection-in-do_mmap-for-overlap
-+++ a/mm/mmap.c
-@@ -1457,9 +1457,7 @@ unsigned long do_mmap(struct file *file,
- 		return addr;
- 
- 	if (flags & MAP_FIXED_NOREPLACE) {
--		struct vm_area_struct *vma = find_vma(mm, addr);
--
--		if (vma && vma->vm_start < addr + len)
-+		if (find_vma_intersection(mm, addr, addr + len))
- 			return -EEXIST;
- 	}
- 
+--- a/include/linux/module.h~module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix
++++ a/include/linux/module.h
+@@ -746,6 +746,7 @@ static inline const char *module_address
+ 					  unsigned long *symbolsize,
+ 					  unsigned long *offset,
+ 					  char **modname,
++					  const unsigned char **modbuildid,
+ 					  char *namebuf)
+ {
+ 	return NULL;
+--- a/kernel/module.c~module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix
++++ a/kernel/module.c
+@@ -4267,7 +4267,8 @@ void * __weak dereference_module_functio
+ const char *module_address_lookup(unsigned long addr,
+ 			    unsigned long *size,
+ 			    unsigned long *offset,
+-			    char **modname, const unsigned char **modbuildid,
++			    char **modname,
++			    const unsigned char **modbuildid,
+ 			    char *namebuf)
+ {
+ 	const char *ret = NULL;
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mmap-introduce-unlock_range-for-code-cleanup.patch
-mm-mmap-use-find_vma_intersection-in-do_mmap-for-overlap.patch
+mm.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
