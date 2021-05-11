@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91B34C433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:35:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2E9DC433B4
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:35:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73515616ED
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:35:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C38B561876
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:35:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230356AbhEKBgX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 May 2021 21:36:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60344 "EHLO mail.kernel.org"
+        id S230346AbhEKBg1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 May 2021 21:36:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60406 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230346AbhEKBgX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 10 May 2021 21:36:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2AE946162F;
-        Tue, 11 May 2021 01:35:17 +0000 (UTC)
+        id S230364AbhEKBg1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 10 May 2021 21:36:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2BEFA616EB;
+        Tue, 11 May 2021 01:35:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620696917;
-        bh=Ubm/A0N1XxTrUQPJLVHJErnpGkC9YkoaLOOM/YzV52Q=;
+        s=korg; t=1620696921;
+        bh=+d1F9CPgo8WTAoYghgZHy2zP9n/aq5sHd6f5DNSG+n8=;
         h=Date:From:To:Subject:From;
-        b=LowVWG2uDD7oP17vknhebB+/NjJTWyCp3f887eiauiy6E4JuxJNHKB4FP48SyluBw
-         5jhnC9emGmdIAvdWZcvcXz4HW62XEItUywuxcDsWUo53OVv8+v9eeOGpm9HQREWLjD
-         ftloo3YBFkEGyU5PO6A/ukZcNJuCmnIfjJkdOguU=
-Date:   Mon, 10 May 2021 18:35:16 -0700
+        b=efZFFQmV5lEmFDK5YFZ5DhcIHHWqMtrNHrLXM9xr0BBkc3ZmBWiSjTa+MAur53NDP
+         QAX9UFABtZ2nuE/zqDv1v0F/xjk+/mk1B04rrl6uTqXTYw91C/0U7WXrNwpe1GW2x3
+         VmLvkIow7+a0cifo3OzefIfFMKSfXkmdvOm0qI3g=
+Date:   Mon, 10 May 2021 18:35:19 -0700
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, ast@kernel.org, bhe@redhat.com,
         bp@alien8.de, catalin.marinas@arm.com, dyoung@redhat.com,
@@ -39,9 +39,9 @@ To:     andriy.shevchenko@linux.intel.com, ast@kernel.org, bhe@redhat.com,
         sashal@kernel.org, sergey.senozhatsky@gmail.com,
         swboyd@chromium.org, tglx@linutronix.de, vgoyal@redhat.com,
         will@kernel.org, willy@infradead.org
-Subject:  + arm64-stacktrace-use-%psb-for-backtrace-printing.patch
- added to -mm tree
-Message-ID: <20210511013516.D2C2IAa2Y%akpm@linux-foundation.org>
+Subject:  +
+ x86-dumpstack-use-%psb-%pbb-for-backtrace-printing.patch added to -mm tree
+Message-ID: <20210511013519.xoysi8wZZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: stacktrace: use %pSb for backtrace printing
+     Subject: x86/dumpstack: use %pSb/%pBb for backtrace printing
 has been added to the -mm tree.  Its filename is
-     arm64-stacktrace-use-%psb-for-backtrace-printing.patch
+     x86-dumpstack-use-%psb-%pbb-for-backtrace-printing.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-stacktrace-use-%25psb-for-backtrace-printing.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-dumpstack-use-%25psb-%25pbb-for-backtrace-printing.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-stacktrace-use-%25psb-for-backtrace-printing.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-dumpstack-use-%25psb-%25pbb-for-backtrace-printing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,19 +72,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Stephen Boyd <swboyd@chromium.org>
-Subject: arm64: stacktrace: use %pSb for backtrace printing
+Subject: x86/dumpstack: use %pSb/%pBb for backtrace printing
 
-Let's use the new printk format to print the stacktrace entry when
-printing a backtrace to the kernel logs. This will include any module's
+Let's use the new printk formats to print the stacktrace entries when
+printing a backtrace to the kernel logs.  This will include any module's
 build ID[1] in it so that offline/crash debugging can easily locate the
 debuginfo for a module via something like debuginfod[2].
 
-Link: https://lkml.kernel.org/r/20210511003845.2429846-7-swboyd@chromium.org
+Link: https://lkml.kernel.org/r/20210511003845.2429846-8-swboyd@chromium.org
 Link: https://fedoraproject.org/wiki/Releases/FeatureBuildId [1]
 Link: https://sourceware.org/elfutils/Debuginfod.html [2]
 Signed-off-by: Stephen Boyd <swboyd@chromium.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
 Cc: Jiri Olsa <jolsa@kernel.org>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Jessica Yu <jeyu@kernel.org>
@@ -95,32 +96,31 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Baoquan He <bhe@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dave Young <dyoung@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Sasha Levin <sashal@kernel.org>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/stacktrace.c |    2 +-
+ arch/x86/kernel/dumpstack.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm64/kernel/stacktrace.c~arm64-stacktrace-use-%psb-for-backtrace-printing
-+++ a/arch/arm64/kernel/stacktrace.c
-@@ -155,7 +155,7 @@ NOKPROBE_SYMBOL(walk_stackframe);
- 
- static void dump_backtrace_entry(unsigned long where, const char *loglvl)
+--- a/arch/x86/kernel/dumpstack.c~x86-dumpstack-use-%psb-%pbb-for-backtrace-printing
++++ a/arch/x86/kernel/dumpstack.c
+@@ -69,7 +69,7 @@ static void printk_stack_address(unsigne
+ 				 const char *log_lvl)
  {
--	printk("%s %pS\n", loglvl, (void *)where);
-+	printk("%s %pSb\n", loglvl, (void *)where);
+ 	touch_nmi_watchdog();
+-	printk("%s %s%pB\n", log_lvl, reliable ? "" : "? ", (void *)address);
++	printk("%s %s%pBb\n", log_lvl, reliable ? "" : "? ", (void *)address);
  }
  
- void dump_backtrace(struct pt_regs *regs, struct task_struct *tsk,
+ static int copy_code(struct pt_regs *regs, u8 *buf, unsigned long src,
 _
 
 Patches currently in -mm which might be from swboyd@chromium.org are
