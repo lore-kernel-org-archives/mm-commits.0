@@ -2,165 +2,103 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DE09C433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 21:04:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 573DEC433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 21:09:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DBAC16187E
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 21:04:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2BFC26191E
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 21:09:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229916AbhEKVFN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 May 2021 17:05:13 -0400
-Received: from mx2.suse.de ([195.135.220.15]:50672 "EHLO mx2.suse.de"
+        id S229848AbhEKVKq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 May 2021 17:10:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56000 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229637AbhEKVFM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 May 2021 17:05:12 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id B63A8AEE7;
-        Tue, 11 May 2021 21:04:04 +0000 (UTC)
-MIME-Version: 1.0
-Date:   Tue, 11 May 2021 14:04:04 -0700
-From:   Davidlohr Bueso <dbueso@suse.de>
-To:     akpm@linux-foundation.org
-Cc:     christian.brauner@ubuntu.com, ebiederm@xmission.com,
-        manfred@colorfullife.com, matthias.vonfaber@aox-tech.de,
-        mm-commits@vger.kernel.org, oleg@redhat.com,
-        stable@vger.kernel.org, varad.gautam@suse.com
-Subject: Re: +
- ipc-mqueue-msg-sem-avoid-relying-on-a-stack-reference-past-its-expiry.patch
- added to -mm tree
-In-Reply-To: <20210511014124.mT4-_WhMQ%akpm@linux-foundation.org>
-References: <20210511014124.mT4-_WhMQ%akpm@linux-foundation.org>
-User-Agent: Roundcube Webmail
-Message-ID: <25914fcd8bd2586a6b12e2847d5aa7dc@suse.de>
-X-Sender: dbueso@suse.de
-Organization: SUSE Labs
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+        id S230011AbhEKVKp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 May 2021 17:10:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CBB3C6191D;
+        Tue, 11 May 2021 21:09:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1620767378;
+        bh=0KIFyJh1/gEmDNhKqoO7Ek43lQwpqsR9TpxIa36Be8c=;
+        h=Date:From:To:Subject:From;
+        b=DvJGUtklNP1p/V5ceGHXhVgVGJwWDgI0Y9jwLCgo3SF5/mZcCMRH/QnRXkB3/bVg8
+         pFrxRWKL+GmmjcaUz37b7DhorUHWHhniU/o1kyRA3X72ZAJR6h54jptxFYXuiy1VDY
+         vx73uvr0Pj1nBPEnmtAYtzdZqOAEHH+aI9LnHiUk=
+Date:   Tue, 11 May 2021 14:09:37 -0700
+From:   akpm@linux-foundation.org
+To:     hsiangkao@redhat.com, joe@perches.com, mm-commits@vger.kernel.org,
+        terrelln@fb.com, thisisrast7@gmail.com
+Subject:  +
+ lz4_decompress-declare-lz4_decompress_safe_withprefix64k-static.patch added
+ to -mm tree
+Message-ID: <20210511210937.j1pBrEDvm%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 2021-05-10 18:41, akpm@linux-foundation.org wrote:
-> The patch titled
->      Subject: ipc/mqueue, msg, sem: Avoid relying on a stack reference
-> past its expiry
-> has been added to the -mm tree.  Its filename is
->      
-> ipc-mqueue-msg-sem-avoid-relying-on-a-stack-reference-past-its-expiry.patch
-> 
-> This patch should soon appear at
-> 
-> https://ozlabs.org/~akpm/mmots/broken-out/ipc-mqueue-msg-sem-avoid-relying-on-a-stack-reference-past-its-expiry.patch
-> and later at
-> 
-> https://ozlabs.org/~akpm/mmotm/broken-out/ipc-mqueue-msg-sem-avoid-relying-on-a-stack-reference-past-its-expiry.patch
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when
-> testing your code ***
-> 
-> The -mm tree is included into linux-next and is updated
-> there every 3-4 working days
-> 
-> ------------------------------------------------------
-> From: Varad Gautam <varad.gautam@suse.com>
-> Subject: ipc/mqueue, msg, sem: Avoid relying on a stack reference past
-> its expiry
-> 
-> do_mq_timedreceive calls wq_sleep with a stack local address.  The 
-> sender
-> (do_mq_timedsend) uses this address to later call pipelined_send.
-> 
-> This leads to a very hard to trigger race where a do_mq_timedreceive 
-> call
-> might return and leave do_mq_timedsend to rely on an invalid address,
-> causing the following crash:
-> 
-> [  240.739977] RIP: 0010:wake_q_add_safe+0x13/0x60
-> [  240.739991] Call Trace:
-> [  240.739999]  __x64_sys_mq_timedsend+0x2a9/0x490
-> [  240.740003]  ? auditd_test_task+0x38/0x40
-> [  240.740007]  ? auditd_test_task+0x38/0x40
-> [  240.740011]  do_syscall_64+0x80/0x680
-> [  240.740017]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> [  240.740019] RIP: 0033:0x7f5928e40343
-> 
-> The race occurs as:
-> 
-> 1. do_mq_timedreceive calls wq_sleep with the address of `struct
->    ext_wait_queue` on function stack (aliased as `ewq_addr` here) - it
->    holds a valid `struct ext_wait_queue *` as long as the stack has not
->    been overwritten.
-> 
-> 2. `ewq_addr` gets added to info->e_wait_q[RECV].list in wq_add, and
->    do_mq_timedsend receives it via wq_get_first_waiter(info, RECV) to 
-> call
->    __pipelined_op.
-> 
-> 3. Sender calls __pipelined_op::smp_store_release(&this->state,
->    STATE_READY).  Here is where the race window begins.  (`this` is
->    `ewq_addr`.)
-> 
-> 4. If the receiver wakes up now in do_mq_timedreceive::wq_sleep, it
->    will see `state == STATE_READY` and break.
-> 
-> 5. do_mq_timedreceive returns, and `ewq_addr` is no longer guaranteed
->    to be a `struct ext_wait_queue *` since it was on 
-> do_mq_timedreceive's
->    stack.  (Although the address may not get overwritten until another
->    function happens to touch it, which means it can persist around for 
-> an
->    indefinite time.)
-> 
-> 6. do_mq_timedsend::__pipelined_op() still believes `ewq_addr` is a
->    `struct ext_wait_queue *`, and uses it to find a task_struct to pass 
-> to
->    the wake_q_add_safe call.  In the lucky case where nothing has
->    overwritten `ewq_addr` yet, `ewq_addr->task` is the right 
-> task_struct.
->    In the unlucky case, __pipelined_op::wake_q_add_safe gets handed a
->    bogus address as the receiver's task_struct causing the crash.
-> 
-> do_mq_timedsend::__pipelined_op() should not dereference `this` after
-> setting STATE_READY, as the receiver counterpart is now free to return.
-> Change __pipelined_op to call wake_q_add_safe on the receiver's
-> task_struct returned by get_task_struct, instead of dereferencing 
-> `this`
-> which sits on the receiver's stack.
-> 
-> As Manfred pointed out, the race potentially also exists in
-> ipc/msg.c::expunge_all and ipc/sem.c::wake_up_sem_queue_prepare.  Fix
-> those in the same way.
-> 
-> Link: 
-> https://lkml.kernel.org/r/20210510102950.12551-1-varad.gautam@suse.com
-> Fixes: c5b2cbdbdac563 ("ipc/mqueue.c: update/document memory barriers")
-> Fixes: 8116b54e7e23ef ("ipc/sem.c: document and update memory 
-> barriers")
-> Fixes: 0d97a82ba830d8 ("ipc/msg.c: update and document memory 
-> barriers")
-> Signed-off-by: Varad Gautam <varad.gautam@suse.com>
-> Reported-by: Matthias von Faber <matthias.vonfaber@aox-tech.de>
-> Cc: Christian Brauner <christian.brauner@ubuntu.com>
-> Cc: Oleg Nesterov <oleg@redhat.com>
-> Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-> Cc: Manfred Spraul <manfred@colorfullife.com>
-> Cc: Davidlohr Bueso <dbueso@suse.de>
-> Cc: Manfred Spraul <manfred@colorfullife.com>
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-Acked-by: Davidlohr Bueso <dbueso@suse.de>
+The patch titled
+     Subject: lz4_decompress: declare LZ4_decompress_safe_withPrefix64k static
+has been added to the -mm tree.  Its filename is
+     lz4_decompress-declare-lz4_decompress_safe_withprefix64k-static.patch
+
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/lz4_decompress-declare-lz4_decompress_safe_withprefix64k-static.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/lz4_decompress-declare-lz4_decompress_safe_withprefix64k-static.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Rajat Asthana <thisisrast7@gmail.com>
+Subject: lz4_decompress: declare LZ4_decompress_safe_withPrefix64k static
+
+Declare LZ4_decompress_safe_withPrefix64k as static to fix sparse
+warning:
+
+> warning: symbol 'LZ4_decompress_safe_withPrefix64k' was not declared.
+> Should it be static?
+
+Link: https://lkml.kernel.org/r/20210511154345.610569-1-thisisrast7@gmail.com
+Signed-off-by: Rajat Asthana <thisisrast7@gmail.com>
+Reviewed-by: Nick Terrell <terrelln@fb.com>
+Cc: Gao Xiang <hsiangkao@redhat.com>
+Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/lz4/lz4_decompress.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/lib/lz4/lz4_decompress.c~lz4_decompress-declare-lz4_decompress_safe_withprefix64k-static
++++ a/lib/lz4/lz4_decompress.c
+@@ -481,7 +481,7 @@ int LZ4_decompress_fast(const char *sour
+ 
+ /* ===== Instantiate a few more decoding cases, used more than once. ===== */
+ 
+-int LZ4_decompress_safe_withPrefix64k(const char *source, char *dest,
++static int LZ4_decompress_safe_withPrefix64k(const char *source, char *dest,
+ 				      int compressedSize, int maxOutputSize)
+ {
+ 	return LZ4_decompress_generic(source, dest,
+_
+
+Patches currently in -mm which might be from thisisrast7@gmail.com are
+
+lz4_decompress-declare-lz4_decompress_safe_withprefix64k-static.patch
+
