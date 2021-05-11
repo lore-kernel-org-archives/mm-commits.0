@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62574C433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 22:16:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB709C433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 22:16:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2EA40616EA
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 22:16:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 768466191E
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 22:16:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230002AbhEKWRz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 May 2021 18:17:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40168 "EHLO mail.kernel.org"
+        id S230005AbhEKWR5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 May 2021 18:17:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40210 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229964AbhEKWRy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 May 2021 18:17:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 25E166191C;
-        Tue, 11 May 2021 22:16:47 +0000 (UTC)
+        id S229964AbhEKWR5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 May 2021 18:17:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0408A616EA;
+        Tue, 11 May 2021 22:16:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620771407;
-        bh=2lJI1iDHsXr0g7Vk3K8nqsttaEPcmciIUkorgXYLTGs=;
+        s=korg; t=1620771410;
+        bh=n6exs+4c9NSaScHfLOhVqCo1dihj1d5BgGZ7rOp5jE8=;
         h=Date:From:To:Subject:From;
-        b=RsGgZI0vwRnfTUaVvEYIn4SMhsm01pE3RxHlxHk3+ZeqN0JCDWwhyNVetHqu8by2n
-         KZNiXEuUz6fE+Qdadt1k5uwQckrcXcq6bgmbabejgiFy4Y3pMXLqgCkADQfVSHSssZ
-         IrwbrkVd7JZjJ7s9BQ1BY+dB+HQ3no/wUrhvfnZw=
-Date:   Tue, 11 May 2021 15:16:46 -0700
+        b=aieKZ2Qvlweal3sKe+B/5OYH+s7Z9+Vvs9EDUubdSGWaLXhxE0Qz1xCZFlZx4F9p9
+         ADhmxoECowZzxOWC05fHdknCsz4h4wUEROsrgPEnx014G8PmXLiut1GCzJqsJ4uNPf
+         I4P7rCDCKGbaT15N5Bu87BzoyMjAZS/ydRp77yFY=
+Date:   Tue, 11 May 2021 15:16:49 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, christophe.leroy@csgroup.eu,
         joel@joelfernandes.org, kaleshsingh@google.com,
         mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com
 Subject:  +
- selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
- added to -mm tree
-Message-ID: <20210511221646.bOKQDz3dg%akpm@linux-foundation.org>
+ selftest-mremap_test-avoid-crash-with-static-build.patch added to -mm tree
+Message-ID: <20210511221649.ju2fUPUSi%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest/mremap_test: update the test to handle pagesize other than 4K
+     Subject: selftest/mremap_test: avoid crash with static build
 has been added to the -mm tree.  Its filename is
-     selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
+     selftest-mremap_test-avoid-crash-with-static-build.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftest-mremap_test-avoid-crash-with-static-build.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftest-mremap_test-avoid-crash-with-static-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,191 +66,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: selftest/mremap_test: update the test to handle pagesize other than 4K
+Subject: selftest/mremap_test: avoid crash with static build
 
-Patch series "Speedup mremap on ppc64:, v5.
+With a large mmap map size, we can overlap with the text area and using
+MAP_FIXED results in unmapping that area.  Switch to MAP_FIXED_NOREPLACE
+and handle the EEXIST error.
 
-This patchset enables MOVE_PMD/MOVE_PUD support on power.  This requires
-the platform to support updating higher-level page tables without updating
-page table entries.  This also needs to invalidate the Page Walk Cache on
-architectures supporting the same.
-
-mremap HAVE_MOVE_PMD/PUD optimization time comparison for 1GB region:
-1GB mremap - Source PTE-aligned, Destination PTE-aligned
-  mremap time:      1127034ns
-1GB mremap - Source PMD-aligned, Destination PMD-aligned
-  mremap time:       508817ns
-1GB mremap - Source PUD-aligned, Destination PUD-aligned
-  mremap time:        23046ns
-
-
-This patch (of 5):
-
-Instead of hardcoding 4K page size fetch it using sysconf().  For the
-perf= ormance measurements test still assume 2M and 1G are hugepage sizes.
-
-Link: https://lkml.kernel.org/r/20210422054323.150993-1-aneesh.kumar@linux.ibm.com
-Link: https://lkml.kernel.org/r/20210422054323.150993-2-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20210422054323.150993-3-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Reviewed-by: Kalesh Singh <kaleshsingh@google.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Joel Fernandes <joel@joelfernandes.org>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/mremap_test.c |  111 +++++++++++----------
- 1 file changed, 60 insertions(+), 51 deletions(-)
+ tools/testing/selftests/vm/mremap_test.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/vm/mremap_test.c~selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k
+--- a/tools/testing/selftests/vm/mremap_test.c~selftest-mremap_test-avoid-crash-with-static-build
 +++ a/tools/testing/selftests/vm/mremap_test.c
-@@ -45,14 +45,15 @@ enum {
- 	_4MB = 4ULL << 20,
- 	_1GB = 1ULL << 30,
- 	_2GB = 2ULL << 30,
--	PTE = _4KB,
- 	PMD = _2MB,
- 	PUD = _1GB,
- };
- 
-+#define PTE page_size
-+
- #define MAKE_TEST(source_align, destination_align, size,	\
- 		  overlaps, should_fail, test_name)		\
--{								\
-+(struct test){							\
- 	.name = test_name,					\
- 	.config = {						\
- 		.src_alignment = source_align,			\
-@@ -252,12 +253,17 @@ static int parse_args(int argc, char **a
- 	return 0;
- }
- 
-+#define MAX_TEST 13
-+#define MAX_PERF_TEST 3
- int main(int argc, char **argv)
- {
- 	int failures = 0;
- 	int i, run_perf_tests;
- 	unsigned int threshold_mb = VALIDATION_DEFAULT_THRESHOLD;
- 	unsigned int pattern_seed;
-+	struct test test_cases[MAX_TEST];
-+	struct test perf_test_cases[MAX_PERF_TEST];
-+	int page_size;
- 	time_t t;
- 
- 	pattern_seed = (unsigned int) time(&t);
-@@ -268,56 +274,59 @@ int main(int argc, char **argv)
- 	ksft_print_msg("Test configs:\n\tthreshold_mb=%u\n\tpattern_seed=%u\n\n",
- 		       threshold_mb, pattern_seed);
- 
--	struct test test_cases[] = {
--		/* Expected mremap failures */
--		MAKE_TEST(_4KB, _4KB, _4KB, OVERLAPPING, EXPECT_FAILURE,
--		  "mremap - Source and Destination Regions Overlapping"),
--		MAKE_TEST(_4KB, _1KB, _4KB, NON_OVERLAPPING, EXPECT_FAILURE,
--		  "mremap - Destination Address Misaligned (1KB-aligned)"),
--		MAKE_TEST(_1KB, _4KB, _4KB, NON_OVERLAPPING, EXPECT_FAILURE,
--		  "mremap - Source Address Misaligned (1KB-aligned)"),
--
--		/* Src addr PTE aligned */
--		MAKE_TEST(PTE, PTE, _8KB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "8KB mremap - Source PTE-aligned, Destination PTE-aligned"),
--
--		/* Src addr 1MB aligned */
--		MAKE_TEST(_1MB, PTE, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "2MB mremap - Source 1MB-aligned, Destination PTE-aligned"),
--		MAKE_TEST(_1MB, _1MB, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "2MB mremap - Source 1MB-aligned, Destination 1MB-aligned"),
--
--		/* Src addr PMD aligned */
--		MAKE_TEST(PMD, PTE, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "4MB mremap - Source PMD-aligned, Destination PTE-aligned"),
--		MAKE_TEST(PMD, _1MB, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "4MB mremap - Source PMD-aligned, Destination 1MB-aligned"),
--		MAKE_TEST(PMD, PMD, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "4MB mremap - Source PMD-aligned, Destination PMD-aligned"),
--
--		/* Src addr PUD aligned */
--		MAKE_TEST(PUD, PTE, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "2GB mremap - Source PUD-aligned, Destination PTE-aligned"),
--		MAKE_TEST(PUD, _1MB, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "2GB mremap - Source PUD-aligned, Destination 1MB-aligned"),
--		MAKE_TEST(PUD, PMD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "2GB mremap - Source PUD-aligned, Destination PMD-aligned"),
--		MAKE_TEST(PUD, PUD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "2GB mremap - Source PUD-aligned, Destination PUD-aligned"),
--	};
-+	page_size = sysconf(_SC_PAGESIZE);
- 
--	struct test perf_test_cases[] = {
--		/*
--		 * mremap 1GB region - Page table level aligned time
--		 * comparison.
--		 */
--		MAKE_TEST(PTE, PTE, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "1GB mremap - Source PTE-aligned, Destination PTE-aligned"),
--		MAKE_TEST(PMD, PMD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "1GB mremap - Source PMD-aligned, Destination PMD-aligned"),
--		MAKE_TEST(PUD, PUD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "1GB mremap - Source PUD-aligned, Destination PUD-aligned"),
--	};
-+	/* Expected mremap failures */
-+	test_cases[0] =	MAKE_TEST(page_size, page_size, page_size,
-+				  OVERLAPPING, EXPECT_FAILURE,
-+				  "mremap - Source and Destination Regions Overlapping");
-+
-+	test_cases[1] = MAKE_TEST(page_size, page_size/4, page_size,
-+				  NON_OVERLAPPING, EXPECT_FAILURE,
-+				  "mremap - Destination Address Misaligned (1KB-aligned)");
-+	test_cases[2] = MAKE_TEST(page_size/4, page_size, page_size,
-+				  NON_OVERLAPPING, EXPECT_FAILURE,
-+				  "mremap - Source Address Misaligned (1KB-aligned)");
-+
-+	/* Src addr PTE aligned */
-+	test_cases[3] = MAKE_TEST(PTE, PTE, PTE * 2,
-+				  NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "8KB mremap - Source PTE-aligned, Destination PTE-aligned");
-+
-+	/* Src addr 1MB aligned */
-+	test_cases[4] = MAKE_TEST(_1MB, PTE, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "2MB mremap - Source 1MB-aligned, Destination PTE-aligned");
-+	test_cases[5] = MAKE_TEST(_1MB, _1MB, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "2MB mremap - Source 1MB-aligned, Destination 1MB-aligned");
-+
-+	/* Src addr PMD aligned */
-+	test_cases[6] = MAKE_TEST(PMD, PTE, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "4MB mremap - Source PMD-aligned, Destination PTE-aligned");
-+	test_cases[7] =	MAKE_TEST(PMD, _1MB, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "4MB mremap - Source PMD-aligned, Destination 1MB-aligned");
-+	test_cases[8] = MAKE_TEST(PMD, PMD, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "4MB mremap - Source PMD-aligned, Destination PMD-aligned");
-+
-+	/* Src addr PUD aligned */
-+	test_cases[9] = MAKE_TEST(PUD, PTE, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "2GB mremap - Source PUD-aligned, Destination PTE-aligned");
-+	test_cases[10] = MAKE_TEST(PUD, _1MB, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				   "2GB mremap - Source PUD-aligned, Destination 1MB-aligned");
-+	test_cases[11] = MAKE_TEST(PUD, PMD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				   "2GB mremap - Source PUD-aligned, Destination PMD-aligned");
-+	test_cases[12] = MAKE_TEST(PUD, PUD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				   "2GB mremap - Source PUD-aligned, Destination PUD-aligned");
-+
-+	perf_test_cases[0] =  MAKE_TEST(page_size, page_size, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+					"1GB mremap - Source PTE-aligned, Destination PTE-aligned");
-+	/*
-+	 * mremap 1GB region - Page table level aligned time
-+	 * comparison.
-+	 */
-+	perf_test_cases[1] = MAKE_TEST(PMD, PMD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				       "1GB mremap - Source PMD-aligned, Destination PMD-aligned");
-+	perf_test_cases[2] = MAKE_TEST(PUD, PUD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				       "1GB mremap - Source PUD-aligned, Destination PUD-aligned");
- 
- 	run_perf_tests =  (threshold_mb == VALIDATION_NO_THRESHOLD) ||
- 				(threshold_mb * _1MB >= _1GB);
+@@ -75,9 +75,10 @@ static void *get_source_mapping(struct c
+ retry:
+ 	addr += c.src_alignment;
+ 	src_addr = mmap((void *) addr, c.region_size, PROT_READ | PROT_WRITE,
+-			MAP_FIXED | MAP_ANONYMOUS | MAP_SHARED, -1, 0);
++			MAP_FIXED_NOREPLACE | MAP_ANONYMOUS | MAP_SHARED,
++			-1, 0);
+ 	if (src_addr == MAP_FAILED) {
+-		if (errno == EPERM)
++		if (errno == EPERM || errno == EEXIST)
+ 			goto retry;
+ 		goto error;
+ 	}
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
