@@ -2,47 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31932C433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:35:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65EC1C433B4
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:41:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 001F16186A
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:35:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 462326186A
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 01:41:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230375AbhEKBgo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 May 2021 21:36:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60844 "EHLO mail.kernel.org"
+        id S230185AbhEKBmb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 May 2021 21:42:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36922 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230369AbhEKBgo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 10 May 2021 21:36:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 27E85616ED;
-        Tue, 11 May 2021 01:35:38 +0000 (UTC)
+        id S229736AbhEKBma (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 10 May 2021 21:42:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F2B17616E8;
+        Tue, 11 May 2021 01:41:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620696939;
-        bh=AIrqKA2iXbUhhpQRf+PtyiKyTwHfJtY5ytklVG/7fVM=;
+        s=korg; t=1620697285;
+        bh=Bp15K98u7lJcCrY1DmAUQRqchQKjwnlDaG/J0iA9uwI=;
         h=Date:From:To:Subject:From;
-        b=q4iineZMntC3mn4Z/XJx6JkNEPOq1vNizTTZH7k3RZXIXaKvAXbqMuki1JCI9aK0M
-         QhfrO6uW4YDL1rgmsy+MiEpuQXcmOTVC+q4HJ1POLTN2zPzUI1WLhr2lwdqQ3XcgDT
-         pGZTDos1J2/7Iz2fhrGJkFvR89NNX1bF6GrQU/l4=
-Date:   Mon, 10 May 2021 18:35:37 -0700
+        b=Wi2peu/hPPPLGWNyKY3r09SvMLUt0d7Qn/UXbFOxZz45dNe4GWEMSF6PiF+/n3rMl
+         Wi9ErT4QcLClcX9axcoGUnVG5JxieG5Zseo98/Sfux7O2ll0RBDfkIsGZdIpVUZL+g
+         5SEv7Ny6EvQojRRUpWflEFl2bvqTGBA968ebBi90=
+Date:   Mon, 10 May 2021 18:41:24 -0700
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, ast@kernel.org, bhe@redhat.com,
-        bp@alien8.de, catalin.marinas@arm.com, dyoung@redhat.com,
-        evgreen@chromium.org, hsinyi@chromium.org, jeyu@kernel.org,
-        jolsa@kernel.org, khlebnikov@yandex-team.ru,
-        linux@rasmusvillemoes.dk, mingo@redhat.com,
-        mm-commits@vger.kernel.org, pmladek@suse.com, rostedt@goodmis.org,
-        sashal@kernel.org, sergey.senozhatsky@gmail.com,
-        swboyd@chromium.org, tglx@linutronix.de, vgoyal@redhat.com,
-        will@kernel.org, willy@infradead.org
-Subject:  + kdump-use-vmlinux_build_id-to-simplify.patch added to
- -mm tree
-Message-ID: <20210511013537.n_zDDnaG1%akpm@linux-foundation.org>
+To:     christian.brauner@ubuntu.com, dbueso@suse.de,
+        ebiederm@xmission.com, manfred@colorfullife.com,
+        matthias.vonfaber@aox-tech.de, mm-commits@vger.kernel.org,
+        oleg@redhat.com, stable@vger.kernel.org, varad.gautam@suse.com
+Subject:  +
+ ipc-mqueue-msg-sem-avoid-relying-on-a-stack-reference-past-its-expiry.patch
+ added to -mm tree
+Message-ID: <20210511014124.mT4-_WhMQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdump: use vmlinux_build_id to simplify
+     Subject: ipc/mqueue, msg, sem: Avoid relying on a stack reference past its expiry
 has been added to the -mm tree.  Its filename is
-     kdump-use-vmlinux_build_id-to-simplify.patch
+     ipc-mqueue-msg-sem-avoid-relying-on-a-stack-reference-past-its-expiry.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kdump-use-vmlinux_build_id-to-simplify.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ipc-mqueue-msg-sem-avoid-relying-on-a-stack-reference-past-its-expiry.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kdump-use-vmlinux_build_id-to-simplify.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ipc-mqueue-msg-sem-avoid-relying-on-a-stack-reference-past-its-expiry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,182 +67,146 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Boyd <swboyd@chromium.org>
-Subject: kdump: use vmlinux_build_id to simplify
+From: Varad Gautam <varad.gautam@suse.com>
+Subject: ipc/mqueue, msg, sem: Avoid relying on a stack reference past its expiry
 
-We can use the vmlinux_build_id array here now instead of open coding it. 
-This mostly consolidates code.
+do_mq_timedreceive calls wq_sleep with a stack local address.  The sender
+(do_mq_timedsend) uses this address to later call pipelined_send.
 
-Link: https://lkml.kernel.org/r/20210511003845.2429846-14-swboyd@chromium.org
-Signed-off-by: Stephen Boyd <swboyd@chromium.org>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Jessica Yu <jeyu@kernel.org>
-Cc: Evan Green <evgreen@chromium.org>
-Cc: Hsin-Yi Wang <hsinyi@chromium.org>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Sasha Levin <sashal@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+This leads to a very hard to trigger race where a do_mq_timedreceive call
+might return and leave do_mq_timedsend to rely on an invalid address,
+causing the following crash:
+
+[  240.739977] RIP: 0010:wake_q_add_safe+0x13/0x60
+[  240.739991] Call Trace:
+[  240.739999]  __x64_sys_mq_timedsend+0x2a9/0x490
+[  240.740003]  ? auditd_test_task+0x38/0x40
+[  240.740007]  ? auditd_test_task+0x38/0x40
+[  240.740011]  do_syscall_64+0x80/0x680
+[  240.740017]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+[  240.740019] RIP: 0033:0x7f5928e40343
+
+The race occurs as:
+
+1. do_mq_timedreceive calls wq_sleep with the address of `struct
+   ext_wait_queue` on function stack (aliased as `ewq_addr` here) - it
+   holds a valid `struct ext_wait_queue *` as long as the stack has not
+   been overwritten.
+
+2. `ewq_addr` gets added to info->e_wait_q[RECV].list in wq_add, and
+   do_mq_timedsend receives it via wq_get_first_waiter(info, RECV) to call
+   __pipelined_op.
+
+3. Sender calls __pipelined_op::smp_store_release(&this->state,
+   STATE_READY).  Here is where the race window begins.  (`this` is
+   `ewq_addr`.)
+
+4. If the receiver wakes up now in do_mq_timedreceive::wq_sleep, it
+   will see `state == STATE_READY` and break.
+
+5. do_mq_timedreceive returns, and `ewq_addr` is no longer guaranteed
+   to be a `struct ext_wait_queue *` since it was on do_mq_timedreceive's
+   stack.  (Although the address may not get overwritten until another
+   function happens to touch it, which means it can persist around for an
+   indefinite time.)
+
+6. do_mq_timedsend::__pipelined_op() still believes `ewq_addr` is a
+   `struct ext_wait_queue *`, and uses it to find a task_struct to pass to
+   the wake_q_add_safe call.  In the lucky case where nothing has
+   overwritten `ewq_addr` yet, `ewq_addr->task` is the right task_struct. 
+   In the unlucky case, __pipelined_op::wake_q_add_safe gets handed a
+   bogus address as the receiver's task_struct causing the crash.
+
+do_mq_timedsend::__pipelined_op() should not dereference `this` after
+setting STATE_READY, as the receiver counterpart is now free to return. 
+Change __pipelined_op to call wake_q_add_safe on the receiver's
+task_struct returned by get_task_struct, instead of dereferencing `this`
+which sits on the receiver's stack.
+
+As Manfred pointed out, the race potentially also exists in
+ipc/msg.c::expunge_all and ipc/sem.c::wake_up_sem_queue_prepare.  Fix
+those in the same way.
+
+Link: https://lkml.kernel.org/r/20210510102950.12551-1-varad.gautam@suse.com
+Fixes: c5b2cbdbdac563 ("ipc/mqueue.c: update/document memory barriers")
+Fixes: 8116b54e7e23ef ("ipc/sem.c: document and update memory barriers")
+Fixes: 0d97a82ba830d8 ("ipc/msg.c: update and document memory barriers")
+Signed-off-by: Varad Gautam <varad.gautam@suse.com>
+Reported-by: Matthias von Faber <matthias.vonfaber@aox-tech.de>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/buildid.h    |    2 -
- include/linux/crash_core.h |   12 ++++----
- kernel/crash_core.c        |   50 +----------------------------------
- lib/buildid.c              |    2 -
- 4 files changed, 10 insertions(+), 56 deletions(-)
+ ipc/mqueue.c |    6 ++++--
+ ipc/msg.c    |    6 ++++--
+ ipc/sem.c    |    6 ++++--
+ 3 files changed, 12 insertions(+), 6 deletions(-)
 
---- a/include/linux/buildid.h~kdump-use-vmlinux_build_id-to-simplify
-+++ a/include/linux/buildid.h
-@@ -10,7 +10,7 @@ int build_id_parse(struct vm_area_struct
- 		   __u32 *size);
- int build_id_parse_buf(const void *buf, unsigned char *build_id, u32 buf_size);
- 
--#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID)
-+#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID) || IS_ENABLED(CONFIG_CRASH_CORE)
- extern unsigned char vmlinux_build_id[BUILD_ID_SIZE_MAX];
- void init_vmlinux_build_id(void);
- #else
---- a/include/linux/crash_core.h~kdump-use-vmlinux_build_id-to-simplify
-+++ a/include/linux/crash_core.h
-@@ -38,8 +38,12 @@ phys_addr_t paddr_vmcoreinfo_note(void);
- 
- #define VMCOREINFO_OSRELEASE(value) \
- 	vmcoreinfo_append_str("OSRELEASE=%s\n", value)
--#define VMCOREINFO_BUILD_ID(value) \
--	vmcoreinfo_append_str("BUILD-ID=%s\n", value)
-+#define VMCOREINFO_BUILD_ID()						\
-+	({								\
-+		static_assert(sizeof(vmlinux_build_id) == 20);		\
-+		vmcoreinfo_append_str("BUILD-ID=%20phN\n", vmlinux_build_id); \
-+	})
-+
- #define VMCOREINFO_PAGESIZE(value) \
- 	vmcoreinfo_append_str("PAGESIZE=%ld\n", value)
- #define VMCOREINFO_SYMBOL(name) \
-@@ -69,10 +73,6 @@ extern unsigned char *vmcoreinfo_data;
- extern size_t vmcoreinfo_size;
- extern u32 *vmcoreinfo_note;
- 
--/* raw contents of kernel .notes section */
--extern const void __start_notes __weak;
--extern const void __stop_notes __weak;
--
- Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
- 			  void *data, size_t data_len);
- void final_note(Elf_Word *buf);
---- a/kernel/crash_core.c~kdump-use-vmlinux_build_id-to-simplify
-+++ a/kernel/crash_core.c
-@@ -4,6 +4,7 @@
-  * Copyright (C) 2002-2004 Eric Biederman  <ebiederm@xmission.com>
-  */
- 
-+#include <linux/buildid.h>
- #include <linux/crash_core.h>
- #include <linux/utsname.h>
- #include <linux/vmalloc.h>
-@@ -378,53 +379,6 @@ phys_addr_t __weak paddr_vmcoreinfo_note
- }
- EXPORT_SYMBOL(paddr_vmcoreinfo_note);
- 
--#define NOTES_SIZE (&__stop_notes - &__start_notes)
--#define BUILD_ID_MAX SHA1_DIGEST_SIZE
--#define NT_GNU_BUILD_ID 3
--
--struct elf_note_section {
--	struct elf_note	n_hdr;
--	u8 n_data[];
--};
--
--/*
-- * Add build ID from .notes section as generated by the GNU ld(1)
-- * or LLVM lld(1) --build-id option.
-- */
--static void add_build_id_vmcoreinfo(void)
--{
--	char build_id[BUILD_ID_MAX * 2 + 1];
--	int n_remain = NOTES_SIZE;
--
--	while (n_remain >= sizeof(struct elf_note)) {
--		const struct elf_note_section *note_sec =
--			&__start_notes + NOTES_SIZE - n_remain;
--		const u32 n_namesz = note_sec->n_hdr.n_namesz;
--
--		if (note_sec->n_hdr.n_type == NT_GNU_BUILD_ID &&
--		    n_namesz != 0 &&
--		    !strcmp((char *)&note_sec->n_data[0], "GNU")) {
--			if (note_sec->n_hdr.n_descsz <= BUILD_ID_MAX) {
--				const u32 n_descsz = note_sec->n_hdr.n_descsz;
--				const u8 *s = &note_sec->n_data[n_namesz];
--
--				s = PTR_ALIGN(s, 4);
--				bin2hex(build_id, s, n_descsz);
--				build_id[2 * n_descsz] = '\0';
--				VMCOREINFO_BUILD_ID(build_id);
--				return;
--			}
--			pr_warn("Build ID is too large to include in vmcoreinfo: %u > %u\n",
--				note_sec->n_hdr.n_descsz,
--				BUILD_ID_MAX);
--			return;
--		}
--		n_remain -= sizeof(struct elf_note) +
--			ALIGN(note_sec->n_hdr.n_namesz, 4) +
--			ALIGN(note_sec->n_hdr.n_descsz, 4);
--	}
--}
--
- static int __init crash_save_vmcoreinfo_init(void)
+--- a/ipc/mqueue.c~ipc-mqueue-msg-sem-avoid-relying-on-a-stack-reference-past-its-expiry
++++ a/ipc/mqueue.c
+@@ -1004,12 +1004,14 @@ static inline void __pipelined_op(struct
+ 				  struct mqueue_inode_info *info,
+ 				  struct ext_wait_queue *this)
  {
- 	vmcoreinfo_data = (unsigned char *)get_zeroed_page(GFP_KERNEL);
-@@ -443,7 +397,7 @@ static int __init crash_save_vmcoreinfo_
- 	}
++	struct task_struct *task;
++
+ 	list_del(&this->list);
+-	get_task_struct(this->task);
++	task = get_task_struct(this->task);
  
- 	VMCOREINFO_OSRELEASE(init_uts_ns.name.release);
--	add_build_id_vmcoreinfo();
-+	VMCOREINFO_BUILD_ID();
- 	VMCOREINFO_PAGESIZE(PAGE_SIZE);
- 
- 	VMCOREINFO_SYMBOL(init_uts_ns);
---- a/lib/buildid.c~kdump-use-vmlinux_build_id-to-simplify
-+++ a/lib/buildid.c
-@@ -174,7 +174,7 @@ int build_id_parse_buf(const void *buf,
- 	return parse_build_id_buf(build_id, NULL, buf, buf_size);
+ 	/* see MQ_BARRIER for purpose/pairing */
+ 	smp_store_release(&this->state, STATE_READY);
+-	wake_q_add_safe(wake_q, this->task);
++	wake_q_add_safe(wake_q, task);
  }
  
--#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID)
-+#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID) || IS_ENABLED(CONFIG_CRASH_CORE)
- unsigned char vmlinux_build_id[BUILD_ID_SIZE_MAX] __ro_after_init;
+ /* pipelined_send() - send a message directly to the task waiting in
+--- a/ipc/msg.c~ipc-mqueue-msg-sem-avoid-relying-on-a-stack-reference-past-its-expiry
++++ a/ipc/msg.c
+@@ -251,11 +251,13 @@ static void expunge_all(struct msg_queue
+ 	struct msg_receiver *msr, *t;
  
- /**
+ 	list_for_each_entry_safe(msr, t, &msq->q_receivers, r_list) {
+-		get_task_struct(msr->r_tsk);
++		struct task_struct *r_tsk;
++
++		r_tsk = get_task_struct(msr->r_tsk);
+ 
+ 		/* see MSG_BARRIER for purpose/pairing */
+ 		smp_store_release(&msr->r_msg, ERR_PTR(res));
+-		wake_q_add_safe(wake_q, msr->r_tsk);
++		wake_q_add_safe(wake_q, r_tsk);
+ 	}
+ }
+ 
+--- a/ipc/sem.c~ipc-mqueue-msg-sem-avoid-relying-on-a-stack-reference-past-its-expiry
++++ a/ipc/sem.c
+@@ -784,12 +784,14 @@ would_block:
+ static inline void wake_up_sem_queue_prepare(struct sem_queue *q, int error,
+ 					     struct wake_q_head *wake_q)
+ {
+-	get_task_struct(q->sleeper);
++	struct task_struct *sleeper;
++
++	sleeper = get_task_struct(q->sleeper);
+ 
+ 	/* see SEM_BARRIER_2 for purpose/pairing */
+ 	smp_store_release(&q->status, error);
+ 
+-	wake_q_add_safe(wake_q, q->sleeper);
++	wake_q_add_safe(wake_q, sleeper);
+ }
+ 
+ static void unlink_queue(struct sem_array *sma, struct sem_queue *q)
 _
 
-Patches currently in -mm which might be from swboyd@chromium.org are
+Patches currently in -mm which might be from varad.gautam@suse.com are
 
-buildid-only-consider-gnu-notes-for-build-id-parsing.patch
-buildid-add-api-to-parse-build-id-out-of-buffer.patch
-buildid-stash-away-kernels-build-id-on-init.patch
-dump_stack-add-vmlinux-build-id-to-stack-traces.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces.patch
-arm64-stacktrace-use-%psb-for-backtrace-printing.patch
-x86-dumpstack-use-%psb-%pbb-for-backtrace-printing.patch
-scripts-decode_stacktracesh-support-debuginfod.patch
-scripts-decode_stacktracesh-silence-stderr-messages-from-addr2line-nm.patch
-scripts-decode_stacktracesh-indicate-auto-can-be-used-for-base-path.patch
-buildid-mark-some-arguments-const.patch
-buildid-fix-kernel-doc-notation.patch
-kdump-use-vmlinux_build_id-to-simplify.patch
+ipc-mqueue-msg-sem-avoid-relying-on-a-stack-reference-past-its-expiry.patch
 
