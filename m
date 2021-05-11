@@ -7,43 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE523C43461
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 22:05:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62574C433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 22:16:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9C831616EA
-	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 22:05:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2EA40616EA
+	for <mm-commits@archiver.kernel.org>; Tue, 11 May 2021 22:16:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230182AbhEKWG3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 May 2021 18:06:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36318 "EHLO mail.kernel.org"
+        id S230002AbhEKWRz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 May 2021 18:17:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40168 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230176AbhEKWG2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 May 2021 18:06:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 26CEF6191C;
-        Tue, 11 May 2021 22:05:21 +0000 (UTC)
+        id S229964AbhEKWRy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 May 2021 18:17:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 25E166191C;
+        Tue, 11 May 2021 22:16:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620770721;
-        bh=E/vPkTIXg4MAUxTZkDAl6t8CM+THEnkowMjJvhJjTBI=;
+        s=korg; t=1620771407;
+        bh=2lJI1iDHsXr0g7Vk3K8nqsttaEPcmciIUkorgXYLTGs=;
         h=Date:From:To:Subject:From;
-        b=12Ck+aFKlQ80ThYQjsqxXogrEFlBQwFV7bh5uEGXsiJEVlArse30cWsE/a+oZ44P1
-         HRA+TsvVCvfYOzAa6UZ4ywPf2UtI79xtamAcvd+PXfa597COe4aDZ5oQJVT9wqZ9Al
-         NOUULzTfmqlOYaDBZiLbtSEB5UrXRMCh3dULS9DM=
-Date:   Tue, 11 May 2021 15:05:20 -0700
+        b=RsGgZI0vwRnfTUaVvEYIn4SMhsm01pE3RxHlxHk3+ZeqN0JCDWwhyNVetHqu8by2n
+         KZNiXEuUz6fE+Qdadt1k5uwQckrcXcq6bgmbabejgiFy4Y3pMXLqgCkADQfVSHSssZ
+         IrwbrkVd7JZjJ7s9BQ1BY+dB+HQ3no/wUrhvfnZw=
+Date:   Tue, 11 May 2021 15:16:46 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, aneesh.kumar@linux.ibm.com,
-        anshuman.khandual@arm.com, david@redhat.com, hannes@cmpxchg.org,
-        hughd@google.com, kirill.shutemov@linux.intel.com,
-        linmiaohe@huawei.com, mike.kravetz@oracle.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com, riel@surriel.com,
-        shy828301@gmail.com, songliubraving@fb.com,
-        william.kucharski@oracle.com, willy@infradead.org, ziy@nvidia.com
+To:     aneesh.kumar@linux.ibm.com, christophe.leroy@csgroup.eu,
+        joel@joelfernandes.org, kaleshsingh@google.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com
 Subject:  +
- =?US-ASCII?Q?mm-huge=5Fmemoryc-dont-discard-hugepage-if-other-processes-?=
- =?US-ASCII?Q?are-mapping-it.patch?= added to -mm tree
-Message-ID: <20210511220520.1FFr4oZ81%akpm@linux-foundation.org>
+ selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
+ added to -mm tree
+Message-ID: <20210511221646.bOKQDz3dg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: don't discard hugepage if other processes are mapping it
+     Subject: selftest/mremap_test: update the test to handle pagesize other than 4K
 has been added to the -mm tree.  Its filename is
-     mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
+     selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,62 +66,203 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory.c: don't discard hugepage if other processes are mapping it
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: selftest/mremap_test: update the test to handle pagesize other than 4K
 
-If other processes are mapping any other subpages of the hugepage, i.e. 
-in pte-mapped thp case, page_mapcount() will return 1 incorrectly.  Then
-we would discard the page while other processes are still mapping it.  Fix
-it by using total_mapcount() which can tell whether other processes are
-still mapping it.
+Patch series "Speedup mremap on ppc64:, v5.
 
-Link: https://lkml.kernel.org/r/20210511134857.1581273-6-linmiaohe@huawei.com
-Fixes: b8d3c4c3009d ("mm/huge_memory.c: don't split THP page when MADV_FREE syscall is called")
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+This patchset enables MOVE_PMD/MOVE_PUD support on power.  This requires
+the platform to support updating higher-level page tables without updating
+page table entries.  This also needs to invalidate the Page Walk Cache on
+architectures supporting the same.
+
+mremap HAVE_MOVE_PMD/PUD optimization time comparison for 1GB region:
+1GB mremap - Source PTE-aligned, Destination PTE-aligned
+  mremap time:      1127034ns
+1GB mremap - Source PMD-aligned, Destination PMD-aligned
+  mremap time:       508817ns
+1GB mremap - Source PUD-aligned, Destination PUD-aligned
+  mremap time:        23046ns
+
+
+This patch (of 5):
+
+Instead of hardcoding 4K page size fetch it using sysconf().  For the
+perf= ormance measurements test still assume 2M and 1G are hugepage sizes.
+
+Link: https://lkml.kernel.org/r/20210422054323.150993-1-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20210422054323.150993-2-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Kalesh Singh <kaleshsingh@google.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vm/mremap_test.c |  111 +++++++++++----------
+ 1 file changed, 60 insertions(+), 51 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it
-+++ a/mm/huge_memory.c
-@@ -1610,7 +1610,7 @@ bool madvise_free_huge_pmd(struct mmu_ga
- 	 * If other processes are mapping this page, we couldn't discard
- 	 * the page unless they all do MADV_FREE so let's skip the page.
- 	 */
--	if (page_mapcount(page) != 1)
-+	if (total_mapcount(page) != 1)
- 		goto out;
+--- a/tools/testing/selftests/vm/mremap_test.c~selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k
++++ a/tools/testing/selftests/vm/mremap_test.c
+@@ -45,14 +45,15 @@ enum {
+ 	_4MB = 4ULL << 20,
+ 	_1GB = 1ULL << 30,
+ 	_2GB = 2ULL << 30,
+-	PTE = _4KB,
+ 	PMD = _2MB,
+ 	PUD = _1GB,
+ };
  
- 	if (!trylock_page(page))
++#define PTE page_size
++
+ #define MAKE_TEST(source_align, destination_align, size,	\
+ 		  overlaps, should_fail, test_name)		\
+-{								\
++(struct test){							\
+ 	.name = test_name,					\
+ 	.config = {						\
+ 		.src_alignment = source_align,			\
+@@ -252,12 +253,17 @@ static int parse_args(int argc, char **a
+ 	return 0;
+ }
+ 
++#define MAX_TEST 13
++#define MAX_PERF_TEST 3
+ int main(int argc, char **argv)
+ {
+ 	int failures = 0;
+ 	int i, run_perf_tests;
+ 	unsigned int threshold_mb = VALIDATION_DEFAULT_THRESHOLD;
+ 	unsigned int pattern_seed;
++	struct test test_cases[MAX_TEST];
++	struct test perf_test_cases[MAX_PERF_TEST];
++	int page_size;
+ 	time_t t;
+ 
+ 	pattern_seed = (unsigned int) time(&t);
+@@ -268,56 +274,59 @@ int main(int argc, char **argv)
+ 	ksft_print_msg("Test configs:\n\tthreshold_mb=%u\n\tpattern_seed=%u\n\n",
+ 		       threshold_mb, pattern_seed);
+ 
+-	struct test test_cases[] = {
+-		/* Expected mremap failures */
+-		MAKE_TEST(_4KB, _4KB, _4KB, OVERLAPPING, EXPECT_FAILURE,
+-		  "mremap - Source and Destination Regions Overlapping"),
+-		MAKE_TEST(_4KB, _1KB, _4KB, NON_OVERLAPPING, EXPECT_FAILURE,
+-		  "mremap - Destination Address Misaligned (1KB-aligned)"),
+-		MAKE_TEST(_1KB, _4KB, _4KB, NON_OVERLAPPING, EXPECT_FAILURE,
+-		  "mremap - Source Address Misaligned (1KB-aligned)"),
+-
+-		/* Src addr PTE aligned */
+-		MAKE_TEST(PTE, PTE, _8KB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "8KB mremap - Source PTE-aligned, Destination PTE-aligned"),
+-
+-		/* Src addr 1MB aligned */
+-		MAKE_TEST(_1MB, PTE, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2MB mremap - Source 1MB-aligned, Destination PTE-aligned"),
+-		MAKE_TEST(_1MB, _1MB, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2MB mremap - Source 1MB-aligned, Destination 1MB-aligned"),
+-
+-		/* Src addr PMD aligned */
+-		MAKE_TEST(PMD, PTE, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "4MB mremap - Source PMD-aligned, Destination PTE-aligned"),
+-		MAKE_TEST(PMD, _1MB, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "4MB mremap - Source PMD-aligned, Destination 1MB-aligned"),
+-		MAKE_TEST(PMD, PMD, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "4MB mremap - Source PMD-aligned, Destination PMD-aligned"),
+-
+-		/* Src addr PUD aligned */
+-		MAKE_TEST(PUD, PTE, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2GB mremap - Source PUD-aligned, Destination PTE-aligned"),
+-		MAKE_TEST(PUD, _1MB, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2GB mremap - Source PUD-aligned, Destination 1MB-aligned"),
+-		MAKE_TEST(PUD, PMD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2GB mremap - Source PUD-aligned, Destination PMD-aligned"),
+-		MAKE_TEST(PUD, PUD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2GB mremap - Source PUD-aligned, Destination PUD-aligned"),
+-	};
++	page_size = sysconf(_SC_PAGESIZE);
+ 
+-	struct test perf_test_cases[] = {
+-		/*
+-		 * mremap 1GB region - Page table level aligned time
+-		 * comparison.
+-		 */
+-		MAKE_TEST(PTE, PTE, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "1GB mremap - Source PTE-aligned, Destination PTE-aligned"),
+-		MAKE_TEST(PMD, PMD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "1GB mremap - Source PMD-aligned, Destination PMD-aligned"),
+-		MAKE_TEST(PUD, PUD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "1GB mremap - Source PUD-aligned, Destination PUD-aligned"),
+-	};
++	/* Expected mremap failures */
++	test_cases[0] =	MAKE_TEST(page_size, page_size, page_size,
++				  OVERLAPPING, EXPECT_FAILURE,
++				  "mremap - Source and Destination Regions Overlapping");
++
++	test_cases[1] = MAKE_TEST(page_size, page_size/4, page_size,
++				  NON_OVERLAPPING, EXPECT_FAILURE,
++				  "mremap - Destination Address Misaligned (1KB-aligned)");
++	test_cases[2] = MAKE_TEST(page_size/4, page_size, page_size,
++				  NON_OVERLAPPING, EXPECT_FAILURE,
++				  "mremap - Source Address Misaligned (1KB-aligned)");
++
++	/* Src addr PTE aligned */
++	test_cases[3] = MAKE_TEST(PTE, PTE, PTE * 2,
++				  NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "8KB mremap - Source PTE-aligned, Destination PTE-aligned");
++
++	/* Src addr 1MB aligned */
++	test_cases[4] = MAKE_TEST(_1MB, PTE, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "2MB mremap - Source 1MB-aligned, Destination PTE-aligned");
++	test_cases[5] = MAKE_TEST(_1MB, _1MB, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "2MB mremap - Source 1MB-aligned, Destination 1MB-aligned");
++
++	/* Src addr PMD aligned */
++	test_cases[6] = MAKE_TEST(PMD, PTE, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "4MB mremap - Source PMD-aligned, Destination PTE-aligned");
++	test_cases[7] =	MAKE_TEST(PMD, _1MB, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "4MB mremap - Source PMD-aligned, Destination 1MB-aligned");
++	test_cases[8] = MAKE_TEST(PMD, PMD, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "4MB mremap - Source PMD-aligned, Destination PMD-aligned");
++
++	/* Src addr PUD aligned */
++	test_cases[9] = MAKE_TEST(PUD, PTE, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "2GB mremap - Source PUD-aligned, Destination PTE-aligned");
++	test_cases[10] = MAKE_TEST(PUD, _1MB, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				   "2GB mremap - Source PUD-aligned, Destination 1MB-aligned");
++	test_cases[11] = MAKE_TEST(PUD, PMD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				   "2GB mremap - Source PUD-aligned, Destination PMD-aligned");
++	test_cases[12] = MAKE_TEST(PUD, PUD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				   "2GB mremap - Source PUD-aligned, Destination PUD-aligned");
++
++	perf_test_cases[0] =  MAKE_TEST(page_size, page_size, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++					"1GB mremap - Source PTE-aligned, Destination PTE-aligned");
++	/*
++	 * mremap 1GB region - Page table level aligned time
++	 * comparison.
++	 */
++	perf_test_cases[1] = MAKE_TEST(PMD, PMD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				       "1GB mremap - Source PMD-aligned, Destination PMD-aligned");
++	perf_test_cases[2] = MAKE_TEST(PUD, PUD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				       "1GB mremap - Source PUD-aligned, Destination PUD-aligned");
+ 
+ 	run_perf_tests =  (threshold_mb == VALIDATION_NO_THRESHOLD) ||
+ 				(threshold_mb * _1MB >= _1GB);
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
-swap-fix-do_swap_page-race-with-swapoff.patch
-mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
-mm-shmem-fix-shmem_swapin-race-with-swapoff.patch
-mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
-mm-huge_memoryc-use-page-deferred_list.patch
-mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled.patch
-mm-huge_memoryc-remove-unnecessary-tlb_remove_page_size-for-huge-zero-pmd.patch
-mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
+selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
+selftest-mremap_test-avoid-crash-with-static-build.patch
+mm-mremap-use-pmd-pud_poplulate-to-update-page-table-entries.patch
+powerpc-mm-book3s64-fix-possible-build-error.patch
+powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument.patch
+mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush.patch
+mm-mremap-move-tlb-flush-outside-page-table-lock.patch
+mm-mremap-allow-arch-runtime-override.patch
+powerpc-mm-enable-move-pmd-pud.patch
 
