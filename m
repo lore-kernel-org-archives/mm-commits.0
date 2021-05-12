@@ -2,100 +2,131 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24912C43470
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 681D1C43600
 	for <mm-commits@archiver.kernel.org>; Wed, 12 May 2021 23:32:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0C16D613C0
+	by mail.kernel.org (Postfix) with ESMTP id 46DC0613C0
 	for <mm-commits@archiver.kernel.org>; Wed, 12 May 2021 23:32:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347258AbhELXdx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 May 2021 19:33:53 -0400
-Received: from ozlabs.org ([203.11.71.1]:51141 "EHLO ozlabs.org"
+        id S240434AbhELXdy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 May 2021 19:33:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49956 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232412AbhELXOA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 May 2021 19:14:00 -0400
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4FgVtx3r9Rz9sTD;
-        Thu, 13 May 2021 09:12:41 +1000 (AEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1620861167;
-        bh=l8tsPajG5xcCFCmI4CWEubDvjGpqIe/reeWRfOvcH7s=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=lziy5N+dl9qFsfQ7FbfPrTMXgtJnaREtz9U+qcUw60RsCqalM+5BgATXhAE7vRpOk
-         GtIeceQ8j3Xe7g/5nuLC+LkV1Z6Q8LsNXr6LbXJpuKktFwua4Hf4qYf96cxd+mU8l1
-         XT8G405eae6Dg8i50uHjx4O4nbW5z4Mo+Npv1vpcRDUr0QF3STs13PrsnObyTNen2h
-         lIXiDd5S4Mb0XiLUluELIYHaBJBdYgx2Htivhhawt3o1W4i7faxCyupcT8xMKsakn8
-         jd0HKtZ1zkscPnZ7cWLNXRF5tU9KEB6eeYVoaqHK9L1oWxM3qNPr8ygOaeuSztExsJ
-         ExBderxMF7O7w==
-Date:   Thu, 13 May 2021 09:12:40 +1000
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     akpm@linux-foundation.org
-Cc:     aarcange@redhat.com, almasrymina@google.com,
-        axelrasmussen@google.com, bgeffon@google.com, dgilbert@redhat.com,
-        hughd@google.com, jglisse@redhat.com, joe@perches.com,
-        kirill@shutemov.name, lokeshgidra@google.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        oupton@google.com, peterx@redhat.com, rppt@linux.vnet.ibm.com,
-        shli@fb.com, shuah@kernel.org, viro@zeniv.linux.org.uk,
-        wangqing@vivo.com
-Subject: Re: [withdrawn]
- userfaultfd-hugetlbfs-avoid-including-userfaultfd_kh-in-hugetlbh.patch
- removed from -mm tree
-Message-ID: <20210513091240.35a0c176@canb.auug.org.au>
-In-Reply-To: <20210512222309.YOT37EwET%akpm@linux-foundation.org>
-References: <20210512222309.YOT37EwET%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/zTIkXvgWsZQSX4DcPFTZgwC";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+        id S238214AbhELXZc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 May 2021 19:25:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CD4E3613DA;
+        Wed, 12 May 2021 23:24:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1620861863;
+        bh=ICaPhOw2PzNRCapA4TL/H+ycdoD80zkJEo117W3aKvU=;
+        h=Date:From:To:Subject:From;
+        b=cmdmmU1Ur1plC0f9IgUmVBnQhZeddLMnxjoSd2ph7LWyGKUO/cp28CuBY/Fp2ZMlE
+         R5mTXNOQWAdE5TvjsceOregMh/9D4vBtgb//kTRxYBaRHWvWQGBfxtCbB2vRtL9xYY
+         8UZbgT79a8HI6uGhG30D6bwLYPcEUPJR01hm/z5I=
+Date:   Wed, 12 May 2021 16:24:22 -0700
+From:   akpm@linux-foundation.org
+To:     hkallweit1@gmail.com, mm-commits@vger.kernel.org
+Subject:  + mm-page_alloc-switch-to-pr_debug.patch added to -mm
+ tree
+Message-ID: <20210512232422.e1VUPH6as%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/zTIkXvgWsZQSX4DcPFTZgwC
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi Andrew,
+The patch titled
+     Subject: mm/page_alloc: switch to pr_debug
+has been added to the -mm tree.  Its filename is
+     mm-page_alloc-switch-to-pr_debug.patch
 
-On Wed, 12 May 2021 15:23:09 -0700 akpm@linux-foundation.org wrote:
->
-> The patch titled
->      Subject: userfaultfd/hugetlbfs: avoid including userfaultfd_k.h in h=
-ugetlb.h
-> has been removed from the -mm tree.  Its filename was
->      userfaultfd-hugetlbfs-avoid-including-userfaultfd_kh-in-hugetlbh.pat=
-ch
->=20
-> This patch was dropped because it was withdrawn
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-switch-to-pr_debug.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-switch-to-pr_debug.patch
 
-Removed from linux-next.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---=20
-Cheers,
-Stephen Rothwell
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
---Sig_/zTIkXvgWsZQSX4DcPFTZgwC
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
------BEGIN PGP SIGNATURE-----
+------------------------------------------------------
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: mm/page_alloc: switch to pr_debug
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmCcYOgACgkQAVBC80lX
-0GyvAAf+JnvpEejT0IkWE0Grnls5xjoJcaUUReFpI/JRcryLXzKoCz7fJV6v/ESs
-XIBXjZUdUYfaVWh1ivRw4OO7/3KRP7YGfhHT1Sd7fLZY4j0MIDytY7Ka2wusgb8O
-vH4+M0pHijOY/IBUlfDDPwyKgGpo/V5siG4glZ4RT8kb2GWEspsAqU+y710XJGNW
-pZFETD2VJji3NRj766NC9jU3SgG7nVw4XCbwT5RN0ELcxZwsDbppbqOSj/CkrNhZ
-iyaf0vofas2rkKzbg4/O9S74pPdwnIa0Lg2CbnBkHftk1uJBMr+zLyiiXPghVH3n
-uO0KLWtY4olacxPq4eG0zOHTkGnUZA==
-=YCfM
------END PGP SIGNATURE-----
+Having such debug messages in the dmesg log may confuse users.  Therefore
+restrict debug output to cases where DEBUG is defined or dynamic debugging
+is enabled for the respective code piece.
 
---Sig_/zTIkXvgWsZQSX4DcPFTZgwC--
+Link: https://lkml.kernel.org/r/976adb93-3041-ce63-48fc-55a6096a51c1@gmail.com
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/page_alloc.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
+
+--- a/mm/page_alloc.c~mm-page_alloc-switch-to-pr_debug
++++ a/mm/page_alloc.c
+@@ -6742,9 +6742,8 @@ static __meminit void zone_pcp_init(stru
+ 	zone->pageset_batch = BOOT_PAGESET_BATCH;
+ 
+ 	if (populated_zone(zone))
+-		printk(KERN_DEBUG "  %s zone: %lu pages, LIFO batch:%u\n",
+-			zone->name, zone->present_pages,
+-					 zone_batchsize(zone));
++		pr_debug("  %s zone: %lu pages, LIFO batch:%u\n", zone->name,
++			 zone->present_pages, zone_batchsize(zone));
+ }
+ 
+ void __meminit init_currently_empty_zone(struct zone *zone,
+@@ -7014,8 +7013,7 @@ static void __init calculate_node_totalp
+ 
+ 	pgdat->node_spanned_pages = totalpages;
+ 	pgdat->node_present_pages = realtotalpages;
+-	printk(KERN_DEBUG "On node %d totalpages: %lu\n", pgdat->node_id,
+-							realtotalpages);
++	pr_debug("On node %d totalpages: %lu\n", pgdat->node_id, realtotalpages);
+ }
+ 
+ #ifndef CONFIG_SPARSEMEM
+@@ -7215,9 +7213,8 @@ static void __init free_area_init_core(s
+ 			if (freesize >= memmap_pages) {
+ 				freesize -= memmap_pages;
+ 				if (memmap_pages)
+-					printk(KERN_DEBUG
+-					       "  %s zone: %lu pages used for memmap\n",
+-					       zone_names[j], memmap_pages);
++					pr_debug("  %s zone: %lu pages used for memmap\n",
++						 zone_names[j], memmap_pages);
+ 			} else
+ 				pr_warn("  %s zone: %lu pages exceeds freesize %lu\n",
+ 					zone_names[j], memmap_pages, freesize);
+@@ -7226,8 +7223,7 @@ static void __init free_area_init_core(s
+ 		/* Account for reserved pages */
+ 		if (j == 0 && freesize > dma_reserve) {
+ 			freesize -= dma_reserve;
+-			printk(KERN_DEBUG "  %s zone: %lu pages reserved\n",
+-					zone_names[0], dma_reserve);
++			pr_debug("  %s zone: %lu pages reserved\n", zone_names[0], dma_reserve);
+ 		}
+ 
+ 		if (!is_highmem_idx(j))
+_
+
+Patches currently in -mm which might be from hkallweit1@gmail.com are
+
+mm-page_alloc-switch-to-pr_debug.patch
+
