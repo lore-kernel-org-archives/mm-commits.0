@@ -7,33 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 681D1C43600
-	for <mm-commits@archiver.kernel.org>; Wed, 12 May 2021 23:32:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAD89C433ED
+	for <mm-commits@archiver.kernel.org>; Wed, 12 May 2021 23:56:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 46DC0613C0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 May 2021 23:32:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B95F361206
+	for <mm-commits@archiver.kernel.org>; Wed, 12 May 2021 23:56:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240434AbhELXdy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 May 2021 19:33:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49956 "EHLO mail.kernel.org"
+        id S243981AbhELX5V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 May 2021 19:57:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56672 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238214AbhELXZc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 May 2021 19:25:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CD4E3613DA;
-        Wed, 12 May 2021 23:24:22 +0000 (UTC)
+        id S235865AbhELXpV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 May 2021 19:45:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E0C6D61405;
+        Wed, 12 May 2021 23:44:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620861863;
-        bh=ICaPhOw2PzNRCapA4TL/H+ycdoD80zkJEo117W3aKvU=;
+        s=korg; t=1620863052;
+        bh=kdI4fMVRxDbccet7pLb6vGPngjZzNmT6UfizLUBkC0A=;
         h=Date:From:To:Subject:From;
-        b=cmdmmU1Ur1plC0f9IgUmVBnQhZeddLMnxjoSd2ph7LWyGKUO/cp28CuBY/Fp2ZMlE
-         R5mTXNOQWAdE5TvjsceOregMh/9D4vBtgb//kTRxYBaRHWvWQGBfxtCbB2vRtL9xYY
-         8UZbgT79a8HI6uGhG30D6bwLYPcEUPJR01hm/z5I=
-Date:   Wed, 12 May 2021 16:24:22 -0700
+        b=P5RfOh3zOfZFc3KSa5ku7Cuk58FzXGtfgciOo3wgw8jpG3/FcXU/LoqSmjEyuipWY
+         LOem1AkcOjK80v2q/mj7fl4rxWz5vjalC8sQqMBWkaUpRvEDEv5YFPYkAc1pHr+vrg
+         7a07XBBMnER1qyfomuN7s/afYBPhmOKI4lo7+Upw=
+Date:   Wed, 12 May 2021 16:44:11 -0700
 From:   akpm@linux-foundation.org
-To:     hkallweit1@gmail.com, mm-commits@vger.kernel.org
-Subject:  + mm-page_alloc-switch-to-pr_debug.patch added to -mm
+To:     cl@linux.com, guro@fb.com, hannes@cmpxchg.org,
+        iamjoonsoo.kim@lge.com, longman@redhat.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, shakeelb@google.com, vbabka@suse.cz,
+        vdavydov.dev@gmail.com
+Subject:  +
+ mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch added to -mm
  tree
-Message-ID: <20210512232422.e1VUPH6as%akpm@linux-foundation.org>
+Message-ID: <20210512234411.E8Hh78uFR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: switch to pr_debug
+     Subject: mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-switch-to-pr_debug.patch
+     mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-switch-to-pr_debug.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-switch-to-pr_debug.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,70 +68,113 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: mm/page_alloc: switch to pr_debug
+From: Waiman Long <longman@redhat.com>
+Subject: mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5
 
-Having such debug messages in the dmesg log may confuse users.  Therefore
-restrict debug output to cases where DEBUG is defined or dynamic debugging
-is enabled for the respective code piece.
+It turns out that the previous patch doesn't work if CONFIG_ZONE_DMA isn't
+defined.
 
-Link: https://lkml.kernel.org/r/976adb93-3041-ce63-48fc-55a6096a51c1@gmail.com
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Link: https://lkml.kernel.org/r/20210512145107.6208-1-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ include/linux/slab.h |   11 ++++++-----
+ mm/internal.h        |    5 -----
+ mm/memcontrol.c      |    2 +-
+ mm/slab_common.c     |    9 ++-------
+ 4 files changed, 9 insertions(+), 18 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-switch-to-pr_debug
-+++ a/mm/page_alloc.c
-@@ -6742,9 +6742,8 @@ static __meminit void zone_pcp_init(stru
- 	zone->pageset_batch = BOOT_PAGESET_BATCH;
+--- a/include/linux/slab.h~mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5
++++ a/include/linux/slab.h
+@@ -312,16 +312,17 @@ static inline void __check_heap_object(c
+  */
+ enum kmalloc_cache_type {
+ 	KMALLOC_NORMAL = 0,
+-#ifdef CONFIG_MEMCG_KMEM
+-	KMALLOC_CGROUP,
+-#else
++#ifndef CONFIG_ZONE_DMA
++	KMALLOC_DMA = KMALLOC_NORMAL,
++#endif
++#ifndef CONFIG_MEMCG_KMEM
+ 	KMALLOC_CGROUP = KMALLOC_NORMAL,
++#else
++	KMALLOC_CGROUP,
+ #endif
+ 	KMALLOC_RECLAIM,
+ #ifdef CONFIG_ZONE_DMA
+ 	KMALLOC_DMA,
+-#else
+-	KMALLOC_DMA = KMALLOC_NORMAL,
+ #endif
+ 	NR_KMALLOC_TYPES
+ };
+--- a/mm/internal.h~mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5
++++ a/mm/internal.h
+@@ -116,11 +116,6 @@ extern void putback_lru_page(struct page
+ extern pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address);
  
- 	if (populated_zone(zone))
--		printk(KERN_DEBUG "  %s zone: %lu pages, LIFO batch:%u\n",
--			zone->name, zone->present_pages,
--					 zone_batchsize(zone));
-+		pr_debug("  %s zone: %lu pages, LIFO batch:%u\n", zone->name,
-+			 zone->present_pages, zone_batchsize(zone));
- }
+ /*
+- * in mm/memcontrol.c:
+- */
+-extern bool cgroup_memory_nokmem;
+-
+-/*
+  * in mm/page_alloc.c
+  */
  
- void __meminit init_currently_empty_zone(struct zone *zone,
-@@ -7014,8 +7013,7 @@ static void __init calculate_node_totalp
+--- a/mm/memcontrol.c~mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5
++++ a/mm/memcontrol.c
+@@ -83,7 +83,7 @@ DEFINE_PER_CPU(struct mem_cgroup *, int_
+ static bool cgroup_memory_nosocket;
  
- 	pgdat->node_spanned_pages = totalpages;
- 	pgdat->node_present_pages = realtotalpages;
--	printk(KERN_DEBUG "On node %d totalpages: %lu\n", pgdat->node_id,
--							realtotalpages);
-+	pr_debug("On node %d totalpages: %lu\n", pgdat->node_id, realtotalpages);
- }
+ /* Kernel memory accounting disabled? */
+-bool cgroup_memory_nokmem;
++static bool cgroup_memory_nokmem;
  
- #ifndef CONFIG_SPARSEMEM
-@@ -7215,9 +7213,8 @@ static void __init free_area_init_core(s
- 			if (freesize >= memmap_pages) {
- 				freesize -= memmap_pages;
- 				if (memmap_pages)
--					printk(KERN_DEBUG
--					       "  %s zone: %lu pages used for memmap\n",
--					       zone_names[j], memmap_pages);
-+					pr_debug("  %s zone: %lu pages used for memmap\n",
-+						 zone_names[j], memmap_pages);
- 			} else
- 				pr_warn("  %s zone: %lu pages exceeds freesize %lu\n",
- 					zone_names[j], memmap_pages, freesize);
-@@ -7226,8 +7223,7 @@ static void __init free_area_init_core(s
- 		/* Account for reserved pages */
- 		if (j == 0 && freesize > dma_reserve) {
- 			freesize -= dma_reserve;
--			printk(KERN_DEBUG "  %s zone: %lu pages reserved\n",
--					zone_names[0], dma_reserve);
-+			pr_debug("  %s zone: %lu pages reserved\n", zone_names[0], dma_reserve);
- 		}
+ /* Whether the swap controller is active */
+ #ifdef CONFIG_MEMCG_SWAP
+--- a/mm/slab_common.c~mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5
++++ a/mm/slab_common.c
+@@ -841,15 +841,10 @@ void __init setup_kmalloc_cache_index_ta
+ static void __init
+ new_kmalloc_cache(int idx, enum kmalloc_cache_type type, slab_flags_t flags)
+ {
+-	if (type == KMALLOC_RECLAIM) {
++	if (type == KMALLOC_RECLAIM)
+ 		flags |= SLAB_RECLAIM_ACCOUNT;
+-	} else if (IS_ENABLED(CONFIG_MEMCG_KMEM) && (type == KMALLOC_CGROUP)) {
+-		if (cgroup_memory_nokmem) {
+-			kmalloc_caches[type][idx] = kmalloc_caches[KMALLOC_NORMAL][idx];
+-			return;
+-		}
++	else if (IS_ENABLED(CONFIG_MEMCG_KMEM) && (type == KMALLOC_CGROUP))
+ 		flags |= SLAB_ACCOUNT;
+-	}
  
- 		if (!is_highmem_idx(j))
+ 	kmalloc_caches[type][idx] = create_kmalloc_cache(
+ 					kmalloc_info[idx].name[type],
 _
 
-Patches currently in -mm which might be from hkallweit1@gmail.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-mm-page_alloc-switch-to-pr_debug.patch
+mm-memcg-move-mod_objcg_state-to-memcontrolc.patch
+mm-memcg-cache-vmstat-data-in-percpu-memcg_stock_pcp.patch
+mm-memcg-improve-refill_obj_stock-performance.patch
+mm-memcg-optimize-user-context-object-stock-access.patch
+mm-memcg-slab-properly-set-up-gfp-flags-for-objcg-pointer-array.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch
+mm-memcg-slab-disable-cache-merging-for-kmalloc_normal-caches.patch
 
