@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A89BC433ED
-	for <mm-commits@archiver.kernel.org>; Wed, 12 May 2021 22:38:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7765BC433B4
+	for <mm-commits@archiver.kernel.org>; Wed, 12 May 2021 22:39:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D444C61073
-	for <mm-commits@archiver.kernel.org>; Wed, 12 May 2021 22:38:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4944D61288
+	for <mm-commits@archiver.kernel.org>; Wed, 12 May 2021 22:39:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234385AbhELWjj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 May 2021 18:39:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53878 "EHLO mail.kernel.org"
+        id S231904AbhELWjv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 May 2021 18:39:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59830 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1391738AbhELVbJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 May 2021 17:31:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0E47261106;
-        Wed, 12 May 2021 21:29:53 +0000 (UTC)
+        id S244494AbhELVjt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 May 2021 17:39:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F31C7613BD;
+        Wed, 12 May 2021 21:38:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620854993;
-        bh=9tS4WeX5GmWsOriPzI/Xqxi6GEY3bMO31/MQBPuY1Wk=;
+        s=korg; t=1620855515;
+        bh=xUS0aizBteCAqR6YW5eauSOgr09CuVGIz+i5ft+xQcQ=;
         h=Date:From:To:Subject:From;
-        b=X4j1t9Y9YxTpKN7DnJIn+fTeklTcBgJdtM+oTbhPqrIWZ0jPem+idnWLu9dA94/L6
-         W50d3G9ObcCkKAWzCSbBfTV4YeF3Ib0B5A7qixtbIEdCNz6SVUZwhZcKG1h3ASRi+S
-         /1r+6LQaUIEvveFW6N545WoMojTwYx8XvB2C4N0Q=
-Date:   Wed, 12 May 2021 14:29:52 -0700
+        b=kIjxs9bUOYOWXnnhGd2HmuJdszaKGWafDrJMOLLTNU+sDSNF92TEXW437Wh5hfKuM
+         U+p4yaLoaA8gATJ6NaM1UzeJs5PIq4cA5NvniKQzZKhf7iq1I82xdt5CyhPSTVHFzz
+         mnYGEubODMca2o6q0G6Q0CXrF8Le1X81xuPGaVL8=
+Date:   Wed, 12 May 2021 14:38:34 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, david@redhat.com,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-Subject:  + binfmt-remove-in-tree-usage-of-map_executable-fix.patch
- added to -mm tree
-Message-ID: <20210512212952.NMwm3J6ej%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, cascardo@canonical.com,
+        christian.brauner@ubuntu.com, ddiss@suse.de, deller@gmx.de,
+        lstoakes@gmail.com, marcelo.cerri@canonical.com,
+        mm-commits@vger.kernel.org, oleg@redhat.com, walken@google.com
+Subject:  + proc-avoid-mixing-integer-types-in-mem_rw.patch added
+ to -mm tree
+Message-ID: <20210512213834.wb0N76pyo%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: binfmt-remove-in-tree-usage-of-map_executable-fix
+     Subject: proc: Avoid mixing integer types in mem_rw()
 has been added to the -mm tree.  Its filename is
-     binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+     proc-avoid-mixing-integer-types-in-mem_rw.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/proc-avoid-mixing-integer-types-in-mem_rw.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/proc-avoid-mixing-integer-types-in-mem_rw.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,43 +66,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: binfmt-remove-in-tree-usage-of-map_executable-fix
+From: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
+Subject: proc: Avoid mixing integer types in mem_rw()
 
-fix blooper in fs/binfmt_aout.c. per David
+Use size_t when capping the count argument received by mem_rw(). Since
+count is size_t, using min_t(int, ...) can lead to a negative value
+that will later be passed to access_remote_vm(), which can cause
+unexpected behavior.
 
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Since we are capping the value to at maximum PAGE_SIZE, the conversion
+from size_t to int when passing it to access_remote_vm() as "len"
+shouldn't be a problem.
+
+Link: https://lkml.kernel.org/r/20210512125215.3348316-1-marcelo.cerri@canonical.com
+Reviewed-by: David Disseldorp <ddiss@suse.de>
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@canonical.com>
+Signed-off-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Souza Cascardo <cascardo@canonical.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_aout.c |    2 +-
+ fs/proc/base.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/binfmt_aout.c~binfmt-remove-in-tree-usage-of-map_executable-fix
-+++ a/fs/binfmt_aout.c
-@@ -222,7 +222,7 @@ static int load_aout_binary(struct linux
+--- a/fs/proc/base.c~proc-avoid-mixing-integer-types-in-mem_rw
++++ a/fs/proc/base.c
+@@ -854,7 +854,7 @@ static ssize_t mem_rw(struct file *file,
+ 	flags = FOLL_FORCE | (write ? FOLL_WRITE : 0);
  
- 		error = vm_mmap(bprm->file, N_TXTADDR(ex), ex.a_text,
- 			PROT_READ | PROT_EXEC,
--			MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE;
-+			MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE,
- 			fd_offset);
+ 	while (count > 0) {
+-		int this_len = min_t(int, count, PAGE_SIZE);
++		size_t this_len = min_t(size_t, count, PAGE_SIZE);
  
- 		if (error != N_TXTADDR(ex))
+ 		if (write && copy_from_user(page, buf, this_len)) {
+ 			copied = -EFAULT;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from marcelo.cerri@canonical.com are
 
-mm.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+proc-avoid-mixing-integer-types-in-mem_rw.patch
 
