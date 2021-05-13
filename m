@@ -7,38 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78EB6C433ED
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 00:36:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D50FC43462
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 00:45:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E120613D3
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 00:36:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 74B52613DF
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 00:45:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235775AbhEMAhe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 May 2021 20:37:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45876 "EHLO mail.kernel.org"
+        id S235341AbhEMArA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 May 2021 20:47:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55616 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243506AbhEMAeg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 May 2021 20:34:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D9598613CA;
-        Thu, 13 May 2021 00:33:26 +0000 (UTC)
+        id S235942AbhEMAnu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 May 2021 20:43:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 03145613F7;
+        Thu, 13 May 2021 00:42:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620866007;
-        bh=0pj9FF+KQn+Os0CqpxjZX7mqnkcZ4Xug8prYpe71s6A=;
+        s=korg; t=1620866558;
+        bh=eNEiY1cXU7XuJSPs26w0P+DzmNYPwL3sp0JOFS6ku9Q=;
         h=Date:From:To:Subject:From;
-        b=BMbcuKAqEOcTZt3NGtt5ZfFSAbkf6soH6nmX+25pB8ygSxChMjfRvhIw1kbxwvdci
-         dwwlMuc01MgNh1F8ywlvzMSL8vo+HTTylyzTtwe0ipQhra63toqNxy4PfvwohD6MRP
-         67CBBterw8ZvmNeWjk84vbq/0vWwxR9nBFjXi9t4=
-Date:   Wed, 12 May 2021 17:33:26 -0700
+        b=AJAAYmR3/EwVRSisT+RthaLILW82nzQzapxJsNs5gxd9KdgqESwWHPS3kMyN223+z
+         cnCaicMTcK3UD3ot4YNdpU45fz4h1ewZ4qm5giaqbaj6Tki/+hQwzXPpJEmk5SLRtA
+         /Tc6anT2xlF1YpLEn2HVmzX17zi1DFYflHfxkMS0=
+Date:   Wed, 12 May 2021 17:42:37 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, guro@fb.com, hannes@cmpxchg.org,
-        iamjoonsoo.kim@lge.com, longman@redhat.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, sfr@canb.auug.org.au, shakeelb@google.com,
-        vbabka@suse.cz, vdavydov.dev@gmail.com
-Subject:  +
- mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch added to -mm
- tree
-Message-ID: <20210513003326.ZvcnI0LXP%akpm@linux-foundation.org>
+To:     benh@kernel.crashing.org, christophe.leroy@csgroup.eu,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        mpe@ellerman.id.au, npiggin@gmail.com, paulus@samba.org,
+        rppt@kernel.org, uladzislau.rezki@sony.com
+Subject:  + mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
+ added to -mm tree
+Message-ID: <20210513004237.zJO7Ivtno%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5
+     Subject: mm/pgtable: add stubs for {pmd/pub}_{set/clear}_huge
 has been added to the -mm tree.  Its filename is
-     mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch
+     mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,114 +66,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: mm/pgtable: add stubs for {pmd/pub}_{set/clear}_huge
 
-It turns out that the previous patch doesn't work if CONFIG_ZONE_DMA isn't
-defined.
+For architectures with no PMD and/or no PUD, add stubs similar to what we
+have for architectures without P4D.
 
-Link: https://lkml.kernel.org/r/20210512145107.6208-1-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/5ac5976419350e8e048d463a64cae449eb3ba4b0.1620795204.git.christophe.leroy@csgroup.eu
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Uladzislau Rezki <uladzislau.rezki@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |   11 ++++++-----
- mm/internal.h        |    5 -----
- mm/memcontrol.c      |    2 +-
- mm/slab_common.c     |    9 ++-------
- 4 files changed, 9 insertions(+), 18 deletions(-)
+ include/linux/pgtable.h |   26 +++++++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
 
---- a/include/linux/slab.h~mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5
-+++ a/include/linux/slab.h
-@@ -312,16 +312,17 @@ static inline void __check_heap_object(c
-  */
- enum kmalloc_cache_type {
- 	KMALLOC_NORMAL = 0,
--#ifdef CONFIG_MEMCG_KMEM
--	KMALLOC_CGROUP,
--#else
-+#ifndef CONFIG_ZONE_DMA
-+	KMALLOC_DMA = KMALLOC_NORMAL,
-+#endif
-+#ifndef CONFIG_MEMCG_KMEM
- 	KMALLOC_CGROUP = KMALLOC_NORMAL,
+--- a/include/linux/pgtable.h~mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge
++++ a/include/linux/pgtable.h
+@@ -1371,10 +1371,34 @@ static inline int p4d_clear_huge(p4d_t *
+ }
+ #endif /* !__PAGETABLE_P4D_FOLDED */
+ 
++#ifndef __PAGETABLE_PUD_FOLDED
+ int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot);
+-int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot);
+ int pud_clear_huge(pud_t *pud);
 +#else
-+	KMALLOC_CGROUP,
- #endif
- 	KMALLOC_RECLAIM,
- #ifdef CONFIG_ZONE_DMA
- 	KMALLOC_DMA,
--#else
--	KMALLOC_DMA = KMALLOC_NORMAL,
- #endif
- 	NR_KMALLOC_TYPES
- };
---- a/mm/internal.h~mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5
-+++ a/mm/internal.h
-@@ -116,11 +116,6 @@ extern void putback_lru_page(struct page
- extern pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address);
- 
- /*
-- * in mm/memcontrol.c:
-- */
--extern bool cgroup_memory_nokmem;
--
--/*
-  * in mm/page_alloc.c
-  */
- 
---- a/mm/memcontrol.c~mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5
-+++ a/mm/memcontrol.c
-@@ -83,7 +83,7 @@ DEFINE_PER_CPU(struct mem_cgroup *, int_
- static bool cgroup_memory_nosocket;
- 
- /* Kernel memory accounting disabled? */
--bool cgroup_memory_nokmem;
-+static bool cgroup_memory_nokmem;
- 
- /* Whether the swap controller is active */
- #ifdef CONFIG_MEMCG_SWAP
---- a/mm/slab_common.c~mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5
-+++ a/mm/slab_common.c
-@@ -841,15 +841,10 @@ void __init setup_kmalloc_cache_index_ta
- static void __init
- new_kmalloc_cache(int idx, enum kmalloc_cache_type type, slab_flags_t flags)
- {
--	if (type == KMALLOC_RECLAIM) {
-+	if (type == KMALLOC_RECLAIM)
- 		flags |= SLAB_RECLAIM_ACCOUNT;
--	} else if (IS_ENABLED(CONFIG_MEMCG_KMEM) && (type == KMALLOC_CGROUP)) {
--		if (cgroup_memory_nokmem) {
--			kmalloc_caches[type][idx] = kmalloc_caches[KMALLOC_NORMAL][idx];
--			return;
--		}
-+	else if (IS_ENABLED(CONFIG_MEMCG_KMEM) && (type == KMALLOC_CGROUP))
- 		flags |= SLAB_ACCOUNT;
--	}
- 
- 	kmalloc_caches[type][idx] = create_kmalloc_cache(
- 					kmalloc_info[idx].name[type],
++static inline int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
++{
++	return 0;
++}
++static inline int pud_clear_huge(pud_t *pud)
++{
++	return 0;
++}
++#endif /* !__PAGETABLE_PUD_FOLDED */
++
++#ifndef __PAGETABLE_PMD_FOLDED
++int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot);
+ int pmd_clear_huge(pmd_t *pmd);
++#else
++static inline int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot)
++{
++	return 0;
++}
++static inline int pmd_clear_huge(pmd_t *pmd)
++{
++	return 0;
++}
++#endif /* !__PAGETABLE_PMD_FOLDED */
++
+ int p4d_free_pud_page(p4d_t *p4d, unsigned long addr);
+ int pud_free_pmd_page(pud_t *pud, unsigned long addr);
+ int pmd_free_pte_page(pmd_t *pmd, unsigned long addr);
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
 
-mm-memcg-move-mod_objcg_state-to-memcontrolc.patch
-mm-memcg-cache-vmstat-data-in-percpu-memcg_stock_pcp.patch
-mm-memcg-improve-refill_obj_stock-performance.patch
-mm-memcg-optimize-user-context-object-stock-access.patch
-mm-memcg-slab-properly-set-up-gfp-flags-for-objcg-pointer-array.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch
-mm-memcg-slab-disable-cache-merging-for-kmalloc_normal-caches.patch
+mm-hugetlb-change-parameters-of-arch_make_huge_pte.patch
+mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
+mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmap.patch
+mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmalloc.patch
+powerpc-8xx-add-support-for-huge-pages-on-vmap-and-vmalloc.patch
 
