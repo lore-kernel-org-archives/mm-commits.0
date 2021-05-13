@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F296DC433B4
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 21:24:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E18B7C433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 21:26:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B8C42613F5
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 21:24:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D08F61182
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 21:26:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232507AbhEMVZ5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 May 2021 17:25:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57898 "EHLO mail.kernel.org"
+        id S233325AbhEMV1e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 May 2021 17:27:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58008 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230252AbhEMVZ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 13 May 2021 17:25:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C39F5613C3;
-        Thu, 13 May 2021 21:24:46 +0000 (UTC)
+        id S230252AbhEMV1d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 13 May 2021 17:27:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F0F91613C3;
+        Thu, 13 May 2021 21:26:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620941086;
-        bh=7dmH9f7zEP4Mlgq0NV/88lOkaO+fLuiz3oDAOFNvC8E=;
+        s=korg; t=1620941183;
+        bh=MKYe+EE6MdHpHTbkt6cwPr1o7ZkSJtKk3M4k9IMVaBk=;
         h=Date:From:To:Subject:From;
-        b=od5PeVgcmc/O0z/CiUTuVrqbTxU5MImq39ZZUXWcA58GsQ8lr+ZsxaKMZc0WecijC
-         47rboeO9P8af2EDESFv6+adY2JepesMag9eOF+K6N7VRiwnIaLnOcOKTXXwaCcWSWr
-         vm4zhYKuwFCfOAAG+mpUB6G0pD40yz+VAB4l3rII=
-Date:   Thu, 13 May 2021 14:24:46 -0700
+        b=VBU3FaDC/mockZMbKaJgXL0f+M/AZ8x5GAxbRZ2nrIYGJx1aECFbV7aYp0MbrEABh
+         Jqyyc2bxb3DFFK5nf8LCUrjz8RcfyvfMgeX2bI5mjghK9C1B2niyffTOUF/4j/zICu
+         oaL4NzGbs5VEB5qeqUX3iVrgNOHMpDKa6R/WWOTg=
+Date:   Thu, 13 May 2021 14:26:22 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org
-Subject:  +
- module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-2.patch
- added to -mm tree
-Message-ID: <20210513212446.UKWyO8wZS%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, christophe.leroy@csgroup.eu,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        sfr@canb.auug.org.au
+Subject:  [alternative-merged]
+ mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix.patch removed from -mm
+ tree
+Message-ID: <20210513212622.HXYN6TNUV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,69 +45,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: buildid: fix build when CONFIG_MODULES is not set
-has been added to the -mm tree.  Its filename is
-     module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-2.patch
+     Subject: mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix
+has been removed from the -mm tree.  Its filename was
+     mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-2.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: buildid: fix build when CONFIG_MODULES is not set
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix
 
-Omit the static_assert() when CONFIG_MODULES is not set/enabled.
-Fixes these build errors:
+fix build
 
-../kernel/kallsyms.c: In function `__sprint_symbol':
-../include/linux/kernel.h:53:43: error: dereferencing pointer to incomplete type `struct module'
- #define typeof_member(T, m) typeof(((T*)0)->m)
-                                           ^
-../include/linux/build_bug.h:78:41: error: static assertion failed: "sizeof(typeof_member(struct module, build_id)) == 20"
- #define __static_assert(expr, msg, ...) _Static_assert(expr, msg)
-                                         ^
-../kernel/kallsyms.c:454:4: note: in expansion of macro `static_assert'
-    static_assert(sizeof(typeof_member(struct module, build_id)) == 20);
-    ^~~~~~~~~~~~~
-
-Link: https://lkml.kernel.org/r/20210513171510.20328-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/151ddd7f-1d3e-a6f7-daab-e32f785426e1@infradead.org
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kallsyms.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/mm/pgtable.c |   32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
 
---- a/kernel/kallsyms.c~module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-2
-+++ a/kernel/kallsyms.c
-@@ -451,7 +451,9 @@ static int __sprint_symbol(char *buffer,
- #if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID)
- 		if (add_buildid && buildid) {
- 			/* build ID should match length of sprintf */
-+#if IS_ENABLED(CONFIG_MODULES)
- 			static_assert(sizeof(typeof_member(struct module, build_id)) == 20);
-+#endif
- 			len += sprintf(buffer + len, " %20phN", buildid);
- 		}
+--- a/arch/x86/mm/pgtable.c~mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix
++++ a/arch/x86/mm/pgtable.c
+@@ -682,6 +682,7 @@ int p4d_clear_huge(p4d_t *p4d)
+ }
  #endif
+ 
++#ifndef __PAGETABLE_PUD_FOLDED
+ /**
+  * pud_set_huge - setup kernel PUD mapping
+  *
+@@ -721,6 +722,22 @@ int pud_set_huge(pud_t *pud, phys_addr_t
+ }
+ 
+ /**
++ * pud_clear_huge - clear kernel PUD mapping when it is set
++ *
++ * Returns 1 on success and 0 on failure (no PUD map is found).
++ */
++int pud_clear_huge(pud_t *pud)
++{
++	if (pud_large(*pud)) {
++		pud_clear(pud);
++		return 1;
++	}
++
++	return 0;
++}
++#endif
++
++/**
+  * pmd_set_huge - setup kernel PMD mapping
+  *
+  * See text over pud_set_huge() above.
+@@ -751,21 +768,6 @@ int pmd_set_huge(pmd_t *pmd, phys_addr_t
+ }
+ 
+ /**
+- * pud_clear_huge - clear kernel PUD mapping when it is set
+- *
+- * Returns 1 on success and 0 on failure (no PUD map is found).
+- */
+-int pud_clear_huge(pud_t *pud)
+-{
+-	if (pud_large(*pud)) {
+-		pud_clear(pud);
+-		return 1;
+-	}
+-
+-	return 0;
+-}
+-
+-/**
+  * pmd_clear_huge - clear kernel PMD mapping when it is set
+  *
+  * Returns 1 on success and 0 on failure (no PMD map is found).
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ia64-headers-drop-duplicated-words.patch
-mm-slub-use-stackdepot-to-save-stack-trace-in-objects-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-2.patch
+mm.patch
+mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
+mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
+binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
