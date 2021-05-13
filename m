@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D50FC43462
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 00:45:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6055FC433B4
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 00:45:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 74B52613DF
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 00:45:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35330613DF
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 00:45:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235341AbhEMArA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 May 2021 20:47:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55616 "EHLO mail.kernel.org"
+        id S233252AbhEMArC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 May 2021 20:47:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55704 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235942AbhEMAnu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 May 2021 20:43:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 03145613F7;
-        Thu, 13 May 2021 00:42:37 +0000 (UTC)
+        id S237553AbhEMAnv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 May 2021 20:43:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 06032613FC;
+        Thu, 13 May 2021 00:42:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620866558;
-        bh=eNEiY1cXU7XuJSPs26w0P+DzmNYPwL3sp0JOFS6ku9Q=;
+        s=korg; t=1620866561;
+        bh=Ygyghs6BO9i2XyjXqN9YCVeajZ+vqJClR46PKH0BPAk=;
         h=Date:From:To:Subject:From;
-        b=AJAAYmR3/EwVRSisT+RthaLILW82nzQzapxJsNs5gxd9KdgqESwWHPS3kMyN223+z
-         cnCaicMTcK3UD3ot4YNdpU45fz4h1ewZ4qm5giaqbaj6Tki/+hQwzXPpJEmk5SLRtA
-         /Tc6anT2xlF1YpLEn2HVmzX17zi1DFYflHfxkMS0=
-Date:   Wed, 12 May 2021 17:42:37 -0700
+        b=TZUArPIbHXad3AForEGqPFZbAFqm1RPJH9ZydzV/+CpdKqQCx0kcnlzm6Nd7s+Vyf
+         a/3RJtG6Mp+5zjqlO2ll2jTbYfOSu3/ARPl4A1N1+6XVBEIy7zIh+f7H8bI0wRf9PV
+         J2CsQfyI14derP72WEsPFkwxdjVARJbb5B0XVQCA=
+Date:   Wed, 12 May 2021 17:42:40 -0700
 From:   akpm@linux-foundation.org
 To:     benh@kernel.crashing.org, christophe.leroy@csgroup.eu,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         mpe@ellerman.id.au, npiggin@gmail.com, paulus@samba.org,
         rppt@kernel.org, uladzislau.rezki@sony.com
-Subject:  + mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
- added to -mm tree
-Message-ID: <20210513004237.zJO7Ivtno%akpm@linux-foundation.org>
+Subject:  +
+ mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmap.patch added to
+ -mm tree
+Message-ID: <20210513004240.fBwtNJKbz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/pgtable: add stubs for {pmd/pub}_{set/clear}_huge
+     Subject: mm/vmalloc: enable mapping of huge pages at pte level in vmap
 has been added to the -mm tree.  Its filename is
-     mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
+     mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,12 +68,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: mm/pgtable: add stubs for {pmd/pub}_{set/clear}_huge
+Subject: mm/vmalloc: enable mapping of huge pages at pte level in vmap
 
-For architectures with no PMD and/or no PUD, add stubs similar to what we
-have for architectures without P4D.
+On some architectures like powerpc, there are huge pages that are mapped
+at pte level.
 
-Link: https://lkml.kernel.org/r/5ac5976419350e8e048d463a64cae449eb3ba4b0.1620795204.git.christophe.leroy@csgroup.eu
+Enable it in vmap.
+
+For that, architectures can provide arch_vmap_pte_range_map_size() that
+returns the size of pages to map at pte level.
+
+Link: https://lkml.kernel.org/r/fb3ccc73377832ac6708181ec419128a2f98ce36.1620795204.git.christophe.leroy@csgroup.eu
 Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
@@ -84,47 +90,83 @@ Cc: Uladzislau Rezki <uladzislau.rezki@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+ include/linux/vmalloc.h |    8 ++++++++
+ mm/vmalloc.c            |   21 ++++++++++++++++++---
+ 2 files changed, 26 insertions(+), 3 deletions(-)
 
---- a/include/linux/pgtable.h~mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge
-+++ a/include/linux/pgtable.h
-@@ -1371,10 +1371,34 @@ static inline int p4d_clear_huge(p4d_t *
+--- a/include/linux/vmalloc.h~mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmap
++++ a/include/linux/vmalloc.h
+@@ -104,6 +104,14 @@ static inline bool arch_vmap_pmd_support
  }
- #endif /* !__PAGETABLE_P4D_FOLDED */
+ #endif
  
-+#ifndef __PAGETABLE_PUD_FOLDED
- int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot);
--int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot);
- int pud_clear_huge(pud_t *pud);
-+#else
-+static inline int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
++#ifndef arch_vmap_pte_range_map_size
++static inline unsigned long arch_vmap_pte_range_map_size(unsigned long addr, unsigned long end,
++							 u64 pfn, unsigned int max_page_shift)
 +{
-+	return 0;
++	return PAGE_SIZE;
 +}
-+static inline int pud_clear_huge(pud_t *pud)
-+{
-+	return 0;
-+}
-+#endif /* !__PAGETABLE_PUD_FOLDED */
++#endif
 +
-+#ifndef __PAGETABLE_PMD_FOLDED
-+int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot);
- int pmd_clear_huge(pmd_t *pmd);
-+#else
-+static inline int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot)
-+{
-+	return 0;
-+}
-+static inline int pmd_clear_huge(pmd_t *pmd)
-+{
-+	return 0;
-+}
-+#endif /* !__PAGETABLE_PMD_FOLDED */
+ /*
+  *	Highlevel APIs for driver use
+  */
+--- a/mm/vmalloc.c~mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmap
++++ a/mm/vmalloc.c
+@@ -36,6 +36,7 @@
+ #include <linux/overflow.h>
+ #include <linux/pgtable.h>
+ #include <linux/uaccess.h>
++#include <linux/hugetlb.h>
+ #include <asm/tlbflush.h>
+ #include <asm/shmparam.h>
+ 
+@@ -83,10 +84,11 @@ static void free_work(struct work_struct
+ /*** Page table manipulation functions ***/
+ static int vmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			phys_addr_t phys_addr, pgprot_t prot,
+-			pgtbl_mod_mask *mask)
++			unsigned int max_page_shift, pgtbl_mod_mask *mask)
+ {
+ 	pte_t *pte;
+ 	u64 pfn;
++	unsigned long size = PAGE_SIZE;
+ 
+ 	pfn = phys_addr >> PAGE_SHIFT;
+ 	pte = pte_alloc_kernel_track(pmd, addr, mask);
+@@ -94,9 +96,22 @@ static int vmap_pte_range(pmd_t *pmd, un
+ 		return -ENOMEM;
+ 	do {
+ 		BUG_ON(!pte_none(*pte));
 +
- int p4d_free_pud_page(p4d_t *p4d, unsigned long addr);
- int pud_free_pmd_page(pud_t *pud, unsigned long addr);
- int pmd_free_pte_page(pmd_t *pmd, unsigned long addr);
++#ifdef CONFIG_HUGETLB_PAGE
++		size = arch_vmap_pte_range_map_size(addr, end, pfn, max_page_shift);
++		if (size != PAGE_SIZE) {
++			pte_t entry = pfn_pte(pfn, prot);
++
++			entry = pte_mkhuge(entry);
++			entry = arch_make_huge_pte(entry, ilog2(size), 0);
++			set_huge_pte_at(&init_mm, addr, pte, entry);
++			pfn += PFN_DOWN(size);
++			continue;
++		}
++#endif
+ 		set_pte_at(&init_mm, addr, pte, pfn_pte(pfn, prot));
+ 		pfn++;
+-	} while (pte++, addr += PAGE_SIZE, addr != end);
++	} while (pte += PFN_DOWN(size), addr += size, addr != end);
+ 	*mask |= PGTBL_PTE_MODIFIED;
+ 	return 0;
+ }
+@@ -145,7 +160,7 @@ static int vmap_pmd_range(pud_t *pud, un
+ 			continue;
+ 		}
+ 
+-		if (vmap_pte_range(pmd, addr, next, phys_addr, prot, mask))
++		if (vmap_pte_range(pmd, addr, next, phys_addr, prot, max_page_shift, mask))
+ 			return -ENOMEM;
+ 	} while (pmd++, phys_addr += (next - addr), addr = next, addr != end);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
