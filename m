@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEE58C43461
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 00:29:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F29CC43470
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 00:29:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90BC061396
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 00:29:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FBD2613CA
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 00:29:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234987AbhEMAbF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 May 2021 20:31:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42004 "EHLO mail.kernel.org"
+        id S240732AbhEMAbG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 May 2021 20:31:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42238 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240732AbhEMAao (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 May 2021 20:30:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ED58E613E6;
-        Thu, 13 May 2021 00:29:34 +0000 (UTC)
+        id S242771AbhEMAbB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 May 2021 20:31:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E5410613DF;
+        Thu, 13 May 2021 00:29:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620865775;
-        bh=EylMoR4YE3uH3Fhg1cxD03FnXfAE0fDUtkkFLCPwUkg=;
+        s=korg; t=1620865785;
+        bh=jqopxgZtewNgJ08QK0l9YYgr1Lw/jtN7iz0wt50fpGU=;
         h=Date:From:To:Subject:From;
-        b=YaUSJwOMHhWxoIZJwI8ZiGh7HL2ieDeO9DZ19OL/Xeb3n9DpMpYwdlUwJ6mBRzW9F
-         e/54AanPO+8iJS4PnxqmLtEg5uBCicWjXeY7sZkjoOSR2JS0PaPh+xRivSYn3Er7gJ
-         2ukohA31LxrKcdRBGzsZwMF3ewYeMHgkN2fwqpk4=
-Date:   Wed, 12 May 2021 17:29:34 -0700
+        b=rRi4QMCbp9JS1/BnUqZ1euvlQbpzM/njapeSGtFkReXbFmWxb+HefQogNDDhobMsA
+         1FOuAO6xpO8X7+2gf5MAmfF1aXHrI15hcl4dNWXL4ScfGnBRrtNid8hO7VrjR/kjIq
+         p+7JwP3gpaDuh650wJXZbeQr7fdsiF3HD4ZYagQI=
+Date:   Wed, 12 May 2021 17:29:44 -0700
 From:   akpm@linux-foundation.org
 To:     bigeasy@linutronix.de, brouer@redhat.com, chuck.lever@oracle.com,
         mgorman@techsingularity.net, mhocko@kernel.org, mingo@kernel.org,
         mm-commits@vger.kernel.org, peterz@infradead.org,
         tglx@linutronix.de, vbabka@suse.cz
 Subject:  +
- mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator.patch
- added to -mm tree
-Message-ID: <20210513002934.zHkILqkqG%akpm@linux-foundation.org>
+ mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock.patch added to
+ -mm tree
+Message-ID: <20210513002944.-m_eXS2RK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: batch the accounting updates in the bulk allocator
+     Subject: mm/page_alloc: avoid conflating IRQs disabled with zone->lock
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator.patch
+     mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,14 +68,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: batch the accounting updates in the bulk allocator
+Subject: mm/page_alloc: avoid conflating IRQs disabled with zone->lock
 
-Now that the zone_statistics are simple counters that do not require
-special protection, the bulk allocator accounting updates can be batch
-updated without adding too much complexity with protected RMW updates or
-using xchg.
+Historically when freeing pages, free_one_page() assumed that callers had
+IRQs disabled and the zone->lock could be acquired with spin_lock().  This
+confuses the scope of what local_lock_irq is protecting and what
+zone->lock is protecting in free_unref_page_list in particular.
 
-Link: https://lkml.kernel.org/r/20210512095458.30632-6-mgorman@techsingularity.net
+This patch uses spin_lock_irqsave() for the zone->lock in free_one_page()
+instead of relying on callers to have disabled IRQs. 
+free_unref_page_commit() is changed to only deal with PCP pages protected
+by the local lock.  free_unref_page_list() then first frees isolated pages
+to the buddy lists with free_one_page() and frees the rest of the pages to
+the PCP via free_unref_page_commit().  The end result is that
+free_one_page() is no longer depending on side-effects of local_lock to be
+correct.
+
+Note that this may incur a performance penalty while memory hot-remove is
+running but that is not a common operation.
+
+[lkp@intel.com: Ensure CMA pages get addded to correct pcp list]
+Link: https://lkml.kernel.org/r/20210512095458.30632-9-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
@@ -88,110 +101,142 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    8 ++++++++
- mm/page_alloc.c        |   30 +++++++++++++-----------------
- 2 files changed, 21 insertions(+), 17 deletions(-)
+ mm/page_alloc.c |   75 ++++++++++++++++++++++++++++++----------------
+ 1 file changed, 49 insertions(+), 26 deletions(-)
 
---- a/include/linux/vmstat.h~mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator
-+++ a/include/linux/vmstat.h
-@@ -247,6 +247,14 @@ __count_numa_event(struct zone *zone, en
- 	raw_cpu_inc(pzstats->vm_numa_event[item]);
- }
- 
-+static inline void
-+__count_numa_events(struct zone *zone, enum numa_stat_item item, long delta)
-+{
-+	struct per_cpu_zonestat __percpu *pzstats = zone->per_cpu_zonestats;
-+
-+	raw_cpu_add(pzstats->vm_numa_event[item], delta);
-+}
-+
- extern unsigned long sum_zone_node_page_state(int node,
- 					      enum zone_stat_item item);
- extern unsigned long sum_zone_numa_event_state(int node, enum numa_stat_item item);
---- a/mm/page_alloc.c~mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator
+--- a/mm/page_alloc.c~mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock
 +++ a/mm/page_alloc.c
-@@ -3456,7 +3456,8 @@ void __putback_isolated_page(struct page
-  *
-  * Must be called with interrupts disabled.
-  */
--static inline void zone_statistics(struct zone *preferred_zone, struct zone *z)
-+static inline void zone_statistics(struct zone *preferred_zone, struct zone *z,
-+				   long nr_account)
+@@ -1490,13 +1490,15 @@ static void free_one_page(struct zone *z
+ 				unsigned int order,
+ 				int migratetype, fpi_t fpi_flags)
  {
- #ifdef CONFIG_NUMA
- 	enum numa_stat_item local_stat = NUMA_LOCAL;
-@@ -3469,12 +3470,12 @@ static inline void zone_statistics(struc
- 		local_stat = NUMA_OTHER;
- 
- 	if (zone_to_nid(z) == zone_to_nid(preferred_zone))
--		__count_numa_event(z, NUMA_HIT);
-+		__count_numa_events(z, NUMA_HIT, nr_account);
- 	else {
--		__count_numa_event(z, NUMA_MISS);
--		__count_numa_event(preferred_zone, NUMA_FOREIGN);
-+		__count_numa_events(z, NUMA_MISS, nr_account);
-+		__count_numa_events(preferred_zone, NUMA_FOREIGN, nr_account);
+-	spin_lock(&zone->lock);
++	unsigned long flags;
++
++	spin_lock_irqsave(&zone->lock, flags);
+ 	if (unlikely(has_isolate_pageblock(zone) ||
+ 		is_migrate_isolate(migratetype))) {
+ 		migratetype = get_pfnblock_migratetype(page, pfn);
  	}
--	__count_numa_event(z, local_stat);
-+	__count_numa_events(z, local_stat, nr_account);
- #endif
+ 	__free_one_page(page, pfn, zone, order, migratetype, fpi_flags);
+-	spin_unlock(&zone->lock);
++	spin_unlock_irqrestore(&zone->lock, flags);
  }
  
-@@ -3520,7 +3521,7 @@ static struct page *rmqueue_pcplist(stru
- 	page = __rmqueue_pcplist(zone,  migratetype, alloc_flags, pcp, list);
- 	if (page) {
- 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1);
--		zone_statistics(preferred_zone, zone);
-+		zone_statistics(preferred_zone, zone, 1);
- 	}
- 	local_unlock_irqrestore(&pagesets.lock, flags);
- 	return page;
-@@ -3581,7 +3582,7 @@ struct page *rmqueue(struct zone *prefer
- 				  get_pcppage_migratetype(page));
+ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+@@ -3274,31 +3276,13 @@ static bool free_unref_page_prepare(stru
+ 	return true;
+ }
  
- 	__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
--	zone_statistics(preferred_zone, zone);
-+	zone_statistics(preferred_zone, zone, 1);
- 	local_irq_restore(flags);
+-static void free_unref_page_commit(struct page *page, unsigned long pfn)
++static void free_unref_page_commit(struct page *page, unsigned long pfn,
++				   int migratetype)
+ {
+ 	struct zone *zone = page_zone(page);
+ 	struct per_cpu_pages *pcp;
+-	int migratetype;
  
- out:
-@@ -5063,7 +5064,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 	struct alloc_context ac;
- 	gfp_t alloc_gfp;
- 	unsigned int alloc_flags = ALLOC_WMARK_LOW;
--	int nr_populated = 0;
-+	int nr_populated = 0, nr_account = 0;
- 
- 	if (unlikely(nr_pages <= 0))
- 		return 0;
-@@ -5136,15 +5137,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 				goto failed_irq;
- 			break;
- 		}
+-	migratetype = get_pcppage_migratetype(page);
+ 	__count_vm_event(PGFREE);
 -
--		/*
--		 * Ideally this would be batched but the best way to do
--		 * that cheaply is to first convert zone_statistics to
--		 * be inaccurate per-cpu counter like vm_events to avoid
--		 * a RMW cycle then do the accounting with IRQs enabled.
--		 */
--		__count_zid_vm_events(PGALLOC, zone_idx(zone), 1);
--		zone_statistics(ac.preferred_zoneref->zone, zone);
-+		nr_account++;
+-	/*
+-	 * We only track unmovable, reclaimable and movable on pcp lists.
+-	 * Free ISOLATE pages back to the allocator because they are being
+-	 * offlined but treat HIGHATOMIC as movable pages so we can get those
+-	 * areas back if necessary. Otherwise, we may have to free
+-	 * excessively into the page allocator
+-	 */
+-	if (migratetype >= MIGRATE_PCPTYPES) {
+-		if (unlikely(is_migrate_isolate(migratetype))) {
+-			free_one_page(zone, page, pfn, 0, migratetype,
+-				      FPI_NONE);
+-			return;
+-		}
+-		migratetype = MIGRATE_MOVABLE;
+-	}
+-
+ 	pcp = this_cpu_ptr(zone->per_cpu_pageset);
+ 	list_add(&page->lru, &pcp->lists[migratetype]);
+ 	pcp->count++;
+@@ -3313,12 +3297,29 @@ void free_unref_page(struct page *page)
+ {
+ 	unsigned long flags;
+ 	unsigned long pfn = page_to_pfn(page);
++	int migratetype;
  
- 		prep_new_page(page, 0, gfp, 0);
- 		if (page_list)
-@@ -5154,6 +5147,9 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		nr_populated++;
+ 	if (!free_unref_page_prepare(page, pfn))
+ 		return;
+ 
++	/*
++	 * We only track unmovable, reclaimable and movable on pcp lists.
++	 * Place ISOLATE pages on the isolated list because they are being
++	 * offlined but treat HIGHATOMIC as movable pages so we can get those
++	 * areas back if necessary. Otherwise, we may have to free
++	 * excessively into the page allocator
++	 */
++	migratetype = get_pcppage_migratetype(page);
++	if (unlikely(migratetype >= MIGRATE_PCPTYPES)) {
++		if (unlikely(is_migrate_isolate(migratetype))) {
++			free_one_page(page_zone(page), page, pfn, 0, migratetype, FPI_NONE);
++			return;
++		}
++		migratetype = MIGRATE_MOVABLE;
++	}
++
+ 	local_lock_irqsave(&pagesets.lock, flags);
+-	free_unref_page_commit(page, pfn);
++	free_unref_page_commit(page, pfn, migratetype);
+ 	local_unlock_irqrestore(&pagesets.lock, flags);
+ }
+ 
+@@ -3330,22 +3331,44 @@ void free_unref_page_list(struct list_he
+ 	struct page *page, *next;
+ 	unsigned long flags, pfn;
+ 	int batch_count = 0;
++	int migratetype;
+ 
+ 	/* Prepare pages for freeing */
+ 	list_for_each_entry_safe(page, next, list, lru) {
+ 		pfn = page_to_pfn(page);
+ 		if (!free_unref_page_prepare(page, pfn))
+ 			list_del(&page->lru);
++
++		/*
++		 * Free isolated pages directly to the allocator, see
++		 * comment in free_unref_page.
++		 */
++		migratetype = get_pcppage_migratetype(page);
++		if (unlikely(migratetype >= MIGRATE_PCPTYPES)) {
++			if (unlikely(is_migrate_isolate(migratetype))) {
++				list_del(&page->lru);
++				free_one_page(page_zone(page), page, pfn, 0,
++							migratetype, FPI_NONE);
++				continue;
++			}
++
++			/*
++			 * Non-isolated types over MIGRATE_PCPTYPES get added
++			 * to the MIGRATE_MOVABLE pcp list.
++			 */
++			set_pcppage_migratetype(page, MIGRATE_MOVABLE);
++		}
++
+ 		set_page_private(page, pfn);
  	}
  
-+	__count_zid_vm_events(PGALLOC, zone_idx(zone), nr_account);
-+	zone_statistics(ac.preferred_zoneref->zone, zone, nr_account);
-+
- 	local_unlock_irqrestore(&pagesets.lock, flags);
+ 	local_lock_irqsave(&pagesets.lock, flags);
+ 	list_for_each_entry_safe(page, next, list, lru) {
+-		unsigned long pfn = page_private(page);
+-
++		pfn = page_private(page);
+ 		set_page_private(page, 0);
++		migratetype = get_pcppage_migratetype(page);
+ 		trace_mm_page_free_batched(page);
+-		free_unref_page_commit(page, pfn);
++		free_unref_page_commit(page, pfn, migratetype);
  
- 	return nr_populated;
+ 		/*
+ 		 * Guard against excessive IRQ disabled times when we get
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
