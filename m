@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61824C43460
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 22:11:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AFBEC433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 22:11:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A2716143D
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 22:11:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 75CF76143E
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 22:11:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231964AbhEMWMY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 May 2021 18:12:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35068 "EHLO mail.kernel.org"
+        id S231974AbhEMWMb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 May 2021 18:12:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35152 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229459AbhEMWMY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 13 May 2021 18:12:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 53A756142E;
-        Thu, 13 May 2021 22:11:13 +0000 (UTC)
+        id S229459AbhEMWMa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 13 May 2021 18:12:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5F7B2613C9;
+        Thu, 13 May 2021 22:11:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620943874;
-        bh=6ssK/T90zcPgoQLmJwoFctATQJjaLIilkGOwtq+uhSc=;
+        s=korg; t=1620943879;
+        bh=fK3n71nJihBWimiILv9CNk4IoHONWunvDplisVn834I=;
         h=Date:From:To:Subject:From;
-        b=DRHTkBZXADcpwUo+MpCBNi2JU0dMrdOey1B0Sz9l8scFecrQU2LYzJkiGpJKXEUaz
-         /hYLF5ftj6pKkZ21tncmGnLr62C/eBVogqIWUxVgprIh9d2KQ0JHBXpp827NrFmCnY
-         fmNh7spGTfuNLRT3iOL26lCNhR0ihg8XY9BYabj8=
-Date:   Thu, 13 May 2021 15:11:12 -0700
+        b=osUmQDx4kVUR1iEQtmDEbi4J5m6izTNgf2w1G9oe9+TOObKbW3TuAS4Kl6m/ooRsV
+         Ic/CNSGJTQvel7nObNftgKDdPaP3A/AJCPzTJEnmB6kxq+O279LLGrZAH6NbGfLgqa
+         QZy+YaiqubdYhtgz+eZG2eXXFiyBo+cWMnirLd5U=
+Date:   Thu, 13 May 2021 15:11:17 -0700
 From:   akpm@linux-foundation.org
 To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
         dan.j.williams@intel.com, dave.hansen@linux.intel.com,
@@ -44,9 +44,9 @@ To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
         tglx@linutronix.de, tycho@tycho.ws, viro@zeniv.linux.org.uk,
         will@kernel.org, willy@infradead.org
 Subject:  +
- set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch added to
- -mm tree
-Message-ID: <20210513221112.Ru-x8QITK%akpm@linux-foundation.org>
+ set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+ added to -mm tree
+Message-ID: <20210513221117.wbPljS6Eq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: set_memory: allow set_direct_map_*_noflush() for multiple pages
+     Subject: set_memory: allow querying whether set_direct_map_*() is actually enabled
 has been added to the -mm tree.  Its filename is
-     set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+     set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,18 +77,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: set_memory: allow set_direct_map_*_noflush() for multiple pages
+Subject: set_memory: allow querying whether set_direct_map_*() is actually enabled
 
-The underlying implementations of set_direct_map_invalid_noflush() and
-set_direct_map_default_noflush() allow updating multiple contiguous pages
-at once.
+On arm64, set_direct_map_*() functions may return 0 without actually
+changing the linear map.  This behaviour can be controlled using kernel
+parameters, so we need a way to determine at runtime whether calls to
+set_direct_map_invalid_noflush() and set_direct_map_default_noflush() have
+any effect.
 
-Add numpages parameter to set_direct_map_*_noflush() to expose this
-ability with these APIs.
+Extend set_memory API with can_set_direct_map() function that allows
+checking if calling set_direct_map_*() will actually change the page
+table, replace several occurrences of open coded checks in arm64 with the
+new function and provide a generic stub for architectures that always
+modify page tables upon calls to set_direct_map APIs.
 
-Link: https://lkml.kernel.org/r/20210513184734.29317-4-rppt@kernel.org
+[arnd@arndb.de: arm64: kfence: fix header inclusion ]
+Link: https://lkml.kernel.org/r/20210513184734.29317-5-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Acked-by: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -97,7 +104,6 @@ Cc: Borislav Petkov <bp@alien8.de>
 Cc: Christopher Lameter <cl@linux.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Elena Reshetova <elena.reshetova@intel.com>
 Cc: Hagen Paul Pfeifer <hagen@jauu.net>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -121,206 +127,183 @@ Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/cacheflush.h |    4 ++--
- arch/arm64/mm/pageattr.c            |   10 ++++++----
- arch/riscv/include/asm/set_memory.h |    4 ++--
- arch/riscv/mm/pageattr.c            |    8 ++++----
- arch/x86/include/asm/set_memory.h   |    4 ++--
- arch/x86/mm/pat/set_memory.c        |    8 ++++----
- include/linux/set_memory.h          |    4 ++--
- kernel/power/snapshot.c             |    4 ++--
- mm/vmalloc.c                        |    5 +++--
- 9 files changed, 27 insertions(+), 24 deletions(-)
+ arch/arm64/include/asm/Kbuild       |    1 -
+ arch/arm64/include/asm/cacheflush.h |    6 ------
+ arch/arm64/include/asm/kfence.h     |    2 +-
+ arch/arm64/include/asm/set_memory.h |   17 +++++++++++++++++
+ arch/arm64/kernel/machine_kexec.c   |    1 +
+ arch/arm64/mm/mmu.c                 |    6 +++---
+ arch/arm64/mm/pageattr.c            |   13 +++++++++----
+ include/linux/set_memory.h          |   12 ++++++++++++
+ 8 files changed, 43 insertions(+), 15 deletions(-)
 
---- a/arch/arm64/include/asm/cacheflush.h~set_memory-allow-set_direct_map__noflush-for-multiple-pages
+--- a/arch/arm64/include/asm/cacheflush.h~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
 +++ a/arch/arm64/include/asm/cacheflush.h
-@@ -133,8 +133,8 @@ static __always_inline void __flush_icac
+@@ -131,12 +131,6 @@ static __always_inline void __flush_icac
+ 	dsb(ish);
+ }
  
- int set_memory_valid(unsigned long addr, int numpages, int enable);
- 
--int set_direct_map_invalid_noflush(struct page *page);
--int set_direct_map_default_noflush(struct page *page);
-+int set_direct_map_invalid_noflush(struct page *page, int numpages);
-+int set_direct_map_default_noflush(struct page *page, int numpages);
- bool kernel_page_present(struct page *page);
- 
+-int set_memory_valid(unsigned long addr, int numpages, int enable);
+-
+-int set_direct_map_invalid_noflush(struct page *page, int numpages);
+-int set_direct_map_default_noflush(struct page *page, int numpages);
+-bool kernel_page_present(struct page *page);
+-
  #include <asm-generic/cacheflush.h>
---- a/arch/arm64/mm/pageattr.c~set_memory-allow-set_direct_map__noflush-for-multiple-pages
+ 
+ #endif /* __ASM_CACHEFLUSH_H */
+--- a/arch/arm64/include/asm/Kbuild~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
++++ a/arch/arm64/include/asm/Kbuild
+@@ -3,7 +3,6 @@ generic-y += early_ioremap.h
+ generic-y += mcs_spinlock.h
+ generic-y += qrwlock.h
+ generic-y += qspinlock.h
+-generic-y += set_memory.h
+ generic-y += user.h
+ 
+ generated-y += cpucaps.h
+--- a/arch/arm64/include/asm/kfence.h~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
++++ a/arch/arm64/include/asm/kfence.h
+@@ -8,7 +8,7 @@
+ #ifndef __ASM_KFENCE_H
+ #define __ASM_KFENCE_H
+ 
+-#include <asm/cacheflush.h>
++#include <asm/set_memory.h>
+ 
+ static inline bool arch_kfence_init_pool(void) { return true; }
+ 
+--- /dev/null
++++ a/arch/arm64/include/asm/set_memory.h
+@@ -0,0 +1,17 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++
++#ifndef _ASM_ARM64_SET_MEMORY_H
++#define _ASM_ARM64_SET_MEMORY_H
++
++#include <asm-generic/set_memory.h>
++
++bool can_set_direct_map(void);
++#define can_set_direct_map can_set_direct_map
++
++int set_memory_valid(unsigned long addr, int numpages, int enable);
++
++int set_direct_map_invalid_noflush(struct page *page, int numpages);
++int set_direct_map_default_noflush(struct page *page, int numpages);
++bool kernel_page_present(struct page *page);
++
++#endif /* _ASM_ARM64_SET_MEMORY_H */
+--- a/arch/arm64/kernel/machine_kexec.c~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
++++ a/arch/arm64/kernel/machine_kexec.c
+@@ -11,6 +11,7 @@
+ #include <linux/kernel.h>
+ #include <linux/kexec.h>
+ #include <linux/page-flags.h>
++#include <linux/set_memory.h>
+ #include <linux/smp.h>
+ 
+ #include <asm/cacheflush.h>
+--- a/arch/arm64/mm/mmu.c~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
++++ a/arch/arm64/mm/mmu.c
+@@ -22,6 +22,7 @@
+ #include <linux/io.h>
+ #include <linux/mm.h>
+ #include <linux/vmalloc.h>
++#include <linux/set_memory.h>
+ 
+ #include <asm/barrier.h>
+ #include <asm/cputype.h>
+@@ -515,7 +516,7 @@ static void __init map_mem(pgd_t *pgdp)
+ 	 */
+ 	BUILD_BUG_ON(pgd_index(direct_map_end - 1) == pgd_index(direct_map_end));
+ 
+-	if (rodata_full || crash_mem_map || debug_pagealloc_enabled())
++	if (can_set_direct_map() || crash_mem_map)
+ 		flags |= NO_BLOCK_MAPPINGS | NO_CONT_MAPPINGS;
+ 
+ 	/*
+@@ -1483,8 +1484,7 @@ int arch_add_memory(int nid, u64 start,
+ 	 * KFENCE requires linear map to be mapped at page granularity, so that
+ 	 * it is possible to protect/unprotect single pages in the KFENCE pool.
+ 	 */
+-	if (rodata_full || debug_pagealloc_enabled() ||
+-	    IS_ENABLED(CONFIG_KFENCE))
++	if (can_set_direct_map() || IS_ENABLED(CONFIG_KFENCE))
+ 		flags |= NO_BLOCK_MAPPINGS | NO_CONT_MAPPINGS;
+ 
+ 	__create_pgd_mapping(swapper_pg_dir, start, __phys_to_virt(start),
+--- a/arch/arm64/mm/pageattr.c~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
 +++ a/arch/arm64/mm/pageattr.c
-@@ -148,34 +148,36 @@ int set_memory_valid(unsigned long addr,
- 					__pgprot(PTE_VALID));
- }
+@@ -19,6 +19,11 @@ struct page_change_data {
  
--int set_direct_map_invalid_noflush(struct page *page)
-+int set_direct_map_invalid_noflush(struct page *page, int numpages)
+ bool rodata_full __ro_after_init = IS_ENABLED(CONFIG_RODATA_FULL_DEFAULT_ENABLED);
+ 
++bool can_set_direct_map(void)
++{
++	return rodata_full || debug_pagealloc_enabled();
++}
++
+ static int change_page_range(pte_t *ptep, unsigned long addr, void *data)
  {
- 	struct page_change_data data = {
- 		.set_mask = __pgprot(0),
- 		.clear_mask = __pgprot(PTE_VALID),
+ 	struct page_change_data *cdata = data;
+@@ -156,7 +161,7 @@ int set_direct_map_invalid_noflush(struc
  	};
-+	unsigned long size = PAGE_SIZE * numpages;
+ 	unsigned long size = PAGE_SIZE * numpages;
  
- 	if (!debug_pagealloc_enabled() && !rodata_full)
+-	if (!debug_pagealloc_enabled() && !rodata_full)
++	if (!can_set_direct_map())
  		return 0;
  
  	return apply_to_page_range(&init_mm,
- 				   (unsigned long)page_address(page),
--				   PAGE_SIZE, change_page_range, &data);
-+				   size, change_page_range, &data);
- }
- 
--int set_direct_map_default_noflush(struct page *page)
-+int set_direct_map_default_noflush(struct page *page, int numpages)
- {
- 	struct page_change_data data = {
- 		.set_mask = __pgprot(PTE_VALID | PTE_WRITE),
- 		.clear_mask = __pgprot(PTE_RDONLY),
+@@ -172,7 +177,7 @@ int set_direct_map_default_noflush(struc
  	};
-+	unsigned long size = PAGE_SIZE * numpages;
+ 	unsigned long size = PAGE_SIZE * numpages;
  
- 	if (!debug_pagealloc_enabled() && !rodata_full)
+-	if (!debug_pagealloc_enabled() && !rodata_full)
++	if (!can_set_direct_map())
  		return 0;
  
  	return apply_to_page_range(&init_mm,
- 				   (unsigned long)page_address(page),
--				   PAGE_SIZE, change_page_range, &data);
-+				   size, change_page_range, &data);
- }
- 
+@@ -183,7 +188,7 @@ int set_direct_map_default_noflush(struc
  #ifdef CONFIG_DEBUG_PAGEALLOC
---- a/arch/riscv/include/asm/set_memory.h~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/arch/riscv/include/asm/set_memory.h
-@@ -32,8 +32,8 @@ void protect_kernel_linear_mapping_text_
- static inline void protect_kernel_linear_mapping_text_rodata(void) {}
- #endif
- 
--int set_direct_map_invalid_noflush(struct page *page);
--int set_direct_map_default_noflush(struct page *page);
-+int set_direct_map_invalid_noflush(struct page *page, int numpages);
-+int set_direct_map_default_noflush(struct page *page, int numpages);
- bool kernel_page_present(struct page *page);
- 
- #endif /* __ASSEMBLY__ */
---- a/arch/riscv/mm/pageattr.c~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/arch/riscv/mm/pageattr.c
-@@ -156,11 +156,11 @@ int set_memory_nx(unsigned long addr, in
- 	return __set_memory(addr, numpages, __pgprot(0), __pgprot(_PAGE_EXEC));
- }
- 
--int set_direct_map_invalid_noflush(struct page *page)
-+int set_direct_map_invalid_noflush(struct page *page, int numpages)
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
  {
- 	int ret;
- 	unsigned long start = (unsigned long)page_address(page);
--	unsigned long end = start + PAGE_SIZE;
-+	unsigned long end = start + PAGE_SIZE * numpages;
- 	struct pageattr_masks masks = {
- 		.set_mask = __pgprot(0),
- 		.clear_mask = __pgprot(_PAGE_PRESENT)
-@@ -173,11 +173,11 @@ int set_direct_map_invalid_noflush(struc
- 	return ret;
- }
+-	if (!debug_pagealloc_enabled() && !rodata_full)
++	if (!can_set_direct_map())
+ 		return;
  
--int set_direct_map_default_noflush(struct page *page)
-+int set_direct_map_default_noflush(struct page *page, int numpages)
- {
- 	int ret;
- 	unsigned long start = (unsigned long)page_address(page);
--	unsigned long end = start + PAGE_SIZE;
-+	unsigned long end = start + PAGE_SIZE * numpages;
- 	struct pageattr_masks masks = {
- 		.set_mask = PAGE_KERNEL,
- 		.clear_mask = __pgprot(0)
---- a/arch/x86/include/asm/set_memory.h~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/arch/x86/include/asm/set_memory.h
-@@ -80,8 +80,8 @@ int set_pages_wb(struct page *page, int
- int set_pages_ro(struct page *page, int numpages);
- int set_pages_rw(struct page *page, int numpages);
+ 	set_memory_valid((unsigned long)page_address(page), numpages, enable);
+@@ -208,7 +213,7 @@ bool kernel_page_present(struct page *pa
+ 	pte_t *ptep;
+ 	unsigned long addr = (unsigned long)page_address(page);
  
--int set_direct_map_invalid_noflush(struct page *page);
--int set_direct_map_default_noflush(struct page *page);
-+int set_direct_map_invalid_noflush(struct page *page, int numpages);
-+int set_direct_map_default_noflush(struct page *page, int numpages);
- bool kernel_page_present(struct page *page);
+-	if (!debug_pagealloc_enabled() && !rodata_full)
++	if (!can_set_direct_map())
+ 		return true;
  
- extern int kernel_set_to_readonly;
---- a/arch/x86/mm/pat/set_memory.c~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/arch/x86/mm/pat/set_memory.c
-@@ -2192,14 +2192,14 @@ static int __set_pages_np(struct page *p
- 	return __change_page_attr_set_clr(&cpa, 0);
- }
- 
--int set_direct_map_invalid_noflush(struct page *page)
-+int set_direct_map_invalid_noflush(struct page *page, int numpages)
- {
--	return __set_pages_np(page, 1);
-+	return __set_pages_np(page, numpages);
- }
- 
--int set_direct_map_default_noflush(struct page *page)
-+int set_direct_map_default_noflush(struct page *page, int numpages)
- {
--	return __set_pages_p(page, 1);
-+	return __set_pages_p(page, numpages);
- }
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
---- a/include/linux/set_memory.h~set_memory-allow-set_direct_map__noflush-for-multiple-pages
+ 	pgdp = pgd_offset_k(addr);
+--- a/include/linux/set_memory.h~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
 +++ a/include/linux/set_memory.h
-@@ -15,11 +15,11 @@ static inline int set_memory_nx(unsigned
+@@ -28,7 +28,19 @@ static inline bool kernel_page_present(s
+ {
+ 	return true;
+ }
++#else /* CONFIG_ARCH_HAS_SET_DIRECT_MAP */
++/*
++ * Some architectures, e.g. ARM64 can disable direct map modifications at
++ * boot time. Let them overrive this query.
++ */
++#ifndef can_set_direct_map
++static inline bool can_set_direct_map(void)
++{
++	return true;
++}
++#define can_set_direct_map can_set_direct_map
  #endif
++#endif /* CONFIG_ARCH_HAS_SET_DIRECT_MAP */
  
- #ifndef CONFIG_ARCH_HAS_SET_DIRECT_MAP
--static inline int set_direct_map_invalid_noflush(struct page *page)
-+static inline int set_direct_map_invalid_noflush(struct page *page, int numpages)
- {
- 	return 0;
- }
--static inline int set_direct_map_default_noflush(struct page *page)
-+static inline int set_direct_map_default_noflush(struct page *page, int numpages)
- {
- 	return 0;
- }
---- a/kernel/power/snapshot.c~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/kernel/power/snapshot.c
-@@ -86,7 +86,7 @@ static inline void hibernate_restore_unp
- static inline void hibernate_map_page(struct page *page)
- {
- 	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
--		int ret = set_direct_map_default_noflush(page);
-+		int ret = set_direct_map_default_noflush(page, 1);
- 
- 		if (ret)
- 			pr_warn_once("Failed to remap page\n");
-@@ -99,7 +99,7 @@ static inline void hibernate_unmap_page(
- {
- 	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
- 		unsigned long addr = (unsigned long)page_address(page);
--		int ret  = set_direct_map_invalid_noflush(page);
-+		int ret = set_direct_map_invalid_noflush(page, 1);
- 
- 		if (ret)
- 			pr_warn_once("Failed to remap page\n");
---- a/mm/vmalloc.c~set_memory-allow-set_direct_map__noflush-for-multiple-pages
-+++ a/mm/vmalloc.c
-@@ -2484,14 +2484,15 @@ struct vm_struct *remove_vm_area(const v
- }
- 
- static inline void set_area_direct_map(const struct vm_struct *area,
--				       int (*set_direct_map)(struct page *page))
-+				       int (*set_direct_map)(struct page *page,
-+							     int numpages))
- {
- 	int i;
- 
- 	/* HUGE_VMALLOC passes small pages to set_direct_map */
- 	for (i = 0; i < area->nr_pages; i++)
- 		if (page_address(area->pages[i]))
--			set_direct_map(area->pages[i]);
-+			set_direct_map(area->pages[i], 1);
- }
- 
- /* Handle removing and resetting vm mappings related to the vm_struct. */
+ #ifndef set_mce_nospec
+ static inline int set_mce_nospec(unsigned long pfn, bool unmap)
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
