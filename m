@@ -7,36 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62CC8C433ED
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 22:10:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C4C4C433B4
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 22:10:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 363C561433
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 22:10:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E36D61433
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 22:10:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231754AbhEMWLM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 May 2021 18:11:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34656 "EHLO mail.kernel.org"
+        id S231768AbhEMWLV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 May 2021 18:11:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34692 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229459AbhEMWLM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 13 May 2021 18:11:12 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C05D16142E;
-        Thu, 13 May 2021 22:10:01 +0000 (UTC)
+        id S229459AbhEMWLU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 13 May 2021 18:11:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5E4A16142E;
+        Thu, 13 May 2021 22:10:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620943801;
-        bh=IQRY23szBt+R5qB7IuH6l1yiXpN0BFYLPf6WkYLjncQ=;
+        s=korg; t=1620943809;
+        bh=sSpJS2alaGjVDe5kgtXS7A4VObuCtRvKoL5rvo+QhQ4=;
         h=Date:From:To:Subject:From;
-        b=KjFDJJBPI1SFWkoxG7JnzzXjqcmedRrIlMaDhT1ZOXjF7wNAjXPAqxgWuqD688due
-         5BsKyNGcollNKlGkJ8nxi9ATEjA1HwUVoxo20I6zZTO5FbRp9P8KRsgqnw5OKtzYCN
-         Mz6de5api18whzRYMqiPNTBDQRWpd8wKbBC6jUM8=
-Date:   Thu, 13 May 2021 15:10:01 -0700
+        b=S5OK2c0O+DjnZPEk8rqh57drd0IHtrHqm7oUBTgT7pY1XHGmXA7GZs3VIncauNeH9
+         URVh1wV/UykneBy9tz+FP6bYqwFKKuT2zqPjbk5m0r2AJ2aXCwRm+i/C815TAwaOG+
+         orDJBYV6AtbBy9rgl7taDQ0M7APVhouUMahTAtjE=
+Date:   Thu, 13 May 2021 15:10:09 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
         yury.norov@gmail.com
 Subject:  [to-be-updated]
- secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch removed from
- -mm tree
-Message-ID: <20210513221001.Oon-8-QxS%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-introduce-memfd=5Fsecret-system-call-to-create-secret-me?=
+ =?US-ASCII?Q?mory-areas-fix.patch?= removed from -mm tree
+Message-ID: <20210513221009.bumDxD3dj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,7 +48,7 @@ X-Mailing-List: mm-commits@vger.kernel.org
 The patch titled
      Subject: memfd_secret: use unsigned int rather than long as syscall flags type
 has been removed from the -mm tree.  Its filename was
-     secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
+     mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
 
 This patch was dropped because an updated version will be merged
 
@@ -73,20 +75,20 @@ Acked-by: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/memfd_secret.c |    2 +-
+ mm/secretmem.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/memfd_secret.c~secretmem-test-add-basic-selftest-for-memfd_secret2-fix
-+++ a/tools/testing/selftests/vm/memfd_secret.c
-@@ -38,7 +38,7 @@ static unsigned long page_size;
- static unsigned long mlock_limit_cur;
- static unsigned long mlock_limit_max;
- 
--static int memfd_secret(unsigned long flags)
-+static int memfd_secret(unsigned int flags)
- {
- 	return syscall(__NR_memfd_secret, flags);
+--- a/mm/secretmem.c~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix
++++ a/mm/secretmem.c
+@@ -185,7 +185,7 @@ err_free_inode:
+ 	return file;
  }
+ 
+-SYSCALL_DEFINE1(memfd_secret, unsigned long, flags)
++SYSCALL_DEFINE1(memfd_secret, unsigned int, flags)
+ {
+ 	struct file *file;
+ 	int fd, err;
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
@@ -105,7 +107,6 @@ mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
 pm-hibernate-disable-when-there-are-active-secretmem-users.patch
 arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
 secretmem-test-add-basic-selftest-for-memfd_secret2.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
 mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-2.patch
 mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-3.patch
 arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch
