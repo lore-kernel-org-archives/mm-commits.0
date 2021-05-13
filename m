@@ -3,154 +3,97 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-5.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D60DC433ED
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 05:04:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F30CCC433B4
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 05:28:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2C6C16142D
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 05:04:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB5A66142E
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 05:28:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230362AbhEMFFo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 May 2021 01:05:44 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:48138 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S230176AbhEMFFn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 13 May 2021 01:05:43 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1620882272;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=f9XavPqVJ1HUu4pTWzQFntsmkDviMhwg08pcvaFhsys=;
-        b=ioOcHRTeuQU5U3BbrYdWDNgayKmR24qJhz/PcN2xpHeNv27ku6R8uX6a0a85J9j/WxVWsf
-        spdtk1GUOOToAx3u7m9z6DMgU3Rfvi5atj72faHwXXGi3i7uLFsQH5YZvlkLH7vWy0PTuI
-        xwNwdo0x67LvlBoBEQD7K7GjMp+ReDs=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-85-wGWmSbG_OiefN2YAxnx1qA-1; Thu, 13 May 2021 01:04:31 -0400
-X-MC-Unique: wGWmSbG_OiefN2YAxnx1qA-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 57121801ADA;
-        Thu, 13 May 2021 05:04:27 +0000 (UTC)
-Received: from localhost (ovpn-12-82.pek2.redhat.com [10.72.12.82])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id A787478622;
-        Thu, 13 May 2021 05:04:19 +0000 (UTC)
-Date:   Thu, 13 May 2021 13:04:16 +0800
-From:   Baoquan He <bhe@redhat.com>
-To:     David Hildenbrand <david@redhat.com>
-Cc:     Mike Rapoport <rppt@kernel.org>, Dave Young <dyoung@redhat.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        christian.brauner@ubuntu.com, colin.king@canonical.com,
-        corbet@lwn.net, frederic@kernel.org, gpiccoli@canonical.com,
-        john.p.donnelly@oracle.com, jpoimboe@redhat.com,
-        keescook@chromium.org, linux-mm@kvack.org, masahiroy@kernel.org,
-        mchehab+huawei@kernel.org, mike.kravetz@oracle.com,
-        mingo@kernel.org, mm-commits@vger.kernel.org, paulmck@kernel.org,
-        peterz@infradead.org, rdunlap@infradead.org, rostedt@goodmis.org,
-        saeed.mirzamohammadi@oracle.com, samitolvanen@google.com,
-        sboyd@kernel.org, tglx@linutronix.de,
-        torvalds@linux-foundation.org, vgoyal@redhat.com,
-        yifeifz2@illinois.edu, Michal Hocko <mhocko@kernel.org>,
-        kasong@redhat.com
-Subject: Re: [patch 48/91] kernel/crash_core: add crashkernel=auto for vmcore
- creation
-Message-ID: <20210513050416.GH2834@localhost.localdomain>
-References: <4a544493-0622-ac6d-f14b-fb338e33b25e@redhat.com>
- <20210510104359.GC2946@localhost.localdomain>
- <e9332e4e-57bd-9c7c-b3ba-7e3b29fad7c8@redhat.com>
- <YJkcsswrgAudo2vz@dhcp-128-65.nay.redhat.com>
- <b111806c-9103-3f77-7135-f1f773d23b80@redhat.com>
- <20210511133641.GE2834@localhost.localdomain>
- <YJqxWy63cokQZ4jQ@kernel.org>
- <c990270c-30a0-0913-df5a-2c73eb66a436@redhat.com>
- <20210512145150.GG2834@localhost.localdomain>
- <3897d7a7-1120-4445-c297-e1cb7ac99f43@redhat.com>
+        id S230244AbhEMF3t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 May 2021 01:29:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35958 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229880AbhEMF3s (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 May 2021 01:29:48 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 944DEC061574;
+        Wed, 12 May 2021 22:28:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:
+        Subject:Sender:Reply-To:Cc:Content-ID:Content-Description;
+        bh=3/MkI0zBK9KSY7tn5DaMum2sGQADBHMyu8wks7SvDhk=; b=LLOL2fvXiZpPmx1UKjgkMPPvL4
+        rCERQCNbwPu3iY/I/xEwpwl3zbgp0wU86L6yIJ940FyR85iBrcZZqk+cjipYtkpHe6nReqbzfgf0P
+        zCb5oA4PBI00pC8k62OT+CTY98zO4TradqCIzKpolU4P+po5d6CgVppnAYxCzg5t3/cV9T2Lfy0gp
+        P4++pFyp5iq+x0fySG+mxYGNZji1LU9xAccBhxtTDxWDXolg3Hs1YjlOlaqoLZvC98lQALJxnI/QP
+        kaZjz73AY/a8jeHxb7mo9U2Fdj6S6NKxD+3LaMYb731uzNGfHIQoxKjt8kn9tHr1VUmrLKtpxHWz+
+        XapgeQ+Q==;
+Received: from [2601:1c0:6280:3f0::7376]
+        by bombadil.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
+        id 1lh3tg-00B1cV-K7; Thu, 13 May 2021 05:28:32 +0000
+Subject: Re: mmotm 2021-05-12-21-46 uploaded (mm/memory_failure.c)
+To:     akpm@linux-foundation.org, broonie@kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>
+References: <20210513044710.MCXhM_NwC%akpm@linux-foundation.org>
+From:   Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <91fd4441-b84b-ceb0-8d4c-c62e631711fc@infradead.org>
+Date:   Wed, 12 May 2021 22:28:29 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3897d7a7-1120-4445-c297-e1cb7ac99f43@redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+In-Reply-To: <20210513044710.MCXhM_NwC%akpm@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 05/12/21 at 05:07pm, David Hildenbrand wrote:
-> On 12.05.21 16:51, Baoquan He wrote:
-> > On 05/11/21 at 07:07pm, David Hildenbrand wrote:
-> > > > > If the way adding default value into kernel config is disliked,
-> > > > > this a) option looks good. We can get value with x% of system RAM, but
-> > > > > clamp it with CRASH_KERNEL_MIN/MAX. The CRASH_KERNEL_MIN/MAX may need be
-> > > > > defined with a default value for different ARCHes. It's very close to
-> > > > > our current implementation, and handling 'auto' in kernel.
-> > > > > 
-> > > > > And kernel config provided so that people can tune the MIN/MAX value,
-> > > > > but no need to post patch to do the tuning each time if have to?
-> > > > Maybe I'm missing something, but the whole point is to avoid kernel
-> > > > configuration option at all. If the crashkernel=auto works good for 99% of
-> > > > the cases, there is no need to provide build time configuration along with
-> > > > it. There are plenty of ways users can control crashkernel reservations
-> > > > with the existing 2-4 (depending on architecture) command line options.
-> > > > 
-> > > > Simply hard coding a reasonable defaults (e.g.
-> > > > "1G-64G:128M,64G-1T:256M,1T-:512M"), and using these defaults when
-> > > > crashkernel=auto is set would cover the same 99% of users you referred to.
-> > > 
-> > > Right, and we can easily allocate a bit more as a safety net temporarily
-> > > when we can actually shrink the area later.
-> > > 
-> > > > 
-> > > > If we can resize the reservation later during boot this will also address
-> > > > David's concern about the wasted memory.
-> > > > 
-> > > 
-> > > Yes.
-> > > 
-> > > > You mentioned that amount of memory that is required for crash kernel
-> > > > reservation depends on the devices present on the system. Is is possible to
-> > > > detect how much memory is required at late stages of boot?
-> > > 
-> > > Here is my thinking:
-> > > 
-> > > There seems to be some kind of formula we can roughly use to come up with
-> > > the final crashkernel size. Baoquan for sure knows all the dirty details, I
-> > > assume it's roughly "core kernel + drivers + user space".
-> > > 
-> > > In the kernel, we can only come up with "core kernel + drivers" expecting
-> > > that we will run
-> > > 
-> > > a) roughly the same kernel
-> > > b) with roughly the same drivers
-> > 
-> > As replied to Mike, kernel size is undecided for different kernel with
-> > different configs. We can define a default minimal size to cover kernel
-> > and driver on systems with not many devices, but hardcoding the size
+On 5/12/21 9:47 PM, akpm@linux-foundation.org wrote:
+> The mm-of-the-moment snapshot 2021-05-12-21-46 has been uploaded to
 > 
-> I never talked about hardcoding, did I?
+>    https://www.ozlabs.org/~akpm/mmotm/
+> 
+> mmotm-readme.txt says
+> 
+> README for mm-of-the-moment:
+> 
+> https://www.ozlabs.org/~akpm/mmotm/
+> 
+> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+> more than once a week.
+> 
+> You will need quilt to apply these patches to the latest Linus release (5.x
+> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+> https://ozlabs.org/~akpm/mmotm/series
+> 
+> The file broken-out.tar.gz contains two datestamp files: .DATE and
+> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+> followed by the base kernel version against which this patch series is to
+> be applied.
+> 
+> This tree is partially included in linux-next.  To see which patches are
+> included in linux-next, consult the `series' file.  Only the patches
+> within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+> linux-next.
 
-Sorry, I didn't make it clear. I said hardcoding, meaning a hardcoding
-min value. No matter what formula we take, it needs a default MIN value
-to restrict the lowest size, right? That MIN value is the hardcoding I
-meant. With it properly chosen, most of systems have no need to shrink
-or adjust the crashkernel, given most of systems own memory less than
-64G. Let alone the later estimation is done in 1st kernel, very likely
-it will get a bigger value as really needed.
+on x86_64:
+# CONFIG_HUGETLBFS is not set
 
-> 
-> > into upstream is not helpful. If the size is big, users will be asked to
-> > check and shrink always. If the size is too small, a new value need be
-> > got and added to cmdline and reboot.
-> 
-> 
-> -- 
-> Thanks,
-> 
-> David / dhildenb
-> 
+../mm/memory-failure.c: In function ‘__get_hwpoison_page’:
+../mm/memory-failure.c:962:15: error: ‘hugetlb_lock’ undeclared (first use in this function); did you mean ‘huge_pte_lock’?
+    spin_lock(&hugetlb_lock);
+               ^~~~~~~~~~~~
+
+-- 
+~Randy
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
 
