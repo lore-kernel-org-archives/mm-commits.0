@@ -2,88 +2,81 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 089A0C433ED
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 20:47:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5FF5C433B4
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 20:48:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D2FA2613F7
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 20:47:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B7DB6143E
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 20:48:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233134AbhEMUtF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 May 2021 16:49:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56294 "EHLO mail.kernel.org"
+        id S233175AbhEMUtP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 May 2021 16:49:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56516 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231249AbhEMUtF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 13 May 2021 16:49:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CC49A61287;
-        Thu, 13 May 2021 20:47:54 +0000 (UTC)
+        id S233153AbhEMUtM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 13 May 2021 16:49:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DB187613FB;
+        Thu, 13 May 2021 20:48:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620938875;
-        bh=ph/D2ruaZJycXfWKMXtRhWDiuhNBEwRkB87bfJEc7wQ=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=yT0GSlqeFDTM/njo6gS0zUif6V5qdEVi1ci+b3bvuCtP5u2XB6cWVOaGaVYgDzrNX
-         Ajln01PVePlCbU87w1oeQfjsEhRHGDhSS2F4nBpWt0JTKDv6Y6FFGXSb+TAruaI1FH
-         ty2mA4dnAGWdBz1VpY+k7082g09XhS5b1PxpOpa8=
-Date:   Thu, 13 May 2021 13:47:54 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc:     Randy Dunlap <rdunlap@infradead.org>, broonie@kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-Subject: Re: mmotm 2021-05-12-21-46 uploaded (arch/x86/mm/pgtable.c)
-Message-Id: <20210513134754.ab3f1a864b0156ef99248401@linux-foundation.org>
-In-Reply-To: <54055e72-34b8-d43d-2ad3-87e8c8fa547b@csgroup.eu>
-References: <20210513044710.MCXhM_NwC%akpm@linux-foundation.org>
-        <151ddd7f-1d3e-a6f7-daab-e32f785426e1@infradead.org>
-        <54055e72-34b8-d43d-2ad3-87e8c8fa547b@csgroup.eu>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        s=korg; t=1620938882;
+        bh=4kR00HGpcnXPH5GnPkxVg6n5RFcQA/knLS5Ed748zG0=;
+        h=Date:From:To:Subject:From;
+        b=cJTrtIiLbLw8wqhzgDCFhe6X9L5hX3PdxoKOrUlIBucBRtoFB48fPdqYP/3BzRiPZ
+         qstPjT7R1OqKV0/0CK1v6TkKPT7+3U8notNJWkqT1Mciggwvgaoa/Z1xjslRPh8jWe
+         e8ZRO2ulPXIvTdqy7obnJ+oscMMuGI0gYRsWyz/g=
+Date:   Thu, 13 May 2021 13:48:01 -0700
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, christophe.leroy@csgroup.eu,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org
+Subject:  +
+ mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix.patch added to -mm tree
+Message-ID: <20210513204801.u5wopqxfK%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, 13 May 2021 19:09:23 +0200 Christophe Leroy <christophe.leroy@csgroup.eu> wrote:
 
-> 
-> 
-> > on i386:
-> > 
-> > ../arch/x86/mm/pgtable.c:703:5: error: redefinition of ‘pud_set_huge’
-> >   int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
-> >       ^~~~~~~~~~~~
-> > In file included from ../include/linux/mm.h:33:0,
-> >                   from ../arch/x86/mm/pgtable.c:2:
-> > ../include/linux/pgtable.h:1387:19: note: previous definition of ‘pud_set_huge’ was here
-> >   static inline int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
-> >                     ^~~~~~~~~~~~
-> > ../arch/x86/mm/pgtable.c:758:5: error: redefinition of ‘pud_clear_huge’
-> >   int pud_clear_huge(pud_t *pud)
-> >       ^~~~~~~~~~~~~~
-> > In file included from ../include/linux/mm.h:33:0,
-> >                   from ../arch/x86/mm/pgtable.c:2:
-> > ../include/linux/pgtable.h:1391:19: note: previous definition of ‘pud_clear_huge’ was here
-> >   static inline int pud_clear_huge(pud_t *pud)
-> >                     ^~~~~~~~~~~~~~
-> 
-> Hum ...
-> 
-> Comes from my patch 
-> https://patchwork.ozlabs.org/project/linuxppc-dev/patch/5ac5976419350e8e048d463a64cae449eb3ba4b0.1620795204.git.christophe.leroy@csgroup.eu/
-> 
-> But, that happens only if x86 defines __PAGETABLE_PUD_FOLDED. And if PUD is folded, then I can't 
-> understand my it has pud_set_huge() and pud_clear_huge() functions.
+The patch titled
+     Subject: mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix
+has been added to the -mm tree.  Its filename is
+     mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix.patch
 
-Probably because someone messed something up ;)
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix.patch
 
-Let's try this.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix
+
+fix build
+
+Link: https://lkml.kernel.org/r/151ddd7f-1d3e-a6f7-daab-e32f785426e1@infradead.org
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/x86/mm/pgtable.c |   32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
 
 --- a/arch/x86/mm/pgtable.c~mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix
 +++ a/arch/x86/mm/pgtable.c
@@ -141,4 +134,22 @@ Let's try this.
   *
   * Returns 1 on success and 0 on failure (no PMD map is found).
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm.patch
+mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
+mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
+binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
