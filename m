@@ -2,330 +2,155 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FDF1C433B4
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 04:47:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D60DC433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 05:04:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F2E5761428
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 04:47:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2C6C16142D
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 05:04:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230034AbhEMEsU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 May 2021 00:48:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60248 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229470AbhEMEsU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 13 May 2021 00:48:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DCB5B61183;
-        Thu, 13 May 2021 04:47:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620881231;
-        bh=cEr8zZhyIJlwD2qfXtpSW9fErG8M7o3RK1ZA1Rpo+CU=;
-        h=Date:From:To:Subject:From;
-        b=KPAcs2uVpIz9Tfe6AVzifqZ4jaLE9vRm13Lbd/ovsrJXXJ48NlCxjBYGZCkbsGjcM
-         TmDeF2+7WYX/kgSVwI2FfstSOgINf858Y0FiCnQIt8p5jfxfLqi8wxLQmjF7zy8kny
-         MKeQwajLrmH5l0UkCn7dPyORheR7KHDw36heAHK8=
-Date:   Wed, 12 May 2021 21:47:10 -0700
-From:   akpm@linux-foundation.org
-To:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-Subject:  mmotm 2021-05-12-21-46 uploaded
-Message-ID: <20210513044710.MCXhM_NwC%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S230362AbhEMFFo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 May 2021 01:05:44 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:48138 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S230176AbhEMFFn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 13 May 2021 01:05:43 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1620882272;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=f9XavPqVJ1HUu4pTWzQFntsmkDviMhwg08pcvaFhsys=;
+        b=ioOcHRTeuQU5U3BbrYdWDNgayKmR24qJhz/PcN2xpHeNv27ku6R8uX6a0a85J9j/WxVWsf
+        spdtk1GUOOToAx3u7m9z6DMgU3Rfvi5atj72faHwXXGi3i7uLFsQH5YZvlkLH7vWy0PTuI
+        xwNwdo0x67LvlBoBEQD7K7GjMp+ReDs=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-85-wGWmSbG_OiefN2YAxnx1qA-1; Thu, 13 May 2021 01:04:31 -0400
+X-MC-Unique: wGWmSbG_OiefN2YAxnx1qA-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 57121801ADA;
+        Thu, 13 May 2021 05:04:27 +0000 (UTC)
+Received: from localhost (ovpn-12-82.pek2.redhat.com [10.72.12.82])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id A787478622;
+        Thu, 13 May 2021 05:04:19 +0000 (UTC)
+Date:   Thu, 13 May 2021 13:04:16 +0800
+From:   Baoquan He <bhe@redhat.com>
+To:     David Hildenbrand <david@redhat.com>
+Cc:     Mike Rapoport <rppt@kernel.org>, Dave Young <dyoung@redhat.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        christian.brauner@ubuntu.com, colin.king@canonical.com,
+        corbet@lwn.net, frederic@kernel.org, gpiccoli@canonical.com,
+        john.p.donnelly@oracle.com, jpoimboe@redhat.com,
+        keescook@chromium.org, linux-mm@kvack.org, masahiroy@kernel.org,
+        mchehab+huawei@kernel.org, mike.kravetz@oracle.com,
+        mingo@kernel.org, mm-commits@vger.kernel.org, paulmck@kernel.org,
+        peterz@infradead.org, rdunlap@infradead.org, rostedt@goodmis.org,
+        saeed.mirzamohammadi@oracle.com, samitolvanen@google.com,
+        sboyd@kernel.org, tglx@linutronix.de,
+        torvalds@linux-foundation.org, vgoyal@redhat.com,
+        yifeifz2@illinois.edu, Michal Hocko <mhocko@kernel.org>,
+        kasong@redhat.com
+Subject: Re: [patch 48/91] kernel/crash_core: add crashkernel=auto for vmcore
+ creation
+Message-ID: <20210513050416.GH2834@localhost.localdomain>
+References: <4a544493-0622-ac6d-f14b-fb338e33b25e@redhat.com>
+ <20210510104359.GC2946@localhost.localdomain>
+ <e9332e4e-57bd-9c7c-b3ba-7e3b29fad7c8@redhat.com>
+ <YJkcsswrgAudo2vz@dhcp-128-65.nay.redhat.com>
+ <b111806c-9103-3f77-7135-f1f773d23b80@redhat.com>
+ <20210511133641.GE2834@localhost.localdomain>
+ <YJqxWy63cokQZ4jQ@kernel.org>
+ <c990270c-30a0-0913-df5a-2c73eb66a436@redhat.com>
+ <20210512145150.GG2834@localhost.localdomain>
+ <3897d7a7-1120-4445-c297-e1cb7ac99f43@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3897d7a7-1120-4445-c297-e1cb7ac99f43@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The mm-of-the-moment snapshot 2021-05-12-21-46 has been uploaded to
+On 05/12/21 at 05:07pm, David Hildenbrand wrote:
+> On 12.05.21 16:51, Baoquan He wrote:
+> > On 05/11/21 at 07:07pm, David Hildenbrand wrote:
+> > > > > If the way adding default value into kernel config is disliked,
+> > > > > this a) option looks good. We can get value with x% of system RAM, but
+> > > > > clamp it with CRASH_KERNEL_MIN/MAX. The CRASH_KERNEL_MIN/MAX may need be
+> > > > > defined with a default value for different ARCHes. It's very close to
+> > > > > our current implementation, and handling 'auto' in kernel.
+> > > > > 
+> > > > > And kernel config provided so that people can tune the MIN/MAX value,
+> > > > > but no need to post patch to do the tuning each time if have to?
+> > > > Maybe I'm missing something, but the whole point is to avoid kernel
+> > > > configuration option at all. If the crashkernel=auto works good for 99% of
+> > > > the cases, there is no need to provide build time configuration along with
+> > > > it. There are plenty of ways users can control crashkernel reservations
+> > > > with the existing 2-4 (depending on architecture) command line options.
+> > > > 
+> > > > Simply hard coding a reasonable defaults (e.g.
+> > > > "1G-64G:128M,64G-1T:256M,1T-:512M"), and using these defaults when
+> > > > crashkernel=auto is set would cover the same 99% of users you referred to.
+> > > 
+> > > Right, and we can easily allocate a bit more as a safety net temporarily
+> > > when we can actually shrink the area later.
+> > > 
+> > > > 
+> > > > If we can resize the reservation later during boot this will also address
+> > > > David's concern about the wasted memory.
+> > > > 
+> > > 
+> > > Yes.
+> > > 
+> > > > You mentioned that amount of memory that is required for crash kernel
+> > > > reservation depends on the devices present on the system. Is is possible to
+> > > > detect how much memory is required at late stages of boot?
+> > > 
+> > > Here is my thinking:
+> > > 
+> > > There seems to be some kind of formula we can roughly use to come up with
+> > > the final crashkernel size. Baoquan for sure knows all the dirty details, I
+> > > assume it's roughly "core kernel + drivers + user space".
+> > > 
+> > > In the kernel, we can only come up with "core kernel + drivers" expecting
+> > > that we will run
+> > > 
+> > > a) roughly the same kernel
+> > > b) with roughly the same drivers
+> > 
+> > As replied to Mike, kernel size is undecided for different kernel with
+> > different configs. We can define a default minimal size to cover kernel
+> > and driver on systems with not many devices, but hardcoding the size
+> 
+> I never talked about hardcoding, did I?
 
-   https://www.ozlabs.org/~akpm/mmotm/
+Sorry, I didn't make it clear. I said hardcoding, meaning a hardcoding
+min value. No matter what formula we take, it needs a default MIN value
+to restrict the lowest size, right? That MIN value is the hardcoding I
+meant. With it properly chosen, most of systems have no need to shrink
+or adjust the crashkernel, given most of systems own memory less than
+64G. Let alone the later estimation is done in 1st kernel, very likely
+it will get a bigger value as really needed.
 
-mmotm-readme.txt says
+> 
+> > into upstream is not helpful. If the size is big, users will be asked to
+> > check and shrink always. If the size is too small, a new value need be
+> > got and added to cmdline and reboot.
+> 
+> 
+> -- 
+> Thanks,
+> 
+> David / dhildenb
+> 
 
-README for mm-of-the-moment:
-
-https://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (5.x
-or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-https://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
-
-	https://github.com/hnaz/linux-mm
-
-The directory https://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
-
-A git copy of this tree is also available at
-
-	https://github.com/hnaz/linux-mm
-
-
-
-This mmotm tree contains the following patches against 5.13-rc1:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-* mm-hugetlb-fix-f_seal_future_write.patch
-* mm-hugetlb-fix-cow-where-page-writtable-in-child.patch
-* mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex.patch
-* kernel-resource-fix-return-code-check-in-__request_free_mem_region.patch
-* squashfs-fix-divide-error-in-calculate_skip.patch
-* userfaultfd-release-page-in-error-path-to-avoid-bug_on.patch
-* ksm-revert-use-get_ksm_page_nolock-to-get-ksm-page-in-remove_rmap_item_from_tree.patch
-* mm-fix-struct-page-layout-on-32-bit-systems.patch
-* kasan-fix-unit-tests-with-config_ubsan_local_bounds-enabled.patch
-* mm-filemap-fix-readahead-return-types.patch
-* hfsplus-prevent-corruption-in-shrinking-truncate.patch
-* docs-admin-guide-update-description-for-kernelmodprobe-sysctl.patch
-* revert-mm-gup-check-page-posion-status-for-coredump.patch
-* ipc-mqueue-msg-sem-avoid-relying-on-a-stack-reference-past-its-expiry.patch
-* mmhwpoison-fix-race-with-compound-page-allocation.patch
-* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
-* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
-* ia64-headers-drop-duplicated-words.patch
-* streamline_configpl-make-spacing-consistent.patch
-* streamline_configpl-add-softtabstop=4-for-vim-users.patch
-* ocfs2-remove-unnecessary-init_list_head.patch
-* ocfs2-fix-snprintf-checking.patch
-* ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
-* ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
-* kernel-watchdog-modify-the-explanation-related-to-watchdog-thread.patch
-* doc-watchdog-modify-the-explanation-related-to-watchdog-thread.patch
-* doc-watchdog-modify-the-doc-related-to-watchdog-%u.patch
-  mm.patch
-* kunit-make-test-lock-irq-safe.patch
-* mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality.patch
-* mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix.patch
-* mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-* slub-remove-resiliency_test-function.patch
-* tools-vm-page_owner_sortc-fix-the-potential-stack-overflow-risk.patch
-* mm-page-writeback-kill-get_writeback_state-comments.patch
-* mm-page-writeback-fix-performance-when-bdis-share-of-ratio-is-0.patch
-* mm-page-writeback-update-the-comment-of-dirty-position-control.patch
-* mm-page-writeback-use-__this_cpu_inc-in-account_page_dirtied.patch
-* mm-gup_benchmark-support-threading.patch
-* mm-gup-allow-foll_pin-to-scale-in-smp.patch
-* mm-gup-pack-has_pinned-in-mmf_has_pinned.patch
-* mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-* mm-gup-pack-has_pinned-in-mmf_has_pinned-fix.patch
-* mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
-* swap-fix-do_swap_page-race-with-swapoff.patch
-* mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
-* mm-shmem-fix-shmem_swapin-race-with-swapoff.patch
-* mm-memcg-move-mod_objcg_state-to-memcontrolc.patch
-* mm-memcg-cache-vmstat-data-in-percpu-memcg_stock_pcp.patch
-* mm-memcg-improve-refill_obj_stock-performance.patch
-* mm-memcg-optimize-user-context-object-stock-access.patch
-* mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-* mm-memcg-slab-properly-set-up-gfp-flags-for-objcg-pointer-array.patch
-* mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches.patch
-* mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-fix.patch
-* mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch
-* mm-memcg-slab-disable-cache-merging-for-kmalloc_normal-caches.patch
-* mm-memcontrol-fix-root_mem_cgroup-charging.patch
-* mm-memcontrol-fix-page-charging-in-page-replacement.patch
-* mm-memcontrol-bail-out-early-when-mm-in-get_mem_cgroup_from_mm.patch
-* mm-memcontrol-remove-the-pgdata-parameter-of-mem_cgroup_page_lruvec.patch
-* mm-memcontrol-simplify-lruvec_holds_page_lru_lock.patch
-* mm-memcontrol-rename-lruvec_holds_page_lru_lock-to-page_matches_lruvec.patch
-* mm-memcontrol-simplify-the-logic-of-objcg-pinning-memcg.patch
-* mm-memcontrol-move-obj_cgroup_uncharge_pages-out-of-css_set_lock.patch
-* mm-vmscan-remove-noinline_for_stack.patch
-* mm-improve-mprotectrw-efficiency-on-pages-referenced-once.patch
-* mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
-* perf-map_executable-does-not-indicate-vm_mayexec.patch
-* binfmt-remove-in-tree-usage-of-map_executable.patch
-* binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-* mm-ignore-map_executable-in-ksys_mmap_pgoff.patch
-* mm-mmapc-logic-of-find_vma_intersection-repeated-in-__do_munmap.patch
-* mm-mmap-introduce-unlock_range-for-code-cleanup.patch
-* mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-* mm-mmap-use-find_vma_intersection-in-do_mmap-for-overlap.patch
-* selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
-* selftest-mremap_test-avoid-crash-with-static-build.patch
-* mm-mremap-use-pmd-pud_poplulate-to-update-page-table-entries.patch
-* powerpc-mm-book3s64-fix-possible-build-error.patch
-* powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument.patch
-* mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush.patch
-* mm-mremap-move-tlb-flush-outside-page-table-lock.patch
-* mm-mremap-allow-arch-runtime-override.patch
-* powerpc-mm-enable-move-pmd-pud.patch
-* printk-introduce-dump_stack_lvl.patch
-* kasan-use-dump_stack_lvlkern_err-to-print-stacks.patch
-* mm-page_alloc-__alloc_pages_bulk-do-bounds-check-before-accessing-array.patch
-* mm-mmzoneh-simplify-is_highmem_idx.patch
-* mm-make-__dump_page-static.patch
-* mm-debug-factor-pagepoisoned-out-of-__dump_page.patch
-* mm-page_owner-constify-dump_page_owner.patch
-* mm-make-compound_head-const-preserving.patch
-* mm-constify-get_pfnblock_flags_mask-and-get_pfnblock_migratetype.patch
-* mm-constify-page_count-and-page_ref_count.patch
-* mm-optimise-nth_page-for-contiguous-memmap.patch
-* mm-page_alloc-switch-to-pr_debug.patch
-* mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch
-* mm-page_alloc-convert-per-cpu-list-protection-to-local_lock.patch
-* mm-vmstat-convert-numa-statistics-to-basic-numa-counters.patch
-* mm-vmstat-inline-numa-event-counter-updates.patch
-* mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator.patch
-* mm-page_alloc-reduce-duration-that-irqs-are-disabled-for-vm-counters.patch
-* mm-page_alloc-explicitly-acquire-the-zone-lock-in-__free_pages_ok.patch
-* mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock.patch
-* mm-page_alloc-update-pgfree-outside-the-zone-lock-in-__free_pages_ok.patch
-* mmhwpoison-make-get_hwpoison_page-call-get_any_page.patch
-* mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc.patch
-* mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch
-* mm-hugetlb-gather-discrete-indexes-of-tail-page.patch
-* mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
-* mm-hugetlb-defer-freeing-of-hugetlb-pages.patch
-* mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
-* mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap.patch
-* mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled.patch
-* mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-* mm-hugetlb-introduce-nr_free_vmemmap_pages-in-the-struct-hstate.patch
-* mm-debug_vm_pgtable-move-pmd-pud_huge_tests-out-of-config_transparent_hugepage.patch
-* mm-debug_vm_pgtable-remove-redundant-pfn_pmd-pte-and-fix-one-comment-mistake.patch
-* mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
-* mm-huge_memoryc-use-page-deferred_list.patch
-* mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled.patch
-* mm-huge_memoryc-remove-unnecessary-tlb_remove_page_size-for-huge-zero-pmd.patch
-* mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
-* mm-hugetlb-change-parameters-of-arch_make_huge_pte.patch
-* mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
-* mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmap.patch
-* mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmalloc.patch
-* powerpc-8xx-add-support-for-huge-pages-on-vmap-and-vmalloc.patch
-* userfaultfd-selftests-use-user-mode-only.patch
-* userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch
-* userfaultfd-selftests-dropping-verify-check-in-locking_thread.patch
-* userfaultfd-selftests-only-dump-counts-if-mode-enabled.patch
-* userfaultfd-selftests-unify-error-handling.patch
-* mm-thp-simplify-copying-of-huge-zero-page-pmd-when-fork.patch
-* mm-userfaultfd-fix-uffd-wp-special-cases-for-fork.patch
-* mm-userfaultfd-fix-a-few-thp-pmd-missing-uffd-wp-bit.patch
-* mm-userfaultfd-fail-uffd-wp-registeration-if-not-supported.patch
-* mm-pagemap-export-uffd-wp-protection-information.patch
-* userfaultfd-selftests-add-pagemap-uffd-wp-test.patch
-* userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte.patch
-* userfaultfd-shmem-support-minor-fault-registration-for-shmem.patch
-* userfaultfd-shmem-support-uffdio_continue-for-shmem.patch
-* userfaultfd-shmem-advertise-shmem-minor-fault-support.patch
-* userfaultfd-shmem-modify-shmem_mfill_atomic_pte-to-use-install_pte.patch
-* userfaultfd-selftests-use-memfd_create-for-shmem-test-type.patch
-* userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch
-* userfaultfd-selftests-reinitialize-test-context-in-each-test.patch
-* userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
-* mm-move-holes_in_zone-into-mm.patch
-* docs-procrst-meminfo-briefly-describe-gaps-in-memory-accounting.patch
-* include-linux-mmzoneh-add-documentation-for-pfn_valid.patch
-* memblock-update-initialization-of-reserved-pages.patch
-* arm64-decouple-check-whether-pfn-is-in-linear-map-from-pfn_valid.patch
-* arm64-drop-pfn_valid_within-and-simplify-pfn_valid.patch
-* arm64-drop-pfn_valid_within-and-simplify-pfn_valid-fix.patch
-* mm-thp-relax-the-vm_denywrite-constraint-on-file-backed-thps.patch
-* nommu-remove-__gfp_highmem-in-vmalloc-vzalloc.patch
-* nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-* mm-make-variable-names-for-populate_vma_page_range-consistent.patch
-* mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables.patch
-* mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-* maintainers-add-tools-testing-selftests-vm-to-memory-management.patch
-* selftests-vm-add-protection_keys_32-protection_keys_64-to-gitignore.patch
-* selftests-vm-add-test-for-madv_populate_readwrite.patch
-* mm-memory_hotplug-rate-limit-page-migration-warnings.patch
-* mm-highmem-remove-deprecated-kmap_atomic.patch
-* mm-fix-typos-and-grammar-error-in-comments.patch
-* mm-fix-comments-mentioning-i_mutex.patch
-* info-task-hung-in-generic_file_write_iter.patch
-* info-task-hung-in-generic_file_write-fix.patch
-* kernel-hung_taskc-monitor-killed-tasks.patch
-* proc-avoid-mixing-integer-types-in-mem_rw.patch
-* procfs-allow-reading-fdinfo-with-ptrace_mode_read.patch
-* procfs-dmabuf-add-inode-number-to-proc-fdinfo.patch
-* sysctl-remove-redundant-assignment-to-first.patch
-* proc-sysctl-make-protected_-world-readable.patch
-* kernelh-split-out-panic-and-oops-helpers.patch
-* lib-decompress_bunzip2-remove-an-unneeded-semicolon.patch
-* lib-string_helpers-switch-to-use-bit-macro.patch
-* lib-string_helpers-move-escape_np-check-inside-else-branch-in-a-loop.patch
-* lib-string_helpers-drop-indentation-level-in-string_escape_mem.patch
-* lib-string_helpers-introduce-escape_na-for-escaping-non-ascii.patch
-* lib-string_helpers-introduce-escape_nap-to-escape-non-ascii-and-non-printable.patch
-* lib-string_helpers-allow-to-append-additional-characters-to-be-escaped.patch
-* lib-test-string_helpers-print-flags-in-hexadecimal-format.patch
-* lib-test-string_helpers-get-rid-of-trailing-comma-in-terminators.patch
-* lib-test-string_helpers-add-test-cases-for-new-features.patch
-* maintainers-add-myself-as-designated-reviewer-for-generic-string-library.patch
-* seq_file-introduce-seq_escape_mem.patch
-* seq_file-add-seq_escape_str-as-replica-of-string_escape_str.patch
-* seq_file-convert-seq_escape-to-use-seq_escape_str.patch
-* nfsd-avoid-non-flexible-api-in-seq_quote_mem.patch
-* seq_file-drop-unused-_escape_mem_ascii.patch
-* lz4_decompress-declare-lz4_decompress_safe_withprefix64k-static.patch
-* checkpatch-scripts-spdxcheckpy-now-requires-python3.patch
-* init-print-out-unknown-kernel-parameters.patch
-* hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
-* x86-signal-dont-do-sas_ss_reset-until-we-are-certain-that-sigframe-wont-be-abandoned.patch
-* aio-simplify-read_events.patch
-* ipc-sem-use-kvmalloc-for-sem_undo-allocation.patch
-* ipc-use-kmalloc-for-msg_queue-and-shmid_kernel.patch
-  linux-next.patch
-* mm-define-default-value-for-first_user_address.patch
-* mm-slub-use-stackdepot-to-save-stack-trace-in-objects.patch
-* mmap-make-mlock_future_check-global.patch
-* riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
-* set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
-* set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
-* mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
-* mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-* mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-2.patch
-* mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix-3.patch
-* pm-hibernate-disable-when-there-are-active-secretmem-users.patch
-* arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
-* arch-mm-wire-up-memfd_secret-system-call-where-relevant-fix.patch
-* secretmem-test-add-basic-selftest-for-memfd_secret2.patch
-* secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
-* buildid-only-consider-gnu-notes-for-build-id-parsing.patch
-* buildid-add-api-to-parse-build-id-out-of-buffer.patch
-* buildid-stash-away-kernels-build-id-on-init.patch
-* dump_stack-add-vmlinux-build-id-to-stack-traces.patch
-* module-add-printk-formats-to-add-module-build-id-to-stacktraces.patch
-* module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-* arm64-stacktrace-use-%psb-for-backtrace-printing.patch
-* x86-dumpstack-use-%psb-%pbb-for-backtrace-printing.patch
-* scripts-decode_stacktracesh-support-debuginfod.patch
-* scripts-decode_stacktracesh-silence-stderr-messages-from-addr2line-nm.patch
-* scripts-decode_stacktracesh-indicate-auto-can-be-used-for-base-path.patch
-* buildid-mark-some-arguments-const.patch
-* buildid-fix-kernel-doc-notation.patch
-* kdump-use-vmlinux_build_id-to-simplify.patch
-* makefile-extend-32b-aligned-debug-option-to-64b-aligned.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  mutex-subsystem-synchro-test-module.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  workaround-for-a-pci-restoring-bug.patch
