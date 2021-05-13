@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5FF5C433B4
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 20:48:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB932C433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 20:48:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B7DB6143E
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 20:48:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A759161439
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 20:48:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233175AbhEMUtP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 May 2021 16:49:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56516 "EHLO mail.kernel.org"
+        id S233148AbhEMUtY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 May 2021 16:49:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56720 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233153AbhEMUtM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 13 May 2021 16:49:12 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DB187613FB;
-        Thu, 13 May 2021 20:48:01 +0000 (UTC)
+        id S231249AbhEMUtX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 13 May 2021 16:49:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 51D3561287;
+        Thu, 13 May 2021 20:48:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620938882;
-        bh=4kR00HGpcnXPH5GnPkxVg6n5RFcQA/knLS5Ed748zG0=;
+        s=korg; t=1620938892;
+        bh=FhFb7KAa9YLIv2cC/PvVl7wYhBlRmh3Y1z/d/tzg30k=;
         h=Date:From:To:Subject:From;
-        b=cJTrtIiLbLw8wqhzgDCFhe6X9L5hX3PdxoKOrUlIBucBRtoFB48fPdqYP/3BzRiPZ
-         qstPjT7R1OqKV0/0CK1v6TkKPT7+3U8notNJWkqT1Mciggwvgaoa/Z1xjslRPh8jWe
-         e8ZRO2ulPXIvTdqy7obnJ+oscMMuGI0gYRsWyz/g=
-Date:   Thu, 13 May 2021 13:48:01 -0700
+        b=KY86DzMl4pqN6QbOg53sosvorZU+a+neX4Hzs6u+/Pk+drihBVvzcGM1YutoFqvEl
+         eS0fwy+DbJZfJXwHV4hyqqxX1IgIX+ZuyjXPfZUKITSjN6w/2riKVYz/ds/x3o1VkN
+         HbsRQQzXbua23AEuIfbP/374B+f/NMrQhsBz4YIo=
+Date:   Thu, 13 May 2021 13:48:11 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, christophe.leroy@csgroup.eu,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org
+        mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        sfr@canb.auug.org.au
 Subject:  +
  mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix.patch added to -mm tree
-Message-ID: <20210513204801.u5wopqxfK%akpm@linux-foundation.org>
+Message-ID: <20210513204811.sZBzpx0KE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -72,6 +73,7 @@ fix build
 Link: https://lkml.kernel.org/r/151ddd7f-1d3e-a6f7-daab-e32f785426e1@infradead.org
 Reported-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
