@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65996C433B4
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 02:52:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4988C433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 04:46:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40ACC61396
-	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 02:52:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2FE561425
+	for <mm-commits@archiver.kernel.org>; Thu, 13 May 2021 04:46:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230424AbhEMCxx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 May 2021 22:53:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52406 "EHLO mail.kernel.org"
+        id S229504AbhEMErK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 May 2021 00:47:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57776 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230385AbhEMCxw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 May 2021 22:53:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 98D8B61417;
-        Thu, 13 May 2021 02:52:43 +0000 (UTC)
+        id S229470AbhEMErJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 13 May 2021 00:47:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ADA7561428;
+        Thu, 13 May 2021 04:46:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1620874363;
-        bh=PSdyCelbj6JldGT7ACTR7NIhbuHs80JtX12rGHHNULw=;
+        s=korg; t=1620881160;
+        bh=HapbxemQISMdOkTAHNptglg0YogvEiwzsDcZErgvDRs=;
         h=Date:From:To:Subject:From;
-        b=lyOe3C/E3AQT5LxNY05nBh8zkcx5N3HeRpVfO3EpeEpFDjRohLo1dBzWyeWm6R5J0
-         RJrmziiY95w+uzunrG/BuXiLTg4TAWBrE1YylaPT80y+7OhG9c+NxtJnhtZWcT9h5u
-         uvPcs8pCmW1VkKm63kgfLZTheRAcrXaWVEJqNpMs=
-Date:   Wed, 12 May 2021 19:52:43 -0700
+        b=Uj9gwlH6Vmh/AW+kd7O/2ipc3EIddv37CMBY2w3yledx+fHWpOlLHZtqOgf0kocas
+         46+RYyLPCnn8b43mqoZQQzmO1/ntMzinOwNxnG8SFtvg3NG96sOpPY3RTH2RZK6C0R
+         WmSvMtTudnNrBVyUEmZYWOd0Aker5NCVPMB329L0=
+Date:   Wed, 12 May 2021 21:46:00 -0700
 From:   akpm@linux-foundation.org
-To:     42.hyeyoo@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz
-Subject:  [failures]
- mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time.patch
- removed from -mm tree
-Message-ID: <20210513025243.wJRHv-O6N%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, elver@google.com, glittao@gmail.com,
+        mm-commits@vger.kernel.org, vbabka@suse.cz
+Subject:  +
+ mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+ added to -mm tree
+Message-ID: <20210513044600.TBiR0G2Ob%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,87 +44,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: change run-time assertion in kmalloc_index() to compile-time
-has been removed from the -mm tree.  Its filename was
-     mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time.patch
+     Subject: mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2
+has been added to the -mm tree.  Its filename is
+     mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mm, slub: change run-time assertion in kmalloc_index() to compile-time
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2
 
-Currently when size is not supported by kmalloc_index, compiler will
-generate a run-time BUG() while compile-time error is also possible, and
-better.  So change BUG to BUILD_BUG_ON_MSG to make compile-time check
-possible.
+export kasan_enable/disable_current to modules
 
-Also remove code that allocates more than 32MB because current
-implementation supports only up to 32MB.
-
-Link: https://lkml.kernel.org/r/20210511173448.GA54466@hyeyoo
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Oliver Glitta <glittao@gmail.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    7 +++++--
- mm/slab_common.c     |    7 +++----
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ mm/kasan/common.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/slab.h~mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time
-+++ a/include/linux/slab.h
-@@ -346,6 +346,9 @@ static __always_inline enum kmalloc_cach
-  * 1 =  65 .. 96 bytes
-  * 2 = 129 .. 192 bytes
-  * n = 2^(n-1)+1 .. 2^n
-+ *
-+ * Note: there's no need to optimize kmalloc_index because it's evaluated
-+ * in compile-time.
-  */
- static __always_inline unsigned int kmalloc_index(size_t size)
+--- a/mm/kasan/common.c~mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2
++++ a/mm/kasan/common.c
+@@ -51,11 +51,14 @@ void kasan_enable_current(void)
  {
-@@ -382,8 +385,8 @@ static __always_inline unsigned int kmal
- 	if (size <=  8 * 1024 * 1024) return 23;
- 	if (size <=  16 * 1024 * 1024) return 24;
- 	if (size <=  32 * 1024 * 1024) return 25;
--	if (size <=  64 * 1024 * 1024) return 26;
--	BUG();
+ 	current->kasan_depth++;
+ }
++EXPORT_SYMBOL(kasan_enable_current);
+ 
+ void kasan_disable_current(void)
+ {
+ 	current->kasan_depth--;
+ }
++EXPORT_SYMBOL(kasan_disable_current);
 +
-+	BUILD_BUG_ON_MSG(1, "unexpected size in kmalloc_index()");
+ #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
  
- 	/* Will never be reached. Needed because the compiler may complain */
- 	return -1;
---- a/mm/slab_common.c~mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time
-+++ a/mm/slab_common.c
-@@ -755,8 +755,8 @@ struct kmem_cache *kmalloc_slab(size_t s
- 
- /*
-  * kmalloc_info[] is to make slub_debug=,kmalloc-xx option work at boot time.
-- * kmalloc_index() supports up to 2^26=64MB, so the final entry of the table is
-- * kmalloc-67108864.
-+ * kmalloc_index() supports up to 2^25=32MB, so the final entry of the table is
-+ * kmalloc-32M.
-  */
- const struct kmalloc_info_struct kmalloc_info[] __initconst = {
- 	INIT_KMALLOC_INFO(0, 0),
-@@ -784,8 +784,7 @@ const struct kmalloc_info_struct kmalloc
- 	INIT_KMALLOC_INFO(4194304, 4M),
- 	INIT_KMALLOC_INFO(8388608, 8M),
- 	INIT_KMALLOC_INFO(16777216, 16M),
--	INIT_KMALLOC_INFO(33554432, 32M),
--	INIT_KMALLOC_INFO(67108864, 64M)
-+	INIT_KMALLOC_INFO(33554432, 32M)
- };
- 
- /*
+ void __kasan_unpoison_range(const void *address, size_t size)
 _
 
-Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-typos-and-grammar-error-in-comments.patch
+mm.patch
+mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
+binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
