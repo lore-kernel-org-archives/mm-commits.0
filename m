@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD299C433ED
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:03:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E64CC433ED
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:10:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C68E61155
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:03:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 211BF613DE
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:10:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233052AbhENVEi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 May 2021 17:04:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46474 "EHLO mail.kernel.org"
+        id S229952AbhENVLW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 May 2021 17:11:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48600 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231156AbhENVDr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 14 May 2021 17:03:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7720860FE9;
-        Fri, 14 May 2021 21:02:35 +0000 (UTC)
+        id S229681AbhENVLV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 14 May 2021 17:11:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D989D61352;
+        Fri, 14 May 2021 21:10:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621026155;
-        bh=SmOtCrmdPxeO25fH0+lMMzi+/keMm2Mn2AQDrWYa9Cc=;
+        s=korg; t=1621026610;
+        bh=kL5e7hupOlqwOwwFjmNa1WLb2GF/Nchp/wr/158Qx1I=;
         h=Date:From:To:Subject:From;
-        b=AYHNJghj6aGQAxUhlbK9KMhwjuq0Lz2h4eLZ3JyXJZDJTBlQICg4kl+z+G5skaHHL
-         acza5vf7up2DkOfSB9YqpbmhdmFSEW/hkyBmjTrMvs9eO7gnUBCRd7YA7JO2STKLUe
-         /xfo5CpcWCqH4i6VNkecp+A/Hu/WqBVDIA1sOtNI=
-Date:   Fri, 14 May 2021 14:02:35 -0700
+        b=JBu+B56MJdkAbAb11sbLQkcj2cmrZdqsX+9phDcBOAN7WNfiZTfV6EVhMiGIOrtnk
+         m23ulRkNQHl+/cihvYfctyYzkQWKx5ODpW9/3pUzaMxJqqLF29WXlbIhdiYSyqND1/
+         N6dC/FTMxtLPczHMtposGg6bSA0vAPV1Rah8W4qg=
+Date:   Fri, 14 May 2021 14:10:09 -0700
 From:   akpm@linux-foundation.org
-To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        sfr@canb.auug.org.au
+To:     1vier1@web.de, dave@stgolabs.net, manfred@colorfullife.com,
+        mm-commits@vger.kernel.org, paulmck@kernel.org
 Subject:  +
- mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch added to
- -mm tree
-Message-ID: <20210514210235.MKMqVvmJa%akpm@linux-foundation.org>
+ ipc-semc-use-read_once-write_once-for-use_global_lock.patch added to -mm
+ tree
+Message-ID: <20210514211009.9o33Ortuq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: split per cpu page lists and zone stats -fix
+     Subject: ipc/sem.c: use READ_ONCE()/WRITE_ONCE() for use_global_lock
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch
+     ipc-semc-use-read_once-write_once-for-use_global_lock.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-use-read_once-write_once-for-use_global_lock.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-use-read_once-write_once-for-use_global_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,64 +65,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: split per cpu page lists and zone stats -fix
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: use READ_ONCE()/WRITE_ONCE() for use_global_lock
 
-mm/ is not W=1 clean for allnoconfig but the patch "mm/page_alloc: Split
-per cpu page lists and zone stats" makes it worse with the following
-warning
+The patch solves two weaknesses in ipc/sem.c:
 
-  mm/vmstat.c: In function `zoneinfo_show_print':
-  mm/vmstat.c:1698:28: warning: variable `pzstats' set but not used [-Wunused-but-set-variable]
-     struct per_cpu_zonestat *pzstats;
-                              ^~~~~~~
+1) The initial read of use_global_lock in sem_lock() is an intentional
+race.  KCSAN detects these accesses and prints a warning.
 
-This is a fix to the mmotm patch
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch.
+2) The code assumes that plain C read/writes are not mangled by the CPU or
+the compiler.
 
-Link: https://lkml.kernel.org/r/20210514144622.GA3735@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+To solve both issues, use READ_ONCE()/WRITE_ONCE().  Plain C reads are
+used in code that owns sma->sem_perm.lock.
+
+Link: https://lkml.kernel.org/r/20210514175319.12195-1-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: <1vier1@web.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ipc/sem.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/mm/vmstat.c~mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix
-+++ a/mm/vmstat.c
-@@ -1695,10 +1695,9 @@ static void zoneinfo_show_print(struct s
- 	seq_printf(m, "\n  pagesets");
- 	for_each_online_cpu(i) {
- 		struct per_cpu_pages *pcp;
--		struct per_cpu_zonestat *pzstats;
-+		struct per_cpu_zonestat __maybe_unused *pzstats;
+--- a/ipc/sem.c~ipc-semc-use-read_once-write_once-for-use_global_lock
++++ a/ipc/sem.c
+@@ -217,6 +217,8 @@ static int sysvipc_sem_proc_show(struct
+  * this smp_load_acquire(), this is guaranteed because the smp_load_acquire()
+  * is inside a spin_lock() and after a write from 0 to non-zero a
+  * spin_lock()+spin_unlock() is done.
++ * To prevent the compiler/cpu temporarily writing 0 to use_global_lock,
++ * READ_ONCE()/WRITE_ONCE() is used.
+  *
+  * 2) queue.status: (SEM_BARRIER_2)
+  * Initialization is done while holding sem_lock(), so no further barrier is
+@@ -342,10 +344,10 @@ static void complexmode_enter(struct sem
+ 		 * Nothing to do, just reset the
+ 		 * counter until we return to simple mode.
+ 		 */
+-		sma->use_global_lock = USE_GLOBAL_LOCK_HYSTERESIS;
++		WRITE_ONCE(sma->use_global_lock, USE_GLOBAL_LOCK_HYSTERESIS);
+ 		return;
+ 	}
+-	sma->use_global_lock = USE_GLOBAL_LOCK_HYSTERESIS;
++	WRITE_ONCE(sma->use_global_lock, USE_GLOBAL_LOCK_HYSTERESIS);
  
- 		pcp = per_cpu_ptr(zone->per_cpu_pageset, i);
--		pzstats = per_cpu_ptr(zone->per_cpu_zonestats, i);
- 		seq_printf(m,
- 			   "\n    cpu: %i"
- 			   "\n              count: %i"
-@@ -1709,6 +1708,7 @@ static void zoneinfo_show_print(struct s
- 			   pcp->high,
- 			   pcp->batch);
- #ifdef CONFIG_SMP
-+		pzstats = per_cpu_ptr(zone->per_cpu_zonestats, i);
- 		seq_printf(m, "\n  vm stats threshold: %d",
- 				pzstats->stat_threshold);
- #endif
+ 	for (i = 0; i < sma->sem_nsems; i++) {
+ 		sem = &sma->sems[i];
+@@ -371,7 +373,8 @@ static void complexmode_tryleave(struct
+ 		/* See SEM_BARRIER_1 for purpose/pairing */
+ 		smp_store_release(&sma->use_global_lock, 0);
+ 	} else {
+-		sma->use_global_lock--;
++		WRITE_ONCE(sma->use_global_lock,
++				sma->use_global_lock-1);
+ 	}
+ }
+ 
+@@ -412,7 +415,7 @@ static inline int sem_lock(struct sem_ar
+ 	 * Initial check for use_global_lock. Just an optimization,
+ 	 * no locking, no memory barrier.
+ 	 */
+-	if (!sma->use_global_lock) {
++	if (!READ_ONCE(sma->use_global_lock)) {
+ 		/*
+ 		 * It appears that no complex operation is around.
+ 		 * Acquire the per-semaphore lock.
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock.patch
-mm-vmstat-convert-numa-statistics-to-basic-numa-counters.patch
-mm-vmstat-inline-numa-event-counter-updates.patch
-mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator.patch
-mm-page_alloc-reduce-duration-that-irqs-are-disabled-for-vm-counters.patch
-mm-page_alloc-explicitly-acquire-the-zone-lock-in-__free_pages_ok.patch
-mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock.patch
-mm-page_alloc-update-pgfree-outside-the-zone-lock-in-__free_pages_ok.patch
+ipc-semc-use-read_once-write_once-for-use_global_lock.patch
 
