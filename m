@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F06DC433ED
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:03:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD299C433ED
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:03:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7192161440
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:03:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C68E61155
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:03:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231349AbhENVE1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 May 2021 17:04:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46216 "EHLO mail.kernel.org"
+        id S233052AbhENVEi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 May 2021 17:04:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46474 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234213AbhENVDW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 14 May 2021 17:03:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A501061155;
-        Fri, 14 May 2021 21:02:10 +0000 (UTC)
+        id S231156AbhENVDr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 14 May 2021 17:03:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7720860FE9;
+        Fri, 14 May 2021 21:02:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621026130;
-        bh=4Wf2gd0T0Ngl5kKELRXxWzgX7k5DLPfQdQAVp5wqFYA=;
+        s=korg; t=1621026155;
+        bh=SmOtCrmdPxeO25fH0+lMMzi+/keMm2Mn2AQDrWYa9Cc=;
         h=Date:From:To:Subject:From;
-        b=wMyxd+yKOlvuO/hO3LP6syuzKTIsa2nWz1fHd7c5KkgvpjxHVAOeDAl6gxtveimyh
-         Ypo0IkleYJPBY44boA2uuS9ajOQPjvdikD8mWaTmf5IODar+d6lt8xeaICX+MgSjQZ
-         BVT5BChzVFb8zo1RPznUNN2ljfxqrF7sTwY8ovNs=
-Date:   Fri, 14 May 2021 14:02:10 -0700
+        b=AYHNJghj6aGQAxUhlbK9KMhwjuq0Lz2h4eLZ3JyXJZDJTBlQICg4kl+z+G5skaHHL
+         acza5vf7up2DkOfSB9YqpbmhdmFSEW/hkyBmjTrMvs9eO7gnUBCRd7YA7JO2STKLUe
+         /xfo5CpcWCqH4i6VNkecp+A/Hu/WqBVDIA1sOtNI=
+Date:   Fri, 14 May 2021 14:02:35 -0700
 From:   akpm@linux-foundation.org
-To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        sfr@canb.auug.org.au
 Subject:  +
  mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch added to
  -mm tree
-Message-ID: <20210514210210.Od1odHkMO%akpm@linux-foundation.org>
+Message-ID: <20210514210235.MKMqVvmJa%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -81,6 +82,7 @@ mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch.
 
 Link: https://lkml.kernel.org/r/20210514144622.GA3735@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
