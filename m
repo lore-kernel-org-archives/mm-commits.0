@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ADD1C433ED
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 22:10:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA76FC433ED
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 22:12:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 484F561442
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 22:10:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9442861440
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 22:12:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233670AbhENWLs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 May 2021 18:11:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42602 "EHLO mail.kernel.org"
+        id S230432AbhENWNf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 May 2021 18:13:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44094 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229459AbhENWLr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 14 May 2021 18:11:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A135C61182;
-        Fri, 14 May 2021 22:10:35 +0000 (UTC)
+        id S230024AbhENWNf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 14 May 2021 18:13:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A3E0661453;
+        Fri, 14 May 2021 22:12:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621030235;
-        bh=xkJbg1juiNqXctnKsa0vIJ0dnIZe/Ygm7gE1t6PbGUw=;
+        s=korg; t=1621030343;
+        bh=l+5cqCO1U5td6fhlB8RNmG//+N2qF+YxehSxZjHU2tk=;
         h=Date:From:To:Subject:From;
-        b=zBP+ArqjPBWI2qRlvIvvT1dIeJSxphGwLzXjP5nwEpbeE+naQOAYuX4rznHwH9Z8R
-         yyK8E5peY0HqNw4Ky6dqK/vTr4dpKb/+HvMHRGYBc8NNVNM6Tlrcy8XKiVA8UG/f5f
-         Cap7W92j2rafmxPBnnJO2YWP6/Rlh8J+T6dJjWPI=
-Date:   Fri, 14 May 2021 15:10:35 -0700
+        b=x455DiwBig8BoKri4IAFMLGiRlGmUqRZeGSH+zkYKGf8nZ2lIfEEwyqjDfQ1r+kbO
+         22SlaxEcgNNVJXQUjuyarKYNLsOMsDY1Dv9gZm2t1jz0HsUOgFa+hZZum/sdjerN1W
+         YWn0uQO0/W1QA+HivcN2FTP/XgGSvN7lwsm8Ywlo=
+Date:   Fri, 14 May 2021 15:12:23 -0700
 From:   akpm@linux-foundation.org
-To:     colin.king@canonical.com, mm-commits@vger.kernel.org
+To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org,
+        shy828301@gmail.com
 Subject:  +
- scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch added to -mm
- tree
-Message-ID: <20210514221035.uyqZe_1JV%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-huge=5Fmemoryc-add-missing-read-only-thp-checking-in-t?=
+ =?US-ASCII?Q?ransparent=5Fhugepage=5Fenabled-v4.patch?= added to -mm tree
+Message-ID: <20210514221223.2dG2XZ2tu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add more spellings to spelling.txt
+     Subject: mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+     mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,137 +67,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: scripts/spelling.txt: add more spellings to spelling.txt
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4
 
-Here are some of the more common spelling mistakes and typos that I've
-found while fixing up spelling mistakes in the kernel in the past few
-months.
+define transhuge_vma_enabled next to transhuge_vma_suitable
 
-Link: https://lkml.kernel.org/r/20210514093655.8829-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Link: https://lkml.kernel.org/r/20210514093007.4117906-1-linmiaohe@huawei.com
+Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ include/linux/huge_mm.h |   30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
---- a/scripts/spelling.txt~scripts-spellingtxt-add-more-spellings-to-spellingtxt
-+++ a/scripts/spelling.txt
-@@ -22,6 +22,7 @@ absolut||absolute
- absoulte||absolute
- acccess||access
- acceess||access
-+accelaration||acceleration
- acceleratoin||acceleration
- accelleration||acceleration
- accesing||accessing
-@@ -264,6 +265,7 @@ calucate||calculate
- calulate||calculate
- cancelation||cancellation
- cancle||cancel
-+canot||cannot
- capabilites||capabilities
- capabilties||capabilities
- capabilty||capability
-@@ -494,7 +496,10 @@ digial||digital
- dimention||dimension
- dimesions||dimensions
- diconnected||disconnected
-+disabed||disabled
-+disble||disable
- disgest||digest
-+disired||desired
- dispalying||displaying
- diplay||display
- directon||direction
-@@ -710,6 +715,7 @@ havind||having
- heirarchically||hierarchically
- heirarchy||hierarchy
- helpfull||helpful
-+hearbeat||heartbeat
- heterogenous||heterogeneous
- hexdecimal||hexadecimal
- hybernate||hibernate
-@@ -989,6 +995,7 @@ notications||notifications
- notifcations||notifications
- notifed||notified
- notity||notify
-+nubmer||number
- numebr||number
- numner||number
- obtaion||obtain
-@@ -1014,8 +1021,10 @@ ommiting||omitting
- ommitted||omitted
- onself||oneself
- ony||only
-+openning||opening
- operatione||operation
- opertaions||operations
-+opportunies||opportunities
- optionnal||optional
- optmizations||optimizations
- orientatied||orientated
-@@ -1111,6 +1120,7 @@ prefitler||prefilter
- preform||perform
- premption||preemption
- prepaired||prepared
-+prepate||prepare
- preperation||preparation
- preprare||prepare
- pressre||pressure
-@@ -1123,6 +1133,7 @@ privilaged||privileged
- privilage||privilege
- priviledge||privilege
- priviledges||privileges
-+privleges||privileges
- probaly||probably
- procceed||proceed
- proccesors||processors
-@@ -1167,6 +1178,7 @@ promixity||proximity
- psudo||pseudo
- psuedo||pseudo
- psychadelic||psychedelic
-+purgable||purgeable
- pwoer||power
- queing||queuing
- quering||querying
-@@ -1180,6 +1192,7 @@ receieve||receive
- recepient||recipient
- recevied||received
- receving||receiving
-+recievd||received
- recieved||received
- recieve||receive
- reciever||receiver
-@@ -1228,6 +1241,7 @@ reponse||response
- representaion||representation
- reqeust||request
- reqister||register
-+requed||requeued
- requestied||requested
- requiere||require
- requirment||requirement
-@@ -1332,6 +1346,7 @@ singal||signal
- singed||signed
- sleeped||slept
- sliped||slipped
-+softwade||software
- softwares||software
- soley||solely
- souce||source
-@@ -1510,6 +1525,7 @@ unintialized||uninitialized
- unitialized||uninitialized
- unkmown||unknown
- unknonw||unknown
-+unknouwn||unknown
- unknow||unknown
- unkown||unknown
- unamed||unnamed
+--- a/include/linux/huge_mm.h~mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4
++++ a/include/linux/huge_mm.h
+@@ -115,6 +115,21 @@ extern struct kobj_attribute shmem_enabl
+ 
+ extern unsigned long transparent_hugepage_flags;
+ 
++static inline bool transhuge_vma_suitable(struct vm_area_struct *vma,
++		unsigned long haddr)
++{
++	/* Don't have to check pgoff for anonymous vma */
++	if (!vma_is_anonymous(vma)) {
++		if (!IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
++				HPAGE_PMD_NR))
++			return false;
++	}
++
++	if (haddr < vma->vm_start || haddr + HPAGE_PMD_SIZE > vma->vm_end)
++		return false;
++	return true;
++}
++
+ static inline bool transhuge_vma_enabled(struct vm_area_struct *vma,
+ 					  unsigned long vm_flags)
+ {
+@@ -159,21 +174,6 @@ static inline bool __transparent_hugepag
+ 
+ bool transparent_hugepage_active(struct vm_area_struct *vma);
+ 
+-static inline bool transhuge_vma_suitable(struct vm_area_struct *vma,
+-		unsigned long haddr)
+-{
+-	/* Don't have to check pgoff for anonymous vma */
+-	if (!vma_is_anonymous(vma)) {
+-		if (!IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
+-				HPAGE_PMD_NR))
+-			return false;
+-	}
+-
+-	if (haddr < vma->vm_start || haddr + HPAGE_PMD_SIZE > vma->vm_end)
+-		return false;
+-	return true;
+-}
+-
+ #define transparent_hugepage_use_zero_page()				\
+ 	(transparent_hugepage_flags &					\
+ 	 (1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG))
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
-ocfs2-remove-redundant-assignment-to-pointer-queue.patch
+mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
+swap-fix-do_swap_page-race-with-swapoff.patch
+mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
+mm-shmem-fix-shmem_swapin-race-with-swapoff.patch
+mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
+mm-huge_memoryc-use-page-deferred_list.patch
+mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled.patch
+mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4.patch
+mm-huge_memoryc-remove-unnecessary-tlb_remove_page_size-for-huge-zero-pmd.patch
+mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
 
