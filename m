@@ -4,39 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34F61C433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:42:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBCB7C433B4
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 22:10:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 129CD61446
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:42:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA31B61182
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 22:10:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233048AbhENVnu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 May 2021 17:43:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60448 "EHLO mail.kernel.org"
+        id S233622AbhENWLM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 May 2021 18:11:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42182 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231741AbhENVnt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 14 May 2021 17:43:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B454E613C1;
-        Fri, 14 May 2021 21:42:37 +0000 (UTC)
+        id S233451AbhENWLM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 14 May 2021 18:11:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 07FDB61453;
+        Fri, 14 May 2021 22:09:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621028557;
-        bh=AnDMkrnb9un7rv9kHsfhw48qXXuNUnafqyazWmUZJzM=;
+        s=korg; t=1621030200;
+        bh=rNjKFggbVchbvp7ou04G50GySVCtpxpAtm8ZcfEkxgg=;
         h=Date:From:To:Subject:From;
-        b=iRHofILk+5VIGhasHWw3Wj/wuEkAtHeuhrn5fff6+V9YWH6v9FEqqriSBweMO2kNO
-         f/xAObciV+JZri/MEozYuOJ8LuwI30+OCfNdUPH+zdfPPw2hU1dKnnkHLF+N2+pWOe
-         6oY15nAtCNLMnKFDoUM0Ltx6jGQO++/yqe8xQbH0=
-Date:   Fri, 14 May 2021 14:42:37 -0700
+        b=nH04haPxPZIrHF7PlQbNGM6qwlg23V2ufDXbE2cSl1uQb414IM5OWPPBRBLerdtPM
+         My65Qe0o1fQvcUoWFSjBMOm8oPKB4q3YV6eLNk62Dgz1eoUVJwT8OaP0IdR7UiS036
+         6l6ajxM9yiDKaYhNA4KGUU7uCQTw4q9w5fvU3Zfg=
+Date:   Fri, 14 May 2021 15:09:59 -0700
 From:   akpm@linux-foundation.org
-To:     christophe.leroy@csgroup.eu, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
-        npiggin@gmail.com, rppt@kernel.org
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
+        christophe.leroy@csgroup.eu, joel@joelfernandes.org,
+        kaleshsingh@google.com, mm-commits@vger.kernel.org,
+        mpe@ellerman.id.au, naresh.kamboju@linaro.org, npiggin@gmail.com,
+        sfr@canb.auug.org.au
 Subject:  +
- arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch added to -mm
- tree
-Message-ID: <20210514214237.bJN9YxTr5%akpm@linux-foundation.org>
+ mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
+ added to -mm tree
+Message-ID: <20210514220959.IXjn-Z0ga%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: define only {pud/pmd}_{set/clear}_huge when usefull
+     Subject: mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix
 has been added to the -mm tree.  Its filename is
-     arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch
+     mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,84 +68,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: arm64: define only {pud/pmd}_{set/clear}_huge when usefull
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix
 
-When PUD and/or PMD are folded, those functions are useless
-and we now have a stub in linux/pgtable.h
+fix build
 
-Link: https://lkml.kernel.org/r/73ec95f40cafbbb69bdfb43a7f53876fd845b0ce.1620990479.git.christophe.leroy@csgroup.eu
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ mm/mremap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm64/mm/mmu.c~arm64-define-only-pud-pmd_set-clear_huge-when-usefull
-+++ a/arch/arm64/mm/mmu.c
-@@ -1337,6 +1337,7 @@ void *__init fixmap_remap_fdt(phys_addr_
- 	return dt_virt;
- }
- 
-+#if CONFIG_PGTABLE_LEVELS > 3
- int pud_set_huge(pud_t *pudp, phys_addr_t phys, pgprot_t prot)
+--- a/mm/mremap.c~mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix
++++ a/mm/mremap.c
+@@ -216,7 +216,7 @@ static inline void flush_pte_tlb_pwc_ran
+ 					   unsigned long start,
+ 					   unsigned long end)
  {
- 	pud_t new_pud = pfn_pud(__phys_to_pfn(phys), mk_pud_sect_prot(prot));
-@@ -1351,6 +1352,16 @@ int pud_set_huge(pud_t *pudp, phys_addr_
- 	return 1;
+-	return flush_tlb_range(vma, start, end);
++	flush_tlb_range(vma, start, end);
  }
+ #endif
  
-+int pud_clear_huge(pud_t *pudp)
-+{
-+	if (!pud_sect(READ_ONCE(*pudp)))
-+		return 0;
-+	pud_clear(pudp);
-+	return 1;
-+}
-+#endif
-+
-+#if CONFIG_PGTABLE_LEVELS > 2
- int pmd_set_huge(pmd_t *pmdp, phys_addr_t phys, pgprot_t prot)
- {
- 	pmd_t new_pmd = pfn_pmd(__phys_to_pfn(phys), mk_pmd_sect_prot(prot));
-@@ -1365,14 +1376,6 @@ int pmd_set_huge(pmd_t *pmdp, phys_addr_
- 	return 1;
- }
- 
--int pud_clear_huge(pud_t *pudp)
--{
--	if (!pud_sect(READ_ONCE(*pudp)))
--		return 0;
--	pud_clear(pudp);
--	return 1;
--}
--
- int pmd_clear_huge(pmd_t *pmdp)
- {
- 	if (!pmd_sect(READ_ONCE(*pmdp)))
-@@ -1380,6 +1383,7 @@ int pmd_clear_huge(pmd_t *pmdp)
- 	pmd_clear(pmdp);
- 	return 1;
- }
-+#endif
- 
- int pmd_free_pte_page(pmd_t *pmdp, unsigned long addr)
- {
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-ioremap-fix-iomap_max_page_shift.patch
-mm-hugetlb-change-parameters-of-arch_make_huge_pte.patch
-mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
-mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix-2.patch
-mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmap.patch
-mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmalloc.patch
-powerpc-8xx-add-support-for-huge-pages-on-vmap-and-vmalloc.patch
-arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch
+mm.patch
+mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
+mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
+binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
