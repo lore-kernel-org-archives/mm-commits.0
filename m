@@ -2,173 +2,148 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B098C433ED
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:40:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34F61C433B4
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:42:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4616361446
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:40:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 129CD61446
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:42:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231304AbhENVli (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 May 2021 17:41:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59180 "EHLO mail.kernel.org"
+        id S233048AbhENVnu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 May 2021 17:43:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60448 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229889AbhENVlh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 14 May 2021 17:41:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2942F613C5;
-        Fri, 14 May 2021 21:40:25 +0000 (UTC)
+        id S231741AbhENVnt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 14 May 2021 17:43:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B454E613C1;
+        Fri, 14 May 2021 21:42:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621028425;
-        bh=C0ec2lfIbPBQ13yCQGnS5z2cME0lA0z5uIv9YCgayBU=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=BFAquXp3lA88Qe0Ju8asJkbRhmzDZKSdYwghLg2G9D+BTRY9z759N2CaiNhqRQMC+
-         QgMuArxF7WcxRpzSvxYcAPU7TGVk0IAfwv0ayQxwfAsBB3Hz2vzVnKwD52XYPS3EEX
-         cfpyUGuHZVn94x+oXcMO5o/2aDo7e9A6Cd2AxR7Q=
-Date:   Fri, 14 May 2021 14:40:24 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc:     Randy Dunlap <rdunlap@infradead.org>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Mark Brown <broonie@kernel.org>, linux-fsdevel@vger.kernel.org,
-        open list <linux-kernel@vger.kernel.org>,
-        linux-mm <linux-mm@kvack.org>,
-        Linux-Next Mailing List <linux-next@vger.kernel.org>,
-        mhocko@suse.cz, mm-commits@vger.kernel.org,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        lkft-triage@lists.linaro.org,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>
-Subject: Re: mmotm 2021-05-12-21-46 uploaded (arch/x86/mm/pgtable.c)
-Message-Id: <20210514144024.ed67212e0577961d7ac2c16e@linux-foundation.org>
-In-Reply-To: <CA+G9fYv79t0+2W4Rt3wDkBShc4eY3M3utC5BHqUgGDwMYExYMw@mail.gmail.com>
-References: <20210513044710.MCXhM_NwC%akpm@linux-foundation.org>
-        <151ddd7f-1d3e-a6f7-daab-e32f785426e1@infradead.org>
-        <54055e72-34b8-d43d-2ad3-87e8c8fa547b@csgroup.eu>
-        <20210513134754.ab3f1a864b0156ef99248401@linux-foundation.org>
-        <a3ac0b42-f779-ffaf-c6d7-0d4b40dc25f2@infradead.org>
-        <CA+G9fYv79t0+2W4Rt3wDkBShc4eY3M3utC5BHqUgGDwMYExYMw@mail.gmail.com>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        s=korg; t=1621028557;
+        bh=AnDMkrnb9un7rv9kHsfhw48qXXuNUnafqyazWmUZJzM=;
+        h=Date:From:To:Subject:From;
+        b=iRHofILk+5VIGhasHWw3Wj/wuEkAtHeuhrn5fff6+V9YWH6v9FEqqriSBweMO2kNO
+         f/xAObciV+JZri/MEozYuOJ8LuwI30+OCfNdUPH+zdfPPw2hU1dKnnkHLF+N2+pWOe
+         6oY15nAtCNLMnKFDoUM0Ltx6jGQO++/yqe8xQbH0=
+Date:   Fri, 14 May 2021 14:42:37 -0700
+From:   akpm@linux-foundation.org
+To:     christophe.leroy@csgroup.eu, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
+        npiggin@gmail.com, rppt@kernel.org
+Subject:  +
+ arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch added to -mm
+ tree
+Message-ID: <20210514214237.bJN9YxTr5%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, 14 May 2021 15:15:41 +0530 Naresh Kamboju <naresh.kamboju@linaro.org> wrote:
 
-> On Fri, 14 May 2021 at 02:38, Randy Dunlap <rdunlap@infradead.org> wrote:
-> >
-> > On 5/13/21 1:47 PM, Andrew Morton wrote:
-> > > On Thu, 13 May 2021 19:09:23 +0200 Christophe Leroy <christophe.leroy@csgroup.eu> wrote:
-> > >
-> > >>
-> > >>
-> > >>> on i386:
-> > >>>
-> > >>> ../arch/x86/mm/pgtable.c:703:5: error: redefinition of ‘pud_set_huge’
-> > >>>   int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
-> > >>>       ^~~~~~~~~~~~
-> > >>> In file included from ../include/linux/mm.h:33:0,
-> > >>>                   from ../arch/x86/mm/pgtable.c:2:
-> > >>> ../include/linux/pgtable.h:1387:19: note: previous definition of ‘pud_set_huge’ was here
-> > >>>   static inline int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
-> > >>>                     ^~~~~~~~~~~~
-> > >>> ../arch/x86/mm/pgtable.c:758:5: error: redefinition of ‘pud_clear_huge’
-> > >>>   int pud_clear_huge(pud_t *pud)
-> > >>>       ^~~~~~~~~~~~~~
-> > >>> In file included from ../include/linux/mm.h:33:0,
-> > >>>                   from ../arch/x86/mm/pgtable.c:2:
-> > >>> ../include/linux/pgtable.h:1391:19: note: previous definition of ‘pud_clear_huge’ was here
-> > >>>   static inline int pud_clear_huge(pud_t *pud)
-> 
-> These errors are noticed on linux next 20210514 tag on arm64.
-> Regressions found on arm64 for the following configs.
-> 
->   - build/gcc-9-defconfig-904271f2
->   - build/gcc-9-tinyconfig
->   - build/gcc-8-allnoconfig
->   - build/gcc-10-allnoconfig
->   - build/clang-11-allnoconfig
->   - build/clang-10-allnoconfig
->   - build/clang-12-tinyconfig
->   - build/gcc-10-tinyconfig
->   - build/clang-10-tinyconfig
->   - build/clang-11-tinyconfig
->   - build/clang-12-allnoconfig
->   - build/gcc-8-tinyconfig
->   - build/gcc-9-allnoconfig
+The patch titled
+     Subject: arm64: define only {pud/pmd}_{set/clear}_huge when usefull
+has been added to the -mm tree.  Its filename is
+     arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch
 
-I can't get arm64 to compile at all ;(.  5.13-rc1 base with gcc-9.3.0,
-tinyconfig:
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch
 
-In file included from ././include/linux/compiler_types.h:65,
-                 from <command-line>:
-./include/linux/smp.h:34:26: error: requested alignment '20' is not a positive power of 2
-   34 |  __aligned(sizeof(struct __call_single_data));
-      |                          ^~~~~~~~~~~~~~~~~~
-./include/linux/compiler_attributes.h:52:68: note: in definition of macro '__aligned'
-   52 | #define __aligned(x)                    __attribute__((__aligned__(x)))
-      |                                                                    ^
-In file included from ./arch/arm64/include/asm/thread_info.h:17,
-                 from ./include/linux/thread_info.h:59,
-                 from ./arch/arm64/include/asm/preempt.h:5,
-                 from ./include/linux/preempt.h:78,
-                 from ./include/linux/smp.h:110,
-                 from ./include/linux/lockdep.h:14,
-                 from ./include/linux/mutex.h:17,
-                 from ./include/linux/kernfs.h:12,
-                 from ./include/linux/sysfs.h:16,
-                 from ./include/linux/kobject.h:20,
-                 from ./include/linux/of.h:17,
-                 from ./include/linux/irqdomain.h:35,
-                 from ./include/linux/acpi.h:13,
-                 from ./include/acpi/apei.h:9,
-                 from ./include/acpi/ghes.h:5,
-                 from ./include/linux/arm_sdei.h:8,
-                 from arch/arm64/kernel/asm-offsets.c:10:
-./arch/arm64/include/asm/memory.h: In function 'kaslr_offset':
-./arch/arm64/include/asm/memory.h:65:33: warning: left shift count >= width of type [-Wshift-count-overflow]
-   65 | #define _PAGE_END(va)  (-(UL(1) << ((va) - 1)))
-      |                                 ^~
-./arch/arm64/include/asm/memory.h:47:31: note: in expansion of macro '_PAGE_END'
-   47 | #define BPF_JIT_REGION_START (_PAGE_END(VA_BITS_MIN))
-      |                               ^~~~~~~~~
-./arch/arm64/include/asm/memory.h:49:29: note: in expansion of macro 'BPF_JIT_REGION_START'
-   49 | #define BPF_JIT_REGION_END (BPF_JIT_REGION_START + BPF_JIT_REGION_SIZE)
-      |                             ^~~~~~~~~~~~~~~~~~~~
-./arch/arm64/include/asm/memory.h:51:25: note: in expansion of macro 'BPF_JIT_REGION_END'
-   51 | #define MODULES_VADDR  (BPF_JIT_REGION_END)
-      |                         ^~~~~~~~~~~~~~~~~~
-./arch/arm64/include/asm/memory.h:50:23: note: in expansion of macro 'MODULES_VADDR'
-   50 | #define MODULES_END  (MODULES_VADDR + MODULES_VSIZE)
-      |                       ^~~~~~~~~~~~~
-./arch/arm64/include/asm/memory.h:46:24: note: in expansion of macro 'MODULES_END'
-   46 | #define KIMAGE_VADDR  (MODULES_END)
-      |                        ^~~~~~~~~~~
-./arch/arm64/include/asm/memory.h:196:24: note: in expansion of macro 'KIMAGE_VADDR'
-  196 |  return kimage_vaddr - KIMAGE_VADDR;
-      |                        ^~~~~~~~~~~~
-In file included from ./arch/arm64/include/asm/thread_info.h:17,
-                 from ./include/linux/thread_info.h:59,
-                 from ./arch/arm64/include/asm/preempt.h:5,
-                 from ./include/linux/preempt.h:78,
-                 from ./include/linux/smp.h:110,
-                 from ./include/linux/lockdep.h:14,
-                 from ./include/linux/mutex.h:17,
-                 from ./include/linux/kernfs.h:12,
-                 from ./include/linux/sysfs.h:16,
-                 from ./include/linux/kobject.h:20,
-                 from ./include/linux/of.h:17,
-                 from ./include/linux/irqdomain.h:35,
-                 from ./include/linux/acpi.h:13,
-                 from ./include/acpi/apei.h:9,
-                 from ./include/acpi/ghes.h:5,
-                 from ./include/linux/arm_sdei.h:8,
-                 from arch/arm64/kernel/asm-offsets.c:10:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-and lots of other errors beside that.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: arm64: define only {pud/pmd}_{set/clear}_huge when usefull
+
+When PUD and/or PMD are folded, those functions are useless
+and we now have a stub in linux/pgtable.h
+
+Link: https://lkml.kernel.org/r/73ec95f40cafbbb69bdfb43a7f53876fd845b0ce.1620990479.git.christophe.leroy@csgroup.eu
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/arm64/mm/mmu.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
+
+--- a/arch/arm64/mm/mmu.c~arm64-define-only-pud-pmd_set-clear_huge-when-usefull
++++ a/arch/arm64/mm/mmu.c
+@@ -1337,6 +1337,7 @@ void *__init fixmap_remap_fdt(phys_addr_
+ 	return dt_virt;
+ }
+ 
++#if CONFIG_PGTABLE_LEVELS > 3
+ int pud_set_huge(pud_t *pudp, phys_addr_t phys, pgprot_t prot)
+ {
+ 	pud_t new_pud = pfn_pud(__phys_to_pfn(phys), mk_pud_sect_prot(prot));
+@@ -1351,6 +1352,16 @@ int pud_set_huge(pud_t *pudp, phys_addr_
+ 	return 1;
+ }
+ 
++int pud_clear_huge(pud_t *pudp)
++{
++	if (!pud_sect(READ_ONCE(*pudp)))
++		return 0;
++	pud_clear(pudp);
++	return 1;
++}
++#endif
++
++#if CONFIG_PGTABLE_LEVELS > 2
+ int pmd_set_huge(pmd_t *pmdp, phys_addr_t phys, pgprot_t prot)
+ {
+ 	pmd_t new_pmd = pfn_pmd(__phys_to_pfn(phys), mk_pmd_sect_prot(prot));
+@@ -1365,14 +1376,6 @@ int pmd_set_huge(pmd_t *pmdp, phys_addr_
+ 	return 1;
+ }
+ 
+-int pud_clear_huge(pud_t *pudp)
+-{
+-	if (!pud_sect(READ_ONCE(*pudp)))
+-		return 0;
+-	pud_clear(pudp);
+-	return 1;
+-}
+-
+ int pmd_clear_huge(pmd_t *pmdp)
+ {
+ 	if (!pmd_sect(READ_ONCE(*pmdp)))
+@@ -1380,6 +1383,7 @@ int pmd_clear_huge(pmd_t *pmdp)
+ 	pmd_clear(pmdp);
+ 	return 1;
+ }
++#endif
+ 
+ int pmd_free_pte_page(pmd_t *pmdp, unsigned long addr)
+ {
+_
+
+Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+
+mm-ioremap-fix-iomap_max_page_shift.patch
+mm-hugetlb-change-parameters-of-arch_make_huge_pte.patch
+mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
+mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix-2.patch
+mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmap.patch
+mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmalloc.patch
+powerpc-8xx-add-support-for-huge-pages-on-vmap-and-vmalloc.patch
+arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch
+
