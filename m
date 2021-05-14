@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21AE5C433B4
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 22:14:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCDA3C433ED
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 22:26:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED02D611BE
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 22:14:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8690061454
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 22:26:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232161AbhENWQF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 May 2021 18:16:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45528 "EHLO mail.kernel.org"
+        id S232067AbhENW1Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 May 2021 18:27:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52134 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231616AbhENWQE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 14 May 2021 18:16:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C6EE861440;
-        Fri, 14 May 2021 22:14:51 +0000 (UTC)
+        id S231377AbhENW1Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 14 May 2021 18:27:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A7F2361440;
+        Fri, 14 May 2021 22:26:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621030491;
-        bh=X+QQP0uQx5UUUQKThN7SFINpYLk6aBMXaU3EopoSLzI=;
+        s=korg; t=1621031172;
+        bh=nyoKo2ilRRZCwR1hDgJv3r8giEV6vjNIyesF1Laaojc=;
         h=Date:From:To:Subject:From;
-        b=jhnwycSp7UXYA6nKPF+JFYQkWeXCFSckuVadmMTvc2ga6SYOHK4+4yIKRQTYa2FKs
-         LPw3mKjC+TJ7bXwCsOF2iN7cYNN1OiMePYg9jUDhKhEFfKGRfPcpUR2u74mDbYBpYZ
-         Ad/h+SYQMUcxBLMvK2TjfjAhgpSR325PIjTeLrpo=
-Date:   Fri, 14 May 2021 15:14:51 -0700
+        b=FGyvHmLLcDPyRN7lwDJTtXX0o24xQ18gXQvTAcV/cO02GmFxtJDMLU8VK/324cZsM
+         blCa6gtyruiQ8ka7VKcYFiaCZdDfv/U/MSrRtHUKwg6P1J00Zgue9toI2WM60SCHXH
+         o7Lba73ESW/6HjD2K/rAqcvzMvvhpFjfuYDE7xPQ=
+Date:   Fri, 14 May 2021 15:26:12 -0700
 From:   akpm@linux-foundation.org
-To:     ckennelly@google.com, mm-commits@vger.kernel.org,
-        yangyingliang@huawei.com
-Subject:  + tools-testing-selftests-exec-fix-link-error.patch added
- to -mm tree
-Message-ID: <20210514221451.dSKuxGZqg%akpm@linux-foundation.org>
+To:     andreyknvl@gmail.com, aryabinin@virtuozzo.com,
+        eberman@codeaurora.org, elver@google.com, glider@google.com,
+        mm-commits@vger.kernel.org, vincenzo.frascino@arm.com
+Subject:  +
+ kasan-slab-always-reset-the-tag-in-get_freepointer_safe.patch added to -mm
+ tree
+Message-ID: <20210514222612.qEfccKDzo%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/testing/selftests/exec: fix link error
+     Subject: kasan: slab: always reset the tag in get_freepointer_safe()
 has been added to the -mm tree.  Its filename is
-     tools-testing-selftests-exec-fix-link-error.patch
+     kasan-slab-always-reset-the-tag-in-get_freepointer_safe.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/tools-testing-selftests-exec-fix-link-error.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-slab-always-reset-the-tag-in-get_freepointer_safe.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/tools-testing-selftests-exec-fix-link-error.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-slab-always-reset-the-tag-in-get_freepointer_safe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,46 +66,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Yingliang <yangyingliang@huawei.com>
-Subject: tools/testing/selftests/exec: fix link error
+From: Alexander Potapenko <glider@google.com>
+Subject: kasan: slab: always reset the tag in get_freepointer_safe()
 
-Fix the link error by adding '-static':
+With CONFIG_DEBUG_PAGEALLOC enabled, the kernel should also untag the
+object pointer, as done in get_freepointer().
 
-gcc -Wall  -Wl,-z,max-page-size=0x1000 -pie load_address.c -o /home/yang/linux/tools/testing/selftests/exec/load_address_4096
-/usr/bin/ld: /tmp/ccopEGun.o: relocation R_AARCH64_ADR_PREL_PG_HI21 against symbol `stderr@@GLIBC_2.17' which may bind externally can not be used when making a shared object; recompile with -fPIC
-/usr/bin/ld: /tmp/ccopEGun.o(.text+0x158): unresolvable R_AARCH64_ADR_PREL_PG_HI21 relocation against symbol `stderr@@GLIBC_2.17'
-/usr/bin/ld: final link failed: bad value
-collect2: error: ld returned 1 exit status
-make: *** [Makefile:25: tools/testing/selftests/exec/load_address_4096] Error 1
+Failing to do so reportedly leads to SLUB freelist corruptions that
+manifest as boot-time crashes.
 
-Link: https://lkml.kernel.org/r/20210514092422.2367367-1-yangyingliang@huawei.com
-Fixes: 206e22f01941 ("tools/testing/selftests: add self-test for verifying load alignment")
-Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
-Cc: Chris Kennelly <ckennelly@google.com>
+Link: https://lkml.kernel.org/r/20210514072228.534418-1-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Elliot Berman <eberman@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/exec/Makefile |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/slub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/exec/Makefile~tools-testing-selftests-exec-fix-link-error
-+++ a/tools/testing/selftests/exec/Makefile
-@@ -28,8 +28,8 @@ $(OUTPUT)/execveat.denatured: $(OUTPUT)/
- 	cp $< $@
- 	chmod -x $@
- $(OUTPUT)/load_address_4096: load_address.c
--	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x1000 -pie $< -o $@
-+	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x1000 -pie -static $< -o $@
- $(OUTPUT)/load_address_2097152: load_address.c
--	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x200000 -pie $< -o $@
-+	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x200000 -pie -static $< -o $@
- $(OUTPUT)/load_address_16777216: load_address.c
--	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x1000000 -pie $< -o $@
-+	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-z,max-page-size=0x1000000 -pie -static $< -o $@
+--- a/mm/slub.c~kasan-slab-always-reset-the-tag-in-get_freepointer_safe
++++ a/mm/slub.c
+@@ -301,6 +301,7 @@ static inline void *get_freepointer_safe
+ 	if (!debug_pagealloc_enabled_static())
+ 		return get_freepointer(s, object);
+ 
++	object = kasan_reset_tag(object);
+ 	freepointer_addr = (unsigned long)object + s->offset;
+ 	copy_from_kernel_nofault(&p, (void **)freepointer_addr, sizeof(p));
+ 	return freelist_ptr(s, p, freepointer_addr);
 _
 
-Patches currently in -mm which might be from yangyingliang@huawei.com are
+Patches currently in -mm which might be from glider@google.com are
 
-tools-testing-selftests-exec-fix-link-error.patch
-ocfs2-remove-unnecessary-init_list_head.patch
+kasan-slab-always-reset-the-tag-in-get_freepointer_safe.patch
+printk-introduce-dump_stack_lvl.patch
+kasan-use-dump_stack_lvlkern_err-to-print-stacks.patch
 
