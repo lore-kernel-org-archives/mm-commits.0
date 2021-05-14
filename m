@@ -2,165 +2,173 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C07EC43460
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:17:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B098C433ED
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:40:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4CACD61465
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:17:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4616361446
+	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 21:40:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232212AbhENVS2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 May 2021 17:18:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51036 "EHLO mail.kernel.org"
+        id S231304AbhENVli (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 May 2021 17:41:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59180 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231945AbhENVS2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 14 May 2021 17:18:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E5C646145B;
-        Fri, 14 May 2021 21:17:15 +0000 (UTC)
+        id S229889AbhENVlh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 14 May 2021 17:41:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2942F613C5;
+        Fri, 14 May 2021 21:40:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621027036;
-        bh=d8AKuRr7eW0W6YwokDMgTpmHWx15mNbhXnUHXolT87s=;
-        h=Date:From:To:Subject:From;
-        b=qlrqdfsWHOLLKXYQAqhhPQOl3JZmiJ9XJ2kG37f1vBEwyIQt1sSk71UxESAbZJsqx
-         vyTSgNde3hpYHL0i3mjBXHS4G6WEpIML9/WwZI5VCKfb+LokTI/AguRDELYm3j1ar2
-         iSUjEBOU1MnH2xAS/9Tf4MshTGwv4f6oO7wz6ZrE=
-Date:   Fri, 14 May 2021 14:17:15 -0700
-From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, alex.shi@linux.alibaba.com, david@redhat.com,
-        guro@fb.com, haiyangz@microsoft.com, jasowang@redhat.com,
-        jbohac@suse.cz, kys@microsoft.com, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        mst@redhat.com, naoya.horiguchi@nec.com, osalvador@suse.de,
-        rppt@linux.ibm.com, steven.price@arm.com, sthemmin@microsoft.com,
-        wei.liu@kernel.org, willy@infradead.org, yaoaili@kingsoft.com
-Subject:  + fs-proc-kcore-use-page_offline_freezethaw.patch added
- to -mm tree
-Message-ID: <20210514211715.9noi3zPKj%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        s=korg; t=1621028425;
+        bh=C0ec2lfIbPBQ13yCQGnS5z2cME0lA0z5uIv9YCgayBU=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=BFAquXp3lA88Qe0Ju8asJkbRhmzDZKSdYwghLg2G9D+BTRY9z759N2CaiNhqRQMC+
+         QgMuArxF7WcxRpzSvxYcAPU7TGVk0IAfwv0ayQxwfAsBB3Hz2vzVnKwD52XYPS3EEX
+         cfpyUGuHZVn94x+oXcMO5o/2aDo7e9A6Cd2AxR7Q=
+Date:   Fri, 14 May 2021 14:40:24 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Naresh Kamboju <naresh.kamboju@linaro.org>
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Mark Brown <broonie@kernel.org>, linux-fsdevel@vger.kernel.org,
+        open list <linux-kernel@vger.kernel.org>,
+        linux-mm <linux-mm@kvack.org>,
+        Linux-Next Mailing List <linux-next@vger.kernel.org>,
+        mhocko@suse.cz, mm-commits@vger.kernel.org,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        lkft-triage@lists.linaro.org,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>
+Subject: Re: mmotm 2021-05-12-21-46 uploaded (arch/x86/mm/pgtable.c)
+Message-Id: <20210514144024.ed67212e0577961d7ac2c16e@linux-foundation.org>
+In-Reply-To: <CA+G9fYv79t0+2W4Rt3wDkBShc4eY3M3utC5BHqUgGDwMYExYMw@mail.gmail.com>
+References: <20210513044710.MCXhM_NwC%akpm@linux-foundation.org>
+        <151ddd7f-1d3e-a6f7-daab-e32f785426e1@infradead.org>
+        <54055e72-34b8-d43d-2ad3-87e8c8fa547b@csgroup.eu>
+        <20210513134754.ab3f1a864b0156ef99248401@linux-foundation.org>
+        <a3ac0b42-f779-ffaf-c6d7-0d4b40dc25f2@infradead.org>
+        <CA+G9fYv79t0+2W4Rt3wDkBShc4eY3M3utC5BHqUgGDwMYExYMw@mail.gmail.com>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Fri, 14 May 2021 15:15:41 +0530 Naresh Kamboju <naresh.kamboju@linaro.org> wrote:
 
-The patch titled
-     Subject: fs/proc/kcore: use page_offline_(freeze|thaw)
-has been added to the -mm tree.  Its filename is
-     fs-proc-kcore-use-page_offline_freezethaw.patch
+> On Fri, 14 May 2021 at 02:38, Randy Dunlap <rdunlap@infradead.org> wrote:
+> >
+> > On 5/13/21 1:47 PM, Andrew Morton wrote:
+> > > On Thu, 13 May 2021 19:09:23 +0200 Christophe Leroy <christophe.leroy@csgroup.eu> wrote:
+> > >
+> > >>
+> > >>
+> > >>> on i386:
+> > >>>
+> > >>> ../arch/x86/mm/pgtable.c:703:5: error: redefinition of ‘pud_set_huge’
+> > >>>   int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
+> > >>>       ^~~~~~~~~~~~
+> > >>> In file included from ../include/linux/mm.h:33:0,
+> > >>>                   from ../arch/x86/mm/pgtable.c:2:
+> > >>> ../include/linux/pgtable.h:1387:19: note: previous definition of ‘pud_set_huge’ was here
+> > >>>   static inline int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
+> > >>>                     ^~~~~~~~~~~~
+> > >>> ../arch/x86/mm/pgtable.c:758:5: error: redefinition of ‘pud_clear_huge’
+> > >>>   int pud_clear_huge(pud_t *pud)
+> > >>>       ^~~~~~~~~~~~~~
+> > >>> In file included from ../include/linux/mm.h:33:0,
+> > >>>                   from ../arch/x86/mm/pgtable.c:2:
+> > >>> ../include/linux/pgtable.h:1391:19: note: previous definition of ‘pud_clear_huge’ was here
+> > >>>   static inline int pud_clear_huge(pud_t *pud)
+> 
+> These errors are noticed on linux next 20210514 tag on arm64.
+> Regressions found on arm64 for the following configs.
+> 
+>   - build/gcc-9-defconfig-904271f2
+>   - build/gcc-9-tinyconfig
+>   - build/gcc-8-allnoconfig
+>   - build/gcc-10-allnoconfig
+>   - build/clang-11-allnoconfig
+>   - build/clang-10-allnoconfig
+>   - build/clang-12-tinyconfig
+>   - build/gcc-10-tinyconfig
+>   - build/clang-10-tinyconfig
+>   - build/clang-11-tinyconfig
+>   - build/clang-12-allnoconfig
+>   - build/gcc-8-tinyconfig
+>   - build/gcc-9-allnoconfig
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-proc-kcore-use-page_offline_freezethaw.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-kcore-use-page_offline_freezethaw.patch
+I can't get arm64 to compile at all ;(.  5.13-rc1 base with gcc-9.3.0,
+tinyconfig:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+In file included from ././include/linux/compiler_types.h:65,
+                 from <command-line>:
+./include/linux/smp.h:34:26: error: requested alignment '20' is not a positive power of 2
+   34 |  __aligned(sizeof(struct __call_single_data));
+      |                          ^~~~~~~~~~~~~~~~~~
+./include/linux/compiler_attributes.h:52:68: note: in definition of macro '__aligned'
+   52 | #define __aligned(x)                    __attribute__((__aligned__(x)))
+      |                                                                    ^
+In file included from ./arch/arm64/include/asm/thread_info.h:17,
+                 from ./include/linux/thread_info.h:59,
+                 from ./arch/arm64/include/asm/preempt.h:5,
+                 from ./include/linux/preempt.h:78,
+                 from ./include/linux/smp.h:110,
+                 from ./include/linux/lockdep.h:14,
+                 from ./include/linux/mutex.h:17,
+                 from ./include/linux/kernfs.h:12,
+                 from ./include/linux/sysfs.h:16,
+                 from ./include/linux/kobject.h:20,
+                 from ./include/linux/of.h:17,
+                 from ./include/linux/irqdomain.h:35,
+                 from ./include/linux/acpi.h:13,
+                 from ./include/acpi/apei.h:9,
+                 from ./include/acpi/ghes.h:5,
+                 from ./include/linux/arm_sdei.h:8,
+                 from arch/arm64/kernel/asm-offsets.c:10:
+./arch/arm64/include/asm/memory.h: In function 'kaslr_offset':
+./arch/arm64/include/asm/memory.h:65:33: warning: left shift count >= width of type [-Wshift-count-overflow]
+   65 | #define _PAGE_END(va)  (-(UL(1) << ((va) - 1)))
+      |                                 ^~
+./arch/arm64/include/asm/memory.h:47:31: note: in expansion of macro '_PAGE_END'
+   47 | #define BPF_JIT_REGION_START (_PAGE_END(VA_BITS_MIN))
+      |                               ^~~~~~~~~
+./arch/arm64/include/asm/memory.h:49:29: note: in expansion of macro 'BPF_JIT_REGION_START'
+   49 | #define BPF_JIT_REGION_END (BPF_JIT_REGION_START + BPF_JIT_REGION_SIZE)
+      |                             ^~~~~~~~~~~~~~~~~~~~
+./arch/arm64/include/asm/memory.h:51:25: note: in expansion of macro 'BPF_JIT_REGION_END'
+   51 | #define MODULES_VADDR  (BPF_JIT_REGION_END)
+      |                         ^~~~~~~~~~~~~~~~~~
+./arch/arm64/include/asm/memory.h:50:23: note: in expansion of macro 'MODULES_VADDR'
+   50 | #define MODULES_END  (MODULES_VADDR + MODULES_VSIZE)
+      |                       ^~~~~~~~~~~~~
+./arch/arm64/include/asm/memory.h:46:24: note: in expansion of macro 'MODULES_END'
+   46 | #define KIMAGE_VADDR  (MODULES_END)
+      |                        ^~~~~~~~~~~
+./arch/arm64/include/asm/memory.h:196:24: note: in expansion of macro 'KIMAGE_VADDR'
+  196 |  return kimage_vaddr - KIMAGE_VADDR;
+      |                        ^~~~~~~~~~~~
+In file included from ./arch/arm64/include/asm/thread_info.h:17,
+                 from ./include/linux/thread_info.h:59,
+                 from ./arch/arm64/include/asm/preempt.h:5,
+                 from ./include/linux/preempt.h:78,
+                 from ./include/linux/smp.h:110,
+                 from ./include/linux/lockdep.h:14,
+                 from ./include/linux/mutex.h:17,
+                 from ./include/linux/kernfs.h:12,
+                 from ./include/linux/sysfs.h:16,
+                 from ./include/linux/kobject.h:20,
+                 from ./include/linux/of.h:17,
+                 from ./include/linux/irqdomain.h:35,
+                 from ./include/linux/acpi.h:13,
+                 from ./include/acpi/apei.h:9,
+                 from ./include/acpi/ghes.h:5,
+                 from ./include/linux/arm_sdei.h:8,
+                 from arch/arm64/kernel/asm-offsets.c:10:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: fs/proc/kcore: use page_offline_(freeze|thaw)
-
-Let's properly synchronize with drivers that set PageOffline(). 
-Unfreeze/thaw every now and then, so drivers that want to set
-PageOffline() can make progress.
-
-Link: https://lkml.kernel.org/r/20210514172247.176750-7-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Aili Yao <yaoaili@kingsoft.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Wei Liu <wei.liu@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/proc/kcore.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
-
---- a/fs/proc/kcore.c~fs-proc-kcore-use-page_offline_freezethaw
-+++ a/fs/proc/kcore.c
-@@ -313,6 +313,7 @@ read_kcore(struct file *file, char __use
- {
- 	char *buf = file->private_data;
- 	size_t phdrs_offset, notes_offset, data_offset;
-+	size_t page_offline_frozen = 1;
- 	size_t phdrs_len, notes_len;
- 	struct kcore_list *m;
- 	size_t tsz;
-@@ -322,6 +323,11 @@ read_kcore(struct file *file, char __use
- 	int ret = 0;
- 
- 	down_read(&kclist_lock);
-+	/*
-+	 * Don't race against drivers that set PageOffline() and expect no
-+	 * further page access.
-+	 */
-+	page_offline_freeze();
- 
- 	get_kcore_size(&nphdr, &phdrs_len, &notes_len, &data_offset);
- 	phdrs_offset = sizeof(struct elfhdr);
-@@ -480,6 +486,12 @@ read_kcore(struct file *file, char __use
- 			}
- 		}
- 
-+		if (page_offline_frozen++ % MAX_ORDER_NR_PAGES == 0) {
-+			page_offline_thaw();
-+			cond_resched();
-+			page_offline_freeze();
-+		}
-+
- 		if (&m->list == &kclist_head) {
- 			if (clear_user(buffer, tsz)) {
- 				ret = -EFAULT;
-@@ -565,6 +577,7 @@ skip:
- 	}
- 
- out:
-+	page_offline_thaw();
- 	up_read(&kclist_lock);
- 	if (ret)
- 		return ret;
-_
-
-Patches currently in -mm which might be from david@redhat.com are
-
-perf-map_executable-does-not-indicate-vm_mayexec.patch
-binfmt-remove-in-tree-usage-of-map_executable.patch
-mm-ignore-map_executable-in-ksys_mmap_pgoff.patch
-mm-make-variable-names-for-populate_vma_page_range-consistent.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables.patch
-maintainers-add-tools-testing-selftests-vm-to-memory-management.patch
-selftests-vm-add-protection_keys_32-protection_keys_64-to-gitignore.patch
-selftests-vm-add-test-for-madv_populate_readwrite.patch
-fs-proc-kcore-drop-kcore_remap-and-kcore_other.patch
-fs-proc-kcore-pfn_is_ram-check-only-applies-to-kcore_ram.patch
-fs-proc-kcore-dont-read-offline-sections-logically-offline-pages-and-hwpoisoned-pages.patch
-mm-introduce-page_offline_beginendfreezethaw-to-synchronize-setting-pageoffline.patch
-virtio-mem-use-page_offline_startend-when-setting-pageoffline.patch
-fs-proc-kcore-use-page_offline_freezethaw.patch
-
+and lots of other errors beside that.
