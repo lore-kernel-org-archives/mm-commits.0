@@ -2,108 +2,143 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01572C433ED
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 22:32:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11C9EC433ED
+	for <mm-commits@archiver.kernel.org>; Sat, 15 May 2021 00:26:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC8E161454
-	for <mm-commits@archiver.kernel.org>; Fri, 14 May 2021 22:32:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DD86761370
+	for <mm-commits@archiver.kernel.org>; Sat, 15 May 2021 00:26:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232284AbhENWdj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 May 2021 18:33:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54308 "EHLO mail.kernel.org"
+        id S229898AbhEOA1r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 May 2021 20:27:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230330AbhENWdf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 14 May 2021 18:33:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A40FD61453;
-        Fri, 14 May 2021 22:32:23 +0000 (UTC)
+        id S234494AbhEOA1r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 14 May 2021 20:27:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F3AC960FEB;
+        Sat, 15 May 2021 00:26:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621031543;
-        bh=lBUQljQ5uOoPsyCMucs8TPuvg4F7+y5dOP6IyaQ1IE4=;
-        h=Date:From:To:Subject:From;
-        b=2LzbC5nJWoi9REEcoIHulx4JX0DRL+4qpdhK7XB44EZ/eGa1UR2NZdITIxgk/nPa+
-         ZLC0sDWEuIMJrcW9s+CE4b+nCxiEWxRJnpuLElNeSUKeeqwOnMe/gCnjs3sLrKWZ87
-         wUHw+GwqbcBM++gnVfxZFOfpS9z73s2noUfU/1z4=
-Date:   Fri, 14 May 2021 15:32:23 -0700
-From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, masahiroy@kernel.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org
-Subject:  + ia64-mca_drv-fix-incorrect-array-size-calculation.patch
- added to -mm tree
-Message-ID: <20210514223223.gXMXCNPGV%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        s=korg; t=1621038395;
+        bh=yS4i1RvqQRE0IT8GVGkGFa202/YpWkQmUr30Rc92FR4=;
+        h=Date:From:To:Cc:Subject:From;
+        b=eHBtDOhe52BaY9mG6ggF6fdAoukO9+Ld5c5fzOF18eDBYZPTemepzewxmbQsTY3HV
+         JrGztyZb6tpKkLYHy8Mds43n71a5viq2Vt02BZ8JppYa4cTqHS4JfTG4lwA9AB3V8F
+         nqcDk5fsGJDrSxfzmKvlx1rz9O8RX9DutuR5YxYk=
+Date:   Fri, 14 May 2021 17:26:34 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
+Subject: incoming
+Message-Id: <20210514172634.9018621171d5334ceee97e95@linux-foundation.org>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+13 patches, based on bd3c9cdb21a2674dd0db70199df884828e37abd4.
 
-The patch titled
-     Subject: ia64: mca_drv: fix incorrect array size calculation
-has been added to the -mm tree.  Its filename is
-     ia64-mca_drv-fix-incorrect-array-size-calculation.patch
+Subsystems affected by this patch series:
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ia64-mca_drv-fix-incorrect-array-size-calculation.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-mca_drv-fix-incorrect-array-size-calculation.patch
+  mm/hugetlb
+  mm/slub
+  resource
+  squashfs
+  mm/userfaultfd
+  mm/ksm
+  mm/pagealloc
+  mm/kasan
+  mm/pagemap
+  hfsplus
+  modprobe
+  mm/ioremap
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Subsystem: mm/hugetlb
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+    Peter Xu <peterx@redhat.com>:
+    Patch series "mm/hugetlb: Fix issues on file sealing and fork", v2:
+      mm/hugetlb: fix F_SEAL_FUTURE_WRITE
+      mm/hugetlb: fix cow where page writtable in child
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+Subsystem: mm/slub
 
-------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: ia64: mca_drv: fix incorrect array size calculation
+    Vlastimil Babka <vbabka@suse.cz>:
+      mm, slub: move slub_debug static key enabling outside slab_mutex
 
-gcc points out a mistake in the mca driver that goes back to before the
-git history:
+Subsystem: resource
 
-arch/ia64/kernel/mca_drv.c: In function 'init_record_index_pools':
-arch/ia64/kernel/mca_drv.c:346:54: error: expression does not compute the number of elements in this array; element typ
-e is 'int', not 'size_t' {aka 'long unsigned int'} [-Werror=sizeof-array-div]
-  346 |         for (i = 1; i < sizeof sal_log_sect_min_sizes/sizeof(size_t); i++)
-      |                                                      ^
+    Alistair Popple <apopple@nvidia.com>:
+      kernel/resource: fix return code check in __request_free_mem_region
 
-This is the same as sizeof(size_t), which is two shorter than the actual
-array.  Use the ARRAY_SIZE() macro to get the correct calculation instead.
+Subsystem: squashfs
 
-Link: https://lkml.kernel.org/r/20210514214123.875971-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+    Phillip Lougher <phillip@squashfs.org.uk>:
+      squashfs: fix divide error in calculate_skip()
 
- arch/ia64/kernel/mca_drv.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Subsystem: mm/userfaultfd
 
---- a/arch/ia64/kernel/mca_drv.c~ia64-mca_drv-fix-incorrect-array-size-calculation
-+++ a/arch/ia64/kernel/mca_drv.c
-@@ -343,7 +343,7 @@ init_record_index_pools(void)
- 
- 	/* - 2 - */
- 	sect_min_size = sal_log_sect_min_sizes[0];
--	for (i = 1; i < sizeof sal_log_sect_min_sizes/sizeof(size_t); i++)
-+	for (i = 1; i < ARRAY_SIZE(sal_log_sect_min_sizes); i++)
- 		if (sect_min_size > sal_log_sect_min_sizes[i])
- 			sect_min_size = sal_log_sect_min_sizes[i];
- 
-_
+    Axel Rasmussen <axelrasmussen@google.com>:
+      userfaultfd: release page in error path to avoid BUG_ON
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Subsystem: mm/ksm
 
-mm-shuffle-fix-section-mismatch-warning.patch
-ia64-mca_drv-fix-incorrect-array-size-calculation.patch
+    Hugh Dickins <hughd@google.com>:
+      ksm: revert "use GET_KSM_PAGE_NOLOCK to get ksm page in remove_rmap_item_from_tree()"
+
+Subsystem: mm/pagealloc
+
+    "Matthew Wilcox (Oracle)" <willy@infradead.org>:
+      mm: fix struct page layout on 32-bit systems
+
+Subsystem: mm/kasan
+
+    Peter Collingbourne <pcc@google.com>:
+      kasan: fix unit tests with CONFIG_UBSAN_LOCAL_BOUNDS enabled
+
+Subsystem: mm/pagemap
+
+    "Matthew Wilcox (Oracle)" <willy@infradead.org>:
+      mm/filemap: fix readahead return types
+
+Subsystem: hfsplus
+
+    Jouni Roivas <jouni.roivas@tuxera.com>:
+      hfsplus: prevent corruption in shrinking truncate
+
+Subsystem: modprobe
+
+    Rasmus Villemoes <linux@rasmusvillemoes.dk>:
+      docs: admin-guide: update description for kernel.modprobe sysctl
+
+Subsystem: mm/ioremap
+
+    Christophe Leroy <christophe.leroy@csgroup.eu>:
+      mm/ioremap: fix iomap_max_page_shift
+
+ Documentation/admin-guide/sysctl/kernel.rst |    9 ++++---
+ fs/hfsplus/extents.c                        |    7 +++--
+ fs/hugetlbfs/inode.c                        |    5 ++++
+ fs/iomap/buffered-io.c                      |    4 +--
+ fs/squashfs/file.c                          |    6 ++--
+ include/linux/mm.h                          |   32 ++++++++++++++++++++++++++
+ include/linux/mm_types.h                    |    4 +--
+ include/linux/pagemap.h                     |    6 ++--
+ include/net/page_pool.h                     |   12 +++++++++
+ kernel/resource.c                           |    2 -
+ lib/test_kasan.c                            |   29 ++++++++++++++++++-----
+ mm/hugetlb.c                                |    1 
+ mm/ioremap.c                                |    6 ++--
+ mm/ksm.c                                    |    3 +-
+ mm/shmem.c                                  |   34 ++++++++++++----------------
+ mm/slab_common.c                            |   10 ++++++++
+ mm/slub.c                                   |    9 -------
+ net/core/page_pool.c                        |   12 +++++----
+ 18 files changed, 129 insertions(+), 62 deletions(-)
 
