@@ -7,39 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AE64C43460
-	for <mm-commits@archiver.kernel.org>; Sat, 15 May 2021 00:27:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40AFCC43461
+	for <mm-commits@archiver.kernel.org>; Sat, 15 May 2021 00:27:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E15B961444
-	for <mm-commits@archiver.kernel.org>; Sat, 15 May 2021 00:27:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2138D6144B
+	for <mm-commits@archiver.kernel.org>; Sat, 15 May 2021 00:27:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234512AbhEOA21 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 May 2021 20:28:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43550 "EHLO mail.kernel.org"
+        id S234514AbhEOA23 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 May 2021 20:28:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43616 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230022AbhEOA21 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 14 May 2021 20:28:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A02A961454;
-        Sat, 15 May 2021 00:27:13 +0000 (UTC)
+        id S230022AbhEOA22 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 14 May 2021 20:28:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A2B6C61440;
+        Sat, 15 May 2021 00:27:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621038434;
-        bh=OwbFWl/Il8OIZAeQ4HuX3sY8AeZ38lQtBoqZYgQMyGg=;
+        s=korg; t=1621038436;
+        bh=q9VfCXkCafejL6EKzUf8WpxrHYOGYl3QKNbY6MS0ZwE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=qKxIPPEJILUbOXXRIRU35iEy9Lvjne0wGFNY8IYFEY7gMM1X6YA7OTnz2C2yQp69W
-         5LEl/LBZLmuYYcqLpswUIINYNuiBeVqkyauZP5OWLOg7V+y2cajSFJR9iyauY7pst/
-         1GAdeo+604ttLq9OKVLMgh9ESbyXwRAjcoDVOfZ4=
-Date:   Fri, 14 May 2021 17:27:13 -0700
+        b=IZoHGCudut9IE1aBxKhz8YzLZukXQiHZUJbLvARVBgPG2jb5/W/ge6KpzQlRpFybw
+         oC53iud82uz/59+6qcF6gk3k1HQjXdzbc69WYoq9XE7XwHdJG5cm2YcwvxJAnyJV3v
+         FOmiX8taKo0WbVrAquX9sL65ta+OwJfyL2xKmKPE=
+Date:   Fri, 14 May 2021 17:27:16 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, apopple@nvidia.com,
-        bsingharora@gmail.com, dan.j.williams@intel.com,
-        daniel.vetter@ffwll.ch, david@redhat.com,
-        gregkh@linuxfoundation.org, jglisse@redhat.com,
-        jhubbard@nvidia.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, oliver.sang@intel.com,
-        smuchun@gmail.com, torvalds@linux-foundation.org
-Subject:  [patch 04/13] kernel/resource: fix return code check in
- __request_free_mem_region
-Message-ID: <20210515002713.ECAlwWgMi%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
+        stable@vger.kernel.org,
+        syzbot+7b98870d4fec9447b951@syzkaller.appspotmail.com,
+        syzbot+e8f781243ce16ac2f962@syzkaller.appspotmail.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 05/13] squashfs: fix divide error in
+ calculate_skip()
+Message-ID: <20210515002716.xFCvUKslt%akpm@linux-foundation.org>
 In-Reply-To: <20210514172634.9018621171d5334ceee97e95@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,49 +46,50 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Alistair Popple <apopple@nvidia.com>
-Subject: kernel/resource: fix return code check in __request_free_mem_region
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: squashfs: fix divide error in calculate_skip()
 
-Splitting an earlier version of a patch that allowed calling
-__request_region() while holding the resource lock into a series of
-patches required changing the return code for the newly introduced
-__request_region_locked().
+Sysbot has reported a "divide error" which has been identified as being
+caused by a corrupted file_size value within the file inode.  This value
+has been corrupted to a much larger value than expected.
 
-Unfortunately this change was not carried through to a subsequent commit
-56fd94919b8b ("kernel/resource: fix locking in request_free_mem_region")
-in the series.  This resulted in a use-after-free due to freeing the
-struct resource without properly releasing it.  Fix this by correcting the
-return code check so that the struct is not freed if the request to add it
-was successful.
+Calculate_skip() is passed i_size_read(inode) >> msblk->block_log.  Due to
+the file_size value corruption this overflows the int argument/variable in
+that function, leading to the divide error.
 
-Link: https://lkml.kernel.org/r/20210512073528.22334-1-apopple@nvidia.com
-Fixes: 56fd94919b8b ("kernel/resource: fix locking in request_free_mem_region")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Muchun Song <smuchun@gmail.com>
-Cc: Oliver Sang <oliver.sang@intel.com>
+This patch changes the function to use u64.  This will accommodate any
+unexpectedly large values due to corruption.
+
+The value returned from calculate_skip() is clamped to be never more than
+SQUASHFS_CACHED_BLKS - 1, or 7.  So file_size corruption does not lead to
+an unexpectedly large return result here.
+
+Link: https://lkml.kernel.org/r/20210507152618.9447-1-phillip@squashfs.org.uk
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Reported-by: <syzbot+e8f781243ce16ac2f962@syzkaller.appspotmail.com>
+Reported-by: <syzbot+7b98870d4fec9447b951@syzkaller.appspotmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/squashfs/file.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/resource.c~kernel-resource-fix-return-code-check-in-__request_free_mem_region
-+++ a/kernel/resource.c
-@@ -1805,7 +1805,7 @@ static struct resource *__request_free_m
- 				REGION_DISJOINT)
- 			continue;
+--- a/fs/squashfs/file.c~squashfs-fix-divide-error-in-calculate_skip
++++ a/fs/squashfs/file.c
+@@ -211,11 +211,11 @@ failure:
+  * If the skip factor is limited in this way then the file will use multiple
+  * slots.
+  */
+-static inline int calculate_skip(int blocks)
++static inline int calculate_skip(u64 blocks)
+ {
+-	int skip = blocks / ((SQUASHFS_META_ENTRIES + 1)
++	u64 skip = blocks / ((SQUASHFS_META_ENTRIES + 1)
+ 		 * SQUASHFS_META_INDEXES);
+-	return min(SQUASHFS_CACHED_BLKS - 1, skip + 1);
++	return min((u64) SQUASHFS_CACHED_BLKS - 1, skip + 1);
+ }
  
--		if (!__request_region_locked(res, &iomem_resource, addr, size,
-+		if (__request_region_locked(res, &iomem_resource, addr, size,
- 						name, 0))
- 			break;
  
 _
