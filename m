@@ -2,120 +2,117 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D24C9C433ED
-	for <mm-commits@archiver.kernel.org>; Sat, 15 May 2021 20:41:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67EEFC433B4
+	for <mm-commits@archiver.kernel.org>; Sun, 16 May 2021 17:17:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8F016023E
-	for <mm-commits@archiver.kernel.org>; Sat, 15 May 2021 20:41:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37A996113C
+	for <mm-commits@archiver.kernel.org>; Sun, 16 May 2021 17:17:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233863AbhEOUmo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 15 May 2021 16:42:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41660 "EHLO mail.kernel.org"
+        id S229628AbhEPRS6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 16 May 2021 13:18:58 -0400
+Received: from mx2.suse.de ([195.135.220.15]:33470 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232137AbhEOUmj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 15 May 2021 16:42:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8FDBF61355;
-        Sat, 15 May 2021 20:41:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621111285;
-        bh=cCcwNCsoncyY4SD8R4/TUiKhKFUwlYfEhDHrtnyNG38=;
-        h=Date:From:To:Subject:From;
-        b=qjiU1cFeIEE9Cr1ZBlXkMPjnPskg0y9xNJwDVEX1dCwMwUMaT0HjXJgLj7D7sRnp9
-         un8SCPs1TG8XhhydyYcTPuXlOCScHz5UoNlGd4gPadVh3vIu/0zTVpkUnswKxsScU/
-         RXRH1G1ZmFhtucal6QOiYYwXdvhTR0zyzB+KMKBU=
-Date:   Sat, 15 May 2021 13:41:25 -0700
-From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
-        christophe.leroy@csgroup.eu, joel@joelfernandes.org,
-        kaleshsingh@google.com, linux@roeck-us.net,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com
-Subject:  +
- =?US-ASCII?Q?powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page?=
- =?US-ASCII?Q?-walk-cache-flush-argument-fix.patch?= added to -mm tree
-Message-ID: <20210515204125.wRUhdr1k_%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S229459AbhEPRS5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 16 May 2021 13:18:57 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id D826CB18F;
+        Sun, 16 May 2021 17:17:41 +0000 (UTC)
+Date:   Sun, 16 May 2021 18:17:38 +0100
+From:   Mel Gorman <mgorman@suse.de>
+To:     Uladzislau Rezki <urezki@gmail.com>
+Cc:     Stephen Rothwell <sfr@canb.auug.org.au>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Hillf Danton <hdanton@sina.com>,
+        Michal Hocko <mhocko@suse.com>, mm-commits@vger.kernel.org,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Matthew Wilcox <willy@infradead.org>
+Subject: Re: [failures]
+ mm-vmalloc-print-a-warning-message-first-on-failure.patch removed from -mm
+ tree
+Message-ID: <20210516171738.GR3672@suse.de>
+References: <20210513141858.GM3672@suse.de>
+ <CA+KHdyXwdkosDYk4bKtRLVodrwUJnq3NN39xuRQzKJSPTn7+bQ@mail.gmail.com>
+ <20210513155133.GN3672@suse.de>
+ <20210513201851.GA55390@pc638.lan>
+ <20210514101920.GO3672@suse.de>
+ <20210514114543.GA7022@pc638.lan>
+ <20210514134530.GP3672@suse.de>
+ <20210514145026.GA7183@pc638.lan>
+ <20210514154153.GQ3672@suse.de>
+ <20210514171623.GA33527@pc638.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <20210514171623.GA33527@pc638.lan>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Fri, May 14, 2021 at 07:16:23PM +0200, Uladzislau Rezki wrote:
+> > > See below an example of audio glitches. That was related to our phones
+> > > and audio workloads:
+> > > 
+> > > # Explanation is here
+> > > wget ftp://vps418301.ovh.net/incoming/analysis_audio_glitches.txt
+> > > 
+> > > # Audio 10 seconds sample is here.
+> > > # The drop occurs at 00:09.295 you can hear it
+> > > wget ftp://vps418301.ovh.net/incoming/tst_440_HZ_tmp_1.wav
+> > > 
+> > > Apart of that a slow allocation can course two type of issues. First one
+> > > is direct. When for example a high-priority RT thread does some allocation
+> > > to bypass data to DSP. Long latency courses a delay of data to be passed to
+> > > DSP. This is drivers area.
+> > > 
+> > > Another example is when a task is doing an allocation and the RT task is
+> > > placed onto a same CPU. In that case a long preemption-off(milliseconds)
+> > > section can lead the RT task for starvation. For mobile devices it is UI
+> > > stack where RT tasks are used. As a result we face frame drops.
+> > > 
+> > > All such issues have been solved after a rework:
+> > > 
+> > > wget ftp://vps418301.ovh.net/incoming/Reworking_of_KVA_allocator_in_Linux_kernel.pdf
+> > > 
+> > 
+> > Thanks. That was enough for me to search to see what sort of general
+> > workload would be affected. Mostly it's driver specific. A lot of the users
+> > that would be potentially hot are already using kvmalloc so probably not
+> > worth the effort so test_vmalloc.sh makes sense.
+> > 
+> You are welcome.
+> 
+> As for a helper. Does it sound good for you? BTW, once upon a time i had
+> asked for it :)
+> 
 
-The patch titled
-     Subject: powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix
-has been added to the -mm tree.  Its filename is
-     powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
+The intent was that instead of guessing in advance what APIs would be
+needed that users would add an API helper where appropriate.
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
+> From b4b0de2990defd43453ddcd2839521d117cb3bd9 Mon Sep 17 00:00:00 2001
+> From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+> Date: Fri, 14 May 2021 18:39:08 +0200
+> Subject: [PATCH] mm/page_alloc: Add an alloc_pages_bulk_array_node() helper
+> 
+> Add a "node" variant of the alloc_pages_bulk_array() function.
+> The helper guarantees that a __alloc_pages_bulk() is invoked
+> with a valid NUMA node id.
+> 
+> Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Acked-by: Mel Gorman <mgorman@suse.de>
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+Include it as part of your series adding the vmalloc user.
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix
-
-don't return a void, per Guenter
-
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/powerpc/include/asm/book3s/64/tlbflush.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/arch/powerpc/include/asm/book3s/64/tlbflush.h~powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix
-+++ a/arch/powerpc/include/asm/book3s/64/tlbflush.h
-@@ -59,7 +59,7 @@ static inline void flush_pmd_tlb_pwc_ran
- static inline void flush_pmd_tlb_range(struct vm_area_struct *vma,
- 				       unsigned long start, unsigned long end)
- {
--	return flush_pmd_tlb_pwc_range(vma, start, end, false);
-+	flush_pmd_tlb_pwc_range(vma, start, end, false);
- }
- 
- static inline void flush_hugetlb_tlb_pwc_range(struct vm_area_struct *vma,
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm.patch
-mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
-mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-
+-- 
+Mel Gorman
+SUSE Labs
