@@ -2,152 +2,167 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A28CC433ED
-	for <mm-commits@archiver.kernel.org>; Sun, 16 May 2021 20:31:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF053C43460
+	for <mm-commits@archiver.kernel.org>; Mon, 17 May 2021 05:58:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4CB9060C3E
-	for <mm-commits@archiver.kernel.org>; Sun, 16 May 2021 20:31:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D1CA1611CC
+	for <mm-commits@archiver.kernel.org>; Mon, 17 May 2021 05:58:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233548AbhEPUdL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 16 May 2021 16:33:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54692 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231491AbhEPUdK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 May 2021 16:33:10 -0400
-Received: from mail-lf1-x134.google.com (mail-lf1-x134.google.com [IPv6:2a00:1450:4864:20::134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B0EAC061573
-        for <mm-commits@vger.kernel.org>; Sun, 16 May 2021 13:31:54 -0700 (PDT)
-Received: by mail-lf1-x134.google.com with SMTP id h4so5822744lfv.0
-        for <mm-commits@vger.kernel.org>; Sun, 16 May 2021 13:31:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:date:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=PKtg9DoOG8FHazWAqL6GXaGKpIwRoq8OYG6RH0MXmnI=;
-        b=fx8Fl+9fBNVhvIDDktQRFqAQqkEd0/R7+f9s3r+YxEGosUx8RNLNWu4YYm0P0kqxg0
-         r8d91zU8JjXMuOPNox2rJ2Gj5yC51K1fB600ItodWYDfMX8snbcVXX9RV4q00SE9DOSi
-         3dxjypd8w3WQHHswByRbgJ0ct/NoIv1DiFQRjHotYvZjLr02dqkxmQ5rk3LauiPhOrp+
-         moj0Ye1uXFdvstQICk2JdmhF72YoSm5XgpmPaW/mlzPuj1Qft0+dzfgV/2zISWYjYs1U
-         lVMm+rHLBEudqTWMvFLl9yxON3IUNl7fNzqDCYvlUTmUaOAWETPpPKJxe/+fS+pmIbIB
-         vkWw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:date:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=PKtg9DoOG8FHazWAqL6GXaGKpIwRoq8OYG6RH0MXmnI=;
-        b=e1A495HFGtEnQqtVQwrog4o763KzrR2E9rAFAsEfwtth2NeuW5T7v8GKiewDmG3jJv
-         gdTF08YQBOC766q/1HfG2Md0Jtqn6RAn3ZshjufKC+MMIjfmKss9MnhEvmzSBcD7NKqp
-         8waJO4YsrX5/SD48MYnIzjvwwFZxKStXCGuPKqfqxLNo+Ds4kQspe/ef+Dgh6mjrL4NG
-         S/DjAhpZmR62ZLqi+SFavqpEYGrdQ3rftLQVmCNjzgCDRJo75NWShcp7XlgklWfbFzMz
-         /P38k/mR6sYggFnyqLgPvmxYbyU7JbDTJy7xHXkSdu6ErlErubudMlQ9yXmZAz1WZJrT
-         fwRw==
-X-Gm-Message-State: AOAM530hmH885A9S4gVBtQqQJbV1kT4DXqMR2q5/soZuS4Bqg7o9GeJL
-        8OhoiNYViAnnl3rGFhHweEM=
-X-Google-Smtp-Source: ABdhPJz8L/5uzOLTkm+ULzVLHoBeqy9amvED5fR7eqRbh5JfAs2FOuW/zjIOUyRdN/VeCMxAZEXChQ==
-X-Received: by 2002:a19:6a06:: with SMTP id u6mr5428541lfu.626.1621197112976;
-        Sun, 16 May 2021 13:31:52 -0700 (PDT)
-Received: from pc638.lan (h5ef52e3d.seluork.dyn.perspektivbredband.net. [94.245.46.61])
-        by smtp.gmail.com with ESMTPSA id d7sm1753395lfg.253.2021.05.16.13.31.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 16 May 2021 13:31:52 -0700 (PDT)
-From:   Uladzislau Rezki <urezki@gmail.com>
-X-Google-Original-From: Uladzislau Rezki <urezki@pc638.lan>
-Date:   Sun, 16 May 2021 22:31:50 +0200
-To:     Mel Gorman <mgorman@suse.de>
-Cc:     Uladzislau Rezki <urezki@gmail.com>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Hillf Danton <hdanton@sina.com>,
-        Michal Hocko <mhocko@suse.com>, mm-commits@vger.kernel.org,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Matthew Wilcox <willy@infradead.org>
-Subject: Re: [failures]
- mm-vmalloc-print-a-warning-message-first-on-failure.patch removed from -mm
- tree
-Message-ID: <20210516203150.GA2200@pc638.lan>
-References: <CA+KHdyXwdkosDYk4bKtRLVodrwUJnq3NN39xuRQzKJSPTn7+bQ@mail.gmail.com>
- <20210513155133.GN3672@suse.de>
- <20210513201851.GA55390@pc638.lan>
- <20210514101920.GO3672@suse.de>
- <20210514114543.GA7022@pc638.lan>
- <20210514134530.GP3672@suse.de>
- <20210514145026.GA7183@pc638.lan>
- <20210514154153.GQ3672@suse.de>
- <20210514171623.GA33527@pc638.lan>
- <20210516171738.GR3672@suse.de>
+        id S234592AbhEQF7n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 May 2021 01:59:43 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:20092 "EHLO
+        mx0b-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S234617AbhEQF7i (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 17 May 2021 01:59:38 -0400
+Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 14H5Y9WP012706;
+        Mon, 17 May 2021 01:57:58 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : to :
+ references : from : message-id : date : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=516WN+OrgBfPOap0l8Avctex4U8iunkCNLSQRaLDJ+0=;
+ b=GCdYQaqIKDJ2hxpuOKJk3DSP8yLh26r4sZD27dhpW+CKT+8b0DbFsTAJoqjpTIw8Qd/Z
+ xvfoRkJOoMWnQx+qSBFE3yj0I9PxSkdyV2fkVTJMZNZYgis6Doog+P9rqWQDiBKTGb8X
+ JX34w+c53BQeik0UZ93Pf8fUuKdxtFVeSWKl9qPXM4yPR1I3Pij5dh05O13tebPoHjHc
+ Gp2lcvIK57btB5dFGhPXZ4E0m1C3o5b0vf0BXqvBsN9O/ink0aGoQghgHD6x8CGWz+tD
+ H8CAgYPs5b7uzj+SkGr7V7GGop+w9wZ5CHwDvuSpuZgcvNEyOO//TsdyBLvQx9XAZ6AN tA== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 38kjderexm-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 17 May 2021 01:57:57 -0400
+Received: from m0127361.ppops.net (m0127361.ppops.net [127.0.0.1])
+        by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 14H5Y91N012697;
+        Mon, 17 May 2021 01:57:57 -0400
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 38kjderex7-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 17 May 2021 01:57:57 -0400
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+        by ppma03ams.nl.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 14H5vtKR018466;
+        Mon, 17 May 2021 05:57:55 GMT
+Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
+        by ppma03ams.nl.ibm.com with ESMTP id 38j5x7rk1h-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 17 May 2021 05:57:55 +0000
+Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
+        by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 14H5vqFN38797710
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 17 May 2021 05:57:53 GMT
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id D8D0411C04C;
+        Mon, 17 May 2021 05:57:52 +0000 (GMT)
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 1485511C04A;
+        Mon, 17 May 2021 05:57:51 +0000 (GMT)
+Received: from [9.199.40.240] (unknown [9.199.40.240])
+        by d06av25.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+        Mon, 17 May 2021 05:57:50 +0000 (GMT)
+Subject: Re: +
+ mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
+ added to -mm tree
+To:     akpm@linux-foundation.org, christophe.leroy@csgroup.eu,
+        joel@joelfernandes.org, kaleshsingh@google.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        naresh.kamboju@linaro.org, npiggin@gmail.com, sfr@canb.auug.org.au
+References: <20210514220959.IXjn-Z0ga%akpm@linux-foundation.org>
+From:   "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Message-ID: <8eedb441-a612-1ec8-8bf7-b40184de9f6f@linux.ibm.com>
+Date:   Mon, 17 May 2021 11:27:50 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.1
+In-Reply-To: <20210514220959.IXjn-Z0ga%akpm@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: WKuS8FEjYrSeoGM18ojW_kDRTG3kt8nH
+X-Proofpoint-ORIG-GUID: yl5s6jn_YTTrIScryjzy8dDU94ZlSZXt
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210516171738.GR3672@suse.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
+ definitions=2021-05-17_01:2021-05-12,2021-05-17 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 impostorscore=0
+ suspectscore=0 phishscore=0 bulkscore=0 mlxlogscore=999 priorityscore=1501
+ clxscore=1011 lowpriorityscore=0 malwarescore=0 mlxscore=0 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2104190000
+ definitions=main-2105170039
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sun, May 16, 2021 at 06:17:38PM +0100, Mel Gorman wrote:
-> On Fri, May 14, 2021 at 07:16:23PM +0200, Uladzislau Rezki wrote:
-> > > > See below an example of audio glitches. That was related to our phones
-> > > > and audio workloads:
-> > > > 
-> > > > # Explanation is here
-> > > > wget ftp://vps418301.ovh.net/incoming/analysis_audio_glitches.txt
-> > > > 
-> > > > # Audio 10 seconds sample is here.
-> > > > # The drop occurs at 00:09.295 you can hear it
-> > > > wget ftp://vps418301.ovh.net/incoming/tst_440_HZ_tmp_1.wav
-> > > > 
-> > > > Apart of that a slow allocation can course two type of issues. First one
-> > > > is direct. When for example a high-priority RT thread does some allocation
-> > > > to bypass data to DSP. Long latency courses a delay of data to be passed to
-> > > > DSP. This is drivers area.
-> > > > 
-> > > > Another example is when a task is doing an allocation and the RT task is
-> > > > placed onto a same CPU. In that case a long preemption-off(milliseconds)
-> > > > section can lead the RT task for starvation. For mobile devices it is UI
-> > > > stack where RT tasks are used. As a result we face frame drops.
-> > > > 
-> > > > All such issues have been solved after a rework:
-> > > > 
-> > > > wget ftp://vps418301.ovh.net/incoming/Reworking_of_KVA_allocator_in_Linux_kernel.pdf
-> > > > 
-> > > 
-> > > Thanks. That was enough for me to search to see what sort of general
-> > > workload would be affected. Mostly it's driver specific. A lot of the users
-> > > that would be potentially hot are already using kvmalloc so probably not
-> > > worth the effort so test_vmalloc.sh makes sense.
-> > > 
-> > You are welcome.
-> > 
-> > As for a helper. Does it sound good for you? BTW, once upon a time i had
-> > asked for it :)
-> > 
+On 5/15/21 3:39 AM, akpm@linux-foundation.org wrote:
+> The patch titled
+>       Subject: mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix
+> has been added to the -mm tree.  Its filename is
+>       mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
 > 
-> The intent was that instead of guessing in advance what APIs would be
-> needed that users would add an API helper where appropriate.
+> This patch should soon appear at
+>      https://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
+> and later at
+>      https://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
 > 
-> > From b4b0de2990defd43453ddcd2839521d117cb3bd9 Mon Sep 17 00:00:00 2001
-> > From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-> > Date: Fri, 14 May 2021 18:39:08 +0200
-> > Subject: [PATCH] mm/page_alloc: Add an alloc_pages_bulk_array_node() helper
-> > 
-> > Add a "node" variant of the alloc_pages_bulk_array() function.
-> > The helper guarantees that a __alloc_pages_bulk() is invoked
-> > with a valid NUMA node id.
-> > 
-> > Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+> Before you just go and hit "reply", please:
+>     a) Consider who else should be cc'ed
+>     b) Prefer to cc a suitable mailing list as well
+>     c) Ideally: find the original patch on the mailing list and do a
+>        reply-to-all to that, adding suitable additional cc's
 > 
-> Acked-by: Mel Gorman <mgorman@suse.de>
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 > 
-Thanks!
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
+> 
+> ------------------------------------------------------
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Subject: mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix
+> 
+> fix build
+> 
+> Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+> Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+> Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+> Cc: Joel Fernandes <joel@joelfernandes.org>
+> Cc: Kalesh Singh <kaleshsingh@google.com>
+> Cc: Michael Ellerman <mpe@ellerman.id.au>
+> Cc: Nicholas Piggin <npiggin@gmail.com>
+> Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>   mm/mremap.c |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- a/mm/mremap.c~mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix
+> +++ a/mm/mremap.c
+> @@ -216,7 +216,7 @@ static inline void flush_pte_tlb_pwc_ran
+>   					   unsigned long start,
+>   					   unsigned long end)
+>   {
+> -	return flush_tlb_range(vma, start, end);
+> +	flush_tlb_range(vma, start, end);
+>   }
+>   #endif
+>   
+> _
 
---
-Vlad Rezki
+
+Thanks for catching this. This is required because on some 
+architectures, flush_tlb_range have non void returns. For example on 
+parisc we have
+
+int __flush_tlb_range(unsigned long sid,
+	unsigned long start, unsigned long end);
+
+#define flush_tlb_range(vma, start, end) \
+	__flush_tlb_range((vma)->vm_mm->context, start, end)
+
+
+
+-aneesh
