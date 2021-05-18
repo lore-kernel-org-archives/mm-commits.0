@@ -5,40 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04561C433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 384BCC433B4
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E00B861209
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C7566124C
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344170AbhERS0c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 May 2021 14:26:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57952 "EHLO mail.kernel.org"
+        id S1344172AbhERS0f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 May 2021 14:26:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57980 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S242486AbhERS0c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 May 2021 14:26:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B5423611CE;
-        Tue, 18 May 2021 18:25:13 +0000 (UTC)
+        id S242486AbhERS0f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 May 2021 14:26:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 895B0611CE;
+        Tue, 18 May 2021 18:25:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621362314;
-        bh=txIHtInChLhWjkhjlb/PKkNmCG3P+uFEiaDweTWoHu4=;
+        s=korg; t=1621362316;
+        bh=IEf/ollL+W9Hg5KHpcZ7NXJiEyOESlGesrMNtC3y0zE=;
         h=Date:From:To:Subject:From;
-        b=yIBPXEAxa3ViJZLiGl1wy6FYCQU+fBBubTduvpgRfGr03Mb5HuU585CRj89sKWdp6
-         wFAAyvHPLCrWQcTMZXq2IIgXRsAK9Pn9hg5gJNaiNWeCnjuJVdAJbhw0MEFbGPuXFH
-         JcBMd2QxebPOVH2tER02VapnPSNUDTiANy6Owl88=
-Date:   Tue, 18 May 2021 11:25:13 -0700
+        b=XpodZSvU4ewaDCv3MdgCl/j2pn89b4wSwCSYNHrfnaEgO6GA2uaFJr3UIUJWdzOOX
+         jr0LAJvz9gCzOmov9MEwxRzO3WyjTnIM8M+zn+ixzelRZFZMpa877uAhBjy8pV0ufz
+         bXB6bfAd7Uu4ovgUrk+r9cDELf97BUHGJM2xEZ3U=
+Date:   Tue, 18 May 2021 11:25:16 -0700
 From:   akpm@linux-foundation.org
-To:     apopple@nvidia.com, bsingharora@gmail.com,
-        dan.j.williams@intel.com, daniel.vetter@ffwll.ch, david@redhat.com,
-        gregkh@linuxfoundation.org, jglisse@redhat.com,
-        jhubbard@nvidia.com, mm-commits@vger.kernel.org,
-        oliver.sang@intel.com, smuchun@gmail.com
+To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
+        stable@vger.kernel.org,
+        syzbot+7b98870d4fec9447b951@syzkaller.appspotmail.com,
+        syzbot+e8f781243ce16ac2f962@syzkaller.appspotmail.com
 Subject:  [merged]
- kernel-resource-fix-return-code-check-in-__request_free_mem_region.patch
- removed from -mm tree
-Message-ID: <20210518182513.bAWXeKyNc%akpm@linux-foundation.org>
+ squashfs-fix-divide-error-in-calculate_skip.patch removed from -mm tree
+Message-ID: <20210518182516.987kKj0bk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,60 +45,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/resource: fix return code check in __request_free_mem_region
+     Subject: squashfs: fix divide error in calculate_skip()
 has been removed from the -mm tree.  Its filename was
-     kernel-resource-fix-return-code-check-in-__request_free_mem_region.patch
+     squashfs-fix-divide-error-in-calculate_skip.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: kernel/resource: fix return code check in __request_free_mem_region
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: squashfs: fix divide error in calculate_skip()
 
-Splitting an earlier version of a patch that allowed calling
-__request_region() while holding the resource lock into a series of
-patches required changing the return code for the newly introduced
-__request_region_locked().
+Sysbot has reported a "divide error" which has been identified as being
+caused by a corrupted file_size value within the file inode.  This value
+has been corrupted to a much larger value than expected.
 
-Unfortunately this change was not carried through to a subsequent commit
-56fd94919b8b ("kernel/resource: fix locking in request_free_mem_region")
-in the series.  This resulted in a use-after-free due to freeing the
-struct resource without properly releasing it.  Fix this by correcting the
-return code check so that the struct is not freed if the request to add it
-was successful.
+Calculate_skip() is passed i_size_read(inode) >> msblk->block_log.  Due to
+the file_size value corruption this overflows the int argument/variable in
+that function, leading to the divide error.
 
-Link: https://lkml.kernel.org/r/20210512073528.22334-1-apopple@nvidia.com
-Fixes: 56fd94919b8b ("kernel/resource: fix locking in request_free_mem_region")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Muchun Song <smuchun@gmail.com>
-Cc: Oliver Sang <oliver.sang@intel.com>
+This patch changes the function to use u64.  This will accommodate any
+unexpectedly large values due to corruption.
+
+The value returned from calculate_skip() is clamped to be never more than
+SQUASHFS_CACHED_BLKS - 1, or 7.  So file_size corruption does not lead to
+an unexpectedly large return result here.
+
+Link: https://lkml.kernel.org/r/20210507152618.9447-1-phillip@squashfs.org.uk
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Reported-by: <syzbot+e8f781243ce16ac2f962@syzkaller.appspotmail.com>
+Reported-by: <syzbot+7b98870d4fec9447b951@syzkaller.appspotmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/squashfs/file.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/resource.c~kernel-resource-fix-return-code-check-in-__request_free_mem_region
-+++ a/kernel/resource.c
-@@ -1805,7 +1805,7 @@ static struct resource *__request_free_m
- 				REGION_DISJOINT)
- 			continue;
+--- a/fs/squashfs/file.c~squashfs-fix-divide-error-in-calculate_skip
++++ a/fs/squashfs/file.c
+@@ -211,11 +211,11 @@ failure:
+  * If the skip factor is limited in this way then the file will use multiple
+  * slots.
+  */
+-static inline int calculate_skip(int blocks)
++static inline int calculate_skip(u64 blocks)
+ {
+-	int skip = blocks / ((SQUASHFS_META_ENTRIES + 1)
++	u64 skip = blocks / ((SQUASHFS_META_ENTRIES + 1)
+ 		 * SQUASHFS_META_INDEXES);
+-	return min(SQUASHFS_CACHED_BLKS - 1, skip + 1);
++	return min((u64) SQUASHFS_CACHED_BLKS - 1, skip + 1);
+ }
  
--		if (!__request_region_locked(res, &iomem_resource, addr, size,
-+		if (__request_region_locked(res, &iomem_resource, addr, size,
- 						name, 0))
- 			break;
  
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
 
