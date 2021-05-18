@@ -7,45 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DEADC433B4
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 21:56:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5536C433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 22:03:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 26A1661363
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 21:56:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6EF56135B
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 22:03:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352665AbhERV5w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 May 2021 17:57:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60260 "EHLO mail.kernel.org"
+        id S236575AbhERWE7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 May 2021 18:04:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33694 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233561AbhERV5v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 May 2021 17:57:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4FCB0600D3;
-        Tue, 18 May 2021 21:56:32 +0000 (UTC)
+        id S236218AbhERWE6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 May 2021 18:04:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DF10A61004;
+        Tue, 18 May 2021 22:03:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621374993;
-        bh=i7JOf//aO77xfM2cLSIhaYVbfa1FyxQS4nfgoNPARng=;
+        s=korg; t=1621375419;
+        bh=yLj9piA7ZgcaDFrwJAH8Hp6x/mOXsh6qDpl/Ya+W1JA=;
         h=Date:From:To:Subject:From;
-        b=gD6H++5UNn/GXHVymgoaFnZ68RmWSI61yGjUNvXNf2VCsVN08gSpJXAEE/euqU/Jm
-         1TiYjVGFm+XGr92/T+5PS3Xtf5lYJzoOKmE/87A8bpCRZrwvu0GQk9SZfDIzErOO8n
-         TwWudQvh3rO+XSiRCfz4CxZ/QWoiM9FvsMEoV2jI=
-Date:   Tue, 18 May 2021 14:56:31 -0700
+        b=AueHDNx0ERNmlNbpJ0TQFrI8xrJlSxQU8Qc5KDXmH9BTaboxvHuEV7703dEi/zEC2
+         PFr/sjCjdCjqtimBgzp536c2cN7mX9iiMY/J9j1LeFeVGiwKuLFGpfibRGqjC4lwlo
+         lN0MqxRE84pWmqElTUOguNgoFmig0Fi+S/PEPE6c=
+Date:   Tue, 18 May 2021 15:03:38 -0700
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
-        dan.j.williams@intel.com, dave.hansen@linux.intel.com,
-        david@redhat.com, elena.reshetova@intel.com, guro@fb.com,
-        hagen@jauu.net, hpa@zytor.com,
-        James.Bottomley@HansenPartnership.com, jejb@linux.ibm.com,
-        kirill@shutemov.name, lkp@intel.com, luto@kernel.org,
-        mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org,
-        mtk.manpages@gmail.com, palmer@dabbelt.com,
-        palmerdabbelt@google.com, paul.walmsley@sifive.com,
-        peterz@infradead.org, rick.p.edgecombe@intel.com,
-        rppt@linux.ibm.com, shakeelb@google.com, shuah@kernel.org,
-        tglx@linutronix.de, tycho@tycho.ws, viro@zeniv.linux.org.uk,
-        will@kernel.org, willy@infradead.org
-Subject:  +
- secretmem-test-add-basic-selftest-for-memfd_secret2.patch added to -mm tree
-Message-ID: <20210518215631.NvQJxHkuW%akpm@linux-foundation.org>
+To:     hch@lst.de, mm-commits@vger.kernel.org
+Subject:  + mm-remove-devm_request_free_mem_region.patch added to
+ -mm tree
+Message-ID: <20210518220338.cIt_ZKwc0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: secretmem: test: add basic selftest for memfd_secret(2)
+     Subject: mm: remove devm_request_free_mem_region
 has been added to the -mm tree.  Its filename is
-     secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+     mm-remove-devm_request_free_mem_region.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-devm_request_free_mem_region.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-devm_request_free_mem_region.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,422 +63,148 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: secretmem: test: add basic selftest for memfd_secret(2)
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm: remove devm_request_free_mem_region
 
-The test verifies that file descriptor created with memfd_secret does not
-allow read/write operations, that secret memory mappings respect
-RLIMIT_MEMLOCK and that remote accesses with process_vm_read() and
-ptrace() to the secret memory fail.
+Remove the unused devm_request_free_mem_region, massage the kerneldoc
+comment for devm_request_free_mem_region into one documenting the actual
+used request_free_mem_region function and fold __request_free_mem_region
+into request_free_mem_region now that no other caller is left.
 
-Link: https://lkml.kernel.org/r/20210518072034.31572-8-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Elena Reshetova <elena.reshetova@intel.com>
-Cc: Hagen Paul Pfeifer <hagen@jauu.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Bottomley <jejb@linux.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Palmer Dabbelt <palmerdabbelt@google.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tycho Andersen <tycho@tycho.ws>
-Cc: Will Deacon <will@kernel.org>
-Cc: kernel test robot <lkp@intel.com>
+Link: https://lkml.kernel.org/r/20210518063922.2910123-1-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/.gitignore     |    1 
- tools/testing/selftests/vm/Makefile       |    3 
- tools/testing/selftests/vm/memfd_secret.c |  296 ++++++++++++++++++++
- tools/testing/selftests/vm/run_vmtests.sh |   17 +
- 4 files changed, 316 insertions(+), 1 deletion(-)
+ Documentation/vm/hmm.rst |    5 +--
+ include/linux/ioport.h   |    2 -
+ kernel/resource.c        |   60 ++++++++-----------------------------
+ 3 files changed, 15 insertions(+), 52 deletions(-)
 
---- a/tools/testing/selftests/vm/.gitignore~secretmem-test-add-basic-selftest-for-memfd_secret2
-+++ a/tools/testing/selftests/vm/.gitignore
-@@ -24,5 +24,6 @@ va_128TBswitch
- map_fixed_noreplace
- write_to_hugetlbfs
- hmm-tests
-+memfd_secret
- local_config.*
- split_huge_page_test
---- a/tools/testing/selftests/vm/Makefile~secretmem-test-add-basic-selftest-for-memfd_secret2
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -35,6 +35,7 @@ TEST_GEN_FILES += madv_populate
- TEST_GEN_FILES += map_fixed_noreplace
- TEST_GEN_FILES += map_hugetlb
- TEST_GEN_FILES += map_populate
-+TEST_GEN_FILES += memfd_secret
- TEST_GEN_FILES += mlock-random-test
- TEST_GEN_FILES += mlock2-tests
- TEST_GEN_FILES += mremap_dontunmap
-@@ -135,7 +136,7 @@ warn_32bit_failure:
- endif
- endif
+--- a/Documentation/vm/hmm.rst~mm-remove-devm_request_free_mem_region
++++ a/Documentation/vm/hmm.rst
+@@ -299,9 +299,8 @@ These can be allocated and freed with::
+     memunmap_pages(&pagemap);
+     release_mem_region(pagemap.range.start, range_len(&pagemap.range));
  
--$(OUTPUT)/mlock-random-test: LDLIBS += -lcap
-+$(OUTPUT)/mlock-random-test $(OUTPUT)/memfd_secret: LDLIBS += -lcap
+-There are also devm_request_free_mem_region(), devm_memremap_pages(),
+-devm_memunmap_pages(), and devm_release_mem_region() when the resources can
+-be tied to a ``struct device``.
++There are also devm_memremap_pages() and devm_memunmap_pages() when the
++resources can be tied to a ``struct device``.
  
- $(OUTPUT)/gup_test: ../../../../mm/gup_test.h
+ The overall migration steps are similar to migrating NUMA pages within system
+ memory (see :ref:`Page migration <page_migration>`) but the steps are split
+--- a/include/linux/ioport.h~mm-remove-devm_request_free_mem_region
++++ a/include/linux/ioport.h
+@@ -323,8 +323,6 @@ extern int
+ walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start, u64 end,
+ 		    void *arg, int (*func)(struct resource *, void *));
  
---- /dev/null
-+++ a/tools/testing/selftests/vm/memfd_secret.c
-@@ -0,0 +1,296 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright IBM Corporation, 2021
+-struct resource *devm_request_free_mem_region(struct device *dev,
+-		struct resource *base, unsigned long size);
+ struct resource *request_free_mem_region(struct resource *base,
+ 		unsigned long size, const char *name);
+ 
+--- a/kernel/resource.c~mm-remove-devm_request_free_mem_region
++++ a/kernel/resource.c
+@@ -1775,12 +1775,22 @@ void resource_list_free(struct list_head
+ EXPORT_SYMBOL(resource_list_free);
+ 
+ #ifdef CONFIG_DEVICE_PRIVATE
+-static struct resource *__request_free_mem_region(struct device *dev,
+-		struct resource *base, unsigned long size, const char *name)
++/**
++ * request_free_mem_region - find free region for device private memory
 + *
-+ * Author: Mike Rapoport <rppt@linux.ibm.com>
++ * @base: resource tree to look in
++ * @size: size in bytes of the device memory to add
++ * @name: name that describes the region
++ *
++ * This function tries to find an empty range of physical address big enough to
++ * contain the new resource, so that it can later be hotplugged as ZONE_DEVICE
++ * memory, which in turn allocates struct pages.
 + */
-+
-+#define _GNU_SOURCE
-+#include <sys/uio.h>
-+#include <sys/mman.h>
-+#include <sys/wait.h>
-+#include <sys/types.h>
-+#include <sys/ptrace.h>
-+#include <sys/syscall.h>
-+#include <sys/resource.h>
-+#include <sys/capability.h>
-+
-+#include <stdlib.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <errno.h>
-+#include <stdio.h>
-+
-+#include "../kselftest.h"
-+
-+#define fail(fmt, ...) ksft_test_result_fail(fmt, ##__VA_ARGS__)
-+#define pass(fmt, ...) ksft_test_result_pass(fmt, ##__VA_ARGS__)
-+#define skip(fmt, ...) ksft_test_result_skip(fmt, ##__VA_ARGS__)
-+
-+#ifdef __NR_memfd_secret
-+
-+#define PATTERN	0x55
-+
-+static const int prot = PROT_READ | PROT_WRITE;
-+static const int mode = MAP_SHARED;
-+
-+static unsigned long page_size;
-+static unsigned long mlock_limit_cur;
-+static unsigned long mlock_limit_max;
-+
-+static int memfd_secret(unsigned int flags)
-+{
-+	return syscall(__NR_memfd_secret, flags);
-+}
-+
-+static void test_file_apis(int fd)
-+{
-+	char buf[64];
-+
-+	if ((read(fd, buf, sizeof(buf)) >= 0) ||
-+	    (write(fd, buf, sizeof(buf)) >= 0) ||
-+	    (pread(fd, buf, sizeof(buf), 0) >= 0) ||
-+	    (pwrite(fd, buf, sizeof(buf), 0) >= 0))
-+		fail("unexpected file IO\n");
-+	else
-+		pass("file IO is blocked as expected\n");
-+}
-+
-+static void test_mlock_limit(int fd)
-+{
-+	size_t len;
-+	char *mem;
-+
-+	len = mlock_limit_cur;
-+	mem = mmap(NULL, len, prot, mode, fd, 0);
-+	if (mem == MAP_FAILED) {
-+		fail("unable to mmap secret memory\n");
-+		return;
-+	}
-+	munmap(mem, len);
-+
-+	len = mlock_limit_max * 2;
-+	mem = mmap(NULL, len, prot, mode, fd, 0);
-+	if (mem != MAP_FAILED) {
-+		fail("unexpected mlock limit violation\n");
-+		munmap(mem, len);
-+		return;
-+	}
-+
-+	pass("mlock limit is respected\n");
-+}
-+
-+static void try_process_vm_read(int fd, int pipefd[2])
-+{
-+	struct iovec liov, riov;
-+	char buf[64];
-+	char *mem;
-+
-+	if (read(pipefd[0], &mem, sizeof(mem)) < 0) {
-+		fail("pipe write: %s\n", strerror(errno));
-+		exit(KSFT_FAIL);
-+	}
-+
-+	liov.iov_len = riov.iov_len = sizeof(buf);
-+	liov.iov_base = buf;
-+	riov.iov_base = mem;
-+
-+	if (process_vm_readv(getppid(), &liov, 1, &riov, 1, 0) < 0) {
-+		if (errno == ENOSYS)
-+			exit(KSFT_SKIP);
-+		exit(KSFT_PASS);
-+	}
-+
-+	exit(KSFT_FAIL);
-+}
-+
-+static void try_ptrace(int fd, int pipefd[2])
-+{
-+	pid_t ppid = getppid();
-+	int status;
-+	char *mem;
-+	long ret;
-+
-+	if (read(pipefd[0], &mem, sizeof(mem)) < 0) {
-+		perror("pipe write");
-+		exit(KSFT_FAIL);
-+	}
-+
-+	ret = ptrace(PTRACE_ATTACH, ppid, 0, 0);
-+	if (ret) {
-+		perror("ptrace_attach");
-+		exit(KSFT_FAIL);
-+	}
-+
-+	ret = waitpid(ppid, &status, WUNTRACED);
-+	if ((ret != ppid) || !(WIFSTOPPED(status))) {
-+		fprintf(stderr, "weird waitppid result %ld stat %x\n",
-+			ret, status);
-+		exit(KSFT_FAIL);
-+	}
-+
-+	if (ptrace(PTRACE_PEEKDATA, ppid, mem, 0))
-+		exit(KSFT_PASS);
-+
-+	exit(KSFT_FAIL);
-+}
-+
-+static void check_child_status(pid_t pid, const char *name)
-+{
-+	int status;
-+
-+	waitpid(pid, &status, 0);
-+
-+	if (WIFEXITED(status) && WEXITSTATUS(status) == KSFT_SKIP) {
-+		skip("%s is not supported\n", name);
-+		return;
-+	}
-+
-+	if ((WIFEXITED(status) && WEXITSTATUS(status) == KSFT_PASS) ||
-+	    WIFSIGNALED(status)) {
-+		pass("%s is blocked as expected\n", name);
-+		return;
-+	}
-+
-+	fail("%s: unexpected memory access\n", name);
-+}
-+
-+static void test_remote_access(int fd, const char *name,
-+			       void (*func)(int fd, int pipefd[2]))
-+{
-+	int pipefd[2];
-+	pid_t pid;
-+	char *mem;
-+
-+	if (pipe(pipefd)) {
-+		fail("pipe failed: %s\n", strerror(errno));
-+		return;
-+	}
-+
-+	pid = fork();
-+	if (pid < 0) {
-+		fail("fork failed: %s\n", strerror(errno));
-+		return;
-+	}
-+
-+	if (pid == 0) {
-+		func(fd, pipefd);
-+		return;
-+	}
-+
-+	mem = mmap(NULL, page_size, prot, mode, fd, 0);
-+	if (mem == MAP_FAILED) {
-+		fail("Unable to mmap secret memory\n");
-+		return;
-+	}
-+
-+	ftruncate(fd, page_size);
-+	memset(mem, PATTERN, page_size);
-+
-+	if (write(pipefd[1], &mem, sizeof(mem)) < 0) {
-+		fail("pipe write: %s\n", strerror(errno));
-+		return;
-+	}
-+
-+	check_child_status(pid, name);
-+}
-+
-+static void test_process_vm_read(int fd)
-+{
-+	test_remote_access(fd, "process_vm_read", try_process_vm_read);
-+}
-+
-+static void test_ptrace(int fd)
-+{
-+	test_remote_access(fd, "ptrace", try_ptrace);
-+}
-+
-+static int set_cap_limits(rlim_t max)
-+{
-+	struct rlimit new;
-+	cap_t cap = cap_init();
-+
-+	new.rlim_cur = max;
-+	new.rlim_max = max;
-+	if (setrlimit(RLIMIT_MEMLOCK, &new)) {
-+		perror("setrlimit() returns error");
-+		return -1;
-+	}
-+
-+	/* drop capabilities including CAP_IPC_LOCK */
-+	if (cap_set_proc(cap)) {
-+		perror("cap_set_proc() returns error");
-+		return -2;
-+	}
-+
-+	return 0;
-+}
-+
-+static void prepare(void)
-+{
-+	struct rlimit rlim;
-+
-+	page_size = sysconf(_SC_PAGE_SIZE);
-+	if (!page_size)
-+		ksft_exit_fail_msg("Failed to get page size %s\n",
-+				   strerror(errno));
-+
-+	if (getrlimit(RLIMIT_MEMLOCK, &rlim))
-+		ksft_exit_fail_msg("Unable to detect mlock limit: %s\n",
-+				   strerror(errno));
-+
-+	mlock_limit_cur = rlim.rlim_cur;
-+	mlock_limit_max = rlim.rlim_max;
-+
-+	printf("page_size: %ld, mlock.soft: %ld, mlock.hard: %ld\n",
-+	       page_size, mlock_limit_cur, mlock_limit_max);
-+
-+	if (page_size > mlock_limit_cur)
-+		mlock_limit_cur = page_size;
-+	if (page_size > mlock_limit_max)
-+		mlock_limit_max = page_size;
-+
-+	if (set_cap_limits(mlock_limit_max))
-+		ksft_exit_fail_msg("Unable to set mlock limit: %s\n",
-+				   strerror(errno));
-+}
-+
-+#define NUM_TESTS 4
-+
-+int main(int argc, char *argv[])
-+{
-+	int fd;
-+
-+	prepare();
-+
-+	ksft_print_header();
-+	ksft_set_plan(NUM_TESTS);
-+
-+	fd = memfd_secret(0);
-+	if (fd < 0) {
-+		if (errno == ENOSYS)
-+			ksft_exit_skip("memfd_secret is not supported\n");
-+		else
-+			ksft_exit_fail_msg("memfd_secret failed: %s\n",
-+					   strerror(errno));
-+	}
-+
-+	test_mlock_limit(fd);
-+	test_file_apis(fd);
-+	test_process_vm_read(fd);
-+	test_ptrace(fd);
-+
-+	close(fd);
-+
-+	ksft_exit(!ksft_get_fail_cnt());
-+}
-+
-+#else /* __NR_memfd_secret */
-+
-+int main(int argc, char *argv[])
-+{
-+	printf("skip: skipping memfd_secret test (missing __NR_memfd_secret)\n");
-+	return KSFT_SKIP;
-+}
-+
-+#endif /* __NR_memfd_secret */
---- a/tools/testing/selftests/vm/run_vmtests.sh~secretmem-test-add-basic-selftest-for-memfd_secret2
-+++ a/tools/testing/selftests/vm/run_vmtests.sh
-@@ -362,4 +362,21 @@ else
- 	exitcode=1
- fi
++struct resource *request_free_mem_region(struct resource *base,
++		unsigned long size, const char *name)
+ {
+ 	resource_size_t end, addr;
+ 	struct resource *res;
+-	struct region_devres *dr = NULL;
  
-+echo "running memfd_secret test"
-+echo "------------------------------------"
-+./memfd_secret
-+ret_val=$?
-+
-+if [ $ret_val -eq 0 ]; then
-+	echo "[PASS]"
-+elif [ $ret_val -eq $ksft_skip ]; then
-+	echo "[SKIP]"
-+	exitcode=$ksft_skip
-+else
-+	echo "[FAIL]"
-+	exitcode=1
-+fi
-+
-+exit $exitcode
-+
- exit $exitcode
+ 	size = ALIGN(size, 1UL << PA_SECTION_SHIFT);
+ 	end = min_t(unsigned long, base->end, (1UL << MAX_PHYSMEM_BITS) - 1);
+@@ -1790,15 +1800,6 @@ static struct resource *__request_free_m
+ 	if (!res)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	if (dev) {
+-		dr = devres_alloc(devm_region_release,
+-				sizeof(struct region_devres), GFP_KERNEL);
+-		if (!dr) {
+-			free_resource(res);
+-			return ERR_PTR(-ENOMEM);
+-		}
+-	}
+-
+ 	write_lock(&resource_lock);
+ 	for (; addr > size && addr >= base->start; addr -= size) {
+ 		if (__region_intersects(addr, size, 0, IORES_DESC_NONE) !=
+@@ -1809,13 +1810,6 @@ static struct resource *__request_free_m
+ 						name, 0))
+ 			break;
+ 
+-		if (dev) {
+-			dr->parent = &iomem_resource;
+-			dr->start = addr;
+-			dr->n = size;
+-			devres_add(dev, dr);
+-		}
+-
+ 		res->desc = IORES_DESC_DEVICE_PRIVATE_MEMORY;
+ 		write_unlock(&resource_lock);
+ 
+@@ -1828,37 +1822,9 @@ static struct resource *__request_free_m
+ 	write_unlock(&resource_lock);
+ 
+ 	free_resource(res);
+-	if (dr)
+-		devres_free(dr);
+-
+ 	return ERR_PTR(-ERANGE);
+ }
+-
+-/**
+- * devm_request_free_mem_region - find free region for device private memory
+- *
+- * @dev: device struct to bind the resource to
+- * @size: size in bytes of the device memory to add
+- * @base: resource tree to look in
+- *
+- * This function tries to find an empty range of physical address big enough to
+- * contain the new resource, so that it can later be hotplugged as ZONE_DEVICE
+- * memory, which in turn allocates struct pages.
+- */
+-struct resource *devm_request_free_mem_region(struct device *dev,
+-		struct resource *base, unsigned long size)
+-{
+-	return __request_free_mem_region(dev, base, size, dev_name(dev));
+-}
+-EXPORT_SYMBOL_GPL(devm_request_free_mem_region);
+-
+-struct resource *request_free_mem_region(struct resource *base,
+-		unsigned long size, const char *name)
+-{
+-	return __request_free_mem_region(NULL, base, size, name);
+-}
+ EXPORT_SYMBOL_GPL(request_free_mem_region);
+-
+ #endif /* CONFIG_DEVICE_PRIVATE */
+ 
+ static int __init strict_iomem(char *str)
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-mmzoneh-simplify-is_highmem_idx.patch
-docs-procrst-meminfo-briefly-describe-gaps-in-memory-accounting.patch
-include-linux-mmzoneh-add-documentation-for-pfn_valid.patch
-memblock-update-initialization-of-reserved-pages.patch
-arm64-decouple-check-whether-pfn-is-in-linear-map-from-pfn_valid.patch
-arm64-drop-pfn_valid_within-and-simplify-pfn_valid.patch
-mmap-make-mlock_future_check-global.patch
-riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
-set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
-pm-hibernate-disable-when-there-are-active-secretmem-users.patch
-arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
-secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+mm-remove-devm_request_free_mem_region.patch
 
