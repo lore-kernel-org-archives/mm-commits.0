@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0F90C433B4
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0404C433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A5C4C61285
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A529761285
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351541AbhERS0s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 May 2021 14:26:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58146 "EHLO mail.kernel.org"
+        id S1351542AbhERS0t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 May 2021 14:26:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58168 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345616AbhERS0q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 May 2021 14:26:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8CD6F611B0;
-        Tue, 18 May 2021 18:25:28 +0000 (UTC)
+        id S1345616AbhERS0t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 May 2021 14:26:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D18C60FF2;
+        Tue, 18 May 2021 18:25:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621362328;
-        bh=H9zCqK10oPddeZYEKBgfCkaMAy77ceOi4hmhQA0fOio=;
+        s=korg; t=1621362330;
+        bh=CqPSGLhnMXmSlNiOlwVKR935f8LNnI2XCJhHXGDtZ9w=;
         h=Date:From:To:Subject:From;
-        b=wQb3jhVh85YYDVLpbL2jGXon7T40e4Fq4dSHENIPg7wpYSorDDIo/1MneCiyRh0ze
-         wWT3WioBwVakIXUi2As2OSidBHtnZnUzpAj6p0v7Xp8M8HdMt+PcFd4TUzoCrE/jFA
-         JK0eepdsvR7qy0mjpMQpzELIhJMdpte6IxDg/SXY=
-Date:   Tue, 18 May 2021 11:25:28 -0700
+        b=vK3h+Ve9GJerhxBLj4cwuYQ7HS2dD2IUmnZ4kKW39ZWikaupkPHaBCGYYgldp/Fmx
+         qzi09cVKoJtQWuIXG1AOgIXFj6h8gzFHhS4tIUDmF/fmbfkHLe2D2l1FUUvci+uKpq
+         4HkM/6CDzsiq6vmwUapKJJXe3A0nlb65DiJB9Y84=
+Date:   Tue, 18 May 2021 11:25:30 -0700
 From:   akpm@linux-foundation.org
-To:     djwong@kernel.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [merged] mm-filemap-fix-readahead-return-types.patch
- removed from -mm tree
-Message-ID: <20210518182528.YGDTz4ZFA%akpm@linux-foundation.org>
+To:     anatoly.trosinenko@gmail.com, anton@tuxera.com,
+        jouni.roivas@tuxera.com, mm-commits@vger.kernel.org,
+        slava@dubeyko.com, stable@vger.kernel.org
+Subject:  [merged]
+ hfsplus-prevent-corruption-in-shrinking-truncate.patch removed from -mm
+ tree
+Message-ID: <20210518182530.Wtn-Dl9pg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,84 +45,97 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: fix readahead return types
+     Subject: hfsplus: prevent corruption in shrinking truncate
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-fix-readahead-return-types.patch
+     hfsplus-prevent-corruption-in-shrinking-truncate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: fix readahead return types
+From: Jouni Roivas <jouni.roivas@tuxera.com>
+Subject: hfsplus: prevent corruption in shrinking truncate
 
-A readahead request will not allocate more memory than can be represented
-by a size_t, even on systems that have HIGHMEM available.  Change the
-length functions from returning an loff_t to a size_t.
+I believe there are some issues introduced by commit 31651c607151
+("hfsplus: avoid deadlock on file truncation")
 
-Link: https://lkml.kernel.org/r/20210510201201.1558972-1-willy@infradead.org
-Fixes: 32c0a6bcaa1f57 ("btrfs: add and use readahead_batch_length")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Darrick J. Wong <djwong@kernel.org>
-Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
+HFS+ has extent records which always contains 8 extents.  In case the
+first extent record in catalog file gets full, new ones are allocated from
+extents overflow file.
+
+In case shrinking truncate happens to middle of an extent record which
+locates in extents overflow file, the logic in hfsplus_file_truncate() was
+changed so that call to hfs_brec_remove() is not guarded any more.
+
+Right action would be just freeing the extents that exceed the new size
+inside extent record by calling hfsplus_free_extents(), and then check if
+the whole extent record should be removed.  However since the guard
+(blk_cnt > start) is now after the call to hfs_brec_remove(), this has
+unfortunate effect that the last matching extent record is removed
+unconditionally.
+
+To reproduce this issue, create a file which has at least 10 extents, and
+then perform shrinking truncate into middle of the last extent record, so
+that the number of remaining extents is not under or divisible by 8.  This
+causes the last extent record (8 extents) to be removed totally instead of
+truncating into middle of it.  Thus this causes corruption, and lost data.
+
+Fix for this is simply checking if the new truncated end is below the
+start of this extent record, making it safe to remove the full extent
+record.  However call to hfs_brec_remove() can't be moved to it's previous
+place since we're dropping ->tree_lock and it can cause a race condition
+and the cached info being invalidated possibly corrupting the node data.
+
+Another issue is related to this one.  When entering into the block
+(blk_cnt > start) we are not holding the ->tree_lock.  We break out from
+the loop not holding the lock, but hfs_find_exit() does unlock it.  Not
+sure if it's possible for someone else to take the lock under our feet,
+but it can cause hard to debug errors and premature unlocking.  Even if
+there's no real risk of it, the locking should still always be kept in
+balance.  Thus taking the lock now just before the check.
+
+Link: https://lkml.kernel.org/r/20210429165139.3082828-1-jouni.roivas@tuxera.com
+Fixes: 31651c607151f ("hfsplus: avoid deadlock on file truncation")
+Signed-off-by: Jouni Roivas <jouni.roivas@tuxera.com>
+Reviewed-by: Anton Altaparmakov <anton@tuxera.com>
+Cc: Anatoly Trosinenko <anatoly.trosinenko@gmail.com>
+Cc: Viacheslav Dubeyko <slava@dubeyko.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/iomap/buffered-io.c  |    4 ++--
- include/linux/pagemap.h |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ fs/hfsplus/extents.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/fs/iomap/buffered-io.c~mm-filemap-fix-readahead-return-types
-+++ a/fs/iomap/buffered-io.c
-@@ -394,7 +394,7 @@ void iomap_readahead(struct readahead_co
- {
- 	struct inode *inode = rac->mapping->host;
- 	loff_t pos = readahead_pos(rac);
--	loff_t length = readahead_length(rac);
-+	size_t length = readahead_length(rac);
- 	struct iomap_readpage_ctx ctx = {
- 		.rac	= rac,
- 	};
-@@ -402,7 +402,7 @@ void iomap_readahead(struct readahead_co
- 	trace_iomap_readahead(inode, readahead_count(rac));
+--- a/fs/hfsplus/extents.c~hfsplus-prevent-corruption-in-shrinking-truncate
++++ a/fs/hfsplus/extents.c
+@@ -598,13 +598,15 @@ void hfsplus_file_truncate(struct inode
+ 		res = __hfsplus_ext_cache_extent(&fd, inode, alloc_cnt);
+ 		if (res)
+ 			break;
+-		hfs_brec_remove(&fd);
  
- 	while (length > 0) {
--		loff_t ret = iomap_apply(inode, pos, length, 0, ops,
-+		ssize_t ret = iomap_apply(inode, pos, length, 0, ops,
- 				&ctx, iomap_readahead_actor);
- 		if (ret <= 0) {
- 			WARN_ON_ONCE(ret == 0);
---- a/include/linux/pagemap.h~mm-filemap-fix-readahead-return-types
-+++ a/include/linux/pagemap.h
-@@ -997,9 +997,9 @@ static inline loff_t readahead_pos(struc
-  * readahead_length - The number of bytes in this readahead request.
-  * @rac: The readahead request.
-  */
--static inline loff_t readahead_length(struct readahead_control *rac)
-+static inline size_t readahead_length(struct readahead_control *rac)
- {
--	return (loff_t)rac->_nr_pages * PAGE_SIZE;
-+	return rac->_nr_pages * PAGE_SIZE;
- }
+-		mutex_unlock(&fd.tree->tree_lock);
+ 		start = hip->cached_start;
++		if (blk_cnt <= start)
++			hfs_brec_remove(&fd);
++		mutex_unlock(&fd.tree->tree_lock);
+ 		hfsplus_free_extents(sb, hip->cached_extents,
+ 				     alloc_cnt - start, alloc_cnt - blk_cnt);
+ 		hfsplus_dump_extent(hip->cached_extents);
++		mutex_lock(&fd.tree->tree_lock);
+ 		if (blk_cnt > start) {
+ 			hip->extent_state |= HFSPLUS_EXT_DIRTY;
+ 			break;
+@@ -612,7 +614,6 @@ void hfsplus_file_truncate(struct inode
+ 		alloc_cnt = start;
+ 		hip->cached_start = hip->cached_blocks = 0;
+ 		hip->extent_state &= ~(HFSPLUS_EXT_DIRTY | HFSPLUS_EXT_NEW);
+-		mutex_lock(&fd.tree->tree_lock);
+ 	}
+ 	hfs_find_exit(&fd);
  
- /**
-@@ -1024,7 +1024,7 @@ static inline unsigned int readahead_cou
-  * readahead_batch_length - The number of bytes in the current batch.
-  * @rac: The readahead request.
-  */
--static inline loff_t readahead_batch_length(struct readahead_control *rac)
-+static inline size_t readahead_batch_length(struct readahead_control *rac)
- {
- 	return rac->_batch_count * PAGE_SIZE;
- }
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from jouni.roivas@tuxera.com are
 
-mm-make-__dump_page-static.patch
-mm-debug-factor-pagepoisoned-out-of-__dump_page.patch
-mm-page_owner-constify-dump_page_owner.patch
-mm-make-compound_head-const-preserving.patch
-mm-constify-get_pfnblock_flags_mask-and-get_pfnblock_migratetype.patch
-mm-constify-page_count-and-page_ref_count.patch
-mm-optimise-nth_page-for-contiguous-memmap.patch
 
