@@ -7,37 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5B03C433B4
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 22:30:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA646C433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 23:36:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8BEAF611B0
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 22:30:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 82FD361353
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 23:36:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241218AbhERWcJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 May 2021 18:32:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38966 "EHLO mail.kernel.org"
+        id S230192AbhERXh5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 May 2021 19:37:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45452 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237623AbhERWcI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 May 2021 18:32:08 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C37FA61002;
-        Tue, 18 May 2021 22:30:49 +0000 (UTC)
+        id S229736AbhERXh5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 May 2021 19:37:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1F7BB60FE6;
+        Tue, 18 May 2021 23:36:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621377050;
-        bh=tokurZcCQZdm8RQtFSJBh+/ci4XIAiI++eYM7NT0OHA=;
+        s=korg; t=1621380998;
+        bh=QC1AkngoHU4LuQlZYdyq+3Mm5ONtn8/qZqoqQDFJg0c=;
         h=Date:From:To:Subject:From;
-        b=K7+DaR9Ot9U2/8YDqS9BjhDA5n6HqQu/0U0JdiR8maDRL4Vri0TvDYuTmgkGmws/f
-         r0n5/mU43tqbYvX7RZlevydYAlos3qOeAPCyS+11Mg79KTJOHz5tjS21N/59YyxjD1
-         rOUsboP85i/TF2R/WCSedIEM1jdBIfnbnkEZ79Ss=
-Date:   Tue, 18 May 2021 15:30:49 -0700
+        b=t8wyueiOTGcZcLLNi/9+itExj4mfsxCvZSEP7yxSNORNgl8tqGcQDyyFkMq7OFJsK
+         jA2JyWc6CyyflWv1E60spIYSDeI1y5ISW3EERHH41Dbo62WYQFk2/fcimELzd612ZP
+         Hd6hjMVeQrj8jjt0Zv5SUTpOEV5TSpNXaX/5BY+o=
+Date:   Tue, 18 May 2021 16:36:37 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, hughd@google.com,
-        kirill.shutemov@linux.intel.com, lkp@intel.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        shy828301@gmail.com, wangyugui@e16-tech.com, ziy@nvidia.com
-Subject:  +
- mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix.patch added to
- -mm tree
-Message-ID: <20210518223049.CdnnbDVW0%akpm@linux-foundation.org>
+To:     ananth@in.ibm.com, christian.brauner@ubuntu.com, corbet@lwn.net,
+        hca@linux.ibm.com, joe@perches.com, jszhang@kernel.org,
+        jthumshirn@suse.de, marc@koderer.com, mathieu.desnoyers@polymtl.ca,
+        mchehab+huawei@kernel.org, mhiramat@kernel.org,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        schwidefsky@de.ibm.com, yangtiezhu@loongson.cn
+Subject:  + samples-kprobes-fix-typo-in-handler_fault.patch added
+ to -mm tree
+Message-ID: <20210518233637.q_6xsCndR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix
+     Subject: samples/kprobes: fix typo in handler_fault()
 has been added to the -mm tree.  Its filename is
-     mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix.patch
+     samples-kprobes-fix-typo-in-handler_fault.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/samples-kprobes-fix-typo-in-handler_fault.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/samples-kprobes-fix-typo-in-handler_fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,61 +68,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix
+From: Tiezhu Yang <yangtiezhu@loongson.cn>
+Subject: samples/kprobes: fix typo in handler_fault()
 
-remove unused local unmap_page():unmap_success
+Fix a defective format in handler_fault() ending with an 'n' that
+should be '\n'.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Wang Yugui <wangyugui@e16-tech.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/1621218083-23519-2-git-send-email-yangtiezhu@loongson.cn
+Fixes: 804defea1c02 ("Kprobes: move kprobe examples to samples/")
+Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
+Suggested-by: Joe Perches <joe@perches.com>
+Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Jisheng Zhang <jszhang@kernel.org>
+Cc: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Marc Koderer <marc@koderer.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ samples/kprobes/kprobe_example.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix
-+++ a/mm/huge_memory.c
-@@ -2342,14 +2342,13 @@ static void unmap_page(struct page *page
+--- a/samples/kprobes/kprobe_example.c~samples-kprobes-fix-typo-in-handler_fault
++++ a/samples/kprobes/kprobe_example.c
+@@ -101,7 +101,7 @@ static void __kprobes handler_post(struc
+  */
+ static int handler_fault(struct kprobe *p, struct pt_regs *regs, int trapnr)
  {
- 	enum ttu_flags ttu_flags = TTU_IGNORE_MLOCK |
- 		TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD;
--	bool unmap_success;
- 
- 	VM_BUG_ON_PAGE(!PageHead(page), page);
- 
- 	if (PageAnon(page))
- 		ttu_flags |= TTU_SPLIT_FREEZE;
- 
--	unmap_success = try_to_unmap(page, ttu_flags);
-+	try_to_unmap(page, ttu_flags);
+-	pr_info("fault_handler: p->addr = 0x%p, trap #%dn", p->addr, trapnr);
++	pr_info("fault_handler: p->addr = 0x%p, trap #%d\n", p->addr, trapnr);
+ 	/* Return 0 because we don't handle the fault. */
+ 	return 0;
  }
- 
- static void remap_page(struct page *page, unsigned int nr)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yangtiezhu@loongson.cn are
 
-mm.patch
-mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
-mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+samples-kprobes-fix-typo-in-handler_fault.patch
+samples-kprobes-fix-typo-in-handler_post.patch
 
