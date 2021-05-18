@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1042C433B4
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6F1EC43460
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8688061285
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 892AD61285
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351543AbhERS0w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 May 2021 14:26:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58208 "EHLO mail.kernel.org"
+        id S1351544AbhERS0y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 May 2021 14:26:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58234 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345616AbhERS0w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 May 2021 14:26:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E4A461261;
-        Tue, 18 May 2021 18:25:33 +0000 (UTC)
+        id S1345616AbhERS0x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 May 2021 14:26:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8706460FF2;
+        Tue, 18 May 2021 18:25:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621362333;
-        bh=WZekc8A80zJ1wBni2ex5pzJTvpBmVYCVU2q7jecmO7s=;
+        s=korg; t=1621362335;
+        bh=7pYL0+uEpCo65bstmT8JZIFqEnJWyxyo3ngugJVMmCQ=;
         h=Date:From:To:Subject:From;
-        b=RVADG2MlR1eK9pq+rYLR/NXA/2TqkfeOHTR2n/V4fGOAOetpoQN8Y2bOohD+EDnFW
-         7LMYYyroz/breXrZZULTG+mWCuZknZSi+Ihop3NHV8PWEUFImDFT9HMJgMZ2OUFiFN
-         Gkz/Qo8E3bQE6oDVVC8Zltl6T8oKfsTCwf2bd3hw=
-Date:   Tue, 18 May 2021 11:25:33 -0700
+        b=dp1hvxgdUV1NY32AG3GFnA1xRW+i9KmDQS+VSzbSIK6bsBi3tdiieB+yHmSSPkiKc
+         TfYvJSMZt/MSnXBV9rVS+xI7SIclGiqVB6nFlehONOQJOvmhBdve1g0Q0fqhiNTFix
+         0nbmAUIMcBTAs/x9ZmLPsmF7rO/ygreo041mfz6E=
+Date:   Tue, 18 May 2021 11:25:35 -0700
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, gregkh@linuxfoundation.org, jeyu@kernel.org,
-        linux@rasmusvillemoes.dk, mcgrof@kernel.org,
-        mm-commits@vger.kernel.org
-Subject:  [merged]
- docs-admin-guide-update-description-for-kernelmodprobe-sysctl.patch removed
- from -mm tree
-Message-ID: <20210518182533.e8QRUO51m%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, christophe.leroy@csgroup.eu,
+        mm-commits@vger.kernel.org, npiggin@gmail.com
+Subject:  [merged] mm-ioremap-fix-iomap_max_page_shift.patch
+ removed from -mm tree
+Message-ID: <20210518182535.ATxIvigIS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,55 +43,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: docs: admin-guide: update description for kernel.modprobe sysctl
+     Subject: mm/ioremap: fix iomap_max_page_shift
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-update-description-for-kernelmodprobe-sysctl.patch
+     mm-ioremap-fix-iomap_max_page_shift.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: docs: admin-guide: update description for kernel.modprobe sysctl
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: mm/ioremap: fix iomap_max_page_shift
 
-When I added CONFIG_MODPROBE_PATH, I neglected to update Documentation/. 
-It's still true that this defaults to /sbin/modprobe, but now via a level
-of indirection.  So document that the kernel might have been built with
-something other than /sbin/modprobe as the initial value.
+iomap_max_page_shift is expected to contain a page shift, so it can't be a
+'bool', has to be an 'unsigned int'
 
-Link: https://lkml.kernel.org/r/20210420125324.1246826-1-linux@rasmusvillemoes.dk
-Fixes: 17652f4240f7a ("modules: add CONFIG_MODPROBE_PATH")
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jessica Yu <jeyu@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
+And fix the default values: P4D_SHIFT is when huge iomap is allowed.
+
+However, on some architectures (eg: powerpc book3s/64), P4D_SHIFT is not a
+constant so it can't be used to initialise a static variable.  So,
+initialise iomap_max_page_shift with a maximum shift supported by the
+architecture, it is gated by P4D_SHIFT in vmap_try_huge_p4d() anyway.
+
+Link: https://lkml.kernel.org/r/ad2d366015794a9f21320dcbdd0a8eb98979e9df.1620898113.git.christophe.leroy@csgroup.eu
+Fixes: bbc180a5adb0 ("mm: HUGE_VMAP arch support cleanup")
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Reviewed-by: Nicholas Piggin <npiggin@gmail.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/ioremap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~docs-admin-guide-update-description-for-kernelmodprobe-sysctl
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -483,10 +483,11 @@ modprobe
- ========
+--- a/mm/ioremap.c~mm-ioremap-fix-iomap_max_page_shift
++++ a/mm/ioremap.c
+@@ -16,16 +16,16 @@
+ #include "pgalloc-track.h"
  
- The full path to the usermode helper for autoloading kernel modules,
--by default "/sbin/modprobe".  This binary is executed when the kernel
--requests a module.  For example, if userspace passes an unknown
--filesystem type to mount(), then the kernel will automatically request
--the corresponding filesystem module by executing this usermode helper.
-+by default ``CONFIG_MODPROBE_PATH``, which in turn defaults to
-+"/sbin/modprobe".  This binary is executed when the kernel requests a
-+module.  For example, if userspace passes an unknown filesystem type
-+to mount(), then the kernel will automatically request the
-+corresponding filesystem module by executing this usermode helper.
- This usermode helper should insert the needed module into the kernel.
+ #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+-static bool __ro_after_init iomap_max_page_shift = PAGE_SHIFT;
++static unsigned int __ro_after_init iomap_max_page_shift = BITS_PER_LONG - 1;
  
- This sysctl only affects module autoloading.  It has no effect on the
+ static int __init set_nohugeiomap(char *str)
+ {
+-	iomap_max_page_shift = P4D_SHIFT;
++	iomap_max_page_shift = PAGE_SHIFT;
+ 	return 0;
+ }
+ early_param("nohugeiomap", set_nohugeiomap);
+ #else /* CONFIG_HAVE_ARCH_HUGE_VMAP */
+-static const bool iomap_max_page_shift = PAGE_SHIFT;
++static const unsigned int iomap_max_page_shift = PAGE_SHIFT;
+ #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
+ 
+ int ioremap_page_range(unsigned long addr,
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
 
-mm-page_alloc-__alloc_pages_bulk-do-bounds-check-before-accessing-array.patch
+mm-hugetlb-change-parameters-of-arch_make_huge_pte.patch
+mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
+mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix-2.patch
+mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmap.patch
+mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmalloc.patch
+powerpc-8xx-add-support-for-huge-pages-on-vmap-and-vmalloc.patch
+arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch
 
