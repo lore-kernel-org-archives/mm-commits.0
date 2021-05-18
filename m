@@ -2,43 +2,50 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 170E3C433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 21:08:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BFB3C433B4
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 21:45:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F098F611BF
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 21:08:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 165676135F
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 21:45:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352367AbhERVJp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 May 2021 17:09:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40850 "EHLO mail.kernel.org"
+        id S1352591AbhERVrP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 May 2021 17:47:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57222 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1352353AbhERVJl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 May 2021 17:09:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EC947611BD;
-        Tue, 18 May 2021 21:08:22 +0000 (UTC)
+        id S1352590AbhERVrP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 May 2021 17:47:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7AB386124C;
+        Tue, 18 May 2021 21:45:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621372103;
-        bh=J6R+rZALZJgFQfuiDkkiflJPs1Y/MeFHIx5NjLDBcpg=;
+        s=korg; t=1621374356;
+        bh=miG+tKr26dnT6AH78VpL9T9buaygrLzguxZhOpMhbNs=;
         h=Date:From:To:Subject:From;
-        b=JiPAbt2XYaZ+Wdnd9OHASResD/HhYIkiR+kTR/Rjq/7/407eW8wL9Qov4rvyLxHnR
-         9ODg3WVD7XRK3os316VW+5yT0++f7MqEuvKkgtZl3j1glhOqvXk8RbI53gTKUqJHvx
-         Y8D8ToHhYNVKz1cZ14WQt9/qUL1+l0ItkOexVAsg=
-Date:   Tue, 18 May 2021 14:08:22 -0700
+        b=gUDuZUgPZUjFjz5q0r0ZfSVBK/q64u/aVmq6ehxwzkY/EPrshqFakPOTfo99zSphZ
+         j8cMeVCjBAJzX3dfxT/pKHMbo2KkoCoCB/z92qxudjVs2mrS7CB6TEdDu8e+EpF7Iu
+         7d4VDkB+0samBvzEHRpIdsBpLtc2uIRBixgwAVBU=
+Date:   Tue, 18 May 2021 14:45:54 -0700
 From:   akpm@linux-foundation.org
-To:     borntraeger@de.ibm.com, gerald.schaefer@linux.ibm.com,
-        gor@linux.ibm.com, hca@linux.ibm.com, hughd@google.com,
-        kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.com,
-        mm-commits@vger.kernel.org, shy828301@gmail.com,
-        ying.huang@intel.com, ziy@nvidia.com
-Subject:  +
- mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported.patch
- added to -mm tree
-Message-ID: <20210518210822.BBmkqaYaL%akpm@linux-foundation.org>
+To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
+        dan.j.williams@intel.com, dave.hansen@linux.intel.com,
+        david@redhat.com, elena.reshetova@intel.com, guro@fb.com,
+        hagen@jauu.net, hpa@zytor.com,
+        James.Bottomley@HansenPartnership.com, kirill@shutemov.name,
+        lkp@intel.com, luto@kernel.org, mark.rutland@arm.com,
+        mingo@redhat.com, mm-commits@vger.kernel.org,
+        mtk.manpages@gmail.com, palmer@dabbelt.com,
+        palmerdabbelt@google.com, paul.walmsley@sifive.com,
+        peterz@infradead.org, rick.p.edgecombe@intel.com,
+        rppt@linux.ibm.com, shakeelb@google.com, shuah@kernel.org,
+        tglx@linutronix.de, tycho@tycho.ws, viro@zeniv.linux.org.uk,
+        will@kernel.org, willy@infradead.org
+Subject:  [to-be-updated] mmap-make-mlock_future_check-global.patch
+ removed from -mm tree
+Message-ID: <20210518214554.aEbf7jcWT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,85 +54,185 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: skip make PMD PROT_NONE if THP migration is not supported
-has been added to the -mm tree.  Its filename is
-     mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported.patch
+     Subject: mmap: make mlock_future_check() global
+has been removed from the -mm tree.  Its filename was
+     mmap-make-mlock_future_check-global.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: thp: skip make PMD PROT_NONE if THP migration is not supported
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mmap: make mlock_future_check() global
 
-A quick grep shows x86_64, PowerPC (book3s), ARM64 and S390 support both
-NUMA balancing and THP.  But S390 doesn't support THP migration so NUMA
-balancing actually can't migrate any misplaced pages.
+Patch series "mm: introduce memfd_secret system call to create "secret" memory areas", v19
 
-Skip make PMD PROT_NONE for such case otherwise CPU cycles may be wasted
-by pointless NUMA hinting faults on S390.
+This is an implementation of "secret" mappings backed by a file
+descriptor.
 
-Link: https://lkml.kernel.org/r/20210518200801.7413-8-shy828301@gmail.com
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+The file descriptor backing secret memory mappings is created using a
+dedicated memfd_secret system call The desired protection mode for the
+memory is configured using flags parameter of the system call.  The mmap()
+of the file descriptor created with memfd_secret() will create a "secret"
+memory mapping.  The pages in that mapping will be marked as not present
+in the direct map and will be present only in the page table of the owning
+mm.
+
+Although normally Linux userspace mappings are protected from other users,
+such secret mappings are useful for environments where a hostile tenant is
+trying to trick the kernel into giving them access to other tenants
+mappings.
+
+It's designed to provide the following protections:
+
+* Enhanced protection (in conjunction with all the other in-kernel
+  attack prevention systems) against ROP attacks.  Seceretmem makes
+  "simple" ROP insufficient to perform exfiltration, which increases the
+  required complexity of the attack.  Along with other protections like
+  the kernel stack size limit and address space layout randomization which
+  make finding gadgets is really hard, absence of any in-kernel primitive
+  for accessing secret memory means the one gadget ROP attack can't work. 
+  Since the only way to access secret memory is to reconstruct the missing
+  mapping entry, the attacker has to recover the physical page and insert
+  a PTE pointing to it in the kernel and then retrieve the contents.  That
+  takes at least three gadgets which is a level of difficulty beyond most
+  standard attacks.
+
+* Prevent cross-process secret userspace memory exposures.  Once the
+  secret memory is allocated, the user can't accidentally pass it into the
+  kernel to be transmitted somewhere.  The secreremem pages cannot be
+  accessed via the direct map and they are disallowed in GUP.
+
+* Harden against exploited kernel flaws.  In order to access secretmem,
+  a kernel-side attack would need to either walk the page tables and
+  create new ones, or spawn a new privileged uiserspace process to perform
+  secrets exfiltration using ptrace.
+
+In the future the secret mappings may be used as a mean to protect guest
+memory in a virtual machine host.
+
+For demonstration of secret memory usage we've created a userspace library
+
+https://git.kernel.org/pub/scm/linux/kernel/git/jejb/secret-memory-preloader.git
+
+that does two things: the first is act as a preloader for openssl to
+redirect all the OPENSSL_malloc calls to secret memory meaning any secret
+keys get automatically protected this way and the other thing it does is
+expose the API to the user who needs it.  We anticipate that a lot of the
+use cases would be like the openssl one: many toolkits that deal with
+secret keys already have special handling for the memory to try to give
+them greater protection, so this would simply be pluggable into the
+toolkits without any need for user application modification.
+
+Hiding secret memory mappings behind an anonymous file allows usage of the
+page cache for tracking pages allocated for the "secret" mappings as well
+as using address_space_operations for e.g.  page migration callbacks.
+
+The anonymous file may be also used implicitly, like hugetlb files, to
+implement mmap(MAP_SECRET) and use the secret memory areas with "native"
+mm ABIs in the future.
+
+Removing of the pages from the direct map may cause its fragmentation on
+architectures that use large pages to map the physical memory which
+affects the system performance.  However, the original Kconfig text for
+CONFIG_DIRECT_GBPAGES said that gigabyte pages in the direct map "...  can
+improve the kernel's performance a tiny bit ..." (commit 00d1c5e05736
+("x86: add gbpages switches")) and the recent report [1] showed that "... 
+although 1G mappings are a good default choice, there is no compelling
+evidence that it must be the only choice".  Hence, it is sufficient to
+have secretmem disabled by default with the ability of a system
+administrator to enable it at boot time.
+
+In addition, there is also a long term goal to improve management of the
+direct map.
+
+[1] https://lore.kernel.org/linux-mm/213b4567-46ce-f116-9cdf-bbd0c884eb3c@linux.intel.com/
+
+
+This patch (of 8):
+
+It will be used by the upcoming secret memory implementation.
+
+Link: https://lkml.kernel.org/r/20210513184734.29317-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210513184734.29317-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Elena Reshetova <elena.reshetova@intel.com>
+Cc: Hagen Paul Pfeifer <hagen@jauu.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Palmer Dabbelt <palmerdabbelt@google.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tycho Andersen <tycho@tycho.ws>
+Cc: Will Deacon <will@kernel.org>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/internal.h |    3 +++
+ mm/mmap.c     |    5 ++---
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported
-+++ a/mm/huge_memory.c
-@@ -1741,6 +1741,7 @@ bool move_huge_pmd(struct vm_area_struct
-  * Returns
-  *  - 0 if PMD could not be locked
-  *  - 1 if PMD was locked but protections unchanged and TLB flush unnecessary
-+ *      or if prot_numa but THP migration is not supported
-  *  - HPAGE_PMD_NR if protections changed and TLB flush necessary
-  */
- int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
-@@ -1755,6 +1756,9 @@ int change_huge_pmd(struct vm_area_struc
- 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
- 	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
+--- a/mm/internal.h~mmap-make-mlock_future_check-global
++++ a/mm/internal.h
+@@ -361,6 +361,9 @@ static inline void munlock_vma_pages_all
+ extern void mlock_vma_page(struct page *page);
+ extern unsigned int munlock_vma_page(struct page *page);
  
-+	if (prot_numa && !thp_migration_supported())
-+		return 1;
++extern int mlock_future_check(struct mm_struct *mm, unsigned long flags,
++			      unsigned long len);
 +
- 	ptl = __pmd_trans_huge_lock(pmd, vma);
- 	if (!ptl)
- 		return 0;
+ /*
+  * Clear the page's PageMlocked().  This can be useful in a situation where
+  * we want to unconditionally remove a page from the pagecache -- e.g.,
+--- a/mm/mmap.c~mmap-make-mlock_future_check-global
++++ a/mm/mmap.c
+@@ -1352,9 +1352,8 @@ static inline unsigned long round_hint_t
+ 	return hint;
+ }
+ 
+-static inline int mlock_future_check(struct mm_struct *mm,
+-				     unsigned long flags,
+-				     unsigned long len)
++int mlock_future_check(struct mm_struct *mm, unsigned long flags,
++		       unsigned long len)
+ {
+ 	unsigned long locked, lock_limit;
+ 
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-thp-check-total_mapcount-instead-of-page_mapcount.patch
-mm-memory-add-orig_pmd-to-struct-vm_fault.patch
-mm-memory-make-numa_migrate_prep-non-static.patch
-mm-thp-refactor-numa-fault-handling.patch
-mm-migrate-account-thp-numa-migration-counters-correctly.patch
-mm-migrate-dont-split-thp-for-misplaced-numa-page.patch
-mm-migrate-check-mapcount-for-thp-instead-of-refcount.patch
-mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported.patch
+mm-mmzoneh-simplify-is_highmem_idx.patch
+docs-procrst-meminfo-briefly-describe-gaps-in-memory-accounting.patch
+include-linux-mmzoneh-add-documentation-for-pfn_valid.patch
+memblock-update-initialization-of-reserved-pages.patch
+arm64-decouple-check-whether-pfn-is-in-linear-map-from-pfn_valid.patch
+arm64-drop-pfn_valid_within-and-simplify-pfn_valid.patch
+riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
