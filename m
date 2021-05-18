@@ -7,36 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DF84C433B4
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04561C433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6350A6124C
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E00B861209
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245017AbhERS03 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 May 2021 14:26:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57912 "EHLO mail.kernel.org"
+        id S1344170AbhERS0c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 May 2021 14:26:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57952 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S242486AbhERS03 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 May 2021 14:26:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EA43D60FF2;
-        Tue, 18 May 2021 18:25:10 +0000 (UTC)
+        id S242486AbhERS0c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 May 2021 14:26:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B5423611CE;
+        Tue, 18 May 2021 18:25:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621362311;
-        bh=+UUa0+R0iSb1fe+zlntQFat+eLvakIMaHgT1yFDcxrA=;
+        s=korg; t=1621362314;
+        bh=txIHtInChLhWjkhjlb/PKkNmCG3P+uFEiaDweTWoHu4=;
         h=Date:From:To:Subject:From;
-        b=rnTr1Lkp/Wk05fqGmofVTEcfrD/dWoQN27sXQUK3f46t/3C8bgNCd8m9VvSt5cSJ0
-         vdZ/V/PXgEMnXjLmRjoze12s9JE8bRx5+5pRkd7H1sbOAurb10BLwE/lQ7r7QN29a0
-         dKA28hdhc2BnukfNfkkKlvvkw7N7BK1uCjiPab1k=
-Date:   Tue, 18 May 2021 11:25:10 -0700
+        b=yIBPXEAxa3ViJZLiGl1wy6FYCQU+fBBubTduvpgRfGr03Mb5HuU585CRj89sKWdp6
+         wFAAyvHPLCrWQcTMZXq2IIgXRsAK9Pn9hg5gJNaiNWeCnjuJVdAJbhw0MEFbGPuXFH
+         JcBMd2QxebPOVH2tER02VapnPSNUDTiANy6Owl88=
+Date:   Tue, 18 May 2021 11:25:13 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
-        paulmck@kernel.org, penberg@kernel.org, rientjes@google.com,
-        vbabka@suse.cz
+To:     apopple@nvidia.com, bsingharora@gmail.com,
+        dan.j.williams@intel.com, daniel.vetter@ffwll.ch, david@redhat.com,
+        gregkh@linuxfoundation.org, jglisse@redhat.com,
+        jhubbard@nvidia.com, mm-commits@vger.kernel.org,
+        oliver.sang@intel.com, smuchun@gmail.com
 Subject:  [merged]
- mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex.patch
+ kernel-resource-fix-return-code-check-in-__request_free_mem_region.patch
  removed from -mm tree
-Message-ID: <20210518182510.cLzD-IcAV%akpm@linux-foundation.org>
+Message-ID: <20210518182513.bAWXeKyNc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,176 +47,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: move slub_debug static key enabling outside slab_mutex
+     Subject: kernel/resource: fix return code check in __request_free_mem_region
 has been removed from the -mm tree.  Its filename was
-     mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex.patch
+     kernel-resource-fix-return-code-check-in-__request_free_mem_region.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: move slub_debug static key enabling outside slab_mutex
+From: Alistair Popple <apopple@nvidia.com>
+Subject: kernel/resource: fix return code check in __request_free_mem_region
 
-Paul E.  McKenney reported [1] that commit 1f0723a4c0df ("mm, slub: enable
-slub_debug static key when creating cache with explicit debug flags")
-results in the lockdep complaint:
+Splitting an earlier version of a patch that allowed calling
+__request_region() while holding the resource lock into a series of
+patches required changing the return code for the newly introduced
+__request_region_locked().
 
- ======================================================
- WARNING: possible circular locking dependency detected
- 5.12.0+ #15 Not tainted
- ------------------------------------------------------
- rcu_torture_sta/109 is trying to acquire lock:
- ffffffff96063cd0 (cpu_hotplug_lock){++++}-{0:0}, at: static_key_enable+0x9/0x20
+Unfortunately this change was not carried through to a subsequent commit
+56fd94919b8b ("kernel/resource: fix locking in request_free_mem_region")
+in the series.  This resulted in a use-after-free due to freeing the
+struct resource without properly releasing it.  Fix this by correcting the
+return code check so that the struct is not freed if the request to add it
+was successful.
 
- but task is already holding lock:
- ffffffff96173c28 (slab_mutex){+.+.}-{3:3}, at: kmem_cache_create_usercopy+0x2d/0x250
-
- which lock already depends on the new lock.
-
- the existing dependency chain (in reverse order) is:
-
- -> #1 (slab_mutex){+.+.}-{3:3}:
-        lock_acquire+0xb9/0x3a0
-        __mutex_lock+0x8d/0x920
-        slub_cpu_dead+0x15/0xf0
-        cpuhp_invoke_callback+0x17a/0x7c0
-        cpuhp_invoke_callback_range+0x3b/0x80
-        _cpu_down+0xdf/0x2a0
-        cpu_down+0x2c/0x50
-        device_offline+0x82/0xb0
-        remove_cpu+0x1a/0x30
-        torture_offline+0x80/0x140
-        torture_onoff+0x147/0x260
-        kthread+0x10a/0x140
-        ret_from_fork+0x22/0x30
-
- -> #0 (cpu_hotplug_lock){++++}-{0:0}:
-        check_prev_add+0x8f/0xbf0
-        __lock_acquire+0x13f0/0x1d80
-        lock_acquire+0xb9/0x3a0
-        cpus_read_lock+0x21/0xa0
-        static_key_enable+0x9/0x20
-        __kmem_cache_create+0x38d/0x430
-        kmem_cache_create_usercopy+0x146/0x250
-        kmem_cache_create+0xd/0x10
-        rcu_torture_stats+0x79/0x280
-        kthread+0x10a/0x140
-        ret_from_fork+0x22/0x30
-
- other info that might help us debug this:
-
-  Possible unsafe locking scenario:
-
-        CPU0                    CPU1
-        ----                    ----
-   lock(slab_mutex);
-                                lock(cpu_hotplug_lock);
-                                lock(slab_mutex);
-   lock(cpu_hotplug_lock);
-
-  *** DEADLOCK ***
-
- 1 lock held by rcu_torture_sta/109:
-  #0: ffffffff96173c28 (slab_mutex){+.+.}-{3:3}, at: kmem_cache_create_usercopy+0x2d/0x250
-
- stack backtrace:
- CPU: 3 PID: 109 Comm: rcu_torture_sta Not tainted 5.12.0+ #15
- Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.13.0-1ubuntu1.1 04/01/2014
- Call Trace:
-  dump_stack+0x6d/0x89
-  check_noncircular+0xfe/0x110
-  ? lock_is_held_type+0x98/0x110
-  check_prev_add+0x8f/0xbf0
-  __lock_acquire+0x13f0/0x1d80
-  lock_acquire+0xb9/0x3a0
-  ? static_key_enable+0x9/0x20
-  ? mark_held_locks+0x49/0x70
-  cpus_read_lock+0x21/0xa0
-  ? static_key_enable+0x9/0x20
-  static_key_enable+0x9/0x20
-  __kmem_cache_create+0x38d/0x430
-  kmem_cache_create_usercopy+0x146/0x250
-  ? rcu_torture_stats_print+0xd0/0xd0
-  kmem_cache_create+0xd/0x10
-  rcu_torture_stats+0x79/0x280
-  ? rcu_torture_stats_print+0xd0/0xd0
-  kthread+0x10a/0x140
-  ? kthread_park+0x80/0x80
-  ret_from_fork+0x22/0x30
-
-This is because there's one order of locking from the hotplug callbacks:
-
-lock(cpu_hotplug_lock); // from hotplug machinery itself
-lock(slab_mutex); // in e.g. slab_mem_going_offline_callback()
-
-And commit 1f0723a4c0df made the reverse sequence possible:
-lock(slab_mutex); // in kmem_cache_create_usercopy()
-lock(cpu_hotplug_lock); // kmem_cache_open() -> static_key_enable()
-
-The simplest fix is to move static_key_enable() to a place before slab_mutex is
-taken. That means kmem_cache_create_usercopy() in mm/slab_common.c which is not
-ideal for SLUB-specific code, but the #ifdef CONFIG_SLUB_DEBUG makes it
-at least self-contained and obvious.
-
-[1] https://lore.kernel.org/lkml/20210502171827.GA3670492@paulmck-ThinkPad-P17-Gen-1/
-
-Link: https://lkml.kernel.org/r/20210504120019.26791-1-vbabka@suse.cz
-Fixes: 1f0723a4c0df ("mm, slub: enable slub_debug static key when creating cache with explicit debug flags")
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Paul E. McKenney <paulmck@kernel.org>
-Tested-by: Paul E. McKenney <paulmck@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lkml.kernel.org/r/20210512073528.22334-1-apopple@nvidia.com
+Fixes: 56fd94919b8b ("kernel/resource: fix locking in request_free_mem_region")
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Muchun Song <smuchun@gmail.com>
+Cc: Oliver Sang <oliver.sang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |   10 ++++++++++
- mm/slub.c        |    9 ---------
- 2 files changed, 10 insertions(+), 9 deletions(-)
+ kernel/resource.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slab_common.c~mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex
-+++ a/mm/slab_common.c
-@@ -318,6 +318,16 @@ kmem_cache_create_usercopy(const char *n
- 	const char *cache_name;
- 	int err;
+--- a/kernel/resource.c~kernel-resource-fix-return-code-check-in-__request_free_mem_region
++++ a/kernel/resource.c
+@@ -1805,7 +1805,7 @@ static struct resource *__request_free_m
+ 				REGION_DISJOINT)
+ 			continue;
  
-+#ifdef CONFIG_SLUB_DEBUG
-+	/*
-+	 * If no slub_debug was enabled globally, the static key is not yet
-+	 * enabled by setup_slub_debug(). Enable it if the cache is being
-+	 * created with any of the debugging flags passed explicitly.
-+	 */
-+	if (flags & SLAB_DEBUG_FLAGS)
-+		static_branch_enable(&slub_debug_enabled);
-+#endif
-+
- 	mutex_lock(&slab_mutex);
+-		if (!__request_region_locked(res, &iomem_resource, addr, size,
++		if (__request_region_locked(res, &iomem_resource, addr, size,
+ 						name, 0))
+ 			break;
  
- 	err = kmem_cache_sanity_check(name, size);
---- a/mm/slub.c~mm-slub-move-slub_debug-static-key-enabling-outside-slab_mutex
-+++ a/mm/slub.c
-@@ -3828,15 +3828,6 @@ static int calculate_sizes(struct kmem_c
- 
- static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
- {
--#ifdef CONFIG_SLUB_DEBUG
--	/*
--	 * If no slub_debug was enabled globally, the static key is not yet
--	 * enabled by setup_slub_debug(). Enable it if the cache is being
--	 * created with any of the debugging flags passed explicitly.
--	 */
--	if (flags & SLAB_DEBUG_FLAGS)
--		static_branch_enable(&slub_debug_enabled);
--#endif
- 	s->flags = kmem_cache_flags(s->size, flags, s->name);
- #ifdef CONFIG_SLAB_FREELIST_HARDENED
- 	s->random = get_random_long();
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-kunit-make-test-lock-irq-safe.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-fix.patch
 
