@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1F6EC433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 21:08:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 170E3C433ED
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 21:08:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 860356124C
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 21:08:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F098F611BF
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 21:08:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352363AbhERVJl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 May 2021 17:09:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40764 "EHLO mail.kernel.org"
+        id S1352367AbhERVJp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 May 2021 17:09:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1352353AbhERVJj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 May 2021 17:09:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E9BC4611BF;
-        Tue, 18 May 2021 21:08:20 +0000 (UTC)
+        id S1352353AbhERVJl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 May 2021 17:09:41 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EC947611BD;
+        Tue, 18 May 2021 21:08:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621372101;
-        bh=TbwmTn/qDEFx0iqgwiRywVPbI0w+hgIENW8Unceu1Kw=;
+        s=korg; t=1621372103;
+        bh=J6R+rZALZJgFQfuiDkkiflJPs1Y/MeFHIx5NjLDBcpg=;
         h=Date:From:To:Subject:From;
-        b=z8Z7jEYG4aigbAbndx41/ZCMHNE9ntbmoouQ5/in6PoDgjN9/WfPBIT0ZmsKaCkYP
-         bhNzagobGSBBCxgtuCqZGWyH/n6XPjAC00K4FxfXKqr2nZ+10BM5XPpcNBCXjS8WsR
-         2/KzI7aeKBBAUYteqP60x2ETZ2ckgLNypsI4KbMw=
-Date:   Tue, 18 May 2021 14:08:20 -0700
+        b=JiPAbt2XYaZ+Wdnd9OHASResD/HhYIkiR+kTR/Rjq/7/407eW8wL9Qov4rvyLxHnR
+         9ODg3WVD7XRK3os316VW+5yT0++f7MqEuvKkgtZl3j1glhOqvXk8RbI53gTKUqJHvx
+         Y8D8ToHhYNVKz1cZ14WQt9/qUL1+l0ItkOexVAsg=
+Date:   Tue, 18 May 2021 14:08:22 -0700
 From:   akpm@linux-foundation.org
 To:     borntraeger@de.ibm.com, gerald.schaefer@linux.ibm.com,
         gor@linux.ibm.com, hca@linux.ibm.com, hughd@google.com,
@@ -36,9 +36,9 @@ To:     borntraeger@de.ibm.com, gerald.schaefer@linux.ibm.com,
         mm-commits@vger.kernel.org, shy828301@gmail.com,
         ying.huang@intel.com, ziy@nvidia.com
 Subject:  +
- mm-migrate-check-mapcount-for-thp-instead-of-refcount.patch added to -mm
- tree
-Message-ID: <20210518210820.w7qB2JEqF%akpm@linux-foundation.org>
+ mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported.patch
+ added to -mm tree
+Message-ID: <20210518210822.BBmkqaYaL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: check mapcount for THP instead of refcount
+     Subject: mm: thp: skip make PMD PROT_NONE if THP migration is not supported
 has been added to the -mm tree.  Its filename is
-     mm-migrate-check-mapcount-for-thp-instead-of-refcount.patch
+     mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-check-mapcount-for-thp-instead-of-refcount.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-check-mapcount-for-thp-instead-of-refcount.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,63 +69,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: migrate: check mapcount for THP instead of refcount
+Subject: mm: thp: skip make PMD PROT_NONE if THP migration is not supported
 
-The generic migration path will check refcount, so no need check refcount
-here.  But the old code actually prevents from migrating shared THP
-(mapped by multiple processes), so bail out early if mapcount is > 1 to
-keep the behavior.
+A quick grep shows x86_64, PowerPC (book3s), ARM64 and S390 support both
+NUMA balancing and THP.  But S390 doesn't support THP migration so NUMA
+balancing actually can't migrate any misplaced pages.
 
-Link: https://lkml.kernel.org/r/20210518200801.7413-7-shy828301@gmail.com
+Skip make PMD PROT_NONE for such case otherwise CPU cycles may be wasted
+by pointless NUMA hinting faults on S390.
+
+Link: https://lkml.kernel.org/r/20210518200801.7413-8-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Huang Ying <ying.huang@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ mm/huge_memory.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/migrate.c~mm-migrate-check-mapcount-for-thp-instead-of-refcount
-+++ a/mm/migrate.c
-@@ -2072,6 +2072,10 @@ static int numamigrate_isolate_page(pg_d
+--- a/mm/huge_memory.c~mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported
++++ a/mm/huge_memory.c
+@@ -1741,6 +1741,7 @@ bool move_huge_pmd(struct vm_area_struct
+  * Returns
+  *  - 0 if PMD could not be locked
+  *  - 1 if PMD was locked but protections unchanged and TLB flush unnecessary
++ *      or if prot_numa but THP migration is not supported
+  *  - HPAGE_PMD_NR if protections changed and TLB flush necessary
+  */
+ int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+@@ -1755,6 +1756,9 @@ int change_huge_pmd(struct vm_area_struc
+ 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
+ 	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
  
- 	VM_BUG_ON_PAGE(compound_order(page) && !PageTransHuge(page), page);
- 
-+	/* Do not migrate THP mapped by multiple processes */
-+	if (PageTransHuge(page) && total_mapcount(page) > 1)
-+		return 0;
++	if (prot_numa && !thp_migration_supported())
++		return 1;
 +
- 	/* Avoid migrating to a node that is nearly full */
- 	if (!migrate_balanced_pgdat(pgdat, compound_nr(page)))
+ 	ptl = __pmd_trans_huge_lock(pmd, vma);
+ 	if (!ptl)
  		return 0;
-@@ -2079,18 +2083,6 @@ static int numamigrate_isolate_page(pg_d
- 	if (isolate_lru_page(page))
- 		return 0;
- 
--	/*
--	 * migrate_misplaced_transhuge_page() skips page migration's usual
--	 * check on page_count(), so we must do it here, now that the page
--	 * has been isolated: a GUP pin, or any other pin, prevents migration.
--	 * The expected page count is 3: 1 for page's mapcount and 1 for the
--	 * caller's pin and 1 for the reference taken by isolate_lru_page().
--	 */
--	if (PageTransHuge(page) && page_count(page) != 3) {
--		putback_lru_page(page);
--		return 0;
--	}
--
- 	page_lru = page_is_file_lru(page);
- 	mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON + page_lru,
- 				thp_nr_pages(page));
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
