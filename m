@@ -7,35 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B5F4C433B4
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 22:26:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5B03C433B4
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 22:30:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6F717611B0
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 22:26:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8BEAF611B0
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 22:30:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236588AbhERW1W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 May 2021 18:27:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38358 "EHLO mail.kernel.org"
+        id S241218AbhERWcJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 May 2021 18:32:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232020AbhERW1V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 May 2021 18:27:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E735C60FE6;
-        Tue, 18 May 2021 22:26:01 +0000 (UTC)
+        id S237623AbhERWcI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 May 2021 18:32:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C37FA61002;
+        Tue, 18 May 2021 22:30:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621376762;
-        bh=BOLVGYJQHgD1GGydmHtI2dHKRai+WNkWRuEtqp/YXA8=;
+        s=korg; t=1621377050;
+        bh=tokurZcCQZdm8RQtFSJBh+/ci4XIAiI++eYM7NT0OHA=;
         h=Date:From:To:Subject:From;
-        b=b1trbN5VDTJC3nIRvbvitt190zm+Dvbvz56pk9u0T3wBJl74J0JWZK2KzuFZgcx78
-         53AVuZD0a5PON9YI61vGAVdqGr0e2s5QgUNDEomQgzU4zkIkYH9hc2D6aVsL9BDmBS
-         Kmfrbq1sBmeOWyEDKsB0/N5tLVrkpQehygKpw7dI=
-Date:   Tue, 18 May 2021 15:26:01 -0700
+        b=K7+DaR9Ot9U2/8YDqS9BjhDA5n6HqQu/0U0JdiR8maDRL4Vri0TvDYuTmgkGmws/f
+         r0n5/mU43tqbYvX7RZlevydYAlos3qOeAPCyS+11Mg79KTJOHz5tjS21N/59YyxjD1
+         rOUsboP85i/TF2R/WCSedIEM1jdBIfnbnkEZ79Ss=
+Date:   Tue, 18 May 2021 15:30:49 -0700
 From:   akpm@linux-foundation.org
-To:     axelrasmussen@google.com, mm-commits@vger.kernel.org,
-        peterx@redhat.com
+To:     akpm@linux-foundation.org, hughd@google.com,
+        kirill.shutemov@linux.intel.com, lkp@intel.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        shy828301@gmail.com, wangyugui@e16-tech.com, ziy@nvidia.com
 Subject:  +
- userfaultfd-selftests-reinitialize-test-context-in-each-test-fix.patch
- added to -mm tree
-Message-ID: <20210518222601.UhrKjvyhi%akpm@linux-foundation.org>
+ mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix.patch added to
+ -mm tree
+Message-ID: <20210518223049.CdnnbDVW0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd-selftests-reinitialize-test-context-in-each-test-fix
+     Subject: mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix
 has been added to the -mm tree.  Its filename is
-     userfaultfd-selftests-reinitialize-test-context-in-each-test-fix.patch
+     mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-reinitialize-test-context-in-each-test-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-reinitialize-test-context-in-each-test-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,65 +67,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: userfaultfd-selftests-reinitialize-test-context-in-each-test-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix
 
-fix conflict between this patch and the uffd pagemap series
+remove unused local unmap_page():unmap_success
 
-Link: https://lkml.kernel.org/r/YKQqKrl+/cQ1utrb@t490s
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Wang Yugui <wangyugui@e16-tech.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ mm/huge_memory.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-reinitialize-test-context-in-each-test-fix
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -1326,7 +1326,7 @@ static void userfaultfd_pagemap_test(uns
- 	/* Flush so it doesn't flush twice in parent/child later */
- 	fflush(stdout);
+--- a/mm/huge_memory.c~mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix
++++ a/mm/huge_memory.c
+@@ -2342,14 +2342,13 @@ static void unmap_page(struct page *page
+ {
+ 	enum ttu_flags ttu_flags = TTU_IGNORE_MLOCK |
+ 		TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD;
+-	bool unmap_success;
  
--	uffd_test_ops->release_pages(area_dst);
-+	uffd_test_ctx_init(0);
+ 	VM_BUG_ON_PAGE(!PageHead(page), page);
  
- 	if (test_pgsize > page_size) {
- 		/* This is a thp test */
-@@ -1338,9 +1338,6 @@ static void userfaultfd_pagemap_test(uns
- 			err("madvise(MADV_NOHUGEPAGE) failed");
- 	}
+ 	if (PageAnon(page))
+ 		ttu_flags |= TTU_SPLIT_FREEZE;
  
--	if (userfaultfd_open(0))
--		err("userfaultfd_open");
--
- 	uffdio_register.range.start = (unsigned long) area_dst;
- 	uffdio_register.range.len = nr_pages * page_size;
- 	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
-@@ -1383,7 +1380,6 @@ static void userfaultfd_pagemap_test(uns
- 	pagemap_check_wp(value, false);
- 
- 	close(pagemap_fd);
--	close(uffd);
- 	printf("done\n");
+-	unmap_success = try_to_unmap(page, ttu_flags);
++	try_to_unmap(page, ttu_flags);
  }
  
+ static void remap_page(struct page *page, unsigned int nr)
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-gup_benchmark-support-threading.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-fix.patch
-userfaultfd-selftests-use-user-mode-only.patch
-userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch
-userfaultfd-selftests-dropping-verify-check-in-locking_thread.patch
-userfaultfd-selftests-only-dump-counts-if-mode-enabled.patch
-userfaultfd-selftests-unify-error-handling.patch
-mm-thp-simplify-copying-of-huge-zero-page-pmd-when-fork.patch
-mm-userfaultfd-fix-uffd-wp-special-cases-for-fork.patch
-mm-userfaultfd-fix-a-few-thp-pmd-missing-uffd-wp-bit.patch
-mm-userfaultfd-fail-uffd-wp-registeration-if-not-supported.patch
-mm-pagemap-export-uffd-wp-protection-information.patch
-userfaultfd-selftests-add-pagemap-uffd-wp-test.patch
-userfaultfd-selftests-reinitialize-test-context-in-each-test-fix.patch
+mm.patch
+mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
+mm-improve-mprotectrw-efficiency-on-pages-referenced-once-fix.patch
+binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
+mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
