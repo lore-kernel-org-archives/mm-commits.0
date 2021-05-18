@@ -5,38 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B719C43461
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0F90C433B4
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23CA661361
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5C4C61285
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351471AbhERS0o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 May 2021 14:26:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58094 "EHLO mail.kernel.org"
+        id S1351541AbhERS0s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 May 2021 14:26:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58146 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345616AbhERS0o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 May 2021 14:26:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 99FB960FF2;
-        Tue, 18 May 2021 18:25:25 +0000 (UTC)
+        id S1345616AbhERS0q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 May 2021 14:26:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8CD6F611B0;
+        Tue, 18 May 2021 18:25:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621362325;
-        bh=GulS4YC1Kol09uX+kHHNM708oon9C23QVoxIuN3Atls=;
+        s=korg; t=1621362328;
+        bh=H9zCqK10oPddeZYEKBgfCkaMAy77ceOi4hmhQA0fOio=;
         h=Date:From:To:Subject:From;
-        b=tkxk9F/sETsZdFFWseaL6DwDrfJeEISACL8sgQPBF5ox2Z6ZN1rLNVKl21E7qr6ea
-         GK9Uzk/R+V1BuuIs2Fnt8hHEfLxT4N4UDzWexmfFHlIerLbDj7ob286wmTYsgQ1F41
-         mo5QQbuRaOyO2ga+xZr0AzG7mQ9NzC1ui0hs+vJ4=
-Date:   Tue, 18 May 2021 11:25:25 -0700
+        b=wQb3jhVh85YYDVLpbL2jGXon7T40e4Fq4dSHENIPg7wpYSorDDIo/1MneCiyRh0ze
+         wWT3WioBwVakIXUi2As2OSidBHtnZnUzpAj6p0v7Xp8M8HdMt+PcFd4TUzoCrE/jFA
+         JK0eepdsvR7qy0mjpMQpzELIhJMdpte6IxDg/SXY=
+Date:   Tue, 18 May 2021 11:25:28 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, eugenis@google.com, georgepope@android.com,
-        glider@google.com, lenaptr@google.com, mm-commits@vger.kernel.org,
-        pcc@google.com, stable@vger.kernel.org
-Subject:  [merged]
- kasan-fix-unit-tests-with-config_ubsan_local_bounds-enabled.patch removed
- from -mm tree
-Message-ID: <20210518182525.9iyAmPD-E%akpm@linux-foundation.org>
+To:     djwong@kernel.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, willy@infradead.org
+Subject:  [merged] mm-filemap-fix-readahead-return-types.patch
+ removed from -mm tree
+Message-ID: <20210518182528.YGDTz4ZFA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,105 +43,84 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: fix unit tests with CONFIG_UBSAN_LOCAL_BOUNDS enabled
+     Subject: mm/filemap: fix readahead return types
 has been removed from the -mm tree.  Its filename was
-     kasan-fix-unit-tests-with-config_ubsan_local_bounds-enabled.patch
+     mm-filemap-fix-readahead-return-types.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Peter Collingbourne <pcc@google.com>
-Subject: kasan: fix unit tests with CONFIG_UBSAN_LOCAL_BOUNDS enabled
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/filemap: fix readahead return types
 
-These tests deliberately access these arrays out of bounds, which will
-cause the dynamic local bounds checks inserted by
-CONFIG_UBSAN_LOCAL_BOUNDS to fail and panic the kernel.  To avoid this
-problem, access the arrays via volatile pointers, which will prevent the
-compiler from being able to determine the array bounds.
+A readahead request will not allocate more memory than can be represented
+by a size_t, even on systems that have HIGHMEM available.  Change the
+length functions from returning an loff_t to a size_t.
 
-These accesses use volatile pointers to char (char *volatile) rather than
-the more conventional pointers to volatile char (volatile char *) because
-we want to prevent the compiler from making inferences about the pointer
-itself (i.e.  its array bounds), not the data that it refers to.
-
-Link: https://lkml.kernel.org/r/20210507025915.1464056-1-pcc@google.com
-Link: https://linux-review.googlesource.com/id/I90b1713fbfa1bf68ff895aef099ea77b98a7c3b9
-Signed-off-by: Peter Collingbourne <pcc@google.com>
-Tested-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: George Popescu <georgepope@android.com>
-Cc: Elena Petrova <lenaptr@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210510201201.1558972-1-willy@infradead.org
+Fixes: 32c0a6bcaa1f57 ("btrfs: add and use readahead_batch_length")
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   29 +++++++++++++++++++++++------
- 1 file changed, 23 insertions(+), 6 deletions(-)
+ fs/iomap/buffered-io.c  |    4 ++--
+ include/linux/pagemap.h |    6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/lib/test_kasan.c~kasan-fix-unit-tests-with-config_ubsan_local_bounds-enabled
-+++ a/lib/test_kasan.c
-@@ -654,8 +654,20 @@ static char global_array[10];
- 
- static void kasan_global_oob(struct kunit *test)
+--- a/fs/iomap/buffered-io.c~mm-filemap-fix-readahead-return-types
++++ a/fs/iomap/buffered-io.c
+@@ -394,7 +394,7 @@ void iomap_readahead(struct readahead_co
  {
--	volatile int i = 3;
--	char *p = &global_array[ARRAY_SIZE(global_array) + i];
-+	/*
-+	 * Deliberate out-of-bounds access. To prevent CONFIG_UBSAN_LOCAL_BOUNDS
-+	 * from failing here and panicing the kernel, access the array via a
-+	 * volatile pointer, which will prevent the compiler from being able to
-+	 * determine the array bounds.
-+	 *
-+	 * This access uses a volatile pointer to char (char *volatile) rather
-+	 * than the more conventional pointer to volatile char (volatile char *)
-+	 * because we want to prevent the compiler from making inferences about
-+	 * the pointer itself (i.e. its array bounds), not the data that it
-+	 * refers to.
-+	 */
-+	char *volatile array = global_array;
-+	char *p = &array[ARRAY_SIZE(global_array) + 3];
+ 	struct inode *inode = rac->mapping->host;
+ 	loff_t pos = readahead_pos(rac);
+-	loff_t length = readahead_length(rac);
++	size_t length = readahead_length(rac);
+ 	struct iomap_readpage_ctx ctx = {
+ 		.rac	= rac,
+ 	};
+@@ -402,7 +402,7 @@ void iomap_readahead(struct readahead_co
+ 	trace_iomap_readahead(inode, readahead_count(rac));
  
- 	/* Only generic mode instruments globals. */
- 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_GENERIC);
-@@ -703,8 +715,9 @@ static void ksize_uaf(struct kunit *test
- static void kasan_stack_oob(struct kunit *test)
+ 	while (length > 0) {
+-		loff_t ret = iomap_apply(inode, pos, length, 0, ops,
++		ssize_t ret = iomap_apply(inode, pos, length, 0, ops,
+ 				&ctx, iomap_readahead_actor);
+ 		if (ret <= 0) {
+ 			WARN_ON_ONCE(ret == 0);
+--- a/include/linux/pagemap.h~mm-filemap-fix-readahead-return-types
++++ a/include/linux/pagemap.h
+@@ -997,9 +997,9 @@ static inline loff_t readahead_pos(struc
+  * readahead_length - The number of bytes in this readahead request.
+  * @rac: The readahead request.
+  */
+-static inline loff_t readahead_length(struct readahead_control *rac)
++static inline size_t readahead_length(struct readahead_control *rac)
  {
- 	char stack_array[10];
--	volatile int i = OOB_TAG_OFF;
--	char *p = &stack_array[ARRAY_SIZE(stack_array) + i];
-+	/* See comment in kasan_global_oob. */
-+	char *volatile array = stack_array;
-+	char *p = &array[ARRAY_SIZE(stack_array) + OOB_TAG_OFF];
+-	return (loff_t)rac->_nr_pages * PAGE_SIZE;
++	return rac->_nr_pages * PAGE_SIZE;
+ }
  
- 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_STACK);
- 
-@@ -715,7 +728,9 @@ static void kasan_alloca_oob_left(struct
+ /**
+@@ -1024,7 +1024,7 @@ static inline unsigned int readahead_cou
+  * readahead_batch_length - The number of bytes in the current batch.
+  * @rac: The readahead request.
+  */
+-static inline loff_t readahead_batch_length(struct readahead_control *rac)
++static inline size_t readahead_batch_length(struct readahead_control *rac)
  {
- 	volatile int i = 10;
- 	char alloca_array[i];
--	char *p = alloca_array - 1;
-+	/* See comment in kasan_global_oob. */
-+	char *volatile array = alloca_array;
-+	char *p = array - 1;
- 
- 	/* Only generic mode instruments dynamic allocas. */
- 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_GENERIC);
-@@ -728,7 +743,9 @@ static void kasan_alloca_oob_right(struc
- {
- 	volatile int i = 10;
- 	char alloca_array[i];
--	char *p = alloca_array + i;
-+	/* See comment in kasan_global_oob. */
-+	char *volatile array = alloca_array;
-+	char *p = array + i;
- 
- 	/* Only generic mode instruments dynamic allocas. */
- 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_GENERIC);
+ 	return rac->_batch_count * PAGE_SIZE;
+ }
 _
 
-Patches currently in -mm which might be from pcc@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-improve-mprotectrw-efficiency-on-pages-referenced-once.patch
+mm-make-__dump_page-static.patch
+mm-debug-factor-pagepoisoned-out-of-__dump_page.patch
+mm-page_owner-constify-dump_page_owner.patch
+mm-make-compound_head-const-preserving.patch
+mm-constify-get_pfnblock_flags_mask-and-get_pfnblock_migratetype.patch
+mm-constify-page_count-and-page_ref_count.patch
+mm-optimise-nth_page-for-contiguous-memmap.patch
 
