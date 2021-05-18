@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0404C433ED
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1042C433B4
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A529761285
-	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8688061285
+	for <mm-commits@archiver.kernel.org>; Tue, 18 May 2021 18:25:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351542AbhERS0t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 May 2021 14:26:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58168 "EHLO mail.kernel.org"
+        id S1351543AbhERS0w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 May 2021 14:26:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58208 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345616AbhERS0t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 May 2021 14:26:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D18C60FF2;
-        Tue, 18 May 2021 18:25:30 +0000 (UTC)
+        id S1345616AbhERS0w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 May 2021 14:26:52 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E4A461261;
+        Tue, 18 May 2021 18:25:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621362330;
-        bh=CqPSGLhnMXmSlNiOlwVKR935f8LNnI2XCJhHXGDtZ9w=;
+        s=korg; t=1621362333;
+        bh=WZekc8A80zJ1wBni2ex5pzJTvpBmVYCVU2q7jecmO7s=;
         h=Date:From:To:Subject:From;
-        b=vK3h+Ve9GJerhxBLj4cwuYQ7HS2dD2IUmnZ4kKW39ZWikaupkPHaBCGYYgldp/Fmx
-         qzi09cVKoJtQWuIXG1AOgIXFj6h8gzFHhS4tIUDmF/fmbfkHLe2D2l1FUUvci+uKpq
-         4HkM/6CDzsiq6vmwUapKJJXe3A0nlb65DiJB9Y84=
-Date:   Tue, 18 May 2021 11:25:30 -0700
+        b=RVADG2MlR1eK9pq+rYLR/NXA/2TqkfeOHTR2n/V4fGOAOetpoQN8Y2bOohD+EDnFW
+         7LMYYyroz/breXrZZULTG+mWCuZknZSi+Ihop3NHV8PWEUFImDFT9HMJgMZ2OUFiFN
+         Gkz/Qo8E3bQE6oDVVC8Zltl6T8oKfsTCwf2bd3hw=
+Date:   Tue, 18 May 2021 11:25:33 -0700
 From:   akpm@linux-foundation.org
-To:     anatoly.trosinenko@gmail.com, anton@tuxera.com,
-        jouni.roivas@tuxera.com, mm-commits@vger.kernel.org,
-        slava@dubeyko.com, stable@vger.kernel.org
+To:     corbet@lwn.net, gregkh@linuxfoundation.org, jeyu@kernel.org,
+        linux@rasmusvillemoes.dk, mcgrof@kernel.org,
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- hfsplus-prevent-corruption-in-shrinking-truncate.patch removed from -mm
- tree
-Message-ID: <20210518182530.Wtn-Dl9pg%akpm@linux-foundation.org>
+ docs-admin-guide-update-description-for-kernelmodprobe-sysctl.patch removed
+ from -mm tree
+Message-ID: <20210518182533.e8QRUO51m%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,97 +45,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hfsplus: prevent corruption in shrinking truncate
+     Subject: docs: admin-guide: update description for kernel.modprobe sysctl
 has been removed from the -mm tree.  Its filename was
-     hfsplus-prevent-corruption-in-shrinking-truncate.patch
+     docs-admin-guide-update-description-for-kernelmodprobe-sysctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jouni Roivas <jouni.roivas@tuxera.com>
-Subject: hfsplus: prevent corruption in shrinking truncate
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: docs: admin-guide: update description for kernel.modprobe sysctl
 
-I believe there are some issues introduced by commit 31651c607151
-("hfsplus: avoid deadlock on file truncation")
+When I added CONFIG_MODPROBE_PATH, I neglected to update Documentation/. 
+It's still true that this defaults to /sbin/modprobe, but now via a level
+of indirection.  So document that the kernel might have been built with
+something other than /sbin/modprobe as the initial value.
 
-HFS+ has extent records which always contains 8 extents.  In case the
-first extent record in catalog file gets full, new ones are allocated from
-extents overflow file.
-
-In case shrinking truncate happens to middle of an extent record which
-locates in extents overflow file, the logic in hfsplus_file_truncate() was
-changed so that call to hfs_brec_remove() is not guarded any more.
-
-Right action would be just freeing the extents that exceed the new size
-inside extent record by calling hfsplus_free_extents(), and then check if
-the whole extent record should be removed.  However since the guard
-(blk_cnt > start) is now after the call to hfs_brec_remove(), this has
-unfortunate effect that the last matching extent record is removed
-unconditionally.
-
-To reproduce this issue, create a file which has at least 10 extents, and
-then perform shrinking truncate into middle of the last extent record, so
-that the number of remaining extents is not under or divisible by 8.  This
-causes the last extent record (8 extents) to be removed totally instead of
-truncating into middle of it.  Thus this causes corruption, and lost data.
-
-Fix for this is simply checking if the new truncated end is below the
-start of this extent record, making it safe to remove the full extent
-record.  However call to hfs_brec_remove() can't be moved to it's previous
-place since we're dropping ->tree_lock and it can cause a race condition
-and the cached info being invalidated possibly corrupting the node data.
-
-Another issue is related to this one.  When entering into the block
-(blk_cnt > start) we are not holding the ->tree_lock.  We break out from
-the loop not holding the lock, but hfs_find_exit() does unlock it.  Not
-sure if it's possible for someone else to take the lock under our feet,
-but it can cause hard to debug errors and premature unlocking.  Even if
-there's no real risk of it, the locking should still always be kept in
-balance.  Thus taking the lock now just before the check.
-
-Link: https://lkml.kernel.org/r/20210429165139.3082828-1-jouni.roivas@tuxera.com
-Fixes: 31651c607151f ("hfsplus: avoid deadlock on file truncation")
-Signed-off-by: Jouni Roivas <jouni.roivas@tuxera.com>
-Reviewed-by: Anton Altaparmakov <anton@tuxera.com>
-Cc: Anatoly Trosinenko <anatoly.trosinenko@gmail.com>
-Cc: Viacheslav Dubeyko <slava@dubeyko.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210420125324.1246826-1-linux@rasmusvillemoes.dk
+Fixes: 17652f4240f7a ("modules: add CONFIG_MODPROBE_PATH")
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jessica Yu <jeyu@kernel.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/extents.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/sysctl/kernel.rst |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/fs/hfsplus/extents.c~hfsplus-prevent-corruption-in-shrinking-truncate
-+++ a/fs/hfsplus/extents.c
-@@ -598,13 +598,15 @@ void hfsplus_file_truncate(struct inode
- 		res = __hfsplus_ext_cache_extent(&fd, inode, alloc_cnt);
- 		if (res)
- 			break;
--		hfs_brec_remove(&fd);
+--- a/Documentation/admin-guide/sysctl/kernel.rst~docs-admin-guide-update-description-for-kernelmodprobe-sysctl
++++ a/Documentation/admin-guide/sysctl/kernel.rst
+@@ -483,10 +483,11 @@ modprobe
+ ========
  
--		mutex_unlock(&fd.tree->tree_lock);
- 		start = hip->cached_start;
-+		if (blk_cnt <= start)
-+			hfs_brec_remove(&fd);
-+		mutex_unlock(&fd.tree->tree_lock);
- 		hfsplus_free_extents(sb, hip->cached_extents,
- 				     alloc_cnt - start, alloc_cnt - blk_cnt);
- 		hfsplus_dump_extent(hip->cached_extents);
-+		mutex_lock(&fd.tree->tree_lock);
- 		if (blk_cnt > start) {
- 			hip->extent_state |= HFSPLUS_EXT_DIRTY;
- 			break;
-@@ -612,7 +614,6 @@ void hfsplus_file_truncate(struct inode
- 		alloc_cnt = start;
- 		hip->cached_start = hip->cached_blocks = 0;
- 		hip->extent_state &= ~(HFSPLUS_EXT_DIRTY | HFSPLUS_EXT_NEW);
--		mutex_lock(&fd.tree->tree_lock);
- 	}
- 	hfs_find_exit(&fd);
+ The full path to the usermode helper for autoloading kernel modules,
+-by default "/sbin/modprobe".  This binary is executed when the kernel
+-requests a module.  For example, if userspace passes an unknown
+-filesystem type to mount(), then the kernel will automatically request
+-the corresponding filesystem module by executing this usermode helper.
++by default ``CONFIG_MODPROBE_PATH``, which in turn defaults to
++"/sbin/modprobe".  This binary is executed when the kernel requests a
++module.  For example, if userspace passes an unknown filesystem type
++to mount(), then the kernel will automatically request the
++corresponding filesystem module by executing this usermode helper.
+ This usermode helper should insert the needed module into the kernel.
  
+ This sysctl only affects module autoloading.  It has no effect on the
 _
 
-Patches currently in -mm which might be from jouni.roivas@tuxera.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
+mm-page_alloc-__alloc_pages_bulk-do-bounds-check-before-accessing-array.patch
 
