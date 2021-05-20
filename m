@@ -7,37 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 923A0C433B4
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:05:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F506C433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:05:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 750D5613C7
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:05:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F69A613B6
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:05:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231245AbhETWHS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 May 2021 18:07:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54518 "EHLO mail.kernel.org"
+        id S231250AbhETWHU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 May 2021 18:07:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54550 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230270AbhETWHS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 May 2021 18:07:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DCD26613C3;
-        Thu, 20 May 2021 22:05:55 +0000 (UTC)
+        id S230270AbhETWHU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 May 2021 18:07:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E0642613C5;
+        Thu, 20 May 2021 22:05:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621548356;
-        bh=Y6PHXvoBlG+I8HFiktr8v+H23YKc7wNRlytQvWdwlyI=;
+        s=korg; t=1621548358;
+        bh=gJruQu3m7HqwlhJaCxd114DrKc3iw40bkYcZGOSbplE=;
         h=Date:From:To:Subject:From;
-        b=m8LwHRkdqecKEMtglHUUb2xL/eh3Q3Vbu5P5zp6utXQaM5Gq/RaOOLbCQOy6ZFPdK
-         KTEiFQrRzh7Hw4644nQ0UurEvT4PreK6sF3KVtFeb1ZfHXIda+fxOCOno5Z6Noaxue
-         j5c++YLmpl82wY+CeI2hg2UME7zrfC0SOY8qXyxw=
-Date:   Thu, 20 May 2021 15:05:55 -0700
+        b=EM4+WEvb+W7x0V8uShNx8e/pAL94zSjl6Y84CC9UWaStdOCoeLqMde2JkYROzHZRZ
+         xahGE9Wp51tYAUuCayADmVXWcYXwx+JpgCIK6+P/tlYB9mrOea0DoDfaLPSdnUosx6
+         PNrhCLtQ7mKxsjrDipog1bQ0WX0SdlQiQHoB06lA=
+Date:   Thu, 20 May 2021 15:05:57 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, ddstreet@ieee.org, mgorman@techsingularity.net,
         mhocko@kernel.org, mm-commits@vger.kernel.org, shy828301@gmail.com,
         vbabka@suse.cz
 Subject:  +
- mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch added
- to -mm tree
-Message-ID: <20210520220555.QjZ5Sqvxv%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-page=5Falloc-make-should=5Ffail=5Falloc=5Fpage-a-static-?=
+ =?US-ASCII?Q?function-should=5Ffail=5Falloc=5Fpage-static.patch?= added to
+ -mm tree
+Message-ID: <20210520220557.eMKUZrq8B%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: include header for prototype of set_iounmap_nonlazy
+     Subject: mm/page_alloc: make should_fail_alloc_page a static function should_fail_alloc_page static
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch
+     mm-page_alloc-make-should_fail_alloc_page-a-static-function-should_fail_alloc_page-static.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-make-should_fail_alloc_page-a-static-function-should_fail_alloc_page-static.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-make-should_fail_alloc_page-a-static-function-should_fail_alloc_page-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,19 +70,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/vmalloc: include header for prototype of set_iounmap_nonlazy
+Subject: mm/page_alloc: make should_fail_alloc_page a static function should_fail_alloc_page static
 
-make W=1 generates the following warning for mm/vmalloc.c
+make W=1 generates the following warning for mm/page_alloc.c
 
-  mm/vmalloc.c:1599:6: warning: no previous prototype for `set_iounmap_nonlazy' [-Wmissing-prototypes]
-   void set_iounmap_nonlazy(void)
-        ^~~~~~~~~~~~~~~~~~~
+  mm/page_alloc.c:3651:15: warning: no previous prototype for `should_fail_alloc_page' [-Wmissing-prototypes]
+   noinline bool should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
+                 ^~~~~~~~~~~~~~~~~~~~~~
 
-This is an arch-generic function only used by x86.  On other arches, it's
-dead code.  Include the header with the definition and make it x86-64
-specific.
+This function is deliberately split out for BPF to allow errors to be
+injected.  The function is not used anywhere else so it is local to the
+file.  Make it static which should still allow error injection to be used
+similar to how block/blk-core.c:should_fail_bio() works.
 
-Link: https://lkml.kernel.org/r/20210520084809.8576-3-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20210520084809.8576-4-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -89,35 +93,20 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy
-+++ a/mm/vmalloc.c
-@@ -25,6 +25,7 @@
- #include <linux/notifier.h>
- #include <linux/rbtree.h>
- #include <linux/xarray.h>
-+#include <linux/io.h>
- #include <linux/rcupdate.h>
- #include <linux/pfn.h>
- #include <linux/kmemleak.h>
-@@ -1607,6 +1608,7 @@ static DEFINE_MUTEX(vmap_purge_lock);
- /* for per-CPU blocks */
- static void purge_fragmented_blocks_allcpus(void);
+--- a/mm/page_alloc.c~mm-page_alloc-make-should_fail_alloc_page-a-static-function-should_fail_alloc_page-static
++++ a/mm/page_alloc.c
+@@ -3692,7 +3692,7 @@ static inline bool __should_fail_alloc_p
  
-+#ifdef CONFIG_X86_64
- /*
-  * called before a call to iounmap() if the caller wants vm_area_struct's
-  * immediately freed.
-@@ -1615,6 +1617,7 @@ void set_iounmap_nonlazy(void)
+ #endif /* CONFIG_FAIL_PAGE_ALLOC */
+ 
+-noinline bool should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
++static noinline bool should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
  {
- 	atomic_long_set(&vmap_lazy_nr, lazy_max_pages()+1);
+ 	return __should_fail_alloc_page(gfp_mask, order);
  }
-+#endif /* CONFIG_X86_64 */
- 
- /*
-  * Purges all lazily-freed vmap areas.
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
