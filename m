@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5547C433B4
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 20:46:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8159AC433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 21:37:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9863B613BE
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 20:46:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 536C3613AA
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 21:37:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229554AbhETUrV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 May 2021 16:47:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35934 "EHLO mail.kernel.org"
+        id S230259AbhETViz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 May 2021 17:38:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44674 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229565AbhETUrT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 May 2021 16:47:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D332E613E4;
-        Thu, 20 May 2021 20:45:57 +0000 (UTC)
+        id S230255AbhETViy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 May 2021 17:38:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C5D4E6135A;
+        Thu, 20 May 2021 21:37:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621543558;
-        bh=9XPHoFfTOjeSQTTermJIThVJyeQtfjTaOEUE9ubKdhI=;
+        s=korg; t=1621546652;
+        bh=2bcjjftStXArIMpF1JhVHGzUc/XE8b2msDYYghIP/Lk=;
         h=Date:From:To:Subject:From;
-        b=aq+qCb1JjlkMLLp21VpbuKvl9GVVfhR9BxD13Jod3waoKlqM0yF4EJqrqohWh7iD2
-         I3zqUM+76OzsuvHF1TvZZzqZNWM0IBAZhnMw7x6q/scujuDTx342KjlmdqRBGggbuh
-         bro2+/WmZSL//eBrZ5CEdoc3dasxfwaUh6j1ghCE=
-Date:   Thu, 20 May 2021 13:45:57 -0700
+        b=tMj9Yu3XuzZihT7p7qQu4d5amDhvYs+91EMACA3XqNSsPtfFtTHUB7gBJkzDAHTxf
+         hrtDLA0qOpN4UUtf7fD4Zz2h774gv/S8WKFXYTuLIufL2RO72vk8z75zs5aSEsyjuH
+         eb+uZt2IRs4Yewi91cK78b7gE303pB77sr4BaX7k=
+Date:   Thu, 20 May 2021 14:37:32 -0700
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org,
-        willy@infradead.org
-Subject:  +
- mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch added to -mm
- tree
-Message-ID: <20210520204557.5ip1URrnk%akpm@linux-foundation.org>
+To:     andriy.shevchenko@linux.intel.com, glaubitz@physik.fu-berlin.de,
+        lkp@intel.com, mm-commits@vger.kernel.org
+Subject:  + kernelh-split-out-panic-and-oops-helpers-fix-2.patch
+ added to -mm tree
+Message-ID: <20210520213732.-EJTDki5k%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: remove unused global variable nr_swapper_spaces
+     Subject: kernel.h: split out panic and oops helpers (ia64 fix)
 has been added to the -mm tree.  Its filename is
-     mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch
+     kernelh-split-out-panic-and-oops-helpers-fix-2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kernelh-split-out-panic-and-oops-helpers-fix-2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kernelh-split-out-panic-and-oops-helpers-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,64 +64,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: remove unused global variable nr_swapper_spaces
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: kernel.h: split out panic and oops helpers (ia64 fix)
 
-Since commit b6038942480e ("mm: memcg: add swapcache stat for memcg v2"),
-the last user of nr_swapper_spaces is gone.  So we remove this unused one.
+Follow up fix for the "kernel.h: split out panic and oops helpers" patch.
 
-Link: https://lkml.kernel.org/r/20210520134022.1370406-5-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20210520130557.55277-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/ia64/include/asm/pal.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/swap_state.c~mm-swap-remove-unused-global-variable-nr_swapper_spaces
-+++ a/mm/swap_state.c
-@@ -37,7 +37,6 @@ static const struct address_space_operat
- };
+--- a/arch/ia64/include/asm/pal.h~kernelh-split-out-panic-and-oops-helpers-fix-2
++++ a/arch/ia64/include/asm/pal.h
+@@ -99,6 +99,7 @@
  
- struct address_space *swapper_spaces[MAX_SWAPFILES] __read_mostly;
--static unsigned int nr_swapper_spaces[MAX_SWAPFILES] __read_mostly;
- static bool enable_vma_readahead __read_mostly = true;
+ #include <linux/types.h>
+ #include <asm/fpu.h>
++#include <asm/intrinsics.h>
  
- #define SWAP_RA_WIN_SHIFT	(PAGE_SHIFT / 2)
-@@ -685,7 +684,6 @@ int init_swap_address_space(unsigned int
- 		/* swap cache doesn't use writeback related tags */
- 		mapping_set_no_writeback_tags(space);
- 	}
--	nr_swapper_spaces[type] = nr;
- 	swapper_spaces[type] = spaces;
- 
- 	return 0;
-@@ -694,7 +692,6 @@ int init_swap_address_space(unsigned int
- void exit_swap_address_space(unsigned int type)
- {
- 	kvfree(swapper_spaces[type]);
--	nr_swapper_spaces[type] = 0;
- 	swapper_spaces[type] = NULL;
- }
- 
+ /*
+  * Data types needed to pass information into PAL procedures and
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
-swap-fix-do_swap_page-race-with-swapoff.patch
-mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
-mm-shmem-fix-shmem_swapin-race-with-swapoff.patch
-mm-swapfile-move-get_swap_page_of_type-under-config_hibernation.patch
-mm-swap-remove-unused-local-variable-nr_shadows.patch
-mm-swap_slotsc-delete-meaningless-forward-declarations.patch
-mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch
-mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
-mm-huge_memoryc-use-page-deferred_list.patch
-mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled.patch
-mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4.patch
-mm-huge_memoryc-remove-unnecessary-tlb_remove_page_size-for-huge-zero-pmd.patch
-mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
+kernelh-split-out-panic-and-oops-helpers.patch
+kernelh-split-out-panic-and-oops-helpers-fix-2.patch
+lib-string_helpers-switch-to-use-bit-macro.patch
+lib-string_helpers-move-escape_np-check-inside-else-branch-in-a-loop.patch
+lib-string_helpers-drop-indentation-level-in-string_escape_mem.patch
+lib-string_helpers-introduce-escape_na-for-escaping-non-ascii.patch
+lib-string_helpers-introduce-escape_nap-to-escape-non-ascii-and-non-printable.patch
+lib-string_helpers-allow-to-append-additional-characters-to-be-escaped.patch
+lib-test-string_helpers-print-flags-in-hexadecimal-format.patch
+lib-test-string_helpers-get-rid-of-trailing-comma-in-terminators.patch
+lib-test-string_helpers-add-test-cases-for-new-features.patch
+maintainers-add-myself-as-designated-reviewer-for-generic-string-library.patch
+seq_file-introduce-seq_escape_mem.patch
+seq_file-add-seq_escape_str-as-replica-of-string_escape_str.patch
+seq_file-convert-seq_escape-to-use-seq_escape_str.patch
+nfsd-avoid-non-flexible-api-in-seq_quote_mem.patch
+seq_file-drop-unused-_escape_mem_ascii.patch
 
