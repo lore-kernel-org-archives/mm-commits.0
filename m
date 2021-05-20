@@ -7,37 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19320C433ED
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03B1EC433B4
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDDEF613C4
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DEB38613C3
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230270AbhETWHY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 May 2021 18:07:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54616 "EHLO mail.kernel.org"
+        id S231255AbhETWH0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 May 2021 18:07:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54654 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231251AbhETWHY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 May 2021 18:07:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D5F40613C3;
-        Thu, 20 May 2021 22:06:01 +0000 (UTC)
+        id S231251AbhETWH0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 May 2021 18:07:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B72DF613C7;
+        Thu, 20 May 2021 22:06:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621548362;
-        bh=eHc310hgmsVLWCWFcGDY1c+l9qGiqDIxXxjGsQrYgrI=;
+        s=korg; t=1621548364;
+        bh=8UGjd4pAjpxauhEpjzrqdcM4GV8X7+DZ5VZdH8Rxx7c=;
         h=Date:From:To:Subject:From;
-        b=TQK0e3YQdqipb676uERBUhWverAuj+65a8uX8JQSmSlkQ99/fJgimB38GGDuGigdG
-         iT7da8CudfuoIj5kju+ItPv6Dla4kpJRrpuBkKtnIHMOPo4rCAfplsN21LRSr+YEFS
-         7dgCZ9CoqUooks6Esrrbwa38w6GACJiyDqej/nRo=
-Date:   Thu, 20 May 2021 15:06:01 -0700
+        b=nA0s6aA3opjuGCv4S0lPnxEL6pRn34OX+6bBvqiR0iPqAXFMILK6zJWoQN8o3Ga1R
+         7uABKEb1TslChZOfImdMjSFTCaO0oknTpcfCXw/65OYEe0jdggZgtZI+SaAM30tTxw
+         tTvASevX1oZCTIujxldmEazmbCjUNPOHgwnp2cB0=
+Date:   Thu, 20 May 2021 15:06:03 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, ddstreet@ieee.org, mgorman@techsingularity.net,
         mhocko@kernel.org, mm-commits@vger.kernel.org, shy828301@gmail.com,
         vbabka@suse.cz
 Subject:  +
- mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust.patch added
- to -mm tree
-Message-ID: <20210520220601.xfTLCoSxi%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-memcontrolc-fix-kerneldoc-comment-for-mem=5Fcgroup=5Fca?=
+ =?US-ASCII?Q?lculate=5Fprotection.patch?= added to -mm tree
+Message-ID: <20210520220603.K9TM3H6iF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/early_ioremap: add prototype for early_memremap_pgprot_adjust
+     Subject: mm/memcontrol.c: fix kerneldoc comment for mem_cgroup_calculate_protection
 has been added to the -mm tree.  Its filename is
-     mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust.patch
+     mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,19 +69,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/early_ioremap: add prototype for early_memremap_pgprot_adjust
+Subject: mm/memcontrol.c: fix kerneldoc comment for mem_cgroup_calculate_protection
 
-make W=1 generates the following warning for mm/early_ioremap.c
+make W=1 generates the following warning for mem_cgroup_calculate_protection
 
-mm/early_ioremap.c:34:24: warning: no previous prototype for `early_memremap_pgprot_adjust' [-Wmissing-prototypes]
- pgprot_t __init __weak early_memremap_pgprot_adjust(resource_size_t phys_addr,
-                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  mm/memcontrol.c:6468: warning: expecting prototype for mem_cgroup_protected(). Prototype was for mem_cgroup_calculate_protection() instead
 
-The weak functions that can be overridden by architectures are declared in
-include/asm-generic/early_ioremap.h so add the prototype there.  The
-asm/fixmap.h header is need for pgprot_t.
+Commit 45c7f7e1ef17 ("mm, memcg: decouple e{low,min} state mutations from
+protection checks") changed the function definition but not the associated
+kerneldoc comment.
 
-Link: https://lkml.kernel.org/r/20210520084809.8576-6-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20210520084809.8576-7-mgorman@techsingularity.net
+Fixes: 45c7f7e1ef17 ("mm, memcg: decouple e{low,min} state mutations from protection checks")
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -89,34 +90,20 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/early_ioremap.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/asm-generic/early_ioremap.h~mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust
-+++ a/include/asm-generic/early_ioremap.h
-@@ -3,6 +3,7 @@
- #define _ASM_EARLY_IOREMAP_H_
+--- a/mm/memcontrol.c~mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection
++++ a/mm/memcontrol.c
+@@ -6625,7 +6625,7 @@ static unsigned long effective_protectio
+ }
  
- #include <linux/types.h>
-+#include <asm/fixmap.h>
- 
- /*
-  * early_ioremap() and early_iounmap() are for temporary early boot-time
-@@ -20,6 +21,14 @@ extern void early_iounmap(void __iomem *
- extern void early_memunmap(void *addr, unsigned long size);
- 
- /*
-+ * Weak function called by early_memremap and early_memremap_ro. It does
-+ * nothing, but architectures may provide their own version to handle
-+ * memory encryption.
-+ */
-+extern pgprot_t early_memremap_pgprot_adjust(resource_size_t phys_addr,
-+					    unsigned long size, pgprot_t prot);
-+
-+/*
-  * Weak function called by early_ioremap_reset(). It does nothing, but
-  * architectures may provide their own version to do any needed cleanups.
-  */
+ /**
+- * mem_cgroup_protected - check if memory consumption is in the normal range
++ * mem_cgroup_calculate_protection - check if memory consumption is in the normal range
+  * @root: the top ancestor of the sub-tree being checked
+  * @memcg: the memory cgroup to check
+  *
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
