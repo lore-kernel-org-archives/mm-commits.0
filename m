@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D04BC433ED
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 20:45:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5547C433B4
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 20:46:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 62B8A613E4
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 20:45:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9863B613BE
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 20:46:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229551AbhETUrS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 May 2021 16:47:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35890 "EHLO mail.kernel.org"
+        id S229554AbhETUrV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 May 2021 16:47:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35934 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229455AbhETUrQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 May 2021 16:47:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CAFAA613E4;
-        Thu, 20 May 2021 20:45:53 +0000 (UTC)
+        id S229565AbhETUrT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 May 2021 16:47:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D332E613E4;
+        Thu, 20 May 2021 20:45:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621543554;
-        bh=F+XKSHeUWl1tj1TeKuk8zNa9S2NlhdVBaP7+E4g7u9k=;
+        s=korg; t=1621543558;
+        bh=9XPHoFfTOjeSQTTermJIThVJyeQtfjTaOEUE9ubKdhI=;
         h=Date:From:To:Subject:From;
-        b=damYbWNM9foubADIDW6ZoWMA+4INo4patxdYOwSmbc0JIbp1fSGDvQkvEQnelAYiC
-         6lw1pPKXrP7uzi9ybhSvjY1F8EtlnVVO5dOOyq7XyZcbZfNv3HVbL+ad7Tqik+2Ar5
-         yeHbRE/j4Uj3qkpeWUEjhObq4NlI8l7ILwZC/qek=
-Date:   Thu, 20 May 2021 13:45:53 -0700
+        b=aq+qCb1JjlkMLLp21VpbuKvl9GVVfhR9BxD13Jod3waoKlqM0yF4EJqrqohWh7iD2
+         I3zqUM+76OzsuvHF1TvZZzqZNWM0IBAZhnMw7x6q/scujuDTx342KjlmdqRBGggbuh
+         bro2+/WmZSL//eBrZ5CEdoc3dasxfwaUh6j1ghCE=
+Date:   Thu, 20 May 2021 13:45:57 -0700
 From:   akpm@linux-foundation.org
 To:     hughd@google.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org,
         willy@infradead.org
-Subject:  + mm-swap-remove-unused-local-variable-nr_shadows.patch
- added to -mm tree
-Message-ID: <20210520204553.-caeVBome%akpm@linux-foundation.org>
+Subject:  +
+ mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch added to -mm
+ tree
+Message-ID: <20210520204557.5ip1URrnk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: remove unused local variable nr_shadows
+     Subject: mm/swap: remove unused global variable nr_swapper_spaces
 has been added to the -mm tree.  Its filename is
-     mm-swap-remove-unused-local-variable-nr_shadows.patch
+     mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-swap-remove-unused-local-variable-nr_shadows.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-remove-unused-local-variable-nr_shadows.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,55 +66,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: remove unused local variable nr_shadows
+Subject: mm/swap: remove unused global variable nr_swapper_spaces
 
-Since commit 55c653b71e8c ("mm: stop accounting shadow entries"),
-nr_shadows is not used anymore.
+Since commit b6038942480e ("mm: memcg: add swapcache stat for memcg v2"),
+the last user of nr_swapper_spaces is gone.  So we remove this unused one.
 
-Link: https://lkml.kernel.org/r/20210520134022.1370406-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210520134022.1370406-5-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/swap_state.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-remove-unused-local-variable-nr_shadows
+--- a/mm/swap_state.c~mm-swap-remove-unused-global-variable-nr_swapper_spaces
 +++ a/mm/swap_state.c
-@@ -114,8 +114,6 @@ int add_to_swap_cache(struct page *page,
- 	SetPageSwapCache(page);
+@@ -37,7 +37,6 @@ static const struct address_space_operat
+ };
  
- 	do {
--		unsigned long nr_shadows = 0;
--
- 		xas_lock_irq(&xas);
- 		xas_create_range(&xas);
- 		if (xas_error(&xas))
-@@ -124,7 +122,6 @@ int add_to_swap_cache(struct page *page,
- 			VM_BUG_ON_PAGE(xas.xa_index != idx + i, page);
- 			old = xas_load(&xas);
- 			if (xa_is_value(old)) {
--				nr_shadows++;
- 				if (shadowp)
- 					*shadowp = old;
- 			}
-@@ -260,7 +257,6 @@ void clear_shadow_from_swap_cache(int ty
- 	void *old;
+ struct address_space *swapper_spaces[MAX_SWAPFILES] __read_mostly;
+-static unsigned int nr_swapper_spaces[MAX_SWAPFILES] __read_mostly;
+ static bool enable_vma_readahead __read_mostly = true;
  
- 	for (;;) {
--		unsigned long nr_shadows = 0;
- 		swp_entry_t entry = swp_entry(type, curr);
- 		struct address_space *address_space = swap_address_space(entry);
- 		XA_STATE(xas, &address_space->i_pages, curr);
-@@ -270,7 +266,6 @@ void clear_shadow_from_swap_cache(int ty
- 			if (!xa_is_value(old))
- 				continue;
- 			xas_store(&xas, NULL);
--			nr_shadows++;
- 		}
- 		xa_unlock_irq(&address_space->i_pages);
+ #define SWAP_RA_WIN_SHIFT	(PAGE_SHIFT / 2)
+@@ -685,7 +684,6 @@ int init_swap_address_space(unsigned int
+ 		/* swap cache doesn't use writeback related tags */
+ 		mapping_set_no_writeback_tags(space);
+ 	}
+-	nr_swapper_spaces[type] = nr;
+ 	swapper_spaces[type] = spaces;
+ 
+ 	return 0;
+@@ -694,7 +692,6 @@ int init_swap_address_space(unsigned int
+ void exit_swap_address_space(unsigned int type)
+ {
+ 	kvfree(swapper_spaces[type]);
+-	nr_swapper_spaces[type] = 0;
+ 	swapper_spaces[type] = NULL;
+ }
  
 _
 
