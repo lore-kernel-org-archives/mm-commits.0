@@ -7,37 +7,43 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00296C433ED
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 21:38:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D17BC433B4
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 21:47:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C7C80613AA
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 21:38:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 436CA60FEE
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 21:47:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230262AbhETVkJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 May 2021 17:40:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44790 "EHLO mail.kernel.org"
+        id S230463AbhETVtC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 May 2021 17:49:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47090 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230255AbhETVkI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 May 2021 17:40:08 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7C9AA6135C;
-        Thu, 20 May 2021 21:38:46 +0000 (UTC)
+        id S230481AbhETVtA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 May 2021 17:49:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2466A60FF0;
+        Thu, 20 May 2021 21:47:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621546726;
-        bh=A2MnvdTHkOBD0BeNNL9wgtXpnTzXy+h9X4sGZWwtkAE=;
+        s=korg; t=1621547258;
+        bh=tNBldnpYSjPyfgfSwCXMwdVAvK2skCy9b8CXlHK8xGk=;
         h=Date:From:To:Subject:From;
-        b=fsx7sYUwZaUDq3vGNQjhs7Q0PyAMfJGMOCz2vZbmTDuNFKsND7CFr6HcfhVovLgLT
-         pesNO+BH000htiKTDgtDPLx3FyoXmcHqVWRTHVPFSudfHH1XljeKyTRc05/T2dFZKL
-         S4jwBkLy0V3HDYZw0u9yv8knSiH/JJZS1oFywFI8=
-Date:   Thu, 20 May 2021 14:38:46 -0700
+        b=jAL1JmrGeHWFVSnJ53THqF294nxnXgfuxFS8u33eU8a9B0r6pqALA15IDzErKjy0Z
+         Wa6lgdsdcxXyHou5sIgEKU8Eo22ICd3nUHTmedsqJyycI7hnT4Zc0fXvJVmjVkGgH8
+         rlTR51Eev4tVHF0S/radn7rkELsgMivQLJPCGSCA=
+Date:   Thu, 20 May 2021 14:47:37 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, arnd@arndb.de, bcrl@kvack.org,
-        David.Laight@ACULAB.COM, deepa.kernel@gmail.com, e@80x24.org,
-        ebiederm@xmission.com, mm-commits@vger.kernel.org, oleg@redhat.com,
-        peterz@infradead.org, viro@zeniv.linux.org.uk
-Subject:  [withdrawn] aio-simplify-read_events.patch removed from
- -mm tree
-Message-ID: <20210520213846.J3vz4eK7k%akpm@linux-foundation.org>
+To:     bp@suse.de, davidchao@google.com, jenhaochen@google.com,
+        jkosina@suse.cz, josh@joshtriplett.org, liumartin@google.com,
+        mhocko@suse.cz, mingo@redhat.com, mm-commits@vger.kernel.org,
+        nathan@kernel.org, ndesaulniers@google.com, oleg@redhat.com,
+        paulmck@linux.vnet.ibm.com, peterz@infradead.org, pmladek@suse.com,
+        rostedt@goodmis.org, stable@vger.kernel.org, tglx@linutronix.de,
+        tj@kernel.org, vbabka@suse.cz
+Subject:  +
+ =?US-ASCII?Q?kthread-fix-kthread=5Fmod=5Fdelayed=5Fwork-vs-kthread=5Fcan?=
+ =?US-ASCII?Q?cel=5Fdelayed=5Fwork=5Fsync-race.patch?= added to -mm tree
+Message-ID: <20210520214737.MrGGKbPrJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,85 +51,154 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio: simplify read_events()
-has been removed from the -mm tree.  Its filename was
-     aio-simplify-read_events.patch
+     Subject: kthread: fix kthread_mod_delayed_work vs kthread_cancel_delayed_work_sync race
+has been added to the -mm tree.  Its filename is
+     kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: aio: simplify read_events()
+From: Martin Liu <liumartin@google.com>
+Subject: kthread: fix kthread_mod_delayed_work vs kthread_cancel_delayed_work_sync race
 
-Change wait_event_hrtimeout() to not call __wait_event_hrtimeout() if
-timeout == 0, this matches other _timeout() helpers in wait.h.
+We encountered a system hang issue while doing the tests.  The callstack
+is as following
 
-This allows to simplify its only user, read_events(), it no longer needs
-to optimize the "until == 0" case by hand.
+	schedule+0x80/0x100
+	schedule_timeout+0x48/0x138
+	wait_for_common+0xa4/0x134
+	wait_for_completion+0x1c/0x2c
+	kthread_flush_work+0x114/0x1cc
+	kthread_cancel_work_sync.llvm.16514401384283632983+0xe8/0x144
+	kthread_cancel_delayed_work_sync+0x18/0x2c
+	xxxx_pm_notify+0xb0/0xd8
+	blocking_notifier_call_chain_robust+0x80/0x194
+	pm_notifier_call_chain_robust+0x28/0x4c
+	suspend_prepare+0x40/0x260
+	enter_state+0x80/0x3f4
+	pm_suspend+0x60/0xdc
+	state_store+0x108/0x144
+	kobj_attr_store+0x38/0x88
+	sysfs_kf_write+0x64/0xc0
+	kernfs_fop_write_iter+0x108/0x1d0
+	vfs_write+0x2f4/0x368
+	ksys_write+0x7c/0xec
 
-Note: this patch doesn't use ___wait_cond_timeout because _hrtimeout()
-also differs in that it returns 0 if succeeds and -ETIME on timeout. 
-Perhaps we should change this to make it fully compatible with other
-helpers.
+When we started investigating, we found race between
+kthread_mod_delayed_work vs kthread_cancel_delayed_work_sync.  The race's
+result could be simply reproduced as a kthread_mod_delayed_work with a
+following kthread_flush_work call.
 
-Link: http://lkml.kernel.org/r/20190607175413.GA29187@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Eric Wong <e@80x24.org>
+Thing is we release kthread_mod_delayed_work kspin_lock in
+__kthread_cancel_work so it opens a race window for
+kthread_cancel_delayed_work_sync to change the canceling count used to
+prevent dwork from being requeued before calling kthread_flush_work. 
+However, we don't check the canceling count after returning from
+__kthread_cancel_work and then insert the dwork to the worker.  It results
+the following kthread_flush_work inserts flush work to dwork's tail which
+is at worker's dealyed_work_list.  Therefore, flush work will never get
+moved to the worker's work_list to be executed.  Finally,
+kthread_cancel_delayed_work_sync will NOT be able to get completed and
+wait forever.  The code sequence diagram is as following
+
+Thread A                Thread B
+kthread_mod_delayed_work
+  spin_lock
+   __kthread_cancel_work
+    canceling = 1
+    spin_unlock
+                        kthread_cancel_delayed_work_sync
+                          spin_lock
+                            kthread_cancel_work
+                          canceling = 2
+                          spin_unlock
+    del_timer_sync
+    spin_lock
+    canceling = 1 // canceling count gets update in ThreadB before
+  queue_delayed_work // dwork is put into the woker's dealyed_work_list
+                        without checking the canceling count
+ spin_unlock
+                          kthread_flush_work
+                            spin_lock
+                            Insert flush work // at the tail of the
+			                         dwork which is at
+						 the worker's
+						 dealyed_work_list
+                            spin_unlock
+                            wait_for_completion // Thread B stuck here as
+			                           flush work will never
+						   get executed
+
+The canceling count could change in __kthread_cancel_work as the spinlock
+get released and regained in between, let's check the count again before
+we queue the delayed work to avoid the race.
+
+Link: https://lkml.kernel.org/r/20210513065458.941403-1-liumartin@google.com
+Fixes: 37be45d49dec2 ("kthread: allow to cancel kthread work")
+Signed-off-by: Martin Liu <liumartin@google.com>
+Tested-by: David Chao <davidchao@google.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: <jenhaochen@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c             |    9 +++------
- include/linux/wait.h |    4 ++--
- 2 files changed, 5 insertions(+), 8 deletions(-)
+ kernel/kthread.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/fs/aio.c~aio-simplify-read_events
-+++ a/fs/aio.c
-@@ -1286,12 +1286,9 @@ static long read_events(struct kioctx *c
- 	 * the ringbuffer empty. So in practice we should be ok, but it's
- 	 * something to be aware of when touching this code.
- 	 */
--	if (until == 0)
--		aio_read_events(ctx, min_nr, nr, event, &ret);
--	else
--		wait_event_interruptible_hrtimeout(ctx->wait,
--				aio_read_events(ctx, min_nr, nr, event, &ret),
--				until);
-+	wait_event_interruptible_hrtimeout(ctx->wait,
-+			aio_read_events(ctx, min_nr, nr, event, &ret),
-+			until);
- 	return ret;
- }
+--- a/kernel/kthread.c~kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race
++++ a/kernel/kthread.c
+@@ -1181,6 +1181,19 @@ bool kthread_mod_delayed_work(struct kth
+ 		goto out;
  
---- a/include/linux/wait.h~aio-simplify-read_events
-+++ a/include/linux/wait.h
-@@ -555,7 +555,7 @@ do {										\
- ({										\
- 	int __ret = 0;								\
- 	might_sleep();								\
--	if (!(condition))							\
-+	if (!(condition) && (timeout))						\
- 		__ret = __wait_event_hrtimeout(wq_head, condition, timeout,	\
- 					       TASK_UNINTERRUPTIBLE);		\
- 	__ret;									\
-@@ -581,7 +581,7 @@ do {										\
- ({										\
- 	long __ret = 0;								\
- 	might_sleep();								\
--	if (!(condition))							\
-+	if (!(condition) && (timeout))						\
- 		__ret = __wait_event_hrtimeout(wq, condition, timeout,		\
- 					       TASK_INTERRUPTIBLE);		\
- 	__ret;									\
+ 	ret = __kthread_cancel_work(work, true, &flags);
++
++	/*
++	 * Canceling could run in parallel from kthread_cancel_delayed_work_sync
++	 * and change work's canceling count as the spinlock is released and regain
++	 * in __kthread_cancel_work so we need to check the count again. Otherwise,
++	 * we might incorrectly queue the dwork and further cause
++	 * cancel_delayed_work_sync thread waiting for flush dwork endlessly.
++	 */
++	if (work->canceling) {
++		ret = false;
++		goto out;
++	}
++
+ fast_queue:
+ 	__kthread_queue_delayed_work(worker, dwork, delay);
+ out:
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from liumartin@google.com are
 
+kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race.patch
 
