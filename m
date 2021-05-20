@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B3FDC433ED
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:05:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 923A0C433B4
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:05:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6360F613C5
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:05:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 750D5613C7
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:05:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231243AbhETWHQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 May 2021 18:07:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54474 "EHLO mail.kernel.org"
+        id S231245AbhETWHS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 May 2021 18:07:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54518 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230270AbhETWHQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 May 2021 18:07:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0AEC0613BB;
-        Thu, 20 May 2021 22:05:54 +0000 (UTC)
+        id S230270AbhETWHS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 May 2021 18:07:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DCD26613C3;
+        Thu, 20 May 2021 22:05:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621548354;
-        bh=BjZZB/yWX/UWkW9/ifsVLf2CakPvlWNlIAcbtKNfnb8=;
+        s=korg; t=1621548356;
+        bh=Y6PHXvoBlG+I8HFiktr8v+H23YKc7wNRlytQvWdwlyI=;
         h=Date:From:To:Subject:From;
-        b=olgyDtlkLV+58ql478TiOlySUY0J7v4YXYRsHApfS3IPdLADEMMsGk8vBWJ9JPmxE
-         +HBhftBYadHkHcA43mRn/3GSpTZLL0WjxAtoNlm/F2+QQ1zhc5g0l7txuyX59qaRwX
-         3aMAqa6FaowVx128w+igaKFDmifhF+R86px/1pGY=
-Date:   Thu, 20 May 2021 15:05:53 -0700
+        b=m8LwHRkdqecKEMtglHUUb2xL/eh3Q3Vbu5P5zp6utXQaM5Gq/RaOOLbCQOy6ZFPdK
+         KTEiFQrRzh7Hw4644nQ0UurEvT4PreK6sF3KVtFeb1ZfHXIda+fxOCOno5Z6Noaxue
+         j5c++YLmpl82wY+CeI2hg2UME7zrfC0SOY8qXyxw=
+Date:   Thu, 20 May 2021 15:05:55 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, ddstreet@ieee.org, mgorman@techsingularity.net,
         mhocko@kernel.org, mm-commits@vger.kernel.org, shy828301@gmail.com,
         vbabka@suse.cz
 Subject:  +
- mm-vmscan-remove-kerneldoc-like-comment-from-isolate_lru_pages.patch added
+ mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch added
  to -mm tree
-Message-ID: <20210520220553.HlzrZR6fV%akpm@linux-foundation.org>
+Message-ID: <20210520220555.QjZ5Sqvxv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: remove kerneldoc-like comment from isolate_lru_pages
+     Subject: mm/vmalloc: include header for prototype of set_iounmap_nonlazy
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-remove-kerneldoc-like-comment-from-isolate_lru_pages.patch
+     mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-remove-kerneldoc-like-comment-from-isolate_lru_pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-remove-kerneldoc-like-comment-from-isolate_lru_pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,52 +67,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/vmscan: remove kerneldoc-like comment from isolate_lru_pages
+Subject: mm/vmalloc: include header for prototype of set_iounmap_nonlazy
 
-Patch series "Clean W=1 build warnings for mm/".
+make W=1 generates the following warning for mm/vmalloc.c
 
-This is a janitorial only.  During development of a tool to catch build
-warnings early to avoid tripping the Intel lkp-robot, I noticed that mm/
-is not clean for W=1.  This is generally harmless but there is no harm in
-cleaning it up.  It disrupts git blame a little but on relatively obvious
-lines that are unlikely to be git blame targets.
+  mm/vmalloc.c:1599:6: warning: no previous prototype for `set_iounmap_nonlazy' [-Wmissing-prototypes]
+   void set_iounmap_nonlazy(void)
+        ^~~~~~~~~~~~~~~~~~~
 
+This is an arch-generic function only used by x86.  On other arches, it's
+dead code.  Include the header with the definition and make it x86-64
+specific.
 
-This patch (of 14):
-
-make W=1 generates the following warning for vmscan.c
-
-    mm/vmscan.c:1814: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
-
-It is not a kerneldoc comment and isolate_lru_pages() is a static
-function.  While the detailed comment is nice, it does not need to be
-exposed via kernel-doc.
-
-Link: https://lkml.kernel.org/r/20210520084809.8576-1-mgorman@techsingularity.net
-Link: https://lkml.kernel.org/r/20210520084809.8576-2-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20210520084809.8576-3-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-remove-kerneldoc-like-comment-from-isolate_lru_pages
-+++ a/mm/vmscan.c
-@@ -1810,7 +1810,7 @@ static __always_inline void update_lru_s
+--- a/mm/vmalloc.c~mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy
++++ a/mm/vmalloc.c
+@@ -25,6 +25,7 @@
+ #include <linux/notifier.h>
+ #include <linux/rbtree.h>
+ #include <linux/xarray.h>
++#include <linux/io.h>
+ #include <linux/rcupdate.h>
+ #include <linux/pfn.h>
+ #include <linux/kmemleak.h>
+@@ -1607,6 +1608,7 @@ static DEFINE_MUTEX(vmap_purge_lock);
+ /* for per-CPU blocks */
+ static void purge_fragmented_blocks_allcpus(void);
  
++#ifdef CONFIG_X86_64
+ /*
+  * called before a call to iounmap() if the caller wants vm_area_struct's
+  * immediately freed.
+@@ -1615,6 +1617,7 @@ void set_iounmap_nonlazy(void)
+ {
+ 	atomic_long_set(&vmap_lazy_nr, lazy_max_pages()+1);
  }
++#endif /* CONFIG_X86_64 */
  
--/**
-+/*
-  * Isolating page from the lruvec to fill in @dst list by nr_to_scan times.
-  *
-  * lruvec->lru_lock is heavily contended.  Some of the functions that
+ /*
+  * Purges all lazily-freed vmap areas.
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
