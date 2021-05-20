@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE987C433B4
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19320C433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 83AF4613C7
+	by mail.kernel.org (Postfix) with ESMTP id EDDEF613C4
 	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231253AbhETWHY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230270AbhETWHY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 20 May 2021 18:07:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54590 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54616 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230270AbhETWHV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 May 2021 18:07:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D2C2C613BB;
-        Thu, 20 May 2021 22:05:59 +0000 (UTC)
+        id S231251AbhETWHY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 May 2021 18:07:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D5F40613C3;
+        Thu, 20 May 2021 22:06:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621548360;
-        bh=UQVutUj66ZW0RW9X3F39uMUqjteVAfHBLYZ6M5Mkt4M=;
+        s=korg; t=1621548362;
+        bh=eHc310hgmsVLWCWFcGDY1c+l9qGiqDIxXxjGsQrYgrI=;
         h=Date:From:To:Subject:From;
-        b=ijtQyFH2q7xh9za4X3VQZghJzVlmnCaW+WMzwuR2iB+URp1wwbOL6BE367mM1BqcN
-         LmwYq7aTR5dyWmdACt2s9aSz+da5yoQUHV6i+l5Fi8JOiVeIvRR1TAgdaw8D7NqWW5
-         WrMRR2mFVcCjC+aQ1jjrZA8F2529HiRTAtD2uAb8=
-Date:   Thu, 20 May 2021 15:05:59 -0700
+        b=TQK0e3YQdqipb676uERBUhWverAuj+65a8uX8JQSmSlkQ99/fJgimB38GGDuGigdG
+         iT7da8CudfuoIj5kju+ItPv6Dla4kpJRrpuBkKtnIHMOPo4rCAfplsN21LRSr+YEFS
+         7dgCZ9CoqUooks6Esrrbwa38w6GACJiyDqej/nRo=
+Date:   Thu, 20 May 2021 15:06:01 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, ddstreet@ieee.org, mgorman@techsingularity.net,
         mhocko@kernel.org, mm-commits@vger.kernel.org, shy828301@gmail.com,
         vbabka@suse.cz
 Subject:  +
- mm-mapping_dirty_helpers-remove-double-note-in-kerneldoc.patch added to -mm
- tree
-Message-ID: <20210520220559.KYtkGY6iu%akpm@linux-foundation.org>
+ mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust.patch added
+ to -mm tree
+Message-ID: <20210520220601.xfTLCoSxi%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mapping_dirty_helpers: remove double Note in kerneldoc
+     Subject: mm/early_ioremap: add prototype for early_memremap_pgprot_adjust
 has been added to the -mm tree.  Its filename is
-     mm-mapping_dirty_helpers-remove-double-note-in-kerneldoc.patch
+     mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mapping_dirty_helpers-remove-double-note-in-kerneldoc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mapping_dirty_helpers-remove-double-note-in-kerneldoc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,17 +67,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/mapping_dirty_helpers: remove double Note in kerneldoc
+Subject: mm/early_ioremap: add prototype for early_memremap_pgprot_adjust
 
-make W=1 generates the following warning for mm/mapping_dirty_helpers.c
+make W=1 generates the following warning for mm/early_ioremap.c
 
-mm/mapping_dirty_helpers.c:325: warning: duplicate section name 'Note'
+mm/early_ioremap.c:34:24: warning: no previous prototype for `early_memremap_pgprot_adjust' [-Wmissing-prototypes]
+ pgprot_t __init __weak early_memremap_pgprot_adjust(resource_size_t phys_addr,
+                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The helper function is very specific to one driver -- vmwgfx.  While the
-two notes are separate, all of it needs to be taken into account when
-using the helper so make it one note.
+The weak functions that can be overridden by architectures are declared in
+include/asm-generic/early_ioremap.h so add the prototype there.  The
+asm/fixmap.h header is need for pgprot_t.
 
-Link: https://lkml.kernel.org/r/20210520084809.8576-5-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20210520084809.8576-6-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -87,20 +89,34 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mapping_dirty_helpers.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/early_ioremap.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/mm/mapping_dirty_helpers.c~mm-mapping_dirty_helpers-remove-double-note-in-kerneldoc
-+++ a/mm/mapping_dirty_helpers.c
-@@ -317,7 +317,7 @@ EXPORT_SYMBOL_GPL(wp_shared_mapping_rang
-  * pfn_mkwrite(). And then after a TLB flush following the write-protection
-  * pick up all dirty bits.
-  *
-- * Note: This function currently skips transhuge page-table entries, since
-+ * This function currently skips transhuge page-table entries, since
-  * it's intended for dirty-tracking on the PTE level. It will warn on
-  * encountering transhuge dirty entries, though, and can easily be extended
-  * to handle them as well.
+--- a/include/asm-generic/early_ioremap.h~mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust
++++ a/include/asm-generic/early_ioremap.h
+@@ -3,6 +3,7 @@
+ #define _ASM_EARLY_IOREMAP_H_
+ 
+ #include <linux/types.h>
++#include <asm/fixmap.h>
+ 
+ /*
+  * early_ioremap() and early_iounmap() are for temporary early boot-time
+@@ -20,6 +21,14 @@ extern void early_iounmap(void __iomem *
+ extern void early_memunmap(void *addr, unsigned long size);
+ 
+ /*
++ * Weak function called by early_memremap and early_memremap_ro. It does
++ * nothing, but architectures may provide their own version to handle
++ * memory encryption.
++ */
++extern pgprot_t early_memremap_pgprot_adjust(resource_size_t phys_addr,
++					    unsigned long size, pgprot_t prot);
++
++/*
+  * Weak function called by early_ioremap_reset(). It does nothing, but
+  * architectures may provide their own version to do any needed cleanups.
+  */
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
