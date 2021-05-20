@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C390BC433B4
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 04:46:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AF54C433B4
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 04:48:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F17C611AE
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 04:46:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E266611BD
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 04:48:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230206AbhETErl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 May 2021 00:47:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40678 "EHLO mail.kernel.org"
+        id S229458AbhETEuT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 May 2021 00:50:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52684 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229458AbhETErl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 May 2021 00:47:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B16806109F;
-        Thu, 20 May 2021 04:46:20 +0000 (UTC)
+        id S229449AbhETEuS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 May 2021 00:50:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A378A6109F;
+        Thu, 20 May 2021 04:48:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621485980;
-        bh=VCXxuLvs8IZFIAQvDP6qSBQBTCRWeTsMAS/i5uRS/+c=;
+        s=korg; t=1621486137;
+        bh=GI+1VrzHGlzoR+9Evw2ZLhjhbVrlPq0NxZKumMClq00=;
         h=Date:From:To:Subject:From;
-        b=k8HbFThmZt+UpTAVSPT6+FGJiVHBWYFNb7jzoy77nIIKy9UuuXRQl2rFxpG1d+uv0
-         vZvDVV5IIpdZ1ULGN8ykVqO/U5NYgK3P11QAAQGC7SmzK85sh5gqFINYLBNjzjgh0j
-         WON16nNiIIbgVXQ3NQ284s2eXYlZR/RX7dM88Xxs=
-Date:   Wed, 19 May 2021 21:46:20 -0700
+        b=MbEC2hdNlIn3Z7g/8SA0tlVEilvj/g0XURmUG9th9g/7eiYAY1DSFMe6vyn8zTEQ2
+         85c+KJOZTC8c7bKTb4RZ+aAr6H0kQRsEb0AMeP+VXCu/rJU327lpZUIdTK6MV5k7w4
+         hkjg2I4bbu/GwrUnub0c6ia6ClDuFHtLEuXH4w6A=
+Date:   Wed, 19 May 2021 21:48:57 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, peterz@infradead.org, pmladek@suse.com,
-        senozhatsky@chromium.org
-Subject:  + watchdog-reliable-handling-of-timestamps.patch added to
- -mm tree
-Message-ID: <20210520044620.pRsHhrG6i%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, vbabka@suse.cz, willy@infradead.org
+Subject:  +
+ mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks.patch
+ added to -mm tree
+Message-ID: <20210520044857.ilUxQzqzr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: reliable handling of timestamps
+     Subject: mm/thp: make ALLOC_SPLIT_PTLOCKS dependent on USE_SPLIT_PTE_PTLOCKS
 has been added to the -mm tree.  Its filename is
-     watchdog-reliable-handling-of-timestamps.patch
+     mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/watchdog-reliable-handling-of-timestamps.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/watchdog-reliable-handling-of-timestamps.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,126 +65,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: watchdog: reliable handling of timestamps
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/thp: make ALLOC_SPLIT_PTLOCKS dependent on USE_SPLIT_PTE_PTLOCKS
 
-The commit 9bf3bc949f8aeefeacea4b ("watchdog: cleanup handling of false
-positives") tried to handle a virtual host stopped by the host a more
-straightforward and cleaner way.
+Split ptlocks need not be defined and allocated unless they are being
+used.  ALLOC_SPLIT_PTLOCKS is inherently dependent on
+USE_SPLIT_PTE_PTLOCKS.  This just makes it explicit and clear.  While here
+drop the spinlock_t element from the struct page when
+USE_SPLIT_PTE_PTLOCKS is not enabled.
 
-But it introduced a risk of false softlockup reports.  The virtual host
-might be stopped at any time, for example between
-kvm_check_and_clear_guest_paused() and is_softlockup().  As a result,
-is_softlockup() might read the updated jiffies are detects softlockup.
-
-A solution might be to put back kvm_check_and_clear_guest_paused() after
-is_softlockup() and detect it.  But it would put back the cycle that
-complicates the logic.
-
-In fact, the handling of all the timestamps is not reliable.  The code
-does not guarantee when and how many times the timestamps are read.  For
-example, "period_ts" might be touched anytime also from NMI and re-read in
-is_softlockup().  It works just by chance.
-
-Fix all the problems by making the code even more explicit.
-
-1. Make sure that "now" and "period_ts" timestamps are read only once.
-   They might be changed at anytime by NMI or when the virtual guest is
-   stopped by the host.  Note that "now" timestamp does this implicitly
-   because "jiffies" is marked volatile.
-
-2. "now" time must be read first.  The state of "period_ts" will
-   decide whether it will be used or the period will get restarted.
-
-3. kvm_check_and_clear_guest_paused() must be called before reading
-   "period_ts".  It touches the variable when the guest was stopped.
-
-As a result, "now" timestamp is used only when the watchdog was not
-touched and the guest not stopped in the meantime.  "period_ts" is
-restarted in all other situations.
-
-Link: https://lkml.kernel.org/r/YKT55gw+RZfyoFf7@alley
-Fixes: 9bf3bc949f8aeefeacea4b ("watchdog: cleanup handling of false positives")
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reported-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/1621409586-5555-1-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   34 ++++++++++++++++++++--------------
- 1 file changed, 20 insertions(+), 14 deletions(-)
+ include/linux/mm_types.h      |    2 ++
+ include/linux/mm_types_task.h |    5 +++++
+ mm/memory.c                   |    2 +-
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
---- a/kernel/watchdog.c~watchdog-reliable-handling-of-timestamps
-+++ a/kernel/watchdog.c
-@@ -302,10 +302,10 @@ void touch_softlockup_watchdog_sync(void
- 	__this_cpu_write(watchdog_report_ts, SOFTLOCKUP_DELAY_REPORT);
+--- a/include/linux/mm_types.h~mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks
++++ a/include/linux/mm_types.h
+@@ -152,11 +152,13 @@ struct page {
+ 				struct mm_struct *pt_mm; /* x86 pgds only */
+ 				atomic_t pt_frag_refcount; /* powerpc */
+ 			};
++#if USE_SPLIT_PTE_PTLOCKS
+ #if ALLOC_SPLIT_PTLOCKS
+ 			spinlock_t *ptl;
+ #else
+ 			spinlock_t ptl;
+ #endif
++#endif
+ 		};
+ 		struct {	/* ZONE_DEVICE pages */
+ 			/** @pgmap: Points to the hosting device page map. */
+--- a/include/linux/mm_types_task.h~mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks
++++ a/include/linux/mm_types_task.h
+@@ -22,7 +22,12 @@
+ #define USE_SPLIT_PTE_PTLOCKS	(NR_CPUS >= CONFIG_SPLIT_PTLOCK_CPUS)
+ #define USE_SPLIT_PMD_PTLOCKS	(USE_SPLIT_PTE_PTLOCKS && \
+ 		IS_ENABLED(CONFIG_ARCH_ENABLE_SPLIT_PMD_PTLOCK))
++
++#if USE_SPLIT_PTE_PTLOCKS
+ #define ALLOC_SPLIT_PTLOCKS	(SPINLOCK_SIZE > BITS_PER_LONG/8)
++#else
++#define ALLOC_SPLIT_PTLOCKS	0
++#endif
+ 
+ /*
+  * The per task VMA cache array:
+--- a/mm/memory.c~mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks
++++ a/mm/memory.c
+@@ -5259,7 +5259,7 @@ long copy_huge_page_from_user(struct pag
  }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_HUGETLBFS */
  
--static int is_softlockup(unsigned long touch_ts, unsigned long period_ts)
-+static int is_softlockup(unsigned long touch_ts,
-+			 unsigned long period_ts,
-+			 unsigned long now)
- {
--	unsigned long now = get_timestamp();
--
- 	if ((watchdog_enabled & SOFT_WATCHDOG_ENABLED) && watchdog_thresh){
- 		/* Warn about unreasonable delays. */
- 		if (time_after(now, period_ts + get_softlockup_thresh()))
-@@ -353,8 +353,7 @@ static int softlockup_fn(void *data)
- /* watchdog kicker functions */
- static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
- {
--	unsigned long touch_ts = __this_cpu_read(watchdog_touch_ts);
--	unsigned long period_ts = __this_cpu_read(watchdog_report_ts);
-+	unsigned long touch_ts, period_ts, now;
- 	struct pt_regs *regs = get_irq_regs();
- 	int duration;
- 	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
-@@ -377,11 +376,22 @@ static enum hrtimer_restart watchdog_tim
- 	hrtimer_forward_now(hrtimer, ns_to_ktime(sample_period));
+-#if USE_SPLIT_PTE_PTLOCKS && ALLOC_SPLIT_PTLOCKS
++#if ALLOC_SPLIT_PTLOCKS
  
- 	/*
-+	 * Read the current timestamp first. It might become invalid anytime
-+	 * when a virtual machine is stopped by the host or when the watchog
-+	 * is touched from NMI.
-+	 */
-+	now = get_timestamp();
-+	/*
- 	 * If a virtual machine is stopped by the host it can look to
--	 * the watchdog like a soft lockup. Check to see if the host
--	 * stopped the vm before we process the timestamps.
-+	 * the watchdog like a soft lockup. This function touches the watchdog.
- 	 */
- 	kvm_check_and_clear_guest_paused();
-+	/*
-+	 * The stored timestamp is comparable with @now only when not touched.
-+	 * It might get touched anytime from NMI. Make sure that is_softlockup()
-+	 * uses the same (valid) value.
-+	 */
-+	period_ts = READ_ONCE(*this_cpu_ptr(&watchdog_report_ts));
+ static struct kmem_cache *page_ptl_cachep;
  
- 	/* Reset the interval when touched by known problematic code. */
- 	if (period_ts == SOFTLOCKUP_DELAY_REPORT) {
-@@ -398,13 +408,9 @@ static enum hrtimer_restart watchdog_tim
- 		return HRTIMER_RESTART;
- 	}
- 
--	/* check for a softlockup
--	 * This is done by making sure a high priority task is
--	 * being scheduled.  The task touches the watchdog to
--	 * indicate it is getting cpu time.  If it hasn't then
--	 * this is a good indication some task is hogging the cpu
--	 */
--	duration = is_softlockup(touch_ts, period_ts);
-+	/* Check for a softlockup. */
-+	touch_ts = __this_cpu_read(watchdog_touch_ts);
-+	duration = is_softlockup(touch_ts, period_ts, now);
- 	if (unlikely(duration)) {
- 		/*
- 		 * Prevent multiple soft-lockup reports if one cpu is already
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-watchdog-reliable-handling-of-timestamps.patch
+mm-thp-update-mm_structs-mm_anonpages-stat-for-huge-zero-pages.patch
+mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks.patch
+mm-define-default-value-for-first_user_address.patch
 
