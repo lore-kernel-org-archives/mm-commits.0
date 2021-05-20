@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F301C433ED
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 04:30:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D7D2C433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 04:38:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E6E83611BD
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 04:30:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DF89D611C2
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 04:38:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229534AbhETEcO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 May 2021 00:32:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60846 "EHLO mail.kernel.org"
+        id S230008AbhETEjV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 May 2021 00:39:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34326 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229449AbhETEcN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 May 2021 00:32:13 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D5F73611BE;
-        Thu, 20 May 2021 04:30:51 +0000 (UTC)
+        id S229554AbhETEjV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 May 2021 00:39:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 937DE611BD;
+        Thu, 20 May 2021 04:38:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621485052;
-        bh=99JoDf3X0vA1riT6sG79gYjojsBS4FmELtH0tAtkx2E=;
+        s=korg; t=1621485480;
+        bh=P8R3opN2ALP84VDdSfKxHk/bpH+DF/1/o0s3bB6gdVY=;
         h=Date:From:To:Subject:From;
-        b=mpQdnmSObl3nJWJGgbOmsnLLvLV5XjONwQQ6P14FAf/7Mu0dPemeflTdV+22T6imY
-         OcpNzYORrlhneLhmTfcM4cSC2HFW0uJNwbe9uyW67q5w/PKJBoIbOCaCxV3fCYTrHE
-         WHBId39ISP5t3osiIfzUVAlYqefU3JczlsclPNYY=
-Date:   Wed, 19 May 2021 21:30:51 -0700
+        b=N/ew+SaPqMoojLjsk2XTND5yzuoLNyOEKqbUymNaEBxSFjB+B59V8LoOODVsy57Dy
+         dMh4KdNEUzkpZXSzM0cSV35PgTO5RMJCqtguMKbyssPfeYegFxuO7kRiBdao1yMh3/
+         95tL5vbrITcuf2STXBINDbetAzvbFeYQWDJAOcKw=
+Date:   Wed, 19 May 2021 21:38:00 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
-        penberg@kernel.org, rientjes@google.com, swboyd@chromium.org,
-        vbabka@suse.cz
-Subject:  + slub-actually-use-message-in-restore_bytes.patch added
- to -mm tree
-Message-ID: <20210520043051.MghPI5Ioi%akpm@linux-foundation.org>
+To:     ahalaney@redhat.com, mm-commits@vger.kernel.org
+Subject:  +
+ init-mainc-silence-some-wunused-parameter-warnings.patch added to -mm tree
+Message-ID: <20210520043800.S01E6fwbk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: actually use 'message' in restore_bytes()
+     Subject: init/main.c: silence some -Wunused-parameter warnings
 has been added to the -mm tree.  Its filename is
-     slub-actually-use-message-in-restore_bytes.patch
+     init-mainc-silence-some-wunused-parameter-warnings.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/slub-actually-use-message-in-restore_bytes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/init-mainc-silence-some-wunused-parameter-warnings.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/slub-actually-use-message-in-restore_bytes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/init-mainc-silence-some-wunused-parameter-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,56 +63,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Boyd <swboyd@chromium.org>
-Subject: slub: actually use 'message' in restore_bytes()
+From: Andrew Halaney <ahalaney@redhat.com>
+Subject: init/main.c: silence some -Wunused-parameter warnings
 
-The message argument isn't used here.  Let's pass the string to the printk
-message so that the developer can figure out what's happening, instead of
-guessing that a redzone is being restored, etc.
+There are a bunch of callbacks with unused arguments, go ahead and silence
+those so "make KCFLAGS=-W init/main.o" is a little quieter.  Here's a
+little sample:
 
-Link: https://lkml.kernel.org/r/20210520013539.3733631-4-swboyd@chromium.org
-Signed-off-by: Stephen Boyd <swboyd@chromium.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+init/main.c:182:43: warning: unused parameter 'str' [-Wunused-parameter]
+static int __init set_reset_devices(char *str)
+
+Link: https://lkml.kernel.org/r/20210519162341.1275452-1-ahalaney@redhat.com
+Signed-off-by: Andrew Halaney <ahalaney@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/main.c |   25 +++++++++++++++----------
+ 1 file changed, 15 insertions(+), 10 deletions(-)
 
---- a/mm/slub.c~slub-actually-use-message-in-restore_bytes
-+++ a/mm/slub.c
-@@ -805,7 +805,7 @@ static void init_object(struct kmem_cach
- static void restore_bytes(struct kmem_cache *s, char *message, u8 data,
- 						void *from, void *to)
+--- a/init/main.c~init-mainc-silence-some-wunused-parameter-warnings
++++ a/init/main.c
+@@ -179,7 +179,7 @@ EXPORT_SYMBOL_GPL(static_key_initialized
+ unsigned int reset_devices;
+ EXPORT_SYMBOL(reset_devices);
+ 
+-static int __init set_reset_devices(char *str)
++static int __init set_reset_devices(char *str __always_unused)
  {
--	slab_fix(s, "Restoring 0x%px-0x%px=0x%x\n", from, to - 1, data);
-+	slab_fix(s, "Restoring %s 0x%px-0x%px=0x%x\n", message, from, to - 1, data);
- 	memset(from, data, to - from);
+ 	reset_devices = 1;
+ 	return 1;
+@@ -229,13 +229,13 @@ static bool __init obsolete_checksetup(c
+ unsigned long loops_per_jiffy = (1<<12);
+ EXPORT_SYMBOL(loops_per_jiffy);
+ 
+-static int __init debug_kernel(char *str)
++static int __init debug_kernel(char *str __always_unused)
+ {
+ 	console_loglevel = CONSOLE_LOGLEVEL_DEBUG;
+ 	return 0;
  }
+ 
+-static int __init quiet_kernel(char *str)
++static int __init quiet_kernel(char *str __always_unused)
+ {
+ 	console_loglevel = CONSOLE_LOGLEVEL_QUIET;
+ 	return 0;
+@@ -478,7 +478,7 @@ static void __init setup_boot_config(voi
+ 	get_boot_config_from_initrd(NULL, NULL);
+ }
+ 
+-static int __init warn_bootconfig(char *str)
++static int __init warn_bootconfig(char *str __always_unused)
+ {
+ 	pr_warn("WARNING: 'bootconfig' found on the kernel command line but CONFIG_BOOT_CONFIG is not set.\n");
+ 	return 0;
+@@ -504,7 +504,8 @@ static void __init repair_env_string(cha
+ 
+ /* Anything after -- gets handed straight to init. */
+ static int __init set_init_arg(char *param, char *val,
+-			       const char *unused, void *arg)
++			       const char *unused __always_unused,
++			       void *arg __always_unused)
+ {
+ 	unsigned int i;
+ 
+@@ -529,7 +530,8 @@ static int __init set_init_arg(char *par
+  * unused parameters (modprobe will find them in /proc/cmdline).
+  */
+ static int __init unknown_bootoption(char *param, char *val,
+-				     const char *unused, void *arg)
++				     const char *unused __always_unused,
++				     void *arg __always_unused)
+ {
+ 	size_t len = strlen(param);
+ 
+@@ -723,7 +725,8 @@ noinline void __ref rest_init(void)
+ 
+ /* Check for early params. */
+ static int __init do_early_param(char *param, char *val,
+-				 const char *unused, void *arg)
++				 const char *unused __always_unused,
++				 void *arg __always_unused)
+ {
+ 	const struct obs_kernel_param *p;
+ 
+@@ -1343,8 +1346,10 @@ static const char *initcall_level_names[
+ 	"late",
+ };
+ 
+-static int __init ignore_unknown_bootoption(char *param, char *val,
+-			       const char *unused, void *arg)
++static int __init ignore_unknown_bootoption(char *param __always_unused,
++					    char *val __always_unused,
++					    const char *unused __always_unused,
++					    void *arg __always_unused)
+ {
+ 	return 0;
+ }
+@@ -1482,7 +1487,7 @@ void __weak free_initmem(void)
+ 	free_initmem_default(POISON_FREE_INITMEM);
+ }
+ 
+-static int __ref kernel_init(void *unused)
++static int __ref kernel_init(void *unused __always_unused)
+ {
+ 	int ret;
  
 _
 
-Patches currently in -mm which might be from swboyd@chromium.org are
+Patches currently in -mm which might be from ahalaney@redhat.com are
 
-lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging.patch
-slub-print-raw-pointer-addresses-when-debugging.patch
-slub-actually-use-message-in-restore_bytes.patch
-buildid-only-consider-gnu-notes-for-build-id-parsing.patch
-buildid-add-api-to-parse-build-id-out-of-buffer.patch
-buildid-stash-away-kernels-build-id-on-init.patch
-buildid-stash-away-kernels-build-id-on-init-fix.patch
-dump_stack-add-vmlinux-build-id-to-stack-traces.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces.patch
-arm64-stacktrace-use-%psb-for-backtrace-printing.patch
-x86-dumpstack-use-%psb-%pbb-for-backtrace-printing.patch
-scripts-decode_stacktracesh-support-debuginfod.patch
-scripts-decode_stacktracesh-silence-stderr-messages-from-addr2line-nm.patch
-scripts-decode_stacktracesh-indicate-auto-can-be-used-for-base-path.patch
-buildid-mark-some-arguments-const.patch
-buildid-fix-kernel-doc-notation.patch
-kdump-use-vmlinux_build_id-to-simplify.patch
+init-print-out-unknown-kernel-parameters.patch
+init-mainc-silence-some-wunused-parameter-warnings.patch
 
