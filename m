@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F500C43460
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97784C433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 768F5613F2
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76EC8613ED
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231263AbhETWHi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 May 2021 18:07:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55836 "EHLO mail.kernel.org"
+        id S231265AbhETWHj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 May 2021 18:07:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55868 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231258AbhETWHh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 May 2021 18:07:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 23FB1613D0;
-        Thu, 20 May 2021 22:06:15 +0000 (UTC)
+        id S231258AbhETWHj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 May 2021 18:07:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DF07F613C9;
+        Thu, 20 May 2021 22:06:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621548375;
-        bh=bjndd4b2EuSgS+cCjuUgPlKwpazSzPv3rtkdDbcQk80=;
+        s=korg; t=1621548377;
+        bh=cpg8nRxVoIFojPFHbBqIhKHQPWKUYjhXt9AGr3I3isM=;
         h=Date:From:To:Subject:From;
-        b=UsAdTtdu54S3bHYsON4lKg6GsBYkfN0VEedHD0l120CsJy7ru7wf/FaNk3asPh2t0
-         hghACTIaNtNpdVdK8d5ux2O13rathKcVdRJqdNb/D1lXIuzZqO7JOJLldT/2KiJW07
-         TxWw0l7aiz6WoZJhaUoLnnjU+z7a6CSVdaq6aprg=
-Date:   Thu, 20 May 2021 15:06:14 -0700
+        b=c06xQ9ubFVuh8Rq2zKya7LQgTTNCa/YzjnKlu+gDr8EpmpAUOSxkDwekqfljXGrhI
+         Xhj8RH3l5xDpNpj1Uvmi/vCpudMbdEHannXwugqMStv7c8iXbSFM2jjsgXUxWcYTjv
+         8/gtgr9EIKwNmgLr4z2eHKj0lTB+H7TewJm0iZ0A=
+Date:   Thu, 20 May 2021 15:06:16 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, ddstreet@ieee.org, mgorman@techsingularity.net,
         mhocko@kernel.org, mm-commits@vger.kernel.org, shy828301@gmail.com,
         vbabka@suse.cz
 Subject:  +
- mm-swap-make-swap_address_space-an-inline-function.patch added to -mm tree
-Message-ID: <20210520220614.3fML1YBw7%akpm@linux-foundation.org>
+ mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch added
+ to -mm tree
+Message-ID: <20210520220616.dM9PeRXPW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: make swap_address_space an inline function
+     Subject: mm/mmap_lock: remove dead code for !CONFIG_TRACING configurations
 has been added to the -mm tree.  Its filename is
-     mm-swap-make-swap_address_space-an-inline-function.patch
+     mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-swap-make-swap_address_space-an-inline-function.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-make-swap_address_space-an-inline-function.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,19 +67,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/swap: make swap_address_space an inline function
+Subject: mm/mmap_lock: remove dead code for !CONFIG_TRACING configurations
 
-make W=1 generates the following warning in page_mapping() for allnoconfig
+make W=1 generates the following warning in mmap_lock.c for allnoconfig
 
-  mm/util.c:700:15: warning: variable `entry' set but not used [-Wunused-but-set-variable]
-     swp_entry_t entry;
-                 ^~~~~
+  mm/mmap_lock.c:213:6: warning: no previous prototype for `__mmap_lock_do_trace_start_locking' [-Wmissing-prototypes]
+   void __mmap_lock_do_trace_start_locking(struct mm_struct *mm, bool write)
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  mm/mmap_lock.c:219:6: warning: no previous prototype for `__mmap_lock_do_trace_acquire_returned' [-Wmissing-prototypes]
+   void __mmap_lock_do_trace_acquire_returned(struct mm_struct *mm, bool write,
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  mm/mmap_lock.c:226:6: warning: no previous prototype for `__mmap_lock_do_trace_released' [-Wmissing-prototypes]
+   void __mmap_lock_do_trace_released(struct mm_struct *mm, bool write)
 
-swap_address is a #define on !CONFIG_SWAP configurations.  Make the helper
-an inline function to suppress the warning, add type checking and to apply
-any side-effects in the parameter list.
+On !CONFIG_TRACING configurations, the code is dead so put it behind an
+#ifdef.
 
-Link: https://lkml.kernel.org/r/20210520084809.8576-12-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20210520084809.8576-13-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -88,24 +93,24 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/mmap_lock.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/swap.h~mm-swap-make-swap_address_space-an-inline-function
-+++ a/include/linux/swap.h
-@@ -536,7 +536,11 @@ static inline void put_swap_device(struc
- {
- }
+--- a/mm/mmap_lock.c~mm-mmap_lock-remove-dead-code-for-config_tracing-configurations
++++ a/mm/mmap_lock.c
+@@ -205,6 +205,7 @@ void trace_mmap_lock_unreg(void)
  
--#define swap_address_space(entry)		(NULL)
-+static inline struct address_space *swap_address_space(swp_entry_t entry)
-+{
-+	return NULL;
-+}
-+
- #define get_nr_swap_pages()			0L
- #define total_swap_pages			0L
- #define total_swapcache_pages()			0UL
+ #endif /* CONFIG_MEMCG */
+ 
++#ifdef CONFIG_TRACING
+ /*
+  * Trace calls must be in a separate file, as otherwise there's a circular
+  * dependency between linux/mmap_lock.h and trace/events/mmap_lock.h.
+@@ -228,3 +229,4 @@ void __mmap_lock_do_trace_released(struc
+ 	TRACE_MMAP_LOCK_EVENT(released, mm, write);
+ }
+ EXPORT_SYMBOL(__mmap_lock_do_trace_released);
++#endif /* CONFIG_TRACING */
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
