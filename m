@@ -7,40 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D17BC433B4
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 21:47:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 023AEC433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 21:56:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 436CA60FEE
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 21:47:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D128461246
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 21:56:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230463AbhETVtC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 May 2021 17:49:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47090 "EHLO mail.kernel.org"
+        id S230453AbhETV6U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 May 2021 17:58:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50032 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230481AbhETVtA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 May 2021 17:49:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2466A60FF0;
-        Thu, 20 May 2021 21:47:38 +0000 (UTC)
+        id S230382AbhETV6T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 May 2021 17:58:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AFDE66135B;
+        Thu, 20 May 2021 21:56:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621547258;
-        bh=tNBldnpYSjPyfgfSwCXMwdVAvK2skCy9b8CXlHK8xGk=;
+        s=korg; t=1621547817;
+        bh=HLIsgMs+4PiwBUEc66PLBPKt8oOssWZKBx6foCD2nAQ=;
         h=Date:From:To:Subject:From;
-        b=jAL1JmrGeHWFVSnJ53THqF294nxnXgfuxFS8u33eU8a9B0r6pqALA15IDzErKjy0Z
-         Wa6lgdsdcxXyHou5sIgEKU8Eo22ICd3nUHTmedsqJyycI7hnT4Zc0fXvJVmjVkGgH8
-         rlTR51Eev4tVHF0S/radn7rkELsgMivQLJPCGSCA=
-Date:   Thu, 20 May 2021 14:47:37 -0700
+        b=PafBZKevDQQ2tBDdTFiDah57ViMdqsp4DSqOVVGG8Hnb2RsvsGqOOx62tIyDLuQ6h
+         HGvVmvVqESn3pE1mP6ad1kbtSQ/HEQ1j0VshYmuWi1jo+pJl0rFC8I4Fl8RumBesqc
+         81pBLIDrMMrnYF14QOUQIabUp1Mf0dPjl8WP9e+w=
+Date:   Thu, 20 May 2021 14:56:57 -0700
 From:   akpm@linux-foundation.org
-To:     bp@suse.de, davidchao@google.com, jenhaochen@google.com,
-        jkosina@suse.cz, josh@joshtriplett.org, liumartin@google.com,
-        mhocko@suse.cz, mingo@redhat.com, mm-commits@vger.kernel.org,
-        nathan@kernel.org, ndesaulniers@google.com, oleg@redhat.com,
-        paulmck@linux.vnet.ibm.com, peterz@infradead.org, pmladek@suse.com,
-        rostedt@goodmis.org, stable@vger.kernel.org, tglx@linutronix.de,
-        tj@kernel.org, vbabka@suse.cz
+To:     atomlin@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        vbabka@suse.cz, willy@infradead.org
 Subject:  +
- =?US-ASCII?Q?kthread-fix-kthread=5Fmod=5Fdelayed=5Fwork-vs-kthread=5Fcan?=
- =?US-ASCII?Q?cel=5Fdelayed=5Fwork=5Fsync-race.patch?= added to -mm tree
-Message-ID: <20210520214737.MrGGKbPrJ%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-page=5Falloc-bail-out-on-fatal-signal-during-reclaim-co?=
+ =?US-ASCII?Q?mpaction-retry-attempt.patch?= added to -mm tree
+Message-ID: <20210520215657.Jrz4CgZ-l%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -51,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kthread: fix kthread_mod_delayed_work vs kthread_cancel_delayed_work_sync race
+     Subject: mm/page_alloc: bail out on fatal signal during reclaim/compaction retry attempt
 has been added to the -mm tree.  Its filename is
-     kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race.patch
+     mm-page_alloc-bail-out-on-fatal-signal-during-reclaim-compaction-retry-attempt.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-bail-out-on-fatal-signal-during-reclaim-compaction-retry-attempt.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-bail-out-on-fatal-signal-during-reclaim-compaction-retry-attempt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,133 +67,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Martin Liu <liumartin@google.com>
-Subject: kthread: fix kthread_mod_delayed_work vs kthread_cancel_delayed_work_sync race
+From: Aaron Tomlin <atomlin@redhat.com>
+Subject: mm/page_alloc: bail out on fatal signal during reclaim/compaction retry attempt
 
-We encountered a system hang issue while doing the tests.  The callstack
-is as following
+A customer experienced a low-memory situation and decided to issue a
+SIGKILL (i.e.  a fatal signal).  Instead of promptly terminating as one
+would expect, the aforementioned task remained unresponsive.
 
-	schedule+0x80/0x100
-	schedule_timeout+0x48/0x138
-	wait_for_common+0xa4/0x134
-	wait_for_completion+0x1c/0x2c
-	kthread_flush_work+0x114/0x1cc
-	kthread_cancel_work_sync.llvm.16514401384283632983+0xe8/0x144
-	kthread_cancel_delayed_work_sync+0x18/0x2c
-	xxxx_pm_notify+0xb0/0xd8
-	blocking_notifier_call_chain_robust+0x80/0x194
-	pm_notifier_call_chain_robust+0x28/0x4c
-	suspend_prepare+0x40/0x260
-	enter_state+0x80/0x3f4
-	pm_suspend+0x60/0xdc
-	state_store+0x108/0x144
-	kobj_attr_store+0x38/0x88
-	sysfs_kf_write+0x64/0xc0
-	kernfs_fop_write_iter+0x108/0x1d0
-	vfs_write+0x2f4/0x368
-	ksys_write+0x7c/0xec
+Further investigation indicated that the task was "stuck" in the
+reclaim/compaction retry loop.  Now, it does not make sense to retry
+compaction when a fatal signal is pending.
 
-When we started investigating, we found race between
-kthread_mod_delayed_work vs kthread_cancel_delayed_work_sync.  The race's
-result could be simply reproduced as a kthread_mod_delayed_work with a
-following kthread_flush_work call.
+In the context of try_to_compact_pages(), indeed COMPACT_SKIPPED can be
+returned; albeit, not every zone, on the zone list, would be considered in
+the case a fatal signal is found to be pending.  Yet, in
+should_compact_retry(), given the last known compaction result, each zone,
+on the zone list, can be considered/or checked (see
+compaction_zonelist_suitable()).  For example, if a zone was found to
+succeed, then reclaim/compaction would be tried again (notwithstanding the
+above).
 
-Thing is we release kthread_mod_delayed_work kspin_lock in
-__kthread_cancel_work so it opens a race window for
-kthread_cancel_delayed_work_sync to change the canceling count used to
-prevent dwork from being requeued before calling kthread_flush_work. 
-However, we don't check the canceling count after returning from
-__kthread_cancel_work and then insert the dwork to the worker.  It results
-the following kthread_flush_work inserts flush work to dwork's tail which
-is at worker's dealyed_work_list.  Therefore, flush work will never get
-moved to the worker's work_list to be executed.  Finally,
-kthread_cancel_delayed_work_sync will NOT be able to get completed and
-wait forever.  The code sequence diagram is as following
+This patch ensures that compaction is not needlessly retried irrespective
+of the last known compaction result e.g.  if it was skipped, in the
+unlikely case a fatal signal is found pending.  So, OOM is at least
+attempted.
 
-Thread A                Thread B
-kthread_mod_delayed_work
-  spin_lock
-   __kthread_cancel_work
-    canceling = 1
-    spin_unlock
-                        kthread_cancel_delayed_work_sync
-                          spin_lock
-                            kthread_cancel_work
-                          canceling = 2
-                          spin_unlock
-    del_timer_sync
-    spin_lock
-    canceling = 1 // canceling count gets update in ThreadB before
-  queue_delayed_work // dwork is put into the woker's dealyed_work_list
-                        without checking the canceling count
- spin_unlock
-                          kthread_flush_work
-                            spin_lock
-                            Insert flush work // at the tail of the
-			                         dwork which is at
-						 the worker's
-						 dealyed_work_list
-                            spin_unlock
-                            wait_for_completion // Thread B stuck here as
-			                           flush work will never
-						   get executed
-
-The canceling count could change in __kthread_cancel_work as the spinlock
-get released and regained in between, let's check the count again before
-we queue the delayed work to avoid the race.
-
-Link: https://lkml.kernel.org/r/20210513065458.941403-1-liumartin@google.com
-Fixes: 37be45d49dec2 ("kthread: allow to cancel kthread work")
-Signed-off-by: Martin Liu <liumartin@google.com>
-Tested-by: David Chao <davidchao@google.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
+Link: https://lkml.kernel.org/r/20210520142901.3371299-1-atomlin@redhat.com
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: <jenhaochen@google.com>
-Cc: <stable@vger.kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/page_alloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/kernel/kthread.c~kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race
-+++ a/kernel/kthread.c
-@@ -1181,6 +1181,19 @@ bool kthread_mod_delayed_work(struct kth
- 		goto out;
+--- a/mm/page_alloc.c~mm-page_alloc-bail-out-on-fatal-signal-during-reclaim-compaction-retry-attempt
++++ a/mm/page_alloc.c
+@@ -4251,6 +4251,9 @@ should_compact_retry(struct alloc_contex
+ 	if (!order)
+ 		return false;
  
- 	ret = __kthread_cancel_work(work, true, &flags);
++	if (fatal_signal_pending(current))
++		return false;
 +
-+	/*
-+	 * Canceling could run in parallel from kthread_cancel_delayed_work_sync
-+	 * and change work's canceling count as the spinlock is released and regain
-+	 * in __kthread_cancel_work so we need to check the count again. Otherwise,
-+	 * we might incorrectly queue the dwork and further cause
-+	 * cancel_delayed_work_sync thread waiting for flush dwork endlessly.
-+	 */
-+	if (work->canceling) {
-+		ret = false;
-+		goto out;
-+	}
-+
- fast_queue:
- 	__kthread_queue_delayed_work(worker, dwork, delay);
- out:
+ 	if (compaction_made_progress(compact_result))
+ 		(*compaction_retries)++;
+ 
 _
 
-Patches currently in -mm which might be from liumartin@google.com are
+Patches currently in -mm which might be from atomlin@redhat.com are
 
-kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race.patch
+mm-page_alloc-bail-out-on-fatal-signal-during-reclaim-compaction-retry-attempt.patch
 
