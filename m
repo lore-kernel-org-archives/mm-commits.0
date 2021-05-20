@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 147ACC43460
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75651C433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E8045613F9
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A2EE613E6
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 22:06:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231260AbhETWHc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 May 2021 18:07:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54726 "EHLO mail.kernel.org"
+        id S231262AbhETWHg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 May 2021 18:07:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54760 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231258AbhETWHa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 May 2021 18:07:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DDDDA613B6;
-        Thu, 20 May 2021 22:06:07 +0000 (UTC)
+        id S231251AbhETWHc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 May 2021 18:07:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E1FB0613C3;
+        Thu, 20 May 2021 22:06:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621548368;
-        bh=xv1jU5oE2vRxQSbfpOBlgSsPwYx2mAWBF6CY1GbzrSw=;
+        s=korg; t=1621548370;
+        bh=K8UvMJ++PbPkJpNfwXhiNV+JlaeqmkUC+ExkbHQoIBc=;
         h=Date:From:To:Subject:From;
-        b=K/yW0JvxuFxm/j3uqSQK2Q/pOW6QhVCHZtIWlCbR0qaF85hNH33o5xY8gP70nz89u
-         6YqWVDmIh4BDKc0PEpc98mwrWEZO5l3pg/tuDdOCoj/eSyk5CI88ZgrsGj07t1kIaJ
-         Ny8C+CIpM25D1d8g3paOdLF1QmJI32najXfiNExo=
-Date:   Thu, 20 May 2021 15:06:07 -0700
+        b=iiCaWZuPiRyy5zX140Sw80hr3jYDvNcAZaCkss1Y8lGIUvcIV5omVXGpnCxDf3w7F
+         EHQOFpJPEYJfhcxEJ6L1uD74rb6yZPpRd2Fqze29AWM9DsLOn3ul7XeN73L7eMxqM1
+         AstEfrLwFWplpB+sTOlKymiq4GYTnZwsgnUyIT9k=
+Date:   Thu, 20 May 2021 15:06:09 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, ddstreet@ieee.org, mgorman@techsingularity.net,
         mhocko@kernel.org, mm-commits@vger.kernel.org, shy828301@gmail.com,
         vbabka@suse.cz
-Subject:  +
- mm-memory_hotplug-fix-kerneldoc-comment-for-__remove_memory.patch added to
- -mm tree
-Message-ID: <20210520220607.zlaXbbwxX%akpm@linux-foundation.org>
+Subject:  + mm-zbud-add-kerneldoc-fields-for-zbud_pool.patch added
+ to -mm tree
+Message-ID: <20210520220609.pB2u-Jvsm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: fix kerneldoc comment for __remove_memory
+     Subject: mm/zbud: add kerneldoc fields for zbud_pool
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-fix-kerneldoc-comment-for-__remove_memory.patch
+     mm-zbud-add-kerneldoc-fields-for-zbud_pool.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-fix-kerneldoc-comment-for-__remove_memory.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-zbud-add-kerneldoc-fields-for-zbud_pool.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-fix-kerneldoc-comment-for-__remove_memory.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zbud-add-kerneldoc-fields-for-zbud_pool.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,41 +66,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/memory_hotplug: fix kerneldoc comment for __remove_memory
+Subject: mm/zbud: add kerneldoc fields for zbud_pool
 
-make W=1 generates the following warning for __remove_memory
+make W=1 generates the following warning for zbud_pool
 
-  mm/memory_hotplug.c:2044: warning: expecting prototype for remove_memory(). Prototype was for __remove_memory() instead
+  mm/zbud.c:105: warning: Function parameter or member 'zpool' not described in 'zbud_pool'
+  mm/zbud.c:105: warning: Function parameter or member 'zpool_ops' not described in 'zbud_pool'
 
-Commit eca499ab3749 ("mm/hotplug: make remove_memory() interface usable")
-introduced the kerneldoc comment and function but the kerneldoc name and
-function name did not match.
+Commit 479305fd7172 ("zpool: remove zpool_evict()") removed the
+zpool_evict helper and added the associated zpool and operations structure
+in struct zbud_pool but did not add documentation for the fields.  Add
+rudimentary documentation.
 
-Link: https://lkml.kernel.org/r/20210520084809.8576-9-mgorman@techsingularity.net
-Fixes: eca499ab3749 ("mm/hotplug: make remove_memory() interface usable")
+Link: https://lkml.kernel.org/r/20210520084809.8576-10-mgorman@techsingularity.net
+Fixes: 479305fd7172 ("zpool: remove zpool_evict()")
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zbud.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-kerneldoc-comment-for-__remove_memory
-+++ a/mm/memory_hotplug.c
-@@ -1922,7 +1922,7 @@ static int __ref try_remove_memory(int n
- }
- 
- /**
-- * remove_memory
-+ * __remove_memory - Remove memory if every memory block is offline
-  * @nid: the node ID
-  * @start: physical address of the region to remove
-  * @size: size of the region to remove
+--- a/mm/zbud.c~mm-zbud-add-kerneldoc-fields-for-zbud_pool
++++ a/mm/zbud.c
+@@ -87,6 +87,8 @@
+  * @pages_nr:	number of zbud pages in the pool.
+  * @ops:	pointer to a structure of user defined operations specified at
+  *		pool creation time.
++ * @zpool:	zpool driver
++ * @zpool_ops:	zpool operations structure with an evict callback
+  *
+  * This structure is allocated at pool creation time and maintains metadata
+  * pertaining to a particular zbud pool.
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
