@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8633AC433ED
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 04:25:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EDE8C433ED
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 04:30:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 562D8611C2
-	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 04:25:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 133B3611AE
+	for <mm-commits@archiver.kernel.org>; Thu, 20 May 2021 04:30:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229449AbhETE0y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 May 2021 00:26:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60112 "EHLO mail.kernel.org"
+        id S229458AbhETEcJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 May 2021 00:32:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60786 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229436AbhETE0x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 May 2021 00:26:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E9BDD6108C;
-        Thu, 20 May 2021 04:25:31 +0000 (UTC)
+        id S229449AbhETEcJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 May 2021 00:32:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 06BC66108C;
+        Thu, 20 May 2021 04:30:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621484732;
-        bh=RwVmf00s07sfdmi02OuQLuu67Clp8Vd0xhSYUbg3AhY=;
+        s=korg; t=1621485047;
+        bh=qtqwNmPVLwuenalakEIa4sIsqR9CfmP8LsyFns+8ssY=;
         h=Date:From:To:Subject:From;
-        b=MBO3HwTf3zrSQkPAS10AEOkMUzz2Z7RdsziRND9hWX/74Q8MXaagCgClrLK3J5ib/
-         K0duQgoNm+sqnYfYunTA4MzGRhfbpQMR8SVcm4MSqNh6WQcVb6+DdqagtyGpv4tKOV
-         0FqIU5sDcg3AF9ng/AcoutKPF+5r+vz+elp157x8=
-Date:   Wed, 19 May 2021 21:25:31 -0700
+        b=STgF5/X4A8WHd7hwPyQlBQpbTucg1EhPmczFeVbpp/k+3U0V1X7QrFV6iaK6ZxmO6
+         9OkVJmsXVLS8vNPukGRuh1lLN8ezp0nPQejCNFHmq3WADGQPOo1ZOQ8hqL5uQMI5uq
+         tE9jEAaZdYzA1nxWY/Yp0rttG0j9t+2wazAdLV+Y=
+Date:   Wed, 19 May 2021 21:30:46 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, david@redhat.com,
-        duanxiongchun@bytedance.com, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        osalvador@suse.de, songmuchun@bytedance.com, willy@infradead.org
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, swboyd@chromium.org,
+        vbabka@suse.cz
 Subject:  +
- mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool.patch
+ lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging.patch
  added to -mm tree
-Message-ID: <20210520042531.04jJS51mE%akpm@linux-foundation.org>
+Message-ID: <20210520043046.0NDkaC9OY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: fix missing update page_private to hugetlb_page_subpool
+     Subject: lib/hexdump: add a raw pointer printing format for slub debugging
 has been added to the -mm tree.  Its filename is
-     mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool.patch
+     lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,63 +66,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: migrate: fix missing update page_private to hugetlb_page_subpool
+From: Stephen Boyd <swboyd@chromium.org>
+Subject: lib/hexdump: add a raw pointer printing format for slub debugging
 
-Since commit d6995da31122 ("hugetlb: use page.private for hugetlb specific
-page flags") converts page.private for hugetlb specific page flags.  We
-should use hugetlb_page_subpool() to get the subpool pointer instead of
-page_private().  The commit forgot to update it in the page migration
-routine.  So fix it.
+Patch series "slub: Print non-hashed pointers in slub debugging".
 
-Link: https://lkml.kernel.org/r/20210520025949.1866-1-songmuchun@bytedance.com
-Fixes: d6995da31122 ("hugetlb: use page.private for hugetlb specific page flags")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reported-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+I was doing some debugging recently and noticed that my pointers were
+being hashed while slub_debug was on the kernel commandline.  Let's make
+the prints in here meaningful in that case by pushing %px throughout.
+
+Alternatively, we could force on no_hash_pointers if slub_debug is on the
+commandline.  Maybe that would be better?
+
+The final patch is just something else I noticed while looking at the
+code.  The message argument is never used so the debugging messages are
+not as clear as they could be.
+
+
+This patch (of 3):
+
+We want to get actual pointer addresses when we're looking at slub
+debugging reports.  Add another prefix format specifier that says we want
+raw pointer addresses, i.e.  %px, in the printk format.
+
+Link: https://lkml.kernel.org/r/20210520013539.3733631-1-swboyd@chromium.org
+Link: https://lkml.kernel.org/r/20210520013539.3733631-2-swboyd@chromium.org
+Signed-off-by: Stephen Boyd <swboyd@chromium.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/printk.h |    1 +
+ lib/hexdump.c          |   12 ++++++++++--
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool
-+++ a/mm/migrate.c
-@@ -1292,7 +1292,7 @@ static int unmap_and_move_huge_page(new_
- 	 * page_mapping() set, hugetlbfs specific move page routine will not
- 	 * be called and we could leak usage counts for subpools.
- 	 */
--	if (page_private(hpage) && !page_mapping(hpage)) {
-+	if (hugetlb_page_subpool(hpage) && !page_mapping(hpage)) {
- 		rc = -EBUSY;
- 		goto out_unlock;
- 	}
+--- a/include/linux/printk.h~lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging
++++ a/include/linux/printk.h
+@@ -567,6 +567,7 @@ extern const struct file_operations kmsg
+ enum {
+ 	DUMP_PREFIX_NONE,
+ 	DUMP_PREFIX_ADDRESS,
++	DUMP_PREFIX_RAW_ADDRESS,
+ 	DUMP_PREFIX_OFFSET
+ };
+ extern int hex_dump_to_buffer(const void *buf, size_t len, int rowsize,
+--- a/lib/hexdump.c~lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging
++++ a/lib/hexdump.c
+@@ -211,8 +211,12 @@ EXPORT_SYMBOL(hex_dump_to_buffer);
+  * @level: kernel log level (e.g. KERN_DEBUG)
+  * @prefix_str: string to prefix each line with;
+  *  caller supplies trailing spaces for alignment if desired
+- * @prefix_type: controls whether prefix of an offset, address, or none
+- *  is printed (%DUMP_PREFIX_OFFSET, %DUMP_PREFIX_ADDRESS, %DUMP_PREFIX_NONE)
++ * @prefix_type: controls how prefix is printed
++ *   %DUMP_PREFIX_OFFSET - offset prefix
++ *   %DUMP_PREFIX_ADDRESS - hashed address prefix
++ *   %DUMP_PREFIX_RAW_ADDRESS - non-hashed address prefix
++ *   %DUMP_PREFIX_NONE - no prefix
++ *
+  * @rowsize: number of bytes to print per line; must be 16 or 32
+  * @groupsize: number of bytes to print at a time (1, 2, 4, 8; default = 1)
+  * @buf: data blob to dump
+@@ -260,6 +264,10 @@ void print_hex_dump(const char *level, c
+ 			printk("%s%s%p: %s\n",
+ 			       level, prefix_str, ptr + i, linebuf);
+ 			break;
++		case DUMP_PREFIX_RAW_ADDRESS:
++			printk("%s%s%px: %s\n",
++			       level, prefix_str, ptr + i, linebuf);
++			break;
+ 		case DUMP_PREFIX_OFFSET:
+ 			printk("%s%s%.8x: %s\n", level, prefix_str, i, linebuf);
+ 			break;
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from swboyd@chromium.org are
 
-mm-memcontrol-fix-root_mem_cgroup-charging.patch
-mm-memcontrol-fix-page-charging-in-page-replacement.patch
-mm-memcontrol-bail-out-early-when-mm-in-get_mem_cgroup_from_mm.patch
-mm-memcontrol-remove-the-pgdata-parameter-of-mem_cgroup_page_lruvec.patch
-mm-memcontrol-simplify-lruvec_holds_page_lru_lock.patch
-mm-memcontrol-rename-lruvec_holds_page_lru_lock-to-page_matches_lruvec.patch
-mm-memcontrol-simplify-the-logic-of-objcg-pinning-memcg.patch
-mm-memcontrol-move-obj_cgroup_uncharge_pages-out-of-css_set_lock.patch
-mm-vmscan-remove-noinline_for_stack.patch
-mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc.patch
-mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch
-mm-hugetlb-gather-discrete-indexes-of-tail-page.patch
-mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
-mm-hugetlb-defer-freeing-of-hugetlb-pages.patch
-mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
-mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled.patch
-mm-hugetlb-introduce-nr_free_vmemmap_pages-in-the-struct-hstate.patch
-mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool.patch
+lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging.patch
+slub-print-raw-pointer-addresses-when-debugging.patch
+slub-actually-use-message-in-restore_bytes.patch
+buildid-only-consider-gnu-notes-for-build-id-parsing.patch
+buildid-add-api-to-parse-build-id-out-of-buffer.patch
+buildid-stash-away-kernels-build-id-on-init.patch
+buildid-stash-away-kernels-build-id-on-init-fix.patch
+dump_stack-add-vmlinux-build-id-to-stack-traces.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces.patch
+arm64-stacktrace-use-%psb-for-backtrace-printing.patch
+x86-dumpstack-use-%psb-%pbb-for-backtrace-printing.patch
+scripts-decode_stacktracesh-support-debuginfod.patch
+scripts-decode_stacktracesh-silence-stderr-messages-from-addr2line-nm.patch
+scripts-decode_stacktracesh-indicate-auto-can-be-used-for-base-path.patch
+buildid-mark-some-arguments-const.patch
+buildid-fix-kernel-doc-notation.patch
+kdump-use-vmlinux_build_id-to-simplify.patch
 
