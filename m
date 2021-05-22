@@ -2,190 +2,100 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE953C4707A
-	for <mm-commits@archiver.kernel.org>; Fri, 21 May 2021 16:35:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5381C04FF3
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 00:20:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B2B4B613EE
-	for <mm-commits@archiver.kernel.org>; Fri, 21 May 2021 16:35:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9158B613EC
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 00:20:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237631AbhEUQhD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 May 2021 12:37:03 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:59830 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S235362AbhEUQhC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 21 May 2021 12:37:02 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1621614939;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=HZlyA2fykG9/ItrhE3JKOBw8IERquxE+qww/yqJgdxs=;
-        b=EVfldzmQF9/pbQH14Jf0HlPngBLovtyTmD8ZCgV8811pFuiY8pkBHboHU9+9fcekdnWDto
-        i3jdznWHjri4+wbb4zSmxx937rk0oQ8aFwqDGO/bkqMq36eMT0ZKFKfRqdN25zFMJ+9OPA
-        e7/FZT8q/3Q78vF+G/9AjASkq5Gjl2M=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-60-nriD3aWLNDK0n9nMY9sEnA-1; Fri, 21 May 2021 12:35:35 -0400
-X-MC-Unique: nriD3aWLNDK0n9nMY9sEnA-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 96A621020C3A;
-        Fri, 21 May 2021 16:35:33 +0000 (UTC)
-Received: from dhcp-27-174.brq.redhat.com (unknown [10.40.192.49])
-        by smtp.corp.redhat.com (Postfix) with SMTP id 9143E6A03D;
-        Fri, 21 May 2021 16:35:28 +0000 (UTC)
-Received: by dhcp-27-174.brq.redhat.com (nbSMTP-1.00) for uid 1000
-        oleg@redhat.com; Fri, 21 May 2021 18:35:33 +0200 (CEST)
-Date:   Fri, 21 May 2021 18:35:27 +0200
-From:   Oleg Nesterov <oleg@redhat.com>
-To:     akpm@linux-foundation.org
-Cc:     bp@suse.de, davidchao@google.com, jenhaochen@google.com,
-        jkosina@suse.cz, josh@joshtriplett.org, liumartin@google.com,
-        mhocko@suse.cz, mingo@redhat.com, mm-commits@vger.kernel.org,
-        nathan@kernel.org, ndesaulniers@google.com,
-        paulmck@linux.vnet.ibm.com, peterz@infradead.org, pmladek@suse.com,
-        rostedt@goodmis.org, stable@vger.kernel.org, tglx@linutronix.de,
-        tj@kernel.org, vbabka@suse.cz, linux-kernel@vger.kernel.org
-Subject: Re: +
- kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race.patch
- added to -mm tree
-Message-ID: <20210521163526.GA17916@redhat.com>
-References: <20210520214737.MrGGKbPrJ%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210520214737.MrGGKbPrJ%akpm@linux-foundation.org>
-User-Agent: Mutt/1.5.24 (2015-08-30)
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+        id S231274AbhEVAWT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 May 2021 20:22:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56038 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231179AbhEVAVv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 21 May 2021 20:21:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 37722613D6;
+        Sat, 22 May 2021 00:20:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1621642826;
+        bh=U1sH6yKQK7nUczyjR1FatvgoMJ6aopMmaTEC529EcNM=;
+        h=Date:From:To:Subject:From;
+        b=rfCxTGN+oU6O70vnc1/K0NPYmbRwI7jhNJJS+z8rzonHP+R7M7Lm/gJiS+GamZ8PB
+         y+jva2ibIicq8Fvkv2LtgzbzwqGaJzjrl/h10K7IoVKaceHQDU48whnd6xeS3wiNq7
+         v1+sJGodHmJbTRCbq+KnzKRM94De+alRRrRB9DBE=
+Date:   Fri, 21 May 2021 17:20:25 -0700
+From:   akpm@linux-foundation.org
+To:     ananth@in.ibm.com, christian.brauner@ubuntu.com, corbet@lwn.net,
+        hca@linux.ibm.com, joe@perches.com, jszhang@kernel.org,
+        jthumshirn@suse.de, marc@koderer.com, mathieu.desnoyers@polymtl.ca,
+        mchehab+huawei@kernel.org, mhiramat@kernel.org,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        schwidefsky@de.ibm.com, yangtiezhu@loongson.cn
+Subject:  [obsolete]
+ samples-kprobes-fix-typo-in-handler_fault.patch removed from -mm tree
+Message-ID: <20210522002025.ckKFKmrCK%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 05/20, Andrew Morton wrote:
->
-> --- a/kernel/kthread.c~kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race
-> +++ a/kernel/kthread.c
-> @@ -1181,6 +1181,19 @@ bool kthread_mod_delayed_work(struct kth
->  		goto out;
->
->  	ret = __kthread_cancel_work(work, true, &flags);
-> +
-> +	/*
-> +	 * Canceling could run in parallel from kthread_cancel_delayed_work_sync
-> +	 * and change work's canceling count as the spinlock is released and regain
-> +	 * in __kthread_cancel_work so we need to check the count again. Otherwise,
-> +	 * we might incorrectly queue the dwork and further cause
-> +	 * cancel_delayed_work_sync thread waiting for flush dwork endlessly.
-> +	 */
-> +	if (work->canceling) {
-> +		ret = false;
-> +		goto out;
-> +	}
-> +
->  fast_queue:
->  	__kthread_queue_delayed_work(worker, dwork, delay);
 
-Never looked at this code before, can't review...
+The patch titled
+     Subject: samples/kprobes: fix typo in handler_fault()
+has been removed from the -mm tree.  Its filename was
+     samples-kprobes-fix-typo-in-handler_fault.patch
 
-but note that another caller of __kthread_queue_delayed_work() needs to
-check work->canceling too. So perhaps we should simply add queuing_blocked()
-into __kthread_queue_delayed_work() ?
+This patch was dropped because it is obsolete
 
-Something like below, uncompiled/untested, most probably incorrect.
+------------------------------------------------------
+From: Tiezhu Yang <yangtiezhu@loongson.cn>
+Subject: samples/kprobes: fix typo in handler_fault()
 
-Either way, this comment
+Fix a defective format in handler_fault() ending with an 'n' that
+should be '\n'.
 
-	 * Return: %true if @dwork was pending and its timer was modified,
-	 * %false otherwise.
+Link: https://lkml.kernel.org/r/1621218083-23519-2-git-send-email-yangtiezhu@loongson.cn
+Fixes: 804defea1c02 ("Kprobes: move kprobe examples to samples/")
+Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
+Suggested-by: Joe Perches <joe@perches.com>
+Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Jisheng Zhang <jszhang@kernel.org>
+Cc: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Marc Koderer <marc@koderer.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-above kthread_mod_delayed_work looks obviously wrong. Currently it returns
-true if this work was pending. With your patch it returns true if it was
-pending and not canceling.
+ samples/kprobes/kprobe_example.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-With the patch below it returns true if the work was (re)queued successfully,
-and this makes more sense to me. But again, I can easily misread this code.
-
-In any case, even if my patch is correct, I won't insist, your fix is
-much simpler.
-
-Oleg.
-
---- x/kernel/kthread.c
-+++ x/kernel/kthread.c
-@@ -977,7 +977,7 @@ void kthread_delayed_work_timer_fn(struc
- }
- EXPORT_SYMBOL(kthread_delayed_work_timer_fn);
- 
--static void __kthread_queue_delayed_work(struct kthread_worker *worker,
-+static bool __kthread_queue_delayed_work(struct kthread_worker *worker,
- 					 struct kthread_delayed_work *dwork,
- 					 unsigned long delay)
+--- a/samples/kprobes/kprobe_example.c~samples-kprobes-fix-typo-in-handler_fault
++++ a/samples/kprobes/kprobe_example.c
+@@ -101,7 +101,7 @@ static void __kprobes handler_post(struc
+  */
+ static int handler_fault(struct kprobe *p, struct pt_regs *regs, int trapnr)
  {
-@@ -987,6 +987,9 @@ static void __kthread_queue_delayed_work
- 	WARN_ON_FUNCTION_MISMATCH(timer->function,
- 				  kthread_delayed_work_timer_fn);
- 
-+	if (queuing_blocked(worker, work))
-+		return false;
-+
- 	/*
- 	 * If @delay is 0, queue @dwork->work immediately.  This is for
- 	 * both optimization and correctness.  The earliest @timer can
-@@ -995,7 +998,7 @@ static void __kthread_queue_delayed_work
- 	 */
- 	if (!delay) {
- 		kthread_insert_work(worker, work, &worker->work_list);
--		return;
-+		return true;
- 	}
- 
- 	/* Be paranoid and try to detect possible races already now. */
-@@ -1005,6 +1008,7 @@ static void __kthread_queue_delayed_work
- 	work->worker = worker;
- 	timer->expires = jiffies + delay;
- 	add_timer(timer);
-+	return true;
+-	pr_info("fault_handler: p->addr = 0x%p, trap #%dn", p->addr, trapnr);
++	pr_info("fault_handler: p->addr = 0x%p, trap #%d\n", p->addr, trapnr);
+ 	/* Return 0 because we don't handle the fault. */
+ 	return 0;
  }
- 
- /**
-@@ -1028,16 +1032,12 @@ bool kthread_queue_delayed_work(struct k
- {
- 	struct kthread_work *work = &dwork->work;
- 	unsigned long flags;
--	bool ret = false;
-+	bool ret;
- 
- 	raw_spin_lock_irqsave(&worker->lock, flags);
--
--	if (!queuing_blocked(worker, work)) {
--		__kthread_queue_delayed_work(worker, dwork, delay);
--		ret = true;
--	}
--
-+	ret = __kthread_queue_delayed_work(worker, dwork, delay);
- 	raw_spin_unlock_irqrestore(&worker->lock, flags);
-+
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(kthread_queue_delayed_work);
-@@ -1180,9 +1180,9 @@ bool kthread_mod_delayed_work(struct kth
- 	if (work->canceling)
- 		goto out;
- 
--	ret = __kthread_cancel_work(work, true, &flags);
-+	__kthread_cancel_work(work, true, &flags);
- fast_queue:
--	__kthread_queue_delayed_work(worker, dwork, delay);
-+	ret = __kthread_queue_delayed_work(worker, dwork, delay);
- out:
- 	raw_spin_unlock_irqrestore(&worker->lock, flags);
- 	return ret;
+_
+
+Patches currently in -mm which might be from yangtiezhu@loongson.cn are
+
+samples-kprobes-fix-typo-in-handler_post.patch
 
