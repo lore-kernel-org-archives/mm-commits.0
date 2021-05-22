@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12436C2B9F2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABA02C2B9FB
 	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E163261177
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7F035611BD
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231432AbhEVUQT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 16:16:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38798 "EHLO mail.kernel.org"
+        id S231386AbhEVUQU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 16:16:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38836 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231386AbhEVUQS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 16:16:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D4B2D61164;
-        Sat, 22 May 2021 20:14:51 +0000 (UTC)
+        id S231431AbhEVUQT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 16:16:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D7D9D61175;
+        Sat, 22 May 2021 20:14:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621714492;
-        bh=Q8uvd0ecPb/NLnZkPmOQ0evR/5v0RlOhm/ZkQ2xcnT4=;
+        s=korg; t=1621714494;
+        bh=cwfp40DWgl1QD7C9Cc7uH4/V6M2n+t1l1MGLk3tlFSE=;
         h=Date:From:To:Subject:From;
-        b=Cl6h/c8buhs1Mqb76UHn7weB4w0m8WLxD4yxbe+osuG6Zqqqr/rfH1VNkoAXOBty0
-         DwyQkb3sUx1auc00a7jYsWzoathlXMfbaJzmQk8MR1YS28tityYC/RNU1Swr2s6YSy
-         lC8HMMHm2mcTNFPpRfyztbTNi2YetBI2tdO6k9o4=
-Date:   Sat, 22 May 2021 13:14:51 -0700
+        b=ZbdiITl16+lVXb1Ivpk/DXM6n+TGqe34LZX6WU1HQBr7r48p2rGfPbvmTQEn+vPWy
+         s45NB3V/XImWnk73OXdZbCstrC56/ayRq1n+yWZJiFm00ADZAJpZsWebIXWHrGwOR5
+         UeB5U6qQ8euRlQlhLWHiT1x594fVZWmrhGr7EldQ=
+Date:   Sat, 22 May 2021 13:14:53 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, dbueso@suse.de, geert@linux-m68k.org,
         ldufour@linux.ibm.com, Liam.Howlett@Oracle.com,
         mm-commits@vger.kernel.org
 Subject:  +
- arch-powerpc-kvm-book3s-use-vma_lookup-in-kvmppc_hv_setup_htab_rma.patch
- added to -mm tree
-Message-ID: <20210522201451.BDcyLlzmK%akpm@linux-foundation.org>
+ arch-mips-kernel-traps-use-vma_lookup-instead-of-find_vma.patch added to
+ -mm tree
+Message-ID: <20210522201453.IMMfte3o4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/powerpc/kvm/book3s: use vma_lookup() in kvmppc_hv_setup_htab_rma()
+     Subject: arch/mips/kernel/traps: use vma_lookup() instead of find_vma()
 has been added to the -mm tree.  Its filename is
-     arch-powerpc-kvm-book3s-use-vma_lookup-in-kvmppc_hv_setup_htab_rma.patch
+     arch-mips-kernel-traps-use-vma_lookup-instead-of-find_vma.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arch-powerpc-kvm-book3s-use-vma_lookup-in-kvmppc_hv_setup_htab_rma.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arch-mips-kernel-traps-use-vma_lookup-instead-of-find_vma.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arch-powerpc-kvm-book3s-use-vma_lookup-in-kvmppc_hv_setup_htab_rma.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arch-mips-kernel-traps-use-vma_lookup-instead-of-find_vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,13 +67,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: arch/powerpc/kvm/book3s: use vma_lookup() in kvmppc_hv_setup_htab_rma()
+Subject: arch/mips/kernel/traps: use vma_lookup() instead of find_vma()
 
-Using vma_lookup() removes the requirement to check if the address is
-within the returned vma.  The code is easier to understand and more
-compact.
+Use vma_lookup() to find the VMA at a specific address.  As vma_lookup()
+will return NULL if the address is not within any VMA, the start address
+no longer needs to be validated.
 
-Link: https://lkml.kernel.org/r/20210521174745.2219620-7-Liam.Howlett@Oracle.com
+Link: https://lkml.kernel.org/r/20210521174745.2219620-8-Liam.Howlett@Oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -82,22 +82,29 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/kernel/traps.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/arch/powerpc/kvm/book3s_hv.c~arch-powerpc-kvm-book3s-use-vma_lookup-in-kvmppc_hv_setup_htab_rma
-+++ a/arch/powerpc/kvm/book3s_hv.c
-@@ -4759,8 +4759,8 @@ static int kvmppc_hv_setup_htab_rma(stru
- 	/* Look up the VMA for the start of this memory slot */
- 	hva = memslot->userspace_addr;
- 	mmap_read_lock(kvm->mm);
--	vma = find_vma(kvm->mm, hva);
--	if (!vma || vma->vm_start > hva || (vma->vm_flags & VM_IO))
-+	vma = vma_lookup(kvm->mm, hva);
-+	if (!vma || (vma->vm_flags & VM_IO))
- 		goto up_out;
+--- a/arch/mips/kernel/traps.c~arch-mips-kernel-traps-use-vma_lookup-instead-of-find_vma
++++ a/arch/mips/kernel/traps.c
+@@ -784,7 +784,6 @@ void force_fcr31_sig(unsigned long fcr31
+ int process_fpemu_return(int sig, void __user *fault_addr, unsigned long fcr31)
+ {
+ 	int si_code;
+-	struct vm_area_struct *vma;
  
- 	psize = vma_kernel_pagesize(vma);
+ 	switch (sig) {
+ 	case 0:
+@@ -800,8 +799,7 @@ int process_fpemu_return(int sig, void _
+ 
+ 	case SIGSEGV:
+ 		mmap_read_lock(current->mm);
+-		vma = find_vma(current->mm, (unsigned long)fault_addr);
+-		if (vma && (vma->vm_start <= (unsigned long)fault_addr))
++		if (vma_lookup(current->mm, (unsigned long)fault_addr))
+ 			si_code = SEGV_ACCERR;
+ 		else
+ 			si_code = SEGV_MAPERR;
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
