@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DB88C2B9F2
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F61CC2B9F2
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DC6856108E
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38A5361182
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231434AbhEVUQY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 16:16:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38942 "EHLO mail.kernel.org"
+        id S231439AbhEVUQ2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 16:16:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38984 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231431AbhEVUQY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 16:16:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D3EFA6108E;
-        Sat, 22 May 2021 20:14:57 +0000 (UTC)
+        id S231431AbhEVUQ0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 16:16:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DD7B061175;
+        Sat, 22 May 2021 20:14:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621714498;
-        bh=mgJV4UdAe5Y2K9Dm5tu349QFssyohmAPMYyt4OU/Sjc=;
+        s=korg; t=1621714500;
+        bh=D/8LW+U8nDjE36lR72mVhp6LOXsmjZ6BXQlTIRUCaOA=;
         h=Date:From:To:Subject:From;
-        b=U+MDCFRcU9Fc4XAD/VpPagRmaYr1B75oN/d/2k/uTKG1shSoSFJflB29lWdK0unxi
-         v0Z1ZenuM3VptxMluBnTyt4dKAHZMO2/VXOQXuELFEr7If3cB+PsQ10aLbRvgP9RFT
-         /U5Ma6j4L3lLAoBahDXYyi2iNqrMaDmN6qVyry0c=
-Date:   Sat, 22 May 2021 13:14:57 -0700
+        b=ghFpv3UEOwSow4z0Jd0VY4ZyXSdnSgCx9q+6TUuEnvZqfGz/R/F/nP5HNSkXiLTAg
+         tGSI/RMxSyqvBtowqlACoI+/7bTrV/eOaIsf9gGioypGEOcDQ19uP3cy7lu5zOtj1f
+         md139sllRbaguUWW+qvlHtdELFQv33eV9Dt1yX9I=
+Date:   Sat, 22 May 2021 13:14:59 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, dbueso@suse.de, geert@linux-m68k.org,
         ldufour@linux.ibm.com, Liam.Howlett@Oracle.com,
         mm-commits@vger.kernel.org
-Subject:  + x86-sgx-use-vma_lookup-in-sgx_encl_find.patch added to
- -mm tree
-Message-ID: <20210522201457.0F1-RmtuO%akpm@linux-foundation.org>
+Subject:  +
+ virt-kvm-use-vma_lookup-instead-of-find_vma_intersection.patch added to -mm
+ tree
+Message-ID: <20210522201459.ucvcCcPXP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/sgx: use vma_lookup() in sgx_encl_find()
+     Subject: virt/kvm: use vma_lookup() instead of find_vma_intersection()
 has been added to the -mm tree.  Its filename is
-     x86-sgx-use-vma_lookup-in-sgx_encl_find.patch
+     virt-kvm-use-vma_lookup-instead-of-find_vma_intersection.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/x86-sgx-use-vma_lookup-in-sgx_encl_find.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/virt-kvm-use-vma_lookup-instead-of-find_vma_intersection.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/x86-sgx-use-vma_lookup-in-sgx_encl_find.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/virt-kvm-use-vma_lookup-instead-of-find_vma_intersection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,13 +67,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: x86/sgx: use vma_lookup() in sgx_encl_find()
+Subject: virt/kvm: use vma_lookup() instead of find_vma_intersection()
 
-Use vma_lookup() to find the VMA at a specific address.  As vma_lookup()
-will return NULL if the address is not within any VMA, the start address
-no longer needs to be validated.
+vma_lookup() finds the vma of a specific address with a cleaner interface
+and is more readable.
 
-Link: https://lkml.kernel.org/r/20210521174745.2219620-10-Liam.Howlett@Oracle.com
+Link: https://lkml.kernel.org/r/20210521174745.2219620-11-Liam.Howlett@Oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -81,22 +81,20 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/sgx/encl.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ virt/kvm/kvm_main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/kernel/cpu/sgx/encl.h~x86-sgx-use-vma_lookup-in-sgx_encl_find
-+++ a/arch/x86/kernel/cpu/sgx/encl.h
-@@ -91,8 +91,8 @@ static inline int sgx_encl_find(struct m
- {
- 	struct vm_area_struct *result;
+--- a/virt/kvm/kvm_main.c~virt-kvm-use-vma_lookup-instead-of-find_vma_intersection
++++ a/virt/kvm/kvm_main.c
+@@ -2154,7 +2154,7 @@ static kvm_pfn_t hva_to_pfn(unsigned lon
+ 	}
  
--	result = find_vma(mm, addr);
--	if (!result || result->vm_ops != &sgx_vm_ops || addr < result->vm_start)
-+	result = vma_lookup(mm, addr);
-+	if (!result || result->vm_ops != &sgx_vm_ops)
- 		return -EINVAL;
+ retry:
+-	vma = find_vma_intersection(current->mm, addr, addr + 1);
++	vma = vma_lookup(current->mm, addr);
  
- 	*vma = result;
+ 	if (vma == NULL)
+ 		pfn = KVM_PFN_ERR_FAULT;
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
