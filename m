@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF67DC2B9F2
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:18:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDE44C2B9F2
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:21:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9AC1261183
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:18:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 918E9611CB
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:21:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231431AbhEVWUY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 18:20:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38054 "EHLO mail.kernel.org"
+        id S231433AbhEVWWs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 18:22:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39506 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231428AbhEVWUX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 18:20:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 695EC610C9;
-        Sat, 22 May 2021 22:18:58 +0000 (UTC)
+        id S231431AbhEVWWr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 18:22:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CD2B6611ED;
+        Sat, 22 May 2021 22:21:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621721938;
-        bh=TJM4DJ2zv2SVwbGVsnvofcfs0vSGA4QWkPjuLgNTh9Q=;
+        s=korg; t=1621722082;
+        bh=3MJ3H3TnT0xx+uZ9RTcaDKSyHVj4Z0R3/IOO3dgZZOc=;
         h=Date:From:To:Subject:From;
-        b=Seu/ZFMvd5Yn37X16V6sOZfqlcg60t95O7w2p1zX/OcFZGE0vYLMSLdwCmhZ8oyYC
-         mfnEjrM8raI57jc9OK1iQX1TwAHAjAvq+RXad5kXqLpPwnnOFRSEPNLCiO4yW7qxqz
-         /fnEgMw124EFHYDosJvvtVZjdo/WxAq/gMQqprB4=
-Date:   Sat, 22 May 2021 15:18:58 -0700
+        b=cA6Ms4KwD9ymx6/b69cAZcJbrKQRIH7iDnaDAU1BJYhPn6usYKKto6EJN48tjDH7M
+         xm/hThDZ5IwGb4QBes9KLx/9W1hlcavWvZLjQPCZgfYyuBydLsFqAi3r8HOiGckXVN
+         U9x2gDKy+B49Gv3MEwQPY8ecGsDpH2b8kRsiCQs0=
+Date:   Sat, 22 May 2021 15:21:21 -0700
 From:   akpm@linux-foundation.org
 To:     almasrymina@google.com, axelrasmussen@google.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         peterx@redhat.com
-Subject:  [to-be-updated]
- mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy.patch removed from
- -mm tree
-Message-ID: <20210522221858.JB1jcKnnA%akpm@linux-foundation.org>
+Subject:  +
+ mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy.patch added to -mm
+ tree
+Message-ID: <20210522222121.AoNUbU3LN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,32 +46,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm, hugetlb: fix resv_huge_pages underflow on UFFDIO_COPY
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Mina Almasry <almasrymina@google.com>
 Subject: mm, hugetlb: fix resv_huge_pages underflow on UFFDIO_COPY
 
-The userfaultfd hugetlb tests detect a resv_huge_pages underflow. This
-happens when hugetlb_mcopy_atomic_pte() is called with !is_continue on
-an index for which we already have a page in the cache. When this
-happens, we allocate a second page, double consuming the reservation,
-and then fail to insert the page into the cache and return -EEXIST.
+The userfaultfd hugetlb tests detect a resv_huge_pages underflow.  This
+happens when hugetlb_mcopy_atomic_pte() is called with !is_continue on an
+index for which we already have a page in the cache.  When this happens,
+we allocate a second page, double consuming the reservation, and then fail
+to insert the page into the cache and return -EEXIST.
 
-To fix this, we first if there exists a page in the cache which already
-consumed the reservation, and return -EEXIST immediately if so.
+To fix this, we first check if there exists a page in the cache which
+already consumed the reservation, and return -EEXIST immediately if so.
 
 Secondly, if we fail to copy the page contents while holding the
-hugetlb_fault_mutex, we will drop the mutex and return to the caller
-after allocating a page that consumed a reservation. In this case there
-may be a fault that double consumes the reservation. To handle this, we
-free the allocated page, fix the reservations, and allocate a temporary
-hugetlb page and return that to the caller. When the caller does the
-copy outside of the lock, we again check the cache, and allocate a page
-consuming the reservation, and copy over the contents.
+hugetlb_fault_mutex, we will drop the mutex and return to the caller after
+allocating a page that consumed a reservation.  In this case there may be
+a fault that double consumes the reservation.  To handle this, we free the
+allocated page, fix the reservations, and allocate a temporary hugetlb
+page and return that to the caller.  When the caller does the copy outside
+of the lock, we again check the cache, and allocate a page consuming the
+reservation, and copy over the contents.
 
 Test:
 Hacked the code locally such that resv_huge_pages underflows produce
@@ -89,12 +103,7 @@ Link: https://lkml.kernel.org/r/20210521074433.931380-1-almasrymina@google.com
 Signed-off-by: Mina Almasry <almasrymina@google.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: linux-mm@kvack.org
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -327,4 +336,5 @@ _
 
 Patches currently in -mm which might be from almasrymina@google.com are
 
+mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy.patch
 
