@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 879A0C4707E
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DB88C2B9F2
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6C53561182
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC6856108E
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231433AbhEVUQV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 16:16:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38886 "EHLO mail.kernel.org"
+        id S231434AbhEVUQY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 16:16:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38942 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231431AbhEVUQV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 16:16:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D7C6161164;
-        Sat, 22 May 2021 20:14:55 +0000 (UTC)
+        id S231431AbhEVUQY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 16:16:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D3EFA6108E;
+        Sat, 22 May 2021 20:14:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621714496;
-        bh=EbO0FQKonfAAdSo45/KliHdU8jYt2X8Olb1zS3Xf2cQ=;
+        s=korg; t=1621714498;
+        bh=mgJV4UdAe5Y2K9Dm5tu349QFssyohmAPMYyt4OU/Sjc=;
         h=Date:From:To:Subject:From;
-        b=XD3sO3mYL/1KVrdAHKlhVU/xyNsb7pg7+ssER0XxfzaJ//hSPffYTTEkF4HMb81de
-         VFHLu5ycqwf4wRhAoLjhGCblFukqdO7VV9G0ujfaCImIdgYtr9UFq5HKhgZeb2QBER
-         Qmd4EPF4Tc6PbeHH1bIfvOdvFui3glUQDX2+cZx4=
-Date:   Sat, 22 May 2021 13:14:55 -0700
+        b=U+MDCFRcU9Fc4XAD/VpPagRmaYr1B75oN/d/2k/uTKG1shSoSFJflB29lWdK0unxi
+         v0Z1ZenuM3VptxMluBnTyt4dKAHZMO2/VXOQXuELFEr7If3cB+PsQ10aLbRvgP9RFT
+         /U5Ma6j4L3lLAoBahDXYyi2iNqrMaDmN6qVyry0c=
+Date:   Sat, 22 May 2021 13:14:57 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, dbueso@suse.de, geert@linux-m68k.org,
         ldufour@linux.ibm.com, Liam.Howlett@Oracle.com,
         mm-commits@vger.kernel.org
-Subject:  +
- arch-m68k-kernel-sys_m68k-use-vma_lookup-in-sys_cacheflush.patch added to
+Subject:  + x86-sgx-use-vma_lookup-in-sgx_encl_find.patch added to
  -mm tree
-Message-ID: <20210522201455.1Uo4WaXwU%akpm@linux-foundation.org>
+Message-ID: <20210522201457.0F1-RmtuO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/m68k/kernel/sys_m68k: use vma_lookup() in sys_cacheflush()
+     Subject: x86/sgx: use vma_lookup() in sgx_encl_find()
 has been added to the -mm tree.  Its filename is
-     arch-m68k-kernel-sys_m68k-use-vma_lookup-in-sys_cacheflush.patch
+     x86-sgx-use-vma_lookup-in-sgx_encl_find.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arch-m68k-kernel-sys_m68k-use-vma_lookup-in-sys_cacheflush.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-sgx-use-vma_lookup-in-sgx_encl_find.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arch-m68k-kernel-sys_m68k-use-vma_lookup-in-sys_cacheflush.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-sgx-use-vma_lookup-in-sgx_encl_find.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,37 +66,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: arch/m68k/kernel/sys_m68k: use vma_lookup() in sys_cacheflush()
+Subject: x86/sgx: use vma_lookup() in sgx_encl_find()
 
 Use vma_lookup() to find the VMA at a specific address.  As vma_lookup()
 will return NULL if the address is not within any VMA, the start address
 no longer needs to be validated.
 
-Link: https://lkml.kernel.org/r/20210521174745.2219620-9-Liam.Howlett@Oracle.com
+Link: https://lkml.kernel.org/r/20210521174745.2219620-10-Liam.Howlett@Oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Acked-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/sys_m68k.c |    4 ++--
+ arch/x86/kernel/cpu/sgx/encl.h |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/m68k/kernel/sys_m68k.c~arch-m68k-kernel-sys_m68k-use-vma_lookup-in-sys_cacheflush
-+++ a/arch/m68k/kernel/sys_m68k.c
-@@ -402,8 +402,8 @@ sys_cacheflush (unsigned long addr, int
- 		 * to this process.
- 		 */
- 		mmap_read_lock(current->mm);
--		vma = find_vma(current->mm, addr);
--		if (!vma || addr < vma->vm_start || addr + len > vma->vm_end)
-+		vma = vma_lookup(current->mm, addr);
-+		if (!vma || addr + len > vma->vm_end)
- 			goto out_unlock;
- 	}
+--- a/arch/x86/kernel/cpu/sgx/encl.h~x86-sgx-use-vma_lookup-in-sgx_encl_find
++++ a/arch/x86/kernel/cpu/sgx/encl.h
+@@ -91,8 +91,8 @@ static inline int sgx_encl_find(struct m
+ {
+ 	struct vm_area_struct *result;
  
+-	result = find_vma(mm, addr);
+-	if (!result || result->vm_ops != &sgx_vm_ops || addr < result->vm_start)
++	result = vma_lookup(mm, addr);
++	if (!result || result->vm_ops != &sgx_vm_ops)
+ 		return -EINVAL;
+ 
+ 	*vma = result;
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
