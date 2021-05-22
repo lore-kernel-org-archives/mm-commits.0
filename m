@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6114CC2B9F2
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:16:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7599C2B9F2
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:17:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2776F60FE3
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:16:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B0FF61182
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:17:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231431AbhEVWR6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 18:17:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36518 "EHLO mail.kernel.org"
+        id S231431AbhEVWTW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 18:19:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37422 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231428AbhEVWR4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 18:17:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B871061182;
-        Sat, 22 May 2021 22:16:30 +0000 (UTC)
+        id S231428AbhEVWTV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 18:19:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 822DF610C9;
+        Sat, 22 May 2021 22:17:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621721790;
-        bh=i40D/QmStt33DaCgG4plIjLJ+TlWN0EkqEiFDZ9aWaI=;
+        s=korg; t=1621721875;
+        bh=Ke+/fOZGK7LXWYhWNjcsGQKElMQD8ySzQp19TeVfIuI=;
         h=Date:From:To:Subject:From;
-        b=YRt0IwOpXwJWi2z4pVk8QACtmi8Icm907TLf47WTZ9rJmJWMaAlhAzUYtgznPzmVQ
-         KCC+jTgcefSwjOavSVqKN5gtCTh98s2jvxaFS6fFz19Uw+WVa/F0L/Q30m2we38NPc
-         pSFz7PnQKFzdd0bzSb2IdrStMUgudZ3J5mdInvmg=
-Date:   Sat, 22 May 2021 15:16:30 -0700
+        b=dDUBycZoZac+M6gXi+FHFhxAk1mYw46nuIZERt+5dSJS14VwSl2d39H3mpimMhgLB
+         kVkKtevLnT1wUXNJwOP/CWaMZNyfJjqVW97o1TH9t4ZoaI2nbCzo6zCrHIdnSS4duY
+         bI1fTbErASUrUT66mMWsiz6FDlM7A0eZFGpsgYWY=
+Date:   Sat, 22 May 2021 15:17:55 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        songmuchun@bytedance.com
-Subject:  +
- mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool-v2.patch
- added to -mm tree
-Message-ID: <20210522221630.MtkBxtkgF%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, hughd@google.com,
+        mm-commits@vger.kernel.org, ziy@nvidia.com
+Subject:  [nacked]
+ mm-thp-update-mm_structs-mm_anonpages-stat-for-huge-zero-pages.patch
+ removed from -mm tree
+Message-ID: <20210522221755.V5DcwaZ_n%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,80 +44,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: fix missing update page_private to hugetlb_page_subpool
-has been added to the -mm tree.  Its filename is
-     mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool-v2.patch
+     Subject: mm/thp: update mm_struct's MM_ANONPAGES stat for huge zero pages
+has been removed from the -mm tree.  Its filename was
+     mm-thp-update-mm_structs-mm_anonpages-stat-for-huge-zero-pages.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool-v2.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool-v2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: migrate: fix missing update page_private to hugetlb_page_subpool
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/thp: update mm_struct's MM_ANONPAGES stat for huge zero pages
 
-fix compiler error when !CONFIG_HUGETLB_PAGE reported by Randy
+Although the zero huge page is being shared across various processes, each
+mapping needs to update its mm_struct's MM_ANONPAGES stat by HPAGE_PMD_NR
+to be consistent.  This just updates the stats in set_huge_zero_page()
+after the mapping gets created and in zap_huge_pmd() when mapping gets
+destroyed.
 
-Link: https://lkml.kernel.org/r/20210521022747.35736-1-songmuchun@bytedance.com
-Fixes: d6995da31122 ("hugetlb: use page.private for hugetlb specific page flags")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reported-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/1621313300-1118-1-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Zi Yan<ziy@nvidia.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/huge_memory.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/hugetlb.h~mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool-v2
-+++ a/include/linux/hugetlb.h
-@@ -925,6 +925,11 @@ static inline bool is_hugetlb_free_vmemm
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
+--- a/mm/huge_memory.c~mm-thp-update-mm_structs-mm_anonpages-stat-for-huge-zero-pages
++++ a/mm/huge_memory.c
+@@ -715,6 +715,7 @@ static void set_huge_zero_page(pgtable_t
+ 	if (pgtable)
+ 		pgtable_trans_huge_deposit(mm, pmd, pgtable);
+ 	set_pmd_at(mm, haddr, pmd, entry);
++	add_mm_counter(mm, MM_ANONPAGES, HPAGE_PMD_NR);
+ 	mm_inc_nr_ptes(mm);
+ }
  
-+static inline struct hugepage_subpool *hugetlb_page_subpool(struct page *hpage)
-+{
-+	return NULL;
-+}
-+
- static inline int isolate_or_dissolve_huge_page(struct page *page,
- 						struct list_head *list)
- {
+@@ -1627,6 +1628,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 		spin_unlock(ptl);
+ 	} else if (is_huge_zero_pmd(orig_pmd)) {
+ 		zap_deposited_table(tlb->mm, pmd);
++		add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
+ 		spin_unlock(ptl);
+ 	} else {
+ 		struct page *page = NULL;
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-memcontrol-fix-root_mem_cgroup-charging.patch
-mm-memcontrol-fix-page-charging-in-page-replacement.patch
-mm-memcontrol-bail-out-early-when-mm-in-get_mem_cgroup_from_mm.patch
-mm-memcontrol-remove-the-pgdata-parameter-of-mem_cgroup_page_lruvec.patch
-mm-memcontrol-simplify-lruvec_holds_page_lru_lock.patch
-mm-memcontrol-rename-lruvec_holds_page_lru_lock-to-page_matches_lruvec.patch
-mm-memcontrol-simplify-the-logic-of-objcg-pinning-memcg.patch
-mm-memcontrol-move-obj_cgroup_uncharge_pages-out-of-css_set_lock.patch
-mm-vmscan-remove-noinline_for_stack.patch
-mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc.patch
-mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch
-mm-hugetlb-gather-discrete-indexes-of-tail-page.patch
-mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
-mm-hugetlb-defer-freeing-of-hugetlb-pages.patch
-mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
-mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled.patch
-mm-hugetlb-introduce-nr_free_vmemmap_pages-in-the-struct-hstate.patch
-mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool.patch
-mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool-v2.patch
+mm-debug_vm_pgtable-ensure-thp-availability-via-has_transparent_hugepage.patch
+mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks.patch
+mm-define-default-value-for-first_user_address.patch
 
