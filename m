@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38FB7C2B9FB
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7E3BC2B9F2
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1B8C161175
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B70A61182
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231442AbhEVUQd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 16:16:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39188 "EHLO mail.kernel.org"
+        id S231444AbhEVUQf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 16:16:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39242 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231438AbhEVUQd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 16:16:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D653A6108E;
-        Sat, 22 May 2021 20:15:06 +0000 (UTC)
+        id S231438AbhEVUQe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 16:16:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D21A961164;
+        Sat, 22 May 2021 20:15:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621714507;
-        bh=VF3kQZqqI0Wm/2JqNr3TaCzPL0DGd+azCydqZw076TE=;
+        s=korg; t=1621714509;
+        bh=UP6HEfnoodR4MUqbOsMp+tVSQ4jrUYurQpnY870/Z50=;
         h=Date:From:To:Subject:From;
-        b=HHhO5B8ehIf3gOf7gSGcoGeQigtF5dd2I5EOiPMvmPjqAP9Dx+huYsOre/31tVm3Z
-         oMqnmn9IaiFKdtcFRHybzQwb2qchYQzQx5DzOyF0T9gQ3TKgZFk+dDq2RAtBCtyC+U
-         Pvu7MmVbSxDzqel9lgKGzRp9+CiAe9xOuyGeDiT4=
-Date:   Sat, 22 May 2021 13:15:06 -0700
+        b=IO5BJCJbFfbrKh+2pX/SMoKJxZAB4dgDOZ2WNAPhGqgQk4Y0rDoQQ63gOEXdweZX1
+         oW9hrG4UmflA4XKa7tb72hogT4RouV+pkpHt5RIkgyKi8I6IwZQ5WggGn9xjHtUcWo
+         AqahY6NRN7yLNkKrc5jqgVBn/ZBvy5slTgTda7Ek=
+Date:   Sat, 22 May 2021 13:15:08 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, dbueso@suse.de, geert@linux-m68k.org,
         ldufour@linux.ibm.com, Liam.Howlett@Oracle.com,
         mm-commits@vger.kernel.org
 Subject:  +
- drm-amdgpu-use-vma_lookup-in-amdgpu_ttm_tt_get_user_pages.patch added to
- -mm tree
-Message-ID: <20210522201506.QKBlNoMPx%akpm@linux-foundation.org>
+ media-videobuf2-use-vma_lookup-in-get_vaddr_frames.patch added to -mm tree
+Message-ID: <20210522201508.Ucgk3MgGN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/amdgpu: use vma_lookup() in amdgpu_ttm_tt_get_user_pages()
+     Subject: media: videobuf2: use vma_lookup() in get_vaddr_frames()
 has been added to the -mm tree.  Its filename is
-     drm-amdgpu-use-vma_lookup-in-amdgpu_ttm_tt_get_user_pages.patch
+     media-videobuf2-use-vma_lookup-in-get_vaddr_frames.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/drm-amdgpu-use-vma_lookup-in-amdgpu_ttm_tt_get_user_pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/media-videobuf2-use-vma_lookup-in-get_vaddr_frames.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/drm-amdgpu-use-vma_lookup-in-amdgpu_ttm_tt_get_user_pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/media-videobuf2-use-vma_lookup-in-get_vaddr_frames.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,13 +66,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: drm/amdgpu: use vma_lookup() in amdgpu_ttm_tt_get_user_pages()
+Subject: media: videobuf2: use vma_lookup() in get_vaddr_frames()
 
-Use vma_lookup() to find the VMA at a specific address.  As vma_lookup()
-will return NULL if the address is not within any VMA, the start address
-no longer needs to be validated.
+vma_lookup() finds the vma of a specific address with a cleaner interface
+and is more readable.
 
-Link: https://lkml.kernel.org/r/20210521174745.2219620-14-Liam.Howlett@Oracle.com
+Link: https://lkml.kernel.org/r/20210521174745.2219620-15-Liam.Howlett@Oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -82,22 +80,20 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/common/videobuf2/frame_vector.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c~drm-amdgpu-use-vma_lookup-in-amdgpu_ttm_tt_get_user_pages
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-@@ -709,8 +709,8 @@ int amdgpu_ttm_tt_get_user_pages(struct
- 	}
+--- a/drivers/media/common/videobuf2/frame_vector.c~media-videobuf2-use-vma_lookup-in-get_vaddr_frames
++++ a/drivers/media/common/videobuf2/frame_vector.c
+@@ -64,7 +64,7 @@ int get_vaddr_frames(unsigned long start
+ 	do {
+ 		unsigned long *nums = frame_vector_pfns(vec);
  
- 	mmap_read_lock(mm);
--	vma = find_vma(mm, start);
--	if (unlikely(!vma || start < vma->vm_start)) {
-+	vma = vma_lookup(mm, start);
-+	if (unlikely(!vma)) {
- 		r = -EFAULT;
- 		goto out_unlock;
- 	}
+-		vma = find_vma_intersection(mm, start, start + 1);
++		vma = vma_lookup(mm, start);
+ 		if (!vma)
+ 			break;
+ 
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
