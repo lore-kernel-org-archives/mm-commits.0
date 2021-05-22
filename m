@@ -7,34 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BBE5C2B9F2
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 21:48:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2C26C2B9F2
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:09:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EBE9C611AB
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 21:48:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A4FEE611AB
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:09:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231440AbhEVVuM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 17:50:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47376 "EHLO mail.kernel.org"
+        id S231446AbhEVWKs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 18:10:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59958 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231388AbhEVVuM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 17:50:12 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EEDB961177;
-        Sat, 22 May 2021 21:48:46 +0000 (UTC)
+        id S231408AbhEVWKr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 18:10:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C25E361182;
+        Sat, 22 May 2021 22:09:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621720127;
-        bh=qRy3Mr2ZAIQoQw3mU6QksbMMlYKHigivAldLKitoeck=;
+        s=korg; t=1621721361;
+        bh=ASrtAxMM5cpPVn60FR1c/YhAVSSsKUt9YObvEZnYopY=;
         h=Date:From:To:Subject:From;
-        b=hn0e9gtAwWrsOBFgTGArF9/CfQdLWrswz6+t3rX4gG7K550cSMzk56QM5ZVtD62NE
-         aVoJMsj5nI+jkWwpcMJZzZkC6wbHOc9Q5vDWJ2B/X/dciGikTgtsJgv+HIFTGGP7oF
-         zcCYiGm5CuVeMAOiHPkosN0PaRRvcrxoQH6Owsyc=
-Date:   Sat, 22 May 2021 14:48:46 -0700
+        b=XB2+Pj4pGQq4IsC/zgwa92V0vhyFwzYqDtekEWrmAbcNoKSN1lMbaatZWEKKFLfm1
+         KQEawYJfrTi3hXcOmFSPhomXozQEa1Po7+DRJD9o3zo1Ej6SuquIkF9hLL7T1Yniyx
+         GLKBXAqwFERnkjYlaJsH2qmOsncAWrRtx4dsjFko=
+Date:   Sat, 22 May 2021 15:09:20 -0700
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org
+To:     akpm@linux-foundation.org, bp@alien8.de, bp@suse.de,
+        david@redhat.com, juew@google.com, luto@kernel.org,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, tony.luck@intel.com, yaoaili@kingsoft.com
 Subject:  +
- mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix.patch
- added to -mm tree
-Message-ID: <20210522214846.bi8eANQ-b%akpm@linux-foundation.org>
+ mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch added
+ to -mm tree
+Message-ID: <20210522220920.7S5PpGis1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swapfile: move scan_swap_map() under CONFIG_HIBERNATION
+     Subject: mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix
 has been added to the -mm tree.  Its filename is
-     mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix.patch
+     mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,88 +67,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swapfile: move scan_swap_map() under CONFIG_HIBERNATION
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix
 
-We should move scan_swap_map() under CONFIG_HIBERNATION since the only
-caller of this function is get_swap_page_of_type() which is also under
-CONFIG_HIBERNATION.  And this fixes the unused-function warning of
-scan_swap_map().
+make mf_mutex local to memory_failure()
 
-Link: https://lkml.kernel.org/r/20210521070855.2015094-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Aili Yao <yaoaili@kingsoft.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jue Wang <juew@google.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ mm/memory-failure.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix
-+++ a/mm/swapfile.c
-@@ -1037,21 +1037,6 @@ static void swap_free_cluster(struct swa
- 	swap_range_free(si, offset, SWAPFILE_CLUSTER);
+--- a/mm/memory-failure.c~mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix
++++ a/mm/memory-failure.c
+@@ -1397,8 +1397,6 @@ out:
+ 	return rc;
  }
  
--static unsigned long scan_swap_map(struct swap_info_struct *si,
--				   unsigned char usage)
--{
--	swp_entry_t entry;
--	int n_ret;
+-static DEFINE_MUTEX(mf_mutex);
 -
--	n_ret = scan_swap_map_slots(si, usage, 1, &entry);
--
--	if (n_ret)
--		return swp_offset(entry);
--	else
--		return 0;
--
--}
--
- int get_swap_pages(int n_goal, swp_entry_t swp_entries[], int entry_size)
- {
- 	unsigned long size = swap_entry_size(entry_size);
-@@ -1789,6 +1774,21 @@ int free_swap_and_cache(swp_entry_t entr
+ /**
+  * memory_failure - Handle memory failure of a page.
+  * @pfn: Page Number of the corrupted page
+@@ -1425,6 +1423,7 @@ int memory_failure(unsigned long pfn, in
+ 	int res = 0;
+ 	unsigned long page_flags;
+ 	bool retry = true;
++	static DEFINE_MUTEX(mf_mutex);
  
- #ifdef CONFIG_HIBERNATION
- 
-+static unsigned long scan_swap_map(struct swap_info_struct *si,
-+				   unsigned char usage)
-+{
-+	swp_entry_t entry;
-+	int n_ret;
-+
-+	n_ret = scan_swap_map_slots(si, usage, 1, &entry);
-+
-+	if (n_ret)
-+		return swp_offset(entry);
-+	else
-+		return 0;
-+
-+}
-+
- swp_entry_t get_swap_page_of_type(int type)
- {
- 	struct swap_info_struct *si = swap_type_to_swap_info(type);
+ 	if (!sysctl_memory_failure_recovery)
+ 		panic("Memory failure on page %lx", pfn);
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
-swap-fix-do_swap_page-race-with-swapoff.patch
-mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
-mm-shmem-fix-shmem_swapin-race-with-swapoff.patch
-mm-swapfile-move-get_swap_page_of_type-under-config_hibernation.patch
-mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix.patch
-mm-swap-remove-unused-local-variable-nr_shadows.patch
-mm-swap_slotsc-delete-meaningless-forward-declarations.patch
-mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch
-mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
-mm-huge_memoryc-use-page-deferred_list.patch
-mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled.patch
-mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4.patch
-mm-huge_memoryc-remove-unnecessary-tlb_remove_page_size-for-huge-zero-pmd.patch
-mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
-mm-zswapc-remove-unused-function-zswap_debugfs_exit.patch
-mm-zswapc-avoid-unnecessary-copy-in-at-map-time.patch
-mm-zswapc-fix-two-bugs-in-zswap_writeback_entry.patch
+mm.patch
+mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
+binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
+mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
+mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
+linux-next-git-rejects.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
