@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A7A8C2B9F2
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45763C2B9F2
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5987C61175
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F4F8611AB
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231400AbhEVUQG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 16:16:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38524 "EHLO mail.kernel.org"
+        id S231405AbhEVUQK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 16:16:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38596 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231386AbhEVUQG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 16:16:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2129261164;
-        Sat, 22 May 2021 20:14:41 +0000 (UTC)
+        id S231386AbhEVUQK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 16:16:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D4A2F61175;
+        Sat, 22 May 2021 20:14:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621714481;
-        bh=3IwzHhHSjZjGdOehcYe2dTok9ae3z2mKpkg7b9kFFjk=;
+        s=korg; t=1621714484;
+        bh=rhGxmqdkCbYMwC8AH5ogeXYwLvMpGdKp/qrFh5hXXrg=;
         h=Date:From:To:Subject:From;
-        b=nAJ0J4PmVXL767moMpL4anVeew8X+pekwtZYgkMgZdompVYMIH2khQA4PfqzyoONZ
-         PCJmsMcq6uKbiQLjMtnKJqjjTGZHpLyM9WlpmMthG6P1si6eas0OppeALXgw7uzAV8
-         Sy+RPFECNivLIu2fmSJOw+8zEJ1mt+yJmYqEyi4g=
-Date:   Sat, 22 May 2021 13:14:40 -0700
+        b=Nx6b95XHFFtNVMPvlmLsCDiprPfCN5tnuBrJPz5J9MBuxm5sDCUjMhzL6TV3Fangi
+         415XE0Jl8nWYjUyRu88ihHbweCyzBJMLPhSouhAeDMp+SBP+ybeggcQyv9RtlD9ZPH
+         Kk8jfrZVtIUw7gFzfrfYGvNX5Irp74y6yE3Ku7GE=
+Date:   Sat, 22 May 2021 13:14:43 -0700
 From:   akpm@linux-foundation.org
-To:     davem@davemloft.net, david@redhat.com, dbueso@suse.de,
-        geert@linux-m68k.org, ldufour@linux.ibm.com,
-        Liam.Howlett@Oracle.com, mm-commits@vger.kernel.org
-Subject:  +
- mm-add-vma_lookup-update-find_vma_intersection-comments.patch added to -mm
- tree
-Message-ID: <20210522201440.sjvfZ-HnO%akpm@linux-foundation.org>
+To:     david@redhat.com, dbueso@suse.de, geert@linux-m68k.org,
+        ldufour@linux.ibm.com, Liam.Howlett@Oracle.com,
+        mm-commits@vger.kernel.org
+Subject:  + drm-i915-selftests-use-vma_lookup-in-__igt_mmap.patch
+ added to -mm tree
+Message-ID: <20210522201443.RLnLNJOWt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add vma_lookup(), update find_vma_intersection() comments
+     Subject: drm/i915/selftests: use vma_lookup() in __igt_mmap()
 has been added to the -mm tree.  Its filename is
-     mm-add-vma_lookup-update-find_vma_intersection-comments.patch
+     drm-i915-selftests-use-vma_lookup-in-__igt_mmap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-vma_lookup-update-find_vma_intersection-comments.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/drm-i915-selftests-use-vma_lookup-in-__igt_mmap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-vma_lookup-update-find_vma_intersection-comments.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/drm-i915-selftests-use-vma_lookup-in-__igt_mmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,112 +66,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mm: add vma_lookup(), update find_vma_intersection() comments
+Subject: drm/i915/selftests: use vma_lookup() in __igt_mmap()
 
-Patch series "mm: Add vma_lookup()", v2.
+vma_lookup() will look up the vma at a specific address.  find_vma() will
+start the search for a specific address and continue upwards.  This fixes
+an issue with the selftest as the returned vma may not be the newly
+created vma, but simply the vma at a higher address.
 
-Many places in the kernel use find_vma() to get a vma and then check the
-start address of the vma to ensure the next vma was not returned.
-
-Other places use the find_vma_intersection() call with add, addr + 1 as
-the range; looking for just the vma at a specific address.
-
-The third use of find_vma() is by developers who do not know that the
-function starts searching at the provided address upwards for the next
-vma.  This results in a bug that is often overlooked for a long time.
-
-Adding the new vma_lookup() function will allow for cleaner code by
-removing the find_vma() calls which check limits, making
-find_vma_intersection() calls of a single address to be shorter, and
-potentially reduce the incorrect uses of find_vma().
-
-
-This patch (of 22):
-
-Many places in the kernel use find_vma() to get a vma and then check the
-start address of the vma to ensure the next vma was not returned.
-
-Other places use the find_vma_intersection() call with add, addr + 1 as
-the range; looking for just the vma at a specific address.
-
-The third use of find_vma() is by developers who do not know that the
-function starts searching at the provided address upwards for the next
-vma.  This results in a bug that is often overlooked for a long time.
-
-Adding the new vma_lookup() function will allow for cleaner code by
-removing the find_vma() calls which check limits, making
-find_vma_intersection() calls of a single address to be shorter, and
-potentially reduce the incorrect uses of find_vma().
-
-Also change find_vma_intersection() comments and declaration to be of the
-correct length and add kernel documentation style comment.
-
-Link: https://lkml.kernel.org/r/20210521174745.2219620-1-Liam.Howlett@Oracle.com
-Link: https://lkml.kernel.org/r/20210521174745.2219620-2-Liam.Howlett@Oracle.com
+Link: https://lkml.kernel.org/r/20210521174745.2219620-3-Liam.Howlett@Oracle.com
+Fixes: 6fedafacae1b (drm/i915/selftests: Wrap vm_mmap() around GEM
+objects
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Acked-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: David Miller <davem@davemloft.net>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   36 ++++++++++++++++++++++++++++++++----
- 1 file changed, 32 insertions(+), 4 deletions(-)
+ drivers/gpu/drm/i915/gem/selftests/i915_gem_mman.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-add-vma_lookup-update-find_vma_intersection-comments
-+++ a/include/linux/mm.h
-@@ -2678,17 +2678,45 @@ extern struct vm_area_struct * find_vma(
- extern struct vm_area_struct * find_vma_prev(struct mm_struct * mm, unsigned long addr,
- 					     struct vm_area_struct **pprev);
+--- a/drivers/gpu/drm/i915/gem/selftests/i915_gem_mman.c~drm-i915-selftests-use-vma_lookup-in-__igt_mmap
++++ a/drivers/gpu/drm/i915/gem/selftests/i915_gem_mman.c
+@@ -871,7 +871,7 @@ static int __igt_mmap(struct drm_i915_pr
  
--/* Look up the first VMA which intersects the interval start_addr..end_addr-1,
--   NULL if none.  Assume start_addr < end_addr. */
--static inline struct vm_area_struct * find_vma_intersection(struct mm_struct * mm, unsigned long start_addr, unsigned long end_addr)
-+/**
-+ * find_vma_intersection() - Look up the first VMA which intersects the interval
-+ * @mm: The process address space.
-+ * @start_addr: The inclusive start user address.
-+ * @end_addr: The exclusive end user address.
-+ *
-+ * Returns: The first VMA within the provided range, %NULL otherwise.  Assumes
-+ * start_addr < end_addr.
-+ */
-+static inline
-+struct vm_area_struct *find_vma_intersection(struct mm_struct *mm,
-+					     unsigned long start_addr,
-+					     unsigned long end_addr)
- {
--	struct vm_area_struct * vma = find_vma(mm,start_addr);
-+	struct vm_area_struct *vma = find_vma(mm, start_addr);
+ 	pr_debug("igt_mmap(%s, %d) @ %lx\n", obj->mm.region->name, type, addr);
  
- 	if (vma && end_addr <= vma->vm_start)
- 		vma = NULL;
- 	return vma;
- }
- 
-+/**
-+ * vma_lookup() - Find a VMA at a specific address
-+ * @mm: The process address space.
-+ * @addr: The user address.
-+ *
-+ * Return: The vm_area_struct at the given address, %NULL otherwise.
-+ */
-+static inline
-+struct vm_area_struct *vma_lookup(struct mm_struct *mm, unsigned long addr)
-+{
-+	struct vm_area_struct *vma = find_vma(mm, addr);
-+
-+	if (vma && addr < vma->vm_start)
-+		vma = NULL;
-+
-+	return vma;
-+}
-+
- static inline unsigned long vm_start_gap(struct vm_area_struct *vma)
- {
- 	unsigned long vm_start = vma->vm_start;
+-	area = find_vma(current->mm, addr);
++	area = vma_lookup(current->mm, addr);
+ 	if (!area) {
+ 		pr_err("%s: Did not create a vm_area_struct for the mmap\n",
+ 		       obj->mm.region->name);
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
