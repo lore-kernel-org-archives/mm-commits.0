@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0663EC2B9F2
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D3BAC2B9F2
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:53:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E340E61177
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01CFC610A8
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:53:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231452AbhEVUQv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 16:16:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39492 "EHLO mail.kernel.org"
+        id S231378AbhEVUys (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 16:54:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60046 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231447AbhEVUQu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 16:16:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D352261164;
-        Sat, 22 May 2021 20:15:24 +0000 (UTC)
+        id S231372AbhEVUys (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 16:54:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A9BCC61164;
+        Sat, 22 May 2021 20:53:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621714525;
-        bh=Izl9+K1FmjvdniGCeDAqUdpcrJutzvGREXskUCDIAJc=;
+        s=korg; t=1621716802;
+        bh=DDkBx2qasx/IP8MEIcqu88ExIfu6ppi4dMvnp9OhZeY=;
         h=Date:From:To:Subject:From;
-        b=VJLp4hLH7mC+zTpGhy5uyPeAvc8XKJLWp5J5Gy2CsE1zCgFfdAQvK0/OC5UxAhVQP
-         /Lywc00dmvb0SwWQ23YdOeLe2+8QvTP6UAyPM7emMU6N8C+7Z6PX82Rjc745oHh2va
-         XCSARbLXa9ROYvbZEmqMDgO3tYBkyB0JlWjBsRsE=
-Date:   Sat, 22 May 2021 13:15:24 -0700
+        b=r5rzTBUSdGJu8sE75+oPCf2zGDXTUR8RUOKu4e9IjHAkxzHFwqh0cHQ0sqtzV7WvM
+         WvzB8QwoGP5cG2W0Zh4Mei3Ke467QF4lcHIH51QvlsSzCj28zPiYOqLwfye7AUFMt2
+         J1XmnMQIFshbWtk0iIcpbMLmuwLEIdUImTnjTsJw=
+Date:   Sat, 22 May 2021 13:53:22 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, dbueso@suse.de, geert@linux-m68k.org,
-        ldufour@linux.ibm.com, Liam.Howlett@Oracle.com,
-        mm-commits@vger.kernel.org
-Subject:  + mm-mempolicy-use-vma_lookup-in-__access_remote_vm.patch
- added to -mm tree
-Message-ID: <20210522201524.jlQ4tva1w%akpm@linux-foundation.org>
+To:     huyue2@yulong.com, minchan@kernel.org, mm-commits@vger.kernel.org,
+        senozhatsky@chromium.org, sergey.senozhatsky@gmail.com
+Subject:  +
+ zram-move-backing_dev-under-macro-config_zram_writeback.patch added to -mm
+ tree
+Message-ID: <20210522205322.0FLaF2SHR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: use vma_lookup() in __access_remote_vm()
+     Subject: zram: move backing_dev under macro CONFIG_ZRAM_WRITEBACK
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-use-vma_lookup-in-__access_remote_vm.patch
+     zram-move-backing_dev-under-macro-config_zram_writeback.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-use-vma_lookup-in-__access_remote_vm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/zram-move-backing_dev-under-macro-config_zram_writeback.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-use-vma_lookup-in-__access_remote_vm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/zram-move-backing_dev-under-macro-config_zram_writeback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,61 +65,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mm/mempolicy: use vma_lookup() in __access_remote_vm()
+From: Yue Hu <huyue2@yulong.com>
+Subject: zram: move backing_dev under macro CONFIG_ZRAM_WRITEBACK
 
-vma_lookup() finds the vma of a specific address with a cleaner interface
-and is more readable.
+backing_dev is never used when not enable CONFIG_ZRAM_WRITEBACK and it's
+introduced from writeback feature.  So it's needless also affect
+readability in that case.
 
-Link: https://lkml.kernel.org/r/20210521174745.2219620-23-Liam.Howlett@Oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Link: https://lkml.kernel.org/r/20210521060544.2385-1-zbestahu@gmail.com
+Signed-off-by: Yue Hu <huyue2@yulong.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
+ drivers/block/zram/zram_drv.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-use-vma_lookup-in-__access_remote_vm
-+++ a/mm/mempolicy.c
-@@ -975,7 +975,7 @@ static long do_get_mempolicy(int *policy
- 		 * want to return MPOL_DEFAULT in this case.
- 		 */
- 		mmap_read_lock(mm);
--		vma = find_vma_intersection(mm, addr, addr+1);
-+		vma = vma_lookup(mm, addr);
- 		if (!vma) {
- 			mmap_read_unlock(mm);
- 			return -EFAULT;
+--- a/drivers/block/zram/zram_drv.h~zram-move-backing_dev-under-macro-config_zram_writeback
++++ a/drivers/block/zram/zram_drv.h
+@@ -113,8 +113,8 @@ struct zram {
+ 	 * zram is claimed so open request will be failed
+ 	 */
+ 	bool claim; /* Protected by bdev->bd_mutex */
+-	struct file *backing_dev;
+ #ifdef CONFIG_ZRAM_WRITEBACK
++	struct file *backing_dev;
+ 	spinlock_t wb_limit_lock;
+ 	bool wb_limit_enable;
+ 	u64 bd_wb_limit;
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from huyue2@yulong.com are
 
-mm-mmap-introduce-unlock_range-for-code-cleanup.patch
-mm-mmap-use-find_vma_intersection-in-do_mmap-for-overlap.patch
-mm-add-vma_lookup-update-find_vma_intersection-comments.patch
-drm-i915-selftests-use-vma_lookup-in-__igt_mmap.patch
-arch-arc-kernel-troubleshoot-use-vma_lookup-instead-of-find_vma.patch
-arch-arm64-kvm-use-vma_lookup-instead-of-find_vma_intersection.patch
-arch-powerpc-kvm-book3s_hv_uvmem-use-vma_lookup-instead-of-find_vma_intersection.patch
-arch-powerpc-kvm-book3s-use-vma_lookup-in-kvmppc_hv_setup_htab_rma.patch
-arch-mips-kernel-traps-use-vma_lookup-instead-of-find_vma.patch
-arch-m68k-kernel-sys_m68k-use-vma_lookup-in-sys_cacheflush.patch
-x86-sgx-use-vma_lookup-in-sgx_encl_find.patch
-virt-kvm-use-vma_lookup-instead-of-find_vma_intersection.patch
-vfio-use-vma_lookup-instead-of-find_vma_intersection.patch
-net-ipv5-tcp-use-vma_lookup-in-tcp_zerocopy_receive.patch
-drm-amdgpu-use-vma_lookup-in-amdgpu_ttm_tt_get_user_pages.patch
-media-videobuf2-use-vma_lookup-in-get_vaddr_frames.patch
-misc-sgi-gru-grufault-use-vma_lookup-in-gru_find_vma.patch
-kernel-events-uprobes-use-vma_lookup-in-find_active_uprobe.patch
-lib-test_hmm-use-vma_lookup-in-dmirror_migrate.patch
-mm-ksm-use-vma_lookup-in-find_mergeable_vma.patch
-mm-migrate-use-vma_lookup-in-do_pages_stat_array.patch
-mm-mremap-use-vma_lookup-in-vma_to_resize.patch
-mm-memoryc-use-vma_lookup-in-__access_remote_vm.patch
-mm-mempolicy-use-vma_lookup-in-__access_remote_vm.patch
+zram-move-backing_dev-under-macro-config_zram_writeback.patch
 
