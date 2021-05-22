@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3758DC2B9F2
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0F2BC2B9FB
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D395611AB
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9355C61175
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231449AbhEVUQp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 16:16:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39416 "EHLO mail.kernel.org"
+        id S231450AbhEVUQq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 16:16:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39438 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231447AbhEVUQo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 16:16:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DABA36108E;
-        Sat, 22 May 2021 20:15:18 +0000 (UTC)
+        id S231447AbhEVUQq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 16:16:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DF0DF61164;
+        Sat, 22 May 2021 20:15:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621714519;
-        bh=Ou6Y3UUOgRcL8wtb1Y9MHvtjujkTMQYNhLLncINavqA=;
+        s=korg; t=1621714521;
+        bh=spO9r0wYUR/qKqREJ/l54FEe8rfNMi1LrZkjm81ewRE=;
         h=Date:From:To:Subject:From;
-        b=l3K0GiwWG+1zx9LrP4vfevoKNuU6HeiIrzvJyYjHKV//WRBx4X4GNu+Ka/1rKb++j
-         lprg7sAPTa9fi5xDPFTzB2AQmHU/DXHzAKvo7Rxh4E833n+kxg96Z9YBHnHucY1z/w
-         ZH/q4QCvJlJFme9CKdMXMO3GMruc7kwKeo/+0F1s=
-Date:   Sat, 22 May 2021 13:15:18 -0700
+        b=hqPBg7WT4F3AYqjlq19MmGYqzOwJNZlKqviyZpChC0JoMeG+yJQ0my4ceEFFr0cf+
+         jP8Tu87HT+AJPH+VmiEsKfTgtpsUGar+4iKYCZOOOnP2aBhPV2lURvOCL4MsuYZcpB
+         pbMVLmN21iq46GcG3xDh6fTyfFtV76iPow7Jf3yw=
+Date:   Sat, 22 May 2021 13:15:20 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, dbueso@suse.de, geert@linux-m68k.org,
         ldufour@linux.ibm.com, Liam.Howlett@Oracle.com,
         mm-commits@vger.kernel.org
-Subject:  + mm-migrate-use-vma_lookup-in-do_pages_stat_array.patch
- added to -mm tree
-Message-ID: <20210522201518.4M89zc7rq%akpm@linux-foundation.org>
+Subject:  + mm-mremap-use-vma_lookup-in-vma_to_resize.patch added
+ to -mm tree
+Message-ID: <20210522201520.xOcVTuv6E%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: use vma_lookup() in do_pages_stat_array()
+     Subject: mm/mremap: use vma_lookup() in vma_to_resize()
 has been added to the -mm tree.  Its filename is
-     mm-migrate-use-vma_lookup-in-do_pages_stat_array.patch
+     mm-mremap-use-vma_lookup-in-vma_to_resize.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-use-vma_lookup-in-do_pages_stat_array.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-use-vma_lookup-in-vma_to_resize.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-use-vma_lookup-in-do_pages_stat_array.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-use-vma_lookup-in-vma_to_resize.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,13 +66,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mm/migrate: use vma_lookup() in do_pages_stat_array()
+Subject: mm/mremap: use vma_lookup() in vma_to_resize()
 
 Use vma_lookup() to find the VMA at a specific address.  As vma_lookup()
 will return NULL if the address is not within any VMA, the start address
 no longer needs to be validated.
 
-Link: https://lkml.kernel.org/r/20210521174745.2219620-20-Liam.Howlett@Oracle.com
+Link: https://lkml.kernel.org/r/20210521174745.2219620-21-Liam.Howlett@Oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -81,22 +81,25 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mremap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-use-vma_lookup-in-do_pages_stat_array
-+++ a/mm/migrate.c
-@@ -1833,8 +1833,8 @@ static void do_pages_stat_array(struct m
- 		struct page *page;
- 		int err = -EFAULT;
+--- a/mm/mremap.c~mm-mremap-use-vma_lookup-in-vma_to_resize
++++ a/mm/mremap.c
+@@ -634,10 +634,11 @@ static struct vm_area_struct *vma_to_res
+ 	unsigned long *p)
+ {
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma = find_vma(mm, addr);
++	struct vm_area_struct *vma;
+ 	unsigned long pgoff;
  
--		vma = find_vma(mm, addr);
--		if (!vma || addr < vma->vm_start)
-+		vma = vma_lookup(mm, addr);
-+		if (!vma)
- 			goto set_status;
+-	if (!vma || vma->vm_start > addr)
++	vma = vma_lookup(mm, addr);
++	if (!vma)
+ 		return ERR_PTR(-EFAULT);
  
- 		/* FOLL_DUMP to ignore special (like zero) pages */
+ 	/*
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
