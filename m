@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C909C2B9F2
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0663EC2B9F2
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E90E6108E
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E340E61177
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:15:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231451AbhEVUQt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 16:16:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39466 "EHLO mail.kernel.org"
+        id S231452AbhEVUQv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 16:16:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231447AbhEVUQt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 16:16:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EB6EA61175;
-        Sat, 22 May 2021 20:15:22 +0000 (UTC)
+        id S231447AbhEVUQu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 16:16:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D352261164;
+        Sat, 22 May 2021 20:15:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621714523;
-        bh=5pjZ8f7GrBl8VSHPZkMRRcmJIvC1pMgqOvgJj5bzQlg=;
+        s=korg; t=1621714525;
+        bh=Izl9+K1FmjvdniGCeDAqUdpcrJutzvGREXskUCDIAJc=;
         h=Date:From:To:Subject:From;
-        b=MZusnmnA80AY0ZT/ZDml6Dl+fYY8lxy+YtbwAQ7ZT60kkkGmydvDeN4l0GXDPnzwd
-         lX+ZCpHgEUWVIGOX9veLWTtQiGRxUmXrXxp9tH9roPcQ5+M1tl4o65TK9+fTlqIZW5
-         iXk4UJOlXhYRk2S3orgsiUHB21OEaV4Y6OJwktkw=
-Date:   Sat, 22 May 2021 13:15:22 -0700
+        b=VJLp4hLH7mC+zTpGhy5uyPeAvc8XKJLWp5J5Gy2CsE1zCgFfdAQvK0/OC5UxAhVQP
+         /Lywc00dmvb0SwWQ23YdOeLe2+8QvTP6UAyPM7emMU6N8C+7Z6PX82Rjc745oHh2va
+         XCSARbLXa9ROYvbZEmqMDgO3tYBkyB0JlWjBsRsE=
+Date:   Sat, 22 May 2021 13:15:24 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, dbueso@suse.de, geert@linux-m68k.org,
         ldufour@linux.ibm.com, Liam.Howlett@Oracle.com,
         mm-commits@vger.kernel.org
-Subject:  + mm-memoryc-use-vma_lookup-in-__access_remote_vm.patch
+Subject:  + mm-mempolicy-use-vma_lookup-in-__access_remote_vm.patch
  added to -mm tree
-Message-ID: <20210522201522.5gNgRvA9O%akpm@linux-foundation.org>
+Message-ID: <20210522201524.jlQ4tva1w%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: use vma_lookup() in __access_remote_vm()
+     Subject: mm/mempolicy: use vma_lookup() in __access_remote_vm()
 has been added to the -mm tree.  Its filename is
-     mm-memoryc-use-vma_lookup-in-__access_remote_vm.patch
+     mm-mempolicy-use-vma_lookup-in-__access_remote_vm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memoryc-use-vma_lookup-in-__access_remote_vm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-use-vma_lookup-in-__access_remote_vm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memoryc-use-vma_lookup-in-__access_remote_vm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-use-vma_lookup-in-__access_remote_vm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,13 +66,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mm/memory.c: use vma_lookup() in __access_remote_vm()
+Subject: mm/mempolicy: use vma_lookup() in __access_remote_vm()
 
-Use vma_lookup() to find the VMA at a specific address.  As vma_lookup()
-will return NULL if the address is not within any VMA, the start address
-no longer needs to be validated.
+vma_lookup() finds the vma of a specific address with a cleaner interface
+and is more readable.
 
-Link: https://lkml.kernel.org/r/20210521174745.2219620-22-Liam.Howlett@Oracle.com
+Link: https://lkml.kernel.org/r/20210521174745.2219620-23-Liam.Howlett@Oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -81,22 +80,20 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-memoryc-use-vma_lookup-in-__access_remote_vm
-+++ a/mm/memory.c
-@@ -4947,8 +4947,8 @@ int __access_remote_vm(struct mm_struct
- 			 * Check if this is a VM_IO | VM_PFNMAP VMA, which
- 			 * we can access using slightly different code.
- 			 */
--			vma = find_vma(mm, addr);
--			if (!vma || vma->vm_start > addr)
-+			vma = vma_lookup(mm, addr);
-+			if (!vma)
- 				break;
- 			if (vma->vm_ops && vma->vm_ops->access)
- 				ret = vma->vm_ops->access(vma, addr, buf,
+--- a/mm/mempolicy.c~mm-mempolicy-use-vma_lookup-in-__access_remote_vm
++++ a/mm/mempolicy.c
+@@ -975,7 +975,7 @@ static long do_get_mempolicy(int *policy
+ 		 * want to return MPOL_DEFAULT in this case.
+ 		 */
+ 		mmap_read_lock(mm);
+-		vma = find_vma_intersection(mm, addr, addr+1);
++		vma = vma_lookup(mm, addr);
+ 		if (!vma) {
+ 			mmap_read_unlock(mm);
+ 			return -EFAULT;
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
