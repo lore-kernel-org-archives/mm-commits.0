@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D935C2B9F2
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12436C2B9F2
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 532D461177
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E163261177
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231430AbhEVUQR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 16:16:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38748 "EHLO mail.kernel.org"
+        id S231432AbhEVUQT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 16:16:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38798 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231386AbhEVUQQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 16:16:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D510D61175;
-        Sat, 22 May 2021 20:14:49 +0000 (UTC)
+        id S231386AbhEVUQS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 16:16:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D4B2D61164;
+        Sat, 22 May 2021 20:14:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621714490;
-        bh=IPR7/65bfiYnU6q9fS3YcHSlwfdkThBJ7ykZFnHnCnY=;
+        s=korg; t=1621714492;
+        bh=Q8uvd0ecPb/NLnZkPmOQ0evR/5v0RlOhm/ZkQ2xcnT4=;
         h=Date:From:To:Subject:From;
-        b=zNVq5e6HUtw/xM+MQy+Fzu5f0/IItbjkz/wyF7LIWu9Yo9xGac5adNWx7lYyP3+r6
-         TmloTlXubw2TynbCKJ16ZMIa39vlrFZoP/6X+jKajT4WiAiI261YxDa7fJu/5Ui5C7
-         gv4Ruyj+SizdKyr8ERD1YwrpJvKLQyFDDSTHKmxo=
-Date:   Sat, 22 May 2021 13:14:49 -0700
+        b=Cl6h/c8buhs1Mqb76UHn7weB4w0m8WLxD4yxbe+osuG6Zqqqr/rfH1VNkoAXOBty0
+         DwyQkb3sUx1auc00a7jYsWzoathlXMfbaJzmQk8MR1YS28tityYC/RNU1Swr2s6YSy
+         lC8HMMHm2mcTNFPpRfyztbTNi2YetBI2tdO6k9o4=
+Date:   Sat, 22 May 2021 13:14:51 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, dbueso@suse.de, geert@linux-m68k.org,
         ldufour@linux.ibm.com, Liam.Howlett@Oracle.com,
         mm-commits@vger.kernel.org
 Subject:  +
- =?US-ASCII?Q?arch-powerpc-kvm-book3s=5Fhv=5Fuvmem-use-vma=5Flookup-instea?=
- =?US-ASCII?Q?d-of-find=5Fvma=5Fintersection.patch?= added to -mm tree
-Message-ID: <20210522201449.D0K-OviQa%akpm@linux-foundation.org>
+ arch-powerpc-kvm-book3s-use-vma_lookup-in-kvmppc_hv_setup_htab_rma.patch
+ added to -mm tree
+Message-ID: <20210522201451.BDcyLlzmK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/powerpc/kvm/book3s_hv_uvmem: use vma_lookup() instead of find_vma_intersection()
+     Subject: arch/powerpc/kvm/book3s: use vma_lookup() in kvmppc_hv_setup_htab_rma()
 has been added to the -mm tree.  Its filename is
-     arch-powerpc-kvm-book3s_hv_uvmem-use-vma_lookup-instead-of-find_vma_intersection.patch
+     arch-powerpc-kvm-book3s-use-vma_lookup-in-kvmppc_hv_setup_htab_rma.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arch-powerpc-kvm-book3s_hv_uvmem-use-vma_lookup-instead-of-find_vma_intersection.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arch-powerpc-kvm-book3s-use-vma_lookup-in-kvmppc_hv_setup_htab_rma.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arch-powerpc-kvm-book3s_hv_uvmem-use-vma_lookup-instead-of-find_vma_intersection.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arch-powerpc-kvm-book3s-use-vma_lookup-in-kvmppc_hv_setup_htab_rma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,12 +67,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: arch/powerpc/kvm/book3s_hv_uvmem: use vma_lookup() instead of find_vma_intersection()
+Subject: arch/powerpc/kvm/book3s: use vma_lookup() in kvmppc_hv_setup_htab_rma()
 
-vma_lookup() finds the vma of a specific address with a cleaner interface
-and is more readable.
+Using vma_lookup() removes the requirement to check if the address is
+within the returned vma.  The code is easier to understand and more
+compact.
 
-Link: https://lkml.kernel.org/r/20210521174745.2219620-6-Liam.Howlett@Oracle.com
+Link: https://lkml.kernel.org/r/20210521174745.2219620-7-Liam.Howlett@Oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -83,20 +82,22 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv_uvmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/kvm/book3s_hv.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/powerpc/kvm/book3s_hv_uvmem.c~arch-powerpc-kvm-book3s_hv_uvmem-use-vma_lookup-instead-of-find_vma_intersection
-+++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
-@@ -614,7 +614,7 @@ void kvmppc_uvmem_drop_pages(const struc
+--- a/arch/powerpc/kvm/book3s_hv.c~arch-powerpc-kvm-book3s-use-vma_lookup-in-kvmppc_hv_setup_htab_rma
++++ a/arch/powerpc/kvm/book3s_hv.c
+@@ -4759,8 +4759,8 @@ static int kvmppc_hv_setup_htab_rma(stru
+ 	/* Look up the VMA for the start of this memory slot */
+ 	hva = memslot->userspace_addr;
+ 	mmap_read_lock(kvm->mm);
+-	vma = find_vma(kvm->mm, hva);
+-	if (!vma || vma->vm_start > hva || (vma->vm_flags & VM_IO))
++	vma = vma_lookup(kvm->mm, hva);
++	if (!vma || (vma->vm_flags & VM_IO))
+ 		goto up_out;
  
- 		/* Fetch the VMA if addr is not in the latest fetched one */
- 		if (!vma || addr >= vma->vm_end) {
--			vma = find_vma_intersection(kvm->mm, addr, addr+1);
-+			vma = vma_lookup(kvm->mm, addr);
- 			if (!vma) {
- 				pr_err("Can't find VMA for gfn:0x%lx\n", gfn);
- 				break;
+ 	psize = vma_kernel_pagesize(vma);
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
