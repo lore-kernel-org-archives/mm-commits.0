@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DE6FC2B9F2
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 19:16:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BD52C4707E
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 19:16:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CAAE611AD
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 19:16:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D10761182
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 19:16:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231378AbhEVTSC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 15:18:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60694 "EHLO mail.kernel.org"
+        id S231388AbhEVTSD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 15:18:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60724 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231340AbhEVTSC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 15:18:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 04D1961175;
-        Sat, 22 May 2021 19:16:35 +0000 (UTC)
+        id S231340AbhEVTSD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 15:18:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E6F4F61073;
+        Sat, 22 May 2021 19:16:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621710996;
-        bh=f0MhBCPrJC07YOslyw8y4UTciGIEsXDc35I+JvIlNaU=;
+        s=korg; t=1621710998;
+        bh=Tj1gad+O/hqYlc0VH90kTw+ZSrLUUOQuN//0Z8sArKE=;
         h=Date:From:To:Subject:From;
-        b=Y7M2Ff038l1p+79rqU35QirlPPjAF9kjJ6Mgb2GDrVqfAzjm4auItVH0aeEynL0dN
-         OyjIx1nTpCLmd4uLyCup0nERl6FLnVXiTI/ko7xy+gmVO08nBFQrCDqQXI03FpS3x1
-         N8o/wxE+xhtjjTEyqDgmsHn87THvnuZGA490Bc7M=
-Date:   Sat, 22 May 2021 12:16:35 -0700
+        b=HWwV9gOf614dUOL+u2rWsuPqAVlhJkZWxIiAZa6F3bhg2wZNaZSW8krgoB6z8/fB6
+         S/5HlctsngkSbiKymDH/v3+QQlb9+lwxc5YkRoIrzzwBJQWHkirMCY8GJhmYNtH09A
+         go8SX1De/jbiTK1qUrm9uIoOR6rGag+V2R8/b7f0=
+Date:   Sat, 22 May 2021 12:16:37 -0700
 From:   akpm@linux-foundation.org
 To:     bigeasy@linutronix.de, colin.king@canonical.com, ddstreet@ieee.org,
         linmiaohe@huawei.com, mm-commits@vger.kernel.org,
         nathan@kernel.org, sjenning@redhat.com, tiantao6@hisilicon.com,
         vitaly.wool@konsulko.com
-Subject:  + mm-zswapc-avoid-unnecessary-copy-in-at-map-time.patch
+Subject:  + mm-zswapc-fix-two-bugs-in-zswap_writeback_entry.patch
  added to -mm tree
-Message-ID: <20210522191635.dhqhY3WuZ%akpm@linux-foundation.org>
+Message-ID: <20210522191637.0LgOa71eA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zswap.c: avoid unnecessary copy-in at map time
+     Subject: mm/zswap.c: fix two bugs in zswap_writeback_entry()
 has been added to the -mm tree.  Its filename is
-     mm-zswapc-avoid-unnecessary-copy-in-at-map-time.patch
+     mm-zswapc-fix-two-bugs-in-zswap_writeback_entry.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-zswapc-avoid-unnecessary-copy-in-at-map-time.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-zswapc-fix-two-bugs-in-zswap_writeback_entry.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zswapc-avoid-unnecessary-copy-in-at-map-time.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zswapc-fix-two-bugs-in-zswap_writeback_entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,13 +67,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/zswap.c: avoid unnecessary copy-in at map time
+Subject: mm/zswap.c: fix two bugs in zswap_writeback_entry()
 
-The buf mapped via zpool_map_handle() is only used to store compressed
-page buffer and there is no information to extract from it. So we could
-use ZPOOL_MM_WO instead to avoid unnecessary copy-in at map time.
+In the ZSWAP_SWAPCACHE_FAIL and ZSWAP_SWAPCACHE_EXIST case, we forgot to
+call zpool_unmap_handle() when zpool can't sleep. And we might sleep in
+zswap_get_swap_cache_page() while zpool can't sleep. To fix all of these,
+zpool_unmap_handle() should be done before zswap_get_swap_cache_page()
+when zpool can't sleep.
 
-Link: https://lkml.kernel.org/r/20210522092242.3233191-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210522092242.3233191-4-linmiaohe@huawei.com
+Fixes: fc6697a89f56 ("mm/zswap: add the flag can_sleep_mapped")
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Colin Ian King <colin.king@canonical.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
@@ -85,20 +88,43 @@ Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zswap.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
---- a/mm/zswap.c~mm-zswapc-avoid-unnecessary-copy-in-at-map-time
+--- a/mm/zswap.c~mm-zswapc-fix-two-bugs-in-zswap_writeback_entry
 +++ a/mm/zswap.c
-@@ -1203,7 +1203,7 @@ static int zswap_frontswap_store(unsigne
- 		zswap_reject_alloc_fail++;
- 		goto put_dstmem;
- 	}
--	buf = zpool_map_handle(entry->pool->zpool, handle, ZPOOL_MM_RW);
-+	buf = zpool_map_handle(entry->pool->zpool, handle, ZPOOL_MM_WO);
- 	memcpy(buf, &zhdr, hlen);
- 	memcpy(buf + hlen, dst, dlen);
- 	zpool_unmap_handle(entry->pool->zpool, handle);
+@@ -967,6 +967,13 @@ static int zswap_writeback_entry(struct
+ 	spin_unlock(&tree->lock);
+ 	BUG_ON(offset != entry->offset);
+ 
++	src = (u8 *)zhdr + sizeof(struct zswap_header);
++	if (!zpool_can_sleep_mapped(pool)) {
++		memcpy(tmp, src, entry->length);
++		src = tmp;
++		zpool_unmap_handle(pool, handle);
++	}
++
+ 	/* try to allocate swap cache page */
+ 	switch (zswap_get_swap_cache_page(swpentry, &page)) {
+ 	case ZSWAP_SWAPCACHE_FAIL: /* no memory or invalidate happened */
+@@ -982,17 +989,7 @@ static int zswap_writeback_entry(struct
+ 	case ZSWAP_SWAPCACHE_NEW: /* page is locked */
+ 		/* decompress */
+ 		acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
+-
+ 		dlen = PAGE_SIZE;
+-		src = (u8 *)zhdr + sizeof(struct zswap_header);
+-
+-		if (!zpool_can_sleep_mapped(pool)) {
+-
+-			memcpy(tmp, src, entry->length);
+-			src = tmp;
+-
+-			zpool_unmap_handle(pool, handle);
+-		}
+ 
+ 		mutex_lock(acomp_ctx->mutex);
+ 		sg_init_one(&input, src, entry->length);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
