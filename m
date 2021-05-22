@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51237C2B9F2
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:09:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6114CC2B9F2
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:16:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 29D4D611AD
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:09:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2776F60FE3
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:16:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231449AbhEVWLQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 18:11:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60428 "EHLO mail.kernel.org"
+        id S231431AbhEVWR6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 18:17:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36518 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231408AbhEVWLQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 18:11:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E6E8C611AB;
-        Sat, 22 May 2021 22:09:50 +0000 (UTC)
+        id S231428AbhEVWR4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 18:17:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B871061182;
+        Sat, 22 May 2021 22:16:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621721391;
-        bh=BIHB8RwwRJWgzBRzN+i7HhLl9z4F73a0nrAKqPX6OBk=;
+        s=korg; t=1621721790;
+        bh=i40D/QmStt33DaCgG4plIjLJ+TlWN0EkqEiFDZ9aWaI=;
         h=Date:From:To:Subject:From;
-        b=is1c5aOLYsQxnXIYzUrL7+YOZ+GqNSwcv0kZJygyAuPgX71TYvXkPJKdD0N2IIUXh
-         6ebtRlO02WY1c9QalKBXqDbiaP4gkLVQNIytcOOwhQcBLIcN6891mwCQP4oCu6XyUO
-         Wi+6pD6App0xRM4a18jq7El+O0U7J3923t/g6PI4=
-Date:   Sat, 22 May 2021 15:09:50 -0700
+        b=YRt0IwOpXwJWi2z4pVk8QACtmi8Icm907TLf47WTZ9rJmJWMaAlhAzUYtgznPzmVQ
+         KCC+jTgcefSwjOavSVqKN5gtCTh98s2jvxaFS6fFz19Uw+WVa/F0L/Q30m2we38NPc
+         pSFz7PnQKFzdd0bzSb2IdrStMUgudZ3J5mdInvmg=
+Date:   Sat, 22 May 2021 15:16:30 -0700
 From:   akpm@linux-foundation.org
-To:     bp@alien8.de, bp@suse.de, david@redhat.com, juew@google.com,
-        luto@kernel.org, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, osalvador@suse.de, tony.luck@intel.com,
-        yaoaili@kingsoft.com
-Subject:  + mmhwpoison-send-sigbus-with-error-virutal-address.patch
+To:     anshuman.khandual@arm.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        songmuchun@bytedance.com
+Subject:  +
+ mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool-v2.patch
  added to -mm tree
-Message-ID: <20210522220950.n0c8l2J3_%akpm@linux-foundation.org>
+Message-ID: <20210522221630.MtkBxtkgF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: send SIGBUS with error virutal address
+     Subject: mm: migrate: fix missing update page_private to hugetlb_page_subpool
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-send-sigbus-with-error-virutal-address.patch
+     mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool-v2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-send-sigbus-with-error-virutal-address.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool-v2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-send-sigbus-with-error-virutal-address.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,270 +66,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm,hwpoison: send SIGBUS with error virutal address
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: migrate: fix missing update page_private to hugetlb_page_subpool
 
-Now an action required MCE in already hwpoisoned address surely sends a
-SIGBUS to current process, but the SIGBUS doesn't convey error virtual
-address.  That's not optimal for hwpoison-aware applications.
+fix compiler error when !CONFIG_HUGETLB_PAGE reported by Randy
 
-To fix the issue, make memory_failure() call kill_accessing_process(),
-that does pagetable walk to find the error virtual address.  It could find
-multiple virtual addresses for the same error page, and it seems hard to
-tell which virtual address is correct one.  But that's rare and sending
-incorrect virtual address could be better than no address.  So let's
-report the first found virtual address for now.
-
-Link: https://lkml.kernel.org/r/20210521030156.2612074-4-nao.horiguchi@gmail.com
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Aili Yao <yaoaili@kingsoft.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Jue Wang <juew@google.com>
-Cc: Borislav Petkov <bp@suse.de>
+Link: https://lkml.kernel.org/r/20210521022747.35736-1-songmuchun@bytedance.com
+Fixes: d6995da31122 ("hugetlb: use page.private for hugetlb specific page flags")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reported-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mce/core.c |   13 ++
- include/linux/swapops.h        |    5 +
- mm/memory-failure.c            |  150 ++++++++++++++++++++++++++++++-
- 3 files changed, 165 insertions(+), 3 deletions(-)
+ include/linux/hugetlb.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/arch/x86/kernel/cpu/mce/core.c~mmhwpoison-send-sigbus-with-error-virutal-address
-+++ a/arch/x86/kernel/cpu/mce/core.c
-@@ -1257,19 +1257,28 @@ static void kill_me_maybe(struct callbac
+--- a/include/linux/hugetlb.h~mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool-v2
++++ a/include/linux/hugetlb.h
+@@ -925,6 +925,11 @@ static inline bool is_hugetlb_free_vmemm
+ #else	/* CONFIG_HUGETLB_PAGE */
+ struct hstate {};
+ 
++static inline struct hugepage_subpool *hugetlb_page_subpool(struct page *hpage)
++{
++	return NULL;
++}
++
+ static inline int isolate_or_dissolve_huge_page(struct page *page,
+ 						struct list_head *list)
  {
- 	struct task_struct *p = container_of(cb, struct task_struct, mce_kill_me);
- 	int flags = MF_ACTION_REQUIRED;
-+	int ret;
- 
- 	pr_err("Uncorrected hardware memory error in user-access at %llx", p->mce_addr);
- 
- 	if (!p->mce_ripv)
- 		flags |= MF_MUST_KILL;
- 
--	if (!memory_failure(p->mce_addr >> PAGE_SHIFT, flags) &&
--	    !(p->mce_kflags & MCE_IN_KERNEL_COPYIN)) {
-+	ret = memory_failure(p->mce_addr >> PAGE_SHIFT, flags);
-+	if (!ret && !(p->mce_kflags & MCE_IN_KERNEL_COPYIN)) {
- 		set_mce_nospec(p->mce_addr >> PAGE_SHIFT, p->mce_whole_page);
- 		sync_core();
- 		return;
- 	}
- 
-+	/*
-+	 * -EHWPOISON from memory_failure() means that it already sent SIGBUS
-+	 * to the current process with the proper error info, so no need to
-+	 * send SIGBUS here again.
-+	 */
-+	if (ret == -EHWPOISON)
-+		return;
-+
- 	if (p->mce_vaddr != (void __user *)-1l) {
- 		force_sig_mceerr(BUS_MCEERR_AR, p->mce_vaddr, PAGE_SHIFT);
- 	} else {
---- a/include/linux/swapops.h~mmhwpoison-send-sigbus-with-error-virutal-address
-+++ a/include/linux/swapops.h
-@@ -323,6 +323,11 @@ static inline int is_hwpoison_entry(swp_
- 	return swp_type(entry) == SWP_HWPOISON;
- }
- 
-+static inline unsigned long hwpoison_entry_to_pfn(swp_entry_t entry)
-+{
-+	return swp_offset(entry);
-+}
-+
- static inline void num_poisoned_pages_inc(void)
- {
- 	atomic_long_inc(&num_poisoned_pages);
---- a/mm/memory-failure.c~mmhwpoison-send-sigbus-with-error-virutal-address
-+++ a/mm/memory-failure.c
-@@ -56,6 +56,7 @@
- #include <linux/kfifo.h>
- #include <linux/ratelimit.h>
- #include <linux/page-isolation.h>
-+#include <linux/pagewalk.h>
- #include "internal.h"
- #include "ras/ras_event.h"
- 
-@@ -554,6 +555,148 @@ static void collect_procs(struct page *p
- 		collect_procs_file(page, tokill, force_early);
- }
- 
-+struct hwp_walk {
-+	struct to_kill tk;
-+	unsigned long pfn;
-+	int flags;
-+};
-+
-+static void set_to_kill(struct to_kill *tk, unsigned long addr, short shift)
-+{
-+	tk->addr = addr;
-+	tk->size_shift = shift;
-+}
-+
-+static int check_hwpoisoned_entry(pte_t pte, unsigned long addr, short shift,
-+				unsigned long poisoned_pfn, struct to_kill *tk)
-+{
-+	unsigned long pfn = 0;
-+
-+	if (pte_present(pte)) {
-+		pfn = pte_pfn(pte);
-+	} else {
-+		swp_entry_t swp = pte_to_swp_entry(pte);
-+
-+		if (is_hwpoison_entry(swp))
-+			pfn = hwpoison_entry_to_pfn(swp);
-+	}
-+
-+	if (!pfn || pfn != poisoned_pfn)
-+		return 0;
-+
-+	set_to_kill(tk, addr, shift);
-+	return 1;
-+}
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+static int check_hwpoisoned_pmd_entry(pmd_t *pmdp, unsigned long addr,
-+				      struct hwp_walk *hwp)
-+{
-+	pmd_t pmd = *pmdp;
-+	unsigned long pfn;
-+	unsigned long hwpoison_vaddr;
-+
-+	if (!pmd_present(pmd))
-+		return 0;
-+	pfn = pmd_pfn(pmd);
-+	if (pfn <= hwp->pfn && hwp->pfn < pfn + HPAGE_PMD_NR) {
-+		hwpoison_vaddr = addr + ((hwp->pfn - pfn) << PAGE_SHIFT);
-+		set_to_kill(&hwp->tk, hwpoison_vaddr, PAGE_SHIFT);
-+		return 1;
-+	}
-+	return 0;
-+}
-+#else
-+static int check_hwpoisoned_pmd_entry(pmd_t *pmdp, unsigned long addr,
-+				      struct hwp_walk *hwp)
-+{
-+	return 0;
-+}
-+#endif
-+
-+static int hwpoison_pte_range(pmd_t *pmdp, unsigned long addr,
-+			      unsigned long end, struct mm_walk *walk)
-+{
-+	struct hwp_walk *hwp = (struct hwp_walk *)walk->private;
-+	int ret = 0;
-+	pte_t *ptep;
-+	spinlock_t *ptl;
-+
-+	ptl = pmd_trans_huge_lock(pmdp, walk->vma);
-+	if (ptl) {
-+		ret = check_hwpoisoned_pmd_entry(pmdp, addr, hwp);
-+		spin_unlock(ptl);
-+		goto out;
-+	}
-+
-+	if (pmd_trans_unstable(pmdp))
-+		goto out;
-+
-+	ptep = pte_offset_map_lock(walk->vma->vm_mm, pmdp, addr, &ptl);
-+	for (; addr != end; ptep++, addr += PAGE_SIZE) {
-+		ret = check_hwpoisoned_entry(*ptep, addr, PAGE_SHIFT,
-+					     hwp->pfn, &hwp->tk);
-+		if (ret == 1)
-+			break;
-+	}
-+	pte_unmap_unlock(ptep - 1, ptl);
-+out:
-+	cond_resched();
-+	return ret;
-+}
-+
-+#ifdef CONFIG_HUGETLB_PAGE
-+static int hwpoison_hugetlb_range(pte_t *ptep, unsigned long hmask,
-+			    unsigned long addr, unsigned long end,
-+			    struct mm_walk *walk)
-+{
-+	struct hwp_walk *hwp = (struct hwp_walk *)walk->private;
-+	pte_t pte = huge_ptep_get(ptep);
-+	struct hstate *h = hstate_vma(walk->vma);
-+
-+	return check_hwpoisoned_entry(pte, addr, huge_page_shift(h),
-+				      hwp->pfn, &hwp->tk);
-+}
-+#else
-+#define hwpoison_hugetlb_range	NULL
-+#endif
-+
-+static struct mm_walk_ops hwp_walk_ops = {
-+	.pmd_entry = hwpoison_pte_range,
-+	.hugetlb_entry = hwpoison_hugetlb_range,
-+};
-+
-+/*
-+ * Sends SIGBUS to the current process with error info.
-+ *
-+ * This function is intended to handle "Action Required" MCEs on already
-+ * hardware poisoned pages. They could happen, for example, when
-+ * memory_failure() failed to unmap the error page at the first call, or
-+ * when multiple local machine checks happened on different CPUs.
-+ *
-+ * MCE handler currently has no easy access to the error virtual address,
-+ * so this function walks page table to find it. The returned virtual address
-+ * is proper in most cases, but it could be wrong when the application
-+ * process has multiple entries mapping the error page.
-+ */
-+static int kill_accessing_process(struct task_struct *p, unsigned long pfn,
-+				  int flags)
-+{
-+	int ret;
-+	struct hwp_walk priv = {
-+		.pfn = pfn,
-+	};
-+	priv.tk.tsk = p;
-+
-+	mmap_read_lock(p->mm);
-+	ret = walk_page_range(p->mm, 0, TASK_SIZE, &hwp_walk_ops,
-+			      (void *)&priv);
-+	if (!ret && priv.tk.addr)
-+		kill_proc(&priv.tk, pfn, flags);
-+	mmap_read_unlock(p->mm);
-+	return ret ? -EFAULT : -EHWPOISON;
-+}
-+
- static const char *action_name[] = {
- 	[MF_IGNORED] = "Ignored",
- 	[MF_FAILED] = "Failed",
-@@ -1244,7 +1387,10 @@ static int memory_failure_hugetlb(unsign
- 	if (TestSetPageHWPoison(head)) {
- 		pr_err("Memory failure: %#lx: already hardware poisoned\n",
- 		       pfn);
--		return -EHWPOISON;
-+		res = -EHWPOISON;
-+		if (flags & MF_ACTION_REQUIRED)
-+			res = kill_accessing_process(current, page_to_pfn(head), flags);
-+		return res;
- 	}
- 
- 	num_poisoned_pages_inc();
-@@ -1453,6 +1599,8 @@ try_again:
- 		pr_err("Memory failure: %#lx: already hardware poisoned\n",
- 			pfn);
- 		res = -EHWPOISON;
-+		if (flags & MF_ACTION_REQUIRED)
-+			res = kill_accessing_process(current, pfn, flags);
- 		goto unlock_mutex;
- 	}
- 
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mmhwpoison-fix-race-with-hugetlb-page-allocation.patch
-mmhwpoison-make-get_hwpoison_page-call-get_any_page.patch
-mmhwpoison-send-sigbus-with-error-virutal-address.patch
+mm-memcontrol-fix-root_mem_cgroup-charging.patch
+mm-memcontrol-fix-page-charging-in-page-replacement.patch
+mm-memcontrol-bail-out-early-when-mm-in-get_mem_cgroup_from_mm.patch
+mm-memcontrol-remove-the-pgdata-parameter-of-mem_cgroup_page_lruvec.patch
+mm-memcontrol-simplify-lruvec_holds_page_lru_lock.patch
+mm-memcontrol-rename-lruvec_holds_page_lru_lock-to-page_matches_lruvec.patch
+mm-memcontrol-simplify-the-logic-of-objcg-pinning-memcg.patch
+mm-memcontrol-move-obj_cgroup_uncharge_pages-out-of-css_set_lock.patch
+mm-vmscan-remove-noinline_for_stack.patch
+mm-memory_hotplug-factor-out-bootmem-core-functions-to-bootmem_infoc.patch
+mm-hugetlb-introduce-a-new-config-hugetlb_page_free_vmemmap.patch
+mm-hugetlb-gather-discrete-indexes-of-tail-page.patch
+mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
+mm-hugetlb-defer-freeing-of-hugetlb-pages.patch
+mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
+mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled.patch
+mm-hugetlb-introduce-nr_free_vmemmap_pages-in-the-struct-hstate.patch
+mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool.patch
+mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool-v2.patch
 
