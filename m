@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45763C2B9F2
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11228C2B9FB
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1F4F8611AB
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E4AEC61175
+	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 20:14:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231405AbhEVUQK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 16:16:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38596 "EHLO mail.kernel.org"
+        id S231417AbhEVUQM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 16:16:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38646 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231386AbhEVUQK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 16:16:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D4A2F61175;
-        Sat, 22 May 2021 20:14:43 +0000 (UTC)
+        id S231386AbhEVUQM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 16:16:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D4CC461177;
+        Sat, 22 May 2021 20:14:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621714484;
-        bh=rhGxmqdkCbYMwC8AH5ogeXYwLvMpGdKp/qrFh5hXXrg=;
+        s=korg; t=1621714486;
+        bh=YF7Yhw6gNpMKLd1qHywC9sZvOx/VEm3cOlOV48w6Z6E=;
         h=Date:From:To:Subject:From;
-        b=Nx6b95XHFFtNVMPvlmLsCDiprPfCN5tnuBrJPz5J9MBuxm5sDCUjMhzL6TV3Fangi
-         415XE0Jl8nWYjUyRu88ihHbweCyzBJMLPhSouhAeDMp+SBP+ybeggcQyv9RtlD9ZPH
-         Kk8jfrZVtIUw7gFzfrfYGvNX5Irp74y6yE3Ku7GE=
-Date:   Sat, 22 May 2021 13:14:43 -0700
+        b=U4RgA3djPxYE79sqEvDgWb//V3ZsK0pksV5uTY6cUioZd/LC2s6pd/WaO1+0ljvVl
+         PdOeo8XVCd0ZBfTW91kznMSJaR7xiWOYqWMU8iVrZfRwx3csagr0sEa/sl28PLPb1K
+         Fg+fCPTqVThq9eJOt1VmOKkMpc/Rnn99KCq3StvY=
+Date:   Sat, 22 May 2021 13:14:45 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, dbueso@suse.de, geert@linux-m68k.org,
         ldufour@linux.ibm.com, Liam.Howlett@Oracle.com,
         mm-commits@vger.kernel.org
-Subject:  + drm-i915-selftests-use-vma_lookup-in-__igt_mmap.patch
- added to -mm tree
-Message-ID: <20210522201443.RLnLNJOWt%akpm@linux-foundation.org>
+Subject:  +
+ arch-arc-kernel-troubleshoot-use-vma_lookup-instead-of-find_vma.patch added
+ to -mm tree
+Message-ID: <20210522201445.9QPrAhF8t%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/i915/selftests: use vma_lookup() in __igt_mmap()
+     Subject: arch/arc/kernel/troubleshoot: use vma_lookup() instead of find_vma()
 has been added to the -mm tree.  Its filename is
-     drm-i915-selftests-use-vma_lookup-in-__igt_mmap.patch
+     arch-arc-kernel-troubleshoot-use-vma_lookup-instead-of-find_vma.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/drm-i915-selftests-use-vma_lookup-in-__igt_mmap.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arch-arc-kernel-troubleshoot-use-vma_lookup-instead-of-find_vma.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/drm-i915-selftests-use-vma_lookup-in-__igt_mmap.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arch-arc-kernel-troubleshoot-use-vma_lookup-instead-of-find_vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,16 +67,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: drm/i915/selftests: use vma_lookup() in __igt_mmap()
+Subject: arch/arc/kernel/troubleshoot: use vma_lookup() instead of find_vma()
 
-vma_lookup() will look up the vma at a specific address.  find_vma() will
-start the search for a specific address and continue upwards.  This fixes
-an issue with the selftest as the returned vma may not be the newly
-created vma, but simply the vma at a higher address.
+Use vma_lookup() to find the VMA at a specific address.  As vma_lookup()
+will return NULL if the address is not within any VMA, the start address
+no longer needs to be validated.
 
-Link: https://lkml.kernel.org/r/20210521174745.2219620-3-Liam.Howlett@Oracle.com
-Fixes: 6fedafacae1b (drm/i915/selftests: Wrap vm_mmap() around GEM
-objects
+Link: https://lkml.kernel.org/r/20210521174745.2219620-4-Liam.Howlett@Oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -84,20 +82,28 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/gem/selftests/i915_gem_mman.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arc/kernel/troubleshoot.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/drivers/gpu/drm/i915/gem/selftests/i915_gem_mman.c~drm-i915-selftests-use-vma_lookup-in-__igt_mmap
-+++ a/drivers/gpu/drm/i915/gem/selftests/i915_gem_mman.c
-@@ -871,7 +871,7 @@ static int __igt_mmap(struct drm_i915_pr
+--- a/arch/arc/kernel/troubleshoot.c~arch-arc-kernel-troubleshoot-use-vma_lookup-instead-of-find_vma
++++ a/arch/arc/kernel/troubleshoot.c
+@@ -83,12 +83,12 @@ static void show_faulting_vma(unsigned l
+ 	 * non-inclusive vma
+ 	 */
+ 	mmap_read_lock(active_mm);
+-	vma = find_vma(active_mm, address);
++	vma = vma_lookup(active_mm, address);
  
- 	pr_debug("igt_mmap(%s, %d) @ %lx\n", obj->mm.region->name, type, addr);
+-	/* check against the find_vma( ) behaviour which returns the next VMA
+-	 * if the container VMA is not found
++	/* Lookup the vma at the address and report if the container VMA is not
++	 * found
+ 	 */
+-	if (vma && (vma->vm_start <= address)) {
++	if (vma) {
+ 		char buf[ARC_PATH_MAX];
+ 		char *nm = "?";
  
--	area = find_vma(current->mm, addr);
-+	area = vma_lookup(current->mm, addr);
- 	if (!area) {
- 		pr_err("%s: Did not create a vm_area_struct for the mmap\n",
- 		       obj->mm.region->name);
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
