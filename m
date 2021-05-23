@@ -7,34 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB8C3C2B9F2
-	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:42:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43A87C2B9F2
+	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:42:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C8E72611C1
-	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:42:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 276F26052B
+	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:42:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231484AbhEWAn0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 20:43:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52602 "EHLO mail.kernel.org"
+        id S231486AbhEWAna (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 20:43:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52680 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231451AbhEWAn0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 20:43:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BF4B36100A;
-        Sun, 23 May 2021 00:41:59 +0000 (UTC)
+        id S231451AbhEWAn3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 20:43:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B8E2E611AD;
+        Sun, 23 May 2021 00:42:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621730520;
-        bh=w6r4+6oLQ9XxfpIH6oV3PgU3paSqR8vp9PDMuLDqusU=;
+        s=korg; t=1621730523;
+        bh=hYMTAfZ7OEEBL9VjuayqgjAnEgC6b6SzyTVACnGRZnQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=BwlfXixFmoIRraFkvnq0V4UOV5gHeDRbvnAcMVsnoQFHtf+/SejaaN0koxOg0k7Ba
-         Je8NlhzSd9pf6DiiZoX6zKMyM0EaxH1JiGdG13y2yw9I1TOoM0MjPyR2gakSetMN+v
-         YfKdBnIjBbyrrVLPgR8jr5h9ptLfEeIyUZbxl5NA=
-Date:   Sat, 22 May 2021 17:41:59 -0700
+        b=WkCqDxEjbQyq2ZTrJzhh/EBs45Gm2r2YZ18NtFeJmB3LTRwD1fQPWjj8LvAFXfMFN
+         G9UQHhkFPa0cqJ16DDoq3gdIf3DVqjxAJ0KjLVVKJx+lWN1Yoe0XIo2jyFCXD9ppbn
+         QuFDFHw34LYHLeezuZmv6avLdPtS7jWdFmfOOF4o=
+Date:   Sat, 22 May 2021 17:42:02 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, peterz@infradead.org, pmladek@suse.com,
-        senozhatsky@chromium.org, torvalds@linux-foundation.org
-Subject:  [patch 06/10] watchdog: reliable handling of timestamps
-Message-ID: <20210523004159.hyJ_THBDa%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andy.shevchenko@gmail.com,
+        ardb@kernel.org, arnd@arndb.de, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp,
+        peterz@infradead.org, rikard.falkeborn@gmail.com,
+        torvalds@linux-foundation.org, yury.norov@gmail.com
+Subject:  [patch 07/10] linux/bits.h: fix compilation error with
+ GENMASK
+Message-ID: <20210523004202.MOjiaAIxA%akpm@linux-foundation.org>
 In-Reply-To: <20210522174113.47fd4c853c0a1470c57deefa@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,122 +45,116 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Petr Mladek <pmladek@suse.com>
-Subject: watchdog: reliable handling of timestamps
+From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Subject: linux/bits.h: fix compilation error with GENMASK
 
-The commit 9bf3bc949f8aeefeacea4b ("watchdog: cleanup handling of false
-positives") tried to handle a virtual host stopped by the host a more
-straightforward and cleaner way.
+GENMASK() has an input check which uses __builtin_choose_expr() to enable
+a compile time sanity check of its inputs if they are known at compile
+time.  However, it turns out that __builtin_constant_p() does not always
+return a compile time constant [0].  It was thought this problem was fixed
+with gcc 4.9 [1], but apparently this is not the case [2].
 
-But it introduced a risk of false softlockup reports.  The virtual host
-might be stopped at any time, for example between
-kvm_check_and_clear_guest_paused() and is_softlockup().  As a result,
-is_softlockup() might read the updated jiffies are detects softlockup.
+Switch to use __is_constexpr() instead which always returns a compile time
+constant, regardless of its inputs.
 
-A solution might be to put back kvm_check_and_clear_guest_paused() after
-is_softlockup() and detect it.  But it would put back the cycle that
-complicates the logic.
+[0]: https://lore.kernel.org/lkml/42b4342b-aefc-a16a-0d43-9f9c0d63ba7a@rasmusvillemoes.dk
+[1]: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=19449
+[2]: https://lore.kernel.org/lkml/1ac7bbc2-45d9-26ed-0b33-bf382b8d858b@I-love.SAKURA.ne.jp
 
-In fact, the handling of all the timestamps is not reliable.  The code
-does not guarantee when and how many times the timestamps are read.  For
-example, "period_ts" might be touched anytime also from NMI and re-read in
-is_softlockup().  It works just by chance.
-
-Fix all the problems by making the code even more explicit.
-
-1. Make sure that "now" and "period_ts" timestamps are read only once.
-   They might be changed at anytime by NMI or when the virtual guest is
-   stopped by the host.  Note that "now" timestamp does this implicitly
-   because "jiffies" is marked volatile.
-
-2. "now" time must be read first.  The state of "period_ts" will
-   decide whether it will be used or the period will get restarted.
-
-3. kvm_check_and_clear_guest_paused() must be called before reading
-   "period_ts".  It touches the variable when the guest was stopped.
-
-As a result, "now" timestamp is used only when the watchdog was not
-touched and the guest not stopped in the meantime.  "period_ts" is
-restarted in all other situations.
-
-Link: https://lkml.kernel.org/r/YKT55gw+RZfyoFf7@alley
-Fixes: 9bf3bc949f8aeefeacea4b ("watchdog: cleanup handling of false positives")
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reported-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Link: https://lkml.kernel.org/r/20210511203716.117010-1-rikard.falkeborn@gmail.com
+Signed-off-by: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Yury Norov <yury.norov@gmail.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   34 ++++++++++++++++++++--------------
- 1 file changed, 20 insertions(+), 14 deletions(-)
+ include/linux/bits.h        |    2 +-
+ include/linux/const.h       |    8 ++++++++
+ include/linux/minmax.h      |   10 ++--------
+ tools/include/linux/bits.h  |    2 +-
+ tools/include/linux/const.h |    8 ++++++++
+ 5 files changed, 20 insertions(+), 10 deletions(-)
 
---- a/kernel/watchdog.c~watchdog-reliable-handling-of-timestamps
-+++ a/kernel/watchdog.c
-@@ -302,10 +302,10 @@ void touch_softlockup_watchdog_sync(void
- 	__this_cpu_write(watchdog_report_ts, SOFTLOCKUP_DELAY_REPORT);
- }
+--- a/include/linux/bits.h~linux-bitsh-fix-compilation-error-with-genmask
++++ a/include/linux/bits.h
+@@ -22,7 +22,7 @@
+ #include <linux/build_bug.h>
+ #define GENMASK_INPUT_CHECK(h, l) \
+ 	(BUILD_BUG_ON_ZERO(__builtin_choose_expr( \
+-		__builtin_constant_p((l) > (h)), (l) > (h), 0)))
++		__is_constexpr((l) > (h)), (l) > (h), 0)))
+ #else
+ /*
+  * BUILD_BUG_ON_ZERO is not available in h files included from asm files,
+--- a/include/linux/const.h~linux-bitsh-fix-compilation-error-with-genmask
++++ a/include/linux/const.h
+@@ -3,4 +3,12 @@
  
--static int is_softlockup(unsigned long touch_ts, unsigned long period_ts)
-+static int is_softlockup(unsigned long touch_ts,
-+			 unsigned long period_ts,
-+			 unsigned long now)
- {
--	unsigned long now = get_timestamp();
+ #include <vdso/const.h>
+ 
++/*
++ * This returns a constant expression while determining if an argument is
++ * a constant expression, most importantly without evaluating the argument.
++ * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
++ */
++#define __is_constexpr(x) \
++	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
++
+ #endif /* _LINUX_CONST_H */
+--- a/include/linux/minmax.h~linux-bitsh-fix-compilation-error-with-genmask
++++ a/include/linux/minmax.h
+@@ -2,6 +2,8 @@
+ #ifndef _LINUX_MINMAX_H
+ #define _LINUX_MINMAX_H
+ 
++#include <linux/const.h>
++
+ /*
+  * min()/max()/clamp() macros must accomplish three things:
+  *
+@@ -17,14 +19,6 @@
+ #define __typecheck(x, y) \
+ 	(!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
+ 
+-/*
+- * This returns a constant expression while determining if an argument is
+- * a constant expression, most importantly without evaluating the argument.
+- * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
+- */
+-#define __is_constexpr(x) \
+-	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
 -
- 	if ((watchdog_enabled & SOFT_WATCHDOG_ENABLED) && watchdog_thresh){
- 		/* Warn about unreasonable delays. */
- 		if (time_after(now, period_ts + get_softlockup_thresh()))
-@@ -353,8 +353,7 @@ static int softlockup_fn(void *data)
- /* watchdog kicker functions */
- static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
- {
--	unsigned long touch_ts = __this_cpu_read(watchdog_touch_ts);
--	unsigned long period_ts = __this_cpu_read(watchdog_report_ts);
-+	unsigned long touch_ts, period_ts, now;
- 	struct pt_regs *regs = get_irq_regs();
- 	int duration;
- 	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
-@@ -377,11 +376,22 @@ static enum hrtimer_restart watchdog_tim
- 	hrtimer_forward_now(hrtimer, ns_to_ktime(sample_period));
+ #define __no_side_effects(x, y) \
+ 		(__is_constexpr(x) && __is_constexpr(y))
  
- 	/*
-+	 * Read the current timestamp first. It might become invalid anytime
-+	 * when a virtual machine is stopped by the host or when the watchog
-+	 * is touched from NMI.
-+	 */
-+	now = get_timestamp();
-+	/*
- 	 * If a virtual machine is stopped by the host it can look to
--	 * the watchdog like a soft lockup. Check to see if the host
--	 * stopped the vm before we process the timestamps.
-+	 * the watchdog like a soft lockup. This function touches the watchdog.
- 	 */
- 	kvm_check_and_clear_guest_paused();
-+	/*
-+	 * The stored timestamp is comparable with @now only when not touched.
-+	 * It might get touched anytime from NMI. Make sure that is_softlockup()
-+	 * uses the same (valid) value.
-+	 */
-+	period_ts = READ_ONCE(*this_cpu_ptr(&watchdog_report_ts));
+--- a/tools/include/linux/bits.h~linux-bitsh-fix-compilation-error-with-genmask
++++ a/tools/include/linux/bits.h
+@@ -22,7 +22,7 @@
+ #include <linux/build_bug.h>
+ #define GENMASK_INPUT_CHECK(h, l) \
+ 	(BUILD_BUG_ON_ZERO(__builtin_choose_expr( \
+-		__builtin_constant_p((l) > (h)), (l) > (h), 0)))
++		__is_constexpr((l) > (h)), (l) > (h), 0)))
+ #else
+ /*
+  * BUILD_BUG_ON_ZERO is not available in h files included from asm files,
+--- a/tools/include/linux/const.h~linux-bitsh-fix-compilation-error-with-genmask
++++ a/tools/include/linux/const.h
+@@ -3,4 +3,12 @@
  
- 	/* Reset the interval when touched by known problematic code. */
- 	if (period_ts == SOFTLOCKUP_DELAY_REPORT) {
-@@ -398,13 +408,9 @@ static enum hrtimer_restart watchdog_tim
- 		return HRTIMER_RESTART;
- 	}
+ #include <vdso/const.h>
  
--	/* check for a softlockup
--	 * This is done by making sure a high priority task is
--	 * being scheduled.  The task touches the watchdog to
--	 * indicate it is getting cpu time.  If it hasn't then
--	 * this is a good indication some task is hogging the cpu
--	 */
--	duration = is_softlockup(touch_ts, period_ts);
-+	/* Check for a softlockup. */
-+	touch_ts = __this_cpu_read(watchdog_touch_ts);
-+	duration = is_softlockup(touch_ts, period_ts, now);
- 	if (unlikely(duration)) {
- 		/*
- 		 * Prevent multiple soft-lockup reports if one cpu is already
++/*
++ * This returns a constant expression while determining if an argument is
++ * a constant expression, most importantly without evaluating the argument.
++ * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
++ */
++#define __is_constexpr(x) \
++	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
++
+ #endif /* _LINUX_CONST_H */
 _
