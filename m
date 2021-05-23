@@ -5,37 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64EEEC2B9F2
-	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:41:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21CC9C2B9FB
+	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:41:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41E2760FE5
-	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:41:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2D376052B
+	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:41:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231453AbhEWAnL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 20:43:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52146 "EHLO mail.kernel.org"
+        id S231455AbhEWAnP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 20:43:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52248 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231451AbhEWAnK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 20:43:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 14FBE6052B;
-        Sun, 23 May 2021 00:41:44 +0000 (UTC)
+        id S231451AbhEWAnN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 20:43:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2A4006100A;
+        Sun, 23 May 2021 00:41:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621730504;
-        bh=iM2B8UWXE4v1znhoH+nIKmP1uXhneVYX4vNQ4IV3Sz8=;
+        s=korg; t=1621730507;
+        bh=3fW0FdmKsOra4/oaJJ8MdrIu64EXewmHrtjyfJU8dRs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=JGWPLyJPIl6FDsBMGdOnvIy6iDk0kVUYM90ELFjKPq5yA4yMFP2G/851317a8JQas
-         AlqdvgAjuaHGvvNJ/Q0+9B9zqsVxuHVoeRe2pUCEajxyXmbb/YC/CTT49+9iXYu4+t
-         9k8rOb9VIY7fX638Xqgo92McNIbZFjKQkWZ3jiS8=
-Date:   Sat, 22 May 2021 17:41:43 -0700
+        b=n5pwPKVO7Ui5sJuOA/TZDKGQrzzfgGnjgJIsDljw2ScUt2dooJWEFKm0/f5/ITtqV
+         gyn4wgcb2fCorfukNfZLWjpoyH0Pl1nq6/fnpwmw67j0lzfKDZzv52KHeRzz7Bz0ZA
+         n4YDFF8WHOGiKDXxA4Q1jTSMMB5DjInvVCdmaKnU=
+Date:   Sat, 22 May 2021 17:41:46 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, arnd@arndb.de, dan.j.williams@intel.com,
-        david@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        nathan@kernel.org, ndesaulniers@google.com,
-        richard.weiyang@linux.alibaba.com, torvalds@linux-foundation.org
-Subject:  [patch 01/10] mm/shuffle: fix section mismatch warning
-Message-ID: <20210523004143.dqNN_f0TJ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, torvalds@linux-foundation.org,
+        yaoaili@kingsoft.com
+Subject:  [patch 02/10] Revert "mm/gup: check page posion status
+ for coredump."
+Message-ID: <20210523004146.Uqko6SWcY%akpm@linux-foundation.org>
 In-Reply-To: <20210522174113.47fd4c853c0a1470c57deefa@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,54 +44,78 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm/shuffle: fix section mismatch warning
+From: Michal Hocko <mhocko@suse.com>
+Subject: Revert "mm/gup: check page posion status for coredump."
 
-clang sometimes decides not to inline shuffle_zone(), but it calls a
-__meminit function.  Without the extra __meminit annotation we get this
-warning:
+While reviewing
+http://lkml.kernel.org/r/20210429122519.15183-4-david@redhat.com I have
+crossed d3378e86d182 ("mm/gup: check page posion status for coredump.")
+and noticed that this patch is broken in two ways.  First it doesn't
+really prevent hwpoison pages from being dumped because hwpoison pages can
+be marked asynchornously at any time after the check.  Secondly, and more
+importantly, the patch introduces a ref count leak because get_dump_page
+takes a reference on the page which is not released.
 
-WARNING: modpost: vmlinux.o(.text+0x2a86d4): Section mismatch in reference from the function shuffle_zone() to the function .meminit.text:__shuffle_zone()
-The function shuffle_zone() references
-the function __meminit __shuffle_zone().
-This is often because shuffle_zone lacks a __meminit
-annotation or the annotation of __shuffle_zone is wrong.
+It also seems that the patch was merged incorrectly because there were
+follow up changes not included as well as discussions on how to address
+the underlying problem
+http://lkml.kernel.org/r/57ac524c-b49a-99ec-c1e4-ef5027bfb61b@redhat.com
 
-shuffle_free_memory() did not show the same problem in my tests, but it
-could happen in theory as well, so mark both as __meminit.
+Therefore revert the original patch.
 
-Link: https://lkml.kernel.org/r/20210514135952.2928094-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Link: https://lkml.kernel.org/r/20210505135407.31590-1-mhocko@kernel.org
+Fixes: d3378e86d182 ("mm/gup: check page posion status for coredump.")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Aili Yao <yaoaili@kingsoft.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shuffle.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/gup.c      |    4 ----
+ mm/internal.h |   20 --------------------
+ 2 files changed, 24 deletions(-)
 
---- a/mm/shuffle.h~mm-shuffle-fix-section-mismatch-warning
-+++ a/mm/shuffle.h
-@@ -10,7 +10,7 @@
- DECLARE_STATIC_KEY_FALSE(page_alloc_shuffle_key);
- extern void __shuffle_free_memory(pg_data_t *pgdat);
- extern bool shuffle_pick_tail(void);
--static inline void shuffle_free_memory(pg_data_t *pgdat)
-+static inline void __meminit shuffle_free_memory(pg_data_t *pgdat)
- {
- 	if (!static_branch_unlikely(&page_alloc_shuffle_key))
- 		return;
-@@ -18,7 +18,7 @@ static inline void shuffle_free_memory(p
+--- a/mm/gup.c~revert-mm-gup-check-page-posion-status-for-coredump
++++ a/mm/gup.c
+@@ -1593,10 +1593,6 @@ struct page *get_dump_page(unsigned long
+ 				      FOLL_FORCE | FOLL_DUMP | FOLL_GET);
+ 	if (locked)
+ 		mmap_read_unlock(mm);
+-
+-	if (ret == 1 && is_page_poisoned(page))
+-		return NULL;
+-
+ 	return (ret == 1) ? page : NULL;
+ }
+ #endif /* CONFIG_ELF_CORE */
+--- a/mm/internal.h~revert-mm-gup-check-page-posion-status-for-coredump
++++ a/mm/internal.h
+@@ -96,26 +96,6 @@ static inline void set_page_refcounted(s
+ 	set_page_count(page, 1);
  }
  
- extern void __shuffle_zone(struct zone *z);
--static inline void shuffle_zone(struct zone *z)
-+static inline void __meminit shuffle_zone(struct zone *z)
- {
- 	if (!static_branch_unlikely(&page_alloc_shuffle_key))
- 		return;
+-/*
+- * When kernel touch the user page, the user page may be have been marked
+- * poison but still mapped in user space, if without this page, the kernel
+- * can guarantee the data integrity and operation success, the kernel is
+- * better to check the posion status and avoid touching it, be good not to
+- * panic, coredump for process fatal signal is a sample case matching this
+- * scenario. Or if kernel can't guarantee the data integrity, it's better
+- * not to call this function, let kernel touch the poison page and get to
+- * panic.
+- */
+-static inline bool is_page_poisoned(struct page *page)
+-{
+-	if (PageHWPoison(page))
+-		return true;
+-	else if (PageHuge(page) && PageHWPoison(compound_head(page)))
+-		return true;
+-
+-	return false;
+-}
+-
+ extern unsigned long highest_memmap_pfn;
+ 
+ /*
 _
