@@ -2,339 +2,129 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDE44C2B9F2
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:21:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58313C2B9F2
+	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:41:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 918E9611CB
-	for <mm-commits@archiver.kernel.org>; Sat, 22 May 2021 22:21:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1A4FA611AB
+	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:41:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231433AbhEVWWs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 18:22:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39506 "EHLO mail.kernel.org"
+        id S231452AbhEWAmj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 20:42:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51746 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231431AbhEVWWr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 18:22:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CD2B6611ED;
-        Sat, 22 May 2021 22:21:21 +0000 (UTC)
+        id S231451AbhEWAmj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 20:42:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C6B2B6115C;
+        Sun, 23 May 2021 00:41:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621722082;
-        bh=3MJ3H3TnT0xx+uZ9RTcaDKSyHVj4Z0R3/IOO3dgZZOc=;
-        h=Date:From:To:Subject:From;
-        b=cA6Ms4KwD9ymx6/b69cAZcJbrKQRIH7iDnaDAU1BJYhPn6usYKKto6EJN48tjDH7M
-         xm/hThDZ5IwGb4QBes9KLx/9W1hlcavWvZLjQPCZgfYyuBydLsFqAi3r8HOiGckXVN
-         U9x2gDKy+B49Gv3MEwQPY8ecGsDpH2b8kRsiCQs0=
-Date:   Sat, 22 May 2021 15:21:21 -0700
-From:   akpm@linux-foundation.org
-To:     almasrymina@google.com, axelrasmussen@google.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        peterx@redhat.com
-Subject:  +
- mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy.patch added to -mm
- tree
-Message-ID: <20210522222121.AoNUbU3LN%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        s=korg; t=1621730473;
+        bh=s15kR6gr7NHuuhXRwYyDgsLPrJIzz5X9Cw4nzbhsEek=;
+        h=Date:From:To:Cc:Subject:From;
+        b=QmPA7pRdeKmXZ4geNDQmpIlfPiOl6Q3iskMt/UIML6Svs0JYThRfPpzoQ+UtT6lKY
+         mq0SxA3+ZLTOTm0NSMNjJnJm1GXAcylBpc0V5P0NSdv1sfPrIyxu0NkIa3/7wZrPNO
+         +UyJzartHhfda4H7kA0vxLtEzLO+eUx1wxImAedw=
+Date:   Sat, 22 May 2021 17:41:13 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
+Subject: incoming
+Message-Id: <20210522174113.47fd4c853c0a1470c57deefa@linux-foundation.org>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+10 patches, based on 4ff2473bdb4cf2bb7d208ccf4418d3d7e6b1652c.
 
-The patch titled
-     Subject: mm, hugetlb: fix resv_huge_pages underflow on UFFDIO_COPY
-has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy.patch
+Subsystems affected by this patch series:
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy.patch
+  mm/pagealloc
+  mm/gup
+  ipc
+  selftests
+  mm/kasan
+  kernel/watchdog
+  bitmap
+  procfs
+  lib
+  mm/userfaultfd
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Subsystem: mm/pagealloc
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+    Arnd Bergmann <arnd@arndb.de>:
+      mm/shuffle: fix section mismatch warning
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+Subsystem: mm/gup
 
-------------------------------------------------------
-From: Mina Almasry <almasrymina@google.com>
-Subject: mm, hugetlb: fix resv_huge_pages underflow on UFFDIO_COPY
+    Michal Hocko <mhocko@suse.com>:
+      Revert "mm/gup: check page posion status for coredump."
 
-The userfaultfd hugetlb tests detect a resv_huge_pages underflow.  This
-happens when hugetlb_mcopy_atomic_pte() is called with !is_continue on an
-index for which we already have a page in the cache.  When this happens,
-we allocate a second page, double consuming the reservation, and then fail
-to insert the page into the cache and return -EEXIST.
+Subsystem: ipc
 
-To fix this, we first check if there exists a page in the cache which
-already consumed the reservation, and return -EEXIST immediately if so.
+    Varad Gautam <varad.gautam@suse.com>:
+      ipc/mqueue, msg, sem: avoid relying on a stack reference past its expiry
 
-Secondly, if we fail to copy the page contents while holding the
-hugetlb_fault_mutex, we will drop the mutex and return to the caller after
-allocating a page that consumed a reservation.  In this case there may be
-a fault that double consumes the reservation.  To handle this, we free the
-allocated page, fix the reservations, and allocate a temporary hugetlb
-page and return that to the caller.  When the caller does the copy outside
-of the lock, we again check the cache, and allocate a page consuming the
-reservation, and copy over the contents.
+Subsystem: selftests
 
-Test:
-Hacked the code locally such that resv_huge_pages underflows produce
-a warning and the copy_huge_page_from_user() always fails, then:
+    Yang Yingliang <yangyingliang@huawei.com>:
+      tools/testing/selftests/exec: fix link error
 
-./tools/testing/selftests/vm/userfaultfd hugetlb_shared 10
-	2 /tmp/kokonut_test/huge/userfaultfd_test && echo test success
-./tools/testing/selftests/vm/userfaultfd hugetlb 10
-	2 /tmp/kokonut_test/huge/userfaultfd_test && echo test success
+Subsystem: mm/kasan
 
-Both tests succeed and produce no warnings. After the test runs
-number of free/resv hugepages is correct.
+    Alexander Potapenko <glider@google.com>:
+      kasan: slab: always reset the tag in get_freepointer_safe()
 
-Link: https://lkml.kernel.org/r/20210521074433.931380-1-almasrymina@google.com
-Signed-off-by: Mina Almasry <almasrymina@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Subsystem: kernel/watchdog
 
- include/linux/hugetlb.h |    4 +
- mm/hugetlb.c            |  103 ++++++++++++++++++++++++++++++++++----
- mm/migrate.c            |   39 ++------------
- 3 files changed, 103 insertions(+), 43 deletions(-)
+    Petr Mladek <pmladek@suse.com>:
+      watchdog: reliable handling of timestamps
 
---- a/include/linux/hugetlb.h~mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy
-+++ a/include/linux/hugetlb.h
-@@ -195,6 +195,8 @@ unsigned long hugetlb_change_protection(
- bool is_hugetlb_entry_migration(pte_t pte);
- void hugetlb_unshare_all_pmds(struct vm_area_struct *vma);
- 
-+void hugetlb_copy_page(struct page *dst, struct page *src);
-+
- #else /* !CONFIG_HUGETLB_PAGE */
- 
- static inline void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
-@@ -385,6 +387,8 @@ static inline vm_fault_t hugetlb_fault(s
- 
- static inline void hugetlb_unshare_all_pmds(struct vm_area_struct *vma) { }
- 
-+static inline void hugetlb_copy_page(struct page *dst, struct page *src);
-+
- #endif /* !CONFIG_HUGETLB_PAGE */
- /*
-  * hugepages at page global directory. If arch support
---- a/mm/hugetlb.c~mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy
-+++ a/mm/hugetlb.c
-@@ -81,6 +81,45 @@ struct mutex *hugetlb_fault_mutex_table
- /* Forward declaration */
- static int hugetlb_acct_memory(struct hstate *h, long delta);
- 
-+/*
-+ * Gigantic pages are so large that we do not guarantee that page++ pointer
-+ * arithmetic will work across the entire page.  We need something more
-+ * specialized.
-+ */
-+static void __copy_gigantic_page(struct page *dst, struct page *src,
-+				 int nr_pages)
-+{
-+	int i;
-+	struct page *dst_base = dst;
-+	struct page *src_base = src;
-+
-+	for (i = 0; i < nr_pages;) {
-+		cond_resched();
-+		copy_highpage(dst, src);
-+
-+		i++;
-+		dst = mem_map_next(dst, dst_base, i);
-+		src = mem_map_next(src, src_base, i);
-+	}
-+}
-+
-+void hugetlb_copy_page(struct page *dst, struct page *src)
-+{
-+	int i;
-+	struct hstate *h = page_hstate(src);
-+	int nr_pages = pages_per_huge_page(h);
-+
-+	if (unlikely(nr_pages > MAX_ORDER_NR_PAGES)) {
-+		__copy_gigantic_page(dst, src, nr_pages);
-+		return;
-+	}
-+
-+	for (i = 0; i < nr_pages; i++) {
-+		cond_resched();
-+		copy_highpage(dst + i, src + i);
-+	}
-+}
-+
- static inline bool subpool_is_free(struct hugepage_subpool *spool)
- {
- 	if (spool->count)
-@@ -4869,19 +4908,20 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 			    struct page **pagep)
- {
- 	bool is_continue = (mode == MCOPY_ATOMIC_CONTINUE);
--	struct address_space *mapping;
--	pgoff_t idx;
-+	struct hstate *h = hstate_vma(dst_vma);
-+	struct address_space *mapping = dst_vma->vm_file->f_mapping;
-+	pgoff_t idx = vma_hugecache_offset(h, dst_vma, dst_addr);
- 	unsigned long size;
- 	int vm_shared = dst_vma->vm_flags & VM_SHARED;
--	struct hstate *h = hstate_vma(dst_vma);
- 	pte_t _dst_pte;
- 	spinlock_t *ptl;
--	int ret;
-+	int ret = -ENOMEM;
- 	struct page *page;
- 	int writable;
--
--	mapping = dst_vma->vm_file->f_mapping;
--	idx = vma_hugecache_offset(h, dst_vma, dst_addr);
-+	struct mempolicy *mpol;
-+	nodemask_t *nodemask;
-+	gfp_t gfp_mask = htlb_alloc_mask(h);
-+	int node = huge_node(dst_vma, dst_addr, gfp_mask, &mpol, &nodemask);
- 
- 	if (is_continue) {
- 		ret = -EFAULT;
-@@ -4889,7 +4929,14 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 		if (!page)
- 			goto out;
- 	} else if (!*pagep) {
--		ret = -ENOMEM;
-+		/* If a page already exists, then it's UFFDIO_COPY for
-+		 * a non-missing case. Return -EEXIST.
-+		 */
-+		if (hugetlbfs_pagecache_present(h, dst_vma, dst_addr)) {
-+			ret = -EEXIST;
-+			goto out;
-+		}
-+
- 		page = alloc_huge_page(dst_vma, dst_addr, 0);
- 		if (IS_ERR(page))
- 			goto out;
-@@ -4901,12 +4948,48 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 		/* fallback to copy_from_user outside mmap_lock */
- 		if (unlikely(ret)) {
- 			ret = -ENOENT;
-+			/* Free the allocated page which may have
-+			 * consumed a reservation.
-+			 */
-+			restore_reserve_on_error(h, dst_vma, dst_addr, page);
-+			if (!HPageRestoreReserve(page)) {
-+				if (unlikely(hugetlb_unreserve_pages(
-+					    mapping->host, idx, idx + 1, 1)))
-+					hugetlb_fix_reserve_counts(
-+						mapping->host);
-+			}
-+			put_page(page);
-+
-+			/* Allocate a temporary page to hold the copied
-+			 * contents.
-+			 */
-+			page = alloc_migrate_huge_page(h, gfp_mask, node,
-+						       nodemask);
-+			if (IS_ERR(page)) {
-+				ret = -ENOMEM;
-+				goto out;
-+			}
- 			*pagep = page;
--			/* don't free the page */
-+			/* Set the outparam pagep and return to the caller to
-+			 * copy the contents outside the lock. Don't free the
-+			 * page.
-+			 */
- 			goto out;
- 		}
- 	} else {
--		page = *pagep;
-+		if (hugetlbfs_pagecache_present(h, dst_vma, dst_addr)) {
-+			put_page(*pagep);
-+			ret = -EEXIST;
-+			goto out;
-+		}
-+
-+		page = alloc_huge_page(dst_vma, dst_addr, 0);
-+		if (IS_ERR(page)) {
-+			ret = -ENOMEM;
-+			goto out;
-+		}
-+		__copy_gigantic_page(page, *pagep, pages_per_huge_page(h));
-+		put_page(*pagep);
- 		*pagep = NULL;
- 	}
- 
---- a/mm/migrate.c~mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy
-+++ a/mm/migrate.c
-@@ -528,28 +528,6 @@ int migrate_huge_page_move_mapping(struc
- 	return MIGRATEPAGE_SUCCESS;
- }
- 
--/*
-- * Gigantic pages are so large that we do not guarantee that page++ pointer
-- * arithmetic will work across the entire page.  We need something more
-- * specialized.
-- */
--static void __copy_gigantic_page(struct page *dst, struct page *src,
--				int nr_pages)
--{
--	int i;
--	struct page *dst_base = dst;
--	struct page *src_base = src;
--
--	for (i = 0; i < nr_pages; ) {
--		cond_resched();
--		copy_highpage(dst, src);
--
--		i++;
--		dst = mem_map_next(dst, dst_base, i);
--		src = mem_map_next(src, src_base, i);
--	}
--}
--
- static void copy_huge_page(struct page *dst, struct page *src)
- {
- 	int i;
-@@ -557,19 +535,14 @@ static void copy_huge_page(struct page *
- 
- 	if (PageHuge(src)) {
- 		/* hugetlbfs page */
--		struct hstate *h = page_hstate(src);
--		nr_pages = pages_per_huge_page(h);
--
--		if (unlikely(nr_pages > MAX_ORDER_NR_PAGES)) {
--			__copy_gigantic_page(dst, src, nr_pages);
--			return;
--		}
--	} else {
--		/* thp page */
--		BUG_ON(!PageTransHuge(src));
--		nr_pages = thp_nr_pages(src);
-+		hugetlb_copy_page(dst, src);
-+		return;
- 	}
- 
-+	/* thp page */
-+	BUG_ON(!PageTransHuge(src));
-+	nr_pages = thp_nr_pages(src);
-+
- 	for (i = 0; i < nr_pages; i++) {
- 		cond_resched();
- 		copy_highpage(dst + i, src + i);
-_
+Subsystem: bitmap
 
-Patches currently in -mm which might be from almasrymina@google.com are
+    Rikard Falkeborn <rikard.falkeborn@gmail.com>:
+      linux/bits.h: fix compilation error with GENMASK
 
-mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy.patch
+Subsystem: procfs
+
+    Alexey Dobriyan <adobriyan@gmail.com>:
+      proc: remove Alexey from MAINTAINERS
+
+Subsystem: lib
+
+    Zhen Lei <thunder.leizhen@huawei.com>:
+      lib: kunit: suppress a compilation warning of frame size
+
+Subsystem: mm/userfaultfd
+
+    Mike Kravetz <mike.kravetz@oracle.com>:
+      userfaultfd: hugetlbfs: fix new flag usage in error path
+
+ MAINTAINERS                           |    1 -
+ fs/hugetlbfs/inode.c                  |    2 +-
+ include/linux/bits.h                  |    2 +-
+ include/linux/const.h                 |    8 ++++++++
+ include/linux/minmax.h                |   10 ++--------
+ ipc/mqueue.c                          |    6 ++++--
+ ipc/msg.c                             |    6 ++++--
+ ipc/sem.c                             |    6 ++++--
+ kernel/watchdog.c                     |   34 ++++++++++++++++++++--------------
+ lib/Makefile                          |    1 +
+ mm/gup.c                              |    4 ----
+ mm/internal.h                         |   20 --------------------
+ mm/shuffle.h                          |    4 ++--
+ mm/slub.c                             |    1 +
+ mm/userfaultfd.c                      |   28 ++++++++++++++--------------
+ tools/include/linux/bits.h            |    2 +-
+ tools/include/linux/const.h           |    8 ++++++++
+ tools/testing/selftests/exec/Makefile |    6 +++---
+ 18 files changed, 74 insertions(+), 75 deletions(-)
 
