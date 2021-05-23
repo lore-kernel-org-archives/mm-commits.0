@@ -5,38 +5,41 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6B36C2B9F2
-	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:42:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D49B7C4707E
+	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:42:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A9FE86052B
-	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:42:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE841611AB
+	for <mm-commits@archiver.kernel.org>; Sun, 23 May 2021 00:42:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231491AbhEWAnf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 May 2021 20:43:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52820 "EHLO mail.kernel.org"
+        id S231496AbhEWAni (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 May 2021 20:43:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52904 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231451AbhEWAnf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 May 2021 20:43:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9616B6100A;
-        Sun, 23 May 2021 00:42:08 +0000 (UTC)
+        id S231494AbhEWAni (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 May 2021 20:43:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A19BB6052B;
+        Sun, 23 May 2021 00:42:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621730528;
-        bh=oiH/oCciZJpvD6natzZOOVKats8b40WeXt7u2e+Jhp0=;
+        s=korg; t=1621730532;
+        bh=ko4mkggWQO4xLN44ZfpyuJUHXIwcMtBW77cOJg5vFvY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=VRX/J+gh5+Dnpz6a6ieserALjsfkm7OTxpAluk/iC364IEkHJu17ojZ5YnUwezQPq
-         xEyrMh8dHhJKlgEIh3talo0Q420ZTuKGmlhgzCLVvj1+SAO2G5X/CJi8Lota9t7KSx
-         HEvnDI9ucivQ69x8Rs//YGkNdCwPk70v0L1lmsb4=
-Date:   Sat, 22 May 2021 17:42:08 -0700
+        b=Xm+DnUIsb1k3IICccoR/DftzHaBNuwUNyE0+L97ae0TbRbb3LYGNyG4E+I9lWFHGR
+         pVw+Qdh5WE25M59whCho4MaFe9udfUX6gNceJbj7HD6Q4C25q/L02TFhmwP73F483n
+         MUqqfxy2pgRXWolvNqW3GZuG455Cf6mFWOZYZfeM=
+Date:   Sat, 22 May 2021 17:42:11 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, skhan@linuxfoundation.org,
-        thunder.leizhen@huawei.com, torvalds@linux-foundation.org,
-        vitor@massaru.org
-Subject:  [patch 09/10] lib: kunit: suppress a compilation warning
- of frame size
-Message-ID: <20210523004208.OFbVcUevF%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, almasry.mina@google.com,
+        almasrymina@google.com, david@redhat.com, linmiaohe@huawei.com,
+        linux-mm@kvack.org, mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        osalvador@suse.de, songmuchun@bytedance.com,
+        stable@vger.kernel.org, torvalds@linux-foundation.org,
+        willy@infradead.org
+Subject:  [patch 10/10] userfaultfd: hugetlbfs: fix new flag usage
+ in error path
+Message-ID: <20210523004211.073-oA8eq%akpm@linux-foundation.org>
 In-Reply-To: <20210522174113.47fd4c853c0a1470c57deefa@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,38 +47,104 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: lib: kunit: suppress a compilation warning of frame size
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: userfaultfd: hugetlbfs: fix new flag usage in error path
 
-lib/bitfield_kunit.c: In function `test_bitfields_constants':
-lib/bitfield_kunit.c:93:1: warning: the frame size of 7456 bytes is larger than 2048 bytes [-Wframe-larger-than=]
- }
- ^
+In commit d6995da31122 ("hugetlb: use page.private for hugetlb specific
+page flags") the use of PagePrivate to indicate a reservation count should
+be restored at free time was changed to the hugetlb specific flag
+HPageRestoreReserve.  Changes to a userfaultfd error path as well as a
+VM_BUG_ON() in remove_inode_hugepages() were overlooked.
 
-As the description of BITFIELD_KUNIT in lib/Kconfig.debug, it "Only useful
-for kernel devs running the KUnit test harness, and not intended for
-inclusion into a production build".  Therefore, it is not worth modifying
-variable 'test_bitfields_constants' to clear this warning.  Just suppress
-it.
+Users could see incorrect hugetlb reserve counts if they experience an
+error with a UFFDIO_COPY operation.  Specifically, this would be the
+result of an unlikely copy_huge_page_from_user error.  There is not an
+increased chance of hitting the VM_BUG_ON.
 
-Link: https://lkml.kernel.org/r/20210518094533.7652-1-thunder.leizhen@huawei.com
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Vitor Massaru Iha <vitor@massaru.org>
+Link: https://lkml.kernel.org/r/20210521233952.236434-1-mike.kravetz@oracle.com
+Fixes: d6995da31122 ("hugetlb: use page.private for hugetlb specific page flags")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Mina Almasry <almasry.mina@google.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ fs/hugetlbfs/inode.c |    2 +-
+ mm/userfaultfd.c     |   28 ++++++++++++++--------------
+ 2 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/lib/Makefile~lib-kunit-suppress-a-compilation-warning-of-frame-size
-+++ a/lib/Makefile
-@@ -348,6 +348,7 @@ obj-$(CONFIG_OBJAGG) += objagg.o
- obj-$(CONFIG_PLDMFW) += pldmfw/
- 
- # KUnit tests
-+CFLAGS_bitfield_kunit.o := $(call cc-option,-Wframe-larger-than=10240)
- obj-$(CONFIG_BITFIELD_KUNIT) += bitfield_kunit.o
- obj-$(CONFIG_LIST_KUNIT_TEST) += list-test.o
- obj-$(CONFIG_LINEAR_RANGES_TEST) += test_linear_ranges.o
+--- a/fs/hugetlbfs/inode.c~userfaultfd-hugetlbfs-fix-new-flag-usage-in-error-path
++++ a/fs/hugetlbfs/inode.c
+@@ -529,7 +529,7 @@ static void remove_inode_hugepages(struc
+ 			 * the subpool and global reserve usage count can need
+ 			 * to be adjusted.
+ 			 */
+-			VM_BUG_ON(PagePrivate(page));
++			VM_BUG_ON(HPageRestoreReserve(page));
+ 			remove_huge_page(page);
+ 			freed++;
+ 			if (!truncate_op) {
+--- a/mm/userfaultfd.c~userfaultfd-hugetlbfs-fix-new-flag-usage-in-error-path
++++ a/mm/userfaultfd.c
+@@ -360,38 +360,38 @@ out:
+ 		 * If a reservation for the page existed in the reservation
+ 		 * map of a private mapping, the map was modified to indicate
+ 		 * the reservation was consumed when the page was allocated.
+-		 * We clear the PagePrivate flag now so that the global
++		 * We clear the HPageRestoreReserve flag now so that the global
+ 		 * reserve count will not be incremented in free_huge_page.
+ 		 * The reservation map will still indicate the reservation
+ 		 * was consumed and possibly prevent later page allocation.
+ 		 * This is better than leaking a global reservation.  If no
+-		 * reservation existed, it is still safe to clear PagePrivate
+-		 * as no adjustments to reservation counts were made during
+-		 * allocation.
++		 * reservation existed, it is still safe to clear
++		 * HPageRestoreReserve as no adjustments to reservation counts
++		 * were made during allocation.
+ 		 *
+ 		 * The reservation map for shared mappings indicates which
+ 		 * pages have reservations.  When a huge page is allocated
+ 		 * for an address with a reservation, no change is made to
+-		 * the reserve map.  In this case PagePrivate will be set
+-		 * to indicate that the global reservation count should be
++		 * the reserve map.  In this case HPageRestoreReserve will be
++		 * set to indicate that the global reservation count should be
+ 		 * incremented when the page is freed.  This is the desired
+ 		 * behavior.  However, when a huge page is allocated for an
+ 		 * address without a reservation a reservation entry is added
+-		 * to the reservation map, and PagePrivate will not be set.
+-		 * When the page is freed, the global reserve count will NOT
+-		 * be incremented and it will appear as though we have leaked
+-		 * reserved page.  In this case, set PagePrivate so that the
+-		 * global reserve count will be incremented to match the
+-		 * reservation map entry which was created.
++		 * to the reservation map, and HPageRestoreReserve will not be
++		 * set. When the page is freed, the global reserve count will
++		 * NOT be incremented and it will appear as though we have
++		 * leaked reserved page.  In this case, set HPageRestoreReserve
++		 * so that the global reserve count will be incremented to
++		 * match the reservation map entry which was created.
+ 		 *
+ 		 * Note that vm_alloc_shared is based on the flags of the vma
+ 		 * for which the page was originally allocated.  dst_vma could
+ 		 * be different or NULL on error.
+ 		 */
+ 		if (vm_alloc_shared)
+-			SetPagePrivate(page);
++			SetHPageRestoreReserve(page);
+ 		else
+-			ClearPagePrivate(page);
++			ClearHPageRestoreReserve(page);
+ 		put_page(page);
+ 	}
+ 	BUG_ON(copied < 0);
 _
