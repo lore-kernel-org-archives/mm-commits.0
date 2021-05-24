@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3854EC2B9F7
-	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 22:16:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EE04C47086
+	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 23:51:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1958E61436
-	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 22:16:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 43B926141B
+	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 23:51:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233972AbhEXWR5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 May 2021 18:17:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59634 "EHLO mail.kernel.org"
+        id S229785AbhEXXxF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 May 2021 19:53:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46884 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233945AbhEXWR4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 24 May 2021 18:17:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EA5E06142F;
-        Mon, 24 May 2021 22:16:27 +0000 (UTC)
+        id S229598AbhEXXxF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 24 May 2021 19:53:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C7A4A61004;
+        Mon, 24 May 2021 23:51:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621894588;
-        bh=KiZfFmfJk/A0N/wVPS0kHCrWpHGOH8P7mkEUJpbInKk=;
+        s=korg; t=1621900296;
+        bh=hPZK2HBhs9O6bssfwfVmWtyl4fNIno5+y/3fRqdIlTU=;
         h=Date:From:To:Subject:From;
-        b=n7SnhlwBa8OIGTbNN/JtDC2cCAIhtOo+R2cXITHGdk4HG9g7BmCQGfEPYiBjrJrm0
-         /bIt9h6v7Gx0pvMQAqqSB2a4US3Rh8hNx+YlrDIIjj1itWsEx648+d+5QQtVQVzRhG
-         7eOZk+/lyxNICWVpHb4srAZ+58jAIsXGGrzUqyVM=
-Date:   Mon, 24 May 2021 15:16:27 -0700
+        b=bEk0fj7Vfi224KSkK7+qPbzX1Iy8jSLdJpxA9weVtKjB0FwVobi+8gtxPgWmwyse0
+         LR33gRW4DhXmzhAbJFPNC5ZSwJmG85uUKZ+cfjO/yeooji8Yz0fZBmMw8uL6sVnsWz
+         3Fzgr/NckKXrO71Xbhbax7GFMo1T8BXiShhM8Ylg=
+Date:   Mon, 24 May 2021 16:51:35 -0700
 From:   akpm@linux-foundation.org
-To:     apopple@nvidia.com, bsingharora@gmail.com, bskeggs@redhat.com,
-        hch@lst.de, hughd@google.com, jgg@nvidia.com, jglisse@redhat.com,
-        jhubbard@nvidia.com, mm-commits@vger.kernel.org, peterx@redhat.com,
-        rcampbell@nvidia.com, willy@infradead.org
-Subject:  + nouveau-svm-implement-atomic-svm-access.patch added to
- -mm tree
-Message-ID: <20210524221627.UyawAbx2b%akpm@linux-foundation.org>
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, swboyd@chromium.org,
+        vbabka@suse.cz
+Subject:  [nacked]
+ lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging.patch
+ removed from -mm tree
+Message-ID: <20210524235135.Uc5KPkJ6f%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,320 +45,105 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nouveau/svm: implement atomic SVM access
-has been added to the -mm tree.  Its filename is
-     nouveau-svm-implement-atomic-svm-access.patch
+     Subject: lib/hexdump: add a raw pointer printing format for slub debugging
+has been removed from the -mm tree.  Its filename was
+     lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/nouveau-svm-implement-atomic-svm-access.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/nouveau-svm-implement-atomic-svm-access.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: nouveau/svm: implement atomic SVM access
+From: Stephen Boyd <swboyd@chromium.org>
+Subject: lib/hexdump: add a raw pointer printing format for slub debugging
 
-Some NVIDIA GPUs do not support direct atomic access to system memory via
-PCIe.  Instead this must be emulated by granting the GPU exclusive access
-to the memory.  This is achieved by replacing CPU page table entries with
-special swap entries that fault on userspace access.
+Patch series "slub: Print non-hashed pointers in slub debugging".
 
-The driver then grants the GPU permission to update the page undergoing
-atomic access via the GPU page tables.  When CPU access to the page is
-required a CPU fault is raised which calls into the device driver via MMU
-notifiers to revoke the atomic access.  The original page table entries
-are then restored allowing CPU access to proceed.
+I was doing some debugging recently and noticed that my pointers were
+being hashed while slub_debug was on the kernel commandline.  Let's make
+the prints in here meaningful in that case by pushing %px throughout.
 
-Link: https://lkml.kernel.org/r/20210524132725.12697-11-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Ben Skeggs <bskeggs@redhat.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
+Alternatively, we could force on no_hash_pointers if slub_debug is on the
+commandline.  Maybe that would be better?
+
+The final patch is just something else I noticed while looking at the
+code.  The message argument is never used so the debugging messages are
+not as clear as they could be.
+
+
+This patch (of 3):
+
+We want to get actual pointer addresses when we're looking at slub
+debugging reports.  Add another prefix format specifier that says we want
+raw pointer addresses, i.e.  %px, in the printk format.
+
+Link: https://lkml.kernel.org/r/20210520013539.3733631-1-swboyd@chromium.org
+Link: https://lkml.kernel.org/r/20210520013539.3733631-2-swboyd@chromium.org
+Signed-off-by: Stephen Boyd <swboyd@chromium.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/include/nvif/if000c.h      |    1 
- drivers/gpu/drm/nouveau/nouveau_svm.c              |  126 ++++++++++-
- drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.h      |    1 
- drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c |    6 
- 4 files changed, 123 insertions(+), 11 deletions(-)
+ include/linux/printk.h |    1 +
+ lib/hexdump.c          |   12 ++++++++++--
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
---- a/drivers/gpu/drm/nouveau/include/nvif/if000c.h~nouveau-svm-implement-atomic-svm-access
-+++ a/drivers/gpu/drm/nouveau/include/nvif/if000c.h
-@@ -77,6 +77,7 @@ struct nvif_vmm_pfnmap_v0 {
- #define NVIF_VMM_PFNMAP_V0_APER                           0x00000000000000f0ULL
- #define NVIF_VMM_PFNMAP_V0_HOST                           0x0000000000000000ULL
- #define NVIF_VMM_PFNMAP_V0_VRAM                           0x0000000000000010ULL
-+#define NVIF_VMM_PFNMAP_V0_A				  0x0000000000000004ULL
- #define NVIF_VMM_PFNMAP_V0_W                              0x0000000000000002ULL
- #define NVIF_VMM_PFNMAP_V0_V                              0x0000000000000001ULL
- #define NVIF_VMM_PFNMAP_V0_NONE                           0x0000000000000000ULL
---- a/drivers/gpu/drm/nouveau/nouveau_svm.c~nouveau-svm-implement-atomic-svm-access
-+++ a/drivers/gpu/drm/nouveau/nouveau_svm.c
-@@ -35,6 +35,7 @@
- #include <linux/sched/mm.h>
- #include <linux/sort.h>
- #include <linux/hmm.h>
-+#include <linux/rmap.h>
- 
- struct nouveau_svm {
- 	struct nouveau_drm *drm;
-@@ -67,6 +68,11 @@ struct nouveau_svm {
- 	} buffer[1];
+--- a/include/linux/printk.h~lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging
++++ a/include/linux/printk.h
+@@ -567,6 +567,7 @@ extern const struct file_operations kmsg
+ enum {
+ 	DUMP_PREFIX_NONE,
+ 	DUMP_PREFIX_ADDRESS,
++	DUMP_PREFIX_RAW_ADDRESS,
+ 	DUMP_PREFIX_OFFSET
  };
- 
-+#define FAULT_ACCESS_READ 0
-+#define FAULT_ACCESS_WRITE 1
-+#define FAULT_ACCESS_ATOMIC 2
-+#define FAULT_ACCESS_PREFETCH 3
-+
- #define SVM_DBG(s,f,a...) NV_DEBUG((s)->drm, "svm: "f"\n", ##a)
- #define SVM_ERR(s,f,a...) NV_WARN((s)->drm, "svm: "f"\n", ##a)
- 
-@@ -412,6 +418,24 @@ nouveau_svm_fault_cancel_fault(struct no
- }
- 
- static int
-+nouveau_svm_fault_priority(u8 fault)
-+{
-+	switch (fault) {
-+	case FAULT_ACCESS_PREFETCH:
-+		return 0;
-+	case FAULT_ACCESS_READ:
-+		return 1;
-+	case FAULT_ACCESS_WRITE:
-+		return 2;
-+	case FAULT_ACCESS_ATOMIC:
-+		return 3;
-+	default:
-+		WARN_ON_ONCE(1);
-+		return -1;
-+	}
-+}
-+
-+static int
- nouveau_svm_fault_cmp(const void *a, const void *b)
- {
- 	const struct nouveau_svm_fault *fa = *(struct nouveau_svm_fault **)a;
-@@ -421,9 +445,8 @@ nouveau_svm_fault_cmp(const void *a, con
- 		return ret;
- 	if ((ret = (s64)fa->addr - fb->addr))
- 		return ret;
--	/*XXX: atomic? */
--	return (fa->access == 0 || fa->access == 3) -
--	       (fb->access == 0 || fb->access == 3);
-+	return nouveau_svm_fault_priority(fa->access) -
-+		nouveau_svm_fault_priority(fb->access);
- }
- 
- static void
-@@ -487,6 +510,10 @@ static bool nouveau_svm_range_invalidate
- 	struct svm_notifier *sn =
- 		container_of(mni, struct svm_notifier, notifier);
- 
-+	if (range->event == MMU_NOTIFY_EXCLUSIVE &&
-+	    range->owner == sn->svmm->vmm->cli->drm->dev)
-+		return true;
-+
- 	/*
- 	 * serializes the update to mni->invalidate_seq done by caller and
- 	 * prevents invalidation of the PTE from progressing while HW is being
-@@ -555,6 +582,71 @@ static void nouveau_hmm_convert_pfn(stru
- 		args->p.phys[0] |= NVIF_VMM_PFNMAP_V0_W;
- }
- 
-+static int nouveau_atomic_range_fault(struct nouveau_svmm *svmm,
-+			       struct nouveau_drm *drm,
-+			       struct nouveau_pfnmap_args *args, u32 size,
-+			       struct svm_notifier *notifier)
-+{
-+	unsigned long timeout =
-+		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	struct mm_struct *mm = svmm->notifier.mm;
-+	struct page *page;
-+	unsigned long start = args->p.addr;
-+	unsigned long notifier_seq;
-+	int ret = 0;
-+
-+	ret = mmu_interval_notifier_insert(&notifier->notifier, mm,
-+					args->p.addr, args->p.size,
-+					&nouveau_svm_mni_ops);
-+	if (ret)
-+		return ret;
-+
-+	while (true) {
-+		if (time_after(jiffies, timeout)) {
-+			ret = -EBUSY;
-+			goto out;
-+		}
-+
-+		notifier_seq = mmu_interval_read_begin(&notifier->notifier);
-+		mmap_read_lock(mm);
-+		make_device_exclusive_range(mm, start, start + PAGE_SIZE,
-+					    &page, drm->dev);
-+		mmap_read_unlock(mm);
-+		if (!page) {
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+
-+		mutex_lock(&svmm->mutex);
-+		if (!mmu_interval_read_retry(&notifier->notifier,
-+					     notifier_seq))
-+			break;
-+		mutex_unlock(&svmm->mutex);
-+	}
-+
-+	/* Map the page on the GPU. */
-+	args->p.page = 12;
-+	args->p.size = PAGE_SIZE;
-+	args->p.addr = start;
-+	args->p.phys[0] = page_to_phys(page) |
-+		NVIF_VMM_PFNMAP_V0_V |
-+		NVIF_VMM_PFNMAP_V0_W |
-+		NVIF_VMM_PFNMAP_V0_A |
-+		NVIF_VMM_PFNMAP_V0_HOST;
-+
-+	svmm->vmm->vmm.object.client->super = true;
-+	ret = nvif_object_ioctl(&svmm->vmm->vmm.object, args, size, NULL);
-+	svmm->vmm->vmm.object.client->super = false;
-+	mutex_unlock(&svmm->mutex);
-+
-+	unlock_page(page);
-+	put_page(page);
-+
-+out:
-+	mmu_interval_notifier_remove(&notifier->notifier);
-+	return ret;
-+}
-+
- static int nouveau_range_fault(struct nouveau_svmm *svmm,
- 			       struct nouveau_drm *drm,
- 			       struct nouveau_pfnmap_args *args, u32 size,
-@@ -637,7 +729,7 @@ nouveau_svm_fault(struct nvif_notify *no
- 	unsigned long hmm_flags;
- 	u64 inst, start, limit;
- 	int fi, fn;
--	int replay = 0, ret;
-+	int replay = 0, atomic = 0, ret;
- 
- 	/* Parse available fault buffer entries into a cache, and update
- 	 * the GET pointer so HW can reuse the entries.
-@@ -718,12 +810,14 @@ nouveau_svm_fault(struct nvif_notify *no
- 		/*
- 		 * Determine required permissions based on GPU fault
- 		 * access flags.
--		 * XXX: atomic?
- 		 */
- 		switch (buffer->fault[fi]->access) {
- 		case 0: /* READ. */
- 			hmm_flags = HMM_PFN_REQ_FAULT;
+ extern int hex_dump_to_buffer(const void *buf, size_t len, int rowsize,
+--- a/lib/hexdump.c~lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging
++++ a/lib/hexdump.c
+@@ -211,8 +211,12 @@ EXPORT_SYMBOL(hex_dump_to_buffer);
+  * @level: kernel log level (e.g. KERN_DEBUG)
+  * @prefix_str: string to prefix each line with;
+  *  caller supplies trailing spaces for alignment if desired
+- * @prefix_type: controls whether prefix of an offset, address, or none
+- *  is printed (%DUMP_PREFIX_OFFSET, %DUMP_PREFIX_ADDRESS, %DUMP_PREFIX_NONE)
++ * @prefix_type: controls how prefix is printed
++ *   %DUMP_PREFIX_OFFSET - offset prefix
++ *   %DUMP_PREFIX_ADDRESS - hashed address prefix
++ *   %DUMP_PREFIX_RAW_ADDRESS - non-hashed address prefix
++ *   %DUMP_PREFIX_NONE - no prefix
++ *
+  * @rowsize: number of bytes to print per line; must be 16 or 32
+  * @groupsize: number of bytes to print at a time (1, 2, 4, 8; default = 1)
+  * @buf: data blob to dump
+@@ -260,6 +264,10 @@ void print_hex_dump(const char *level, c
+ 			printk("%s%s%p: %s\n",
+ 			       level, prefix_str, ptr + i, linebuf);
  			break;
-+		case 2: /* ATOMIC. */
-+			atomic = true;
++		case DUMP_PREFIX_RAW_ADDRESS:
++			printk("%s%s%px: %s\n",
++			       level, prefix_str, ptr + i, linebuf);
 +			break;
- 		case 3: /* PREFETCH. */
- 			hmm_flags = 0;
+ 		case DUMP_PREFIX_OFFSET:
+ 			printk("%s%s%.8x: %s\n", level, prefix_str, i, linebuf);
  			break;
-@@ -739,8 +833,14 @@ nouveau_svm_fault(struct nvif_notify *no
- 		}
- 
- 		notifier.svmm = svmm;
--		ret = nouveau_range_fault(svmm, svm->drm, &args.i,
--					sizeof(args), hmm_flags, &notifier);
-+		if (atomic)
-+			ret = nouveau_atomic_range_fault(svmm, svm->drm,
-+							 &args.i, sizeof(args),
-+							 &notifier);
-+		else
-+			ret = nouveau_range_fault(svmm, svm->drm, &args.i,
-+						  sizeof(args), hmm_flags,
-+						  &notifier);
- 		mmput(mm);
- 
- 		limit = args.i.p.addr + args.i.p.size;
-@@ -756,11 +856,15 @@ nouveau_svm_fault(struct nvif_notify *no
- 			 */
- 			if (buffer->fault[fn]->svmm != svmm ||
- 			    buffer->fault[fn]->addr >= limit ||
--			    (buffer->fault[fi]->access == 0 /* READ. */ &&
-+			    (buffer->fault[fi]->access == FAULT_ACCESS_READ &&
- 			     !(args.phys[0] & NVIF_VMM_PFNMAP_V0_V)) ||
--			    (buffer->fault[fi]->access != 0 /* READ. */ &&
--			     buffer->fault[fi]->access != 3 /* PREFETCH. */ &&
--			     !(args.phys[0] & NVIF_VMM_PFNMAP_V0_W)))
-+			    (buffer->fault[fi]->access != FAULT_ACCESS_READ &&
-+			     buffer->fault[fi]->access != FAULT_ACCESS_PREFETCH &&
-+			     !(args.phys[0] & NVIF_VMM_PFNMAP_V0_W)) ||
-+			    (buffer->fault[fi]->access != FAULT_ACCESS_READ &&
-+			     buffer->fault[fi]->access != FAULT_ACCESS_WRITE &&
-+			     buffer->fault[fi]->access != FAULT_ACCESS_PREFETCH &&
-+			     !(args.phys[0] & NVIF_VMM_PFNMAP_V0_A)))
- 				break;
- 		}
- 
---- a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c~nouveau-svm-implement-atomic-svm-access
-+++ a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c
-@@ -88,6 +88,9 @@ gp100_vmm_pgt_pfn(struct nvkm_vmm *vmm,
- 		if (!(*map->pfn & NVKM_VMM_PFN_W))
- 			data |= BIT_ULL(6); /* RO. */
- 
-+		if (!(*map->pfn & NVKM_VMM_PFN_A))
-+			data |= BIT_ULL(7); /* Atomic disable. */
-+
- 		if (!(*map->pfn & NVKM_VMM_PFN_VRAM)) {
- 			addr = *map->pfn >> NVKM_VMM_PFN_ADDR_SHIFT;
- 			addr = dma_map_page(dev, pfn_to_page(addr), 0,
-@@ -322,6 +325,9 @@ gp100_vmm_pd0_pfn(struct nvkm_vmm *vmm,
- 		if (!(*map->pfn & NVKM_VMM_PFN_W))
- 			data |= BIT_ULL(6); /* RO. */
- 
-+		if (!(*map->pfn & NVKM_VMM_PFN_A))
-+			data |= BIT_ULL(7); /* Atomic disable. */
-+
- 		if (!(*map->pfn & NVKM_VMM_PFN_VRAM)) {
- 			addr = *map->pfn >> NVKM_VMM_PFN_ADDR_SHIFT;
- 			addr = dma_map_page(dev, pfn_to_page(addr), 0,
---- a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.h~nouveau-svm-implement-atomic-svm-access
-+++ a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.h
-@@ -178,6 +178,7 @@ void nvkm_vmm_unmap_region(struct nvkm_v
- #define NVKM_VMM_PFN_APER                                 0x00000000000000f0ULL
- #define NVKM_VMM_PFN_HOST                                 0x0000000000000000ULL
- #define NVKM_VMM_PFN_VRAM                                 0x0000000000000010ULL
-+#define NVKM_VMM_PFN_A					  0x0000000000000004ULL
- #define NVKM_VMM_PFN_W                                    0x0000000000000002ULL
- #define NVKM_VMM_PFN_V                                    0x0000000000000001ULL
- #define NVKM_VMM_PFN_NONE                                 0x0000000000000000ULL
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from swboyd@chromium.org are
 
-mm-remove-special-swap-entry-functions.patch
-mm-swapops-rework-swap-entry-manipulation-code.patch
-mm-rmap-split-try_to_munlock-from-try_to_unmap.patch
-mm-rmap-split-migration-into-its-own-function.patch
-mm-rename-migrate_pgmap_owner.patch
-mm-memoryc-allow-different-return-codes-for-copy_nonpresent_pte.patch
-mm-device-exclusive-memory-access.patch
-mm-selftests-for-exclusive-device-memory.patch
-nouveau-svm-refactor-nouveau_range_fault.patch
-nouveau-svm-implement-atomic-svm-access.patch
+buildid-only-consider-gnu-notes-for-build-id-parsing.patch
+buildid-add-api-to-parse-build-id-out-of-buffer.patch
+buildid-stash-away-kernels-build-id-on-init.patch
+buildid-stash-away-kernels-build-id-on-init-fix.patch
+dump_stack-add-vmlinux-build-id-to-stack-traces.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces.patch
+arm64-stacktrace-use-%psb-for-backtrace-printing.patch
+x86-dumpstack-use-%psb-%pbb-for-backtrace-printing.patch
+scripts-decode_stacktracesh-support-debuginfod.patch
+scripts-decode_stacktracesh-silence-stderr-messages-from-addr2line-nm.patch
+scripts-decode_stacktracesh-indicate-auto-can-be-used-for-base-path.patch
+buildid-mark-some-arguments-const.patch
+buildid-fix-kernel-doc-notation.patch
+kdump-use-vmlinux_build_id-to-simplify.patch
 
