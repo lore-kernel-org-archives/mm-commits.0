@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EE04C47086
-	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 23:51:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14003C47085
+	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 23:51:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 43B926141B
-	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 23:51:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE4966141F
+	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 23:51:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229785AbhEXXxF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 May 2021 19:53:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46884 "EHLO mail.kernel.org"
+        id S229854AbhEXXxJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 May 2021 19:53:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229598AbhEXXxF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 24 May 2021 19:53:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C7A4A61004;
-        Mon, 24 May 2021 23:51:35 +0000 (UTC)
+        id S229798AbhEXXxI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 24 May 2021 19:53:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 931B861360;
+        Mon, 24 May 2021 23:51:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621900296;
-        bh=hPZK2HBhs9O6bssfwfVmWtyl4fNIno5+y/3fRqdIlTU=;
+        s=korg; t=1621900298;
+        bh=q4Q+eJQHVvuLDPxjGMjdqEB1SF+vIKqra6bM8R130Ak=;
         h=Date:From:To:Subject:From;
-        b=bEk0fj7Vfi224KSkK7+qPbzX1Iy8jSLdJpxA9weVtKjB0FwVobi+8gtxPgWmwyse0
-         LR33gRW4DhXmzhAbJFPNC5ZSwJmG85uUKZ+cfjO/yeooji8Yz0fZBmMw8uL6sVnsWz
-         3Fzgr/NckKXrO71Xbhbax7GFMo1T8BXiShhM8Ylg=
-Date:   Mon, 24 May 2021 16:51:35 -0700
+        b=P9h4Kj8bxAdXic8/xhYIhQQhp7UBMa3/9j16G2B4EdTlOuSOnPJHUI0YjtmZ9encg
+         pJbfkD6MCUbfWVp+cUruX+aXz5KfffjNag6CYla7fGgVgYrczV7vzcywXSx1PKTDT4
+         rO4L5nEf6dDR40JT70uvjIL1q1R3m5PZy4zhgIFg=
+Date:   Mon, 24 May 2021 16:51:38 -0700
 From:   akpm@linux-foundation.org
 To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
         penberg@kernel.org, rientjes@google.com, swboyd@chromium.org,
         vbabka@suse.cz
 Subject:  [nacked]
- lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging.patch
- removed from -mm tree
-Message-ID: <20210524235135.Uc5KPkJ6f%akpm@linux-foundation.org>
+ slub-print-raw-pointer-addresses-when-debugging.patch removed from -mm tree
+Message-ID: <20210524235138.VLvsgz96p%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,89 +44,147 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/hexdump: add a raw pointer printing format for slub debugging
+     Subject: slub: print raw pointer addresses when debugging
 has been removed from the -mm tree.  Its filename was
-     lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging.patch
+     slub-print-raw-pointer-addresses-when-debugging.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Stephen Boyd <swboyd@chromium.org>
-Subject: lib/hexdump: add a raw pointer printing format for slub debugging
+Subject: slub: print raw pointer addresses when debugging
 
-Patch series "slub: Print non-hashed pointers in slub debugging".
+Obscuring the pointers that slub shows when debugging makes for some
+confusing slub debug messages:
 
-I was doing some debugging recently and noticed that my pointers were
-being hashed while slub_debug was on the kernel commandline.  Let's make
-the prints in here meaningful in that case by pushing %px throughout.
+ Padding overwritten. 0x0000000079f0674a-0x000000000d4dce17
 
-Alternatively, we could force on no_hash_pointers if slub_debug is on the
-commandline.  Maybe that would be better?
+Those addresses are hashed for kernel security reasons.  If we're trying
+to be secure with slub_debug on the commandline we have some big problems
+given that we dump whole chunks of kernel memory to the kernel logs. 
+Let's use %px here and dump buffers with the actual address for the buffer
+instead of the hashed version so that the logs are meaningful.  This also
+helps if a kernel address is in some slub debug report so we can figure
+out that the object is referencing itself.
 
-The final patch is just something else I noticed while looking at the
-code.  The message argument is never used so the debugging messages are
-not as clear as they could be.
-
-
-This patch (of 3):
-
-We want to get actual pointer addresses when we're looking at slub
-debugging reports.  Add another prefix format specifier that says we want
-raw pointer addresses, i.e.  %px, in the printk format.
-
-Link: https://lkml.kernel.org/r/20210520013539.3733631-1-swboyd@chromium.org
-Link: https://lkml.kernel.org/r/20210520013539.3733631-2-swboyd@chromium.org
+Link: https://lkml.kernel.org/r/20210520013539.3733631-3-swboyd@chromium.org
 Signed-off-by: Stephen Boyd <swboyd@chromium.org>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |    1 +
- lib/hexdump.c          |   12 ++++++++++--
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ mm/slub.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
---- a/include/linux/printk.h~lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging
-+++ a/include/linux/printk.h
-@@ -567,6 +567,7 @@ extern const struct file_operations kmsg
- enum {
- 	DUMP_PREFIX_NONE,
- 	DUMP_PREFIX_ADDRESS,
-+	DUMP_PREFIX_RAW_ADDRESS,
- 	DUMP_PREFIX_OFFSET
- };
- extern int hex_dump_to_buffer(const void *buf, size_t len, int rowsize,
---- a/lib/hexdump.c~lib-hexdump-add-a-raw-pointer-printing-format-for-slub-debugging
-+++ a/lib/hexdump.c
-@@ -211,8 +211,12 @@ EXPORT_SYMBOL(hex_dump_to_buffer);
-  * @level: kernel log level (e.g. KERN_DEBUG)
-  * @prefix_str: string to prefix each line with;
-  *  caller supplies trailing spaces for alignment if desired
-- * @prefix_type: controls whether prefix of an offset, address, or none
-- *  is printed (%DUMP_PREFIX_OFFSET, %DUMP_PREFIX_ADDRESS, %DUMP_PREFIX_NONE)
-+ * @prefix_type: controls how prefix is printed
-+ *   %DUMP_PREFIX_OFFSET - offset prefix
-+ *   %DUMP_PREFIX_ADDRESS - hashed address prefix
-+ *   %DUMP_PREFIX_RAW_ADDRESS - non-hashed address prefix
-+ *   %DUMP_PREFIX_NONE - no prefix
-+ *
-  * @rowsize: number of bytes to print per line; must be 16 or 32
-  * @groupsize: number of bytes to print at a time (1, 2, 4, 8; default = 1)
-  * @buf: data blob to dump
-@@ -260,6 +264,10 @@ void print_hex_dump(const char *level, c
- 			printk("%s%s%p: %s\n",
- 			       level, prefix_str, ptr + i, linebuf);
- 			break;
-+		case DUMP_PREFIX_RAW_ADDRESS:
-+			printk("%s%s%px: %s\n",
-+			       level, prefix_str, ptr + i, linebuf);
-+			break;
- 		case DUMP_PREFIX_OFFSET:
- 			printk("%s%s%.8x: %s\n", level, prefix_str, i, linebuf);
- 			break;
+--- a/mm/slub.c~slub-print-raw-pointer-addresses-when-debugging
++++ a/mm/slub.c
+@@ -568,7 +568,7 @@ static void print_section(char *level, c
+ 			  unsigned int length)
+ {
+ 	metadata_access_enable();
+-	print_hex_dump(level, kasan_reset_tag(text), DUMP_PREFIX_ADDRESS,
++	print_hex_dump(level, kasan_reset_tag(text), DUMP_PREFIX_RAW_ADDRESS,
+ 			16, 1, addr, length, 1);
+ 	metadata_access_disable();
+ }
+@@ -669,7 +669,7 @@ void print_tracking(struct kmem_cache *s
+ 
+ static void print_page_info(struct page *page)
+ {
+-	pr_err("Slab 0x%p objects=%u used=%u fp=0x%p flags=%#lx(%pGp)\n",
++	pr_err("Slab 0x%px objects=%u used=%u fp=0x%px flags=%#lx(%pGp)\n",
+ 	       page, page->objects, page->inuse, page->freelist,
+ 	       page->flags, &page->flags);
+ 
+@@ -729,7 +729,7 @@ static void print_trailer(struct kmem_ca
+ 
+ 	print_page_info(page);
+ 
+-	pr_err("Object 0x%p @offset=%tu fp=0x%p\n\n",
++	pr_err("Object 0x%px @offset=%tu fp=0x%px\n\n",
+ 	       p, p - addr, get_freepointer(s, p));
+ 
+ 	if (s->flags & SLAB_RED_ZONE)
+@@ -805,7 +805,7 @@ static void init_object(struct kmem_cach
+ static void restore_bytes(struct kmem_cache *s, char *message, u8 data,
+ 						void *from, void *to)
+ {
+-	slab_fix(s, "Restoring 0x%p-0x%p=0x%x\n", from, to - 1, data);
++	slab_fix(s, "Restoring 0x%px-0x%px=0x%x\n", from, to - 1, data);
+ 	memset(from, data, to - from);
+ }
+ 
+@@ -831,7 +831,7 @@ static int check_bytes_and_report(struct
+ 		goto skip_bug_print;
+ 
+ 	slab_bug(s, "%s overwritten", what);
+-	pr_err("0x%p-0x%p @offset=%tu. First byte 0x%x instead of 0x%x\n",
++	pr_err("0x%px-0x%px @offset=%tu. First byte 0x%x instead of 0x%x\n",
+ 					fault, end - 1, fault - addr,
+ 					fault[0], value);
+ 	print_trailer(s, page, object);
+@@ -925,7 +925,7 @@ static int slab_pad_check(struct kmem_ca
+ 	while (end > fault && end[-1] == POISON_INUSE)
+ 		end--;
+ 
+-	slab_err(s, page, "Padding overwritten. 0x%p-0x%p @offset=%tu",
++	slab_err(s, page, "Padding overwritten. 0x%px-0x%px @offset=%tu",
+ 			fault, end - 1, fault - start);
+ 	print_section(KERN_ERR, "Padding ", pad, remainder);
+ 
+@@ -1073,7 +1073,7 @@ static void trace(struct kmem_cache *s,
+ 								int alloc)
+ {
+ 	if (s->flags & SLAB_TRACE) {
+-		pr_info("TRACE %s %s 0x%p inuse=%d fp=0x%p\n",
++		pr_info("TRACE %s %s 0x%px inuse=%d fp=0x%px\n",
+ 			s->name,
+ 			alloc ? "alloc" : "free",
+ 			object, page->inuse,
+@@ -1218,7 +1218,7 @@ static inline int free_consistency_check
+ 		struct page *page, void *object, unsigned long addr)
+ {
+ 	if (!check_valid_pointer(s, page, object)) {
+-		slab_err(s, page, "Invalid object pointer 0x%p", object);
++		slab_err(s, page, "Invalid object pointer 0x%px", object);
+ 		return 0;
+ 	}
+ 
+@@ -1232,10 +1232,10 @@ static inline int free_consistency_check
+ 
+ 	if (unlikely(s != page->slab_cache)) {
+ 		if (!PageSlab(page)) {
+-			slab_err(s, page, "Attempt to free object(0x%p) outside of slab",
++			slab_err(s, page, "Attempt to free object(0x%px) outside of slab",
+ 				 object);
+ 		} else if (!page->slab_cache) {
+-			pr_err("SLUB <none>: no slab for object 0x%p.\n",
++			pr_err("SLUB <none>: no slab for object 0x%px.\n",
+ 			       object);
+ 			dump_stack();
+ 		} else
+@@ -1295,7 +1295,7 @@ out:
+ 	slab_unlock(page);
+ 	spin_unlock_irqrestore(&n->list_lock, flags);
+ 	if (!ret)
+-		slab_fix(s, "Object at 0x%p not freed", object);
++		slab_fix(s, "Object at 0x%px not freed", object);
+ 	return ret;
+ }
+ 
+@@ -3931,7 +3931,7 @@ static void list_slab_objects(struct kme
+ 	for_each_object(p, s, addr, page->objects) {
+ 
+ 		if (!test_bit(__obj_to_index(s, addr, p), map)) {
+-			pr_err("Object 0x%p @offset=%tu\n", p, p - addr);
++			pr_err("Object 0x%px @offset=%tu\n", p, p - addr);
+ 			print_tracking(s, p);
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from swboyd@chromium.org are
