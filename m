@@ -7,33 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00821C2B9F7
-	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 20:04:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23CE8C04FF3
+	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 20:05:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D357061406
-	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 20:04:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F257D61406
+	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 20:05:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232676AbhEXUGU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 May 2021 16:06:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60740 "EHLO mail.kernel.org"
+        id S232814AbhEXUGr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 May 2021 16:06:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32846 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232107AbhEXUGU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 24 May 2021 16:06:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C5D33613E1;
-        Mon, 24 May 2021 20:04:51 +0000 (UTC)
+        id S232107AbhEXUGr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 24 May 2021 16:06:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D594561406;
+        Mon, 24 May 2021 20:05:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621886691;
-        bh=Gta4eoYkgCXG84tIYX+3AM8WshKuKeUczoXdMYF0mAA=;
+        s=korg; t=1621886717;
+        bh=QnCOMOIRSb/3x8QIPVJ9wpqK1EBbDd6JCO6v0KEuF7c=;
         h=Date:From:To:Subject:From;
-        b=Ts51vXFnM6SbrIdvftDXwOeQpUmeGWTCeWjXZlAlYfVG8qSMxWNsGElAhtKi4/QP+
-         iD4yS6bIb145jfGmwltnqWMOUVGjhzvPJ+zOsPNI0DNLNf54/vcJusrREKmu+S8BLq
-         CYnY5KxCME8/J5JwAl3QPE98z6eayndRmfuOnIOM=
-Date:   Mon, 24 May 2021 13:04:51 -0700
+        b=kS1Hmym8M+ZdEKcwmCGma8+vOoxitPWcRsZibEvWIDDItoVh+FC0F20RpQ/L9/kqM
+         GHOgCxxJKxbV6Hkx6xkETECD+AnyRVKioCWyM9JNc1iSB3Ea0OsIMo3oaZeFOAYqNm
+         Y1nSH4YYI0IDxE8TwsVeItll5Px5W/nims0yG6YE=
+Date:   Mon, 24 May 2021 13:05:17 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Message-ID: <20210524200451.7asKzuqXb%akpm@linux-foundation.org>
+Subject:  + linux-next-post.patch added to -mm tree
+Message-ID: <20210524200517.YnczXYNY2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,116 +41,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: linux-next-post
+has been added to the -mm tree.  Its filename is
+     linux-next-post.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-post.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-post.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: linux-next-post
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c |   13 -----------
- drivers/gpu/drm/amd/amdgpu/vcn_v3_0.c   |    5 ----
- fs/btrfs/compression.c                  |   25 ----------------------
- 3 files changed, 43 deletions(-)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c~linux-next-git-rejects
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c~linux-next-post
 +++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-@@ -1165,19 +1165,6 @@ static void amdgpu_ttm_tt_unpopulate(str
- 	if (gtt && gtt->userptr) {
- 		amdgpu_ttm_tt_set_user_pages(ttm, NULL);
- 		kfree(ttm->sg);
--<<<<<<< HEAD
--		ttm->sg = NULL;
--		ttm->page_flags &= ~TTM_PAGE_FLAG_SG;
--		return;
--	}
--
--	if (ttm->sg && gtt->gobj->import_attach) {
--		struct dma_buf_attachment *attach;
--
--		attach = gtt->gobj->import_attach;
--		dma_buf_unmap_attachment(attach, ttm->sg, DMA_BIDIRECTIONAL);
--=======
-->>>>>>> linux-next/akpm-base
- 		ttm->sg = NULL;
- 		ttm->page_flags &= ~TTM_PAGE_FLAG_SG;
- 		return;
---- a/drivers/gpu/drm/amd/amdgpu/vcn_v3_0.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/amdgpu/vcn_v3_0.c
-@@ -386,14 +386,9 @@ done:
- static int vcn_v3_0_hw_fini(void *handle)
- {
- 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
--<<<<<<< HEAD
--	struct amdgpu_ring *ring;
--	int i;
--=======
- 	int i;
+@@ -698,9 +698,9 @@ int amdgpu_ttm_tt_get_user_pages(struct
+ 		return -ESRCH;
  
- 	cancel_delayed_work_sync(&adev->vcn.idle_work);
-->>>>>>> linux-next/akpm-base
- 
- 	for (i = 0; i < adev->vcn.num_vcn_inst; ++i) {
- 		if (adev->vcn.harvest_config & (1 << i))
---- a/fs/btrfs/compression.c~linux-next-git-rejects
-+++ a/fs/btrfs/compression.c
-@@ -349,14 +349,8 @@ static void end_compressed_bio_write(str
- 	 * call back into the FS and do all the end_io operations
- 	 */
- 	inode = cb->inode;
--<<<<<<< HEAD
--	cb->compressed_pages[0]->mapping = cb->inode->i_mapping;
--	btrfs_record_physical_zoned(inode, cb->start, bio);
--	btrfs_writepage_endio_finish_ordered(cb->compressed_pages[0],
--=======
- 	btrfs_record_physical_zoned(inode, cb->start, bio);
- 	btrfs_writepage_endio_finish_ordered(BTRFS_I(inode), NULL,
-->>>>>>> linux-next/akpm-base
- 			cb->start, cb->start + cb->len - 1,
- 			bio->bi_status == BLK_STS_OK);
- 
-@@ -431,35 +425,16 @@ blk_status_t btrfs_submit_compressed_wri
- 	bio->bi_end_io = end_compressed_bio_write;
- 
- 	if (use_append) {
--<<<<<<< HEAD
--		struct extent_map *em;
--		struct map_lookup *map;
--		struct block_device *bdev;
--
--		em = btrfs_get_chunk_map(fs_info, disk_start, PAGE_SIZE);
--		if (IS_ERR(em)) {
--=======
- 		struct btrfs_device *device;
- 
- 		device = btrfs_zoned_get_device(fs_info, disk_start, PAGE_SIZE);
- 		if (IS_ERR(device)) {
-->>>>>>> linux-next/akpm-base
- 			kfree(cb);
- 			bio_put(bio);
- 			return BLK_STS_NOTSUPP;
- 		}
- 
--<<<<<<< HEAD
--		map = em->map_lookup;
--		/* We only support single profile for now */
--		ASSERT(map->num_stripes == 1);
--		bdev = map->stripes[0].dev->bdev;
--
--		bio_set_dev(bio, bdev);
--		free_extent_map(em);
--=======
- 		bio_set_dev(bio, device->bdev);
-->>>>>>> linux-next/akpm-base
+ 	mmap_read_lock(mm);
+-	vma = find_vma(mm, start);
++	vma = vma_lookup(mm, start);
+ 	mmap_read_unlock(mm);
+-	if (unlikely(!vma || start < vma->vm_start)) {
++	if (unlikely(!vma)) {
+ 		r = -EFAULT;
+ 		goto out_putmm;
  	}
- 
- 	if (blkcg_css) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
