@@ -4,39 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8241DC2B9F8
-	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 21:37:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 208FFC04FF3
+	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 22:16:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F80F613D2
-	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 21:37:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E561E6142D
+	for <mm-commits@archiver.kernel.org>; Mon, 24 May 2021 22:16:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233049AbhEXVia (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 May 2021 17:38:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45248 "EHLO mail.kernel.org"
+        id S233855AbhEXWR3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 May 2021 18:17:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59314 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232547AbhEXVi3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 24 May 2021 17:38:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BD231613CC;
-        Mon, 24 May 2021 21:36:59 +0000 (UTC)
+        id S232911AbhEXWR3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 24 May 2021 18:17:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 31C636142A;
+        Mon, 24 May 2021 22:16:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621892220;
-        bh=/tJMMQZqMEdrmOS4i1BEwq/ct3JbXy9Pl7/r35gLZ+g=;
+        s=korg; t=1621894560;
+        bh=wTwAmkTWdrvzX5DFGbXxioFx6nZ3NdDF3Zr3LmWsPXo=;
         h=Date:From:To:Subject:From;
-        b=OfzhlsTjMlQAgbpPDAPP0bvu2pSDM4Uvw1T7ndnJh49b3IQkAaMIBkpeCl0uVTEnw
-         Dgcy1ziifYR0nQKxwOakh7w5y61B1hsRYeKHJb8EPAvPZewrZ11BnkAPgdf1N3vFN7
-         4CruRx3dCL6xT4gMkwzZmhK9gpevFXusOvoWhECw=
-Date:   Mon, 24 May 2021 14:36:59 -0700
+        b=XXby11KbeqD1T3aPucqS9TrhBMIijv7Oar7AqpG5z2xwG8FzR9qmxactPpWWFrw2v
+         +1UzvHEgqTtNpLDMrBYVrJGVjN2PK0t4/ps2HO8i7yox6LKthj4i78sJemsrcC+vlD
+         bV7hFGukCivtCISp2Sw1oWa0ORuDzG0yomYPVMzQ=
+Date:   Mon, 24 May 2021 15:15:59 -0700
 From:   akpm@linux-foundation.org
-To:     christian@brauner.io, clg@fr.ibm.com, ebiederm@xmission.com,
-        keescook@chromium.org, mark.rutland@arm.com,
-        mm-commits@vger.kernel.org, paulus@samba.org,
-        schwidefsky@de.ibm.com, stable@vger.kernel.org
-Subject:  + pid-take-a-reference-when-initializing-cad_pid.patch
+To:     apopple@nvidia.com, bsingharora@gmail.com, bskeggs@redhat.com,
+        hch@lst.de, hughd@google.com, jgg@nvidia.com, jglisse@redhat.com,
+        jhubbard@nvidia.com, mm-commits@vger.kernel.org, peterx@redhat.com,
+        rcampbell@nvidia.com, willy@infradead.org
+Subject:  + mm-swapops-rework-swap-entry-manipulation-code.patch
  added to -mm tree
-Message-ID: <20210524213659.QN1DDYpOk%akpm@linux-foundation.org>
+Message-ID: <20210524221559.he0oEuDPL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pid: take a reference when initializing `cad_pid`
+     Subject: mm/swapops: rework swap entry manipulation code
 has been added to the -mm tree.  Its filename is
-     pid-take-a-reference-when-initializing-cad_pid.patch
+     mm-swapops-rework-swap-entry-manipulation-code.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/pid-take-a-reference-when-initializing-cad_pid.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-swapops-rework-swap-entry-manipulation-code.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/pid-take-a-reference-when-initializing-cad_pid.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swapops-rework-swap-entry-manipulation-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,161 +66,473 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: pid: take a reference when initializing `cad_pid`
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm/swapops: rework swap entry manipulation code
 
-During boot, kernel_init_freeable() initializes `cad_pid` to the init
-task's struct pid.  Later on, we may change `cad_pid` via a sysctl, and
-when this happens proc_do_cad_pid() will increment the refcount on the new
-pid via get_pid(), and will decrement the refcount on the old pid via
-put_pid().  As we never called get_pid() when we initialized `cad_pid`, we
-decrement a reference we never incremented, can therefore free the init
-task's struct pid early.  As there can be dangling references to the
-struct pid, we can later encounter a use-after-free (e.g.  when delivering
-signals).
+Both migration and device private pages use special swap entries that are
+manipluated by a range of inline functions.  The arguments to these are
+somewhat inconsitent so rework them to remove flag type arguments and to
+make the arguments similar for both read and write entry creation.
 
-This was spotted when fuzzing v5.13-rc3 with Syzkaller, but seems to have
-been around since the conversion of `cad_pid` to struct pid in commit:
-
-  9ec52099e4b8678a ("[PATCH] replace cad_pid by a struct pid")
-
-... from the pre-KASAN stone age of v2.6.19.
-
-Fix this by getting a reference to the init task's struct pid when we
-assign it to `cad_pid`.
-
-Full KASAN splat below.
-
-==================================================================
-BUG: KASAN: use-after-free in ns_of_pid include/linux/pid.h:153 [inline]
-BUG: KASAN: use-after-free in task_active_pid_ns+0xc0/0xc8 kernel/pid.c:509
-Read of size 4 at addr ffff23794dda0004 by task syz-executor.0/273
-
-CPU: 1 PID: 273 Comm: syz-executor.0 Not tainted 5.12.0-00001-g9aef892b2d15 #1
-Hardware name: linux,dummy-virt (DT)
-Call trace:
- dump_backtrace+0x0/0x4a8 arch/arm64/kernel/stacktrace.c:105
- show_stack+0x34/0x48 arch/arm64/kernel/stacktrace.c:191
- __dump_stack lib/dump_stack.c:79 [inline]
- dump_stack+0x1d4/0x2a0 lib/dump_stack.c:120
- print_address_description.constprop.11+0x60/0x3a8 mm/kasan/report.c:232
- __kasan_report mm/kasan/report.c:399 [inline]
- kasan_report+0x1e8/0x200 mm/kasan/report.c:416
- __asan_report_load4_noabort+0x30/0x48 mm/kasan/report_generic.c:308
- ns_of_pid include/linux/pid.h:153 [inline]
- task_active_pid_ns+0xc0/0xc8 kernel/pid.c:509
- do_notify_parent+0x308/0xe60 kernel/signal.c:1950
- exit_notify kernel/exit.c:682 [inline]
- do_exit+0x2334/0x2bd0 kernel/exit.c:845
- do_group_exit+0x108/0x2c8 kernel/exit.c:922
- get_signal+0x4e4/0x2a88 kernel/signal.c:2781
- do_signal arch/arm64/kernel/signal.c:882 [inline]
- do_notify_resume+0x300/0x970 arch/arm64/kernel/signal.c:936
- work_pending+0xc/0x2dc
-
-Allocated by task 0:
- kasan_save_stack+0x28/0x58 mm/kasan/common.c:38
- kasan_set_track mm/kasan/common.c:46 [inline]
- set_alloc_info mm/kasan/common.c:427 [inline]
- __kasan_slab_alloc+0x88/0xa8 mm/kasan/common.c:460
- kasan_slab_alloc include/linux/kasan.h:223 [inline]
- slab_post_alloc_hook+0x50/0x5c0 mm/slab.h:516
- slab_alloc_node mm/slub.c:2907 [inline]
- slab_alloc mm/slub.c:2915 [inline]
- kmem_cache_alloc+0x1f4/0x4c0 mm/slub.c:2920
- alloc_pid+0xdc/0xc00 kernel/pid.c:180
- copy_process+0x2794/0x5e18 kernel/fork.c:2129
- kernel_clone+0x194/0x13c8 kernel/fork.c:2500
- kernel_thread+0xd4/0x110 kernel/fork.c:2552
- rest_init+0x44/0x4a0 init/main.c:687
- arch_call_rest_init+0x1c/0x28
- start_kernel+0x520/0x554 init/main.c:1064
- 0x0
-
-Freed by task 270:
- kasan_save_stack+0x28/0x58 mm/kasan/common.c:38
- kasan_set_track+0x28/0x40 mm/kasan/common.c:46
- kasan_set_free_info+0x28/0x50 mm/kasan/generic.c:357
- ____kasan_slab_free mm/kasan/common.c:360 [inline]
- ____kasan_slab_free mm/kasan/common.c:325 [inline]
- __kasan_slab_free+0xf4/0x148 mm/kasan/common.c:367
- kasan_slab_free include/linux/kasan.h:199 [inline]
- slab_free_hook mm/slub.c:1562 [inline]
- slab_free_freelist_hook+0x98/0x260 mm/slub.c:1600
- slab_free mm/slub.c:3161 [inline]
- kmem_cache_free+0x224/0x8e0 mm/slub.c:3177
- put_pid.part.4+0xe0/0x1a8 kernel/pid.c:114
- put_pid+0x30/0x48 kernel/pid.c:109
- proc_do_cad_pid+0x190/0x1b0 kernel/sysctl.c:1401
- proc_sys_call_handler+0x338/0x4b0 fs/proc/proc_sysctl.c:591
- proc_sys_write+0x34/0x48 fs/proc/proc_sysctl.c:617
- call_write_iter include/linux/fs.h:1977 [inline]
- new_sync_write+0x3ac/0x510 fs/read_write.c:518
- vfs_write fs/read_write.c:605 [inline]
- vfs_write+0x9c4/0x1018 fs/read_write.c:585
- ksys_write+0x124/0x240 fs/read_write.c:658
- __do_sys_write fs/read_write.c:670 [inline]
- __se_sys_write fs/read_write.c:667 [inline]
- __arm64_sys_write+0x78/0xb0 fs/read_write.c:667
- __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
- invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
- el0_svc_common.constprop.1+0x16c/0x388 arch/arm64/kernel/syscall.c:129
- do_el0_svc+0xf8/0x150 arch/arm64/kernel/syscall.c:168
- el0_svc+0x28/0x38 arch/arm64/kernel/entry-common.c:416
- el0_sync_handler+0x134/0x180 arch/arm64/kernel/entry-common.c:432
- el0_sync+0x154/0x180 arch/arm64/kernel/entry.S:701
-
-The buggy address belongs to the object at ffff23794dda0000
- which belongs to the cache pid of size 224
-The buggy address is located 4 bytes inside of
- 224-byte region [ffff23794dda0000, ffff23794dda00e0)
-The buggy address belongs to the page:
-page:(____ptrval____) refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x4dda0
-head:(____ptrval____) order:1 compound_mapcount:0
-flags: 0x3fffc0000010200(slab|head)
-raw: 03fffc0000010200 dead000000000100 dead000000000122 ffff23794d40d080
-raw: 0000000000000000 0000000000190019 00000001ffffffff 0000000000000000
-page dumped because: kasan: bad access detected
-
-Memory state around the buggy address:
- ffff23794dd9ff00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
- ffff23794dd9ff80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
->ffff23794dda0000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-                   ^
- ffff23794dda0080: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
- ffff23794dda0100: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
-==================================================================
-
-Link: https://lkml.kernel.org/r/20210524172230.38715-1-mark.rutland@arm.com
-Fixes: 9ec52099e4b8678a ("[PATCH] replace cad_pid by a struct pid")
-Signed-off-by: Mark Rutland <mark.rutland@arm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Christian Brauner <christian@brauner.io>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Kees Cook <keescook@chromium.org
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210524132725.12697-3-apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swapops.h |   56 ++++++++++++++++++++------------------
+ mm/debug_vm_pgtable.c   |   12 ++++----
+ mm/hmm.c                |    2 -
+ mm/huge_memory.c        |   26 ++++++++++++-----
+ mm/hugetlb.c            |   10 ++++--
+ mm/memory.c             |   10 ++++--
+ mm/migrate.c            |   26 +++++++++++++----
+ mm/mprotect.c           |   10 ++++--
+ mm/rmap.c               |   10 ++++--
+ 9 files changed, 100 insertions(+), 62 deletions(-)
 
---- a/init/main.c~pid-take-a-reference-when-initializing-cad_pid
-+++ a/init/main.c
-@@ -1537,7 +1537,7 @@ static noinline void __init kernel_init_
+--- a/include/linux/swapops.h~mm-swapops-rework-swap-entry-manipulation-code
++++ a/include/linux/swapops.h
+@@ -100,35 +100,35 @@ static inline void *swp_to_radix_entry(s
+ }
+ 
+ #if IS_ENABLED(CONFIG_DEVICE_PRIVATE)
+-static inline swp_entry_t make_device_private_entry(struct page *page, bool write)
++static inline swp_entry_t make_readable_device_private_entry(pgoff_t offset)
+ {
+-	return swp_entry(write ? SWP_DEVICE_WRITE : SWP_DEVICE_READ,
+-			 page_to_pfn(page));
++	return swp_entry(SWP_DEVICE_READ, offset);
+ }
+ 
+-static inline bool is_device_private_entry(swp_entry_t entry)
++static inline swp_entry_t make_writable_device_private_entry(pgoff_t offset)
+ {
+-	int type = swp_type(entry);
+-	return type == SWP_DEVICE_READ || type == SWP_DEVICE_WRITE;
++	return swp_entry(SWP_DEVICE_WRITE, offset);
+ }
+ 
+-static inline void make_device_private_entry_read(swp_entry_t *entry)
++static inline bool is_device_private_entry(swp_entry_t entry)
+ {
+-	*entry = swp_entry(SWP_DEVICE_READ, swp_offset(*entry));
++	int type = swp_type(entry);
++	return type == SWP_DEVICE_READ || type == SWP_DEVICE_WRITE;
+ }
+ 
+-static inline bool is_write_device_private_entry(swp_entry_t entry)
++static inline bool is_writable_device_private_entry(swp_entry_t entry)
+ {
+ 	return unlikely(swp_type(entry) == SWP_DEVICE_WRITE);
+ }
+ #else /* CONFIG_DEVICE_PRIVATE */
+-static inline swp_entry_t make_device_private_entry(struct page *page, bool write)
++static inline swp_entry_t make_readable_device_private_entry(pgoff_t offset)
+ {
+ 	return swp_entry(0, 0);
+ }
+ 
+-static inline void make_device_private_entry_read(swp_entry_t *entry)
++static inline swp_entry_t make_writable_device_private_entry(pgoff_t offset)
+ {
++	return swp_entry(0, 0);
+ }
+ 
+ static inline bool is_device_private_entry(swp_entry_t entry)
+@@ -136,35 +136,32 @@ static inline bool is_device_private_ent
+ 	return false;
+ }
+ 
+-static inline bool is_write_device_private_entry(swp_entry_t entry)
++static inline bool is_writable_device_private_entry(swp_entry_t entry)
+ {
+ 	return false;
+ }
+ #endif /* CONFIG_DEVICE_PRIVATE */
+ 
+ #ifdef CONFIG_MIGRATION
+-static inline swp_entry_t make_migration_entry(struct page *page, int write)
+-{
+-	BUG_ON(!PageLocked(compound_head(page)));
+-
+-	return swp_entry(write ? SWP_MIGRATION_WRITE : SWP_MIGRATION_READ,
+-			page_to_pfn(page));
+-}
+-
+ static inline int is_migration_entry(swp_entry_t entry)
+ {
+ 	return unlikely(swp_type(entry) == SWP_MIGRATION_READ ||
+ 			swp_type(entry) == SWP_MIGRATION_WRITE);
+ }
+ 
+-static inline int is_write_migration_entry(swp_entry_t entry)
++static inline int is_writable_migration_entry(swp_entry_t entry)
+ {
+ 	return unlikely(swp_type(entry) == SWP_MIGRATION_WRITE);
+ }
+ 
+-static inline void make_migration_entry_read(swp_entry_t *entry)
++static inline swp_entry_t make_readable_migration_entry(pgoff_t offset)
+ {
+-	*entry = swp_entry(SWP_MIGRATION_READ, swp_offset(*entry));
++	return swp_entry(SWP_MIGRATION_READ, offset);
++}
++
++static inline swp_entry_t make_writable_migration_entry(pgoff_t offset)
++{
++	return swp_entry(SWP_MIGRATION_WRITE, offset);
+ }
+ 
+ extern void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
+@@ -174,21 +171,28 @@ extern void migration_entry_wait(struct
+ extern void migration_entry_wait_huge(struct vm_area_struct *vma,
+ 		struct mm_struct *mm, pte_t *pte);
+ #else
++static inline swp_entry_t make_readable_migration_entry(pgoff_t offset)
++{
++	return swp_entry(0, 0);
++}
++
++static inline swp_entry_t make_writable_migration_entry(pgoff_t offset)
++{
++	return swp_entry(0, 0);
++}
+ 
+-#define make_migration_entry(page, write) swp_entry(0, 0)
+ static inline int is_migration_entry(swp_entry_t swp)
+ {
+ 	return 0;
+ }
+ 
+-static inline void make_migration_entry_read(swp_entry_t *entryp) { }
+ static inline void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
+ 					spinlock_t *ptl) { }
+ static inline void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+ 					 unsigned long address) { }
+ static inline void migration_entry_wait_huge(struct vm_area_struct *vma,
+ 		struct mm_struct *mm, pte_t *pte) { }
+-static inline int is_write_migration_entry(swp_entry_t entry)
++static inline int is_writable_migration_entry(swp_entry_t entry)
+ {
+ 	return 0;
+ }
+--- a/mm/debug_vm_pgtable.c~mm-swapops-rework-swap-entry-manipulation-code
++++ a/mm/debug_vm_pgtable.c
+@@ -856,17 +856,17 @@ static void __init swap_migration_tests(
+ 	 * locked, otherwise it stumbles upon a BUG_ON().
  	 */
- 	set_mems_allowed(node_states[N_MEMORY]);
+ 	__SetPageLocked(page);
+-	swp = make_migration_entry(page, 1);
++	swp = make_writable_migration_entry(page_to_pfn(page));
+ 	WARN_ON(!is_migration_entry(swp));
+-	WARN_ON(!is_write_migration_entry(swp));
++	WARN_ON(!is_writable_migration_entry(swp));
  
--	cad_pid = task_pid(current);
-+	cad_pid = get_pid(task_pid(current));
+-	make_migration_entry_read(&swp);
++	swp = make_readable_migration_entry(swp_offset(swp));
+ 	WARN_ON(!is_migration_entry(swp));
+-	WARN_ON(is_write_migration_entry(swp));
++	WARN_ON(is_writable_migration_entry(swp));
  
- 	smp_prepare_cpus(setup_max_cpus);
+-	swp = make_migration_entry(page, 0);
++	swp = make_readable_migration_entry(page_to_pfn(page));
+ 	WARN_ON(!is_migration_entry(swp));
+-	WARN_ON(is_write_migration_entry(swp));
++	WARN_ON(is_writable_migration_entry(swp));
+ 	__ClearPageLocked(page);
+ 	__free_page(page);
+ }
+--- a/mm/hmm.c~mm-swapops-rework-swap-entry-manipulation-code
++++ a/mm/hmm.c
+@@ -255,7 +255,7 @@ static int hmm_vma_handle_pte(struct mm_
+ 		 */
+ 		if (hmm_is_device_private_entry(range, entry)) {
+ 			cpu_flags = HMM_PFN_VALID;
+-			if (is_write_device_private_entry(entry))
++			if (is_writable_device_private_entry(entry))
+ 				cpu_flags |= HMM_PFN_WRITE;
+ 			*hmm_pfn = swp_offset(entry) | cpu_flags;
+ 			return 0;
+--- a/mm/huge_memory.c~mm-swapops-rework-swap-entry-manipulation-code
++++ a/mm/huge_memory.c
+@@ -1050,8 +1050,9 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		swp_entry_t entry = pmd_to_swp_entry(pmd);
  
+ 		VM_BUG_ON(!is_pmd_migration_entry(pmd));
+-		if (is_write_migration_entry(entry)) {
+-			make_migration_entry_read(&entry);
++		if (is_writable_migration_entry(entry)) {
++			entry = make_readable_migration_entry(
++							swp_offset(entry));
+ 			pmd = swp_entry_to_pmd(entry);
+ 			if (pmd_swp_soft_dirty(*src_pmd))
+ 				pmd = pmd_swp_mksoft_dirty(pmd);
+@@ -1819,13 +1820,14 @@ int change_huge_pmd(struct vm_area_struc
+ 		swp_entry_t entry = pmd_to_swp_entry(*pmd);
+ 
+ 		VM_BUG_ON(!is_pmd_migration_entry(*pmd));
+-		if (is_write_migration_entry(entry)) {
++		if (is_writable_migration_entry(entry)) {
+ 			pmd_t newpmd;
+ 			/*
+ 			 * A protection check is difficult so
+ 			 * just be safe and disable write
+ 			 */
+-			make_migration_entry_read(&entry);
++			entry = make_readable_migration_entry(
++							swp_offset(entry));
+ 			newpmd = swp_entry_to_pmd(entry);
+ 			if (pmd_swp_soft_dirty(*pmd))
+ 				newpmd = pmd_swp_mksoft_dirty(newpmd);
+@@ -2103,7 +2105,7 @@ static void __split_huge_pmd_locked(stru
+ 
+ 		entry = pmd_to_swp_entry(old_pmd);
+ 		page = pfn_swap_entry_to_page(entry);
+-		write = is_write_migration_entry(entry);
++		write = is_writable_migration_entry(entry);
+ 		young = false;
+ 		soft_dirty = pmd_swp_soft_dirty(old_pmd);
+ 		uffd_wp = pmd_swp_uffd_wp(old_pmd);
+@@ -2135,7 +2137,12 @@ static void __split_huge_pmd_locked(stru
+ 		 */
+ 		if (freeze || pmd_migration) {
+ 			swp_entry_t swp_entry;
+-			swp_entry = make_migration_entry(page + i, write);
++			if (write)
++				swp_entry = make_writable_migration_entry(
++							page_to_pfn(page + i));
++			else
++				swp_entry = make_readable_migration_entry(
++							page_to_pfn(page + i));
+ 			entry = swp_entry_to_pte(swp_entry);
+ 			if (soft_dirty)
+ 				entry = pte_swp_mksoft_dirty(entry);
+@@ -3212,7 +3219,10 @@ void set_pmd_migration_entry(struct page
+ 	pmdval = pmdp_invalidate(vma, address, pvmw->pmd);
+ 	if (pmd_dirty(pmdval))
+ 		set_page_dirty(page);
+-	entry = make_migration_entry(page, pmd_write(pmdval));
++	if (pmd_write(pmdval))
++		entry = make_writable_migration_entry(page_to_pfn(page));
++	else
++		entry = make_readable_migration_entry(page_to_pfn(page));
+ 	pmdswp = swp_entry_to_pmd(entry);
+ 	if (pmd_soft_dirty(pmdval))
+ 		pmdswp = pmd_swp_mksoft_dirty(pmdswp);
+@@ -3238,7 +3248,7 @@ void remove_migration_pmd(struct page_vm
+ 	pmde = pmd_mkold(mk_huge_pmd(new, vma->vm_page_prot));
+ 	if (pmd_swp_soft_dirty(*pvmw->pmd))
+ 		pmde = pmd_mksoft_dirty(pmde);
+-	if (is_write_migration_entry(entry))
++	if (is_writable_migration_entry(entry))
+ 		pmde = maybe_pmd_mkwrite(pmde, vma);
+ 
+ 	flush_cache_range(vma, mmun_start, mmun_start + HPAGE_PMD_SIZE);
+--- a/mm/hugetlb.c~mm-swapops-rework-swap-entry-manipulation-code
++++ a/mm/hugetlb.c
+@@ -4028,12 +4028,13 @@ again:
+ 				    is_hugetlb_entry_hwpoisoned(entry))) {
+ 			swp_entry_t swp_entry = pte_to_swp_entry(entry);
+ 
+-			if (is_write_migration_entry(swp_entry) && cow) {
++			if (is_writable_migration_entry(swp_entry) && cow) {
+ 				/*
+ 				 * COW mappings require pages in both
+ 				 * parent and child to be set to read.
+ 				 */
+-				make_migration_entry_read(&swp_entry);
++				swp_entry = make_readable_migration_entry(
++							swp_offset(swp_entry));
+ 				entry = swp_entry_to_pte(swp_entry);
+ 				set_huge_swap_pte_at(src, addr, src_pte,
+ 						     entry, sz);
+@@ -5320,10 +5321,11 @@ unsigned long hugetlb_change_protection(
+ 		if (unlikely(is_hugetlb_entry_migration(pte))) {
+ 			swp_entry_t entry = pte_to_swp_entry(pte);
+ 
+-			if (is_write_migration_entry(entry)) {
++			if (is_writable_migration_entry(entry)) {
+ 				pte_t newpte;
+ 
+-				make_migration_entry_read(&entry);
++				entry = make_readable_migration_entry(
++							swp_offset(entry));
+ 				newpte = swp_entry_to_pte(entry);
+ 				set_huge_swap_pte_at(mm, address, ptep,
+ 						     newpte, huge_page_size(h));
+--- a/mm/memory.c~mm-swapops-rework-swap-entry-manipulation-code
++++ a/mm/memory.c
+@@ -734,13 +734,14 @@ copy_nonpresent_pte(struct mm_struct *ds
+ 
+ 		rss[mm_counter(page)]++;
+ 
+-		if (is_write_migration_entry(entry) &&
++		if (is_writable_migration_entry(entry) &&
+ 				is_cow_mapping(vm_flags)) {
+ 			/*
+ 			 * COW mappings require pages in both
+ 			 * parent and child to be set to read.
+ 			 */
+-			make_migration_entry_read(&entry);
++			entry = make_readable_migration_entry(
++							swp_offset(entry));
+ 			pte = swp_entry_to_pte(entry);
+ 			if (pte_swp_soft_dirty(*src_pte))
+ 				pte = pte_swp_mksoft_dirty(pte);
+@@ -771,9 +772,10 @@ copy_nonpresent_pte(struct mm_struct *ds
+ 		 * when a device driver is involved (you cannot easily
+ 		 * save and restore device driver state).
+ 		 */
+-		if (is_write_device_private_entry(entry) &&
++		if (is_writable_device_private_entry(entry) &&
+ 		    is_cow_mapping(vm_flags)) {
+-			make_device_private_entry_read(&entry);
++			entry = make_readable_device_private_entry(
++							swp_offset(entry));
+ 			pte = swp_entry_to_pte(entry);
+ 			if (pte_swp_uffd_wp(*src_pte))
+ 				pte = pte_swp_mkuffd_wp(pte);
+--- a/mm/migrate.c~mm-swapops-rework-swap-entry-manipulation-code
++++ a/mm/migrate.c
+@@ -210,13 +210,18 @@ static bool remove_migration_pte(struct
+ 		 * Recheck VMA as permissions can change since migration started
+ 		 */
+ 		entry = pte_to_swp_entry(*pvmw.pte);
+-		if (is_write_migration_entry(entry))
++		if (is_writable_migration_entry(entry))
+ 			pte = maybe_mkwrite(pte, vma);
+ 		else if (pte_swp_uffd_wp(*pvmw.pte))
+ 			pte = pte_mkuffd_wp(pte);
+ 
+ 		if (unlikely(is_device_private_page(new))) {
+-			entry = make_device_private_entry(new, pte_write(pte));
++			if (pte_write(pte))
++				entry = make_writable_device_private_entry(
++							page_to_pfn(new));
++			else
++				entry = make_readable_device_private_entry(
++							page_to_pfn(new));
+ 			pte = swp_entry_to_pte(entry);
+ 			if (pte_swp_soft_dirty(*pvmw.pte))
+ 				pte = pte_swp_mksoft_dirty(pte);
+@@ -2380,7 +2385,7 @@ again:
+ 
+ 			mpfn = migrate_pfn(page_to_pfn(page)) |
+ 					MIGRATE_PFN_MIGRATE;
+-			if (is_write_device_private_entry(entry))
++			if (is_writable_device_private_entry(entry))
+ 				mpfn |= MIGRATE_PFN_WRITE;
+ 		} else {
+ 			if (!(migrate->flags & MIGRATE_VMA_SELECT_SYSTEM))
+@@ -2426,8 +2431,12 @@ again:
+ 			ptep_get_and_clear(mm, addr, ptep);
+ 
+ 			/* Setup special migration page table entry */
+-			entry = make_migration_entry(page, mpfn &
+-						     MIGRATE_PFN_WRITE);
++			if (mpfn & MIGRATE_PFN_WRITE)
++				entry = make_writable_migration_entry(
++							page_to_pfn(page));
++			else
++				entry = make_readable_migration_entry(
++							page_to_pfn(page));
+ 			swp_pte = swp_entry_to_pte(entry);
+ 			if (pte_present(pte)) {
+ 				if (pte_soft_dirty(pte))
+@@ -2900,7 +2909,12 @@ static void migrate_vma_insert_page(stru
+ 		if (is_device_private_page(page)) {
+ 			swp_entry_t swp_entry;
+ 
+-			swp_entry = make_device_private_entry(page, vma->vm_flags & VM_WRITE);
++			if (vma->vm_flags & VM_WRITE)
++				swp_entry = make_writable_device_private_entry(
++							page_to_pfn(page));
++			else
++				swp_entry = make_readable_device_private_entry(
++							page_to_pfn(page));
+ 			entry = swp_entry_to_pte(swp_entry);
+ 		} else {
+ 			/*
+--- a/mm/mprotect.c~mm-swapops-rework-swap-entry-manipulation-code
++++ a/mm/mprotect.c
+@@ -143,23 +143,25 @@ static unsigned long change_pte_range(st
+ 			swp_entry_t entry = pte_to_swp_entry(oldpte);
+ 			pte_t newpte;
+ 
+-			if (is_write_migration_entry(entry)) {
++			if (is_writable_migration_entry(entry)) {
+ 				/*
+ 				 * A protection check is difficult so
+ 				 * just be safe and disable write
+ 				 */
+-				make_migration_entry_read(&entry);
++				entry = make_readable_migration_entry(
++							swp_offset(entry));
+ 				newpte = swp_entry_to_pte(entry);
+ 				if (pte_swp_soft_dirty(oldpte))
+ 					newpte = pte_swp_mksoft_dirty(newpte);
+ 				if (pte_swp_uffd_wp(oldpte))
+ 					newpte = pte_swp_mkuffd_wp(newpte);
+-			} else if (is_write_device_private_entry(entry)) {
++			} else if (is_writable_device_private_entry(entry)) {
+ 				/*
+ 				 * We do not preserve soft-dirtiness. See
+ 				 * copy_one_pte() for explanation.
+ 				 */
+-				make_device_private_entry_read(&entry);
++				entry = make_readable_device_private_entry(
++							swp_offset(entry));
+ 				newpte = swp_entry_to_pte(entry);
+ 				if (pte_swp_uffd_wp(oldpte))
+ 					newpte = pte_swp_mkuffd_wp(newpte);
+--- a/mm/rmap.c~mm-swapops-rework-swap-entry-manipulation-code
++++ a/mm/rmap.c
+@@ -1526,7 +1526,7 @@ static bool try_to_unmap_one(struct page
+ 			 * pte. do_swap_page() will wait until the migration
+ 			 * pte is removed and then restart fault handling.
+ 			 */
+-			entry = make_migration_entry(page, 0);
++			entry = make_readable_migration_entry(page_to_pfn(page));
+ 			swp_pte = swp_entry_to_pte(entry);
+ 
+ 			/*
+@@ -1622,8 +1622,12 @@ static bool try_to_unmap_one(struct page
+ 			 * pte. do_swap_page() will wait until the migration
+ 			 * pte is removed and then restart fault handling.
+ 			 */
+-			entry = make_migration_entry(subpage,
+-					pte_write(pteval));
++			if (pte_write(pteval))
++				entry = make_writable_migration_entry(
++							page_to_pfn(subpage));
++			else
++				entry = make_readable_migration_entry(
++							page_to_pfn(subpage));
+ 			swp_pte = swp_entry_to_pte(entry);
+ 			if (pte_soft_dirty(pteval))
+ 				swp_pte = pte_swp_mksoft_dirty(swp_pte);
 _
 
-Patches currently in -mm which might be from mark.rutland@arm.com are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-pid-take-a-reference-when-initializing-cad_pid.patch
+mm-remove-special-swap-entry-functions.patch
+mm-swapops-rework-swap-entry-manipulation-code.patch
+mm-rmap-split-try_to_munlock-from-try_to_unmap.patch
+mm-rmap-split-migration-into-its-own-function.patch
+mm-rename-migrate_pgmap_owner.patch
+mm-memoryc-allow-different-return-codes-for-copy_nonpresent_pte.patch
+mm-device-exclusive-memory-access.patch
+mm-selftests-for-exclusive-device-memory.patch
+nouveau-svm-refactor-nouveau_range_fault.patch
+nouveau-svm-implement-atomic-svm-access.patch
 
