@@ -2,38 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9B85C4707F
-	for <mm-commits@archiver.kernel.org>; Tue, 25 May 2021 20:16:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96977C47086
+	for <mm-commits@archiver.kernel.org>; Tue, 25 May 2021 21:33:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ACE9460FF1
-	for <mm-commits@archiver.kernel.org>; Tue, 25 May 2021 20:16:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A91661417
+	for <mm-commits@archiver.kernel.org>; Tue, 25 May 2021 21:33:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232870AbhEYUSI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 May 2021 16:18:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58240 "EHLO mail.kernel.org"
+        id S230471AbhEYVfL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 May 2021 17:35:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48372 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232744AbhEYUSH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 25 May 2021 16:18:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A9FF160FF1;
-        Tue, 25 May 2021 20:16:37 +0000 (UTC)
+        id S230426AbhEYVfK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 25 May 2021 17:35:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EBC7C613AB;
+        Tue, 25 May 2021 21:33:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621973797;
-        bh=kGnFKwppmtl+OYZMEp7y/5vpnRyT+loVNxjQ4l+MUxg=;
+        s=korg; t=1621978420;
+        bh=j5796Kp8Zyd99P4zgX7FF3zGcDX7wcEMWJPUkHZwpNI=;
         h=Date:From:To:Subject:From;
-        b=gkzAYCS3eRvZXKVL8cM7uOqxTfXxD2lyaxkzURBAn4TlvtHNiNVH6O7gFQZgp51v8
-         dd8YlmA2+Q6ESONU1uiMuizrSZLKNNLP3gC2h40mxrylpougcuCESFJSgi3AChhbl7
-         uoWcE1lucbg/BvJIe5CosDIzbAyhmEyv82kW+x30=
-Date:   Tue, 25 May 2021 13:16:37 -0700
+        b=iuPuFUWML/UVrKMbmRp31wU7n1oVFWVoW0/U0ovHEQBFKZ2TSbgGppiMMSV/3jwdg
+         jwUXpHmh9skhDkEjGIFqDh9Ea5FXtha1Vn5ThxEzLiucgZ9W/6fT8GdE6YVGEryebX
+         cTR59KoOjNMLuugJft8QCvNDWEnENQ0CqA/hrEgg=
+Date:   Tue, 25 May 2021 14:33:39 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, mm-commits@vger.kernel.org
-Subject:  + exec-remove-checks-in-__register_bimfmt.patch added to
- -mm tree
-Message-ID: <20210525201637.d-7wyYfJR%akpm@linux-foundation.org>
+To:     ardb@kernel.org, arnd@arndb.de, dvyukov@google.com,
+        elver@google.com, keescook@chromium.org,
+        luc.vanoostenryck@gmail.com, mark.rutland@arm.com,
+        masahiroy@kernel.org, mm-commits@vger.kernel.org,
+        nathan@kernel.org, ndesaulniers@google.com, nivedita@alum.mit.edu,
+        ojeda@kernel.org, peterz@infradead.org, samitolvanen@google.com,
+        will@kernel.org
+Subject:  +
+ kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
+ added to -mm tree
+Message-ID: <20210525213339.wItibRqqa%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exec: remove checks in __register_bimfmt()
+     Subject: kcov: add __no_sanitize_coverage to fix noinstr for all architectures
 has been added to the -mm tree.  Its filename is
-     exec-remove-checks-in-__register_bimfmt.patch
+     kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/exec-remove-checks-in-__register_bimfmt.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/exec-remove-checks-in-__register_bimfmt.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,37 +70,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: exec: remove checks in __register_bimfmt()
+From: Marco Elver <elver@google.com>
+Subject: kcov: add __no_sanitize_coverage to fix noinstr for all architectures
 
-Delete NULL check, all callers pass valid pointer.
+Until now no compiler supported an attribute to disable coverage
+instrumentation as used by KCOV.
 
-Delete ->load_binary check -- failure to provide hook in a custom module
-will be very noticeable at the very first execve call.
+To work around this limitation on x86, noinstr functions have their
+coverage instrumentation turned into nops by objtool.  However, this
+solution doesn't scale automatically to other architectures, such as
+arm64, which are migrating to use the generic entry code.
 
-Link: https://lkml.kernel.org/r/YK1Gy1qXaLAR+tPl@localhost.localdomain
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Clang [1] and GCC [2] have added support for the attribute recently.
+[1] https://github.com/llvm/llvm-project/commit/280333021e9550d80f5c1152a34e33e81df1e178
+[2] https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=cec4d4a6782c9bd8d071839c50a239c49caca689
+
+Add __no_sanitize_coverage for both compilers, and add it to noinstr.
+
+Link: https://lkml.kernel.org/r/20210525175819.699786-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Cc: Arvind Sankar <nivedita@alum.mit.edu>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/compiler-clang.h |    6 ++++++
+ include/linux/compiler-gcc.h   |    6 ++++++
+ include/linux/compiler_types.h |    2 +-
+ 3 files changed, 13 insertions(+), 1 deletion(-)
 
---- a/fs/exec.c~exec-remove-checks-in-__register_bimfmt
-+++ a/fs/exec.c
-@@ -84,9 +84,6 @@ static DEFINE_RWLOCK(binfmt_lock);
+--- a/include/linux/compiler-clang.h~kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures
++++ a/include/linux/compiler-clang.h
+@@ -45,6 +45,12 @@
+ #define __no_sanitize_undefined
+ #endif
  
- void __register_binfmt(struct linux_binfmt * fmt, int insert)
- {
--	BUG_ON(!fmt);
--	if (WARN_ON(!fmt->load_binary))
--		return;
- 	write_lock(&binfmt_lock);
- 	insert ? list_add(&fmt->lh, &formats) :
- 		 list_add_tail(&fmt->lh, &formats);
++#if defined(CONFIG_KCOV) && CONFIG_CLANG_VERSION >= 130000
++#define __no_sanitize_coverage __attribute__((no_sanitize("coverage")))
++#else
++#define __no_sanitize_coverage
++#endif
++
+ /*
+  * Not all versions of clang implement the type-generic versions
+  * of the builtin overflow checkers. Fortunately, clang implements
+--- a/include/linux/compiler-gcc.h~kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures
++++ a/include/linux/compiler-gcc.h
+@@ -122,6 +122,12 @@
+ #define __no_sanitize_undefined
+ #endif
+ 
++#if defined(CONFIG_KCOV) && __has_attribute(__no_sanitize_coverage__)
++#define __no_sanitize_coverage __attribute__((no_sanitize_coverage))
++#else
++#define __no_sanitize_coverage
++#endif
++
+ #if GCC_VERSION >= 50100
+ #define COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW 1
+ #endif
+--- a/include/linux/compiler_types.h~kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures
++++ a/include/linux/compiler_types.h
+@@ -210,7 +210,7 @@ struct ftrace_likely_data {
+ /* Section for code which can't be instrumented at all */
+ #define noinstr								\
+ 	noinline notrace __attribute((__section__(".noinstr.text")))	\
+-	__no_kcsan __no_sanitize_address
++	__no_kcsan __no_sanitize_address __no_sanitize_coverage
+ 
+ #endif /* __KERNEL__ */
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from elver@google.com are
 
-exec-remove-checks-in-__register_bimfmt.patch
+kfence-use-task_idle-when-awaiting-allocation.patch
+mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix.patch
+printk-introduce-dump_stack_lvl-fix.patch
+kfence-unconditionally-use-unbound-work-queue.patch
+kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
 
