@@ -2,167 +2,78 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5500C4707F
-	for <mm-commits@archiver.kernel.org>; Tue, 25 May 2021 23:46:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0B24C47087
+	for <mm-commits@archiver.kernel.org>; Tue, 25 May 2021 23:52:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9BD6361404
-	for <mm-commits@archiver.kernel.org>; Tue, 25 May 2021 23:46:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC19361408
+	for <mm-commits@archiver.kernel.org>; Tue, 25 May 2021 23:52:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231982AbhEYXre (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 May 2021 19:47:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42276 "EHLO mail.kernel.org"
+        id S232146AbhEYXxq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 May 2021 19:53:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42706 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231441AbhEYXrd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 25 May 2021 19:47:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F086B60FDC;
-        Tue, 25 May 2021 23:46:02 +0000 (UTC)
+        id S232111AbhEYXxq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 25 May 2021 19:53:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6442361360;
+        Tue, 25 May 2021 23:52:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621986363;
-        bh=u5dH1eG4eFhS8UxG/M0Z7iVWLOq6bt7ilq7ongIgx3g=;
-        h=Date:From:To:Subject:From;
-        b=hAddtAm8ydsjJE1NxjxNMApImJIRP59ttrMM2nTCX/dUwcRFt4s1I3q8CXKV0o7Sj
-         Wkb8KNGSguAs44u2u/XYMYYto6hfU+0JTAvCISPhbp6ei49GUB4pavEYLQkTLjLBhg
-         ptObLLwrE0eOj30UhSACYvy9F7e85pgP1gojGf0U=
-Date:   Tue, 25 May 2021 16:46:02 -0700
-From:   akpm@linux-foundation.org
-To:     mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        songmuchun@bytedance.com, stable@vger.kernel.org,
-        tony.luck@intel.com
-Subject:  [to-be-updated]
- mmhwpoison-fix-race-with-hugetlb-page-allocation.patch removed from -mm
- tree
-Message-ID: <20210525234602.5UKGJV5W8%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        s=korg; t=1621986734;
+        bh=in4ySQNKjXb5rx9e66a6YygSoGYibcn5fHyU70IQsfE=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=XH20GpQ1wDB/H6FdWKjKvyZex6NjVHKVBhTpe+6aG0V5MF1ECs9CSt4oIhUG0fVJl
+         23FvKKX6PV2PY2dBVLqbJoY4C6yB2SqDwKA52RXb8EGkpd6PYkRM/zBksgRikAgiMQ
+         k2vgpGmwHh5w0T4mDgZxnTdfqypF7aCmyy0QxhoY=
+Date:   Tue, 25 May 2021 16:52:13 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Peter Collingbourne <pcc@google.com>
+Cc:     Dave Hansen <dave.hansen@linux.intel.com>, khalid.aziz@oracle.com,
+        kirill.shutemov@linux.intel.com, mgorman@techsingularity.net,
+        mm-commits@vger.kernel.org, Peter Xu <peterx@redhat.com>,
+        rppt@linux.ibm.com, walken@google.com, ying.huang@intel.com,
+        zi.yan@cs.rutgers.edu
+Subject: Re: [failures]
+ mm-improve-mprotectrw-efficiency-on-pages-referenced-once.patch removed
+ from -mm tree
+Message-Id: <20210525165213.9598dedcada905a73bfeb8a4@linux-foundation.org>
+In-Reply-To: <CAMn1gO73JghWC4KR3+T+=3+CYa1xnR1_UE0K-05JRTmdwjYUEA@mail.gmail.com>
+References: <20210522195522.cR9W0GMvY%akpm@linux-foundation.org>
+        <CAMn1gO73JghWC4KR3+T+=3+CYa1xnR1_UE0K-05JRTmdwjYUEA@mail.gmail.com>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Mon, 24 May 2021 18:50:14 -0700 Peter Collingbourne <pcc@google.com> wrote:
 
-The patch titled
-     Subject: mm,hwpoison: fix race with hugetlb page allocation
-has been removed from the -mm tree.  Its filename was
-     mmhwpoison-fix-race-with-hugetlb-page-allocation.patch
+> On Sat, May 22, 2021 at 12:55 PM <akpm@linux-foundation.org> wrote:
+> >
+> >
+> > The patch titled
+> >      Subject: mm: improve mprotect(R|W) efficiency on pages referenced once
+> > has been removed from the -mm tree.  Its filename was
+> >      mm-improve-mprotectrw-efficiency-on-pages-referenced-once.patch
+> >
+> > This patch was dropped because it had testing failures
+> 
+> Hi Andrew,
+> 
+> Do you have a link to more information about these testing failures? I
+> don't think I received anything. Or is this about the uffd issue
+> reported by Peter Xu?
 
-This patch was dropped because an updated version will be merged
+Yes, just the build error.
 
-------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm,hwpoison: fix race with hugetlb page allocation
+> I have a fix for that which I'll include in v4,
+> together with a switch from page_refcount to page_count to fix an
+> issue reported off-list.
 
-When hugetlb page fault (under overcommitting situation) and
-memory_failure() race, VM_BUG_ON_PAGE() is triggered by the following
-race:
-
-    CPU0:                           CPU1:
-
-                                    gather_surplus_pages()
-                                      page = alloc_surplus_huge_page()
-    memory_failure_hugetlb()
-      get_hwpoison_page(page)
-        __get_hwpoison_page(page)
-          get_page_unless_zero(page)
-                                      zero = put_page_testzero(page)
-                                      VM_BUG_ON_PAGE(!zero, page)
-                                      enqueue_huge_page(h, page)
-      put_page(page)
-
-__get_hwpoison_page() only checks the page refcount before taking an
-additional one for memory error handling, which is wrong because there's a
-time window where compound pages have non-zero refcount during
-initialization.  So make __get_hwpoison_page() check page status a bit
-more for hugetlb pages.
-
-Link: https://lkml.kernel.org/r/20210518231259.2553203-2-nao.horiguchi@gmail.com
-Fixes: ead07f6a867b ("mm/memory-failure: introduce get_hwpoison_page() for consistent refcount handling")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: <stable@vger.kernel.org>	[5.12+]
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/hugetlb.h |    6 ++++++
- mm/hugetlb.c            |   15 +++++++++++++++
- mm/memory-failure.c     |    8 +++++++-
- 3 files changed, 28 insertions(+), 1 deletion(-)
-
---- a/include/linux/hugetlb.h~mmhwpoison-fix-race-with-hugetlb-page-allocation
-+++ a/include/linux/hugetlb.h
-@@ -149,6 +149,7 @@ bool hugetlb_reserve_pages(struct inode
- long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
- 						long freed);
- bool isolate_huge_page(struct page *page, struct list_head *list);
-+int get_hwpoison_huge_page(struct page *page, bool *hugetlb);
- void putback_active_hugepage(struct page *page);
- void move_hugetlb_state(struct page *oldpage, struct page *newpage, int reason);
- void free_huge_page(struct page *page);
-@@ -339,6 +340,11 @@ static inline bool isolate_huge_page(str
- 	return false;
- }
- 
-+static inline int get_hwpoison_huge_page(struct page *page, bool *hugetlb)
-+{
-+	return 0;
-+}
-+
- static inline void putback_active_hugepage(struct page *page)
- {
- }
---- a/mm/hugetlb.c~mmhwpoison-fix-race-with-hugetlb-page-allocation
-+++ a/mm/hugetlb.c
-@@ -5847,6 +5847,21 @@ unlock:
- 	return ret;
- }
- 
-+int get_hwpoison_huge_page(struct page *page, bool *hugetlb)
-+{
-+	int ret = 0;
-+
-+	*hugetlb = false;
-+	spin_lock_irq(&hugetlb_lock);
-+	if (PageHeadHuge(page)) {
-+		*hugetlb = true;
-+		if (HPageFreed(page) || HPageMigratable(page))
-+			ret = get_page_unless_zero(page);
-+	}
-+	spin_unlock_irq(&hugetlb_lock);
-+	return ret;
-+}
-+
- void putback_active_hugepage(struct page *page)
- {
- 	spin_lock_irq(&hugetlb_lock);
---- a/mm/memory-failure.c~mmhwpoison-fix-race-with-hugetlb-page-allocation
-+++ a/mm/memory-failure.c
-@@ -959,8 +959,14 @@ static int page_action(struct page_state
- static int __get_hwpoison_page(struct page *page)
- {
- 	struct page *head = compound_head(page);
-+	int ret = 0;
-+	bool hugetlb = false;
- 
--	if (!PageHuge(head) && PageTransHuge(head)) {
-+	ret = get_hwpoison_huge_page(head, &hugetlb);
-+	if (hugetlb)
-+		return ret;
-+
-+	if (PageTransHuge(head)) {
- 		/*
- 		 * Non anonymous thp exists only in allocation/free time. We
- 		 * can't handle such a case correctly, so let's give it up.
-_
-
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
-
-mmhwpoison-make-get_hwpoison_page-call-get_any_page.patch
-mmhwpoison-send-sigbus-with-error-virutal-address.patch
-
+Sounds good, thanks.
