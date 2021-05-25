@@ -2,163 +2,103 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96977C47086
-	for <mm-commits@archiver.kernel.org>; Tue, 25 May 2021 21:33:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BA42C4707F
+	for <mm-commits@archiver.kernel.org>; Tue, 25 May 2021 21:34:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A91661417
-	for <mm-commits@archiver.kernel.org>; Tue, 25 May 2021 21:33:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65D28613AD
+	for <mm-commits@archiver.kernel.org>; Tue, 25 May 2021 21:34:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230471AbhEYVfL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 May 2021 17:35:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48372 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230426AbhEYVfK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 25 May 2021 17:35:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EBC7C613AB;
-        Tue, 25 May 2021 21:33:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1621978420;
-        bh=j5796Kp8Zyd99P4zgX7FF3zGcDX7wcEMWJPUkHZwpNI=;
-        h=Date:From:To:Subject:From;
-        b=iuPuFUWML/UVrKMbmRp31wU7n1oVFWVoW0/U0ovHEQBFKZ2TSbgGppiMMSV/3jwdg
-         jwUXpHmh9skhDkEjGIFqDh9Ea5FXtha1Vn5ThxEzLiucgZ9W/6fT8GdE6YVGEryebX
-         cTR59KoOjNMLuugJft8QCvNDWEnENQ0CqA/hrEgg=
-Date:   Tue, 25 May 2021 14:33:39 -0700
-From:   akpm@linux-foundation.org
-To:     ardb@kernel.org, arnd@arndb.de, dvyukov@google.com,
-        elver@google.com, keescook@chromium.org,
-        luc.vanoostenryck@gmail.com, mark.rutland@arm.com,
-        masahiroy@kernel.org, mm-commits@vger.kernel.org,
-        nathan@kernel.org, ndesaulniers@google.com, nivedita@alum.mit.edu,
-        ojeda@kernel.org, peterz@infradead.org, samitolvanen@google.com,
-        will@kernel.org
-Subject:  +
- kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
+        id S230518AbhEYVfc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 May 2021 17:35:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58900 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230426AbhEYVfc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 May 2021 17:35:32 -0400
+Received: from mail-oo1-xc2c.google.com (mail-oo1-xc2c.google.com [IPv6:2607:f8b0:4864:20::c2c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B5B9C061574
+        for <mm-commits@vger.kernel.org>; Tue, 25 May 2021 14:34:02 -0700 (PDT)
+Received: by mail-oo1-xc2c.google.com with SMTP id q17-20020a4a33110000b029020ebab0e615so5602854ooq.8
+        for <mm-commits@vger.kernel.org>; Tue, 25 May 2021 14:34:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=mime-version:in-reply-to:references:from:user-agent:date:message-id
+         :subject:to;
+        bh=j3pMN0FtRI3l0pBckD1bdEma7PVy9cFyrV333OpGkLs=;
+        b=FomUG11zdZEzJ6qk6ztntIkRnHeLe8ecm35O9RQ5sfAxQxZ4HK5F9L+eMaXW5D03jH
+         5eJHdZc8KSQx0Aj0iwGiR+0fOwkt+2kWu5FHkJf4EOLx1IfGlYkbOwxv/SDVScQl7gfD
+         px8SazhMUVH+IZvfx+rjZQyhsnIc5Z/uXVQaw=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:in-reply-to:references:from
+         :user-agent:date:message-id:subject:to;
+        bh=j3pMN0FtRI3l0pBckD1bdEma7PVy9cFyrV333OpGkLs=;
+        b=M+cgpgqtX8ntC3+f95EbPEIN92S2FryUgVRPQy+HFQg2vAaHg+uUapuduO+v/c1yMu
+         cw85CXa+5oGwAeYkPVlriGiYfsVfFxSBOIO9okxQg5amcQ/RbkHPsZ8ZaWan25zA/cog
+         jwKq4O8MjnldVOB6IRW5HMW8WWIM/GcGt1WbvAxtg6ETfi9ebX/Cyr/2uNsZcxgDE1Ug
+         PdFe0H1CT53lG0TsOJ8aDfGRhKHYN17oOA+bRbWEnz9RFbb14Iydte9Phl9fVh3bMC1O
+         ChvBld3fZD7efVr/jKn1Zg4bifOME1k79j/u5W3eAePuPSru/jyZ1yl9DsXdMOfxnEDu
+         1kgw==
+X-Gm-Message-State: AOAM531JjwEDvg7Re1wBBfivWeJ29ffPDSOpMNK9BLPRgahazaNEpMBj
+        YwsA4aziWJENYCfGsAdmyJTheFqyw6KRApXN76NxGp7Z6YI=
+X-Google-Smtp-Source: ABdhPJxDJ2wia5Ld3SS1RVKqGnzNpL32dVA9TaMVuioW46D0b9AV+1jDy7xnkOWcyNlc4b9qtT+3lNA7X/jCoaC9iao=
+X-Received: by 2002:a05:6820:169:: with SMTP id k9mr9426126ood.92.1621978441768;
+ Tue, 25 May 2021 14:34:01 -0700 (PDT)
+Received: from 753933720722 named unknown by gmailapi.google.com with
+ HTTPREST; Tue, 25 May 2021 17:34:01 -0400
+MIME-Version: 1.0
+In-Reply-To: <20210525201158.81ehBoGJL%akpm@linux-foundation.org>
+References: <20210525201158.81ehBoGJL%akpm@linux-foundation.org>
+From:   Stephen Boyd <swboyd@chromium.org>
+User-Agent: alot/0.9.1
+Date:   Tue, 25 May 2021 17:34:01 -0400
+Message-ID: <CAE-0n50Fz=s--=5HkViL6rJD0bT=3ZT8yr=9RWfk8LDNubr2pA@mail.gmail.com>
+Subject: Re: + module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
  added to -mm tree
-Message-ID: <20210525213339.wItibRqqa%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Quoting akpm@linux-foundation.org (2021-05-25 13:11:58)
+>
+> The patch titled
+>      Subject: module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix
+> has been added to the -mm tree.  Its filename is
+>      module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+>
+> This patch should soon appear at
+>     https://ozlabs.org/~akpm/mmots/broken-out/module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+> and later at
+>     https://ozlabs.org/~akpm/mmotm/broken-out/module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+>
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+>
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
+>
+> ------------------------------------------------------
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Subject: module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix
+>
+> make kallsyms_lookup_buildid() static
+>
+> warning: no previous prototype for 'kallsyms_lookup_buildid' [-Wmissing-prototypes]
+>
+> Cc: Stephen Boyd <swboyd@chromium.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
 
-The patch titled
-     Subject: kcov: add __no_sanitize_coverage to fix noinstr for all architectures
-has been added to the -mm tree.  Its filename is
-     kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
-
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kcov: add __no_sanitize_coverage to fix noinstr for all architectures
-
-Until now no compiler supported an attribute to disable coverage
-instrumentation as used by KCOV.
-
-To work around this limitation on x86, noinstr functions have their
-coverage instrumentation turned into nops by objtool.  However, this
-solution doesn't scale automatically to other architectures, such as
-arm64, which are migrating to use the generic entry code.
-
-Clang [1] and GCC [2] have added support for the attribute recently.
-[1] https://github.com/llvm/llvm-project/commit/280333021e9550d80f5c1152a34e33e81df1e178
-[2] https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=cec4d4a6782c9bd8d071839c50a239c49caca689
-
-Add __no_sanitize_coverage for both compilers, and add it to noinstr.
-
-Link: https://lkml.kernel.org/r/20210525175819.699786-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Cc: Arvind Sankar <nivedita@alum.mit.edu>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/compiler-clang.h |    6 ++++++
- include/linux/compiler-gcc.h   |    6 ++++++
- include/linux/compiler_types.h |    2 +-
- 3 files changed, 13 insertions(+), 1 deletion(-)
-
---- a/include/linux/compiler-clang.h~kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures
-+++ a/include/linux/compiler-clang.h
-@@ -45,6 +45,12 @@
- #define __no_sanitize_undefined
- #endif
- 
-+#if defined(CONFIG_KCOV) && CONFIG_CLANG_VERSION >= 130000
-+#define __no_sanitize_coverage __attribute__((no_sanitize("coverage")))
-+#else
-+#define __no_sanitize_coverage
-+#endif
-+
- /*
-  * Not all versions of clang implement the type-generic versions
-  * of the builtin overflow checkers. Fortunately, clang implements
---- a/include/linux/compiler-gcc.h~kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures
-+++ a/include/linux/compiler-gcc.h
-@@ -122,6 +122,12 @@
- #define __no_sanitize_undefined
- #endif
- 
-+#if defined(CONFIG_KCOV) && __has_attribute(__no_sanitize_coverage__)
-+#define __no_sanitize_coverage __attribute__((no_sanitize_coverage))
-+#else
-+#define __no_sanitize_coverage
-+#endif
-+
- #if GCC_VERSION >= 50100
- #define COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW 1
- #endif
---- a/include/linux/compiler_types.h~kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures
-+++ a/include/linux/compiler_types.h
-@@ -210,7 +210,7 @@ struct ftrace_likely_data {
- /* Section for code which can't be instrumented at all */
- #define noinstr								\
- 	noinline notrace __attribute((__section__(".noinstr.text")))	\
--	__no_kcsan __no_sanitize_address
-+	__no_kcsan __no_sanitize_address __no_sanitize_coverage
- 
- #endif /* __KERNEL__ */
- 
-_
-
-Patches currently in -mm which might be from elver@google.com are
-
-kfence-use-task_idle-when-awaiting-allocation.patch
-mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix.patch
-printk-introduce-dump_stack_lvl-fix.patch
-kfence-unconditionally-use-unbound-work-queue.patch
-kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
-
+Reviewed-by: Stephen Boyd <swboyd@chromium.org>
