@@ -7,39 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 889CEC47082
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:57:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BB9BC47088
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 23:01:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C6A5613BF
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:57:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CA2A613BF
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 23:01:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234357AbhEZW7H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 May 2021 18:59:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58722 "EHLO mail.kernel.org"
+        id S234442AbhEZXDB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 May 2021 19:03:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59216 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234343AbhEZW7H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 26 May 2021 18:59:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 18E216139A;
-        Wed, 26 May 2021 22:57:34 +0000 (UTC)
+        id S234343AbhEZXDB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 26 May 2021 19:03:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CA8C86139A;
+        Wed, 26 May 2021 23:01:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622069854;
-        bh=Lo7gSOpHDLa9EPGrJXx0xDztN2vZRo2ky2/9ZRRBwbc=;
+        s=korg; t=1622070088;
+        bh=iBo88K3ZqcJZ1EUaGHgkrc8Oxx/teH6JmsSwvZEYhgc=;
         h=Date:From:To:Subject:From;
-        b=sBQL45lv2LSGiDYlYjKAlJdOtGqIM+Xp4FoAqYAyeBNHQMLj3/BOTnL/cnTdLPXxZ
-         nB9N+Ooaq3HuI+mNFkr9TJ6VKRM+efTv2PRKPL41bR7XotA7f7vXwMoLaCna228eam
-         KmgjavJmpsGtt1z6gnK5zIDJ1OwQUXExcommWCC0=
-Date:   Wed, 26 May 2021 15:57:33 -0700
+        b=q1UD0ELSIgiboffWqqO1E6uT0ZrfGqpZDJ7jbIkZpdzBXRMrWGoLYwo4Z3LJG1Chh
+         nVUaQ0CQs3VQMEj4ef8tGNIoVbBoAyIacFzJ+U6KdYMHYQKmMCyo0PxOkBd1Ao1QtU
+         6bgAiTFDtzDOC9KNXpEfQV1MjADo4mpr0IhwQPHs=
+Date:   Wed, 26 May 2021 16:01:27 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, alex.shi@linux.alibaba.com, david@redhat.com,
-        guro@fb.com, haiyangz@microsoft.com, jasowang@redhat.com,
-        jbohac@suse.cz, kys@microsoft.com, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        mst@redhat.com, naoya.horiguchi@nec.com, osalvador@suse.de,
-        rppt@linux.ibm.com, steven.price@arm.com, sthemmin@microsoft.com,
-        wei.liu@kernel.org, willy@infradead.org, yaoaili@kingsoft.com
-Subject:  + fs-proc-kcore-use-page_offline_freezethaw.patch added
- to -mm tree
-Message-ID: <20210526225733.3jrClc1-G%akpm@linux-foundation.org>
+To:     chenhuang5@huawei.com, gechangwei@live.cn, ghe@suse.com,
+        jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com,
+        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
+Subject:  + ocfs2-replaced-simple_strtoull-with-kstrtoull.patch
+ added to -mm tree
+Message-ID: <20210526230127.dGIESyBA5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/kcore: use page_offline_(freeze|thaw)
+     Subject: ocfs2: replace simple_strtoull() with kstrtoull()
 has been added to the -mm tree.  Its filename is
-     fs-proc-kcore-use-page_offline_freezethaw.patch
+     ocfs2-replaced-simple_strtoull-with-kstrtoull.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-proc-kcore-use-page_offline_freezethaw.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-replaced-simple_strtoull-with-kstrtoull.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-kcore-use-page_offline_freezethaw.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-replaced-simple_strtoull-with-kstrtoull.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,99 +65,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: fs/proc/kcore: use page_offline_(freeze|thaw)
+From: Chen Huang <chenhuang5@huawei.com>
+Subject: ocfs2: replace simple_strtoull() with kstrtoull()
 
-Let's properly synchronize with drivers that set PageOffline(). 
-Unfreeze/thaw every now and then, so drivers that want to set
-PageOffline() can make progress.
+simple_strtoull() is deprecated in some situation since it does not check
+for the range overflow, use kstrtoull() instead.
 
-Link: https://lkml.kernel.org/r/20210526093041.8800-7-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Aili Yao <yaoaili@kingsoft.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Wei Liu <wei.liu@kernel.org>
+Link: https://lkml.kernel.org/r/20210526092020.554341-3-chenhuang5@huawei.com
+Signed-off-by: Chen Huang <chenhuang5@huawei.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ fs/ocfs2/cluster/heartbeat.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/fs/proc/kcore.c~fs-proc-kcore-use-page_offline_freezethaw
-+++ a/fs/proc/kcore.c
-@@ -313,6 +313,7 @@ read_kcore(struct file *file, char __use
- {
- 	char *buf = file->private_data;
- 	size_t phdrs_offset, notes_offset, data_offset;
-+	size_t page_offline_frozen = 1;
- 	size_t phdrs_len, notes_len;
- 	struct kcore_list *m;
- 	size_t tsz;
-@@ -322,6 +323,11 @@ read_kcore(struct file *file, char __use
- 	int ret = 0;
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-replaced-simple_strtoull-with-kstrtoull
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -1596,12 +1596,13 @@ static ssize_t o2hb_region_start_block_s
+ 	struct o2hb_region *reg = to_o2hb_region(item);
+ 	unsigned long long tmp;
+ 	char *p = (char *)page;
++	ssize_t ret;
  
- 	down_read(&kclist_lock);
-+	/*
-+	 * Don't race against drivers that set PageOffline() and expect no
-+	 * further page access.
-+	 */
-+	page_offline_freeze();
+ 	if (reg->hr_bdev)
+ 		return -EINVAL;
  
- 	get_kcore_size(&nphdr, &phdrs_len, &notes_len, &data_offset);
- 	phdrs_offset = sizeof(struct elfhdr);
-@@ -480,6 +486,12 @@ read_kcore(struct file *file, char __use
- 			}
- 		}
+-	tmp = simple_strtoull(p, &p, 0);
+-	if (!p || (*p && (*p != '\n')))
++	ret = kstrtoull(p, 0, &tmp);
++	if (ret)
+ 		return -EINVAL;
  
-+		if (page_offline_frozen++ % MAX_ORDER_NR_PAGES == 0) {
-+			page_offline_thaw();
-+			cond_resched();
-+			page_offline_freeze();
-+		}
-+
- 		if (&m->list == &kclist_head) {
- 			if (clear_user(buffer, tsz)) {
- 				ret = -EFAULT;
-@@ -565,6 +577,7 @@ skip:
- 	}
- 
- out:
-+	page_offline_thaw();
- 	up_read(&kclist_lock);
- 	if (ret)
- 		return ret;
+ 	reg->hr_start_block = tmp;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from chenhuang5@huawei.com are
 
-perf-map_executable-does-not-indicate-vm_mayexec.patch
-binfmt-remove-in-tree-usage-of-map_executable.patch
-mm-ignore-map_executable-in-ksys_mmap_pgoff.patch
-fs-proc-kcore-drop-kcore_remap-and-kcore_other.patch
-fs-proc-kcore-pfn_is_ram-check-only-applies-to-kcore_ram.patch
-fs-proc-kcore-dont-read-offline-sections-logically-offline-pages-and-hwpoisoned-pages.patch
-mm-introduce-page_offline_beginendfreezethaw-to-synchronize-setting-pageoffline.patch
-virtio-mem-use-page_offline_startend-when-setting-pageoffline.patch
-fs-proc-kcore-use-page_offline_freezethaw.patch
-mm-make-variable-names-for-populate_vma_page_range-consistent.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables.patch
-maintainers-add-tools-testing-selftests-vm-to-memory-management.patch
-selftests-vm-add-protection_keys_32-protection_keys_64-to-gitignore.patch
-selftests-vm-add-test-for-madv_populate_readwrite.patch
-memory-hotplugrst-complete-admin-guide-overhaul.patch
+ocfs2-replaced-simple_strtoull-with-kstrtoull.patch
 
