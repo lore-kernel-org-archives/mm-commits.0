@@ -2,40 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EBDFC47088
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:45:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E100DC47082
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:48:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0BDE7613D2
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:45:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B1944613D2
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:48:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234550AbhEZWq4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 May 2021 18:46:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56300 "EHLO mail.kernel.org"
+        id S232134AbhEZWuR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 May 2021 18:50:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56856 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234099AbhEZWqz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 26 May 2021 18:46:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A06916108B;
-        Wed, 26 May 2021 22:45:22 +0000 (UTC)
+        id S232088AbhEZWuQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 26 May 2021 18:50:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F257A6128D;
+        Wed, 26 May 2021 22:48:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622069122;
-        bh=6ujNqtW7df/mjKvrDRHDhRrKax2FzQXVHxjjLMdf46g=;
+        s=korg; t=1622069323;
+        bh=bPvWAthXwTgdmFEKZTIgUvkancwxlftQbSrACWCkGJw=;
         h=Date:From:To:Subject:From;
-        b=x4wpAvwyGMXI5+PBI9qqlRZsxgUy7Re6+svf40to/uzuH21jm1hIcITU61J20fdYl
-         PbC1eaUYyykoeWQoUfFA0Mcf4r2DuUUkmlVQ+ZWD4cROdPPQbVLbUPMK877A7MMYf8
-         ExkCrP/9Fp+VHXmQ7DOKRHRzw+UhyEHBcQfNLtb0=
-Date:   Wed, 26 May 2021 15:45:22 -0700
+        b=Trr6fKyLRZHzsRC03s5mO3Q0maRFU6zorYq16D5RTC0XMu7jzKKVe0rMId36F+Xnh
+         /hW2+rwG8/mped5hBFw8PnU4D6vMJNhvFqE1opXELzg/lS3TImKZWOG3kG4D7I15/o
+         J9T9Ays5s7sPbDBJOuzwH/D6ijnhT2oPQjxFpBF8=
+Date:   Wed, 26 May 2021 15:48:42 -0700
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, mm-commits@vger.kernel.org, shy828301@gmail.com,
-        ziy@nvidia.com
-Subject:  +
- mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split.patch
- added to -mm tree
-Message-ID: <20210526224522.-PA7kuGmM%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, alex.shi@linux.alibaba.com, david@redhat.com,
+        guro@fb.com, haiyangz@microsoft.com, jasowang@redhat.com,
+        jbohac@suse.cz, kys@microsoft.com, mhocko@suse.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        mst@redhat.com, naoya.horiguchi@nec.com, osalvador@suse.de,
+        rppt@linux.ibm.com, steven.price@arm.com, sthemmin@microsoft.com,
+        wei.liu@kernel.org, willy@infradead.org, yaoaili@kingsoft.com
+Subject:  [to-be-updated]
+ fs-proc-kcore-drop-kcore_remap-and-kcore_other.patch removed from -mm tree
+Message-ID: <20210526224842.12mKp-8wO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,137 +48,138 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: replace DEBUG_VM BUG with VM_WARN when unmap fails for split
-has been added to the -mm tree.  Its filename is
-     mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split.patch
+     Subject: fs/proc/kcore: drop KCORE_REMAP and KCORE_OTHER
+has been removed from the -mm tree.  Its filename was
+     fs-proc-kcore-drop-kcore_remap-and-kcore_other.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: thp: replace DEBUG_VM BUG with VM_WARN when unmap fails for split
+From: David Hildenbrand <david@redhat.com>
+Subject: fs/proc/kcore: drop KCORE_REMAP and KCORE_OTHER
 
-When debugging the bug reported by Wang Yugui [1], try_to_unmap() may
-fail, but the first VM_BUG_ON_PAGE() just checks page_mapcount() however
-it may miss the failure when head page is unmapped but other subpage is
-mapped.  Then the second DEBUG_VM BUG() that check total mapcount would
-catch it.  This may incur some confusion.  And this is not a fatal issue,
-so consolidate the two DEBUG_VM checks into one VM_WARN_ON_ONCE_PAGE().
+Patch series "fs/proc/kcore: don't read offline sections, logically offline pages and hwpoisoned pages", v2.
 
-[1] https://lore.kernel.org/linux-mm/20210412180659.B9E3.409509F4@e16-tec=
-h.com/
+Looking for places where the kernel might unconditionally read
+PageOffline() pages, I stumbled over /proc/kcore; turns out /proc/kcore
+needs some more love to not touch some other pages we really don't want to
+read -- i.e., hwpoisoned ones.
 
-Link: https://lkml.kernel.org/r/20210526201239.3351-1-shy828301@gmail.com
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Hugh Dickins <hughd@google.com>
+Examples for PageOffline() pages are pages inflated in a balloon, memory
+unplugged via virtio-mem, and partially-present sections in memory added
+by the Hyper-V balloon.
+
+When reading pages inflated in a balloon, we essentially produce
+unnecessary load in the hypervisor; holes in partially present sections in
+case of Hyper-V are not accessible and already were a problem for
+/proc/vmcore, fixed in makedumpfile by detecting PageOffline() pages.  In
+the future, virtio-mem might disallow reading unplugged memory -- marked
+as PageOffline() -- in some environments, resulting in undefined behavior
+when accessed; therefore, I'm trying to identify and rework all these
+(corner) cases.
+
+With this series, there is really only access via /dev/mem, /proc/vmcore
+and kdb left after I ripped out /dev/kmem.  kdb is an advanced corner-case
+use case -- we won't care for now if someone explicitly tries to do nasty
+things by reading from/writing to physical addresses we better not touch. 
+/dev/mem is a use case we won't support for virtio-mem, at least for now,
+so we'll simply disallow mapping any virtio-mem memory via /dev/mem next. 
+/proc/vmcore is really only a problem when dumping the old kernel via
+something that's not makedumpfile (read: basically never), however, we'll
+try sanitizing that as well in the second kernel in the future.
+
+Tested via kcore_dump:
+	https://github.com/schlafwandler/kcore_dump
+
+
+This patch (of 6):
+
+Commit db779ef67ffe ("proc/kcore: Remove unused kclist_add_remap()")
+removed the last user of KCORE_REMAP.
+
+Commit 595dd46ebfc1 ("vfs/proc/kcore, x86/mm/kcore: Fix SMAP fault when
+dumping vsyscall user page") removed the last user of KCORE_OTHER.
+
+Let's drop both types.  While at it, also drop vaddr in "struct
+kcore_list", used by KCORE_REMAP only.
+
+Link: https://lkml.kernel.org/r/20210514172247.176750-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20210514172247.176750-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Steven Price <steven.price@arm.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Aili Yao <yaoaili@kingsoft.com>
+Cc: Jiri Bohac <jbohac@suse.cz>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Wei Liu <wei.liu@kernel.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   29 +++++++++--------------------
- 1 file changed, 9 insertions(+), 20 deletions(-)
+ fs/proc/kcore.c       |    7 ++-----
+ include/linux/kcore.h |    3 ---
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split
-+++ a/mm/huge_memory.c
-@@ -2300,21 +2300,20 @@ void vma_adjust_trans_huge(struct vm_are
- static void unmap_page(struct page *page)
- {
- 	enum ttu_flags ttu_flags = TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD;
--	bool unmap_success;
+--- a/fs/proc/kcore.c~fs-proc-kcore-drop-kcore_remap-and-kcore_other
++++ a/fs/proc/kcore.c
+@@ -380,11 +380,8 @@ read_kcore(struct file *file, char __use
+ 			phdr->p_type = PT_LOAD;
+ 			phdr->p_flags = PF_R | PF_W | PF_X;
+ 			phdr->p_offset = kc_vaddr_to_offset(m->addr) + data_offset;
+-			if (m->type == KCORE_REMAP)
+-				phdr->p_vaddr = (size_t)m->vaddr;
+-			else
+-				phdr->p_vaddr = (size_t)m->addr;
+-			if (m->type == KCORE_RAM || m->type == KCORE_REMAP)
++			phdr->p_vaddr = (size_t)m->addr;
++			if (m->type == KCORE_RAM)
+ 				phdr->p_paddr = __pa(m->addr);
+ 			else if (m->type == KCORE_TEXT)
+ 				phdr->p_paddr = __pa_symbol(m->addr);
+--- a/include/linux/kcore.h~fs-proc-kcore-drop-kcore_remap-and-kcore_other
++++ a/include/linux/kcore.h
+@@ -11,14 +11,11 @@ enum kcore_type {
+ 	KCORE_RAM,
+ 	KCORE_VMEMMAP,
+ 	KCORE_USER,
+-	KCORE_OTHER,
+-	KCORE_REMAP,
+ };
  
- 	VM_BUG_ON_PAGE(!PageHead(page), page);
- 
--	if (PageAnon(page))
-+	if (PageAnon(page)) {
- 		try_to_migrate(page, ttu_flags);
--	else
-+	} else {
- 		/*
- 		 * Don't install migration entries for file backed pages. This
- 		 * helps handle cases when i_size is in the middle of the page
- 		 * as there is no need to unmap pages beyond i_size manually.
- 		 */
--		unmap_success = try_to_unmap(page, ttu_flags |
--						TTU_IGNORE_MLOCK);
--	VM_BUG_ON_PAGE(!unmap_success, page);
-+		try_to_unmap(page, ttu_flags | TTU_IGNORE_MLOCK);
-+	}
-+	VM_WARN_ON_ONCE_PAGE(page_mapped(page), page);
- }
- 
- static void remap_page(struct page *page, unsigned int nr)
-@@ -2625,7 +2624,7 @@ int split_huge_page_to_list(struct page
- 	struct deferred_split *ds_queue = get_deferred_split_queue(head);
- 	struct anon_vma *anon_vma = NULL;
- 	struct address_space *mapping = NULL;
--	int count, mapcount, extra_pins, ret;
-+	int extra_pins, ret;
- 	pgoff_t end;
- 
- 	VM_BUG_ON_PAGE(is_huge_zero_page(head), head);
-@@ -2684,7 +2683,6 @@ int split_huge_page_to_list(struct page
- 	}
- 
- 	unmap_page(head);
--	VM_BUG_ON_PAGE(compound_mapcount(head), head);
- 
- 	/* block interrupt reentry in xa_lock and spinlock */
- 	local_irq_disable();
-@@ -2702,9 +2700,7 @@ int split_huge_page_to_list(struct page
- 
- 	/* Prevent deferred_split_scan() touching ->_refcount */
- 	spin_lock(&ds_queue->split_queue_lock);
--	count = page_count(head);
--	mapcount = total_mapcount(head);
--	if (!mapcount && page_ref_freeze(head, 1 + extra_pins)) {
-+	if (page_ref_freeze(head, 1 + extra_pins)) {
- 		if (!list_empty(page_deferred_list(head))) {
- 			ds_queue->split_queue_len--;
- 			list_del(page_deferred_list(head));
-@@ -2724,16 +2720,9 @@ int split_huge_page_to_list(struct page
- 		__split_huge_page(page, list, end);
- 		ret = 0;
- 	} else {
--		if (IS_ENABLED(CONFIG_DEBUG_VM) && mapcount) {
--			pr_alert("total_mapcount: %u, page_count(): %u\n",
--					mapcount, count);
--			if (PageTail(page))
--				dump_page(head, NULL);
--			dump_page(page, "total_mapcount(head) > 0");
--			BUG();
--		}
- 		spin_unlock(&ds_queue->split_queue_lock);
--fail:		if (mapping)
-+fail:
-+		if (mapping)
- 			xa_unlock(&mapping->i_pages);
- 		local_irq_enable();
- 		remap_page(head, thp_nr_pages(head));
+ struct kcore_list {
+ 	struct list_head list;
+ 	unsigned long addr;
+-	unsigned long vaddr;
+ 	size_t size;
+ 	int type;
+ };
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-memory-add-orig_pmd-to-struct-vm_fault.patch
-mm-memory-make-numa_migrate_prep-non-static.patch
-mm-thp-refactor-numa-fault-handling.patch
-mm-migrate-account-thp-numa-migration-counters-correctly.patch
-mm-migrate-dont-split-thp-for-misplaced-numa-page.patch
-mm-migrate-check-mapcount-for-thp-instead-of-refcount.patch
-mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported.patch
-mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split.patch
-mm-rmap-make-try_to_unmap-void-function.patch
+perf-map_executable-does-not-indicate-vm_mayexec.patch
+binfmt-remove-in-tree-usage-of-map_executable.patch
+mm-ignore-map_executable-in-ksys_mmap_pgoff.patch
+mm-make-variable-names-for-populate_vma_page_range-consistent.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables.patch
+maintainers-add-tools-testing-selftests-vm-to-memory-management.patch
+selftests-vm-add-protection_keys_32-protection_keys_64-to-gitignore.patch
+selftests-vm-add-test-for-madv_populate_readwrite.patch
+memory-hotplugrst-complete-admin-guide-overhaul.patch
+fs-proc-kcore-pfn_is_ram-check-only-applies-to-kcore_ram.patch
+fs-proc-kcore-dont-read-offline-sections-logically-offline-pages-and-hwpoisoned-pages.patch
+mm-introduce-page_offline_beginendfreezethaw-to-synchronize-setting-pageoffline.patch
+virtio-mem-use-page_offline_startend-when-setting-pageoffline.patch
+fs-proc-kcore-use-page_offline_freezethaw.patch
 
