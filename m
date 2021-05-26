@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34426C47082
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:43:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EBDFC47088
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:45:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 113DD6108B
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:43:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0BDE7613D2
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:45:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234510AbhEZWpQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 May 2021 18:45:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55874 "EHLO mail.kernel.org"
+        id S234550AbhEZWq4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 May 2021 18:46:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56300 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231419AbhEZWpQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 26 May 2021 18:45:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7D2A9613D2;
-        Wed, 26 May 2021 22:43:43 +0000 (UTC)
+        id S234099AbhEZWqz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 26 May 2021 18:46:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A06916108B;
+        Wed, 26 May 2021 22:45:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622069023;
-        bh=sjHp6oEgKkK0i18oHlr4V88BGFUHX5ecfpKuzzRvrOU=;
+        s=korg; t=1622069122;
+        bh=6ujNqtW7df/mjKvrDRHDhRrKax2FzQXVHxjjLMdf46g=;
         h=Date:From:To:Subject:From;
-        b=Tlv2gJQWBTp3LvSUpaANU3tHbTS8LtkwxaENcifoQ9AFdDj1Pn6t5hO0yEOqZd1Qm
-         AiL+Bni5gHVc6Z9Qx4exAS7AJ32MFFZuhjW0OuwwQZ3MtIdRYcbm8dfLHZZD8fCIgo
-         gy3Pyrws0WL9cD1MIR9GRdMRNeugH9CUxboHHaUE=
-Date:   Wed, 26 May 2021 15:43:43 -0700
+        b=x4wpAvwyGMXI5+PBI9qqlRZsxgUy7Re6+svf40to/uzuH21jm1hIcITU61J20fdYl
+         PbC1eaUYyykoeWQoUfFA0Mcf4r2DuUUkmlVQ+ZWD4cROdPPQbVLbUPMK877A7MMYf8
+         ExkCrP/9Fp+VHXmQ7DOKRHRzw+UhyEHBcQfNLtb0=
+Date:   Wed, 26 May 2021 15:45:22 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, hughd@google.com,
-        kirill.shutemov@linux.intel.com, lkp@intel.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        shy828301@gmail.com, wangyugui@e16-tech.com, ziy@nvidia.com
-Subject:  [obsolete]
- mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix.patch removed
- from -mm tree
-Message-ID: <20210526224343.6_rS6pa2W%akpm@linux-foundation.org>
+To:     hughd@google.com, mm-commits@vger.kernel.org, shy828301@gmail.com,
+        ziy@nvidia.com
+Subject:  +
+ mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split.patch
+ added to -mm tree
+Message-ID: <20210526224522.-PA7kuGmM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,34 +44,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix
-has been removed from the -mm tree.  Its filename was
-     mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix.patch
+     Subject: mm: thp: replace DEBUG_VM BUG with VM_WARN when unmap fails for split
+has been added to the -mm tree.  Its filename is
+     mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: thp: replace DEBUG_VM BUG with VM_WARN when unmap fails for split
 
-remove unused local unmap_page():unmap_success
+When debugging the bug reported by Wang Yugui [1], try_to_unmap() may
+fail, but the first VM_BUG_ON_PAGE() just checks page_mapcount() however
+it may miss the failure when head page is unmapped but other subpage is
+mapped.  Then the second DEBUG_VM BUG() that check total mapcount would
+catch it.  This may incur some confusion.  And this is not a fatal issue,
+so consolidate the two DEBUG_VM checks into one VM_WARN_ON_ONCE_PAGE().
 
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Wang Yugui <wangyugui@e16-tech.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+[1] https://lore.kernel.org/linux-mm/20210412180659.B9E3.409509F4@e16-tec=
+h.com/
+
+Link: https://lkml.kernel.org/r/20210526201239.3351-1-shy828301@gmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/huge_memory.c |   29 +++++++++--------------------
+ 1 file changed, 9 insertions(+), 20 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix
+--- a/mm/huge_memory.c~mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split
 +++ a/mm/huge_memory.c
-@@ -2348,7 +2348,6 @@ void vma_adjust_trans_huge(struct vm_are
+@@ -2300,21 +2300,20 @@ void vma_adjust_trans_huge(struct vm_are
  static void unmap_page(struct page *page)
  {
  	enum ttu_flags ttu_flags = TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD;
@@ -81,45 +98,83 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  	VM_BUG_ON_PAGE(!PageHead(page), page);
  
-@@ -2360,8 +2359,7 @@ static void unmap_page(struct page *page
+-	if (PageAnon(page))
++	if (PageAnon(page)) {
+ 		try_to_migrate(page, ttu_flags);
+-	else
++	} else {
+ 		/*
+ 		 * Don't install migration entries for file backed pages. This
  		 * helps handle cases when i_size is in the middle of the page
  		 * as there is no need to unmap pages beyond i_size manually.
  		 */
 -		unmap_success = try_to_unmap(page, ttu_flags |
 -						TTU_IGNORE_MLOCK);
+-	VM_BUG_ON_PAGE(!unmap_success, page);
 +		try_to_unmap(page, ttu_flags | TTU_IGNORE_MLOCK);
- 	VM_BUG_ON_PAGE(!unmap_success, page);
++	}
++	VM_WARN_ON_ONCE_PAGE(page_mapped(page), page);
  }
  
+ static void remap_page(struct page *page, unsigned int nr)
+@@ -2625,7 +2624,7 @@ int split_huge_page_to_list(struct page
+ 	struct deferred_split *ds_queue = get_deferred_split_queue(head);
+ 	struct anon_vma *anon_vma = NULL;
+ 	struct address_space *mapping = NULL;
+-	int count, mapcount, extra_pins, ret;
++	int extra_pins, ret;
+ 	pgoff_t end;
+ 
+ 	VM_BUG_ON_PAGE(is_huge_zero_page(head), head);
+@@ -2684,7 +2683,6 @@ int split_huge_page_to_list(struct page
+ 	}
+ 
+ 	unmap_page(head);
+-	VM_BUG_ON_PAGE(compound_mapcount(head), head);
+ 
+ 	/* block interrupt reentry in xa_lock and spinlock */
+ 	local_irq_disable();
+@@ -2702,9 +2700,7 @@ int split_huge_page_to_list(struct page
+ 
+ 	/* Prevent deferred_split_scan() touching ->_refcount */
+ 	spin_lock(&ds_queue->split_queue_lock);
+-	count = page_count(head);
+-	mapcount = total_mapcount(head);
+-	if (!mapcount && page_ref_freeze(head, 1 + extra_pins)) {
++	if (page_ref_freeze(head, 1 + extra_pins)) {
+ 		if (!list_empty(page_deferred_list(head))) {
+ 			ds_queue->split_queue_len--;
+ 			list_del(page_deferred_list(head));
+@@ -2724,16 +2720,9 @@ int split_huge_page_to_list(struct page
+ 		__split_huge_page(page, list, end);
+ 		ret = 0;
+ 	} else {
+-		if (IS_ENABLED(CONFIG_DEBUG_VM) && mapcount) {
+-			pr_alert("total_mapcount: %u, page_count(): %u\n",
+-					mapcount, count);
+-			if (PageTail(page))
+-				dump_page(head, NULL);
+-			dump_page(page, "total_mapcount(head) > 0");
+-			BUG();
+-		}
+ 		spin_unlock(&ds_queue->split_queue_lock);
+-fail:		if (mapping)
++fail:
++		if (mapping)
+ 			xa_unlock(&mapping->i_pages);
+ 		local_irq_enable();
+ 		remap_page(head, thp_nr_pages(head));
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
-mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy-fix.patch
-mm.patch
-mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
-mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
-mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-mm-userfaultfd-fix-uffd-wp-special-cases-for-fork-fix.patch
-mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-mm-rmap-make-try_to_unmap-void-function-fix.patch
-mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust-fix.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-lib-math-rational-add-kunit-test-cases-fix.patch
-lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
-linux-next-pre.patch
-linux-next-post.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-memory-add-orig_pmd-to-struct-vm_fault.patch
+mm-memory-make-numa_migrate_prep-non-static.patch
+mm-thp-refactor-numa-fault-handling.patch
+mm-migrate-account-thp-numa-migration-counters-correctly.patch
+mm-migrate-dont-split-thp-for-misplaced-numa-page.patch
+mm-migrate-check-mapcount-for-thp-instead-of-refcount.patch
+mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported.patch
+mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split.patch
+mm-rmap-make-try_to_unmap-void-function.patch
 
