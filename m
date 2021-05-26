@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD43BC47082
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:57:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 889CEC47082
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:57:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B1CEC613D3
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:57:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C6A5613BF
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:57:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234352AbhEZW7E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 May 2021 18:59:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58672 "EHLO mail.kernel.org"
+        id S234357AbhEZW7H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 May 2021 18:59:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58722 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234343AbhEZW7D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 26 May 2021 18:59:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 17FA5613D2;
-        Wed, 26 May 2021 22:57:31 +0000 (UTC)
+        id S234343AbhEZW7H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 26 May 2021 18:59:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 18E216139A;
+        Wed, 26 May 2021 22:57:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622069851;
-        bh=tlJXk45lkczAMqUVT5B6dYkFvjZT0f7doa7gWmNo9RU=;
+        s=korg; t=1622069854;
+        bh=Lo7gSOpHDLa9EPGrJXx0xDztN2vZRo2ky2/9ZRRBwbc=;
         h=Date:From:To:Subject:From;
-        b=okOh93cYo9BkQefxhh/bWOxo5mIdDfgX5j8N/VqVEAKfHkhbsVMvt8fz4f8DuCgTj
-         rAYZWXO0RjPFzCEPfu3dItI519k8K8cPsAeCtPUKBih2jON30lBuMDwUxXSNT4EbPh
-         +gtlSREoyjRe6WFOBGr136s5yMFATgUkPGA2W6fU=
-Date:   Wed, 26 May 2021 15:57:30 -0700
+        b=sBQL45lv2LSGiDYlYjKAlJdOtGqIM+Xp4FoAqYAyeBNHQMLj3/BOTnL/cnTdLPXxZ
+         nB9N+Ooaq3HuI+mNFkr9TJ6VKRM+efTv2PRKPL41bR7XotA7f7vXwMoLaCna228eam
+         KmgjavJmpsGtt1z6gnK5zIDJ1OwQUXExcommWCC0=
+Date:   Wed, 26 May 2021 15:57:33 -0700
 From:   akpm@linux-foundation.org
 To:     adobriyan@gmail.com, alex.shi@linux.alibaba.com, david@redhat.com,
         guro@fb.com, haiyangz@microsoft.com, jasowang@redhat.com,
@@ -37,10 +37,9 @@ To:     adobriyan@gmail.com, alex.shi@linux.alibaba.com, david@redhat.com,
         mst@redhat.com, naoya.horiguchi@nec.com, osalvador@suse.de,
         rppt@linux.ibm.com, steven.price@arm.com, sthemmin@microsoft.com,
         wei.liu@kernel.org, willy@infradead.org, yaoaili@kingsoft.com
-Subject:  +
- virtio-mem-use-page_offline_startend-when-setting-pageoffline.patch added
+Subject:  + fs-proc-kcore-use-page_offline_freezethaw.patch added
  to -mm tree
-Message-ID: <20210526225730.0QJBDuHLw%akpm@linux-foundation.org>
+Message-ID: <20210526225733.3jrClc1-G%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: virtio-mem: use page_offline_(start|end) when setting PageOffline()
+     Subject: fs/proc/kcore: use page_offline_(freeze|thaw)
 has been added to the -mm tree.  Its filename is
-     virtio-mem-use-page_offline_startend-when-setting-pageoffline.patch
+     fs-proc-kcore-use-page_offline_freezethaw.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/virtio-mem-use-page_offline_startend-when-setting-pageoffline.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-proc-kcore-use-page_offline_freezethaw.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/virtio-mem-use-page_offline_startend-when-setting-pageoffline.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-kcore-use-page_offline_freezethaw.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,27 +70,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: virtio-mem: use page_offline_(start|end) when setting PageOffline()
+Subject: fs/proc/kcore: use page_offline_(freeze|thaw)
 
-Let's properly use page_offline_(start|end) to synchronize setting
-PageOffline(), so we won't have valid page access to unplugged memory
-regions from /proc/kcore.
+Let's properly synchronize with drivers that set PageOffline(). 
+Unfreeze/thaw every now and then, so drivers that want to set
+PageOffline() can make progress.
 
-Existing balloon implementations usually allow reading inflated memory;
-doing so might result in unnecessary overhead in the hypervisor, which is
-currently the case with virtio-mem.
-
-For future virtio-mem use cases, it will be different when using shmem,
-huge pages, !anonymous private mappings, ...  as backing storage for a VM.
-virtio-mem unplugged memory must no longer be accessed and access might
-result in undefined behavior.  There will be a virtio spec extension to
-document this change, including a new feature flag indicating the changed
-behavior.  We really don't want to race against PFN walkers reading random
-page content.
-
-Link: https://lkml.kernel.org/r/20210526093041.8800-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20210526093041.8800-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michael S. Tsirkin <mst@redhat.com>
 Acked-by: Mike Rapoport <rppt@linux.ibm.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: Aili Yao <yaoaili@kingsoft.com>
@@ -102,6 +88,7 @@ Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jiri Bohac <jbohac@suse.cz>
 Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
@@ -112,27 +99,52 @@ Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_mem.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/proc/kcore.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/drivers/virtio/virtio_mem.c~virtio-mem-use-page_offline_startend-when-setting-pageoffline
-+++ a/drivers/virtio/virtio_mem.c
-@@ -1065,6 +1065,7 @@ static int virtio_mem_memory_notifier_cb
- static void virtio_mem_set_fake_offline(unsigned long pfn,
- 					unsigned long nr_pages, bool onlined)
+--- a/fs/proc/kcore.c~fs-proc-kcore-use-page_offline_freezethaw
++++ a/fs/proc/kcore.c
+@@ -313,6 +313,7 @@ read_kcore(struct file *file, char __use
  {
-+	page_offline_begin();
- 	for (; nr_pages--; pfn++) {
- 		struct page *page = pfn_to_page(pfn);
+ 	char *buf = file->private_data;
+ 	size_t phdrs_offset, notes_offset, data_offset;
++	size_t page_offline_frozen = 1;
+ 	size_t phdrs_len, notes_len;
+ 	struct kcore_list *m;
+ 	size_t tsz;
+@@ -322,6 +323,11 @@ read_kcore(struct file *file, char __use
+ 	int ret = 0;
  
-@@ -1075,6 +1076,7 @@ static void virtio_mem_set_fake_offline(
- 			ClearPageReserved(page);
+ 	down_read(&kclist_lock);
++	/*
++	 * Don't race against drivers that set PageOffline() and expect no
++	 * further page access.
++	 */
++	page_offline_freeze();
+ 
+ 	get_kcore_size(&nphdr, &phdrs_len, &notes_len, &data_offset);
+ 	phdrs_offset = sizeof(struct elfhdr);
+@@ -480,6 +486,12 @@ read_kcore(struct file *file, char __use
+ 			}
  		}
- 	}
-+	page_offline_end();
- }
  
- /*
++		if (page_offline_frozen++ % MAX_ORDER_NR_PAGES == 0) {
++			page_offline_thaw();
++			cond_resched();
++			page_offline_freeze();
++		}
++
+ 		if (&m->list == &kclist_head) {
+ 			if (clear_user(buffer, tsz)) {
+ 				ret = -EFAULT;
+@@ -565,6 +577,7 @@ skip:
+ 	}
+ 
+ out:
++	page_offline_thaw();
+ 	up_read(&kclist_lock);
+ 	if (ret)
+ 		return ret;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
