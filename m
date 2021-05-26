@@ -4,39 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62258C47082
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 20:45:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2146CC47082
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 20:49:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2B34C613D8
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 20:45:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04025613DE
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 20:49:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232320AbhEZUq4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 May 2021 16:46:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54300 "EHLO mail.kernel.org"
+        id S233653AbhEZUvY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 May 2021 16:51:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56412 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231321AbhEZUqz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 26 May 2021 16:46:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E1ABF613C7;
-        Wed, 26 May 2021 20:45:22 +0000 (UTC)
+        id S233633AbhEZUvW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 26 May 2021 16:51:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A9396613D2;
+        Wed, 26 May 2021 20:49:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622061923;
-        bh=zi5zDmQ49uo/R+QbKpu69dr5Fjjnmvb7bUB48+tVX1A=;
+        s=korg; t=1622062189;
+        bh=FdLOAi7Elq/XahFAerbCaDom8zdwzUfVmbJ1knqDSPk=;
         h=Date:From:To:Subject:From;
-        b=HHptOjk6XKq9+sGBszXRrYYIiStj8e4SaF3ByCvxpKG3IqWF8RdbBYRfHg5QFmzPp
-         aV/iCqRammHxxG8exnPHxBO4Vdwv+KPDA1dUFAWDaIfPG/SNGLf7gwuKgWeABXs4i3
-         LTFB1I62lbF4UhBysUZiTiqVIEAt206qTqtq9xEU=
-Date:   Wed, 26 May 2021 13:45:22 -0700
+        b=CvDfWlWOTPusgPCA9RMgF4rUw6JodQNEcyC2fSwsrQa0drtTNouaSkcXWHrnMTRCM
+         eCbKwwpiSKad1pd9GZbZHnBwzBJPEreJCyj15zV4cCcaFp5n81Bxi51DFRLf9vSq/7
+         gLtdkGQeFZHu9Q2FkkQWtVATNR3gDU10CSHj0H20=
+Date:   Wed, 26 May 2021 13:49:49 -0700
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, longman@redhat.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        vdavydov.dev@gmail.com
+To:     huangpei@loongson.cn, mm-commits@vger.kernel.org,
+        npiggin@gmail.com, stable@vger.kernel.org,
+        tsbogend@alpha.franken.de, zhouyanjie@wanyeetech.com
 Subject:  +
- mm-memcg-optimize-user-context-object-stock-access-fix.patch added to -mm
- tree
-Message-ID: <20210526204522.vJSJDVBPa%akpm@linux-foundation.org>
+ revert-mips-make-userspace-mapping-young-by-default.patch added to -mm tree
+Message-ID: <20210526204949.lJRVRWg5x%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol.c: fix potential uninitialized variable warning
+     Subject: Revert "MIPS: make userspace mapping young by default"
 has been added to the -mm tree.  Its filename is
-     mm-memcg-optimize-user-context-object-stock-access-fix.patch
+     revert-mips-make-userspace-mapping-young-by-default.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-optimize-user-context-object-stock-access-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/revert-mips-make-userspace-mapping-young-by-default.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-optimize-user-context-object-stock-access-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/revert-mips-make-userspace-mapping-young-by-default.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,88 +65,126 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/memcontrol.c: fix potential uninitialized variable warning
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Subject: Revert "MIPS: make userspace mapping young by default"
 
-If the -Wno-maybe-uninitialized gcc option is not specified, compilation
-of memcontrol.c may generate the following warnings:
+This reverts commit f685a533a7fab35c5d069dcd663f59c8e4171a75.
 
-mm/memcontrol.c: In function `refill_obj_stock':
-./arch/x86/include/asm/irqflags.h:127:17: warning: `flags' may be used uninitialized in this function [-Wmaybe-uninitialized]
-  return !(flags & X86_EFLAGS_IF);
-          ~~~~~~~^~~~~~~~~~~~~~~~
-mm/memcontrol.c:3216:16: note: `flags' was declared here
-  unsigned long flags;
-                ^~~~~
-In file included from mm/memcontrol.c:29:
-mm/memcontrol.c: In function `uncharge_page':
-./include/linux/memcontrol.h:797:2: warning: `objcg' may be used uninitialized in this function [-Wmaybe-uninitialized]
-  percpu_ref_put(&objcg->refcnt);
-  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MIPS cache flush logic needs to know whether the mapping was already
+established to decide how to flush caches.  This is done by checking the
+valid bit in the PTE.  The commit above breaks this logic by setting the
+valid in the PTE in new mappings, which causes kernel crashes.
 
-Fix that by properly initializing *pflags in get_obj_stock() and
-introducing a use_objcg bool variable in uncharge_page() to avoid
-potentially accessing the struct page data twice.
-
-Link: https://lkml.kernel.org/r/20210526193602.8742-1-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20210526094335.92948-1-tsbogend@alpha.franken.de
+Fixes: f685a533a7f ("MIPS: make userspace mapping young by default")
+Reported-by: Zhou Yanjie <zhouyanjie@wanyeetech.com>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Huang Pei <huangpei@loongson.cn>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/mips/mm/cache.c    |   30 ++++++++++++++----------------
+ include/linux/pgtable.h |    8 ++++++++
+ mm/memory.c             |    4 ++++
+ 3 files changed, 26 insertions(+), 16 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-optimize-user-context-object-stock-access-fix
-+++ a/mm/memcontrol.c
-@@ -2115,6 +2115,7 @@ static inline struct obj_stock *get_obj_
- 	struct memcg_stock_pcp *stock;
+--- a/arch/mips/mm/cache.c~revert-mips-make-userspace-mapping-young-by-default
++++ a/arch/mips/mm/cache.c
+@@ -158,31 +158,29 @@ unsigned long _page_cachable_default;
+ EXPORT_SYMBOL(_page_cachable_default);
  
- 	if (likely(in_task())) {
-+		*pflags = 0UL;
- 		preempt_disable();
- 		stock = this_cpu_ptr(&memcg_stock);
- 		return &stock->task_obj;
-@@ -6832,6 +6833,7 @@ static void uncharge_page(struct page *p
- 	unsigned long nr_pages;
- 	struct mem_cgroup *memcg;
- 	struct obj_cgroup *objcg;
-+	bool use_objcg = PageMemcgKmem(page);
+ #define PM(p)	__pgprot(_page_cachable_default | (p))
+-#define PVA(p)	PM(_PAGE_VALID | _PAGE_ACCESSED | (p))
  
- 	VM_BUG_ON_PAGE(PageLRU(page), page);
+ static inline void setup_protection_map(void)
+ {
+ 	protection_map[0]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[1]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[2]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[3]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[4]  = PVA(_PAGE_PRESENT);
+-	protection_map[5]  = PVA(_PAGE_PRESENT);
+-	protection_map[6]  = PVA(_PAGE_PRESENT);
+-	protection_map[7]  = PVA(_PAGE_PRESENT);
++	protection_map[1]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[2]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
++	protection_map[3]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[4]  = PM(_PAGE_PRESENT);
++	protection_map[5]  = PM(_PAGE_PRESENT);
++	protection_map[6]  = PM(_PAGE_PRESENT);
++	protection_map[7]  = PM(_PAGE_PRESENT);
  
-@@ -6840,7 +6842,7 @@ static void uncharge_page(struct page *p
- 	 * page memcg or objcg at this point, we have fully
- 	 * exclusive access to the page.
- 	 */
--	if (PageMemcgKmem(page)) {
-+	if (use_objcg) {
- 		objcg = __page_objcg(page);
+ 	protection_map[8]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[9]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[10] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
++	protection_map[9]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[10] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
+ 				_PAGE_NO_READ);
+-	protection_map[11] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
+-	protection_map[12] = PVA(_PAGE_PRESENT);
+-	protection_map[13] = PVA(_PAGE_PRESENT);
+-	protection_map[14] = PVA(_PAGE_PRESENT);
+-	protection_map[15] = PVA(_PAGE_PRESENT);
++	protection_map[11] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
++	protection_map[12] = PM(_PAGE_PRESENT);
++	protection_map[13] = PM(_PAGE_PRESENT);
++	protection_map[14] = PM(_PAGE_PRESENT | _PAGE_WRITE);
++	protection_map[15] = PM(_PAGE_PRESENT | _PAGE_WRITE);
+ }
+ 
+-#undef _PVA
+ #undef PM
+ 
+ void cpu_cache_init(void)
+--- a/include/linux/pgtable.h~revert-mips-make-userspace-mapping-young-by-default
++++ a/include/linux/pgtable.h
+@@ -432,6 +432,14 @@ static inline void ptep_set_wrprotect(st
+  * To be differentiate with macro pte_mkyoung, this macro is used on platforms
+  * where software maintains page access bit.
+  */
++#ifndef pte_sw_mkyoung
++static inline pte_t pte_sw_mkyoung(pte_t pte)
++{
++	return pte;
++}
++#define pte_sw_mkyoung	pte_sw_mkyoung
++#endif
++
+ #ifndef pte_savedwrite
+ #define pte_savedwrite pte_write
+ #endif
+--- a/mm/memory.c~revert-mips-make-userspace-mapping-young-by-default
++++ a/mm/memory.c
+@@ -2939,6 +2939,7 @@ static vm_fault_t wp_page_copy(struct vm
+ 		}
+ 		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
+ 		entry = mk_pte(new_page, vma->vm_page_prot);
++		entry = pte_sw_mkyoung(entry);
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+ 
  		/*
- 		 * This get matches the put at the end of the function and
-@@ -6868,7 +6870,7 @@ static void uncharge_page(struct page *p
+@@ -3602,6 +3603,7 @@ static vm_fault_t do_anonymous_page(stru
+ 	__SetPageUptodate(page);
  
- 	nr_pages = compound_nr(page);
+ 	entry = mk_pte(page, vma->vm_page_prot);
++	entry = pte_sw_mkyoung(entry);
+ 	if (vma->vm_flags & VM_WRITE)
+ 		entry = pte_mkwrite(pte_mkdirty(entry));
  
--	if (PageMemcgKmem(page)) {
-+	if (use_objcg) {
- 		ug->nr_memory += nr_pages;
- 		ug->nr_kmem += nr_pages;
+@@ -3786,6 +3788,8 @@ void do_set_pte(struct vm_fault *vmf, st
  
+ 	if (prefault && arch_wants_old_prefaulted_pte())
+ 		entry = pte_mkold(entry);
++	else
++		entry = pte_sw_mkyoung(entry);
+ 
+ 	if (write)
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
-mm-memcg-move-mod_objcg_state-to-memcontrolc.patch
-mm-memcg-cache-vmstat-data-in-percpu-memcg_stock_pcp.patch
-mm-memcg-improve-refill_obj_stock-performance.patch
-mm-memcg-optimize-user-context-object-stock-access.patch
-mm-memcg-optimize-user-context-object-stock-access-fix.patch
-mm-memcg-slab-properly-set-up-gfp-flags-for-objcg-pointer-array.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch
-mm-memcg-slab-disable-cache-merging-for-kmalloc_normal-caches.patch
+revert-mips-make-userspace-mapping-young-by-default.patch
 
