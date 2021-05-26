@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DD27C47088
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:57:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDFE8C47082
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:57:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 36880613D2
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:57:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9EB5C613BF
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:57:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233542AbhEZW6z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 May 2021 18:58:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58510 "EHLO mail.kernel.org"
+        id S233933AbhEZW65 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 May 2021 18:58:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58568 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229939AbhEZW6y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 26 May 2021 18:58:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0611A6113D;
-        Wed, 26 May 2021 22:57:21 +0000 (UTC)
+        id S229939AbhEZW65 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 26 May 2021 18:58:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2E1E06139A;
+        Wed, 26 May 2021 22:57:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622069842;
-        bh=HBjPZipqdiQpl39NsG20A6UQdgYZ1j6nPwcB4OaUWUU=;
+        s=korg; t=1622069845;
+        bh=UbvaMFGwDbb1ktAwjP9t1uPA9+/mKCzoU4TrrjW5MTM=;
         h=Date:From:To:Subject:From;
-        b=BjPIa2aLLJyVU1nLbkvkKNMXArZOJ4MJqn1jRmt1AwTYhmn44Z7OSyqjESA+05yqy
-         rD0dxwZv+4q4xuCFs6UVGV6ghkdht3eArIa0yVPToQODiFMUoBP93YqQlKo/VMjqbQ
-         xvq3rxYs2O6A5RqzpygFsFR8bfz71W+QzGcMrPcU=
-Date:   Wed, 26 May 2021 15:57:21 -0700
+        b=rH2CsZcyVQdure64AAACK+p0cl/hy6rJyZujXjZWQVrsA15f8telKb8vs0Y9wUkx0
+         UFkKu3ywoeuWwlfk4GH/r6L0MvoY8e7aHJA/0gZHuz0lTxJ60WEOmb04FDXs0gS/YB
+         eYXjcrw9U2wo3FtR0mLW4gWB8OOFEpiDbfRxTNWc=
+Date:   Wed, 26 May 2021 15:57:24 -0700
 From:   akpm@linux-foundation.org
 To:     adobriyan@gmail.com, alex.shi@linux.alibaba.com, david@redhat.com,
         guro@fb.com, haiyangz@microsoft.com, jasowang@redhat.com,
@@ -38,10 +38,12 @@ To:     adobriyan@gmail.com, alex.shi@linux.alibaba.com, david@redhat.com,
         rppt@linux.ibm.com, steven.price@arm.com, sthemmin@microsoft.com,
         wei.liu@kernel.org, willy@infradead.org, yaoaili@kingsoft.com
 Subject:  +
- fs-proc-kcore-pfn_is_ram-check-only-applies-to-kcore_ram.patch added to -mm
- tree
-Message-ID: <20210526225721.w_Zr-b4j8%akpm@linux-foundation.org>
+ =?US-ASCII?Q?fs-proc-kcore-dont-read-offline-sections-logically-offline-?=
+ =?US-ASCII?Q?pages-and-hwpoisoned-pages.patch?= added to -mm tree
+Message-ID: <20210526225724.prThG9Mff%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/kcore: pfn_is_ram check only applies to KCORE_RAM
+     Subject: fs/proc/kcore: don't read offline sections, logically offline pages and hwpoisoned pages
 has been added to the -mm tree.  Its filename is
-     fs-proc-kcore-pfn_is_ram-check-only-applies-to-kcore_ram.patch
+     fs-proc-kcore-dont-read-offline-sections-logically-offline-pages-and-hwpoisoned-pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-proc-kcore-pfn_is_ram-check-only-applies-to-kcore_ram.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-proc-kcore-dont-read-offline-sections-logically-offline-pages-and-hwpoisoned-pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-kcore-pfn_is_ram-check-only-applies-to-kcore_ram.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-kcore-dont-read-offline-sections-logically-offline-pages-and-hwpoisoned-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,14 +73,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: fs/proc/kcore: pfn_is_ram check only applies to KCORE_RAM
+Subject: fs/proc/kcore: don't read offline sections, logically offline pages and hwpoisoned pages
 
-Let's resturcture the code, using switch-case, and checking pfn_is_ram()
-only when we are dealing with KCORE_RAM.
+Let's avoid reading:
 
-Link: https://lkml.kernel.org/r/20210526093041.8800-3-david@redhat.com
+1) Offline memory sections: the content of offline memory sections is
+   stale as the memory is effectively unused by the kernel.  On s390x with
+   standby memory, offline memory sections (belonging to offline storage
+   increments) are not accessible.  With virtio-mem and the hyper-v
+   balloon, we can have unavailable memory chunks that should not be
+   accessed inside offline memory sections.  Last but not least, offline
+   memory sections might contain hwpoisoned pages which we can no longer
+   identify because the memmap is stale.
+
+2) PG_offline pages: logically offline pages that are documented as
+   "The content of these pages is effectively stale.  Such pages should
+   not be touched (read/write/dump/save) except by their owner.". 
+   Examples include pages inflated in a balloon or unavailble memory
+   ranges inside hotplugged memory sections with virtio-mem or the hyper-v
+   balloon.
+
+3) PG_hwpoison pages: Reading pages marked as hwpoisoned can be fatal. 
+   As documented: "Accessing is not safe since it may cause another
+   machine check.  Don't touch!"
+
+Introduce is_page_hwpoison(), adding a comment that it is inherently racy
+but best we can really do.
+
+Reading /proc/kcore now performs similar checks as when reading
+/proc/vmcore for kdump via makedumpfile: problematic pages are exclude. 
+It's also similar to hibernation code, however, we don't skip hwpoisoned
+pages when processing pages in kernel/power/snapshot.c:saveable_page()
+yet.
+
+Note 1: we can race against memory offlining code, especially memory going
+offline and getting unplugged: however, we will properly tear down the
+identity mapping and handle faults gracefully when accessing this memory
+from kcore code.
+
+Note 2: we can race against drivers setting PageOffline() and turning
+memory inaccessible in the hypervisor.  We'll handle this in a follow-up
+patch.
+
+Link: https://lkml.kernel.org/r/20210526093041.8800-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: Aili Yao <yaoaili@kingsoft.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
@@ -91,7 +131,6 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Roman Gushchin <guro@fb.com>
 Cc: Stephen Hemminger <sthemmin@microsoft.com>
 Cc: Steven Price <steven.price@arm.com>
@@ -99,72 +138,61 @@ Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |   35 +++++++++++++++++++++++++++--------
- 1 file changed, 27 insertions(+), 8 deletions(-)
+ fs/proc/kcore.c            |   14 +++++++++++++-
+ include/linux/page-flags.h |   12 ++++++++++++
+ 2 files changed, 25 insertions(+), 1 deletion(-)
 
---- a/fs/proc/kcore.c~fs-proc-kcore-pfn_is_ram-check-only-applies-to-kcore_ram
+--- a/fs/proc/kcore.c~fs-proc-kcore-dont-read-offline-sections-logically-offline-pages-and-hwpoisoned-pages
 +++ a/fs/proc/kcore.c
-@@ -483,25 +483,36 @@ read_kcore(struct file *file, char __use
- 				goto out;
- 			}
- 			m = NULL;	/* skip the list anchor */
--		} else if (!pfn_is_ram(__pa(start) >> PAGE_SHIFT)) {
--			if (clear_user(buffer, tsz)) {
--				ret = -EFAULT;
--				goto out;
--			}
--		} else if (m->type == KCORE_VMALLOC) {
-+			goto skip;
-+		}
+@@ -465,6 +465,9 @@ read_kcore(struct file *file, char __use
+ 
+ 	m = NULL;
+ 	while (buflen) {
++		struct page *page;
++		unsigned long pfn;
 +
-+		switch (m->type) {
-+		case KCORE_VMALLOC:
- 			vread(buf, (char *)start, tsz);
- 			/* we have to zero-fill user buffer even if no read */
- 			if (copy_to_user(buffer, buf, tsz)) {
- 				ret = -EFAULT;
- 				goto out;
+ 		/*
+ 		 * If this is the first iteration or the address is not within
+ 		 * the previous entry, search for a matching entry.
+@@ -503,7 +506,16 @@ read_kcore(struct file *file, char __use
  			}
--		} else if (m->type == KCORE_USER) {
-+			break;
-+		case KCORE_USER:
- 			/* User page is handled prior to normal kernel page: */
- 			if (copy_to_user(buffer, (char *)start, tsz)) {
- 				ret = -EFAULT;
- 				goto out;
- 			}
--		} else {
-+			break;
-+		case KCORE_RAM:
-+			if (!pfn_is_ram(__pa(start) >> PAGE_SHIFT)) {
-+				if (clear_user(buffer, tsz)) {
-+					ret = -EFAULT;
-+					goto out;
-+				}
-+				break;
-+			}
-+			fallthrough;
-+		case KCORE_VMEMMAP:
-+		case KCORE_TEXT:
- 			if (kern_addr_valid(start)) {
- 				/*
- 				 * Using bounce buffer to bypass the
-@@ -525,7 +536,15 @@ read_kcore(struct file *file, char __use
+ 			break;
+ 		case KCORE_RAM:
+-			if (!pfn_is_ram(__pa(start) >> PAGE_SHIFT)) {
++			pfn = __pa(start) >> PAGE_SHIFT;
++			page = pfn_to_online_page(pfn);
++
++			/*
++			 * Don't read offline sections, logically offline pages
++			 * (e.g., inflated in a balloon), hwpoisoned pages,
++			 * and explicitly excluded physical ranges.
++			 */
++			if (!page || PageOffline(page) ||
++			    is_page_hwpoison(page) || !pfn_is_ram(pfn)) {
+ 				if (clear_user(buffer, tsz)) {
+ 					ret = -EFAULT;
  					goto out;
- 				}
- 			}
-+			break;
-+		default:
-+			pr_warn_once("Unhandled KCORE type: %d\n", m->type);
-+			if (clear_user(buffer, tsz)) {
-+				ret = -EFAULT;
-+				goto out;
-+			}
- 		}
-+skip:
- 		buflen -= tsz;
- 		*fpos += tsz;
- 		buffer += tsz;
+--- a/include/linux/page-flags.h~fs-proc-kcore-dont-read-offline-sections-logically-offline-pages-and-hwpoisoned-pages
++++ a/include/linux/page-flags.h
+@@ -695,6 +695,18 @@ PAGEFLAG_FALSE(DoubleMap)
+ #endif
+ 
+ /*
++ * Check if a page is currently marked HWPoisoned. Note that this check is
++ * best effort only and inherently racy: there is no way to synchronize with
++ * failing hardware.
++ */
++static inline bool is_page_hwpoison(struct page *page)
++{
++	if (PageHWPoison(page))
++		return true;
++	return PageHuge(page) && PageHWPoison(compound_head(page));
++}
++
++/*
+  * For pages that are never mapped to userspace (and aren't PageSlab),
+  * page_type may be used.  Because it is initialised to -1, we invert the
+  * sense of the bit, so __SetPageFoo *clears* the bit used for PageFoo, and
 _
 
 Patches currently in -mm which might be from david@redhat.com are
