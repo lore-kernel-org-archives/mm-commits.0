@@ -4,38 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2146CC47082
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 20:49:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB483C47088
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:37:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 04025613DE
-	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 20:49:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 924AB613D4
+	for <mm-commits@archiver.kernel.org>; Wed, 26 May 2021 22:37:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233653AbhEZUvY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 May 2021 16:51:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56412 "EHLO mail.kernel.org"
+        id S231843AbhEZWjX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 May 2021 18:39:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54416 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233633AbhEZUvW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 26 May 2021 16:51:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A9396613D2;
-        Wed, 26 May 2021 20:49:49 +0000 (UTC)
+        id S231419AbhEZWjX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 26 May 2021 18:39:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 898AA613D2;
+        Wed, 26 May 2021 22:37:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622062189;
-        bh=FdLOAi7Elq/XahFAerbCaDom8zdwzUfVmbJ1knqDSPk=;
+        s=korg; t=1622068670;
+        bh=3JG7IGnke1YWsHX1uLwC4mCkoXCcUD3+OfDaoPAmUAQ=;
         h=Date:From:To:Subject:From;
-        b=CvDfWlWOTPusgPCA9RMgF4rUw6JodQNEcyC2fSwsrQa0drtTNouaSkcXWHrnMTRCM
-         eCbKwwpiSKad1pd9GZbZHnBwzBJPEreJCyj15zV4cCcaFp5n81Bxi51DFRLf9vSq/7
-         gLtdkGQeFZHu9Q2FkkQWtVATNR3gDU10CSHj0H20=
-Date:   Wed, 26 May 2021 13:49:49 -0700
+        b=lOtCYJf2ewYmvAzdvLjqh9rt0m+7Bi9OGIH8ONzaEGHat26JseYVPJkivTNctCULY
+         k0M4NSMQYGiGOwr1bBqSwPR+jnxO/X8u0ZzX9dNVUpGTgmjcB6+sctg48aI1UwOnyH
+         5SJIQ4uO+CWfrhnBbaT2Ae7wd/KD0vcUWyZHNBlc=
+Date:   Wed, 26 May 2021 15:37:49 -0700
 From:   akpm@linux-foundation.org
-To:     huangpei@loongson.cn, mm-commits@vger.kernel.org,
-        npiggin@gmail.com, stable@vger.kernel.org,
-        tsbogend@alpha.franken.de, zhouyanjie@wanyeetech.com
-Subject:  +
- revert-mips-make-userspace-mapping-young-by-default.patch added to -mm tree
-Message-ID: <20210526204949.lJRVRWg5x%akpm@linux-foundation.org>
+To:     hughd@google.com, kirill.shutemov@linux.intel.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        shy828301@gmail.com, wangyugui@e16-tech.com, ziy@nvidia.com
+Subject:  [alternative-merged]
+ mm-thp-check-total_mapcount-instead-of-page_mapcount.patch removed from -mm
+ tree
+Message-ID: <20210526223749.Jygo8BM56%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,147 +45,118 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "MIPS: make userspace mapping young by default"
-has been added to the -mm tree.  Its filename is
-     revert-mips-make-userspace-mapping-young-by-default.patch
+     Subject: mm: thp: check total_mapcount instead of page_mapcount
+has been removed from the -mm tree.  Its filename was
+     mm-thp-check-total_mapcount-instead-of-page_mapcount.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/revert-mips-make-userspace-mapping-young-by-default.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/revert-mips-make-userspace-mapping-young-by-default.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Subject: Revert "MIPS: make userspace mapping young by default"
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: thp: check total_mapcount instead of page_mapcount
 
-This reverts commit f685a533a7fab35c5d069dcd663f59c8e4171a75.
+When debugging the bug reported by Wang Yugui [1], try_to_unmap() may
+return false positive for PTE-mapped THP since page_mapcount() is used to
+check if the THP is unmapped, but it just checks compound mapcount and
+head page's mapcount.  If the THP is PTE-mapped and head page is not
+mapped, it may return a false positive.
 
-MIPS cache flush logic needs to know whether the mapping was already
-established to decide how to flush caches.  This is done by checking the
-valid bit in the PTE.  The commit above breaks this logic by setting the
-valid in the PTE in new mappings, which causes kernel crashes.
+Use total_mapcount() instead of page_mapcount() for try_to_unmap() and do
+so for the VM_BUG_ON_PAGE in split_huge_page_to_list as well.
 
-Link: https://lkml.kernel.org/r/20210526094335.92948-1-tsbogend@alpha.franken.de
-Fixes: f685a533a7f ("MIPS: make userspace mapping young by default")
-Reported-by: Zhou Yanjie <zhouyanjie@wanyeetech.com>
-Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Huang Pei <huangpei@loongson.cn>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: <stable@vger.kernel.org>
+This changes the semantics of try_to_unmap(), but I don't see there is any
+use case that expects try_to_unmap() to just unmap one subpage of a huge
+page.  So using page_mapcount() seems like a bug.
+
+[1] https://lore.kernel.org/linux-mm/20210412180659.B9E3.409509F4@e16-tech.com/
+
+Link: https://lkml.kernel.org/r/20210513212334.217424-1-shy828301@gmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Wang Yugui <wangyugui@e16-tech.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/cache.c    |   30 ++++++++++++++----------------
- include/linux/pgtable.h |    8 ++++++++
- mm/memory.c             |    4 ++++
- 3 files changed, 26 insertions(+), 16 deletions(-)
+ mm/huge_memory.c |   11 +----------
+ mm/rmap.c        |   10 ++++++----
+ 2 files changed, 7 insertions(+), 14 deletions(-)
 
---- a/arch/mips/mm/cache.c~revert-mips-make-userspace-mapping-young-by-default
-+++ a/arch/mips/mm/cache.c
-@@ -158,31 +158,29 @@ unsigned long _page_cachable_default;
- EXPORT_SYMBOL(_page_cachable_default);
- 
- #define PM(p)	__pgprot(_page_cachable_default | (p))
--#define PVA(p)	PM(_PAGE_VALID | _PAGE_ACCESSED | (p))
- 
- static inline void setup_protection_map(void)
- {
- 	protection_map[0]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
--	protection_map[1]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
--	protection_map[2]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
--	protection_map[3]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
--	protection_map[4]  = PVA(_PAGE_PRESENT);
--	protection_map[5]  = PVA(_PAGE_PRESENT);
--	protection_map[6]  = PVA(_PAGE_PRESENT);
--	protection_map[7]  = PVA(_PAGE_PRESENT);
-+	protection_map[1]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
-+	protection_map[2]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
-+	protection_map[3]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
-+	protection_map[4]  = PM(_PAGE_PRESENT);
-+	protection_map[5]  = PM(_PAGE_PRESENT);
-+	protection_map[6]  = PM(_PAGE_PRESENT);
-+	protection_map[7]  = PM(_PAGE_PRESENT);
- 
- 	protection_map[8]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
--	protection_map[9]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
--	protection_map[10] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
-+	protection_map[9]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
-+	protection_map[10] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
- 				_PAGE_NO_READ);
--	protection_map[11] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
--	protection_map[12] = PVA(_PAGE_PRESENT);
--	protection_map[13] = PVA(_PAGE_PRESENT);
--	protection_map[14] = PVA(_PAGE_PRESENT);
--	protection_map[15] = PVA(_PAGE_PRESENT);
-+	protection_map[11] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
-+	protection_map[12] = PM(_PAGE_PRESENT);
-+	protection_map[13] = PM(_PAGE_PRESENT);
-+	protection_map[14] = PM(_PAGE_PRESENT | _PAGE_WRITE);
-+	protection_map[15] = PM(_PAGE_PRESENT | _PAGE_WRITE);
+--- a/mm/huge_memory.c~mm-thp-check-total_mapcount-instead-of-page_mapcount
++++ a/mm/huge_memory.c
+@@ -2362,7 +2362,6 @@ static void unmap_page(struct page *page
+ 		 */
+ 		unmap_success = try_to_unmap(page, ttu_flags |
+ 						TTU_IGNORE_MLOCK);
+-	VM_BUG_ON_PAGE(!unmap_success, page);
  }
  
--#undef _PVA
- #undef PM
+ static void remap_page(struct page *page, unsigned int nr)
+@@ -2732,7 +2731,7 @@ int split_huge_page_to_list(struct page
+ 	}
  
- void cpu_cache_init(void)
---- a/include/linux/pgtable.h~revert-mips-make-userspace-mapping-young-by-default
-+++ a/include/linux/pgtable.h
-@@ -432,6 +432,14 @@ static inline void ptep_set_wrprotect(st
-  * To be differentiate with macro pte_mkyoung, this macro is used on platforms
-  * where software maintains page access bit.
+ 	unmap_page(head);
+-	VM_BUG_ON_PAGE(compound_mapcount(head), head);
++	VM_BUG_ON_PAGE(total_mapcount(head), head);
+ 
+ 	/* block interrupt reentry in xa_lock and spinlock */
+ 	local_irq_disable();
+@@ -2772,14 +2771,6 @@ int split_huge_page_to_list(struct page
+ 		__split_huge_page(page, list, end);
+ 		ret = 0;
+ 	} else {
+-		if (IS_ENABLED(CONFIG_DEBUG_VM) && mapcount) {
+-			pr_alert("total_mapcount: %u, page_count(): %u\n",
+-					mapcount, count);
+-			if (PageTail(page))
+-				dump_page(head, NULL);
+-			dump_page(page, "total_mapcount(head) > 0");
+-			BUG();
+-		}
+ 		spin_unlock(&ds_queue->split_queue_lock);
+ fail:		if (mapping)
+ 			xa_unlock(&mapping->i_pages);
+--- a/mm/rmap.c~mm-thp-check-total_mapcount-instead-of-page_mapcount
++++ a/mm/rmap.c
+@@ -1651,12 +1651,14 @@ static int page_not_mapped(struct page *
+ }
+ 
+ /**
+- * try_to_unmap - try to remove all page table mappings to a page
+- * @page: the page to get unmapped
++ * try_to_unmap - try to remove all page table mappings to a page and the
++ *                compound page it belongs to
++ * @page: the page or the subpages of compound page to get unmapped
+  * @flags: action and flags
+  *
+  * Tries to remove all the page table entries which are mapping this
+- * page, used in the pageout path.  Caller must hold the page lock.
++ * page and the compound page it belongs to, used in the pageout path.
++ * Caller must hold the page lock.
+  *
+  * If unmap is successful, return true. Otherwise, false.
   */
-+#ifndef pte_sw_mkyoung
-+static inline pte_t pte_sw_mkyoung(pte_t pte)
-+{
-+	return pte;
-+}
-+#define pte_sw_mkyoung	pte_sw_mkyoung
-+#endif
-+
- #ifndef pte_savedwrite
- #define pte_savedwrite pte_write
- #endif
---- a/mm/memory.c~revert-mips-make-userspace-mapping-young-by-default
-+++ a/mm/memory.c
-@@ -2939,6 +2939,7 @@ static vm_fault_t wp_page_copy(struct vm
- 		}
- 		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
- 		entry = mk_pte(new_page, vma->vm_page_prot);
-+		entry = pte_sw_mkyoung(entry);
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+@@ -1674,7 +1676,7 @@ bool try_to_unmap(struct page *page, enu
+ 	else
+ 		rmap_walk(page, &rwc);
  
- 		/*
-@@ -3602,6 +3603,7 @@ static vm_fault_t do_anonymous_page(stru
- 	__SetPageUptodate(page);
+-	return !page_mapcount(page) ? true : false;
++	return !total_mapcount(page) ? true : false;
+ }
  
- 	entry = mk_pte(page, vma->vm_page_prot);
-+	entry = pte_sw_mkyoung(entry);
- 	if (vma->vm_flags & VM_WRITE)
- 		entry = pte_mkwrite(pte_mkdirty(entry));
- 
-@@ -3786,6 +3788,8 @@ void do_set_pte(struct vm_fault *vmf, st
- 
- 	if (prefault && arch_wants_old_prefaulted_pte())
- 		entry = pte_mkold(entry);
-+	else
-+		entry = pte_sw_mkyoung(entry);
- 
- 	if (write)
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+ /*
 _
 
-Patches currently in -mm which might be from tsbogend@alpha.franken.de are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
-revert-mips-make-userspace-mapping-young-by-default.patch
+mm-memory-add-orig_pmd-to-struct-vm_fault.patch
+mm-memory-make-numa_migrate_prep-non-static.patch
+mm-thp-refactor-numa-fault-handling.patch
+mm-migrate-account-thp-numa-migration-counters-correctly.patch
+mm-migrate-dont-split-thp-for-misplaced-numa-page.patch
+mm-migrate-check-mapcount-for-thp-instead-of-refcount.patch
+mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported.patch
+mm-rmap-make-try_to_unmap-void-function.patch
 
