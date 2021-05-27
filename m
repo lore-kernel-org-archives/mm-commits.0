@@ -2,92 +2,128 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2947C4707F
-	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 06:42:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA5EAC4708A
+	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 10:15:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7597F613CC
-	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 06:42:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5E48613E6
+	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 10:15:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229709AbhE0GoN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 May 2021 02:44:13 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:2062 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229740AbhE0GoM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 May 2021 02:44:12 -0400
-Received: from dggeme756-chm.china.huawei.com (unknown [172.30.72.54])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4FrJ6L3QlfzWnsW;
-        Thu, 27 May 2021 14:38:02 +0800 (CST)
-Received: from [127.0.0.1] (10.40.193.166) by dggeme756-chm.china.huawei.com
- (10.3.19.102) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Thu, 27
- May 2021 14:42:37 +0800
-Subject: Re: [PATCH] mm,kmemleak-test: add the dependency on CONFIG_SAMPLES
-To:     Catalin Marinas <catalin.marinas@arm.com>
-References: <1621995008-116893-1-git-send-email-chenxiang66@hisilicon.com>
- <20210526093047.GC19992@arm.com>
-CC:     <sh_def@163.com>, <mm-commits@vger.kernel.org>,
-        <linuxarm@openeuler.org>, <linuxarm@huawei.com>,
-        Andrew Morton <akpm@linux-foundation.org>
-From:   "chenxiang (M)" <chenxiang66@hisilicon.com>
-Message-ID: <ab78b4fc-af91-e67e-2dbd-04d054ae80fc@hisilicon.com>
-Date:   Thu, 27 May 2021 14:42:36 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101
- Thunderbird/45.2.0
+        id S236029AbhE0KRT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 May 2021 06:17:19 -0400
+Received: from mx2.suse.de ([195.135.220.15]:43844 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S235978AbhE0KRT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 27 May 2021 06:17:19 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1622110544; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=7Tqg2oJdZxR+Sys5kciWyzhmhV8Hhlr9BuDDbot73Yw=;
+        b=ka1Rz5Q2HXdp4QGEFWfv0X0d+KGjYQmq+MZISm65jgJ0iZthoM902leBiSvR/fhMuOSCiH
+        b+H9xuspfgYD2cv9dY1Z7UU4iYjHgErDDufiO4AmLl2xPn418L2f7X28SrSObUo+oKXuc8
+        0WQjucNiM9jgPd5XwKSoTfbqT+9e7Ck=
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id 68397AAA6;
+        Thu, 27 May 2021 10:15:44 +0000 (UTC)
+Date:   Thu, 27 May 2021 12:15:43 +0200
+From:   Petr Mladek <pmladek@suse.com>
+To:     Oleg Nesterov <oleg@redhat.com>, liumartin@google.com,
+        akpm@linux-foundation.org, Tejun Heo <tj@kernel.org>
+Cc:     bp@suse.de, davidchao@google.com, jenhaochen@google.com,
+        jkosina@suse.cz, josh@joshtriplett.org, mhocko@suse.cz,
+        mingo@redhat.com, mm-commits@vger.kernel.org, nathan@kernel.org,
+        ndesaulniers@google.com, paulmck@linux.vnet.ibm.com,
+        peterz@infradead.org, rostedt@goodmis.org, stable@vger.kernel.org,
+        tglx@linutronix.de, tj@kernel.org, vbabka@suse.cz,
+        linux-kernel@vger.kernel.org
+Subject: Re: +
+ kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race.patch
+ added to -mm tree
+Message-ID: <YK9xTzlNSj83mAne@alley>
+References: <20210520214737.MrGGKbPrJ%akpm@linux-foundation.org>
+ <20210521163526.GA17916@redhat.com>
+ <YKvBVIJAc8/Qasdu@alley>
+ <20210526170604.GC4581@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20210526093047.GC19992@arm.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.40.193.166]
-X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
- dggeme756-chm.china.huawei.com (10.3.19.102)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210526170604.GC4581@redhat.com>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi Catalin,
+Added Tejun into CC because of the workqueue API related question
+at the end of the mail.
 
+On Wed 2021-05-26 19:06:06, Oleg Nesterov wrote:
+> On 05/24, Petr Mladek wrote:
+> >
+> > Your patch changes the semantic. The current semantic is the same for
+> > the workqueue's counter-part mod_delayed_work_on().
+> 
+> OK, I see, thanks. I was confused by the comment.
+> 
+> > We should actually keep the "ret" value as is to stay compatible with
+> > workqueue API:
+> >
+> > 	/*
+> > 	 * Canceling could run in parallel from kthread_cancel_delayed_work_sync
+> > 	 * and change work's canceling count as the spinlock is released and regain
+> > 	 * in __kthread_cancel_work so we need to check the count again. Otherwise,
+> > 	 * we might incorrectly queue the dwork and further cause
+> > 	 * cancel_delayed_work_sync thread waiting for flush dwork endlessly.
+> > 	 *
+> > 	 * Keep the ret code. The API primary informs the caller
+> > 	 * whether some pending work has been canceled (not proceed).
+> > 	 */
+> > 	if (work->canceling)
+> > 		goto out;
+> 
+> Agreed, we should keep the "ret" value.
 
-在 2021/5/26 17:30, Catalin Marinas 写道:
-> On Wed, May 26, 2021 at 10:10:08AM +0800, chenxiang wrote:
->> From: Xiang Chen <chenxiang66@hisilicon.com>
->>
->> As kmemleak-test.c is moved to samples dir, it is not compiled if just
->> setting CONFIG_DEBUG_KMEMLEAK_TEST as module and enabling
->> CONFIG_DEBUG_KMEMLEAK. Because it depends on CONFIG_SAMPLES after it is
->> moved to samples dir.
->> So the dependency on CONFIG_SAMPLES is added.
->>
->> Fixes: 1abbef4f5172 ("mm,kmemleak-test.c: move kmemleak-test.c to samples dir")
->> Signed-off-by: Xiang Chen <chenxiang66@hisilicon.com>
->> ---
->>   lib/Kconfig.debug | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
->> index 2779c29..9950542 100644
->> --- a/lib/Kconfig.debug
->> +++ b/lib/Kconfig.debug
->> @@ -716,7 +716,7 @@ config DEBUG_KMEMLEAK_MEM_POOL_SIZE
->>   
->>   config DEBUG_KMEMLEAK_TEST
->>   	tristate "Simple test for the kernel memory leak detector"
->> -	depends on DEBUG_KMEMLEAK && m
->> +	depends on DEBUG_KMEMLEAK && SAMPLES && m
->>   	help
->>   	  This option enables a module that explicitly leaks memory.
-> Would it make more sense to move the DEBUG_KMEMLEAK_TEST option to
-> samples as well and maybe rename it to SAMPLES_KMEMLEAK?
+Martin Liu, could you please resend the patch without the "ret =
+false" line? See above.
 
-Right, it seems be better to move the option to samples dir and rename it.
-I will change it in next verison.
+Andrew, could you please remove this patch from the -mm tree for now?
 
->
+> but unless I am confused again this doesn't match mod_delayed_work_on()
+> which always returns true if it races with cancel(). Nevermind, I think
+> this doesn't matter.
 
+Good point. I think that it is actually a bug. Most callers ignore
+the return code but there is the following user:
 
+static void addrconf_del_dad_work(struct inet6_ifaddr *ifp)
+{
+	if (cancel_delayed_work(&ifp->dad_work))
+		__in6_ifa_put(ifp);
+}
+static void addrconf_mod_dad_work(struct inet6_ifaddr *ifp,
+				   unsigned long delay)
+{
+	in6_ifa_hold(ifp);
+	if (mod_delayed_work(addrconf_wq, &ifp->dad_work, delay))
+		in6_ifa_put(ifp);
+}
+
+If mod_delayed_work() races with cancel_delayed_work() then both might
+return true and call in6_ifa_put(ifp).
+
+I thought that they were serialized by ifp->lock. But, for example,
+addrconf_dad_start() calls addrconf_mod_dad_work() after releasing
+this lock.
+
+It is possible that they are serialized another way. But I think that
+in principle only the one that really cancelled a pending work
+should return "true".
+
+Tejun, any opinion?  Feel free to ask for more context.
+
+Best Regards,
+Petr
