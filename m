@@ -7,40 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 084ECC47089
-	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 23:25:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF6AFC4707F
+	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 23:40:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5F8F613D4
-	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 23:25:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E9DF613D4
+	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 23:40:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233521AbhE0X1W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 May 2021 19:27:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38220 "EHLO mail.kernel.org"
+        id S233633AbhE0Xls (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 May 2021 19:41:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41468 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233038AbhE0X1U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 27 May 2021 19:27:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 303FA613BA;
-        Thu, 27 May 2021 23:25:46 +0000 (UTC)
+        id S229774AbhE0Xlr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 27 May 2021 19:41:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BB2AB613BA;
+        Thu, 27 May 2021 23:40:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622157946;
-        bh=MBYrFKDi0U71t9FBYtj7DbGyqbFrIQ2aNlwUHyokWgw=;
+        s=korg; t=1622158813;
+        bh=XTD5+njEVwH8FzluhyOmbhznah5zjwxrYw1+14qfcMI=;
         h=Date:From:To:Subject:From;
-        b=jGDDia+P823w2PSnDsJMBv7GNkjwcMYkcQfPFEkav9+Gv43Jho+inT7hR91lTUeHb
-         uD16N9/VTzqK1QmI3G3y9b0eHtbIkFIPFRYUvjEbfjYZ/TcNCfBI3WWRysXKvp0usn
-         VcOXlHIq1/yftFyDJUu6Jade/3j5njthGd6CugtA=
-Date:   Thu, 27 May 2021 16:25:45 -0700
+        b=TaZ59+ZItUmjYaXAED+j0Ca61sEl9FQk3b/DQ1rJbctSREnwCofWGs2NbMMrgocrK
+         rttGcbY2XW3WtnaiEM7vVN4T54Vw0cgW7POP1Ly6qdjeIMBnQtr8REE3fhaFyspjkQ
+         tnKqCs0L5OaNjCrmsXPVxAPK6RVd/OkvEKUashSY=
+Date:   Thu, 27 May 2021 16:40:13 -0700
 From:   akpm@linux-foundation.org
-To:     ardb@kernel.org, arnd@arndb.de, dvyukov@google.com,
-        elver@google.com, keescook@chromium.org,
-        luc.vanoostenryck@gmail.com, mark.rutland@arm.com,
-        masahiroy@kernel.org, mm-commits@vger.kernel.org,
-        nathan@kernel.org, ndesaulniers@google.com, nivedita@alum.mit.edu,
-        ojeda@kernel.org, peterz@infradead.org, samitolvanen@google.com,
-        will@kernel.org
+To:     elver@google.com, mm-commits@vger.kernel.org, ojeda@kernel.org,
+        peterz@infradead.org
 Subject:  +
  =?US-ASCII?Q?kcov-add-=5F=5Fno=5Fsanitize=5Fcoverage-to-fix-noinstr-fo?=
- =?US-ASCII?Q?r-all-architectures-v2.patch?= added to -mm tree
-Message-ID: <20210527232545.vAAh7q8bJ%akpm@linux-foundation.org>
+ =?US-ASCII?Q?r-all-architectures-v3.patch?= added to -mm tree
+Message-ID: <20210527234013.bRhy0Vc1Z%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -51,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2
+     Subject: kcov: add __no_sanitize_coverage to fix noinstr for all architectures
 has been added to the -mm tree.  Its filename is
-     kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2.patch
+     kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v3.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v3.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,49 +68,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2
+Subject: kcov: add __no_sanitize_coverage to fix noinstr for all architectures
 
-Implement __has_feature(coverage_sanitizer) in Clang
-(https://reviews.llvm.org/D103159) and use instead of version check.
+add comment explaining __has_feature() in Clang
 
-Link: https://lkml.kernel.org/r/20210527162655.3246381-1-elver@google.com
+Link: https://lkml.kernel.org/r/20210527194448.3470080-1-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Arvind Sankar <nivedita@alum.mit.edu>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Will Deacon <will@kernel.org>
+Reviewed-by: Miguel Ojeda <ojeda@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-clang.h |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/linux/compiler-clang.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/include/linux/compiler-clang.h~kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2
+--- a/include/linux/compiler-clang.h~kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v3
 +++ a/include/linux/compiler-clang.h
-@@ -45,7 +45,12 @@
- #define __no_sanitize_undefined
- #endif
+@@ -13,6 +13,12 @@
+ /* all clang versions usable with the kernel support KASAN ABI version 5 */
+ #define KASAN_ABI_VERSION 5
  
--#if defined(CONFIG_KCOV) && CONFIG_CLANG_VERSION >= 130000
 +/*
-+ * Support for __has_feature(coverage_sanitizer) was added in Clang 13 together
-+ * with no_sanitize("coverage"). Prior versions of Clang support coverage
-+ * instrumentation, but cannot be queried for support by the preprocessor.
++ * Note: Checking __has_feature(*_sanitizer) is only true if the feature is
++ * enabled. Therefore it is not required to additionally check defined(CONFIG_*)
++ * to avoid adding redundant attributes in other configurations.
 + */
-+#if __has_feature(coverage_sanitizer)
- #define __no_sanitize_coverage __attribute__((no_sanitize("coverage")))
- #else
- #define __no_sanitize_coverage
++
+ #if __has_feature(address_sanitizer) || __has_feature(hwaddress_sanitizer)
+ /* Emulate GCC's __SANITIZE_ADDRESS__ flag */
+ #define __SANITIZE_ADDRESS__
 _
 
 Patches currently in -mm which might be from elver@google.com are
@@ -126,4 +107,5 @@ printk-introduce-dump_stack_lvl-fix.patch
 kfence-unconditionally-use-unbound-work-queue.patch
 kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
 kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2.patch
+kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v3.patch
 
