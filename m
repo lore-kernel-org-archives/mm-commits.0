@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60F36C4708A
-	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 00:09:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09DEBC47089
+	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 00:33:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 42AF4613D2
-	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 00:09:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DCB746139A
+	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 00:33:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235008AbhE0AKw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 May 2021 20:10:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41752 "EHLO mail.kernel.org"
+        id S232816AbhE0AfX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 May 2021 20:35:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234960AbhE0AKp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 26 May 2021 20:10:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BD342613CA;
-        Thu, 27 May 2021 00:09:12 +0000 (UTC)
+        id S232632AbhE0AfW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 26 May 2021 20:35:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 763576139A;
+        Thu, 27 May 2021 00:33:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622074153;
-        bh=7GVborCB9buEHM6T9TmMB6KPVLTHpQ8E+59rZelSrys=;
+        s=korg; t=1622075629;
+        bh=u5p0AoqX4B2EEgf+hoOO0OOJw7Tfi6Uj7OTqww/iDcA=;
         h=Date:From:To:Subject:From;
-        b=Z6bErxSSdDjWIGiW5VppCVm8Ao1DJiuJXC9UXATgaH4y4l+uoAWUqyzAuKctUw8Rc
-         12eetPxFui+JVGHNJZJ6s2GQ9tmTsQvWtsa8ufmp7gbI8J8qIFTapaC9SSXxOH0YKV
-         e046q3Da+McIfMvhmR9yPWflNVIX+1+NHuLvbl5s=
-Date:   Wed, 26 May 2021 17:09:12 -0700
+        b=p96MD73eRfey/oIBgBKZpUWla+vIhnbUGsb5BqzJGGeM60jY3So+ItAjTK7gCnaNt
+         LslvoiSOKumHAB/jJSUyJ3XUQvQ7u7baGpxLh/pgZm2GUBggyOkOIBzlQGq8qpN0k+
+         4VqrsVdRHVf4oeoc4v22byEE4Qh9iJ9oKik2B2RE=
+Date:   Wed, 26 May 2021 17:33:48 -0700
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, songmuchun@bytedance.com
-Subject:  + hugetlb-pass-head-page-to-remove_hugetlb_page.patch
- added to -mm tree
-Message-ID: <20210527000912.bD73u60eA%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rppt@kernel.org
+Subject:  [folded-merged]
+ arm64-drop-pfn_valid_within-and-simplify-pfn_valid-fix.patch removed from
+ -mm tree
+Message-ID: <20210527003348.5A1xogJ2-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,68 +43,39 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: pass head page to remove_hugetlb_page()
-has been added to the -mm tree.  Its filename is
-     hugetlb-pass-head-page-to-remove_hugetlb_page.patch
+     Subject: arm64-drop-pfn_valid_within-and-simplify-pfn_valid-fix
+has been removed from the -mm tree.  Its filename was
+     arm64-drop-pfn_valid_within-and-simplify-pfn_valid-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-pass-head-page-to-remove_hugetlb_page.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-pass-head-page-to-remove_hugetlb_page.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into arm64-drop-pfn_valid_within-and-simplify-pfn_valid.patch
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: hugetlb: pass head page to remove_hugetlb_page()
+From: Mike Rapoport <rppt@kernel.org>
+Subject: arm64-drop-pfn_valid_within-and-simplify-pfn_valid-fix
 
-When memory_failure() or soft_offline_page() is called on a tail page of
-some hugetlb page, "BUG: unable to handle page fault" error can be
-triggered.
+fix merge fix
 
-remove_hugetlb_page() dereferences page->lru, so it's assumed that the
-page points to a head page, but one of the caller,
-dissolve_free_huge_page(), provides remove_hugetlb_page() with 'page'
-which could be a tail page.  So pass 'head' to it, instead.
+Link: https://lkml.kernel.org/r/YJtoQhidtIJOhYsV@kernel.org
 
-Link: https://lkml.kernel.org/r/20210526235257.2769473-1-nao.horiguchi@gmail.com
-Fixes: 6eb4e88a6d27 ("hugetlb: create remove_hugetlb_page() to separate functionality")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/hugetlb.c~hugetlb-pass-head-page-to-remove_hugetlb_page
-+++ a/mm/hugetlb.c
-@@ -1832,7 +1832,7 @@ retry:
- 			SetPageHWPoison(page);
- 			ClearPageHWPoison(head);
- 		}
--		remove_hugetlb_page(h, page, false);
-+		remove_hugetlb_page(h, head, false);
- 		h->max_huge_pages--;
- 		spin_unlock_irq(&hugetlb_lock);
- 		update_and_free_page(h, head);
+--- a/arch/arm64/Kconfig~arm64-drop-pfn_valid_within-and-simplify-pfn_valid-fix
++++ a/arch/arm64/Kconfig
+@@ -201,7 +201,6 @@ config ARM64
+ 	select HAVE_KPROBES
+ 	select HAVE_KRETPROBES
+ 	select HAVE_GENERIC_VDSO
+-	select HOLES_IN_ZONE
+ 	select IOMMU_DMA if IOMMU_SUPPORT
+ 	select IRQ_DOMAIN
+ 	select IRQ_FORCED_THREADING
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-hugetlb-pass-head-page-to-remove_hugetlb_page.patch
-mmhwpoison-send-sigbus-with-error-virutal-address.patch
+arm64-drop-pfn_valid_within-and-simplify-pfn_valid.patch
 
