@@ -2,128 +2,189 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA5EAC4708A
-	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 10:15:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67A97C47089
+	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 23:10:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A5E48613E6
-	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 10:15:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3EF3B613DD
+	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 23:10:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236029AbhE0KRT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 May 2021 06:17:19 -0400
-Received: from mx2.suse.de ([195.135.220.15]:43844 "EHLO mx2.suse.de"
+        id S236497AbhE0XLv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 May 2021 19:11:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35354 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235978AbhE0KRT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 27 May 2021 06:17:19 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1622110544; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=7Tqg2oJdZxR+Sys5kciWyzhmhV8Hhlr9BuDDbot73Yw=;
-        b=ka1Rz5Q2HXdp4QGEFWfv0X0d+KGjYQmq+MZISm65jgJ0iZthoM902leBiSvR/fhMuOSCiH
-        b+H9xuspfgYD2cv9dY1Z7UU4iYjHgErDDufiO4AmLl2xPn418L2f7X28SrSObUo+oKXuc8
-        0WQjucNiM9jgPd5XwKSoTfbqT+9e7Ck=
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 68397AAA6;
-        Thu, 27 May 2021 10:15:44 +0000 (UTC)
-Date:   Thu, 27 May 2021 12:15:43 +0200
-From:   Petr Mladek <pmladek@suse.com>
-To:     Oleg Nesterov <oleg@redhat.com>, liumartin@google.com,
-        akpm@linux-foundation.org, Tejun Heo <tj@kernel.org>
-Cc:     bp@suse.de, davidchao@google.com, jenhaochen@google.com,
-        jkosina@suse.cz, josh@joshtriplett.org, mhocko@suse.cz,
-        mingo@redhat.com, mm-commits@vger.kernel.org, nathan@kernel.org,
-        ndesaulniers@google.com, paulmck@linux.vnet.ibm.com,
-        peterz@infradead.org, rostedt@goodmis.org, stable@vger.kernel.org,
-        tglx@linutronix.de, tj@kernel.org, vbabka@suse.cz,
-        linux-kernel@vger.kernel.org
-Subject: Re: +
- kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race.patch
- added to -mm tree
-Message-ID: <YK9xTzlNSj83mAne@alley>
-References: <20210520214737.MrGGKbPrJ%akpm@linux-foundation.org>
- <20210521163526.GA17916@redhat.com>
- <YKvBVIJAc8/Qasdu@alley>
- <20210526170604.GC4581@redhat.com>
+        id S236520AbhE0XLn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 27 May 2021 19:11:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 163EA613DA;
+        Thu, 27 May 2021 23:10:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1622157009;
+        bh=xpdZ+SiiNryn3YuBZ/mBu3nABFN8h7x8bjyBdxYNuLE=;
+        h=Date:From:To:Subject:From;
+        b=HtnZMv0teZ35G7KTD8xE5hxuU1q8DvkD6nuruNys1qwvgohilQMzvj4Vf4q5AJyyF
+         F4/ic1XJQr2In+M9wlgBLFSXRbDZCVVYfZl7VXYpRS5j23AfvN9ZRDdmlT+4Q0iujg
+         9FwigbG3u6tED0hQr4gnTepSZBFUE3hLo4VzdzZU=
+Date:   Thu, 27 May 2021 16:10:08 -0700
+From:   akpm@linux-foundation.org
+To:     bp@suse.de, davidchao@google.com, jenhaochen@google.com,
+        jkosina@suse.cz, josh@joshtriplett.org, liumartin@google.com,
+        mhocko@suse.cz, mingo@redhat.com, mm-commits@vger.kernel.org,
+        nathan@kernel.org, ndesaulniers@google.com, oleg@redhat.com,
+        paulmck@linux.vnet.ibm.com, peterz@infradead.org, pmladek@suse.com,
+        rostedt@goodmis.org, stable@vger.kernel.org, tglx@linutronix.de,
+        tj@kernel.org, vbabka@suse.cz
+Subject:  [to-be-updated]
+ =?US-ASCII?Q?kthread-fix-kthread=5Fmod=5Fdelayed=5Fwork-vs-kthread=5Fcan?=
+ =?US-ASCII?Q?cel=5Fdelayed=5Fwork=5Fsync-race.patch?= removed from -mm
+ tree
+Message-ID: <20210527231008.wCN_GY_xR%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210526170604.GC4581@redhat.com>
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Added Tejun into CC because of the workqueue API related question
-at the end of the mail.
 
-On Wed 2021-05-26 19:06:06, Oleg Nesterov wrote:
-> On 05/24, Petr Mladek wrote:
-> >
-> > Your patch changes the semantic. The current semantic is the same for
-> > the workqueue's counter-part mod_delayed_work_on().
-> 
-> OK, I see, thanks. I was confused by the comment.
-> 
-> > We should actually keep the "ret" value as is to stay compatible with
-> > workqueue API:
-> >
-> > 	/*
-> > 	 * Canceling could run in parallel from kthread_cancel_delayed_work_sync
-> > 	 * and change work's canceling count as the spinlock is released and regain
-> > 	 * in __kthread_cancel_work so we need to check the count again. Otherwise,
-> > 	 * we might incorrectly queue the dwork and further cause
-> > 	 * cancel_delayed_work_sync thread waiting for flush dwork endlessly.
-> > 	 *
-> > 	 * Keep the ret code. The API primary informs the caller
-> > 	 * whether some pending work has been canceled (not proceed).
-> > 	 */
-> > 	if (work->canceling)
-> > 		goto out;
-> 
-> Agreed, we should keep the "ret" value.
+The patch titled
+     Subject: kthread: fix kthread_mod_delayed_work vs kthread_cancel_delayed_work_sync race
+has been removed from the -mm tree.  Its filename was
+     kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race.patch
 
-Martin Liu, could you please resend the patch without the "ret =
-false" line? See above.
+This patch was dropped because an updated version will be merged
 
-Andrew, could you please remove this patch from the -mm tree for now?
+------------------------------------------------------
+From: Martin Liu <liumartin@google.com>
+Subject: kthread: fix kthread_mod_delayed_work vs kthread_cancel_delayed_work_sync race
 
-> but unless I am confused again this doesn't match mod_delayed_work_on()
-> which always returns true if it races with cancel(). Nevermind, I think
-> this doesn't matter.
+We encountered a system hang issue while doing the tests.  The callstack
+is as following
 
-Good point. I think that it is actually a bug. Most callers ignore
-the return code but there is the following user:
+	schedule+0x80/0x100
+	schedule_timeout+0x48/0x138
+	wait_for_common+0xa4/0x134
+	wait_for_completion+0x1c/0x2c
+	kthread_flush_work+0x114/0x1cc
+	kthread_cancel_work_sync.llvm.16514401384283632983+0xe8/0x144
+	kthread_cancel_delayed_work_sync+0x18/0x2c
+	xxxx_pm_notify+0xb0/0xd8
+	blocking_notifier_call_chain_robust+0x80/0x194
+	pm_notifier_call_chain_robust+0x28/0x4c
+	suspend_prepare+0x40/0x260
+	enter_state+0x80/0x3f4
+	pm_suspend+0x60/0xdc
+	state_store+0x108/0x144
+	kobj_attr_store+0x38/0x88
+	sysfs_kf_write+0x64/0xc0
+	kernfs_fop_write_iter+0x108/0x1d0
+	vfs_write+0x2f4/0x368
+	ksys_write+0x7c/0xec
 
-static void addrconf_del_dad_work(struct inet6_ifaddr *ifp)
-{
-	if (cancel_delayed_work(&ifp->dad_work))
-		__in6_ifa_put(ifp);
-}
-static void addrconf_mod_dad_work(struct inet6_ifaddr *ifp,
-				   unsigned long delay)
-{
-	in6_ifa_hold(ifp);
-	if (mod_delayed_work(addrconf_wq, &ifp->dad_work, delay))
-		in6_ifa_put(ifp);
-}
+When we started investigating, we found race between
+kthread_mod_delayed_work vs kthread_cancel_delayed_work_sync.  The race's
+result could be simply reproduced as a kthread_mod_delayed_work with a
+following kthread_flush_work call.
 
-If mod_delayed_work() races with cancel_delayed_work() then both might
-return true and call in6_ifa_put(ifp).
+Thing is we release kthread_mod_delayed_work kspin_lock in
+__kthread_cancel_work so it opens a race window for
+kthread_cancel_delayed_work_sync to change the canceling count used to
+prevent dwork from being requeued before calling kthread_flush_work. 
+However, we don't check the canceling count after returning from
+__kthread_cancel_work and then insert the dwork to the worker.  It results
+the following kthread_flush_work inserts flush work to dwork's tail which
+is at worker's dealyed_work_list.  Therefore, flush work will never get
+moved to the worker's work_list to be executed.  Finally,
+kthread_cancel_delayed_work_sync will NOT be able to get completed and
+wait forever.  The code sequence diagram is as following
 
-I thought that they were serialized by ifp->lock. But, for example,
-addrconf_dad_start() calls addrconf_mod_dad_work() after releasing
-this lock.
+Thread A                Thread B
+kthread_mod_delayed_work
+  spin_lock
+   __kthread_cancel_work
+    canceling = 1
+    spin_unlock
+                        kthread_cancel_delayed_work_sync
+                          spin_lock
+                            kthread_cancel_work
+                          canceling = 2
+                          spin_unlock
+    del_timer_sync
+    spin_lock
+    canceling = 1 // canceling count gets update in ThreadB before
+  queue_delayed_work // dwork is put into the woker's dealyed_work_list
+                        without checking the canceling count
+ spin_unlock
+                          kthread_flush_work
+                            spin_lock
+                            Insert flush work // at the tail of the
+			                         dwork which is at
+						 the worker's
+						 dealyed_work_list
+                            spin_unlock
+                            wait_for_completion // Thread B stuck here as
+			                           flush work will never
+						   get executed
 
-It is possible that they are serialized another way. But I think that
-in principle only the one that really cancelled a pending work
-should return "true".
+The canceling count could change in __kthread_cancel_work as the spinlock
+get released and regained in between, let's check the count again before
+we queue the delayed work to avoid the race.
 
-Tejun, any opinion?  Feel free to ask for more context.
+Link: https://lkml.kernel.org/r/20210513065458.941403-1-liumartin@google.com
+Fixes: 37be45d49dec2 ("kthread: allow to cancel kthread work")
+Signed-off-by: Martin Liu <liumartin@google.com>
+Tested-by: David Chao <davidchao@google.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: <jenhaochen@google.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Best Regards,
-Petr
+ kernel/kthread.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+--- a/kernel/kthread.c~kthread-fix-kthread_mod_delayed_work-vs-kthread_cancel_delayed_work_sync-race
++++ a/kernel/kthread.c
+@@ -1181,6 +1181,19 @@ bool kthread_mod_delayed_work(struct kth
+ 		goto out;
+ 
+ 	ret = __kthread_cancel_work(work, true, &flags);
++
++	/*
++	 * Canceling could run in parallel from kthread_cancel_delayed_work_sync
++	 * and change work's canceling count as the spinlock is released and regain
++	 * in __kthread_cancel_work so we need to check the count again. Otherwise,
++	 * we might incorrectly queue the dwork and further cause
++	 * cancel_delayed_work_sync thread waiting for flush dwork endlessly.
++	 */
++	if (work->canceling) {
++		ret = false;
++		goto out;
++	}
++
+ fast_queue:
+ 	__kthread_queue_delayed_work(worker, dwork, delay);
+ out:
+_
+
+Patches currently in -mm which might be from liumartin@google.com are
+
+
