@@ -2,123 +2,92 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A317AC47082
-	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 00:43:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2947C4707F
+	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 06:42:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 74039613C3
-	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 00:43:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7597F613CC
+	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 06:42:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232006AbhE0ApX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 May 2021 20:45:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46872 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232416AbhE0ApX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 26 May 2021 20:45:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BC650613B0;
-        Thu, 27 May 2021 00:43:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622076230;
-        bh=6azAkDvG9ax9QWjOaUTILL3o+vUW6roAcoEYf1/hdfo=;
-        h=Date:From:To:Subject:From;
-        b=CjtsTi1C4erGuF7O2qtdIUCq89IAjgqXSTS1uV8Af7AgE/2BQZuJ+Wbghz4npOX88
-         1iRugP11iIW88xCk4SWjFo84ycVBPX2mGOicCTTE3mbSquo38/n2bV8G45Gu2MzmNY
-         bvGfOpRvSaeaTEpYqV7QQ7jdlKUMkqNp8kB3b5F8=
-Date:   Wed, 26 May 2021 17:43:49 -0700
-From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, gerald.schaefer@linux.ibm.com,
-        gor@linux.ibm.com, hca@linux.ibm.com, mingo@redhat.com,
-        mm-commits@vger.kernel.org, tglx@linutronix.de
-Subject:  +
- =?US-ASCII?Q?mm-thp-make-arch=5Fenable=5Fsplit=5Fpmd=5Fptlock-dependent-o?=
- =?US-ASCII?Q?n-pgtable=5Flevels-2.patch?= added to -mm tree
-Message-ID: <20210527004349.Z7j-MumtT%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S229709AbhE0GoN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 May 2021 02:44:13 -0400
+Received: from szxga01-in.huawei.com ([45.249.212.187]:2062 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229740AbhE0GoM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 May 2021 02:44:12 -0400
+Received: from dggeme756-chm.china.huawei.com (unknown [172.30.72.54])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4FrJ6L3QlfzWnsW;
+        Thu, 27 May 2021 14:38:02 +0800 (CST)
+Received: from [127.0.0.1] (10.40.193.166) by dggeme756-chm.china.huawei.com
+ (10.3.19.102) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Thu, 27
+ May 2021 14:42:37 +0800
+Subject: Re: [PATCH] mm,kmemleak-test: add the dependency on CONFIG_SAMPLES
+To:     Catalin Marinas <catalin.marinas@arm.com>
+References: <1621995008-116893-1-git-send-email-chenxiang66@hisilicon.com>
+ <20210526093047.GC19992@arm.com>
+CC:     <sh_def@163.com>, <mm-commits@vger.kernel.org>,
+        <linuxarm@openeuler.org>, <linuxarm@huawei.com>,
+        Andrew Morton <akpm@linux-foundation.org>
+From:   "chenxiang (M)" <chenxiang66@hisilicon.com>
+Message-ID: <ab78b4fc-af91-e67e-2dbd-04d054ae80fc@hisilicon.com>
+Date:   Thu, 27 May 2021 14:42:36 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101
+ Thunderbird/45.2.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20210526093047.GC19992@arm.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.40.193.166]
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ dggeme756-chm.china.huawei.com (10.3.19.102)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Hi Catalin,
 
-The patch titled
-     Subject: mm/thp: make ARCH_ENABLE_SPLIT_PMD_PTLOCK dependent on PGTABLE_LEVELS > 2
-has been added to the -mm tree.  Its filename is
-     mm-thp-make-arch_enable_split_pmd_ptlock-dependent-on-pgtable_levels-2.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-make-arch_enable_split_pmd_ptlock-dependent-on-pgtable_levels-2.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-make-arch_enable_split_pmd_ptlock-dependent-on-pgtable_levels-2.patch
+在 2021/5/26 17:30, Catalin Marinas 写道:
+> On Wed, May 26, 2021 at 10:10:08AM +0800, chenxiang wrote:
+>> From: Xiang Chen <chenxiang66@hisilicon.com>
+>>
+>> As kmemleak-test.c is moved to samples dir, it is not compiled if just
+>> setting CONFIG_DEBUG_KMEMLEAK_TEST as module and enabling
+>> CONFIG_DEBUG_KMEMLEAK. Because it depends on CONFIG_SAMPLES after it is
+>> moved to samples dir.
+>> So the dependency on CONFIG_SAMPLES is added.
+>>
+>> Fixes: 1abbef4f5172 ("mm,kmemleak-test.c: move kmemleak-test.c to samples dir")
+>> Signed-off-by: Xiang Chen <chenxiang66@hisilicon.com>
+>> ---
+>>   lib/Kconfig.debug | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+>> index 2779c29..9950542 100644
+>> --- a/lib/Kconfig.debug
+>> +++ b/lib/Kconfig.debug
+>> @@ -716,7 +716,7 @@ config DEBUG_KMEMLEAK_MEM_POOL_SIZE
+>>   
+>>   config DEBUG_KMEMLEAK_TEST
+>>   	tristate "Simple test for the kernel memory leak detector"
+>> -	depends on DEBUG_KMEMLEAK && m
+>> +	depends on DEBUG_KMEMLEAK && SAMPLES && m
+>>   	help
+>>   	  This option enables a module that explicitly leaks memory.
+> Would it make more sense to move the DEBUG_KMEMLEAK_TEST option to
+> samples as well and maybe rename it to SAMPLES_KMEMLEAK?
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Right, it seems be better to move the option to samples dir and rename it.
+I will change it in next verison.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+>
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/thp: make ARCH_ENABLE_SPLIT_PMD_PTLOCK dependent on PGTABLE_LEVELS > 2
-
-ARCH_ENABLE_SPLIT_PMD_PTLOCK is irrelevant unless there are more than two
-page table levels including PMD (also per
-Documentation/vm/split_page_table_lock.rst).  Make this dependency
-explicit on remaining platforms i.e x86 and s390 where
-ARCH_ENABLE_SPLIT_PMD_PTLOCK is subscribed.
-
-Link: https://lkml.kernel.org/r/1622013501-20409-1-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com> # s390
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/s390/Kconfig |    2 +-
- arch/x86/Kconfig  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
---- a/arch/s390/Kconfig~mm-thp-make-arch_enable_split_pmd_ptlock-dependent-on-pgtable_levels-2
-+++ a/arch/s390/Kconfig
-@@ -62,7 +62,7 @@ config S390
- 	select ARCH_BINFMT_ELF_STATE
- 	select ARCH_ENABLE_MEMORY_HOTPLUG if SPARSEMEM
- 	select ARCH_ENABLE_MEMORY_HOTREMOVE
--	select ARCH_ENABLE_SPLIT_PMD_PTLOCK
-+	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if PGTABLE_LEVELS > 2
- 	select ARCH_HAS_DEBUG_VM_PGTABLE
- 	select ARCH_HAS_DEBUG_WX
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
---- a/arch/x86/Kconfig~mm-thp-make-arch_enable_split_pmd_ptlock-dependent-on-pgtable_levels-2
-+++ a/arch/x86/Kconfig
-@@ -63,7 +63,7 @@ config X86
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if X86_64 && HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_MEMORY_HOTPLUG if X86_64 || (X86_32 && HIGHMEM)
- 	select ARCH_ENABLE_MEMORY_HOTREMOVE if MEMORY_HOTPLUG
--	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if X86_64 || X86_PAE
-+	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if (PGTABLE_LEVELS > 2) && (X86_64 || X86_PAE)
- 	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
- 	select ARCH_HAS_CACHE_LINE_SIZE
-_
-
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
-
-mm-debug_vm_pgtable-ensure-thp-availability-via-has_transparent_hugepage.patch
-mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks.patch
-mm-thp-make-arch_enable_split_pmd_ptlock-dependent-on-pgtable_levels-2.patch
-mm-define-default-value-for-first_user_address.patch
 
