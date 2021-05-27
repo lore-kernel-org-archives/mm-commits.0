@@ -7,37 +7,43 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99E83C4707F
-	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 23:12:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 084ECC47089
+	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 23:25:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 60491613D4
-	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 23:12:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5F8F613D4
+	for <mm-commits@archiver.kernel.org>; Thu, 27 May 2021 23:25:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234926AbhE0XNo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 May 2021 19:13:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35602 "EHLO mail.kernel.org"
+        id S233521AbhE0X1W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 May 2021 19:27:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38220 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233726AbhE0XNn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 27 May 2021 19:13:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C0E25613BA;
-        Thu, 27 May 2021 23:12:08 +0000 (UTC)
+        id S233038AbhE0X1U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 27 May 2021 19:27:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 303FA613BA;
+        Thu, 27 May 2021 23:25:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622157129;
-        bh=wiJqiGqPuJbsEN8q/6rNecK17DxBsaPouQEGuPp5mF8=;
+        s=korg; t=1622157946;
+        bh=MBYrFKDi0U71t9FBYtj7DbGyqbFrIQ2aNlwUHyokWgw=;
         h=Date:From:To:Subject:From;
-        b=bDtpfF1Q7rEukpAhdisvD6ElpOikxmNbhbSRaR0LWd4Dn5p4dU7XueitlA+vSj0PZ
-         R4kcKUzZJBaDDp+qX+KCLf1eNl8j0vkVf6MsGIQGfoF8slTUotiQupz9M4AVibE3Ko
-         /reNDu3ldJ6NCcgUBJtJhHY4twFCyx0jxMap75II=
-Date:   Thu, 27 May 2021 16:12:08 -0700
+        b=jGDDia+P823w2PSnDsJMBv7GNkjwcMYkcQfPFEkav9+Gv43Jho+inT7hR91lTUeHb
+         uD16N9/VTzqK1QmI3G3y9b0eHtbIkFIPFRYUvjEbfjYZ/TcNCfBI3WWRysXKvp0usn
+         VcOXlHIq1/yftFyDJUu6Jade/3j5njthGd6CugtA=
+Date:   Thu, 27 May 2021 16:25:45 -0700
 From:   akpm@linux-foundation.org
-To:     dave.hansen@linux.intel.com, hdanton@sina.com,
-        mgorman@techsingularity.net, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, vbabka@suse.cz
+To:     ardb@kernel.org, arnd@arndb.de, dvyukov@google.com,
+        elver@google.com, keescook@chromium.org,
+        luc.vanoostenryck@gmail.com, mark.rutland@arm.com,
+        masahiroy@kernel.org, mm-commits@vger.kernel.org,
+        nathan@kernel.org, ndesaulniers@google.com, nivedita@alum.mit.edu,
+        ojeda@kernel.org, peterz@infradead.org, samitolvanen@google.com,
+        will@kernel.org
 Subject:  +
- mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix.patch added to
- -mm tree
-Message-ID: <20210527231208.jo4ElkGeO%akpm@linux-foundation.org>
+ =?US-ASCII?Q?kcov-add-=5F=5Fno=5Fsanitize=5Fcoverage-to-fix-noinstr-fo?=
+ =?US-ASCII?Q?r-all-architectures-v2.patch?= added to -mm tree
+Message-ID: <20210527232545.vAAh7q8bJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: disassociate the pcp->high from pcp->batch -fix
+     Subject: kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix.patch
+     kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,104 +72,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: disassociate the pcp->high from pcp->batch -fix
+From: Marco Elver <elver@google.com>
+Subject: kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2
 
-Vlastimil Babka noted that __setup_per_zone_wmarks updating pcp->high did
-not protect watermark-related sysctl handlers from a parallel memory
-hotplug operations.  This patch moves the PCP update to
-setup_per_zone_wmarks and updates the PCP high value while protected by
-the pcp_batch_high_lock mutex.
+Implement __has_feature(coverage_sanitizer) in Clang
+(https://reviews.llvm.org/D103159) and use instead of version check.
 
-This is a fix to the mmotm patch
-mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch.patch.  It'll cause
-a conflict with
-mm-page_alloc-adjust-pcp-high-after-cpu-hotplug-events.patch but the
-resolution is simply to change the caller in setup_per_zone_wmarks to
-zone_pcp_update(zone, 0)
-
-Link: https://lkml.kernel.org/r/20210527105241.GB30378@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20210527162655.3246381-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Arvind Sankar <nivedita@alum.mit.edu>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ include/linux/compiler-clang.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix
-+++ a/mm/page_alloc.c
-@@ -8198,12 +8198,6 @@ static void __setup_per_zone_wmarks(void
- 		zone->_watermark[WMARK_LOW]  = min_wmark_pages(zone) + tmp;
- 		zone->_watermark[WMARK_HIGH] = min_wmark_pages(zone) + tmp * 2;
+--- a/include/linux/compiler-clang.h~kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2
++++ a/include/linux/compiler-clang.h
+@@ -45,7 +45,12 @@
+ #define __no_sanitize_undefined
+ #endif
  
--		/*
--		 * The watermark size have changed so update the pcpu batch
--		 * and high limits or the limits may be inappropriate.
--		 */
--		zone_set_pageset_high_and_batch(zone);
--
- 		spin_unlock_irqrestore(&zone->lock, flags);
- 	}
- 
-@@ -8220,11 +8214,19 @@ static void __setup_per_zone_wmarks(void
-  */
- void setup_per_zone_wmarks(void)
- {
-+	struct zone *zone;
- 	static DEFINE_SPINLOCK(lock);
- 
- 	spin_lock(&lock);
- 	__setup_per_zone_wmarks();
- 	spin_unlock(&lock);
-+
-+	/*
-+	 * The watermark size have changed so update the pcpu batch
-+	 * and high limits or the limits may be inappropriate.
-+	 */
-+	for_each_zone(zone)
-+		zone_pcp_update(zone);
- }
- 
- /*
+-#if defined(CONFIG_KCOV) && CONFIG_CLANG_VERSION >= 130000
++/*
++ * Support for __has_feature(coverage_sanitizer) was added in Clang 13 together
++ * with no_sanitize("coverage"). Prior versions of Clang support coverage
++ * instrumentation, but cannot be queried for support by the preprocessor.
++ */
++#if __has_feature(coverage_sanitizer)
+ #define __no_sanitize_coverage __attribute__((no_sanitize("coverage")))
+ #else
+ #define __no_sanitize_coverage
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from elver@google.com are
 
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix.patch
-mm-vmstat-convert-numa-statistics-to-basic-numa-counters.patch
-mm-vmstat-inline-numa-event-counter-updates.patch
-mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator.patch
-mm-page_alloc-reduce-duration-that-irqs-are-disabled-for-vm-counters.patch
-mm-page_alloc-explicitly-acquire-the-zone-lock-in-__free_pages_ok.patch
-mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock.patch
-mm-page_alloc-update-pgfree-outside-the-zone-lock-in-__free_pages_ok.patch
-mm-page_alloc-delete-vmpercpu_pagelist_fraction.patch
-mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch.patch
-mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix.patch
-mm-page_alloc-adjust-pcp-high-after-cpu-hotplug-events.patch
-mm-page_alloc-scale-the-number-of-pages-that-are-batch-freed.patch
-mm-page_alloc-limit-the-number-of-pages-on-pcp-lists-when-reclaim-is-active.patch
-mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction.patch
-mm-vmscan-remove-kerneldoc-like-comment-from-isolate_lru_pages.patch
-mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch
-mm-page_alloc-make-should_fail_alloc_page-a-static-function-should_fail_alloc_page-static.patch
-mm-mapping_dirty_helpers-remove-double-note-in-kerneldoc.patch
-mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust.patch
-mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection.patch
-mm-memory_hotplug-fix-kerneldoc-comment-for-__try_online_node.patch
-mm-memory_hotplug-fix-kerneldoc-comment-for-__remove_memory.patch
-mm-zbud-add-kerneldoc-fields-for-zbud_pool.patch
-mm-z3fold-add-kerneldoc-fields-for-z3fold_pool.patch
-mm-swap-make-swap_address_space-an-inline-function.patch
-mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
-mm-page_alloc-move-prototype-for-find_suitable_fallback.patch
-mm-swap-make-node_data-an-inline-function-on-config_flatmem.patch
+kfence-use-task_idle-when-awaiting-allocation.patch
+mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix.patch
+printk-introduce-dump_stack_lvl-fix.patch
+kfence-unconditionally-use-unbound-work-queue.patch
+kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
+kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2.patch
 
