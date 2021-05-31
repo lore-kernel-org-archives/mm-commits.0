@@ -7,37 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1E0CC47080
-	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 23:16:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FDEFC47082
+	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 23:28:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B46166124B
-	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 23:16:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 318EA6128A
+	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 23:28:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231436AbhEaXRy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 May 2021 19:17:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42232 "EHLO mail.kernel.org"
+        id S231377AbhEaXaQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 May 2021 19:30:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48388 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231144AbhEaXRx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 31 May 2021 19:17:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B7C7261186;
-        Mon, 31 May 2021 23:16:11 +0000 (UTC)
+        id S231144AbhEaXaQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 31 May 2021 19:30:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C5D5E61263;
+        Mon, 31 May 2021 23:28:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622502972;
-        bh=E/O2EhZsX/BOn709+oRfB9Jx08vk5APtJdvC7tJebJE=;
+        s=korg; t=1622503715;
+        bh=n/8kwTmCi2zzfp55R7PGbTWNd7pidx1VY9ZM860ql3U=;
         h=Date:From:To:Subject:From;
-        b=1xYEhDEJX1TwK3PdAdWk7ldpcCcyuCF3jv0Y6OAgncNaIqlTywPLOARUrOUqZ3tBr
-         8s10vuZcOBwBbWdDj7UyPzL2BP2b9ZNv06wGAVCOIDl/TyFChYwsWPJrJBaqZGY7BT
-         yPAjp19ERItmdOlTy9iv0RhTgKZGywezTuz5Hbdg=
-Date:   Mon, 31 May 2021 16:16:11 -0700
+        b=0/KAEyrNfErsBMo4MQ56xenbRjoIfkIlUfxWF6gXMnft6ZeIve9ASDzUKI3994kDR
+         5veZNsd6h4wo5UQBnaYFuhz95okdUGGqVVKPATANphU4xdyDss3m+B60m26aRKvVPb
+         4unuRW3OBeGRPB96MTwiEo6tUqRTF91rDnq8zXKw=
+Date:   Mon, 31 May 2021 16:28:34 -0700
 From:   akpm@linux-foundation.org
-To:     kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        shuah@kernel.org, sunnanyong@huawei.com,
-        wangkefeng.wang@huawei.com, yang.shi@linux.alibaba.com,
-        ziy@nvidia.com
-Subject:  + khugepaged-selftests-remove-debug_cow.patch added to
- -mm tree
-Message-ID: <20210531231611.9fnhQQQ3K%akpm@linux-foundation.org>
+To:     david@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, songmuchun@bytedance.com
+Subject:  +
+ =?US-ASCII?Q?mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hu?=
+ =?US-ASCII?Q?getlb-page-fix.patch?= added to -mm tree
+Message-ID: <20210531232834.UefpMgsbp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: selftests: remove debug_cow
+     Subject: mm: hugetlb: fix dissolve_free_huge_page use of tail/head page
 has been added to the -mm tree.  Its filename is
-     khugepaged-selftests-remove-debug_cow.patch
+     mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/khugepaged-selftests-remove-debug_cow.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-selftests-remove-debug_cow.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,64 +68,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nanyong Sun <sunnanyong@huawei.com>
-Subject: khugepaged: selftests: remove debug_cow
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm: hugetlb: fix dissolve_free_huge_page use of tail/head page
 
-The debug_cow attribute had been removed since commit 4958e4d86ecb01 ("mm:
-thp: remove debug_cow switch"), so remove it in selftest code too,
-otherwise the khugepaged test will fail.
+The routine dissolve_free_huge_page can be passed the tail page of a
+hugetlb page.  The tail page is incorrectly passed on to the routines
+alloc_huge_page_vmemmap and add_hugetlb_page which expect a hugetlb head
+page.
 
-Link: https://lkml.kernel.org/r/20210430051117.400189-1-sunnanyong@huawei.com
-Fixes: 4958e4d86ecb01 ("mm: thp: remove debug_cow switch")
-Signed-off-by: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Operating on a tail page instead of head page could result in addressing
+exceptions or vmemmap corruption.
+
+Link: https://lkml.kernel.org/r/20210527231225.226987-1-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/khugepaged.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/vm/khugepaged.c~khugepaged-selftests-remove-debug_cow
-+++ a/tools/testing/selftests/vm/khugepaged.c
-@@ -86,7 +86,6 @@ struct settings {
- 	enum thp_enabled thp_enabled;
- 	enum thp_defrag thp_defrag;
- 	enum shmem_enabled shmem_enabled;
--	bool debug_cow;
- 	bool use_zero_page;
- 	struct khugepaged_settings khugepaged;
- };
-@@ -95,7 +94,6 @@ static struct settings default_settings
- 	.thp_enabled = THP_MADVISE,
- 	.thp_defrag = THP_DEFRAG_ALWAYS,
- 	.shmem_enabled = SHMEM_NEVER,
--	.debug_cow = 0,
- 	.use_zero_page = 0,
- 	.khugepaged = {
- 		.defrag = 1,
-@@ -268,7 +266,6 @@ static void write_settings(struct settin
- 	write_string("defrag", thp_defrag_strings[settings->thp_defrag]);
- 	write_string("shmem_enabled",
- 			shmem_enabled_strings[settings->shmem_enabled]);
--	write_num("debug_cow", settings->debug_cow);
- 	write_num("use_zero_page", settings->use_zero_page);
- 
- 	write_num("khugepaged/defrag", khugepaged->defrag);
-@@ -304,7 +301,6 @@ static void save_settings(void)
- 		.thp_defrag = read_string("defrag", thp_defrag_strings),
- 		.shmem_enabled =
- 			read_string("shmem_enabled", shmem_enabled_strings),
--		.debug_cow = read_num("debug_cow"),
- 		.use_zero_page = read_num("use_zero_page"),
- 	};
- 	saved_settings.khugepaged = (struct khugepaged_settings) {
+--- a/mm/hugetlb.c~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page-fix
++++ a/mm/hugetlb.c
+@@ -1954,7 +1954,7 @@ retry:
+ 		 * Attempt to allocate vmemmmap here so that we can take
+ 		 * appropriate action on failure.
+ 		 */
+-		rc = alloc_huge_page_vmemmap(h, page);
++		rc = alloc_huge_page_vmemmap(h, head);
+ 		if (!rc) {
+ 			/*
+ 			 * Move PageHWPoison flag from head page to the raw
+@@ -1968,7 +1968,7 @@ retry:
+ 			update_and_free_page(h, head, false);
+ 		} else {
+ 			spin_lock_irq(&hugetlb_lock);
+-			add_hugetlb_page(h, page, false);
++			add_hugetlb_page(h, head, false);
+ 			h->max_huge_pages++;
+ 			spin_unlock_irq(&hugetlb_lock);
+ 		}
 _
 
-Patches currently in -mm which might be from sunnanyong@huawei.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-khugepaged-selftests-remove-debug_cow.patch
+mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page-fix.patch
 
