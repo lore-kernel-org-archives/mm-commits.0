@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC137C47083
-	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 21:54:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72B99C47082
+	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 21:55:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB7226128A
-	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 21:54:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4C66061287
+	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 21:55:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231305AbhEaVz5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 May 2021 17:55:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42334 "EHLO mail.kernel.org"
+        id S231305AbhEaV4n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 May 2021 17:56:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42622 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230439AbhEaVz5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 31 May 2021 17:55:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D589E6135A;
-        Mon, 31 May 2021 21:54:16 +0000 (UTC)
+        id S230439AbhEaV4m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 31 May 2021 17:56:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A1C2361002;
+        Mon, 31 May 2021 21:55:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622498057;
-        bh=/2q5ExYJX2NVfhl2osOtMxh6CqKt76BtOz6yv+W5H78=;
+        s=korg; t=1622498101;
+        bh=9j+hwN4Jijk8hVMUR/kGD1TDEjqZiMpsKuaTf0Xb1/8=;
         h=Date:From:To:Subject:From;
-        b=X89zmaYumlc9+6jjsXUxWhErhCD2REeQ54j37m6kmC2TohP9GFJuZ77JNLbF3F1iO
-         6cJWVBGt0d2RvkkKNQ8gk4S1AaJoKRuoAcilISg9oBV8gcz/RDznMQD6kkOpReM3Te
-         LNnpW68RV4JnKA1iP3VgPlWS2Ytzp7Ly5E54++6A=
-Date:   Mon, 31 May 2021 14:54:16 -0700
+        b=FOHMA3RK8fQarGJFpojSIyt1DMjN0kHQ+doFhk2IhvPXo0cFzZVXGmmIh0/NVxeXz
+         kOxD1XV0asiN7fTKYAXmGIcxEafNU76+qYwLzVrCvOMwaYfTSf9ve/NrpHnxaXyq6R
+         RaeoJQLPCgApnMshsI8w6qXr19hBbsqhGyOESMY0=
+Date:   Mon, 31 May 2021 14:55:01 -0700
 From:   akpm@linux-foundation.org
-To:     aisheng.dong@nxp.com, akpm@linux-foundation.org, bhe@redhat.com,
-        dyoung@redhat.com, mm-commits@vger.kernel.org, vgoyal@redhat.com
-Subject:  +
- mm-rename-the-global-section-array-to-mem_sections-fix.patch added to -mm
- tree
-Message-ID: <20210531215416.F6XoLPlLl%akpm@linux-foundation.org>
+To:     aisheng.dong@nxp.com, david@redhat.com, mm-commits@vger.kernel.org
+Subject:  + mm-page_alloc-improve-memmap_pages-dbg-msg.patch added
+ to -mm tree
+Message-ID: <20210531215501.8Ey2wRdEB%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rename-the-global-section-array-to-mem_sections-fix
+     Subject: mm/page_alloc: improve memmap_pages dbg msg
 has been added to the -mm tree.  Its filename is
-     mm-rename-the-global-section-array-to-mem_sections-fix.patch
+     mm-page_alloc-improve-memmap_pages-dbg-msg.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-rename-the-global-section-array-to-mem_sections-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-improve-memmap_pages-dbg-msg.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-the-global-section-array-to-mem_sections-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-improve-memmap_pages-dbg-msg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,64 +63,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-rename-the-global-section-array-to-mem_sections-fix
+From: Dong Aisheng <aisheng.dong@nxp.com>
+Subject: mm/page_alloc: improve memmap_pages dbg msg
 
-update comment
+Make debug message more accurate.
 
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Dong Aisheng <aisheng.dong@nxp.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Link: https://lkml.kernel.org/r/20210531091908.1738465-6-aisheng.dong@nxp.com
+Signed-off-by: Dong Aisheng <aisheng.dong@nxp.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 +-
+ mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/sparse.c~mm-rename-the-global-section-array-to-mem_sections-fix
-+++ a/mm/sparse.c
-@@ -20,7 +20,7 @@
- /*
-  * Permanent SPARSEMEM data:
-  *
-- * 1) mem_section	- memory sections, mem_map's for valid memory
-+ * 1) mem_sections - memory sections, mem_map's for valid memory
-  */
- #ifdef CONFIG_SPARSEMEM_EXTREME
- struct mem_section **mem_sections;
+--- a/mm/page_alloc.c~mm-page_alloc-improve-memmap_pages-dbg-msg
++++ a/mm/page_alloc.c
+@@ -7358,7 +7358,7 @@ static void __init free_area_init_core(s
+ 					pr_debug("  %s zone: %lu pages used for memmap\n",
+ 						 zone_names[j], memmap_pages);
+ 			} else
+-				pr_warn("  %s zone: %lu pages exceeds freesize %lu\n",
++				pr_warn("  %s zone: %lu memmap pages exceeds freesize %lu\n",
+ 					zone_names[j], memmap_pages, freesize);
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aisheng.dong@nxp.com are
 
-mm-hugetlb-fix-resv_huge_pages-underflow-on-uffdio_copy-fix.patch
-mm.patch
-mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
-mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
-mm-rename-the-global-section-array-to-mem_sections-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
-mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-mm-userfaultfd-fix-uffd-wp-special-cases-for-fork-fix.patch
-mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-mm-rmap-make-try_to_unmap-void-function-fix.patch
-mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust-fix.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-lib-math-rational-add-kunit-test-cases-fix.patch
-lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
-linux-next-pre.patch
-linux-next-post.patch
-linux-next-git-rejects.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-rename-the-global-section-array-to-mem_sections.patch
+mm-drop-section_shift-in-code-comments.patch
+mm-page_alloc-improve-memmap_pages-dbg-msg.patch
 
