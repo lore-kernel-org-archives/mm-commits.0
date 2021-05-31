@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D096C47082
-	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 22:55:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01EBFC47080
+	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 22:55:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0106E611CB
-	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 22:55:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CECA96127C
+	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 22:55:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232262AbhEaW4s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 May 2021 18:56:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58338 "EHLO mail.kernel.org"
+        id S232268AbhEaW5T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 May 2021 18:57:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231624AbhEaW4s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 31 May 2021 18:56:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 108D661186;
-        Mon, 31 May 2021 22:55:07 +0000 (UTC)
+        id S231624AbhEaW5S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 31 May 2021 18:57:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 90849611CB;
+        Mon, 31 May 2021 22:55:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622501707;
-        bh=ZCDGLjrUGMxvh5F12EGh4soAytK3PUNPmxw/51Yq4aM=;
+        s=korg; t=1622501738;
+        bh=dy2HXOz0gdBf6lEWLT/Uhz/NbS2AHA65jSAMmLeciGw=;
         h=Date:From:To:Subject:From;
-        b=KMvJshI0sNpochL7BdprjqM3Abpxgot3/pG6MM3+gb4x23uoZU9sLnoIgFPEzuGeT
-         PL1B8hB24hna7RNmc0w/yBnjgy0yoKCiwhIM4de+ByYPeWWBLo4ze/9q/S4YQABZOz
-         SYIsK7U81dBWkO9DsjSMLW3iybl4UW0+mDBu4ZDk=
-Date:   Mon, 31 May 2021 15:55:06 -0700
+        b=Khy+5WVlA7YKK8eIBU5XRhsp4bkA96JBz8JnhJunL3gc9THBaIqlCd9SWX2kYHJc/
+         dMUyJh63erwhsgNDAIgh5zJOR/gl/z4uTLQjRCg09Crhr0I481hrP7y2Bw6FVUkpJ0
+         5LJY4FkckTLlEuqj0iKTkHEZ0U96rMHXxsC4WXwQ=
+Date:   Mon, 31 May 2021 15:55:38 -0700
 From:   akpm@linux-foundation.org
-To:     dave.hansen@linux.intel.com, hdanton@sina.com,
-        mgorman@techsingularity.net, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, vbabka@suse.cz
-Subject:  [to-be-updated]
- mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix.patch removed
- from -mm tree
-Message-ID: <20210531225506.SEON4wVjz%akpm@linux-foundation.org>
+To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        vbabka@suse.cz
+Subject:  +
+ mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2.patch added to
+ -mm tree
+Message-ID: <20210531225538.wHCWvlugq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,10 +45,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm/page_alloc: disassociate the pcp->high from pcp->batch -fix
-has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix.patch
+has been added to the -mm tree.  Its filename is
+     mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
@@ -59,28 +72,62 @@ Vlastimil Babka noted that __setup_per_zone_wmarks updating pcp->high did
 not protect watermark-related sysctl handlers from a parallel memory
 hotplug operations.  This patch moves the PCP update to
 setup_per_zone_wmarks and updates the PCP high value while protected by
-the pcp_batch_high_lock mutex.
+the pcp_batch_high_lock mutex.  As a side-effect, the zone_pcp_update
+calls during memory hotplug operations becomes redundant and can be
+removed.
 
 This is a fix to the mmotm patch
 mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch.patch.  It'll cause
 a conflict with
 mm-page_alloc-adjust-pcp-high-after-cpu-hotplug-events.patch but the
-resolution is simply to change the caller in setup_per_zone_wmarks to
-zone_pcp_update(zone, 0)
+resolution is simple as the zone_pcp_update callers in
+setup_per_zone_wmarks no longer exist.
 
-Link: https://lkml.kernel.org/r/20210527105241.GB30378@techsingularity.net
+Link: https://lkml.kernel.org/r/20210528105925.GN30378@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/memory_hotplug.c |    6 +++---
+ mm/page_alloc.c     |   14 ++++++++------
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix
+--- a/mm/memory_hotplug.c~mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2
++++ a/mm/memory_hotplug.c
+@@ -961,7 +961,6 @@ int __ref online_pages(unsigned long pfn
+ 	node_states_set_node(nid, &arg);
+ 	if (need_zonelists_rebuild)
+ 		build_all_zonelists(NULL);
+-	zone_pcp_update(zone);
+ 
+ 	/* Basic onlining is complete, allow allocation of onlined pages. */
+ 	undo_isolate_page_range(pfn, pfn + nr_pages, MIGRATE_MOVABLE);
+@@ -974,6 +973,7 @@ int __ref online_pages(unsigned long pfn
+ 	 */
+ 	shuffle_zone(zone);
+ 
++	/* reinitialise watermarks and update pcp limits */
+ 	init_per_zone_wmark_min();
+ 
+ 	kswapd_run(nid);
+@@ -1829,13 +1829,13 @@ int __ref offline_pages(unsigned long st
+ 	adjust_managed_page_count(pfn_to_page(start_pfn), -nr_pages);
+ 	adjust_present_page_count(zone, -nr_pages);
+ 
++	/* reinitialise watermarks and update pcp limits */
+ 	init_per_zone_wmark_min();
+ 
+ 	if (!populated_zone(zone)) {
+ 		zone_pcp_reset(zone);
+ 		build_all_zonelists(NULL);
+-	} else
+-		zone_pcp_update(zone);
++	}
+ 
+ 	node_states_clear_node(node, &arg);
+ 	if (arg.status_change_nid >= 0) {
+--- a/mm/page_alloc.c~mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2
 +++ a/mm/page_alloc.c
 @@ -8198,12 +8198,6 @@ static void __setup_per_zone_wmarks(void
  		zone->_watermark[WMARK_LOW]  = min_wmark_pages(zone) + tmp;
