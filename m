@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65664C47080
-	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 21:56:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C06B6C47082
+	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 22:07:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4244C61287
-	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 21:56:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 972186136E
+	for <mm-commits@archiver.kernel.org>; Mon, 31 May 2021 22:07:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231305AbhEaV6e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 May 2021 17:58:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44360 "EHLO mail.kernel.org"
+        id S231717AbhEaWJd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 May 2021 18:09:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52756 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231240AbhEaV6e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 31 May 2021 17:58:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B267B60720;
-        Mon, 31 May 2021 21:56:53 +0000 (UTC)
+        id S231305AbhEaWJd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 31 May 2021 18:09:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C2A35610E7;
+        Mon, 31 May 2021 22:07:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622498213;
-        bh=gJhvUBV27srMSejH/6tMUe8JuiiGD5GaLsuNWv/qIqo=;
+        s=korg; t=1622498872;
+        bh=ASh2aCUCOotb5nFuB+1kM4/b9E8KAlizeh7bFVGZAr4=;
         h=Date:From:To:Subject:From;
-        b=vxxVa2PU5QKNK0epzo5KCmmnjTE+OwfWJqTvWSa6rgcAfljCxGR4DZov2vY7jltlB
-         4dkFCmODRm69jRTzsAdvzQdPjTOAyLQfZzvWcGj0rhw+VRkMJXA3Q4Spn+3eMlg9h2
-         UWrEljcEvXjc5g2aH3XpGCN5qoN/luOd9BoZ0x7Q=
-Date:   Mon, 31 May 2021 14:56:53 -0700
+        b=OhiczRUCLpnvXicMLFCL8PquZw8SbB4oaEc6TjKYwDLdqDspedJH3c7SOAwe6nAlu
+         aCr8UZBGZnlNzEKYenchs250C3ew2D5JbH038R1+u78m438rHjKd+1Y8zrrlQAJSNC
+         Dqf9fAxm9ytfNMsEwv++4vtdb1Y57dTDqB6eG4/8=
+Date:   Mon, 31 May 2021 15:07:51 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, dennis@kernel.org, jglisse@redhat.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        thunder.leizhen@huawei.com, tj@kernel.org
-Subject:  + mm-fix-spelling-mistakes-in-header-files.patch added to
+To:     gechangwei@live.cn, ghe@suse.com, jack@suse.cz, jlbec@evilplan.org,
+        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
+        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com,
+        stable@vger.kernel.org
+Subject:  + ocfs2-fix-data-corruption-by-fallocate.patch added to
  -mm tree
-Message-ID: <20210531215653.P5BLx9wYt%akpm@linux-foundation.org>
+Message-ID: <20210531220751.wp6zM2ghS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix spelling mistakes in header files
+     Subject: ocfs2: fix data corruption by fallocate
 has been added to the -mm tree.  Its filename is
-     mm-fix-spelling-mistakes-in-header-files.patch
+     ocfs2-fix-data-corruption-by-fallocate.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-spelling-mistakes-in-header-files.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-data-corruption-by-fallocate.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-spelling-mistakes-in-header-files.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-data-corruption-by-fallocate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,207 +66,150 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: mm: fix spelling mistakes in header files
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: fix data corruption by fallocate
 
-Fix some spelling mistakes in comments:
-successfull ==> successful
-potentialy ==> potentially
-alloced ==> allocated
-indicies ==> indices
-wont ==> won't
-resposible ==> responsible
-dirtyness ==> dirtiness
-droppped ==> dropped
-alread ==> already
-occured ==> occurred
-interupts ==> interrupts
-extention ==> extension
-slighly ==> slightly
-Dont't ==> Don't
+When fallocate punches holes out of inode size, if original isize is in
+the middle of last cluster, then the part from isize to the end of the
+cluster will be zeroed with buffer write, at that time isize is not yet
+updated to match the new size, if writeback is kicked in, it will invoke
+ocfs2_writepage()->block_write_full_page() where the pages out of inode
+size will be dropped.  That will cause file corruption.  Fix this by zero
+out eof blocks when extending the inode size.
 
-Link: https://lkml.kernel.org/r/20210531034849.9549-2-thunder.leizhen@huawei.com
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Running the following command with qemu-image 4.2.1 can get a corrupted
+coverted image file easily.
+
+    qemu-img convert -p -t none -T none -f qcow2 $qcow_image \
+             -O qcow2 -o compat=1.1 $qcow_image.conv
+
+The usage of fallocate in qemu is like this, it first punches holes out of
+inode size, then extend the inode size.
+
+    fallocate(11, FALLOC_FL_KEEP_SIZE|FALLOC_FL_PUNCH_HOLE, 2276196352, 65536) = 0
+    fallocate(11, 0, 2276196352, 65536) = 0
+
+v1: https://www.spinics.net/lists/linux-fsdevel/msg193999.html
+v2: https://lore.kernel.org/linux-fsdevel/20210525093034.GB4112@quack2.suse.cz/T/
+
+Link: https://lkml.kernel.org/r/20210528210648.9124-1-junxiao.bi@oracle.com
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h   |    4 ++--
- include/linux/hmm.h          |    2 +-
- include/linux/hugetlb.h      |    6 +++---
- include/linux/list_lru.h     |    4 ++--
- include/linux/mmu_notifier.h |    8 ++++----
- include/linux/percpu-defs.h  |    2 +-
- include/linux/shrinker.h     |    2 +-
- include/linux/vmalloc.h      |    4 ++--
- 8 files changed, 16 insertions(+), 16 deletions(-)
+ fs/ocfs2/file.c |   55 +++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 50 insertions(+), 5 deletions(-)
 
---- a/include/linux/compaction.h~mm-fix-spelling-mistakes-in-header-files
-+++ a/include/linux/compaction.h
-@@ -35,12 +35,12 @@ enum compact_result {
- 	COMPACT_CONTINUE,
+--- a/fs/ocfs2/file.c~ocfs2-fix-data-corruption-by-fallocate
++++ a/fs/ocfs2/file.c
+@@ -1856,6 +1856,45 @@ out:
+ }
  
- 	/*
--	 * The full zone was compacted scanned but wasn't successfull to compact
-+	 * The full zone was compacted scanned but wasn't successful to compact
- 	 * suitable pages.
- 	 */
- 	COMPACT_COMPLETE,
- 	/*
--	 * direct compaction has scanned part of the zone but wasn't successfull
-+	 * direct compaction has scanned part of the zone but wasn't successful
- 	 * to compact suitable pages.
- 	 */
- 	COMPACT_PARTIAL_SKIPPED,
---- a/include/linux/hmm.h~mm-fix-spelling-mistakes-in-header-files
-+++ a/include/linux/hmm.h
-@@ -113,7 +113,7 @@ int hmm_range_fault(struct hmm_range *ra
-  * HMM_RANGE_DEFAULT_TIMEOUT - default timeout (ms) when waiting for a range
-  *
-  * When waiting for mmu notifiers we need some kind of time out otherwise we
-- * could potentialy wait for ever, 1000ms ie 1s sounds like a long time to
-+ * could potentially wait for ever, 1000ms ie 1s sounds like a long time to
-  * wait already.
+ /*
++ * zero out partial blocks of one cluster.
++ *
++ * start: file offset where zero starts, will be made upper block aligned.
++ * len: it will be trimmed to the end of current cluster if "start + len"
++ *      is bigger than it.
++ */
++static int ocfs2_zeroout_partial_cluster(struct inode *inode,
++					u64 start, u64 len)
++{
++	int ret;
++	u64 start_block, end_block, nr_blocks;
++	u64 p_block, offset;
++	u32 cluster, p_cluster, nr_clusters;
++	struct super_block *sb = inode->i_sb;
++	u64 end = ocfs2_align_bytes_to_clusters(sb, start);
++
++	if (start + len < end)
++		end = start + len;
++
++	start_block = ocfs2_blocks_for_bytes(sb, start);
++	end_block = ocfs2_blocks_for_bytes(sb, end);
++	nr_blocks = end_block - start_block;
++	if (!nr_blocks)
++		return 0;
++
++	cluster = ocfs2_bytes_to_clusters(sb, start);
++	ret = ocfs2_get_clusters(inode, cluster, &p_cluster,
++				&nr_clusters, NULL);
++	if (ret)
++		return ret;
++	if (!p_cluster)
++		return 0;
++
++	offset = start_block - ocfs2_clusters_to_blocks(sb, cluster);
++	p_block = ocfs2_clusters_to_blocks(sb, p_cluster) + offset;
++	return sb_issue_zeroout(sb, p_block, nr_blocks, GFP_NOFS);
++}
++
++/*
+  * Parts of this function taken from xfs_change_file_space()
   */
- #define HMM_RANGE_DEFAULT_TIMEOUT 1000
---- a/include/linux/hugetlb.h~mm-fix-spelling-mistakes-in-header-files
-+++ a/include/linux/hugetlb.h
-@@ -51,7 +51,7 @@ struct hugepage_subpool {
- 	long count;
- 	long max_hpages;	/* Maximum huge pages or -1 if no maximum. */
- 	long used_hpages;	/* Used count against maximum, includes */
--				/* both alloced and reserved pages. */
-+				/* both allocated and reserved pages. */
- 	struct hstate *hstate;
- 	long min_hpages;	/* Minimum huge pages or -1 if no minimum. */
- 	long rsv_hpages;	/* Pages reserved against global pool to */
-@@ -85,7 +85,7 @@ struct resv_map {
-  * by a resv_map's lock.  The set of regions within the resv_map represent
-  * reservations for huge pages, or huge pages that have already been
-  * instantiated within the map.  The from and to elements are huge page
-- * indicies into the associated mapping.  from indicates the starting index
-+ * indices into the associated mapping.  from indicates the starting index
-  * of the region.  to represents the first index past the end of  the region.
-  *
-  * For example, a file region structure with from == 0 and to == 4 represents
-@@ -804,7 +804,7 @@ static inline bool hugepage_migration_su
-  * It determines whether or not a huge page should be placed on
-  * movable zone or not. Movability of any huge page should be
-  * required only if huge page size is supported for migration.
-- * There wont be any reason for the huge page to be movable if
-+ * There won't be any reason for the huge page to be movable if
-  * it is not migratable to start with. Also the size of the huge
-  * page should be large enough to be placed under a movable zone
-  * and still feasible enough to be migratable. Just the presence
---- a/include/linux/list_lru.h~mm-fix-spelling-mistakes-in-header-files
-+++ a/include/linux/list_lru.h
-@@ -146,7 +146,7 @@ typedef enum lru_status (*list_lru_walk_
-  * @lru: the lru pointer.
-  * @nid: the node id to scan from.
-  * @memcg: the cgroup to scan from.
-- * @isolate: callback function that is resposible for deciding what to do with
-+ * @isolate: callback function that is responsible for deciding what to do with
-  *  the item currently being scanned
-  * @cb_arg: opaque type that will be passed to @isolate
-  * @nr_to_walk: how many items to scan.
-@@ -172,7 +172,7 @@ unsigned long list_lru_walk_one(struct l
-  * @lru: the lru pointer.
-  * @nid: the node id to scan from.
-  * @memcg: the cgroup to scan from.
-- * @isolate: callback function that is resposible for deciding what to do with
-+ * @isolate: callback function that is responsible for deciding what to do with
-  *  the item currently being scanned
-  * @cb_arg: opaque type that will be passed to @isolate
-  * @nr_to_walk: how many items to scan.
---- a/include/linux/mmu_notifier.h~mm-fix-spelling-mistakes-in-header-files
-+++ a/include/linux/mmu_notifier.h
-@@ -33,7 +33,7 @@ struct mmu_interval_notifier;
-  *
-  * @MMU_NOTIFY_SOFT_DIRTY: soft dirty accounting (still same page and same
-  * access flags). User should soft dirty the page in the end callback to make
-- * sure that anyone relying on soft dirtyness catch pages that might be written
-+ * sure that anyone relying on soft dirtiness catch pages that might be written
-  * through non CPU mappings.
-  *
-  * @MMU_NOTIFY_RELEASE: used during mmu_interval_notifier invalidate to signal
-@@ -167,7 +167,7 @@ struct mmu_notifier_ops {
- 	 * decrease the refcount. If the refcount is decreased on
- 	 * invalidate_range_start() then the VM can free pages as page
- 	 * table entries are removed.  If the refcount is only
--	 * droppped on invalidate_range_end() then the driver itself
-+	 * dropped on invalidate_range_end() then the driver itself
- 	 * will drop the last refcount but it must take care to flush
- 	 * any secondary tlb before doing the final free on the
- 	 * page. Pages will no longer be referenced by the linux
-@@ -196,7 +196,7 @@ struct mmu_notifier_ops {
- 	 * If invalidate_range() is used to manage a non-CPU TLB with
- 	 * shared page-tables, it not necessary to implement the
- 	 * invalidate_range_start()/end() notifiers, as
--	 * invalidate_range() alread catches the points in time when an
-+	 * invalidate_range() already catches the points in time when an
- 	 * external TLB range needs to be flushed. For more in depth
- 	 * discussion on this see Documentation/vm/mmu_notifier.rst
- 	 *
-@@ -369,7 +369,7 @@ mmu_interval_read_retry(struct mmu_inter
-  * mmu_interval_read_retry() will return true.
-  *
-  * False is not reliable and only suggests a collision may not have
-- * occured. It can be called many times and does not have to hold the user
-+ * occurred. It can be called many times and does not have to hold the user
-  * provided lock.
-  *
-  * This call can be used as part of loops and other expensive operations to
---- a/include/linux/percpu-defs.h~mm-fix-spelling-mistakes-in-header-files
-+++ a/include/linux/percpu-defs.h
-@@ -412,7 +412,7 @@ do {									\
-  * instead.
-  *
-  * If there is no other protection through preempt disable and/or disabling
-- * interupts then one of these RMW operations can show unexpected behavior
-+ * interrupts then one of these RMW operations can show unexpected behavior
-  * because the execution thread was rescheduled on another processor or an
-  * interrupt occurred and the same percpu variable was modified from the
-  * interrupt context.
---- a/include/linux/shrinker.h~mm-fix-spelling-mistakes-in-header-files
-+++ a/include/linux/shrinker.h
-@@ -4,7 +4,7 @@
+ static int __ocfs2_change_file_space(struct file *file, struct inode *inode,
+@@ -1865,7 +1904,7 @@ static int __ocfs2_change_file_space(str
+ {
+ 	int ret;
+ 	s64 llen;
+-	loff_t size;
++	loff_t size, orig_isize;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 	struct buffer_head *di_bh = NULL;
+ 	handle_t *handle;
+@@ -1896,6 +1935,7 @@ static int __ocfs2_change_file_space(str
+ 		goto out_inode_unlock;
+ 	}
  
- /*
-  * This struct is used to pass information from page reclaim to the shrinkers.
-- * We consolidate the values for easier extention later.
-+ * We consolidate the values for easier extension later.
-  *
-  * The 'gfpmask' refers to the allocation we are currently trying to
-  * fulfil.
---- a/include/linux/vmalloc.h~mm-fix-spelling-mistakes-in-header-files
-+++ a/include/linux/vmalloc.h
-@@ -29,7 +29,7 @@ struct notifier_block;		/* in notifier.h
- #define VM_NO_HUGE_VMAP		0x00000400	/* force PAGE_SIZE pte mapping */
++	orig_isize = i_size_read(inode);
+ 	switch (sr->l_whence) {
+ 	case 0: /*SEEK_SET*/
+ 		break;
+@@ -1903,7 +1943,7 @@ static int __ocfs2_change_file_space(str
+ 		sr->l_start += f_pos;
+ 		break;
+ 	case 2: /*SEEK_END*/
+-		sr->l_start += i_size_read(inode);
++		sr->l_start += orig_isize;
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+@@ -1957,6 +1997,14 @@ static int __ocfs2_change_file_space(str
+ 	default:
+ 		ret = -EINVAL;
+ 	}
++
++	/* zeroout eof blocks in the cluster. */
++	if (!ret && change_size && orig_isize < size) {
++		ret = ocfs2_zeroout_partial_cluster(inode, orig_isize,
++					size - orig_isize);
++		if (!ret)
++			i_size_write(inode, size);
++	}
+ 	up_write(&OCFS2_I(inode)->ip_alloc_sem);
+ 	if (ret) {
+ 		mlog_errno(ret);
+@@ -1973,9 +2021,6 @@ static int __ocfs2_change_file_space(str
+ 		goto out_inode_unlock;
+ 	}
  
- /*
-- * VM_KASAN is used slighly differently depending on CONFIG_KASAN_VMALLOC.
-+ * VM_KASAN is used slightly differently depending on CONFIG_KASAN_VMALLOC.
-  *
-  * If IS_ENABLED(CONFIG_KASAN_VMALLOC), VM_KASAN is set on a vm_struct after
-  * shadow memory has been mapped. It's used to handle allocation errors so that
-@@ -246,7 +246,7 @@ static inline void set_vm_flush_reset_pe
- extern long vread(char *buf, char *addr, unsigned long count);
- 
- /*
-- *	Internals.  Dont't use..
-+ *	Internals.  Don't use..
-  */
- extern struct list_head vmap_area_list;
- extern __init void vm_area_add_early(struct vm_struct *vm);
+-	if (change_size && i_size_read(inode) < size)
+-		i_size_write(inode, size);
+-
+ 	inode->i_ctime = inode->i_mtime = current_time(inode);
+ 	ret = ocfs2_mark_inode_dirty(handle, inode, di_bh);
+ 	if (ret < 0)
 _
 
-Patches currently in -mm which might be from thunder.leizhen@huawei.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-mm-clear-spelling-mistakes.patch
-lib-decompress_bunzip2-remove-an-unneeded-semicolon.patch
-mm-fix-spelling-mistakes-in-header-files.patch
+ocfs2-fix-data-corruption-by-fallocate.patch
 
