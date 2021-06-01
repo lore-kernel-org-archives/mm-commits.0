@@ -7,37 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CE60C47082
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 01:44:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B485C47080
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 01:46:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DFD4061287
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 01:44:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 542C661186
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 01:46:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232268AbhFABqK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 May 2021 21:46:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53704 "EHLO mail.kernel.org"
+        id S232268AbhFABsJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 May 2021 21:48:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55366 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231714AbhFABqK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 31 May 2021 21:46:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BE7C4610A0;
-        Tue,  1 Jun 2021 01:44:28 +0000 (UTC)
+        id S231714AbhFABsJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 31 May 2021 21:48:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9514361186;
+        Tue,  1 Jun 2021 01:46:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622511869;
-        bh=7yIwz4PgZKkvaMAN3wlUNQadPjOHujIDH0SDG/rLTAk=;
+        s=korg; t=1622511987;
+        bh=kaTm6ti259rIoEqQjX6a4NO6K/Vj5RHfmsELEBYCJew=;
         h=Date:From:To:Subject:From;
-        b=Y8JiuqozV5/0aJWAJTBaLVD85+29UDS7XBU9aGwDN9ae5TmPP7Z8zQDo2TYaw14IM
-         88pVdBRhXC3rnoBF4/UOHOeZmr4JPq/DdSDWzVX0U3vztVIRtewlW8qB/cTTnTNNR3
-         vQGrrXRoBVLrFEAe/Xlc45vOfS5IalGd3OkHCRZ0=
-Date:   Mon, 31 May 2021 18:44:28 -0700
+        b=oONiZXQe+SNqhNypjfA7avBX7NAwjtRO1t+fmxIxWE5LeIwXc5TYKAHxrshVPa07z
+         q9K5j7GWlOi4XliyMn+ynjuGBK4G4AfnIZ2ECuoFxOlvM6PfOAyR/7cdpszjgF4QIZ
+         Fx1LRyfG0bgzuwrIeorEhwhqZ8PU5Lf1hwHeOBWY=
+Date:   Mon, 31 May 2021 18:46:27 -0700
 From:   akpm@linux-foundation.org
-To:     cuibixuan@huawei.com, david@redhat.com, ddstreet@ieee.org,
-        mgorman@techsingularity.net, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, shy828301@gmail.com, vbabka@suse.cz,
-        willy@infradead.org
-Subject:  +
- mm-mmap_lock-remove-dead-code-for-config_tracing-configurations-fix.patch
- added to -mm tree
-Message-ID: <20210601014428.X2vyY-zJo%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-rejects.patch added to -mm tree
+Message-ID: <20210601014627.aiFH61aRU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap_lock: fix warning when CONFIG_TRACING is not defined
+     Subject: linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     mm-mmap_lock-remove-dead-code-for-config_tracing-configurations-fix.patch
+     linux-next-rejects.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmap_lock-remove-dead-code-for-config_tracing-configurations-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap_lock-remove-dead-code-for-config_tracing-configurations-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,113 +62,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bixuan Cui <cuibixuan@huawei.com>
-Subject: mm/mmap_lock: fix warning when CONFIG_TRACING is not defined
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-Fix the warning: [-Wunused-function]
-mm/mmap_lock.c:157:20: warning: `get_mm_memcg_path' defined but not used
- static const char *get_mm_memcg_path(struct mm_struct *mm)
-                    ^~~~~~~~~~~~~~~~~
-
-Move get_mm_memcg_path() into #ifdef CONFIG_TRACING.
-
-Link: https://lkml.kernel.org/r/20210531033426.74031-1-cuibixuan@huawei.com
-Signed-off-by: Bixuan Cui <cuibixuan@huawei.com>
-Acked-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap_lock.c |   60 ++++++++++++++++++++++++-----------------------
- 1 file changed, 31 insertions(+), 29 deletions(-)
+ arch/riscv/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/mmap_lock.c~mm-mmap_lock-remove-dead-code-for-config_tracing-configurations-fix
-+++ a/mm/mmap_lock.c
-@@ -142,6 +142,37 @@ static inline void put_memcg_path_buf(vo
- 	rcu_read_unlock();
- }
- 
-+#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
-+	do {                                                                   \
-+		const char *memcg_path;                                        \
-+		preempt_disable();                                             \
-+		memcg_path = get_mm_memcg_path(mm);                            \
-+		trace_mmap_lock_##type(mm,                                     \
-+				       memcg_path != NULL ? memcg_path : "",   \
-+				       ##__VA_ARGS__);                         \
-+		if (likely(memcg_path != NULL))                                \
-+			put_memcg_path_buf();                                  \
-+		preempt_enable();                                              \
-+	} while (0)
-+
-+#else /* !CONFIG_MEMCG */
-+
-+int trace_mmap_lock_reg(void)
-+{
-+	return 0;
-+}
-+
-+void trace_mmap_lock_unreg(void)
-+{
-+}
-+
-+#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
-+	trace_mmap_lock_##type(mm, "", ##__VA_ARGS__)
-+
-+#endif /* CONFIG_MEMCG */
-+
-+#ifdef CONFIG_TRACING
-+#ifdef CONFIG_MEMCG
- /*
-  * Write the given mm_struct's memcg path to a percpu buffer, and return a
-  * pointer to it. If the path cannot be determined, or no buffer was available
-@@ -175,37 +206,8 @@ out_put:
- out:
- 	return buf;
- }
--
--#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
--	do {                                                                   \
--		const char *memcg_path;                                        \
--		preempt_disable();                                             \
--		memcg_path = get_mm_memcg_path(mm);                            \
--		trace_mmap_lock_##type(mm,                                     \
--				       memcg_path != NULL ? memcg_path : "",   \
--				       ##__VA_ARGS__);                         \
--		if (likely(memcg_path != NULL))                                \
--			put_memcg_path_buf();                                  \
--		preempt_enable();                                              \
--	} while (0)
--
--#else /* !CONFIG_MEMCG */
--
--int trace_mmap_lock_reg(void)
--{
--	return 0;
--}
--
--void trace_mmap_lock_unreg(void)
--{
--}
--
--#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
--	trace_mmap_lock_##type(mm, "", ##__VA_ARGS__)
--
- #endif /* CONFIG_MEMCG */
- 
--#ifdef CONFIG_TRACING
- /*
-  * Trace calls must be in a separate file, as otherwise there's a circular
-  * dependency between linux/mmap_lock.h and trace/events/mmap_lock.h.
+--- a/arch/riscv/Kconfig~linux-next-rejects
++++ a/arch/riscv/Kconfig
+@@ -81,6 +81,7 @@ config RISCV
+ 	select HAVE_GENERIC_VDSO if MMU && 64BIT
+ 	select HAVE_IRQ_TIME_ACCOUNTING
+ 	select HAVE_KPROBES
++	select HAVE_ARCH_TRANSPARENT_HUGEPAGE if 64BIT
+ 	select HAVE_KPROBES_ON_FTRACE
+ 	select HAVE_KRETPROBES
+ 	select HAVE_MOVE_PMD
 _
 
-Patches currently in -mm which might be from cuibixuan@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mmap_lock-remove-dead-code-for-config_tracing-configurations-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix-fix.patch
+mm.patch
+mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
+binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
+mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
+mm-rename-the-global-section-array-to-mem_sections-fix.patch
+mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
+mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+mm-userfaultfd-fix-uffd-wp-special-cases-for-fork-fix.patch
+mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+mm-rmap-make-try_to_unmap-void-function-fix.patch
+mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust-fix.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+lib-math-rational-add-kunit-test-cases-fix.patch
+lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
+ipc-utilc-use-binary-search-for-max_idx-fix.patch
+linux-next-pre.patch
+linux-next-post.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
