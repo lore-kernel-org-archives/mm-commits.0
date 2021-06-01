@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A55E2C47082
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 00:46:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDED5C47082
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 00:47:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 77E756124B
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 00:46:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C408A6135C
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 00:47:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231714AbhFAAsL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 May 2021 20:48:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40480 "EHLO mail.kernel.org"
+        id S232358AbhFAAsz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 May 2021 20:48:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40984 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232356AbhFAAsK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 31 May 2021 20:48:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AD1E96100A;
-        Tue,  1 Jun 2021 00:46:28 +0000 (UTC)
+        id S232356AbhFAAsz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 31 May 2021 20:48:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8F3EA6124B;
+        Tue,  1 Jun 2021 00:47:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622508388;
-        bh=9dlOqThAoCWzyGSoTlRFmcxCNJoEVe4tnf+rXTsWBI8=;
+        s=korg; t=1622508433;
+        bh=83+4/X4Uou6Pa7u/WqQJTABtGhJVuPVrnZR+Ywl+FKg=;
         h=Date:From:To:Subject:From;
-        b=PCKH9sFDmVAvLxXn3LH9vM1V+7VRpoWkyswjpm7nzMcJ5RZzGS2Un9INnt0Y+ePDJ
-         lrgCdwO3DLiqbCO6/gXsheFCZ26xX+CGqt5mn1FDV/lMwDdpI1GPqanOeDO7Js3v6+
-         FknVIv4wKy5aaTHDGVLYkv+EEtVHxxe9I85PAbcE=
-Date:   Mon, 31 May 2021 17:46:28 -0700
+        b=0mufQ/BdmHIZE8SzGFrwUPhYMpTyO/z/uxMtTlPRf+/pvO3tjmo62PtM9KDY9NP16
+         L/licxVQPuH3EWTNpYk9ZGIuk25Kp303HFIBimE0zPi8fIpE/OTm+b2TXtMLMVPHxV
+         nBC1dOj38J02Wg63SPLBP5BPV/20Gukmsdudsnjo=
+Date:   Mon, 31 May 2021 17:47:13 -0700
 From:   akpm@linux-foundation.org
-To:     bhe@redhat.com, liushixin2@huawei.com, mm-commits@vger.kernel.org,
-        yangerkun@huawei.com
-Subject:  + mm-page_alloc-fix-counting-of-managed_pages.patch added
- to -mm tree
-Message-ID: <20210601004628.cWSY8p6Jh%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
+        vincent.whitchurch@axis.com
+Subject:  + squashfs-add-option-to-panic-on-errors.patch added to
+ -mm tree
+Message-ID: <20210601004713._RRRTyOoI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: fix counting of managed_pages
+     Subject: squashfs: add option to panic on errors
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-fix-counting-of-managed_pages.patch
+     squashfs-add-option-to-panic-on-errors.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-counting-of-managed_pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/squashfs-add-option-to-panic-on-errors.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-counting-of-managed_pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/squashfs-add-option-to-panic-on-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,54 +64,206 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/page_alloc: fix counting of managed_pages
+From: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Subject: squashfs: add option to panic on errors
 
-commit f63661566fad ("mm/page_alloc.c: clear out zone->lowmem_reserve[] if
-the zone is empty") clears out zone->lowmem_reserve[] if zone is empty. 
-But when zone is not empty and sysctl_lowmem_reserve_ratio[i] is set to
-zero, zone_managed_pages(zone) is not counted in the managed_pages either.
-This is inconsistent with the description of lowmem_reserve, so fix it.
+Add an errors=panic mount option to make squashfs trigger a panic when
+errors are encountered, similar to several other filesystems.  This allows
+a kernel dump to be saved using which the corruption can be analysed and
+debugged.
 
-Link: https://lkml.kernel.org/r/20210527125707.3760259-1-liushixin2@huawei.com
-Fixes: f63661566fad ("mm/page_alloc.c: clear out zone->lowmem_reserve[] if the zone is empty")
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Reported-by: yangerkun <yangerkun@huawei.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
+Inspired by a pre-fs_context patch by Anton Eliasson.
+
+Link: https://lkml.kernel.org/r/20210527125019.14511-1-vincent.whitchurch@axis.com
+Signed-off-by: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/squashfs/block.c          |    5 +
+ fs/squashfs/squashfs_fs_sb.h |    1 
+ fs/squashfs/super.c          |   86 +++++++++++++++++++++++++++++++++
+ 3 files changed, 91 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-counting-of-managed_pages
-+++ a/mm/page_alloc.c
-@@ -8214,14 +8214,14 @@ static void setup_per_zone_lowmem_reserv
- 			unsigned long managed_pages = 0;
+--- a/fs/squashfs/block.c~squashfs-add-option-to-panic-on-errors
++++ a/fs/squashfs/block.c
+@@ -226,8 +226,11 @@ out_free_bio:
+ 	bio_free_pages(bio);
+ 	bio_put(bio);
+ out:
+-	if (res < 0)
++	if (res < 0) {
+ 		ERROR("Failed to read block 0x%llx: %d\n", index, res);
++		if (msblk->panic_on_errors)
++			panic("squashfs read failed");
++	}
  
- 			for (j = i + 1; j < MAX_NR_ZONES; j++) {
--				if (clear) {
--					zone->lowmem_reserve[j] = 0;
--				} else {
--					struct zone *upper_zone = &pgdat->node_zones[j];
-+				struct zone *upper_zone = &pgdat->node_zones[j];
+ 	return res;
+ }
+--- a/fs/squashfs/squashfs_fs_sb.h~squashfs-add-option-to-panic-on-errors
++++ a/fs/squashfs/squashfs_fs_sb.h
+@@ -65,5 +65,6 @@ struct squashfs_sb_info {
+ 	unsigned int				fragments;
+ 	int					xattr_ids;
+ 	unsigned int				ids;
++	bool					panic_on_errors;
+ };
+ #endif
+--- a/fs/squashfs/super.c~squashfs-add-option-to-panic-on-errors
++++ a/fs/squashfs/super.c
+@@ -18,9 +18,11 @@
+ 
+ #include <linux/fs.h>
+ #include <linux/fs_context.h>
++#include <linux/fs_parser.h>
+ #include <linux/vfs.h>
+ #include <linux/slab.h>
+ #include <linux/mutex.h>
++#include <linux/seq_file.h>
+ #include <linux/pagemap.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+@@ -37,6 +39,51 @@
+ static struct file_system_type squashfs_fs_type;
+ static const struct super_operations squashfs_super_ops;
+ 
++enum Opt_errors {
++	Opt_errors_continue,
++	Opt_errors_panic,
++};
 +
-+				managed_pages += zone_managed_pages(upper_zone);
++enum squashfs_param {
++	Opt_errors,
++};
++
++struct squashfs_mount_opts {
++	enum Opt_errors errors;
++};
++
++static const struct constant_table squashfs_param_errors[] = {
++	{"continue",   Opt_errors_continue },
++	{"panic",      Opt_errors_panic },
++	{}
++};
++
++static const struct fs_parameter_spec squashfs_fs_parameters[] = {
++	fsparam_enum("errors", Opt_errors, squashfs_param_errors),
++	{}
++};
++
++static int squashfs_parse_param(struct fs_context *fc, struct fs_parameter *param)
++{
++	struct squashfs_mount_opts *opts = fc->fs_private;
++	struct fs_parse_result result;
++	int opt;
++
++	opt = fs_parse(fc, squashfs_fs_parameters, param, &result);
++	if (opt < 0)
++		return opt;
++
++	switch (opt) {
++	case Opt_errors:
++		opts->errors = result.uint_32;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ static const struct squashfs_decompressor *supported_squashfs_filesystem(
+ 	struct fs_context *fc,
+ 	short major, short minor, short id)
+@@ -67,6 +114,7 @@ static const struct squashfs_decompresso
  
--					managed_pages += zone_managed_pages(upper_zone);
-+				if (clear)
-+					zone->lowmem_reserve[j] = 0;
-+				else
- 					zone->lowmem_reserve[j] = managed_pages / ratio;
--				}
- 			}
- 		}
+ static int squashfs_fill_super(struct super_block *sb, struct fs_context *fc)
+ {
++	struct squashfs_mount_opts *opts = fc->fs_private;
+ 	struct squashfs_sb_info *msblk;
+ 	struct squashfs_super_block *sblk = NULL;
+ 	struct inode *root;
+@@ -85,6 +133,8 @@ static int squashfs_fill_super(struct su
  	}
+ 	msblk = sb->s_fs_info;
+ 
++	msblk->panic_on_errors = (opts->errors == Opt_errors_panic);
++
+ 	msblk->devblksize = sb_min_blocksize(sb, SQUASHFS_DEVBLK_SIZE);
+ 	msblk->devblksize_log2 = ffz(~msblk->devblksize);
+ 
+@@ -350,18 +400,52 @@ static int squashfs_get_tree(struct fs_c
+ 
+ static int squashfs_reconfigure(struct fs_context *fc)
+ {
++	struct super_block *sb = fc->root->d_sb;
++	struct squashfs_sb_info *msblk = sb->s_fs_info;
++	struct squashfs_mount_opts *opts = fc->fs_private;
++
+ 	sync_filesystem(fc->root->d_sb);
+ 	fc->sb_flags |= SB_RDONLY;
++
++	msblk->panic_on_errors = (opts->errors == Opt_errors_panic);
++
+ 	return 0;
+ }
+ 
++static void squashfs_free_fs_context(struct fs_context *fc)
++{
++	kfree(fc->fs_private);
++}
++
+ static const struct fs_context_operations squashfs_context_ops = {
+ 	.get_tree	= squashfs_get_tree,
++	.free		= squashfs_free_fs_context,
++	.parse_param	= squashfs_parse_param,
+ 	.reconfigure	= squashfs_reconfigure,
+ };
+ 
++static int squashfs_show_options(struct seq_file *s, struct dentry *root)
++{
++	struct super_block *sb = root->d_sb;
++	struct squashfs_sb_info *msblk = sb->s_fs_info;
++
++	if (msblk->panic_on_errors)
++		seq_puts(s, ",errors=panic");
++	else
++		seq_puts(s, ",errors=continue");
++
++	return 0;
++}
++
+ static int squashfs_init_fs_context(struct fs_context *fc)
+ {
++	struct squashfs_mount_opts *opts;
++
++	opts = kzalloc(sizeof(*opts), GFP_KERNEL);
++	if (!opts)
++		return -ENOMEM;
++
++	fc->fs_private = opts;
+ 	fc->ops = &squashfs_context_ops;
+ 	return 0;
+ }
+@@ -481,6 +565,7 @@ static struct file_system_type squashfs_
+ 	.owner = THIS_MODULE,
+ 	.name = "squashfs",
+ 	.init_fs_context = squashfs_init_fs_context,
++	.parameters = squashfs_fs_parameters,
+ 	.kill_sb = kill_block_super,
+ 	.fs_flags = FS_REQUIRES_DEV
+ };
+@@ -491,6 +576,7 @@ static const struct super_operations squ
+ 	.free_inode = squashfs_free_inode,
+ 	.statfs = squashfs_statfs,
+ 	.put_super = squashfs_put_super,
++	.show_options = squashfs_show_options,
+ };
+ 
+ module_init(init_squashfs_fs);
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from vincent.whitchurch@axis.com are
 
-mm-page_alloc-fix-counting-of-managed_pages.patch
-mm-debug_vm_pgtable-move-pmd-pud_huge_tests-out-of-config_transparent_hugepage.patch
-mm-debug_vm_pgtable-remove-redundant-pfn_pmd-pte-and-fix-one-comment-mistake.patch
+squashfs-add-option-to-panic-on-errors.patch
 
