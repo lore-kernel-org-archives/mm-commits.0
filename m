@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51878C4708F
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 19:09:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5BA7C47080
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 20:01:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 376B06136E
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 19:09:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B0436613D0
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 20:01:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234513AbhFATLf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Jun 2021 15:11:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47586 "EHLO mail.kernel.org"
+        id S234671AbhFAUDG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Jun 2021 16:03:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233853AbhFATLe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 1 Jun 2021 15:11:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D351F6135D;
-        Tue,  1 Jun 2021 19:09:51 +0000 (UTC)
+        id S233853AbhFAUDG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 1 Jun 2021 16:03:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1AA6E613C1;
+        Tue,  1 Jun 2021 20:01:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622574592;
-        bh=gkSzlYbYJXpr9ssVvNAz6Em27nZaz1OgSDqDlc8POOo=;
+        s=korg; t=1622577683;
+        bh=5Jqg2oxXUQL0pyRbHtC6vbKAtiTuJcYQzMMyZ1WqdXk=;
         h=Date:From:To:Subject:From;
-        b=EPwSDG5Aj6X88qCqgEH1wbmfhHmB+2h3KlG5nkvOVNOdM7ahKHveiWIPmR+BGJ15R
-         ArM8CylO3tkXYzOxJbc2XkVHFcvBOzEbMJZaevfH6s+2L/gps70Hws4vH3hzI8modL
-         GVM4LQcnt8BP8AHHuHfS2vvszNSdOmtNJt8VZK/U=
-Date:   Tue, 01 Jun 2021 12:09:51 -0700
+        b=Q353aS9vq2aVK9T6IpjCYlUfiqGpfzgpz5rK2jQfatt0WgMabnni8uGwjVroOtVz3
+         UxcPdjKMRYXfVSBEP5E6WCV1xaCmyOrKhBaSL61FRnCfOUJ4cWIjV3XzosGYHvd58z
+         wZWYDtuTQ4b9gQw8q32WwknSAXhXBVmf3HANxMi4=
+Date:   Tue, 01 Jun 2021 13:01:22 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, ddstreet@ieee.org, mgorman@techsingularity.net,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, shy828301@gmail.com,
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, joe@perches.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org, pmladek@suse.com,
+        rientjes@google.com, songmuchun@bytedance.com, swboyd@chromium.org,
         vbabka@suse.cz
-Subject:  [withdrawn]
- mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust.patch
- removed from -mm tree
-Message-ID: <20210601190951.0H6zz7TGc%akpm@linux-foundation.org>
+Subject:  + slub-restore-slub_debug=-behavior.patch added to -mm
+ tree
+Message-ID: <20210601200122.NSOxeXl4p%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,101 +45,102 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/early_ioremap: add prototype for early_memremap_pgprot_adjust
-has been removed from the -mm tree.  Its filename was
-     mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust.patch
+     Subject: slub: restore slub_debug=- behavior
+has been added to the -mm tree.  Its filename is
+     slub-restore-slub_debug=-behavior.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/slub-restore-slub_debug%3D-behavior.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/slub-restore-slub_debug%3D-behavior.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/early_ioremap: add prototype for early_memremap_pgprot_adjust
+From: Stephen Boyd <swboyd@chromium.org>
+Subject: slub: restore slub_debug=- behavior
 
-make W=1 generates the following warning for mm/early_ioremap.c
+Petch series "slub: Print non-hashed pointers in slub debugging", v3.
 
-mm/early_ioremap.c:34:24: warning: no previous prototype for `early_memremap_pgprot_adjust' [-Wmissing-prototypes]
- pgprot_t __init __weak early_memremap_pgprot_adjust(resource_size_t phys_addr,
-                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+I was doing some debugging recently and noticed that my pointers were
+being hashed while slub_debug was on the kernel commandline.  Let's force
+on the no hash pointer option when slub_debug is on the kernel commandline
+so that the prints are more meaningful.
 
-The weak functions that can be overridden by architectures are declared in
-include/asm-generic/early_ioremap.h so add the prototype there.  The
-asm/fixmap.h header is need for pgprot_t.
+The first two patches are something else I noticed while looking at the
+code.  The message argument is never used so the debugging messages are
+not as clear as they could be and the slub_debug=- behavior seems to be
+busted.  Then there's a printf fixup from Joe and the final patch is the
+one that force disables pointer hashing.
 
-[akpm@linux-foundation.org: x86_64 asm/fixmap.h needs linux/threads.h for NR_CPUS]
-Link: https://lkml.kernel.org/r/20210520084809.8576-6-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
+
+This patch (of 4):
+
+Passing slub_debug=- on the kernel commandline is supposed to disable slub
+debugging.  This is especially useful with CONFIG_SLUB_DEBUG_ON where the
+default is to have slub debugging enabled in the build.  Due to some code
+reorganization this behavior was dropped, but the code to make it work
+mostly stuck around.  Restore the previous behavior by disabling the
+static key when we parse the commandline and see that we're trying to
+disable slub debugging.
+
+Link: https://lkml.kernel.org/r/20210601182202.3011020-1-swboyd@chromium.org
+Link: https://lkml.kernel.org/r/20210601182202.3011020-2-swboyd@chromium.org
+Fixes: ca0cab65ea2b ("mm, slub: introduce static key for slub_debug()")
+Signed-off-by: Stephen Boyd <swboyd@chromium.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/early_ioremap.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/slub.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/asm-generic/early_ioremap.h~mm-early_ioremap-add-prototype-for-early_memremap_pgprot_adjust
-+++ a/include/asm-generic/early_ioremap.h
-@@ -3,6 +3,8 @@
- #define _ASM_EARLY_IOREMAP_H_
- 
- #include <linux/types.h>
-+#include <linux/threads.h>	/* x86 fixmap.h needs NR_CPUS */
-+#include <asm/fixmap.h>
- 
- /*
-  * early_ioremap() and early_iounmap() are for temporary early boot-time
-@@ -20,6 +22,14 @@ extern void early_iounmap(void __iomem *
- extern void early_memunmap(void *addr, unsigned long size);
- 
- /*
-+ * Weak function called by early_memremap and early_memremap_ro. It does
-+ * nothing, but architectures may provide their own version to handle
-+ * memory encryption.
-+ */
-+extern pgprot_t early_memremap_pgprot_adjust(resource_size_t phys_addr,
-+					    unsigned long size, pgprot_t prot);
-+
-+/*
-  * Weak function called by early_ioremap_reset(). It does nothing, but
-  * architectures may provide their own version to do any needed cleanups.
-  */
+--- a/mm/slub.c~slub-restore-slub_debug=-behavior
++++ a/mm/slub.c
+@@ -1428,6 +1428,8 @@ static int __init setup_slub_debug(char
+ out:
+ 	if (slub_debug != 0 || slub_debug_string)
+ 		static_branch_enable(&slub_debug_enabled);
++	else
++		static_branch_disable(&slub_debug_enabled);
+ 	if ((static_branch_unlikely(&init_on_alloc) ||
+ 	     static_branch_unlikely(&init_on_free)) &&
+ 	    (slub_debug & SLAB_POISON))
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from swboyd@chromium.org are
 
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix.patch
-mm-vmstat-convert-numa-statistics-to-basic-numa-counters.patch
-mm-vmstat-inline-numa-event-counter-updates.patch
-mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator.patch
-mm-page_alloc-reduce-duration-that-irqs-are-disabled-for-vm-counters.patch
-mm-page_alloc-explicitly-acquire-the-zone-lock-in-__free_pages_ok.patch
-mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock.patch
-mm-page_alloc-update-pgfree-outside-the-zone-lock-in-__free_pages_ok.patch
-mm-page_alloc-delete-vmpercpu_pagelist_fraction.patch
-mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch.patch
-mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2.patch
-mm-page_alloc-adjust-pcp-high-after-cpu-hotplug-events.patch
-mm-page_alloc-scale-the-number-of-pages-that-are-batch-freed.patch
-mm-page_alloc-limit-the-number-of-pages-on-pcp-lists-when-reclaim-is-active.patch
-mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction.patch
-mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction-fix.patch
-mm-vmscan-remove-kerneldoc-like-comment-from-isolate_lru_pages.patch
-mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch
-mm-page_alloc-make-should_fail_alloc_page-a-static-function-should_fail_alloc_page-static.patch
-mm-mapping_dirty_helpers-remove-double-note-in-kerneldoc.patch
-mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection.patch
-mm-memory_hotplug-fix-kerneldoc-comment-for-__try_online_node.patch
-mm-memory_hotplug-fix-kerneldoc-comment-for-__remove_memory.patch
-mm-zbud-add-kerneldoc-fields-for-zbud_pool.patch
-mm-z3fold-add-kerneldoc-fields-for-z3fold_pool.patch
-mm-swap-make-swap_address_space-an-inline-function.patch
-mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
-mm-page_alloc-move-prototype-for-find_suitable_fallback.patch
-mm-swap-make-node_data-an-inline-function-on-config_flatmem.patch
+slub-restore-slub_debug=-behavior.patch
+slub-actually-use-message-in-restore_bytes.patch
+slub-force-on-no_hash_pointers-when-slub_debug-is-enabled.patch
+buildid-only-consider-gnu-notes-for-build-id-parsing.patch
+buildid-add-api-to-parse-build-id-out-of-buffer.patch
+buildid-stash-away-kernels-build-id-on-init.patch
+buildid-stash-away-kernels-build-id-on-init-fix.patch
+dump_stack-add-vmlinux-build-id-to-stack-traces.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces.patch
+arm64-stacktrace-use-%psb-for-backtrace-printing.patch
+x86-dumpstack-use-%psb-%pbb-for-backtrace-printing.patch
+scripts-decode_stacktracesh-support-debuginfod.patch
+scripts-decode_stacktracesh-silence-stderr-messages-from-addr2line-nm.patch
+scripts-decode_stacktracesh-indicate-auto-can-be-used-for-base-path.patch
+buildid-mark-some-arguments-const.patch
+buildid-fix-kernel-doc-notation.patch
+kdump-use-vmlinux_build_id-to-simplify.patch
 
