@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDED5C47082
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 00:47:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AEADC47080
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 00:48:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C408A6135C
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 00:47:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E6A561364
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 00:48:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232358AbhFAAsz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 May 2021 20:48:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40984 "EHLO mail.kernel.org"
+        id S232183AbhFAAtn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 May 2021 20:49:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41840 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232356AbhFAAsz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 31 May 2021 20:48:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8F3EA6124B;
-        Tue,  1 Jun 2021 00:47:13 +0000 (UTC)
+        id S232084AbhFAAtn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 31 May 2021 20:49:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AE93F6124B;
+        Tue,  1 Jun 2021 00:48:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622508433;
-        bh=83+4/X4Uou6Pa7u/WqQJTABtGhJVuPVrnZR+Ywl+FKg=;
+        s=korg; t=1622508482;
+        bh=x0QTHBfLzb7k5vPtujUbP6YT0ZsiG5ZWtQYhDFiCAPA=;
         h=Date:From:To:Subject:From;
-        b=0mufQ/BdmHIZE8SzGFrwUPhYMpTyO/z/uxMtTlPRf+/pvO3tjmo62PtM9KDY9NP16
-         L/licxVQPuH3EWTNpYk9ZGIuk25Kp303HFIBimE0zPi8fIpE/OTm+b2TXtMLMVPHxV
-         nBC1dOj38J02Wg63SPLBP5BPV/20Gukmsdudsnjo=
-Date:   Mon, 31 May 2021 17:47:13 -0700
+        b=RucgTw1z1xVGhr/rz0Yfkx3wnOB/aznhkkuPwhjfSGb0Dkj86eawRROPC5oq2yAoh
+         uJRUlesKMuG1DCFi6H0Ne1Rawey7c/S9Pa3U0u/b47g7nuFERElV9eUMFIJsrORNgp
+         6ROTV/DbQgEgLT0M4GhEZPU1yz65fqDuL+vTtNZs=
+Date:   Mon, 31 May 2021 17:48:02 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
-        vincent.whitchurch@axis.com
-Subject:  + squashfs-add-option-to-panic-on-errors.patch added to
- -mm tree
-Message-ID: <20210601004713._RRRTyOoI%akpm@linux-foundation.org>
+To:     hughd@google.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org,
+        willy@infradead.org
+Subject:  +
+ mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix-2.patch
+ added to -mm tree
+Message-ID: <20210601004802.ZLdg_LHem%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: squashfs: add option to panic on errors
+     Subject: mm/swapfile: fold scan_swap_map() into the only caller get_swap_page_of_type()
 has been added to the -mm tree.  Its filename is
-     squashfs-add-option-to-panic-on-errors.patch
+     mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix-2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/squashfs-add-option-to-panic-on-errors.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix-2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/squashfs-add-option-to-panic-on-errors.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,206 +65,149 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vincent Whitchurch <vincent.whitchurch@axis.com>
-Subject: squashfs: add option to panic on errors
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/swapfile: fold scan_swap_map() into the only caller get_swap_page_of_type()
 
-Add an errors=panic mount option to make squashfs trigger a panic when
-errors are encountered, similar to several other filesystems.  This allows
-a kernel dump to be saved using which the corruption can be analysed and
-debugged.
+We should fold scan_swap_map() into the only caller
+get_swap_page_of_type() and update the comments referring to it to make
+the code more succinct.
 
-Inspired by a pre-fs_context patch by Anton Eliasson.
-
-Link: https://lkml.kernel.org/r/20210527125019.14511-1-vincent.whitchurch@axis.com
-Signed-off-by: Vincent Whitchurch <vincent.whitchurch@axis.com>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Link: https://lkml.kernel.org/r/20210527120328.3935132-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/block.c          |    5 +
- fs/squashfs/squashfs_fs_sb.h |    1 
- fs/squashfs/super.c          |   86 +++++++++++++++++++++++++++++++++
- 3 files changed, 91 insertions(+), 1 deletion(-)
+ mm/swapfile.c |   57 +++++++++++++++---------------------------------
+ 1 file changed, 18 insertions(+), 39 deletions(-)
 
---- a/fs/squashfs/block.c~squashfs-add-option-to-panic-on-errors
-+++ a/fs/squashfs/block.c
-@@ -226,8 +226,11 @@ out_free_bio:
- 	bio_free_pages(bio);
- 	bio_put(bio);
- out:
--	if (res < 0)
-+	if (res < 0) {
- 		ERROR("Failed to read block 0x%llx: %d\n", index, res);
-+		if (msblk->panic_on_errors)
-+			panic("squashfs read failed");
-+	}
- 
- 	return res;
- }
---- a/fs/squashfs/squashfs_fs_sb.h~squashfs-add-option-to-panic-on-errors
-+++ a/fs/squashfs/squashfs_fs_sb.h
-@@ -65,5 +65,6 @@ struct squashfs_sb_info {
- 	unsigned int				fragments;
- 	int					xattr_ids;
- 	unsigned int				ids;
-+	bool					panic_on_errors;
- };
- #endif
---- a/fs/squashfs/super.c~squashfs-add-option-to-panic-on-errors
-+++ a/fs/squashfs/super.c
-@@ -18,9 +18,11 @@
- 
- #include <linux/fs.h>
- #include <linux/fs_context.h>
-+#include <linux/fs_parser.h>
- #include <linux/vfs.h>
- #include <linux/slab.h>
- #include <linux/mutex.h>
-+#include <linux/seq_file.h>
- #include <linux/pagemap.h>
- #include <linux/init.h>
- #include <linux/module.h>
-@@ -37,6 +39,51 @@
- static struct file_system_type squashfs_fs_type;
- static const struct super_operations squashfs_super_ops;
- 
-+enum Opt_errors {
-+	Opt_errors_continue,
-+	Opt_errors_panic,
-+};
-+
-+enum squashfs_param {
-+	Opt_errors,
-+};
-+
-+struct squashfs_mount_opts {
-+	enum Opt_errors errors;
-+};
-+
-+static const struct constant_table squashfs_param_errors[] = {
-+	{"continue",   Opt_errors_continue },
-+	{"panic",      Opt_errors_panic },
-+	{}
-+};
-+
-+static const struct fs_parameter_spec squashfs_fs_parameters[] = {
-+	fsparam_enum("errors", Opt_errors, squashfs_param_errors),
-+	{}
-+};
-+
-+static int squashfs_parse_param(struct fs_context *fc, struct fs_parameter *param)
-+{
-+	struct squashfs_mount_opts *opts = fc->fs_private;
-+	struct fs_parse_result result;
-+	int opt;
-+
-+	opt = fs_parse(fc, squashfs_fs_parameters, param, &result);
-+	if (opt < 0)
-+		return opt;
-+
-+	switch (opt) {
-+	case Opt_errors:
-+		opts->errors = result.uint_32;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- static const struct squashfs_decompressor *supported_squashfs_filesystem(
- 	struct fs_context *fc,
- 	short major, short minor, short id)
-@@ -67,6 +114,7 @@ static const struct squashfs_decompresso
- 
- static int squashfs_fill_super(struct super_block *sb, struct fs_context *fc)
+--- a/mm/swapfile.c~mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix-2
++++ a/mm/swapfile.c
+@@ -453,10 +453,10 @@ static void swap_cluster_schedule_discar
+ 		unsigned int idx)
  {
-+	struct squashfs_mount_opts *opts = fc->fs_private;
- 	struct squashfs_sb_info *msblk;
- 	struct squashfs_super_block *sblk = NULL;
- 	struct inode *root;
-@@ -85,6 +133,8 @@ static int squashfs_fill_super(struct su
- 	}
- 	msblk = sb->s_fs_info;
- 
-+	msblk->panic_on_errors = (opts->errors == Opt_errors_panic);
-+
- 	msblk->devblksize = sb_min_blocksize(sb, SQUASHFS_DEVBLK_SIZE);
- 	msblk->devblksize_log2 = ffz(~msblk->devblksize);
- 
-@@ -350,18 +400,52 @@ static int squashfs_get_tree(struct fs_c
- 
- static int squashfs_reconfigure(struct fs_context *fc)
- {
-+	struct super_block *sb = fc->root->d_sb;
-+	struct squashfs_sb_info *msblk = sb->s_fs_info;
-+	struct squashfs_mount_opts *opts = fc->fs_private;
-+
- 	sync_filesystem(fc->root->d_sb);
- 	fc->sb_flags |= SB_RDONLY;
-+
-+	msblk->panic_on_errors = (opts->errors == Opt_errors_panic);
-+
- 	return 0;
+ 	/*
+-	 * If scan_swap_map() can't find a free cluster, it will check
++	 * If scan_swap_map_slots() can't find a free cluster, it will check
+ 	 * si->swap_map directly. To make sure the discarding cluster isn't
+-	 * taken by scan_swap_map(), mark the swap entries bad (occupied). It
+-	 * will be cleared after discard
++	 * taken by scan_swap_map_slots(), mark the swap entries bad (occupied).
++	 * It will be cleared after discard
+ 	 */
+ 	memset(si->swap_map + idx * SWAPFILE_CLUSTER,
+ 			SWAP_MAP_BAD, SWAPFILE_CLUSTER);
+@@ -589,7 +589,7 @@ static void dec_cluster_info_page(struct
  }
  
-+static void squashfs_free_fs_context(struct fs_context *fc)
-+{
-+	kfree(fc->fs_private);
-+}
-+
- static const struct fs_context_operations squashfs_context_ops = {
- 	.get_tree	= squashfs_get_tree,
-+	.free		= squashfs_free_fs_context,
-+	.parse_param	= squashfs_parse_param,
- 	.reconfigure	= squashfs_reconfigure,
- };
+ /*
+- * It's possible scan_swap_map() uses a free cluster in the middle of free
++ * It's possible scan_swap_map_slots() uses a free cluster in the middle of free
+  * cluster list. Avoiding such abuse to avoid list corruption.
+  */
+ static bool
+@@ -1099,14 +1099,14 @@ start_over:
+ nextsi:
+ 		/*
+ 		 * if we got here, it's likely that si was almost full before,
+-		 * and since scan_swap_map() can drop the si->lock, multiple
+-		 * callers probably all tried to get a page from the same si
+-		 * and it filled up before we could get one; or, the si filled
+-		 * up between us dropping swap_avail_lock and taking si->lock.
+-		 * Since we dropped the swap_avail_lock, the swap_avail_head
+-		 * list may have been modified; so if next is still in the
+-		 * swap_avail_head list then try it, otherwise start over
+-		 * if we have not gotten any slots.
++		 * and since scan_swap_map_slots() can drop the si->lock,
++		 * multiple callers probably all tried to get a page from the
++		 * same si and it filled up before we could get one; or, the si
++		 * filled up between us dropping swap_avail_lock and taking
++		 * si->lock. Since we dropped the swap_avail_lock, the
++		 * swap_avail_head list may have been modified; so if next is
++		 * still in the swap_avail_head list then try it, otherwise
++		 * start over if we have not gotten any slots.
+ 		 */
+ 		if (plist_node_empty(&next->avail_lists[node]))
+ 			goto start_over;
+@@ -1774,42 +1774,21 @@ int free_swap_and_cache(swp_entry_t entr
  
-+static int squashfs_show_options(struct seq_file *s, struct dentry *root)
-+{
-+	struct super_block *sb = root->d_sb;
-+	struct squashfs_sb_info *msblk = sb->s_fs_info;
-+
-+	if (msblk->panic_on_errors)
-+		seq_puts(s, ",errors=panic");
-+	else
-+		seq_puts(s, ",errors=continue");
-+
-+	return 0;
-+}
-+
- static int squashfs_init_fs_context(struct fs_context *fc)
+ #ifdef CONFIG_HIBERNATION
+ 
+-static unsigned long scan_swap_map(struct swap_info_struct *si,
+-				   unsigned char usage)
+-{
+-	swp_entry_t entry;
+-	int n_ret;
+-
+-	n_ret = scan_swap_map_slots(si, usage, 1, &entry);
+-
+-	if (n_ret)
+-		return swp_offset(entry);
+-	else
+-		return 0;
+-
+-}
+-
+ swp_entry_t get_swap_page_of_type(int type)
  {
-+	struct squashfs_mount_opts *opts;
-+
-+	opts = kzalloc(sizeof(*opts), GFP_KERNEL);
-+	if (!opts)
-+		return -ENOMEM;
-+
-+	fc->fs_private = opts;
- 	fc->ops = &squashfs_context_ops;
- 	return 0;
- }
-@@ -481,6 +565,7 @@ static struct file_system_type squashfs_
- 	.owner = THIS_MODULE,
- 	.name = "squashfs",
- 	.init_fs_context = squashfs_init_fs_context,
-+	.parameters = squashfs_fs_parameters,
- 	.kill_sb = kill_block_super,
- 	.fs_flags = FS_REQUIRES_DEV
- };
-@@ -491,6 +576,7 @@ static const struct super_operations squ
- 	.free_inode = squashfs_free_inode,
- 	.statfs = squashfs_statfs,
- 	.put_super = squashfs_put_super,
-+	.show_options = squashfs_show_options,
- };
+ 	struct swap_info_struct *si = swap_type_to_swap_info(type);
+-	pgoff_t offset;
++	swp_entry_t entry = {0};
  
- module_init(init_squashfs_fs);
+ 	if (!si)
+ 		goto fail;
+ 
++	/* This is called for allocating swap entry, not cache */
+ 	spin_lock(&si->lock);
+-	if (si->flags & SWP_WRITEOK) {
+-		/* This is called for allocating swap entry, not cache */
+-		offset = scan_swap_map(si, 1);
+-		if (offset) {
+-			atomic_long_dec(&nr_swap_pages);
+-			spin_unlock(&si->lock);
+-			return swp_entry(type, offset);
+-		}
+-	}
++	if ((si->flags & SWP_WRITEOK) && scan_swap_map_slots(si, 1, 1, &entry))
++		atomic_long_dec(&nr_swap_pages);
+ 	spin_unlock(&si->lock);
+ fail:
+-	return (swp_entry_t) {0};
++	return entry;
+ }
+ 
+ /*
+@@ -2649,7 +2628,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	spin_lock(&p->lock);
+ 	drain_mmlist();
+ 
+-	/* wait for anyone still in scan_swap_map */
++	/* wait for anyone still in scan_swap_map_slots */
+ 	p->highest_bit = 0;		/* cuts scans short */
+ 	while (p->flags >= SWP_SCANNING) {
+ 		spin_unlock(&p->lock);
 _
 
-Patches currently in -mm which might be from vincent.whitchurch@axis.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-squashfs-add-option-to-panic-on-errors.patch
+mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
+swap-fix-do_swap_page-race-with-swapoff.patch
+mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
+mm-shmem-fix-shmem_swapin-race-with-swapoff.patch
+mm-swapfile-move-get_swap_page_of_type-under-config_hibernation.patch
+mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix.patch
+mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix-2.patch
+mm-swap-remove-unused-local-variable-nr_shadows.patch
+mm-swap_slotsc-delete-meaningless-forward-declarations.patch
+mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch
+mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
+mm-huge_memoryc-use-page-deferred_list.patch
+mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled.patch
+mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4.patch
+mm-huge_memoryc-remove-unnecessary-tlb_remove_page_size-for-huge-zero-pmd.patch
+mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
+mm-zswapc-remove-unused-function-zswap_debugfs_exit.patch
+mm-zswapc-avoid-unnecessary-copy-in-at-map-time.patch
+mm-zswapc-fix-two-bugs-in-zswap_writeback_entry.patch
 
