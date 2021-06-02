@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10384C4708F
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 20:49:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20D1FC4708F
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 20:49:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9251613DC
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 20:49:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0270A61040
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 20:49:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229576AbhFBUus (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Jun 2021 16:50:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55106 "EHLO mail.kernel.org"
+        id S229587AbhFBUvR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Jun 2021 16:51:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55358 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229552AbhFBUus (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 2 Jun 2021 16:50:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AE14761040;
-        Wed,  2 Jun 2021 20:48:52 +0000 (UTC)
+        id S229552AbhFBUvN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 2 Jun 2021 16:51:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D8FBB613DC;
+        Wed,  2 Jun 2021 20:49:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622666932;
-        bh=RiNE+7FPnbRfUKA7ivLyY2wJYyu5T9vSku+XXeu0WB0=;
+        s=korg; t=1622666969;
+        bh=taxd8Emgq4gj5Tv49aW1OS7rMuwXkmbyy2CLXa4qXuY=;
         h=Date:From:To:Subject:From;
-        b=bTW5eHBiD9VqFsyjAn+4g3CpxtR6LgYF5acMhW2McZVGtrkkHF70gkBuo4ZpuwJ1d
-         3RD1uDhqRs2BUxKhDk7WBJuZdWRia0v79vpWHHRh4i85UjMvXLvN2u6R+LRTEbgy3A
-         xs0GU57aI+axi4pcbwc2+tcyhkzcFbyf3UqTor/M=
-Date:   Wed, 02 Jun 2021 13:48:52 -0700
+        b=Ob8qcgjcALUj7WlZOJ8de3dSdzttvaU3fu55/6G2M4UqHbTO5SqFivZivmMDI6miE
+         ZEUEtLygtW5+Xq0nwSIU5JJyERhKMzKel0iAUMyojNgh9RqKTag0msnItzbJjG9PhV
+         1xX7zTaqH/a7VSRlRI2Oy3n7eNWY0efcKULy2MR0=
+Date:   Wed, 02 Jun 2021 13:49:28 -0700
 From:   akpm@linux-foundation.org
-To:     aisheng.dong@nxp.com, akpm@linux-foundation.org, bhe@redhat.com,
-        dyoung@redhat.com, mm-commits@vger.kernel.org, vgoyal@redhat.com
-Subject:  [folded-merged]
- mm-rename-the-global-section-array-to-mem_sections-fix-fix.patch removed
- from -mm tree
-Message-ID: <20210602204852.XCoJtRGjA%akpm@linux-foundation.org>
+To:     aisheng.dong@nxp.com, bhe@redhat.com, dyoung@redhat.com,
+        mm-commits@vger.kernel.org, vgoyal@redhat.com
+Subject:  [nacked]
+ mm-rename-the-global-section-array-to-mem_sections.patch removed from -mm
+ tree
+Message-ID: <20210602204928.qQTU82Wlg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,31 +44,131 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rename-the-global-section-array-to-mem_sections-fix-fix
+     Subject: mm: rename the global section array to mem_sections
 has been removed from the -mm tree.  Its filename was
-     mm-rename-the-global-section-array-to-mem_sections-fix-fix.patch
+     mm-rename-the-global-section-array-to-mem_sections.patch
 
-This patch was dropped because it was folded into mm-rename-the-global-section-array-to-mem_sections.patch
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-rename-the-global-section-array-to-mem_sections-fix-fix
+From: Dong Aisheng <aisheng.dong@nxp.com>
+Subject: mm: rename the global section array to mem_sections
 
-fix another site
+In order to distinguish the struct mem_section for a better code
+readability and align with kernel doc [1] name below, change the global
+mem section name to 'mem_sections' from 'mem_section'.
 
-Cc: Baoquan He <bhe@redhat.com>
+[1] Documentation/vm/memory-model.rst
+"The `mem_section` objects are arranged in a two-dimensional array
+called `mem_sections`."
+
+[akpm@linux-foundation.org: update comment]
+[akpm@linux-foundation.org: fix another site]
+Link: https://lkml.kernel.org/r/20210531091908.1738465-5-aisheng.dong@nxp.com
+Signed-off-by: Dong Aisheng <aisheng.dong@nxp.com>
 Cc: Dave Young <dyoung@redhat.com>
-Cc: Dong Aisheng <aisheng.dong@nxp.com>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mmzone.h |   10 +++++-----
+ kernel/crash_core.c    |    4 ++--
+ mm/sparse.c            |   20 ++++++++++----------
+ 3 files changed, 17 insertions(+), 17 deletions(-)
 
---- a/mm/sparse.c~mm-rename-the-global-section-array-to-mem_sections-fix-fix
+--- a/include/linux/mmzone.h~mm-rename-the-global-section-array-to-mem_sections
++++ a/include/linux/mmzone.h
+@@ -1301,9 +1301,9 @@ struct mem_section {
+ #define SECTION_ROOT_MASK	(SECTIONS_PER_ROOT - 1)
+ 
+ #ifdef CONFIG_SPARSEMEM_EXTREME
+-extern struct mem_section **mem_section;
++extern struct mem_section **mem_sections;
+ #else
+-extern struct mem_section mem_section[NR_SECTION_ROOTS][SECTIONS_PER_ROOT];
++extern struct mem_section mem_sections[NR_SECTION_ROOTS][SECTIONS_PER_ROOT];
+ #endif
+ 
+ static inline unsigned long *section_to_usemap(struct mem_section *ms)
+@@ -1314,12 +1314,12 @@ static inline unsigned long *section_to_
+ static inline struct mem_section *__nr_to_section(unsigned long nr)
+ {
+ #ifdef CONFIG_SPARSEMEM_EXTREME
+-	if (!mem_section)
++	if (!mem_sections)
+ 		return NULL;
+ #endif
+-	if (!mem_section[SECTION_NR_TO_ROOT(nr)])
++	if (!mem_sections[SECTION_NR_TO_ROOT(nr)])
+ 		return NULL;
+-	return &mem_section[SECTION_NR_TO_ROOT(nr)][nr & SECTION_ROOT_MASK];
++	return &mem_sections[SECTION_NR_TO_ROOT(nr)][nr & SECTION_ROOT_MASK];
+ }
+ extern unsigned long __section_nr(struct mem_section *ms);
+ extern size_t mem_section_usage_size(void);
+--- a/kernel/crash_core.c~mm-rename-the-global-section-array-to-mem_sections
++++ a/kernel/crash_core.c
+@@ -460,8 +460,8 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_SYMBOL(contig_page_data);
+ #endif
+ #ifdef CONFIG_SPARSEMEM
+-	VMCOREINFO_SYMBOL_ARRAY(mem_section);
+-	VMCOREINFO_LENGTH(mem_section, NR_SECTION_ROOTS);
++	VMCOREINFO_SYMBOL_ARRAY(mem_sections);
++	VMCOREINFO_LENGTH(mem_sections, NR_SECTION_ROOTS);
+ 	VMCOREINFO_STRUCT_SIZE(mem_section);
+ 	VMCOREINFO_OFFSET(mem_section, section_mem_map);
+ 	VMCOREINFO_NUMBER(MAX_PHYSMEM_BITS);
+--- a/mm/sparse.c~mm-rename-the-global-section-array-to-mem_sections
 +++ a/mm/sparse.c
-@@ -254,7 +254,7 @@ static void __init memory_present(int ni
+@@ -20,15 +20,15 @@
+ /*
+  * Permanent SPARSEMEM data:
+  *
+- * 1) mem_section	- memory sections, mem_map's for valid memory
++ * 1) mem_sections - memory sections, mem_map's for valid memory
+  */
+ #ifdef CONFIG_SPARSEMEM_EXTREME
+-struct mem_section **mem_section;
++struct mem_section **mem_sections;
+ #else
+-struct mem_section mem_section[NR_SECTION_ROOTS][SECTIONS_PER_ROOT]
++struct mem_section mem_sections[NR_SECTION_ROOTS][SECTIONS_PER_ROOT]
+ 	____cacheline_internodealigned_in_smp;
+ #endif
+-EXPORT_SYMBOL(mem_section);
++EXPORT_SYMBOL(mem_sections);
+ 
+ #ifdef NODE_NOT_IN_PAGE_FLAGS
+ /*
+@@ -90,14 +90,14 @@ static int __meminit sparse_index_init(u
+ 	 *
+ 	 * The mem_hotplug_lock resolves the apparent race below.
+ 	 */
+-	if (mem_section[root])
++	if (mem_sections[root])
+ 		return 0;
+ 
+ 	section = sparse_index_alloc(nid);
+ 	if (!section)
+ 		return -ENOMEM;
+ 
+-	mem_section[root] = section;
++	mem_sections[root] = section;
+ 
+ 	return 0;
+ }
+@@ -130,7 +130,7 @@ unsigned long __section_nr(struct mem_se
+ #else
+ unsigned long __section_nr(struct mem_section *ms)
+ {
+-	return (unsigned long)(ms - mem_section[0]);
++	return (unsigned long)(ms - mem_sections[0]);
+ }
+ #endif
+ 
+@@ -254,13 +254,13 @@ static void __init memory_present(int ni
  	unsigned long pfn;
  
  #ifdef CONFIG_SPARSEMEM_EXTREME
@@ -77,41 +177,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		unsigned long size, align;
  
  		size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
+ 		align = 1 << (INTERNODE_CACHE_SHIFT);
+-		mem_section = memblock_alloc(size, align);
+-		if (!mem_section)
++	mem_sections = memblock_alloc(size, align);
++	if (!mem_sections)
+ 			panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+ 			      __func__, size, align);
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aisheng.dong@nxp.com are
 
-mm.patch
-mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
-mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
-mm-rename-the-global-section-array-to-mem_sections.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
-mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-mm-userfaultfd-fix-uffd-wp-special-cases-for-fork-fix.patch
-mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-mmmemory_hotplug-drop-unneeded-locking-fix.patch
-mm-rmap-make-try_to_unmap-void-function-fix.patch
-mm-rmap-make-try_to_unmap-void-function-fix-fix.patch
-fs-proc-kcorec-add-mmap-interface-fix.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-lib-math-rational-add-kunit-test-cases-fix.patch
-lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
-ipc-utilc-use-binary-search-for-max_idx-fix.patch
-linux-next-pre.patch
-linux-next-post.patch
-linux-next-rejects.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-drop-section_shift-in-code-comments.patch
+mm-page_alloc-improve-memmap_pages-dbg-msg.patch
 
