@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23DC3C4708F
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 20:48:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10384C4708F
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 20:49:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 09F80613DC
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 20:48:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E9251613DC
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 20:49:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229558AbhFBUud (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Jun 2021 16:50:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55070 "EHLO mail.kernel.org"
+        id S229576AbhFBUus (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Jun 2021 16:50:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55106 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229552AbhFBUud (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 2 Jun 2021 16:50:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A332261040;
-        Wed,  2 Jun 2021 20:48:49 +0000 (UTC)
+        id S229552AbhFBUus (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 2 Jun 2021 16:50:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AE14761040;
+        Wed,  2 Jun 2021 20:48:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622666929;
-        bh=4RBNoaKRvMrC7BxtevWxROef+KCyU3vuXVWPEY/LUDM=;
+        s=korg; t=1622666932;
+        bh=RiNE+7FPnbRfUKA7ivLyY2wJYyu5T9vSku+XXeu0WB0=;
         h=Date:From:To:Subject:From;
-        b=uA3jV5zozSJf29rf7TCic9Jmnl7BTC+k2GXnoQVMWE2IUxJSyYfKlGTGageHvZxDq
-         i82dtJwK12Pd01rUaZWzt8TWTlh0XdvL3KIogGrbhJNiw8pgscl4jKuDutlU3UGf4l
-         x2AfwGls7crV2WCjxEyz7gtvj/LVLvLxisgXmBJc=
-Date:   Wed, 02 Jun 2021 13:48:49 -0700
+        b=bTW5eHBiD9VqFsyjAn+4g3CpxtR6LgYF5acMhW2McZVGtrkkHF70gkBuo4ZpuwJ1d
+         3RD1uDhqRs2BUxKhDk7WBJuZdWRia0v79vpWHHRh4i85UjMvXLvN2u6R+LRTEbgy3A
+         xs0GU57aI+axi4pcbwc2+tcyhkzcFbyf3UqTor/M=
+Date:   Wed, 02 Jun 2021 13:48:52 -0700
 From:   akpm@linux-foundation.org
 To:     aisheng.dong@nxp.com, akpm@linux-foundation.org, bhe@redhat.com,
         dyoung@redhat.com, mm-commits@vger.kernel.org, vgoyal@redhat.com
 Subject:  [folded-merged]
- mm-rename-the-global-section-array-to-mem_sections-fix.patch removed from
- -mm tree
-Message-ID: <20210602204849.pTKD2VH__%akpm@linux-foundation.org>
+ mm-rename-the-global-section-array-to-mem_sections-fix-fix.patch removed
+ from -mm tree
+Message-ID: <20210602204852.XCoJtRGjA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,17 +44,17 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rename-the-global-section-array-to-mem_sections-fix
+     Subject: mm-rename-the-global-section-array-to-mem_sections-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-rename-the-global-section-array-to-mem_sections-fix.patch
+     mm-rename-the-global-section-array-to-mem_sections-fix-fix.patch
 
 This patch was dropped because it was folded into mm-rename-the-global-section-array-to-mem_sections.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-rename-the-global-section-array-to-mem_sections-fix
+Subject: mm-rename-the-global-section-array-to-mem_sections-fix-fix
 
-update comment
+fix another site
 
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Dave Young <dyoung@redhat.com>
@@ -66,17 +66,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/sparse.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/sparse.c~mm-rename-the-global-section-array-to-mem_sections-fix
+--- a/mm/sparse.c~mm-rename-the-global-section-array-to-mem_sections-fix-fix
 +++ a/mm/sparse.c
-@@ -20,7 +20,7 @@
- /*
-  * Permanent SPARSEMEM data:
-  *
-- * 1) mem_section	- memory sections, mem_map's for valid memory
-+ * 1) mem_sections - memory sections, mem_map's for valid memory
-  */
+@@ -254,7 +254,7 @@ static void __init memory_present(int ni
+ 	unsigned long pfn;
+ 
  #ifdef CONFIG_SPARSEMEM_EXTREME
- struct mem_section **mem_sections;
+-	if (unlikely(!mem_section)) {
++	if (unlikely(!mem_sections)) {
+ 		unsigned long size, align;
+ 
+ 		size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,7 +92,6 @@ mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
 powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
 mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
 mm-rename-the-global-section-array-to-mem_sections.patch
-mm-rename-the-global-section-array-to-mem_sections-fix-fix.patch
 mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
 mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
 mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
