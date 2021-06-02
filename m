@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F430C4708F
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 00:27:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D91F8C4708F
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 02:23:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 386BA613C3
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 00:27:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C25C5613BE
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 02:23:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229658AbhFBA3X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Jun 2021 20:29:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58502 "EHLO mail.kernel.org"
+        id S230525AbhFBCZe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Jun 2021 22:25:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48428 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229586AbhFBA3X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 1 Jun 2021 20:29:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0F8766124B;
-        Wed,  2 Jun 2021 00:27:41 +0000 (UTC)
+        id S230353AbhFBCZH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 1 Jun 2021 22:25:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 547E5613BF;
+        Wed,  2 Jun 2021 02:23:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622593661;
-        bh=rlclKG5cDiQ5jwsX5gMX+oI0e9u46mMahbG4SFom4qk=;
+        s=korg; t=1622600603;
+        bh=okmH/k8DrshJ3wgWO7jk+9oFcdS7TZ+8c1viVJBLsOQ=;
         h=Date:From:To:Subject:From;
-        b=VeCyTT3DOjYk6kyZDJ7NH9jZRg+HiIB5Mn9MljtR5MD4uQCUR/oGZm9P/NdR1QWqo
-         EOeh2snWPlXsSsf7PIPfVEUoi7s5s23hxvLTQK0v+WwVYUMQcAJNVBfd/ZQxxaxJbF
-         VAlFk/runiqGOydgbYMuvI6feb48ViEypIrgZanU=
-Date:   Tue, 01 Jun 2021 17:27:40 -0700
+        b=v+ltftpel+8pNQ7BfYrhK/sqZ81obddZ7gfVQW62WlvKdoeYtQiKRqqoTHk8oDxDs
+         OoEgoph6nI7JnLYZhygwlNZuzQPNLH72JiJuChmZix/fXwwPb24pIX0gHF5q/bQPXe
+         RrybW50ueczIXlltblLKMNwFsoIlw80ps923oBTw=
+Date:   Tue, 01 Jun 2021 19:23:22 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
-        joe@perches.com, lkp@intel.com, mm-commits@vger.kernel.org,
-        penberg@kernel.org, pmladek@suse.com, rientjes@google.com,
-        songmuchun@bytedance.com, swboyd@chromium.org, vbabka@suse.cz
-Subject:  +
- slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch added
- to -mm tree
-Message-ID: <20210602002740.MMqoJ5kzF%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, akpm@linux-foundation.org,
+        chenying.kernel@bytedance.com, mm-commits@vger.kernel.org,
+        rppt@kernel.org, songmuchun@bytedance.com,
+        zhouchengming@bytedance.com, zhoufeng.zf@bytedance.com
+Subject:  + fs-proc-kcorec-add-mmap-interface-fix.patch added to
+ -mm tree
+Message-ID: <20210602022322.GB9e9lELr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix
+     Subject: fs-proc-kcorec-add-mmap-interface-fix
 has been added to the -mm tree.  Its filename is
-     slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
+     fs-proc-kcorec-add-mmap-interface-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-proc-kcorec-add-mmap-interface-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-kcorec-add-mmap-interface-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,65 +67,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix
+Subject: fs-proc-kcorec-add-mmap-interface-fix
 
-fix build with CONFIG_SLUB_DEBUG=n
+KCORE_REMAP is no more
 
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: CHENYING <chenying.kernel@bytedance.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Stephen Boyd <swboyd@chromium.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: ZHOUFENG <zhoufeng.zf@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ fs/proc/kcore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slub.c~slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix
-+++ a/mm/slub.c
-@@ -117,12 +117,26 @@
-  */
+--- a/fs/proc/kcore.c~fs-proc-kcorec-add-mmap-interface-fix
++++ a/fs/proc/kcore.c
+@@ -660,7 +660,7 @@ static int mmap_kcore(struct file *file,
+ 	vma->vm_ops = &kcore_mmap_ops;
  
- #ifdef CONFIG_SLUB_DEBUG
-+
- #ifdef CONFIG_SLUB_DEBUG_ON
- DEFINE_STATIC_KEY_TRUE(slub_debug_enabled);
- #else
- DEFINE_STATIC_KEY_FALSE(slub_debug_enabled);
- #endif
--#endif
-+
-+static inline bool __slub_debug_enabled(void)
-+{
-+	return static_branch_unlikely(&slub_debug_enabled);
-+}
-+
-+#else		/* CONFIG_SLUB_DEBUG */
-+
-+static inline bool __slub_debug_enabled(void)
-+{
-+	return false;
-+}
-+
-+#endif		/* CONFIG_SLUB_DEBUG */
- 
- static inline bool kmem_cache_debug(struct kmem_cache *s)
- {
-@@ -4493,7 +4507,7 @@ void __init kmem_cache_init(void)
- 		slub_max_order = 0;
- 
- 	/* Print slub debugging pointers without hashing */
--	if (static_branch_unlikely(&slub_debug_enabled))
-+	if (__slub_debug_enabled())
- 		no_hash_pointers_enable(NULL);
- 
- 	kmem_cache_node = &boot_kmem_cache_node;
+ 	if (kern_addr_valid(start)) {
+-		if (m->type == KCORE_RAM || m->type == KCORE_REMAP)
++		if (m->type == KCORE_RAM)
+ 			pfn = __pa(start) >> PAGE_SHIFT;
+ 		else if (m->type == KCORE_TEXT)
+ 			pfn = __pa_symbol(start) >> PAGE_SHIFT;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -153,6 +120,7 @@ mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-
 mmmemory_hotplug-drop-unneeded-locking-fix.patch
 mm-rmap-make-try_to_unmap-void-function-fix.patch
 mm-rmap-make-try_to_unmap-void-function-fix-fix.patch
+fs-proc-kcorec-add-mmap-interface-fix.patch
 kernelh-split-out-panic-and-oops-helpers-fix.patch
 lib-math-rational-add-kunit-test-cases-fix.patch
 lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
