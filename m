@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F7B1C4708F
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 22:28:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EDEBC4708F
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 22:40:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 059FA613D6
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 22:28:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 23F74613BF
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 22:40:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229583AbhFBWaD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Jun 2021 18:30:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43576 "EHLO mail.kernel.org"
+        id S229755AbhFBWl4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Jun 2021 18:41:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44922 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229552AbhFBWaD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 2 Jun 2021 18:30:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C72B613D6;
-        Wed,  2 Jun 2021 22:28:03 +0000 (UTC)
+        id S229583AbhFBWlz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 2 Jun 2021 18:41:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AD8D4613EC;
+        Wed,  2 Jun 2021 22:39:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622672883;
-        bh=EDiCH9iRHfGGGC2P5L6bSEBiDiArHAKsqVwjIhQunI0=;
+        s=korg; t=1622673598;
+        bh=AHZPEd8BHzK0bIor2z52t09eJFj6RIisYQmmeVfZucM=;
         h=Date:From:To:Subject:From;
-        b=rrfJTlXCD3axaViAm1V2o7hzVfqZ732Qzvc6fmuQKpOsHQ2pLyuNi1HcmEt3MR4+y
-         sCb3fIfUhNOarlWdjnwwLDBvhn5jCIrVavUsuTRkvZf07KUdyWqdraDorOcWAM0V+Y
-         4CLchlh8t8vkJrQ5usFg+m1l013wJ23Y0U1NBDkM=
-Date:   Wed, 02 Jun 2021 15:28:03 -0700
+        b=Ad1rZY+xNge7FSgnsHVe6i76T/KsvM29tVc4AiJJWZU+wyuu7P7pXV4c1TohStFpO
+         1VQr2Igolry9Rmg7/TfoL31AmEwFu/GXJY8IrLORX9LsCJ7y34UwidFVZPtozY5nlX
+         JzJxGTADyAIh4rWhJD1a4anepZTnlRE2vliUYWFE=
+Date:   Wed, 02 Jun 2021 15:39:58 -0700
 From:   akpm@linux-foundation.org
-To:     elder@ieee.org, gregkh@linuxfoundation.org, joe@perches.com,
-        manikishanghantasala@gmail.com, mm-commits@vger.kernel.org
-Subject:  + checkpatch-improve-the-indented-label-test.patch added
- to -mm tree
-Message-ID: <20210602222803.K_-B_yexv%akpm@linux-foundation.org>
+To:     hawk@kernel.org, ilias.apalodimas@linaro.org, mingo@redhat.com,
+        mm-commits@vger.kernel.org, rostedt@goodmis.org,
+        vincent.whitchurch@axis.com
+Subject:  + mm-tracing-unify-pfn-format-strings.patch added to -mm
+ tree
+Message-ID: <20210602223958.RIAdX8WNB%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve the indented label test
+     Subject: mm, tracing: unify PFN format strings
 has been added to the -mm tree.  Its filename is
-     checkpatch-improve-the-indented-label-test.patch
+     mm-tracing-unify-pfn-format-strings.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-the-indented-label-test.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-tracing-unify-pfn-format-strings.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-the-indented-label-test.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-tracing-unify-pfn-format-strings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,59 +65,181 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve the indented label test
+From: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Subject: mm, tracing: unify PFN format strings
 
-checkpatch identifies a label only when a terminating colon
-immediately follows an identifier.
+Some trace event formats print PFNs as hex while others print them as
+decimal.  This is rather annoying when attempting to grep through traces
+to understand what's going on with a particular page.
 
-Bitfield definitions can appear to be labels so ignore any
-spaces between the identifier terminating colon and any digit
-that may be used to define a bitfield length.
+ $ git grep -ho 'pfn=[0x%lu]\+' include/trace/events/ | sort | uniq -c
+      11 pfn=0x%lx
+      12 pfn=%lu
+       2 pfn=%lx
 
-Miscellanea:
+Printing as hex is in the majority in the trace events, and all the normal
+printks in mm/ also print PFNs as hex, so change all the PFN formats in
+the trace events to use 0x%lx.
 
-o Improve the initial checkpatch comment
-o Use the more typical '&&' instead of 'and'
-o Require the initial label character to be a non-digit
-  (Can't use $Ident here because $Ident allows ## concatenation)
-o Use $sline instead of $line to ignore comments
-o Use '$sline !~ /.../' instead of '!($line =~ /.../)'
-
-Link: https://lkml.kernel.org/r/b54d673e7cde7de5de0c9ba4dd57dd0858580ca4.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Manikishan Ghantasala <manikishanghantasala@gmail.com>
-Cc: Alex Elder <elder@ieee.org>
+Link: https://lkml.kernel.org/r/20210602092608.1493-1-vincent.whitchurch@axis.com
+Signed-off-by: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jesper Dangaard Brouer <hawk@kernel.org>
+Cc: Ilias Apalodimas <ilias.apalodimas@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ include/trace/events/cma.h       |    4 ++--
+ include/trace/events/filemap.h   |    2 +-
+ include/trace/events/kmem.h      |   12 ++++++------
+ include/trace/events/page_pool.h |    4 ++--
+ include/trace/events/pagemap.h   |    4 ++--
+ include/trace/events/vmscan.h    |    2 +-
+ 6 files changed, 14 insertions(+), 14 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-improve-the-indented-label-test
-+++ a/scripts/checkpatch.pl
-@@ -5361,9 +5361,13 @@ sub process {
- 			}
- 		}
+--- a/include/trace/events/cma.h~mm-tracing-unify-pfn-format-strings
++++ a/include/trace/events/cma.h
+@@ -31,7 +31,7 @@ DECLARE_EVENT_CLASS(cma_alloc_class,
+ 		__entry->align = align;
+ 	),
  
--#goto labels aren't indented, allow a single space however
--		if ($line=~/^.\s+[A-Za-z\d_]+:(?![0-9]+)/ and
--		   !($line=~/^. [A-Za-z\d_]+:/) and !($line=~/^.\s+default:/)) {
-+# check that goto labels aren't indented (allow a single space indentation)
-+# and ignore bitfield definitions like foo:1
-+# Strictly, labels can have whitespace after the identifier and before the :
-+# but this is not allowed here as many ?: uses would appear to be labels
-+		if ($sline =~ /^.\s+[A-Za-z_][A-Za-z\d_]*:(?!\s*\d+)/ &&
-+		    $sline !~ /^. [A-Za-z\d_][A-Za-z\d_]*:/ &&
-+		    $sline !~ /^.\s+default:/) {
- 			if (WARN("INDENTED_LABEL",
- 				 "labels should not be indented\n" . $herecurr) &&
- 			    $fix) {
+-	TP_printk("name=%s pfn=%lx page=%p count=%lu align=%u",
++	TP_printk("name=%s pfn=0x%lx page=%p count=%lu align=%u",
+ 		  __get_str(name),
+ 		  __entry->pfn,
+ 		  __entry->page,
+@@ -60,7 +60,7 @@ TRACE_EVENT(cma_release,
+ 		__entry->count = count;
+ 	),
+ 
+-	TP_printk("name=%s pfn=%lx page=%p count=%lu",
++	TP_printk("name=%s pfn=0x%lx page=%p count=%lu",
+ 		  __get_str(name),
+ 		  __entry->pfn,
+ 		  __entry->page,
+--- a/include/trace/events/filemap.h~mm-tracing-unify-pfn-format-strings
++++ a/include/trace/events/filemap.h
+@@ -36,7 +36,7 @@ DECLARE_EVENT_CLASS(mm_filemap_op_page_c
+ 			__entry->s_dev = page->mapping->host->i_rdev;
+ 	),
+ 
+-	TP_printk("dev %d:%d ino %lx page=%p pfn=%lu ofs=%lu",
++	TP_printk("dev %d:%d ino %lx page=%p pfn=0x%lx ofs=%lu",
+ 		MAJOR(__entry->s_dev), MINOR(__entry->s_dev),
+ 		__entry->i_ino,
+ 		pfn_to_page(__entry->pfn),
+--- a/include/trace/events/kmem.h~mm-tracing-unify-pfn-format-strings
++++ a/include/trace/events/kmem.h
+@@ -173,7 +173,7 @@ TRACE_EVENT(mm_page_free,
+ 		__entry->order		= order;
+ 	),
+ 
+-	TP_printk("page=%p pfn=%lu order=%d",
++	TP_printk("page=%p pfn=0x%lx order=%d",
+ 			pfn_to_page(__entry->pfn),
+ 			__entry->pfn,
+ 			__entry->order)
+@@ -193,7 +193,7 @@ TRACE_EVENT(mm_page_free_batched,
+ 		__entry->pfn		= page_to_pfn(page);
+ 	),
+ 
+-	TP_printk("page=%p pfn=%lu order=0",
++	TP_printk("page=%p pfn=0x%lx order=0",
+ 			pfn_to_page(__entry->pfn),
+ 			__entry->pfn)
+ );
+@@ -219,7 +219,7 @@ TRACE_EVENT(mm_page_alloc,
+ 		__entry->migratetype	= migratetype;
+ 	),
+ 
+-	TP_printk("page=%p pfn=%lu order=%d migratetype=%d gfp_flags=%s",
++	TP_printk("page=%p pfn=0x%lx order=%d migratetype=%d gfp_flags=%s",
+ 		__entry->pfn != -1UL ? pfn_to_page(__entry->pfn) : NULL,
+ 		__entry->pfn != -1UL ? __entry->pfn : 0,
+ 		__entry->order,
+@@ -245,7 +245,7 @@ DECLARE_EVENT_CLASS(mm_page,
+ 		__entry->migratetype	= migratetype;
+ 	),
+ 
+-	TP_printk("page=%p pfn=%lu order=%u migratetype=%d percpu_refill=%d",
++	TP_printk("page=%p pfn=0x%lx order=%u migratetype=%d percpu_refill=%d",
+ 		__entry->pfn != -1UL ? pfn_to_page(__entry->pfn) : NULL,
+ 		__entry->pfn != -1UL ? __entry->pfn : 0,
+ 		__entry->order,
+@@ -278,7 +278,7 @@ TRACE_EVENT(mm_page_pcpu_drain,
+ 		__entry->migratetype	= migratetype;
+ 	),
+ 
+-	TP_printk("page=%p pfn=%lu order=%d migratetype=%d",
++	TP_printk("page=%p pfn=0x%lx order=%d migratetype=%d",
+ 		pfn_to_page(__entry->pfn), __entry->pfn,
+ 		__entry->order, __entry->migratetype)
+ );
+@@ -312,7 +312,7 @@ TRACE_EVENT(mm_page_alloc_extfrag,
+ 					get_pageblock_migratetype(page));
+ 	),
+ 
+-	TP_printk("page=%p pfn=%lu alloc_order=%d fallback_order=%d pageblock_order=%d alloc_migratetype=%d fallback_migratetype=%d fragmenting=%d change_ownership=%d",
++	TP_printk("page=%p pfn=0x%lx alloc_order=%d fallback_order=%d pageblock_order=%d alloc_migratetype=%d fallback_migratetype=%d fragmenting=%d change_ownership=%d",
+ 		pfn_to_page(__entry->pfn),
+ 		__entry->pfn,
+ 		__entry->alloc_order,
+--- a/include/trace/events/pagemap.h~mm-tracing-unify-pfn-format-strings
++++ a/include/trace/events/pagemap.h
+@@ -46,7 +46,7 @@ TRACE_EVENT(mm_lru_insertion,
+ 	),
+ 
+ 	/* Flag format is based on page-types.c formatting for pagemap */
+-	TP_printk("page=%p pfn=%lu lru=%d flags=%s%s%s%s%s%s",
++	TP_printk("page=%p pfn=0x%lx lru=%d flags=%s%s%s%s%s%s",
+ 			__entry->page,
+ 			__entry->pfn,
+ 			__entry->lru,
+@@ -75,7 +75,7 @@ TRACE_EVENT(mm_lru_activate,
+ 	),
+ 
+ 	/* Flag format is based on page-types.c formatting for pagemap */
+-	TP_printk("page=%p pfn=%lu", __entry->page, __entry->pfn)
++	TP_printk("page=%p pfn=0x%lx", __entry->page, __entry->pfn)
+ 
+ );
+ 
+--- a/include/trace/events/page_pool.h~mm-tracing-unify-pfn-format-strings
++++ a/include/trace/events/page_pool.h
+@@ -60,7 +60,7 @@ TRACE_EVENT(page_pool_state_release,
+ 		__entry->pfn		= page_to_pfn(page);
+ 	),
+ 
+-	TP_printk("page_pool=%p page=%p pfn=%lu release=%u",
++	TP_printk("page_pool=%p page=%p pfn=0x%lx release=%u",
+ 		  __entry->pool, __entry->page, __entry->pfn, __entry->release)
+ );
+ 
+@@ -85,7 +85,7 @@ TRACE_EVENT(page_pool_state_hold,
+ 		__entry->pfn	= page_to_pfn(page);
+ 	),
+ 
+-	TP_printk("page_pool=%p page=%p pfn=%lu hold=%u",
++	TP_printk("page_pool=%p page=%p pfn=0x%lx hold=%u",
+ 		  __entry->pool, __entry->page, __entry->pfn, __entry->hold)
+ );
+ 
+--- a/include/trace/events/vmscan.h~mm-tracing-unify-pfn-format-strings
++++ a/include/trace/events/vmscan.h
+@@ -330,7 +330,7 @@ TRACE_EVENT(mm_vmscan_writepage,
+ 						page_is_file_lru(page));
+ 	),
+ 
+-	TP_printk("page=%p pfn=%lu flags=%s",
++	TP_printk("page=%p pfn=0x%lx flags=%s",
+ 		pfn_to_page(__entry->pfn),
+ 		__entry->pfn,
+ 		show_reclaim_flags(__entry->reclaim_flags))
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from vincent.whitchurch@axis.com are
 
-slub-indicate-slab_fix-uses-printf-formats.patch
-checkpatch-improve-the-indented-label-test.patch
+squashfs-add-option-to-panic-on-errors.patch
+mm-tracing-unify-pfn-format-strings.patch
 
