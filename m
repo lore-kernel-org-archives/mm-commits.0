@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CF13C4708F
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 23:59:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F430C4708F
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 00:27:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D8089613AE
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Jun 2021 23:59:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 386BA613C3
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 00:27:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235217AbhFBABf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Jun 2021 20:01:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54816 "EHLO mail.kernel.org"
+        id S229658AbhFBA3X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Jun 2021 20:29:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58502 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235213AbhFBABf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 1 Jun 2021 20:01:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0D21061167;
-        Tue,  1 Jun 2021 23:59:52 +0000 (UTC)
+        id S229586AbhFBA3X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 1 Jun 2021 20:29:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0F8766124B;
+        Wed,  2 Jun 2021 00:27:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622591992;
-        bh=kB8dq8ArZ8PEtytKfYzzUWt+pm/+/AUjT9mH+UkZUwI=;
+        s=korg; t=1622593661;
+        bh=rlclKG5cDiQ5jwsX5gMX+oI0e9u46mMahbG4SFom4qk=;
         h=Date:From:To:Subject:From;
-        b=Vhy97VNBeQEjzK6M/2YYMoNsOPMqmNbbfjg9ljnowY2NvyjBYmUbsdYM7wGGuYgMC
-         XtY9NfhVh2L1uXepLhagOpIntiflSxmxhTEwgC8rQ0XxWzTcEgbfqDjlfb62VF+o8v
-         6kqZ1OQ/Y7AKAY55gIr6YIkyhn4BRH+lDjFyH9Q4=
-Date:   Tue, 01 Jun 2021 16:59:51 -0700
+        b=VeCyTT3DOjYk6kyZDJ7NH9jZRg+HiIB5Mn9MljtR5MD4uQCUR/oGZm9P/NdR1QWqo
+         EOeh2snWPlXsSsf7PIPfVEUoi7s5s23hxvLTQK0v+WwVYUMQcAJNVBfd/ZQxxaxJbF
+         VAlFk/runiqGOydgbYMuvI6feb48ViEypIrgZanU=
+Date:   Tue, 01 Jun 2021 17:27:40 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, dave.hansen@intel.com, hannes@cmpxchg.org,
-        hughd@google.com, mgorman@suse.de, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, peterx@redhat.com, riel@surriel.com,
-        tim.c.chen@intel.com, torvalds@linux-foundation.org,
-        willy@infradead.org, ying.huang@intel.com
-Subject:  + mm-free-idle-swap-cache-page-after-cow.patch added to
- -mm tree
-Message-ID: <20210601235951.1YUFpxZEk%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
+        joe@perches.com, lkp@intel.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, pmladek@suse.com, rientjes@google.com,
+        songmuchun@bytedance.com, swboyd@chromium.org, vbabka@suse.cz
+Subject:  +
+ slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch added
+ to -mm tree
+Message-ID: <20210602002740.MMqoJ5kzF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: free idle swap cache page after COW
+     Subject: slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix
 has been added to the -mm tree.  Its filename is
-     mm-free-idle-swap-cache-page-after-cow.patch
+     slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-free-idle-swap-cache-page-after-cow.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-free-idle-swap-cache-page-after-cow.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,101 +67,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm: free idle swap cache page after COW
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix
 
-With commit 09854ba94c6a ("mm: do_wp_page() simplification"), after COW,
-the idle swap cache page (neither the page nor the corresponding swap
-entry is mapped by any process) will be left in the LRU list, even if it's
-in the active list or the head of the inactive list.  So, the page
-reclaimer may take quite some overhead to reclaim these actually unused
-pages.
+fix build with CONFIG_SLUB_DEBUG=n
 
-To help the page reclaiming, in this patch, after COW, the idle swap cache
-page will be tried to be freed.  To avoid to introduce much overhead to
-the hot COW code path,
-
-a) there's almost zero overhead for non-swap case via checking
-   PageSwapCache() firstly.
-
-b) the page lock is acquired via trylock only.
-
-To test the patch, we used pmbench memory accessing benchmark with
-working-set larger than available memory on a 2-socket Intel server with a
-NVMe SSD as swap device.  Test results shows that the pmbench score
-increases up to 23.8% with the decreased size of swap cache and swapin
-throughput.
-
-Link: https://lkml.kernel.org/r/20210601053143.1380078-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>	[use free_swap_cache()]
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Tim Chen <tim.c.chen@intel.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Stephen Boyd <swboyd@chromium.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    5 +++++
- mm/memory.c          |    2 ++
- mm/swap_state.c      |    2 +-
- 3 files changed, 8 insertions(+), 1 deletion(-)
+ mm/slub.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
---- a/include/linux/swap.h~mm-free-idle-swap-cache-page-after-cow
-+++ a/include/linux/swap.h
-@@ -446,6 +446,7 @@ extern void __delete_from_swap_cache(str
- extern void delete_from_swap_cache(struct page *);
- extern void clear_shadow_from_swap_cache(int type, unsigned long begin,
- 				unsigned long end);
-+extern void free_swap_cache(struct page *);
- extern void free_page_and_swap_cache(struct page *);
- extern void free_pages_and_swap_cache(struct page **, int);
- extern struct page *lookup_swap_cache(swp_entry_t entry,
-@@ -551,6 +552,10 @@ static inline void put_swap_device(struc
- #define free_pages_and_swap_cache(pages, nr) \
- 	release_pages((pages), (nr));
+--- a/mm/slub.c~slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix
++++ a/mm/slub.c
+@@ -117,12 +117,26 @@
+  */
  
-+static inline void free_swap_cache(struct page *page)
+ #ifdef CONFIG_SLUB_DEBUG
++
+ #ifdef CONFIG_SLUB_DEBUG_ON
+ DEFINE_STATIC_KEY_TRUE(slub_debug_enabled);
+ #else
+ DEFINE_STATIC_KEY_FALSE(slub_debug_enabled);
+ #endif
+-#endif
++
++static inline bool __slub_debug_enabled(void)
 +{
++	return static_branch_unlikely(&slub_debug_enabled);
 +}
 +
- static inline void show_swap_cache_info(void)
++#else		/* CONFIG_SLUB_DEBUG */
++
++static inline bool __slub_debug_enabled(void)
++{
++	return false;
++}
++
++#endif		/* CONFIG_SLUB_DEBUG */
+ 
+ static inline bool kmem_cache_debug(struct kmem_cache *s)
  {
- }
---- a/mm/memory.c~mm-free-idle-swap-cache-page-after-cow
-+++ a/mm/memory.c
-@@ -3012,6 +3012,8 @@ static vm_fault_t wp_page_copy(struct vm
- 				munlock_vma_page(old_page);
- 			unlock_page(old_page);
- 		}
-+		if (page_copied)
-+			free_swap_cache(old_page);
- 		put_page(old_page);
- 	}
- 	return page_copied ? VM_FAULT_WRITE : 0;
---- a/mm/swap_state.c~mm-free-idle-swap-cache-page-after-cow
-+++ a/mm/swap_state.c
-@@ -285,7 +285,7 @@ void clear_shadow_from_swap_cache(int ty
-  * try_to_free_swap() _with_ the lock.
-  * 					- Marcelo
-  */
--static inline void free_swap_cache(struct page *page)
-+void free_swap_cache(struct page *page)
- {
- 	if (PageSwapCache(page) && !page_mapped(page) && trylock_page(page)) {
- 		try_to_free_swap(page);
+@@ -4493,7 +4507,7 @@ void __init kmem_cache_init(void)
+ 		slub_max_order = 0;
+ 
+ 	/* Print slub debugging pointers without hashing */
+-	if (static_branch_unlikely(&slub_debug_enabled))
++	if (__slub_debug_enabled())
+ 		no_hash_pointers_enable(NULL);
+ 
+ 	kmem_cache_node = &boot_kmem_cache_node;
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-swap-remove-unnecessary-smp_rmb-in-swap_type_to_swap_info.patch
-mm-free-idle-swap-cache-page-after-cow.patch
+mm.patch
+mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
+binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
+mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
+mm-rename-the-global-section-array-to-mem_sections-fix.patch
+mm-rename-the-global-section-array-to-mem_sections-fix-fix.patch
+mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
+mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+mm-userfaultfd-fix-uffd-wp-special-cases-for-fork-fix.patch
+mm-thp-check-total_mapcount-instead-of-page_mapcount-fix-fix-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+mmmemory_hotplug-drop-unneeded-locking-fix.patch
+mm-rmap-make-try_to_unmap-void-function-fix.patch
+mm-rmap-make-try_to_unmap-void-function-fix-fix.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+lib-math-rational-add-kunit-test-cases-fix.patch
+lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
+ipc-utilc-use-binary-search-for-max_idx-fix.patch
+linux-next-pre.patch
+linux-next-post.patch
+linux-next-rejects.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
