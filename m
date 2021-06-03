@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7C00C47096
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Jun 2021 22:45:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0F56C47082
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Jun 2021 22:54:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADA5C613FF
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Jun 2021 22:45:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C7C161407
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Jun 2021 22:54:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229685AbhFCWrg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Jun 2021 18:47:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50266 "EHLO mail.kernel.org"
+        id S229697AbhFCWzt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Jun 2021 18:55:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51398 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229610AbhFCWrg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Jun 2021 18:47:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5DEA1613D8;
-        Thu,  3 Jun 2021 22:45:43 +0000 (UTC)
+        id S229610AbhFCWzs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Jun 2021 18:55:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 83BE06140A;
+        Thu,  3 Jun 2021 22:54:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622760343;
-        bh=wPYv/Ng6te9kn7/WWVnC0gUhdi4wYJOF1uKe+/XFMes=;
+        s=korg; t=1622760843;
+        bh=Lk4YCOiC//knP1hQliat0ec/2nXEiO1vs+xiC4wmEEk=;
         h=Date:From:To:Subject:From;
-        b=Su1p0Js45qp7P66u7KdOA0HgRnK7TZjlrfnonNJt+TcGmP/TLQwDk5en5nQkirokU
-         ooWvoT0iVmnNAc5SKJqKysw+SFu08Byy5v08HQmfxNZ2mlxmw2znOvVHeQBI6ZhAQy
-         sIsUzp3+Kju87cXHk4MF+HvknI0Yx1uivKQRHc2c=
-Date:   Thu, 03 Jun 2021 15:45:42 -0700
+        b=TmAhPbxP03ODLImL6UE3r4gfJwAHm7Ks4kUy5lZ9kuGqLqNUvb9gXYGnrIWv093Lb
+         CGZHyS5mCAhGYItYCxAahCBsl7qz3UlbMzOcUr3cc+DnAJyK4ejfBUJMm2ZMnDN6Lu
+         5wz4rNxR+3mohL9834BcKxj4zuKbE0OTPSLwg6xw=
+Date:   Thu, 03 Jun 2021 15:54:03 -0700
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, kirill.shutemov@linux.intel.com,
-        mm-commits@vger.kernel.org, shy828301@gmail.com, ziy@nvidia.com
-Subject:  [to-be-updated]
- mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split.patch
+To:     hughd@google.com, minchan@kernel.org, mm-commits@vger.kernel.org,
+        shakeelb@google.com, shy828301@gmail.com
+Subject:  [obsolete] mm-rmap-make-try_to_unmap-void-function.patch
  removed from -mm tree
-Message-ID: <20210603224542.IGOBfyAMq%akpm@linux-foundation.org>
+Message-ID: <20210603225403.Ks48FGEwP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,113 +43,131 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: replace DEBUG_VM BUG with VM_WARN when unmap fails for split
+     Subject: mm: rmap: make try_to_unmap() void function
 has been removed from the -mm tree.  Its filename was
-     mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split.patch
+     mm-rmap-make-try_to_unmap-void-function.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: thp: replace DEBUG_VM BUG with VM_WARN when unmap fails for split
+Subject: mm: rmap: make try_to_unmap() void function
 
-When debugging the bug reported by Wang Yugui [1], try_to_unmap() may
-fail, but the first VM_BUG_ON_PAGE() just checks page_mapcount() however
-it may miss the failure when head page is unmapped but other subpage is
-mapped.  Then the second DEBUG_VM BUG() that check total mapcount would
-catch it.  This may incur some confusion.  And this is not a fatal issue,
-so consolidate the two DEBUG_VM checks into one VM_WARN_ON_ONCE_PAGE().
+Currently try_to_unmap() return bool value by checking page_mapcount(),
+however this may return false positive since page_mapcount() doesn't
+check all subpages of compound page.  The total_mapcount() could be used
+instead, but its cost is higher since it traverses all subpages.
 
-[1] https://lore.kernel.org/linux-mm/20210412180659.B9E3.409509F4@e16-tech.com/
+Actually the most callers of try_to_unmap() don't care about the
+return value at all.  So just need check if page is still mapped by
+page_mapped() when necessary.  And page_mapped() does bail out early
+when it finds mapped subpage.
 
-Link: https://lkml.kernel.org/r/20210526201239.3351-1-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20210526201239.3351-2-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Suggested-by: Hugh Dickins <hughd@google.com>
 Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   31 ++++++++++---------------------
- 1 file changed, 10 insertions(+), 21 deletions(-)
+ include/linux/rmap.h |    2 +-
+ mm/memory-failure.c  |   15 +++++++--------
+ mm/rmap.c            |    7 +++----
+ mm/vmscan.c          |    3 ++-
+ 4 files changed, 13 insertions(+), 14 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-replace-debug_vm-bug-with-vm_warn-when-unmap-fails-for-split
-+++ a/mm/huge_memory.c
-@@ -2298,21 +2298,20 @@ void vma_adjust_trans_huge(struct vm_are
- static void unmap_page(struct page *page)
+--- a/include/linux/rmap.h~mm-rmap-make-try_to_unmap-void-function
++++ a/include/linux/rmap.h
+@@ -191,7 +191,7 @@ int page_referenced(struct page *, int i
+ 			struct mem_cgroup *memcg, unsigned long *vm_flags);
+ 
+ bool try_to_migrate(struct page *page, enum ttu_flags flags);
+-bool try_to_unmap(struct page *, enum ttu_flags flags);
++void try_to_unmap(struct page *, enum ttu_flags flags);
+ 
+ int make_device_exclusive_range(struct mm_struct *mm, unsigned long start,
+ 				unsigned long end, struct page **pages,
+--- a/mm/memory-failure.c~mm-rmap-make-try_to_unmap-void-function
++++ a/mm/memory-failure.c
+@@ -1206,7 +1206,7 @@ static bool hwpoison_user_mappings(struc
+ 	enum ttu_flags ttu = TTU_IGNORE_MLOCK;
+ 	struct address_space *mapping;
+ 	LIST_HEAD(tokill);
+-	bool unmap_success = true;
++	bool unmap_success;
+ 	int kill = 1, forcekill;
+ 	struct page *hpage = *hpagep;
+ 	bool mlocked = PageMlocked(hpage);
+@@ -1269,7 +1269,7 @@ static bool hwpoison_user_mappings(struc
+ 		collect_procs(hpage, &tokill, flags & MF_ACTION_REQUIRED);
+ 
+ 	if (!PageHuge(hpage)) {
+-		unmap_success = try_to_unmap(hpage, ttu);
++		try_to_unmap(hpage, ttu);
+ 	} else {
+ 		if (!PageAnon(hpage)) {
+ 			/*
+@@ -1281,17 +1281,16 @@ static bool hwpoison_user_mappings(struc
+ 			 */
+ 			mapping = hugetlb_page_mapping_lock_write(hpage);
+ 			if (mapping) {
+-				unmap_success = try_to_unmap(hpage,
+-						     ttu|TTU_RMAP_LOCKED);
++				try_to_unmap(hpage, ttu|TTU_RMAP_LOCKED);
+ 				i_mmap_unlock_write(mapping);
+-			} else {
++			} else
+ 				pr_info("Memory failure: %#lx: could not lock mapping for mapped huge page\n", pfn);
+-				unmap_success = false;
+-			}
+ 		} else {
+-			unmap_success = try_to_unmap(hpage, ttu);
++			try_to_unmap(hpage, ttu);
+ 		}
+ 	}
++
++	unmap_success = !page_mapped(hpage);
+ 	if (!unmap_success)
+ 		pr_err("Memory failure: %#lx: failed to unmap page (mapcount=%d)\n",
+ 		       pfn, page_mapcount(hpage));
+--- a/mm/rmap.c~mm-rmap-make-try_to_unmap-void-function
++++ a/mm/rmap.c
+@@ -1658,9 +1658,10 @@ static int page_not_mapped(struct page *
+  * Tries to remove all the page table entries which are mapping this
+  * page, used in the pageout path.  Caller must hold the page lock.
+  *
+- * If unmap is successful, return true. Otherwise, false.
++ * It is the callers' responsibility to check if the page is still
++ * mapped when needed.
+  */
+-bool try_to_unmap(struct page *page, enum ttu_flags flags)
++void try_to_unmap(struct page *page, enum ttu_flags flags)
  {
- 	enum ttu_flags ttu_flags = TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD;
--	bool unmap_success;
- 
- 	VM_BUG_ON_PAGE(!PageHead(page), page);
- 
--	if (PageAnon(page))
--		unmap_success = try_to_migrate(page, ttu_flags);
--	else
-+	if (PageAnon(page)) {
-+		try_to_migrate(page, ttu_flags);
-+	} else {
- 		/*
- 		 * Don't install migration entries for file backed pages. This
- 		 * helps handle cases when i_size is in the middle of the page
- 		 * as there is no need to unmap pages beyond i_size manually.
- 		 */
--		unmap_success = try_to_unmap(page, ttu_flags |
--						TTU_IGNORE_MLOCK);
--	VM_BUG_ON_PAGE(!unmap_success, page);
-+		try_to_unmap(page, ttu_flags | TTU_IGNORE_MLOCK);
-+	}
-+	VM_WARN_ON_ONCE_PAGE(page_mapped(page), page);
+ 	struct rmap_walk_control rwc = {
+ 		.rmap_one = try_to_unmap_one,
+@@ -1946,8 +1947,6 @@ bool try_to_migrate(struct page *page, e
+ 		rmap_walk_locked(page, &rwc);
+ 	else
+ 		rmap_walk(page, &rwc);
+-
+-	return !page_mapcount(page) ? true : false;
  }
  
- static void remap_page(struct page *page, unsigned int nr)
-@@ -2623,7 +2622,7 @@ int split_huge_page_to_list(struct page
- 	struct deferred_split *ds_queue = get_deferred_split_queue(head);
- 	struct anon_vma *anon_vma = NULL;
- 	struct address_space *mapping = NULL;
--	int count, mapcount, extra_pins, ret;
-+	int extra_pins, ret;
- 	pgoff_t end;
+ /*
+--- a/mm/vmscan.c~mm-rmap-make-try_to_unmap-void-function
++++ a/mm/vmscan.c
+@@ -1499,7 +1499,8 @@ static unsigned int shrink_page_list(str
+ 			if (unlikely(PageTransHuge(page)))
+ 				flags |= TTU_SPLIT_HUGE_PMD;
  
- 	VM_BUG_ON_PAGE(is_huge_zero_page(head), head);
-@@ -2682,7 +2681,6 @@ int split_huge_page_to_list(struct page
- 	}
- 
- 	unmap_page(head);
--	VM_BUG_ON_PAGE(compound_mapcount(head), head);
- 
- 	/* block interrupt reentry in xa_lock and spinlock */
- 	local_irq_disable();
-@@ -2700,9 +2698,7 @@ int split_huge_page_to_list(struct page
- 
- 	/* Prevent deferred_split_scan() touching ->_refcount */
- 	spin_lock(&ds_queue->split_queue_lock);
--	count = page_count(head);
--	mapcount = total_mapcount(head);
--	if (!mapcount && page_ref_freeze(head, 1 + extra_pins)) {
-+	if (page_ref_freeze(head, 1 + extra_pins)) {
- 		if (!list_empty(page_deferred_list(head))) {
- 			ds_queue->split_queue_len--;
- 			list_del(page_deferred_list(head));
-@@ -2722,16 +2718,9 @@ int split_huge_page_to_list(struct page
- 		__split_huge_page(page, list, end);
- 		ret = 0;
- 	} else {
--		if (IS_ENABLED(CONFIG_DEBUG_VM) && mapcount) {
--			pr_alert("total_mapcount: %u, page_count(): %u\n",
--					mapcount, count);
--			if (PageTail(page))
--				dump_page(head, NULL);
--			dump_page(page, "total_mapcount(head) > 0");
--			BUG();
--		}
- 		spin_unlock(&ds_queue->split_queue_lock);
--fail:		if (mapping)
-+fail:
-+		if (mapping)
- 			xa_unlock(&mapping->i_pages);
- 		local_irq_enable();
- 		remap_page(head, thp_nr_pages(head));
+-			if (!try_to_unmap(page, flags)) {
++			try_to_unmap(page, flags);
++			if (page_mapped(page)) {
+ 				stat->nr_unmap_fail += nr_pages;
+ 				if (!was_swapbacked && PageSwapBacked(page))
+ 					stat->nr_lazyfree_fail += nr_pages;
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
@@ -162,5 +179,4 @@ mm-migrate-account-thp-numa-migration-counters-correctly.patch
 mm-migrate-dont-split-thp-for-misplaced-numa-page.patch
 mm-migrate-check-mapcount-for-thp-instead-of-refcount.patch
 mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported.patch
-mm-rmap-make-try_to_unmap-void-function.patch
 
