@@ -2,244 +2,103 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EDEBC4708F
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 22:40:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04805C47097
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Jun 2021 10:42:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23F74613BF
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Jun 2021 22:40:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC07D613FA
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Jun 2021 10:42:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229755AbhFBWl4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Jun 2021 18:41:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44922 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229583AbhFBWlz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 2 Jun 2021 18:41:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AD8D4613EC;
-        Wed,  2 Jun 2021 22:39:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622673598;
-        bh=AHZPEd8BHzK0bIor2z52t09eJFj6RIisYQmmeVfZucM=;
-        h=Date:From:To:Subject:From;
-        b=Ad1rZY+xNge7FSgnsHVe6i76T/KsvM29tVc4AiJJWZU+wyuu7P7pXV4c1TohStFpO
-         1VQr2Igolry9Rmg7/TfoL31AmEwFu/GXJY8IrLORX9LsCJ7y34UwidFVZPtozY5nlX
-         JzJxGTADyAIh4rWhJD1a4anepZTnlRE2vliUYWFE=
-Date:   Wed, 02 Jun 2021 15:39:58 -0700
-From:   akpm@linux-foundation.org
-To:     hawk@kernel.org, ilias.apalodimas@linaro.org, mingo@redhat.com,
-        mm-commits@vger.kernel.org, rostedt@goodmis.org,
-        vincent.whitchurch@axis.com
-Subject:  + mm-tracing-unify-pfn-format-strings.patch added to -mm
- tree
-Message-ID: <20210602223958.RIAdX8WNB%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S229736AbhFCKny (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Jun 2021 06:43:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50266 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229506AbhFCKnx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2021 06:43:53 -0400
+Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B1DAC06174A;
+        Thu,  3 Jun 2021 03:42:09 -0700 (PDT)
+Received: by mail-ej1-x629.google.com with SMTP id jt22so8521920ejb.7;
+        Thu, 03 Jun 2021 03:42:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=message-id:date:from:user-agent:mime-version:to:cc:subject
+         :references:in-reply-to:content-transfer-encoding;
+        bh=wJVYMLShJcEHY1M41voNtHfPWItH6cQvkxCpZVR0vs8=;
+        b=XOqADyF/nJ0rA072xUGq1GxKZjgwb4Wrm5ReoZ1rpmKFVXvmQDc+hVYMpJYJ6Yyp3o
+         D4CZjvK1rA42CZssk1DAoYJpgRW2rX3kTEPTNYIY/AYpZHI7Ik04GrraIPN8vDZkoHHD
+         iKoDmmOEmtOkpOKjsId64TWJ83dsirCXsfjUrjdG5S7RX2GF1JGl+8Dij5NtVp0o0tFO
+         3dXIZea0WLq4o+cj9rWtYNNLvf1QjVGbzd/6lRWaBE9mM9tOhbuI6Sahki83bIm1ecdu
+         nPX3cJ02shej292z8Gt+8yc08o5DNN0+74yHLyRoflk/mlEK+4iP1yFWgKGkJ3SylF/m
+         BWbA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:message-id:date:from:user-agent:mime-version:to
+         :cc:subject:references:in-reply-to:content-transfer-encoding;
+        bh=wJVYMLShJcEHY1M41voNtHfPWItH6cQvkxCpZVR0vs8=;
+        b=hN/nUP5gPgCvVEPL65fU+dHCdA3lTiZ8RqOIxDeGlAM4OeDkDQ8E2+hD0sH2ChzMtm
+         ET80gjlSvz99jT1JUf5FmH82E6krxTV3FWfl/1rWvH7fRyt9o1+YxnBtVbwEAKAwV9bI
+         KBF+syI9PIfa52WDbucT8aKYZv6D1j5StNzp+fNiCmDEJ8VdybHz3LsmbHpLjmB+1U0M
+         s/TNrz0L9MuZZi8SOjF6Ept6vsSGu46UEk/Bp8k8iNTbhyQc8BkBpSWOasE1AVCTlll9
+         k5oxnZjKWLGn8nrDSkQQx2czBQ8ru5V1AQu0YyiOuhxRXIvoHtSGFX5SabuWp6fu3XLk
+         Z48A==
+X-Gm-Message-State: AOAM533sJfXoEFaEkAT34F1ldDuyvXq/EdPbvplMdIhPaOXUR6w3cgw2
+        7ADLwjN7PcQKmXYKkrBkPXvTjMABI+Ok0g==
+X-Google-Smtp-Source: ABdhPJyQ98INu/bg6n9Pa4Xb8TqWMXaIgBi62SiHv9wRIP1x8ujNteC/67jKfp4eG0pIEO8i1AZJqg==
+X-Received: by 2002:a17:906:848:: with SMTP id f8mr13370399ejd.198.1622716927705;
+        Thu, 03 Jun 2021 03:42:07 -0700 (PDT)
+Received: from [109.186.180.4] (109-186-180-4.bb.netvision.net.il. [109.186.180.4])
+        by smtp.gmail.com with ESMTPSA id u4sm1350420eje.81.2021.06.03.03.42.06
+        (version=TLS1 cipher=AES128-SHA bits=128/128);
+        Thu, 03 Jun 2021 03:42:07 -0700 (PDT)
+Message-ID: <60B8B189.6060404@gmail.com>
+Date:   Thu, 03 Jun 2021 13:40:09 +0300
+From:   Eli Billauer <eli.billauer@gmail.com>
+User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1.12) Gecko/20100907 Fedora/3.0.7-1.fc12 Thunderbird/3.0.7
+MIME-Version: 1.0
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+CC:     Randy Dunlap <rdunlap@infradead.org>, akpm@linux-foundation.org,
+        broonie@kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-next@vger.kernel.org, mhocko@suse.cz,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+Subject: Re: mmotm 2021-06-01-19-57 uploaded (xillybus)
+References: <20210602025803.3TVVfGdaW%akpm@linux-foundation.org> <d880c052-e3e3-3af7-040d-7abdc97df1d1@infradead.org> <YLcQc0sHBaYViZIN@kroah.com>
+In-Reply-To: <YLcQc0sHBaYViZIN@kroah.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On 02/06/21 08:00, Greg Kroah-Hartman wrote:
+>> (on i386)
+>> >  
+>> >  CONFIG_XILLYBUS_CLASS=y
+>> >  CONFIG_XILLYBUS=m
+>> >  CONFIG_XILLYUSB=y
+>> >  
+>> >  ERROR: modpost: "xillybus_cleanup_chrdev" [drivers/char/xillybus/xillybus_core.ko] undefined!
+>> >  ERROR: modpost: "xillybus_init_chrdev" [drivers/char/xillybus/xillybus_core.ko] undefined!
+>> >  ERROR: modpost: "xillybus_find_inode" [drivers/char/xillybus/xillybus_core.ko] undefined!
+>> >  
+>> >  
+>> >  Full randconfig file is attached.
+>>      
+> Sorry about that, I have a fix in my inbox for this that I will push out
+> later today...
+>    
+For the record, this is the said pending patch:
 
-The patch titled
-     Subject: mm, tracing: unify PFN format strings
-has been added to the -mm tree.  Its filename is
-     mm-tracing-unify-pfn-format-strings.patch
+https://lkml.org/lkml/2021/5/28/245
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-tracing-unify-pfn-format-strings.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-tracing-unify-pfn-format-strings.patch
+I've tested this issue, and can confirm the compilation problem and that 
+the patch fixes it.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Vincent Whitchurch <vincent.whitchurch@axis.com>
-Subject: mm, tracing: unify PFN format strings
-
-Some trace event formats print PFNs as hex while others print them as
-decimal.  This is rather annoying when attempting to grep through traces
-to understand what's going on with a particular page.
-
- $ git grep -ho 'pfn=[0x%lu]\+' include/trace/events/ | sort | uniq -c
-      11 pfn=0x%lx
-      12 pfn=%lu
-       2 pfn=%lx
-
-Printing as hex is in the majority in the trace events, and all the normal
-printks in mm/ also print PFNs as hex, so change all the PFN formats in
-the trace events to use 0x%lx.
-
-Link: https://lkml.kernel.org/r/20210602092608.1493-1-vincent.whitchurch@axis.com
-Signed-off-by: Vincent Whitchurch <vincent.whitchurch@axis.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jesper Dangaard Brouer <hawk@kernel.org>
-Cc: Ilias Apalodimas <ilias.apalodimas@linaro.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/trace/events/cma.h       |    4 ++--
- include/trace/events/filemap.h   |    2 +-
- include/trace/events/kmem.h      |   12 ++++++------
- include/trace/events/page_pool.h |    4 ++--
- include/trace/events/pagemap.h   |    4 ++--
- include/trace/events/vmscan.h    |    2 +-
- 6 files changed, 14 insertions(+), 14 deletions(-)
-
---- a/include/trace/events/cma.h~mm-tracing-unify-pfn-format-strings
-+++ a/include/trace/events/cma.h
-@@ -31,7 +31,7 @@ DECLARE_EVENT_CLASS(cma_alloc_class,
- 		__entry->align = align;
- 	),
- 
--	TP_printk("name=%s pfn=%lx page=%p count=%lu align=%u",
-+	TP_printk("name=%s pfn=0x%lx page=%p count=%lu align=%u",
- 		  __get_str(name),
- 		  __entry->pfn,
- 		  __entry->page,
-@@ -60,7 +60,7 @@ TRACE_EVENT(cma_release,
- 		__entry->count = count;
- 	),
- 
--	TP_printk("name=%s pfn=%lx page=%p count=%lu",
-+	TP_printk("name=%s pfn=0x%lx page=%p count=%lu",
- 		  __get_str(name),
- 		  __entry->pfn,
- 		  __entry->page,
---- a/include/trace/events/filemap.h~mm-tracing-unify-pfn-format-strings
-+++ a/include/trace/events/filemap.h
-@@ -36,7 +36,7 @@ DECLARE_EVENT_CLASS(mm_filemap_op_page_c
- 			__entry->s_dev = page->mapping->host->i_rdev;
- 	),
- 
--	TP_printk("dev %d:%d ino %lx page=%p pfn=%lu ofs=%lu",
-+	TP_printk("dev %d:%d ino %lx page=%p pfn=0x%lx ofs=%lu",
- 		MAJOR(__entry->s_dev), MINOR(__entry->s_dev),
- 		__entry->i_ino,
- 		pfn_to_page(__entry->pfn),
---- a/include/trace/events/kmem.h~mm-tracing-unify-pfn-format-strings
-+++ a/include/trace/events/kmem.h
-@@ -173,7 +173,7 @@ TRACE_EVENT(mm_page_free,
- 		__entry->order		= order;
- 	),
- 
--	TP_printk("page=%p pfn=%lu order=%d",
-+	TP_printk("page=%p pfn=0x%lx order=%d",
- 			pfn_to_page(__entry->pfn),
- 			__entry->pfn,
- 			__entry->order)
-@@ -193,7 +193,7 @@ TRACE_EVENT(mm_page_free_batched,
- 		__entry->pfn		= page_to_pfn(page);
- 	),
- 
--	TP_printk("page=%p pfn=%lu order=0",
-+	TP_printk("page=%p pfn=0x%lx order=0",
- 			pfn_to_page(__entry->pfn),
- 			__entry->pfn)
- );
-@@ -219,7 +219,7 @@ TRACE_EVENT(mm_page_alloc,
- 		__entry->migratetype	= migratetype;
- 	),
- 
--	TP_printk("page=%p pfn=%lu order=%d migratetype=%d gfp_flags=%s",
-+	TP_printk("page=%p pfn=0x%lx order=%d migratetype=%d gfp_flags=%s",
- 		__entry->pfn != -1UL ? pfn_to_page(__entry->pfn) : NULL,
- 		__entry->pfn != -1UL ? __entry->pfn : 0,
- 		__entry->order,
-@@ -245,7 +245,7 @@ DECLARE_EVENT_CLASS(mm_page,
- 		__entry->migratetype	= migratetype;
- 	),
- 
--	TP_printk("page=%p pfn=%lu order=%u migratetype=%d percpu_refill=%d",
-+	TP_printk("page=%p pfn=0x%lx order=%u migratetype=%d percpu_refill=%d",
- 		__entry->pfn != -1UL ? pfn_to_page(__entry->pfn) : NULL,
- 		__entry->pfn != -1UL ? __entry->pfn : 0,
- 		__entry->order,
-@@ -278,7 +278,7 @@ TRACE_EVENT(mm_page_pcpu_drain,
- 		__entry->migratetype	= migratetype;
- 	),
- 
--	TP_printk("page=%p pfn=%lu order=%d migratetype=%d",
-+	TP_printk("page=%p pfn=0x%lx order=%d migratetype=%d",
- 		pfn_to_page(__entry->pfn), __entry->pfn,
- 		__entry->order, __entry->migratetype)
- );
-@@ -312,7 +312,7 @@ TRACE_EVENT(mm_page_alloc_extfrag,
- 					get_pageblock_migratetype(page));
- 	),
- 
--	TP_printk("page=%p pfn=%lu alloc_order=%d fallback_order=%d pageblock_order=%d alloc_migratetype=%d fallback_migratetype=%d fragmenting=%d change_ownership=%d",
-+	TP_printk("page=%p pfn=0x%lx alloc_order=%d fallback_order=%d pageblock_order=%d alloc_migratetype=%d fallback_migratetype=%d fragmenting=%d change_ownership=%d",
- 		pfn_to_page(__entry->pfn),
- 		__entry->pfn,
- 		__entry->alloc_order,
---- a/include/trace/events/pagemap.h~mm-tracing-unify-pfn-format-strings
-+++ a/include/trace/events/pagemap.h
-@@ -46,7 +46,7 @@ TRACE_EVENT(mm_lru_insertion,
- 	),
- 
- 	/* Flag format is based on page-types.c formatting for pagemap */
--	TP_printk("page=%p pfn=%lu lru=%d flags=%s%s%s%s%s%s",
-+	TP_printk("page=%p pfn=0x%lx lru=%d flags=%s%s%s%s%s%s",
- 			__entry->page,
- 			__entry->pfn,
- 			__entry->lru,
-@@ -75,7 +75,7 @@ TRACE_EVENT(mm_lru_activate,
- 	),
- 
- 	/* Flag format is based on page-types.c formatting for pagemap */
--	TP_printk("page=%p pfn=%lu", __entry->page, __entry->pfn)
-+	TP_printk("page=%p pfn=0x%lx", __entry->page, __entry->pfn)
- 
- );
- 
---- a/include/trace/events/page_pool.h~mm-tracing-unify-pfn-format-strings
-+++ a/include/trace/events/page_pool.h
-@@ -60,7 +60,7 @@ TRACE_EVENT(page_pool_state_release,
- 		__entry->pfn		= page_to_pfn(page);
- 	),
- 
--	TP_printk("page_pool=%p page=%p pfn=%lu release=%u",
-+	TP_printk("page_pool=%p page=%p pfn=0x%lx release=%u",
- 		  __entry->pool, __entry->page, __entry->pfn, __entry->release)
- );
- 
-@@ -85,7 +85,7 @@ TRACE_EVENT(page_pool_state_hold,
- 		__entry->pfn	= page_to_pfn(page);
- 	),
- 
--	TP_printk("page_pool=%p page=%p pfn=%lu hold=%u",
-+	TP_printk("page_pool=%p page=%p pfn=0x%lx hold=%u",
- 		  __entry->pool, __entry->page, __entry->pfn, __entry->hold)
- );
- 
---- a/include/trace/events/vmscan.h~mm-tracing-unify-pfn-format-strings
-+++ a/include/trace/events/vmscan.h
-@@ -330,7 +330,7 @@ TRACE_EVENT(mm_vmscan_writepage,
- 						page_is_file_lru(page));
- 	),
- 
--	TP_printk("page=%p pfn=%lu flags=%s",
-+	TP_printk("page=%p pfn=0x%lx flags=%s",
- 		pfn_to_page(__entry->pfn),
- 		__entry->pfn,
- 		show_reclaim_flags(__entry->reclaim_flags))
-_
-
-Patches currently in -mm which might be from vincent.whitchurch@axis.com are
-
-squashfs-add-option-to-panic-on-errors.patch
-mm-tracing-unify-pfn-format-strings.patch
-
+Regards,
+    Eli
