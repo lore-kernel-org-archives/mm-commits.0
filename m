@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 003A0C4743D
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A8C3C4743C
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DDB78613F4
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4DA7B61263
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231462AbhFDUxY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Jun 2021 16:53:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45180 "EHLO mail.kernel.org"
+        id S231490AbhFDUx0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Jun 2021 16:53:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45208 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231459AbhFDUxX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Jun 2021 16:53:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CC2F0613C9;
-        Fri,  4 Jun 2021 20:51:36 +0000 (UTC)
+        id S229938AbhFDUxZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Jun 2021 16:53:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D7DE961263;
+        Fri,  4 Jun 2021 20:51:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622839897;
-        bh=Y9o7n6sWwWenjv5EJg+tVG/6amTZwaWUAMKyY56/KJU=;
+        s=korg; t=1622839899;
+        bh=AGN5dgxGMrG8biTg5LHCynnaWSrcv9N2oDelwYOZc0Y=;
         h=Date:From:To:Subject:From;
-        b=1mFrtzNZP2ZHAyiC2hz1YlZTGqkYta1DGndJkHWhZwB61PgO0OeoDTbefoHkTWRO5
-         kNDpaxfSfG2FVcMLZns7aSAQ4luGJl1gpDfRDZCoYIcfVEaUnOSc4mOuT8fSHEj0y/
-         C7bQkRIJL3/K+HznMKT4nsfOVTeEbzRA4szkCkOY=
-Date:   Fri, 04 Jun 2021 13:51:36 -0700
+        b=x2QcUAnHKT88LATGKCtEHh0r73wIczgiD5PqpE/8jN08LVPB9r4dJ5TIybxZmESm4
+         ASq6FVVe603TIqC+JO1yhqFXsv8pHtOUQlz3CP4boVKxWfjnEtgABaUVedZY4GyqIe
+         4wmW4nwPZ3GO2dOpsmPLKMwqCo1voDqZkPp/KeSo=
+Date:   Fri, 04 Jun 2021 13:51:38 -0700
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, mm-commits@vger.kernel.org,
-        wangkefeng.wang@huawei.com, will@kernel.org
-Subject:  + arm64-convert-to-setup_initial_init_mm.patch added to
+To:     guoren@kernel.org, mm-commits@vger.kernel.org,
+        wangkefeng.wang@huawei.com
+Subject:  + csky-convert-to-setup_initial_init_mm.patch added to
  -mm tree
-Message-ID: <20210604205136.7jQfoKIL4%akpm@linux-foundation.org>
+Message-ID: <20210604205138.vB9e6irqU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: convert to setup_initial_init_mm()
+     Subject: csky: convert to setup_initial_init_mm()
 has been added to the -mm tree.  Its filename is
-     arm64-convert-to-setup_initial_init_mm.patch
+     csky-convert-to-setup_initial_init_mm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/csky-convert-to-setup_initial_init_mm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/csky-convert-to-setup_initial_init_mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,33 +65,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: arm64: convert to setup_initial_init_mm()
+Subject: csky: convert to setup_initial_init_mm()
 
 Use setup_initial_init_mm() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210604070633.32363-5-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210604070633.32363-6-wangkefeng.wang@huawei.com
+Acked-by: Guo Ren <guoren@kernel.org>
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Guo Ren <guoren@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/setup.c |    5 +----
+ arch/csky/kernel/setup.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/arm64/kernel/setup.c~arm64-convert-to-setup_initial_init_mm
-+++ a/arch/arm64/kernel/setup.c
-@@ -298,10 +298,7 @@ u64 cpu_logical_map(unsigned int cpu)
+--- a/arch/csky/kernel/setup.c~csky-convert-to-setup_initial_init_mm
++++ a/arch/csky/kernel/setup.c
+@@ -78,10 +78,7 @@ void __init setup_arch(char **cmdline_p)
+ 	pr_info("Phys. mem: %ldMB\n",
+ 		(unsigned long) memblock_phys_mem_size()/1024/1024);
  
- void __init __no_sanitize_address setup_arch(char **cmdline_p)
- {
 -	init_mm.start_code = (unsigned long) _stext;
--	init_mm.end_code   = (unsigned long) _etext;
--	init_mm.end_data   = (unsigned long) _edata;
--	init_mm.brk	   = (unsigned long) _end;
+-	init_mm.end_code = (unsigned long) _etext;
+-	init_mm.end_data = (unsigned long) _edata;
+-	init_mm.brk = (unsigned long) _end;
 +	setup_initial_init_mm(_stext, _etext, _edata, _end);
  
- 	*cmdline_p = boot_command_line;
+ 	parse_early_param();
  
 _
 
