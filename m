@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1426C4743C
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E6E5C4743D
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C732461405
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 266E661407
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231512AbhFDUxg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Jun 2021 16:53:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45424 "EHLO mail.kernel.org"
+        id S231319AbhFDUxh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Jun 2021 16:53:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231319AbhFDUxg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Jun 2021 16:53:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E739261263;
-        Fri,  4 Jun 2021 20:51:48 +0000 (UTC)
+        id S229913AbhFDUxh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Jun 2021 16:53:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CFF7261403;
+        Fri,  4 Jun 2021 20:51:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622839909;
-        bh=lA2XgAM1nPN2Kp7XJkbTAGFSjb74PVffO2L82HlsbGE=;
+        s=korg; t=1622839911;
+        bh=Zg6P8XtHXRjZc7uysy7KpYcIqavZKWNTAH6WBi8DXUg=;
         h=Date:From:To:Subject:From;
-        b=ItGt1YgI6p8/zPwJwiRgL0rly/4g33Nlwj/h+EB963hddBpJQ0tWvJ00gglftqE/1
-         jQcc3gHZyD57ZXAZb1bq08cwxL1NV+bY10VydZxj75RnLOyMO6xsjmXTmebJAyYw2n
-         imYYCHxz1dOaJN/2yGUo9NpSkoQunSLK8Zg8oU+0=
-Date:   Fri, 04 Jun 2021 13:51:48 -0700
+        b=UVa7lLttkbpbfsxeDYLEEVP7/4CM84KmHY7D+zdP16ELlq9YkSdVITxP8j2hJ00hK
+         juhAWGBQpQ/r0oU1sagpEfFmBqID6dLQop7ayd57aWe4+kauTSAYyun7hFlSUmb1wY
+         Vdw2HIJ28piwr0vToKrUqNi0mFRoChibNPRIcecA=
+Date:   Fri, 04 Jun 2021 13:51:50 -0700
 From:   akpm@linux-foundation.org
-To:     jonas@southpole.se, mm-commits@vger.kernel.org, shorne@gmail.com,
-        stefan.kristiansson@saunalahti.fi, wangkefeng.wang@huawei.com
-Subject:  + openrisc-convert-to-setup_initial_init_mm.patch added
- to -mm tree
-Message-ID: <20210604205148.UDJ5rRbIq%akpm@linux-foundation.org>
+To:     benh@kernel.crashing.org, mm-commits@vger.kernel.org,
+        mpe@ellerman.id.au, wangkefeng.wang@huawei.com
+Subject:  + powerpc-convert-to-setup_initial_init_mm.patch added to
+ -mm tree
+Message-ID: <20210604205150.0j1MpsVgQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: openrisc: convert to setup_initial_init_mm()
+     Subject: powerpc: convert to setup_initial_init_mm()
 has been added to the -mm tree.  Its filename is
-     openrisc-convert-to-setup_initial_init_mm.patch
+     powerpc-convert-to-setup_initial_init_mm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/openrisc-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/powerpc-convert-to-setup_initial_init_mm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/openrisc-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/powerpc-convert-to-setup_initial_init_mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,36 +65,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: openrisc: convert to setup_initial_init_mm()
+Subject: powerpc: convert to setup_initial_init_mm()
 
 Use setup_initial_init_mm() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210604070633.32363-11-wangkefeng.wang@huawei.com
+Note klimit is (unsigned long) _end, with new helper, will use _end
+directly.
+
+Link: https://lkml.kernel.org/r/20210604070633.32363-12-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Stafford Horne <shorne@gmail.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Stafford Horne <shorne@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/kernel/setup.c |    5 +----
+ arch/powerpc/kernel/setup-common.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/openrisc/kernel/setup.c~openrisc-convert-to-setup_initial_init_mm
-+++ a/arch/openrisc/kernel/setup.c
-@@ -293,10 +293,7 @@ void __init setup_arch(char **cmdline_p)
- #endif
+--- a/arch/powerpc/kernel/setup-common.c~powerpc-convert-to-setup_initial_init_mm
++++ a/arch/powerpc/kernel/setup-common.c
+@@ -927,10 +927,7 @@ void __init setup_arch(char **cmdline_p)
  
- 	/* process 1's initial memory region is the kernel code/data */
+ 	klp_init_thread_info(&init_task);
+ 
 -	init_mm.start_code = (unsigned long)_stext;
--	init_mm.end_code = (unsigned long)_etext;
--	init_mm.end_data = (unsigned long)_edata;
--	init_mm.brk = (unsigned long)_end;
+-	init_mm.end_code = (unsigned long) _etext;
+-	init_mm.end_data = (unsigned long) _edata;
+-	init_mm.brk = klimit;
 +	setup_initial_init_mm(_stext, _etext, _edata, _end);
  
- #ifdef CONFIG_BLK_DEV_INITRD
- 	if (initrd_start == initrd_end) {
+ 	mm_iommu_init(&init_mm);
+ 	irqstack_early_init();
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
