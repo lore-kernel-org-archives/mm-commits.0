@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA630C4743C
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:42:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 833CFC4743C
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:46:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 97BC4613FF
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:42:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 638C6613F3
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:46:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230256AbhFDUny (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Jun 2021 16:43:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40538 "EHLO mail.kernel.org"
+        id S229938AbhFDUsW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Jun 2021 16:48:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230177AbhFDUny (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Jun 2021 16:43:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 927B761287;
-        Fri,  4 Jun 2021 20:42:07 +0000 (UTC)
+        id S229906AbhFDUsW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Jun 2021 16:48:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BF4BC61026;
+        Fri,  4 Jun 2021 20:46:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622839327;
-        bh=MAK9xR33vWkhZFOj43EuO9eFYRzgmX+ELZ/BOX8oPQw=;
+        s=korg; t=1622839595;
+        bh=dQ3Kkv6rtohc8JKx1AB8Ca7DVId+YwWjYZm0dXBU/4o=;
         h=Date:From:To:Subject:From;
-        b=0DR6Z7GvOeZUd0ml9rMuyNW++Q9uDybgY48ENurIh65VFPzrbD2XqFPqhAsONlTFq
-         4JHhGKoK2mtRF4BkgLD+NZua8QfHFpLsnVaAVWMpiiZ6MNA0uvdB2uESgA8gTEfIFy
-         BEzXTn2dZuX1TkAvnnRTBELPrCoGZ3pM60I3WOOg=
-Date:   Fri, 04 Jun 2021 13:42:07 -0700
+        b=uNyFCH7vQcK+IcTScrBKjn1ffHMKZ2oA2V8O4RfTz9LMyeVS413wqzGHqL5kQTpXd
+         sHoge/+LcE9Z8cbnkfD5zGT4EYwEgdOIldHIVVrVyI7/aoa+M6KFCTLVv2BUAl1M2l
+         GoXRvNtCeioyQaD2piRkkiW9THmuAZKrcnTje6o0=
+Date:   Fri, 04 Jun 2021 13:46:34 -0700
 From:   akpm@linux-foundation.org
-To:     herbert@gondor.apana.org.au, mm-commits@vger.kernel.org,
-        thunder.leizhen@huawei.com
-Subject:  + lib-mpi-fix-spelling-mistakes.patch added to -mm tree
-Message-ID: <20210604204207.XpJW_GSSP%akpm@linux-foundation.org>
+To:     chenli@uniontech.com, chris@zankel.net, geert@linux-m68k.org,
+        jonas@southpole.se, linux@armlinux.org.uk,
+        mm-commits@vger.kernel.org
+Subject:  + mm-update-legacy-flush_tlb_-to-use-vma.patch added to
+ -mm tree
+Message-ID: <20210604204634.Owu3-LAuT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/mpi: fix spelling mistakes
+     Subject: mm: update legacy flush_tlb_* to use vma
 has been added to the -mm tree.  Its filename is
-     lib-mpi-fix-spelling-mistakes.patch
+     mm-update-legacy-flush_tlb_-to-use-vma.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-mpi-fix-spelling-mistakes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-update-legacy-flush_tlb_-to-use-vma.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-mpi-fix-spelling-mistakes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-update-legacy-flush_tlb_-to-use-vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,97 +65,138 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: lib/mpi: fix spelling mistakes
+From: Chen Li <chenli@uniontech.com>
+Subject: mm: update legacy flush_tlb_* to use vma
 
-Fix some spelling mistakes in comments:
-flaged ==> flagged
-bufer ==> buffer
-multipler ==> multiplier
-MULTIPLER ==> MULTIPLIER
-leaset ==> least
-chnage ==> change
+1.  These tlb flush functions have been using vma instead mm long time
+   ago, but there is still some coments use mm as parameter.
 
-Link: https://lkml.kernel.org/r/20210604074401.12198-1-thunder.leizhen@huawei.com
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+2. the actual struct we use is vm_area_struct instead of vma_struct.
+
+3. remove unused flush_kern_tlb_page.
+
+Link: https://lkml.kernel.org/r/87k0oaq311.wl-chenli@uniontech.com
+Signed-off-by: Chen Li <chenli@uniontech.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mpi.h |    4 ++--
- lib/mpi/longlong.h  |    4 ++--
- lib/mpi/mpicoder.c  |    6 +++---
- lib/mpi/mpiutil.c   |    2 +-
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ arch/arm/include/asm/tlbflush.h      |   13 +++----------
+ arch/arm/mm/tlb-v6.S                 |    2 +-
+ arch/arm/mm/tlb-v7.S                 |    2 +-
+ arch/ia64/kernel/efi_stub.S          |    2 +-
+ arch/m68k/include/asm/tlbflush.h     |    2 +-
+ arch/openrisc/include/asm/tlbflush.h |    2 +-
+ arch/xtensa/include/asm/tlbflush.h   |    4 ++--
+ 7 files changed, 10 insertions(+), 17 deletions(-)
 
---- a/include/linux/mpi.h~lib-mpi-fix-spelling-mistakes
-+++ a/include/linux/mpi.h
-@@ -200,7 +200,7 @@ struct mpi_ec_ctx {
- 	unsigned int nbits;            /* Number of bits.  */
- 
- 	/* Domain parameters.  Note that they may not all be set and if set
--	 * the MPIs may be flaged as constant.
-+	 * the MPIs may be flagged as constant.
- 	 */
- 	MPI p;         /* Prime specifying the field GF(p).  */
- 	MPI a;         /* First coefficient of the Weierstrass equation.  */
-@@ -267,7 +267,7 @@ int mpi_ec_curve_point(MPI_POINT point,
- /**
-  * mpi_get_size() - returns max size required to store the number
+--- a/arch/arm/include/asm/tlbflush.h~mm-update-legacy-flush_tlb_-to-use-vma
++++ a/arch/arm/include/asm/tlbflush.h
+@@ -253,7 +253,7 @@ extern struct cpu_tlb_fns cpu_tlb;
+  *		space.
+  *		- mm	- mm_struct describing address space
   *
-- * @a:	A multi precision integer for which we want to allocate a bufer
-+ * @a:	A multi precision integer for which we want to allocate a buffer
+- *	flush_tlb_range(mm,start,end)
++ *	flush_tlb_range(vma,start,end)
   *
-  * Return: size required to store the number
+  *		Invalidate a range of TLB entries in the specified
+  *		address space.
+@@ -261,18 +261,11 @@ extern struct cpu_tlb_fns cpu_tlb;
+  *		- start - start address (may not be aligned)
+  *		- end	- end address (exclusive, may not be aligned)
+  *
+- *	flush_tlb_page(vaddr,vma)
++ *	flush_tlb_page(vma, uaddr)
+  *
+  *		Invalidate the specified page in the specified address range.
++ *		- vma	- vm_area_struct describing address range
+  *		- vaddr - virtual address (may not be aligned)
+- *		- vma	- vma_struct describing address range
+- *
+- *	flush_kern_tlb_page(kaddr)
+- *
+- *		Invalidate the TLB entry for the specified page.  The address
+- *		will be in the kernels virtual memory space.  Current uses
+- *		only require the D-TLB to be invalidated.
+- *		- kaddr - Kernel virtual memory address
   */
---- a/lib/mpi/longlong.h~lib-mpi-fix-spelling-mistakes
-+++ a/lib/mpi/longlong.h
-@@ -48,8 +48,8 @@
  
- /* Define auxiliary asm macros.
+ /*
+--- a/arch/arm/mm/tlb-v6.S~mm-update-legacy-flush_tlb_-to-use-vma
++++ a/arch/arm/mm/tlb-v6.S
+@@ -24,7 +24,7 @@
   *
-- * 1) umul_ppmm(high_prod, low_prod, multipler, multiplicand) multiplies two
-- * UWtype integers MULTIPLER and MULTIPLICAND, and generates a two UWtype
-+ * 1) umul_ppmm(high_prod, low_prod, multiplier, multiplicand) multiplies two
-+ * UWtype integers MULTIPLIER and MULTIPLICAND, and generates a two UWtype
-  * word product in HIGH_PROD and LOW_PROD.
+  *	- start - start address (may not be aligned)
+  *	- end   - end address (exclusive, may not be aligned)
+- *	- vma   - vma_struct describing address range
++ *	- vma   - vm_area_struct describing address range
   *
-  * 2) __umulsidi3(a,b) multiplies two UWtype integers A and B, and returns a
---- a/lib/mpi/mpicoder.c~lib-mpi-fix-spelling-mistakes
-+++ a/lib/mpi/mpicoder.c
-@@ -234,11 +234,11 @@ static int count_lzeros(MPI a)
+  *	It is assumed that:
+  *	- the "Invalidate single entry" instruction will invalidate
+--- a/arch/arm/mm/tlb-v7.S~mm-update-legacy-flush_tlb_-to-use-vma
++++ a/arch/arm/mm/tlb-v7.S
+@@ -23,7 +23,7 @@
+  *
+  *	- start - start address (may not be aligned)
+  *	- end   - end address (exclusive, may not be aligned)
+- *	- vma   - vma_struct describing address range
++ *	- vma   - vm_area_struct describing address range
+  *
+  *	It is assumed that:
+  *	- the "Invalidate single entry" instruction will invalidate
+--- a/arch/ia64/kernel/efi_stub.S~mm-update-legacy-flush_tlb_-to-use-vma
++++ a/arch/ia64/kernel/efi_stub.S
+@@ -7,7 +7,7 @@
+  *
+  * This stub allows us to make EFI calls in physical mode with interrupts
+  * turned off.  We need this because we can't call SetVirtualMap() until
+- * the kernel has booted far enough to allow allocation of struct vma_struct
++ * the kernel has booted far enough to allow allocation of struct vm_area_struct
+  * entries (which we would need to map stuff with memory attributes other
+  * than uncached or writeback...).  Since the GetTime() service gets called
+  * earlier than that, we need to be able to make physical mode EFI calls from
+--- a/arch/m68k/include/asm/tlbflush.h~mm-update-legacy-flush_tlb_-to-use-vma
++++ a/arch/m68k/include/asm/tlbflush.h
+@@ -263,7 +263,7 @@ static inline void flush_tlb_page(struct
+ 	BUG();
  }
  
- /**
-- * mpi_read_buffer() - read MPI to a bufer provided by user (msb first)
-+ * mpi_read_buffer() - read MPI to a buffer provided by user (msb first)
-  *
-  * @a:		a multi precision integer
-- * @buf:	bufer to which the output will be written to. Needs to be at
-- *		leaset mpi_get_size(a) long.
-+ * @buf:	buffer to which the output will be written to. Needs to be at
-+ *		least mpi_get_size(a) long.
-  * @buf_len:	size of the buf.
-  * @nbytes:	receives the actual length of the data written on success and
-  *		the data to-be-written on -EOVERFLOW in case buf_len was too
---- a/lib/mpi/mpiutil.c~lib-mpi-fix-spelling-mistakes
-+++ a/lib/mpi/mpiutil.c
-@@ -80,7 +80,7 @@ EXPORT_SYMBOL_GPL(mpi_const);
- /****************
-  * Note:  It was a bad idea to use the number of limbs to allocate
-  *	  because on a alpha the limbs are large but we normally need
-- *	  integers of n bits - So we should chnage this to bits (or bytes).
-+ *	  integers of n bits - So we should change this to bits (or bytes).
-  *
-  *	  But mpi_alloc is used in a lot of places :-)
+-static inline void flush_tlb_range(struct mm_struct *mm,
++static inline void flush_tlb_range(struct vm_area_struct *vma,
+ 				   unsigned long start, unsigned long end)
+ {
+ 	BUG();
+--- a/arch/openrisc/include/asm/tlbflush.h~mm-update-legacy-flush_tlb_-to-use-vma
++++ a/arch/openrisc/include/asm/tlbflush.h
+@@ -25,7 +25,7 @@
+  *  - flush_tlb_all() flushes all processes TLBs
+  *  - flush_tlb_mm(mm) flushes the specified mm context TLB's
+  *  - flush_tlb_page(vma, vmaddr) flushes one page
+- *  - flush_tlb_range(mm, start, end) flushes a range of pages
++ *  - flush_tlb_range(vma, start, end) flushes a range of pages
   */
+ extern void local_flush_tlb_all(void);
+ extern void local_flush_tlb_mm(struct mm_struct *mm);
+--- a/arch/xtensa/include/asm/tlbflush.h~mm-update-legacy-flush_tlb_-to-use-vma
++++ a/arch/xtensa/include/asm/tlbflush.h
+@@ -26,8 +26,8 @@
+  *
+  *  - flush_tlb_all() flushes all processes TLB entries
+  *  - flush_tlb_mm(mm) flushes the specified mm context TLB entries
+- *  - flush_tlb_page(mm, vmaddr) flushes a single page
+- *  - flush_tlb_range(mm, start, end) flushes a range of pages
++ *  - flush_tlb_page(vma, page) flushes a single page
++ *  - flush_tlb_range(vma, vmaddr, end) flushes a range of pages
+  */
+ 
+ void local_flush_tlb_all(void);
 _
 
-Patches currently in -mm which might be from thunder.leizhen@huawei.com are
+Patches currently in -mm which might be from chenli@uniontech.com are
 
-mm-clear-spelling-mistakes.patch
-lib-decompress_bunzip2-remove-an-unneeded-semicolon.patch
-lib-decompressors-fix-spelling-mistakes.patch
-lib-mpi-fix-spelling-mistakes.patch
-mm-fix-spelling-mistakes-in-header-files.patch
+mm-update-legacy-flush_tlb_-to-use-vma.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc.patch
 
