@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAF87C4743E
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE70DC4743D
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D01160C40
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9750861403
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231441AbhFDUxT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Jun 2021 16:53:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45096 "EHLO mail.kernel.org"
+        id S231443AbhFDUxV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Jun 2021 16:53:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45142 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231320AbhFDUxT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Jun 2021 16:53:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C3AAA61404;
-        Fri,  4 Jun 2021 20:51:32 +0000 (UTC)
+        id S231320AbhFDUxV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Jun 2021 16:53:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C7194613AA;
+        Fri,  4 Jun 2021 20:51:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622839892;
-        bh=KUNzs+qtJ3CmthBoC4/iNmkYq7q2BhlAA/lfPzi/vaI=;
+        s=korg; t=1622839894;
+        bh=/JeUnf5IYayEEVBmfzPrYGTK9K0PRprZWwlIpQiMM4k=;
         h=Date:From:To:Subject:From;
-        b=OuNZYETv/TLymPVmRlKDE+59seKPLvud59O53k+81zqWak6etK+gL6f7caz68GVmL
-         /9nZAkOMnTiyiYZSPUnwtScYkCKcA/sbZbzs5YyacBdUjzkSKuIg3wmFftMP9sVX6r
-         JHsIOZQkDR16tnX7kzk5+1lmggVGQ1NC2MUXAFF8=
-Date:   Fri, 04 Jun 2021 13:51:32 -0700
+        b=mCR6ZPIXevOS1QPDl2zN4OCZOnVb8Z5BozSAQMxT2/4KlrSePnUaroEEvh6GxoD03
+         DtdkmonqxKlzshlR3rVgxm2PtBpFkpv39Wy69Qjs8fOaXk3JzqUHNXfquY9EzN61gV
+         n5eUY8YQoAq79C3JG5kkKGvMrt1etJiLyLt30/7c=
+Date:   Fri, 04 Jun 2021 13:51:34 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vgupta@synopsys.com,
+To:     linux@armlinux.org.uk, mm-commits@vger.kernel.org,
         wangkefeng.wang@huawei.com
-Subject:  + arc-convert-to-setup_initial_init_mm.patch added to -mm
+Subject:  + arm-convert-to-setup_initial_init_mm.patch added to -mm
  tree
-Message-ID: <20210604205132.43T3nmBWP%akpm@linux-foundation.org>
+Message-ID: <20210604205134.gzani1rU8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arc: convert to setup_initial_init_mm()
+     Subject: arm: convert to setup_initial_init_mm()
 has been added to the -mm tree.  Its filename is
-     arc-convert-to-setup_initial_init_mm.patch
+     arm-convert-to-setup_initial_init_mm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arc-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm-convert-to-setup_initial_init_mm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arc-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm-convert-to-setup_initial_init_mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,33 +65,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: arc: convert to setup_initial_init_mm()
+Subject: arm: convert to setup_initial_init_mm()
 
 Use setup_initial_init_mm() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210604070633.32363-3-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210604070633.32363-4-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Vineet Gupta <vgupta@synopsys.com>
+Cc: Russell King <linux@armlinux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/mm/init.c |    5 +----
+ arch/arm/kernel/setup.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/arc/mm/init.c~arc-convert-to-setup_initial_init_mm
-+++ a/arch/arc/mm/init.c
-@@ -94,10 +94,7 @@ void __init setup_arch_memory(void)
- {
- 	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
+--- a/arch/arm/kernel/setup.c~arm-convert-to-setup_initial_init_mm
++++ a/arch/arm/kernel/setup.c
+@@ -1114,10 +1114,7 @@ void __init setup_arch(char **cmdline_p)
+ 	if (mdesc->reboot_mode != REBOOT_HARD)
+ 		reboot_mode = mdesc->reboot_mode;
  
--	init_mm.start_code = (unsigned long)_text;
--	init_mm.end_code = (unsigned long)_etext;
--	init_mm.end_data = (unsigned long)_edata;
--	init_mm.brk = (unsigned long)_end;
+-	init_mm.start_code = (unsigned long) _text;
+-	init_mm.end_code   = (unsigned long) _etext;
+-	init_mm.end_data   = (unsigned long) _edata;
+-	init_mm.brk	   = (unsigned long) _end;
 +	setup_initial_init_mm(_text, _etext, _edata, _end);
  
- 	/* first page of system - kernel .vector starts here */
- 	min_low_pfn = virt_to_pfn(CONFIG_LINUX_RAM_BASE);
+ 	/* populate cmd_line too for later use, preserving boot_command_line */
+ 	strlcpy(cmd_line, boot_command_line, COMMAND_LINE_SIZE);
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
