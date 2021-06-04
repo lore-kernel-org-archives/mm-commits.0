@@ -7,35 +7,43 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 833CFC4743C
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:46:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D3AEC4743C
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 638C6613F3
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:46:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D92861405
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229938AbhFDUsW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Jun 2021 16:48:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42730 "EHLO mail.kernel.org"
+        id S229906AbhFDUxS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Jun 2021 16:53:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45022 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229906AbhFDUsW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Jun 2021 16:48:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BF4BC61026;
-        Fri,  4 Jun 2021 20:46:34 +0000 (UTC)
+        id S231320AbhFDUxR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Jun 2021 16:53:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3E89F613FF;
+        Fri,  4 Jun 2021 20:51:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622839595;
-        bh=dQ3Kkv6rtohc8JKx1AB8Ca7DVId+YwWjYZm0dXBU/4o=;
+        s=korg; t=1622839891;
+        bh=+nEsy+bln3SwPDIdRVgQEAkbT6Dmr4HYZ2KOZIJm2IA=;
         h=Date:From:To:Subject:From;
-        b=uNyFCH7vQcK+IcTScrBKjn1ffHMKZ2oA2V8O4RfTz9LMyeVS413wqzGHqL5kQTpXd
-         sHoge/+LcE9Z8cbnkfD5zGT4EYwEgdOIldHIVVrVyI7/aoa+M6KFCTLVv2BUAl1M2l
-         GoXRvNtCeioyQaD2piRkkiW9THmuAZKrcnTje6o0=
-Date:   Fri, 04 Jun 2021 13:46:34 -0700
+        b=NvTRe+pVxYRzpMEXroTmSYq07cy0oLitTr9UulrOTsSFpeZBulY6xFsQJjiDh5zsc
+         jXS5t4+d0LReOsa/P/CD1uz3UdiY1K3Cilk3g4clXD0i1YjfmWWRrf49ZAVnXvHSe8
+         3ckFr0aHJCwfKXi0lqL1cqWlfTqOQpJZ9GDJhUjg=
+Date:   Fri, 04 Jun 2021 13:51:29 -0700
 From:   akpm@linux-foundation.org
-To:     chenli@uniontech.com, chris@zankel.net, geert@linux-m68k.org,
-        jonas@southpole.se, linux@armlinux.org.uk,
-        mm-commits@vger.kernel.org
-Subject:  + mm-update-legacy-flush_tlb_-to-use-vma.patch added to
- -mm tree
-Message-ID: <20210604204634.Owu3-LAuT%akpm@linux-foundation.org>
+To:     benh@kernel.crashing.org, borntraeger@de.ibm.com,
+        catalin.marinas@arm.com, dalias@libc.org, geert@linux-m68k.org,
+        gerg@linux-m68k.org, gor@linux.ibm.com, green.hu@gmail.com,
+        guoren@kernel.org, hca@linux.ibm.com, jonas@southpole.se,
+        ley.foon.tan@intel.com, linux@armlinux.org.uk, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        nickhu@andestech.com, palmer@dabbelt.com, paul.walmsley@sifive.com,
+        shorne@gmail.com, stefan.kristiansson@saunalahti.fi,
+        tglx@linutronix.de, vgupta@synopsys.com,
+        wangkefeng.wang@huawei.com, will@kernel.org,
+        ysato@users.sourceforge.jp
+Subject:  + mm-add-setup_initial_init_mm-helper.patch added to -mm
+ tree
+Message-ID: <20210604205129.m-X18nSxE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: update legacy flush_tlb_* to use vma
+     Subject: mm: add setup_initial_init_mm() helper
 has been added to the -mm tree.  Its filename is
-     mm-update-legacy-flush_tlb_-to-use-vma.patch
+     mm-add-setup_initial_init_mm-helper.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-update-legacy-flush_tlb_-to-use-vma.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-setup_initial_init_mm-helper.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-update-legacy-flush_tlb_-to-use-vma.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-setup_initial_init_mm-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,138 +73,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Li <chenli@uniontech.com>
-Subject: mm: update legacy flush_tlb_* to use vma
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: add setup_initial_init_mm() helper
 
-1.  These tlb flush functions have been using vma instead mm long time
-   ago, but there is still some coments use mm as parameter.
+Patch series "init_mm: cleanup ARCH's text/data/brk setup code", v2.
 
-2. the actual struct we use is vm_area_struct instead of vma_struct.
+Add setup_initial_init_mm() helper, then use it to cleanup the text, data
+and brk setup code.
 
-3. remove unused flush_kern_tlb_page.
 
-Link: https://lkml.kernel.org/r/87k0oaq311.wl-chenli@uniontech.com
-Signed-off-by: Chen Li <chenli@uniontech.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Russell King <linux@armlinux.org.uk>
+This patch (of 15):
+
+Add setup_initial_init_mm() helper to setup kernel text, data and brk.
+
+Link: https://lkml.kernel.org/r/20210604070633.32363-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210604070633.32363-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Chris Zankel <chris@zankel.net>
+Cc: Ley Foon Tan <ley.foon.tan@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nick Hu <nickhu@andestech.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/tlbflush.h      |   13 +++----------
- arch/arm/mm/tlb-v6.S                 |    2 +-
- arch/arm/mm/tlb-v7.S                 |    2 +-
- arch/ia64/kernel/efi_stub.S          |    2 +-
- arch/m68k/include/asm/tlbflush.h     |    2 +-
- arch/openrisc/include/asm/tlbflush.h |    2 +-
- arch/xtensa/include/asm/tlbflush.h   |    4 ++--
- 7 files changed, 10 insertions(+), 17 deletions(-)
+ include/linux/mm_types.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/arch/arm/include/asm/tlbflush.h~mm-update-legacy-flush_tlb_-to-use-vma
-+++ a/arch/arm/include/asm/tlbflush.h
-@@ -253,7 +253,7 @@ extern struct cpu_tlb_fns cpu_tlb;
-  *		space.
-  *		- mm	- mm_struct describing address space
-  *
-- *	flush_tlb_range(mm,start,end)
-+ *	flush_tlb_range(vma,start,end)
-  *
-  *		Invalidate a range of TLB entries in the specified
-  *		address space.
-@@ -261,18 +261,11 @@ extern struct cpu_tlb_fns cpu_tlb;
-  *		- start - start address (may not be aligned)
-  *		- end	- end address (exclusive, may not be aligned)
-  *
-- *	flush_tlb_page(vaddr,vma)
-+ *	flush_tlb_page(vma, uaddr)
-  *
-  *		Invalidate the specified page in the specified address range.
-+ *		- vma	- vm_area_struct describing address range
-  *		- vaddr - virtual address (may not be aligned)
-- *		- vma	- vma_struct describing address range
-- *
-- *	flush_kern_tlb_page(kaddr)
-- *
-- *		Invalidate the TLB entry for the specified page.  The address
-- *		will be in the kernels virtual memory space.  Current uses
-- *		only require the D-TLB to be invalidated.
-- *		- kaddr - Kernel virtual memory address
-  */
+--- a/include/linux/mm_types.h~mm-add-setup_initial_init_mm-helper
++++ a/include/linux/mm_types.h
+@@ -562,6 +562,14 @@ struct mm_struct {
+ };
  
- /*
---- a/arch/arm/mm/tlb-v6.S~mm-update-legacy-flush_tlb_-to-use-vma
-+++ a/arch/arm/mm/tlb-v6.S
-@@ -24,7 +24,7 @@
-  *
-  *	- start - start address (may not be aligned)
-  *	- end   - end address (exclusive, may not be aligned)
-- *	- vma   - vma_struct describing address range
-+ *	- vma   - vm_area_struct describing address range
-  *
-  *	It is assumed that:
-  *	- the "Invalidate single entry" instruction will invalidate
---- a/arch/arm/mm/tlb-v7.S~mm-update-legacy-flush_tlb_-to-use-vma
-+++ a/arch/arm/mm/tlb-v7.S
-@@ -23,7 +23,7 @@
-  *
-  *	- start - start address (may not be aligned)
-  *	- end   - end address (exclusive, may not be aligned)
-- *	- vma   - vma_struct describing address range
-+ *	- vma   - vm_area_struct describing address range
-  *
-  *	It is assumed that:
-  *	- the "Invalidate single entry" instruction will invalidate
---- a/arch/ia64/kernel/efi_stub.S~mm-update-legacy-flush_tlb_-to-use-vma
-+++ a/arch/ia64/kernel/efi_stub.S
-@@ -7,7 +7,7 @@
-  *
-  * This stub allows us to make EFI calls in physical mode with interrupts
-  * turned off.  We need this because we can't call SetVirtualMap() until
-- * the kernel has booted far enough to allow allocation of struct vma_struct
-+ * the kernel has booted far enough to allow allocation of struct vm_area_struct
-  * entries (which we would need to map stuff with memory attributes other
-  * than uncached or writeback...).  Since the GetTime() service gets called
-  * earlier than that, we need to be able to make physical mode EFI calls from
---- a/arch/m68k/include/asm/tlbflush.h~mm-update-legacy-flush_tlb_-to-use-vma
-+++ a/arch/m68k/include/asm/tlbflush.h
-@@ -263,7 +263,7 @@ static inline void flush_tlb_page(struct
- 	BUG();
- }
+ extern struct mm_struct init_mm;
++static inline void setup_initial_init_mm(void *start_code, void *end_code,
++					 void *end_data, void *brk)
++{
++	init_mm.start_code = (unsigned long)start_code;
++	init_mm.end_code = (unsigned long)end_code;
++	init_mm.end_data = (unsigned long)end_data;
++	init_mm.brk = (unsigned long)brk;
++}
  
--static inline void flush_tlb_range(struct mm_struct *mm,
-+static inline void flush_tlb_range(struct vm_area_struct *vma,
- 				   unsigned long start, unsigned long end)
- {
- 	BUG();
---- a/arch/openrisc/include/asm/tlbflush.h~mm-update-legacy-flush_tlb_-to-use-vma
-+++ a/arch/openrisc/include/asm/tlbflush.h
-@@ -25,7 +25,7 @@
-  *  - flush_tlb_all() flushes all processes TLBs
-  *  - flush_tlb_mm(mm) flushes the specified mm context TLB's
-  *  - flush_tlb_page(vma, vmaddr) flushes one page
-- *  - flush_tlb_range(mm, start, end) flushes a range of pages
-+ *  - flush_tlb_range(vma, start, end) flushes a range of pages
-  */
- extern void local_flush_tlb_all(void);
- extern void local_flush_tlb_mm(struct mm_struct *mm);
---- a/arch/xtensa/include/asm/tlbflush.h~mm-update-legacy-flush_tlb_-to-use-vma
-+++ a/arch/xtensa/include/asm/tlbflush.h
-@@ -26,8 +26,8 @@
-  *
-  *  - flush_tlb_all() flushes all processes TLB entries
-  *  - flush_tlb_mm(mm) flushes the specified mm context TLB entries
-- *  - flush_tlb_page(mm, vmaddr) flushes a single page
-- *  - flush_tlb_range(mm, start, end) flushes a range of pages
-+ *  - flush_tlb_page(vma, page) flushes a single page
-+ *  - flush_tlb_range(vma, vmaddr, end) flushes a range of pages
-  */
- 
- void local_flush_tlb_all(void);
+ /* Pointer magic because the dynamic array size confuses some compilers. */
+ static inline void mm_init_cpumask(struct mm_struct *mm)
 _
 
-Patches currently in -mm which might be from chenli@uniontech.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-update-legacy-flush_tlb_-to-use-vma.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc.patch
+mm-page-writeback-kill-get_writeback_state-comments.patch
+mm-add-setup_initial_init_mm-helper.patch
+arc-convert-to-setup_initial_init_mm.patch
+arm-convert-to-setup_initial_init_mm.patch
+arm64-convert-to-setup_initial_init_mm.patch
+csky-convert-to-setup_initial_init_mm.patch
+h8300-convert-to-setup_initial_init_mm.patch
+m68k-convert-to-setup_initial_init_mm.patch
+nds32-convert-to-setup_initial_init_mm.patch
+nios2-convert-to-setup_initial_init_mm.patch
+openrisc-convert-to-setup_initial_init_mm.patch
+powerpc-convert-to-setup_initial_init_mm.patch
+riscv-convert-to-setup_initial_init_mm.patch
+s390-convert-to-setup_initial_init_mm.patch
+sh-convert-to-setup_initial_init_mm.patch
+x86-convert-to-setup_initial_init_mm.patch
+mm-move-holes_in_zone-into-mm.patch
+mm-generalize-zone_.patch
 
