@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35C32C47082
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FD28C47096
 	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 03:03:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 191A16140B
+	by mail.kernel.org (Postfix) with ESMTP id 3FCA7613EA
 	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 03:03:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229849AbhFDDFX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229704AbhFDDFX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 3 Jun 2021 23:05:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49720 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49754 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229704AbhFDDFW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S229794AbhFDDFW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 3 Jun 2021 23:05:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 08C066140B;
-        Fri,  4 Jun 2021 03:03:22 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E7ECB6140C;
+        Fri,  4 Jun 2021 03:03:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622775802;
-        bh=4WfBnfiPiVNwaCuRy690up8Myql4g1UUrMTyEE1jBTI=;
+        s=korg; t=1622775806;
+        bh=WnFxLgkSvHFsO/mbHnLRlIBFdwCee0Gif+bN9AMGvjs=;
         h=Date:From:To:Subject:From;
-        b=Ow4ZxYK6TfPSnDojnD/Iy1Mcwvo91c2TlYB8tfcxtyjuC0+cLzIpNKLSWvtRHgrt3
-         FtFmZmHa8MzZ34+hNWvcAybk9m7fQpHeGXvOgUGEzJwNEqn+eGr5ctM/ibmRfexc9o
-         YDV9Cqc8h8I35LA5yEojWCYZKpesI9FQYNl2LRUI=
-Date:   Thu, 03 Jun 2021 20:03:21 -0700
+        b=Xbder+GyDrPFXU1d5kdN/kWC0sfZeMac87UmZ08SUdKeIIl30w12fHcmn72VX36x6
+         hJp9BDfuwNQjjlqv5tuJG1zP+sECWws4GffafAdJn0K00cUZ776H296CyClfIYrZ0R
+         YYavIwm364c/tcZjZ05sDREo9uL077t9hjG2hAPY=
+Date:   Thu, 03 Jun 2021 20:03:25 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@gmail.com, catalin.marinas@arm.com, eugenis@google.com,
         glider@google.com, jannh@google.com, mm-commits@vger.kernel.org,
         pcc@google.com, vincenzo.frascino@arm.com
 Subject:  +
- arm64-mte-handle-tags-zeroing-at-page-allocation-time.patch added to -mm
+ kasan-disable-freed-user-page-poisoning-with-hw-tags.patch added to -mm
  tree
-Message-ID: <20210604030321.RrLaU3Vza%akpm@linux-foundation.org>
+Message-ID: <20210604030325.c-HYevwmm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: mte: handle tags zeroing at page allocation time
+     Subject: kasan: disable freed user page poisoning with HW tags
 has been added to the -mm tree.  Its filename is
-     arm64-mte-handle-tags-zeroing-at-page-allocation-time.patch
+     kasan-disable-freed-user-page-poisoning-with-hw-tags.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-mte-handle-tags-zeroing-at-page-allocation-time.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-disable-freed-user-page-poisoning-with-hw-tags.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-mte-handle-tags-zeroing-at-page-allocation-time.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-disable-freed-user-page-poisoning-with-hw-tags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,288 +67,185 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Collingbourne <pcc@google.com>
-Subject: arm64: mte: handle tags zeroing at page allocation time
+Subject: kasan: disable freed user page poisoning with HW tags
 
-Currently, on an anonymous page fault, the kernel allocates a zeroed page
-and maps it in user space.  If the mapping is tagged (PROT_MTE),
-set_pte_at() additionally clears the tags.  It is, however, more efficient
-to clear the tags at the same time as zeroing the data on allocation.  To
-avoid clearing the tags on any page (which may not be mapped as tagged),
-only do this if the vma flags contain VM_MTE.  This requires introducing a
-new GFP flag that is used to determine whether to clear the tags.
+Poisoning freed pages protects against kernel use-after-free.  The
+likelihood of such a bug involving kernel pages is significantly higher
+than that for user pages.  At the same time, poisoning freed pages can
+impose a significant performance cost, which cannot always be justified
+for user pages given the lower probability of finding a bug.  Therefore,
+disable freed user page poisoning when using HW tags.  We identify "user"
+pages via the flag set GFP_HIGHUSER_MOVABLE, which indicates a strong
+likelihood of not being directly accessible to the kernel.
 
-The DC GZVA instruction with a 0 top byte (and 0 tag) requires
-top-byte-ignore.  Set the TCR_EL1.{TBI1,TBID1} bits irrespective of
-whether KASAN_HW is enabled.
-
-Link: https://lkml.kernel.org/r/20210602235230.3928842-4-pcc@google.com
-Link: https://linux-review.googlesource.com/id/Id46dc94e30fe11474f7e54f5d65e7658dbdddb26
+Link: https://lkml.kernel.org/r/20210602235230.3928842-5-pcc@google.com
+Link: https://linux-review.googlesource.com/id/I716846e2de8ef179f44e835770df7e6307be96c9
 Signed-off-by: Peter Collingbourne <pcc@google.com>
-Co-developed-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Alexander Potapenko <glider@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/mte.h  |    4 ++++
- arch/arm64/include/asm/page.h |    8 ++++++--
- arch/arm64/lib/mte.S          |   20 ++++++++++++++++++++
- arch/arm64/mm/fault.c         |   26 ++++++++++++++++++++++++++
- arch/arm64/mm/proc.S          |   10 +++++++---
- include/linux/gfp.h           |    9 +++++++--
- include/linux/highmem.h       |    8 ++++++++
- mm/kasan/hw_tags.c            |    9 ++++++++-
- mm/page_alloc.c               |   13 ++++++++++---
- 9 files changed, 96 insertions(+), 11 deletions(-)
+ include/linux/gfp.h            |   13 ++++++++++---
+ include/linux/page-flags.h     |    9 +++++++++
+ include/trace/events/mmflags.h |    9 ++++++++-
+ mm/kasan/hw_tags.c             |    3 +++
+ mm/page_alloc.c                |   12 +++++++-----
+ 5 files changed, 37 insertions(+), 9 deletions(-)
 
---- a/arch/arm64/include/asm/mte.h~arm64-mte-handle-tags-zeroing-at-page-allocation-time
-+++ a/arch/arm64/include/asm/mte.h
-@@ -37,6 +37,7 @@ void mte_free_tag_storage(char *storage)
- /* track which pages have valid allocation tags */
- #define PG_mte_tagged	PG_arch_2
- 
-+void mte_zero_clear_page_tags(void *addr);
- void mte_sync_tags(pte_t *ptep, pte_t pte);
- void mte_copy_page_tags(void *kto, const void *kfrom);
- void mte_thread_init_user(void);
-@@ -53,6 +54,9 @@ int mte_ptrace_copy_tags(struct task_str
- /* unused if !CONFIG_ARM64_MTE, silence the compiler */
- #define PG_mte_tagged	0
- 
-+static inline void mte_zero_clear_page_tags(void *addr)
-+{
-+}
- static inline void mte_sync_tags(pte_t *ptep, pte_t pte)
- {
- }
---- a/arch/arm64/include/asm/page.h~arm64-mte-handle-tags-zeroing-at-page-allocation-time
-+++ a/arch/arm64/include/asm/page.h
-@@ -13,6 +13,7 @@
- #ifndef __ASSEMBLY__
- 
- #include <linux/personality.h> /* for READ_IMPLIES_EXEC */
-+#include <linux/types.h> /* for gfp_t */
- #include <asm/pgtable-types.h>
- 
- struct page;
-@@ -28,10 +29,13 @@ void copy_user_highpage(struct page *to,
- void copy_highpage(struct page *to, struct page *from);
- #define __HAVE_ARCH_COPY_HIGHPAGE
- 
--#define alloc_zeroed_user_highpage_movable(vma, vaddr) \
--	alloc_page_vma(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, vma, vaddr)
-+struct page *alloc_zeroed_user_highpage_movable(struct vm_area_struct *vma,
-+						unsigned long vaddr);
- #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE_MOVABLE
- 
-+void tag_clear_highpage(struct page *to);
-+#define __HAVE_ARCH_TAG_CLEAR_HIGHPAGE
-+
- #define clear_user_page(page, vaddr, pg)	clear_page(page)
- #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
- 
---- a/arch/arm64/lib/mte.S~arm64-mte-handle-tags-zeroing-at-page-allocation-time
-+++ a/arch/arm64/lib/mte.S
-@@ -37,6 +37,26 @@ SYM_FUNC_START(mte_clear_page_tags)
- SYM_FUNC_END(mte_clear_page_tags)
- 
- /*
-+ * Zero the page and tags at the same time
-+ *
-+ * Parameters:
-+ *	x0 - address to the beginning of the page
-+ */
-+SYM_FUNC_START(mte_zero_clear_page_tags)
-+	mrs	x1, dczid_el0
-+	and	w1, w1, #0xf
-+	mov	x2, #4
-+	lsl	x1, x2, x1
-+	and	x0, x0, #(1 << MTE_TAG_SHIFT) - 1	// clear the tag
-+
-+1:	dc	gzva, x0
-+	add	x0, x0, x1
-+	tst	x0, #(PAGE_SIZE - 1)
-+	b.ne	1b
-+	ret
-+SYM_FUNC_END(mte_zero_clear_page_tags)
-+
-+/*
-  * Copy the tags from the source page to the destination one
-  *   x0 - address of the destination page
-  *   x1 - address of the source page
---- a/arch/arm64/mm/fault.c~arm64-mte-handle-tags-zeroing-at-page-allocation-time
-+++ a/arch/arm64/mm/fault.c
-@@ -921,3 +921,29 @@ void do_debug_exception(unsigned long ad
- 	debug_exception_exit(regs);
- }
- NOKPROBE_SYMBOL(do_debug_exception);
-+
-+/*
-+ * Used during anonymous page fault handling.
-+ */
-+struct page *alloc_zeroed_user_highpage_movable(struct vm_area_struct *vma,
-+						unsigned long vaddr)
-+{
-+	gfp_t flags = GFP_HIGHUSER_MOVABLE | __GFP_ZERO;
-+
-+	/*
-+	 * If the page is mapped with PROT_MTE, initialise the tags at the
-+	 * point of allocation and page zeroing as this is usually faster than
-+	 * separate DC ZVA and STGM.
-+	 */
-+	if (vma->vm_flags & VM_MTE)
-+		flags |= __GFP_ZEROTAGS;
-+
-+	return alloc_page_vma(flags, vma, vaddr);
-+}
-+
-+void tag_clear_highpage(struct page *page)
-+{
-+	mte_zero_clear_page_tags(page_address(page));
-+	page_kasan_tag_reset(page);
-+	set_bit(PG_mte_tagged, &page->flags);
-+}
---- a/arch/arm64/mm/proc.S~arm64-mte-handle-tags-zeroing-at-page-allocation-time
-+++ a/arch/arm64/mm/proc.S
-@@ -46,9 +46,13 @@
- #endif
- 
- #ifdef CONFIG_KASAN_HW_TAGS
--#define TCR_KASAN_HW_FLAGS SYS_TCR_EL1_TCMA1 | TCR_TBI1 | TCR_TBID1
-+#define TCR_MTE_FLAGS SYS_TCR_EL1_TCMA1 | TCR_TBI1 | TCR_TBID1
- #else
--#define TCR_KASAN_HW_FLAGS 0
-+/*
-+ * The mte_zero_clear_page_tags() implementation uses DC GZVA, which relies on
-+ * TBI being enabled at EL1.
-+ */
-+#define TCR_MTE_FLAGS TCR_TBI1 | TCR_TBID1
- #endif
- 
- /*
-@@ -454,7 +458,7 @@ SYM_FUNC_START(__cpu_setup)
- 	msr_s	SYS_TFSRE0_EL1, xzr
- 
- 	/* set the TCR_EL1 bits */
--	mov_q	x10, TCR_KASAN_HW_FLAGS
-+	mov_q	x10, TCR_MTE_FLAGS
- 	orr	tcr, tcr, x10
- 1:
- #endif
---- a/include/linux/gfp.h~arm64-mte-handle-tags-zeroing-at-page-allocation-time
+--- a/include/linux/gfp.h~kasan-disable-freed-user-page-poisoning-with-hw-tags
 +++ a/include/linux/gfp.h
-@@ -53,8 +53,9 @@ struct vm_area_struct;
- #define ___GFP_HARDWALL		0x100000u
+@@ -54,8 +54,9 @@ struct vm_area_struct;
  #define ___GFP_THISNODE		0x200000u
  #define ___GFP_ACCOUNT		0x400000u
-+#define ___GFP_ZEROTAGS		0x800000u
+ #define ___GFP_ZEROTAGS		0x800000u
++#define ___GFP_SKIP_KASAN_POISON	0x1000000u
  #ifdef CONFIG_LOCKDEP
--#define ___GFP_NOLOCKDEP	0x800000u
-+#define ___GFP_NOLOCKDEP	0x1000000u
+-#define ___GFP_NOLOCKDEP	0x1000000u
++#define ___GFP_NOLOCKDEP	0x2000000u
  #else
  #define ___GFP_NOLOCKDEP	0
  #endif
-@@ -229,16 +230,20 @@ struct vm_area_struct;
-  * %__GFP_COMP address compound page metadata.
+@@ -233,17 +234,22 @@ struct vm_area_struct;
   *
-  * %__GFP_ZERO returns a zeroed page on success.
+  * %__GFP_ZEROTAGS returns a page with zeroed memory tags on success, if
+  * __GFP_ZERO is set.
 + *
-+ * %__GFP_ZEROTAGS returns a page with zeroed memory tags on success, if
-+ * __GFP_ZERO is set.
++ * %__GFP_SKIP_KASAN_POISON returns a page which does not need to be poisoned
++ * on deallocation. Typically used for userspace pages. Currently only has an
++ * effect in HW tags mode.
   */
  #define __GFP_NOWARN	((__force gfp_t)___GFP_NOWARN)
  #define __GFP_COMP	((__force gfp_t)___GFP_COMP)
  #define __GFP_ZERO	((__force gfp_t)___GFP_ZERO)
-+#define __GFP_ZEROTAGS	((__force gfp_t)___GFP_ZEROTAGS)
+ #define __GFP_ZEROTAGS	((__force gfp_t)___GFP_ZEROTAGS)
++#define __GFP_SKIP_KASAN_POISON	((__force gfp_t)___GFP_SKIP_KASAN_POISON)
  
  /* Disable lockdep for GFP context tracking */
  #define __GFP_NOLOCKDEP ((__force gfp_t)___GFP_NOLOCKDEP)
  
  /* Room for N __GFP_FOO bits */
--#define __GFP_BITS_SHIFT (23 + IS_ENABLED(CONFIG_LOCKDEP))
-+#define __GFP_BITS_SHIFT (24 + IS_ENABLED(CONFIG_LOCKDEP))
+-#define __GFP_BITS_SHIFT (24 + IS_ENABLED(CONFIG_LOCKDEP))
++#define __GFP_BITS_SHIFT (25 + IS_ENABLED(CONFIG_LOCKDEP))
  #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
  
  /**
---- a/include/linux/highmem.h~arm64-mte-handle-tags-zeroing-at-page-allocation-time
-+++ a/include/linux/highmem.h
-@@ -185,6 +185,14 @@ static inline void clear_highpage(struct
- 	kunmap_local(kaddr);
- }
+@@ -324,7 +330,8 @@ struct vm_area_struct;
+ #define GFP_DMA		__GFP_DMA
+ #define GFP_DMA32	__GFP_DMA32
+ #define GFP_HIGHUSER	(GFP_USER | __GFP_HIGHMEM)
+-#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE)
++#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE | \
++			 __GFP_SKIP_KASAN_POISON)
+ #define GFP_TRANSHUGE_LIGHT	((GFP_HIGHUSER_MOVABLE | __GFP_COMP | \
+ 			 __GFP_NOMEMALLOC | __GFP_NOWARN) & ~__GFP_RECLAIM)
+ #define GFP_TRANSHUGE	(GFP_TRANSHUGE_LIGHT | __GFP_DIRECT_RECLAIM)
+--- a/include/linux/page-flags.h~kasan-disable-freed-user-page-poisoning-with-hw-tags
++++ a/include/linux/page-flags.h
+@@ -138,6 +138,9 @@ enum pageflags {
+ #ifdef CONFIG_64BIT
+ 	PG_arch_2,
+ #endif
++#ifdef CONFIG_KASAN_HW_TAGS
++	PG_skip_kasan_poison,
++#endif
+ 	__NR_PAGEFLAGS,
  
-+#ifndef __HAVE_ARCH_TAG_CLEAR_HIGHPAGE
-+
-+static inline void tag_clear_highpage(struct page *page)
-+{
-+}
-+
+ 	/* Filesystems */
+@@ -443,6 +446,12 @@ TESTCLEARFLAG(Young, young, PF_ANY)
+ PAGEFLAG(Idle, idle, PF_ANY)
+ #endif
+ 
++#ifdef CONFIG_KASAN_HW_TAGS
++PAGEFLAG(SkipKASanPoison, skip_kasan_poison, PF_HEAD)
++#else
++PAGEFLAG_FALSE(SkipKASanPoison)
 +#endif
 +
  /*
-  * If we pass in a base or tail page, we can zero up to PAGE_SIZE.
-  * If we pass in a head page, we can zero up to the size of the compound page.
---- a/mm/kasan/hw_tags.c~arm64-mte-handle-tags-zeroing-at-page-allocation-time
+  * PageReported() is used to track reported free pages within the Buddy
+  * allocator. We can use the non-atomic version of the test and set
+--- a/include/trace/events/mmflags.h~kasan-disable-freed-user-page-poisoning-with-hw-tags
++++ a/include/trace/events/mmflags.h
+@@ -85,6 +85,12 @@
+ #define IF_HAVE_PG_ARCH_2(flag,string)
+ #endif
+ 
++#ifdef CONFIG_KASAN_HW_TAGS
++#define IF_HAVE_PG_SKIP_KASAN_POISON(flag,string) ,{1UL << flag, string}
++#else
++#define IF_HAVE_PG_SKIP_KASAN_POISON(flag,string)
++#endif
++
+ #define __def_pageflag_names						\
+ 	{1UL << PG_locked,		"locked"	},		\
+ 	{1UL << PG_waiters,		"waiters"	},		\
+@@ -112,7 +118,8 @@ IF_HAVE_PG_UNCACHED(PG_uncached,	"uncach
+ IF_HAVE_PG_HWPOISON(PG_hwpoison,	"hwpoison"	)		\
+ IF_HAVE_PG_IDLE(PG_young,		"young"		)		\
+ IF_HAVE_PG_IDLE(PG_idle,		"idle"		)		\
+-IF_HAVE_PG_ARCH_2(PG_arch_2,		"arch_2"	)
++IF_HAVE_PG_ARCH_2(PG_arch_2,		"arch_2"	)		\
++IF_HAVE_PG_SKIP_KASAN_POISON(PG_skip_kasan_poison, "skip_kasan_poison")
+ 
+ #define show_page_flags(flags)						\
+ 	(flags) ? __print_flags(flags, "|",				\
+--- a/mm/kasan/hw_tags.c~kasan-disable-freed-user-page-poisoning-with-hw-tags
 +++ a/mm/kasan/hw_tags.c
-@@ -246,7 +246,14 @@ void kasan_alloc_pages(struct page *page
+@@ -246,6 +246,9 @@ void kasan_alloc_pages(struct page *page
  	 */
  	bool init = !want_init_on_free() && want_init_on_alloc(flags);
  
--	kasan_unpoison_pages(page, order, init);
-+	if (flags & __GFP_ZEROTAGS) {
-+		int i;
++	if (flags & __GFP_SKIP_KASAN_POISON)
++		SetPageSkipKASanPoison(page);
 +
-+		for (i = 0; i != 1 << order; ++i)
-+			tag_clear_highpage(page + i);
-+	} else {
-+		kasan_unpoison_pages(page, order, init);
-+	}
- }
+ 	if (flags & __GFP_ZEROTAGS) {
+ 		int i;
  
- void kasan_free_pages(struct page *page, unsigned int order)
---- a/mm/page_alloc.c~arm64-mte-handle-tags-zeroing-at-page-allocation-time
+--- a/mm/page_alloc.c~kasan-disable-freed-user-page-poisoning-with-hw-tags
 +++ a/mm/page_alloc.c
-@@ -1288,10 +1288,16 @@ out:
- 	return ret;
+@@ -412,11 +412,12 @@ static DEFINE_STATIC_KEY_TRUE(deferred_p
+  * on-demand allocation and then freed again before the deferred pages
+  * initialization is done, but this is not likely to happen.
+  */
+-static inline bool should_skip_kasan_poison(fpi_t fpi_flags)
++static inline bool should_skip_kasan_poison(struct page *page, fpi_t fpi_flags)
+ {
+ 	return static_branch_unlikely(&deferred_pages) ||
+ 	       (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
+-		(fpi_flags & FPI_SKIP_KASAN_POISON));
++		(fpi_flags & FPI_SKIP_KASAN_POISON)) ||
++	       PageSkipKASanPoison(page);
  }
  
--static void kernel_init_free_pages(struct page *page, int numpages)
-+static void kernel_init_free_pages(struct page *page, int numpages, bool zero_tags)
+ /* Returns true if the struct page for the pfn is uninitialised */
+@@ -467,10 +468,11 @@ defer_init(int nid, unsigned long pfn, u
+ 	return false;
+ }
+ #else
+-static inline bool should_skip_kasan_poison(fpi_t fpi_flags)
++static inline bool should_skip_kasan_poison(struct page *page, fpi_t fpi_flags)
  {
- 	int i;
+ 	return (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
+-		(fpi_flags & FPI_SKIP_KASAN_POISON));
++		(fpi_flags & FPI_SKIP_KASAN_POISON)) ||
++	       PageSkipKASanPoison(page);
+ }
  
-+	if (zero_tags) {
-+		for (i = 0; i < numpages; i++)
-+			tag_clear_highpage(page + i);
-+		return;
-+	}
-+
- 	/* s390's use of memset() could override KASAN redzones. */
- 	kasan_disable_current();
- 	for (i = 0; i < numpages; i++) {
-@@ -1383,7 +1389,7 @@ static __always_inline bool free_pages_p
- 		bool init = want_init_on_free();
+ static inline bool early_page_uninitialised(unsigned long pfn)
+@@ -1313,7 +1315,7 @@ static __always_inline bool free_pages_p
+ 			unsigned int order, bool check_free, fpi_t fpi_flags)
+ {
+ 	int bad = 0;
+-	bool skip_kasan_poison = should_skip_kasan_poison(fpi_flags);
++	bool skip_kasan_poison = should_skip_kasan_poison(page, fpi_flags);
  
- 		if (init)
--			kernel_init_free_pages(page, 1 << order);
-+			kernel_init_free_pages(page, 1 << order, false);
- 		if (!skip_kasan_poison)
- 			kasan_poison_pages(page, order, init);
- 	}
-@@ -2437,7 +2443,8 @@ inline void post_alloc_hook(struct page
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
  
- 		kasan_unpoison_pages(page, order, init);
- 		if (init)
--			kernel_init_free_pages(page, 1 << order);
-+			kernel_init_free_pages(page, 1 << order,
-+					       gfp_flags & __GFP_ZEROTAGS);
- 	}
- 
- 	set_page_owner(page, order, gfp_flags);
 _
 
 Patches currently in -mm which might be from pcc@google.com are
