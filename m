@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9842C4743C
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1426C4743C
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D120761404
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C732461405
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:51:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231492AbhFDUxc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Jun 2021 16:53:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45352 "EHLO mail.kernel.org"
+        id S231512AbhFDUxg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Jun 2021 16:53:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45424 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229913AbhFDUxb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Jun 2021 16:53:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CB129613AA;
-        Fri,  4 Jun 2021 20:51:44 +0000 (UTC)
+        id S231319AbhFDUxg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Jun 2021 16:53:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E739261263;
+        Fri,  4 Jun 2021 20:51:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622839905;
-        bh=JsJv3Md7LbJfwveCu8uBIwgArYFC/sIUMnsTTXcnH8E=;
+        s=korg; t=1622839909;
+        bh=lA2XgAM1nPN2Kp7XJkbTAGFSjb74PVffO2L82HlsbGE=;
         h=Date:From:To:Subject:From;
-        b=vjkz//4kO4yYunMm0yblDOfgIV1eahi9t+do5ZLslen3YMCS/+KStN2Nymq1LkG0S
-         P/TJH2Sp8dzd8GYHS0d0ko/ql7oYGKK72WnkDxoUvVkI7BzOKyFq+2e5YKjGraiVq3
-         7ISgOf8B5OFyukVmXjfeNQzdB2bvbtdplChaETYE=
-Date:   Fri, 04 Jun 2021 13:51:44 -0700
+        b=ItGt1YgI6p8/zPwJwiRgL0rly/4g33Nlwj/h+EB963hddBpJQ0tWvJ00gglftqE/1
+         jQcc3gHZyD57ZXAZb1bq08cwxL1NV+bY10VydZxj75RnLOyMO6xsjmXTmebJAyYw2n
+         imYYCHxz1dOaJN/2yGUo9NpSkoQunSLK8Zg8oU+0=
+Date:   Fri, 04 Jun 2021 13:51:48 -0700
 From:   akpm@linux-foundation.org
-To:     green.hu@gmail.com, mm-commits@vger.kernel.org,
-        nickhu@andestech.com, wangkefeng.wang@huawei.com
-Subject:  + nds32-convert-to-setup_initial_init_mm.patch added to
- -mm tree
-Message-ID: <20210604205144.TcWX-Zfss%akpm@linux-foundation.org>
+To:     jonas@southpole.se, mm-commits@vger.kernel.org, shorne@gmail.com,
+        stefan.kristiansson@saunalahti.fi, wangkefeng.wang@huawei.com
+Subject:  + openrisc-convert-to-setup_initial_init_mm.patch added
+ to -mm tree
+Message-ID: <20210604205148.UDJ5rRbIq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nds32: convert to setup_initial_init_mm()
+     Subject: openrisc: convert to setup_initial_init_mm()
 has been added to the -mm tree.  Its filename is
-     nds32-convert-to-setup_initial_init_mm.patch
+     openrisc-convert-to-setup_initial_init_mm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/nds32-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/openrisc-convert-to-setup_initial_init_mm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/nds32-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/openrisc-convert-to-setup_initial_init_mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,34 +65,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: nds32: convert to setup_initial_init_mm()
+Subject: openrisc: convert to setup_initial_init_mm()
 
 Use setup_initial_init_mm() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210604070633.32363-9-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210604070633.32363-11-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Nick Hu <nickhu@andestech.com>
-Cc: Greentime Hu <green.hu@gmail.com>
+Acked-by: Stafford Horne <shorne@gmail.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Stafford Horne <shorne@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/nds32/kernel/setup.c |    5 +----
+ arch/openrisc/kernel/setup.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/nds32/kernel/setup.c~nds32-convert-to-setup_initial_init_mm
-+++ a/arch/nds32/kernel/setup.c
-@@ -294,10 +294,7 @@ void __init setup_arch(char **cmdline_p)
+--- a/arch/openrisc/kernel/setup.c~openrisc-convert-to-setup_initial_init_mm
++++ a/arch/openrisc/kernel/setup.c
+@@ -293,10 +293,7 @@ void __init setup_arch(char **cmdline_p)
+ #endif
  
- 	setup_cpuinfo();
- 
--	init_mm.start_code = (unsigned long)&_stext;
--	init_mm.end_code = (unsigned long)&_etext;
--	init_mm.end_data = (unsigned long)&_edata;
--	init_mm.brk = (unsigned long)&_end;
+ 	/* process 1's initial memory region is the kernel code/data */
+-	init_mm.start_code = (unsigned long)_stext;
+-	init_mm.end_code = (unsigned long)_etext;
+-	init_mm.end_data = (unsigned long)_edata;
+-	init_mm.brk = (unsigned long)_end;
 +	setup_initial_init_mm(_stext, _etext, _edata, _end);
  
- 	/* setup bootmem allocator */
- 	setup_memory();
+ #ifdef CONFIG_BLK_DEV_INITRD
+ 	if (initrd_start == initrd_end) {
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
