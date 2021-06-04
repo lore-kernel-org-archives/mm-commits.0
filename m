@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80E64C4743D
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:52:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ED93C4743D
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:52:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 69F9A61406
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:52:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED723613AA
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 20:52:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231393AbhFDUx6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Jun 2021 16:53:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45518 "EHLO mail.kernel.org"
+        id S231435AbhFDUyB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Jun 2021 16:54:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45582 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229913AbhFDUx6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Jun 2021 16:53:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C9C98613AA;
-        Fri,  4 Jun 2021 20:51:54 +0000 (UTC)
+        id S229913AbhFDUyB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Jun 2021 16:54:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C965161263;
+        Fri,  4 Jun 2021 20:51:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622839915;
-        bh=6bGyV5aZ9oRwO7dBId2zoT2ylEhX/GGEDVHBEIlpaB0=;
+        s=korg; t=1622839918;
+        bh=MwhkaIRMhy7663CLnxujFI70mnWsCPt0YX7Xc0kaX8c=;
         h=Date:From:To:Subject:From;
-        b=CKyegkRLkvXgwmf6irnuTrRUEzU78dig6sO0TxT/RjZVH8JiwyiDkK4fwB+VE7i7L
-         bmK96C/Ti5fsBXMxoUcDoVeEhoMvCAX86CL8sgqpbut+3CYACK1P7KTM3FcAe5jSz3
-         FeFluit2Ps1TE/rHqHpF4FPmZA7xX/oPQ3D/CDwE=
-Date:   Fri, 04 Jun 2021 13:51:54 -0700
+        b=o0GIMeFHE9MlB1CtbNUHsXEZkKCDEmvJ11LESttSw82CFNil7YFD/ueEDhc8Dihc3
+         dGz2Wzi9Ld8imMc41nMDhl7sHWFTDNB5zqvcNleoea7esJLhVlTNaUTJLCu0czAL+K
+         XpITVEex5NumaWE/HkWvWUgFkyVDhq6NF7PYIBaQ=
+Date:   Fri, 04 Jun 2021 13:51:58 -0700
 From:   akpm@linux-foundation.org
-To:     borntraeger@de.ibm.com, gor@linux.ibm.com, hca@linux.ibm.com,
-        mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com
-Subject:  + s390-convert-to-setup_initial_init_mm.patch added to
- -mm tree
-Message-ID: <20210604205154.MmKS-8IKN%akpm@linux-foundation.org>
+To:     mingo@redhat.com, mm-commits@vger.kernel.org, tglx@linutronix.de,
+        wangkefeng.wang@huawei.com
+Subject:  + x86-convert-to-setup_initial_init_mm.patch added to -mm
+ tree
+Message-ID: <20210604205158.B-c3X5J0e%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390: convert to setup_initial_init_mm()
+     Subject: x86: convert to setup_initial_init_mm()
 has been added to the -mm tree.  Its filename is
-     s390-convert-to-setup_initial_init_mm.patch
+     x86-convert-to-setup_initial_init_mm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/s390-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-convert-to-setup_initial_init_mm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/s390-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-convert-to-setup_initial_init_mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,35 +65,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: s390: convert to setup_initial_init_mm()
+Subject: x86: convert to setup_initial_init_mm()
 
 Use setup_initial_init_mm() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210604070633.32363-14-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210604070633.32363-16-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/setup.c |    5 +----
+ arch/x86/kernel/setup.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/s390/kernel/setup.c~s390-convert-to-setup_initial_init_mm
-+++ a/arch/s390/kernel/setup.c
-@@ -1119,10 +1119,7 @@ void __init setup_arch(char **cmdline_p)
+--- a/arch/x86/kernel/setup.c~x86-convert-to-setup_initial_init_mm
++++ a/arch/x86/kernel/setup.c
+@@ -868,10 +868,7 @@ void __init setup_arch(char **cmdline_p)
  
-         ROOT_DEV = Root_RAM0;
- 
+ 	if (!boot_params.hdr.root_flags)
+ 		root_mountflags &= ~MS_RDONLY;
 -	init_mm.start_code = (unsigned long) _text;
 -	init_mm.end_code = (unsigned long) _etext;
 -	init_mm.end_data = (unsigned long) _edata;
--	init_mm.brk = (unsigned long) _end;
-+	setup_initial_init_mm(_text, _etext, _edata, _end);
+-	init_mm.brk = _brk_end;
++	setup_initial_init_mm(_text, _etext, _edata, _brk_end);
  
- 	if (IS_ENABLED(CONFIG_EXPOLINE_AUTO))
- 		nospec_auto_detect();
+ 	code_resource.start = __pa_symbol(_text);
+ 	code_resource.end = __pa_symbol(_etext)-1;
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
