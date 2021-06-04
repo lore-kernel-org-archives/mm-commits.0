@@ -5,37 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B706C47082
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 00:28:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 348A2C47096
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 00:29:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3CCB4601FD
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 00:28:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 17D9B601FD
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Jun 2021 00:29:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229656AbhFDAaj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Jun 2021 20:30:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60278 "EHLO mail.kernel.org"
+        id S229695AbhFDAbX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Jun 2021 20:31:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60338 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229610AbhFDAaj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Jun 2021 20:30:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B6863601FD;
-        Fri,  4 Jun 2021 00:28:40 +0000 (UTC)
+        id S229610AbhFDAbX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Jun 2021 20:31:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D07E3601FD;
+        Fri,  4 Jun 2021 00:29:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622766521;
-        bh=WySPNTIm2wqtY1zif8VbJeXogugQVqbVReogbRr4r+8=;
+        s=korg; t=1622766562;
+        bh=BKNBNL26Dk68aboeb2HROhAj1JP9203adeIVLIPf82A=;
         h=Date:From:To:Subject:From;
-        b=FyA0ueSsPOSRY6q0CewzJyg2Dlk0Te44sJXHJI3R+FoscUDZI7PxRfUPacbrYtrHQ
-         PrtWpcDDhHMLZ80TY9RsgE70NaCvUQXKq6JmilTXL+GmJqfG3K+ccK8WddwN0wqnIL
-         S3npw/GwlL1am+EyGGY8E3YRHGYIFDPzRDxjj6sg=
-Date:   Thu, 03 Jun 2021 17:28:40 -0700
+        b=cu7vIBM3K4YpV9yZBrq/fCTL1Xa9WmE2lAaQUakt28tVb1rBxbHPqs47vNDZmLkLZ
+         MiMHMH7dr2yJ1Bz/Dn+owtARNl5t8mUO0fEo+BpB8P1u0mizumMdKpAsOQC6JULFbB
+         BjWPnaZF8LAIdngaprCw99hwKxeebbEW5P4juQWM=
+Date:   Thu, 03 Jun 2021 17:29:21 -0700
 From:   akpm@linux-foundation.org
 To:     mhocko@suse.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, songmuchun@bytedance.com, tony.luck@intel.com
-Subject:  +
- mmhwpoison-make-get_hwpoison_page-call-get_any_page.patch added to -mm tree
-Message-ID: <20210604002840.ywvL56bzy%akpm@linux-foundation.org>
+        osalvador@suse.de, songmuchun@bytedance.com,
+        stable@vger.kernel.org, tony.luck@intel.com
+Subject:  + mmhwpoison-fix-race-with-hugetlb-page-allocation.patch
+ added to -mm tree
+Message-ID: <20210604002921.6znrHXClx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: make get_hwpoison_page() call get_any_page()
+     Subject: mm,hwpoison: fix race with hugetlb page allocation
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-make-get_hwpoison_page-call-get_any_page.patch
+     mmhwpoison-fix-race-with-hugetlb-page-allocation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-make-get_hwpoison_page-call-get_any_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-fix-race-with-hugetlb-page-allocation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-make-get_hwpoison_page-call-get_any_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-fix-race-with-hugetlb-page-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,310 +67,153 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm,hwpoison: make get_hwpoison_page() call get_any_page()
+Subject: mm,hwpoison: fix race with hugetlb page allocation
 
-__get_hwpoison_page() could fail to grab refcount by some race condition,
-so it's helpful if we can handle it by retrying.  We already have retry
-logic, so make get_hwpoison_page() call get_any_page() when called from
-memory_failure().
+When hugetlb page fault (under overcommitting situation) and
+memory_failure() race, VM_BUG_ON_PAGE() is triggered by the following
+race:
 
-As a result, get_hwpoison_page() can return negative values (i.e.  error
-code), so some callers are also changed to handle error cases. 
-soft_offline_page() does nothing for -EBUSY because that's enough and
-users in userspace can easily handle it.  unpoison_memory() is also
-unchanged because it's broken and need thorough fixes (will be done
-later).
+    CPU0:                           CPU1:
 
-Link: https://lkml.kernel.org/r/20210603233632.2964832-3-nao.horiguchi@gmail.com
+                                    gather_surplus_pages()
+                                      page = alloc_surplus_huge_page()
+    memory_failure_hugetlb()
+      get_hwpoison_page(page)
+        __get_hwpoison_page(page)
+          get_page_unless_zero(page)
+                                      zero = put_page_testzero(page)
+                                      VM_BUG_ON_PAGE(!zero, page)
+                                      enqueue_huge_page(h, page)
+      put_page(page)
+
+__get_hwpoison_page() only checks the page refcount before taking an
+additional one for memory error handling, which is not enough because
+there's a time window where compound pages have non-zero refcount during
+hugetlb page initialization.
+
+So make __get_hwpoison_page() check page status a bit more for hugetlb
+pages with get_hwpoison_huge_page().  Checking hugetlb-specific flags
+under hugetlb_lock makes sure that the hugetlb page is not transitive. 
+It's notable that another new function, HWPoisonHandlable(), is helpful to
+prevent a race against other transitive page states (like a generic
+compound page just before PageHuge becomes true).
+
+Link: https://lkml.kernel.org/r/20210603233632.2964832-2-nao.horiguchi@gmail.com
+Fixes: ead07f6a867b ("mm/memory-failure: introduce get_hwpoison_page() for consistent refcount handling")
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reported-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Tony Luck <tony.luck@intel.com>
+Cc: <stable@vger.kernel.org>	[5.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c        |    2 
- mm/memory-failure.c |  194 +++++++++++++++++++++++-------------------
- 2 files changed, 111 insertions(+), 85 deletions(-)
+ include/linux/hugetlb.h |    6 ++++++
+ mm/hugetlb.c            |   15 +++++++++++++++
+ mm/memory-failure.c     |   29 +++++++++++++++++++++++++++--
+ 3 files changed, 48 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mmhwpoison-make-get_hwpoison_page-call-get_any_page
-+++ a/mm/hugetlb.c
-@@ -5869,6 +5869,8 @@ int get_hwpoison_huge_page(struct page *
- 		*hugetlb = true;
- 		if (HPageFreed(page) || HPageMigratable(page))
- 			ret = get_page_unless_zero(page);
-+		else
-+			ret = -EBUSY;
- 	}
- 	spin_unlock_irq(&hugetlb_lock);
- 	return ret;
---- a/mm/memory-failure.c~mmhwpoison-make-get_hwpoison_page-call-get_any_page
-+++ a/mm/memory-failure.c
-@@ -1103,13 +1103,6 @@ static inline bool HWPoisonHandlable(str
- 	return PageLRU(page) || __PageMovable(page);
+--- a/include/linux/hugetlb.h~mmhwpoison-fix-race-with-hugetlb-page-allocation
++++ a/include/linux/hugetlb.h
+@@ -149,6 +149,7 @@ bool hugetlb_reserve_pages(struct inode
+ long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
+ 						long freed);
+ bool isolate_huge_page(struct page *page, struct list_head *list);
++int get_hwpoison_huge_page(struct page *page, bool *hugetlb);
+ void putback_active_hugepage(struct page *page);
+ void move_hugetlb_state(struct page *oldpage, struct page *newpage, int reason);
+ void free_huge_page(struct page *page);
+@@ -339,6 +340,11 @@ static inline bool isolate_huge_page(str
+ 	return false;
  }
  
--/**
-- * __get_hwpoison_page() - Get refcount for memory error handling:
-- * @page:	raw error page (hit by memory error)
-- *
-- * Return: return 0 if failed to grab the refcount, otherwise true (some
-- * non-zero value.)
-- */
++static inline int get_hwpoison_huge_page(struct page *page, bool *hugetlb)
++{
++	return 0;
++}
++
+ static inline void putback_active_hugepage(struct page *page)
+ {
+ }
+--- a/mm/hugetlb.c~mmhwpoison-fix-race-with-hugetlb-page-allocation
++++ a/mm/hugetlb.c
+@@ -5857,6 +5857,21 @@ unlock:
+ 	return ret;
+ }
+ 
++int get_hwpoison_huge_page(struct page *page, bool *hugetlb)
++{
++	int ret = 0;
++
++	*hugetlb = false;
++	spin_lock_irq(&hugetlb_lock);
++	if (PageHeadHuge(page)) {
++		*hugetlb = true;
++		if (HPageFreed(page) || HPageMigratable(page))
++			ret = get_page_unless_zero(page);
++	}
++	spin_unlock_irq(&hugetlb_lock);
++	return ret;
++}
++
+ void putback_active_hugepage(struct page *page)
+ {
+ 	spin_lock_irq(&hugetlb_lock);
+--- a/mm/memory-failure.c~mmhwpoison-fix-race-with-hugetlb-page-allocation
++++ a/mm/memory-failure.c
+@@ -949,6 +949,17 @@ static int page_action(struct page_state
+ 	return (result == MF_RECOVERED || result == MF_DELAYED) ? 0 : -EBUSY;
+ }
+ 
++/*
++ * Return true if a page type of a given page is supported by hwpoison
++ * mechanism (while handling could fail), otherwise false.  This function
++ * does not return true for hugetlb or device memory pages, so it's assumed
++ * to be called only in the context where we never have such pages.
++ */
++static inline bool HWPoisonHandlable(struct page *page)
++{
++	return PageLRU(page) || __PageMovable(page);
++}
++
+ /**
+  * __get_hwpoison_page() - Get refcount for memory error handling:
+  * @page:	raw error page (hit by memory error)
+@@ -959,8 +970,22 @@ static int page_action(struct page_state
  static int __get_hwpoison_page(struct page *page)
  {
  	struct page *head = compound_head(page);
-@@ -1154,15 +1147,6 @@ static int __get_hwpoison_page(struct pa
- 	return 0;
- }
- 
--/*
-- * Safely get reference count of an arbitrary page.
-- *
-- * Returns 0 for a free page, 1 for an in-use page,
-- * -EIO for a page-type we cannot handle and -EBUSY if we raced with an
-- * allocation.
-- * We only incremented refcount in case the page was already in-use and it
-- * is a known type we can handle.
-- */
- static int get_any_page(struct page *p, unsigned long flags)
- {
- 	int ret = 0, pass = 0;
-@@ -1172,50 +1156,77 @@ static int get_any_page(struct page *p,
- 		count_increased = true;
- 
- try_again:
--	if (!count_increased && !__get_hwpoison_page(p)) {
--		if (page_count(p)) {
--			/* We raced with an allocation, retry. */
--			if (pass++ < 3)
--				goto try_again;
--			ret = -EBUSY;
--		} else if (!PageHuge(p) && !is_free_buddy_page(p)) {
--			/* We raced with put_page, retry. */
-+	if (!count_increased) {
-+		ret = __get_hwpoison_page(p);
-+		if (!ret) {
-+			if (page_count(p)) {
-+				/* We raced with an allocation, retry. */
-+				if (pass++ < 3)
-+					goto try_again;
-+				ret = -EBUSY;
-+			} else if (!PageHuge(p) && !is_free_buddy_page(p)) {
-+				/* We raced with put_page, retry. */
-+				if (pass++ < 3)
-+					goto try_again;
-+				ret = -EIO;
-+			}
-+			goto out;
-+		} else if (ret == -EBUSY) {
-+			/* We raced with freeing huge page to buddy, retry. */
- 			if (pass++ < 3)
- 				goto try_again;
--			ret = -EIO;
-+			goto out;
- 		}
-+	}
++	int ret = 0;
++	bool hugetlb = false;
 +
-+	if (PageHuge(p) || HWPoisonHandlable(p)) {
-+		ret = 1;
++	ret = get_hwpoison_huge_page(head, &hugetlb);
++	if (hugetlb)
++		return ret;
++
++	/*
++	 * This check prevents from calling get_hwpoison_unless_zero()
++	 * for any unsupported type of page in order to reduce the risk of
++	 * unexpected races caused by taking a page refcount.
++	 */
++	if (!HWPoisonHandlable(head))
++		return 0;
+ 
+-	if (!PageHuge(head) && PageTransHuge(head)) {
++	if (PageTransHuge(head)) {
+ 		/*
+ 		 * Non anonymous thp exists only in allocation/free time. We
+ 		 * can't handle such a case correctly, so let's give it up.
+@@ -1017,7 +1042,7 @@ try_again:
+ 			ret = -EIO;
+ 		}
  	} else {
--		if (PageHuge(p) || HWPoisonHandlable(p)) {
--			ret = 1;
--		} else {
--			/*
--			 * A page we cannot handle. Check whether we can turn
--			 * it into something we can handle.
--			 */
--			if (pass++ < 3) {
--				put_page(p);
--				shake_page(p, 1);
--				count_increased = false;
--				goto try_again;
--			}
-+		/*
-+		 * A page we cannot handle. Check whether we can turn
-+		 * it into something we can handle.
-+		 */
-+		if (pass++ < 3) {
- 			put_page(p);
--			ret = -EIO;
-+			shake_page(p, 1);
-+			count_increased = false;
-+			goto try_again;
- 		}
-+		put_page(p);
-+		ret = -EIO;
- 	}
--
-+out:
- 	return ret;
- }
- 
--static int get_hwpoison_page(struct page *p, unsigned long flags,
--			     enum mf_flags ctxt)
-+/**
-+ * get_hwpoison_page() - Get refcount for memory error handling
-+ * @p:		Raw error page (hit by memory error)
-+ * @flags:	Flags controlling behavior of error handling
-+ *
-+ * get_hwpoison_page() takes a page refcount of an error page to handle memory
-+ * error on it, after checking that the error page is in a well-defined state
-+ * (defined as a page-type we can successfully handle the memor error on it,
-+ * such as LRU page and hugetlb page).
-+ *
-+ * Memory error handling could be triggered at any time on any type of page,
-+ * so it's prone to race with typical memory management lifecycle (like
-+ * allocation and free).  So to avoid such races, get_hwpoison_page() takes
-+ * extra care for the error page's state (as done in __get_hwpoison_page()),
-+ * and has some retry logic in get_any_page().
-+ *
-+ * Return: 0 on failure,
-+ *         1 on success for in-use pages in a well-defined state,
-+ *         -EIO for pages on which we can not handle memory errors,
-+ *         -EBUSY when get_hwpoison_page() has raced with page lifecycle
-+ *         operations like allocation and free.
-+ */
-+static int get_hwpoison_page(struct page *p, unsigned long flags)
- {
- 	int ret;
- 
- 	zone_pcp_disable(page_zone(p));
--	if (ctxt == MF_SOFT_OFFLINE)
--		ret = get_any_page(p, flags);
--	else
--		ret = __get_hwpoison_page(p);
-+	ret = get_any_page(p, flags);
- 	zone_pcp_enable(page_zone(p));
- 
- 	return ret;
-@@ -1404,27 +1415,33 @@ static int memory_failure_hugetlb(unsign
- 
- 	num_poisoned_pages_inc();
- 
--	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p, flags, 0)) {
--		/*
--		 * Check "filter hit" and "race with other subpage."
--		 */
--		lock_page(head);
--		if (PageHWPoison(head)) {
--			if ((hwpoison_filter(p) && TestClearPageHWPoison(p))
--			    || (p != head && TestSetPageHWPoison(head))) {
--				num_poisoned_pages_dec();
--				unlock_page(head);
--				return 0;
-+	if (!(flags & MF_COUNT_INCREASED)) {
-+		res = get_hwpoison_page(p, flags);
-+		if (!res) {
-+			/*
-+			 * Check "filter hit" and "race with other subpage."
-+			 */
-+			lock_page(head);
-+			if (PageHWPoison(head)) {
-+				if ((hwpoison_filter(p) && TestClearPageHWPoison(p))
-+				    || (p != head && TestSetPageHWPoison(head))) {
-+					num_poisoned_pages_dec();
-+					unlock_page(head);
-+					return 0;
-+				}
- 			}
-+			unlock_page(head);
-+			res = MF_FAILED;
-+			if (!dissolve_free_huge_page(p) && take_page_off_buddy(p)) {
-+				page_ref_inc(p);
-+				res = MF_RECOVERED;
-+			}
-+			action_result(pfn, MF_MSG_FREE_HUGE, res);
-+			return res == MF_RECOVERED ? 0 : -EBUSY;
-+		} else if (res < 0) {
-+			action_result(pfn, MF_MSG_UNKNOWN, MF_IGNORED);
-+			return -EBUSY;
- 		}
--		unlock_page(head);
--		res = MF_FAILED;
--		if (!dissolve_free_huge_page(p) && take_page_off_buddy(p)) {
--			page_ref_inc(p);
--			res = MF_RECOVERED;
--		}
--		action_result(pfn, MF_MSG_FREE_HUGE, res);
--		return res == MF_RECOVERED ? 0 : -EBUSY;
- 	}
- 
- 	lock_page(head);
-@@ -1627,28 +1644,35 @@ try_again:
- 	 * In fact it's dangerous to directly bump up page count from 0,
- 	 * that may make page_ref_freeze()/page_ref_unfreeze() mismatch.
- 	 */
--	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p, flags, 0)) {
--		if (is_free_buddy_page(p)) {
--			if (take_page_off_buddy(p)) {
--				page_ref_inc(p);
--				res = MF_RECOVERED;
--			} else {
--				/* We lost the race, try again */
--				if (retry) {
--					ClearPageHWPoison(p);
--					num_poisoned_pages_dec();
--					retry = false;
--					goto try_again;
-+	if (!(flags & MF_COUNT_INCREASED)) {
-+		res = get_hwpoison_page(p, flags);
-+		if (!res) {
-+			if (is_free_buddy_page(p)) {
-+				if (take_page_off_buddy(p)) {
-+					page_ref_inc(p);
-+					res = MF_RECOVERED;
-+				} else {
-+					/* We lost the race, try again */
-+					if (retry) {
-+						ClearPageHWPoison(p);
-+						num_poisoned_pages_dec();
-+						retry = false;
-+						goto try_again;
-+					}
-+					res = MF_FAILED;
- 				}
--				res = MF_FAILED;
-+				action_result(pfn, MF_MSG_BUDDY, res);
-+				res = res == MF_RECOVERED ? 0 : -EBUSY;
-+			} else {
-+				action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
-+				res = -EBUSY;
- 			}
--			action_result(pfn, MF_MSG_BUDDY, res);
--			res = res == MF_RECOVERED ? 0 : -EBUSY;
--		} else {
--			action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
-+			goto unlock_mutex;
-+		} else if (res < 0) {
-+			action_result(pfn, MF_MSG_UNKNOWN, MF_IGNORED);
- 			res = -EBUSY;
-+			goto unlock_mutex;
- 		}
--		goto unlock_mutex;
- 	}
- 
- 	if (PageTransHuge(hpage)) {
-@@ -1919,7 +1943,7 @@ int unpoison_memory(unsigned long pfn)
- 		return 0;
- 	}
- 
--	if (!get_hwpoison_page(p, flags, 0)) {
-+	if (!get_hwpoison_page(p, flags)) {
- 		if (TestClearPageHWPoison(p))
- 			num_poisoned_pages_dec();
- 		unpoison_pr_info("Unpoison: Software-unpoisoned free page %#lx\n",
-@@ -2135,7 +2159,7 @@ int soft_offline_page(unsigned long pfn,
- 
- retry:
- 	get_online_mems();
--	ret = get_hwpoison_page(page, flags, MF_SOFT_OFFLINE);
-+	ret = get_hwpoison_page(page, flags);
- 	put_online_mems();
- 
- 	if (ret > 0) {
+-		if (PageHuge(p) || PageLRU(p) || __PageMovable(p)) {
++		if (PageHuge(p) || HWPoisonHandlable(p)) {
+ 			ret = 1;
+ 		} else {
+ 			/*
 _
 
 Patches currently in -mm which might be from naoya.horiguchi@nec.com are
