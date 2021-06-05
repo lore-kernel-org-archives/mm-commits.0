@@ -2,143 +2,104 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C337C4743D
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Jun 2021 03:00:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64C3BC4743E
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Jun 2021 03:01:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E7385613EA
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Jun 2021 03:00:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 470D761403
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Jun 2021 03:01:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230286AbhFEDC2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Jun 2021 23:02:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52428 "EHLO mail.kernel.org"
+        id S230468AbhFEDDG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Jun 2021 23:03:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52550 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230169AbhFEDC2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Jun 2021 23:02:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B2687613F3;
-        Sat,  5 Jun 2021 03:00:40 +0000 (UTC)
+        id S230169AbhFEDDF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Jun 2021 23:03:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8359D61402;
+        Sat,  5 Jun 2021 03:01:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622862040;
-        bh=tOTXbaodCf5wRXySuViL24kvwq/aO/82AqGN6CcHIZY=;
-        h=Date:From:To:Cc:Subject:From;
-        b=p5YArqDmNi/VkSmwJhtqISho3TXK85x/nW8LL2bGg/9Qvc0cvWwKgDSKtQ87P60+Q
-         ABvlHquMURugA/vK4X1c3OLAaMluXs8gP8YwoltLU8AydHsPCaU8U3v5OR8brGqB8/
-         fPt0Rt3SsG6VBAFXY/aW7gFWDEl5W8Wib4EwROQY=
-Date:   Fri, 4 Jun 2021 20:00:40 -0700
+        s=korg; t=1622862078;
+        bh=4bHvHbl6CY5ATZIsrA1xqhEJ4I0Fv2cydSPOtNL8hrk=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=IH66IRT6jYWxlBiclATZOqnq8lsijIlTTnZvYlrAu5xgHNch8DEzQdSUHWM5zg0FQ
+         b/4L0kyh8He+zLZp5hUQwGmwknBW8mnDCsU4YmaEMIkMSKAjrmwNsT3Eylwah4OyYT
+         v83F6RAQJcNlFa+ojfNaMm7JsCXmU2EWj4ygKM2o=
+Date:   Fri, 04 Jun 2021 20:01:18 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org
-Subject: incoming
-Message-Id: <20210604200040.d8d0406caf195525620c0f3d@linux-foundation.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
+        gerald.schaefer@linux.ibm.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, palmer@dabbelt.com,
+        paul.walmsley@sifive.com, stable@vger.kernel.org,
+        torvalds@linux-foundation.org, vgupta@synopsys.com
+Subject:  [patch 04/13] mm/debug_vm_pgtable: fix alignment for
+ pmd/pud_advanced_tests()
+Message-ID: <20210605030118.fd0d-oaQo%akpm@linux-foundation.org>
+In-Reply-To: <20210604200040.d8d0406caf195525620c0f3d@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-13 patches, based on 16f0596fc1d78a1f3ae4628cff962bb297dc908c.
+From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Subject: mm/debug_vm_pgtable: fix alignment for pmd/pud_advanced_tests()
 
-Subsystems affected by this patch series:
+In pmd/pud_advanced_tests(), the vaddr is aligned up to the next pmd/pud
+entry, and so it does not match the given pmdp/pudp and (aligned down) pfn
+any more.
 
-  mips
-  mm/kfence
-  init
-  mm/debug
-  mm/pagealloc
-  mm/memory-hotplug
-  mm/hugetlb
-  proc
-  mm/kasan
-  mm/hugetlb
-  lib
-  ocfs2
-  mailmap
+For s390, this results in memory corruption, because the IDTE instruction
+used e.g. in xxx_get_and_clear() will take the vaddr for some calculations,
+in combination with the given pmdp. It will then end up with a wrong table
+origin, ending on ...ff8, and some of those wrongly set low-order bits will
+also select a wrong pagetable level for the index addition. IDTE could
+therefore invalidate (or 0x20) something outside of the page tables,
+depending on the wrongly picked index, which in turn depends on the random
+vaddr.
 
-Subsystem: mips
+As result, we sometimes see "BUG task_struct (Not tainted): Padding
+overwritten" on s390, where one 0x5a padding value got overwritten with
+0x7a.
 
-    Thomas Bogendoerfer <tsbogend@alpha.franken.de>:
-      Revert "MIPS: make userspace mapping young by default"
+Fix this by aligning down, similar to how the pmd/pud_aligned pfns are
+calculated.
 
-Subsystem: mm/kfence
+Link: https://lkml.kernel.org/r/20210525130043.186290-2-gerald.schaefer@linux.ibm.com
+Fixes: a5c3b9ffb0f40 ("mm/debug_vm_pgtable: add tests validating advanced arch page table helpers")
+Signed-off-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: <stable@vger.kernel.org>	[5.9+]
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-    Marco Elver <elver@google.com>:
-      kfence: use TASK_IDLE when awaiting allocation
+ mm/debug_vm_pgtable.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Subsystem: init
-
-    Mark Rutland <mark.rutland@arm.com>:
-      pid: take a reference when initializing `cad_pid`
-
-Subsystem: mm/debug
-
-    Gerald Schaefer <gerald.schaefer@linux.ibm.com>:
-      mm/debug_vm_pgtable: fix alignment for pmd/pud_advanced_tests()
-
-Subsystem: mm/pagealloc
-
-    Ding Hui <dinghui@sangfor.com.cn>:
-      mm/page_alloc: fix counting of free pages after take off from buddy
-
-Subsystem: mm/memory-hotplug
-
-    David Hildenbrand <david@redhat.com>:
-      drivers/base/memory: fix trying offlining memory blocks with memory holes on aarch64
-
-Subsystem: mm/hugetlb
-
-    Naoya Horiguchi <naoya.horiguchi@nec.com>:
-      hugetlb: pass head page to remove_hugetlb_page()
-
-Subsystem: proc
-
-    David Matlack <dmatlack@google.com>:
-      proc: add .gitignore for proc-subset-pid selftest
-
-Subsystem: mm/kasan
-
-    Yu Kuai <yukuai3@huawei.com>:
-      mm/kasan/init.c: fix doc warning
-
-Subsystem: mm/hugetlb
-
-    Mina Almasry <almasrymina@google.com>:
-      mm, hugetlb: fix simple resv_huge_pages underflow on UFFDIO_COPY
-
-Subsystem: lib
-
-    YueHaibing <yuehaibing@huawei.com>:
-      lib: crc64: fix kernel-doc warning
-
-Subsystem: ocfs2
-
-    Junxiao Bi <junxiao.bi@oracle.com>:
-      ocfs2: fix data corruption by fallocate
-
-Subsystem: mailmap
-
-    Michel Lespinasse <michel@lespinasse.org>:
-      mailmap: use private address for Michel Lespinasse
-
- .mailmap                                |    3 +
- arch/mips/mm/cache.c                    |   30 ++++++++---------
- drivers/base/memory.c                   |    6 +--
- fs/ocfs2/file.c                         |   55 +++++++++++++++++++++++++++++---
- include/linux/pgtable.h                 |    8 ++++
- init/main.c                             |    2 -
- lib/crc64.c                             |    2 -
- mm/debug_vm_pgtable.c                   |    4 +-
- mm/hugetlb.c                            |   16 +++++++--
- mm/kasan/init.c                         |    4 +-
- mm/kfence/core.c                        |    6 +--
- mm/memory.c                             |    4 ++
- mm/page_alloc.c                         |    2 +
- tools/testing/selftests/proc/.gitignore |    1 
- 14 files changed, 107 insertions(+), 36 deletions(-)
-
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-fix-alignment-for-pmd-pud_advanced_tests
++++ a/mm/debug_vm_pgtable.c
+@@ -192,7 +192,7 @@ static void __init pmd_advanced_tests(st
+ 
+ 	pr_debug("Validating PMD advanced\n");
+ 	/* Align the address wrt HPAGE_PMD_SIZE */
+-	vaddr = (vaddr & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE;
++	vaddr &= HPAGE_PMD_MASK;
+ 
+ 	pgtable_trans_huge_deposit(mm, pmdp, pgtable);
+ 
+@@ -330,7 +330,7 @@ static void __init pud_advanced_tests(st
+ 
+ 	pr_debug("Validating PUD advanced\n");
+ 	/* Align the address wrt HPAGE_PUD_SIZE */
+-	vaddr = (vaddr & HPAGE_PUD_MASK) + HPAGE_PUD_SIZE;
++	vaddr &= HPAGE_PUD_MASK;
+ 
+ 	set_pud_at(mm, vaddr, pudp, pud);
+ 	pudp_set_wrprotect(mm, vaddr, pudp);
+_
