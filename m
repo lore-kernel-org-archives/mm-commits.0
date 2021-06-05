@@ -4,40 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64C3BC4743E
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Jun 2021 03:01:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5596C4743C
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Jun 2021 03:01:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 470D761403
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Jun 2021 03:01:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4C0661405
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Jun 2021 03:01:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230468AbhFEDDG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Jun 2021 23:03:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52550 "EHLO mail.kernel.org"
+        id S231157AbhFEDDM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Jun 2021 23:03:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230169AbhFEDDF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Jun 2021 23:03:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8359D61402;
-        Sat,  5 Jun 2021 03:01:18 +0000 (UTC)
+        id S230481AbhFEDDM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Jun 2021 23:03:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C8A64613F9;
+        Sat,  5 Jun 2021 03:01:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1622862078;
-        bh=4bHvHbl6CY5ATZIsrA1xqhEJ4I0Fv2cydSPOtNL8hrk=;
+        s=korg; t=1622862069;
+        bh=bplJu7IkscH2KZdtTIwutE1/8FYSspwB97IfgmLEMeA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=IH66IRT6jYWxlBiclATZOqnq8lsijIlTTnZvYlrAu5xgHNch8DEzQdSUHWM5zg0FQ
-         b/4L0kyh8He+zLZp5hUQwGmwknBW8mnDCsU4YmaEMIkMSKAjrmwNsT3Eylwah4OyYT
-         v83F6RAQJcNlFa+ojfNaMm7JsCXmU2EWj4ygKM2o=
-Date:   Fri, 04 Jun 2021 20:01:18 -0700
+        b=j5RXIlaA3HXQfAl1gh7R5bdxXgoxlRRUnS0l3PIa91KSn9Y1xSiHzpJBahvtAO8BB
+         j3O+yAe1Qpnku9ZfMBi3aG6qyTROL7LweH42pN3iMEOMbGqdJXHmxYTbekeg+FuUoS
+         Q/rQzqgOGWfGHLyM9wB2IYc20Envr+49S/pCcsis=
+Date:   Fri, 04 Jun 2021 20:01:08 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
-        gerald.schaefer@linux.ibm.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, palmer@dabbelt.com,
-        paul.walmsley@sifive.com, stable@vger.kernel.org,
-        torvalds@linux-foundation.org, vgupta@synopsys.com
-Subject:  [patch 04/13] mm/debug_vm_pgtable: fix alignment for
- pmd/pud_advanced_tests()
-Message-ID: <20210605030118.fd0d-oaQo%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, huangpei@loongson.cn,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, npiggin@gmail.com,
+        stable@vger.kernel.org, torvalds@linux-foundation.org,
+        tsbogend@alpha.franken.de, zhouyanjie@wanyeetech.com
+Subject:  [patch 01/13] Revert "MIPS: make userspace mapping young
+ by default"
+Message-ID: <20210605030108.r5awe5RRw%akpm@linux-foundation.org>
 In-Reply-To: <20210604200040.d8d0406caf195525620c0f3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,61 +44,121 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Subject: mm/debug_vm_pgtable: fix alignment for pmd/pud_advanced_tests()
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Subject: Revert "MIPS: make userspace mapping young by default"
 
-In pmd/pud_advanced_tests(), the vaddr is aligned up to the next pmd/pud
-entry, and so it does not match the given pmdp/pudp and (aligned down) pfn
-any more.
+This reverts commit f685a533a7fab35c5d069dcd663f59c8e4171a75.
 
-For s390, this results in memory corruption, because the IDTE instruction
-used e.g. in xxx_get_and_clear() will take the vaddr for some calculations,
-in combination with the given pmdp. It will then end up with a wrong table
-origin, ending on ...ff8, and some of those wrongly set low-order bits will
-also select a wrong pagetable level for the index addition. IDTE could
-therefore invalidate (or 0x20) something outside of the page tables,
-depending on the wrongly picked index, which in turn depends on the random
-vaddr.
+MIPS cache flush logic needs to know whether the mapping was already
+established to decide how to flush caches.  This is done by checking the
+valid bit in the PTE.  The commit above breaks this logic by setting the
+valid in the PTE in new mappings, which causes kernel crashes.
 
-As result, we sometimes see "BUG task_struct (Not tainted): Padding
-overwritten" on s390, where one 0x5a padding value got overwritten with
-0x7a.
-
-Fix this by aligning down, similar to how the pmd/pud_aligned pfns are
-calculated.
-
-Link: https://lkml.kernel.org/r/20210525130043.186290-2-gerald.schaefer@linux.ibm.com
-Fixes: a5c3b9ffb0f40 ("mm/debug_vm_pgtable: add tests validating advanced arch page table helpers")
-Signed-off-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: <stable@vger.kernel.org>	[5.9+]
+Link: https://lkml.kernel.org/r/20210526094335.92948-1-tsbogend@alpha.franken.de
+Fixes: f685a533a7f ("MIPS: make userspace mapping young by default")
+Reported-by: Zhou Yanjie <zhouyanjie@wanyeetech.com>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Huang Pei <huangpei@loongson.cn>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/mm/cache.c    |   30 ++++++++++++++----------------
+ include/linux/pgtable.h |    8 ++++++++
+ mm/memory.c             |    4 ++++
+ 3 files changed, 26 insertions(+), 16 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-fix-alignment-for-pmd-pud_advanced_tests
-+++ a/mm/debug_vm_pgtable.c
-@@ -192,7 +192,7 @@ static void __init pmd_advanced_tests(st
+--- a/arch/mips/mm/cache.c~revert-mips-make-userspace-mapping-young-by-default
++++ a/arch/mips/mm/cache.c
+@@ -158,31 +158,29 @@ unsigned long _page_cachable_default;
+ EXPORT_SYMBOL(_page_cachable_default);
  
- 	pr_debug("Validating PMD advanced\n");
- 	/* Align the address wrt HPAGE_PMD_SIZE */
--	vaddr = (vaddr & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE;
-+	vaddr &= HPAGE_PMD_MASK;
+ #define PM(p)	__pgprot(_page_cachable_default | (p))
+-#define PVA(p)	PM(_PAGE_VALID | _PAGE_ACCESSED | (p))
  
- 	pgtable_trans_huge_deposit(mm, pmdp, pgtable);
+ static inline void setup_protection_map(void)
+ {
+ 	protection_map[0]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[1]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[2]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[3]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[4]  = PVA(_PAGE_PRESENT);
+-	protection_map[5]  = PVA(_PAGE_PRESENT);
+-	protection_map[6]  = PVA(_PAGE_PRESENT);
+-	protection_map[7]  = PVA(_PAGE_PRESENT);
++	protection_map[1]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[2]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
++	protection_map[3]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[4]  = PM(_PAGE_PRESENT);
++	protection_map[5]  = PM(_PAGE_PRESENT);
++	protection_map[6]  = PM(_PAGE_PRESENT);
++	protection_map[7]  = PM(_PAGE_PRESENT);
  
-@@ -330,7 +330,7 @@ static void __init pud_advanced_tests(st
+ 	protection_map[8]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[9]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[10] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
++	protection_map[9]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[10] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
+ 				_PAGE_NO_READ);
+-	protection_map[11] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
+-	protection_map[12] = PVA(_PAGE_PRESENT);
+-	protection_map[13] = PVA(_PAGE_PRESENT);
+-	protection_map[14] = PVA(_PAGE_PRESENT);
+-	protection_map[15] = PVA(_PAGE_PRESENT);
++	protection_map[11] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
++	protection_map[12] = PM(_PAGE_PRESENT);
++	protection_map[13] = PM(_PAGE_PRESENT);
++	protection_map[14] = PM(_PAGE_PRESENT | _PAGE_WRITE);
++	protection_map[15] = PM(_PAGE_PRESENT | _PAGE_WRITE);
+ }
  
- 	pr_debug("Validating PUD advanced\n");
- 	/* Align the address wrt HPAGE_PUD_SIZE */
--	vaddr = (vaddr & HPAGE_PUD_MASK) + HPAGE_PUD_SIZE;
-+	vaddr &= HPAGE_PUD_MASK;
+-#undef _PVA
+ #undef PM
  
- 	set_pud_at(mm, vaddr, pudp, pud);
- 	pudp_set_wrprotect(mm, vaddr, pudp);
+ void cpu_cache_init(void)
+--- a/include/linux/pgtable.h~revert-mips-make-userspace-mapping-young-by-default
++++ a/include/linux/pgtable.h
+@@ -432,6 +432,14 @@ static inline void ptep_set_wrprotect(st
+  * To be differentiate with macro pte_mkyoung, this macro is used on platforms
+  * where software maintains page access bit.
+  */
++#ifndef pte_sw_mkyoung
++static inline pte_t pte_sw_mkyoung(pte_t pte)
++{
++	return pte;
++}
++#define pte_sw_mkyoung	pte_sw_mkyoung
++#endif
++
+ #ifndef pte_savedwrite
+ #define pte_savedwrite pte_write
+ #endif
+--- a/mm/memory.c~revert-mips-make-userspace-mapping-young-by-default
++++ a/mm/memory.c
+@@ -2939,6 +2939,7 @@ static vm_fault_t wp_page_copy(struct vm
+ 		}
+ 		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
+ 		entry = mk_pte(new_page, vma->vm_page_prot);
++		entry = pte_sw_mkyoung(entry);
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+ 
+ 		/*
+@@ -3602,6 +3603,7 @@ static vm_fault_t do_anonymous_page(stru
+ 	__SetPageUptodate(page);
+ 
+ 	entry = mk_pte(page, vma->vm_page_prot);
++	entry = pte_sw_mkyoung(entry);
+ 	if (vma->vm_flags & VM_WRITE)
+ 		entry = pte_mkwrite(pte_mkdirty(entry));
+ 
+@@ -3786,6 +3788,8 @@ void do_set_pte(struct vm_fault *vmf, st
+ 
+ 	if (prefault && arch_wants_old_prefaulted_pte())
+ 		entry = pte_mkold(entry);
++	else
++		entry = pte_sw_mkyoung(entry);
+ 
+ 	if (write)
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
 _
