@@ -7,32 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9572C47082
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:20:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFB52C47094
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:22:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ABD1B6120F
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:20:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9684361029
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:22:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230269AbhFGWV6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Jun 2021 18:21:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52278 "EHLO mail.kernel.org"
+        id S230212AbhFGWYh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Jun 2021 18:24:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52760 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230261AbhFGWV6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Jun 2021 18:21:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9CF5D61208;
-        Mon,  7 Jun 2021 22:20:06 +0000 (UTC)
+        id S230197AbhFGWYh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Jun 2021 18:24:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B51E461040;
+        Mon,  7 Jun 2021 22:22:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623104406;
-        bh=qafX+CRwlN6JeiZWj+K2aJoI5PJAa24yzWlWOQbqMCA=;
+        s=korg; t=1623104555;
+        bh=zb6tfeD2TVMx7iwbA/FPeB87EZbfZvfXMJKfb40OT9k=;
         h=Date:From:To:Subject:From;
-        b=vRQrqkioEQ19hi81rln3yYKopW732u5t+Q+ectYgltXpgiJMk/d9/Toxl+m/VcR3u
-         q4792SgDyjthMY4CeozBurQy9/RwvI25tWn0C0/auyHT1TaZuiXkn0MR5GGFdgM6bT
-         cqzfMw/SzmbdEBs4VEfqee0tfI6qC/oBvXpofV7k=
-Date:   Mon, 07 Jun 2021 15:20:06 -0700
+        b=UHzr1xBlHJ1JM74861EE9YZUc5C3nFoWWc7F1E1hDhzvD9OZeYZ/MBB0lGnKASrK2
+         I6c5f9dIo0uLiwEeGetT1vZSTDUsxYydlnZdz7WX6BMlpKxHg9An9zIuaMwBEJ0I6/
+         bkk6e9V3Lu5vs8C8/PA6V7FXzSiHTAR7uPFf5ixM=
+Date:   Mon, 07 Jun 2021 15:22:35 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, thunder.leizhen@huawei.com, yhs@fb.com
-Subject:  + lib-test-fix-spelling-mistakes.patch added to -mm tree
-Message-ID: <20210607222006.roDDejomI%akpm@linux-foundation.org>
+To:     bhe@redhat.com, k-hagio-ab@nec.com, miles.chen@mediatek.com,
+        mm-commits@vger.kernel.org, rppt@kernel.org
+Subject:  + mm-sparse-fix-check_usemap_section_nr-warnings.patch
+ added to -mm tree
+Message-ID: <20210607222235.1RydoZzO-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test: fix spelling mistakes
+     Subject: mm/sparse: fix check_usemap_section_nr warnings
 has been added to the -mm tree.  Its filename is
-     lib-test-fix-spelling-mistakes.patch
+     mm-sparse-fix-check_usemap_section_nr-warnings.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-test-fix-spelling-mistakes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-fix-check_usemap_section_nr-warnings.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-test-fix-spelling-mistakes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-fix-check_usemap_section_nr-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,111 +64,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: lib/test: fix spelling mistakes
+From: Miles Chen <miles.chen@mediatek.com>
+Subject: mm/sparse: fix check_usemap_section_nr warnings
 
-Fix some spelling mistakes in comments found by "codespell":
-thats ==> that's
-unitialized ==> uninitialized
-panicing ==> panicking
-sucess ==> success
-possitive ==> positive
-intepreted ==> interpreted
+I see a "virt_to_phys used for non-linear address" warning from
+check_usemap_section_nr() on arm64 platforms.
 
-Link: https://lkml.kernel.org/r/20210607133036.12525-2-thunder.leizhen@huawei.com
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-Acked-by: Yonghong Song <yhs@fb.com>	[test_bfp.c]
+In current implementation of NODE_DATA, if CONFIG_NEED_MULTIPLE_NODES=y,
+pglist_data is dynamically allocated and assigned to node_data[].
+
+For example, in arch/arm64/include/asm/mmzone.h:
+extern struct pglist_data *node_data[];
+\#define NODE_DATA(nid)          (node_data[(nid)])
+
+If CONFIG_NEED_MULTIPLE_NODES=n, pglist_data is defined as a global
+variable named "contig_page_data".
+
+For example, in include/linux/mmzone.h:
+extern struct pglist_data contig_page_data;
+\#define NODE_DATA(nid)          (&contig_page_data)
+
+If CONFIG_DEBUG_VIRTUAL is not enabled, __pa() can handle both
+dynamically allocated linear addresses and symbol addresses.
+However, if (CONFIG_DEBUG_VIRTUAL=y && CONFIG_NEED_MULTIPLE_NODES=n)
+,we can see the "virt_to_phys used for non-linear address"
+warning because that &contig_page_data is not a linear address on arm64.
+
+To fix it, create a small function to handle both translation.
+
+Warning message:
+[    0.000000] ------------[ cut here ]------------
+[    0.000000] virt_to_phys used for non-linear address: (____ptrval____) (contig_page_data+0x0/0x1c00)
+[    0.000000] WARNING: CPU: 0 PID: 0 at arch/arm64/mm/physaddr.c:15 __virt_to_phys+0x58/0x68
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0 PID: 0 Comm: swapper Tainted: G        W         5.13.0-rc1-00074-g1140ab592e2e #3
+[    0.000000] Hardware name: linux,dummy-virt (DT)
+[    0.000000] pstate: 600000c5 (nZCv daIF -PAN -UAO -TCO BTYPE=--)
+[    0.000000] pc : __virt_to_phys+0x58/0x68
+[    0.000000] lr : __virt_to_phys+0x54/0x68
+[    0.000000] sp : ffff800011833e70
+[    0.000000] x29: ffff800011833e70 x28: 00000000418a0018 x27: 0000000000000000
+[    0.000000] x26: 000000000000000a x25: ffff800011b70000 x24: ffff800011b70000
+[    0.000000] x23: fffffc0001c00000 x22: ffff800011b70000 x21: 0000000047ffffb0
+[    0.000000] x20: 0000000000000008 x19: ffff800011b082c0 x18: ffffffffffffffff
+[    0.000000] x17: 0000000000000000 x16: ffff800011833bf9 x15: 0000000000000004
+[    0.000000] x14: 0000000000000fff x13: ffff80001186a548 x12: 0000000000000000
+[    0.000000] x11: 0000000000000000 x10: 00000000ffffffff x9 : 0000000000000000
+[    0.000000] x8 : ffff8000115c9000 x7 : 737520737968705f x6 : ffff800011b62ef8
+[    0.000000] x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+[    0.000000] x2 : 0000000000000000 x1 : ffff80001159585e x0 : 0000000000000058
+[    0.000000] Call trace:
+[    0.000000]  __virt_to_phys+0x58/0x68
+[    0.000000]  check_usemap_section_nr+0x50/0xfc
+[    0.000000]  sparse_init_nid+0x1ac/0x28c
+[    0.000000]  sparse_init+0x1c4/0x1e0
+[    0.000000]  bootmem_init+0x60/0x90
+[    0.000000]  setup_arch+0x184/0x1f0
+[    0.000000]  start_kernel+0x78/0x488
+[    0.000000] ---[ end trace f68728a0d3053b60 ]---
+
+Link: https://lkml.kernel.org/r/1623058729-27264-1-git-send-email-miles.chen@mediatek.com
+Signed-off-by: Miles Chen <miles.chen@mediatek.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Kazu <k-hagio-ab@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bitops.c |    2 +-
- lib/test_bpf.c    |    2 +-
- lib/test_kasan.c  |    2 +-
- lib/test_kmod.c   |    6 +++---
- lib/test_scanf.c  |    2 +-
- 5 files changed, 7 insertions(+), 7 deletions(-)
+ mm/sparse.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
---- a/lib/test_bitops.c~lib-test-fix-spelling-mistakes
-+++ a/lib/test_bitops.c
-@@ -15,7 +15,7 @@
-  *   get_count_order/long
-  */
+--- a/mm/sparse.c~mm-sparse-fix-check_usemap_section_nr-warnings
++++ a/mm/sparse.c
+@@ -344,6 +344,15 @@ size_t mem_section_usage_size(void)
+ 	return sizeof(struct mem_section_usage) + usemap_size();
+ }
  
--/* use an enum because thats the most common BITMAP usage */
-+/* use an enum because that's the most common BITMAP usage */
- enum bitops_fun {
- 	BITOPS_4 = 4,
- 	BITOPS_7 = 7,
---- a/lib/test_bpf.c~lib-test-fix-spelling-mistakes
-+++ a/lib/test_bpf.c
-@@ -1095,7 +1095,7 @@ static struct bpf_test tests[] = {
- 	{
- 		"RET_A",
- 		.u.insns = {
--			/* check that unitialized X and A contain zeros */
-+			/* check that uninitialized X and A contain zeros */
- 			BPF_STMT(BPF_MISC | BPF_TXA, 0),
- 			BPF_STMT(BPF_RET | BPF_A, 0)
- 		},
---- a/lib/test_kasan.c~lib-test-fix-spelling-mistakes
-+++ a/lib/test_kasan.c
-@@ -656,7 +656,7 @@ static void kasan_global_oob(struct kuni
- {
- 	/*
- 	 * Deliberate out-of-bounds access. To prevent CONFIG_UBSAN_LOCAL_BOUNDS
--	 * from failing here and panicing the kernel, access the array via a
-+	 * from failing here and panicking the kernel, access the array via a
- 	 * volatile pointer, which will prevent the compiler from being able to
- 	 * determine the array bounds.
- 	 *
---- a/lib/test_kmod.c~lib-test-fix-spelling-mistakes
-+++ a/lib/test_kmod.c
-@@ -286,7 +286,7 @@ static int tally_work_test(struct kmod_t
-  * If this ran it means *all* tasks were created fine and we
-  * are now just collecting results.
-  *
-- * Only propagate errors, do not override with a subsequent sucess case.
-+ * Only propagate errors, do not override with a subsequent success case.
-  */
- static void tally_up_work(struct kmod_test_device *test_dev)
- {
-@@ -543,7 +543,7 @@ static int trigger_config_run(struct kmo
- 	 * wrong with the setup of the test. If the test setup went fine
- 	 * then userspace must just check the result of config->test_result.
- 	 * One issue with relying on the return from a call in the kernel
--	 * is if the kernel returns a possitive value using this trigger
-+	 * is if the kernel returns a positive value using this trigger
- 	 * will not return the value to userspace, it would be lost.
- 	 *
- 	 * By not relying on capturing the return value of tests we are using
-@@ -585,7 +585,7 @@ trigger_config_store(struct device *dev,
- 	 * Note: any return > 0 will be treated as success
- 	 * and the error value will not be available to userspace.
- 	 * Do not rely on trying to send to userspace a test value
--	 * return value as possitive return errors will be lost.
-+	 * return value as positive return errors will be lost.
++static inline phys_addr_t pgdat_to_phys(struct pglist_data *pgdat)
++{
++#ifndef CONFIG_NEED_MULTIPLE_NODES
++	return __pa_symbol(pgdat);
++#else
++	return __pa(pgdat);
++#endif
++}
++
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ static struct mem_section_usage * __init
+ sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
+@@ -362,7 +371,7 @@ sparse_early_usemaps_alloc_pgdat_section
+ 	 * from the same section as the pgdat where possible to avoid
+ 	 * this problem.
  	 */
- 	if (WARN_ON(ret > 0))
- 		return -EINVAL;
---- a/lib/test_scanf.c~lib-test-fix-spelling-mistakes
-+++ a/lib/test_scanf.c
-@@ -600,7 +600,7 @@ static void __init numbers_prefix_overfl
- 	/*
- 	 * 0x prefix in a field of width 2 using %i conversion: first field
- 	 * converts to 0. Next field scan starts at the character after "0x",
--	 * which will convert if can be intepreted as decimal but will fail
-+	 * which will convert if can be interpreted as decimal but will fail
- 	 * if it contains any hex digits (since no 0x prefix).
- 	 */
- 	test_number_prefix(long long,	"0x67", "%2lli%lli", 0, 67, 2, check_ll);
+-	goal = __pa(pgdat) & (PAGE_SECTION_MASK << PAGE_SHIFT);
++	goal = pgdat_to_phys(pgdat) & (PAGE_SECTION_MASK << PAGE_SHIFT);
+ 	limit = goal + (1UL << PA_SECTION_SHIFT);
+ 	nid = early_pfn_to_nid(goal >> PAGE_SHIFT);
+ again:
+@@ -390,7 +399,7 @@ static void __init check_usemap_section_
+ 	}
+ 
+ 	usemap_snr = pfn_to_section_nr(__pa(usage) >> PAGE_SHIFT);
+-	pgdat_snr = pfn_to_section_nr(__pa(pgdat) >> PAGE_SHIFT);
++	pgdat_snr = pfn_to_section_nr(pgdat_to_phys(pgdat) >> PAGE_SHIFT);
+ 	if (usemap_snr == pgdat_snr)
+ 		return;
+ 
 _
 
-Patches currently in -mm which might be from thunder.leizhen@huawei.com are
+Patches currently in -mm which might be from miles.chen@mediatek.com are
 
-mm-clear-spelling-mistakes.patch
-lib-decompress_bunzip2-remove-an-unneeded-semicolon.patch
-lib-decompressors-fix-spelling-mistakes.patch
-lib-mpi-fix-spelling-mistakes.patch
-lib-test-fix-spelling-mistakes.patch
-mm-fix-spelling-mistakes-in-header-files.patch
+mm-sparse-fix-check_usemap_section_nr-warnings.patch
 
