@@ -7,34 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02DA5C47094
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 23:04:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFE88C47082
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 23:07:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D34266124C
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 23:04:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B019D61208
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 23:07:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230311AbhFGXGD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Jun 2021 19:06:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36300 "EHLO mail.kernel.org"
+        id S230233AbhFGXJR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Jun 2021 19:09:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37666 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230251AbhFGXGC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Jun 2021 19:06:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A488561208;
-        Mon,  7 Jun 2021 23:04:10 +0000 (UTC)
+        id S230183AbhFGXJR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Jun 2021 19:09:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 951B360C3E;
+        Mon,  7 Jun 2021 23:07:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623107050;
-        bh=M8Uqdl7s3iDwnFPZVOAe2VPodXBMZKQ1dsvyHMDmUSc=;
+        s=korg; t=1623107230;
+        bh=bDjhOeYZ7s5LJmbDDaeb6KkhSQMl6HFLmEQFqcQtTi4=;
         h=Date:From:To:Subject:From;
-        b=MpFBp+biCC6IwEAs50aPQ5iWWa30DmxskK8bbuSNAC5bFh6NYytzQnQZfyqJL/WYJ
-         XPlSeKszZPRR8hryj4NUiptYUzxsBmtpdzVLzCq/Nq9KdKUGSl7sIFfOGI6Rra8XEw
-         gwSUZmp4V886S09fqv2Ai3Acukd0jMzzGxXv5Xrg=
-Date:   Mon, 07 Jun 2021 16:04:10 -0700
+        b=tRNHpimEltqiLNINKjtZ8p1wC6vMKdBuNA2KSF3IdquSlsiHLsGWC/aDdAs+HiXzs
+         +8KkRt2J/of3gs3i5e3Cmz8pkgkbWYATDL6AD9qVC2Zt3vQd0xQ+c+ns6YKk4F6Dls
+         QEUGu77C+hP1GpWLCe/DpjL9qozocBXw79hNbkX0=
+Date:   Mon, 07 Jun 2021 16:07:10 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rppt@kernel.org,
-        wangkefeng.wang@huawei.com
-Subject:  + mm-add-setup_initial_init_mm-helper-v3.patch added to
- -mm tree
-Message-ID: <20210607230410.byINqpjAn%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, mm-commits@vger.kernel.org
+Subject:  + lib-memscan-fixlet.patch added to -mm tree
+Message-ID: <20210607230710.6trdEm9YQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-add-setup_initial_init_mm-helper-v3
+     Subject: lib: memscan() fixlet
 has been added to the -mm tree.  Its filename is
-     mm-add-setup_initial_init_mm-helper-v3.patch
+     lib-memscan-fixlet.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-setup_initial_init_mm-helper-v3.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-memscan-fixlet.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-setup_initial_init_mm-helper-v3.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-memscan-fixlet.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,69 +62,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm-add-setup_initial_init_mm-helper-v3
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: lib: memscan() fixlet
 
-uninline setup_initial_init_mm()
+Generic version doesn't trucate second argument to char.
 
-Link: https://lkml.kernel.org/r/20210607023611.159804-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Suggested-by: Mike Rapoport <rppt@kernel.org>
+Older brother memchr() does as do s390, sparc and i386 assembly versions.
+
+Fortunately, no code passes c >= 256.
+
+Link: https://lkml.kernel.org/r/YLv4cCf0t5UPdyK+@localhost.localdomain
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 +++
- mm/init-mm.c       |    9 +++++++++
- 2 files changed, 12 insertions(+)
+ lib/string.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-add-setup_initial_init_mm-helper-v3
-+++ a/include/linux/mm.h
-@@ -244,6 +244,9 @@ int __add_to_page_cache_locked(struct pa
+--- a/lib/string.c~lib-memscan-fixlet
++++ a/lib/string.c
+@@ -977,7 +977,7 @@ void *memscan(void *addr, int c, size_t
+ 	unsigned char *p = addr;
  
- #define lru_to_page(head) (list_entry((head)->prev, struct page, lru))
- 
-+void setup_initial_init_mm(void *start_code, void *end_code,
-+			   void *end_data, void *brk);
-+
- /*
-  * Linux kernel virtual memory manager primitives.
-  * The idea being to have a "virtual" mm in the same way
---- a/mm/init-mm.c~mm-add-setup_initial_init_mm-helper-v3
-+++ a/mm/init-mm.c
-@@ -40,3 +40,12 @@ struct mm_struct init_mm = {
- 	.cpu_bitmap	= CPU_BITS_NONE,
- 	INIT_MM_CONTEXT(init_mm)
- };
-+
-+void setup_initial_init_mm(void *start_code, void *end_code,
-+			   void *end_data, void *brk)
-+{
-+	init_mm.start_code = (unsigned long)start_code;
-+	init_mm.end_code = (unsigned long)end_code;
-+	init_mm.end_data = (unsigned long)end_data;
-+	init_mm.brk = (unsigned long)brk;
-+}
+ 	while (size) {
+-		if (*p == c)
++		if (*p == (unsigned char)c)
+ 			return (void *)p;
+ 		p++;
+ 		size--;
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-page-writeback-kill-get_writeback_state-comments.patch
-mm-add-setup_initial_init_mm-helper.patch
-mm-add-setup_initial_init_mm-helper-v3.patch
-arc-convert-to-setup_initial_init_mm.patch
-arm-convert-to-setup_initial_init_mm.patch
-arm64-convert-to-setup_initial_init_mm.patch
-csky-convert-to-setup_initial_init_mm.patch
-h8300-convert-to-setup_initial_init_mm.patch
-m68k-convert-to-setup_initial_init_mm.patch
-nds32-convert-to-setup_initial_init_mm.patch
-nios2-convert-to-setup_initial_init_mm.patch
-openrisc-convert-to-setup_initial_init_mm.patch
-powerpc-convert-to-setup_initial_init_mm.patch
-riscv-convert-to-setup_initial_init_mm.patch
-s390-convert-to-setup_initial_init_mm.patch
-sh-convert-to-setup_initial_init_mm.patch
-x86-convert-to-setup_initial_init_mm.patch
-mm-move-holes_in_zone-into-mm.patch
-mm-generalize-zone_.patch
+lib-memscan-fixlet.patch
+exec-remove-checks-in-__register_bimfmt.patch
 
