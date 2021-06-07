@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB498C47082
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:37:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02DA5C47094
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 23:04:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB3C061185
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:37:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D34266124C
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 23:04:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230363AbhFGWjL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Jun 2021 18:39:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57240 "EHLO mail.kernel.org"
+        id S230311AbhFGXGD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Jun 2021 19:06:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36300 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230356AbhFGWjL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Jun 2021 18:39:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9851561090;
-        Mon,  7 Jun 2021 22:37:07 +0000 (UTC)
+        id S230251AbhFGXGC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Jun 2021 19:06:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A488561208;
+        Mon,  7 Jun 2021 23:04:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623105427;
-        bh=v1E5OlnOrzwxnhRyXowP+wwCQZnHaaD4lbPyEXgKMkA=;
+        s=korg; t=1623107050;
+        bh=M8Uqdl7s3iDwnFPZVOAe2VPodXBMZKQ1dsvyHMDmUSc=;
         h=Date:From:To:Subject:From;
-        b=LXdXwm7oVL/tduJPi9rKjIOhIpEFCfzYSg+dqcJQ0P9ELOzDaewWDRia4tZjPpG4v
-         FmN8Z+EceGckXc7RjuGrtuRAyxLDS0LKlqpPQJlfkPENeqSUzBEZ3ukFkmUOUVLulI
-         Zqz4HIAgcKn88ReMkiYUsUlPSmEEFgRa+tfCQ1hM=
-Date:   Mon, 07 Jun 2021 15:37:07 -0700
+        b=MpFBp+biCC6IwEAs50aPQ5iWWa30DmxskK8bbuSNAC5bFh6NYytzQnQZfyqJL/WYJ
+         XPlSeKszZPRR8hryj4NUiptYUzxsBmtpdzVLzCq/Nq9KdKUGSl7sIFfOGI6Rra8XEw
+         gwSUZmp4V886S09fqv2Ai3Acukd0jMzzGxXv5Xrg=
+Date:   Mon, 07 Jun 2021 16:04:10 -0700
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, christophe.leroy@csgroup.eu,
-        joel@joelfernandes.org, kaleshsingh@google.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com
-Subject:  [to-be-updated] powerpc-mm-enable-move-pmd-pud.patch
- removed from -mm tree
-Message-ID: <20210607223707.sRQvBj2CZ%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rppt@kernel.org,
+        wangkefeng.wang@huawei.com
+Subject:  + mm-add-setup_initial_init_mm-helper-v3.patch added to
+ -mm tree
+Message-ID: <20210607230410.byINqpjAn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,50 +43,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm: enable move pmd/pud
-has been removed from the -mm tree.  Its filename was
-     powerpc-mm-enable-move-pmd-pud.patch
+     Subject: mm-add-setup_initial_init_mm-helper-v3
+has been added to the -mm tree.  Its filename is
+     mm-add-setup_initial_init_mm-helper-v3.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-setup_initial_init_mm-helper-v3.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-setup_initial_init_mm-helper-v3.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: powerpc/mm: enable move pmd/pud
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm-add-setup_initial_init_mm-helper-v3
 
-mremap HAVE_MOVE_PMD/PUD optimization time comparison for 1GB region:
-1GB mremap - Source PTE-aligned, Destination PTE-aligned
-  mremap time:      1127034ns
-1GB mremap - Source PMD-aligned, Destination PMD-aligned
-  mremap time:       508817ns
-1GB mremap - Source PUD-aligned, Destination PUD-aligned
-  mremap time:        23046ns
+uninline setup_initial_init_mm()
 
-Link: https://lkml.kernel.org/r/20210422054323.150993-10-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+Link: https://lkml.kernel.org/r/20210607023611.159804-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Suggested-by: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/Kconfig.cputype |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/mm.h |    3 +++
+ mm/init-mm.c       |    9 +++++++++
+ 2 files changed, 12 insertions(+)
 
---- a/arch/powerpc/platforms/Kconfig.cputype~powerpc-mm-enable-move-pmd-pud
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -96,6 +96,8 @@ config PPC_BOOK3S_64
- 	select PPC_FPU
- 	select PPC_HAVE_PMU_SUPPORT
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
-+	select HAVE_MOVE_PMD
-+	select HAVE_MOVE_PUD
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_PMD_SPLIT_PTLOCK
- 	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
+--- a/include/linux/mm.h~mm-add-setup_initial_init_mm-helper-v3
++++ a/include/linux/mm.h
+@@ -244,6 +244,9 @@ int __add_to_page_cache_locked(struct pa
+ 
+ #define lru_to_page(head) (list_entry((head)->prev, struct page, lru))
+ 
++void setup_initial_init_mm(void *start_code, void *end_code,
++			   void *end_data, void *brk);
++
+ /*
+  * Linux kernel virtual memory manager primitives.
+  * The idea being to have a "virtual" mm in the same way
+--- a/mm/init-mm.c~mm-add-setup_initial_init_mm-helper-v3
++++ a/mm/init-mm.c
+@@ -40,3 +40,12 @@ struct mm_struct init_mm = {
+ 	.cpu_bitmap	= CPU_BITS_NONE,
+ 	INIT_MM_CONTEXT(init_mm)
+ };
++
++void setup_initial_init_mm(void *start_code, void *end_code,
++			   void *end_data, void *brk)
++{
++	init_mm.start_code = (unsigned long)start_code;
++	init_mm.end_code = (unsigned long)end_code;
++	init_mm.end_data = (unsigned long)end_data;
++	init_mm.brk = (unsigned long)brk;
++}
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
+mm-page-writeback-kill-get_writeback_state-comments.patch
+mm-add-setup_initial_init_mm-helper.patch
+mm-add-setup_initial_init_mm-helper-v3.patch
+arc-convert-to-setup_initial_init_mm.patch
+arm-convert-to-setup_initial_init_mm.patch
+arm64-convert-to-setup_initial_init_mm.patch
+csky-convert-to-setup_initial_init_mm.patch
+h8300-convert-to-setup_initial_init_mm.patch
+m68k-convert-to-setup_initial_init_mm.patch
+nds32-convert-to-setup_initial_init_mm.patch
+nios2-convert-to-setup_initial_init_mm.patch
+openrisc-convert-to-setup_initial_init_mm.patch
+powerpc-convert-to-setup_initial_init_mm.patch
+riscv-convert-to-setup_initial_init_mm.patch
+s390-convert-to-setup_initial_init_mm.patch
+sh-convert-to-setup_initial_init_mm.patch
+x86-convert-to-setup_initial_init_mm.patch
+mm-move-holes_in_zone-into-mm.patch
+mm-generalize-zone_.patch
 
