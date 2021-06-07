@@ -7,32 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB244C47082
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:32:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C67EDC47094
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:36:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A5EF461090
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:32:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9EC4B61246
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:36:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230306AbhFGWel (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Jun 2021 18:34:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56112 "EHLO mail.kernel.org"
+        id S229997AbhFGWii (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Jun 2021 18:38:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56878 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229997AbhFGWel (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Jun 2021 18:34:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A019061075;
-        Mon,  7 Jun 2021 22:32:49 +0000 (UTC)
+        id S230306AbhFGWii (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Jun 2021 18:38:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 503BB61073;
+        Mon,  7 Jun 2021 22:36:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623105169;
-        bh=reAEPkUnUBsCNREcZU5+him3JuxucwrZBfU29Q7Ego8=;
+        s=korg; t=1623105395;
+        bh=tBDBymPfetEA96DyD5epalG2uGYVypHGtg5CcOl2aYE=;
         h=Date:From:To:Subject:From;
-        b=sEcHPsMoHs++Dn90MmnEjjpOiSJbWgl8+KbIJhnllSpiRX7GuYIKTBYd/OnpAF9p7
-         EUD9BjHptcelV5luulGJ07v0w0kPsw1DURNyoNoHZUKhsAZzo9RaECxE9glVJBDV7T
-         lzatmmgqfnLsx00MInwlO6z/k8Cz79WfoPixYhw8=
-Date:   Mon, 07 Jun 2021 15:32:49 -0700
+        b=VBassxffqVO50f2nKVrpQmYeLF7ZTbC7/W/DRyupYT1w3qh053WRKFnv0g/ZXmHzJ
+         H4a3yvpFm8XdjoWxsjQp2AKC4nZtBhP/oa+xGyNi1KIVSxJOiB2BJmBxxL7/JkXY1I
+         OP7SSgqDHjyrO/kVaXfynrHXfrm3UYuQq8or2Q28=
+Date:   Mon, 07 Jun 2021 15:36:34 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, thunder.leizhen@huawei.com
-Subject:  + lib-fix-spelling-mistakes.patch added to -mm tree
-Message-ID: <20210607223249.YgsAZvl8X%akpm@linux-foundation.org>
+To:     aneesh.kumar@linux.ibm.com, christophe.leroy@csgroup.eu,
+        joel@joelfernandes.org, kaleshsingh@google.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com
+Subject:  [to-be-updated]
+ selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
+ removed from -mm tree
+Message-ID: <20210607223634.e9D6zsWAi%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,333 +45,210 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: fix spelling mistakes
-has been added to the -mm tree.  Its filename is
-     lib-fix-spelling-mistakes.patch
+     Subject: selftest/mremap_test: update the test to handle pagesize other than 4K
+has been removed from the -mm tree.  Its filename was
+     selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-fix-spelling-mistakes.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-fix-spelling-mistakes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: lib: fix spelling mistakes
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: selftest/mremap_test: update the test to handle pagesize other than 4K
 
-Fix some spelling mistakes in comments:
-permanentely ==> permanently
-wont ==> won't
-remaning ==> remaining
-succed ==> succeed
-shouldnt ==> shouldn't
-alpha-numeric ==> alphanumeric
-storeing ==> storing
-funtion ==> function
-documenation ==> documentation
-Determin ==> Determine
-intepreted ==> interpreted
-ammount ==> amount
-obious ==> obvious
-interupts ==> interrupts
-occured ==> occurred
-asssociated ==> associated
-taking into acount ==> taking into account
-squence ==> sequence
-stil ==> still
-contiguos ==> contiguous
-matchs ==> matches
+Patch series "Speedup mremap on ppc64:, v5.
 
-Link: https://lkml.kernel.org/r/20210607072555.12416-1-thunder.leizhen@huawei.com
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+This patchset enables MOVE_PMD/MOVE_PUD support on power.  This requires
+the platform to support updating higher-level page tables without updating
+page table entries.  This also needs to invalidate the Page Walk Cache on
+architectures supporting the same.
+
+mremap HAVE_MOVE_PMD/PUD optimization time comparison for 1GB region:
+1GB mremap - Source PTE-aligned, Destination PTE-aligned
+  mremap time:      1127034ns
+1GB mremap - Source PMD-aligned, Destination PMD-aligned
+  mremap time:       508817ns
+1GB mremap - Source PUD-aligned, Destination PUD-aligned
+  mremap time:        23046ns
+
+
+This patch (of 5):
+
+Instead of hardcoding 4K page size fetch it using sysconf().  For the
+perf= ormance measurements test still assume 2M and 1G are hugepage sizes.
+
+Link: https://lkml.kernel.org/r/20210422054323.150993-1-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20210422054323.150993-2-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Kalesh Singh <kaleshsingh@google.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug             |    6 +++---
- lib/asn1_encoder.c            |    2 +-
- lib/devres.c                  |    2 +-
- lib/dynamic_debug.c           |    2 +-
- lib/fonts/font_pearl_8x8.c    |    2 +-
- lib/kfifo.c                   |    2 +-
- lib/list_sort.c               |    2 +-
- lib/nlattr.c                  |    4 ++--
- lib/oid_registry.c            |    2 +-
- lib/pldmfw/pldmfw.c           |    2 +-
- lib/reed_solomon/test_rslib.c |    2 +-
- lib/refcount.c                |    2 +-
- lib/rhashtable.c              |    2 +-
- lib/sbitmap.c                 |    2 +-
- lib/scatterlist.c             |    4 ++--
- lib/seq_buf.c                 |    2 +-
- lib/sort.c                    |    2 +-
- lib/stackdepot.c              |    2 +-
- lib/vsprintf.c                |    2 +-
- 19 files changed, 23 insertions(+), 23 deletions(-)
+ tools/testing/selftests/vm/mremap_test.c |  111 +++++++++++----------
+ 1 file changed, 60 insertions(+), 51 deletions(-)
 
---- a/lib/asn1_encoder.c~lib-fix-spelling-mistakes
-+++ a/lib/asn1_encoder.c
-@@ -181,7 +181,7 @@ EXPORT_SYMBOL_GPL(asn1_encode_oid);
- /**
-  * asn1_encode_length() - encode a length to follow an ASN.1 tag
-  * @data: pointer to encode at
-- * @data_len: pointer to remaning length (adjusted by routine)
-+ * @data_len: pointer to remaining length (adjusted by routine)
-  * @len: length to encode
-  *
-  * This routine can encode lengths up to 65535 using the ASN.1 rules.
---- a/lib/devres.c~lib-fix-spelling-mistakes
-+++ a/lib/devres.c
-@@ -355,7 +355,7 @@ static void pcim_iomap_release(struct de
-  * detach.
-  *
-  * This function might sleep when the table is first allocated but can
-- * be safely called without context and guaranteed to succed once
-+ * be safely called without context and guaranteed to succeed once
-  * allocated.
-  */
- void __iomem * const *pcim_iomap_table(struct pci_dev *pdev)
---- a/lib/dynamic_debug.c~lib-fix-spelling-mistakes
-+++ a/lib/dynamic_debug.c
-@@ -991,7 +991,7 @@ static int ddebug_dyndbg_param_cb(char *
+--- a/tools/testing/selftests/vm/mremap_test.c~selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k
++++ a/tools/testing/selftests/vm/mremap_test.c
+@@ -45,14 +45,15 @@ enum {
+ 	_4MB = 4ULL << 20,
+ 	_1GB = 1ULL << 30,
+ 	_2GB = 2ULL << 30,
+-	PTE = _4KB,
+ 	PMD = _2MB,
+ 	PUD = _1GB,
+ };
  
- 	ddebug_exec_queries((val ? val : "+p"), modname);
- 
--	return 0; /* query failure shouldnt stop module load */
-+	return 0; /* query failure shouldn't stop module load */
++#define PTE page_size
++
+ #define MAKE_TEST(source_align, destination_align, size,	\
+ 		  overlaps, should_fail, test_name)		\
+-{								\
++(struct test){							\
+ 	.name = test_name,					\
+ 	.config = {						\
+ 		.src_alignment = source_align,			\
+@@ -252,12 +253,17 @@ static int parse_args(int argc, char **a
+ 	return 0;
  }
  
- /* handle both dyndbg and $module.dyndbg params at boot */
---- a/lib/fonts/font_pearl_8x8.c~lib-fix-spelling-mistakes
-+++ a/lib/fonts/font_pearl_8x8.c
-@@ -3,7 +3,7 @@
- /*                                            */
- /*       Font file generated by cpi2fnt       */
- /*       ------------------------------       */
--/*       Combined with the alpha-numeric      */
-+/*       Combined with the alphanumeric       */
- /*       portion of Greg Harp's old PEARL     */
- /*       font (from earlier versions of       */
- /*       linux-m86k) by John Shifflett        */
---- a/lib/Kconfig.debug~lib-fix-spelling-mistakes
-+++ a/lib/Kconfig.debug
-@@ -1282,7 +1282,7 @@ config PROVE_RAW_LOCK_NESTING
- 	 option expect lockdep splats until these problems have been fully
- 	 addressed which is work in progress. This config switch allows to
- 	 identify and analyze these problems. It will be removed and the
--	 check permanentely enabled once the main issues have been fixed.
-+	 check permanently enabled once the main issues have been fixed.
++#define MAX_TEST 13
++#define MAX_PERF_TEST 3
+ int main(int argc, char **argv)
+ {
+ 	int failures = 0;
+ 	int i, run_perf_tests;
+ 	unsigned int threshold_mb = VALIDATION_DEFAULT_THRESHOLD;
+ 	unsigned int pattern_seed;
++	struct test test_cases[MAX_TEST];
++	struct test perf_test_cases[MAX_PERF_TEST];
++	int page_size;
+ 	time_t t;
  
- 	 If unsure, select N.
+ 	pattern_seed = (unsigned int) time(&t);
+@@ -268,56 +274,59 @@ int main(int argc, char **argv)
+ 	ksft_print_msg("Test configs:\n\tthreshold_mb=%u\n\tpattern_seed=%u\n\n",
+ 		       threshold_mb, pattern_seed);
  
-@@ -1448,7 +1448,7 @@ config DEBUG_LOCKING_API_SELFTESTS
- 	  Say Y here if you want the kernel to run a short self-test during
- 	  bootup. The self-test checks whether common types of locking bugs
- 	  are detected by debugging mechanisms or not. (if you disable
--	  lock debugging then those bugs wont be detected of course.)
-+	  lock debugging then those bugs won't be detected of course.)
- 	  The following locking APIs are covered: spinlocks, rwlocks,
- 	  mutexes and rwsems.
+-	struct test test_cases[] = {
+-		/* Expected mremap failures */
+-		MAKE_TEST(_4KB, _4KB, _4KB, OVERLAPPING, EXPECT_FAILURE,
+-		  "mremap - Source and Destination Regions Overlapping"),
+-		MAKE_TEST(_4KB, _1KB, _4KB, NON_OVERLAPPING, EXPECT_FAILURE,
+-		  "mremap - Destination Address Misaligned (1KB-aligned)"),
+-		MAKE_TEST(_1KB, _4KB, _4KB, NON_OVERLAPPING, EXPECT_FAILURE,
+-		  "mremap - Source Address Misaligned (1KB-aligned)"),
+-
+-		/* Src addr PTE aligned */
+-		MAKE_TEST(PTE, PTE, _8KB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "8KB mremap - Source PTE-aligned, Destination PTE-aligned"),
+-
+-		/* Src addr 1MB aligned */
+-		MAKE_TEST(_1MB, PTE, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2MB mremap - Source 1MB-aligned, Destination PTE-aligned"),
+-		MAKE_TEST(_1MB, _1MB, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2MB mremap - Source 1MB-aligned, Destination 1MB-aligned"),
+-
+-		/* Src addr PMD aligned */
+-		MAKE_TEST(PMD, PTE, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "4MB mremap - Source PMD-aligned, Destination PTE-aligned"),
+-		MAKE_TEST(PMD, _1MB, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "4MB mremap - Source PMD-aligned, Destination 1MB-aligned"),
+-		MAKE_TEST(PMD, PMD, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "4MB mremap - Source PMD-aligned, Destination PMD-aligned"),
+-
+-		/* Src addr PUD aligned */
+-		MAKE_TEST(PUD, PTE, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2GB mremap - Source PUD-aligned, Destination PTE-aligned"),
+-		MAKE_TEST(PUD, _1MB, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2GB mremap - Source PUD-aligned, Destination 1MB-aligned"),
+-		MAKE_TEST(PUD, PMD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2GB mremap - Source PUD-aligned, Destination PMD-aligned"),
+-		MAKE_TEST(PUD, PUD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2GB mremap - Source PUD-aligned, Destination PUD-aligned"),
+-	};
++	page_size = sysconf(_SC_PAGESIZE);
  
-@@ -1934,7 +1934,7 @@ config FAIL_IO_TIMEOUT
- 	  thus exercising the error handling.
+-	struct test perf_test_cases[] = {
+-		/*
+-		 * mremap 1GB region - Page table level aligned time
+-		 * comparison.
+-		 */
+-		MAKE_TEST(PTE, PTE, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "1GB mremap - Source PTE-aligned, Destination PTE-aligned"),
+-		MAKE_TEST(PMD, PMD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "1GB mremap - Source PMD-aligned, Destination PMD-aligned"),
+-		MAKE_TEST(PUD, PUD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "1GB mremap - Source PUD-aligned, Destination PUD-aligned"),
+-	};
++	/* Expected mremap failures */
++	test_cases[0] =	MAKE_TEST(page_size, page_size, page_size,
++				  OVERLAPPING, EXPECT_FAILURE,
++				  "mremap - Source and Destination Regions Overlapping");
++
++	test_cases[1] = MAKE_TEST(page_size, page_size/4, page_size,
++				  NON_OVERLAPPING, EXPECT_FAILURE,
++				  "mremap - Destination Address Misaligned (1KB-aligned)");
++	test_cases[2] = MAKE_TEST(page_size/4, page_size, page_size,
++				  NON_OVERLAPPING, EXPECT_FAILURE,
++				  "mremap - Source Address Misaligned (1KB-aligned)");
++
++	/* Src addr PTE aligned */
++	test_cases[3] = MAKE_TEST(PTE, PTE, PTE * 2,
++				  NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "8KB mremap - Source PTE-aligned, Destination PTE-aligned");
++
++	/* Src addr 1MB aligned */
++	test_cases[4] = MAKE_TEST(_1MB, PTE, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "2MB mremap - Source 1MB-aligned, Destination PTE-aligned");
++	test_cases[5] = MAKE_TEST(_1MB, _1MB, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "2MB mremap - Source 1MB-aligned, Destination 1MB-aligned");
++
++	/* Src addr PMD aligned */
++	test_cases[6] = MAKE_TEST(PMD, PTE, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "4MB mremap - Source PMD-aligned, Destination PTE-aligned");
++	test_cases[7] =	MAKE_TEST(PMD, _1MB, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "4MB mremap - Source PMD-aligned, Destination 1MB-aligned");
++	test_cases[8] = MAKE_TEST(PMD, PMD, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "4MB mremap - Source PMD-aligned, Destination PMD-aligned");
++
++	/* Src addr PUD aligned */
++	test_cases[9] = MAKE_TEST(PUD, PTE, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "2GB mremap - Source PUD-aligned, Destination PTE-aligned");
++	test_cases[10] = MAKE_TEST(PUD, _1MB, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				   "2GB mremap - Source PUD-aligned, Destination 1MB-aligned");
++	test_cases[11] = MAKE_TEST(PUD, PMD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				   "2GB mremap - Source PUD-aligned, Destination PMD-aligned");
++	test_cases[12] = MAKE_TEST(PUD, PUD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				   "2GB mremap - Source PUD-aligned, Destination PUD-aligned");
++
++	perf_test_cases[0] =  MAKE_TEST(page_size, page_size, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++					"1GB mremap - Source PTE-aligned, Destination PTE-aligned");
++	/*
++	 * mremap 1GB region - Page table level aligned time
++	 * comparison.
++	 */
++	perf_test_cases[1] = MAKE_TEST(PMD, PMD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				       "1GB mremap - Source PMD-aligned, Destination PMD-aligned");
++	perf_test_cases[2] = MAKE_TEST(PUD, PUD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				       "1GB mremap - Source PUD-aligned, Destination PUD-aligned");
  
- 	  Only works with drivers that use the generic timeout handling,
--	  for others it wont do anything.
-+	  for others it won't do anything.
- 
- config FAIL_FUTEX
- 	bool "Fault-injection capability for futexes"
---- a/lib/kfifo.c~lib-fix-spelling-mistakes
-+++ a/lib/kfifo.c
-@@ -415,7 +415,7 @@ static unsigned int __kfifo_peek_n(struc
- 	)
- 
- /*
-- * __kfifo_poke_n internal helper function for storeing the length of
-+ * __kfifo_poke_n internal helper function for storing the length of
-  * the record into the fifo
-  */
- static void __kfifo_poke_n(struct __kfifo *fifo, unsigned int n, size_t recsize)
---- a/lib/list_sort.c~lib-fix-spelling-mistakes
-+++ a/lib/list_sort.c
-@@ -104,7 +104,7 @@ static void merge_final(void *priv, list
-  * @head: the list to sort
-  * @cmp: the elements comparison function
-  *
-- * The comparison funtion @cmp must return > 0 if @a should sort after
-+ * The comparison function @cmp must return > 0 if @a should sort after
-  * @b ("@a > @b" if you want an ascending sort), and <= 0 if @a should
-  * sort before @b *or* their original order should be preserved.  It is
-  * always called with the element that came first in the input in @a,
---- a/lib/nlattr.c~lib-fix-spelling-mistakes
-+++ a/lib/nlattr.c
-@@ -619,7 +619,7 @@ static int __nla_validate_parse(const st
-  * Validates all attributes in the specified attribute stream against the
-  * specified policy. Validation depends on the validate flags passed, see
-  * &enum netlink_validation for more details on that.
-- * See documenation of struct nla_policy for more details.
-+ * See documentation of struct nla_policy for more details.
-  *
-  * Returns 0 on success or a negative error code.
-  */
-@@ -633,7 +633,7 @@ int __nla_validate(const struct nlattr *
- EXPORT_SYMBOL(__nla_validate);
- 
- /**
-- * nla_policy_len - Determin the max. length of a policy
-+ * nla_policy_len - Determine the max. length of a policy
-  * @policy: policy to use
-  * @n: number of policies
-  *
---- a/lib/oid_registry.c~lib-fix-spelling-mistakes
-+++ a/lib/oid_registry.c
-@@ -124,7 +124,7 @@ EXPORT_SYMBOL_GPL(parse_OID);
-  * @bufsize: The size of the buffer
-  *
-  * The OID is rendered into the buffer in "a.b.c.d" format and the number of
-- * bytes is returned.  -EBADMSG is returned if the data could not be intepreted
-+ * bytes is returned.  -EBADMSG is returned if the data could not be interpreted
-  * and -ENOBUFS if the buffer was too small.
-  */
- int sprint_oid(const void *data, size_t datasize, char *buffer, size_t bufsize)
---- a/lib/pldmfw/pldmfw.c~lib-fix-spelling-mistakes
-+++ a/lib/pldmfw/pldmfw.c
-@@ -82,7 +82,7 @@ pldm_check_fw_space(struct pldmfw_priv *
-  * @bytes_to_move: number of bytes to move the offset forward by
-  *
-  * Check that there is enough space past the current offset, and then move the
-- * offset forward by this ammount.
-+ * offset forward by this amount.
-  *
-  * Returns: zero on success, or -EFAULT if the image is too small to fit the
-  * expected length.
---- a/lib/reed_solomon/test_rslib.c~lib-fix-spelling-mistakes
-+++ a/lib/reed_solomon/test_rslib.c
-@@ -385,7 +385,7 @@ static void test_bc(struct rs_control *r
- 
- 			/*
- 			 * We check that the returned word is actually a
--			 * codeword. The obious way to do this would be to
-+			 * codeword. The obvious way to do this would be to
- 			 * compute the syndrome, but we don't want to replicate
- 			 * that code here. However, all the codes are in
- 			 * systematic form, and therefore we can encode the
---- a/lib/refcount.c~lib-fix-spelling-mistakes
-+++ a/lib/refcount.c
-@@ -164,7 +164,7 @@ EXPORT_SYMBOL(refcount_dec_and_lock);
-  * @flags: saved IRQ-flags if the is acquired
-  *
-  * Same as refcount_dec_and_lock() above except that the spinlock is acquired
-- * with disabled interupts.
-+ * with disabled interrupts.
-  *
-  * Return: true and hold spinlock if able to decrement refcount to 0, false
-  *         otherwise
---- a/lib/rhashtable.c~lib-fix-spelling-mistakes
-+++ a/lib/rhashtable.c
-@@ -703,7 +703,7 @@ EXPORT_SYMBOL_GPL(rhashtable_walk_exit);
-  *
-  * Returns zero if successful.
-  *
-- * Returns -EAGAIN if resize event occured.  Note that the iterator
-+ * Returns -EAGAIN if resize event occurred.  Note that the iterator
-  * will rewind back to the beginning and you may use it immediately
-  * by calling rhashtable_walk_next.
-  *
---- a/lib/sbitmap.c~lib-fix-spelling-mistakes
-+++ a/lib/sbitmap.c
-@@ -583,7 +583,7 @@ void sbitmap_queue_clear(struct sbitmap_
- 	/*
- 	 * Once the clear bit is set, the bit may be allocated out.
- 	 *
--	 * Orders READ/WRITE on the asssociated instance(such as request
-+	 * Orders READ/WRITE on the associated instance(such as request
- 	 * of blk_mq) by this bit for avoiding race with re-allocation,
- 	 * and its pair is the memory barrier implied in __sbitmap_get_word.
- 	 *
---- a/lib/scatterlist.c~lib-fix-spelling-mistakes
-+++ a/lib/scatterlist.c
-@@ -38,7 +38,7 @@ EXPORT_SYMBOL(sg_next);
-  * @sg:		The scatterlist
-  *
-  * Description:
-- * Allows to know how many entries are in sg, taking into acount
-+ * Allows to know how many entries are in sg, taking into account
-  * chaining as well
-  *
-  **/
-@@ -59,7 +59,7 @@ EXPORT_SYMBOL(sg_nents);
-  *
-  * Description:
-  * Determines the number of entries in sg that are required to meet
-- * the supplied length, taking into acount chaining as well
-+ * the supplied length, taking into account chaining as well
-  *
-  * Returns:
-  *   the number of sg entries needed, negative error on failure
---- a/lib/seq_buf.c~lib-fix-spelling-mistakes
-+++ a/lib/seq_buf.c
-@@ -285,7 +285,7 @@ int seq_buf_path(struct seq_buf *s, cons
- }
- 
- /**
-- * seq_buf_to_user - copy the squence buffer to user space
-+ * seq_buf_to_user - copy the sequence buffer to user space
-  * @s: seq_buf descriptor
-  * @ubuf: The userspace memory location to copy to
-  * @cnt: The amount to copy
---- a/lib/sort.c~lib-fix-spelling-mistakes
-+++ a/lib/sort.c
-@@ -51,7 +51,7 @@ static bool is_aligned(const void *base,
-  * which basically all CPUs have, to minimize loop overhead computations.
-  *
-  * For some reason, on x86 gcc 7.3.0 adds a redundant test of n at the
-- * bottom of the loop, even though the zero flag is stil valid from the
-+ * bottom of the loop, even though the zero flag is still valid from the
-  * subtract (since the intervening mov instructions don't alter the flags).
-  * Gcc 8.1.0 doesn't have that problem.
-  */
---- a/lib/stackdepot.c~lib-fix-spelling-mistakes
-+++ a/lib/stackdepot.c
-@@ -11,7 +11,7 @@
-  * Instead, stack depot maintains a hashtable of unique stacktraces. Since alloc
-  * and free stacks repeat a lot, we save about 100x space.
-  * Stacks are never removed from depot, so we store them contiguously one after
-- * another in a contiguos memory allocation.
-+ * another in a contiguous memory allocation.
-  *
-  * Author: Alexander Potapenko <glider@google.com>
-  * Copyright (C) 2016 Google, Inc.
---- a/lib/vsprintf.c~lib-fix-spelling-mistakes
-+++ a/lib/vsprintf.c
-@@ -3416,7 +3416,7 @@ int vsscanf(const char *buf, const char
- 
- 	while (*fmt) {
- 		/* skip any white space in format */
--		/* white space in format matchs any amount of
-+		/* white space in format matches any amount of
- 		 * white space, including none, in the input.
- 		 */
- 		if (isspace(*fmt)) {
+ 	run_perf_tests =  (threshold_mb == VALIDATION_NO_THRESHOLD) ||
+ 				(threshold_mb * _1MB >= _1GB);
 _
 
-Patches currently in -mm which might be from thunder.leizhen@huawei.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-mm-clear-spelling-mistakes.patch
-lib-decompress_bunzip2-remove-an-unneeded-semicolon.patch
-lib-decompressors-fix-spelling-mistakes.patch
-lib-mpi-fix-spelling-mistakes.patch
-lib-test-fix-spelling-mistakes.patch
-lib-fix-spelling-mistakes.patch
-mm-fix-spelling-mistakes-in-header-files.patch
+selftest-mremap_test-avoid-crash-with-static-build.patch
+mm-mremap-use-pmd-pud_poplulate-to-update-page-table-entries.patch
+mm-mremap-use-pmd-pud_poplulate-to-update-page-table-entries-fix.patch
+powerpc-mm-book3s64-fix-possible-build-error.patch
+powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument.patch
+mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush.patch
+mm-mremap-move-tlb-flush-outside-page-table-lock.patch
+mm-mremap-allow-arch-runtime-override.patch
+powerpc-mm-enable-move-pmd-pud.patch
 
