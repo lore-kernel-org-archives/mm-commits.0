@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C827C47095
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:41:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4069DC47094
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:14:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 46A6161159
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:41:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1AA9B6120F
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:14:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231200AbhFGUnf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Jun 2021 16:43:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58802 "EHLO mail.kernel.org"
+        id S231177AbhFGWQm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Jun 2021 18:16:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50642 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231532AbhFGUne (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Jun 2021 16:43:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 995B561139;
-        Mon,  7 Jun 2021 20:41:42 +0000 (UTC)
+        id S231160AbhFGWQl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Jun 2021 18:16:41 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6922561185;
+        Mon,  7 Jun 2021 22:14:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623098502;
-        bh=aMaa2TFuomDHK89BR9znby64539IEblHx6CZGWA5Epk=;
+        s=korg; t=1623104078;
+        bh=q6JbHbzGyhLnnm3HoGfRlHN0wtlZf0dqZD3faxApFm8=;
         h=Date:From:To:Subject:From;
-        b=MTBXQZboqxzqZxIqBDpMh6kLVUdkFdK3Q7TMEgrr4LEfZAO4m/v2wOqrMjdBlG4iJ
-         V0T00BKF2/PTWrsoX3BZW6w6V8aIOzBdSL18OIzTQGOA+CAyhgrcZrtSkpuTFbDFnz
-         tSHN4sTc69ajBzVvl5BTiS4g3NDMfug+sE4PRkXQ=
-Date:   Mon, 07 Jun 2021 13:41:42 -0700
+        b=n4Nl4zTvQCBb24lza5nQ4v2Vk4pcRPuw+s5Riq/uECzEH1EKDXkK3jrF2zERd73LL
+         jj0vXLTYXbBUR+MOrfzdRfEhd2LadO87KhDSH/YvAehM4uJzrdvN/bjlyBZNUkFlvE
+         cNWqjCSmpEtJB3sHcn9HypytZdx9BnwrDGSpJlzU=
+Date:   Mon, 07 Jun 2021 15:14:37 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, catalin.marinas@arm.com, eugenis@google.com,
-        glider@google.com, jannh@google.com, mm-commits@vger.kernel.org,
-        pcc@google.com, vincenzo.frascino@arm.com
-Subject:  [merged]
- kasan-disable-freed-user-page-poisoning-with-hw-tags.patch removed from -mm
+To:     almasrymina@google.com, axelrasmussen@google.com, mhocko@suse.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, peterx@redhat.com,
+        songmuchun@bytedance.com, stable@vger.kernel.org
+Subject:  +
+ mm-hugetlb-expand-restore_reserve_on_error-functionality.patch added to -mm
  tree
-Message-ID: <20210607204142.JtUOSNU98%akpm@linux-foundation.org>
+Message-ID: <20210607221437.3GxgY8f__%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,197 +46,304 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: disable freed user page poisoning with HW tags
-has been removed from the -mm tree.  Its filename was
-     kasan-disable-freed-user-page-poisoning-with-hw-tags.patch
+     Subject: mm/hugetlb: expand restore_reserve_on_error functionality
+has been added to the -mm tree.  Its filename is
+     mm-hugetlb-expand-restore_reserve_on_error-functionality.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-expand-restore_reserve_on_error-functionality.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-expand-restore_reserve_on_error-functionality.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Collingbourne <pcc@google.com>
-Subject: kasan: disable freed user page poisoning with HW tags
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb: expand restore_reserve_on_error functionality
 
-Poisoning freed pages protects against kernel use-after-free.  The
-likelihood of such a bug involving kernel pages is significantly higher
-than that for user pages.  At the same time, poisoning freed pages can
-impose a significant performance cost, which cannot always be justified
-for user pages given the lower probability of finding a bug.  Therefore,
-disable freed user page poisoning when using HW tags.  We identify "user"
-pages via the flag set GFP_HIGHUSER_MOVABLE, which indicates a strong
-likelihood of not being directly accessible to the kernel.
+The routine restore_reserve_on_error is called to restore reservation
+information when an error occurs after page allocation.  The routine
+alloc_huge_page modifies the mapping reserve map and potentially the
+reserve count during allocation.  If code calling alloc_huge_page
+encounters an error after allocation and needs to free the page, the
+reservation information needs to be adjusted.
 
-Link: https://lkml.kernel.org/r/20210602235230.3928842-5-pcc@google.com
-Link: https://linux-review.googlesource.com/id/I716846e2de8ef179f44e835770df7e6307be96c9
-Signed-off-by: Peter Collingbourne <pcc@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Currently, restore_reserve_on_error only takes action on pages for which
+the reserve count was adjusted(HPageRestoreReserve flag).  There is
+nothing wrong with these adjustments.  However, alloc_huge_page ALWAYS
+modifies the reserve map during allocation even if the reserve count is
+not adjusted.  This can cause issues as observed during development of
+this patch [1].
+
+One specific series of operations causing an issue is:
+- Create a shared hugetlb mapping
+  Reservations for all pages created by default
+- Fault in a page in the mapping
+  Reservation exists so reservation count is decremented
+- Punch a hole in the file/mapping at index previously faulted
+  Reservation and any associated pages will be removed
+- Allocate a page to fill the hole
+  No reservation entry, so reserve count unmodified
+  Reservation entry added to map by alloc_huge_page
+- Error after allocation and before instantiating the page
+  Reservation entry remains in map
+- Allocate a page to fill the hole
+  Reservation entry exists, so decrement reservation count
+
+This will cause a reservation count underflow as the reservation count was
+decremented twice for the same index.
+
+A user would observe a very large number for HugePages_Rsvd in
+/proc/meminfo.  This would also likely cause subsequent allocations of
+hugetlb pages to fail as it would 'appear' that all pages are reserved.
+
+This sequence of operations is unlikely to happen, however they were
+easily reproduced and observed using hacked up code as described in [1].
+
+Address the issue by having the routine restore_reserve_on_error take
+action on pages where HPageRestoreReserve is not set.  In this case, we
+need to remove any reserve map entry created by alloc_huge_page.  A new
+helper routine vma_del_reservation assists with this operation.
+
+There are three callers of alloc_huge_page which do not currently call
+restore_reserve_on error before freeing a page on error paths.  Add those
+missing calls.
+
+[1] https://lore.kernel.org/linux-mm/20210528005029.88088-1-almasrymina@google.com/
+Link: https://lkml.kernel.org/r/20210607204510.22617-1-mike.kravetz@oracle.com
+Fixes: 96b96a96ddee ("mm/hugetlb: fix huge page reservation leak in private mapping error paths"
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Mina Almasry <almasrymina@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h            |   13 ++++++++++---
- include/linux/page-flags.h     |    9 +++++++++
- include/trace/events/mmflags.h |    9 ++++++++-
- mm/kasan/hw_tags.c             |    3 +++
- mm/page_alloc.c                |   12 +++++++-----
- 5 files changed, 37 insertions(+), 9 deletions(-)
+ fs/hugetlbfs/inode.c    |    1 
+ include/linux/hugetlb.h |    2 
+ mm/hugetlb.c            |  122 ++++++++++++++++++++++++++++++--------
+ 3 files changed, 101 insertions(+), 24 deletions(-)
 
---- a/include/linux/gfp.h~kasan-disable-freed-user-page-poisoning-with-hw-tags
-+++ a/include/linux/gfp.h
-@@ -54,8 +54,9 @@ struct vm_area_struct;
- #define ___GFP_THISNODE		0x200000u
- #define ___GFP_ACCOUNT		0x400000u
- #define ___GFP_ZEROTAGS		0x800000u
-+#define ___GFP_SKIP_KASAN_POISON	0x1000000u
- #ifdef CONFIG_LOCKDEP
--#define ___GFP_NOLOCKDEP	0x1000000u
-+#define ___GFP_NOLOCKDEP	0x2000000u
- #else
- #define ___GFP_NOLOCKDEP	0
- #endif
-@@ -233,17 +234,22 @@ struct vm_area_struct;
-  *
-  * %__GFP_ZEROTAGS returns a page with zeroed memory tags on success, if
-  * __GFP_ZERO is set.
+--- a/fs/hugetlbfs/inode.c~mm-hugetlb-expand-restore_reserve_on_error-functionality
++++ a/fs/hugetlbfs/inode.c
+@@ -735,6 +735,7 @@ static long hugetlbfs_fallocate(struct f
+ 		__SetPageUptodate(page);
+ 		error = huge_add_to_page_cache(page, mapping, index);
+ 		if (unlikely(error)) {
++			restore_reserve_on_error(h, &pseudo_vma, addr, page);
+ 			put_page(page);
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 			goto out;
+--- a/include/linux/hugetlb.h~mm-hugetlb-expand-restore_reserve_on_error-functionality
++++ a/include/linux/hugetlb.h
+@@ -610,6 +610,8 @@ struct page *alloc_huge_page_vma(struct
+ 				unsigned long address);
+ int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
+ 			pgoff_t idx);
++void restore_reserve_on_error(struct hstate *h, struct vm_area_struct *vma,
++				unsigned long address, struct page *page);
+ 
+ /* arch callback */
+ int __init __alloc_bootmem_huge_page(struct hstate *h);
+--- a/mm/hugetlb.c~mm-hugetlb-expand-restore_reserve_on_error-functionality
++++ a/mm/hugetlb.c
+@@ -2121,12 +2121,18 @@ out:
+  * be restored when a newly allocated huge page must be freed.  It is
+  * to be called after calling vma_needs_reservation to determine if a
+  * reservation exists.
 + *
-+ * %__GFP_SKIP_KASAN_POISON returns a page which does not need to be poisoned
-+ * on deallocation. Typically used for userspace pages. Currently only has an
-+ * effect in HW tags mode.
++ * vma_del_reservation is used in error paths where an entry in the reserve
++ * map was created during huge page allocation and must be removed.  It is to
++ * be called after calling vma_needs_reservation to determine if a reservation
++ * exists.
   */
- #define __GFP_NOWARN	((__force gfp_t)___GFP_NOWARN)
- #define __GFP_COMP	((__force gfp_t)___GFP_COMP)
- #define __GFP_ZERO	((__force gfp_t)___GFP_ZERO)
- #define __GFP_ZEROTAGS	((__force gfp_t)___GFP_ZEROTAGS)
-+#define __GFP_SKIP_KASAN_POISON	((__force gfp_t)___GFP_SKIP_KASAN_POISON)
+ enum vma_resv_mode {
+ 	VMA_NEEDS_RESV,
+ 	VMA_COMMIT_RESV,
+ 	VMA_END_RESV,
+ 	VMA_ADD_RESV,
++	VMA_DEL_RESV,
+ };
+ static long __vma_reservation_common(struct hstate *h,
+ 				struct vm_area_struct *vma, unsigned long addr,
+@@ -2170,11 +2176,21 @@ static long __vma_reservation_common(str
+ 			ret = region_del(resv, idx, idx + 1);
+ 		}
+ 		break;
++	case VMA_DEL_RESV:
++		if (vma->vm_flags & VM_MAYSHARE) {
++			region_abort(resv, idx, idx + 1, 1);
++			ret = region_del(resv, idx, idx + 1);
++		} else {
++			ret = region_add(resv, idx, idx + 1, 1, NULL, NULL);
++			/* region_add calls of range 1 should never fail. */
++			VM_BUG_ON(ret < 0);
++		}
++		break;
+ 	default:
+ 		BUG();
+ 	}
  
- /* Disable lockdep for GFP context tracking */
- #define __GFP_NOLOCKDEP ((__force gfp_t)___GFP_NOLOCKDEP)
+-	if (vma->vm_flags & VM_MAYSHARE)
++	if (vma->vm_flags & VM_MAYSHARE || mode == VMA_DEL_RESV)
+ 		return ret;
+ 	/*
+ 	 * We know private mapping must have HPAGE_RESV_OWNER set.
+@@ -2222,25 +2238,39 @@ static long vma_add_reservation(struct h
+ 	return __vma_reservation_common(h, vma, addr, VMA_ADD_RESV);
+ }
  
- /* Room for N __GFP_FOO bits */
--#define __GFP_BITS_SHIFT (24 + IS_ENABLED(CONFIG_LOCKDEP))
-+#define __GFP_BITS_SHIFT (25 + IS_ENABLED(CONFIG_LOCKDEP))
- #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
- 
- /**
-@@ -324,7 +330,8 @@ struct vm_area_struct;
- #define GFP_DMA		__GFP_DMA
- #define GFP_DMA32	__GFP_DMA32
- #define GFP_HIGHUSER	(GFP_USER | __GFP_HIGHMEM)
--#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE)
-+#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE | \
-+			 __GFP_SKIP_KASAN_POISON)
- #define GFP_TRANSHUGE_LIGHT	((GFP_HIGHUSER_MOVABLE | __GFP_COMP | \
- 			 __GFP_NOMEMALLOC | __GFP_NOWARN) & ~__GFP_RECLAIM)
- #define GFP_TRANSHUGE	(GFP_TRANSHUGE_LIGHT | __GFP_DIRECT_RECLAIM)
---- a/include/linux/page-flags.h~kasan-disable-freed-user-page-poisoning-with-hw-tags
-+++ a/include/linux/page-flags.h
-@@ -138,6 +138,9 @@ enum pageflags {
- #ifdef CONFIG_64BIT
- 	PG_arch_2,
- #endif
-+#ifdef CONFIG_KASAN_HW_TAGS
-+	PG_skip_kasan_poison,
-+#endif
- 	__NR_PAGEFLAGS,
- 
- 	/* Filesystems */
-@@ -443,6 +446,12 @@ TESTCLEARFLAG(Young, young, PF_ANY)
- PAGEFLAG(Idle, idle, PF_ANY)
- #endif
- 
-+#ifdef CONFIG_KASAN_HW_TAGS
-+PAGEFLAG(SkipKASanPoison, skip_kasan_poison, PF_HEAD)
-+#else
-+PAGEFLAG_FALSE(SkipKASanPoison)
-+#endif
++static long vma_del_reservation(struct hstate *h,
++			struct vm_area_struct *vma, unsigned long addr)
++{
++	return __vma_reservation_common(h, vma, addr, VMA_DEL_RESV);
++}
 +
  /*
-  * PageReported() is used to track reported free pages within the Buddy
-  * allocator. We can use the non-atomic version of the test and set
---- a/include/trace/events/mmflags.h~kasan-disable-freed-user-page-poisoning-with-hw-tags
-+++ a/include/trace/events/mmflags.h
-@@ -85,6 +85,12 @@
- #define IF_HAVE_PG_ARCH_2(flag,string)
- #endif
- 
-+#ifdef CONFIG_KASAN_HW_TAGS
-+#define IF_HAVE_PG_SKIP_KASAN_POISON(flag,string) ,{1UL << flag, string}
-+#else
-+#define IF_HAVE_PG_SKIP_KASAN_POISON(flag,string)
-+#endif
-+
- #define __def_pageflag_names						\
- 	{1UL << PG_locked,		"locked"	},		\
- 	{1UL << PG_waiters,		"waiters"	},		\
-@@ -112,7 +118,8 @@ IF_HAVE_PG_UNCACHED(PG_uncached,	"uncach
- IF_HAVE_PG_HWPOISON(PG_hwpoison,	"hwpoison"	)		\
- IF_HAVE_PG_IDLE(PG_young,		"young"		)		\
- IF_HAVE_PG_IDLE(PG_idle,		"idle"		)		\
--IF_HAVE_PG_ARCH_2(PG_arch_2,		"arch_2"	)
-+IF_HAVE_PG_ARCH_2(PG_arch_2,		"arch_2"	)		\
-+IF_HAVE_PG_SKIP_KASAN_POISON(PG_skip_kasan_poison, "skip_kasan_poison")
- 
- #define show_page_flags(flags)						\
- 	(flags) ? __print_flags(flags, "|",				\
---- a/mm/kasan/hw_tags.c~kasan-disable-freed-user-page-poisoning-with-hw-tags
-+++ a/mm/kasan/hw_tags.c
-@@ -246,6 +246,9 @@ void kasan_alloc_pages(struct page *page
- 	 */
- 	bool init = !want_init_on_free() && want_init_on_alloc(flags);
- 
-+	if (flags & __GFP_SKIP_KASAN_POISON)
-+		SetPageSkipKASanPoison(page);
-+
- 	if (flags & __GFP_ZEROTAGS) {
- 		int i;
- 
---- a/mm/page_alloc.c~kasan-disable-freed-user-page-poisoning-with-hw-tags
-+++ a/mm/page_alloc.c
-@@ -412,11 +412,12 @@ static DEFINE_STATIC_KEY_TRUE(deferred_p
-  * on-demand allocation and then freed again before the deferred pages
-  * initialization is done, but this is not likely to happen.
-  */
--static inline bool should_skip_kasan_poison(fpi_t fpi_flags)
-+static inline bool should_skip_kasan_poison(struct page *page, fpi_t fpi_flags)
+- * This routine is called to restore a reservation on error paths.  In the
+- * specific error paths, a huge page was allocated (via alloc_huge_page)
+- * and is about to be freed.  If a reservation for the page existed,
+- * alloc_huge_page would have consumed the reservation and set
+- * HPageRestoreReserve in the newly allocated page.  When the page is freed
+- * via free_huge_page, the global reservation count will be incremented if
+- * HPageRestoreReserve is set.  However, free_huge_page can not adjust the
+- * reserve map.  Adjust the reserve map here to be consistent with global
+- * reserve count adjustments to be made by free_huge_page.
+- */
+-static void restore_reserve_on_error(struct hstate *h,
+-			struct vm_area_struct *vma, unsigned long address,
+-			struct page *page)
++ * This routine is called to restore reservation information on error paths.
++ * It should ONLY be called for pages allocated via alloc_huge_page(), and
++ * the hugetlb mutex should remain held when calling this routine.
++ *
++ * It handles two specific cases:
++ * 1) A reservation was in place and the page consumed the reservation.
++ *    HPageRestoreReserve is set in the page.
++ * 2) No reservation was in place for the page, so HPageRestoreReserve is
++ *    not set.  However, alloc_huge_page always updates the reserve map.
++ *
++ * In case 1, free_huge_page later in the error path will increment the
++ * global reserve count.  But, free_huge_page does not have enough context
++ * to adjust the reservation map.  This case deals primarily with private
++ * mappings.  Adjust the reserve map here to be consistent with global
++ * reserve count adjustments to be made by free_huge_page.  Make sure the
++ * reserve map indicates there is a reservation present.
++ *
++ * In case 2, simply undo reserve map modifications done by alloc_huge_page.
++ */
++void restore_reserve_on_error(struct hstate *h, struct vm_area_struct *vma,
++			unsigned long address, struct page *page)
  {
- 	return static_branch_unlikely(&deferred_pages) ||
- 	       (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
--		(fpi_flags & FPI_SKIP_KASAN_POISON));
-+		(fpi_flags & FPI_SKIP_KASAN_POISON)) ||
-+	       PageSkipKASanPoison(page);
+-	if (unlikely(HPageRestoreReserve(page))) {
+-		long rc = vma_needs_reservation(h, vma, address);
++	long rc = vma_needs_reservation(h, vma, address);
+ 
+-		if (unlikely(rc < 0)) {
++	if (HPageRestoreReserve(page)) {
++		if (unlikely(rc < 0))
+ 			/*
+ 			 * Rare out of memory condition in reserve map
+ 			 * manipulation.  Clear HPageRestoreReserve so that
+@@ -2253,16 +2283,57 @@ static void restore_reserve_on_error(str
+ 			 * accounting of reserve counts.
+ 			 */
+ 			ClearHPageRestoreReserve(page);
+-		} else if (rc) {
+-			rc = vma_add_reservation(h, vma, address);
+-			if (unlikely(rc < 0))
++		else if (rc)
++			(void)vma_add_reservation(h, vma, address);
++		else
++			vma_end_reservation(h, vma, address);
++	} else {
++		if (!rc) {
++			/*
++			 * This indicates there is an entry in the reserve map
++			 * added by alloc_huge_page.  We know it was added
++			 * before the alloc_huge_page call, otherwise
++			 * HPageRestoreReserve would be set on the page.
++			 * Remove the entry so that a subsequent allocation
++			 * does not consume a reservation.
++			 */
++			rc = vma_del_reservation(h, vma, address);
++			if (rc < 0)
+ 				/*
+-				 * See above comment about rare out of
+-				 * memory condition.
++				 * VERY rare out of memory condition.  Since
++				 * we can not delete the entry, set
++				 * HPageRestoreReserve so that the reserve
++				 * count will be incremented when the page
++				 * is freed.  This reserve will be consumed
++				 * on a subsequent allocation.
+ 				 */
+-				ClearHPageRestoreReserve(page);
++				SetHPageRestoreReserve(page);
++		} else if (rc < 0) {
++			/*
++			 * Rare out of memory condition from
++			 * vma_needs_reservation call.  Memory allocation is
++			 * only attempted if a new entry is needed.  Therefore,
++			 * this implies there is not an entry in the
++			 * reserve map.
++			 *
++			 * For shared mappings, no entry in the map indicates
++			 * no reservation.  We are done.
++			 */
++			if (!(vma->vm_flags & VM_MAYSHARE))
++				/*
++				 * For private mappings, no entry indicates
++				 * a reservation is present.  Since we can
++				 * not add an entry, set SetHPageRestoreReserve
++				 * on the page so reserve count will be
++				 * incremented when freed.  This reserve will
++				 * be consumed on a subsequent allocation.
++				 */
++				SetHPageRestoreReserve(page);
+ 		} else
+-			vma_end_reservation(h, vma, address);
++			/*
++			 * No reservation present, do nothing
++			 */
++			 vma_end_reservation(h, vma, address);
+ 	}
  }
  
- /* Returns true if the struct page for the pfn is uninitialised */
-@@ -467,10 +468,11 @@ defer_init(int nid, unsigned long pfn, u
- 	return false;
+@@ -4037,6 +4108,8 @@ again:
+ 				spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
+ 				entry = huge_ptep_get(src_pte);
+ 				if (!pte_same(src_pte_old, entry)) {
++					restore_reserve_on_error(h, vma, addr,
++								new);
+ 					put_page(new);
+ 					/* dst_entry won't change as in child */
+ 					goto again;
+@@ -5006,6 +5079,7 @@ out_release_unlock:
+ 	if (vm_shared || is_continue)
+ 		unlock_page(page);
+ out_release_nounlock:
++	restore_reserve_on_error(h, dst_vma, dst_addr, page);
+ 	put_page(page);
+ 	goto out;
  }
- #else
--static inline bool should_skip_kasan_poison(fpi_t fpi_flags)
-+static inline bool should_skip_kasan_poison(struct page *page, fpi_t fpi_flags)
- {
- 	return (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
--		(fpi_flags & FPI_SKIP_KASAN_POISON));
-+		(fpi_flags & FPI_SKIP_KASAN_POISON)) ||
-+	       PageSkipKASanPoison(page);
- }
- 
- static inline bool early_page_uninitialised(unsigned long pfn)
-@@ -1313,7 +1315,7 @@ static __always_inline bool free_pages_p
- 			unsigned int order, bool check_free, fpi_t fpi_flags)
- {
- 	int bad = 0;
--	bool skip_kasan_poison = should_skip_kasan_poison(fpi_flags);
-+	bool skip_kasan_poison = should_skip_kasan_poison(page, fpi_flags);
- 
- 	VM_BUG_ON_PAGE(PageTail(page), page);
- 
 _
 
-Patches currently in -mm which might be from pcc@google.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-improve-mprotectrw-efficiency-on-pages-referenced-once.patch
-mm-improve-mprotectrw-efficiency-on-pages-referenced-once-v5.patch
+mm-hugetlb-expand-restore_reserve_on_error-functionality.patch
+mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page-fix.patch
 
