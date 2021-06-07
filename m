@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E6A6C47082
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:37:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C2DBC4743F
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:37:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 034A36121D
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:37:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D9A761185
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 22:37:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230328AbhFGWi7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Jun 2021 18:38:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57240 "EHLO mail.kernel.org"
+        id S230330AbhFGWjE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Jun 2021 18:39:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57158 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230330AbhFGWi5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Jun 2021 18:38:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A5966109F;
-        Mon,  7 Jun 2021 22:37:04 +0000 (UTC)
+        id S230331AbhFGWjC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Jun 2021 18:39:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 99C8661208;
+        Mon,  7 Jun 2021 22:36:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623105424;
-        bh=oK7o48D77XRk3wUDGf2l/UiT89YesizWCPHwr/0SuR4=;
+        s=korg; t=1623105419;
+        bh=WpdCcgVFgzrqseJOjnAJaue15sTEUYCuudXO1gjH5kg=;
         h=Date:From:To:Subject:From;
-        b=UtHEYHflELlf0qmEPyLQD6vin9FK3vfS43njiUOUK2NLUmTYv9uOr76+1xncS9bt4
-         EkiFaYZJ4gCLNiQr+s8VxE3/OtKpgC8QuNQmBr1JJIoelFpax9hI7qgdDevnLZwr3F
-         T360QzOptOZ3EjTDlXzVRv6Y3l5ypcVll9H4mlpc=
-Date:   Mon, 07 Jun 2021 15:37:04 -0700
+        b=c/f+uP6YaQqb36sJxSoc1gULRjVFwLMxUL8wGCRXrVUEPncH9ziXq/uLUmhz4Wgt2
+         bCHfCqOmWf4dSbeKmCVsCHK4X22a3r/kElvgAT6JhN+waKQVfm4DIM07m+8z8z70Zt
+         A7qsszdrUWr1PCM2s5ZkII+ZYB1GEfHMQ+0bSDy0=
+Date:   Mon, 07 Jun 2021 15:36:58 -0700
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, christophe.leroy@csgroup.eu,
-        joel@joelfernandes.org, kaleshsingh@google.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
+        christophe.leroy@csgroup.eu, joel@joelfernandes.org,
+        kaleshsingh@google.com, mm-commits@vger.kernel.org,
+        mpe@ellerman.id.au, naresh.kamboju@linaro.org, npiggin@gmail.com,
+        sfr@canb.auug.org.au
 Subject:  [to-be-updated]
- mm-mremap-allow-arch-runtime-override.patch removed from -mm tree
-Message-ID: <20210607223704.O7jLm3_Z1%akpm@linux-foundation.org>
+ mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
+ removed from -mm tree
+Message-ID: <20210607223658.4-xp2r2C9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,95 +47,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap: allow arch runtime override
+     Subject: mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix
 has been removed from the -mm tree.  Its filename was
-     mm-mremap-allow-arch-runtime-override.patch
+     mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/mremap: allow arch runtime override
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix
 
-Architectures like ppc64 support faster mremap only with radix
-translation.  Hence allow a runtime check w.r.t support for fast mremap.
+fix build
 
-Link: https://lkml.kernel.org/r/20210422054323.150993-9-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Joel Fernandes <joel@joelfernandes.org>
 Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/tlb.h |    6 ++++++
- mm/mremap.c                    |   15 ++++++++++++++-
- 2 files changed, 20 insertions(+), 1 deletion(-)
+ mm/mremap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/powerpc/include/asm/tlb.h~mm-mremap-allow-arch-runtime-override
-+++ a/arch/powerpc/include/asm/tlb.h
-@@ -83,5 +83,11 @@ static inline int mm_is_thread_local(str
- }
- #endif
- 
-+#define arch_supports_page_table_move arch_supports_page_table_move
-+static inline bool arch_supports_page_table_move(void)
-+{
-+	return radix_enabled();
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* __ASM_POWERPC_TLB_H */
---- a/mm/mremap.c~mm-mremap-allow-arch-runtime-override
+--- a/mm/mremap.c~mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix
 +++ a/mm/mremap.c
-@@ -25,7 +25,7 @@
- #include <linux/userfaultfd_k.h>
- 
- #include <asm/cacheflush.h>
--#include <asm/tlbflush.h>
-+#include <asm/tlb.h>
- #include <asm/pgalloc.h>
- 
- #include "internal.h"
-@@ -220,6 +220,15 @@ static inline void flush_pte_tlb_pwc_ran
+@@ -216,7 +216,7 @@ static inline void flush_pte_tlb_pwc_ran
+ 					   unsigned long start,
+ 					   unsigned long end)
+ {
+-	return flush_tlb_range(vma, start, end);
++	flush_tlb_range(vma, start, end);
  }
  #endif
  
-+#ifndef arch_supports_page_table_move
-+#define arch_supports_page_table_move arch_supports_page_table_move
-+static inline bool arch_supports_page_table_move(void)
-+{
-+	return IS_ENABLED(CONFIG_HAVE_MOVE_PMD) ||
-+		IS_ENABLED(CONFIG_HAVE_MOVE_PUD);
-+}
-+#endif
-+
- #ifdef CONFIG_HAVE_MOVE_PMD
- static bool move_normal_pmd(struct vm_area_struct *vma, unsigned long old_addr,
- 		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
-@@ -228,6 +237,8 @@ static bool move_normal_pmd(struct vm_ar
- 	struct mm_struct *mm = vma->vm_mm;
- 	pmd_t pmd;
- 
-+	if (!arch_supports_page_table_move())
-+		return false;
- 	/*
- 	 * The destination pmd shouldn't be established, free_pgtables()
- 	 * should have released it.
-@@ -294,6 +305,8 @@ static bool move_normal_pud(struct vm_ar
- 	struct mm_struct *mm = vma->vm_mm;
- 	pud_t pud;
- 
-+	if (!arch_supports_page_table_move())
-+		return false;
- 	/*
- 	 * The destination pud shouldn't be established, free_pgtables()
- 	 * should have released it.
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-powerpc-mm-enable-move-pmd-pud.patch
+mm.patch
+mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
+binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
+mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+mm-userfaultfd-fix-uffd-wp-special-cases-for-fork-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+mmmemory_hotplug-drop-unneeded-locking-fix.patch
+fs-proc-kcorec-add-mmap-interface-fix.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+lib-math-rational-add-kunit-test-cases-fix.patch
+lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
+ipc-utilc-use-binary-search-for-max_idx-fix.patch
+linux-next-pre.patch
+linux-next-post.patch
+linux-next-rejects.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
