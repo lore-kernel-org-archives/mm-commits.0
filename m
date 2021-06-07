@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02F3AC47082
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:41:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12840C47094
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:41:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF017611AD
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:41:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EB5B9611BD
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:41:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231322AbhFGUn2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Jun 2021 16:43:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58700 "EHLO mail.kernel.org"
+        id S231517AbhFGUnb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Jun 2021 16:43:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58750 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230389AbhFGUn2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Jun 2021 16:43:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 960A261139;
-        Mon,  7 Jun 2021 20:41:36 +0000 (UTC)
+        id S230389AbhFGUnb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Jun 2021 16:43:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BE3E360FEF;
+        Mon,  7 Jun 2021 20:41:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623098496;
-        bh=x/TASZKmUG+XsS2QscW8lQZ59FhIU8DCI+dC6AF1CVI=;
+        s=korg; t=1623098500;
+        bh=cHCzimNTTz6EEZc7DB82oGOX9cuZWqCQrTAuLCzrn68=;
         h=Date:From:To:Subject:From;
-        b=JC256xLBUUCiieNbfgSFUSHswzgz2sp45S2+9OY4lJlJrc+vRz4TFQDtgaHqigTJG
-         ruYtA2ktAksFGNdFg9KUcCRBxtvu5l5zRRJrE1HuRVY9+SZOdCtRrMVhlhNrD39VCX
-         IKk6BSMVOrXVVaWbhb8OY3TuYzvpedzfMvVrOS10=
-Date:   Mon, 07 Jun 2021 13:41:36 -0700
+        b=EiM8O/BQLEnia9BKwMI13eg1K2jtZXdAy6t5rfZJbzqmcDDVb3TpbF565afh2ybM/
+         l1ssLhneoZrmu+t2WvuWCdfKVCNh3zIk47SwiwCc6wHlncTM5vHvYxWRdRfH0Twp8+
+         3/Pr9u6x8hUQfQ5mmsUKbC06CqpE+neg9cru/+88=
+Date:   Mon, 07 Jun 2021 13:41:39 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@gmail.com, catalin.marinas@arm.com, eugenis@google.com,
         glider@google.com, jannh@google.com, mm-commits@vger.kernel.org,
         pcc@google.com, vincenzo.frascino@arm.com
 Subject:  [merged]
- kasan-use-separate-unpoison-implementation-for-integrated-init.patch
- removed from -mm tree
-Message-ID: <20210607204136.xL1DNVuAx%akpm@linux-foundation.org>
+ arm64-mte-handle-tags-zeroing-at-page-allocation-time.patch removed from
+ -mm tree
+Message-ID: <20210607204139.O9dbSEDtK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,353 +45,296 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: use separate (un)poison implementation for integrated init
+     Subject: arm64: mte: handle tags zeroing at page allocation time
 has been removed from the -mm tree.  Its filename was
-     kasan-use-separate-unpoison-implementation-for-integrated-init.patch
+     arm64-mte-handle-tags-zeroing-at-page-allocation-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Peter Collingbourne <pcc@google.com>
-Subject: kasan: use separate (un)poison implementation for integrated init
+Subject: arm64: mte: handle tags zeroing at page allocation time
 
-Currently with integrated init page_alloc.c needs to know whether
-kasan_alloc_pages() will zero initialize memory, but this will start
-becoming more complicated once we start adding tag initialization support
-for user pages.  To avoid page_alloc.c needing to know more details of
-what integrated init will do, move the unpoisoning logic for integrated
-init into the HW tags implementation.  Currently the logic is identical
-but it will diverge in subsequent patches.
+Currently, on an anonymous page fault, the kernel allocates a zeroed page
+and maps it in user space.  If the mapping is tagged (PROT_MTE),
+set_pte_at() additionally clears the tags.  It is, however, more efficient
+to clear the tags at the same time as zeroing the data on allocation.  To
+avoid clearing the tags on any page (which may not be mapped as tagged),
+only do this if the vma flags contain VM_MTE.  This requires introducing a
+new GFP flag that is used to determine whether to clear the tags.
 
-For symmetry do the same for poisoning although this logic will be
-unaffected by subsequent patches.
+The DC GZVA instruction with a 0 top byte (and 0 tag) requires
+top-byte-ignore.  Set the TCR_EL1.{TBI1,TBID1} bits irrespective of
+whether KASAN_HW is enabled.
 
-Link: https://linux-review.googlesource.com/id/I2c550234c6c4a893c48c18ff0c6ce658c7c67056
-Link: https://lkml.kernel.org/r/20210602235230.3928842-3-pcc@google.com
+Link: https://lkml.kernel.org/r/20210602235230.3928842-4-pcc@google.com
+Link: https://linux-review.googlesource.com/id/Id46dc94e30fe11474f7e54f5d65e7658dbdddb26
 Signed-off-by: Peter Collingbourne <pcc@google.com>
+Co-developed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   64 +++++++++++++++++++++++-----------------
- mm/kasan/common.c     |    4 +-
- mm/kasan/hw_tags.c    |   22 +++++++++++++
- mm/mempool.c          |    6 ++-
- mm/page_alloc.c       |   55 ++++++++++++++++++----------------
- 5 files changed, 95 insertions(+), 56 deletions(-)
+ arch/arm64/include/asm/mte.h  |    4 ++++
+ arch/arm64/include/asm/page.h |    8 ++++++--
+ arch/arm64/lib/mte.S          |   20 ++++++++++++++++++++
+ arch/arm64/mm/fault.c         |   26 ++++++++++++++++++++++++++
+ arch/arm64/mm/proc.S          |   10 +++++++---
+ include/linux/gfp.h           |    9 +++++++--
+ include/linux/highmem.h       |    8 ++++++++
+ mm/kasan/hw_tags.c            |    9 ++++++++-
+ mm/page_alloc.c               |   13 ++++++++++---
+ 9 files changed, 96 insertions(+), 11 deletions(-)
 
---- a/include/linux/kasan.h~kasan-use-separate-unpoison-implementation-for-integrated-init
-+++ a/include/linux/kasan.h
-@@ -2,6 +2,7 @@
- #ifndef _LINUX_KASAN_H
- #define _LINUX_KASAN_H
+--- a/arch/arm64/include/asm/mte.h~arm64-mte-handle-tags-zeroing-at-page-allocation-time
++++ a/arch/arm64/include/asm/mte.h
+@@ -37,6 +37,7 @@ void mte_free_tag_storage(char *storage)
+ /* track which pages have valid allocation tags */
+ #define PG_mte_tagged	PG_arch_2
  
-+#include <linux/bug.h>
- #include <linux/static_key.h>
- #include <linux/types.h>
++void mte_zero_clear_page_tags(void *addr);
+ void mte_sync_tags(pte_t *ptep, pte_t pte);
+ void mte_copy_page_tags(void *kto, const void *kfrom);
+ void mte_thread_init_user(void);
+@@ -53,6 +54,9 @@ int mte_ptrace_copy_tags(struct task_str
+ /* unused if !CONFIG_ARM64_MTE, silence the compiler */
+ #define PG_mte_tagged	0
  
-@@ -79,14 +80,6 @@ static inline void kasan_disable_current
- 
- #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
- 
--#ifdef CONFIG_KASAN
--
--struct kasan_cache {
--	int alloc_meta_offset;
--	int free_meta_offset;
--	bool is_kmalloc;
--};
--
- #ifdef CONFIG_KASAN_HW_TAGS
- 
- DECLARE_STATIC_KEY_FALSE(kasan_flag_enabled);
-@@ -101,11 +94,14 @@ static inline bool kasan_has_integrated_
- 	return kasan_enabled();
- }
- 
-+void kasan_alloc_pages(struct page *page, unsigned int order, gfp_t flags);
-+void kasan_free_pages(struct page *page, unsigned int order);
-+
- #else /* CONFIG_KASAN_HW_TAGS */
- 
- static inline bool kasan_enabled(void)
- {
--	return true;
-+	return IS_ENABLED(CONFIG_KASAN);
- }
- 
- static inline bool kasan_has_integrated_init(void)
-@@ -113,8 +109,30 @@ static inline bool kasan_has_integrated_
- 	return false;
- }
- 
-+static __always_inline void kasan_alloc_pages(struct page *page,
-+					      unsigned int order, gfp_t flags)
++static inline void mte_zero_clear_page_tags(void *addr)
 +{
-+	/* Only available for integrated init. */
-+	BUILD_BUG();
 +}
-+
-+static __always_inline void kasan_free_pages(struct page *page,
-+					     unsigned int order)
-+{
-+	/* Only available for integrated init. */
-+	BUILD_BUG();
-+}
-+
- #endif /* CONFIG_KASAN_HW_TAGS */
- 
-+#ifdef CONFIG_KASAN
-+
-+struct kasan_cache {
-+	int alloc_meta_offset;
-+	int free_meta_offset;
-+	bool is_kmalloc;
-+};
-+
- slab_flags_t __kasan_never_merge(void);
- static __always_inline slab_flags_t kasan_never_merge(void)
+ static inline void mte_sync_tags(pte_t *ptep, pte_t pte)
  {
-@@ -130,20 +148,20 @@ static __always_inline void kasan_unpois
- 		__kasan_unpoison_range(addr, size);
  }
+--- a/arch/arm64/include/asm/page.h~arm64-mte-handle-tags-zeroing-at-page-allocation-time
++++ a/arch/arm64/include/asm/page.h
+@@ -13,6 +13,7 @@
+ #ifndef __ASSEMBLY__
  
--void __kasan_alloc_pages(struct page *page, unsigned int order, bool init);
--static __always_inline void kasan_alloc_pages(struct page *page,
-+void __kasan_poison_pages(struct page *page, unsigned int order, bool init);
-+static __always_inline void kasan_poison_pages(struct page *page,
- 						unsigned int order, bool init)
- {
- 	if (kasan_enabled())
--		__kasan_alloc_pages(page, order, init);
-+		__kasan_poison_pages(page, order, init);
- }
+ #include <linux/personality.h> /* for READ_IMPLIES_EXEC */
++#include <linux/types.h> /* for gfp_t */
+ #include <asm/pgtable-types.h>
  
--void __kasan_free_pages(struct page *page, unsigned int order, bool init);
--static __always_inline void kasan_free_pages(struct page *page,
--						unsigned int order, bool init)
-+void __kasan_unpoison_pages(struct page *page, unsigned int order, bool init);
-+static __always_inline void kasan_unpoison_pages(struct page *page,
-+						 unsigned int order, bool init)
- {
- 	if (kasan_enabled())
--		__kasan_free_pages(page, order, init);
-+		__kasan_unpoison_pages(page, order, init);
- }
+ struct page;
+@@ -28,10 +29,13 @@ void copy_user_highpage(struct page *to,
+ void copy_highpage(struct page *to, struct page *from);
+ #define __HAVE_ARCH_COPY_HIGHPAGE
  
- void __kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
-@@ -285,21 +303,15 @@ void kasan_restore_multi_shot(bool enabl
+-#define alloc_zeroed_user_highpage_movable(vma, vaddr) \
+-	alloc_page_vma(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, vma, vaddr)
++struct page *alloc_zeroed_user_highpage_movable(struct vm_area_struct *vma,
++						unsigned long vaddr);
+ #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE_MOVABLE
  
- #else /* CONFIG_KASAN */
- 
--static inline bool kasan_enabled(void)
--{
--	return false;
--}
--static inline bool kasan_has_integrated_init(void)
--{
--	return false;
--}
- static inline slab_flags_t kasan_never_merge(void)
- {
- 	return 0;
- }
- static inline void kasan_unpoison_range(const void *address, size_t size) {}
--static inline void kasan_alloc_pages(struct page *page, unsigned int order, bool init) {}
--static inline void kasan_free_pages(struct page *page, unsigned int order, bool init) {}
-+static inline void kasan_poison_pages(struct page *page, unsigned int order,
-+				      bool init) {}
-+static inline void kasan_unpoison_pages(struct page *page, unsigned int order,
-+					bool init) {}
- static inline void kasan_cache_create(struct kmem_cache *cache,
- 				      unsigned int *size,
- 				      slab_flags_t *flags) {}
---- a/mm/kasan/common.c~kasan-use-separate-unpoison-implementation-for-integrated-init
-+++ a/mm/kasan/common.c
-@@ -100,7 +100,7 @@ slab_flags_t __kasan_never_merge(void)
- 	return 0;
- }
- 
--void __kasan_alloc_pages(struct page *page, unsigned int order, bool init)
-+void __kasan_unpoison_pages(struct page *page, unsigned int order, bool init)
- {
- 	u8 tag;
- 	unsigned long i;
-@@ -114,7 +114,7 @@ void __kasan_alloc_pages(struct page *pa
- 	kasan_unpoison(page_address(page), PAGE_SIZE << order, init);
- }
- 
--void __kasan_free_pages(struct page *page, unsigned int order, bool init)
-+void __kasan_poison_pages(struct page *page, unsigned int order, bool init)
- {
- 	if (likely(!PageHighMem(page)))
- 		kasan_poison(page_address(page), PAGE_SIZE << order,
---- a/mm/kasan/hw_tags.c~kasan-use-separate-unpoison-implementation-for-integrated-init
-+++ a/mm/kasan/hw_tags.c
-@@ -238,6 +238,28 @@ struct kasan_track *kasan_get_free_track
- 	return &alloc_meta->free_track[0];
- }
- 
-+void kasan_alloc_pages(struct page *page, unsigned int order, gfp_t flags)
-+{
-+	/*
-+	 * This condition should match the one in post_alloc_hook() in
-+	 * page_alloc.c.
-+	 */
-+	bool init = !want_init_on_free() && want_init_on_alloc(flags);
++void tag_clear_highpage(struct page *to);
++#define __HAVE_ARCH_TAG_CLEAR_HIGHPAGE
 +
-+	kasan_unpoison_pages(page, order, init);
-+}
-+
-+void kasan_free_pages(struct page *page, unsigned int order)
-+{
-+	/*
-+	 * This condition should match the one in free_pages_prepare() in
-+	 * page_alloc.c.
-+	 */
-+	bool init = want_init_on_free();
-+
-+	kasan_poison_pages(page, order, init);
-+}
-+
- #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ #define clear_user_page(page, vaddr, pg)	clear_page(page)
+ #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
  
- void kasan_set_tagging_report_once(bool state)
---- a/mm/mempool.c~kasan-use-separate-unpoison-implementation-for-integrated-init
-+++ a/mm/mempool.c
-@@ -106,7 +106,8 @@ static __always_inline void kasan_poison
- 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
- 		kasan_slab_free_mempool(element);
- 	else if (pool->alloc == mempool_alloc_pages)
--		kasan_free_pages(element, (unsigned long)pool->pool_data, false);
-+		kasan_poison_pages(element, (unsigned long)pool->pool_data,
-+				   false);
- }
- 
- static void kasan_unpoison_element(mempool_t *pool, void *element)
-@@ -114,7 +115,8 @@ static void kasan_unpoison_element(mempo
- 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
- 		kasan_unpoison_range(element, __ksize(element));
- 	else if (pool->alloc == mempool_alloc_pages)
--		kasan_alloc_pages(element, (unsigned long)pool->pool_data, false);
-+		kasan_unpoison_pages(element, (unsigned long)pool->pool_data,
-+				     false);
- }
- 
- static __always_inline void add_element(mempool_t *pool, void *element)
---- a/mm/page_alloc.c~kasan-use-separate-unpoison-implementation-for-integrated-init
-+++ a/mm/page_alloc.c
-@@ -400,7 +400,7 @@ int page_group_by_mobility_disabled __re
- static DEFINE_STATIC_KEY_TRUE(deferred_pages);
+--- a/arch/arm64/lib/mte.S~arm64-mte-handle-tags-zeroing-at-page-allocation-time
++++ a/arch/arm64/lib/mte.S
+@@ -37,6 +37,26 @@ SYM_FUNC_START(mte_clear_page_tags)
+ SYM_FUNC_END(mte_clear_page_tags)
  
  /*
-- * Calling kasan_free_pages() only after deferred memory initialization
-+ * Calling kasan_poison_pages() only after deferred memory initialization
-  * has completed. Poisoning pages during deferred memory init will greatly
-  * lengthen the process and cause problem in large memory systems as the
-  * deferred pages initialization is done with interrupt disabled.
-@@ -412,15 +412,11 @@ static DEFINE_STATIC_KEY_TRUE(deferred_p
-  * on-demand allocation and then freed again before the deferred pages
-  * initialization is done, but this is not likely to happen.
-  */
--static inline void kasan_free_nondeferred_pages(struct page *page, int order,
--						bool init, fpi_t fpi_flags)
-+static inline bool should_skip_kasan_poison(fpi_t fpi_flags)
- {
--	if (static_branch_unlikely(&deferred_pages))
--		return;
--	if (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
--			(fpi_flags & FPI_SKIP_KASAN_POISON))
--		return;
--	kasan_free_pages(page, order, init);
-+	return static_branch_unlikely(&deferred_pages) ||
-+	       (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
-+		(fpi_flags & FPI_SKIP_KASAN_POISON));
++ * Zero the page and tags at the same time
++ *
++ * Parameters:
++ *	x0 - address to the beginning of the page
++ */
++SYM_FUNC_START(mte_zero_clear_page_tags)
++	mrs	x1, dczid_el0
++	and	w1, w1, #0xf
++	mov	x2, #4
++	lsl	x1, x2, x1
++	and	x0, x0, #(1 << MTE_TAG_SHIFT) - 1	// clear the tag
++
++1:	dc	gzva, x0
++	add	x0, x0, x1
++	tst	x0, #(PAGE_SIZE - 1)
++	b.ne	1b
++	ret
++SYM_FUNC_END(mte_zero_clear_page_tags)
++
++/*
+  * Copy the tags from the source page to the destination one
+  *   x0 - address of the destination page
+  *   x1 - address of the source page
+--- a/arch/arm64/mm/fault.c~arm64-mte-handle-tags-zeroing-at-page-allocation-time
++++ a/arch/arm64/mm/fault.c
+@@ -921,3 +921,29 @@ void do_debug_exception(unsigned long ad
+ 	debug_exception_exit(regs);
  }
+ NOKPROBE_SYMBOL(do_debug_exception);
++
++/*
++ * Used during anonymous page fault handling.
++ */
++struct page *alloc_zeroed_user_highpage_movable(struct vm_area_struct *vma,
++						unsigned long vaddr)
++{
++	gfp_t flags = GFP_HIGHUSER_MOVABLE | __GFP_ZERO;
++
++	/*
++	 * If the page is mapped with PROT_MTE, initialise the tags at the
++	 * point of allocation and page zeroing as this is usually faster than
++	 * separate DC ZVA and STGM.
++	 */
++	if (vma->vm_flags & VM_MTE)
++		flags |= __GFP_ZEROTAGS;
++
++	return alloc_page_vma(flags, vma, vaddr);
++}
++
++void tag_clear_highpage(struct page *page)
++{
++	mte_zero_clear_page_tags(page_address(page));
++	page_kasan_tag_reset(page);
++	set_bit(PG_mte_tagged, &page->flags);
++}
+--- a/arch/arm64/mm/proc.S~arm64-mte-handle-tags-zeroing-at-page-allocation-time
++++ a/arch/arm64/mm/proc.S
+@@ -46,9 +46,13 @@
+ #endif
  
- /* Returns true if the struct page for the pfn is uninitialised */
-@@ -471,13 +467,10 @@ defer_init(int nid, unsigned long pfn, u
- 	return false;
- }
+ #ifdef CONFIG_KASAN_HW_TAGS
+-#define TCR_KASAN_HW_FLAGS SYS_TCR_EL1_TCMA1 | TCR_TBI1 | TCR_TBID1
++#define TCR_MTE_FLAGS SYS_TCR_EL1_TCMA1 | TCR_TBI1 | TCR_TBID1
  #else
--static inline void kasan_free_nondeferred_pages(struct page *page, int order,
--						bool init, fpi_t fpi_flags)
-+static inline bool should_skip_kasan_poison(fpi_t fpi_flags)
- {
--	if (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
--			(fpi_flags & FPI_SKIP_KASAN_POISON))
--		return;
--	kasan_free_pages(page, order, init);
-+	return (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
-+		(fpi_flags & FPI_SKIP_KASAN_POISON));
+-#define TCR_KASAN_HW_FLAGS 0
++/*
++ * The mte_zero_clear_page_tags() implementation uses DC GZVA, which relies on
++ * TBI being enabled at EL1.
++ */
++#define TCR_MTE_FLAGS TCR_TBI1 | TCR_TBID1
+ #endif
+ 
+ /*
+@@ -454,7 +458,7 @@ SYM_FUNC_START(__cpu_setup)
+ 	msr_s	SYS_TFSRE0_EL1, xzr
+ 
+ 	/* set the TCR_EL1 bits */
+-	mov_q	x10, TCR_KASAN_HW_FLAGS
++	mov_q	x10, TCR_MTE_FLAGS
+ 	orr	tcr, tcr, x10
+ 1:
+ #endif
+--- a/include/linux/gfp.h~arm64-mte-handle-tags-zeroing-at-page-allocation-time
++++ a/include/linux/gfp.h
+@@ -53,8 +53,9 @@ struct vm_area_struct;
+ #define ___GFP_HARDWALL		0x100000u
+ #define ___GFP_THISNODE		0x200000u
+ #define ___GFP_ACCOUNT		0x400000u
++#define ___GFP_ZEROTAGS		0x800000u
+ #ifdef CONFIG_LOCKDEP
+-#define ___GFP_NOLOCKDEP	0x800000u
++#define ___GFP_NOLOCKDEP	0x1000000u
+ #else
+ #define ___GFP_NOLOCKDEP	0
+ #endif
+@@ -229,16 +230,20 @@ struct vm_area_struct;
+  * %__GFP_COMP address compound page metadata.
+  *
+  * %__GFP_ZERO returns a zeroed page on success.
++ *
++ * %__GFP_ZEROTAGS returns a page with zeroed memory tags on success, if
++ * __GFP_ZERO is set.
+  */
+ #define __GFP_NOWARN	((__force gfp_t)___GFP_NOWARN)
+ #define __GFP_COMP	((__force gfp_t)___GFP_COMP)
+ #define __GFP_ZERO	((__force gfp_t)___GFP_ZERO)
++#define __GFP_ZEROTAGS	((__force gfp_t)___GFP_ZEROTAGS)
+ 
+ /* Disable lockdep for GFP context tracking */
+ #define __GFP_NOLOCKDEP ((__force gfp_t)___GFP_NOLOCKDEP)
+ 
+ /* Room for N __GFP_FOO bits */
+-#define __GFP_BITS_SHIFT (23 + IS_ENABLED(CONFIG_LOCKDEP))
++#define __GFP_BITS_SHIFT (24 + IS_ENABLED(CONFIG_LOCKDEP))
+ #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+ 
+ /**
+--- a/include/linux/highmem.h~arm64-mte-handle-tags-zeroing-at-page-allocation-time
++++ a/include/linux/highmem.h
+@@ -185,6 +185,14 @@ static inline void clear_highpage(struct
+ 	kunmap_local(kaddr);
  }
  
- static inline bool early_page_uninitialised(unsigned long pfn)
-@@ -1314,7 +1307,7 @@ static __always_inline bool free_pages_p
- 			unsigned int order, bool check_free, fpi_t fpi_flags)
- {
- 	int bad = 0;
--	bool init;
-+	bool skip_kasan_poison = should_skip_kasan_poison(fpi_flags);
- 
- 	VM_BUG_ON_PAGE(PageTail(page), page);
- 
-@@ -1383,10 +1376,17 @@ static __always_inline bool free_pages_p
- 	 * With hardware tag-based KASAN, memory tags must be set before the
- 	 * page becomes unavailable via debug_pagealloc or arch_free_page.
- 	 */
--	init = want_init_on_free();
--	if (init && !kasan_has_integrated_init())
--		kernel_init_free_pages(page, 1 << order);
--	kasan_free_nondeferred_pages(page, order, init, fpi_flags);
-+	if (kasan_has_integrated_init()) {
-+		if (!skip_kasan_poison)
-+			kasan_free_pages(page, order);
-+	} else {
-+		bool init = want_init_on_free();
++#ifndef __HAVE_ARCH_TAG_CLEAR_HIGHPAGE
 +
-+		if (init)
-+			kernel_init_free_pages(page, 1 << order);
-+		if (!skip_kasan_poison)
-+			kasan_poison_pages(page, order, init);
-+	}
- 
- 	/*
- 	 * arch_free_page() can make the page's contents inaccessible.  s390
-@@ -2412,8 +2412,6 @@ static bool check_new_pages(struct page
- inline void post_alloc_hook(struct page *page, unsigned int order,
- 				gfp_t gfp_flags)
- {
--	bool init;
--
- 	set_page_private(page, 0);
- 	set_page_refcounted(page);
- 
-@@ -2432,10 +2430,15 @@ inline void post_alloc_hook(struct page
- 	 * kasan_alloc_pages and kernel_init_free_pages must be
- 	 * kept together to avoid discrepancies in behavior.
- 	 */
--	init = !want_init_on_free() && want_init_on_alloc(gfp_flags);
--	kasan_alloc_pages(page, order, init);
--	if (init && !kasan_has_integrated_init())
--		kernel_init_free_pages(page, 1 << order);
-+	if (kasan_has_integrated_init()) {
-+		kasan_alloc_pages(page, order, gfp_flags);
-+	} else {
-+		bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags);
++static inline void tag_clear_highpage(struct page *page)
++{
++}
 +
++#endif
++
+ /*
+  * If we pass in a base or tail page, we can zero up to PAGE_SIZE.
+  * If we pass in a head page, we can zero up to the size of the compound page.
+--- a/mm/kasan/hw_tags.c~arm64-mte-handle-tags-zeroing-at-page-allocation-time
++++ a/mm/kasan/hw_tags.c
+@@ -246,7 +246,14 @@ void kasan_alloc_pages(struct page *page
+ 	 */
+ 	bool init = !want_init_on_free() && want_init_on_alloc(flags);
+ 
+-	kasan_unpoison_pages(page, order, init);
++	if (flags & __GFP_ZEROTAGS) {
++		int i;
++
++		for (i = 0; i != 1 << order; ++i)
++			tag_clear_highpage(page + i);
++	} else {
 +		kasan_unpoison_pages(page, order, init);
-+		if (init)
-+			kernel_init_free_pages(page, 1 << order);
 +	}
+ }
+ 
+ void kasan_free_pages(struct page *page, unsigned int order)
+--- a/mm/page_alloc.c~arm64-mte-handle-tags-zeroing-at-page-allocation-time
++++ a/mm/page_alloc.c
+@@ -1288,10 +1288,16 @@ out:
+ 	return ret;
+ }
+ 
+-static void kernel_init_free_pages(struct page *page, int numpages)
++static void kernel_init_free_pages(struct page *page, int numpages, bool zero_tags)
+ {
+ 	int i;
+ 
++	if (zero_tags) {
++		for (i = 0; i < numpages; i++)
++			tag_clear_highpage(page + i);
++		return;
++	}
++
+ 	/* s390's use of memset() could override KASAN redzones. */
+ 	kasan_disable_current();
+ 	for (i = 0; i < numpages; i++) {
+@@ -1383,7 +1389,7 @@ static __always_inline bool free_pages_p
+ 		bool init = want_init_on_free();
+ 
+ 		if (init)
+-			kernel_init_free_pages(page, 1 << order);
++			kernel_init_free_pages(page, 1 << order, false);
+ 		if (!skip_kasan_poison)
+ 			kasan_poison_pages(page, order, init);
+ 	}
+@@ -2437,7 +2443,8 @@ inline void post_alloc_hook(struct page
+ 
+ 		kasan_unpoison_pages(page, order, init);
+ 		if (init)
+-			kernel_init_free_pages(page, 1 << order);
++			kernel_init_free_pages(page, 1 << order,
++					       gfp_flags & __GFP_ZEROTAGS);
+ 	}
  
  	set_page_owner(page, order, gfp_flags);
- }
 _
 
 Patches currently in -mm which might be from pcc@google.com are
