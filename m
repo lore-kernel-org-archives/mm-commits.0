@@ -7,33 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAC9CC47082
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:40:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C253C47095
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:41:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C250361108
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:40:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5489961139
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:41:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230386AbhFGUmn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Jun 2021 16:42:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57798 "EHLO mail.kernel.org"
+        id S230366AbhFGUmw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Jun 2021 16:42:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57962 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230299AbhFGUmm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Jun 2021 16:42:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D86B861108;
-        Mon,  7 Jun 2021 20:40:43 +0000 (UTC)
+        id S230299AbhFGUmv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Jun 2021 16:42:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0D4B261108;
+        Mon,  7 Jun 2021 20:41:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623098444;
-        bh=W8ipc1/7X/m5Q/P6Ec5BwpaVF9WWU8/GR6fas7QKfxo=;
+        s=korg; t=1623098460;
+        bh=5qWC51DqlwmSTqUc8TKfj02xU57xBZEtHV8qB4DBuv8=;
         h=Date:From:To:Subject:From;
-        b=ChAa7YDlblTcfagNMzCCRtXjnyU7fXGSGINBZAZcQBm1EmSxr3lKhfPKXXOFFBxYE
-         KXgD0rkomIP0aCTf8XRzES9UKyzhpegQDr98BgXE2uAZKldghxQOx7vcNIV9xDQzud
-         WKwEkeBsFBiHUXW70At3Pl7WpIAGq5Hzl8ndA1uI=
-Date:   Mon, 07 Jun 2021 13:40:43 -0700
+        b=LqQvHZHvpw3WAySTP0ZUMt0t2T6xgrp4Ot7DuWNaQE2hZQ92U7olX1L4xU71DpLf2
+         M/tuyeINPBnUBeMxto/fY7mNafDu0JSW7Uj9OZXTlA7Yc/h0kSJk0tlhMjEU+MxxXR
+         t6TTeZUzj4o/zzEdxxZA1rbfGgjafdXiiLEJvwh8=
+Date:   Mon, 07 Jun 2021 13:40:59 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
+To:     huangpei@loongson.cn, mm-commits@vger.kernel.org,
+        npiggin@gmail.com, stable@vger.kernel.org,
+        tsbogend@alpha.franken.de, zhouyanjie@wanyeetech.com
+Subject:  [merged]
+ revert-mips-make-userspace-mapping-young-by-default.patch removed from -mm
  tree
-Message-ID: <20210607204043.saMTNRNji%akpm@linux-foundation.org>
+Message-ID: <20210607204059.3AewAUK1S%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,102 +45,132 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: Revert "MIPS: make userspace mapping young by default"
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     revert-mips-make-userspace-mapping-young-by-default.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Subject: Revert "MIPS: make userspace mapping young by default"
 
+This reverts commit f685a533a7fab35c5d069dcd663f59c8e4171a75.
+
+MIPS cache flush logic needs to know whether the mapping was already
+established to decide how to flush caches.  This is done by checking the
+valid bit in the PTE.  The commit above breaks this logic by setting the
+valid in the PTE in new mappings, which causes kernel crashes.
+
+Link: https://lkml.kernel.org/r/20210526094335.92948-1-tsbogend@alpha.franken.de
+Fixes: f685a533a7f ("MIPS: make userspace mapping young by default")
+Reported-by: Zhou Yanjie <zhouyanjie@wanyeetech.com>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Huang Pei <huangpei@loongson.cn>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_ctx.c           |    3 ---
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c |    4 ----
- drivers/gpu/drm/tegra/hub.c                       |    4 ----
- 3 files changed, 11 deletions(-)
+ arch/mips/mm/cache.c    |   30 ++++++++++++++----------------
+ include/linux/pgtable.h |    8 ++++++++
+ mm/memory.c             |    4 ++++
+ 3 files changed, 26 insertions(+), 16 deletions(-)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ctx.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_ctx.c
-@@ -364,8 +364,6 @@ static int amdgpu_ctx_query2(struct amdg
- 	if (atomic_read(&ctx->guilty))
- 		out->state.flags |= AMDGPU_CTX_QUERY2_FLAGS_GUILTY;
+--- a/arch/mips/mm/cache.c~revert-mips-make-userspace-mapping-young-by-default
++++ a/arch/mips/mm/cache.c
+@@ -158,31 +158,29 @@ unsigned long _page_cachable_default;
+ EXPORT_SYMBOL(_page_cachable_default);
  
--<<<<<<< HEAD
--=======
- 	if (adev->ras_enabled && con) {
- 		/* Return the cached values in O(1),
- 		 * and schedule delayed work to cache
-@@ -390,7 +388,6 @@ static int amdgpu_ctx_query2(struct amdg
- 				      msecs_to_jiffies(AMDGPU_RAS_COUNTE_DELAY_MS));
- 	}
+ #define PM(p)	__pgprot(_page_cachable_default | (p))
+-#define PVA(p)	PM(_PAGE_VALID | _PAGE_ACCESSED | (p))
  
-->>>>>>> linux-next/akpm-base
- 	mutex_unlock(&mgr->lock);
- 	return 0;
- }
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -10060,11 +10060,7 @@ static int validate_overlay(struct drm_a
+ static inline void setup_protection_map(void)
  {
- 	int i;
- 	struct drm_plane *plane;
--<<<<<<< HEAD
--	struct drm_plane_state *old_plane_state, *new_plane_state;
--=======
- 	struct drm_plane_state *new_plane_state;
-->>>>>>> linux-next/akpm-base
- 	struct drm_plane_state *primary_state, *cursor_state, *overlay_state = NULL;
+ 	protection_map[0]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[1]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[2]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[3]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[4]  = PVA(_PAGE_PRESENT);
+-	protection_map[5]  = PVA(_PAGE_PRESENT);
+-	protection_map[6]  = PVA(_PAGE_PRESENT);
+-	protection_map[7]  = PVA(_PAGE_PRESENT);
++	protection_map[1]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[2]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
++	protection_map[3]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[4]  = PM(_PAGE_PRESENT);
++	protection_map[5]  = PM(_PAGE_PRESENT);
++	protection_map[6]  = PM(_PAGE_PRESENT);
++	protection_map[7]  = PM(_PAGE_PRESENT);
  
- 	/* Check if primary plane is contained inside overlay */
---- a/drivers/gpu/drm/tegra/hub.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/tegra/hub.c
-@@ -632,11 +632,7 @@ static void tegra_shared_plane_atomic_up
- 	 * dGPU sector layout.
- 	 */
- 	if (tegra_plane_state->tiling.sector_layout == TEGRA_BO_SECTOR_LAYOUT_GPU)
--<<<<<<< HEAD
--		base |= BIT_ULL(39);
--=======
- 		addr_flag = BIT_ULL(39);
-->>>>>>> linux-next/akpm-base
+ 	protection_map[8]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[9]  = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[10] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
++	protection_map[9]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[10] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
+ 				_PAGE_NO_READ);
+-	protection_map[11] = PVA(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
+-	protection_map[12] = PVA(_PAGE_PRESENT);
+-	protection_map[13] = PVA(_PAGE_PRESENT);
+-	protection_map[14] = PVA(_PAGE_PRESENT);
+-	protection_map[15] = PVA(_PAGE_PRESENT);
++	protection_map[11] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
++	protection_map[12] = PM(_PAGE_PRESENT);
++	protection_map[13] = PM(_PAGE_PRESENT);
++	protection_map[14] = PM(_PAGE_PRESENT | _PAGE_WRITE);
++	protection_map[15] = PM(_PAGE_PRESENT | _PAGE_WRITE);
+ }
+ 
+-#undef _PVA
+ #undef PM
+ 
+ void cpu_cache_init(void)
+--- a/include/linux/pgtable.h~revert-mips-make-userspace-mapping-young-by-default
++++ a/include/linux/pgtable.h
+@@ -432,6 +432,14 @@ static inline void ptep_set_wrprotect(st
+  * To be differentiate with macro pte_mkyoung, this macro is used on platforms
+  * where software maintains page access bit.
+  */
++#ifndef pte_sw_mkyoung
++static inline pte_t pte_sw_mkyoung(pte_t pte)
++{
++	return pte;
++}
++#define pte_sw_mkyoung	pte_sw_mkyoung
++#endif
++
+ #ifndef pte_savedwrite
+ #define pte_savedwrite pte_write
  #endif
+--- a/mm/memory.c~revert-mips-make-userspace-mapping-young-by-default
++++ a/mm/memory.c
+@@ -2939,6 +2939,7 @@ static vm_fault_t wp_page_copy(struct vm
+ 		}
+ 		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
+ 		entry = mk_pte(new_page, vma->vm_page_prot);
++		entry = pte_sw_mkyoung(entry);
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
  
- 	base = tegra_plane_state->iova[0] + fb->offsets[0];
+ 		/*
+@@ -3602,6 +3603,7 @@ static vm_fault_t do_anonymous_page(stru
+ 	__SetPageUptodate(page);
+ 
+ 	entry = mk_pte(page, vma->vm_page_prot);
++	entry = pte_sw_mkyoung(entry);
+ 	if (vma->vm_flags & VM_WRITE)
+ 		entry = pte_mkwrite(pte_mkdirty(entry));
+ 
+@@ -3786,6 +3788,8 @@ void do_set_pte(struct vm_fault *vmf, st
+ 
+ 	if (prefault && arch_wants_old_prefaulted_pte())
+ 		entry = pte_mkold(entry);
++	else
++		entry = pte_sw_mkyoung(entry);
+ 
+ 	if (write)
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
-mm.patch
-mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-powerpc-mm-book3s64-update-tlb-flush-routines-to-take-a-page-walk-cache-flush-argument-fix.patch
-mm-mremap-use-range-flush-that-does-tlb-and-page-walk-cache-flush-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
-mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-mm-userfaultfd-fix-uffd-wp-special-cases-for-fork-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-mmmemory_hotplug-drop-unneeded-locking-fix.patch
-fs-proc-kcorec-add-mmap-interface-fix.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-lib-math-rational-add-kunit-test-cases-fix.patch
-lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
-ipc-utilc-use-binary-search-for-max_idx-fix.patch
-linux-next-pre.patch
-linux-next-post.patch
-linux-next-rejects.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
