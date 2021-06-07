@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EE2CC47094
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:41:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70E6BC47082
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:41:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 17BD2610FB
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:41:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A343611C0
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 20:41:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231499AbhFGUnD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Jun 2021 16:43:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58194 "EHLO mail.kernel.org"
+        id S230396AbhFGUnO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Jun 2021 16:43:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58410 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230299AbhFGUnD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Jun 2021 16:43:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9749D61159;
-        Mon,  7 Jun 2021 20:41:11 +0000 (UTC)
+        id S230299AbhFGUnO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Jun 2021 16:43:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7DCD8611AD;
+        Mon,  7 Jun 2021 20:41:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623098471;
-        bh=MPUi7G9smdl5RY3P8NeZ8EqM4zdM50YCIk8BDkVH4ng=;
+        s=korg; t=1623098482;
+        bh=CRflcXVHIPCsljD+nScRAdzewgWpRYPdPV9EefKeBKw=;
         h=Date:From:To:Subject:From;
-        b=Azh0fwumyQhJ5wJUnRnJ9hqOhuMyEWSf65PNlMYqzkChbo6j07wMJUdRKps9cUIcf
-         tfVFDZiR66y1m9wa8KNlHZgpwa0oAxQXkBk3O2ZSJ5Y5l/f27WflZvvd3OXEPXECYp
-         YU5GPtYQLJlOMOTPjZX4JPKtjr8mN78nhC3xhNZ4=
-Date:   Mon, 07 Jun 2021 13:41:11 -0700
+        b=D8SwN5mNAAcIePKQcrYm4tzz8qFlkHE0zLKxKz2eBBFD5LR5f6mINccz9mxD3QE+S
+         N4ckX4YDCemV995XZ4bYIA6l29eq1CfHdktW6HIWHLJas6Qk7wJaDSqAc7Tsn5NTXj
+         SFMRTI5w954RBvoRHFbX5nO6GlwSx3msnGlTKZaw=
+Date:   Mon, 07 Jun 2021 13:41:22 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, dinghui@sangfor.com.cn,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, stable@vger.kernel.org
-Subject:  [merged]
- mm-page_alloc-fix-counting-of-free-pages-after-take-off-from-buddy.patch
- removed from -mm tree
-Message-ID: <20210607204111.eT5PUIqP9%akpm@linux-foundation.org>
+To:     andreyknvl@gmail.com, mm-commits@vger.kernel.org,
+        ryabinin.a.a@gmail.com, yi.zhang@huawei.com, yukuai3@huawei.com
+Subject:  [merged] kasan-fix-doc-warning-in-initc.patch removed
+ from -mm tree
+Message-ID: <20210607204122.ql4QXlShh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,68 +43,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: fix counting of free pages after take off from buddy
+     Subject: mm/kasan/init.c: fix doc warning
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-counting-of-free-pages-after-take-off-from-buddy.patch
+     kasan-fix-doc-warning-in-initc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ding Hui <dinghui@sangfor.com.cn>
-Subject: mm/page_alloc: fix counting of free pages after take off from buddy
+From: Yu Kuai <yukuai3@huawei.com>
+Subject: mm/kasan/init.c: fix doc warning
 
-Recently we found that there is a lot MemFree left in /proc/meminfo after
-do a lot of pages soft offline, it's not quite correct.
+Fix gcc W=1 warning:
 
-Before Oscar rework soft offline for free pages [1], if we soft offline
-free pages, these pages are left in buddy with HWPoison flag, and
-NR_FREE_PAGES is not updated immediately.  So the difference between
-NR_FREE_PAGES and real number of available free pages is also even big at
-the beginning.
+mm/kasan/init.c:228: warning: Function parameter or member 'shadow_start' not described in 'kasan_populate_early_shadow'
+mm/kasan/init.c:228: warning: Function parameter or member 'shadow_end' not described in 'kasan_populate_early_shadow'
 
-However, with the workload running, when we catch HWPoison page in any
-alloc functions subsequently, we will remove it from buddy, meanwhile
-update the NR_FREE_PAGES and try again, so the NR_FREE_PAGES will get more
-and more closer to the real number of available free pages.  (regardless
-of unpoison_memory())
-
-Now, for offline free pages, after a successful call
-take_page_off_buddy(), the page is no longer belong to buddy allocator,
-and will not be used any more, but we missed accounting NR_FREE_PAGES in
-this situation, and there is no chance to be updated later.
-
-Do update in take_page_off_buddy() like rmqueue() does, but avoid double
-counting if some one already set_migratetype_isolate() on the page.
-
-[1]: commit 06be6ff3d2ec ("mm,hwpoison: rework soft offline for free pages")
-
-Link: https://lkml.kernel.org/r/20210526075247.11130-1-dinghui@sangfor.com.cn
-Fixes: 06be6ff3d2ec ("mm,hwpoison: rework soft offline for free pages")
-Signed-off-by: Ding Hui <dinghui@sangfor.com.cn>
-Suggested-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210603140700.3045298-1-yukuai3@huawei.com
+Signed-off-by: Yu Kuai <yukuai3@huawei.com>
+Acked-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Zhang Yi <yi.zhang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/kasan/init.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-counting-of-free-pages-after-take-off-from-buddy
-+++ a/mm/page_alloc.c
-@@ -9158,6 +9158,8 @@ bool take_page_off_buddy(struct page *pa
- 			del_page_from_free_list(page_head, zone, page_order);
- 			break_down_buddy_pages(zone, page_head, page, 0,
- 						page_order, migratetype);
-+			if (!is_migrate_isolate(migratetype))
-+				__mod_zone_freepage_state(zone, -1, migratetype);
- 			ret = true;
- 			break;
- 		}
+--- a/mm/kasan/init.c~kasan-fix-doc-warning-in-initc
++++ a/mm/kasan/init.c
+@@ -220,8 +220,8 @@ static int __ref zero_p4d_populate(pgd_t
+ /**
+  * kasan_populate_early_shadow - populate shadow memory region with
+  *                               kasan_early_shadow_page
+- * @shadow_start - start of the memory range to populate
+- * @shadow_end   - end of the memory range to populate
++ * @shadow_start: start of the memory range to populate
++ * @shadow_end: end of the memory range to populate
+  */
+ int __ref kasan_populate_early_shadow(const void *shadow_start,
+ 					const void *shadow_end)
 _
 
-Patches currently in -mm which might be from dinghui@sangfor.com.cn are
+Patches currently in -mm which might be from yukuai3@huawei.com are
 
+lib-decompressors-remove-set-but-not-used-variabled-level.patch
 
