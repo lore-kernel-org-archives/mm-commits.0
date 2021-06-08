@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E29FC4743F
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 21:03:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCE9CC47082
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 21:03:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 78412613B1
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 21:03:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C454B613AD
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 21:03:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233585AbhFHVFL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Jun 2021 17:05:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33908 "EHLO mail.kernel.org"
+        id S233934AbhFHVFO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Jun 2021 17:05:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229526AbhFHVFK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 8 Jun 2021 17:05:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8913D611BD;
-        Tue,  8 Jun 2021 21:03:05 +0000 (UTC)
+        id S229526AbhFHVFM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 8 Jun 2021 17:05:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 183E7611BD;
+        Tue,  8 Jun 2021 21:03:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623186185;
-        bh=/fEIQ8uzADiiaH38NAejlA+ZkotXP7HTUqzyQaax36g=;
+        s=korg; t=1623186199;
+        bh=e80+JvmpSn8VOFdV0lLuMmHpKi12TlXmnyGDoexMqhM=;
         h=Date:From:To:Subject:From;
-        b=FD2v27YacRS0szkN+1sZGXeCEihvqlSBV/mHLVZFvDLliFENiJfGfhFRG/hYDuUze
-         maylMyZ7xy3qta9sCCVtGA56lQd6cFUoGSfy5SEQA7bK0HJU9H4iU8Z0oK8KZTJEOQ
-         iArDD/QEuHUemg9YuugiNVu4O0tntO1ZMKj7tF3E=
-Date:   Tue, 08 Jun 2021 14:03:05 -0700
+        b=xhJRpha92xJHUNHYSK3HjjoRKjGsv5xVFJpFZ4SETlv10dL5TljsxJOcwiMIyOTKd
+         uShwhT3popoyIeoCRGOsiPxgFvhxx6CNOavOPf/1pUteMvmgrbI+2x66Wek7peqrtp
+         9KLwFmAkjCB6O2btXBoYknIGl9c+1abqPGzeFstk=
+Date:   Tue, 08 Jun 2021 14:03:18 -0700
 From:   akpm@linux-foundation.org
 To:     cl@linux.com, elver@google.com, guro@fb.com,
         iamjoonsoo.kim@lge.com, keescook@chromium.org,
         mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, vbabka@suse.cz, zplin@psu.edu
-Subject:  + mm-slub-clarify-verification-reporting.patch added to
- -mm tree
-Message-ID: <20210608210305.RdPzrAjA8%akpm@linux-foundation.org>
+Subject:  +
+ mm-slub-actually-fix-freelist-pointer-vs-redzoning.patch added to -mm tree
+Message-ID: <20210608210318.z9PEoAOtD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub: clarify verification reporting
+     Subject: mm/slub: actually fix freelist pointer vs redzoning
 has been added to the -mm tree.  Its filename is
-     mm-slub-clarify-verification-reporting.patch
+     mm-slub-actually-fix-freelist-pointer-vs-redzoning.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-clarify-verification-reporting.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-actually-fix-freelist-pointer-vs-redzoning.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-clarify-verification-reporting.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-actually-fix-freelist-pointer-vs-redzoning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,144 +67,101 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: mm/slub: clarify verification reporting
+Subject: mm/slub: actually fix freelist pointer vs redzoning
 
-Patch series "Actually fix freelist pointer vs redzoning", v4.
-
-This fixes redzoning vs the freelist pointer (both for middle-position and
-very small caches).  Both are "theoretical" fixes, in that I see no
-evidence of such small-sized caches actually be used in the kernel, but
-that's no reason to let the bugs continue to exist, especially since
-people doing local development keep tripping over it.  :)
-
-
-This patch (of 3):
-
-Instead of repeating "Redzone" and "Poison", clarify which sides of those
-zones got tripped.  Additionally fix column alignment in the trailer.
-
-Before:
-
-BUG test (Tainted: G    B            ): Redzone overwritten
-...
-Redzone (____ptrval____): bb bb bb bb bb bb bb bb      ........
-Object (____ptrval____): f6 f4 a5 40 1d e8            ...@..
-Redzone (____ptrval____): 1a aa                        ..
-Padding (____ptrval____): 00 00 00 00 00 00 00 00      ........
-
-After:
+It turns out that SLUB redzoning ("slub_debug=Z") checks from
+s->object_size rather than from s->inuse (which is normally bumped to make
+room for the freelist pointer), so a cache created with an object size
+less than 24 would have the freelist pointer written beyond
+s->object_size, causing the redzone to be corrupted by the freelist
+pointer.  This was very visible with "slub_debug=ZF":
 
 BUG test (Tainted: G    B            ): Right Redzone overwritten
-...
-Redzone  (____ptrval____): bb bb bb bb bb bb bb bb      ........
-Object   (____ptrval____): f6 f4 a5 40 1d e8            ...@..
-Redzone  (____ptrval____): 1a aa                        ..
-Padding  (____ptrval____): 00 00 00 00 00 00 00 00      ........
+-----------------------------------------------------------------------------
 
-The earlier commits that slowly resulted in the "Before" reporting were:
+INFO: 0xffff957ead1c05de-0xffff957ead1c05df @offset=1502. First byte 0x1a instead of 0xbb
+INFO: Slab 0xffffef3950b47000 objects=170 used=170 fp=0x0000000000000000 flags=0x8000000000000200
+INFO: Object 0xffff957ead1c05d8 @offset=1496 fp=0xffff957ead1c0620
 
-  d86bd1bece6f ("mm/slub: support left redzone")
-  ffc79d288000 ("slub: use print_hex_dump")
-  2492268472e7 ("SLUB: change error reporting format to follow lockdep loosely")
+Redzone  (____ptrval____): bb bb bb bb bb bb bb bb               ........
+Object   (____ptrval____): 00 00 00 00 00 f6 f4 a5               ........
+Redzone  (____ptrval____): 40 1d e8 1a aa                        @....
+Padding  (____ptrval____): 00 00 00 00 00 00 00 00               ........
 
-Link: https://lkml.kernel.org/r/20210608183955.280836-1-keescook@chromium.org
-Link: https://lkml.kernel.org/r/20210608183955.280836-2-keescook@chromium.org
-Link: https://lore.kernel.org/lkml/cfdb11d7-fb8e-e578-c939-f7f5fb69a6bd@suse.cz/
+Adjust the offset to stay within s->object_size.
+
+(Note that no caches of in this size range are known to exist in the
+kernel currently.)
+
+Link: https://lkml.kernel.org/r/20210608183955.280836-4-keescook@chromium.org
+Link: https://lore.kernel.org/linux-mm/20200807160627.GA1420741@elver.google.com/
+Link: https://lore.kernel.org/lkml/0f7dd7b2-7496-5e2d-9488-2ec9f8e90441@suse.cz/Fixes: 89b83f282d8b (slub: avoid redzone when choosing freepointer location)
+Link: https://lore.kernel.org/lkml/CANpmjNOwZ5VpKQn+SYWovTkFB4VsT-RPwyENBmaK0dLcpqStkA@mail.gmail.com
 Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Marco Elver <elver@google.com>
+Reported-by: "Lin, Zhenpeng" <zplin@psu.edu>
+Tested-by: Marco Elver <elver@google.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Marco Elver <elver@google.com>
-Cc: "Lin, Zhenpeng" <zplin@psu.edu>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slub.rst |   10 +++++-----
- mm/slub.c                 |   14 +++++++-------
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ mm/slub.c |   14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
---- a/Documentation/vm/slub.rst~mm-slub-clarify-verification-reporting
-+++ a/Documentation/vm/slub.rst
-@@ -181,7 +181,7 @@ SLUB Debug output
- Here is a sample of slub debug output::
- 
-  ====================================================================
-- BUG kmalloc-8: Redzone overwritten
-+ BUG kmalloc-8: Right Redzone overwritten
-  --------------------------------------------------------------------
- 
-  INFO: 0xc90f6d28-0xc90f6d2b. First byte 0x00 instead of 0xcc
-@@ -189,10 +189,10 @@ Here is a sample of slub debug output::
-  INFO: Object 0xc90f6d20 @offset=3360 fp=0xc90f6d58
-  INFO: Allocated in get_modalias+0x61/0xf5 age=53 cpu=1 pid=554
- 
-- Bytes b4 0xc90f6d10:  00 00 00 00 00 00 00 00 5a 5a 5a 5a 5a 5a 5a 5a ........ZZZZZZZZ
--   Object 0xc90f6d20:  31 30 31 39 2e 30 30 35                         1019.005
--  Redzone 0xc90f6d28:  00 cc cc cc                                     .
--  Padding 0xc90f6d50:  5a 5a 5a 5a 5a 5a 5a 5a                         ZZZZZZZZ
-+ Bytes b4 (0xc90f6d10): 00 00 00 00 00 00 00 00 5a 5a 5a 5a 5a 5a 5a 5a ........ZZZZZZZZ
-+ Object   (0xc90f6d20): 31 30 31 39 2e 30 30 35                         1019.005
-+ Redzone  (0xc90f6d28): 00 cc cc cc                                     .
-+ Padding  (0xc90f6d50): 5a 5a 5a 5a 5a 5a 5a 5a                         ZZZZZZZZ
- 
-    [<c010523d>] dump_trace+0x63/0x1eb
-    [<c01053df>] show_trace_log_lvl+0x1a/0x2f
---- a/mm/slub.c~mm-slub-clarify-verification-reporting
+--- a/mm/slub.c~mm-slub-actually-fix-freelist-pointer-vs-redzoning
 +++ a/mm/slub.c
-@@ -748,15 +748,15 @@ static void print_trailer(struct kmem_ca
- 	       p, p - addr, get_freepointer(s, p));
+@@ -3737,7 +3737,6 @@ static int calculate_sizes(struct kmem_c
+ {
+ 	slab_flags_t flags = s->flags;
+ 	unsigned int size = s->object_size;
+-	unsigned int freepointer_area;
+ 	unsigned int order;
  
- 	if (s->flags & SLAB_RED_ZONE)
--		print_section(KERN_ERR, "Redzone ", p - s->red_left_pad,
-+		print_section(KERN_ERR, "Redzone  ", p - s->red_left_pad,
- 			      s->red_left_pad);
- 	else if (p > addr + 16)
- 		print_section(KERN_ERR, "Bytes b4 ", p - 16, 16);
+ 	/*
+@@ -3746,13 +3745,6 @@ static int calculate_sizes(struct kmem_c
+ 	 * the possible location of the free pointer.
+ 	 */
+ 	size = ALIGN(size, sizeof(void *));
+-	/*
+-	 * This is the area of the object where a freepointer can be
+-	 * safely written. If redzoning adds more to the inuse size, we
+-	 * can't use that portion for writing the freepointer, so
+-	 * s->offset must be limited within this for the general case.
+-	 */
+-	freepointer_area = size;
  
--	print_section(KERN_ERR, "Object ", p,
-+	print_section(KERN_ERR,         "Object   ", p,
- 		      min_t(unsigned int, s->object_size, PAGE_SIZE));
- 	if (s->flags & SLAB_RED_ZONE)
--		print_section(KERN_ERR, "Redzone ", p + s->object_size,
-+		print_section(KERN_ERR, "Redzone  ", p + s->object_size,
- 			s->inuse - s->object_size);
+ #ifdef CONFIG_SLUB_DEBUG
+ 	/*
+@@ -3778,7 +3770,7 @@ static int calculate_sizes(struct kmem_c
  
- 	off = get_info_end(s);
-@@ -768,7 +768,7 @@ static void print_trailer(struct kmem_ca
+ 	/*
+ 	 * With that we have determined the number of bytes in actual use
+-	 * by the object. This is the potential offset to the free pointer.
++	 * by the object and redzoning.
+ 	 */
+ 	s->inuse = size;
  
- 	if (off != size_from_object(s))
- 		/* Beginning of the filler is the free pointer */
--		print_section(KERN_ERR, "Padding ", p + off,
-+		print_section(KERN_ERR, "Padding  ", p + off,
- 			      size_from_object(s) - off);
- 
- 	dump_stack();
-@@ -955,11 +955,11 @@ static int check_object(struct kmem_cach
- 	u8 *endobject = object + s->object_size;
- 
- 	if (s->flags & SLAB_RED_ZONE) {
--		if (!check_bytes_and_report(s, page, object, "Redzone",
-+		if (!check_bytes_and_report(s, page, object, "Left Redzone",
- 			object - s->red_left_pad, val, s->red_left_pad))
- 			return 0;
- 
--		if (!check_bytes_and_report(s, page, object, "Redzone",
-+		if (!check_bytes_and_report(s, page, object, "Right Redzone",
- 			endobject, val, s->inuse - s->object_size))
- 			return 0;
- 	} else {
-@@ -974,7 +974,7 @@ static int check_object(struct kmem_cach
- 		if (val != SLUB_RED_ACTIVE && (s->flags & __OBJECT_POISON) &&
- 			(!check_bytes_and_report(s, page, p, "Poison", p,
- 					POISON_FREE, s->object_size - 1) ||
--			 !check_bytes_and_report(s, page, p, "Poison",
-+			 !check_bytes_and_report(s, page, p, "End Poison",
- 				p + s->object_size - 1, POISON_END, 1)))
- 			return 0;
+@@ -3801,13 +3793,13 @@ static int calculate_sizes(struct kmem_c
+ 		 */
+ 		s->offset = size;
+ 		size += sizeof(void *);
+-	} else if (freepointer_area > sizeof(void *)) {
++	} else {
  		/*
+ 		 * Store freelist pointer near middle of object to keep
+ 		 * it away from the edges of the object to avoid small
+ 		 * sized over/underflows from neighboring allocations.
+ 		 */
+-		s->offset = ALIGN(freepointer_area / 2, sizeof(void *));
++		s->offset = ALIGN_DOWN(s->object_size / 2, sizeof(void *));
+ 	}
+ 
+ #ifdef CONFIG_SLUB_DEBUG
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
