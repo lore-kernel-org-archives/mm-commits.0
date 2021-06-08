@@ -7,33 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52F7AC47082
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 20:11:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 702E3C47082
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 20:59:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 369BC6108D
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 20:11:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CE0D6139A
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 20:59:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234695AbhFHUNe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Jun 2021 16:13:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53808 "EHLO mail.kernel.org"
+        id S234019AbhFHVB2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Jun 2021 17:01:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33108 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232764AbhFHUNe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 8 Jun 2021 16:13:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3F01460FE9;
-        Tue,  8 Jun 2021 20:11:41 +0000 (UTC)
+        id S233988AbhFHVB2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 8 Jun 2021 17:01:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F323C61285;
+        Tue,  8 Jun 2021 20:59:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623183101;
-        bh=nCJwt7VYhcK1x2/kxUoTsC5YptlGNXeWvCwaSK3+n/M=;
+        s=korg; t=1623185975;
+        bh=PvUBshAj3PIxh4nmc/qOh+rUBU6i6NijQsW4JdRHwgM=;
         h=Date:From:To:Subject:From;
-        b=XQPVE+zE+m/JzvkDRZ57na1zSEqhMggq5uHPTxqP1Ty4sVPVgXXEeQ8HfIq7gwkZK
-         krutkmZQLdsx5G4E2qb4oXrOH+mxFp7jby7GQjvodobNJzZubULpXdalbaQsm5yIE5
-         GVShDTg2DdEZH0dn+tUhh1/dYHQVypDFEeRR3WVE=
-Date:   Tue, 08 Jun 2021 13:11:40 -0700
+        b=eWx8vQYPG8tnXbtzpov2Pl5r2l95nev6xcxA2f8oTjuQCCBS/QSxdyQUReeXmG6rh
+         TBcKXEeX+ePO8W9T7pwSGg5Vw069vcLEtjw6j8Z7rzkaSnq4dpk2tdheoYKv2z5CHA
+         3A7/XmeEixXIIruLrsrt/zsYE6J0YvP9BFVn7c+E=
+Date:   Tue, 08 Jun 2021 13:59:34 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20210608201140.gGJ3HkHpn%akpm@linux-foundation.org>
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, keescook@chromium.org,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, vbabka@suse.cz, zplin@psu.edu
+Subject:  [alternative-merged]
+ =?US-ASCII?Q?slub-choose-the-right-freelist-pointer-location-when-creatin?=
+ =?US-ASCII?Q?g-small-caches.patch?= removed from -mm tree
+Message-ID: <20210608205934.WFkT9_pkE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,146 +47,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: slub: choose the right freelist pointer location when  creating small caches
+has been removed from the -mm tree.  Its filename was
+     slub-choose-the-right-freelist-pointer-location-when-creating-small-caches.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: "Lin, Zhenpeng" <zplin@psu.edu>
+Subject: slub: choose the right freelist pointer location when  creating small caches
 
+When enabling CONFIG_SLUB_DEBUG and booting with "slub_debug=Z", the
+kernel crashes at creating caches if the object size is smaller than
+2*sizeof(void*).  The problem is due to the wrong calculation of
+freepointer_area.  The freelist pointer can be stored in the middle of
+object only if the object size is not smaller than 2*sizeof(void*). 
+Otherwise, the freelist pointer will be corrupted by SLUB_RED_ZONE.
+
+Link: https://lkml.kernel.org/r/6746FEEA-FD69-4792-8DDA-C78F5FE7DA02@psu.edu
+Fixes: 3202fa62fb43 ("slub: relocate freelist pointer to middle of object")
+Fixes: 89b83f282d8b ("slub: avoid redzone when choosing freepointer location")
+Signed-off-by: Zhenpeng Lin <zplin@psu.edu>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/fan53555.c |   11 -----------
- drivers/spi/spi-bcm2835.c    |   11 -----------
- drivers/spi/spi-pxa2xx.c     |    6 ------
- 3 files changed, 28 deletions(-)
+ mm/slub.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/regulator/fan53555.c~linux-next-git-rejects
-+++ a/drivers/regulator/fan53555.c
-@@ -343,16 +343,6 @@ static int fan53555_voltages_setup_siler
+--- a/mm/slub.c~slub-choose-the-right-freelist-pointer-location-when-creating-small-caches
++++ a/mm/slub.c
+@@ -3752,7 +3752,7 @@ static int calculate_sizes(struct kmem_c
+ 	 * can't use that portion for writing the freepointer, so
+ 	 * s->offset must be limited within this for the general case.
+ 	 */
+-	freepointer_area = size;
++	freepointer_area = s->object_size;
  
- static int fan53526_voltages_setup_tcs(struct fan53555_device_info *di)
- {
--<<<<<<< HEAD
--	di->slew_reg = TCS4525_TIME;
--	di->slew_mask = TCS_SLEW_MASK;
--	di->slew_shift = TCS_SLEW_MASK;
--
--	/* Init voltage range and step */
--	di->vsel_min = 600000;
--	di->vsel_step = 6250;
--	di->vsel_count = FAN53526_NVOLTAGES;
--=======
- 	switch (di->chip_id) {
- 	case TCS4525_CHIP_ID_12:
- 	case TCS4526_CHIP_ID_00:
-@@ -370,7 +360,6 @@ static int fan53526_voltages_setup_tcs(s
- 		dev_err(di->dev, "Chip ID %d not supported!\n", di->chip_id);
- 		return -EINVAL;
- 	}
-->>>>>>> linux-next/akpm-base
- 
- 	return 0;
- }
---- a/drivers/spi/spi-bcm2835.c~linux-next-git-rejects
-+++ a/drivers/spi/spi-bcm2835.c
-@@ -68,10 +68,6 @@
- #define BCM2835_SPI_FIFO_SIZE		64
- #define BCM2835_SPI_FIFO_SIZE_3_4	48
- #define BCM2835_SPI_DMA_MIN_LENGTH	96
--<<<<<<< HEAD
--#define BCM2835_SPI_NUM_CS		24  /* raise as necessary */
--=======
-->>>>>>> linux-next/akpm-base
- #define BCM2835_SPI_MODE_BITS	(SPI_CPOL | SPI_CPHA | SPI_CS_HIGH \
- 				| SPI_NO_CS | SPI_3WIRE)
- 
-@@ -1220,12 +1216,6 @@ static int bcm2835_spi_setup(struct spi_
- 	int ret;
- 	u32 cs;
- 
--<<<<<<< HEAD
--	if (spi->chip_select >= BCM2835_SPI_NUM_CS) {
--		dev_err(&spi->dev, "only %d chip-selects supported\n",
--			BCM2835_SPI_NUM_CS - 1);
--		return -EINVAL;
--=======
- 	if (!slv) {
- 		slv = kzalloc(ALIGN(sizeof(*slv), dma_get_cache_alignment()),
- 			      GFP_KERNEL);
-@@ -1237,7 +1227,6 @@ static int bcm2835_spi_setup(struct spi_
- 		ret = bcm2835_spi_setup_dma(ctlr, spi, bs, slv);
- 		if (ret)
- 			goto err_cleanup;
-->>>>>>> linux-next/akpm-base
- 	}
- 
+ #ifdef CONFIG_SLUB_DEBUG
  	/*
---- a/drivers/spi/spi-pxa2xx.c~linux-next-git-rejects
-+++ a/drivers/spi/spi-pxa2xx.c
-@@ -1236,13 +1236,7 @@ static int setup_cs(struct spi_device *s
- 			return err;
- 		}
- 
--<<<<<<< HEAD
--		err = gpiod_direction_output(gpiod, !chip->gpio_cs_inverted);
--		if (err)
--			gpiod_put(chip->gpiod_cs);
--=======
- 		spi->cs_gpio = gpio;
-->>>>>>> linux-next/akpm-base
- 	}
- 
- 	return 0;
+@@ -3799,7 +3799,7 @@ static int calculate_sizes(struct kmem_c
+ 		 */
+ 		s->offset = size;
+ 		size += sizeof(void *);
+-	} else if (freepointer_area > sizeof(void *)) {
++	} else if (freepointer_area > 2 * sizeof(void *)) {
+ 		/*
+ 		 * Store freelist pointer near middle of object to keep
+ 		 * it away from the edges of the object to avoid small
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zplin@psu.edu are
 
-mm.patch
-mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
-mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-mm-userfaultfd-fix-uffd-wp-special-cases-for-fork-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-mmmemory_hotplug-drop-unneeded-locking-fix.patch
-fs-proc-kcorec-add-mmap-interface-fix.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-lib-math-rational-add-kunit-test-cases-fix.patch
-lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
-ipc-utilc-use-binary-search-for-max_idx-fix.patch
-linux-next-pre.patch
-linux-next-post.patch
-linux-next-rejects.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
 
