@@ -7,39 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF082C47082
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 21:14:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4107C47082
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 21:37:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B82776044F
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 21:14:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B52E26139A
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 21:37:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233976AbhFHVQM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Jun 2021 17:16:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36816 "EHLO mail.kernel.org"
+        id S233990AbhFHVjn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Jun 2021 17:39:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43992 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229526AbhFHVQL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 8 Jun 2021 17:16:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DF1E96139A;
-        Tue,  8 Jun 2021 21:14:17 +0000 (UTC)
+        id S231208AbhFHVjm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 8 Jun 2021 17:39:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 090986139A;
+        Tue,  8 Jun 2021 21:37:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623186858;
-        bh=5ENbWZzoJaZh+uraKcpFyBD+U1tY8idYFliuLEEi4ik=;
+        s=korg; t=1623188259;
+        bh=hCacbjeXXrFHjZPUC6H52E3Ct42+fI0BNfIAiG3+ZcU=;
         h=Date:From:To:Subject:From;
-        b=JIAK38A9z86GOyvnmitcrn18gkROIU0QjdEauQQjSfbxVQSDH6cVIxl6FGnmgO68T
-         OqtT0+zP5phziOKG/vaknj1aakeejViW+ZETxN/WYd56l7wnvo6LmQ9KkTW+7AIUb6
-         ExHdbX0Fl6Ny/VzOPJMLRD0ugxh4FABrCrsnaITY=
-Date:   Tue, 08 Jun 2021 14:14:17 -0700
+        b=XxJGfFI0KMUmYn0A77+4AvEIyoK9Jy7Nnaq5tnIz/hq54xgaBn0Oy/rvnhiPZgLEr
+         z6ULy2+0uEs7DwTNfj0JzPhMdwGkHn86fGlLyBPBO/wT9ZlWdV2L1B+pi+2OMTgyOb
+         1OuaVvePHnCQ/+19Fv4LTp3YyYJuWzAZIQfvY7ro=
+Date:   Tue, 08 Jun 2021 14:37:38 -0700
 From:   akpm@linux-foundation.org
-To:     anderson@redhat.com, benh@kernel.crashing.org, bhe@redhat.com,
-        bhupesh.sharma@linaro.org, bp@alien8.de, catalin.marinas@arm.com,
-        dyoung@redhat.com, james.morse@arm.com, k-hagio@ab.jp.nec.com,
-        kernelfans@gmail.com, mark.rutland@arm.com, mingo@kernel.org,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org,
-        stable@vger.kernel.org, tglx@linutronix.de, will@kernel.org
-Subject:  +
- crash_core-vmcoreinfo-append-section_size_bits-to-vmcoreinfo.patch added to
- -mm tree
-Message-ID: <20210608211417.XF2pYHaX0%akpm@linux-foundation.org>
+To:     ddstreet@ieee.org, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org, sjenning@redhat.com
+Subject:  + mm-zbud-reuse-unbuddied-as-buddied-in-zbud_pool.patch
+ added to -mm tree
+Message-ID: <20210608213738.XOUQAxcEy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: crash_core, vmcoreinfo: append 'SECTION_SIZE_BITS' to vmcoreinfo
+     Subject: mm/zbud: reuse unbuddied[0] as buddied in zbud_pool
 has been added to the -mm tree.  Its filename is
-     crash_core-vmcoreinfo-append-section_size_bits-to-vmcoreinfo.patch
+     mm-zbud-reuse-unbuddied-as-buddied-in-zbud_pool.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/crash_core-vmcoreinfo-append-section_size_bits-to-vmcoreinfo.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-zbud-reuse-unbuddied-as-buddied-in-zbud_pool.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/crash_core-vmcoreinfo-append-section_size_bits-to-vmcoreinfo.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zbud-reuse-unbuddied-as-buddied-in-zbud_pool.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,62 +64,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pingfan Liu <kernelfans@gmail.com>
-Subject: crash_core, vmcoreinfo: append 'SECTION_SIZE_BITS' to vmcoreinfo
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/zbud: reuse unbuddied[0] as buddied in zbud_pool
 
-As mentioned in kernel commit 1d50e5d0c505 ("crash_core, vmcoreinfo:
-Append 'MAX_PHYSMEM_BITS' to vmcoreinfo"), SECTION_SIZE_BITS in the
-formula:
+Patch series "Cleanups for zbud", v2.
 
-    #define SECTIONS_SHIFT    (MAX_PHYSMEM_BITS - SECTION_SIZE_BITS)
+This series contains just cleanups to save some possible memory in
+zbud_pool and avoid exporting any unneeded zbud API.  More details can be
+found in the respective changelogs
 
-Besides SECTIONS_SHIFT, SECTION_SIZE_BITS is also used to calculate
-PAGES_PER_SECTION in makedumpfile just like kernel.
 
-Unfortunately, this arch-dependent macro SECTION_SIZE_BITS changes, e.g. 
-recently in kernel commit f0b13ee23241 ("arm64/sparsemem: reduce
-SECTION_SIZE_BITS").  But user space wants a stable interface to get this
-info.  Such info is impossible to be deduced from a crashdump vmcore. 
-Hence append SECTION_SIZE_BITS to vmcoreinfo.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20210608103359.84907-1-kernelfans@gmail.com
-Link: http://lists.infradead.org/pipermail/kexec/2021-June/022676.html
-Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Bhupesh Sharma <bhupesh.sharma@linaro.org>
-Cc: Kazuhito Hagio <k-hagio@ab.jp.nec.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Boris Petkov <bp@alien8.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: James Morse <james.morse@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dave Anderson <anderson@redhat.com>
-Cc: <stable@vger.kernel.org>
+Since commit 9d8c5b5284e4 ("mm: zbud: fix condition check on allocation
+size"), zbud_pool.unbuddied[0] is always unused.  We can reuse it as
+buddied field to save some possible memory.
+
+Link: https://lkml.kernel.org/r/20210608114515.206992-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210608114515.206992-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/zbud.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/kernel/crash_core.c~crash_core-vmcoreinfo-append-section_size_bits-to-vmcoreinfo
-+++ a/kernel/crash_core.c
-@@ -464,6 +464,7 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_LENGTH(mem_section, NR_SECTION_ROOTS);
- 	VMCOREINFO_STRUCT_SIZE(mem_section);
- 	VMCOREINFO_OFFSET(mem_section, section_mem_map);
-+	VMCOREINFO_NUMBER(SECTION_SIZE_BITS);
- 	VMCOREINFO_NUMBER(MAX_PHYSMEM_BITS);
- #endif
- 	VMCOREINFO_STRUCT_SIZE(page);
+--- a/mm/zbud.c~mm-zbud-reuse-unbuddied-as-buddied-in-zbud_pool
++++ a/mm/zbud.c
+@@ -93,8 +93,14 @@
+  */
+ struct zbud_pool {
+ 	spinlock_t lock;
+-	struct list_head unbuddied[NCHUNKS];
+-	struct list_head buddied;
++	union {
++		/*
++		 * Reuse unbuddied[0] as buddied on the ground that
++		 * unbuddied[0] is unused.
++		 */
++		struct list_head buddied;
++		struct list_head unbuddied[NCHUNKS];
++	};
+ 	struct list_head lru;
+ 	u64 pages_nr;
+ 	const struct zbud_ops *ops;
 _
 
-Patches currently in -mm which might be from kernelfans@gmail.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-crash_core-vmcoreinfo-append-section_size_bits-to-vmcoreinfo.patch
+mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
+swap-fix-do_swap_page-race-with-swapoff.patch
+mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
+mm-shmem-fix-shmem_swapin-race-with-swapoff.patch
+mm-swapfile-move-get_swap_page_of_type-under-config_hibernation.patch
+mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix.patch
+mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix-2.patch
+mm-swap-remove-unused-local-variable-nr_shadows.patch
+mm-swap_slotsc-delete-meaningless-forward-declarations.patch
+mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch
+mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
+mm-huge_memoryc-use-page-deferred_list.patch
+mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled.patch
+mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4.patch
+mm-huge_memoryc-remove-unnecessary-tlb_remove_page_size-for-huge-zero-pmd.patch
+mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
+mm-zbud-reuse-unbuddied-as-buddied-in-zbud_pool.patch
+mm-zbud-dont-export-any-zbud-api.patch
+mm-zswapc-remove-unused-function-zswap_debugfs_exit.patch
+mm-zswapc-avoid-unnecessary-copy-in-at-map-time.patch
+mm-zswapc-fix-two-bugs-in-zswap_writeback_entry.patch
 
