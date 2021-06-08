@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6B19C47094
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 23:59:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F31D0C47082
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 00:01:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C8C4061182
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Jun 2021 23:59:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D2E9A60FE9
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Jun 2021 00:01:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230282AbhFHABI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Jun 2021 20:01:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41772 "EHLO mail.kernel.org"
+        id S230233AbhFHACw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Jun 2021 20:02:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41978 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230209AbhFHABH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Jun 2021 20:01:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D79E6610D0;
-        Mon,  7 Jun 2021 23:59:03 +0000 (UTC)
+        id S230183AbhFHACv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Jun 2021 20:02:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B2DBB6120F;
+        Tue,  8 Jun 2021 00:00:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623110344;
-        bh=8Qqn08pe8NVBAJ/mUV1Zw4jF1s9dlCqlVVKWxuqFhIw=;
+        s=korg; t=1623110447;
+        bh=gw+iP/piqSAW8vK2fTxzGpxONJIcTsEACunRrkzRXao=;
         h=Date:From:To:Subject:From;
-        b=MHXm9UFyz9dFGSnqLhbzQzxL7WseDvEebzuFxVRPIlQFU/5Pp0l/pNl0BWVn++ivh
-         M2EHWg4sLqxt5RKPvJevdY///f2iGd8LOiYWqsW+qSBkRuVqgpnDF9rjma0k6V07ya
-         ZAXosb1aitNZMzMWT5DlKXpz1O8d6Q1as4LlHjpY=
-Date:   Mon, 07 Jun 2021 16:59:03 -0700
+        b=x5iDs63zODkZUTVtinQWXnh5pxvcftYSNFIOtrj+5mHdd7iKUxa40XvNNGWc2YCff
+         e/PLd8Zd5oaDW9Ty49oVMZy4f4G6tRSv0LS3U7QwUC4B0IZYjlFLFT3O+n4zwMpJkI
+         pvglIr0C6SsFBX7zSf6uMrRriUE2v3CoOMx3UJ1g=
+Date:   Mon, 07 Jun 2021 17:00:47 -0700
 From:   akpm@linux-foundation.org
-To:     anton@ozlabs.org, benh@kernel.crashing.org, luto@kernel.org,
-        mm-commits@vger.kernel.org, npiggin@gmail.com, paulus@ozlabs.org,
-        rdunlap@infradead.org
-Subject:  + powerpc-64s-enable-mmu_lazy_tlb_shootdown.patch added
- to -mm tree
-Message-ID: <20210607235903.R90y9albj%akpm@linux-foundation.org>
+To:     almasrymina@google.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, songmuchun@bytedance.com
+Subject:  +
+ mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix-2.patch
+ added to -mm tree
+Message-ID: <20210608000047.oveMu6ti4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/64s: enable MMU_LAZY_TLB_SHOOTDOWN
+     Subject: mm, hugetlb: fix allocation error check and copy func name
 has been added to the -mm tree.  Its filename is
-     powerpc-64s-enable-mmu_lazy_tlb_shootdown.patch
+     mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix-2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/powerpc-64s-enable-mmu_lazy_tlb_shootdown.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix-2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/powerpc-64s-enable-mmu_lazy_tlb_shootdown.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,43 +65,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: powerpc/64s: enable MMU_LAZY_TLB_SHOOTDOWN
+From: Mina Almasry <almasrymina@google.com>
+Subject: mm, hugetlb: fix allocation error check and copy func name
 
-On a 16-socket 192-core POWER8 system, a context switching benchmark
-with as many software threads as CPUs (so each switch will go in and
-out of idle), upstream can achieve a rate of about 1 million context
-switches per second. After this patch it goes up to 118 million.
+The alloc_huge_page_vma() doesn't return error pointers, it returns NULL.
 
-Link: https://lkml.kernel.org/r/20210605014216.446867-5-npiggin@gmail.com
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Anton Blanchard <anton@ozlabs.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@ozlabs.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+There is an existing migrate_page_copy() which not only copies the page
+contents, but also page state/metadata.  People could get confused that
+'migrate_page_copy' and 'migrate_copy_huge_page' do not have the same
+functionality.  Rename to 'copy_huge_page()' to make it less likely folks
+get confused.
+
+Link: https://lkml.kernel.org/r/20210605010626.1459873-1-almasrymina@google.com
+Fixes: 6a0badc266df ("mm, hugetlb: fix racy resv_huge_pages underflow on
+UFFDIO_COPY")
+Signed-off-by: Mina Almasry <almasrymina@google.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/migrate.h |    4 ++--
+ mm/hugetlb.c            |    4 ++--
+ mm/migrate.c            |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/arch/powerpc/Kconfig~powerpc-64s-enable-mmu_lazy_tlb_shootdown
-+++ a/arch/powerpc/Kconfig
-@@ -252,6 +252,7 @@ config PPC
- 	select IRQ_FORCED_THREADING
- 	select MMU_GATHER_PAGE_SIZE
- 	select MMU_GATHER_RCU_TABLE_FREE
-+	select MMU_LAZY_TLB_SHOOTDOWN		if PPC_BOOK3S_64
- 	select MODULES_USE_ELF_RELA
- 	select NEED_DMA_MAP_STATE		if PPC64 || NOT_COHERENT_CACHE
- 	select NEED_SG_DMA_LENGTH
+--- a/include/linux/migrate.h~mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix-2
++++ a/include/linux/migrate.h
+@@ -51,7 +51,7 @@ extern int migrate_huge_page_move_mappin
+ 				  struct page *newpage, struct page *page);
+ extern int migrate_page_move_mapping(struct address_space *mapping,
+ 		struct page *newpage, struct page *page, int extra_count);
+-extern void migrate_copy_huge_page(struct page *dst, struct page *src);
++extern void copy_huge_page(struct page *dst, struct page *src);
+ #else
+ 
+ static inline void putback_movable_pages(struct list_head *l) {}
+@@ -78,7 +78,7 @@ static inline int migrate_huge_page_move
+ 	return -ENOSYS;
+ }
+ 
+-static inline void migrate_copy_huge_page(struct page *dst, struct page *src)
++static inline void copy_huge_page(struct page *dst, struct page *src)
+ {
+ }
+ #endif /* CONFIG_MIGRATION */
+--- a/mm/hugetlb.c~mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix-2
++++ a/mm/hugetlb.c
+@@ -5130,7 +5130,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 			 * contents.
+ 			 */
+ 			page = alloc_huge_page_vma(h, dst_vma, dst_addr);
+-			if (IS_ERR(page)) {
++			if (!page) {
+ 				ret = -ENOMEM;
+ 				goto out;
+ 			}
+@@ -5156,7 +5156,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 			*pagep = NULL;
+ 			goto out;
+ 		}
+-		migrate_copy_huge_page(page, *pagep);
++		copy_huge_page(page, *pagep);
+ 		put_page(*pagep);
+ 		*pagep = NULL;
+ 	}
+--- a/mm/migrate.c~mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix-2
++++ a/mm/migrate.c
+@@ -557,7 +557,7 @@ static void __copy_gigantic_page(struct
+ 	}
+ }
+ 
+-void migrate_copy_huge_page(struct page *dst, struct page *src)
++void copy_huge_page(struct page *dst, struct page *src)
+ {
+ 	int i;
+ 	int nr_pages;
+@@ -662,7 +662,7 @@ EXPORT_SYMBOL(migrate_page_states);
+ void migrate_page_copy(struct page *newpage, struct page *page)
+ {
+ 	if (PageHuge(page) || PageTransHuge(page))
+-		migrate_copy_huge_page(newpage, page);
++		copy_huge_page(newpage, page);
+ 	else
+ 		copy_highpage(newpage, page);
+ 
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from almasrymina@google.com are
 
-lazy-tlb-introduce-lazy-mm-refcount-helper-functions.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable.patch
-lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option.patch
-powerpc-64s-enable-mmu_lazy_tlb_shootdown.patch
+mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy.patch
+mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix-2.patch
 
