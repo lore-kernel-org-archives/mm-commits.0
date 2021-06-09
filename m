@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D914AC48BD1
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Jun 2021 00:25:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18904C48BE5
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Jun 2021 00:26:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C6A5A613C1
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Jun 2021 00:25:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03A95613CB
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Jun 2021 00:26:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234549AbhFIA1u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Jun 2021 20:27:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46692 "EHLO mail.kernel.org"
+        id S234977AbhFIA16 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Jun 2021 20:27:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47038 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234467AbhFIA1t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 8 Jun 2021 20:27:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D9D36613AC;
-        Wed,  9 Jun 2021 00:25:46 +0000 (UTC)
+        id S234874AbhFIA15 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 8 Jun 2021 20:27:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E5399613BD;
+        Wed,  9 Jun 2021 00:25:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623198347;
-        bh=D7bKmTzOpRt+dSu9gD9Y6sGFFY3DpPhQTOh+APBDO18=;
+        s=korg; t=1623198358;
+        bh=DIg7du1VtxXDNW0TSej1FIOektsaJ6CIAZu/yGTSuBs=;
         h=Date:From:To:Subject:From;
-        b=zriW83i73mEXL9Q7Mf2myE+VtRVCuWzHpEwMJGMAivM99XdxsMOI4uzu0VyI5zcjA
-         jrNI6ajawnFYE2x8LbAoktXm6mlby/dgF4XQAPLWda+rlsfcztqD0Vw9/diVqg93hb
-         GYY3RW3taamqgiysl9By3bYdloZoYNfxCGTKiypM=
-Date:   Tue, 08 Jun 2021 17:25:46 -0700
+        b=jlwaN918ZasHrRjQMeRCRkaLLGe08sUzXt5xVpMRqg5KE7rGNs3jmwrqFp3Y4D02H
+         1cMIGppIKMfI2LyAF8fFlMTCP1CX/0ewKv1Drfoae2zNox4Z5Yor87HAIZp8WNyimj
+         o62fFOcO3d8FDxAc/sNDw7BoroLRH0ksmLcn7hOU=
+Date:   Tue, 08 Jun 2021 17:25:57 -0700
 From:   akpm@linux-foundation.org
 To:     arnd@arndb.de, corbet@lwn.net, geert@linux-m68k.org,
         ink@jurassic.park.msu.ru, mattst88@gmail.com,
         mm-commits@vger.kernel.org, rppt@linux.ibm.com, rth@twiddle.net,
         vgupta@synopsys.com
-Subject:  + m68k-remove-support-for-discontigmem.patch added to -mm
- tree
-Message-ID: <20210609002546.HH9wqNcSl%akpm@linux-foundation.org>
+Subject:  + docs-remove-description-of-discontigmem.patch added to
+ -mm tree
+Message-ID: <20210609002557.K-V8WgKoi%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m68k: remove support for DISCONTIGMEM
+     Subject: docs: remove description of DISCONTIGMEM
 has been added to the -mm tree.  Its filename is
-     m68k-remove-support-for-discontigmem.patch
+     docs-remove-description-of-discontigmem.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/m68k-remove-support-for-discontigmem.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/docs-remove-description-of-discontigmem.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/m68k-remove-support-for-discontigmem.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/docs-remove-description-of-discontigmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,18 +67,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: m68k: remove support for DISCONTIGMEM
+Subject: docs: remove description of DISCONTIGMEM
 
-DISCONTIGMEM was replaced by FLATMEM with freeing of the unused memory map
-in v5.11.
+Remove description of DISCONTIGMEM from the "Memory Models" document and
+update VM sysctl description so that it won't mention DISCONIGMEM.
 
-Remove the support for DISCONTIGMEM entirely.
-
-Link: https://lkml.kernel.org/r/20210608091316.3622-5-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210608091316.3622-8-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matt Turner <mattst88@gmail.com>
@@ -87,150 +84,94 @@ Cc: Vineet Gupta <vgupta@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/Kconfig.cpu           |   10 --------
- arch/m68k/include/asm/mmzone.h  |   10 --------
- arch/m68k/include/asm/page.h    |    2 -
- arch/m68k/include/asm/page_mm.h |   35 ------------------------------
- arch/m68k/mm/init.c             |   20 -----------------
- 5 files changed, 1 insertion(+), 76 deletions(-)
+ Documentation/admin-guide/sysctl/vm.rst |   12 ++---
+ Documentation/vm/memory-model.rst       |   45 ----------------------
+ 2 files changed, 8 insertions(+), 49 deletions(-)
 
---- a/arch/m68k/include/asm/mmzone.h
-+++ /dev/null
-@@ -1,10 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _ASM_M68K_MMZONE_H_
--#define _ASM_M68K_MMZONE_H_
--
--extern pg_data_t pg_data_map[];
--
--#define NODE_DATA(nid)		(&pg_data_map[nid])
--#define NODE_MEM_MAP(nid)	(NODE_DATA(nid)->node_mem_map)
--
--#endif /* _ASM_M68K_MMZONE_H_ */
---- a/arch/m68k/include/asm/page.h~m68k-remove-support-for-discontigmem
-+++ a/arch/m68k/include/asm/page.h
-@@ -62,7 +62,7 @@ extern unsigned long _ramend;
- #include <asm/page_no.h>
- #endif
+--- a/Documentation/admin-guide/sysctl/vm.rst~docs-remove-description-of-discontigmem
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -938,12 +938,12 @@ allocations, THP and hugetlbfs pages.
  
--#if !defined(CONFIG_MMU) || defined(CONFIG_DISCONTIGMEM)
-+#ifndef CONFIG_MMU
- #define __phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
- #define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
- #endif
---- a/arch/m68k/include/asm/page_mm.h~m68k-remove-support-for-discontigmem
-+++ a/arch/m68k/include/asm/page_mm.h
-@@ -126,26 +126,6 @@ static inline void *__va(unsigned long x
+ To make it sensible with respect to the watermark_scale_factor
+ parameter, the unit is in fractions of 10,000. The default value of
+-15,000 on !DISCONTIGMEM configurations means that up to 150% of the high
+-watermark will be reclaimed in the event of a pageblock being mixed due
+-to fragmentation. The level of reclaim is determined by the number of
+-fragmentation events that occurred in the recent past. If this value is
+-smaller than a pageblock then a pageblocks worth of pages will be reclaimed
+-(e.g.  2MB on 64-bit x86). A boost factor of 0 will disable the feature.
++15,000 means that up to 150% of the high watermark will be reclaimed in the
++event of a pageblock being mixed due to fragmentation. The level of reclaim
++is determined by the number of fragmentation events that occurred in the
++recent past. If this value is smaller than a pageblock then a pageblocks
++worth of pages will be reclaimed (e.g.  2MB on 64-bit x86). A boost factor
++of 0 will disable the feature.
  
- extern int m68k_virt_to_node_shift;
  
--#ifndef CONFIG_DISCONTIGMEM
--#define __virt_to_node(addr)	(&pg_data_map[0])
--#else
--extern struct pglist_data *pg_data_table[];
--
--static inline __attribute_const__ int __virt_to_node_shift(void)
--{
--	int shift;
--
--	asm (
--		"1:	moveq	#0,%0\n"
--		m68k_fixup(%c1, 1b)
--		: "=d" (shift)
--		: "i" (m68k_fixup_vnode_shift));
--	return shift;
--}
--
--#define __virt_to_node(addr)	(pg_data_table[(unsigned long)(addr) >> __virt_to_node_shift()])
--#endif
--
- #define virt_to_page(addr) ({						\
- 	pfn_to_page(virt_to_pfn(addr));					\
- })
-@@ -153,23 +133,8 @@ static inline __attribute_const__ int __
- 	pfn_to_virt(page_to_pfn(page));					\
- })
+ watermark_scale_factor
+--- a/Documentation/vm/memory-model.rst~docs-remove-description-of-discontigmem
++++ a/Documentation/vm/memory-model.rst
+@@ -14,15 +14,11 @@ for the CPU. Then there could be several
+ completely distinct addresses. And, don't forget about NUMA, where
+ different memory banks are attached to different CPUs.
  
--#ifdef CONFIG_DISCONTIGMEM
--#define pfn_to_page(pfn) ({						\
--	unsigned long __pfn = (pfn);					\
--	struct pglist_data *pgdat;					\
--	pgdat = __virt_to_node((unsigned long)pfn_to_virt(__pfn));	\
--	pgdat->node_mem_map + (__pfn - pgdat->node_start_pfn);		\
--})
--#define page_to_pfn(_page) ({						\
--	const struct page *__p = (_page);				\
--	struct pglist_data *pgdat;					\
--	pgdat = &pg_data_map[page_to_nid(__p)];				\
--	((__p) - pgdat->node_mem_map) + pgdat->node_start_pfn;		\
--})
--#else
- #define ARCH_PFN_OFFSET (m68k_memory[0].addr >> PAGE_SHIFT)
- #include <asm-generic/memory_model.h>
--#endif
+-Linux abstracts this diversity using one of the three memory models:
+-FLATMEM, DISCONTIGMEM and SPARSEMEM. Each architecture defines what
++Linux abstracts this diversity using one of the two memory models:
++FLATMEM and SPARSEMEM. Each architecture defines what
+ memory models it supports, what the default memory model is and
+ whether it is possible to manually override that default.
  
- #define virt_addr_valid(kaddr)	((unsigned long)(kaddr) >= PAGE_OFFSET && (unsigned long)(kaddr) < (unsigned long)high_memory)
- #define pfn_valid(pfn)		virt_addr_valid(pfn_to_virt(pfn))
---- a/arch/m68k/Kconfig.cpu~m68k-remove-support-for-discontigmem
-+++ a/arch/m68k/Kconfig.cpu
-@@ -408,10 +408,6 @@ config SINGLE_MEMORY_CHUNK
- 	  order" to save memory that could be wasted for unused memory map.
- 	  Say N if not sure.
+-.. note::
+-   At time of this writing, DISCONTIGMEM is considered deprecated,
+-   although it is still in use by several architectures.
+-
+ All the memory models track the status of physical page frames using
+ struct page arranged in one or more arrays.
  
--config ARCH_DISCONTIGMEM_ENABLE
--	depends on BROKEN
--	def_bool MMU && !SINGLE_MEMORY_CHUNK
--
- config FORCE_MAX_ZONEORDER
- 	int "Maximum zone order" if ADVANCED
- 	depends on !SINGLE_MEMORY_CHUNK
-@@ -451,11 +447,6 @@ config M68K_L2_CACHE
- 	depends on MAC
- 	default y
+@@ -63,43 +59,6 @@ straightforward: `PFN - ARCH_PFN_OFFSET`
+ The `ARCH_PFN_OFFSET` defines the first page frame number for
+ systems with physical memory starting at address different from 0.
  
--config NODES_SHIFT
--	int
--	default "3"
--	depends on DISCONTIGMEM
+-DISCONTIGMEM
+-============
 -
- config CPU_HAS_NO_BITFIELDS
- 	bool
- 
-@@ -553,4 +544,3 @@ config CACHE_COPYBACK
- 	  The ColdFire CPU cache is set into Copy-back mode.
- endchoice
- endif
+-The DISCONTIGMEM model treats the physical memory as a collection of
+-`nodes` similarly to how Linux NUMA support does. For each node Linux
+-constructs an independent memory management subsystem represented by
+-`struct pglist_data` (or `pg_data_t` for short). Among other
+-things, `pg_data_t` holds the `node_mem_map` array that maps
+-physical pages belonging to that node. The `node_start_pfn` field of
+-`pg_data_t` is the number of the first page frame belonging to that
+-node.
 -
---- a/arch/m68k/mm/init.c~m68k-remove-support-for-discontigmem
-+++ a/arch/m68k/mm/init.c
-@@ -44,28 +44,8 @@ EXPORT_SYMBOL(empty_zero_page);
- 
- int m68k_virt_to_node_shift;
- 
--#ifdef CONFIG_DISCONTIGMEM
--pg_data_t pg_data_map[MAX_NUMNODES];
--EXPORT_SYMBOL(pg_data_map);
+-The architecture setup code should call :c:func:`free_area_init_node` for
+-each node in the system to initialize the `pg_data_t` object and its
+-`node_mem_map`.
 -
--pg_data_t *pg_data_table[65];
--EXPORT_SYMBOL(pg_data_table);
--#endif
+-Every `node_mem_map` behaves exactly as FLATMEM's `mem_map` -
+-every physical page frame in a node has a `struct page` entry in the
+-`node_mem_map` array. When DISCONTIGMEM is enabled, a portion of the
+-`flags` field of the `struct page` encodes the node number of the
+-node hosting that page.
 -
- void __init m68k_setup_node(int node)
- {
--#ifdef CONFIG_DISCONTIGMEM
--	struct m68k_mem_info *info = m68k_memory + node;
--	int i, end;
+-The conversion between a PFN and the `struct page` in the
+-DISCONTIGMEM model became slightly more complex as it has to determine
+-which node hosts the physical page and which `pg_data_t` object
+-holds the `struct page`.
 -
--	i = (unsigned long)phys_to_virt(info->addr) >> __virt_to_node_shift();
--	end = (unsigned long)phys_to_virt(info->addr + info->size - 1) >> __virt_to_node_shift();
--	for (; i <= end; i++) {
--		if (pg_data_table[i])
--			pr_warn("overlap at %u for chunk %u\n", i, node);
--		pg_data_table[i] = pg_data_map + node;
--	}
--#endif
- 	node_set_online(node);
- }
+-Architectures that support DISCONTIGMEM provide :c:func:`pfn_to_nid`
+-to convert PFN to the node number. The opposite conversion helper
+-:c:func:`page_to_nid` is generic as it uses the node number encoded in
+-page->flags.
+-
+-Once the node number is known, the PFN can be used to index
+-appropriate `node_mem_map` array to access the `struct page` and
+-the offset of the `struct page` from the `node_mem_map` plus
+-`node_start_pfn` is the PFN of that page.
+-
+ SPARSEMEM
+ =========
  
 _
 
