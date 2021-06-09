@@ -4,39 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C668C4743F
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Jun 2021 00:13:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02AC9C47082
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Jun 2021 00:16:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65AF06128E
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Jun 2021 00:13:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D14A961352
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Jun 2021 00:16:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232160AbhFIAPW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Jun 2021 20:15:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43722 "EHLO mail.kernel.org"
+        id S232355AbhFIASF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Jun 2021 20:18:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44260 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232413AbhFIAPV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 8 Jun 2021 20:15:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EA7186136D;
-        Wed,  9 Jun 2021 00:13:14 +0000 (UTC)
+        id S231186AbhFIASF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 8 Jun 2021 20:18:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CA51A6128E;
+        Wed,  9 Jun 2021 00:15:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623197595;
-        bh=jksmVGgLEPrILVRJ/fnhuijdhlXFLd7IXxMfFoKzSoA=;
+        s=korg; t=1623197758;
+        bh=jWVpNrw/5++zRYEiUneVF65cnHi03Dj3NZ2w3QDDuXk=;
         h=Date:From:To:Subject:From;
-        b=SyawRPi+2sMNeuSyI8gccGB5okhRek1hZbmBm6nDnfO0NrBuaJxNWyM+GnlyCrzey
-         MsKlToui7PTc73drZdjb3QTRO5pJ1O4RN2A8RueYFlwy9tNCaiwmLWHCn4RM26Vnoq
-         cL0+ReaFu8ZY4h2j/5w8n/melj32kQijLIMtpfAs=
-Date:   Tue, 08 Jun 2021 17:13:14 -0700
+        b=ESaSkFAyjv7ZccEyXHNJKKVWK0YPtmdrMX79R7eGAzhBhnl6ARbgYKbgMLDuTaTMk
+         QFDXiJDCr27OFK1pWwILeAVsA04IxES4WlpDM456jBeRZbPNT/wQuwp1Egw6UHsiBQ
+         8iAWgGTo9VFWgVxtjGXqkM/NTmw6vRQYhpRdRW6U=
+Date:   Tue, 08 Jun 2021 17:15:57 -0700
 From:   akpm@linux-foundation.org
-To:     axboe@kernel.dk, dchinner@redhat.com, dennis@kernel.org,
-        guro@fb.com, jack@suse.com, jack@suse.cz,
-        mm-commits@vger.kernel.org, tj@kernel.org, viro@zeniv.linux.org.uk
-Subject:  +
- writeback-cgroup-support-switching-multiple-inodes-at-once.patch added to
- -mm tree
-Message-ID: <20210609001314.IVCx-JwZG%akpm@linux-foundation.org>
+To:     gavin.dg@linux.alibaba.com, hughd@google.com,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, willy@infradead.org, xuyu@linux.alibaba.com
+Subject:  + mm-thp-use-head-page-in-__migration_entry_wait.patch
+ added to -mm tree
+Message-ID: <20210609001557.ZaGZCalCW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: writeback, cgroup: support switching multiple inodes at once
+     Subject: mm, thp: use head page in __migration_entry_wait
 has been added to the -mm tree.  Its filename is
-     writeback-cgroup-support-switching-multiple-inodes-at-once.patch
+     mm-thp-use-head-page-in-__migration_entry_wait.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/writeback-cgroup-support-switching-multiple-inodes-at-once.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-use-head-page-in-__migration_entry_wait.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/writeback-cgroup-support-switching-multiple-inodes-at-once.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-use-head-page-in-__migration_entry_wait.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,256 +65,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: writeback, cgroup: support switching multiple inodes at once
+From: Xu Yu <xuyu@linux.alibaba.com>
+Subject: mm, thp: use head page in __migration_entry_wait
 
-Currently only a single inode can be switched to another writeback
-structure at once.  That means to switch an inode a separate
-inode_switch_wbs_context structure must be allocated, and a separate rcu
-callback and work must be scheduled.
+We notice that hung task happens in a corner but practical scenario when
+CONFIG_PREEMPT_NONE is enabled, as follows.
 
-It's fine for the existing ad-hoc switching, which is not happening that
-often, but sub-optimal for massive switching required in order to release
-a writeback structure.  To prepare for it, let's add a support for
-switching multiple inodes at once.
+Process 0                       Process 1                     Process 2..Inf
+split_huge_page_to_list
+    unmap_page
+        split_huge_pmd_address
+                                __migration_entry_wait(head)
+                                                              __migration_entry_wait(tail)
+    remap_page (roll back)
+        remove_migration_ptes
+            rmap_walk_anon
+                cond_resched
 
-Instead of containing a single inode pointer, inode_switch_wbs_context
-will contain a NULL-terminated array of inode pointers. 
-inode_do_switch_wbs() will be called for each inode.
+Where __migration_entry_wait(tail) is occurred in kernel space, e.g.,
+copy_to_user in fstat, which will immediately fault again without
+rescheduling, and thus occupy the cpu fully.
 
-To optimize the locking bdi->wb_switch_rwsem, old_wb's and new_wb's
-list_locks will be acquired and released only once altogether for all
-inodes.  wb_wakeup() will be also be called only once.  Instead of calling
-wb_put(old_wb) after each successful switch, wb_put_many() is introduced
-and used.
+When there are too many processes performing __migration_entry_wait on
+tail page, remap_page will never be done after cond_resched.
 
-Link: https://lkml.kernel.org/r/20210608230225.2078447-8-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Dennis Zhou <dennis@kernel.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+This makes __migration_entry_wait operate on the compound head page, thus
+waits for remap_page to complete, whether the THP is split successfully or
+roll back.
+
+Note that put_and_wait_on_page_locked helps to drop the page reference
+acquired with get_page_unless_zero, as soon as the page is on the wait
+queue, before actually waiting.  So splitting the THP is only prevented
+for a brief interval.
+
+Link: https://lkml.kernel.org/r/b9836c1dd522e903891760af9f0c86a2cce987eb.1623144009.git.xuyu@linux.alibaba.com
+Fixes: ba98828088ad ("thp: add option to setup migration entries during PMD split")
+Suggested-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Gang Deng <gavin.dg@linux.alibaba.com>
+Signed-off-by: Xu Yu <xuyu@linux.alibaba.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c                |  106 +++++++++++++++++------------
- include/linux/backing-dev-defs.h |   18 ++++
- 2 files changed, 80 insertions(+), 44 deletions(-)
+ mm/migrate.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/fs-writeback.c~writeback-cgroup-support-switching-multiple-inodes-at-once
-+++ a/fs/fs-writeback.c
-@@ -335,10 +335,18 @@ static struct bdi_writeback *inode_to_wb
- }
+--- a/mm/migrate.c~mm-thp-use-head-page-in-__migration_entry_wait
++++ a/mm/migrate.c
+@@ -295,6 +295,7 @@ void __migration_entry_wait(struct mm_st
+ 		goto out;
  
- struct inode_switch_wbs_context {
--	struct inode		*inode;
--	struct bdi_writeback	*new_wb;
--
- 	struct rcu_work		work;
-+
-+	/*
-+	 * Multiple inodes can be switched at once.  The switching procedure
-+	 * consists of two parts, separated by a RCU grace period.  To make
-+	 * sure that the second part is executed for each inode gone through
-+	 * the first part, all inode pointers are placed into a NULL-terminated
-+	 * array embedded into struct inode_switch_wbs_context.  Otherwise
-+	 * an inode could be left in a non-consistent state.
-+	 */
-+	struct bdi_writeback	*new_wb;
-+	struct inode		*inodes[];
- };
- 
- static void bdi_down_write_wb_switch_rwsem(struct backing_dev_info *bdi)
-@@ -351,39 +359,15 @@ static void bdi_up_write_wb_switch_rwsem
- 	up_write(&bdi->wb_switch_rwsem);
- }
- 
--static void inode_do_switch_wbs(struct inode *inode,
-+static bool inode_do_switch_wbs(struct inode *inode,
-+				struct bdi_writeback *old_wb,
- 				struct bdi_writeback *new_wb)
- {
--	struct backing_dev_info *bdi = inode_to_bdi(inode);
- 	struct address_space *mapping = inode->i_mapping;
--	struct bdi_writeback *old_wb = inode->i_wb;
- 	XA_STATE(xas, &mapping->i_pages, 0);
- 	struct page *page;
- 	bool switched = false;
- 
--	/*
--	 * If @inode switches cgwb membership while sync_inodes_sb() is
--	 * being issued, sync_inodes_sb() might miss it.  Synchronize.
--	 */
--	down_read(&bdi->wb_switch_rwsem);
--
--	/*
--	 * By the time control reaches here, RCU grace period has passed
--	 * since I_WB_SWITCH assertion and all wb stat update transactions
--	 * between unlocked_inode_to_wb_begin/end() are guaranteed to be
--	 * synchronizing against the i_pages lock.
--	 *
--	 * Grabbing old_wb->list_lock, inode->i_lock and the i_pages lock
--	 * gives us exclusion against all wb related operations on @inode
--	 * including IO list manipulations and stat updates.
--	 */
--	if (old_wb < new_wb) {
--		spin_lock(&old_wb->list_lock);
--		spin_lock_nested(&new_wb->list_lock, SINGLE_DEPTH_NESTING);
--	} else {
--		spin_lock(&new_wb->list_lock);
--		spin_lock_nested(&old_wb->list_lock, SINGLE_DEPTH_NESTING);
--	}
- 	spin_lock(&inode->i_lock);
- 	xa_lock_irq(&mapping->i_pages);
- 
-@@ -458,25 +442,63 @@ skip_switch:
- 
- 	xa_unlock_irq(&mapping->i_pages);
- 	spin_unlock(&inode->i_lock);
--	spin_unlock(&new_wb->list_lock);
--	spin_unlock(&old_wb->list_lock);
--
--	up_read(&bdi->wb_switch_rwsem);
- 
--	if (switched) {
--		wb_wakeup(new_wb);
--		wb_put(old_wb);
--	}
-+	return switched;
- }
- 
- static void inode_switch_wbs_work_fn(struct work_struct *work)
- {
- 	struct inode_switch_wbs_context *isw =
- 		container_of(to_rcu_work(work), struct inode_switch_wbs_context, work);
-+	struct backing_dev_info *bdi = inode_to_bdi(isw->inodes[0]);
-+	struct bdi_writeback *old_wb = isw->inodes[0]->i_wb;
-+	struct bdi_writeback *new_wb = isw->new_wb;
-+	unsigned long nr_switched = 0;
-+	struct inode **inodep;
-+
-+	/*
-+	 * If @inode switches cgwb membership while sync_inodes_sb() is
-+	 * being issued, sync_inodes_sb() might miss it.  Synchronize.
-+	 */
-+	down_read(&bdi->wb_switch_rwsem);
-+
-+	/*
-+	 * By the time control reaches here, RCU grace period has passed
-+	 * since I_WB_SWITCH assertion and all wb stat update transactions
-+	 * between unlocked_inode_to_wb_begin/end() are guaranteed to be
-+	 * synchronizing against the i_pages lock.
-+	 *
-+	 * Grabbing old_wb->list_lock, inode->i_lock and the i_pages lock
-+	 * gives us exclusion against all wb related operations on @inode
-+	 * including IO list manipulations and stat updates.
-+	 */
-+	if (old_wb < new_wb) {
-+		spin_lock(&old_wb->list_lock);
-+		spin_lock_nested(&new_wb->list_lock, SINGLE_DEPTH_NESTING);
-+	} else {
-+		spin_lock(&new_wb->list_lock);
-+		spin_lock_nested(&old_wb->list_lock, SINGLE_DEPTH_NESTING);
-+	}
-+
-+	for (inodep = isw->inodes; *inodep; inodep++) {
-+		WARN_ON_ONCE((*inodep)->i_wb != old_wb);
-+		if (inode_do_switch_wbs(*inodep, old_wb, new_wb))
-+			nr_switched++;
-+	}
-+
-+	spin_unlock(&new_wb->list_lock);
-+	spin_unlock(&old_wb->list_lock);
-+
-+	up_read(&bdi->wb_switch_rwsem);
-+
-+	if (nr_switched) {
-+		wb_wakeup(new_wb);
-+		wb_put_many(old_wb, nr_switched);
-+	}
- 
--	inode_do_switch_wbs(isw->inode, isw->new_wb);
--	wb_put(isw->new_wb);
--	iput(isw->inode);
-+	for (inodep = isw->inodes; *inodep; inodep++)
-+		iput(*inodep);
-+	wb_put(new_wb);
- 	kfree(isw);
- 	atomic_dec(&isw_nr_in_flight);
- }
-@@ -503,7 +525,7 @@ static void inode_switch_wbs(struct inod
- 	if (atomic_read(&isw_nr_in_flight) > WB_FRN_MAX_IN_FLIGHT)
- 		return;
- 
--	isw = kzalloc(sizeof(*isw), GFP_ATOMIC);
-+	isw = kzalloc(sizeof(*isw) + 2 * sizeof(struct inode *), GFP_ATOMIC);
- 	if (!isw)
- 		return;
- 
-@@ -530,7 +552,7 @@ static void inode_switch_wbs(struct inod
- 	__iget(inode);
- 	spin_unlock(&inode->i_lock);
- 
--	isw->inode = inode;
-+	isw->inodes[0] = inode;
+ 	page = migration_entry_to_page(entry);
++	page = compound_head(page);
  
  	/*
- 	 * In addition to synchronizing among switchers, I_WB_SWITCH tells
---- a/include/linux/backing-dev-defs.h~writeback-cgroup-support-switching-multiple-inodes-at-once
-+++ a/include/linux/backing-dev-defs.h
-@@ -240,8 +240,9 @@ static inline void wb_get(struct bdi_wri
- /**
-  * wb_put - decrement a wb's refcount
-  * @wb: bdi_writeback to put
-+ * @nr: number of references to put
-  */
--static inline void wb_put(struct bdi_writeback *wb)
-+static inline void wb_put_many(struct bdi_writeback *wb, unsigned long nr)
- {
- 	if (WARN_ON_ONCE(!wb->bdi)) {
- 		/*
-@@ -252,7 +253,16 @@ static inline void wb_put(struct bdi_wri
- 	}
- 
- 	if (wb != &wb->bdi->wb)
--		percpu_ref_put(&wb->refcnt);
-+		percpu_ref_put_many(&wb->refcnt, nr);
-+}
-+
-+/**
-+ * wb_put - decrement a wb's refcount
-+ * @wb: bdi_writeback to put
-+ */
-+static inline void wb_put(struct bdi_writeback *wb)
-+{
-+	wb_put_many(wb, 1);
- }
- 
- /**
-@@ -281,6 +291,10 @@ static inline void wb_put(struct bdi_wri
- {
- }
- 
-+static inline void wb_put_many(struct bdi_writeback *wb, unsigned long nr)
-+{
-+}
-+
- static inline bool wb_dying(struct bdi_writeback *wb)
- {
- 	return false;
+ 	 * Once page cache replacement of page migration started, page_count
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from xuyu@linux.alibaba.com are
 
-writeback-cgroup-do-not-switch-inodes-with-i_will_free-flag.patch
-writeback-cgroup-add-smp_mb-to-cgroup_writeback_umount.patch
-writeback-cgroup-increment-isw_nr_in_flight-before-grabbing-an-inode.patch
-writeback-cgroup-switch-to-rcu_work-api-in-inode_switch_wbs.patch
-writeback-cgroup-keep-list-of-inodes-attached-to-bdi_writeback.patch
-writeback-cgroup-split-out-the-functional-part-of-inode_switch_wbs_work_fn.patch
-writeback-cgroup-support-switching-multiple-inodes-at-once.patch
-writeback-cgroup-release-dying-cgwbs-by-switching-attached-inodes.patch
+mm-thp-use-head-page-in-__migration_entry_wait.patch
 
