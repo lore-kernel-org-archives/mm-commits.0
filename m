@@ -7,40 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F68BC48BD1
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 21:39:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B68D7C48BDF
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:16:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44B5561407
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 21:39:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9EA7561407
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:16:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229961AbhFJVl0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Jun 2021 17:41:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52976 "EHLO mail.kernel.org"
+        id S230307AbhFJWSB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Jun 2021 18:18:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60124 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230160AbhFJVlZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 10 Jun 2021 17:41:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EF1FC613E9;
-        Thu, 10 Jun 2021 21:39:14 +0000 (UTC)
+        id S230294AbhFJWR7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 10 Jun 2021 18:17:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AC05A613F5;
+        Thu, 10 Jun 2021 22:16:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623361155;
-        bh=d1BB4qz8Zz/kCjvJ4/hLJiRvgb5LML4xNmn0ia/OWjE=;
+        s=korg; t=1623363363;
+        bh=ZFN2v6RdhUT7kQS7HIxLsPo4dMujGmJ1vQGtxiM79zo=;
         h=Date:From:To:Subject:From;
-        b=FWRCP8UmVEcC+gLKtIlZRkEZQBLMZyeMqTYHXEV2XslUcQ0MBFsYZnEY8KNPIXwld
-         kzLKu0tIM6j64Bq2QAABRUPE3ti1NBiqAQ7VDde0OFzlUIh4CnIAzd4jxxwfVgMgjP
-         gX4Dg6sF9f2PDGFO+CaTcCk4vowMV/o6r5jHylsA=
-Date:   Thu, 10 Jun 2021 14:39:14 -0700
+        b=xK7Rlr1USvD72isW2UUw47o3BV5NpfZijTijStpCMOVtfLBfayMTPm/5fzgjXW6FD
+         Gio9yVCYE+b+cXzkplc5hmKJj8TRJWtiVXnYc7U8Pf5dlE9BGglL6yroExMhpXEV1c
+         6seDddJGj3cHrJAEXL4GoClHFg/B2NS83trj0Tb8=
+Date:   Thu, 10 Jun 2021 15:16:02 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, areber@redhat.com, axboe@kernel.dk,
-        bernd.edlinger@hotmail.de, chaithco@redhat.com,
-        christian.brauner@ubuntu.com, deller@gmx.de, ebiederm@xmission.com,
-        jamorris@linux.microsoft.com, keescook@chromium.org,
-        laoar.shao@gmail.com, luto@amacapital.net, mhocko@suse.com,
-        mm-commits@vger.kernel.org, oleg@redhat.com, serge@hallyn.com,
-        shuah@kernel.org, surenb@google.com, tglx@linutronix.de,
-        viro@zeniv.linux.org.uk, wad@chromium.org, yifeifz2@illinois.edu
-Subject:  +
- exec-fix-dead-lock-in-de_thread-with-ptrace_attach.patch added to -mm tree
-Message-ID: <20210610213914.vjORPvaBB%akpm@linux-foundation.org>
+To:     apopple@nvidia.com, bsingharora@gmail.com, bskeggs@redhat.com,
+        hch@lst.de, hughd@google.com, jgg@nvidia.com, jglisse@redhat.com,
+        jhubbard@nvidia.com, mm-commits@vger.kernel.org, peterx@redhat.com,
+        rcampbell@nvidia.com, willy@infradead.org
+Subject:  [to-be-updated]
+ mm-rmap-split-try_to_munlock-from-try_to_unmap.patch removed from -mm tree
+Message-ID: <20210610221602.q30UcShus%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,336 +45,294 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exec: fix deadlock in de_thread with ptrace_attach
-has been added to the -mm tree.  Its filename is
-     exec-fix-dead-lock-in-de_thread-with-ptrace_attach.patch
+     Subject: mm/rmap: split try_to_munlock from try_to_unmap
+has been removed from the -mm tree.  Its filename was
+     mm-rmap-split-try_to_munlock-from-try_to_unmap.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/exec-fix-dead-lock-in-de_thread-with-ptrace_attach.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/exec-fix-dead-lock-in-de_thread-with-ptrace_attach.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Bernd Edlinger <bernd.edlinger@hotmail.de>
-Subject: exec: fix deadlock in de_thread with ptrace_attach
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm/rmap: split try_to_munlock from try_to_unmap
 
-This introduces signal->unsafe_execve_in_progress, which is used to fix
-the case when at least one of the sibling threads is traced, and therefore
-the trace process may deadlock in ptrace_attach, but de_thread will need
-to wait for the tracer to continue execution.
+The behaviour of try_to_unmap_one() is difficult to follow because it
+performs different operations based on a fairly large set of flags used in
+different combinations.
 
-The solution is to detect this situation and allow ptrace_attach to
-continue, while de_thread() is still waiting for traced zombies to be
-eventually released.  When the current thread changed the ptrace status
-from non-traced to traced, we can simply abort the whole execve and
-restart it by returning -ERESTARTSYS.  This needs to be done before
-changing the thread leader, because the PTRACE_EVENT_EXEC needs to know
-the old thread pid.
+TTU_MUNLOCK is one such flag.  However it is exclusively used by
+try_to_munlock() which specifies no other flags.  Therefore rather than
+overload try_to_unmap_one() with unrelated behaviour split this out into
+it's own function and remove the flag.
 
-Although it is technically after the point of no return, we just have to
-reset bprm->point_of_no_return here, since at this time only the other
-threads have received a fatal signal, not the current thread.
-
-The user's point of view it that the whole execve was simply delayed until
-after the ptrace_attach.
-
-Other threads die quickly since the cred_guard_mutex is released, but a
-deadly signal is already pending.  In case the mutex_lock_killable misses
-the signal, ->unsafe_execve_in_progress makes sure they release the mutex
-immediately and return with -ERESTARTNOINTR.
-
-This means there is no API change, unlike the previous version of this
-patch which was discussed here:
-
-https://lore.kernel.org/lkml/b6537ae6-31b1-5c50-f32b-8b8332ace882@hotmail.de/
-
-See tools/testing/selftests/ptrace/vmaccess.c for a test case that gets
-fixed by this change.
-
-Note that since the test case was originally designed to test the
-ptrace_attach returning an error in this situation, the test expectation
-needed to be adjusted, to allow the API to succeed at the first attempt.
-
-Link: https://lkml.kernel.org/r/Message-ID:
-Signed-off-by: Bernd Edlinger <bernd.edlinger@hotmail.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Will Drewry <wad@chromium.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Serge Hallyn <serge@hallyn.com>
-Cc: James Morris <jamorris@linux.microsoft.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Charles Haithcock <chaithco@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: YiFei Zhu <yifeifz2@illinois.edu>
-Cc: Adrian Reber <areber@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jens Axboe <axboe@kernel.dk>
+Link: https://lkml.kernel.org/r/20210524132725.12697-4-apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c                                 |   45 ++++++++++++++++----
- fs/proc/base.c                            |    6 ++
- include/linux/sched/signal.h              |   13 +++++
- kernel/ptrace.c                           |    9 ++++
- kernel/seccomp.c                          |   12 ++++-
- tools/testing/selftests/ptrace/vmaccess.c |   25 +++++++----
- 6 files changed, 92 insertions(+), 18 deletions(-)
+ Documentation/vm/unevictable-lru.rst |   33 +++++--------
+ include/linux/rmap.h                 |    3 -
+ mm/mlock.c                           |   10 ++--
+ mm/rmap.c                            |   61 ++++++++++++++++++-------
+ 4 files changed, 63 insertions(+), 44 deletions(-)
 
---- a/fs/exec.c~exec-fix-dead-lock-in-de_thread-with-ptrace_attach
-+++ a/fs/exec.c
-@@ -1037,6 +1037,8 @@ static int de_thread(struct task_struct
- 	struct signal_struct *sig = tsk->signal;
- 	struct sighand_struct *oldsighand = tsk->sighand;
- 	spinlock_t *lock = &oldsighand->siglock;
-+	unsigned int prev_ptrace = tsk->ptrace;
-+	struct task_struct *t = tsk;
+--- a/Documentation/vm/unevictable-lru.rst~mm-rmap-split-try_to_munlock-from-try_to_unmap
++++ a/Documentation/vm/unevictable-lru.rst
+@@ -389,14 +389,14 @@ mlocked, munlock_vma_page() updates that
+ mlocked pages.  Note, however, that at this point we haven't checked whether
+ the page is mapped by other VM_LOCKED VMAs.
  
- 	if (thread_group_empty(tsk))
- 		goto no_thread_group;
-@@ -1054,20 +1056,40 @@ static int de_thread(struct task_struct
- 		return -EAGAIN;
- 	}
+-We can't call try_to_munlock(), the function that walks the reverse map to
++We can't call page_mlock(), the function that walks the reverse map to
+ check for other VM_LOCKED VMAs, without first isolating the page from the LRU.
+-try_to_munlock() is a variant of try_to_unmap() and thus requires that the page
++page_mlock() is a variant of try_to_unmap() and thus requires that the page
+ not be on an LRU list [more on these below].  However, the call to
+-isolate_lru_page() could fail, in which case we couldn't try_to_munlock().  So,
++isolate_lru_page() could fail, in which case we can't call page_mlock().  So,
+ we go ahead and clear PG_mlocked up front, as this might be the only chance we
+-have.  If we can successfully isolate the page, we go ahead and
+-try_to_munlock(), which will restore the PG_mlocked flag and update the zone
++have.  If we can successfully isolate the page, we go ahead and call
++page_mlock(), which will restore the PG_mlocked flag and update the zone
+ page statistics if it finds another VMA holding the page mlocked.  If we fail
+ to isolate the page, we'll have left a potentially mlocked page on the LRU.
+ This is fine, because we'll catch it later if and if vmscan tries to reclaim
+@@ -545,31 +545,24 @@ munlock or munmap system calls, mm teard
+ holepunching, and truncation of file pages and their anonymous COWed pages.
  
-+	while_each_thread(tsk, t) {
-+		if (unlikely(t->ptrace) && t != tsk->group_leader)
-+			sig->unsafe_execve_in_progress = true;
-+	}
-+
- 	sig->group_exit_task = tsk;
- 	sig->notify_count = zap_other_threads(tsk);
- 	if (!thread_group_leader(tsk))
- 		sig->notify_count--;
-+	spin_unlock_irq(lock);
  
--	while (sig->notify_count) {
--		__set_current_state(TASK_KILLABLE);
--		spin_unlock_irq(lock);
-+	if (unlikely(sig->unsafe_execve_in_progress))
-+		mutex_unlock(&sig->cred_guard_mutex);
-+
-+	for (;;) {
-+		set_current_state(TASK_KILLABLE);
-+		if (!sig->notify_count)
-+			break;
- 		schedule();
- 		if (__fatal_signal_pending(tsk))
- 			goto killed;
--		spin_lock_irq(lock);
- 	}
--	spin_unlock_irq(lock);
-+	__set_current_state(TASK_RUNNING);
-+
-+	if (unlikely(sig->unsafe_execve_in_progress)) {
-+		if (mutex_lock_killable(&sig->cred_guard_mutex))
-+			goto killed;
-+		sig->unsafe_execve_in_progress = false;
-+		if (!prev_ptrace && tsk->ptrace) {
-+			sig->group_exit_task = NULL;
-+			sig->notify_count = 0;
-+			return -ERESTARTSYS;
-+		}
-+	}
+-try_to_munlock() Reverse Map Scan
++page_mlock() Reverse Map Scan
+ ---------------------------------
  
- 	/*
- 	 * At this point all other threads have exited, all we have to
-@@ -1252,8 +1274,11 @@ int begin_new_exec(struct linux_binprm *
- 	 * Make this the only thread in the thread group.
+-.. warning::
+-   [!] TODO/FIXME: a better name might be page_mlocked() - analogous to the
+-   page_referenced() reverse map walker.
+-
+ When munlock_vma_page() [see section :ref:`munlock()/munlockall() System Call
+ Handling <munlock_munlockall_handling>` above] tries to munlock a
+ page, it needs to determine whether or not the page is mapped by any
+ VM_LOCKED VMA without actually attempting to unmap all PTEs from the
+ page.  For this purpose, the unevictable/mlock infrastructure
+-introduced a variant of try_to_unmap() called try_to_munlock().
++introduced a variant of try_to_unmap() called page_mlock().
+ 
+-try_to_munlock() calls the same functions as try_to_unmap() for anonymous and
+-mapped file and KSM pages with a flag argument specifying unlock versus unmap
+-processing.  Again, these functions walk the respective reverse maps looking
+-for VM_LOCKED VMAs.  When such a VMA is found, as in the try_to_unmap() case,
+-the functions mlock the page via mlock_vma_page() and return SWAP_MLOCK.  This
+-undoes the pre-clearing of the page's PG_mlocked done by munlock_vma_page.
++page_mlock() walks the respective reverse maps looking for VM_LOCKED VMAs. When
++such a VMA is found the page is mlocked via mlock_vma_page(). This undoes the
++pre-clearing of the page's PG_mlocked done by munlock_vma_page.
+ 
+-Note that try_to_munlock()'s reverse map walk must visit every VMA in a page's
++Note that page_mlock()'s reverse map walk must visit every VMA in a page's
+ reverse map to determine that a page is NOT mapped into any VM_LOCKED VMA.
+ However, the scan can terminate when it encounters a VM_LOCKED VMA.
+-Although try_to_munlock() might be called a great many times when munlocking a
++Although page_mlock() might be called a great many times when munlocking a
+ large region or tearing down a large address space that has been mlocked via
+ mlockall(), overall this is a fairly rare event.
+ 
+@@ -602,7 +595,7 @@ inactive lists to the appropriate node's
+ shrink_inactive_list() should only see SHM_LOCK'd pages that became SHM_LOCK'd
+ after shrink_active_list() had moved them to the inactive list, or pages mapped
+ into VM_LOCKED VMAs that munlock_vma_page() couldn't isolate from the LRU to
+-recheck via try_to_munlock().  shrink_inactive_list() won't notice the latter,
++recheck via page_mlock().  shrink_inactive_list() won't notice the latter,
+ but will pass on to shrink_page_list().
+ 
+ shrink_page_list() again culls obviously unevictable pages that it could
+--- a/include/linux/rmap.h~mm-rmap-split-try_to_munlock-from-try_to_unmap
++++ a/include/linux/rmap.h
+@@ -87,7 +87,6 @@ struct anon_vma_chain {
+ 
+ enum ttu_flags {
+ 	TTU_MIGRATION		= 0x1,	/* migration mode */
+-	TTU_MUNLOCK		= 0x2,	/* munlock mode */
+ 
+ 	TTU_SPLIT_HUGE_PMD	= 0x4,	/* split huge PMD if any */
+ 	TTU_IGNORE_MLOCK	= 0x8,	/* ignore mlock */
+@@ -240,7 +239,7 @@ int page_mkclean(struct page *);
+  * called in munlock()/munmap() path to check for other vmas holding
+  * the page mlocked.
+  */
+-void try_to_munlock(struct page *);
++void page_mlock(struct page *page);
+ 
+ void remove_migration_ptes(struct page *old, struct page *new, bool locked);
+ 
+--- a/mm/mlock.c~mm-rmap-split-try_to_munlock-from-try_to_unmap
++++ a/mm/mlock.c
+@@ -108,7 +108,7 @@ void mlock_vma_page(struct page *page)
+ /*
+  * Finish munlock after successful page isolation
+  *
+- * Page must be locked. This is a wrapper for try_to_munlock()
++ * Page must be locked. This is a wrapper for page_mlock()
+  * and putback_lru_page() with munlock accounting.
+  */
+ static void __munlock_isolated_page(struct page *page)
+@@ -118,7 +118,7 @@ static void __munlock_isolated_page(stru
+ 	 * and we don't need to check all the other vmas.
  	 */
- 	retval = de_thread(me);
--	if (retval)
-+	if (retval) {
-+		if (retval == -ERESTARTSYS)
-+			bprm->point_of_no_return = false;
- 		goto out;
-+	}
+ 	if (page_mapcount(page) > 1)
+-		try_to_munlock(page);
++		page_mlock(page);
  
- 	/*
- 	 * Cancel any io_uring activity across execve
-@@ -1460,6 +1485,11 @@ static int prepare_bprm_creds(struct lin
- 	if (mutex_lock_interruptible(&current->signal->cred_guard_mutex))
- 		return -ERESTARTNOINTR;
- 
-+	if (unlikely(current->signal->unsafe_execve_in_progress)) {
-+		mutex_unlock(&current->signal->cred_guard_mutex);
-+		return -ERESTARTNOINTR;
-+	}
-+
- 	bprm->cred = prepare_exec_creds();
- 	if (likely(bprm->cred))
- 		return 0;
-@@ -1476,7 +1506,8 @@ static void free_bprm(struct linux_binpr
- 	}
- 	free_arg_pages(bprm);
- 	if (bprm->cred) {
--		mutex_unlock(&current->signal->cred_guard_mutex);
-+		if (!current->signal->unsafe_execve_in_progress)
-+			mutex_unlock(&current->signal->cred_guard_mutex);
- 		abort_creds(bprm->cred);
- 	}
- 	if (bprm->file) {
---- a/fs/proc/base.c~exec-fix-dead-lock-in-de_thread-with-ptrace_attach
-+++ a/fs/proc/base.c
-@@ -2748,6 +2748,12 @@ static ssize_t proc_pid_attr_write(struc
- 	if (rv < 0)
- 		goto out_free;
- 
-+	if (unlikely(current->signal->unsafe_execve_in_progress)) {
-+		mutex_unlock(&current->signal->cred_guard_mutex);
-+		rv = -ERESTARTNOINTR;
-+		goto out_free;
-+	}
-+
- 	rv = security_setprocattr(PROC_I(inode)->op.lsm,
- 				  file->f_path.dentry->d_name.name, page,
- 				  count);
---- a/include/linux/sched/signal.h~exec-fix-dead-lock-in-de_thread-with-ptrace_attach
-+++ a/include/linux/sched/signal.h
-@@ -214,6 +214,17 @@ struct signal_struct {
- #endif
- 
- 	/*
-+	 * Set while execve is executing but is *not* holding
-+	 * cred_guard_mutex to avoid possible dead-locks.
-+	 * The cred_guard_mutex is released *after* de_thread() has
-+	 * called zap_other_threads(), therefore a fatal signal is
-+	 * guaranteed to be already pending in the unlikely event, that
-+	 * current->signal->unsafe_execve_in_progress happens to be
-+	 * true after the cred_guard_mutex was acquired.
-+	 */
-+	bool unsafe_execve_in_progress;
-+
-+	/*
- 	 * Thread is the potential origin of an oom condition; kill first on
- 	 * oom
- 	 */
-@@ -227,6 +238,8 @@ struct signal_struct {
- 	struct mutex cred_guard_mutex;	/* guard against foreign influences on
- 					 * credential calculations
- 					 * (notably. ptrace)
-+					 * Held while execve runs, except when
-+					 * a sibling thread is being traced.
- 					 * Deprecated do not use in new code.
- 					 * Use exec_update_lock instead.
- 					 */
---- a/kernel/ptrace.c~exec-fix-dead-lock-in-de_thread-with-ptrace_attach
-+++ a/kernel/ptrace.c
-@@ -485,6 +485,14 @@ static int ptrace_traceme(void)
+ 	/* Did try_to_unlock() succeed or punt? */
+ 	if (!PageMlocked(page))
+@@ -158,7 +158,7 @@ static void __munlock_isolation_failed(s
+  * munlock()ed or munmap()ed, we want to check whether other vmas hold the
+  * page locked so that we can leave it on the unevictable lru list and not
+  * bother vmscan with it.  However, to walk the page's rmap list in
+- * try_to_munlock() we must isolate the page from the LRU.  If some other
++ * page_mlock() we must isolate the page from the LRU.  If some other
+  * task has removed the page from the LRU, we won't be able to do that.
+  * So we clear the PageMlocked as we might not get another chance.  If we
+  * can't isolate the page, we leave it for putback_lru_page() and vmscan
+@@ -168,7 +168,7 @@ unsigned int munlock_vma_page(struct pag
  {
- 	int ret = -EPERM;
+ 	int nr_pages;
  
-+	if (mutex_lock_interruptible(&current->signal->cred_guard_mutex))
-+		return -ERESTARTNOINTR;
-+
-+	if (unlikely(current->signal->unsafe_execve_in_progress)) {
-+		mutex_unlock(&current->signal->cred_guard_mutex);
-+		return -ERESTARTNOINTR;
-+	}
-+
- 	write_lock_irq(&tasklist_lock);
- 	/* Are we already being traced? */
- 	if (!current->ptrace) {
-@@ -500,6 +508,7 @@ static int ptrace_traceme(void)
+-	/* For try_to_munlock() and to serialize with page migration */
++	/* For page_mlock() and to serialize with page migration */
+ 	BUG_ON(!PageLocked(page));
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+ 
+@@ -205,7 +205,7 @@ static int __mlock_posix_error_return(lo
+  *
+  * The fast path is available only for evictable pages with single mapping.
+  * Then we can bypass the per-cpu pvec and get better performance.
+- * when mapcount > 1 we need try_to_munlock() which can fail.
++ * when mapcount > 1 we need page_mlock() which can fail.
+  * when !page_evictable(), we need the full redo logic of putback_lru_page to
+  * avoid leaving evictable page in unevictable list.
+  *
+--- a/mm/rmap.c~mm-rmap-split-try_to_munlock-from-try_to_unmap
++++ a/mm/rmap.c
+@@ -1411,10 +1411,6 @@ static bool try_to_unmap_one(struct page
+ 	if (flags & TTU_SYNC)
+ 		pvmw.flags = PVMW_SYNC;
+ 
+-	/* munlock has nothing to gain from examining un-locked vmas */
+-	if ((flags & TTU_MUNLOCK) && !(vma->vm_flags & VM_LOCKED))
+-		return true;
+-
+ 	if (IS_ENABLED(CONFIG_MIGRATION) && (flags & TTU_MIGRATION) &&
+ 	    is_zone_device_page(page) && !is_device_private_page(page))
+ 		return true;
+@@ -1476,8 +1472,6 @@ static bool try_to_unmap_one(struct page
+ 				page_vma_mapped_walk_done(&pvmw);
+ 				break;
+ 			}
+-			if (flags & TTU_MUNLOCK)
+-				continue;
  		}
- 	}
- 	write_unlock_irq(&tasklist_lock);
-+	mutex_unlock(&current->signal->cred_guard_mutex);
  
- 	return ret;
+ 		/* Unexpected PMD-mapped THP? */
+@@ -1797,20 +1791,53 @@ bool try_to_unmap(struct page *page, enu
+ 	return !page_mapcount(page);
  }
---- a/kernel/seccomp.c~exec-fix-dead-lock-in-de_thread-with-ptrace_attach
-+++ a/kernel/seccomp.c
-@@ -1833,9 +1833,15 @@ static long seccomp_set_mode_filter(unsi
- 	 * Make sure we cannot change seccomp or nnp state via TSYNC
- 	 * while another thread is in the middle of calling exec.
- 	 */
--	if (flags & SECCOMP_FILTER_FLAG_TSYNC &&
--	    mutex_lock_killable(&current->signal->cred_guard_mutex))
--		goto out_put_fd;
-+	if (flags & SECCOMP_FILTER_FLAG_TSYNC) {
-+		if (mutex_lock_killable(&current->signal->cred_guard_mutex))
-+			goto out_put_fd;
+ 
++/*
++ * Walks the vma's mapping a page and mlocks the page if any locked vma's are
++ * found. Once one is found the page is locked and the scan can be terminated.
++ */
++static bool page_mlock_one(struct page *page, struct vm_area_struct *vma,
++				 unsigned long address, void *unused)
++{
++	struct page_vma_mapped_walk pvmw = {
++		.page = page,
++		.vma = vma,
++		.address = address,
++	};
 +
-+		if (unlikely(current->signal->unsafe_execve_in_progress)) {
-+			mutex_unlock(&current->signal->cred_guard_mutex);
-+			goto out_put_fd;
-+		}
++	/* An un-locked vma doesn't have any pages to lock, continue the scan */
++	if (!(vma->vm_flags & VM_LOCKED))
++		return true;
++
++	while (page_vma_mapped_walk(&pvmw)) {
++		/* PTE-mapped THP are never mlocked */
++		if (!PageTransCompound(page))
++			mlock_vma_page(page);
++		page_vma_mapped_walk_done(&pvmw);
++
++		/*
++		 * no need to continue scanning other vma's if the page has
++		 * been locked.
++		 */
++		return false;
 +	}
++
++	return true;
++}
++
+ /**
+- * try_to_munlock - try to munlock a page
+- * @page: the page to be munlocked
++ * page_mlock - try to mlock a page
++ * @page: the page to be mlocked
++ *
++ * Called from munlock code. Checks all of the VMAs mapping the page and mlocks
++ * the page if any are found. The page will be returned with PG_mlocked cleared
++ * if it is not mapped by any locked vmas.
+  *
+- * Called from munlock code.  Checks all of the VMAs mapping the page
+- * to make sure nobody else has this page mlocked. The page will be
+- * returned with PG_mlocked cleared if no other vmas have it mlocked.
++ * mmap_lock should be held for read or write.
+  */
+-
+-void try_to_munlock(struct page *page)
++void page_mlock(struct page *page)
+ {
+ 	struct rmap_walk_control rwc = {
+-		.rmap_one = try_to_unmap_one,
+-		.arg = (void *)TTU_MUNLOCK,
++		.rmap_one = page_mlock_one,
+ 		.done = page_not_mapped,
+ 		.anon_lock = page_lock_anon_vma_read,
  
- 	spin_lock_irq(&current->sighand->siglock);
- 
---- a/tools/testing/selftests/ptrace/vmaccess.c~exec-fix-dead-lock-in-de_thread-with-ptrace_attach
-+++ a/tools/testing/selftests/ptrace/vmaccess.c
-@@ -39,8 +39,15 @@ TEST(vmaccess)
- 	f = open(mm, O_RDONLY);
- 	ASSERT_GE(f, 0);
- 	close(f);
--	f = kill(pid, SIGCONT);
--	ASSERT_EQ(f, 0);
-+	f = waitpid(-1, NULL, 0);
-+	ASSERT_NE(f, -1);
-+	ASSERT_NE(f, 0);
-+	ASSERT_NE(f, pid);
-+	f = waitpid(-1, NULL, 0);
-+	ASSERT_EQ(f, pid);
-+	f = waitpid(-1, NULL, 0);
-+	ASSERT_EQ(f, -1);
-+	ASSERT_EQ(errno, ECHILD);
- }
- 
- TEST(attach)
-@@ -57,22 +64,24 @@ TEST(attach)
- 
- 	sleep(1);
- 	k = ptrace(PTRACE_ATTACH, pid, 0L, 0L);
--	ASSERT_EQ(errno, EAGAIN);
--	ASSERT_EQ(k, -1);
-+	ASSERT_EQ(k, 0);
- 	k = waitpid(-1, &s, WNOHANG);
- 	ASSERT_NE(k, -1);
- 	ASSERT_NE(k, 0);
- 	ASSERT_NE(k, pid);
- 	ASSERT_EQ(WIFEXITED(s), 1);
- 	ASSERT_EQ(WEXITSTATUS(s), 0);
--	sleep(1);
--	k = ptrace(PTRACE_ATTACH, pid, 0L, 0L);
--	ASSERT_EQ(k, 0);
- 	k = waitpid(-1, &s, 0);
- 	ASSERT_EQ(k, pid);
- 	ASSERT_EQ(WIFSTOPPED(s), 1);
- 	ASSERT_EQ(WSTOPSIG(s), SIGSTOP);
--	k = ptrace(PTRACE_DETACH, pid, 0L, 0L);
-+	k = ptrace(PTRACE_CONT, pid, 0L, 0L);
-+	ASSERT_EQ(k, 0);
-+	k = waitpid(-1, &s, 0);
-+	ASSERT_EQ(k, pid);
-+	ASSERT_EQ(WIFSTOPPED(s), 1);
-+	ASSERT_EQ(WSTOPSIG(s), SIGTRAP);
-+	k = ptrace(PTRACE_CONT, pid, 0L, 0L);
- 	ASSERT_EQ(k, 0);
- 	k = waitpid(-1, &s, 0);
- 	ASSERT_EQ(k, pid);
+@@ -1862,7 +1889,7 @@ static struct anon_vma *rmap_walk_anon_l
+  * Find all the mappings of a page using the mapping pointer and the vma chains
+  * contained in the anon_vma struct it points to.
+  *
+- * When called from try_to_munlock(), the mmap_lock of the mm containing the vma
++ * When called from page_mlock(), the mmap_lock of the mm containing the vma
+  * where the page was found will be held for write.  So, we won't recheck
+  * vm_flags for that VMA.  That should be OK, because that vma shouldn't be
+  * LOCKED.
+@@ -1915,7 +1942,7 @@ static void rmap_walk_anon(struct page *
+  * Find all the mappings of a page using the mapping pointer and the vma chains
+  * contained in the address_space struct it points to.
+  *
+- * When called from try_to_munlock(), the mmap_lock of the mm containing the vma
++ * When called from page_mlock(), the mmap_lock of the mm containing the vma
+  * where the page was found will be held for write.  So, we won't recheck
+  * vm_flags for that VMA.  That should be OK, because that vma shouldn't be
+  * LOCKED.
 _
 
-Patches currently in -mm which might be from bernd.edlinger@hotmail.de are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-exec-fix-dead-lock-in-de_thread-with-ptrace_attach.patch
+mm-rmap-split-migration-into-its-own-function.patch
+mm-rename-migrate_pgmap_owner.patch
+mm-memoryc-allow-different-return-codes-for-copy_nonpresent_pte.patch
+mm-device-exclusive-memory-access.patch
+mm-selftests-for-exclusive-device-memory.patch
+nouveau-svm-refactor-nouveau_range_fault.patch
+nouveau-svm-implement-atomic-svm-access.patch
 
