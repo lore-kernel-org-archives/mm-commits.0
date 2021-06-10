@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23708C48BDF
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:25:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97550C48BE0
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:25:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0960A613E7
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:25:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7CC7661410
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:25:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230436AbhFJW1I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Jun 2021 18:27:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33214 "EHLO mail.kernel.org"
+        id S230440AbhFJW1J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Jun 2021 18:27:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33440 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230421AbhFJW1H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 10 Jun 2021 18:27:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1AB79613F1;
-        Thu, 10 Jun 2021 22:24:58 +0000 (UTC)
+        id S230421AbhFJW1J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 10 Jun 2021 18:27:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EB7F8613F1;
+        Thu, 10 Jun 2021 22:25:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623363898;
-        bh=gmDj4XZXANSJKkBHr1+t/7FUzf3zW64CTDR3VOAf+po=;
+        s=korg; t=1623363912;
+        bh=UKlL4grXLg2wQ6UciN7uEghiuBe2+qq7L2WTx71ebT4=;
         h=Date:From:To:Subject:From;
-        b=kcGiGeNeNXxKuZ1v5XEUqe/KyvHgL7m/XoK9lHaaE7+q+ZbYB86/jDb93euYHopx2
-         bnUcfGqc+Qzecz4JQdPbnH8IE30MQyHVz/DvcvNatAcOupPYa393j1R+Q+N3HqpWrt
-         jK46mjprBEX92dvOdggCLCHEfgCVUaBNid04ivOM=
-Date:   Thu, 10 Jun 2021 15:24:57 -0700
+        b=1Aay0xpPuPuIii/LgVjNNJGAOx9WQcNRGlOgZ+s84pW53tVOdOM5quNmYNsn2J8rw
+         6OugmhCIoCB4CM7Shy/DKWXXKyDsWOkohuVAtwCU8KGhGAIFE2vZgQd/1dy2C3Sc4/
+         tN8740VClUrLYjybPyjy9gZ3AIQBaK5cipq8RGbc=
+Date:   Thu, 10 Jun 2021 15:25:11 -0700
 From:   akpm@linux-foundation.org
-To:     apopple@nvidia.com, hughd@google.com, jack@suse.cz,
-        juew@google.com, kirill.shutemov@linux.intel.com,
-        linmiaohe@huawei.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, peterx@redhat.com, rcampbell@nvidia.com,
-        shakeelb@google.com, shy828301@gmail.com, stable@vger.kernel.org,
-        wangyugui@e16-tech.com, willy@infradead.org, ziy@nvidia.com
-Subject:  + mm-thp-fix-page_address_in_vma-on-file-thp-tails.patch
- added to -mm tree
-Message-ID: <20210610222457._rrepM0-r%akpm@linux-foundation.org>
+To:     apopple@nvidia.com, hughd@google.com,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        peterx@redhat.com, rcampbell@nvidia.com, shy828301@gmail.com,
+        stable@vger.kernel.org, wangyugui@e16-tech.com, will@kernel.org,
+        willy@infradead.org, ziy@nvidia.com
+Subject:  + mm-page_vma_mapped_walk-use-pmd_read_atomic.patch added
+ to -mm tree
+Message-ID: <20210610222511.KFUKiYj20%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: fix page_address_in_vma() on file THP tails
+     Subject: mm: page_vma_mapped_walk(): use pmd_read_atomic()
 has been added to the -mm tree.  Its filename is
-     mm-thp-fix-page_address_in_vma-on-file-thp-tails.patch
+     mm-page_vma_mapped_walk-use-pmd_read_atomic.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-fix-page_address_in_vma-on-file-thp-tails.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_vma_mapped_walk-use-pmd_read_atomic.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-fix-page_address_in_vma-on-file-thp-tails.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_vma_mapped_walk-use-pmd_read_atomic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,62 +67,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jue Wang <juew@google.com>
-Subject: mm/thp: fix page_address_in_vma() on file THP tails
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: page_vma_mapped_walk(): use pmd_read_atomic()
 
-Anon THP tails were already supported, but memory-failure may need to use
-page_address_in_vma() on file THP tails, which its page->mapping check did
-not permit: fix it.
+page_vma_mapped_walk() cleanup: use pmd_read_atomic() with barrier()
+instead of READ_ONCE() for pmde: some architectures (e.g.  i386 with PAE)
+have a multi-word pmd entry, for which READ_ONCE() is not good enough.
 
-hughd adds: no current usage is known to hit the issue, but this does fix
-a subtle trap in a general helper: best fixed in stable sooner than later.
-
-Link: https://lkml.kernel.org/r/a0d9b53-bf5d-8bab-ac5-759dc61819c1@google.com
-Fixes: 800d8c63b2e9 ("shmem: add huge pages support")
-Signed-off-by: Jue Wang <juew@google.com>
+Link: https://lkml.kernel.org/r/594c1f0-d396-5346-1f36-606872cddb18@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Wang Yugui <wangyugui@e16-tech.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yang Shi <shy828301@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/page_vma_mapped.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/rmap.c~mm-thp-fix-page_address_in_vma-on-file-thp-tails
-+++ a/mm/rmap.c
-@@ -716,11 +716,11 @@ unsigned long page_address_in_vma(struct
- 		if (!vma->anon_vma || !page__anon_vma ||
- 		    vma->anon_vma->root != page__anon_vma->root)
- 			return -EFAULT;
--	} else if (page->mapping) {
--		if (!vma->vm_file || vma->vm_file->f_mapping != page->mapping)
--			return -EFAULT;
--	} else
-+	} else if (!vma->vm_file) {
-+		return -EFAULT;
-+	} else if (vma->vm_file->f_mapping != compound_head(page)->mapping) {
- 		return -EFAULT;
-+	}
- 
- 	return vma_address(page, vma);
- }
+--- a/mm/page_vma_mapped.c~mm-page_vma_mapped_walk-use-pmd_read_atomic
++++ a/mm/page_vma_mapped.c
+@@ -182,13 +182,16 @@ restart:
+ 	pud = pud_offset(p4d, pvmw->address);
+ 	if (!pud_present(*pud))
+ 		return false;
++
+ 	pvmw->pmd = pmd_offset(pud, pvmw->address);
+ 	/*
+ 	 * Make sure the pmd value isn't cached in a register by the
+ 	 * compiler and used as a stale value after we've observed a
+ 	 * subsequent update.
+ 	 */
+-	pmde = READ_ONCE(*pvmw->pmd);
++	pmde = pmd_read_atomic(pvmw->pmd);
++	barrier();
++
+ 	if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde)) {
+ 		pvmw->ptl = pmd_lock(mm, pvmw->pmd);
+ 		if (likely(pmd_trans_huge(*pvmw->pmd))) {
 _
 
-Patches currently in -mm which might be from juew@google.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-thp-fix-page_address_in_vma-on-file-thp-tails.patch
+mm-thp-fix-__split_huge_pmd_locked-on-shmem-migration-entry.patch
+mm-thp-make-is_huge_zero_pmd-safe-and-quicker.patch
+mm-thp-try_to_unmap-use-ttu_sync-for-safe-splitting.patch
+mm-thp-fix-vma_address-if-virtual-address-below-file-offset.patch
+mm-thp-unmap_mapping_page-to-fix-thp-truncate_cleanup_page.patch
+mm-page_vma_mapped_walk-use-page-for-pvmw-page.patch
+mm-page_vma_mapped_walk-settle-pagehuge-on-entry.patch
+mm-page_vma_mapped_walk-use-pmd_read_atomic.patch
+mm-page_vma_mapped_walk-use-pmde-for-pvmw-pmd.patch
+mm-page_vma_mapped_walk-prettify-pvmw_migration-block.patch
+mm-page_vma_mapped_walk-crossing-page-table-boundary.patch
+mm-page_vma_mapped_walk-add-a-level-of-indentation.patch
+mm-page_vma_mapped_walk-use-goto-instead-of-while-1.patch
+mm-page_vma_mapped_walk-get-vma_address_end-earlier.patch
+mm-thp-fix-page_vma_mapped_walk-if-thp-mapped-by-ptes.patch
+mm-thp-another-pvmw_sync-fix-in-page_vma_mapped_walk.patch
+mm-thp-remap_page-is-only-needed-on-anonymous-thp.patch
+mm-hwpoison_user_mappings-try_to_unmap-with-ttu_sync.patch
 
