@@ -7,38 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97A70C48BE0
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:25:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6C9AC48BD1
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:29:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7E25D613F1
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:25:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8120761403
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:29:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230526AbhFJW1o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Jun 2021 18:27:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33786 "EHLO mail.kernel.org"
+        id S230077AbhFJWbV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Jun 2021 18:31:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34792 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230363AbhFJW1o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 10 Jun 2021 18:27:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 01CD6613FF;
-        Thu, 10 Jun 2021 22:25:30 +0000 (UTC)
+        id S230001AbhFJWbV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 10 Jun 2021 18:31:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2EDEB613F5;
+        Thu, 10 Jun 2021 22:29:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623363931;
-        bh=wEVzECxTWxGUrtN8RoFwdlYbvSPKjSSAUuffbKvLGLE=;
+        s=korg; t=1623364164;
+        bh=t6XHo3vwbwZR0FI1ozPgnfBk9IalGsWGXAfPZ8kWgyg=;
         h=Date:From:To:Subject:From;
-        b=dE8o3ghCaUfYmwV7UvwP1tFvpmwMHt3qTt4IRNbr1OBfTT4/+h7JzkP4KqiKtNSN4
-         ZACVHsBiJ3x5E1qXGWWxHIT7KAVjj9rvlwd1hgBEjhx29NRvyBphPk87IyZA/YNfrp
-         mBsONh+WPkMi/9ke0R++bnvG1tP+jwMbLItPJ9AQ=
-Date:   Thu, 10 Jun 2021 15:25:30 -0700
+        b=CBrpkRIgctbfEZ+oOPnAFZ3VOxBJB0A9GvjtBWoF6FiT0MmFXCi0N1uOxVKHa3qCM
+         5a5cxFqjoIt0gh2n1vkrVCWC3bmnCHM3H9yDo/9YRIxlrL7vJPLlvCA9EWsYvVwWTp
+         VZyBLPWddfJDcXLbBIikJ4vHpqo2rxOP0Xb6ItrQ=
+Date:   Thu, 10 Jun 2021 15:29:23 -0700
 From:   akpm@linux-foundation.org
-To:     apopple@nvidia.com, hughd@google.com,
-        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        peterx@redhat.com, rcampbell@nvidia.com, shy828301@gmail.com,
-        stable@vger.kernel.org, wangyugui@e16-tech.com, will@kernel.org,
+To:     apopple@nvidia.com, hughd@google.com, jack@suse.cz,
+        juew@google.com, kirill.shutemov@linux.intel.com,
+        linmiaohe@huawei.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, peterx@redhat.com, rcampbell@nvidia.com,
+        shakeelb@google.com, shy828301@gmail.com, wangyugui@e16-tech.com,
         willy@infradead.org, ziy@nvidia.com
 Subject:  +
- mm-thp-another-pvmw_sync-fix-in-page_vma_mapped_walk.patch added to -mm
+ mm-hwpoison_user_mappings-try_to_unmap-with-ttu_sync.patch added to -mm
  tree
-Message-ID: <20210610222530.k0Dw3wymb%akpm@linux-foundation.org>
+Message-ID: <20210610222923.gFxu_uMAd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: another PVMW_SYNC fix in page_vma_mapped_walk()
+     Subject: mm: hwpoison_user_mappings() try_to_unmap() with TTU_SYNC
 has been added to the -mm tree.  Its filename is
-     mm-thp-another-pvmw_sync-fix-in-page_vma_mapped_walk.patch
+     mm-hwpoison_user_mappings-try_to_unmap-with-ttu_sync.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-another-pvmw_sync-fix-in-page_vma_mapped_walk.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison_user_mappings-try_to_unmap-with-ttu_sync.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-another-pvmw_sync-fix-in-page_vma_mapped_walk.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison_user_mappings-try_to_unmap-with-ttu_sync.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,45 +71,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/thp: another PVMW_SYNC fix in page_vma_mapped_walk()
+Subject: mm: hwpoison_user_mappings() try_to_unmap() with TTU_SYNC
 
-Aha!  Shouldn't that quick scan over pte_none()s make sure that it holds
-ptlock in the PVMW_SYNC case?  That too might have been responsible for
-BUGs or WARNs in split_huge_page_to_list() or its unmap_page(), though
-I've never seen any.
+TTU_SYNC prevents an unlikely race, when try_to_unmap() returns shortly
+before the page is accounted as unmapped.  It is unlikely to coincide with
+hwpoisoning, but now that we have the flag, hwpoison_user_mappings() would
+do well to use it.
 
-Link: https://lkml.kernel.org/r/1bdf384c-8137-a149-2a1e-475a4791c3c@google.com
-Fixes: ace71a19cec5 ("mm: introduce page_vma_mapped_walk()")
+Link: https://lkml.kernel.org/r/329c28ed-95df-9a2c-8893-b444d8a6d340@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jue Wang <juew@google.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Wang Yugui <wangyugui@e16-tech.com>
-Cc: Will Deacon <will@kernel.org>
 Cc: Yang Shi <shy828301@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_vma_mapped.c~mm-thp-another-pvmw_sync-fix-in-page_vma_mapped_walk
-+++ a/mm/page_vma_mapped.c
-@@ -277,6 +277,10 @@ next_pte:
- 				goto restart;
- 			}
- 			pvmw->pte++;
-+			if ((pvmw->flags & PVMW_SYNC) && !pvmw->ptl) {
-+				pvmw->ptl = pte_lockptr(mm, pvmw->pmd);
-+				spin_lock(pvmw->ptl);
-+			}
- 		} while (pte_none(*pvmw->pte));
- 
- 		if (!pvmw->ptl) {
+--- a/mm/memory-failure.c~mm-hwpoison_user_mappings-try_to_unmap-with-ttu_sync
++++ a/mm/memory-failure.c
+@@ -1239,7 +1239,7 @@ static int get_hwpoison_page(struct page
+ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
+ 				  int flags, struct page **hpagep)
+ {
+-	enum ttu_flags ttu = TTU_IGNORE_MLOCK;
++	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_SYNC;
+ 	struct address_space *mapping;
+ 	LIST_HEAD(tokill);
+ 	bool unmap_success;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
