@@ -5,38 +5,42 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33933C48BDF
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:16:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1454C48BDF
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:20:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 17596613D0
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:16:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A20D161425
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:20:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230453AbhFJWSk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Jun 2021 18:18:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60370 "EHLO mail.kernel.org"
+        id S230307AbhFJWWf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Jun 2021 18:22:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60804 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230364AbhFJWSk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 10 Jun 2021 18:18:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AA16061426;
-        Thu, 10 Jun 2021 22:16:26 +0000 (UTC)
+        id S230001AbhFJWWf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 10 Jun 2021 18:22:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 29C616142E;
+        Thu, 10 Jun 2021 22:20:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623363387;
-        bh=D3caIhoiwjX4BxDaO9OsdluIESvc/GW92yLcufXnpBY=;
+        s=korg; t=1623363623;
+        bh=HVF3nvlP8639vpM4VXOPbRaeoukfFS3pSo7Yg5W1f4c=;
         h=Date:From:To:Subject:From;
-        b=MkBaDoJPYK/c/Lpt7i0FxiW5QnIyyQLNFmkAA7od4Rjh7K8UqsKrFMD+ppSR+xWsY
-         IKPxZ0QGhhuHQsp6WBEaJDITq3usKr1/WGLeOj0DbqHWp/GruT7sRKG35yWA3cH48+
-         CYgzrsABLHBU3PaulJ7nPrx6yXadbBDMyzBY6T1w=
-Date:   Thu, 10 Jun 2021 15:16:26 -0700
+        b=uicwXvup7uFC49g/D++sNhwsdJ5cZfg9hW4ECEopDjennzp5fky12JGORgZt7jWiY
+         DdEGVSTyp3qiyTCeIzLtuEzhUDQyGqV4m4EmKQoZGotZD9JS5MkW2JZzdAqqvjydqY
+         CSeK3WR+czhydbfw6cExQpvFybONdGqLJT1e1xKE=
+Date:   Thu, 10 Jun 2021 15:20:22 -0700
 From:   akpm@linux-foundation.org
-To:     apopple@nvidia.com, bsingharora@gmail.com, bskeggs@redhat.com,
-        hch@lst.de, hughd@google.com, jgg@nvidia.com, jglisse@redhat.com,
-        jhubbard@nvidia.com, mm-commits@vger.kernel.org, peterx@redhat.com,
-        rcampbell@nvidia.com, willy@infradead.org
-Subject:  [to-be-updated]
- nouveau-svm-implement-atomic-svm-access.patch removed from -mm tree
-Message-ID: <20210610221626.TJf39rNWk%akpm@linux-foundation.org>
+To:     apopple@nvidia.com, hughd@google.com, jack@suse.cz,
+        juew@google.com, kirill.shutemov@linux.intel.com,
+        linmiaohe@huawei.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, peterx@redhat.com, rcampbell@nvidia.com,
+        shakeelb@google.com, shy828301@gmail.com, stable@vger.kernel.org,
+        wangyugui@e16-tech.com, willy@infradead.org, ziy@nvidia.com
+Subject:  +
+ mm-thp-fix-__split_huge_pmd_locked-on-shmem-migration-entry.patch added to
+ -mm tree
+Message-ID: <20210610222022.Ux5FD0ipu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,296 +49,166 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nouveau/svm: implement atomic SVM access
-has been removed from the -mm tree.  Its filename was
-     nouveau-svm-implement-atomic-svm-access.patch
+     Subject: mm/thp: fix __split_huge_pmd_locked() on shmem migration entry
+has been added to the -mm tree.  Its filename is
+     mm-thp-fix-__split_huge_pmd_locked-on-shmem-migration-entry.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-fix-__split_huge_pmd_locked-on-shmem-migration-entry.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-fix-__split_huge_pmd_locked-on-shmem-migration-entry.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: nouveau/svm: implement atomic SVM access
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/thp: fix __split_huge_pmd_locked() on shmem migration entry
 
-Some NVIDIA GPUs do not support direct atomic access to system memory via
-PCIe.  Instead this must be emulated by granting the GPU exclusive access
-to the memory.  This is achieved by replacing CPU page table entries with
-special swap entries that fault on userspace access.
+Patch series "mm/thp: fix THP splitting unmap BUGs and related", v10.
 
-The driver then grants the GPU permission to update the page undergoing
-atomic access via the GPU page tables.  When CPU access to the page is
-required a CPU fault is raised which calls into the device driver via MMU
-notifiers to revoke the atomic access.  The original page table entries
-are then restored allowing CPU access to proceed.
+Here is v2 batch of long-standing THP bug fixes that I had not got around
+to sending before, but prompted now by Wang Yugui's report
+https://lore.kernel.org/linux-mm/20210412180659.B9E3.409509F4@e16-tech.com/
 
-Link: https://lkml.kernel.org/r/20210524132725.12697-11-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Ben Skeggs <bskeggs@redhat.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
+Wang Yugui has tested a rollup of these fixes applied to 5.10.39, and they
+have done no harm, but have *not* fixed that issue: something more is
+needed and I have no idea of what.
+
+
+This patch (of 7):
+
+Stressing huge tmpfs page migration racing hole punch often crashed on the
+VM_BUG_ON(!pmd_present) in pmdp_huge_clear_flush(), with DEBUG_VM=y
+kernel; or shortly afterwards, on a bad dereference in
+__split_huge_pmd_locked() when DEBUG_VM=n.  They forgot to allow for pmd
+migration entries in the non-anonymous case.
+
+Full disclosure: those particular experiments were on a kernel with more
+relaxed mmap_lock and i_mmap_rwsem locking, and were not repeated on the
+vanilla kernel: it is conceivable that stricter locking happens to avoid
+those cases, or makes them less likely; but __split_huge_pmd_locked()
+already allowed for pmd migration entries when handling anonymous THPs, so
+this commit brings the shmem and file THP handling into line.
+
+And while there: use old_pmd rather than _pmd, as in the following blocks;
+and make it clearer to the eye that the !vma_is_anonymous() block is
+self-contained, making an early return after accounting for unmapping.
+
+Link: https://lkml.kernel.org/r/af88612-1473-2eaa-903-8d1a448b26@google.com
+Link: https://lkml.kernel.org/r/dd221a99-efb3-cd1d-6256-7e646af29314@google.com
+Fixes: e71769ae5260 ("mm: enable thp migration for shmem thp")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Wang Yugui <wangyugui@e16-tech.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Jue Wang <juew@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/include/nvif/if000c.h      |    1 
- drivers/gpu/drm/nouveau/nouveau_svm.c              |  126 ++++++++++-
- drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.h      |    1 
- drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c |    6 
- 4 files changed, 123 insertions(+), 11 deletions(-)
+ mm/huge_memory.c     |   27 ++++++++++++++++++---------
+ mm/pgtable-generic.c |    5 ++---
+ 2 files changed, 20 insertions(+), 12 deletions(-)
 
---- a/drivers/gpu/drm/nouveau/include/nvif/if000c.h~nouveau-svm-implement-atomic-svm-access
-+++ a/drivers/gpu/drm/nouveau/include/nvif/if000c.h
-@@ -77,6 +77,7 @@ struct nvif_vmm_pfnmap_v0 {
- #define NVIF_VMM_PFNMAP_V0_APER                           0x00000000000000f0ULL
- #define NVIF_VMM_PFNMAP_V0_HOST                           0x0000000000000000ULL
- #define NVIF_VMM_PFNMAP_V0_VRAM                           0x0000000000000010ULL
-+#define NVIF_VMM_PFNMAP_V0_A				  0x0000000000000004ULL
- #define NVIF_VMM_PFNMAP_V0_W                              0x0000000000000002ULL
- #define NVIF_VMM_PFNMAP_V0_V                              0x0000000000000001ULL
- #define NVIF_VMM_PFNMAP_V0_NONE                           0x0000000000000000ULL
---- a/drivers/gpu/drm/nouveau/nouveau_svm.c~nouveau-svm-implement-atomic-svm-access
-+++ a/drivers/gpu/drm/nouveau/nouveau_svm.c
-@@ -35,6 +35,7 @@
- #include <linux/sched/mm.h>
- #include <linux/sort.h>
- #include <linux/hmm.h>
-+#include <linux/rmap.h>
+--- a/mm/huge_memory.c~mm-thp-fix-__split_huge_pmd_locked-on-shmem-migration-entry
++++ a/mm/huge_memory.c
+@@ -2044,7 +2044,7 @@ static void __split_huge_pmd_locked(stru
+ 	count_vm_event(THP_SPLIT_PMD);
  
- struct nouveau_svm {
- 	struct nouveau_drm *drm;
-@@ -67,6 +68,11 @@ struct nouveau_svm {
- 	} buffer[1];
- };
- 
-+#define FAULT_ACCESS_READ 0
-+#define FAULT_ACCESS_WRITE 1
-+#define FAULT_ACCESS_ATOMIC 2
-+#define FAULT_ACCESS_PREFETCH 3
-+
- #define SVM_DBG(s,f,a...) NV_DEBUG((s)->drm, "svm: "f"\n", ##a)
- #define SVM_ERR(s,f,a...) NV_WARN((s)->drm, "svm: "f"\n", ##a)
- 
-@@ -412,6 +418,24 @@ nouveau_svm_fault_cancel_fault(struct no
- }
- 
- static int
-+nouveau_svm_fault_priority(u8 fault)
-+{
-+	switch (fault) {
-+	case FAULT_ACCESS_PREFETCH:
-+		return 0;
-+	case FAULT_ACCESS_READ:
-+		return 1;
-+	case FAULT_ACCESS_WRITE:
-+		return 2;
-+	case FAULT_ACCESS_ATOMIC:
-+		return 3;
-+	default:
-+		WARN_ON_ONCE(1);
-+		return -1;
-+	}
-+}
-+
-+static int
- nouveau_svm_fault_cmp(const void *a, const void *b)
- {
- 	const struct nouveau_svm_fault *fa = *(struct nouveau_svm_fault **)a;
-@@ -421,9 +445,8 @@ nouveau_svm_fault_cmp(const void *a, con
- 		return ret;
- 	if ((ret = (s64)fa->addr - fb->addr))
- 		return ret;
--	/*XXX: atomic? */
--	return (fa->access == 0 || fa->access == 3) -
--	       (fb->access == 0 || fb->access == 3);
-+	return nouveau_svm_fault_priority(fa->access) -
-+		nouveau_svm_fault_priority(fb->access);
- }
- 
- static void
-@@ -487,6 +510,10 @@ static bool nouveau_svm_range_invalidate
- 	struct svm_notifier *sn =
- 		container_of(mni, struct svm_notifier, notifier);
- 
-+	if (range->event == MMU_NOTIFY_EXCLUSIVE &&
-+	    range->owner == sn->svmm->vmm->cli->drm->dev)
-+		return true;
-+
- 	/*
- 	 * serializes the update to mni->invalidate_seq done by caller and
- 	 * prevents invalidation of the PTE from progressing while HW is being
-@@ -555,6 +582,71 @@ static void nouveau_hmm_convert_pfn(stru
- 		args->p.phys[0] |= NVIF_VMM_PFNMAP_V0_W;
- }
- 
-+static int nouveau_atomic_range_fault(struct nouveau_svmm *svmm,
-+			       struct nouveau_drm *drm,
-+			       struct nouveau_pfnmap_args *args, u32 size,
-+			       struct svm_notifier *notifier)
-+{
-+	unsigned long timeout =
-+		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	struct mm_struct *mm = svmm->notifier.mm;
-+	struct page *page;
-+	unsigned long start = args->p.addr;
-+	unsigned long notifier_seq;
-+	int ret = 0;
-+
-+	ret = mmu_interval_notifier_insert(&notifier->notifier, mm,
-+					args->p.addr, args->p.size,
-+					&nouveau_svm_mni_ops);
-+	if (ret)
-+		return ret;
-+
-+	while (true) {
-+		if (time_after(jiffies, timeout)) {
-+			ret = -EBUSY;
-+			goto out;
-+		}
-+
-+		notifier_seq = mmu_interval_read_begin(&notifier->notifier);
-+		mmap_read_lock(mm);
-+		make_device_exclusive_range(mm, start, start + PAGE_SIZE,
-+					    &page, drm->dev);
-+		mmap_read_unlock(mm);
-+		if (!page) {
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+
-+		mutex_lock(&svmm->mutex);
-+		if (!mmu_interval_read_retry(&notifier->notifier,
-+					     notifier_seq))
-+			break;
-+		mutex_unlock(&svmm->mutex);
-+	}
-+
-+	/* Map the page on the GPU. */
-+	args->p.page = 12;
-+	args->p.size = PAGE_SIZE;
-+	args->p.addr = start;
-+	args->p.phys[0] = page_to_phys(page) |
-+		NVIF_VMM_PFNMAP_V0_V |
-+		NVIF_VMM_PFNMAP_V0_W |
-+		NVIF_VMM_PFNMAP_V0_A |
-+		NVIF_VMM_PFNMAP_V0_HOST;
-+
-+	svmm->vmm->vmm.object.client->super = true;
-+	ret = nvif_object_ioctl(&svmm->vmm->vmm.object, args, size, NULL);
-+	svmm->vmm->vmm.object.client->super = false;
-+	mutex_unlock(&svmm->mutex);
-+
-+	unlock_page(page);
-+	put_page(page);
-+
-+out:
-+	mmu_interval_notifier_remove(&notifier->notifier);
-+	return ret;
-+}
-+
- static int nouveau_range_fault(struct nouveau_svmm *svmm,
- 			       struct nouveau_drm *drm,
- 			       struct nouveau_pfnmap_args *args, u32 size,
-@@ -637,7 +729,7 @@ nouveau_svm_fault(struct nvif_notify *no
- 	unsigned long hmm_flags;
- 	u64 inst, start, limit;
- 	int fi, fn;
--	int replay = 0, ret;
-+	int replay = 0, atomic = 0, ret;
- 
- 	/* Parse available fault buffer entries into a cache, and update
- 	 * the GET pointer so HW can reuse the entries.
-@@ -718,12 +810,14 @@ nouveau_svm_fault(struct nvif_notify *no
+ 	if (!vma_is_anonymous(vma)) {
+-		_pmd = pmdp_huge_clear_flush_notify(vma, haddr, pmd);
++		old_pmd = pmdp_huge_clear_flush_notify(vma, haddr, pmd);
  		/*
- 		 * Determine required permissions based on GPU fault
- 		 * access flags.
--		 * XXX: atomic?
- 		 */
- 		switch (buffer->fault[fi]->access) {
- 		case 0: /* READ. */
- 			hmm_flags = HMM_PFN_REQ_FAULT;
- 			break;
-+		case 2: /* ATOMIC. */
-+			atomic = true;
-+			break;
- 		case 3: /* PREFETCH. */
- 			hmm_flags = 0;
- 			break;
-@@ -739,8 +833,14 @@ nouveau_svm_fault(struct nvif_notify *no
- 		}
- 
- 		notifier.svmm = svmm;
--		ret = nouveau_range_fault(svmm, svm->drm, &args.i,
--					sizeof(args), hmm_flags, &notifier);
-+		if (atomic)
-+			ret = nouveau_atomic_range_fault(svmm, svm->drm,
-+							 &args.i, sizeof(args),
-+							 &notifier);
-+		else
-+			ret = nouveau_range_fault(svmm, svm->drm, &args.i,
-+						  sizeof(args), hmm_flags,
-+						  &notifier);
- 		mmput(mm);
- 
- 		limit = args.i.p.addr + args.i.p.size;
-@@ -756,11 +856,15 @@ nouveau_svm_fault(struct nvif_notify *no
- 			 */
- 			if (buffer->fault[fn]->svmm != svmm ||
- 			    buffer->fault[fn]->addr >= limit ||
--			    (buffer->fault[fi]->access == 0 /* READ. */ &&
-+			    (buffer->fault[fi]->access == FAULT_ACCESS_READ &&
- 			     !(args.phys[0] & NVIF_VMM_PFNMAP_V0_V)) ||
--			    (buffer->fault[fi]->access != 0 /* READ. */ &&
--			     buffer->fault[fi]->access != 3 /* PREFETCH. */ &&
--			     !(args.phys[0] & NVIF_VMM_PFNMAP_V0_W)))
-+			    (buffer->fault[fi]->access != FAULT_ACCESS_READ &&
-+			     buffer->fault[fi]->access != FAULT_ACCESS_PREFETCH &&
-+			     !(args.phys[0] & NVIF_VMM_PFNMAP_V0_W)) ||
-+			    (buffer->fault[fi]->access != FAULT_ACCESS_READ &&
-+			     buffer->fault[fi]->access != FAULT_ACCESS_WRITE &&
-+			     buffer->fault[fi]->access != FAULT_ACCESS_PREFETCH &&
-+			     !(args.phys[0] & NVIF_VMM_PFNMAP_V0_A)))
- 				break;
- 		}
- 
---- a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c~nouveau-svm-implement-atomic-svm-access
-+++ a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c
-@@ -88,6 +88,9 @@ gp100_vmm_pgt_pfn(struct nvkm_vmm *vmm,
- 		if (!(*map->pfn & NVKM_VMM_PFN_W))
- 			data |= BIT_ULL(6); /* RO. */
- 
-+		if (!(*map->pfn & NVKM_VMM_PFN_A))
-+			data |= BIT_ULL(7); /* Atomic disable. */
+ 		 * We are going to unmap this huge page. So
+ 		 * just go ahead and zap it
+@@ -2053,16 +2053,25 @@ static void __split_huge_pmd_locked(stru
+ 			zap_deposited_table(mm, pmd);
+ 		if (vma_is_special_huge(vma))
+ 			return;
+-		page = pmd_page(_pmd);
+-		if (!PageDirty(page) && pmd_dirty(_pmd))
+-			set_page_dirty(page);
+-		if (!PageReferenced(page) && pmd_young(_pmd))
+-			SetPageReferenced(page);
+-		page_remove_rmap(page, true);
+-		put_page(page);
++		if (unlikely(is_pmd_migration_entry(old_pmd))) {
++			swp_entry_t entry;
 +
- 		if (!(*map->pfn & NVKM_VMM_PFN_VRAM)) {
- 			addr = *map->pfn >> NVKM_VMM_PFN_ADDR_SHIFT;
- 			addr = dma_map_page(dev, pfn_to_page(addr), 0,
-@@ -322,6 +325,9 @@ gp100_vmm_pd0_pfn(struct nvkm_vmm *vmm,
- 		if (!(*map->pfn & NVKM_VMM_PFN_W))
- 			data |= BIT_ULL(6); /* RO. */
- 
-+		if (!(*map->pfn & NVKM_VMM_PFN_A))
-+			data |= BIT_ULL(7); /* Atomic disable. */
++			entry = pmd_to_swp_entry(old_pmd);
++			page = migration_entry_to_page(entry);
++		} else {
++			page = pmd_page(old_pmd);
++			if (!PageDirty(page) && pmd_dirty(old_pmd))
++				set_page_dirty(page);
++			if (!PageReferenced(page) && pmd_young(old_pmd))
++				SetPageReferenced(page);
++			page_remove_rmap(page, true);
++			put_page(page);
++		}
+ 		add_mm_counter(mm, mm_counter_file(page), -HPAGE_PMD_NR);
+ 		return;
+-	} else if (pmd_trans_huge(*pmd) && is_huge_zero_pmd(*pmd)) {
++	}
 +
- 		if (!(*map->pfn & NVKM_VMM_PFN_VRAM)) {
- 			addr = *map->pfn >> NVKM_VMM_PFN_ADDR_SHIFT;
- 			addr = dma_map_page(dev, pfn_to_page(addr), 0,
---- a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.h~nouveau-svm-implement-atomic-svm-access
-+++ a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.h
-@@ -178,6 +178,7 @@ void nvkm_vmm_unmap_region(struct nvkm_v
- #define NVKM_VMM_PFN_APER                                 0x00000000000000f0ULL
- #define NVKM_VMM_PFN_HOST                                 0x0000000000000000ULL
- #define NVKM_VMM_PFN_VRAM                                 0x0000000000000010ULL
-+#define NVKM_VMM_PFN_A					  0x0000000000000004ULL
- #define NVKM_VMM_PFN_W                                    0x0000000000000002ULL
- #define NVKM_VMM_PFN_V                                    0x0000000000000001ULL
- #define NVKM_VMM_PFN_NONE                                 0x0000000000000000ULL
++	if (pmd_trans_huge(*pmd) && is_huge_zero_pmd(*pmd)) {
+ 		/*
+ 		 * FIXME: Do we want to invalidate secondary mmu by calling
+ 		 * mmu_notifier_invalidate_range() see comments below inside
+--- a/mm/pgtable-generic.c~mm-thp-fix-__split_huge_pmd_locked-on-shmem-migration-entry
++++ a/mm/pgtable-generic.c
+@@ -135,9 +135,8 @@ pmd_t pmdp_huge_clear_flush(struct vm_ar
+ {
+ 	pmd_t pmd;
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+-	VM_BUG_ON(!pmd_present(*pmdp));
+-	/* Below assumes pmd_present() is true */
+-	VM_BUG_ON(!pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
++	VM_BUG_ON(pmd_present(*pmdp) && !pmd_trans_huge(*pmdp) &&
++			   !pmd_devmap(*pmdp));
+ 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
+ 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ 	return pmd;
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from hughd@google.com are
 
+mm-thp-fix-__split_huge_pmd_locked-on-shmem-migration-entry.patch
+mm-thp-make-is_huge_zero_pmd-safe-and-quicker.patch
+mm-thp-try_to_unmap-use-ttu_sync-for-safe-splitting.patch
+mm-thp-fix-vma_address-if-virtual-address-below-file-offset.patch
+mm-thp-unmap_mapping_page-to-fix-thp-truncate_cleanup_page.patch
+mm-page_vma_mapped_walk-use-page-for-pvmw-page.patch
+mm-page_vma_mapped_walk-settle-pagehuge-on-entry.patch
+mm-page_vma_mapped_walk-use-pmd_read_atomic.patch
+mm-page_vma_mapped_walk-use-pmde-for-pvmw-pmd.patch
+mm-page_vma_mapped_walk-prettify-pvmw_migration-block.patch
+mm-page_vma_mapped_walk-crossing-page-table-boundary.patch
+mm-page_vma_mapped_walk-add-a-level-of-indentation.patch
+mm-page_vma_mapped_walk-use-goto-instead-of-while-1.patch
+mm-page_vma_mapped_walk-get-vma_address_end-earlier.patch
+mm-thp-fix-page_vma_mapped_walk-if-thp-mapped-by-ptes.patch
+mm-thp-another-pvmw_sync-fix-in-page_vma_mapped_walk.patch
+mm-thp-remap_page-is-only-needed-on-anonymous-thp.patch
+mm-hwpoison_user_mappings-try_to_unmap-with-ttu_sync.patch
 
