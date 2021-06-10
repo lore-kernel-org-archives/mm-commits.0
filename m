@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 976F5C48BDF
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 23:08:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 846DFC48BD1
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 23:10:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 774DF613E1
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 23:08:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60426613D9
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 23:10:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230103AbhFJXKX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Jun 2021 19:10:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47634 "EHLO mail.kernel.org"
+        id S230103AbhFJXMo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Jun 2021 19:12:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48322 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230001AbhFJXKW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 10 Jun 2021 19:10:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 963BD613D9;
-        Thu, 10 Jun 2021 23:08:13 +0000 (UTC)
+        id S230001AbhFJXMo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 10 Jun 2021 19:12:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B05E461002;
+        Thu, 10 Jun 2021 23:10:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623366493;
-        bh=8JEKeAI7FMiF7LHvQgw8coqLh5SW1X0OXcXvzGtnLXw=;
+        s=korg; t=1623366630;
+        bh=u6aqioN0VlPwbeo3nuagQFaYffNldU+8ZQceCJfq6po=;
         h=Date:From:To:Subject:From;
-        b=KGcb77iPqrQQUAlnnqbnUEQFpJbbaZyL0WgS+LXwBMPwCOqXKyWvMOXy+XzbZpHKc
-         Cox5U1cr5u4sIVPYRKLl+5ZY/m7ei3Mm0XCmjcNXX60AI4RWyQU5aNVKF58rV//dYT
-         lmeG+q2e035GTb0GoLpN5+TQ9jvYI5bqPpBJVwMI=
-Date:   Thu, 10 Jun 2021 16:08:13 -0700
+        b=zQteeqY04t6MuQISCezSQK7IXXsUcPXdrkSU8jaCSWz2gXTMzqli6vGx7j+4tibeD
+         fxISXPnw0mhjFct2XHxouT8sDrf6Iant6lWc3Dq+domJAHlKFKSpBGYqK12V86c2Ee
+         OYVVNAW71L1quSnfwh8TLyrHCOurVkFL6OLDjsFc=
+Date:   Thu, 10 Jun 2021 16:10:30 -0700
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, mm-commits@vger.kernel.org,
-        yanfei.xu@windriver.com
-Subject:  +
- mm-kmemleak-use-read_once-for-accessing-jiffies_scan_wait.patch added to
- -mm tree
-Message-ID: <20210610230813.V6S0m6K6c%akpm@linux-foundation.org>
+To:     cl@gentwo.de, dennis@kernel.org, joe@perches.com,
+        mhiramat@kernel.org, mm-commits@vger.kernel.org,
+        thunder.leizhen@huawei.com, tj@kernel.org
+Subject:  + lib-fix-spelling-mistakes-in-header-files.patch added
+ to -mm tree
+Message-ID: <20210610231030.Y27xjx6Wz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kmemleak: use READ_ONCE() for accessing jiffies_scan_wait
+     Subject: lib: fix spelling mistakes in header files
 has been added to the -mm tree.  Its filename is
-     mm-kmemleak-use-read_once-for-accessing-jiffies_scan_wait.patch
+     lib-fix-spelling-mistakes-in-header-files.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-use-read_once-for-accessing-jiffies_scan_wait.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-fix-spelling-mistakes-in-header-files.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-use-read_once-for-accessing-jiffies_scan_wait.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-fix-spelling-mistakes-in-header-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,58 +65,182 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yanfei Xu <yanfei.xu@windriver.com>
-Subject: mm/kmemleak: use READ_ONCE() for accessing jiffies_scan_wait
+From: Zhen Lei <thunder.leizhen@huawei.com>
+Subject: lib: fix spelling mistakes in header files
 
-The stop_scan_thread() and start_scan_thread() cannot really solve the
-problem of concurrent accessing the global jiffies_scan_wait.
+Fix some spelling mistakes in comments found by "codespell":
+Hoever ==> However
+poiter ==> pointer
+representaion ==> representation
+uppon ==> upon
+independend ==> independent
+aquired ==> acquired
+mis-match ==> mismatch
+scrach ==> scratch
+struture ==> structure
+Analagous ==> Analogous
+interation ==> iteration
 
-kmemleak_write              kmemleak_scan_thread
-                              while (!kthread_should_stop())
-  stop_scan_thread
-  jiffies_scan_wait = xxx       timeout = jiffies_scan_wait
-  start_scan_thread
+And some were discovered manually by Joe Perches and Christoph Lameter:
+stroed ==> stored
+arch independent ==> an architecture independent
+A example structure for ==> Example structure for
 
-We could replace these with a READ_ONCE() when reading jiffies_scan_wait. 
-It also can prevent compiler from reordering the jiffies_scan_wait which
-is in while loop.
-
-Link: https://lkml.kernel.org/r/20210609155657.26972-1-yanfei.xu@windriver.com
-Signed-off-by: Yanfei Xu <yanfei.xu@windriver.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Link: https://lkml.kernel.org/r/20210609150027.14805-2-thunder.leizhen@huawei.com
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: Christoph Lameter <cl@gentwo.de>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ include/linux/bootconfig.h      |    4 ++--
+ include/linux/cpumask.h         |    2 +-
+ include/linux/debugobjects.h    |    2 +-
+ include/linux/lru_cache.h       |    8 ++++----
+ include/linux/nodemask.h        |    6 +++---
+ include/linux/percpu-refcount.h |    2 +-
+ include/linux/scatterlist.h     |    2 +-
+ 7 files changed, 13 insertions(+), 13 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-use-read_once-for-accessing-jiffies_scan_wait
-+++ a/mm/kmemleak.c
-@@ -1567,7 +1567,7 @@ static int kmemleak_scan_thread(void *ar
- 	}
+--- a/include/linux/bootconfig.h~lib-fix-spelling-mistakes-in-header-files
++++ a/include/linux/bootconfig.h
+@@ -162,10 +162,10 @@ static inline struct xbc_node * __init x
+  * @value: Iterated value of array entry.
+  *
+  * Iterate array entries of given @key under @node. Each array entry node
+- * is stroed to @anode and @value. If the @node doesn't have @key node,
++ * is stored to @anode and @value. If the @node doesn't have @key node,
+  * it does nothing.
+  * Note that even if the found key node has only one value (not array)
+- * this executes block once. Hoever, if the found key node has no value
++ * this executes block once. However, if the found key node has no value
+  * (key-only node), this does nothing. So don't use this for testing the
+  * key-value pair existence.
+  */
+--- a/include/linux/cpumask.h~lib-fix-spelling-mistakes-in-header-files
++++ a/include/linux/cpumask.h
+@@ -259,7 +259,7 @@ extern int cpumask_next_wrap(int n, cons
+ /**
+  * for_each_cpu_wrap - iterate over every cpu in a mask, starting at a specified location
+  * @cpu: the (optionally unsigned) integer iterator
+- * @mask: the cpumask poiter
++ * @mask: the cpumask pointer
+  * @start: the start location
+  *
+  * The implementation does not assume any bit in @mask is set (including @start).
+--- a/include/linux/debugobjects.h~lib-fix-spelling-mistakes-in-header-files
++++ a/include/linux/debugobjects.h
+@@ -18,7 +18,7 @@ enum debug_obj_state {
+ struct debug_obj_descr;
  
- 	while (!kthread_should_stop()) {
--		signed long timeout = jiffies_scan_wait;
-+		signed long timeout = READ_ONCE(jiffies_scan_wait);
+ /**
+- * struct debug_obj - representaion of an tracked object
++ * struct debug_obj - representation of an tracked object
+  * @node:	hlist node to link the object into the tracker list
+  * @state:	tracked object state
+  * @astate:	current active state
+--- a/include/linux/lru_cache.h~lib-fix-spelling-mistakes-in-header-files
++++ a/include/linux/lru_cache.h
+@@ -32,7 +32,7 @@ This header file (and its .c file; kerne
+   Because of this later property, it is called "lru_cache".
+   As it actually Tracks Objects in an Active SeT, we could also call it
+   toast (incidentally that is what may happen to the data on the
+-  backend storage uppon next resync, if we don't get it right).
++  backend storage upon next resync, if we don't get it right).
  
- 		mutex_lock(&scan_mutex);
- 		kmemleak_scan();
-@@ -1812,11 +1812,8 @@ static ssize_t kmemleak_write(struct fil
- 		ret = kstrtoul(buf + 5, 0, &secs);
- 		if (ret < 0)
- 			goto out;
--		stop_scan_thread();
--		if (secs) {
-+		if (secs)
- 			jiffies_scan_wait = msecs_to_jiffies(secs * 1000);
--			start_scan_thread();
--		}
- 	} else if (strncmp(buf, "scan", 4) == 0)
- 		kmemleak_scan();
- 	else if (strncmp(buf, "dump=", 5) == 0)
+ What for?
+ 
+@@ -152,7 +152,7 @@ struct lc_element {
+ 	 * for paranoia, and for "lc_element_to_index" */
+ 	unsigned lc_index;
+ 	/* if we want to track a larger set of objects,
+-	 * it needs to become arch independend u64 */
++	 * it needs to become an architecture independent u64 */
+ 	unsigned lc_number;
+ 	/* special label when on free list */
+ #define LC_FREE (~0U)
+@@ -263,7 +263,7 @@ extern void lc_seq_dump_details(struct s
+  *
+  * Allows (expects) the set to be "dirty".  Note that the reference counts and
+  * order on the active and lru lists may still change.  Used to serialize
+- * changing transactions.  Returns true if we aquired the lock.
++ * changing transactions.  Returns true if we acquired the lock.
+  */
+ static inline int lc_try_lock_for_transaction(struct lru_cache *lc)
+ {
+@@ -275,7 +275,7 @@ static inline int lc_try_lock_for_transa
+  * @lc: the lru cache to operate on
+  *
+  * Note that the reference counts and order on the active and lru lists may
+- * still change.  Only works on a "clean" set.  Returns true if we aquired the
++ * still change.  Only works on a "clean" set.  Returns true if we acquired the
+  * lock, which means there are no pending changes, and any further attempt to
+  * change the set will not succeed until the next lc_unlock().
+  */
+--- a/include/linux/nodemask.h~lib-fix-spelling-mistakes-in-header-files
++++ a/include/linux/nodemask.h
+@@ -119,7 +119,7 @@ static inline const unsigned long *__nod
+  * The inline keyword gives the compiler room to decide to inline, or
+  * not inline a function as it sees best.  However, as these functions
+  * are called in both __init and non-__init functions, if they are not
+- * inlined we will end up with a section mis-match error (of the type of
++ * inlined we will end up with a section mismatch error (of the type of
+  * freeable items not being freed).  So we must use __always_inline here
+  * to fix the problem.  If other functions in the future also end up in
+  * this situation they will also need to be annotated as __always_inline
+@@ -515,7 +515,7 @@ static inline int node_random(const node
+ #define for_each_online_node(node) for_each_node_state(node, N_ONLINE)
+ 
+ /*
+- * For nodemask scrach area.
++ * For nodemask scratch area.
+  * NODEMASK_ALLOC(type, name) allocates an object with a specified type and
+  * name.
+  */
+@@ -528,7 +528,7 @@ static inline int node_random(const node
+ #define NODEMASK_FREE(m)			do {} while (0)
+ #endif
+ 
+-/* A example struture for using NODEMASK_ALLOC, used in mempolicy. */
++/* Example structure for using NODEMASK_ALLOC, used in mempolicy. */
+ struct nodemask_scratch {
+ 	nodemask_t	mask1;
+ 	nodemask_t	mask2;
+--- a/include/linux/percpu-refcount.h~lib-fix-spelling-mistakes-in-header-files
++++ a/include/linux/percpu-refcount.h
+@@ -213,7 +213,7 @@ static inline void percpu_ref_get_many(s
+  * percpu_ref_get - increment a percpu refcount
+  * @ref: percpu_ref to get
+  *
+- * Analagous to atomic_long_inc().
++ * Analogous to atomic_long_inc().
+  *
+  * This function is safe to call as long as @ref is between init and exit.
+  */
+--- a/include/linux/scatterlist.h~lib-fix-spelling-mistakes-in-header-files
++++ a/include/linux/scatterlist.h
+@@ -474,7 +474,7 @@ sg_page_iter_dma_address(struct sg_dma_p
+  * Iterates over sg entries mapping page-by-page.  On each successful
+  * iteration, @miter->page points to the mapped page and
+  * @miter->length bytes of data can be accessed at @miter->addr.  As
+- * long as an interation is enclosed between start and stop, the user
++ * long as an iteration is enclosed between start and stop, the user
+  * is free to choose control structure and when to stop.
+  *
+  * @miter->consumed is set to @miter->length on each iteration.  It
 _
 
-Patches currently in -mm which might be from yanfei.xu@windriver.com are
+Patches currently in -mm which might be from thunder.leizhen@huawei.com are
 
-mm-kmemleak-use-read_once-for-accessing-jiffies_scan_wait.patch
+mm-clear-spelling-mistakes.patch
+lib-decompress_bunzip2-remove-an-unneeded-semicolon.patch
+lib-decompressors-fix-spelling-mistakes.patch
+lib-mpi-fix-spelling-mistakes.patch
+lib-test-fix-spelling-mistakes.patch
+lib-fix-spelling-mistakes.patch
+lib-fix-spelling-mistakes-in-header-files.patch
+mm-fix-spelling-mistakes-in-header-files.patch
 
