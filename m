@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52FD7C48BD1
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 20:35:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3985C48BD1
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 20:49:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3135A61414
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 20:35:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E16B61374
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 20:49:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229941AbhFJUhC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Jun 2021 16:37:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38062 "EHLO mail.kernel.org"
+        id S229961AbhFJUv1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Jun 2021 16:51:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41458 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230077AbhFJUhA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 10 Jun 2021 16:37:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F1C946023D;
-        Thu, 10 Jun 2021 20:34:47 +0000 (UTC)
+        id S230001AbhFJUv1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 10 Jun 2021 16:51:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 16818613CB;
+        Thu, 10 Jun 2021 20:49:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623357288;
-        bh=bwvP1hKGSy1IGwDjXaBEY/OSbCTNO85VOe/OBFoZCzk=;
+        s=korg; t=1623358170;
+        bh=cZ+m44GdpZg/8aDd0vuQYAwqB4e6dNbdMtJzMoP0tD4=;
         h=Date:From:To:Subject:From;
-        b=cvGieSXt6aqqtSwpN1zXLox+1Ae6FuL9in8G0XasI8reNzxF1QxjRJ0i9vuBWm1ps
-         T/ed5Fm74KlLvPYwKLYP6vrPXKanSRkGyTi+VfWiNwgnN3I4VFTZnBv4Krwv98wkzV
-         InmCaUgcE5WXC1pCwiZWsrP7Qa2wgjIZxEorhWCU=
-Date:   Thu, 10 Jun 2021 13:34:47 -0700
+        b=YyTRe31B2cGsJTSPpXrPTbs1WQnjdjGOQxleM81T0D3xbKwZQGpH8vZf2JQB/a9FO
+         pSkJZObExonMZMHptlZVOmpULPv2fHH3XcPtXV849kYXBeHj4eMcVx0+FPqz7EiLoR
+         dw5UmpURvgx43+C+Pnj+yiOd2HLMZJT91kIzVofA=
+Date:   Thu, 10 Jun 2021 13:49:29 -0700
 From:   akpm@linux-foundation.org
-To:     axboe@kernel.dk, chris@chrisdown.name, hannes@cmpxchg.org,
-        mhocko@suse.com, ming.lei@redhat.com, mm-commits@vger.kernel.org,
-        schatzberg.dan@gmail.com, shakeelb@google.com, tj@kernel.org
-Subject:  + mm-charge-active-memcg-when-no-mm-is-set.patch added to
- -mm tree
-Message-ID: <20210610203447.yn0cCm7SR%akpm@linux-foundation.org>
+To:     borntraeger@de.ibm.com, catalin.marinas@arm.com, david@redhat.com,
+        frankja@linux.ibm.com, imbrenda@linux.ibm.com, mingo@redhat.com,
+        mm-commits@vger.kernel.org, npiggin@gmail.com, rientjes@google.com,
+        tglx@linutronix.de, urezki@gmail.com
+Subject:  [to-be-updated]
+ mm-vmalloc-export-__vmalloc_node_range.patch removed from -mm tree
+Message-ID: <20210610204929.dl8N13NTk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,176 +45,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: charge active memcg when no mm is set
-has been added to the -mm tree.  Its filename is
-     mm-charge-active-memcg-when-no-mm-is-set.patch
+     Subject: mm/vmalloc: export __vmalloc_node_range
+has been removed from the -mm tree.  Its filename was
+     mm-vmalloc-export-__vmalloc_node_range.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-charge-active-memcg-when-no-mm-is-set.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-charge-active-memcg-when-no-mm-is-set.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Dan Schatzberg <schatzberg.dan@gmail.com>
-Subject: mm: charge active memcg when no mm is set
+From: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Subject: mm/vmalloc: export __vmalloc_node_range
 
-set_active_memcg() worked for kernel allocations but was silently ignored
-for user pages.
+The recent patches to add support for hugepage vmalloc mappings added a
+flag for __vmalloc_node_range to allow to request small pages.  This flag
+is not accessible when calling vmalloc, the only option is to call
+directly __vmalloc_node_range, which is not exported.
 
-This patch establishes a precedence order for who gets charged:
+This means that a module can't vmalloc memory with small pages.
 
-1. If there is a memcg associated with the page already, that memcg is
-   charged. This happens during swapin.
+Case in point: KVM on s390x needs to vmalloc a large area, and it needs to
+be mapped with small pages, because of a hardware limitation.
 
-2. If an explicit mm is passed, mm->memcg is charged. This happens
-   during page faults, which can be triggered in remote VMs (eg gup).
+This patch exports __vmalloc_node_range so it can be used in modules too.
 
-3. Otherwise consult the current process context. If there is an
-   active_memcg, use that. Otherwise, current->mm->memcg.
-
-Previously, if a NULL mm was passed to mem_cgroup_charge (case 3) it would
-always charge the root cgroup.  Now it looks up the active_memcg first
-(falling back to charging the root cgroup if not set).
-
-Link: https://lkml.kernel.org/r/20210610173944.1203706-3-schatzberg.dan@gmail.com
-Signed-off-by: Dan Schatzberg <schatzberg.dan@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Chris Down <chris@chrisdown.name>
-Acked-by: Jens Axboe <axboe@kernel.dk>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Ming Lei <ming.lei@redhat.com>
+Link: https://lkml.kernel.org/r/20210608180618.477766-2-imbrenda@linux.ibm.com
+Signed-off-by: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Janosch Frank <frankja@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c    |    2 +-
- mm/memcontrol.c |   41 +++++++++++++++++++++++++++--------------
- mm/shmem.c      |    4 ++--
- 3 files changed, 30 insertions(+), 17 deletions(-)
+ mm/vmalloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/filemap.c~mm-charge-active-memcg-when-no-mm-is-set
-+++ a/mm/filemap.c
-@@ -872,7 +872,7 @@ noinline int __add_to_page_cache_locked(
- 	page->index = offset;
+--- a/mm/vmalloc.c~mm-vmalloc-export-__vmalloc_node_range
++++ a/mm/vmalloc.c
+@@ -2937,6 +2937,7 @@ fail:
  
- 	if (!huge) {
--		error = mem_cgroup_charge(page, current->mm, gfp);
-+		error = mem_cgroup_charge(page, NULL, gfp);
- 		if (error)
- 			goto error;
- 		charged = true;
---- a/mm/memcontrol.c~mm-charge-active-memcg-when-no-mm-is-set
-+++ a/mm/memcontrol.c
-@@ -897,13 +897,24 @@ struct mem_cgroup *mem_cgroup_from_task(
+ 	return NULL;
  }
- EXPORT_SYMBOL(mem_cgroup_from_task);
++EXPORT_SYMBOL_GPL(__vmalloc_node_range);
  
-+static __always_inline struct mem_cgroup *active_memcg(void)
-+{
-+	if (in_interrupt())
-+		return this_cpu_read(int_active_memcg);
-+	else
-+		return current->active_memcg;
-+}
-+
  /**
-  * get_mem_cgroup_from_mm: Obtain a reference on given mm_struct's memcg.
-  * @mm: mm from which memcg should be extracted. It can be NULL.
-  *
-- * Obtain a reference on mm->memcg and returns it if successful. Otherwise
-- * root_mem_cgroup is returned. However if mem_cgroup is disabled, NULL is
-- * returned.
-+ * Obtain a reference on mm->memcg and returns it if successful. If mm
-+ * is NULL, then the memcg is chosen as follows:
-+ * 1) The active memcg, if set.
-+ * 2) current->mm->memcg, if available
-+ * 3) root memcg
-+ * If mem_cgroup is disabled, NULL is returned.
-  */
- struct mem_cgroup *get_mem_cgroup_from_mm(struct mm_struct *mm)
- {
-@@ -921,8 +932,17 @@ struct mem_cgroup *get_mem_cgroup_from_m
- 	 * counting is disabled on the root level in the
- 	 * cgroup core. See CSS_NO_REF.
- 	 */
--	if (unlikely(!mm))
--		return root_mem_cgroup;
-+	if (unlikely(!mm)) {
-+		memcg = active_memcg();
-+		if (unlikely(memcg)) {
-+			/* remote memcg must hold a ref */
-+			css_get(&memcg->css);
-+			return memcg;
-+		}
-+		mm = current->mm;
-+		if (unlikely(!mm))
-+			return root_mem_cgroup;
-+	}
- 
- 	rcu_read_lock();
- 	do {
-@@ -935,14 +955,6 @@ struct mem_cgroup *get_mem_cgroup_from_m
- }
- EXPORT_SYMBOL(get_mem_cgroup_from_mm);
- 
--static __always_inline struct mem_cgroup *active_memcg(void)
--{
--	if (in_interrupt())
--		return this_cpu_read(int_active_memcg);
--	else
--		return current->active_memcg;
--}
--
- static __always_inline bool memcg_kmem_bypass(void)
- {
- 	/* Allow remote memcg charging from any context. */
-@@ -6711,7 +6723,8 @@ out:
-  * @gfp_mask: reclaim mode
-  *
-  * Try to charge @page to the memcg that @mm belongs to, reclaiming
-- * pages according to @gfp_mask if necessary.
-+ * pages according to @gfp_mask if necessary. if @mm is NULL, try to
-+ * charge to the active memcg.
-  *
-  * Do not use this for pages allocated for swapin.
-  *
---- a/mm/shmem.c~mm-charge-active-memcg-when-no-mm-is-set
-+++ a/mm/shmem.c
-@@ -1695,7 +1695,7 @@ static int shmem_swapin_page(struct inod
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
--	struct mm_struct *charge_mm = vma ? vma->vm_mm : current->mm;
-+	struct mm_struct *charge_mm = vma ? vma->vm_mm : NULL;
- 	struct swap_info_struct *si;
- 	struct page *page = NULL;
- 	swp_entry_t swap;
-@@ -1828,7 +1828,7 @@ repeat:
- 	}
- 
- 	sbinfo = SHMEM_SB(inode->i_sb);
--	charge_mm = vma ? vma->vm_mm : current->mm;
-+	charge_mm = vma ? vma->vm_mm : NULL;
- 
- 	page = pagecache_get_page(mapping, index,
- 					FGP_ENTRY | FGP_HEAD | FGP_LOCK, 0);
+  * __vmalloc_node - allocate virtually contiguous memory
 _
 
-Patches currently in -mm which might be from schatzberg.dan@gmail.com are
+Patches currently in -mm which might be from imbrenda@linux.ibm.com are
 
-loop-use-worker-per-cgroup-instead-of-kworker.patch
-mm-charge-active-memcg-when-no-mm-is-set.patch
-loop-charge-i-o-to-mem-and-blk-cg.patch
+kvm-s390-fix-for-hugepage-vmalloc.patch
 
