@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1A80C48BE0
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:16:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5B1FC48BE5
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:16:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B9BE613C8
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:16:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B259E606A5
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Jun 2021 22:16:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230248AbhFJWSb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Jun 2021 18:18:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60202 "EHLO mail.kernel.org"
+        id S230447AbhFJWSd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Jun 2021 18:18:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60292 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230453AbhFJWS0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 10 Jun 2021 18:18:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B68A76141D;
-        Thu, 10 Jun 2021 22:16:23 +0000 (UTC)
+        id S230364AbhFJWSd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 10 Jun 2021 18:18:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A1DA661425;
+        Thu, 10 Jun 2021 22:16:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623363384;
-        bh=FKk6nkwff5SRHrnaM62wKl00o9exKIR/4gu+6whAGPw=;
+        s=korg; t=1623363380;
+        bh=K16eAEL/T73PpEiKGBW5mQUr50nnJC0ywalvZl08JOI=;
         h=Date:From:To:Subject:From;
-        b=auKapPRE/nyNXlqbfcY/MeZq8NPGtKroEnWOxV00ZvTQfRchGm7Wh/gQ7cqNYUDIe
-         Jyn0XXb72UX1z2k1CLUqDaCq2sG0K5LEc9ujYlCuZjjnFcWCQiYPg6uRXee4GTqxi5
-         HP4dPK/lFKDtsVDjsP4FA99yL4tm02B3Mq3EbA14=
-Date:   Thu, 10 Jun 2021 15:16:23 -0700
+        b=eoXnilBIpHMrLEJcSNKzcPzIV/AFLPeWUzN2JTJGp4peoLkOyZ5JAmi6iAHryVh6a
+         wfJzCQSyfmtf5eckFqFJd7fXOWChuHGBMX45Zidnjcjc0DG/E9HGpFlShe1mNLCqtD
+         3/hs8d/yDoVuMklpH0IIaV9aGXcGOYMlSuhwqpb0=
+Date:   Thu, 10 Jun 2021 15:16:20 -0700
 From:   akpm@linux-foundation.org
-To:     apopple@nvidia.com, bsingharora@gmail.com, bskeggs@redhat.com,
-        hch@lst.de, hughd@google.com, jgg@nvidia.com, jglisse@redhat.com,
-        jhubbard@nvidia.com, mm-commits@vger.kernel.org, peterx@redhat.com,
-        rcampbell@nvidia.com, willy@infradead.org
+To:     apopple@nvidia.com, colin.king@canonical.com, jgg@nvidia.com,
+        mm-commits@vger.kernel.org, rcampbell@nvidia.com
 Subject:  [to-be-updated]
- nouveau-svm-refactor-nouveau_range_fault.patch removed from -mm tree
-Message-ID: <20210610221623.DjZMR7fpu%akpm@linux-foundation.org>
+ mm-selftests-for-exclusive-device-memory-fix.patch removed from -mm tree
+Message-ID: <20210610221620.DlOz3Kc8w%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,113 +43,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nouveau/svm: refactor nouveau_range_fault
+     Subject: mm: selftests: fix potential integer overflow on shift of a int
 has been removed from the -mm tree.  Its filename was
-     nouveau-svm-refactor-nouveau_range_fault.patch
+     mm-selftests-for-exclusive-device-memory-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: nouveau/svm: refactor nouveau_range_fault
+From: Colin Ian King <colin.king@canonical.com>
+Subject: mm: selftests: fix potential integer overflow on shift of a int
 
-Call mmu_interval_notifier_insert() as part of nouveau_range_fault(). 
-This doesn't introduce any functional change but makes it easier for a
-subsequent patch to alter the behaviour of nouveau_range_fault() to
-support GPU atomic operations.
+The left shift of the int mapped is evaluated using 32 bit arithmetic and
+then assigned to an unsigned long.  In the case where mapped is 0x80000
+when PAGE_SHIFT is 12 will lead to the upper bits being sign extended in
+the unsigned long.  Larger values can lead to an int overflow.  Avoid this
+by making mapped an unsigned long.
 
-Link: https://lkml.kernel.org/r/20210524132725.12697-10-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Ben Skeggs <bskeggs@redhat.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
+Addresses-Coverity: ("Uninitentional integer overflow")
+Link: https://lkml.kernel.org/r/20210526170530.3766167-1-colin.king@canonical.com
+Fixes: 8b2a105c3794 ("mm: selftests for exclusive device memory")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/nouveau_svm.c |   34 ++++++++++++++----------
- 1 file changed, 20 insertions(+), 14 deletions(-)
+ lib/test_hmm.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/nouveau/nouveau_svm.c~nouveau-svm-refactor-nouveau_range_fault
-+++ a/drivers/gpu/drm/nouveau/nouveau_svm.c
-@@ -567,18 +567,27 @@ static int nouveau_range_fault(struct no
- 	unsigned long hmm_pfns[1];
- 	struct hmm_range range = {
- 		.notifier = &notifier->notifier,
--		.start = notifier->notifier.interval_tree.start,
--		.end = notifier->notifier.interval_tree.last + 1,
- 		.default_flags = hmm_flags,
- 		.hmm_pfns = hmm_pfns,
- 		.dev_private_owner = drm->dev,
- 	};
--	struct mm_struct *mm = notifier->notifier.mm;
-+	struct mm_struct *mm = svmm->notifier.mm;
- 	int ret;
+--- a/lib/test_hmm.c~mm-selftests-for-exclusive-device-memory-fix
++++ a/lib/test_hmm.c
+@@ -733,7 +733,8 @@ static int dmirror_exclusive(struct dmir
  
-+	ret = mmu_interval_notifier_insert(&notifier->notifier, mm,
-+					args->p.addr, args->p.size,
-+					&nouveau_svm_mni_ops);
-+	if (ret)
-+		return ret;
-+
-+	range.start = notifier->notifier.interval_tree.start;
-+	range.end = notifier->notifier.interval_tree.last + 1;
-+
- 	while (true) {
--		if (time_after(jiffies, timeout))
--			return -EBUSY;
-+		if (time_after(jiffies, timeout)) {
-+			ret = -EBUSY;
-+			goto out;
-+		}
+ 	mmap_read_lock(mm);
+ 	for (addr = start; addr < end; addr = next) {
+-		int i, mapped;
++		unsigned long mapped;
++		int i;
  
- 		range.notifier_seq = mmu_interval_read_begin(range.notifier);
- 		mmap_read_lock(mm);
-@@ -587,7 +596,7 @@ static int nouveau_range_fault(struct no
- 		if (ret) {
- 			if (ret == -EBUSY)
- 				continue;
--			return ret;
-+			goto out;
- 		}
- 
- 		mutex_lock(&svmm->mutex);
-@@ -606,6 +615,9 @@ static int nouveau_range_fault(struct no
- 	svmm->vmm->vmm.object.client->super = false;
- 	mutex_unlock(&svmm->mutex);
- 
-+out:
-+	mmu_interval_notifier_remove(&notifier->notifier);
-+
- 	return ret;
- }
- 
-@@ -727,14 +739,8 @@ nouveau_svm_fault(struct nvif_notify *no
- 		}
- 
- 		notifier.svmm = svmm;
--		ret = mmu_interval_notifier_insert(&notifier.notifier, mm,
--						   args.i.p.addr, args.i.p.size,
--						   &nouveau_svm_mni_ops);
--		if (!ret) {
--			ret = nouveau_range_fault(svmm, svm->drm, &args.i,
--				sizeof(args), hmm_flags, &notifier);
--			mmu_interval_notifier_remove(&notifier.notifier);
--		}
-+		ret = nouveau_range_fault(svmm, svm->drm, &args.i,
-+					sizeof(args), hmm_flags, &notifier);
- 		mmput(mm);
- 
- 		limit = args.i.p.addr + args.i.p.size;
+ 		if (end < addr + (ARRAY_SIZE(pages) << PAGE_SHIFT))
+ 			next = end;
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
-nouveau-svm-implement-atomic-svm-access.patch
+scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+ocfs2-remove-redundant-assignment-to-pointer-queue.patch
+lib-math-rational-add-kunit-test-cases-fix-2.patch
 
