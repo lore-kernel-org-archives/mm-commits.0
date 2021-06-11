@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE5CFC48BE0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 00:09:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86F03C48BDF
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 00:09:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 985656141B
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 00:09:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EAB2613E9
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 00:09:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231266AbhFKALd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Jun 2021 20:11:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36558 "EHLO mail.kernel.org"
+        id S231270AbhFKALj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Jun 2021 20:11:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36660 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231264AbhFKALb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 10 Jun 2021 20:11:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CAD6E613AE;
-        Fri, 11 Jun 2021 00:09:20 +0000 (UTC)
+        id S231267AbhFKALj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 10 Jun 2021 20:11:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C8726613E9;
+        Fri, 11 Jun 2021 00:09:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623370161;
-        bh=25iP2cSduX0l+a+uSjYa9Hrog7uMm1bxCLWFs5iYbFc=;
+        s=korg; t=1623370166;
+        bh=3CTDLwFIHhqf+nFEfPA065gH1IE4T+dZcsHlwFGQmzc=;
         h=Date:From:To:Subject:From;
-        b=ijHcR1o75fpLVmnnZGJV2OsG33mxVDd0ioL3ZWcR7zXAjBuWZk9RTAqDPQy97HSqX
-         3dwIZXhytB5U2/CsbKM/gd0hsI7GfnKOuDCpeZafHnqTWQu/MPtSdQjvpfKigv92cI
-         XpqZSIKUobcnXa6yHvcsrfaV6ROmpxAvOmsQDits=
-Date:   Thu, 10 Jun 2021 17:09:20 -0700
+        b=TavqMei3OKaD23D1NzNz94q9L2vVV3J+FSVbui4/+/gQaf9SHxL7yI4XA9rNwC3IX
+         j6i/Q7i+5iaVmOmNRTlkHDZbitH5N9oYBGW3x2tOrTZDOaAC9hl99L9CDzvCn+zAev
+         ahkyX77m+Fc++64M2QZMO0EkLSW5SbJ6NrsSadYU=
+Date:   Thu, 10 Jun 2021 17:09:26 -0700
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, mm-commits@vger.kernel.org,
-        wangkefeng.wang@huawei.com, will@kernel.org
-Subject:  + arm64-convert-to-setup_initial_init_mm.patch added to
+To:     geert@linux-m68k.org, gerg@linux-m68k.org,
+        mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com
+Subject:  + m68k-convert-to-setup_initial_init_mm.patch added to
  -mm tree
-Message-ID: <20210611000920.C8nXp_ljW%akpm@linux-foundation.org>
+Message-ID: <20210611000926.FlHvrOGjc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: convert to setup_initial_init_mm()
+     Subject: m68k: convert to setup_initial_init_mm()
 has been added to the -mm tree.  Its filename is
-     arm64-convert-to-setup_initial_init_mm.patch
+     m68k-convert-to-setup_initial_init_mm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/m68k-convert-to-setup_initial_init_mm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/m68k-convert-to-setup_initial_init_mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,33 +65,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: arm64: convert to setup_initial_init_mm()
+Subject: m68k: convert to setup_initial_init_mm()
 
 Use setup_initial_init_mm() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210608083418.137226-5-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210608083418.137226-8-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Acked-by: Greg Ungerer <gerg@linux-m68k.org>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/setup.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ arch/m68k/kernel/setup_mm.c |    5 +----
+ arch/m68k/kernel/setup_no.c |    5 +----
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
---- a/arch/arm64/kernel/setup.c~arm64-convert-to-setup_initial_init_mm
-+++ a/arch/arm64/kernel/setup.c
-@@ -293,10 +293,7 @@ u64 cpu_logical_map(unsigned int cpu)
+--- a/arch/m68k/kernel/setup_mm.c~m68k-convert-to-setup_initial_init_mm
++++ a/arch/m68k/kernel/setup_mm.c
+@@ -258,10 +258,7 @@ void __init setup_arch(char **cmdline_p)
+ 		}
+ 	}
  
- void __init __no_sanitize_address setup_arch(char **cmdline_p)
- {
--	init_mm.start_code = (unsigned long) _stext;
--	init_mm.end_code   = (unsigned long) _etext;
--	init_mm.end_data   = (unsigned long) _edata;
--	init_mm.brk	   = (unsigned long) _end;
-+	setup_initial_init_mm(_stext, _etext, _edata, _end);
+-	init_mm.start_code = PAGE_OFFSET;
+-	init_mm.end_code = (unsigned long)_etext;
+-	init_mm.end_data = (unsigned long)_edata;
+-	init_mm.brk = (unsigned long)_end;
++	setup_initial_init_mm((void *)PAGE_OFFSET, _etext, _edata, _end);
  
- 	*cmdline_p = boot_command_line;
+ #if defined(CONFIG_BOOTPARAM)
+ 	strncpy(m68k_command_line, CONFIG_BOOTPARAM_STRING, CL_SIZE);
+--- a/arch/m68k/kernel/setup_no.c~m68k-convert-to-setup_initial_init_mm
++++ a/arch/m68k/kernel/setup_no.c
+@@ -87,10 +87,7 @@ void __init setup_arch(char **cmdline_p)
+ 	memory_start = PAGE_ALIGN(_ramstart);
+ 	memory_end = _ramend;
+ 
+-	init_mm.start_code = (unsigned long) &_stext;
+-	init_mm.end_code = (unsigned long) &_etext;
+-	init_mm.end_data = (unsigned long) &_edata;
+-	init_mm.brk = (unsigned long) 0;
++	setup_initial_init_mm(_stext, _etext, _edata, NULL);
+ 
+ 	config_BSP(&command_line[0], sizeof(command_line));
  
 _
 
