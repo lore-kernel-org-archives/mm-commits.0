@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0702AC48BE0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC367C48BDF
 	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 00:09:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E59D0613E9
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 00:09:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7BE2613AE
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 00:09:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231281AbhFKALn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230470AbhFKALn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 10 Jun 2021 20:11:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36824 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36624 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231271AbhFKALn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S231272AbhFKALn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 10 Jun 2021 20:11:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CB4A3613F5;
-        Fri, 11 Jun 2021 00:09:40 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CA736613AE;
+        Fri, 11 Jun 2021 00:09:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623370181;
-        bh=m70FkzK6OwMHkrp0/fjHIxXaEofgczgInsBVhA2PLbE=;
+        s=korg; t=1623370179;
+        bh=2NCCLew73gPJ599FWkYkdv634e2moRegtRuy87UpzBA=;
         h=Date:From:To:Subject:From;
-        b=GPufMLgbxpld5g+7c9n0YjGfLQASYDY5v05uwedM4sRwzXFvmYyZp4QNShlRMvgTh
-         KUYQ3hNDFptkiJ2w1Bh7PKWOYRBCG8DI3A8J5nhoU7vIRZWnqliMEHdZ5q05FP2T8g
-         Tze/WQq3yNjKXNwO80vOaWs54liTCHPNS4+9eZLM=
-Date:   Thu, 10 Jun 2021 17:09:40 -0700
+        b=C7zihU5poMTLV69Y47JZSXl4F0g8X6oIOVAXbgU54amuSr4PI9Hm6mqwd9bSBCMo8
+         Q2HNSgBqTiSFD3XttQyqGM0/HMVH8WOwA44dvnnnHk6AqcStidHQsiteSp6eM+Xw+4
+         kFygMjk3m1z2FVFi1KmWHbbP9g2wHD3IDwj0gS8U=
+Date:   Thu, 10 Jun 2021 17:09:38 -0700
 From:   akpm@linux-foundation.org
-To:     dalias@libc.org, mm-commits@vger.kernel.org,
-        wangkefeng.wang@huawei.com, ysato@users.sourceforge.jp
-Subject:  + sh-convert-to-setup_initial_init_mm.patch added to -mm
- tree
-Message-ID: <20210611000940.06ucibXsY%akpm@linux-foundation.org>
+To:     borntraeger@de.ibm.com, gor@linux.ibm.com, hca@linux.ibm.com,
+        mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com
+Subject:  + s390-convert-to-setup_initial_init_mm.patch added to
+ -mm tree
+Message-ID: <20210611000938.6qqaDQBhQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: convert to setup_initial_init_mm()
+     Subject: s390: convert to setup_initial_init_mm()
 has been added to the -mm tree.  Its filename is
-     sh-convert-to-setup_initial_init_mm.patch
+     s390-convert-to-setup_initial_init_mm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/sh-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/s390-convert-to-setup_initial_init_mm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/sh-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/s390-convert-to-setup_initial_init_mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,34 +65,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: sh: convert to setup_initial_init_mm()
+Subject: s390: convert to setup_initial_init_mm()
 
 Use setup_initial_init_mm() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210608083418.137226-15-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210608083418.137226-14-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/setup.c |    5 +----
+ arch/s390/kernel/setup.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/sh/kernel/setup.c~sh-convert-to-setup_initial_init_mm
-+++ a/arch/sh/kernel/setup.c
-@@ -294,10 +294,7 @@ void __init setup_arch(char **cmdline_p)
+--- a/arch/s390/kernel/setup.c~s390-convert-to-setup_initial_init_mm
++++ a/arch/s390/kernel/setup.c
+@@ -1096,10 +1096,7 @@ void __init setup_arch(char **cmdline_p)
  
- 	if (!MOUNT_ROOT_RDONLY)
- 		root_mountflags &= ~MS_RDONLY;
+         ROOT_DEV = Root_RAM0;
+ 
 -	init_mm.start_code = (unsigned long) _text;
 -	init_mm.end_code = (unsigned long) _etext;
 -	init_mm.end_data = (unsigned long) _edata;
 -	init_mm.brk = (unsigned long) _end;
 +	setup_initial_init_mm(_text, _etext, _edata, _end);
  
- 	code_resource.start = virt_to_phys(_text);
- 	code_resource.end = virt_to_phys(_etext)-1;
+ 	if (IS_ENABLED(CONFIG_EXPOLINE_AUTO))
+ 		nospec_auto_detect();
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
