@@ -7,38 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46243C48BD1
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 22:23:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EC3EC48BD1
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 22:28:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F27A613CF
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 22:23:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3108661263
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 22:28:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230291AbhFKWZG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Jun 2021 18:25:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46760 "EHLO mail.kernel.org"
+        id S229937AbhFKWaG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Jun 2021 18:30:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52264 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230181AbhFKWZF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 11 Jun 2021 18:25:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 11D37613CF;
-        Fri, 11 Jun 2021 22:22:53 +0000 (UTC)
+        id S229777AbhFKWaF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 11 Jun 2021 18:30:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B226E61263;
+        Fri, 11 Jun 2021 22:27:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623450173;
-        bh=36tm4nUWlrcPiiaC1DfcMKDeor90VVsVTE3eRERGjaw=;
+        s=korg; t=1623450472;
+        bh=j9jDjCShdIOmzbvG2XDo5dXDqew4HdM+HWVMxmU6T0Y=;
         h=Date:From:To:Subject:From;
-        b=PpOHkW/FVXKf15kBqrNVVOPuppt8g0762ewSw30AgjFj8EHwL12K9v7sX5YnhbpCw
-         XkWlsoLLUoOWiPQfpMksrZ/5cmBjC79EXKEk9A2An+IsnLahneCqFnUC5/4BIjXcdN
-         mCXYcG5fpGulvLVR0ho5OscbKRS3Z5/mqrxS4N4c=
-Date:   Fri, 11 Jun 2021 15:22:52 -0700
+        b=F3z3yIGfLLC9sbi/pCzEN+WJIDy7OYJAzUYWX7dT4T9unqnrg2fj98PcXAJyqKDP+
+         JhtOu2z22A3WlCGSszVrJJrkoBLhnt2Dj7pdciw53vNDIDshOz0OMjX1zHGq/tgvVI
+         OswU7kqenBkd0MswOIrH71PptWYoUQeJVTAI+0CM=
+Date:   Fri, 11 Jun 2021 15:27:52 -0700
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, bauerman@linux.ibm.com,
-        dave.hansen@linux.intel.com, desnesn@linux.vnet.ibm.com,
-        fweimer@redhat.com, linuxram@us.ibm.com, mhocko@kernel.org,
-        mingo@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        msuchanek@suse.de, sandipan@linux.ibm.com, shuah@kernel.org,
-        tglx@linutronix.de
-Subject:  + selftests-vm-pkeys-exercise-x86-xsave-init-state.patch
- added to -mm tree
-Message-ID: <20210611222252.gzpvNrSN-%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, keescook@chromium.org,
+        mm-commits@vger.kernel.org, vannguye@cisco.com
+Subject:  + mm-slubc-include-swabh.patch added to -mm tree
+Message-ID: <20210611222752.GTNGHyXTQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm/pkeys: exercise x86 XSAVE init state
+     Subject: mm/slub.c: include swab.h
 has been added to the -mm tree.  Its filename is
-     selftests-vm-pkeys-exercise-x86-xsave-init-state.patch
+     mm-slubc-include-swabh.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-pkeys-exercise-x86-xsave-init-state.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slubc-include-swabh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-pkeys-exercise-x86-xsave-init-state.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slubc-include-swabh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,182 +63,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: selftests/vm/pkeys: exercise x86 XSAVE init state
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/slub.c: include swab.h
 
-On x86, there is a set of instructions used to save and restore register
-state collectively known as the XSAVE architecture.  There are about a
-dozen different features managed with XSAVE.  The protection keys
-register, PKRU, is one of those features.
+Fixes build with CONFIG_SLAB_FREELIST_HARDENED=y.
 
-The hardware optimizes XSAVE by tracking when the state has not changed
-from its initial (init) state.  In this case, it can avoid the cost of
-writing state to memory (it would usually just be a bunch of 0's).
-
-When the pkey register is 0x0 the hardware optionally choose to track the
-register as being in the init state (optimize away the writes).  AMD CPUs
-do this more aggressively compared to Intel.
-
-On x86, PKRU is rarely in its (very permissive) init state.  Instead, the
-value defaults to something very restrictive.  It is not surprising that
-bugs have popped up in the rare cases when PKRU reaches its init state.
-
-Add a protection key selftest which gets the protection keys register into
-its init state in a way that should work on Intel and AMD.  Then, do a
-bunch of pkey register reads to watch for inadvertent changes.
-
-This adds "-mxsave" to CFLAGS for all the x86 vm selftests in order to
-allow use of the XSAVE instruction __builtin functions.  This will make
-the builtins available on all of the vm selftests, but is expected to be
-harmless.
-
-Link: https://lkml.kernel.org/r/20210611164202.1849B712@viggo.jf.intel.com
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: Sandipan Das <sandipan@linux.ibm.com>
-Cc: Florian Weimer <fweimer@redhat.com>
-Cc: "Desnes A. Nunes do Rosario" <desnesn@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Thiago Jung Bauermann <bauerman@linux.ibm.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Suchanek <msuchanek@suse.de>
-Cc: Shuah Khan <shuah@kernel.org>
+Fixes: 1ad53d9fa3f61 ("slub: improve bit diffusion for freelist ptr obfuscation")
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=213417
+Reported-by: <vannguye@cisco.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile          |    4 
- tools/testing/selftests/vm/pkey-x86.h        |    1 
- tools/testing/selftests/vm/protection_keys.c |   73 +++++++++++++++++
- 3 files changed, 76 insertions(+), 2 deletions(-)
+ mm/slub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-pkeys-exercise-x86-xsave-init-state
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -101,7 +101,7 @@ $(1) $(1)_64: $(OUTPUT)/$(1)_64
- endef
- 
- ifeq ($(CAN_BUILD_I386),1)
--$(BINARIES_32): CFLAGS += -m32
-+$(BINARIES_32): CFLAGS += -m32 -mxsave
- $(BINARIES_32): LDLIBS += -lrt -ldl -lm
- $(BINARIES_32): $(OUTPUT)/%_32: %.c
- 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
-@@ -109,7 +109,7 @@ $(foreach t,$(TARGETS),$(eval $(call gen
- endif
- 
- ifeq ($(CAN_BUILD_X86_64),1)
--$(BINARIES_64): CFLAGS += -m64
-+$(BINARIES_64): CFLAGS += -m64 -mxsave
- $(BINARIES_64): LDLIBS += -lrt -ldl
- $(BINARIES_64): $(OUTPUT)/%_64: %.c
- 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
---- a/tools/testing/selftests/vm/pkey-x86.h~selftests-vm-pkeys-exercise-x86-xsave-init-state
-+++ a/tools/testing/selftests/vm/pkey-x86.h
-@@ -126,6 +126,7 @@ static inline u32 pkey_bit_position(int
- 
- #define XSTATE_PKEY_BIT	(9)
- #define XSTATE_PKEY	0x200
-+#define XSTATE_BV_OFFSET	512
- 
- int pkey_reg_xstate_offset(void)
- {
---- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-exercise-x86-xsave-init-state
-+++ a/tools/testing/selftests/vm/protection_keys.c
-@@ -1277,6 +1277,78 @@ void test_pkey_alloc_exhaust(int *ptr, u
- 	}
- }
- 
-+void arch_force_pkey_reg_init(void)
-+{
-+#if defined(__i386__) || defined(__x86_64__) /* arch */
-+	u64 *buf;
-+
-+	/*
-+	 * All keys should be allocated and set to allow reads and
-+	 * writes, so the register should be all 0.  If not, just
-+	 * skip the test.
-+	 */
-+	if (read_pkey_reg())
-+		return;
-+
-+	/*
-+	 * Just allocate an absurd about of memory rather than
-+	 * doing the XSAVE size enumeration dance.
-+	 */
-+	buf = mmap(NULL, 1*MB, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
-+
-+	/* These __builtins require compiling with -mxsave */
-+
-+	/* XSAVE to build a valid buffer: */
-+	__builtin_ia32_xsave(buf, XSTATE_PKEY);
-+	/* Clear XSTATE_BV[PKRU]: */
-+	buf[XSTATE_BV_OFFSET/sizeof(u64)] &= ~XSTATE_PKEY;
-+	/* XRSTOR will likely get PKRU back to the init state: */
-+	__builtin_ia32_xrstor(buf, XSTATE_PKEY);
-+
-+	munmap(buf, 1*MB);
-+#endif
-+}
-+
-+
-+/*
-+ * This is mostly useless on ppc for now.  But it will not
-+ * hurt anything and should give some better coverage as
-+ * a long-running test that continually checks the pkey
-+ * register.
-+ */
-+void test_pkey_init_state(int *ptr, u16 pkey)
-+{
-+	int err;
-+	int allocated_pkeys[NR_PKEYS] = {0};
-+	int nr_allocated_pkeys = 0;
-+	int i;
-+
-+	for (i = 0; i < NR_PKEYS; i++) {
-+		int new_pkey = alloc_pkey();
-+
-+		if (new_pkey < 0)
-+			continue;
-+		allocated_pkeys[nr_allocated_pkeys++] = new_pkey;
-+	}
-+
-+	dprintf3("%s()::%d\n", __func__, __LINE__);
-+
-+	arch_force_pkey_reg_init();
-+
-+	/*
-+	 * Loop for a bit, hoping to get exercise the kernel
-+	 * context switch code.
-+	 */
-+	for (i = 0; i < 1000000; i++)
-+		read_pkey_reg();
-+
-+	for (i = 0; i < nr_allocated_pkeys; i++) {
-+		err = sys_pkey_free(allocated_pkeys[i]);
-+		pkey_assert(!err);
-+		read_pkey_reg(); /* for shadow checking */
-+	}
-+}
-+
- /*
-  * pkey 0 is special.  It is allocated by default, so you do not
-  * have to call pkey_alloc() to use it first.  Make sure that it
-@@ -1508,6 +1580,7 @@ void (*pkey_tests[])(int *ptr, u16 pkey)
- 	test_implicit_mprotect_exec_only_memory,
- 	test_mprotect_with_pkey_0,
- 	test_ptrace_of_child,
-+	test_pkey_init_state,
- 	test_pkey_syscalls_on_non_allocated_pkey,
- 	test_pkey_syscalls_bad_args,
- 	test_pkey_alloc_exhaust,
+--- a/mm/slub.c~mm-slubc-include-swabh
++++ a/mm/slub.c
+@@ -15,6 +15,7 @@
+ #include <linux/module.h>
+ #include <linux/bit_spinlock.h>
+ #include <linux/interrupt.h>
++#include <linux/swab.h>
+ #include <linux/bitops.h>
+ #include <linux/slab.h>
+ #include "slab.h"
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-selftests-vm-pkeys-fix-alloc_random_pkey-to-make-it-really-really-random.patch
-selftests-vm-pkeys-handle-negative-sys_pkey_alloc-return-code.patch
-selftests-vm-pkeys-refill-shadow-register-after-implicit-kernel-write.patch
-selftests-vm-pkeys-exercise-x86-xsave-init-state.patch
+mm-slubc-include-swabh.patch
+mm.patch
+mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
+binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
+mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+mmmemory_hotplug-drop-unneeded-locking-fix.patch
+fs-proc-kcorec-add-mmap-interface-fix.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+lib-math-rational-add-kunit-test-cases-fix.patch
+lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
+ipc-utilc-use-binary-search-for-max_idx-fix.patch
+linux-next-pre.patch
+linux-next-post.patch
+linux-next-rejects.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
