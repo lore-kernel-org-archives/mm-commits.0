@@ -7,33 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EC3EC48BD1
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 22:28:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D9BBC48BE0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 23:16:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3108661263
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 22:28:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4205E613EE
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 23:16:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229937AbhFKWaG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Jun 2021 18:30:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52264 "EHLO mail.kernel.org"
+        id S230297AbhFKXSD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Jun 2021 19:18:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57994 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229777AbhFKWaF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 11 Jun 2021 18:30:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B226E61263;
-        Fri, 11 Jun 2021 22:27:52 +0000 (UTC)
+        id S230017AbhFKXSD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 11 Jun 2021 19:18:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 18610613DF;
+        Fri, 11 Jun 2021 23:16:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623450472;
-        bh=j9jDjCShdIOmzbvG2XDo5dXDqew4HdM+HWVMxmU6T0Y=;
+        s=korg; t=1623453364;
+        bh=Os2/+QMlxa4nNVB4M2Fv9Y9zTZC+Bs8KwJeDZ+zz1AU=;
         h=Date:From:To:Subject:From;
-        b=F3z3yIGfLLC9sbi/pCzEN+WJIDy7OYJAzUYWX7dT4T9unqnrg2fj98PcXAJyqKDP+
-         JhtOu2z22A3WlCGSszVrJJrkoBLhnt2Dj7pdciw53vNDIDshOz0OMjX1zHGq/tgvVI
-         OswU7kqenBkd0MswOIrH71PptWYoUQeJVTAI+0CM=
-Date:   Fri, 11 Jun 2021 15:27:52 -0700
+        b=BzDioLkIwMBN1j5ZQMwU0sI0Esvo972Z3l6wqEyXwFdcjYTJ3pZ/BfR3e2X4ITOyi
+         N/CnokuuYc1jWHfEtnF3zoL86qCOXmxrkLy/FHJJVy6L5eSUo7KLdzxWkAhwSaUd7Z
+         rcXtkFQlGK2hB5PUjmZccCXijNTjcuwS05kx+UDA=
+Date:   Fri, 11 Jun 2021 16:16:03 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, keescook@chromium.org,
-        mm-commits@vger.kernel.org, vannguye@cisco.com
-Subject:  + mm-slubc-include-swabh.patch added to -mm tree
-Message-ID: <20210611222752.GTNGHyXTQ%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, areber@redhat.com, axboe@kernel.dk,
+        bernd.edlinger@hotmail.de, chaithco@redhat.com,
+        christian.brauner@ubuntu.com, deller@gmx.de, ebiederm@xmission.com,
+        jamorris@linux.microsoft.com, keescook@chromium.org,
+        laoar.shao@gmail.com, luto@amacapital.net, mhocko@suse.com,
+        mm-commits@vger.kernel.org, oleg@redhat.com, serge@hallyn.com,
+        shuah@kernel.org, surenb@google.com, tglx@linutronix.de,
+        viro@zeniv.linux.org.uk, wad@chromium.org, yifeifz2@illinois.edu
+Subject:  +
+ exec-fix-dead-lock-in-de_thread-with-ptrace_attach-v9.patch added to -mm
+ tree
+Message-ID: <20210611231603.v-x3791Yd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub.c: include swab.h
+     Subject: exec-fix-dead-lock-in-de_thread-with-ptrace_attach-v9
 has been added to the -mm tree.  Its filename is
-     mm-slubc-include-swabh.patch
+     exec-fix-dead-lock-in-de_thread-with-ptrace_attach-v9.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slubc-include-swabh.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/exec-fix-dead-lock-in-de_thread-with-ptrace_attach-v9.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slubc-include-swabh.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/exec-fix-dead-lock-in-de_thread-with-ptrace_attach-v9.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,61 +71,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/slub.c: include swab.h
+From: Bernd Edlinger <bernd.edlinger@hotmail.de>
+Subject: exec-fix-dead-lock-in-de_thread-with-ptrace_attach-v9
 
-Fixes build with CONFIG_SLAB_FREELIST_HARDENED=y.
-
-Fixes: 1ad53d9fa3f61 ("slub: improve bit diffusion for freelist ptr obfuscation")
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=213417
-Reported-by: <vannguye@cisco.com>
+Link: https://lkml.kernel.org/r/AM8PR10MB470896FBC519ABCC20486958E4349@AM8PR10MB4708.EURPRD10.PROD.OUTLOOK.COM
+Signed-off-by: Bernd Edlinger <bernd.edlinger@hotmail.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Kees Cook <keescook@chromium.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Will Drewry <wad@chromium.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Serge Hallyn <serge@hallyn.com>
+Cc: James Morris <jamorris@linux.microsoft.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Charles Haithcock <chaithco@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: YiFei Zhu <yifeifz2@illinois.edu>
+Cc: Adrian Reber <areber@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/exec.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
---- a/mm/slub.c~mm-slubc-include-swabh
-+++ a/mm/slub.c
-@@ -15,6 +15,7 @@
- #include <linux/module.h>
- #include <linux/bit_spinlock.h>
- #include <linux/interrupt.h>
-+#include <linux/swab.h>
- #include <linux/bitops.h>
- #include <linux/slab.h>
- #include "slab.h"
+--- a/fs/exec.c~exec-fix-dead-lock-in-de_thread-with-ptrace_attach-v9
++++ a/fs/exec.c
+@@ -1056,29 +1056,31 @@ static int de_thread(struct task_struct
+ 		return -EAGAIN;
+ 	}
+ 
+-	while_each_thread(tsk, t) {
+-		if (unlikely(t->ptrace) && t != tsk->group_leader)
+-			sig->unsafe_execve_in_progress = true;
+-	}
+-
+ 	sig->group_exit_task = tsk;
+ 	sig->notify_count = zap_other_threads(tsk);
+ 	if (!thread_group_leader(tsk))
+ 		sig->notify_count--;
+-	spin_unlock_irq(lock);
+ 
+-	if (unlikely(sig->unsafe_execve_in_progress))
++	while_each_thread(tsk, t) {
++		if (unlikely(t->ptrace) && t != tsk->group_leader)
++			sig->unsafe_execve_in_progress = true;
++	}
++
++	if (unlikely(sig->unsafe_execve_in_progress)) {
++		spin_unlock_irq(lock);
+ 		mutex_unlock(&sig->cred_guard_mutex);
++		spin_lock_irq(lock);
++	}
+ 
+-	for (;;) {
+-		set_current_state(TASK_KILLABLE);
+-		if (!sig->notify_count)
+-			break;
++	while (sig->notify_count) {
++		__set_current_state(TASK_KILLABLE);
++		spin_unlock_irq(lock);
+ 		schedule();
+ 		if (__fatal_signal_pending(tsk))
+ 			goto killed;
++		spin_lock_irq(lock);
+ 	}
+-	__set_current_state(TASK_RUNNING);
++	spin_unlock_irq(lock);
+ 
+ 	if (unlikely(sig->unsafe_execve_in_progress)) {
+ 		if (mutex_lock_killable(&sig->cred_guard_mutex))
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bernd.edlinger@hotmail.de are
 
-mm-slubc-include-swabh.patch
-mm.patch
-mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
-mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-mmmemory_hotplug-drop-unneeded-locking-fix.patch
-fs-proc-kcorec-add-mmap-interface-fix.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-lib-math-rational-add-kunit-test-cases-fix.patch
-lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
-ipc-utilc-use-binary-search-for-max_idx-fix.patch
-linux-next-pre.patch
-linux-next-post.patch
-linux-next-rejects.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+exec-fix-dead-lock-in-de_thread-with-ptrace_attach.patch
+exec-fix-dead-lock-in-de_thread-with-ptrace_attach-v9.patch
 
