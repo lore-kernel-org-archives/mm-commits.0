@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EA2BC48BD1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6634FC48BE8
 	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 00:09:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3DB3E61407
+	by mail.kernel.org (Postfix) with ESMTP id 4B1C6613FF
 	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 00:09:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231283AbhFKALo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Jun 2021 20:11:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36582 "EHLO mail.kernel.org"
+        id S231272AbhFKALp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Jun 2021 20:11:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36660 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231274AbhFKALn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S231276AbhFKALn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 10 Jun 2021 20:11:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C9335613E3;
-        Fri, 11 Jun 2021 00:09:36 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B799D6140F;
+        Fri, 11 Jun 2021 00:09:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623370177;
-        bh=IUCXb8rszWjVQjOmjXt9iGLAjRdZjvlIYRf/6eqf2Z4=;
+        s=korg; t=1623370182;
+        bh=tspPqfiKZcACGD7Hz8s/yPNDfMR9nKiUlwUzYPcyYzw=;
         h=Date:From:To:Subject:From;
-        b=0exGOjrfIFwnOzsqu0xZuCn7vwAsNdyvv2Za3jljTTdDFbl1ZXcoQx0UY+ywEYUOZ
-         VbEpsfOIZr+/U+YoQ41u7S2kQnnsXOWsPN5MRnIsYewyWELAWNPmqfSQbcKQTAdbzI
-         vOD3R9Cimr2aWbbEbEi3/hhKtsIBv+tBK0jQ1UEM=
-Date:   Thu, 10 Jun 2021 17:09:36 -0700
+        b=Je1ODwNPnn05UFVyBp6tfGeloFNQiJpLnFvBLsGHfH0VfHsgWXNebapfeK3Y52Y+f
+         A1EFhYP2dDdaHgKhj4uchZHFZkkTqUKz06IGmS+vqfs7Ep3C+mhZW1lYzvEUH16ZWk
+         W4HAlCchXWdMXdASCkeRl+6TF+6p45G9isMDCj88=
+Date:   Thu, 10 Jun 2021 17:09:42 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, palmer@dabbelt.com,
-        paul.walmsley@sifive.com, wangkefeng.wang@huawei.com
-Subject:  + riscv-convert-to-setup_initial_init_mm.patch added to
- -mm tree
-Message-ID: <20210611000936.cj9IgsBHC%akpm@linux-foundation.org>
+To:     mingo@redhat.com, mm-commits@vger.kernel.org, tglx@linutronix.de,
+        wangkefeng.wang@huawei.com
+Subject:  + x86-convert-to-setup_initial_init_mm.patch added to -mm
+ tree
+Message-ID: <20210611000942.85GSUHn0C%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: riscv: convert to setup_initial_init_mm()
+     Subject: x86: convert to setup_initial_init_mm()
 has been added to the -mm tree.  Its filename is
-     riscv-convert-to-setup_initial_init_mm.patch
+     x86-convert-to-setup_initial_init_mm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/riscv-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-convert-to-setup_initial_init_mm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/riscv-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-convert-to-setup_initial_init_mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,34 +65,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: riscv: convert to setup_initial_init_mm()
+Subject: x86: convert to setup_initial_init_mm()
 
 Use setup_initial_init_mm() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210608083418.137226-13-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210608083418.137226-16-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/kernel/setup.c |    5 +----
+ arch/x86/kernel/setup.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/riscv/kernel/setup.c~riscv-convert-to-setup_initial_init_mm
-+++ a/arch/riscv/kernel/setup.c
-@@ -264,10 +264,7 @@ static void __init parse_dtb(void)
- void __init setup_arch(char **cmdline_p)
- {
- 	parse_dtb();
--	init_mm.start_code = (unsigned long) _stext;
--	init_mm.end_code   = (unsigned long) _etext;
--	init_mm.end_data   = (unsigned long) _edata;
--	init_mm.brk        = (unsigned long) _end;
-+	setup_initial_init_mm(_stext, _etext, _edata, _end);
+--- a/arch/x86/kernel/setup.c~x86-convert-to-setup_initial_init_mm
++++ a/arch/x86/kernel/setup.c
+@@ -871,10 +871,7 @@ void __init setup_arch(char **cmdline_p)
  
- 	*cmdline_p = boot_command_line;
+ 	if (!boot_params.hdr.root_flags)
+ 		root_mountflags &= ~MS_RDONLY;
+-	init_mm.start_code = (unsigned long) _text;
+-	init_mm.end_code = (unsigned long) _etext;
+-	init_mm.end_data = (unsigned long) _edata;
+-	init_mm.brk = _brk_end;
++	setup_initial_init_mm(_text, _etext, _edata, (void *)_brk_end);
  
+ 	code_resource.start = __pa_symbol(_text);
+ 	code_resource.end = __pa_symbol(_etext)-1;
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
