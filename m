@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6634FC48BE8
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 00:09:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2063FC49361
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 00:09:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4B1C6613FF
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 00:09:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0EBA0613F5
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 00:09:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231272AbhFKALp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Jun 2021 20:11:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36660 "EHLO mail.kernel.org"
+        id S231276AbhFKALq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Jun 2021 20:11:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231276AbhFKALn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 10 Jun 2021 20:11:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B799D6140F;
-        Fri, 11 Jun 2021 00:09:42 +0000 (UTC)
+        id S231286AbhFKALp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 10 Jun 2021 20:11:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CAA0461410;
+        Fri, 11 Jun 2021 00:09:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623370182;
-        bh=tspPqfiKZcACGD7Hz8s/yPNDfMR9nKiUlwUzYPcyYzw=;
+        s=korg; t=1623370175;
+        bh=m+sbFsKrmfyDdL6Cy2kwp+o5+fXqEKwz3u87MLNzi5c=;
         h=Date:From:To:Subject:From;
-        b=Je1ODwNPnn05UFVyBp6tfGeloFNQiJpLnFvBLsGHfH0VfHsgWXNebapfeK3Y52Y+f
-         A1EFhYP2dDdaHgKhj4uchZHFZkkTqUKz06IGmS+vqfs7Ep3C+mhZW1lYzvEUH16ZWk
-         W4HAlCchXWdMXdASCkeRl+6TF+6p45G9isMDCj88=
-Date:   Thu, 10 Jun 2021 17:09:42 -0700
+        b=Hbp9drwwkk2q0NUr/f073+zqG3PvgP7ReSqurj2brhV2/y4Dj9H3Bu819eXNEFEv3
+         m4+smiqmrtpbEYDx64ho1aNsjYiHh2DJoTsHk46nVaXPlJbnTnHfY4hKLdHblhARnP
+         LbwWaQLqokTKcaVkaDVkrPhe5ZC7+hrLoUgVw3xQ=
+Date:   Thu, 10 Jun 2021 17:09:34 -0700
 From:   akpm@linux-foundation.org
-To:     mingo@redhat.com, mm-commits@vger.kernel.org, tglx@linutronix.de,
-        wangkefeng.wang@huawei.com
-Subject:  + x86-convert-to-setup_initial_init_mm.patch added to -mm
- tree
-Message-ID: <20210611000942.85GSUHn0C%akpm@linux-foundation.org>
+To:     benh@kernel.crashing.org, christophe.leroy@csgroup.eu,
+        jrdr.linux@gmail.com, mm-commits@vger.kernel.org,
+        mpe@ellerman.id.au, wangkefeng.wang@huawei.com
+Subject:  + powerpc-convert-to-setup_initial_init_mm.patch added to
+ -mm tree
+Message-ID: <20210611000934.mmzUIOoGg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: convert to setup_initial_init_mm()
+     Subject: powerpc: convert to setup_initial_init_mm()
 has been added to the -mm tree.  Its filename is
-     x86-convert-to-setup_initial_init_mm.patch
+     powerpc-convert-to-setup_initial_init_mm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/x86-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/powerpc-convert-to-setup_initial_init_mm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/x86-convert-to-setup_initial_init_mm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/powerpc-convert-to-setup_initial_init_mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,34 +66,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: x86: convert to setup_initial_init_mm()
+Subject: powerpc: convert to setup_initial_init_mm()
 
 Use setup_initial_init_mm() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210608083418.137226-16-wangkefeng.wang@huawei.com
+Note klimit is (unsigned long) _end, with new helper, will use _end
+directly.
+
+Link: https://lkml.kernel.org/r/20210608083418.137226-12-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |    5 +----
+ arch/powerpc/kernel/setup-common.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/x86/kernel/setup.c~x86-convert-to-setup_initial_init_mm
-+++ a/arch/x86/kernel/setup.c
-@@ -871,10 +871,7 @@ void __init setup_arch(char **cmdline_p)
+--- a/arch/powerpc/kernel/setup-common.c~powerpc-convert-to-setup_initial_init_mm
++++ a/arch/powerpc/kernel/setup-common.c
+@@ -928,10 +928,7 @@ void __init setup_arch(char **cmdline_p)
  
- 	if (!boot_params.hdr.root_flags)
- 		root_mountflags &= ~MS_RDONLY;
--	init_mm.start_code = (unsigned long) _text;
+ 	klp_init_thread_info(&init_task);
+ 
+-	init_mm.start_code = (unsigned long)_stext;
 -	init_mm.end_code = (unsigned long) _etext;
 -	init_mm.end_data = (unsigned long) _edata;
--	init_mm.brk = _brk_end;
-+	setup_initial_init_mm(_text, _etext, _edata, (void *)_brk_end);
+-	init_mm.brk = klimit;
++	setup_initial_init_mm(_stext, _etext, _edata, _end);
  
- 	code_resource.start = __pa_symbol(_text);
- 	code_resource.end = __pa_symbol(_etext)-1;
+ 	mm_iommu_init(&init_mm);
+ 	irqstack_early_init();
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
