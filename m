@@ -7,33 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 805F2C48BE0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 20:36:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2C59C48BE5
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 22:07:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5882A613C6
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 20:36:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C353A61182
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 22:07:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229979AbhFKUiA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Jun 2021 16:38:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34428 "EHLO mail.kernel.org"
+        id S229777AbhFKWJO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Jun 2021 18:09:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45254 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229951AbhFKUh7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 11 Jun 2021 16:37:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 88571613AD;
-        Fri, 11 Jun 2021 20:36:01 +0000 (UTC)
+        id S229622AbhFKWJO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 11 Jun 2021 18:09:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C767061182;
+        Fri, 11 Jun 2021 22:07:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623443761;
-        bh=e5UIKZmZJEGeVPKspJLM7JXRj+Tfk1AyNooPwqyKF7U=;
+        s=korg; t=1623449235;
+        bh=7HGbY7SJ5xUQR2LL5OXv0ePs2XeaEAe0PGoGedA8qK4=;
         h=Date:From:To:Subject:From;
-        b=NPAoUnfChUC+voRnbBPn2GURijkzH2Pq6FDIq37be850dpdoI8bMbCZrpVpMHdAi8
-         N2QmEk/zqvUPybkz6lIJSUsRMAT7aC7zmBVFrLwICVgyFCCETkOU2plhYcA8Fpvv5i
-         WKVGt7B9rpUXEgRbXd5XJxkjsexPezAYXR9q4Pso=
-Date:   Fri, 11 Jun 2021 13:36:01 -0700
+        b=sUea7Z9XAJk9EX5r9nmxpcRN0qHxJ3oE41LetRCgl00IwHruWmbqFi6wsMC0B+Rz/
+         n6clGaO2v36X6b452klvae2ZaQnhosyV45+CsoT+4E7RK/W/eLENA3qeDZdKNyoOlf
+         DP3vNCRcUFsMqT5HjTpIz2GXcmd1TNxYOBVbuRXs=
+Date:   Fri, 11 Jun 2021 15:07:15 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Message-ID: <20210611203601.g6KQ0ATCF%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, mm-commits@vger.kernel.org
+Subject:  + lib-uninline-simple_strtoull.patch added to -mm tree
+Message-ID: <20210611220715.4onHhk5bk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,77 +41,76 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: lib: uninline simple_strtoull()
+has been added to the -mm tree.  Its filename is
+     lib-uninline-simple_strtoull.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-uninline-simple_strtoull.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-uninline-simple_strtoull.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: lib: uninline simple_strtoull()
 
+Gcc inlines simple_strtoull() too agressively.
+
+Given that all 4 signatures match, everything very efficiently calls or
+tailcalls into simple_strtoull():
+
+	ffffffff81da0240 <simple_strtoll>:
+	ffffffff81da0240:       80 3f 2d                cmp    BYTE PTR [rdi],0x2d
+	ffffffff81da0243:       74 05                   je     ffffffff81da024a <simple_strtoll+0xa>
+	ffffffff81da0245:       e9 76 ff ff ff          jmp    simple_strtoull
+	ffffffff81da024a:       48 83 c7 01             add    rdi,0x1
+	ffffffff81da024e:       e8 6d ff ff ff          call   simple_strtoull
+	ffffffff81da0253:       48 f7 d8                neg    rax
+	ffffffff81da0256:       c3                      ret
+
+Space savings (on F34-ish .config)
+
+	add/remove: 0/0 grow/shrink: 1/3 up/down: 52/-313 (-261)
+	Function                                     old     new   delta
+	vsscanf                                     2167    2219     +52
+	simple_strtoul                                72       2     -70
+	simple_strtoll                               143      23    -120
+	simple_strtol                                143      20    -123
+
+Link: https://lkml.kernel.org/r/YMO2zoOQk2eF34tn@localhost.localdomain
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/surface/surface_aggregator_registry.c |   17 ----------
- 1 file changed, 17 deletions(-)
+ lib/vsprintf.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/drivers/platform/surface/surface_aggregator_registry.c~linux-next-git-rejects
-+++ a/drivers/platform/surface/surface_aggregator_registry.c
-@@ -147,23 +147,6 @@ static const struct software_node *ssam_
- 	NULL,
- };
- 
--<<<<<<< HEAD
--/* Devices for Surface Laptop 1. */
--static const struct software_node *ssam_node_group_sl1[] = {
--	&ssam_node_root,
--	&ssam_node_tmp_pprof,
--	NULL,
--};
--
--/* Devices for Surface Laptop 2. */
--static const struct software_node *ssam_node_group_sl2[] = {
--	&ssam_node_root,
--	&ssam_node_tmp_pprof,
--	NULL,
--};
--
--=======
-->>>>>>> linux-next/akpm-base
- /* Devices for Surface Laptop 3 and 4. */
- static const struct software_node *ssam_node_group_sl3[] = {
- 	&ssam_node_root,
+--- a/lib/vsprintf.c~lib-uninline-simple_strtoull
++++ a/lib/vsprintf.c
+@@ -61,6 +61,7 @@
+  *
+  * This function has caveats. Please use kstrtoull instead.
+  */
++noinline
+ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base)
+ {
+ 	unsigned long long result;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm.patch
-mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
-mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-mmmemory_hotplug-drop-unneeded-locking-fix.patch
-fs-proc-kcorec-add-mmap-interface-fix.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-lib-math-rational-add-kunit-test-cases-fix.patch
-lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
-ipc-utilc-use-binary-search-for-max_idx-fix.patch
-linux-next-pre.patch
-linux-next-post.patch
-linux-next-rejects.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+lib-memscan-fixlet.patch
+lib-uninline-simple_strtoull.patch
+exec-remove-checks-in-__register_bimfmt.patch
 
