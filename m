@@ -5,36 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3C2CC2B9F4
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Jun 2021 23:29:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C443C48BE6
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Jun 2021 23:48:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5C5061350
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Jun 2021 23:29:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34CC1613B3
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Jun 2021 23:48:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229734AbhFNXbW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Jun 2021 19:31:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35128 "EHLO mail.kernel.org"
+        id S229649AbhFNXuG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Jun 2021 19:50:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36984 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229649AbhFNXbW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Jun 2021 19:31:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 94E7F6128B;
-        Mon, 14 Jun 2021 23:29:08 +0000 (UTC)
+        id S230075AbhFNXuG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Jun 2021 19:50:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AF6F261378;
+        Mon, 14 Jun 2021 23:48:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623713348;
-        bh=jE12Pc57QsFr72z6Xy0/jpHmcJIVWCbkU2hPMyV02gk=;
+        s=korg; t=1623714482;
+        bh=CaC7fgf5Kx+DeOX3abSOWFT971MQssUAMC9OlBeh9kM=;
         h=Date:From:To:Subject:From;
-        b=ON3eDtKWhdE5aSNJB5+iA9YrDGym0ObBXQ4sm2boti+ambvDA+cBt5d/VKzeHPsvg
-         OwSJuJ29FY4iogg645cpUx8EuCyTQrVgROkUoB3/JrMyvcNV1lvg+qcLLGcMQkD85B
-         UMpYZMlmJG1Y+Y4Ik+KySnYWH10Oa5hsUxKTd2Qo=
-Date:   Mon, 14 Jun 2021 16:29:08 -0700
+        b=nDN0jKSl9qIIuVYk9I6c69GiM6JgJWejsZFui5BIWBu0CRJB/pBxTDK/iavcDVSDA
+         w1wB824D990EVj6zQC5X0PnJKddiYCVhrzkhJZSCZJJtet4qU79ap6HZmuZG98IRMh
+         dOCwlFjsx4v8mMo5kFvB3s/+B2/8Q0PJNfns/vx4=
+Date:   Mon, 14 Jun 2021 16:48:02 -0700
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org, yuzhao@google.com
+To:     adobriyan@gmail.com, andi@firstfloor.org, dhowells@redhat.com,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org
 Subject:  +
- include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low.patch
- added to -mm tree
-Message-ID: <20210614232908.rSwdAlcFO%akpm@linux-foundation.org>
+ afs-fix-tracepoint-string-placement-with-built-in-afs.patch added to -mm
+ tree
+Message-ID: <20210614234802.sTWMIG-eE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/trace/events/vmscan.h: remove mm_vmscan_inactive_list_is_low
+     Subject: afs: fix tracepoint string placement with built-in AFS
 has been added to the -mm tree.  Its filename is
-     include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low.patch
+     afs-fix-tracepoint-string-placement-with-built-in-afs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/afs-fix-tracepoint-string-placement-with-built-in-afs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/afs-fix-tracepoint-string-placement-with-built-in-afs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,77 +65,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: include/trace/events/vmscan.h: remove mm_vmscan_inactive_list_is_low
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: afs: fix tracepoint string placement with built-in AFS
 
-mm_vmscan_inactive_list_is_low has no users after commit b91ac374346b
-("mm: vmscan: enforce inactive:active ratio at the reclaim root").
+I was adding custom tracepoint to the kernel, grabbed full F34 kernel
+.config, disabled modules and booted whole shebang as VM kernel.
 
-Remove it.
+Then did
 
-Link: https://lkml.kernel.org/r/20210614194554.2683395-1-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+	perf record -a -e ...
+
+It crashed:
+
+	general protection fault, probably for non-canonical address 0x435f5346592e4243: 0000 [#1] SMP PTI
+	CPU: 1 PID: 842 Comm: cat Not tainted 5.12.6+ #26
+	Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-1.fc33 04/01/2014
+	RIP: 0010:t_show+0x22/0xd0
+
+Then reproducer was narrowed to
+
+	# cat /sys/kernel/tracing/printk_formats
+
+Original F34 kernel with modules didn't crash.
+
+So I started to disable options and after disabling AFS everything started
+working again.
+
+The root cause is that AFS was placing char arrays content into a section
+full of _pointers_ to strings with predictable consequences.
+
+Non canonical address 435f5346592e4243 is "CB.YFS_" which came from
+CM_NAME macro.
+
+The fix is to create char array and pointer to it separatedly.
+
+Steps to reproduce:
+
+	CONFIG_AFS=y
+	CONFIG_TRACING=y
+
+	# cat /sys/kernel/tracing/printk_formats
+
+Link: https://lkml.kernel.org/r/YLAXfvZ+rObEOdc/@localhost.localdomain
+Fixes: 8e8d7f13b6d5a9 ("afs: Add some tracepoints")
+Signed-off-by: Alexey Dobriyan (SK hynix) <adobriyan@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   41 --------------------------------
- 1 file changed, 41 deletions(-)
+ fs/afs/cmservice.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/trace/events/vmscan.h~include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low
-+++ a/include/trace/events/vmscan.h
-@@ -423,47 +423,6 @@ TRACE_EVENT(mm_vmscan_lru_shrink_active,
- 		show_reclaim_flags(__entry->reclaim_flags))
- );
+--- a/fs/afs/cmservice.c~afs-fix-tracepoint-string-placement-with-built-in-afs
++++ a/fs/afs/cmservice.c
+@@ -30,8 +30,9 @@ static void SRXAFSCB_TellMeAboutYourself
+ static int afs_deliver_yfs_cb_callback(struct afs_call *);
  
--TRACE_EVENT(mm_vmscan_inactive_list_is_low,
--
--	TP_PROTO(int nid, int reclaim_idx,
--		unsigned long total_inactive, unsigned long inactive,
--		unsigned long total_active, unsigned long active,
--		unsigned long ratio, int file),
--
--	TP_ARGS(nid, reclaim_idx, total_inactive, inactive, total_active, active, ratio, file),
--
--	TP_STRUCT__entry(
--		__field(int, nid)
--		__field(int, reclaim_idx)
--		__field(unsigned long, total_inactive)
--		__field(unsigned long, inactive)
--		__field(unsigned long, total_active)
--		__field(unsigned long, active)
--		__field(unsigned long, ratio)
--		__field(int, reclaim_flags)
--	),
--
--	TP_fast_assign(
--		__entry->nid = nid;
--		__entry->reclaim_idx = reclaim_idx;
--		__entry->total_inactive = total_inactive;
--		__entry->inactive = inactive;
--		__entry->total_active = total_active;
--		__entry->active = active;
--		__entry->ratio = ratio;
--		__entry->reclaim_flags = trace_reclaim_flags(file) &
--					 RECLAIM_WB_LRU;
--	),
--
--	TP_printk("nid=%d reclaim_idx=%d total_inactive=%ld inactive=%ld total_active=%ld active=%ld ratio=%ld flags=%s",
--		__entry->nid,
--		__entry->reclaim_idx,
--		__entry->total_inactive, __entry->inactive,
--		__entry->total_active, __entry->active,
--		__entry->ratio,
--		show_reclaim_flags(__entry->reclaim_flags))
--);
--
- TRACE_EVENT(mm_vmscan_node_reclaim_begin,
+ #define CM_NAME(name) \
+-	char afs_SRXCB##name##_name[] __tracepoint_string =	\
+-		"CB." #name
++	const char afs_SRXCB##name##_name[] = "CB." #name;		\
++	static const char *_afs_SRXCB##name##_name __tracepoint_string =\
++		afs_SRXCB##name##_name
  
- 	TP_PROTO(int nid, int order, gfp_t gfp_flags),
+ /*
+  * CB.CallBack operation type
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-vmscanc-fix-potential-deadlock-in-reclaim_pages.patch
-include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low.patch
+afs-fix-tracepoint-string-placement-with-built-in-afs.patch
+lib-memscan-fixlet.patch
+lib-uninline-simple_strtoull.patch
+exec-remove-checks-in-__register_bimfmt.patch
 
