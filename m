@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3AEEC2B9F4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F166DC48BE8
 	for <mm-commits@archiver.kernel.org>; Mon, 14 Jun 2021 22:00:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8722561166
+	by mail.kernel.org (Postfix) with ESMTP id DCED86128B
 	for <mm-commits@archiver.kernel.org>; Mon, 14 Jun 2021 22:00:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230201AbhFNWCy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229676AbhFNWCy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 14 Jun 2021 18:02:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38594 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38632 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230230AbhFNWCs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Jun 2021 18:02:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4499D61209;
-        Mon, 14 Jun 2021 22:00:45 +0000 (UTC)
+        id S230289AbhFNWCv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Jun 2021 18:02:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CAD6361166;
+        Mon, 14 Jun 2021 22:00:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623708045;
-        bh=IozP6bYxdZVR269aTpRpn89FxbGay2HMIodAjpn/2s0=;
+        s=korg; t=1623708047;
+        bh=2iaO1qPUbe0P6k3E/S5+pcRzoLUErHOjLII+VhbxTvY=;
         h=Date:From:To:Subject:From;
-        b=Ewq4qHfnAAuEkO7g2csJLLbho5LMQaW+Hw8xIjEx5QOCEELkx+b2G4yQgHwJALN24
-         Ffv/ItBy4Ze6SFyz2KeQwKP3uZPW/C9i0KQjH3c2bnQI1gMv2vey6nqOPgnvbsWkTH
-         YMWbQ/sebm9WdixYEuNJSMhJSub+V3obha9O5VF8=
-Date:   Mon, 14 Jun 2021 15:00:44 -0700
+        b=ytFVfdQaKpTCMHsmL0TFkN806yfdxS7nHD1CzfwOPscdJI99hvO4p7Kyyc5hbNzm2
+         wSQtkTrFYMCpDD5i+MjzP/Hcw3G+V/60evTQO/dwKVRNHx0y1cF977cr9vdi9/+8bS
+         jLZhBAPY018VkMChFDdhTWUYTEPGSFy4ydnEq2Ms=
+Date:   Mon, 14 Jun 2021 15:00:47 -0700
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org
 Subject:  +
- fs-drop_caches-fix-skipping-over-shadow-cache-inodes.patch added to -mm
+ fs-inode-count-invalidated-shadow-pages-in-pginodesteal.patch added to -mm
  tree
-Message-ID: <20210614220044.hJxSaXNK7%akpm@linux-foundation.org>
+Message-ID: <20210614220047.FlUAVsqNI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: drop_caches: fix skipping over shadow cache inodes
+     Subject: fs: inode: count invalidated shadow pages in pginodesteal
 has been added to the -mm tree.  Its filename is
-     fs-drop_caches-fix-skipping-over-shadow-cache-inodes.patch
+     fs-inode-count-invalidated-shadow-pages-in-pginodesteal.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-drop_caches-fix-skipping-over-shadow-cache-inodes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-inode-count-invalidated-shadow-pages-in-pginodesteal.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-drop_caches-fix-skipping-over-shadow-cache-inodes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-inode-count-invalidated-shadow-pages-in-pginodesteal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,44 +65,81 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: fs: drop_caches: fix skipping over shadow cache inodes
+Subject: fs: inode: count invalidated shadow pages in pginodesteal
 
-When drop_caches truncates the page cache in an inode it also includes any
-shadow entries for evicted pages.  However, there is a preliminary check
-on whether the inode has pages: if it has *only* shadow entries, it will
-skip running truncation on the inode and leave it behind.
+pginodesteal is supposed to capture the impact that inode reclaim has on
+the page cache state.  Currently, it doesn't consider shadow pages that
+get dropped this way, even though this can have a significant impact on
+paging behavior, memory pressure calculations etc.
 
-Fix the check to mapping_empty(), such that it runs truncation on any
-inode that has cache entries at all.
+To improve visibility into these effects, make sure shadow pages get
+counted when they get dropped through inode reclaim.
 
-Link: https://lkml.kernel.org/r/20210614211904.14420-2-hannes@cmpxchg.org
-Reported-by: Roman Gushchin <guro@fb.com>
+This changes the return value semantics of invalidate_mapping_pages()
+semantics slightly, but the only two users are the inode shrinker itsel
+and a usb driver that logs it for debugging purposes.
+
+Link: https://lkml.kernel.org/r/20210614211904.14420-3-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/drop_caches.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/inode.c    |    2 +-
+ mm/truncate.c |   20 ++++++++++----------
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/fs/drop_caches.c~fs-drop_caches-fix-skipping-over-shadow-cache-inodes
-+++ a/fs/drop_caches.c
-@@ -3,6 +3,7 @@
-  * Implement the manual drop-all-pagecache function
-  */
+--- a/fs/inode.c~fs-inode-count-invalidated-shadow-pages-in-pginodesteal
++++ a/fs/inode.c
+@@ -768,7 +768,7 @@ static enum lru_status inode_lru_isolate
+ 		return LRU_ROTATE;
+ 	}
  
-+#include <linux/pagemap.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/fs.h>
-@@ -27,7 +28,7 @@ static void drop_pagecache_sb(struct sup
- 		 * we need to reschedule to avoid softlockups.
- 		 */
- 		if ((inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW)) ||
--		    (inode->i_mapping->nrpages == 0 && !need_resched())) {
-+		    (mapping_empty(inode->i_mapping) && !need_resched())) {
- 			spin_unlock(&inode->i_lock);
- 			continue;
- 		}
+-	if (inode_has_buffers(inode) || inode->i_data.nrpages) {
++	if (inode_has_buffers(inode) || !mapping_empty(&inode->i_data)) {
+ 		__iget(inode);
+ 		spin_unlock(&inode->i_lock);
+ 		spin_unlock(lru_lock);
+--- a/mm/truncate.c~fs-inode-count-invalidated-shadow-pages-in-pginodesteal
++++ a/mm/truncate.c
+@@ -483,8 +483,9 @@ static unsigned long __invalidate_mappin
+ 			index = indices[i];
+ 
+ 			if (xa_is_value(page)) {
+-				invalidate_exceptional_entry(mapping, index,
+-							     page);
++				count += invalidate_exceptional_entry(mapping,
++								      index,
++								      page);
+ 				continue;
+ 			}
+ 			index += thp_nr_pages(page) - 1;
+@@ -512,19 +513,18 @@ static unsigned long __invalidate_mappin
+ }
+ 
+ /**
+- * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
+- * @mapping: the address_space which holds the pages to invalidate
++ * invalidate_mapping_pages - Invalidate all clean, unlocked cache of one inode
++ * @mapping: the address_space which holds the cache to invalidate
+  * @start: the offset 'from' which to invalidate
+  * @end: the offset 'to' which to invalidate (inclusive)
+  *
+- * This function only removes the unlocked pages, if you want to
+- * remove all the pages of one inode, you must call truncate_inode_pages.
++ * This function removes pages that are clean, unmapped and unlocked,
++ * as well as shadow entries. It will not block on IO activity.
+  *
+- * invalidate_mapping_pages() will not block on IO activity. It will not
+- * invalidate pages which are dirty, locked, under writeback or mapped into
+- * pagetables.
++ * If you want to remove all the pages of one inode, regardless of
++ * their use and writeback state, use truncate_inode_pages().
+  *
+- * Return: the number of the pages that were invalidated
++ * Return: the number of the cache entries that were invalidated
+  */
+ unsigned long invalidate_mapping_pages(struct address_space *mapping,
+ 		pgoff_t start, pgoff_t end)
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
