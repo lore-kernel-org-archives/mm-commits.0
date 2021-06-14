@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 333FCC2B9F4
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Jun 2021 22:11:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3C2CC2B9F4
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Jun 2021 23:29:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 139B8610CD
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Jun 2021 22:11:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5C5061350
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Jun 2021 23:29:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229499AbhFNWNq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Jun 2021 18:13:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47738 "EHLO mail.kernel.org"
+        id S229734AbhFNXbW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Jun 2021 19:31:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35128 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231187AbhFNWNq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Jun 2021 18:13:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9122961185;
-        Mon, 14 Jun 2021 22:11:28 +0000 (UTC)
+        id S229649AbhFNXbW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Jun 2021 19:31:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 94E7F6128B;
+        Mon, 14 Jun 2021 23:29:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623708688;
-        bh=1ZtUi6UWBD667z7pnshjxEvd6dDHxp3aOKt5tl016cs=;
+        s=korg; t=1623713348;
+        bh=jE12Pc57QsFr72z6Xy0/jpHmcJIVWCbkU2hPMyV02gk=;
         h=Date:From:To:Subject:From;
-        b=GijGsJjo+NGlZ62EwaF0B1VVE3cuAMUiq9xkyONIUU9pU7YvEW94fbleT0aItZ98u
-         otcAwqL7m5GrphXgHQmOAC+l2Jfz3uyjaUlacQywuLHRXPw4sqjYQdRAq9GYByo1YR
-         UruYkuonMaZfB/px00M8OA3kD3BFNA0uGDEtTtYs=
-Date:   Mon, 14 Jun 2021 15:11:28 -0700
+        b=ON3eDtKWhdE5aSNJB5+iA9YrDGym0ObBXQ4sm2boti+ambvDA+cBt5d/VKzeHPsvg
+         OwSJuJ29FY4iogg645cpUx8EuCyTQrVgROkUoB3/JrMyvcNV1lvg+qcLLGcMQkD85B
+         UMpYZMlmJG1Y+Y4Ik+KySnYWH10Oa5hsUxKTd2Qo=
+Date:   Mon, 14 Jun 2021 16:29:08 -0700
 From:   akpm@linux-foundation.org
-To:     minchan@kernel.org, mm-commits@vger.kernel.org, yuzhao@google.com
+To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org, yuzhao@google.com
 Subject:  +
- mm-vmscanc-fix-potential-deadlock-in-reclaim_pages.patch added to -mm tree
-Message-ID: <20210614221128.BYGCEI8zz%akpm@linux-foundation.org>
+ include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low.patch
+ added to -mm tree
+Message-ID: <20210614232908.rSwdAlcFO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: fix potential deadlock in reclaim_pages()
+     Subject: include/trace/events/vmscan.h: remove mm_vmscan_inactive_list_is_low
 has been added to the -mm tree.  Its filename is
-     mm-vmscanc-fix-potential-deadlock-in-reclaim_pages.patch
+     include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscanc-fix-potential-deadlock-in-reclaim_pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscanc-fix-potential-deadlock-in-reclaim_pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,78 +65,76 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm/vmscan.c: fix potential deadlock in reclaim_pages()
+Subject: include/trace/events/vmscan.h: remove mm_vmscan_inactive_list_is_low
 
-Use memalloc_noreclaim_save()/memalloc_noreclaim_restore() in
-reclaim_pages() to prevent the page reclaim from going into the block I/O
-layer recursively and deadlock.
+mm_vmscan_inactive_list_is_low has no users after commit b91ac374346b
+("mm: vmscan: enforce inactive:active ratio at the reclaim root").
 
-Link: https://lkml.kernel.org/r/20210614194727.2684053-1-yuzhao@google.com
+Remove it.
+
+Link: https://lkml.kernel.org/r/20210614194554.2683395-1-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ include/trace/events/vmscan.h |   41 --------------------------------
+ 1 file changed, 41 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscanc-fix-potential-deadlock-in-reclaim_pages
-+++ a/mm/vmscan.c
-@@ -1707,6 +1707,7 @@ unsigned int reclaim_clean_pages_from_li
- 	unsigned int nr_reclaimed;
- 	struct page *page, *next;
- 	LIST_HEAD(clean_pages);
-+	unsigned int noreclaim_flag;
+--- a/include/trace/events/vmscan.h~include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low
++++ a/include/trace/events/vmscan.h
+@@ -423,47 +423,6 @@ TRACE_EVENT(mm_vmscan_lru_shrink_active,
+ 		show_reclaim_flags(__entry->reclaim_flags))
+ );
  
- 	list_for_each_entry_safe(page, next, page_list, lru) {
- 		if (!PageHuge(page) && page_is_file_lru(page) &&
-@@ -1717,8 +1718,17 @@ unsigned int reclaim_clean_pages_from_li
- 		}
- 	}
+-TRACE_EVENT(mm_vmscan_inactive_list_is_low,
+-
+-	TP_PROTO(int nid, int reclaim_idx,
+-		unsigned long total_inactive, unsigned long inactive,
+-		unsigned long total_active, unsigned long active,
+-		unsigned long ratio, int file),
+-
+-	TP_ARGS(nid, reclaim_idx, total_inactive, inactive, total_active, active, ratio, file),
+-
+-	TP_STRUCT__entry(
+-		__field(int, nid)
+-		__field(int, reclaim_idx)
+-		__field(unsigned long, total_inactive)
+-		__field(unsigned long, inactive)
+-		__field(unsigned long, total_active)
+-		__field(unsigned long, active)
+-		__field(unsigned long, ratio)
+-		__field(int, reclaim_flags)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid = nid;
+-		__entry->reclaim_idx = reclaim_idx;
+-		__entry->total_inactive = total_inactive;
+-		__entry->inactive = inactive;
+-		__entry->total_active = total_active;
+-		__entry->active = active;
+-		__entry->ratio = ratio;
+-		__entry->reclaim_flags = trace_reclaim_flags(file) &
+-					 RECLAIM_WB_LRU;
+-	),
+-
+-	TP_printk("nid=%d reclaim_idx=%d total_inactive=%ld inactive=%ld total_active=%ld active=%ld ratio=%ld flags=%s",
+-		__entry->nid,
+-		__entry->reclaim_idx,
+-		__entry->total_inactive, __entry->inactive,
+-		__entry->total_active, __entry->active,
+-		__entry->ratio,
+-		show_reclaim_flags(__entry->reclaim_flags))
+-);
+-
+ TRACE_EVENT(mm_vmscan_node_reclaim_begin,
  
-+	/*
-+	 * We should be safe here since we are only dealing with file pages and
-+	 * we are not kswapd and therefore cannot write dirty file pages. But
-+	 * call memalloc_noreclaim_save() anyway, just in case these conditions
-+	 * change in the future.
-+	 */
-+	noreclaim_flag = memalloc_noreclaim_save();
- 	nr_reclaimed = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
- 					&stat, true);
-+	memalloc_noreclaim_restore(noreclaim_flag);
-+
- 	list_splice(&clean_pages, page_list);
- 	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE,
- 			    -(long)nr_reclaimed);
-@@ -2312,6 +2322,7 @@ unsigned long reclaim_pages(struct list_
- 	LIST_HEAD(node_page_list);
- 	struct reclaim_stat dummy_stat;
- 	struct page *page;
-+	unsigned int noreclaim_flag;
- 	struct scan_control sc = {
- 		.gfp_mask = GFP_KERNEL,
- 		.priority = DEF_PRIORITY,
-@@ -2320,6 +2331,8 @@ unsigned long reclaim_pages(struct list_
- 		.may_swap = 1,
- 	};
- 
-+	noreclaim_flag = memalloc_noreclaim_save();
-+
- 	while (!list_empty(page_list)) {
- 		page = lru_to_page(page_list);
- 		if (nid == NUMA_NO_NODE) {
-@@ -2356,6 +2369,8 @@ unsigned long reclaim_pages(struct list_
- 		}
- 	}
- 
-+	memalloc_noreclaim_restore(noreclaim_flag);
-+
- 	return nr_reclaimed;
- }
- 
+ 	TP_PROTO(int nid, int order, gfp_t gfp_flags),
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
 
 mm-vmscanc-fix-potential-deadlock-in-reclaim_pages.patch
+include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low.patch
 
