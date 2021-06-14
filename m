@@ -2,448 +2,166 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF9BCC48BD1
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 23:48:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49EABC48BDF
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Jun 2021 00:58:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B40E5613B8
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Jun 2021 23:48:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24C9E60FE4
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Jun 2021 00:58:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230348AbhFKXuf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Jun 2021 19:50:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56592 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229540AbhFKXuf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 11 Jun 2021 19:50:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D410B6136D;
-        Fri, 11 Jun 2021 23:48:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623455302;
-        bh=JqjD5Br78t6Kw8HR29LCFvriGHNMgDLKuqpQ3nBnCaI=;
-        h=Date:From:To:Subject:From;
-        b=GAaFwAzuDAIFpz6AiWO4yNBtW94FKyFxvJdnpkBgX8YTMy5l87JN9zIMngRMtT4rx
-         hwTcSKB0usF4OHM5CC3e6WHhHuhzaBdU2vEmIz0BVxGl7HP+zKB+yLrTldNr7P34bJ
-         Etx9boa0JGXh6hoetPFzCIHKu1MkJfltTAC9MXlQ=
-Date:   Fri, 11 Jun 2021 16:48:21 -0700
-From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, ak@linux.intel.com, ben.widawsky@intel.com,
-        dave.hansen@intel.com, feng.tang@intel.com,
-        mgorman@techsingularity.net, mhocko@kernel.org,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        rientjes@google.com, vbabka@suse.cz
-Subject:  +
- mm-mempolicy-use-unified-nodes-for-bind-interleave-prefer-policies.patch
- added to -mm tree
-Message-ID: <20210611234821.gXfxcrLa_%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S232230AbhFNBAs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 13 Jun 2021 21:00:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49030 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232212AbhFNBAr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 13 Jun 2021 21:00:47 -0400
+Received: from mail-pf1-x432.google.com (mail-pf1-x432.google.com [IPv6:2607:f8b0:4864:20::432])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99D8AC061574
+        for <mm-commits@vger.kernel.org>; Sun, 13 Jun 2021 17:58:45 -0700 (PDT)
+Received: by mail-pf1-x432.google.com with SMTP id d16so9300322pfn.12
+        for <mm-commits@vger.kernel.org>; Sun, 13 Jun 2021 17:58:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:subject:to:references:in-reply-to:mime-version:message-id
+         :content-transfer-encoding;
+        bh=yu19Ci2qVMALZSkJJyk30I9+LyPST3qZOAR8f441pLU=;
+        b=pQN5QUIwUPRfzA8tCFSJMG9L9TClGEJxaFhf/RRRo8IPrqyG9KGaMqVlAR11NN2Reu
+         lXbx4du94NdZNDHRCur8dPqCVkr1zw62cQ+kyzW5tf9s9cyAVu/Ez5xNb8LvwdTCJZpk
+         53Ho3efuhxfaNb20EVhgu08zlQ8+4qc5mOzZEizlGiaUf2YPzk0UeBpW9SyxzwYO/ICC
+         LL7zWG4BwhC4PNAjHgpHvUtZ2yXVGakctEnhK5JLZytJliN4iUerH6vgGsfuVB77XEEE
+         3XRrJvDZJg+RLON2mIkeeFYn5HokBk7yKtBfje8Rzv5SY3o+hjdG8l4ZmavlpFCGRHga
+         1tRw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:subject:to:references:in-reply-to
+         :mime-version:message-id:content-transfer-encoding;
+        bh=yu19Ci2qVMALZSkJJyk30I9+LyPST3qZOAR8f441pLU=;
+        b=i+Fq2M+h/9j8/sC0zlhmtB4x61SJYXUKud/1gztkopihQulYXri74SibZcdXGiNY6s
+         bofvUUEhWP0jhudCsypq7SUXWeIbTnZ48p/TQ1fxjk8UsSiXR4EQyeOtOIJSwFt4vzev
+         8UJM3sRBwrd8EFw8NpeJcJWW2UO2im/iXNhs/KEj1N0xhI1k3JyDC/e5uUgkyiJsQBCf
+         r+mEBK/KZkDoxiWx0EhDdhJAyVf12twmhHfiuAS5r5TlGP5lQciXo74h0ZHCmPXQw38S
+         hYyHk3CK+ufacT0S9JT9AgookfQcenhmCvaCDGJmFnka1c1ADNsJTFRme7zMGUthv9BF
+         9+6w==
+X-Gm-Message-State: AOAM531Vec7Eq6ZwwM9rD+UznY6MfUwUVyd65GcFp8ke3AkGhPW6gWG/
+        ICCCgC9yDfKkzXPNK/C2bEU=
+X-Google-Smtp-Source: ABdhPJxJVtVsiO0v/cIo00aqO3ARTxQs++6qgWJDjf8MQuzfYfAcDvCz99R2up6cF3si5jNhuvZodw==
+X-Received: by 2002:a63:1210:: with SMTP id h16mr14576169pgl.189.1623632323861;
+        Sun, 13 Jun 2021 17:58:43 -0700 (PDT)
+Received: from localhost (60-242-147-73.tpgi.com.au. [60.242.147.73])
+        by smtp.gmail.com with ESMTPSA id t62sm2423420pfc.189.2021.06.13.17.58.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 13 Jun 2021 17:58:43 -0700 (PDT)
+Date:   Mon, 14 Jun 2021 10:58:38 +1000
+From:   Nicholas Piggin <npiggin@gmail.com>
+Subject: Re: + kvm-s390-fix-for-hugepage-vmalloc.patch added to -mm tree
+To:     akpm@linux-foundation.org, borntraeger@de.ibm.com,
+        catalin.marinas@arm.com, david@redhat.com, frankja@linux.ibm.com,
+        imbrenda@linux.ibm.com, mingo@redhat.com,
+        mm-commits@vger.kernel.org, rientjes@google.com,
+        tglx@linutronix.de, urezki@gmail.com
+References: <20210608210623.oyQ1Gh4H3%akpm@linux-foundation.org>
+In-Reply-To: <20210608210623.oyQ1Gh4H3%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Message-Id: <1623631892.c5eaco2ojh.astroid@bobo.none>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Excerpts from akpm@linux-foundation.org's message of June 9, 2021 7:06 am:
+>=20
+> The patch titled
+>      Subject: KVM: s390: fix for hugepage vmalloc
+> has been added to the -mm tree.  Its filename is
+>      kvm-s390-fix-for-hugepage-vmalloc.patch
+>=20
+> This patch should soon appear at
+>     https://ozlabs.org/~akpm/mmots/broken-out/kvm-s390-fix-for-hugepage-v=
+malloc.patch
+> and later at
+>     https://ozlabs.org/~akpm/mmotm/broken-out/kvm-s390-fix-for-hugepage-v=
+malloc.patch
+>=20
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+>=20
+> *** Remember to use Documentation/process/submit-checklist.rst when testi=
+ng your code ***
+>=20
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
+>=20
+> ------------------------------------------------------
+> From: Claudio Imbrenda <imbrenda@linux.ibm.com>
+> Subject: KVM: s390: fix for hugepage vmalloc
+>=20
+> The Create Secure Configuration Ultravisor Call does not support using
+> large pages for the virtual memory area.  This is a hardware limitation.
+>=20
+> This patch replaces the vzalloc call with a longer but equivalent
+> __vmalloc_node_range call, also setting the VM_NO_HUGE_VMAP flag, to
+> guarantee that this allocation will not be performed with large pages.
+>=20
+> Link: https://lkml.kernel.org/r/20210608180618.477766-3-imbrenda@linux.ib=
+m.com
+> Signed-off-by: Claudio Imbrenda <imbrenda@linux.ibm.com>
+> Reviewed-by: Janosch Frank <frankja@linux.ibm.com>
+> Fixes: 121e6f3258fe393e22c3 ("mm/vmalloc: hugepage vmalloc mappings")
 
-The patch titled
-     Subject: mm/mempolicy: use unified 'nodes' for bind/interleave/prefer policies
-has been added to the -mm tree.  Its filename is
-     mm-mempolicy-use-unified-nodes-for-bind-interleave-prefer-policies.patch
+Hmm, s390 does not select HAVE_ARCH_HUGE_VMALLOC so it was intended that=20
+"mm/vmalloc: hugepage vmalloc mappings" does not introduce huge vmallocs
+for you.
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-use-unified-nodes-for-bind-interleave-prefer-policies.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-use-unified-nodes-for-bind-interleave-prefer-policies.patch
+I can't see how this would happen, any clue what I'm missing?
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Thanks,
+Nick
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Ben Widawsky <ben.widawsky@intel.com>
-Subject: mm/mempolicy: use unified 'nodes' for bind/interleave/prefer policies
-
-Current structure 'mempolicy' uses a union to store the node info for
-bind/interleave/perfer policies.
-
-	union {
-		short 		 preferred_node; /* preferred */
-		nodemask_t	 nodes;		/* interleave/bind */
-		/* undefined for default */
-	} v;
-
-Since preferred node can also be represented by a nodemask_t with only ont
-bit set, unify these policies with using one nodemask_t 'nodes', which can
-remove a union, simplify the code and make it easier to support future's
-new policy's node info.
-
-Link: https://lore.kernel.org/r/20200630212517.308045-7-ben.widawsky@intel.com
-Link: https://lkml.kernel.org/r/1623399825-75651-1-git-send-email-feng.tang@intel.com
-Co-developed-by: Feng Tang <feng.tang@intel.com>
-Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-Signed-off-by: Feng Tang <feng.tang@intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andi Kleen <ak@linux.intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/mempolicy.h |    7 --
- mm/mempolicy.c            |   96 ++++++++++++++++--------------------
- 2 files changed, 46 insertions(+), 57 deletions(-)
-
---- a/include/linux/mempolicy.h~mm-mempolicy-use-unified-nodes-for-bind-interleave-prefer-policies
-+++ a/include/linux/mempolicy.h
-@@ -46,11 +46,8 @@ struct mempolicy {
- 	atomic_t refcnt;
- 	unsigned short mode; 	/* See MPOL_* above */
- 	unsigned short flags;	/* See set_mempolicy() MPOL_F_* above */
--	union {
--		short 		 preferred_node; /* preferred */
--		nodemask_t	 nodes;		/* interleave/bind */
--		/* undefined for default */
--	} v;
-+	nodemask_t nodes;	/* interleave/bind/perfer */
-+
- 	union {
- 		nodemask_t cpuset_mems_allowed;	/* relative to these nodes */
- 		nodemask_t user_nodemask;	/* nodemask passed by user */
---- a/mm/mempolicy.c~mm-mempolicy-use-unified-nodes-for-bind-interleave-prefer-policies
-+++ a/mm/mempolicy.c
-@@ -193,7 +193,7 @@ static int mpol_new_interleave(struct me
- {
- 	if (nodes_empty(*nodes))
- 		return -EINVAL;
--	pol->v.nodes = *nodes;
-+	pol->nodes = *nodes;
- 	return 0;
- }
- 
-@@ -201,7 +201,9 @@ static int mpol_new_preferred(struct mem
- {
- 	if (nodes_empty(*nodes))
- 		return -EINVAL;
--	pol->v.preferred_node = first_node(*nodes);
-+
-+	nodes_clear(pol->nodes);
-+	node_set(first_node(*nodes), pol->nodes);
- 	return 0;
- }
- 
-@@ -209,7 +211,7 @@ static int mpol_new_bind(struct mempolic
- {
- 	if (nodes_empty(*nodes))
- 		return -EINVAL;
--	pol->v.nodes = *nodes;
-+	pol->nodes = *nodes;
- 	return 0;
- }
- 
-@@ -324,7 +326,7 @@ static void mpol_rebind_nodemask(struct
- 	else if (pol->flags & MPOL_F_RELATIVE_NODES)
- 		mpol_relative_nodemask(&tmp, &pol->w.user_nodemask, nodes);
- 	else {
--		nodes_remap(tmp, pol->v.nodes, pol->w.cpuset_mems_allowed,
-+		nodes_remap(tmp, pol->nodes, pol->w.cpuset_mems_allowed,
- 								*nodes);
- 		pol->w.cpuset_mems_allowed = *nodes;
- 	}
-@@ -332,7 +334,7 @@ static void mpol_rebind_nodemask(struct
- 	if (nodes_empty(tmp))
- 		tmp = *nodes;
- 
--	pol->v.nodes = tmp;
-+	pol->nodes = tmp;
- }
- 
- static void mpol_rebind_preferred(struct mempolicy *pol,
-@@ -897,15 +899,12 @@ static void get_policy_nodemask(struct m
- 	switch (p->mode) {
- 	case MPOL_BIND:
- 	case MPOL_INTERLEAVE:
--		*nodes = p->v.nodes;
-+	case MPOL_PREFERRED:
-+		*nodes = p->nodes;
- 		break;
- 	case MPOL_LOCAL:
- 		/* return empty node mask for local allocation */
- 		break;
--
--	case MPOL_PREFERRED:
--		node_set(p->v.preferred_node, *nodes);
--		break;
- 	default:
- 		BUG();
- 	}
-@@ -989,7 +988,7 @@ static long do_get_mempolicy(int *policy
- 			*policy = err;
- 		} else if (pol == current->mempolicy &&
- 				pol->mode == MPOL_INTERLEAVE) {
--			*policy = next_node_in(current->il_prev, pol->v.nodes);
-+			*policy = next_node_in(current->il_prev, pol->nodes);
- 		} else {
- 			err = -EINVAL;
- 			goto out;
-@@ -1857,14 +1856,14 @@ static int apply_policy_zone(struct memp
- 	BUG_ON(dynamic_policy_zone == ZONE_MOVABLE);
- 
- 	/*
--	 * if policy->v.nodes has movable memory only,
-+	 * if policy->nodes has movable memory only,
- 	 * we apply policy when gfp_zone(gfp) = ZONE_MOVABLE only.
- 	 *
--	 * policy->v.nodes is intersect with node_states[N_MEMORY].
-+	 * policy->nodes is intersect with node_states[N_MEMORY].
- 	 * so if the following test fails, it implies
--	 * policy->v.nodes has movable memory only.
-+	 * policy->nodes has movable memory only.
- 	 */
--	if (!nodes_intersects(policy->v.nodes, node_states[N_HIGH_MEMORY]))
-+	if (!nodes_intersects(policy->nodes, node_states[N_HIGH_MEMORY]))
- 		dynamic_policy_zone = ZONE_MOVABLE;
- 
- 	return zone >= dynamic_policy_zone;
-@@ -1879,8 +1878,8 @@ nodemask_t *policy_nodemask(gfp_t gfp, s
- 	/* Lower zones don't get a nodemask applied for MPOL_BIND */
- 	if (unlikely(policy->mode == MPOL_BIND) &&
- 			apply_policy_zone(policy, gfp_zone(gfp)) &&
--			cpuset_nodemask_valid_mems_allowed(&policy->v.nodes))
--		return &policy->v.nodes;
-+			cpuset_nodemask_valid_mems_allowed(&policy->nodes))
-+		return &policy->nodes;
- 
- 	return NULL;
- }
-@@ -1889,7 +1888,7 @@ nodemask_t *policy_nodemask(gfp_t gfp, s
- static int policy_node(gfp_t gfp, struct mempolicy *policy, int nd)
- {
- 	if (policy->mode == MPOL_PREFERRED) {
--		nd = policy->v.preferred_node;
-+		nd = first_node(policy->nodes);
- 	} else {
- 		/*
- 		 * __GFP_THISNODE shouldn't even be used with the bind policy
-@@ -1908,7 +1907,7 @@ static unsigned interleave_nodes(struct
- 	unsigned next;
- 	struct task_struct *me = current;
- 
--	next = next_node_in(me->il_prev, policy->v.nodes);
-+	next = next_node_in(me->il_prev, policy->nodes);
- 	if (next < MAX_NUMNODES)
- 		me->il_prev = next;
- 	return next;
-@@ -1932,7 +1931,7 @@ unsigned int mempolicy_slab_node(void)
- 
- 	switch (policy->mode) {
- 	case MPOL_PREFERRED:
--		return policy->v.preferred_node;
-+		return first_node(policy->nodes);
- 
- 	case MPOL_INTERLEAVE:
- 		return interleave_nodes(policy);
-@@ -1948,7 +1947,7 @@ unsigned int mempolicy_slab_node(void)
- 		enum zone_type highest_zoneidx = gfp_zone(GFP_KERNEL);
- 		zonelist = &NODE_DATA(node)->node_zonelists[ZONELIST_FALLBACK];
- 		z = first_zones_zonelist(zonelist, highest_zoneidx,
--							&policy->v.nodes);
-+							&policy->nodes);
- 		return z->zone ? zone_to_nid(z->zone) : node;
- 	}
- 	case MPOL_LOCAL:
-@@ -1961,12 +1960,12 @@ unsigned int mempolicy_slab_node(void)
- 
- /*
-  * Do static interleaving for a VMA with known offset @n.  Returns the n'th
-- * node in pol->v.nodes (starting from n=0), wrapping around if n exceeds the
-+ * node in pol->nodes (starting from n=0), wrapping around if n exceeds the
-  * number of present nodes.
-  */
- static unsigned offset_il_node(struct mempolicy *pol, unsigned long n)
- {
--	unsigned nnodes = nodes_weight(pol->v.nodes);
-+	unsigned nnodes = nodes_weight(pol->nodes);
- 	unsigned target;
- 	int i;
- 	int nid;
-@@ -1974,9 +1973,9 @@ static unsigned offset_il_node(struct me
- 	if (!nnodes)
- 		return numa_node_id();
- 	target = (unsigned int)n % nnodes;
--	nid = first_node(pol->v.nodes);
-+	nid = first_node(pol->nodes);
- 	for (i = 0; i < target; i++)
--		nid = next_node(nid, pol->v.nodes);
-+		nid = next_node(nid, pol->nodes);
- 	return nid;
- }
- 
-@@ -2032,7 +2031,7 @@ int huge_node(struct vm_area_struct *vma
- 	} else {
- 		nid = policy_node(gfp_flags, *mpol, numa_node_id());
- 		if ((*mpol)->mode == MPOL_BIND)
--			*nodemask = &(*mpol)->v.nodes;
-+			*nodemask = &(*mpol)->nodes;
- 	}
- 	return nid;
- }
-@@ -2056,7 +2055,6 @@ int huge_node(struct vm_area_struct *vma
- bool init_nodemask_of_mempolicy(nodemask_t *mask)
- {
- 	struct mempolicy *mempolicy;
--	int nid;
- 
- 	if (!(mask && current->mempolicy))
- 		return false;
-@@ -2065,18 +2063,13 @@ bool init_nodemask_of_mempolicy(nodemask
- 	mempolicy = current->mempolicy;
- 	switch (mempolicy->mode) {
- 	case MPOL_PREFERRED:
--		nid = mempolicy->v.preferred_node;
--		init_nodemask_of_node(mask, nid);
--		break;
--
- 	case MPOL_BIND:
- 	case MPOL_INTERLEAVE:
--		*mask = mempolicy->v.nodes;
-+		*mask = mempolicy->nodes;
- 		break;
- 
- 	case MPOL_LOCAL:
--		nid = numa_node_id();
--		init_nodemask_of_node(mask, nid);
-+		init_nodemask_of_node(mask, numa_node_id());
- 		break;
- 
- 	default:
-@@ -2110,7 +2103,7 @@ bool mempolicy_in_oom_domain(struct task
- 	task_lock(tsk);
- 	mempolicy = tsk->mempolicy;
- 	if (mempolicy && mempolicy->mode == MPOL_BIND)
--		ret = nodes_intersects(mempolicy->v.nodes, *mask);
-+		ret = nodes_intersects(mempolicy->nodes, *mask);
- 	task_unlock(tsk);
- 
- 	return ret;
-@@ -2184,7 +2177,7 @@ struct page *alloc_pages_vma(gfp_t gfp,
- 		 * node in its nodemask, we allocate the standard way.
- 		 */
- 		if (pol->mode == MPOL_PREFERRED)
--			hpage_node = pol->v.preferred_node;
-+			hpage_node = first_node(pol->nodes);
- 
- 		nmask = policy_nodemask(gfp, pol);
- 		if (!nmask || node_isset(hpage_node, *nmask)) {
-@@ -2317,9 +2310,8 @@ bool __mpol_equal(struct mempolicy *a, s
- 	switch (a->mode) {
- 	case MPOL_BIND:
- 	case MPOL_INTERLEAVE:
--		return !!nodes_equal(a->v.nodes, b->v.nodes);
- 	case MPOL_PREFERRED:
--		return a->v.preferred_node == b->v.preferred_node;
-+		return !!nodes_equal(a->nodes, b->nodes);
- 	case MPOL_LOCAL:
- 		return true;
- 	default:
-@@ -2459,7 +2451,7 @@ int mpol_misplaced(struct page *page, st
- 		break;
- 
- 	case MPOL_PREFERRED:
--		polnid = pol->v.preferred_node;
-+		polnid = first_node(pol->nodes);
- 		break;
- 
- 	case MPOL_LOCAL:
-@@ -2469,7 +2461,7 @@ int mpol_misplaced(struct page *page, st
- 	case MPOL_BIND:
- 		/* Optimize placement among multiple nodes via NUMA balancing */
- 		if (pol->flags & MPOL_F_MORON) {
--			if (node_isset(thisnid, pol->v.nodes))
-+			if (node_isset(thisnid, pol->nodes))
- 				break;
- 			goto out;
- 		}
-@@ -2480,12 +2472,12 @@ int mpol_misplaced(struct page *page, st
- 		 * else select nearest allowed node, if any.
- 		 * If no allowed nodes, use current [!misplaced].
- 		 */
--		if (node_isset(curnid, pol->v.nodes))
-+		if (node_isset(curnid, pol->nodes))
- 			goto out;
- 		z = first_zones_zonelist(
- 				node_zonelist(numa_node_id(), GFP_HIGHUSER),
- 				gfp_zone(GFP_HIGHUSER),
--				&pol->v.nodes);
-+				&pol->nodes);
- 		polnid = zone_to_nid(z->zone);
- 		break;
- 
-@@ -2688,7 +2680,7 @@ int mpol_set_shared_policy(struct shared
- 		 vma->vm_pgoff,
- 		 sz, npol ? npol->mode : -1,
- 		 npol ? npol->flags : -1,
--		 npol ? nodes_addr(npol->v.nodes)[0] : NUMA_NO_NODE);
-+		 npol ? nodes_addr(npol->nodes)[0] : NUMA_NO_NODE);
- 
- 	if (npol) {
- 		new = sp_alloc(vma->vm_pgoff, vma->vm_pgoff + sz, npol);
-@@ -2786,7 +2778,7 @@ void __init numa_policy_init(void)
- 			.refcnt = ATOMIC_INIT(1),
- 			.mode = MPOL_PREFERRED,
- 			.flags = MPOL_F_MOF | MPOL_F_MORON,
--			.v = { .preferred_node = nid, },
-+			.nodes = nodemask_of_node(nid),
- 		};
- 	}
- 
-@@ -2945,12 +2937,14 @@ int mpol_parse_str(char *str, struct mem
- 	 * Save nodes for mpol_to_str() to show the tmpfs mount options
- 	 * for /proc/mounts, /proc/pid/mounts and /proc/pid/mountinfo.
- 	 */
--	if (mode != MPOL_PREFERRED)
--		new->v.nodes = nodes;
--	else if (nodelist)
--		new->v.preferred_node = first_node(nodes);
--	else
-+	if (mode != MPOL_PREFERRED) {
-+		new->nodes = nodes;
-+	} else if (nodelist) {
-+		nodes_clear(new->nodes);
-+		node_set(first_node(nodes), new->nodes);
-+	} else {
- 		new->mode = MPOL_LOCAL;
-+	}
- 
- 	/*
- 	 * Save nodes for contextualization: this will be used to "clone"
-@@ -2999,11 +2993,9 @@ void mpol_to_str(char *buffer, int maxle
- 	case MPOL_LOCAL:
- 		break;
- 	case MPOL_PREFERRED:
--		node_set(pol->v.preferred_node, nodes);
--		break;
- 	case MPOL_BIND:
- 	case MPOL_INTERLEAVE:
--		nodes = pol->v.nodes;
-+		nodes = pol->nodes;
- 		break;
- 	default:
- 		WARN_ON_ONCE(1);
-_
-
-Patches currently in -mm which might be from ben.widawsky@intel.com are
-
-mm-mempolicy-use-unified-nodes-for-bind-interleave-prefer-policies.patch
-
+> Acked-by: Christian Borntraeger <borntraeger@de.ibm.com>	[s390]
+> Cc: Nicholas Piggin <npiggin@gmail.com>
+> Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: David Rientjes <rientjes@google.com>
+> Cc: Janosch Frank <frankja@linux.ibm.com>
+> Cc: David Hildenbrand <david@redhat.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>=20
+>  arch/s390/kvm/pv.c |    5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>=20
+> --- a/arch/s390/kvm/pv.c~kvm-s390-fix-for-hugepage-vmalloc
+> +++ a/arch/s390/kvm/pv.c
+> @@ -140,7 +140,10 @@ static int kvm_s390_pv_alloc_vm(struct k
+>  	/* Allocate variable storage */
+>  	vlen =3D ALIGN(virt * ((npages * PAGE_SIZE) / HPAGE_SIZE), PAGE_SIZE);
+>  	vlen +=3D uv_info.guest_virt_base_stor_len;
+> -	kvm->arch.pv.stor_var =3D vzalloc(vlen);
+> +	kvm->arch.pv.stor_var =3D __vmalloc_node_range(vlen, PAGE_SIZE, VMALLOC=
+_START, VMALLOC_END,
+> +						     GFP_KERNEL | __GFP_ZERO, PAGE_KERNEL,
+> +						     VM_NO_HUGE_VMAP, NUMA_NO_NODE,
+> +						     __builtin_return_address(0));
+>  	if (!kvm->arch.pv.stor_var)
+>  		goto out_err;
+>  	return 0;
+> _
+>=20
+> Patches currently in -mm which might be from imbrenda@linux.ibm.com are
+>=20
+> mm-vmalloc-export-__vmalloc_node_range.patch
+> kvm-s390-fix-for-hugepage-vmalloc.patch
+>=20
+>=20
