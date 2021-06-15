@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 007C4C2B9F4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:26:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59AF3C2B9F4
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:26:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D029F61153
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:26:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 320D8610A0
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:26:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231352AbhFOC2G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Jun 2021 22:28:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43976 "EHLO mail.kernel.org"
+        id S229829AbhFOC2i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Jun 2021 22:28:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44026 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231235AbhFOC2G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Jun 2021 22:28:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 48B896128B;
-        Tue, 15 Jun 2021 02:26:02 +0000 (UTC)
+        id S229782AbhFOC2h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Jun 2021 22:28:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BA80C6100B;
+        Tue, 15 Jun 2021 02:05:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623723962;
-        bh=LGhzZvCXy9jXjlZPzQcUe0YceEzbMsORUWMI7xnGbwE=;
+        s=korg; t=1623722748;
+        bh=ZFtyuTx8VLBSFTFBWid2ovfEPURebQPmXTtCIu3lq1Y=;
         h=Date:From:To:Subject:From;
-        b=pvQcIe6smcI/eK2VfRWP2yujJ1vvwI+WaqIuvZjfV8UnBsf1pdsePn4ls4FgBjnKd
-         XSOaylyi1unWmmq/bh9LnsXbhDla63SfLwFpJizOmCQ4bPAQlY8TnRqr2W8Ttp21y4
-         80a8ZlelucfLByEUQSAp859E84iAslw/zq6HMShQ=
-Date:   Mon, 14 Jun 2021 19:26:01 -0700
+        b=eug7IGURQ+BMQjci8V8eRyFxJ/9NAAjsGX0xe6RtJ+1m/zeoY9sdr1LuAVnXF7+bs
+         rIZUSFKFX7wLa9JC10nM0k+NeE+DQA/RBonpknnGFHPhAZAXkAcTJO83XQ4IDx0t0h
+         l17/iboJ6dIzW52duNm6P8b6kII1n7ZL5GmiDrzs=
+Date:   Mon, 14 Jun 2021 19:05:47 -0700
 From:   akpm@linux-foundation.org
-To:     apopple@nvidia.com, hughd@google.com,
+To:     aquini@redhat.com, hca@linux.ibm.com,
         kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        peterx@redhat.com, rcampbell@nvidia.com, shy828301@gmail.com,
-        stable@vger.kernel.org, wangyugui@e16-tech.com, will@kernel.org,
-        willy@infradead.org, ziy@nvidia.com
-Subject:  [withdrawn]
- mm-page_vma_mapped_walk-use-pmd_read_atomic.patch removed from -mm tree
-Message-ID: <20210615022601.2rVBCGlMk%akpm@linux-foundation.org>
+        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
+        yuzhao@google.com
+Subject:  + mm-mark-idle-page-tracking-as-broken.patch added to -mm
+ tree
+Message-ID: <20210615020547.0bhMmTZsz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,78 +45,77 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_vma_mapped_walk(): use pmd_read_atomic()
-has been removed from the -mm tree.  Its filename was
-     mm-page_vma_mapped_walk-use-pmd_read_atomic.patch
+     Subject: mm: mark idle page tracking as BROKEN
+has been added to the -mm tree.  Its filename is
+     mm-mark-idle-page-tracking-as-broken.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mark-idle-page-tracking-as-broken.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mark-idle-page-tracking-as-broken.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: page_vma_mapped_walk(): use pmd_read_atomic()
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: mark idle page tracking as BROKEN
 
-page_vma_mapped_walk() cleanup: use pmd_read_atomic() with barrier()
-instead of READ_ONCE() for pmde: some architectures (e.g.  i386 with PAE)
-have a multi-word pmd entry, for which READ_ONCE() is not good enough.
+In discussion with other MM developers around how idle page tracking
+should be fixed for transparent huge pages, several expressed the opinion
+that it should be removed as it is inefficient at accomplishing the job
+that it is supposed to, and we have better mechanisms (eg uffd) for
+accomplishing the same goals these days.
 
-Link: https://lkml.kernel.org/r/594c1f0-d396-5346-1f36-606872cddb18@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Wang Yugui <wangyugui@e16-tech.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Mark the feature as BROKEN for now and we can remove it entirely in a few
+months if nobody complains.  It is not enabled by Android, ChromeOS,
+Debian, Fedora or SUSE.  Red Hat enabled it with RHEL-8.1 and UEK followed
+suit, but I have been unable to find why RHEL enabled it.
+
+Link: https://lkml.kernel.org/r/20210612000714.775825-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Yu Zhao <yuzhao@google.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+SeongJae Park <sj38.park@gmail.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_vma_mapped.c~mm-page_vma_mapped_walk-use-pmd_read_atomic
-+++ a/mm/page_vma_mapped.c
-@@ -182,13 +182,16 @@ restart:
- 	pud = pud_offset(p4d, pvmw->address);
- 	if (!pud_present(*pud))
- 		return false;
-+
- 	pvmw->pmd = pmd_offset(pud, pvmw->address);
- 	/*
- 	 * Make sure the pmd value isn't cached in a register by the
- 	 * compiler and used as a stale value after we've observed a
- 	 * subsequent update.
- 	 */
--	pmde = READ_ONCE(*pvmw->pmd);
-+	pmde = pmd_read_atomic(pvmw->pmd);
-+	barrier();
-+
- 	if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde)) {
- 		pvmw->ptl = pmd_lock(mm, pvmw->pmd);
- 		if (likely(pmd_trans_huge(*pvmw->pmd))) {
+--- a/mm/Kconfig~mm-mark-idle-page-tracking-as-broken
++++ a/mm/Kconfig
+@@ -772,7 +772,7 @@ config DEFERRED_STRUCT_PAGE_INIT
+ 
+ config IDLE_PAGE_TRACKING
+ 	bool "Enable idle page tracking"
+-	depends on SYSFS && MMU
++	depends on SYSFS && MMU && BROKEN
+ 	select PAGE_EXTENSION if !64BIT
+ 	help
+ 	  This feature allows to estimate the amount of user pages that have
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-thp-fix-__split_huge_pmd_locked-on-shmem-migration-entry.patch
-mm-thp-make-is_huge_zero_pmd-safe-and-quicker.patch
-mm-thp-try_to_unmap-use-ttu_sync-for-safe-splitting.patch
-mm-thp-fix-vma_address-if-virtual-address-below-file-offset.patch
-mm-thp-unmap_mapping_page-to-fix-thp-truncate_cleanup_page.patch
-mm-page_vma_mapped_walk-use-page-for-pvmw-page.patch
-mm-page_vma_mapped_walk-settle-pagehuge-on-entry.patch
-mm-page_vma_mapped_walk-use-pmde-for-pvmw-pmd.patch
-mm-page_vma_mapped_walk-prettify-pvmw_migration-block.patch
-mm-page_vma_mapped_walk-crossing-page-table-boundary.patch
-mm-page_vma_mapped_walk-add-a-level-of-indentation.patch
-mm-page_vma_mapped_walk-use-goto-instead-of-while-1.patch
-mm-page_vma_mapped_walk-get-vma_address_end-earlier.patch
-mm-thp-fix-page_vma_mapped_walk-if-thp-mapped-by-ptes.patch
-mm-thp-another-pvmw_sync-fix-in-page_vma_mapped_walk.patch
-mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page.patch
-mm-thp-remap_page-is-only-needed-on-anonymous-thp.patch
-mm-hwpoison_user_mappings-try_to_unmap-with-ttu_sync.patch
+mm-mark-idle-page-tracking-as-broken.patch
+mm-make-__dump_page-static.patch
+mm-debug-factor-pagepoisoned-out-of-__dump_page.patch
+mm-page_owner-constify-dump_page_owner.patch
+mm-make-compound_head-const-preserving.patch
+mm-constify-get_pfnblock_flags_mask-and-get_pfnblock_migratetype.patch
+mm-constify-page_count-and-page_ref_count.patch
+mm-optimise-nth_page-for-contiguous-memmap.patch
 
