@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0EA0C2B9F4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:00:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD1D0C2B9F4
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:03:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F1966109D
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:00:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B47D8610F7
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:03:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229689AbhFOACp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Jun 2021 20:02:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39508 "EHLO mail.kernel.org"
+        id S229649AbhFOAFb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Jun 2021 20:05:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39726 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229499AbhFOACp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Jun 2021 20:02:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 38FD3610EA;
-        Tue, 15 Jun 2021 00:00:25 +0000 (UTC)
+        id S229536AbhFOAFa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Jun 2021 20:05:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ABF6D60FEA;
+        Tue, 15 Jun 2021 00:03:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623715225;
-        bh=q13roYHMtiqbs2/tXaeqnXDbVl7oz88bycNe6h3qie8=;
+        s=korg; t=1623715391;
+        bh=zmx2B3Nc+sMWlBdF/09tMN5bNiwvXovzObzQULC371k=;
         h=Date:From:To:Subject:From;
-        b=tZhIdNDM0rF4rO2L6MXu89nOx352FZ1b7h85ijE0Wk0yhzD7wOrsG/roY/5gxfPio
-         hQsBfDtjE7Mbzxs1jtlGKhNXXz6WUzNXhA6oCUYJu8fecRflZzF4V8SXAm5uW4QwAF
-         //CVj05XJGT10I/hH1boQmOfI3ALP23ciBAlGIfQ=
-Date:   Mon, 14 Jun 2021 17:00:24 -0700
+        b=Cy2uFa5yil/fxQG83SATKI6PSdxQimV5Ds7tM7j76eY4GjEwhob25AU290yrAHKh6
+         FZaO+IJwenUw96p1MDC2Tho6T8U+aCimYu/oPxwtXMKt4OtKZk+C6jhfJxEzdn/hd+
+         gI7xnBxl2qhFx+9TdqF8QgzkQgDXMN6KTXs959tw=
+Date:   Mon, 14 Jun 2021 17:03:11 -0700
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, cohuck@redhat.com, david@redhat.com,
-        hch@infradead.org, imbrenda@linux.ibm.com, mingo@redhat.com,
-        mm-commits@vger.kernel.org, npiggin@gmail.com, rientjes@google.com,
-        tglx@linutronix.de, urezki@gmail.com
-Subject:  + mm-vmalloc-add-vmalloc_no_huge.patch added to -mm tree
-Message-ID: <20210615000024.QnqaLmIqD%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, denghuilong@cdjrlc.com, guro@fb.com,
+        hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org,
+        shakeelb@google.com
+Subject:  + mm-memcontrol-remove-trailing-semicolon-in-macros.patch
+ added to -mm tree
+Message-ID: <20210615000311.joyBnzIL2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: add vmalloc_no_huge
+     Subject: mm: memcontrol: remove trailing semicolon in macros
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-add-vmalloc_no_huge.patch
+     mm-memcontrol-remove-trailing-semicolon-in-macros.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-add-vmalloc_no_huge.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-trailing-semicolon-in-macros.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-add-vmalloc_no_huge.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-trailing-semicolon-in-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,96 +65,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Subject: mm/vmalloc: add vmalloc_no_huge
+From: Huilong Deng <denghuilong@cdjrlc.com>
+Subject: mm: memcontrol: remove trailing semicolon in macros
 
-Patch series "mm: add vmalloc_no_huge and use it", v4.
+Macros should not use a trailing semicolon.
 
-Add vmalloc_no_huge() and export it, so modules can allocate memory with
-small pages.
-
-Use the newly added vmalloc_no_huge() in KVM on s390 to get around a
-hardware limitation.
-
-
-This patch (of 2):
-
-Commit 121e6f3258fe3 ("mm/vmalloc: hugepage vmalloc mappings") added
-support for hugepage vmalloc mappings, it also added the flag
-VM_NO_HUGE_VMAP for __vmalloc_node_range to request the allocation to be
-performed with 0-order non-huge pages.  This flag is not accessible when
-calling vmalloc, the only option is to call directly __vmalloc_node_range,
-which is not exported.
-
-This means that a module can't vmalloc memory with small pages.
-
-Case in point: KVM on s390x needs to vmalloc a large area, and it needs to
-be mapped with non-huge pages, because of a hardware limitation.
-
-This patch adds the function vmalloc_no_huge, which works like vmalloc,
-but it is guaranteed to always back the mapping using small pages.  This
-new function is exported, therefore it is usable by modules.
-
-Link: https://lkml.kernel.org/r/20210614132357.10202-1-imbrenda@linux.ibm.com
-Link: https://lkml.kernel.org/r/20210614132357.10202-2-imbrenda@linux.ibm.com
-Fixes: 121e6f3258fe3 ("mm/vmalloc: hugepage vmalloc mappings") 
-Signed-off-by: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Acked-by: Nicholas Piggin <npiggin@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Cornelia Huck <cohuck@redhat.com>
+Link: https://lkml.kernel.org/r/20210614091530.22117-1-denghuilong@cdjrlc.com
+Signed-off-by: Huilong Deng <denghuilong@cdjrlc.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    1 +
- mm/vmalloc.c            |   16 ++++++++++++++++
- 2 files changed, 17 insertions(+)
+ include/linux/memcontrol.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/vmalloc.h~mm-vmalloc-add-vmalloc_no_huge
-+++ a/include/linux/vmalloc.h
-@@ -135,6 +135,7 @@ extern void *__vmalloc_node_range(unsign
- 			const void *caller);
- void *__vmalloc_node(unsigned long size, unsigned long align, gfp_t gfp_mask,
- 		int node, const void *caller);
-+void *vmalloc_no_huge(unsigned long size);
- 
- extern void vfree(const void *addr);
- extern void vfree_atomic(const void *addr);
---- a/mm/vmalloc.c~mm-vmalloc-add-vmalloc_no_huge
-+++ a/mm/vmalloc.c
-@@ -2999,6 +2999,22 @@ void *vmalloc(unsigned long size)
- EXPORT_SYMBOL(vmalloc);
- 
- /**
-+ * vmalloc_no_huge - allocate virtually contiguous memory using small pages
-+ * @size:    allocation size
-+ *
-+ * Allocate enough non-huge pages to cover @size from the page level
-+ * allocator and map them into contiguous kernel virtual space.
-+ *
-+ * Return: pointer to the allocated memory or %NULL on error
-+ */
-+void *vmalloc_no_huge(unsigned long size)
-+{
-+	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END, GFP_KERNEL, PAGE_KERNEL,
-+				    VM_NO_HUGE_VMAP, NUMA_NO_NODE, __builtin_return_address(0));
-+}
-+EXPORT_SYMBOL(vmalloc_no_huge);
-+
-+/**
-  * vzalloc - allocate virtually contiguous memory with zero fill
-  * @size:    allocation size
-  *
+--- a/include/linux/memcontrol.h~mm-memcontrol-remove-trailing-semicolon-in-macros
++++ a/include/linux/memcontrol.h
+@@ -192,7 +192,7 @@ enum memcg_kmem_state {
+ struct memcg_padding {
+ 	char x[0];
+ } ____cacheline_internodealigned_in_smp;
+-#define MEMCG_PADDING(name)      struct memcg_padding name;
++#define MEMCG_PADDING(name)      struct memcg_padding name
+ #else
+ #define MEMCG_PADDING(name)
+ #endif
 _
 
-Patches currently in -mm which might be from imbrenda@linux.ibm.com are
+Patches currently in -mm which might be from denghuilong@cdjrlc.com are
 
-mm-vmalloc-add-vmalloc_no_huge.patch
-kvm-s390-prepare-for-hugepage-vmalloc.patch
+mm-memcontrol-remove-trailing-semicolon-in-macros.patch
 
