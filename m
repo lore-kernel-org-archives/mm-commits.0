@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AE1BC2B9F4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:36:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E64FC48BE6
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:46:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 64B6561166
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:36:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56831611CE
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:46:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230504AbhFOCih (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Jun 2021 22:38:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45804 "EHLO mail.kernel.org"
+        id S230040AbhFOCsh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Jun 2021 22:48:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47746 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230168AbhFOCih (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Jun 2021 22:38:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B6E4161418;
-        Tue, 15 Jun 2021 02:00:41 +0000 (UTC)
+        id S230082AbhFOCsg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Jun 2021 22:48:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AFB1561059;
+        Tue, 15 Jun 2021 02:38:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623722442;
-        bh=oFJWb9SEvYYDkTegwyPqGMW7sEk4RFrX4GCojwnYf2Y=;
+        s=korg; t=1623724689;
+        bh=cZzJmvObAhdTzfDg5LPXi7+Kdk1+r8/S88FT/0IYqK4=;
         h=Date:From:To:Subject:From;
-        b=Tli7emldu11d/+z3S9cU3QbfbOGEU3sWuYgz4vjFyt2tjAz+w6nR4jiDqwv9OMQuW
-         Ttm3/uuwcA+pNRqwi2XY5LivG1JfsDlvCckzx0bIYqeSVBuVNTdApzYCYo6X+WMR1s
-         COkdqzQ3AUn7FoI5eJ6WVdou0n6Jc3+CSCTs7ukE=
-Date:   Mon, 14 Jun 2021 19:00:41 -0700
+        b=Tu3QYotx8NH7DxWBwXWLOXgNKby71Ea4CgVhAaMt6paSdf4SvxnN5CTS8dahCGQ46
+         LZqSLgCINPdQ8NxpcChuzkFdSu7aJG8WHjNzqMk8NJR7WS++DGzcVVlp483A4yPso2
+         PA03R/ZEP4LzQXSPAdqCn2XmX998LeGFyv9bxypg=
+Date:   Mon, 14 Jun 2021 19:38:09 -0700
 From:   akpm@linux-foundation.org
-To:     jack@suse.cz, jannh@google.com, jhubbard@nvidia.com,
-        kirill@shutemov.name, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, willy@infradead.org
+To:     anton@ozlabs.org, benh@kernel.crashing.org, luto@kernel.org,
+        mm-commits@vger.kernel.org, npiggin@gmail.com, paulus@ozlabs.org,
+        rdunlap@infradead.org
 Subject:  +
- mm-gup-fix-try_grab_compound_head-race-with-split_huge_page.patch added to
+ lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix.patch added to
  -mm tree
-Message-ID: <20210615020041.qqEq-TYtT%akpm@linux-foundation.org>
+Message-ID: <20210615023809.QWQEZlh6u%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: fix try_grab_compound_head() race with split_huge_page()
+     Subject: lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix
 has been added to the -mm tree.  Its filename is
-     mm-gup-fix-try_grab_compound_head-race-with-split_huge_page.patch
+     lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-fix-try_grab_compound_head-race-with-split_huge_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-fix-try_grab_compound_head-race-with-split_huge_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,167 +66,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: mm/gup: fix try_grab_compound_head() race with split_huge_page()
+From: Nicholas Piggin <npiggin@gmail.com>
+Subject: lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix
 
-try_grab_compound_head() is used to grab a reference to a page from
-get_user_pages_fast(), which is only protected against concurrent freeing
-of page tables (via local_irq_save()), but not against concurrent TLB
-flushes, freeing of data pages, or splitting of compound pages.
+Update the comment to be clearer, and account for the improvement
+to MMU_LAZY_TLB_REFCOUNT comment.
 
-Because no reference is held to the page when try_grab_compound_head() is
-called, the page may have been freed and reallocated by the time its
-refcount has been elevated; therefore, once we're holding a stable
-reference to the page, the caller re-checks whether the PTE still points
-to the same page (with the same access rights).
-
-The problem is that try_grab_compound_head() has to grab a reference on
-the head page; but between the time we look up what the head page is and
-the time we actually grab a reference on the head page, the compound page
-may have been split up (either explicitly through split_huge_page() or by
-freeing the compound page to the buddy allocator and then allocating its
-individual order-0 pages).  If that happens, get_user_pages_fast() may end
-up returning the right page but lifting the refcount on a now-unrelated
-page, leading to use-after-free of pages.
-
-To fix it: Re-check whether the pages still belong together after lifting
-the refcount on the head page.  Move anything else that checks
-compound_head(page) below the refcount increment.
-
-This can't actually happen on bare-metal x86 (because there, disabling
-IRQs locks out remote TLB flushes), but it can happen on virtualized x86
-(e.g.  under KVM) and probably also on arm64.  The race window is pretty
-narrow, and constantly allocating and shattering hugepages isn't exactly
-fast; for now I've only managed to reproduce this in an x86 KVM guest with
-an artificially widened timing window (by adding a loop that repeatedly
-calls `inl(0x3f8 + 5)` in `try_get_compound_head()` to force VM exits, so
-that PV TLB flushes are used instead of IPIs).
-
-As requested on the list, also replace the existing VM_BUG_ON_PAGE() with
-a warning and bailout.  Since the existing code only performed the BUG_ON
-check on DEBUG_VM kernels, ensure that the new code also only performs the
-check under that configuration - I don't want to mix two logically
-separate changes together too much.  The macro VM_WARN_ON_ONCE_PAGE()
-doesn't return a value on !DEBUG_VM, so wrap the whole check in an #ifdef
-block.  An alternative would be to change the VM_WARN_ON_ONCE_PAGE()
-definition for !DEBUG_VM such that it always returns false, but since that
-would differ from the behavior of the normal WARN macros, it might be too
-confusing for readers.
-
-Link: https://lkml.kernel.org/r/20210615012014.1100672-1-jannh@google.com
-Fixes: 7aef4172c795 ("mm: handle PTE-mapped tail pages in gerneric fast gup implementaiton")
-Signed-off-by: Jann Horn <jannh@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/1623121901.mszkmmum0n.astroid@bobo.none
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Cc: Anton Blanchard <anton@ozlabs.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@ozlabs.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   58 +++++++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 43 insertions(+), 15 deletions(-)
+ arch/Kconfig |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
---- a/mm/gup.c~mm-gup-fix-try_grab_compound_head-race-with-split_huge_page
-+++ a/mm/gup.c
-@@ -44,6 +44,23 @@ static void hpage_pincount_sub(struct pa
- 	atomic_sub(refs, compound_pincount_ptr(page));
- }
+--- a/arch/Kconfig~lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix
++++ a/arch/Kconfig
+@@ -423,15 +423,16 @@ config MMU_LAZY_TLB_REFCOUNT
+ 	def_bool y
+ 	depends on !MMU_LAZY_TLB_SHOOTDOWN
  
-+/* Equivalent to calling put_page() @refs times. */
-+static void put_page_refs(struct page *page, int refs)
-+{
-+#ifdef CONFIG_DEBUG_VM
-+	if (VM_WARN_ON_ONCE_PAGE(page_ref_count(page) < refs, page))
-+		return;
-+#endif
-+
-+	/*
-+	 * Calling put_page() for each ref is unnecessarily slow. Only the last
-+	 * ref needs a put_page().
-+	 */
-+	if (refs > 1)
-+		page_ref_sub(page, refs - 1);
-+	put_page(page);
-+}
-+
- /*
-  * Return the compound head page with ref appropriately incremented,
-  * or NULL if that failed.
-@@ -56,6 +73,21 @@ static inline struct page *try_get_compo
- 		return NULL;
- 	if (unlikely(!page_cache_add_speculative(head, refs)))
- 		return NULL;
-+
-+	/*
-+	 * At this point we have a stable reference to the head page; but it
-+	 * could be that between the compound_head() lookup and the refcount
-+	 * increment, the compound page was split, in which case we'd end up
-+	 * holding a reference on a page that has nothing to do with the page
-+	 * we were given anymore.
-+	 * So now that the head page is stable, recheck that the pages still
-+	 * belong together.
-+	 */
-+	if (unlikely(compound_head(page) != head)) {
-+		put_page_refs(head, refs);
-+		return NULL;
-+	}
-+
- 	return head;
- }
+-# Instead of refcounting the lazy mm struct for kernel thread references
+-# (which can cause contention with multi-threaded apps on large multiprocessor
+-# systems), this option causes __mmdrop to IPI all CPUs in the mm_cpumask and
+-# switch to init_mm if they were using the to-be-freed mm as the lazy tlb. To
+-# implement this, architectures must use _lazy_tlb variants of mm refcounting
+-# when releasing kernel thread mm references, and mm_cpumask must include at
+-# least all possible CPUs in which the mm might be lazy, at the time of the
+-# final mmdrop. mmgrab/mmdrop in arch/ code must be switched to _lazy_tlb
+-# postfix as necessary.
++# This option allows MMU_LAZY_TLB_REFCOUNT=n. It ensures no CPUs are using an
++# mm as a lazy tlb beyond its last reference count, by shooting down these
++# users before the mm is deallocated. __mmdrop() first IPIs all CPUs that may
++# be using the mm as a lazy tlb, so that they may switch themselves to using
++# init_mm for their active mm. mm_cpumask(mm) is used to determine which CPUs
++# may be using mm as a lazy tlb mm.
++#
++# To implement this, an arch must ensure mm_cpumask(mm) contains at least all
++# possible CPUs in which the mm is lazy, and it must meet the requirements for
++# MMU_LAZY_TLB_REFCOUNT=n (see above).
+ config MMU_LAZY_TLB_SHOOTDOWN
+ 	bool
  
-@@ -96,6 +128,14 @@ __maybe_unused struct page *try_grab_com
- 			return NULL;
- 
- 		/*
-+		 * CAUTION: Don't use compound_head() on the page before this
-+		 * point, the result won't be stable.
-+		 */
-+		page = try_get_compound_head(page, refs);
-+		if (!page)
-+			return NULL;
-+
-+		/*
- 		 * When pinning a compound page of order > 1 (which is what
- 		 * hpage_pincount_available() checks for), use an exact count to
- 		 * track it, via hpage_pincount_add/_sub().
-@@ -103,15 +143,10 @@ __maybe_unused struct page *try_grab_com
- 		 * However, be sure to *also* increment the normal page refcount
- 		 * field at least once, so that the page really is pinned.
- 		 */
--		if (!hpage_pincount_available(page))
--			refs *= GUP_PIN_COUNTING_BIAS;
--
--		page = try_get_compound_head(page, refs);
--		if (!page)
--			return NULL;
--
- 		if (hpage_pincount_available(page))
- 			hpage_pincount_add(page, refs);
-+		else
-+			page_ref_add(page, refs * (GUP_PIN_COUNTING_BIAS - 1));
- 
- 		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_ACQUIRED,
- 				    orig_refs);
-@@ -135,14 +170,7 @@ static void put_compound_head(struct pag
- 			refs *= GUP_PIN_COUNTING_BIAS;
- 	}
- 
--	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
--	/*
--	 * Calling put_page() for each ref is unnecessarily slow. Only the last
--	 * ref needs a put_page().
--	 */
--	if (refs > 1)
--		page_ref_sub(page, refs - 1);
--	put_page(page);
-+	put_page_refs(page, refs);
- }
- 
- /**
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from npiggin@gmail.com are
 
-mm-gup-fix-try_grab_compound_head-race-with-split_huge_page.patch
+lazy-tlb-introduce-lazy-mm-refcount-helper-functions.patch
+lazy-tlb-introduce-lazy-mm-refcount-helper-functions-fix.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable.patch
+lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option.patch
+lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix.patch
+powerpc-64s-enable-mmu_lazy_tlb_shootdown.patch
 
