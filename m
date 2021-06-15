@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1174C48BE8
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:46:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32AB2C2B9F4
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 03:05:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A3B35611CE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:46:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 17FEA613F1
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 03:05:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230082AbhFOCsi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Jun 2021 22:48:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47736 "EHLO mail.kernel.org"
+        id S230136AbhFODHe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Jun 2021 23:07:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51700 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230084AbhFOCsh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Jun 2021 22:48:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 272FF613F5;
-        Tue, 15 Jun 2021 02:40:33 +0000 (UTC)
+        id S229613AbhFODHb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Jun 2021 23:07:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DE0A9613BF;
+        Tue, 15 Jun 2021 03:05:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623724833;
-        bh=GjDBjUdxX1kUUQxhBG8gRzvq2SBuJDTmrVpEFV9UHiI=;
+        s=korg; t=1623726327;
+        bh=FKxpxdIm0tX+7jVaBF3UL+yA+L/oUsSWiLZpJRWWYio=;
         h=Date:From:To:Subject:From;
-        b=F/bKwqvymINaLu2TdjVzLKrMlapT/fJjCaJ+XMLGCWgra7CinjGirkvEzaArSoZCC
-         XPuee7cLcILWwrLJ+NQsAEvY+x7UHSEvhGDePIkBCauRjNA+Fa7eq5q7ldtS/x8DHD
-         Md80H+NCtog2JHqTbo5oqw5/sYHnS6aj33WRYHms=
-Date:   Mon, 14 Jun 2021 19:40:32 -0700
+        b=k0TdeC738+6iAISFbdthPOgv/dY9N9hJhNRjNgWjcPrg6/vjzDcPDaxiFqux4NbI/
+         xADgpzVnLUWeMxETLoMn/vt5w5N+6NbENBcY5eHzmeG60NnD49VmHQGWOgDhOojBZU
+         kgJ1Yo21VpxYU+44D+iOco7l15fA5VxuyCKKHZIE=
+Date:   Mon, 14 Jun 2021 20:05:26 -0700
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org,
-        willy@infradead.org
-Subject:  [obsolete]
- mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch removed from
+To:     dan.j.williams@intel.com, hannes@cmpxchg.org, hch@lst.de,
+        hughd@google.com, iamjoonsoo.kim@lge.com, idryomov@gmail.com,
+        linmiaohe@huawei.com, mgorman@techsingularity.net,
+        mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org,
+        vbabka@suse.cz, willy@infradead.org, ying.huang@intel.com
+Subject:  +
+ swap-check-mapping_empty-for-swap-cache-before-being-freed.patch added to
  -mm tree
-Message-ID: <20210615024032.oPKLCETLn%akpm@linux-foundation.org>
+Message-ID: <20210615030526.frLVuMucI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,77 +47,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: remove unused global variable nr_swapper_spaces
-has been removed from the -mm tree.  Its filename was
-     mm-swap-remove-unused-global-variable-nr_swapper_spaces.patch
+     Subject: swap: check mapping_empty() for swap cache before being freed
+has been added to the -mm tree.  Its filename is
+     swap-check-mapping_empty-for-swap-cache-before-being-freed.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/swap-check-mapping_empty-for-swap-cache-before-being-freed.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/swap-check-mapping_empty-for-swap-cache-before-being-freed.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: remove unused global variable nr_swapper_spaces
+From: Huang Ying <ying.huang@intel.com>
+Subject: swap: check mapping_empty() for swap cache before being freed
 
-Since commit b6038942480e ("mm: memcg: add swapcache stat for memcg v2"),
-the last user of nr_swapper_spaces is gone.  So we remove this unused one.
+To check whether all pages and shadow entries in swap cache has been
+removed before swap cache is freed.
 
-Link: https://lkml.kernel.org/r/20210520134022.1370406-5-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/20210608005121.511140-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ilya Dryomov <idryomov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/swap_state.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/swap_state.c~mm-swap-remove-unused-global-variable-nr_swapper_spaces
+--- a/mm/swap_state.c~swap-check-mapping_empty-for-swap-cache-before-being-freed
 +++ a/mm/swap_state.c
-@@ -37,7 +37,6 @@ static const struct address_space_operat
- };
+@@ -693,7 +693,12 @@ int init_swap_address_space(unsigned int
  
- struct address_space *swapper_spaces[MAX_SWAPFILES] __read_mostly;
--static unsigned int nr_swapper_spaces[MAX_SWAPFILES] __read_mostly;
- static bool enable_vma_readahead __read_mostly = true;
- 
- #define SWAP_RA_WIN_SHIFT	(PAGE_SHIFT / 2)
-@@ -685,7 +684,6 @@ int init_swap_address_space(unsigned int
- 		/* swap cache doesn't use writeback related tags */
- 		mapping_set_no_writeback_tags(space);
- 	}
--	nr_swapper_spaces[type] = nr;
- 	swapper_spaces[type] = spaces;
- 
- 	return 0;
-@@ -694,7 +692,6 @@ int init_swap_address_space(unsigned int
  void exit_swap_address_space(unsigned int type)
  {
- 	kvfree(swapper_spaces[type]);
--	nr_swapper_spaces[type] = 0;
+-	kvfree(swapper_spaces[type]);
++	int i;
++	struct address_space *spaces = swapper_spaces[type];
++
++	for (i = 0; i < nr_swapper_spaces[type]; i++)
++		VM_WARN_ON_ONCE(!mapping_empty(&spaces[i]));
++	kvfree(spaces);
+ 	nr_swapper_spaces[type] = 0;
  	swapper_spaces[type] = NULL;
  }
- 
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
-swap-fix-do_swap_page-race-with-swapoff.patch
-mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
-mm-shmem-fix-shmem_swapin-race-with-swapoff.patch
-mm-swapfile-move-get_swap_page_of_type-under-config_hibernation.patch
-mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix.patch
-mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix-2.patch
-mm-swap-remove-unused-local-variable-nr_shadows.patch
-mm-swap_slotsc-delete-meaningless-forward-declarations.patch
-mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
-mm-huge_memoryc-use-page-deferred_list.patch
-mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled.patch
-mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4.patch
-mm-huge_memoryc-remove-unnecessary-tlb_remove_page_size-for-huge-zero-pmd.patch
-mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
-mm-zbud-reuse-unbuddied-as-buddied-in-zbud_pool.patch
-mm-zbud-dont-export-any-zbud-api.patch
-mm-zswapc-remove-unused-function-zswap_debugfs_exit.patch
-mm-zswapc-avoid-unnecessary-copy-in-at-map-time.patch
-mm-zswapc-fix-two-bugs-in-zswap_writeback_entry.patch
+mm-swap-remove-unnecessary-smp_rmb-in-swap_type_to_swap_info.patch
+mm-free-idle-swap-cache-page-after-cow.patch
+swap-check-mapping_empty-for-swap-cache-before-being-freed.patch
 
