@@ -2,40 +2,49 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1FE5C2B9F4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:20:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C91D8C2B9F4
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:21:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 99944613DA
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:20:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D7BB61209
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:21:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229829AbhFOAWg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Jun 2021 20:22:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42170 "EHLO mail.kernel.org"
+        id S229689AbhFOAXr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Jun 2021 20:23:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42278 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229689AbhFOAWg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Jun 2021 20:22:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0EE75613DA;
-        Tue, 15 Jun 2021 00:20:16 +0000 (UTC)
+        id S229649AbhFOAXr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Jun 2021 20:23:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EFAE561153;
+        Tue, 15 Jun 2021 00:21:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623716416;
-        bh=5J7rFe6G2WBq5+x7g6vE9temW7GW5vbLHqXELx/Rt/Y=;
+        s=korg; t=1623716503;
+        bh=PS+nixjfuf5ivZM/SsCUW5GTqs6yLZxhJmjxEt0/VnQ=;
         h=Date:From:To:Subject:From;
-        b=jfrnupzZgzjCN7yZ9VcvejakdByB6QvK1U2utxmxXs++mmSmcR00tzYcUXbUeSMOL
-         dH2wCserpYCIA+BcvUCa96iAEHgCStxwcXgSaz43DuTuF3klQrDRgCGf28UJlYd4QE
-         ZIRFAp6jzfNcSbBftDsaqcqQpfVAsMEe4L4YHsKg=
-Date:   Mon, 14 Jun 2021 17:20:15 -0700
+        b=pznOnJ+xWUuLv9d14jSD/jlyOHwjalf4DM1skytcXbqiSXaOPjOVTDqjZxOSwEDYT
+         fEe9jVae6y6vgnc5ybSEvEzSoU6MrkC2nPVSOIbTNu1ylMzRjLYlVwfl8LpuAa5fNw
+         ElorslBmdBo1mN3jW/n8VY2hnK8G1DHzZs+EV5+Y=
+Date:   Mon, 14 Jun 2021 17:21:42 -0700
 From:   akpm@linux-foundation.org
-To:     gregkh@linuxfoundation.org, hch@lst.de, jack@suse.cz,
-        mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        willy@infradead.org
-Subject:  +
- mm-require-set_page_dirty-to-be-explicitly-wire-up.patch added to -mm tree
-Message-ID: <20210615002015.1xIOeTRF1%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, bcain@codeaurora.org,
+        catalin.marinas@arm.com, chris@zankel.net,
+        christophe.leroy@csgroup.eu, davem@davemloft.net,
+        geert@linux-m68k.org, guoren@kernel.org, hca@linux.ibm.com,
+        James.Bottomley@HansenPartnership.com, jdike@addtoit.com,
+        jonas@southpole.se, ley.foon.tan@intel.com,
+        mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au,
+        nickhu@andestech.com, palmer@dabbelt.com, paul.walmsley@sifive.com,
+        rppt@linux.ibm.com, rth@twiddle.net, shorne@gmail.com,
+        stefan.kristiansson@saunalahti.fi, tglx@linutronix.de,
+        tsbogend@alpha.franken.de, vgupta@synopsys.com, will@kernel.org,
+        ysato@users.sourceforge.jp
+Subject:  + mm-thp-define-default-pmd_pgtable.patch added to -mm
+ tree
+Message-ID: <20210615002142.ZAgIbLCDd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: require ->set_page_dirty to be explicitly wired up
+     Subject: mm/thp: define default pmd_pgtable()
 has been added to the -mm tree.  Its filename is
-     mm-require-set_page_dirty-to-be-explicitly-wire-up.patch
+     mm-thp-define-default-pmd_pgtable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-require-set_page_dirty-to-be-explicitly-wire-up.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-define-default-pmd_pgtable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-require-set_page_dirty-to-be-explicitly-wire-up.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-define-default-pmd_pgtable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,335 +74,455 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: require ->set_page_dirty to be explicitly wired up
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/thp: define default pmd_pgtable()
 
-Remove the CONFIG_BLOCK default to __set_page_dirty_buffers and just wire
-that method up for the missing instances.
+Currently most platforms define pmd_pgtable() as pmd_page() duplicating
+the same code all over.  Instead just define a default value i.e
+pmd_page() for pmd_pgtable() and let platforms override when required via
+<asm/pgtable.h>.  All the existing platform that override pmd_pgtable()
+have been moved into their respective <asm/pgtable.h> header in order to
+precede before the new generic definition.  This makes it much cleaner
+with reduced code.
 
-Link: https://lkml.kernel.org/r/20210614061512.3966143-4-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/1623646133-20306-1-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Nick Hu <nickhu@andestech.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Brian Cain <bcain@codeaurora.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Ley Foon Tan <ley.foon.tan@intel.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/inode.c     |    1 +
- fs/affs/file.c      |    2 ++
- fs/bfs/file.c       |    1 +
- fs/block_dev.c      |    1 +
- fs/exfat/inode.c    |    1 +
- fs/ext2/inode.c     |    2 ++
- fs/fat/inode.c      |    1 +
- fs/gfs2/meta_io.c   |    2 ++
- fs/hfs/inode.c      |    2 ++
- fs/hfsplus/inode.c  |    2 ++
- fs/hpfs/file.c      |    1 +
- fs/jfs/inode.c      |    1 +
- fs/minix/inode.c    |    1 +
- fs/nilfs2/mdt.c     |    1 +
- fs/ocfs2/aops.c     |    1 +
- fs/omfs/file.c      |    1 +
- fs/sysv/itree.c     |    1 +
- fs/udf/file.c       |    1 +
- fs/udf/inode.c      |    1 +
- fs/ufs/inode.c      |    1 +
- mm/page-writeback.c |   18 ++++--------------
- 21 files changed, 29 insertions(+), 14 deletions(-)
+ arch/alpha/include/asm/pgalloc.h         |    1 -
+ arch/arc/include/asm/pgalloc.h           |    2 --
+ arch/arc/include/asm/pgtable.h           |    2 ++
+ arch/arm/include/asm/pgalloc.h           |    1 -
+ arch/arm64/include/asm/pgalloc.h         |    1 -
+ arch/csky/include/asm/pgalloc.h          |    2 --
+ arch/hexagon/include/asm/pgtable.h       |    1 -
+ arch/ia64/include/asm/pgalloc.h          |    1 -
+ arch/m68k/include/asm/mcf_pgalloc.h      |    2 --
+ arch/m68k/include/asm/mcf_pgtable.h      |    2 ++
+ arch/m68k/include/asm/motorola_pgalloc.h |    1 -
+ arch/m68k/include/asm/motorola_pgtable.h |    2 ++
+ arch/m68k/include/asm/sun3_pgalloc.h     |    1 -
+ arch/microblaze/include/asm/pgalloc.h    |    2 --
+ arch/mips/include/asm/pgalloc.h          |    1 -
+ arch/nds32/include/asm/pgalloc.h         |    5 -----
+ arch/nios2/include/asm/pgalloc.h         |    1 -
+ arch/openrisc/include/asm/pgalloc.h      |    2 --
+ arch/parisc/include/asm/pgalloc.h        |    1 -
+ arch/powerpc/include/asm/pgalloc.h       |    5 -----
+ arch/powerpc/include/asm/pgtable.h       |    6 ++++++
+ arch/riscv/include/asm/pgalloc.h         |    2 --
+ arch/s390/include/asm/pgalloc.h          |    3 ---
+ arch/s390/include/asm/pgtable.h          |    3 +++
+ arch/sh/include/asm/pgalloc.h            |    1 -
+ arch/sparc/include/asm/pgalloc_32.h      |    1 -
+ arch/sparc/include/asm/pgalloc_64.h      |    1 -
+ arch/sparc/include/asm/pgtable_32.h      |    2 ++
+ arch/sparc/include/asm/pgtable_64.h      |    2 ++
+ arch/um/include/asm/pgalloc.h            |    1 -
+ arch/x86/include/asm/pgalloc.h           |    2 --
+ arch/xtensa/include/asm/pgalloc.h        |    2 --
+ include/linux/pgtable.h                  |    9 +++++++++
+ 33 files changed, 28 insertions(+), 43 deletions(-)
 
---- a/fs/adfs/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/adfs/inode.c
-@@ -73,6 +73,7 @@ static sector_t _adfs_bmap(struct addres
- }
- 
- static const struct address_space_operations adfs_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage	= adfs_readpage,
- 	.writepage	= adfs_writepage,
- 	.write_begin	= adfs_write_begin,
---- a/fs/affs/file.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/affs/file.c
-@@ -453,6 +453,7 @@ static sector_t _affs_bmap(struct addres
- }
- 
- const struct address_space_operations affs_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage = affs_readpage,
- 	.writepage = affs_writepage,
- 	.write_begin = affs_write_begin,
-@@ -833,6 +834,7 @@ err_bh:
- }
- 
- const struct address_space_operations affs_aops_ofs = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage = affs_readpage_ofs,
- 	//.writepage = affs_writepage_ofs,
- 	.write_begin = affs_write_begin_ofs,
---- a/fs/bfs/file.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/bfs/file.c
-@@ -188,6 +188,7 @@ static sector_t bfs_bmap(struct address_
- }
- 
- const struct address_space_operations bfs_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage	= bfs_readpage,
- 	.writepage	= bfs_writepage,
- 	.write_begin	= bfs_write_begin,
---- a/fs/block_dev.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/block_dev.c
-@@ -1754,6 +1754,7 @@ static int blkdev_writepages(struct addr
- }
- 
- static const struct address_space_operations def_blk_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage	= blkdev_readpage,
- 	.readahead	= blkdev_readahead,
- 	.writepage	= blkdev_writepage,
---- a/fs/exfat/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/exfat/inode.c
-@@ -491,6 +491,7 @@ int exfat_block_truncate_page(struct ino
- }
- 
- static const struct address_space_operations exfat_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage	= exfat_readpage,
- 	.readahead	= exfat_readahead,
- 	.writepage	= exfat_writepage,
---- a/fs/ext2/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/ext2/inode.c
-@@ -961,6 +961,7 @@ ext2_dax_writepages(struct address_space
- }
- 
- const struct address_space_operations ext2_aops = {
-+	.set_page_dirty		= __set_page_dirty_buffers,
- 	.readpage		= ext2_readpage,
- 	.readahead		= ext2_readahead,
- 	.writepage		= ext2_writepage,
-@@ -975,6 +976,7 @@ const struct address_space_operations ex
- };
- 
- const struct address_space_operations ext2_nobh_aops = {
-+	.set_page_dirty		= __set_page_dirty_buffers,
- 	.readpage		= ext2_readpage,
- 	.readahead		= ext2_readahead,
- 	.writepage		= ext2_nobh_writepage,
---- a/fs/fat/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/fat/inode.c
-@@ -342,6 +342,7 @@ int fat_block_truncate_page(struct inode
- }
- 
- static const struct address_space_operations fat_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage	= fat_readpage,
- 	.readahead	= fat_readahead,
- 	.writepage	= fat_writepage,
---- a/fs/gfs2/meta_io.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/gfs2/meta_io.c
-@@ -89,11 +89,13 @@ static int gfs2_aspace_writepage(struct
- }
- 
- const struct address_space_operations gfs2_meta_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.writepage = gfs2_aspace_writepage,
- 	.releasepage = gfs2_releasepage,
- };
- 
- const struct address_space_operations gfs2_rgrp_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.writepage = gfs2_aspace_writepage,
- 	.releasepage = gfs2_releasepage,
- };
---- a/fs/hfs/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/hfs/inode.c
-@@ -159,6 +159,7 @@ static int hfs_writepages(struct address
- }
- 
- const struct address_space_operations hfs_btree_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage	= hfs_readpage,
- 	.writepage	= hfs_writepage,
- 	.write_begin	= hfs_write_begin,
-@@ -168,6 +169,7 @@ const struct address_space_operations hf
- };
- 
- const struct address_space_operations hfs_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage	= hfs_readpage,
- 	.writepage	= hfs_writepage,
- 	.write_begin	= hfs_write_begin,
---- a/fs/hfsplus/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/hfsplus/inode.c
-@@ -156,6 +156,7 @@ static int hfsplus_writepages(struct add
- }
- 
- const struct address_space_operations hfsplus_btree_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage	= hfsplus_readpage,
- 	.writepage	= hfsplus_writepage,
- 	.write_begin	= hfsplus_write_begin,
-@@ -165,6 +166,7 @@ const struct address_space_operations hf
- };
- 
- const struct address_space_operations hfsplus_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage	= hfsplus_readpage,
- 	.writepage	= hfsplus_writepage,
- 	.write_begin	= hfsplus_write_begin,
---- a/fs/hpfs/file.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/hpfs/file.c
-@@ -196,6 +196,7 @@ static int hpfs_fiemap(struct inode *ino
- }
- 
- const struct address_space_operations hpfs_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage = hpfs_readpage,
- 	.writepage = hpfs_writepage,
- 	.readahead = hpfs_readahead,
---- a/fs/jfs/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/jfs/inode.c
-@@ -356,6 +356,7 @@ static ssize_t jfs_direct_IO(struct kioc
- }
- 
- const struct address_space_operations jfs_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage	= jfs_readpage,
- 	.readahead	= jfs_readahead,
- 	.writepage	= jfs_writepage,
---- a/fs/minix/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/minix/inode.c
-@@ -442,6 +442,7 @@ static sector_t minix_bmap(struct addres
- }
- 
- static const struct address_space_operations minix_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage = minix_readpage,
- 	.writepage = minix_writepage,
- 	.write_begin = minix_write_begin,
---- a/fs/nilfs2/mdt.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/nilfs2/mdt.c
-@@ -434,6 +434,7 @@ nilfs_mdt_write_page(struct page *page,
- 
- 
- static const struct address_space_operations def_mdt_aops = {
-+	.set_page_dirty		= __set_page_dirty_buffers,
- 	.writepage		= nilfs_mdt_write_page,
- };
- 
---- a/fs/ocfs2/aops.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/ocfs2/aops.c
-@@ -2453,6 +2453,7 @@ static ssize_t ocfs2_direct_IO(struct ki
- }
- 
- const struct address_space_operations ocfs2_aops = {
-+	.set_page_dirty		= __set_page_dirty_buffers,
- 	.readpage		= ocfs2_readpage,
- 	.readahead		= ocfs2_readahead,
- 	.writepage		= ocfs2_writepage,
---- a/fs/omfs/file.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/omfs/file.c
-@@ -372,6 +372,7 @@ const struct inode_operations omfs_file_
- };
- 
- const struct address_space_operations omfs_aops = {
-+	.set_page_dirty = __set_page_dirty_buffers,
- 	.readpage = omfs_readpage,
- 	.readahead = omfs_readahead,
- 	.writepage = omfs_writepage,
---- a/fs/sysv/itree.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/sysv/itree.c
-@@ -495,6 +495,7 @@ static sector_t sysv_bmap(struct address
- }
- 
- const struct address_space_operations sysv_aops = {
-+	.set_page_dirty = __set_page_dirty_buffers,
- 	.readpage = sysv_readpage,
- 	.writepage = sysv_writepage,
- 	.write_begin = sysv_write_begin,
---- a/fs/udf/file.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/udf/file.c
-@@ -125,6 +125,7 @@ static int udf_adinicb_write_end(struct
- }
- 
- const struct address_space_operations udf_adinicb_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage	= udf_adinicb_readpage,
- 	.writepage	= udf_adinicb_writepage,
- 	.write_begin	= udf_adinicb_write_begin,
---- a/fs/udf/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/udf/inode.c
-@@ -235,6 +235,7 @@ static sector_t udf_bmap(struct address_
- }
- 
- const struct address_space_operations udf_aops = {
-+	.set_page_dirty	= __set_page_dirty_buffers,
- 	.readpage	= udf_readpage,
- 	.readahead	= udf_readahead,
- 	.writepage	= udf_writepage,
---- a/fs/ufs/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/fs/ufs/inode.c
-@@ -526,6 +526,7 @@ static sector_t ufs_bmap(struct address_
- }
- 
- const struct address_space_operations ufs_aops = {
-+	.set_page_dirty = __set_page_dirty_buffers,
- 	.readpage = ufs_readpage,
- 	.writepage = ufs_writepage,
- 	.write_begin = ufs_write_begin,
---- a/mm/page-writeback.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
-+++ a/mm/page-writeback.c
-@@ -32,7 +32,6 @@
- #include <linux/sysctl.h>
- #include <linux/cpu.h>
- #include <linux/syscalls.h>
--#include <linux/buffer_head.h> /* __set_page_dirty_buffers */
- #include <linux/pagevec.h>
- #include <linux/timer.h>
- #include <linux/sched/rt.h>
-@@ -2555,13 +2554,9 @@ EXPORT_SYMBOL(redirty_page_for_writepage
- /*
-  * Dirty a page.
-  *
-- * For pages with a mapping this should be done under the page lock
-- * for the benefit of asynchronous memory errors who prefer a consistent
-- * dirty state. This rule can be broken in some special cases,
-- * but should be better not to.
-- *
-- * If the mapping doesn't provide a set_page_dirty a_op, then
-- * just fall through and assume that it wants buffer_heads.
-+ * For pages with a mapping this should be done under the page lock for the
-+ * benefit of asynchronous memory errors who prefer a consistent dirty state.
-+ * This rule can be broken in some special cases, but should be better not to.
-  */
- int set_page_dirty(struct page *page)
+--- a/arch/alpha/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/alpha/include/asm/pgalloc.h
+@@ -18,7 +18,6 @@ pmd_populate(struct mm_struct *mm, pmd_t
  {
-@@ -2569,7 +2564,6 @@ int set_page_dirty(struct page *page)
+ 	pmd_set(pmd, (pte_t *)(page_to_pa(pte) + PAGE_OFFSET));
+ }
+-#define pmd_pgtable(pmd) pmd_page(pmd)
  
- 	page = compound_head(page);
- 	if (likely(mapping)) {
--		int (*spd)(struct page *) = mapping->a_ops->set_page_dirty;
- 		/*
- 		 * readahead/lru_deactivate_page could remain
- 		 * PG_readahead/PG_reclaim due to race with end_page_writeback
-@@ -2582,11 +2576,7 @@ int set_page_dirty(struct page *page)
- 		 */
- 		if (PageReclaim(page))
- 			ClearPageReclaim(page);
--#ifdef CONFIG_BLOCK
--		if (!spd)
--			spd = __set_page_dirty_buffers;
--#endif
--		return (*spd)(page);
-+		return mapping->a_ops->set_page_dirty(page);
- 	}
- 	if (!PageDirty(page)) {
- 		if (!TestSetPageDirty(page))
+ static inline void
+ pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd, pte_t *pte)
+--- a/arch/arc/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/arc/include/asm/pgalloc.h
+@@ -129,6 +129,4 @@ static inline void pte_free(struct mm_st
+ 
+ #define __pte_free_tlb(tlb, pte, addr)  pte_free((tlb)->mm, pte)
+ 
+-#define pmd_pgtable(pmd)	((pgtable_t) pmd_page_vaddr(pmd))
+-
+ #endif /* _ASM_ARC_PGALLOC_H */
+--- a/arch/arc/include/asm/pgtable.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/arc/include/asm/pgtable.h
+@@ -350,6 +350,8 @@ void update_mmu_cache(struct vm_area_str
+ 
+ #define kern_addr_valid(addr)	(1)
+ 
++#define pmd_pgtable(pmd)       ((pgtable_t) pmd_page_vaddr(pmd))
++
+ /*
+  * remap a physical page `pfn' of size `size' with page protection `prot'
+  * into virtual address `from'
+--- a/arch/arm64/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/arm64/include/asm/pgalloc.h
+@@ -86,6 +86,5 @@ pmd_populate(struct mm_struct *mm, pmd_t
+ 	VM_BUG_ON(mm == &init_mm);
+ 	__pmd_populate(pmdp, page_to_phys(ptep), PMD_TYPE_TABLE | PMD_TABLE_PXN);
+ }
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+ 
+ #endif
+--- a/arch/arm/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/arm/include/asm/pgalloc.h
+@@ -143,7 +143,6 @@ pmd_populate(struct mm_struct *mm, pmd_t
+ 
+ 	__pmd_populate(pmdp, page_to_phys(ptep), prot);
+ }
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+ 
+ #endif /* CONFIG_MMU */
+ 
+--- a/arch/csky/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/csky/include/asm/pgalloc.h
+@@ -22,8 +22,6 @@ static inline void pmd_populate(struct m
+ 	set_pmd(pmd, __pmd(__pa(page_address(pte))));
+ }
+ 
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+-
+ extern void pgd_init(unsigned long *p);
+ 
+ static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
+--- a/arch/hexagon/include/asm/pgtable.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/hexagon/include/asm/pgtable.h
+@@ -239,7 +239,6 @@ static inline int pmd_bad(pmd_t pmd)
+  * pmd_page - converts a PMD entry to a page pointer
+  */
+ #define pmd_page(pmd)  (pfn_to_page(pmd_val(pmd) >> PAGE_SHIFT))
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+ 
+ /**
+  * pte_none - check if pte is mapped
+--- a/arch/ia64/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/ia64/include/asm/pgalloc.h
+@@ -52,7 +52,6 @@ pmd_populate(struct mm_struct *mm, pmd_t
+ {
+ 	pmd_val(*pmd_entry) = page_to_phys(pte);
+ }
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+ 
+ static inline void
+ pmd_populate_kernel(struct mm_struct *mm, pmd_t * pmd_entry, pte_t * pte)
+--- a/arch/m68k/include/asm/mcf_pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/m68k/include/asm/mcf_pgalloc.h
+@@ -32,8 +32,6 @@ extern inline pmd_t *pmd_alloc_kernel(pg
+ 
+ #define pmd_populate_kernel pmd_populate
+ 
+-#define pmd_pgtable(pmd) pfn_to_virt(pmd_val(pmd) >> PAGE_SHIFT)
+-
+ static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pgtable,
+ 				  unsigned long address)
+ {
+--- a/arch/m68k/include/asm/mcf_pgtable.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/m68k/include/asm/mcf_pgtable.h
+@@ -150,6 +150,8 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
++#define pmd_pgtable(pmd) pfn_to_virt(pmd_val(pmd) >> PAGE_SHIFT)
++
+ /*
+  * Conversion functions: convert a page and protection to a page entry,
+  * and a page entry and page directory to the page they refer to.
+--- a/arch/m68k/include/asm/motorola_pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/m68k/include/asm/motorola_pgalloc.h
+@@ -88,7 +88,6 @@ static inline void pmd_populate(struct m
+ {
+ 	pmd_set(pmd, page);
+ }
+-#define pmd_pgtable(pmd) ((pgtable_t)pmd_page_vaddr(pmd))
+ 
+ static inline void pud_populate(struct mm_struct *mm, pud_t *pud, pmd_t *pmd)
+ {
+--- a/arch/m68k/include/asm/motorola_pgtable.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/m68k/include/asm/motorola_pgtable.h
+@@ -105,6 +105,8 @@ extern unsigned long mm_cachebits;
+ #define __S110	PAGE_SHARED_C
+ #define __S111	PAGE_SHARED_C
+ 
++#define pmd_pgtable(pmd) ((pgtable_t)pmd_page_vaddr(pmd))
++
+ /*
+  * Conversion functions: convert a page and protection to a page entry,
+  * and a page entry and page directory to the page they refer to.
+--- a/arch/m68k/include/asm/sun3_pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/m68k/include/asm/sun3_pgalloc.h
+@@ -32,7 +32,6 @@ static inline void pmd_populate(struct m
+ {
+ 	pmd_val(*pmd) = __pa((unsigned long)page_address(page));
+ }
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+ 
+ /*
+  * allocating and freeing a pmd is trivial: the 1-entry pmd is
+--- a/arch/microblaze/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/microblaze/include/asm/pgalloc.h
+@@ -28,8 +28,6 @@ static inline pgd_t *get_pgd(void)
+ 
+ #define pgd_alloc(mm)		get_pgd()
+ 
+-#define pmd_pgtable(pmd)	pmd_page(pmd)
+-
+ extern pte_t *pte_alloc_one_kernel(struct mm_struct *mm);
+ 
+ #define __pte_free_tlb(tlb, pte, addr)	pte_free((tlb)->mm, (pte))
+--- a/arch/mips/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/mips/include/asm/pgalloc.h
+@@ -28,7 +28,6 @@ static inline void pmd_populate(struct m
+ {
+ 	set_pmd(pmd, __pmd((unsigned long)page_address(pte)));
+ }
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+ 
+ /*
+  * Initialize a new pmd table with invalid pointers.
+--- a/arch/nds32/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/nds32/include/asm/pgalloc.h
+@@ -12,11 +12,6 @@
+ #define __HAVE_ARCH_PTE_ALLOC_ONE
+ #include <asm-generic/pgalloc.h>	/* for pte_{alloc,free}_one */
+ 
+-/*
+- * Since we have only two-level page tables, these are trivial
+- */
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+-
+ extern pgd_t *pgd_alloc(struct mm_struct *mm);
+ extern void pgd_free(struct mm_struct *mm, pgd_t * pgd);
+ 
+--- a/arch/nios2/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/nios2/include/asm/pgalloc.h
+@@ -25,7 +25,6 @@ static inline void pmd_populate(struct m
+ {
+ 	set_pmd(pmd, __pmd((unsigned long)page_address(pte)));
+ }
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+ 
+ /*
+  * Initialize a new pmd table with invalid pointers.
+--- a/arch/openrisc/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/openrisc/include/asm/pgalloc.h
+@@ -72,6 +72,4 @@ do {					\
+ 	tlb_remove_page((tlb), (pte));	\
+ } while (0)
+ 
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+-
+ #endif
+--- a/arch/parisc/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/parisc/include/asm/pgalloc.h
+@@ -69,6 +69,5 @@ pmd_populate_kernel(struct mm_struct *mm
+ 
+ #define pmd_populate(mm, pmd, pte_page) \
+ 	pmd_populate_kernel(mm, pmd, page_address(pte_page))
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+ 
+ #endif
+--- a/arch/powerpc/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/powerpc/include/asm/pgalloc.h
+@@ -70,9 +70,4 @@ extern struct kmem_cache *pgtable_cache[
+ #include <asm/nohash/pgalloc.h>
+ #endif
+ 
+-static inline pgtable_t pmd_pgtable(pmd_t pmd)
+-{
+-	return (pgtable_t)pmd_page_vaddr(pmd);
+-}
+-
+ #endif /* _ASM_POWERPC_PGALLOC_H */
+--- a/arch/powerpc/include/asm/pgtable.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/powerpc/include/asm/pgtable.h
+@@ -152,6 +152,12 @@ static inline bool p4d_is_leaf(p4d_t p4d
+ }
+ #endif
+ 
++#define pmd_pgtable pmd_pgtable
++static inline pgtable_t pmd_pgtable(pmd_t pmd)
++{
++	return (pgtable_t)pmd_page_vaddr(pmd);
++}
++
+ #ifdef CONFIG_PPC64
+ #define is_ioremap_addr is_ioremap_addr
+ static inline bool is_ioremap_addr(const void *x)
+--- a/arch/riscv/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/riscv/include/asm/pgalloc.h
+@@ -38,8 +38,6 @@ static inline void pud_populate(struct m
+ }
+ #endif /* __PAGETABLE_PMD_FOLDED */
+ 
+-#define pmd_pgtable(pmd)	pmd_page(pmd)
+-
+ static inline pgd_t *pgd_alloc(struct mm_struct *mm)
+ {
+ 	pgd_t *pgd;
+--- a/arch/s390/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/s390/include/asm/pgalloc.h
+@@ -134,9 +134,6 @@ static inline void pmd_populate(struct m
+ 
+ #define pmd_populate_kernel(mm, pmd, pte) pmd_populate(mm, pmd, pte)
+ 
+-#define pmd_pgtable(pmd) \
+-	((pgtable_t)__va(pmd_val(pmd) & -sizeof(pte_t)*PTRS_PER_PTE))
+-
+ /*
+  * page table entry allocation/free routines.
+  */
+--- a/arch/s390/include/asm/pgtable.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1711,4 +1711,7 @@ extern void s390_reset_cmma(struct mm_st
+ #define HAVE_ARCH_UNMAPPED_AREA
+ #define HAVE_ARCH_UNMAPPED_AREA_TOPDOWN
+ 
++#define pmd_pgtable(pmd) \
++	((pgtable_t)__va(pmd_val(pmd) & -sizeof(pte_t)*PTRS_PER_PTE))
++
+ #endif /* _S390_PAGE_H */
+--- a/arch/sh/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/sh/include/asm/pgalloc.h
+@@ -30,7 +30,6 @@ static inline void pmd_populate(struct m
+ {
+ 	set_pmd(pmd, __pmd((unsigned long)page_address(pte)));
+ }
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+ 
+ #define __pte_free_tlb(tlb,pte,addr)			\
+ do {							\
+--- a/arch/sparc/include/asm/pgalloc_32.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/sparc/include/asm/pgalloc_32.h
+@@ -51,7 +51,6 @@ static inline void free_pmd_fast(pmd_t *
+ #define __pmd_free_tlb(tlb, pmd, addr)	pmd_free((tlb)->mm, pmd)
+ 
+ #define pmd_populate(mm, pmd, pte)	pmd_set(pmd, pte)
+-#define pmd_pgtable(pmd)		(pgtable_t)__pmd_page(pmd)
+ 
+ void pmd_set(pmd_t *pmdp, pte_t *ptep);
+ #define pmd_populate_kernel		pmd_populate
+--- a/arch/sparc/include/asm/pgalloc_64.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/sparc/include/asm/pgalloc_64.h
+@@ -67,7 +67,6 @@ void pte_free(struct mm_struct *mm, pgta
+ 
+ #define pmd_populate_kernel(MM, PMD, PTE)	pmd_set(MM, PMD, PTE)
+ #define pmd_populate(MM, PMD, PTE)		pmd_set(MM, PMD, PTE)
+-#define pmd_pgtable(PMD)			((pte_t *)pmd_page_vaddr(PMD))
+ 
+ void pgtable_free(void *table, bool is_page);
+ 
+--- a/arch/sparc/include/asm/pgtable_32.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/sparc/include/asm/pgtable_32.h
+@@ -432,4 +432,6 @@ static inline int io_remap_pfn_range(str
+ /* We provide our own get_unmapped_area to cope with VA holes for userland */
+ #define HAVE_ARCH_UNMAPPED_AREA
+ 
++#define pmd_pgtable(pmd)	((pgtable_t)__pmd_page(pmd))
++
+ #endif /* !(_SPARC_PGTABLE_H) */
+--- a/arch/sparc/include/asm/pgtable_64.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -1117,6 +1117,8 @@ extern unsigned long cmdline_memory_size
+ 
+ asmlinkage void do_sparc64_fault(struct pt_regs *regs);
+ 
++#define pmd_pgtable(PMD)	((pte_t *)pmd_page_vaddr(PMD))
++
+ #ifdef CONFIG_HUGETLB_PAGE
+ 
+ #define pud_leaf_size pud_leaf_size
+--- a/arch/um/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/um/include/asm/pgalloc.h
+@@ -19,7 +19,6 @@
+ 	set_pmd(pmd, __pmd(_PAGE_TABLE +			\
+ 		((unsigned long long)page_to_pfn(pte) <<	\
+ 			(unsigned long long) PAGE_SHIFT)))
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+ 
+ /*
+  * Allocate and free page tables.
+--- a/arch/x86/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/x86/include/asm/pgalloc.h
+@@ -84,8 +84,6 @@ static inline void pmd_populate(struct m
+ 	set_pmd(pmd, __pmd(((pteval_t)pfn << PAGE_SHIFT) | _PAGE_TABLE));
+ }
+ 
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+-
+ #if CONFIG_PGTABLE_LEVELS > 2
+ extern void ___pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd);
+ 
+--- a/arch/xtensa/include/asm/pgalloc.h~mm-thp-define-default-pmd_pgtable
++++ a/arch/xtensa/include/asm/pgalloc.h
+@@ -25,7 +25,6 @@
+ 	(pmd_val(*(pmdp)) = ((unsigned long)ptep))
+ #define pmd_populate(mm, pmdp, page)					     \
+ 	(pmd_val(*(pmdp)) = ((unsigned long)page_to_virt(page)))
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+ 
+ static inline pgd_t*
+ pgd_alloc(struct mm_struct *mm)
+@@ -63,7 +62,6 @@ static inline pgtable_t pte_alloc_one(st
+ 	return page;
+ }
+ 
+-#define pmd_pgtable(pmd) pmd_page(pmd)
+ #endif /* CONFIG_MMU */
+ 
+ #endif /* _XTENSA_PGALLOC_H */
+--- a/include/linux/pgtable.h~mm-thp-define-default-pmd_pgtable
++++ a/include/linux/pgtable.h
+@@ -38,6 +38,15 @@
+ #endif
+ 
+ /*
++ * This defines the generic helper for accessing PMD page
++ * table page. Although platforms can still override this
++ * via their respective <asm/pgtable.h>.
++ */
++#ifndef pmd_pgtable
++#define pmd_pgtable(pmd) pmd_page(pmd)
++#endif
++
++/*
+  * A page table page can be thought of an array like this: pXd_t[PTRS_PER_PxD]
+  *
+  * The pXx_index() functions return the index of the entry in the page
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-fs-unexport-__set_page_dirty.patch
-fs-move-ramfs_aops-to-libfs.patch
-mm-require-set_page_dirty-to-be-explicitly-wire-up.patch
+mm-debug_vm_pgtable-ensure-thp-availability-via-has_transparent_hugepage.patch
+arm64-mm-drop-have_arch_pfn_valid.patch
+mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks.patch
+mm-thp-make-arch_enable_split_pmd_ptlock-dependent-on-pgtable_levels-2.patch
+mm-define-default-value-for-first_user_address.patch
+mm-thp-define-default-pmd_pgtable.patch
 
