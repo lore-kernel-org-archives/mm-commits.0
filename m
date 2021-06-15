@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78E21C2B9F4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:50:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1034C2B9F4
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 01:00:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5419F61350
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:50:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA676611AB
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 01:00:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229728AbhFOAwt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Jun 2021 20:52:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45532 "EHLO mail.kernel.org"
+        id S229689AbhFOBDB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Jun 2021 21:03:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48308 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229649AbhFOAwt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Jun 2021 20:52:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9065161350;
-        Tue, 15 Jun 2021 00:50:33 +0000 (UTC)
+        id S229649AbhFOBDB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Jun 2021 21:03:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BBD9E61350;
+        Tue, 15 Jun 2021 01:00:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623718233;
-        bh=HRcTRGmZ7zPXuqoRry1rRuDF43uIo41vtTlKyUZVGqo=;
+        s=korg; t=1623718842;
+        bh=FgMVWXOecc5HL0ZvIMXm1dJ0qzpXPkO0ghj42hLt4A8=;
         h=Date:From:To:Subject:From;
-        b=GHxkuF4zqtrHuzjLcoKgOcgzcPww4iUAHHjwDQtwj9T0t5XG5r7ZLhQzhqERnofqM
-         Ac0y6Xc5Tx52fa/+gwfdkeMLuqlaszxEGesRnLuZyKX1y212S7TlziJSFHHgRqBrNL
-         n6D8/NSUl5DkkHR++oZ7q2OSWNdb+Qtv9wsUht2I=
-Date:   Mon, 14 Jun 2021 17:50:33 -0700
+        b=vEMPBDlEcWLBD0BgjJP+AHwGnlOpw0Eq6Y2eJk4/maljbjCfDaftf4FuQS5qSzVzM
+         Ed+kZQiyC0gSEk+skWGZJXNRa1ApavfiSgCt+QOgM5sv1gvK19jSQpuxRQXvpy4WYt
+         wuPu1xdZ7chSOjL8j/Sbs62OJMNXtP3llOqmotFc=
+Date:   Mon, 14 Jun 2021 18:00:42 -0700
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, mm-commits@vger.kernel.org,
-        yanfei.xu@windriver.com
+To:     konishi.ryusuke@lab.ntt.co.jp, mlsemon35@gmail.com,
+        mm-commits@vger.kernel.org, paskripkin@gmail.com
 Subject:  +
- mm-kmemleak-fix-the-possible-wrong-memory-scanning-period.patch added to
+ nilfs2-fix-memory-leak-in-nilfs_sysfs_delete_device_group.patch added to
  -mm tree
-Message-ID: <20210615005033.O4037--1W%akpm@linux-foundation.org>
+Message-ID: <20210615010042.WmuD85iq1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kmemleak: fix possible wrong memory scanning period
+     Subject: nilfs2: fix memory leak in nilfs_sysfs_delete_device_group
 has been added to the -mm tree.  Its filename is
-     mm-kmemleak-fix-the-possible-wrong-memory-scanning-period.patch
+     nilfs2-fix-memory-leak-in-nilfs_sysfs_delete_device_group.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-fix-the-possible-wrong-memory-scanning-period.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-memory-leak-in-nilfs_sysfs_delete_device_group.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-fix-the-possible-wrong-memory-scanning-period.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-memory-leak-in-nilfs_sysfs_delete_device_group.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,84 +65,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yanfei Xu <yanfei.xu@windriver.com>
-Subject: mm/kmemleak: fix possible wrong memory scanning period
+From: Pavel Skripkin <paskripkin@gmail.com>
+Subject: nilfs2: fix memory leak in nilfs_sysfs_delete_device_group
 
-This commit contains 3 modifications:
+My local syzbot instance hit memory leak in nilfs2.  The problem was in
+missing kobject_put() in nilfs_sysfs_delete_device_group().
 
-1. Convert the type of jiffies_scan_wait to "unsigned long".
+kobject_del() does not call kobject_cleanup() for passed kobject and it
+leads to leaking duped kobject name if kobject_put() was not called.
 
-2. Use READ/WRITE_ONCE() for accessing "jiffies_scan_wait".
+Fail log:
 
-3. Fix the possible wrong memory scanning period.  If you set a large
-   memory scanning period like blow, then the "secs" variable will be
-   non-zero, however the value of "jiffies_scan_wait" will be zero.
+BUG: memory leak
+unreferenced object 0xffff8880596171e0 (size 8):
+  comm "syz-executor379", pid 8381, jiffies 4294980258 (age 21.100s)
+  hex dump (first 8 bytes):
+    6c 6f 6f 70 30 00 00 00                          loop0...
+  backtrace:
+    [<ffffffff81a2c656>] kstrdup+0x36/0x70 mm/util.c:60
+    [<ffffffff81a2c6e3>] kstrdup_const+0x53/0x80 mm/util.c:83
+    [<ffffffff83ccc698>] kvasprintf_const+0x108/0x190 lib/kasprintf.c:48
+    [<ffffffff83e99926>] kobject_set_name_vargs+0x56/0x150 lib/kobject.c:289
+    [<ffffffff83e99fd9>] kobject_add_varg lib/kobject.c:384 [inline]
+    [<ffffffff83e99fd9>] kobject_init_and_add+0xc9/0x160 lib/kobject.c:473
+    [<ffffffff8304e840>] nilfs_sysfs_create_device_group+0x150/0x800 fs/nilfs2/sysfs.c:999
+    [<ffffffff830159f6>] init_nilfs+0xe26/0x12b0 fs/nilfs2/the_nilfs.c:637
 
-    echo "scan=0x10000000" > /sys/kernel/debug/kmemleak
-
-It is because the type of the msecs_to_jiffies()'s parameter is "unsigned
-int", and the "secs * 1000" is larger than its max value.  This in turn
-leads a unexpected jiffies_scan_wait, maybe zero.  We corret it by
-replacing kstrtoul() with kstrtouint(), and check the msecs to prevent it
-larger than UINT_MAX.
-
-Link: https://lkml.kernel.org/r/20210613174022.23044-1-yanfei.xu@windriver.com
-Signed-off-by: Yanfei Xu <yanfei.xu@windriver.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Link: https://lkml.kernel.org/r/20210612140559.20022-1-paskripkin@gmail.com
+Fixes: da7141fb78db ("nilfs2: add /sys/fs/nilfs2/<device> group")
+Signed-off-by: Pavel Skripkin <paskripkin@gmail.com>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: Michael L. Semon <mlsemon35@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ fs/nilfs2/sysfs.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/kmemleak.c~mm-kmemleak-fix-the-possible-wrong-memory-scanning-period
-+++ a/mm/kmemleak.c
-@@ -219,7 +219,7 @@ static struct task_struct *scan_thread;
- static unsigned long jiffies_min_age;
- static unsigned long jiffies_last_scan;
- /* delay between automatic memory scannings */
--static signed long jiffies_scan_wait;
-+static unsigned long jiffies_scan_wait;
- /* enables or disables the task stacks scanning */
- static int kmemleak_stack_scan = 1;
- /* protects the memory scanning, parameters and debug/kmemleak file access */
-@@ -1567,7 +1567,7 @@ static int kmemleak_scan_thread(void *ar
- 	}
+--- a/fs/nilfs2/sysfs.c~nilfs2-fix-memory-leak-in-nilfs_sysfs_delete_device_group
++++ a/fs/nilfs2/sysfs.c
+@@ -1053,6 +1053,7 @@ void nilfs_sysfs_delete_device_group(str
+ 	nilfs_sysfs_delete_superblock_group(nilfs);
+ 	nilfs_sysfs_delete_segctor_group(nilfs);
+ 	kobject_del(&nilfs->ns_dev_kobj);
++	kobject_put(&nilfs->ns_dev_kobj);
+ 	kfree(nilfs->ns_dev_subgroups);
+ }
  
- 	while (!kthread_should_stop()) {
--		signed long timeout = jiffies_scan_wait;
-+		signed long timeout = READ_ONCE(jiffies_scan_wait);
- 
- 		mutex_lock(&scan_mutex);
- 		kmemleak_scan();
-@@ -1807,14 +1807,20 @@ static ssize_t kmemleak_write(struct fil
- 	else if (strncmp(buf, "scan=off", 8) == 0)
- 		stop_scan_thread();
- 	else if (strncmp(buf, "scan=", 5) == 0) {
--		unsigned long secs;
-+		unsigned secs;
-+		unsigned long msecs;
- 
--		ret = kstrtoul(buf + 5, 0, &secs);
-+		ret = kstrtouint(buf + 5, 0, &secs);
- 		if (ret < 0)
- 			goto out;
-+
-+		msecs = secs * MSEC_PER_SEC;
-+		if (msecs > UINT_MAX)
-+			msecs = UINT_MAX;
-+
- 		stop_scan_thread();
--		if (secs) {
--			jiffies_scan_wait = msecs_to_jiffies(secs * 1000);
-+		if (msecs) {
-+			WRITE_ONCE(jiffies_scan_wait, msecs_to_jiffies(msecs));
- 			start_scan_thread();
- 		}
- 	} else if (strncmp(buf, "scan", 4) == 0)
 _
 
-Patches currently in -mm which might be from yanfei.xu@windriver.com are
+Patches currently in -mm which might be from paskripkin@gmail.com are
 
-mm-kmemleak-fix-the-possible-wrong-memory-scanning-period.patch
+nilfs2-fix-memory-leak-in-nilfs_sysfs_delete_device_group.patch
 
