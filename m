@@ -4,39 +4,37 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC15BC2B9F4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:14:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1AE2C2B9F4
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:20:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9648161378
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:14:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F5E5613DA
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:20:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230051AbhFOAQh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Jun 2021 20:16:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40496 "EHLO mail.kernel.org"
+        id S229536AbhFOAWQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Jun 2021 20:22:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42146 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229536AbhFOAQf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Jun 2021 20:16:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D0018611CE;
-        Tue, 15 Jun 2021 00:14:19 +0000 (UTC)
+        id S229689AbhFOAWQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Jun 2021 20:22:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E2E98613D0;
+        Tue, 15 Jun 2021 00:20:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623716060;
-        bh=JfEBDd7ywc56f9CN65TZTLsPBGL9ZhrwejRYClhYO/g=;
+        s=korg; t=1623716413;
+        bh=N/gD0OrA+vCdOyNTZhWiqSfpRpjC1l2yq6S19DPUh+k=;
         h=Date:From:To:Subject:From;
-        b=T6HaI/E7hZwQchbLgerQO3grNjJV4/SIj8rHcALLS/2aZJNl8QXsJ0iteCBmHa1ia
-         T5KIlcH0gB5N3z0pcEYVI6swSzJXdvsRJPzpv2ARI4scx1x5dVgbfYUUcSugbnugOU
-         4w+P5KVOEMDfagXSW1VamfHnCK32XTiIXfID9Fac=
-Date:   Mon, 14 Jun 2021 17:14:19 -0700
+        b=TgrH1VyzUxTYQFNnU3VQv9sSQ0gaB3CjfLgN1/+VDFv/GAQY+JP+Qsuq5aMH43zff
+         68KiWvXzPHnoPO8fSNb8aC195TzW9IhITIrPybExBp8TnAxw6cKptuoycLbtG/q8wR
+         yxZQihm+tXvtbRBmI5sdzpPrw3UlcKX/z/7gvZ9I=
+Date:   Mon, 14 Jun 2021 17:20:12 -0700
 From:   akpm@linux-foundation.org
-To:     borntraeger@de.ibm.com, catalin.marinas@arm.com, david@redhat.com,
-        frankja@linux.ibm.com, hch@infradead.org, imbrenda@linux.ibm.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, npiggin@gmail.com,
-        rientjes@google.com, tglx@linutronix.de, urezki@gmail.com
-Subject:  + kvm-s390-prepare-for-hugepage-vmalloc.patch added to
- -mm tree
-Message-ID: <20210615001419.59pQKT5nq%akpm@linux-foundation.org>
+To:     gregkh@linuxfoundation.org, hch@lst.de, jack@suse.cz,
+        mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        willy@infradead.org
+Subject:  + fs-move-ramfs_aops-to-libfs.patch added to -mm tree
+Message-ID: <20210615002012.DJpXVJ7n5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: KVM: s390: prepare for hugepage vmalloc
+     Subject: fs: move ramfs_aops to libfs
 has been added to the -mm tree.  Its filename is
-     kvm-s390-prepare-for-hugepage-vmalloc.patch
+     fs-move-ramfs_aops-to-libfs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kvm-s390-prepare-for-hugepage-vmalloc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-move-ramfs_aops-to-libfs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kvm-s390-prepare-for-hugepage-vmalloc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-move-ramfs_aops-to-libfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,59 +64,175 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Subject: KVM: s390: prepare for hugepage vmalloc
+From: Christoph Hellwig <hch@lst.de>
+Subject: fs: move ramfs_aops to libfs
 
-The Create Secure Configuration Ultravisor Call does not support using
-large pages for the virtual memory area.  This is a hardware limitation.
+Move the ramfs aops to libfs and reuse them for kernfs and configfs. 
+Thosw two did not wire up ->set_page_dirty before and now get
+__set_page_dirty_no_writeback, which is the right one for no-writeback
+address_space usage.
 
-This patch replaces the vzalloc call with an almost equivalent call to the
-newly introduced vmalloc_no_huge function, which guarantees that only
-small pages will be used for the backing.
+Drop the now unused exports of the libfs helpers only used for ramfs-style
+pagecache usage.
 
-The new call will not clear the allocated memory, but that has never been
-an actual requirement.
-
-Link: https://lkml.kernel.org/r/20210614132357.10202-3-imbrenda@linux.ibm.com
-Fixes: 121e6f3258fe3 ("mm/vmalloc: hugepage vmalloc mappings") 
-Signed-off-by: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Reviewed-by: Janosch Frank <frankja@linux.ibm.com>
-Acked-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Acked-by: Nicholas Piggin <npiggin@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Link: https://lkml.kernel.org/r/20210614061512.3966143-3-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kvm/pv.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ fs/configfs/inode.c |    8 +-------
+ fs/kernfs/inode.c   |    8 +-------
+ fs/libfs.c          |   17 +++++++++++++----
+ fs/ramfs/inode.c    |    9 +--------
+ include/linux/fs.h  |    5 +----
+ 5 files changed, 17 insertions(+), 30 deletions(-)
 
---- a/arch/s390/kvm/pv.c~kvm-s390-prepare-for-hugepage-vmalloc
-+++ a/arch/s390/kvm/pv.c
-@@ -140,7 +140,12 @@ static int kvm_s390_pv_alloc_vm(struct k
- 	/* Allocate variable storage */
- 	vlen = ALIGN(virt * ((npages * PAGE_SIZE) / HPAGE_SIZE), PAGE_SIZE);
- 	vlen += uv_info.guest_virt_base_stor_len;
--	kvm->arch.pv.stor_var = vzalloc(vlen);
-+	/*
-+	 * The Create Secure Configuration Ultravisor Call does not support
-+	 * using large pages for the virtual memory area.
-+	 * This is a hardware limitation.
-+	 */
-+	kvm->arch.pv.stor_var = vmalloc_no_huge(vlen);
- 	if (!kvm->arch.pv.stor_var)
- 		goto out_err;
+--- a/fs/configfs/inode.c~fs-move-ramfs_aops-to-libfs
++++ a/fs/configfs/inode.c
+@@ -28,12 +28,6 @@
+ static struct lock_class_key default_group_class[MAX_LOCK_DEPTH];
+ #endif
+ 
+-static const struct address_space_operations configfs_aops = {
+-	.readpage	= simple_readpage,
+-	.write_begin	= simple_write_begin,
+-	.write_end	= simple_write_end,
+-};
+-
+ static const struct inode_operations configfs_inode_operations ={
+ 	.setattr	= configfs_setattr,
+ };
+@@ -114,7 +108,7 @@ struct inode *configfs_new_inode(umode_t
+ 	struct inode * inode = new_inode(s);
+ 	if (inode) {
+ 		inode->i_ino = get_next_ino();
+-		inode->i_mapping->a_ops = &configfs_aops;
++		inode->i_mapping->a_ops = &ram_aops;
+ 		inode->i_op = &configfs_inode_operations;
+ 
+ 		if (sd->s_iattr) {
+--- a/fs/kernfs/inode.c~fs-move-ramfs_aops-to-libfs
++++ a/fs/kernfs/inode.c
+@@ -17,12 +17,6 @@
+ 
+ #include "kernfs-internal.h"
+ 
+-static const struct address_space_operations kernfs_aops = {
+-	.readpage	= simple_readpage,
+-	.write_begin	= simple_write_begin,
+-	.write_end	= simple_write_end,
+-};
+-
+ static const struct inode_operations kernfs_iops = {
+ 	.permission	= kernfs_iop_permission,
+ 	.setattr	= kernfs_iop_setattr,
+@@ -203,7 +197,7 @@ static void kernfs_init_inode(struct ker
+ {
+ 	kernfs_get(kn);
+ 	inode->i_private = kn;
+-	inode->i_mapping->a_ops = &kernfs_aops;
++	inode->i_mapping->a_ops = &ram_aops;
+ 	inode->i_op = &kernfs_iops;
+ 	inode->i_generation = kernfs_gen(kn);
+ 
+--- a/fs/libfs.c~fs-move-ramfs_aops-to-libfs
++++ a/fs/libfs.c
+@@ -512,7 +512,7 @@ int simple_setattr(struct user_namespace
+ }
+ EXPORT_SYMBOL(simple_setattr);
+ 
+-int simple_readpage(struct file *file, struct page *page)
++static int simple_readpage(struct file *file, struct page *page)
+ {
+ 	clear_highpage(page);
+ 	flush_dcache_page(page);
+@@ -520,7 +520,6 @@ int simple_readpage(struct file *file, s
+ 	unlock_page(page);
  	return 0;
+ }
+-EXPORT_SYMBOL(simple_readpage);
+ 
+ int simple_write_begin(struct file *file, struct address_space *mapping,
+ 			loff_t pos, unsigned len, unsigned flags,
+@@ -568,7 +567,7 @@ EXPORT_SYMBOL(simple_write_begin);
+  *
+  * Use *ONLY* with simple_readpage()
+  */
+-int simple_write_end(struct file *file, struct address_space *mapping,
++static int simple_write_end(struct file *file, struct address_space *mapping,
+ 			loff_t pos, unsigned len, unsigned copied,
+ 			struct page *page, void *fsdata)
+ {
+@@ -597,7 +596,17 @@ int simple_write_end(struct file *file,
+ 
+ 	return copied;
+ }
+-EXPORT_SYMBOL(simple_write_end);
++
++/*
++ * Provides ramfs-style behavior: data in the pagecache, but no writeback.
++ */
++const struct address_space_operations ram_aops = {
++	.readpage	= simple_readpage,
++	.write_begin	= simple_write_begin,
++	.write_end	= simple_write_end,
++	.set_page_dirty	= __set_page_dirty_no_writeback,
++};
++EXPORT_SYMBOL(ram_aops);
+ 
+ /*
+  * the inodes created here are not hashed. If you use iunique to generate
+--- a/fs/ramfs/inode.c~fs-move-ramfs_aops-to-libfs
++++ a/fs/ramfs/inode.c
+@@ -53,13 +53,6 @@ struct ramfs_fs_info {
+ static const struct super_operations ramfs_ops;
+ static const struct inode_operations ramfs_dir_inode_operations;
+ 
+-static const struct address_space_operations ramfs_aops = {
+-	.readpage	= simple_readpage,
+-	.write_begin	= simple_write_begin,
+-	.write_end	= simple_write_end,
+-	.set_page_dirty	= __set_page_dirty_no_writeback,
+-};
+-
+ struct inode *ramfs_get_inode(struct super_block *sb,
+ 				const struct inode *dir, umode_t mode, dev_t dev)
+ {
+@@ -68,7 +61,7 @@ struct inode *ramfs_get_inode(struct sup
+ 	if (inode) {
+ 		inode->i_ino = get_next_ino();
+ 		inode_init_owner(&init_user_ns, inode, dir, mode);
+-		inode->i_mapping->a_ops = &ramfs_aops;
++		inode->i_mapping->a_ops = &ram_aops;
+ 		mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
+ 		mapping_set_unevictable(inode->i_mapping);
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+--- a/include/linux/fs.h~fs-move-ramfs_aops-to-libfs
++++ a/include/linux/fs.h
+@@ -3423,13 +3423,10 @@ extern void noop_invalidatepage(struct p
+ 		unsigned int length);
+ extern ssize_t noop_direct_IO(struct kiocb *iocb, struct iov_iter *iter);
+ extern int simple_empty(struct dentry *);
+-extern int simple_readpage(struct file *file, struct page *page);
+ extern int simple_write_begin(struct file *file, struct address_space *mapping,
+ 			loff_t pos, unsigned len, unsigned flags,
+ 			struct page **pagep, void **fsdata);
+-extern int simple_write_end(struct file *file, struct address_space *mapping,
+-			loff_t pos, unsigned len, unsigned copied,
+-			struct page *page, void *fsdata);
++extern const struct address_space_operations ram_aops;
+ extern int always_delete_dentry(const struct dentry *);
+ extern struct inode *alloc_anon_inode(struct super_block *);
+ extern int simple_nosetlease(struct file *, long, struct file_lock **, void **);
 _
 
-Patches currently in -mm which might be from imbrenda@linux.ibm.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-vmalloc-add-vmalloc_no_huge.patch
-kvm-s390-prepare-for-hugepage-vmalloc.patch
+fs-unexport-__set_page_dirty.patch
+fs-move-ramfs_aops-to-libfs.patch
+mm-require-set_page_dirty-to-be-explicitly-wire-up.patch
 
