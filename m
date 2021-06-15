@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0015C2B9F4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:31:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AE1BC2B9F4
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:36:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 76FD6613F9
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:31:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64B6561166
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:36:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229649AbhFOCdi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Jun 2021 22:33:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44662 "EHLO mail.kernel.org"
+        id S230504AbhFOCih (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Jun 2021 22:38:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45804 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229728AbhFOCdg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Jun 2021 22:33:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C729A61424;
-        Tue, 15 Jun 2021 02:07:05 +0000 (UTC)
+        id S230168AbhFOCih (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Jun 2021 22:38:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B6E4161418;
+        Tue, 15 Jun 2021 02:00:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623722826;
-        bh=urx5UUNMFZi6dCiaSwJxE6aZcPH9MMI8siyZ24L8yIY=;
+        s=korg; t=1623722442;
+        bh=oFJWb9SEvYYDkTegwyPqGMW7sEk4RFrX4GCojwnYf2Y=;
         h=Date:From:To:Subject:From;
-        b=0ECJIIhPA3a3SalGYUYSLQO+oNaFQlat5T7TJMvSZVjPFDmEzRTA11IYL52UTq8V8
-         Je+QmjuZhhwBl2fTIdEF3lYQa3ytHnZ6++j2nvA43L6/ZiQrk/H1jMUDED0WZVHR2s
-         kKEmZ7QWIAvt8aPE0xDPTBxwfyM2oMVVM/FP/3Yo=
-Date:   Mon, 14 Jun 2021 19:07:05 -0700
+        b=Tli7emldu11d/+z3S9cU3QbfbOGEU3sWuYgz4vjFyt2tjAz+w6nR4jiDqwv9OMQuW
+         Ttm3/uuwcA+pNRqwi2XY5LivG1JfsDlvCckzx0bIYqeSVBuVNTdApzYCYo6X+WMR1s
+         COkdqzQ3AUn7FoI5eJ6WVdou0n6Jc3+CSCTs7ukE=
+Date:   Mon, 14 Jun 2021 19:00:41 -0700
 From:   akpm@linux-foundation.org
-To:     42.hyeyoo@gmail.com, cl@linux.com, elver@google.com,
-        iamjoonsoo.kim@lge.com, lkp@intel.com, mm-commits@vger.kernel.org,
-        penberg@kernel.org, rientjes@google.com, vbabka@suse.cz
+To:     jack@suse.cz, jannh@google.com, jhubbard@nvidia.com,
+        kirill@shutemov.name, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, willy@infradead.org
 Subject:  +
- =?US-ASCII?Q?mm-slub-change-run-time-assertion-in-kmalloc=5Findex-to-comp?=
- =?US-ASCII?Q?ile-time-fix-3.patch?= added to -mm tree
-Message-ID: <20210615020705._l_WB1lEM%akpm@linux-foundation.org>
+ mm-gup-fix-try_grab_compound_head-race-with-split_huge_page.patch added to
+ -mm tree
+Message-ID: <20210615020041.qqEq-TYtT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3
+     Subject: mm/gup: fix try_grab_compound_head() race with split_huge_page()
 has been added to the -mm tree.  Its filename is
-     mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3.patch
+     mm-gup-fix-try_grab_compound_head-race-with-split_huge_page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-fix-try_grab_compound_head-race-with-split_huge_page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-fix-try_grab_compound_head-race-with-split_huge_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,82 +66,167 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3
+From: Jann Horn <jannh@google.com>
+Subject: mm/gup: fix try_grab_compound_head() race with split_huge_page()
 
-Kernel test robot reports a false-positive compile-time assert while compiling
-kernel/bpf/local_storage.c
+try_grab_compound_head() is used to grab a reference to a page from
+get_user_pages_fast(), which is only protected against concurrent freeing
+of page tables (via local_irq_save()), but not against concurrent TLB
+flushes, freeing of data pages, or splitting of compound pages.
 
-   In file included from <command-line>:
-   In function 'kmalloc_index',
-       inlined from 'kmalloc_node' at include/linux/slab.h:572:20,
-       inlined from 'bpf_map_kmalloc_node.isra.0.part.0' at include/linux/bpf.h:1319:9:
->> >> include/linux/compiler_types.h:328:38: error: call to '__compiletime_assert_183' declared with attribute error: unexpected size in kmalloc_index()
-     328 |  _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
-         |                                      ^
-   include/linux/compiler_types.h:309:4: note: in definition of macro '__compiletime_assert'
-     309 |    prefix ## suffix();    \
-         |    ^~~~~~
-   include/linux/compiler_types.h:328:2: note: in expansion of macro '_compiletime_assert'
-     328 |  _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
-         |  ^~~~~~~~~~~~~~~~~~~
-   include/linux/build_bug.h:39:37: note: in expansion of macro 'compiletime_assert'
-      39 | #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
-         |                                     ^~~~~~~~~~~~~~~~~~
-   include/linux/slab.h:389:2: note: in expansion of macro 'BUILD_BUG_ON_MSG'
-     389 |  BUILD_BUG_ON_MSG(1, "unexpected size in kmalloc_index()");
-         |  ^~~~~~~~~~~~~~~~
+Because no reference is held to the page when try_grab_compound_head() is
+called, the page may have been freed and reallocated by the time its
+refcount has been elevated; therefore, once we're holding a stable
+reference to the page, the caller re-checks whether the PTE still points
+to the same page (with the same access rights).
 
-This only happens with CONFIG_PROFILE_ALL_BRANCHES enabled.  Informal
-conversation with gcc developers suggest that this config pushes the
-optimizer to a corner case where in kmalloc_node() the 'size' is
-considered a builtin-constant and thus kmalloc_index() is chosen, but
-later in kmalloc_index() the notion of compile-time constant is lost and
-thus the compiletime assert becomes reachable.
+The problem is that try_grab_compound_head() has to grab a reference on
+the head page; but between the time we look up what the head page is and
+the time we actually grab a reference on the head page, the compound page
+may have been split up (either explicitly through split_huge_page() or by
+freeing the compound page to the buddy allocator and then allocating its
+individual order-0 pages).  If that happens, get_user_pages_fast() may end
+up returning the right page but lifting the refcount on a now-unrelated
+page, leading to use-after-free of pages.
 
-While there's plan to submit a proper gcc bug report with reduced
-testcase, for now add CONFIG_PROFILE_ALL_BRANCHES to the list of
-situations where we keep using the runtime BUG_ON() instead of
-compile-time assert.
+To fix it: Re-check whether the pages still belong together after lifting
+the refcount on the head page.  Move anything else that checks
+compound_head(page) below the refcount increment.
 
-This is a 3rd fix for mmotm patch
-mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time.patch
+This can't actually happen on bare-metal x86 (because there, disabling
+IRQs locks out remote TLB flushes), but it can happen on virtualized x86
+(e.g.  under KVM) and probably also on arm64.  The race window is pretty
+narrow, and constantly allocating and shattering hugepages isn't exactly
+fast; for now I've only managed to reproduce this in an x86 KVM guest with
+an artificially widened timing window (by adding a loop that repeatedly
+calls `inl(0x3f8 + 5)` in `try_get_compound_head()` to force VM exits, so
+that PV TLB flushes are used instead of IPIs).
 
-[1] https://lore.kernel.org/linux-mm/202106051442.G1VJubTz-lkp@intel.com/
+As requested on the list, also replace the existing VM_BUG_ON_PAGE() with
+a warning and bailout.  Since the existing code only performed the BUG_ON
+check on DEBUG_VM kernels, ensure that the new code also only performs the
+check under that configuration - I don't want to mix two logically
+separate changes together too much.  The macro VM_WARN_ON_ONCE_PAGE()
+doesn't return a value on !DEBUG_VM, so wrap the whole check in an #ifdef
+block.  An alternative would be to change the VM_WARN_ON_ONCE_PAGE()
+definition for !DEBUG_VM such that it always returns false, but since that
+would differ from the behavior of the normal WARN macros, it might be too
+confusing for readers.
 
-Link: https://lkml.kernel.org/r/bea97388-01df-8eac-091b-a3c89b4a4a09@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Marco Elver <elver@google.com>
+Link: https://lkml.kernel.org/r/20210615012014.1100672-1-jannh@google.com
+Fixes: 7aef4172c795 ("mm: handle PTE-mapped tail pages in gerneric fast gup implementaiton")
+Signed-off-by: Jann Horn <jannh@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/gup.c |   58 +++++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 43 insertions(+), 15 deletions(-)
 
---- a/include/linux/slab.h~mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3
-+++ a/include/linux/slab.h
-@@ -389,7 +389,8 @@ static __always_inline unsigned int __km
- 	if (size <=  16 * 1024 * 1024) return 24;
- 	if (size <=  32 * 1024 * 1024) return 25;
+--- a/mm/gup.c~mm-gup-fix-try_grab_compound_head-race-with-split_huge_page
++++ a/mm/gup.c
+@@ -44,6 +44,23 @@ static void hpage_pincount_sub(struct pa
+ 	atomic_sub(refs, compound_pincount_ptr(page));
+ }
  
--	if ((IS_ENABLED(CONFIG_CC_IS_GCC) || CONFIG_CLANG_VERSION >= 110000) && size_is_constant)
-+	if ((IS_ENABLED(CONFIG_CC_IS_GCC) || CONFIG_CLANG_VERSION >= 110000)
-+	    && !IS_ENABLED(CONFIG_PROFILE_ALL_BRANCHES) && size_is_constant)
- 		BUILD_BUG_ON_MSG(1, "unexpected size in kmalloc_index()");
- 	else
- 		BUG();
++/* Equivalent to calling put_page() @refs times. */
++static void put_page_refs(struct page *page, int refs)
++{
++#ifdef CONFIG_DEBUG_VM
++	if (VM_WARN_ON_ONCE_PAGE(page_ref_count(page) < refs, page))
++		return;
++#endif
++
++	/*
++	 * Calling put_page() for each ref is unnecessarily slow. Only the last
++	 * ref needs a put_page().
++	 */
++	if (refs > 1)
++		page_ref_sub(page, refs - 1);
++	put_page(page);
++}
++
+ /*
+  * Return the compound head page with ref appropriately incremented,
+  * or NULL if that failed.
+@@ -56,6 +73,21 @@ static inline struct page *try_get_compo
+ 		return NULL;
+ 	if (unlikely(!page_cache_add_speculative(head, refs)))
+ 		return NULL;
++
++	/*
++	 * At this point we have a stable reference to the head page; but it
++	 * could be that between the compound_head() lookup and the refcount
++	 * increment, the compound page was split, in which case we'd end up
++	 * holding a reference on a page that has nothing to do with the page
++	 * we were given anymore.
++	 * So now that the head page is stable, recheck that the pages still
++	 * belong together.
++	 */
++	if (unlikely(compound_head(page) != head)) {
++		put_page_refs(head, refs);
++		return NULL;
++	}
++
+ 	return head;
+ }
+ 
+@@ -96,6 +128,14 @@ __maybe_unused struct page *try_grab_com
+ 			return NULL;
+ 
+ 		/*
++		 * CAUTION: Don't use compound_head() on the page before this
++		 * point, the result won't be stable.
++		 */
++		page = try_get_compound_head(page, refs);
++		if (!page)
++			return NULL;
++
++		/*
+ 		 * When pinning a compound page of order > 1 (which is what
+ 		 * hpage_pincount_available() checks for), use an exact count to
+ 		 * track it, via hpage_pincount_add/_sub().
+@@ -103,15 +143,10 @@ __maybe_unused struct page *try_grab_com
+ 		 * However, be sure to *also* increment the normal page refcount
+ 		 * field at least once, so that the page really is pinned.
+ 		 */
+-		if (!hpage_pincount_available(page))
+-			refs *= GUP_PIN_COUNTING_BIAS;
+-
+-		page = try_get_compound_head(page, refs);
+-		if (!page)
+-			return NULL;
+-
+ 		if (hpage_pincount_available(page))
+ 			hpage_pincount_add(page, refs);
++		else
++			page_ref_add(page, refs * (GUP_PIN_COUNTING_BIAS - 1));
+ 
+ 		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_ACQUIRED,
+ 				    orig_refs);
+@@ -135,14 +170,7 @@ static void put_compound_head(struct pag
+ 			refs *= GUP_PIN_COUNTING_BIAS;
+ 	}
+ 
+-	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
+-	/*
+-	 * Calling put_page() for each ref is unnecessarily slow. Only the last
+-	 * ref needs a put_page().
+-	 */
+-	if (refs > 1)
+-		page_ref_sub(page, refs - 1);
+-	put_page(page);
++	put_page_refs(page, refs);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from jannh@google.com are
 
-kunit-make-test-lock-irq-safe.patch
-mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-fix.patch
-mm-slub-use-stackdepot-to-save-stack-trace-in-objects-fix-2.patch
+mm-gup-fix-try_grab_compound_head-race-with-split_huge_page.patch
 
