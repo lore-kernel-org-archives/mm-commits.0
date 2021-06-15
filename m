@@ -7,37 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59AF3C2B9F4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:26:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0015C2B9F4
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:31:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 320D8610A0
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:26:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76FD6613F9
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:31:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229829AbhFOC2i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Jun 2021 22:28:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44026 "EHLO mail.kernel.org"
+        id S229649AbhFOCdi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Jun 2021 22:33:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44662 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229782AbhFOC2h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Jun 2021 22:28:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BA80C6100B;
-        Tue, 15 Jun 2021 02:05:47 +0000 (UTC)
+        id S229728AbhFOCdg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Jun 2021 22:33:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C729A61424;
+        Tue, 15 Jun 2021 02:07:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623722748;
-        bh=ZFtyuTx8VLBSFTFBWid2ovfEPURebQPmXTtCIu3lq1Y=;
+        s=korg; t=1623722826;
+        bh=urx5UUNMFZi6dCiaSwJxE6aZcPH9MMI8siyZ24L8yIY=;
         h=Date:From:To:Subject:From;
-        b=eug7IGURQ+BMQjci8V8eRyFxJ/9NAAjsGX0xe6RtJ+1m/zeoY9sdr1LuAVnXF7+bs
-         rIZUSFKFX7wLa9JC10nM0k+NeE+DQA/RBonpknnGFHPhAZAXkAcTJO83XQ4IDx0t0h
-         l17/iboJ6dIzW52duNm6P8b6kII1n7ZL5GmiDrzs=
-Date:   Mon, 14 Jun 2021 19:05:47 -0700
+        b=0ECJIIhPA3a3SalGYUYSLQO+oNaFQlat5T7TJMvSZVjPFDmEzRTA11IYL52UTq8V8
+         Je+QmjuZhhwBl2fTIdEF3lYQa3ytHnZ6++j2nvA43L6/ZiQrk/H1jMUDED0WZVHR2s
+         kKEmZ7QWIAvt8aPE0xDPTBxwfyM2oMVVM/FP/3Yo=
+Date:   Mon, 14 Jun 2021 19:07:05 -0700
 From:   akpm@linux-foundation.org
-To:     aquini@redhat.com, hca@linux.ibm.com,
-        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
-        yuzhao@google.com
-Subject:  + mm-mark-idle-page-tracking-as-broken.patch added to -mm
- tree
-Message-ID: <20210615020547.0bhMmTZsz%akpm@linux-foundation.org>
+To:     42.hyeyoo@gmail.com, cl@linux.com, elver@google.com,
+        iamjoonsoo.kim@lge.com, lkp@intel.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, vbabka@suse.cz
+Subject:  +
+ =?US-ASCII?Q?mm-slub-change-run-time-assertion-in-kmalloc=5Findex-to-comp?=
+ =?US-ASCII?Q?ile-time-fix-3.patch?= added to -mm tree
+Message-ID: <20210615020705._l_WB1lEM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mark idle page tracking as BROKEN
+     Subject: mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3
 has been added to the -mm tree.  Its filename is
-     mm-mark-idle-page-tracking-as-broken.patch
+     mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mark-idle-page-tracking-as-broken.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mark-idle-page-tracking-as-broken.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,56 +68,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: mark idle page tracking as BROKEN
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3
 
-In discussion with other MM developers around how idle page tracking
-should be fixed for transparent huge pages, several expressed the opinion
-that it should be removed as it is inefficient at accomplishing the job
-that it is supposed to, and we have better mechanisms (eg uffd) for
-accomplishing the same goals these days.
+Kernel test robot reports a false-positive compile-time assert while compiling
+kernel/bpf/local_storage.c
 
-Mark the feature as BROKEN for now and we can remove it entirely in a few
-months if nobody complains.  It is not enabled by Android, ChromeOS,
-Debian, Fedora or SUSE.  Red Hat enabled it with RHEL-8.1 and UEK followed
-suit, but I have been unable to find why RHEL enabled it.
+   In file included from <command-line>:
+   In function 'kmalloc_index',
+       inlined from 'kmalloc_node' at include/linux/slab.h:572:20,
+       inlined from 'bpf_map_kmalloc_node.isra.0.part.0' at include/linux/bpf.h:1319:9:
+>> >> include/linux/compiler_types.h:328:38: error: call to '__compiletime_assert_183' declared with attribute error: unexpected size in kmalloc_index()
+     328 |  _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+         |                                      ^
+   include/linux/compiler_types.h:309:4: note: in definition of macro '__compiletime_assert'
+     309 |    prefix ## suffix();    \
+         |    ^~~~~~
+   include/linux/compiler_types.h:328:2: note: in expansion of macro '_compiletime_assert'
+     328 |  _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+         |  ^~~~~~~~~~~~~~~~~~~
+   include/linux/build_bug.h:39:37: note: in expansion of macro 'compiletime_assert'
+      39 | #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
+         |                                     ^~~~~~~~~~~~~~~~~~
+   include/linux/slab.h:389:2: note: in expansion of macro 'BUILD_BUG_ON_MSG'
+     389 |  BUILD_BUG_ON_MSG(1, "unexpected size in kmalloc_index()");
+         |  ^~~~~~~~~~~~~~~~
 
-Link: https://lkml.kernel.org/r/20210612000714.775825-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Yu Zhao <yuzhao@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-SeongJae Park <sj38.park@gmail.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+This only happens with CONFIG_PROFILE_ALL_BRANCHES enabled.  Informal
+conversation with gcc developers suggest that this config pushes the
+optimizer to a corner case where in kmalloc_node() the 'size' is
+considered a builtin-constant and thus kmalloc_index() is chosen, but
+later in kmalloc_index() the notion of compile-time constant is lost and
+thus the compiletime assert becomes reachable.
+
+While there's plan to submit a proper gcc bug report with reduced
+testcase, for now add CONFIG_PROFILE_ALL_BRANCHES to the list of
+situations where we keep using the runtime BUG_ON() instead of
+compile-time assert.
+
+This is a 3rd fix for mmotm patch
+mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time.patch
+
+[1] https://lore.kernel.org/linux-mm/202106051442.G1VJubTz-lkp@intel.com/
+
+Link: https://lkml.kernel.org/r/bea97388-01df-8eac-091b-a3c89b4a4a09@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/slab.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/Kconfig~mm-mark-idle-page-tracking-as-broken
-+++ a/mm/Kconfig
-@@ -772,7 +772,7 @@ config DEFERRED_STRUCT_PAGE_INIT
+--- a/include/linux/slab.h~mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3
++++ a/include/linux/slab.h
+@@ -389,7 +389,8 @@ static __always_inline unsigned int __km
+ 	if (size <=  16 * 1024 * 1024) return 24;
+ 	if (size <=  32 * 1024 * 1024) return 25;
  
- config IDLE_PAGE_TRACKING
- 	bool "Enable idle page tracking"
--	depends on SYSFS && MMU
-+	depends on SYSFS && MMU && BROKEN
- 	select PAGE_EXTENSION if !64BIT
- 	help
- 	  This feature allows to estimate the amount of user pages that have
+-	if ((IS_ENABLED(CONFIG_CC_IS_GCC) || CONFIG_CLANG_VERSION >= 110000) && size_is_constant)
++	if ((IS_ENABLED(CONFIG_CC_IS_GCC) || CONFIG_CLANG_VERSION >= 110000)
++	    && !IS_ENABLED(CONFIG_PROFILE_ALL_BRANCHES) && size_is_constant)
+ 		BUILD_BUG_ON_MSG(1, "unexpected size in kmalloc_index()");
+ 	else
+ 		BUG();
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-mark-idle-page-tracking-as-broken.patch
-mm-make-__dump_page-static.patch
-mm-debug-factor-pagepoisoned-out-of-__dump_page.patch
-mm-page_owner-constify-dump_page_owner.patch
-mm-make-compound_head-const-preserving.patch
-mm-constify-get_pfnblock_flags_mask-and-get_pfnblock_migratetype.patch
-mm-constify-page_count-and-page_ref_count.patch
-mm-optimise-nth_page-for-contiguous-memmap.patch
+kunit-make-test-lock-irq-safe.patch
+mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-3.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-fix.patch
+mm-slub-use-stackdepot-to-save-stack-trace-in-objects-fix-2.patch
 
