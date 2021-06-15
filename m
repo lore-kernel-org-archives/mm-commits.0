@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F599C2B9F4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:20:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1FE5C2B9F4
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:20:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73C95613DF
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:20:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99944613DA
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 00:20:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229981AbhFOAWb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Jun 2021 20:22:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42118 "EHLO mail.kernel.org"
+        id S229829AbhFOAWg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Jun 2021 20:22:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42170 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229689AbhFOAWb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Jun 2021 20:22:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F2E03613CD;
-        Tue, 15 Jun 2021 00:20:10 +0000 (UTC)
+        id S229689AbhFOAWg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Jun 2021 20:22:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0EE75613DA;
+        Tue, 15 Jun 2021 00:20:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623716411;
-        bh=58lylFHV/bF/ycLezCu5H251MYBLbCCIlq2+/zN7ctU=;
+        s=korg; t=1623716416;
+        bh=5J7rFe6G2WBq5+x7g6vE9temW7GW5vbLHqXELx/Rt/Y=;
         h=Date:From:To:Subject:From;
-        b=UGj6bQ136cPIDTQGyQzfSDLKTN9jrwEpEfumDTiL9ybo0qIYef1SY6lLwhb1Kow0F
-         smdTBbOr7kxUJgNp/GCI9uMzZ2yjzPGVPqu11tGdbV5dUQ+7VnXa3EG1dJ4T7/IbYQ
-         1MA5X2Qf1ia53gSJAEKHkwLjwgDTbLVmgSAoXX4s=
-Date:   Mon, 14 Jun 2021 17:20:10 -0700
+        b=jfrnupzZgzjCN7yZ9VcvejakdByB6QvK1U2utxmxXs++mmSmcR00tzYcUXbUeSMOL
+         dH2wCserpYCIA+BcvUCa96iAEHgCStxwcXgSaz43DuTuF3klQrDRgCGf28UJlYd4QE
+         ZIRFAp6jzfNcSbBftDsaqcqQpfVAsMEe4L4YHsKg=
+Date:   Mon, 14 Jun 2021 17:20:15 -0700
 From:   akpm@linux-foundation.org
 To:     gregkh@linuxfoundation.org, hch@lst.de, jack@suse.cz,
         mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         willy@infradead.org
-Subject:  + fs-unexport-__set_page_dirty.patch added to -mm tree
-Message-ID: <20210615002010.n8U1pcT-W%akpm@linux-foundation.org>
+Subject:  +
+ mm-require-set_page_dirty-to-be-explicitly-wire-up.patch added to -mm tree
+Message-ID: <20210615002015.1xIOeTRF1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: unexport __set_page_dirty
+     Subject: mm: require ->set_page_dirty to be explicitly wired up
 has been added to the -mm tree.  Its filename is
-     fs-unexport-__set_page_dirty.patch
+     mm-require-set_page_dirty-to-be-explicitly-wire-up.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-unexport-__set_page_dirty.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-require-set_page_dirty-to-be-explicitly-wire-up.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-unexport-__set_page_dirty.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-require-set_page_dirty-to-be-explicitly-wire-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,42 +66,329 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: fs: unexport __set_page_dirty
+Subject: mm: require ->set_page_dirty to be explicitly wired up
 
-Patch series "remove the implicit .set_page_dirty default".
+Remove the CONFIG_BLOCK default to __set_page_dirty_buffers and just wire
+that method up for the missing instances.
 
-This series cleans up a few lose ends around ->set_page_dirty, most
-importantly removes the default to the buffer head based on if no method
-is wired up.
-
-
-This patch (of 3):
-
-__set_page_dirty is only used by built-in code.
-
-Link: https://lkml.kernel.org/r/20210614061512.3966143-1-hch@lst.de
-Link: https://lkml.kernel.org/r/20210614061512.3966143-2-hch@lst.de
+Link: https://lkml.kernel.org/r/20210614061512.3966143-4-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/adfs/inode.c     |    1 +
+ fs/affs/file.c      |    2 ++
+ fs/bfs/file.c       |    1 +
+ fs/block_dev.c      |    1 +
+ fs/exfat/inode.c    |    1 +
+ fs/ext2/inode.c     |    2 ++
+ fs/fat/inode.c      |    1 +
+ fs/gfs2/meta_io.c   |    2 ++
+ fs/hfs/inode.c      |    2 ++
+ fs/hfsplus/inode.c  |    2 ++
+ fs/hpfs/file.c      |    1 +
+ fs/jfs/inode.c      |    1 +
+ fs/minix/inode.c    |    1 +
+ fs/nilfs2/mdt.c     |    1 +
+ fs/ocfs2/aops.c     |    1 +
+ fs/omfs/file.c      |    1 +
+ fs/sysv/itree.c     |    1 +
+ fs/udf/file.c       |    1 +
+ fs/udf/inode.c      |    1 +
+ fs/ufs/inode.c      |    1 +
+ mm/page-writeback.c |   18 ++++--------------
+ 21 files changed, 29 insertions(+), 14 deletions(-)
 
---- a/fs/buffer.c~fs-unexport-__set_page_dirty
-+++ a/fs/buffer.c
-@@ -611,7 +611,6 @@ void __set_page_dirty(struct page *page,
- 	}
- 	xa_unlock_irqrestore(&mapping->i_pages, flags);
+--- a/fs/adfs/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/adfs/inode.c
+@@ -73,6 +73,7 @@ static sector_t _adfs_bmap(struct addres
  }
--EXPORT_SYMBOL_GPL(__set_page_dirty);
  
+ static const struct address_space_operations adfs_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage	= adfs_readpage,
+ 	.writepage	= adfs_writepage,
+ 	.write_begin	= adfs_write_begin,
+--- a/fs/affs/file.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/affs/file.c
+@@ -453,6 +453,7 @@ static sector_t _affs_bmap(struct addres
+ }
+ 
+ const struct address_space_operations affs_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage = affs_readpage,
+ 	.writepage = affs_writepage,
+ 	.write_begin = affs_write_begin,
+@@ -833,6 +834,7 @@ err_bh:
+ }
+ 
+ const struct address_space_operations affs_aops_ofs = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage = affs_readpage_ofs,
+ 	//.writepage = affs_writepage_ofs,
+ 	.write_begin = affs_write_begin_ofs,
+--- a/fs/bfs/file.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/bfs/file.c
+@@ -188,6 +188,7 @@ static sector_t bfs_bmap(struct address_
+ }
+ 
+ const struct address_space_operations bfs_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage	= bfs_readpage,
+ 	.writepage	= bfs_writepage,
+ 	.write_begin	= bfs_write_begin,
+--- a/fs/block_dev.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/block_dev.c
+@@ -1754,6 +1754,7 @@ static int blkdev_writepages(struct addr
+ }
+ 
+ static const struct address_space_operations def_blk_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage	= blkdev_readpage,
+ 	.readahead	= blkdev_readahead,
+ 	.writepage	= blkdev_writepage,
+--- a/fs/exfat/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/exfat/inode.c
+@@ -491,6 +491,7 @@ int exfat_block_truncate_page(struct ino
+ }
+ 
+ static const struct address_space_operations exfat_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage	= exfat_readpage,
+ 	.readahead	= exfat_readahead,
+ 	.writepage	= exfat_writepage,
+--- a/fs/ext2/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/ext2/inode.c
+@@ -961,6 +961,7 @@ ext2_dax_writepages(struct address_space
+ }
+ 
+ const struct address_space_operations ext2_aops = {
++	.set_page_dirty		= __set_page_dirty_buffers,
+ 	.readpage		= ext2_readpage,
+ 	.readahead		= ext2_readahead,
+ 	.writepage		= ext2_writepage,
+@@ -975,6 +976,7 @@ const struct address_space_operations ex
+ };
+ 
+ const struct address_space_operations ext2_nobh_aops = {
++	.set_page_dirty		= __set_page_dirty_buffers,
+ 	.readpage		= ext2_readpage,
+ 	.readahead		= ext2_readahead,
+ 	.writepage		= ext2_nobh_writepage,
+--- a/fs/fat/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/fat/inode.c
+@@ -342,6 +342,7 @@ int fat_block_truncate_page(struct inode
+ }
+ 
+ static const struct address_space_operations fat_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage	= fat_readpage,
+ 	.readahead	= fat_readahead,
+ 	.writepage	= fat_writepage,
+--- a/fs/gfs2/meta_io.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/gfs2/meta_io.c
+@@ -89,11 +89,13 @@ static int gfs2_aspace_writepage(struct
+ }
+ 
+ const struct address_space_operations gfs2_meta_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.writepage = gfs2_aspace_writepage,
+ 	.releasepage = gfs2_releasepage,
+ };
+ 
+ const struct address_space_operations gfs2_rgrp_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.writepage = gfs2_aspace_writepage,
+ 	.releasepage = gfs2_releasepage,
+ };
+--- a/fs/hfs/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/hfs/inode.c
+@@ -159,6 +159,7 @@ static int hfs_writepages(struct address
+ }
+ 
+ const struct address_space_operations hfs_btree_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage	= hfs_readpage,
+ 	.writepage	= hfs_writepage,
+ 	.write_begin	= hfs_write_begin,
+@@ -168,6 +169,7 @@ const struct address_space_operations hf
+ };
+ 
+ const struct address_space_operations hfs_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage	= hfs_readpage,
+ 	.writepage	= hfs_writepage,
+ 	.write_begin	= hfs_write_begin,
+--- a/fs/hfsplus/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/hfsplus/inode.c
+@@ -156,6 +156,7 @@ static int hfsplus_writepages(struct add
+ }
+ 
+ const struct address_space_operations hfsplus_btree_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage	= hfsplus_readpage,
+ 	.writepage	= hfsplus_writepage,
+ 	.write_begin	= hfsplus_write_begin,
+@@ -165,6 +166,7 @@ const struct address_space_operations hf
+ };
+ 
+ const struct address_space_operations hfsplus_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage	= hfsplus_readpage,
+ 	.writepage	= hfsplus_writepage,
+ 	.write_begin	= hfsplus_write_begin,
+--- a/fs/hpfs/file.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/hpfs/file.c
+@@ -196,6 +196,7 @@ static int hpfs_fiemap(struct inode *ino
+ }
+ 
+ const struct address_space_operations hpfs_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage = hpfs_readpage,
+ 	.writepage = hpfs_writepage,
+ 	.readahead = hpfs_readahead,
+--- a/fs/jfs/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/jfs/inode.c
+@@ -356,6 +356,7 @@ static ssize_t jfs_direct_IO(struct kioc
+ }
+ 
+ const struct address_space_operations jfs_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage	= jfs_readpage,
+ 	.readahead	= jfs_readahead,
+ 	.writepage	= jfs_writepage,
+--- a/fs/minix/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/minix/inode.c
+@@ -442,6 +442,7 @@ static sector_t minix_bmap(struct addres
+ }
+ 
+ static const struct address_space_operations minix_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage = minix_readpage,
+ 	.writepage = minix_writepage,
+ 	.write_begin = minix_write_begin,
+--- a/fs/nilfs2/mdt.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/nilfs2/mdt.c
+@@ -434,6 +434,7 @@ nilfs_mdt_write_page(struct page *page,
+ 
+ 
+ static const struct address_space_operations def_mdt_aops = {
++	.set_page_dirty		= __set_page_dirty_buffers,
+ 	.writepage		= nilfs_mdt_write_page,
+ };
+ 
+--- a/fs/ocfs2/aops.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/ocfs2/aops.c
+@@ -2453,6 +2453,7 @@ static ssize_t ocfs2_direct_IO(struct ki
+ }
+ 
+ const struct address_space_operations ocfs2_aops = {
++	.set_page_dirty		= __set_page_dirty_buffers,
+ 	.readpage		= ocfs2_readpage,
+ 	.readahead		= ocfs2_readahead,
+ 	.writepage		= ocfs2_writepage,
+--- a/fs/omfs/file.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/omfs/file.c
+@@ -372,6 +372,7 @@ const struct inode_operations omfs_file_
+ };
+ 
+ const struct address_space_operations omfs_aops = {
++	.set_page_dirty = __set_page_dirty_buffers,
+ 	.readpage = omfs_readpage,
+ 	.readahead = omfs_readahead,
+ 	.writepage = omfs_writepage,
+--- a/fs/sysv/itree.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/sysv/itree.c
+@@ -495,6 +495,7 @@ static sector_t sysv_bmap(struct address
+ }
+ 
+ const struct address_space_operations sysv_aops = {
++	.set_page_dirty = __set_page_dirty_buffers,
+ 	.readpage = sysv_readpage,
+ 	.writepage = sysv_writepage,
+ 	.write_begin = sysv_write_begin,
+--- a/fs/udf/file.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/udf/file.c
+@@ -125,6 +125,7 @@ static int udf_adinicb_write_end(struct
+ }
+ 
+ const struct address_space_operations udf_adinicb_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage	= udf_adinicb_readpage,
+ 	.writepage	= udf_adinicb_writepage,
+ 	.write_begin	= udf_adinicb_write_begin,
+--- a/fs/udf/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/udf/inode.c
+@@ -235,6 +235,7 @@ static sector_t udf_bmap(struct address_
+ }
+ 
+ const struct address_space_operations udf_aops = {
++	.set_page_dirty	= __set_page_dirty_buffers,
+ 	.readpage	= udf_readpage,
+ 	.readahead	= udf_readahead,
+ 	.writepage	= udf_writepage,
+--- a/fs/ufs/inode.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/fs/ufs/inode.c
+@@ -526,6 +526,7 @@ static sector_t ufs_bmap(struct address_
+ }
+ 
+ const struct address_space_operations ufs_aops = {
++	.set_page_dirty = __set_page_dirty_buffers,
+ 	.readpage = ufs_readpage,
+ 	.writepage = ufs_writepage,
+ 	.write_begin = ufs_write_begin,
+--- a/mm/page-writeback.c~mm-require-set_page_dirty-to-be-explicitly-wire-up
++++ a/mm/page-writeback.c
+@@ -32,7 +32,6 @@
+ #include <linux/sysctl.h>
+ #include <linux/cpu.h>
+ #include <linux/syscalls.h>
+-#include <linux/buffer_head.h> /* __set_page_dirty_buffers */
+ #include <linux/pagevec.h>
+ #include <linux/timer.h>
+ #include <linux/sched/rt.h>
+@@ -2555,13 +2554,9 @@ EXPORT_SYMBOL(redirty_page_for_writepage
  /*
-  * Add a page to the dirty page list.
+  * Dirty a page.
+  *
+- * For pages with a mapping this should be done under the page lock
+- * for the benefit of asynchronous memory errors who prefer a consistent
+- * dirty state. This rule can be broken in some special cases,
+- * but should be better not to.
+- *
+- * If the mapping doesn't provide a set_page_dirty a_op, then
+- * just fall through and assume that it wants buffer_heads.
++ * For pages with a mapping this should be done under the page lock for the
++ * benefit of asynchronous memory errors who prefer a consistent dirty state.
++ * This rule can be broken in some special cases, but should be better not to.
+  */
+ int set_page_dirty(struct page *page)
+ {
+@@ -2569,7 +2564,6 @@ int set_page_dirty(struct page *page)
+ 
+ 	page = compound_head(page);
+ 	if (likely(mapping)) {
+-		int (*spd)(struct page *) = mapping->a_ops->set_page_dirty;
+ 		/*
+ 		 * readahead/lru_deactivate_page could remain
+ 		 * PG_readahead/PG_reclaim due to race with end_page_writeback
+@@ -2582,11 +2576,7 @@ int set_page_dirty(struct page *page)
+ 		 */
+ 		if (PageReclaim(page))
+ 			ClearPageReclaim(page);
+-#ifdef CONFIG_BLOCK
+-		if (!spd)
+-			spd = __set_page_dirty_buffers;
+-#endif
+-		return (*spd)(page);
++		return mapping->a_ops->set_page_dirty(page);
+ 	}
+ 	if (!PageDirty(page)) {
+ 		if (!TestSetPageDirty(page))
 _
 
 Patches currently in -mm which might be from hch@lst.de are
