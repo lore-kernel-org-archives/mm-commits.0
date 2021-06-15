@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E64FC48BE6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09175C2B9F4
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:46:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 56831611CE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:46:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E472E61166
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 02:46:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230040AbhFOCsh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230181AbhFOCsh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 14 Jun 2021 22:48:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47746 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47740 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230082AbhFOCsg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S230040AbhFOCsg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 14 Jun 2021 22:48:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AFB1561059;
-        Tue, 15 Jun 2021 02:38:09 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 98C9A613CC;
+        Tue, 15 Jun 2021 02:38:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623724689;
-        bh=cZzJmvObAhdTzfDg5LPXi7+Kdk1+r8/S88FT/0IYqK4=;
+        s=korg; t=1623724729;
+        bh=NqjiLxHRp5PzUlPy8qGIx8/99hjIS4geWAZrKllpza8=;
         h=Date:From:To:Subject:From;
-        b=Tu3QYotx8NH7DxWBwXWLOXgNKby71Ea4CgVhAaMt6paSdf4SvxnN5CTS8dahCGQ46
-         LZqSLgCINPdQ8NxpcChuzkFdSu7aJG8WHjNzqMk8NJR7WS++DGzcVVlp483A4yPso2
-         PA03R/ZEP4LzQXSPAdqCn2XmX998LeGFyv9bxypg=
-Date:   Mon, 14 Jun 2021 19:38:09 -0700
+        b=kEkDDaB9q7yqJaCOhXJztZFgEiYa5k9+d5P925qCYZIj78oDMt5aG9qABUPoiPCez
+         yL1dBf2C+NX3e2KXdC5MskumBQ0Cdc+FXQNaqfao/9seUPWi3SE7UVrljX0K7Z0Q+7
+         fB3uqi+VURcMp2CoVfrHF1PjhzbeguxyDXBKOtKA=
+Date:   Mon, 14 Jun 2021 19:38:49 -0700
 From:   akpm@linux-foundation.org
 To:     anton@ozlabs.org, benh@kernel.crashing.org, luto@kernel.org,
         mm-commits@vger.kernel.org, npiggin@gmail.com, paulus@ozlabs.org,
         rdunlap@infradead.org
 Subject:  +
- lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix.patch added to
- -mm tree
-Message-ID: <20210615023809.QWQEZlh6u%akpm@linux-foundation.org>
+ lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix-2.patch added
+ to -mm tree
+Message-ID: <20210615023849.40X36g6UE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix
+     Subject: lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix-2
 has been added to the -mm tree.  Its filename is
-     lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix.patch
+     lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix-2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix-2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,12 +67,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Nicholas Piggin <npiggin@gmail.com>
-Subject: lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix
+Subject: lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix-2
 
-Update the comment to be clearer, and account for the improvement
-to MMU_LAZY_TLB_REFCOUNT comment.
+Explain the requirements for lazy tlb mm refcounting in the comment,
+to help with archs that may want to disable this by some means other
+than MMU_LAZY_TLB_SHOOTDOWN.
 
-Link: https://lkml.kernel.org/r/1623121901.mszkmmum0n.astroid@bobo.none
+Link: https://lkml.kernel.org/r/1623121605.j47gdpccep.astroid@bobo.none
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 Cc: Anton Blanchard <anton@ozlabs.org>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -82,36 +83,27 @@ Cc: Paul Mackerras <paulus@ozlabs.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ arch/Kconfig |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/arch/Kconfig~lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix
+--- a/arch/Kconfig~lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix-2
 +++ a/arch/Kconfig
-@@ -423,15 +423,16 @@ config MMU_LAZY_TLB_REFCOUNT
- 	def_bool y
- 	depends on !MMU_LAZY_TLB_SHOOTDOWN
+@@ -419,6 +419,16 @@ config ARCH_WANT_IRQS_OFF_ACTIVATE_MM
+ 	  shootdowns should enable this.
  
--# Instead of refcounting the lazy mm struct for kernel thread references
--# (which can cause contention with multi-threaded apps on large multiprocessor
--# systems), this option causes __mmdrop to IPI all CPUs in the mm_cpumask and
--# switch to init_mm if they were using the to-be-freed mm as the lazy tlb. To
--# implement this, architectures must use _lazy_tlb variants of mm refcounting
--# when releasing kernel thread mm references, and mm_cpumask must include at
--# least all possible CPUs in which the mm might be lazy, at the time of the
--# final mmdrop. mmgrab/mmdrop in arch/ code must be switched to _lazy_tlb
--# postfix as necessary.
-+# This option allows MMU_LAZY_TLB_REFCOUNT=n. It ensures no CPUs are using an
-+# mm as a lazy tlb beyond its last reference count, by shooting down these
-+# users before the mm is deallocated. __mmdrop() first IPIs all CPUs that may
-+# be using the mm as a lazy tlb, so that they may switch themselves to using
-+# init_mm for their active mm. mm_cpumask(mm) is used to determine which CPUs
-+# may be using mm as a lazy tlb mm.
+ # Use normal mm refcounting for MMU_LAZY_TLB kernel thread references.
++# MMU_LAZY_TLB_REFCOUNT=n can improve the scalability of context switching
++# to/from kernel threads when the same mm is running on a lot of CPUs (a large
++# multi-threaded application), by reducing contention on the mm refcount.
 +#
-+# To implement this, an arch must ensure mm_cpumask(mm) contains at least all
-+# possible CPUs in which the mm is lazy, and it must meet the requirements for
-+# MMU_LAZY_TLB_REFCOUNT=n (see above).
- config MMU_LAZY_TLB_SHOOTDOWN
- 	bool
++# This can be disabled if the architecture ensures no CPUs are using an mm as a
++# "lazy tlb" beyond its final refcount (i.e., by the time __mmdrop frees the mm
++# or its kernel page tables). This could be arranged by arch_exit_mmap(), or
++# final exit(2) TLB flush, for example. arch code must also ensure the
++# _lazy_tlb variants of mmgrab/mmdrop are used when dropping the lazy reference
++# to a kthread ->active_mm (non-arch code has been converted already).
+ config MMU_LAZY_TLB_REFCOUNT
+ 	def_bool y
  
 _
 
@@ -120,6 +112,7 @@ Patches currently in -mm which might be from npiggin@gmail.com are
 lazy-tlb-introduce-lazy-mm-refcount-helper-functions.patch
 lazy-tlb-introduce-lazy-mm-refcount-helper-functions-fix.patch
 lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix-2.patch
 lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option.patch
 lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix.patch
 powerpc-64s-enable-mmu_lazy_tlb_shootdown.patch
