@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E5EDC48BE8
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 22:49:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D34EFC49EBB
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 22:50:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2804A6023E
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 22:49:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C403E61246
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Jun 2021 22:50:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229908AbhFOWvb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Jun 2021 18:51:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38160 "EHLO mail.kernel.org"
+        id S229918AbhFOWxB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Jun 2021 18:53:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229898AbhFOWva (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Jun 2021 18:51:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AF03A61246;
-        Tue, 15 Jun 2021 22:49:25 +0000 (UTC)
+        id S230444AbhFOWxA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Jun 2021 18:53:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A60A56128C;
+        Tue, 15 Jun 2021 22:50:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623797365;
-        bh=0i5AcW3kaYkFALky3gHZTWMpee+iJ7do4P8THxuNwRc=;
+        s=korg; t=1623797454;
+        bh=0ZvExTZxrvpgpGLnKlbjFjnPgNRSGbmWLLzbLlYC/zE=;
         h=Date:From:To:Subject:From;
-        b=OPWBuI+qDwQFo8nimyW/+XPzCS8+Bp6Fwnk/4qtoZsUwiD+nbLuG1Vw+YFZ2jBcvG
-         nl8QiQwAAvxPm2bemiUgjSnkmpC+ye28kHQKrZ5Mv2pEUcnPKNjdUKy3CqjeF2PHUx
-         bgUWbCO5mpuNw4jItkORRuqIrLMCkHIuF6PSJ5/Q=
-Date:   Tue, 15 Jun 2021 15:49:25 -0700
+        b=xxAvt+DCEeRHzMvGgytWBppR4hekulpULZZxg2x3fpfcfLcfznRbKqruo6VyKCwg/
+         DwkMKnjLUm8+ruazY7CDd4oJYgQTs4IE1WxqYGuWJysYco+Fz6AbUULOGtDPFWvnC8
+         1fQuRpHsaqY2Jdbg972hZBAp63KY3Yntf+JNcxAs=
+Date:   Tue, 15 Jun 2021 15:50:54 -0700
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  +
- =?US-ASCII?Q?writeback-cgroup-release-dying-cgwbs-by-switching-attache?=
- =?US-ASCII?Q?d-inodes-fix-3.patch?= added to -mm tree
-Message-ID: <20210615224925.voqVNc_x0%akpm@linux-foundation.org>
+To:     mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        willy@infradead.org
+Subject:  + mm-thp-fix-strncpy-warning.patch added to -mm tree
+Message-ID: <20210615225054.4SJsF--NC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm writeback,cgroup: fix documentation
+     Subject: mm/thp: fix strncpy warning
 has been added to the -mm tree.  Its filename is
-     writeback-cgroup-release-dying-cgwbs-by-switching-attached-inodes-fix-3.patch
+     mm-thp-fix-strncpy-warning.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/writeback-cgroup-release-dying-cgwbs-by-switching-attached-inodes-fix-3.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-fix-strncpy-warning.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/writeback-cgroup-release-dying-cgwbs-by-switching-attached-inodes-fix-3.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-fix-strncpy-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,40 +64,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm writeback,cgroup: fix documentation
+Subject: mm/thp: fix strncpy warning
 
-cleanup_offline_cgwbs_workfn() is a static function, so it doesn't need
-kernel-doc.  Also remove the inaccurate comment about the locking.
+Using MAX_INPUT_BUF_SZ as the maximum length of the string makes fortify
+complain as it thinks the string might be longer than the buffer, and if
+it is, we will end up with a "string" that is missing a NUL terminator. 
+It's trivial to show that 'tok' points to a NUL-terminated string which is
+less than MAX_INPUT_BUF_SZ in length, so we may as well just use strcpy()
+and avoid the warning.
 
-Link: https://lkml.kernel.org/r/20210615200242.1716568-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210615200242.1716568-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Roman Gushchin <guro@fb.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/backing-dev.c~writeback-cgroup-release-dying-cgwbs-by-switching-attached-inodes-fix-3
-+++ a/mm/backing-dev.c
-@@ -645,15 +645,12 @@ static void cgwb_bdi_unregister(struct b
- 	mutex_unlock(&bdi->cgwb_release_mutex);
- }
+--- a/mm/huge_memory.c~mm-thp-fix-strncpy-warning
++++ a/mm/huge_memory.c
+@@ -3101,7 +3101,7 @@ static ssize_t split_huge_pages_write(st
  
--/**
-- * cleanup_offline_cgwbs - try to release dying cgwbs
-+/*
-+ * cleanup_offline_cgwbs_workfn - try to release dying cgwbs
-  *
-  * Try to release dying cgwbs by switching attached inodes to the nearest
-  * living ancestor's writeback. Processed wbs are placed at the end
-  * of the list to guarantee the forward progress.
-- *
-- * Should be called with the acquired cgwb_lock lock, which might
-- * be released and re-acquired in the process.
-  */
- static void cleanup_offline_cgwbs_workfn(struct work_struct *work)
- {
+ 		tok = strsep(&buf, ",");
+ 		if (tok) {
+-			strncpy(file_path, tok, MAX_INPUT_BUF_SZ);
++			strcpy(file_path, tok);
+ 		} else {
+ 			ret = -EINVAL;
+ 			goto out;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -114,4 +106,5 @@ mm-make-compound_head-const-preserving.patch
 mm-constify-get_pfnblock_flags_mask-and-get_pfnblock_migratetype.patch
 mm-constify-page_count-and-page_ref_count.patch
 mm-optimise-nth_page-for-contiguous-memmap.patch
+mm-thp-fix-strncpy-warning.patch
 
