@@ -7,147 +7,131 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A86D7C48BDF
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Jun 2021 01:24:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 827DAC48BDF
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Jun 2021 03:22:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 986BA613B1
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Jun 2021 01:24:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5FA8660FE6
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Jun 2021 03:22:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231270AbhFPB0R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Jun 2021 21:26:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40696 "EHLO mail.kernel.org"
+        id S230045AbhFPDYd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Jun 2021 23:24:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43788 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231831AbhFPB0Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Jun 2021 21:26:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 561AE6137D;
-        Wed, 16 Jun 2021 01:24:11 +0000 (UTC)
+        id S229931AbhFPDYc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Jun 2021 23:24:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 43CA961246;
+        Wed, 16 Jun 2021 03:22:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623806651;
-        bh=Cwq6W9yiFn6kEvmMv86He3UjQESiIWQieCGZ4UAvp7k=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=KmHSEw4RecV9geYmRj6G7pJY9py/mvtjeA09XVM/F+PLPFh7xN2FaRd+6gGi2SqRU
-         8VB7scCyAFi0Ln1ewVtjlFhk/icaDyVG8OrF3ql7tFnsHzTnKMToSb9QzU7yuqWoJs
-         PFZU6lSXhpLZtGWN/Bo6HxIgURWfpaCqJt+2BlWo=
-Date:   Tue, 15 Jun 2021 18:24:10 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bhe@redhat.com, k-hagio-ab@nec.com,
-        linux-mm@kvack.org, miles.chen@mediatek.com,
-        mm-commits@vger.kernel.org, rppt@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 18/18] mm/sparse: fix check_usemap_section_nr
- warnings
-Message-ID: <20210616012410.BpXfvlbxU%akpm@linux-foundation.org>
-In-Reply-To: <20210615182248.9a0ba90e8e66b9f4a53c0d23@linux-foundation.org>
+        s=korg; t=1623813747;
+        bh=XQKdbbJzyDK1C5c3utfipM1s/EBfbLqMq8v0AkSaH68=;
+        h=Date:From:To:Subject:From;
+        b=gL0IgIs0/ITr8ApVV+a54Z8aERiAj4IAX/N+wreaTBWBiiVGD2Hn2TTQRL4y66o4s
+         QJgA3rlClP8k55Pp1Gj/j2HR898qsthUR3pEB318cv4VmWO4DR6ltHvY7GyJXx6tNX
+         4hYTVOOBwd/iDV+O4FSiaY8lDXQA9XQJs5T58hYg=
+Date:   Tue, 15 Jun 2021 20:22:26 -0700
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
+        gregkh@linuxfoundation.org, hch@lst.de, jack@suse.cz,
+        mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        willy@infradead.org
+Subject:  + fs-remove-noop_set_page_dirty-fix.patch added to -mm
+ tree
+Message-ID: <20210616032226.c9sZYgMRX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: mm/sparse: fix check_usemap_section_nr warnings
 
-I see a "virt_to_phys used for non-linear address" warning from
-check_usemap_section_nr() on arm64 platforms.
+The patch titled
+     Subject: fs-remove-noop_set_page_dirty-fix
+has been added to the -mm tree.  Its filename is
+     fs-remove-noop_set_page_dirty-fix.patch
 
-In current implementation of NODE_DATA, if CONFIG_NEED_MULTIPLE_NODES=y,
-pglist_data is dynamically allocated and assigned to node_data[].
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-remove-noop_set_page_dirty-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-remove-noop_set_page_dirty-fix.patch
 
-For example, in arch/arm64/include/asm/mmzone.h:
-extern struct pglist_data *node_data[];
-\#define NODE_DATA(nid)          (node_data[(nid)])
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-If CONFIG_NEED_MULTIPLE_NODES=n, pglist_data is defined as a global
-variable named "contig_page_data".
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-For example, in include/linux/mmzone.h:
-extern struct pglist_data contig_page_data;
-\#define NODE_DATA(nid)          (&contig_page_data)
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-If CONFIG_DEBUG_VIRTUAL is not enabled, __pa() can handle both
-dynamically allocated linear addresses and symbol addresses.
-However, if (CONFIG_DEBUG_VIRTUAL=y && CONFIG_NEED_MULTIPLE_NODES=n)
-,we can see the "virt_to_phys used for non-linear address"
-warning because that &contig_page_data is not a linear address on arm64.
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-remove-noop_set_page_dirty-fix
 
-To fix it, create a small function to handle both translation.
+export __set_page_dirty_no_writeback() to modules
 
-Warning message:
-[    0.000000] ------------[ cut here ]------------
-[    0.000000] virt_to_phys used for non-linear address: (____ptrval____) (contig_page_data+0x0/0x1c00)
-[    0.000000] WARNING: CPU: 0 PID: 0 at arch/arm64/mm/physaddr.c:15 __virt_to_phys+0x58/0x68
-[    0.000000] Modules linked in:
-[    0.000000] CPU: 0 PID: 0 Comm: swapper Tainted: G        W         5.13.0-rc1-00074-g1140ab592e2e #3
-[    0.000000] Hardware name: linux,dummy-virt (DT)
-[    0.000000] pstate: 600000c5 (nZCv daIF -PAN -UAO -TCO BTYPE=--)
-[    0.000000] pc : __virt_to_phys+0x58/0x68
-[    0.000000] lr : __virt_to_phys+0x54/0x68
-[    0.000000] sp : ffff800011833e70
-[    0.000000] x29: ffff800011833e70 x28: 00000000418a0018 x27: 0000000000000000
-[    0.000000] x26: 000000000000000a x25: ffff800011b70000 x24: ffff800011b70000
-[    0.000000] x23: fffffc0001c00000 x22: ffff800011b70000 x21: 0000000047ffffb0
-[    0.000000] x20: 0000000000000008 x19: ffff800011b082c0 x18: ffffffffffffffff
-[    0.000000] x17: 0000000000000000 x16: ffff800011833bf9 x15: 0000000000000004
-[    0.000000] x14: 0000000000000fff x13: ffff80001186a548 x12: 0000000000000000
-[    0.000000] x11: 0000000000000000 x10: 00000000ffffffff x9 : 0000000000000000
-[    0.000000] x8 : ffff8000115c9000 x7 : 737520737968705f x6 : ffff800011b62ef8
-[    0.000000] x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
-[    0.000000] x2 : 0000000000000000 x1 : ffff80001159585e x0 : 0000000000000058
-[    0.000000] Call trace:
-[    0.000000]  __virt_to_phys+0x58/0x68
-[    0.000000]  check_usemap_section_nr+0x50/0xfc
-[    0.000000]  sparse_init_nid+0x1ac/0x28c
-[    0.000000]  sparse_init+0x1c4/0x1e0
-[    0.000000]  bootmem_init+0x60/0x90
-[    0.000000]  setup_arch+0x184/0x1f0
-[    0.000000]  start_kernel+0x78/0x488
-[    0.000000] ---[ end trace f68728a0d3053b60 ]---
+ERROR: modpost: "__set_page_dirty_no_writeback" [drivers/dax/device_dax.ko] undefined!
+ERROR: modpost: "__set_page_dirty_no_writeback" [fs/xfs/xfs.ko] undefined!
+ERROR: modpost: "__set_page_dirty_no_writeback" [fs/fuse/fuse.ko] undefined!
+ERROR: modpost: "__set_page_dirty_no_writeback" [fs/ext2/ext2.ko] undefined!
+ERROR: modpost: "__set_page_dirty_no_writeback" [fs/ext4/ext4.ko] undefined!
 
-Link: https://lkml.kernel.org/r/1623058729-27264-1-git-send-email-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Kazu <k-hagio-ab@nec.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ mm/page-writeback.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/sparse.c~mm-sparse-fix-check_usemap_section_nr-warnings
-+++ a/mm/sparse.c
-@@ -344,6 +344,15 @@ size_t mem_section_usage_size(void)
- 	return sizeof(struct mem_section_usage) + usemap_size();
+--- a/mm/page-writeback.c~fs-remove-noop_set_page_dirty-fix
++++ a/mm/page-writeback.c
+@@ -2417,6 +2417,7 @@ int __set_page_dirty_no_writeback(struct
+ 		return !TestSetPageDirty(page);
+ 	return 0;
  }
++EXPORT_SYMBOL(__set_page_dirty_no_writeback);
  
-+static inline phys_addr_t pgdat_to_phys(struct pglist_data *pgdat)
-+{
-+#ifndef CONFIG_NEED_MULTIPLE_NODES
-+	return __pa_symbol(pgdat);
-+#else
-+	return __pa(pgdat);
-+#endif
-+}
-+
- #ifdef CONFIG_MEMORY_HOTREMOVE
- static struct mem_section_usage * __init
- sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
-@@ -362,7 +371,7 @@ sparse_early_usemaps_alloc_pgdat_section
- 	 * from the same section as the pgdat where possible to avoid
- 	 * this problem.
- 	 */
--	goal = __pa(pgdat) & (PAGE_SECTION_MASK << PAGE_SHIFT);
-+	goal = pgdat_to_phys(pgdat) & (PAGE_SECTION_MASK << PAGE_SHIFT);
- 	limit = goal + (1UL << PA_SECTION_SHIFT);
- 	nid = early_pfn_to_nid(goal >> PAGE_SHIFT);
- again:
-@@ -390,7 +399,7 @@ static void __init check_usemap_section_
- 	}
- 
- 	usemap_snr = pfn_to_section_nr(__pa(usage) >> PAGE_SHIFT);
--	pgdat_snr = pfn_to_section_nr(__pa(pgdat) >> PAGE_SHIFT);
-+	pgdat_snr = pfn_to_section_nr(pgdat_to_phys(pgdat) >> PAGE_SHIFT);
- 	if (usemap_snr == pgdat_snr)
- 		return;
- 
+ /*
+  * Helper function for set_page_dirty family.
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-slubc-include-swabh.patch
+mm-vmalloc-add-vmalloc_no_huge-fix.patch
+mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix.patch
+mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
+mm.patch
+mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
+fs-remove-noop_set_page_dirty-fix.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
+binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+mmmemory_hotplug-drop-unneeded-locking-fix.patch
+fs-proc-kcorec-add-mmap-interface-fix.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+lib-math-rational-add-kunit-test-cases-fix.patch
+lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
+ipc-utilc-use-binary-search-for-max_idx-fix.patch
+linux-next-pre.patch
+linux-next-post.patch
+linux-next-rejects.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+
