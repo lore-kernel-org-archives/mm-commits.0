@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B6D9C48BE6
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Jun 2021 22:57:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0D67C48BE5
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Jun 2021 22:58:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 09874613E9
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Jun 2021 22:57:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D43C7613C2
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Jun 2021 22:58:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231772AbhFPXAD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Jun 2021 19:00:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43764 "EHLO mail.kernel.org"
+        id S231246AbhFPXAc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Jun 2021 19:00:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43896 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230242AbhFPXAD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Jun 2021 19:00:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A07B5613CB;
-        Wed, 16 Jun 2021 22:57:56 +0000 (UTC)
+        id S230486AbhFPXAb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Jun 2021 19:00:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0D28B60FE6;
+        Wed, 16 Jun 2021 22:58:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623884276;
-        bh=Bsv9WPvW4QmN3EAgnx2zVaB/dkn2Rt6aZVZyuZzIIJk=;
+        s=korg; t=1623884304;
+        bh=NBc61V4Bh1GTv1zKCKfauFSITur0qXev4rJuYgLwcqY=;
         h=Date:From:To:Subject:From;
-        b=ZcTShyQchfI1DAX2m54eTzuZpKNAgU7kRAGDkzR+9Zszevj65iX/a4BCviMSxqdUE
-         gPoneUVPHHSCCesnNhzEU8M55ji1zELM9I63KdrWENOuNgrMhl/rZN7XKVSZJSoA6p
-         Hb4wu11Ceq9ZwK4ZxQxshRoWfC1fWHvffkTIYaj4=
-Date:   Wed, 16 Jun 2021 15:57:56 -0700
+        b=esHtczOh0PGsmy4rXw84OocNSCUnp0bbb4isKFgYRSjHVOCVTAFcIyHs9lUxrqa2K
+         gbJjecei9y1FuksHACf45f7p3Ky0vNgUOYkXT+nNitdc3ELoeBG9/HBQyqLC8yeJQD
+         1e7HM+BW8f7lcPa5VhzKVsme77TWq4tk3A+s4dps=
+Date:   Wed, 16 Jun 2021 15:58:23 -0700
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, mm-commits@vger.kernel.org
+To:     aneesh.kumar@linux.ibm.com, mm-commits@vger.kernel.org,
+        sfr@canb.auug.org.au
 Subject:  +
  =?US-ASCII?Q?mm-rename-pud=5Fpage=5Fvaddr-to-pud=5Fpgtable-and-make-it-?=
  =?US-ASCII?Q?return-pmd=5Ft-fix-2.patch?= added to -mm tree
-Message-ID: <20210616225756.rFhCfhOVO%akpm@linux-foundation.org>
+Message-ID: <20210616225823.0Q44zxxx0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -70,7 +71,7 @@ From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Subject: mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t-fix-2
 
 Link: https://lkml.kernel.org/r/87wnqtnb60.fsf@linux.ibm.com
-
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
