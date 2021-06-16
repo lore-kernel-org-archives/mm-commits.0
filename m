@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4835AC48BE6
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Jun 2021 23:40:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C8C0C48BE6
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Jun 2021 23:40:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 297BE613CD
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Jun 2021 23:40:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CA04613B9
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Jun 2021 23:40:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234590AbhFPXm6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Jun 2021 19:42:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53010 "EHLO mail.kernel.org"
+        id S234710AbhFPXnB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Jun 2021 19:43:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53052 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234710AbhFPXm4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Jun 2021 19:42:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F3C3C613AE;
-        Wed, 16 Jun 2021 23:40:48 +0000 (UTC)
+        id S234700AbhFPXm6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Jun 2021 19:42:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DC41061159;
+        Wed, 16 Jun 2021 23:40:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623886849;
-        bh=LlKC3w9lN+OXsPrDPXRbzciwDK1TtzVLAJi9GszTU7M=;
+        s=korg; t=1623886852;
+        bh=yQJlNauJ3ul1O6N7GGGc92yhxgLL9W7YWPH2wKBz3u0=;
         h=Date:From:To:Subject:From;
-        b=npEw7+QL+0sPzOKKOuOc7WtBX50YBtuTlHpqSoafOFgTU7Q6svt7qZ3a7ZpQDnD5h
-         RzIyLdjdG543QsLyrxFfJIGyNZXAt+lIxEmHTtnQMANovXZvM6HBDWaw40zm3JcL41
-         +0ZIEBRgUc3vHbt0aViaYa+kwbkLf1hI0hWYNWVg=
-Date:   Wed, 16 Jun 2021 16:40:48 -0700
+        b=fbSZkidOPj7GsxwutSCR3vAkmVpABO3PPXB9CoNLfsj0kbZcbLDYlLarpYylCygcw
+         5qAKXwUKnR6RBAMNZLYh+ThUYjiSMx4wKdTTyndDKV6FxXT/O+ALOUUjzZaK2iAkpu
+         vTdIHzzOMDK9XH7+CUg3ahwZkz3x8HVtL2D8iGbw=
+Date:   Wed, 16 Jun 2021 16:40:51 -0700
 From:   akpm@linux-foundation.org
 To:     chenhuang5@huawei.com, corbet@lwn.net, david@redhat.com,
         duanxiongchun@bytedance.com, mhocko@suse.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         osalvador@suse.de, songmuchun@bytedance.com
 Subject:  +
- mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages.patch added to -mm tree
-Message-ID: <20210616234048.9l8MJVbb0%akpm@linux-foundation.org>
+ mm-hugetlb-introduce-config_hugetlb_page_free_vmemmap_default_on.patch
+ added to -mm tree
+Message-ID: <20210616234051.g2JHt4YNV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: sparsemem: use huge PMD mapping for vmemmap pages
+     Subject: mm: hugetlb: introduce CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON
 has been added to the -mm tree.  Its filename is
-     mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages.patch
+     mm-hugetlb-introduce-config_hugetlb_page_free_vmemmap_default_on.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-introduce-config_hugetlb_page_free_vmemmap_default_on.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-introduce-config_hugetlb_page_free_vmemmap_default_on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,137 +68,85 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: sparsemem: use huge PMD mapping for vmemmap pages
+Subject: mm: hugetlb: introduce CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON
 
-The preparation of splitting huge PMD mapping of vmemmap pages is ready,
-so switch the mapping from PTE to PMD.
+When using HUGETLB_PAGE_FREE_VMEMMAP, the freeing unused vmemmap pages
+associated with each HugeTLB page is default off.  Now the vmemmap is PMD
+mapped.  So there is no side effect when this feature is enabled with no
+HugeTLB pages in the system.  Someone may want to enable this feature in
+the compiler time instead of using boot command line.  So add a config to
+make it default on when someone do not want to enable it via command line.
 
-Link: https://lkml.kernel.org/r/20210616094915.34432-3-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20210616094915.34432-4-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Chen Huang <chenhuang5@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    7 ---
- arch/x86/mm/init_64.c                           |    8 +---
- include/linux/hugetlb.h                         |   25 +++-----------
- mm/memory_hotplug.c                             |    2 -
- 4 files changed, 9 insertions(+), 33 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    3 +++
+ fs/Kconfig                                      |   10 ++++++++++
+ mm/hugetlb_vmemmap.c                            |    6 ++++--
+ 3 files changed, 17 insertions(+), 2 deletions(-)
 
---- a/arch/x86/mm/init_64.c~mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages
-+++ a/arch/x86/mm/init_64.c
-@@ -34,7 +34,6 @@
- #include <linux/gfp.h>
- #include <linux/kcore.h>
- #include <linux/bootmem_info.h>
--#include <linux/hugetlb.h>
- 
- #include <asm/processor.h>
- #include <asm/bios_ebda.h>
-@@ -1610,8 +1609,7 @@ int __meminit vmemmap_populate(unsigned
- 	VM_BUG_ON(!IS_ALIGNED(start, PAGE_SIZE));
- 	VM_BUG_ON(!IS_ALIGNED(end, PAGE_SIZE));
- 
--	if ((is_hugetlb_free_vmemmap_enabled()  && !altmap) ||
--	    end - start < PAGES_PER_SECTION * sizeof(struct page))
-+	if (end - start < PAGES_PER_SECTION * sizeof(struct page))
- 		err = vmemmap_populate_basepages(start, end, node, NULL);
- 	else if (boot_cpu_has(X86_FEATURE_PSE))
- 		err = vmemmap_populate_hugepages(start, end, node, altmap);
-@@ -1639,8 +1637,6 @@ void register_page_bootmem_memmap(unsign
- 	pmd_t *pmd;
- 	unsigned int nr_pmd_pages;
- 	struct page *page;
--	bool base_mapping = !boot_cpu_has(X86_FEATURE_PSE) ||
--			    is_hugetlb_free_vmemmap_enabled();
- 
- 	for (; addr < end; addr = next) {
- 		pte_t *pte = NULL;
-@@ -1666,7 +1662,7 @@ void register_page_bootmem_memmap(unsign
- 		}
- 		get_page_bootmem(section_nr, pud_page(*pud), MIX_SECTION_INFO);
- 
--		if (base_mapping) {
-+		if (!boot_cpu_has(X86_FEATURE_PSE)) {
- 			next = (addr + PAGE_SIZE) & PAGE_MASK;
- 			pmd = pmd_offset(pud, addr);
- 			if (pmd_none(*pmd))
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb-introduce-config_hugetlb_page_free_vmemmap_default_on
 +++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1572,13 +1572,6 @@
- 			enabled.
- 			Allows heavy hugetlb users to free up some more
- 			memory (6 * PAGE_SIZE for each 2MB hugetlb page).
--			This feauture is not free though. Large page
--			tables are not used to back vmemmap pages which
--			can lead to a performance degradation for some
--			workloads. Also there will be memory allocation
--			required when hugetlb pages are freed from the
--			pool which can lead to corner cases under heavy
--			memory pressure.
- 			Format: { on | off (default) }
- 
+@@ -1577,6 +1577,9 @@
  			on:  enable the feature
---- a/include/linux/hugetlb.h~mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages
-+++ a/include/linux/hugetlb.h
-@@ -895,20 +895,6 @@ static inline void huge_ptep_modify_prot
- }
- #endif
+ 			off: disable the feature
  
--#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
--extern bool hugetlb_free_vmemmap_enabled;
--
--static inline bool is_hugetlb_free_vmemmap_enabled(void)
--{
--	return hugetlb_free_vmemmap_enabled;
--}
--#else
--static inline bool is_hugetlb_free_vmemmap_enabled(void)
--{
--	return false;
--}
--#endif
--
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
- 
-@@ -1063,13 +1049,14 @@ static inline void set_huge_swap_pte_at(
- 					pte_t *ptep, pte_t pte, unsigned long sz)
- {
- }
--
--static inline bool is_hugetlb_free_vmemmap_enabled(void)
--{
--	return false;
--}
- #endif	/* CONFIG_HUGETLB_PAGE */
- 
-+#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
-+extern bool hugetlb_free_vmemmap_enabled;
-+#else
-+#define hugetlb_free_vmemmap_enabled	false
-+#endif
++			Built with CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON=y,
++			the default is on.
 +
- static inline spinlock_t *huge_pte_lock(struct hstate *h,
- 					struct mm_struct *mm, pte_t *pte)
+ 			This is not compatible with memory_hotplug.memmap_on_memory.
+ 			If both parameters are enabled, hugetlb_free_vmemmap takes
+ 			precedence over memory_hotplug.memmap_on_memory.
+--- a/fs/Kconfig~mm-hugetlb-introduce-config_hugetlb_page_free_vmemmap_default_on
++++ a/fs/Kconfig
+@@ -245,6 +245,16 @@ config HUGETLB_PAGE_FREE_VMEMMAP
+ 	depends on X86_64
+ 	depends on SPARSEMEM_VMEMMAP
+ 
++config HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON
++	bool "Default freeing vmemmap pages of HugeTLB to on"
++	default n
++	depends on HUGETLB_PAGE_FREE_VMEMMAP
++	help
++	  When using HUGETLB_PAGE_FREE_VMEMMAP, the freeing unused vmemmap
++	  pages associated with each HugeTLB page is default off. Say Y here
++	  to enable freeing vmemmap pages of HugeTLB by default. It can then
++	  be disabled on the command line via hugetlb_free_vmemmap=off.
++
+ config MEMFD_CREATE
+ 	def_bool TMPFS || HUGETLBFS
+ 
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb-introduce-config_hugetlb_page_free_vmemmap_default_on
++++ a/mm/hugetlb_vmemmap.c
+@@ -182,7 +182,7 @@
+ #define RESERVE_VMEMMAP_NR		2U
+ #define RESERVE_VMEMMAP_SIZE		(RESERVE_VMEMMAP_NR << PAGE_SHIFT)
+ 
+-bool hugetlb_free_vmemmap_enabled;
++bool hugetlb_free_vmemmap_enabled = IS_ENABLED(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON);
+ 
+ static int __init early_hugetlb_free_vmemmap_param(char *buf)
  {
---- a/mm/memory_hotplug.c~mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages
-+++ a/mm/memory_hotplug.c
-@@ -1056,7 +1056,7 @@ bool mhp_supports_memmap_on_memory(unsig
- 	 *       populate a single PMD.
- 	 */
- 	return memmap_on_memory &&
--	       !is_hugetlb_free_vmemmap_enabled() &&
-+	       !hugetlb_free_vmemmap_enabled &&
- 	       IS_ENABLED(CONFIG_MHP_MEMMAP_ON_MEMORY) &&
- 	       size == memory_block_size_bytes() &&
- 	       IS_ALIGNED(vmemmap_size, PMD_SIZE) &&
+@@ -197,7 +197,9 @@ static int __init early_hugetlb_free_vme
+ 
+ 	if (!strcmp(buf, "on"))
+ 		hugetlb_free_vmemmap_enabled = true;
+-	else if (strcmp(buf, "off"))
++	else if (!strcmp(buf, "off"))
++		hugetlb_free_vmemmap_enabled = false;
++	else
+ 		return -EINVAL;
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
