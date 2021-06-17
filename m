@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E03DC48BE8
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 00:56:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3991FC48BE8
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 00:59:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6EDCD613BF
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 00:56:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1A6FA613E2
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 00:59:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231678AbhFQA6X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Jun 2021 20:58:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33736 "EHLO mail.kernel.org"
+        id S231669AbhFQBBa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Jun 2021 21:01:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231361AbhFQA6V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Jun 2021 20:58:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E3226613CD;
-        Thu, 17 Jun 2021 00:56:13 +0000 (UTC)
+        id S231361AbhFQBBa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Jun 2021 21:01:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 25B30613DB;
+        Thu, 17 Jun 2021 00:59:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623891374;
-        bh=OTlQNSaL1zjEw+kDKLfNEax7YoR6S0zI+in5vbsi8eg=;
+        s=korg; t=1623891562;
+        bh=8b+xAoNxy+bJNYB2jDL0P/dL4qqtOcjuq/jLjknREKg=;
         h=Date:From:To:Subject:From;
-        b=fLk1pFRYyscK8HpqWuA3GUnvVgI50rQRf2Eip3szvPRUftos/Nb8Ss2aXhJyAn+gu
-         ITL/qtomptBwH/y8s6WzEIkY/WHWlbBRFAvW6owlKTmEsXIGlImwiVsVCaWrm5Wami
-         +XMIR4LUf9ouK0TDKuK+sQMUcC61jR4gs+3JVHJs=
-Date:   Wed, 16 Jun 2021 17:56:13 -0700
+        b=zN+8GP/dzB8L4Ym6EWX8OOyLrdBYhQgbCyXNE4dkc+lniO99sS8nYND0FZBghuYRQ
+         A/V8RoYmjiqvO4veoC1GT1wdcllbhZApJbbuyNgQWrkaD8VxmHuFVu/S8J2t/q9BPl
+         wFfOZ963k//VyZD2qB++ROeJNvwQEVm3uJAKKbbU=
+Date:   Wed, 16 Jun 2021 17:59:21 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, christophe.leroy@csgroup.eu,
         joel@joelfernandes.org, kaleshsingh@google.com,
         kirill@shutemov.name, mm-commits@vger.kernel.org,
         mpe@ellerman.id.au, npiggin@gmail.com
-Subject:  + powerpc-mm-enable-have_move_pmd-support.patch added to
- -mm tree
-Message-ID: <20210617005613.rLHPYNeAb%akpm@linux-foundation.org>
+Subject:  [to-be-updated]
+ mm-mremap-allow-arch-runtime-override.patch removed from -mm tree
+Message-ID: <20210617005921.K2YQGGMWV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,68 +45,108 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm: enable HAVE_MOVE_PMD support
-has been added to the -mm tree.  Its filename is
-     powerpc-mm-enable-have_move_pmd-support.patch
+     Subject: mm/mremap: allow arch runtime override
+has been removed from the -mm tree.  Its filename was
+     mm-mremap-allow-arch-runtime-override.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-enable-have_move_pmd-support.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-enable-have_move_pmd-support.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: powerpc/mm: enable HAVE_MOVE_PMD support
+Subject: mm/mremap: allow arch runtime override
 
-mremap HAVE_MOVE_PMD/PUD optimization time comparison for 1GB region:
-1GB mremap - Source PTE-aligned, Destination PTE-aligned
-  mremap time:      2292772ns
-1GB mremap - Source PMD-aligned, Destination PMD-aligned
-  mremap time:      1158928ns
-1GB mremap - Source PUD-aligned, Destination PUD-aligned
-  mremap time:        63886ns
+Patch series "Speedup mremap on ppc64", v8.
 
-Link: https://lkml.kernel.org/r/20210616045735.374532-4-aneesh.kumar@linux.ibm.com
+This patchset enables MOVE_PMD/MOVE_PUD support on power. This requires
+the platform to support updating higher-level page tables without
+updating page table entries. This also needs to invalidate the Page Walk
+Cache on architecture supporting the same.
+
+
+This patch (of 3):
+
+Architectures like ppc64 support faster mremap only with radix
+translation.  Hence allow a runtime check w.r.t support for fast mremap.
+
+Link: https://lkml.kernel.org/r/20210616045735.374532-1-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20210616045735.374532-2-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/Kconfig.cputype |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/powerpc/include/asm/tlb.h |    6 ++++++
+ mm/mremap.c                    |   15 ++++++++++++++-
+ 2 files changed, 20 insertions(+), 1 deletion(-)
 
---- a/arch/powerpc/platforms/Kconfig.cputype~powerpc-mm-enable-have_move_pmd-support
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -101,6 +101,8 @@ config PPC_BOOK3S_64
- 	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
- 	select ARCH_SUPPORTS_HUGETLBFS
- 	select ARCH_SUPPORTS_NUMA_BALANCING
-+	select HAVE_MOVE_PMD
-+	select HAVE_MOVE_PUD
- 	select IRQ_WORK
- 	select PPC_MM_SLICES
- 	select PPC_HAVE_KUEP
+--- a/arch/powerpc/include/asm/tlb.h~mm-mremap-allow-arch-runtime-override
++++ a/arch/powerpc/include/asm/tlb.h
+@@ -83,5 +83,11 @@ static inline int mm_is_thread_local(str
+ }
+ #endif
+ 
++#define arch_supports_page_table_move arch_supports_page_table_move
++static inline bool arch_supports_page_table_move(void)
++{
++	return radix_enabled();
++}
++
+ #endif /* __KERNEL__ */
+ #endif /* __ASM_POWERPC_TLB_H */
+--- a/mm/mremap.c~mm-mremap-allow-arch-runtime-override
++++ a/mm/mremap.c
+@@ -25,7 +25,7 @@
+ #include <linux/userfaultfd_k.h>
+ 
+ #include <asm/cacheflush.h>
+-#include <asm/tlbflush.h>
++#include <asm/tlb.h>
+ 
+ #include "internal.h"
+ 
+@@ -209,6 +209,15 @@ static void move_ptes(struct vm_area_str
+ 		drop_rmap_locks(vma);
+ }
+ 
++#ifndef arch_supports_page_table_move
++#define arch_supports_page_table_move arch_supports_page_table_move
++static inline bool arch_supports_page_table_move(void)
++{
++	return IS_ENABLED(CONFIG_HAVE_MOVE_PMD) ||
++		IS_ENABLED(CONFIG_HAVE_MOVE_PUD);
++}
++#endif
++
+ #ifdef CONFIG_HAVE_MOVE_PMD
+ static bool move_normal_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+ 		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
+@@ -217,6 +226,8 @@ static bool move_normal_pmd(struct vm_ar
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pmd_t pmd;
+ 
++	if (!arch_supports_page_table_move())
++		return false;
+ 	/*
+ 	 * The destination pmd shouldn't be established, free_pgtables()
+ 	 * should have released it.
+@@ -284,6 +295,8 @@ static bool move_normal_pud(struct vm_ar
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pud_t pud;
+ 
++	if (!arch_supports_page_table_move())
++		return false;
+ 	/*
+ 	 * The destination pud shouldn't be established, free_pgtables()
+ 	 * should have released it.
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-mm-mremap-allow-arch-runtime-override.patch
 powerpc-book3s64-mm-update-flush_tlb_range-to-flush-page-walk-cache.patch
 powerpc-mm-enable-have_move_pmd-support.patch
 
