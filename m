@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E06B9C48BE8
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 00:59:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92406C48BE8
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 01:00:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B6C58613E2
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 00:59:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60CC3613DD
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 01:00:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231709AbhFQBBc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Jun 2021 21:01:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34044 "EHLO mail.kernel.org"
+        id S231706AbhFQBC6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Jun 2021 21:02:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34234 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231628AbhFQBBb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Jun 2021 21:01:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 98926613E1;
-        Thu, 17 Jun 2021 00:59:24 +0000 (UTC)
+        id S231628AbhFQBC6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Jun 2021 21:02:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 96905613D5;
+        Thu, 17 Jun 2021 01:00:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623891564;
-        bh=uzuxXmLtfqgQaQ/w7rwV8bOEXd9UNIwK7m4JYlOjTLM=;
+        s=korg; t=1623891650;
+        bh=c0SIEMMoK9BAYvIXyubHrXQp1uXqiZxghmrL32qqQa0=;
         h=Date:From:To:Subject:From;
-        b=vAfsDyndBqHufWEELinlQKQUE6Sz39yIsbsvwP/MFUF623fRE6iX8ZQm8mJ/WJHQl
-         +t4WngMUKKBqBe20vmG4BUp1DMSKcwtoglBGBpdc8BjVZ95s3Wa1drxmFiOkNZjqMW
-         7DSBXsMwltroEqhlMXp2AcwwRvJ6Iyr8Reg/Ppj0=
-Date:   Wed, 16 Jun 2021 17:59:24 -0700
+        b=Eb7OchwfsKWKr3XY0KSWfEvSLemZrWr6uqLm3MzARXXv129SOn7tgcwe9viE/SRXU
+         MENrbX6r8N3ZaDlN+uItwqy8XvoxxY3LM5cXjAWB8oy/l9XU0S5uLYctGLNgvMowlg
+         Dk2vxrrcfEK6YH9VwgK+5/q2YWLBF3WrKmyl4JPw=
+Date:   Wed, 16 Jun 2021 18:00:50 -0700
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, christophe.leroy@csgroup.eu,
-        joel@joelfernandes.org, kaleshsingh@google.com,
-        kirill@shutemov.name, mm-commits@vger.kernel.org,
-        mpe@ellerman.id.au, npiggin@gmail.com
-Subject:  [to-be-updated]
- powerpc-mm-enable-have_move_pmd-support.patch removed from -mm tree
-Message-ID: <20210617005924.Qu3R0oY5G%akpm@linux-foundation.org>
+To:     hughd@google.com, mm-commits@vger.kernel.org
+Subject:  +
+ mm-page_vma_mapped_walk-add-a-level-of-indentation-fix.patch added to -mm
+ tree
+Message-ID: <20210617010050.RhoHRs5uU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,51 +43,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm: enable HAVE_MOVE_PMD support
-has been removed from the -mm tree.  Its filename was
-     powerpc-mm-enable-have_move_pmd-support.patch
+     Subject: mm: page_vma_mapped_walk(): add a level of indentation fix
+has been added to the -mm tree.  Its filename is
+     mm-page_vma_mapped_walk-add-a-level-of-indentation-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_vma_mapped_walk-add-a-level-of-indentation-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_vma_mapped_walk-add-a-level-of-indentation-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: powerpc/mm: enable HAVE_MOVE_PMD support
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: page_vma_mapped_walk(): add a level of indentation fix
 
-mremap HAVE_MOVE_PMD/PUD optimization time comparison for 1GB region:
-1GB mremap - Source PTE-aligned, Destination PTE-aligned
-  mremap time:      2292772ns
-1GB mremap - Source PMD-aligned, Destination PMD-aligned
-  mremap time:      1158928ns
-1GB mremap - Source PUD-aligned, Destination PUD-aligned
-  mremap time:        63886ns
+add a tab to the READ_ONCE line in the indentation patch.
 
-Link: https://lkml.kernel.org/r/20210616045735.374532-4-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+Link: https://lkml.kernel.org/r/7f817555-3ce1-c785-e438-87d8efdcaf26@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/Kconfig.cputype |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/page_vma_mapped.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/powerpc/platforms/Kconfig.cputype~powerpc-mm-enable-have_move_pmd-support
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -101,6 +101,8 @@ config PPC_BOOK3S_64
- 	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
- 	select ARCH_SUPPORTS_HUGETLBFS
- 	select ARCH_SUPPORTS_NUMA_BALANCING
-+	select HAVE_MOVE_PMD
-+	select HAVE_MOVE_PUD
- 	select IRQ_WORK
- 	select PPC_MM_SLICES
- 	select PPC_HAVE_KUEP
+--- a/mm/page_vma_mapped.c~mm-page_vma_mapped_walk-add-a-level-of-indentation-fix
++++ a/mm/page_vma_mapped.c
+@@ -190,7 +190,7 @@ restart:
+ 		 * compiler and used as a stale value after we've observed a
+ 		 * subsequent update.
+ 		 */
+-	pmde = READ_ONCE(*pvmw->pmd);
++		pmde = READ_ONCE(*pvmw->pmd);
+ 
+ 		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde)) {
+ 			pvmw->ptl = pmd_lock(mm, pvmw->pmd);
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from hughd@google.com are
 
+mm-thp-fix-__split_huge_pmd_locked-on-shmem-migration-entry.patch
+mm-thp-make-is_huge_zero_pmd-safe-and-quicker.patch
+mm-thp-try_to_unmap-use-ttu_sync-for-safe-splitting.patch
+mm-thp-fix-vma_address-if-virtual-address-below-file-offset.patch
+mm-thp-unmap_mapping_page-to-fix-thp-truncate_cleanup_page.patch
+mm-page_vma_mapped_walk-use-page-for-pvmw-page.patch
+mm-page_vma_mapped_walk-settle-pagehuge-on-entry.patch
+mm-page_vma_mapped_walk-use-pmde-for-pvmw-pmd.patch
+mm-page_vma_mapped_walk-prettify-pvmw_migration-block.patch
+mm-page_vma_mapped_walk-crossing-page-table-boundary.patch
+mm-page_vma_mapped_walk-add-a-level-of-indentation.patch
+mm-page_vma_mapped_walk-add-a-level-of-indentation-fix.patch
+mm-page_vma_mapped_walk-use-goto-instead-of-while-1.patch
+mm-page_vma_mapped_walk-get-vma_address_end-earlier.patch
+mm-thp-fix-page_vma_mapped_walk-if-thp-mapped-by-ptes.patch
+mm-thp-another-pvmw_sync-fix-in-page_vma_mapped_walk.patch
+mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page.patch
+mm-thp-remap_page-is-only-needed-on-anonymous-thp.patch
+mm-hwpoison_user_mappings-try_to_unmap-with-ttu_sync.patch
 
