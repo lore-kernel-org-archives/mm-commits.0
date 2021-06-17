@@ -7,37 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A46CAC2B9F4
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 04:05:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BA70C2B9F4
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 04:05:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8837E613E2
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 04:05:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16C47613E9
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 04:05:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229580AbhFQEH1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 17 Jun 2021 00:07:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57142 "EHLO mail.kernel.org"
+        id S229686AbhFQEHc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 17 Jun 2021 00:07:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57176 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229447AbhFQEH1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 17 Jun 2021 00:07:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E31F261026;
-        Thu, 17 Jun 2021 04:05:19 +0000 (UTC)
+        id S229447AbhFQEHa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 17 Jun 2021 00:07:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F01F4613E4;
+        Thu, 17 Jun 2021 04:05:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623902720;
-        bh=4rQoBO4BaxdOyLPYwDLZY6Myt0KB5EARBfM0iFYMjqI=;
+        s=korg; t=1623902722;
+        bh=Opu15qRDKy2IpFun2hDFObILNq1KbqszddT9LPho2mc=;
         h=Date:From:To:Subject:From;
-        b=Rvqr4iKEeYQzcLoAnwGeN5r46mniiJLr2VzttprCtsBf0QJa2c2dBexa3zK72UWL2
-         orvBLHIfxi6m8jH3HMO6sFZO0eoDnJ/avqEbSFTv9gCoiQVr+kcklNTGuJN3wXTKe8
-         zoKj3/SL96/Claa8Y7A2OLe23n4Pj27mm5hC6s+M=
-Date:   Wed, 16 Jun 2021 21:05:19 -0700
+        b=hmrxvewbFj9delxpWX5ymQnGrDjTOS8xQkgd2ursDFIGGv1XYq+7m04XnNY4YWpO1
+         xqRwAyINOu4RJZaAyLd9/QZyQ1y1J3J0XHZuVmGIFkCXvPJJ/TiGhy1mQ1utrwno7B
+         etUFjutBngG8Ljei+p+Kho25WFVXKGRrc02KgEh0=
+Date:   Wed, 16 Jun 2021 21:05:21 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, christophe.leroy@csgroup.eu,
         hughd@google.com, joel@joelfernandes.org, kaleshsingh@google.com,
-        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        mpe@ellerman.id.au, npiggin@gmail.com, sfr@canb.auug.org.au
+        kirill.shutemov@linux.intel.com, kirill@shutemov.name,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
+        sfr@canb.auug.org.au
 Subject:  +
- mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix.patch
+ selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
  added to -mm tree
-Message-ID: <20210617040519.QDsoIUvOY%akpm@linux-foundation.org>
+Message-ID: <20210617040521.c_tKHVC17%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix
+     Subject: selftest/mremap_test: update the test to handle pagesize other than 4K
 has been added to the -mm tree.  Its filename is
-     mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix.patch
+     selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,40 +69,181 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix
+Subject: selftest/mremap_test: update the test to handle pagesize other than 4K
 
-m68k build error reported by kernel robot.
+Patch series "mrermap fixes", v2.
 
-  We may want to fixup pgd_page_vaddr correctly later. pgd_page_vaddr() gets
-  cast to different pointer types based on architecture. But for now this
-  should work? This ensure we keep the pgd_page_vaddr() same as before.
 
-Link: https://lkml.kernel.org/r/87tulxnb2v.fsf@linux.ibm.com
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+This patch (of 6):
+
+Instead of hardcoding 4K page size fetch it using sysconf().  For the
+performance measurements test still assume 2M and 1G are hugepage sizes.
+
+Link: https://lkml.kernel.org/r/20210616045239.370802-1-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20210616045239.370802-2-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Kalesh Singh <kaleshsingh@google.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable-nop4d.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vm/mremap_test.c |  111 +++++++++++----------
+ 1 file changed, 60 insertions(+), 51 deletions(-)
 
---- a/include/asm-generic/pgtable-nop4d.h~mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix
-+++ a/include/asm-generic/pgtable-nop4d.h
-@@ -42,7 +42,7 @@ static inline p4d_t *p4d_offset(pgd_t *p
- #define __p4d(x)				((p4d_t) { __pgd(x) })
+--- a/tools/testing/selftests/vm/mremap_test.c~selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k
++++ a/tools/testing/selftests/vm/mremap_test.c
+@@ -45,14 +45,15 @@ enum {
+ 	_4MB = 4ULL << 20,
+ 	_1GB = 1ULL << 30,
+ 	_2GB = 2ULL << 30,
+-	PTE = _4KB,
+ 	PMD = _2MB,
+ 	PUD = _1GB,
+ };
  
- #define pgd_page(pgd)				(p4d_page((p4d_t){ pgd }))
--#define pgd_page_vaddr(pgd)			(p4d_pgtable((p4d_t){ pgd }))
-+#define pgd_page_vaddr(pgd)			((unsigned long)(p4d_pgtable((p4d_t){ pgd })))
++#define PTE page_size
++
+ #define MAKE_TEST(source_align, destination_align, size,	\
+ 		  overlaps, should_fail, test_name)		\
+-{								\
++(struct test){							\
+ 	.name = test_name,					\
+ 	.config = {						\
+ 		.src_alignment = source_align,			\
+@@ -252,12 +253,17 @@ static int parse_args(int argc, char **a
+ 	return 0;
+ }
  
- /*
-  * allocating and freeing a p4d is trivial: the 1-entry p4d is
++#define MAX_TEST 13
++#define MAX_PERF_TEST 3
+ int main(int argc, char **argv)
+ {
+ 	int failures = 0;
+ 	int i, run_perf_tests;
+ 	unsigned int threshold_mb = VALIDATION_DEFAULT_THRESHOLD;
+ 	unsigned int pattern_seed;
++	struct test test_cases[MAX_TEST];
++	struct test perf_test_cases[MAX_PERF_TEST];
++	int page_size;
+ 	time_t t;
+ 
+ 	pattern_seed = (unsigned int) time(&t);
+@@ -268,56 +274,59 @@ int main(int argc, char **argv)
+ 	ksft_print_msg("Test configs:\n\tthreshold_mb=%u\n\tpattern_seed=%u\n\n",
+ 		       threshold_mb, pattern_seed);
+ 
+-	struct test test_cases[] = {
+-		/* Expected mremap failures */
+-		MAKE_TEST(_4KB, _4KB, _4KB, OVERLAPPING, EXPECT_FAILURE,
+-		  "mremap - Source and Destination Regions Overlapping"),
+-		MAKE_TEST(_4KB, _1KB, _4KB, NON_OVERLAPPING, EXPECT_FAILURE,
+-		  "mremap - Destination Address Misaligned (1KB-aligned)"),
+-		MAKE_TEST(_1KB, _4KB, _4KB, NON_OVERLAPPING, EXPECT_FAILURE,
+-		  "mremap - Source Address Misaligned (1KB-aligned)"),
+-
+-		/* Src addr PTE aligned */
+-		MAKE_TEST(PTE, PTE, _8KB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "8KB mremap - Source PTE-aligned, Destination PTE-aligned"),
+-
+-		/* Src addr 1MB aligned */
+-		MAKE_TEST(_1MB, PTE, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2MB mremap - Source 1MB-aligned, Destination PTE-aligned"),
+-		MAKE_TEST(_1MB, _1MB, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2MB mremap - Source 1MB-aligned, Destination 1MB-aligned"),
+-
+-		/* Src addr PMD aligned */
+-		MAKE_TEST(PMD, PTE, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "4MB mremap - Source PMD-aligned, Destination PTE-aligned"),
+-		MAKE_TEST(PMD, _1MB, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "4MB mremap - Source PMD-aligned, Destination 1MB-aligned"),
+-		MAKE_TEST(PMD, PMD, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "4MB mremap - Source PMD-aligned, Destination PMD-aligned"),
+-
+-		/* Src addr PUD aligned */
+-		MAKE_TEST(PUD, PTE, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2GB mremap - Source PUD-aligned, Destination PTE-aligned"),
+-		MAKE_TEST(PUD, _1MB, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2GB mremap - Source PUD-aligned, Destination 1MB-aligned"),
+-		MAKE_TEST(PUD, PMD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2GB mremap - Source PUD-aligned, Destination PMD-aligned"),
+-		MAKE_TEST(PUD, PUD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "2GB mremap - Source PUD-aligned, Destination PUD-aligned"),
+-	};
++	page_size = sysconf(_SC_PAGESIZE);
+ 
+-	struct test perf_test_cases[] = {
+-		/*
+-		 * mremap 1GB region - Page table level aligned time
+-		 * comparison.
+-		 */
+-		MAKE_TEST(PTE, PTE, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "1GB mremap - Source PTE-aligned, Destination PTE-aligned"),
+-		MAKE_TEST(PMD, PMD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "1GB mremap - Source PMD-aligned, Destination PMD-aligned"),
+-		MAKE_TEST(PUD, PUD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+-		  "1GB mremap - Source PUD-aligned, Destination PUD-aligned"),
+-	};
++	/* Expected mremap failures */
++	test_cases[0] =	MAKE_TEST(page_size, page_size, page_size,
++				  OVERLAPPING, EXPECT_FAILURE,
++				  "mremap - Source and Destination Regions Overlapping");
++
++	test_cases[1] = MAKE_TEST(page_size, page_size/4, page_size,
++				  NON_OVERLAPPING, EXPECT_FAILURE,
++				  "mremap - Destination Address Misaligned (1KB-aligned)");
++	test_cases[2] = MAKE_TEST(page_size/4, page_size, page_size,
++				  NON_OVERLAPPING, EXPECT_FAILURE,
++				  "mremap - Source Address Misaligned (1KB-aligned)");
++
++	/* Src addr PTE aligned */
++	test_cases[3] = MAKE_TEST(PTE, PTE, PTE * 2,
++				  NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "8KB mremap - Source PTE-aligned, Destination PTE-aligned");
++
++	/* Src addr 1MB aligned */
++	test_cases[4] = MAKE_TEST(_1MB, PTE, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "2MB mremap - Source 1MB-aligned, Destination PTE-aligned");
++	test_cases[5] = MAKE_TEST(_1MB, _1MB, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "2MB mremap - Source 1MB-aligned, Destination 1MB-aligned");
++
++	/* Src addr PMD aligned */
++	test_cases[6] = MAKE_TEST(PMD, PTE, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "4MB mremap - Source PMD-aligned, Destination PTE-aligned");
++	test_cases[7] =	MAKE_TEST(PMD, _1MB, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "4MB mremap - Source PMD-aligned, Destination 1MB-aligned");
++	test_cases[8] = MAKE_TEST(PMD, PMD, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "4MB mremap - Source PMD-aligned, Destination PMD-aligned");
++
++	/* Src addr PUD aligned */
++	test_cases[9] = MAKE_TEST(PUD, PTE, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "2GB mremap - Source PUD-aligned, Destination PTE-aligned");
++	test_cases[10] = MAKE_TEST(PUD, _1MB, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				   "2GB mremap - Source PUD-aligned, Destination 1MB-aligned");
++	test_cases[11] = MAKE_TEST(PUD, PMD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				   "2GB mremap - Source PUD-aligned, Destination PMD-aligned");
++	test_cases[12] = MAKE_TEST(PUD, PUD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				   "2GB mremap - Source PUD-aligned, Destination PUD-aligned");
++
++	perf_test_cases[0] =  MAKE_TEST(page_size, page_size, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++					"1GB mremap - Source PTE-aligned, Destination PTE-aligned");
++	/*
++	 * mremap 1GB region - Page table level aligned time
++	 * comparison.
++	 */
++	perf_test_cases[1] = MAKE_TEST(PMD, PMD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				       "1GB mremap - Source PMD-aligned, Destination PMD-aligned");
++	perf_test_cases[2] = MAKE_TEST(PUD, PUD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				       "1GB mremap - Source PUD-aligned, Destination PUD-aligned");
+ 
+ 	run_perf_tests =  (threshold_mb == VALIDATION_NO_THRESHOLD) ||
+ 				(threshold_mb * _1MB >= _1GB);
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
