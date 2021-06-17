@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ED40C2B9F4
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 04:05:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20F81C2B9F4
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 05:12:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F285B613E7
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 04:05:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F10A26128C
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Jun 2021 05:12:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229716AbhFQEHl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 17 Jun 2021 00:07:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57286 "EHLO mail.kernel.org"
+        id S229816AbhFQFOr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 17 Jun 2021 01:14:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229683AbhFQEHl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 17 Jun 2021 00:07:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F2497613E2;
-        Thu, 17 Jun 2021 04:05:32 +0000 (UTC)
+        id S229827AbhFQFOq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 17 Jun 2021 01:14:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D3A2860FF1;
+        Thu, 17 Jun 2021 05:12:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1623902733;
-        bh=QZCRF9R/KaQdmTb60bmTsOtOdVj+/OaHh1L7MFkWN+4=;
+        s=korg; t=1623906758;
+        bh=aTsPKPc/uovIym8lz9ukdwgucO+Tmq2IiHNICeUGTGw=;
         h=Date:From:To:Subject:From;
-        b=Jv51U9VciPoB/ygR9puEoyLiqIdGd3cC1y4K98cifw0AYymWYjWLJ8RrxmKoAypi1
-         rPWvwJHCU4j83Ar2SSjQyxabDwzfbTIHv+Hhbvk+hRhJLZuk+8bRGeSpVs4G1F5UAD
-         BvPoD7x0KGLPrXVBLd4hAF0NI2asceDyzJipX+sI=
-Date:   Wed, 16 Jun 2021 21:05:32 -0700
+        b=J7Lu0JXicwgFuTldlMZFdzDqHifeQlGsutGoDAYRKA7YoywcW73UqrgD++WpI0z2C
+         z2RRDVyCY6eF2iBbJ3NuWGQeuCWT/PmTMZ0+4dnTDpzVZAmC6BeGcz/pLgXY7RiuhV
+         NIT2C/IrpmvJpz209JjUV3vrcgS2ezDDEgd8KYng=
+Date:   Wed, 16 Jun 2021 22:12:38 -0700
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, christophe.leroy@csgroup.eu,
-        hughd@google.com, joel@joelfernandes.org, kaleshsingh@google.com,
-        kirill.shutemov@linux.intel.com, kirill@shutemov.name,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
-        sfr@canb.auug.org.au
-Subject:  + powerpc-mm-enable-have_move_pmd-support.patch added to
- -mm tree
-Message-ID: <20210617040532.hnjLHppbB%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  +
+ kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch added to -mm
+ tree
+Message-ID: <20210617051238.B00FRav4a%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm: enable HAVE_MOVE_PMD support
+     Subject: kernel/cgroup/cgroup.c: don't export cgroup_get_e_css twice
 has been added to the -mm tree.  Its filename is
-     powerpc-mm-enable-have_move_pmd-support.patch
+     kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-enable-have_move_pmd-support.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-enable-have_move_pmd-support.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,60 +64,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: powerpc/mm: enable HAVE_MOVE_PMD support
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/cgroup/cgroup.c: don't export cgroup_get_e_css twice
 
-mremap HAVE_MOVE_PMD/PUD optimization time comparison for 1GB region:
-1GB mremap - Source PTE-aligned, Destination PTE-aligned
-  mremap time:      2292772ns
-1GB mremap - Source PMD-aligned, Destination PMD-aligned
-  mremap time:      1158928ns
-1GB mremap - Source PUD-aligned, Destination PUD-aligned
-  mremap time:        63886ns
 
-Link: https://lkml.kernel.org/r/20210616045735.374532-4-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/Kconfig.cputype |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/cgroup/cgroup.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/arch/powerpc/platforms/Kconfig.cputype~powerpc-mm-enable-have_move_pmd-support
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -101,6 +101,8 @@ config PPC_BOOK3S_64
- 	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
- 	select ARCH_SUPPORTS_HUGETLBFS
- 	select ARCH_SUPPORTS_NUMA_BALANCING
-+	select HAVE_MOVE_PMD
-+	select HAVE_MOVE_PUD
- 	select IRQ_WORK
- 	select PPC_MM_SLICES
- 	select PPC_HAVE_KUEP
+--- a/kernel/cgroup/cgroup.c~kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice
++++ a/kernel/cgroup/cgroup.c
+@@ -600,7 +600,6 @@ static void cgroup_get_live(struct cgrou
+ 	WARN_ON_ONCE(cgroup_is_dead(cgrp));
+ 	css_get(&cgrp->self);
+ }
+-EXPORT_SYMBOL_GPL(cgroup_get_e_css);
+ 
+ /**
+  * __cgroup_task_count - count the number of tasks in a cgroup. The caller
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t.patch
-mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t-fix-2.patch
-mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t.patch
-mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix.patch
-selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
-selftest-mremap_test-avoid-crash-with-static-build.patch
-mm-mremap-convert-huge-pud-move-to-separate-helper.patch
-mm-mremap-dont-enable-optimized-pud-move-if-page-table-levels-is-2.patch
-mm-mremap-use-pmd-pud_poplulate-to-update-page-table-entries.patch
-mm-mremap-hold-the-rmap-lock-in-write-mode-when-moving-page-table-entries.patch
-mm-mremap-allow-arch-runtime-override.patch
-powerpc-book3s64-mm-update-flush_tlb_range-to-flush-page-walk-cache.patch
-powerpc-mm-enable-have_move_pmd-support.patch
+mm-slubc-include-swabh.patch
+mm-vmalloc-add-vmalloc_no_huge-fix.patch
+mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix.patch
+mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
+mm.patch
+mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
+fs-remove-noop_set_page_dirty-fix.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
+binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+mmmemory_hotplug-drop-unneeded-locking-fix.patch
+fs-proc-kcorec-add-mmap-interface-fix.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+lib-math-rational-add-kunit-test-cases-fix.patch
+lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
+ipc-utilc-use-binary-search-for-max_idx-fix.patch
+linux-next-pre.patch
+linux-next-post.patch
+linux-next-rejects.patch
+kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
