@@ -7,39 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34F67C48BC2
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 22:20:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2B46C49EA6
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 22:24:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1AE9B6115A
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 22:20:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE50B610A0
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 22:24:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229800AbhFWWWQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Jun 2021 18:22:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55728 "EHLO mail.kernel.org"
+        id S229918AbhFWW0c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Jun 2021 18:26:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57288 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229688AbhFWWWP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Jun 2021 18:22:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C99AF6100A;
-        Wed, 23 Jun 2021 22:19:56 +0000 (UTC)
+        id S229916AbhFWW0c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Jun 2021 18:26:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 632F760249;
+        Wed, 23 Jun 2021 22:24:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624486797;
-        bh=OemWHkKak4eI2MGot7srhGZgVDxHWpRsJuyzFDyS8uM=;
+        s=korg; t=1624487053;
+        bh=DiHiiL3b0y6OHvRgx8JkE5k1nddPZ2+efzgAs28XDts=;
         h=Date:From:To:Subject:From;
-        b=TkdIVEWPBnvjkFldF12vtdHWCQ7TCdqKkAhjohkw4DsnIaX7h0ondiA4gey4Spm25
-         02maIGR2ScY1DtKY+OsE7i4U15x9Z2nqZFym6a0dUuoEDhJhjDDjVjwI/2QnBG+uhE
-         DlwABikk+tmM/A+19A1EmXQAMbEIwrncQn2A4t+4=
-Date:   Wed, 23 Jun 2021 15:19:56 -0700
+        b=boP5c1w46q1OIO127mRbmwP6NVF/u3hgGcS70uPh7TidDezUalXzL6Coz6vgQ2P5T
+         rlXLbNTSkVlAkABZZGv5UyZnokpGTnZxGafhYlx9VpyXdoyYQxfkUqOcWyLDfYxmLo
+         Gzk/F9x8Eq54LT+40L3ZmkKAZGCD0VAhL9bOLqIk=
+Date:   Wed, 23 Jun 2021 15:24:12 -0700
 From:   akpm@linux-foundation.org
-To:     brouer@redhat.com, dan.carpenter@oracle.com,
-        mgorman@techsingularity.net, mgorman@techsinguliarity.net,
-        mm-commits@vger.kernel.org, vbabka@suse.cz
-Subject:  +
- =?US-ASCII?Q?mm-page=5Falloc-do-bulk-array-bounds-check-after-checking-?=
- =?US-ASCII?Q?populated-elements.patch?= added to -mm tree
-Message-ID: <20210623221956.NKSiaGlca%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, andi@firstfloor.org, dhowells@redhat.com,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org
+Subject:  [alternative-merged]
+ afs-fix-tracepoint-string-placement-with-built-in-afs.patch removed from
+ -mm tree
+Message-ID: <20210623222412.CTsmCepgK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,107 +44,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: do bulk array bounds check after checking populated elements
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-do-bulk-array-bounds-check-after-checking-populated-elements.patch
+     Subject: afs: fix tracepoint string placement with built-in AFS
+has been removed from the -mm tree.  Its filename was
+     afs-fix-tracepoint-string-placement-with-built-in-afs.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-do-bulk-array-bounds-check-after-checking-populated-elements.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-do-bulk-array-bounds-check-after-checking-populated-elements.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: do bulk array bounds check after checking populated elements
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: afs: fix tracepoint string placement with built-in AFS
 
-Dan Carpenter reported the following
+I was adding custom tracepoint to the kernel, grabbed full F34 kernel
+.config, disabled modules and booted whole shebang as VM kernel.
 
-  The patch 0f87d9d30f21: "mm/page_alloc: add an array-based interface
-  to the bulk page allocator" from Apr 29, 2021, leads to the following
-  static checker warning:
+Then did
 
-        mm/page_alloc.c:5338 __alloc_pages_bulk()
-        warn: potentially one past the end of array 'page_array[nr_populated]'
+	perf record -a -e ...
 
-The problem can occur if an array is passed in that is fully populated. 
-That potentially ends up allocating a single page and storing it past the
-end of the array.  This patch returns 0 if the array is fully populated.
+It crashed:
 
-Link: https://lkml.kernel.org/r/20210618125102.GU30378@techsingularity.net
-Fixes: 0f87d9d30f21 ("mm/page_alloc: add an array-based interface to the bulk page allocator")
-Signed-off-by: Mel Gorman <mgorman@techsinguliarity.net>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+	general protection fault, probably for non-canonical address 0x435f5346592e4243: 0000 [#1] SMP PTI
+	CPU: 1 PID: 842 Comm: cat Not tainted 5.12.6+ #26
+	Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-1.fc33 04/01/2014
+	RIP: 0010:t_show+0x22/0xd0
+
+Then reproducer was narrowed to
+
+	# cat /sys/kernel/tracing/printk_formats
+
+Original F34 kernel with modules didn't crash.
+
+So I started to disable options and after disabling AFS everything started
+working again.
+
+The root cause is that AFS was placing char arrays content into a section
+full of _pointers_ to strings with predictable consequences.
+
+Non canonical address 435f5346592e4243 is "CB.YFS_" which came from
+CM_NAME macro.
+
+The fix is to create char array and pointer to it separatedly.
+
+Steps to reproduce:
+
+	CONFIG_AFS=y
+	CONFIG_TRACING=y
+
+	# cat /sys/kernel/tracing/printk_formats
+
+Link: https://lkml.kernel.org/r/YLAXfvZ+rObEOdc/@localhost.localdomain
+Fixes: 8e8d7f13b6d5a9 ("afs: Add some tracepoints")
+Signed-off-by: Alexey Dobriyan (SK hynix) <adobriyan@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/afs/cmservice.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-do-bulk-array-bounds-check-after-checking-populated-elements
-+++ a/mm/page_alloc.c
-@@ -5056,6 +5056,10 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 	while (page_array && nr_populated < nr_pages && page_array[nr_populated])
- 		nr_populated++;
+--- a/fs/afs/cmservice.c~afs-fix-tracepoint-string-placement-with-built-in-afs
++++ a/fs/afs/cmservice.c
+@@ -30,8 +30,9 @@ static void SRXAFSCB_TellMeAboutYourself
+ static int afs_deliver_yfs_cb_callback(struct afs_call *);
  
-+	/* Already populated array? */
-+	if (unlikely(page_array && nr_pages - nr_populated == 0))
-+		return 0;
-+
- 	/* Use the single page allocator for one page. */
- 	if (nr_pages - nr_populated == 1)
- 		goto failed;
+ #define CM_NAME(name) \
+-	char afs_SRXCB##name##_name[] __tracepoint_string =	\
+-		"CB." #name
++	const char afs_SRXCB##name##_name[] = "CB." #name;		\
++	static const char *_afs_SRXCB##name##_name __tracepoint_string =\
++		afs_SRXCB##name##_name
+ 
+ /*
+  * CB.CallBack operation type
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-page_alloc-do-bulk-array-bounds-check-after-checking-populated-elements.patch
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix.patch
-mm-vmstat-convert-numa-statistics-to-basic-numa-counters.patch
-mm-vmstat-inline-numa-event-counter-updates.patch
-mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator.patch
-mm-page_alloc-reduce-duration-that-irqs-are-disabled-for-vm-counters.patch
-mm-page_alloc-explicitly-acquire-the-zone-lock-in-__free_pages_ok.patch
-mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock.patch
-mm-page_alloc-update-pgfree-outside-the-zone-lock-in-__free_pages_ok.patch
-mm-page_alloc-delete-vmpercpu_pagelist_fraction.patch
-mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch.patch
-mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2.patch
-mm-page_alloc-adjust-pcp-high-after-cpu-hotplug-events.patch
-mm-page_alloc-scale-the-number-of-pages-that-are-batch-freed.patch
-mm-page_alloc-limit-the-number-of-pages-on-pcp-lists-when-reclaim-is-active.patch
-mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction.patch
-mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction-fix.patch
-mm-page_alloc-move-free_the_page.patch
-mm-page_alloc-allow-high-order-pages-to-be-stored-on-the-per-cpu-lists.patch
-mm-page_alloc-split-pcp-high-across-all-online-cpus-for-cpuless-nodes.patch
-mm-vmscan-remove-kerneldoc-like-comment-from-isolate_lru_pages.patch
-mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch
-mm-page_alloc-make-should_fail_alloc_page-a-static-function-should_fail_alloc_page-static.patch
-mm-mapping_dirty_helpers-remove-double-note-in-kerneldoc.patch
-mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection.patch
-mm-memory_hotplug-fix-kerneldoc-comment-for-__try_online_node.patch
-mm-memory_hotplug-fix-kerneldoc-comment-for-__remove_memory.patch
-mm-zbud-add-kerneldoc-fields-for-zbud_pool.patch
-mm-z3fold-add-kerneldoc-fields-for-z3fold_pool.patch
-mm-swap-make-swap_address_space-an-inline-function.patch
-mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
-mm-page_alloc-move-prototype-for-find_suitable_fallback.patch
-mm-swap-make-node_data-an-inline-function-on-config_flatmem.patch
+lib-memscan-fixlet.patch
+lib-uninline-simple_strtoull.patch
+exec-remove-checks-in-__register_bimfmt.patch
 
