@@ -7,36 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8638C48BC2
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 21:55:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BEFAAC48BC2
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 21:55:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C9E3E61166
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 21:55:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A4BBE611AD
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 21:55:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229831AbhFWV6I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Jun 2021 17:58:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42936 "EHLO mail.kernel.org"
+        id S229826AbhFWV6K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Jun 2021 17:58:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42958 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229774AbhFWV6I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Jun 2021 17:58:08 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CBDD56100A;
-        Wed, 23 Jun 2021 21:55:49 +0000 (UTC)
+        id S229774AbhFWV6K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Jun 2021 17:58:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DB21261002;
+        Wed, 23 Jun 2021 21:55:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624485349;
-        bh=yBnUKkNxn7ZFKiIClO+PnFatvCdXW+fEg3+20kFv1Yk=;
+        s=korg; t=1624485352;
+        bh=Kny90QFcWVU4nnYuPM9J/75F9pHG2JtUsIDevZKVGYs=;
         h=Date:From:To:Subject:From;
-        b=C3XAe450fF4/OI264QhhVdPNMsShJysTu8RCXHmBiFiZFCr6EfIHue4qgivUYFZDE
-         4RKEAtwZCZFa3hsSzzD5duOPDQcPDtZ+lbXd8omh87vgrjOG8O8M5nr5yxuVgd5tq6
-         IWFWQ++QYetD9b0cxRc1caWqtLbcStHbAcFZZsfQ=
-Date:   Wed, 23 Jun 2021 14:55:49 -0700
+        b=V1Wk1TjkS6X/iVZqXcLW3on4Tf4sPAVopvP5PAUKJgzVmzs/IvWUNCTH2W9NZJjAh
+         SBWKihYxfAqXuKIKOGHJeBHpEunlCxmTKd4SHgeNqBSogbYL4xLEvT79f7dE//N4y3
+         lOPj/oreBJ25Qgv8eKzqkfd7IHaF4S4gg37BaCjI=
+Date:   Wed, 23 Jun 2021 14:55:51 -0700
 From:   akpm@linux-foundation.org
 To:     hdanton@sina.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org,
         vitaly.wool@konsulko.com
 Subject:  +
- mm-z3fold-fix-potential-memory-leak-in-z3fold_destroy_pool.patch added to
- -mm tree
-Message-ID: <20210623215549.NoIvpZXwt%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-z3fold-use-release=5Fz3fold=5Fpage=5Flocked-to-release-?=
+ =?US-ASCII?Q?locked-z3fold-page.patch?= added to -mm tree
+Message-ID: <20210623215551.A6PZIVWGk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/z3fold: fix potential memory leak in z3fold_destroy_pool()
+     Subject: mm/z3fold: use release_z3fold_page_locked() to release locked z3fold page
 has been added to the -mm tree.  Its filename is
-     mm-z3fold-fix-potential-memory-leak-in-z3fold_destroy_pool.patch
+     mm-z3fold-use-release_z3fold_page_locked-to-release-locked-z3fold-page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-z3fold-fix-potential-memory-leak-in-z3fold_destroy_pool.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-z3fold-use-release_z3fold_page_locked-to-release-locked-z3fold-page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-z3fold-fix-potential-memory-leak-in-z3fold_destroy_pool.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-z3fold-use-release_z3fold_page_locked-to-release-locked-z3fold-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,33 +68,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/z3fold: fix potential memory leak in z3fold_destroy_pool()
+Subject: mm/z3fold: use release_z3fold_page_locked() to release locked z3fold page
 
-There is a memory leak in z3fold_destroy_pool() as it forgets to
-free_percpu pool->unbuddied.  Call free_percpu for pool->unbuddied to fix
-this issue.
+We should use release_z3fold_page_locked() to release z3fold page when
+it's locked, although it looks harmless to use release_z3fold_page() now.
 
-Link: https://lkml.kernel.org/r/20210619093151.1492174-6-linmiaohe@huawei.com
-Fixes: d30561c56f41 ("z3fold: use per-cpu unbuddied lists")
+Link: https://lkml.kernel.org/r/20210619093151.1492174-7-linmiaohe@huawei.com
+Fixes: dcf5aedb24f8 ("z3fold: stricter locking and more careful reclaim")
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
 Cc: Hillf Danton <hdanton@sina.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/z3fold.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/z3fold.c~mm-z3fold-fix-potential-memory-leak-in-z3fold_destroy_pool
+--- a/mm/z3fold.c~mm-z3fold-use-release_z3fold_page_locked-to-release-locked-z3fold-page
 +++ a/mm/z3fold.c
-@@ -1046,6 +1046,7 @@ static void z3fold_destroy_pool(struct z
- 	destroy_workqueue(pool->compact_wq);
- 	destroy_workqueue(pool->release_wq);
- 	z3fold_unregister_migration(pool);
-+	free_percpu(pool->unbuddied);
- 	kfree(pool);
- }
- 
+@@ -1370,7 +1370,7 @@ static int z3fold_reclaim_page(struct z3
+ 			if (zhdr->foreign_handles ||
+ 			    test_and_set_bit(PAGE_CLAIMED, &page->private)) {
+ 				if (kref_put(&zhdr->refcount,
+-						release_z3fold_page))
++						release_z3fold_page_locked))
+ 					atomic64_dec(&pool->pages_nr);
+ 				else
+ 					z3fold_page_unlock(zhdr);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
