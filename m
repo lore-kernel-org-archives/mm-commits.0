@@ -2,42 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5539DC4743C
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 04:45:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D70AEC4743C
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 04:51:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2CCB26138C
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 04:45:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B83D4613B0
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 04:51:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229688AbhFWErw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Jun 2021 00:47:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43670 "EHLO mail.kernel.org"
+        id S229982AbhFWExk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Jun 2021 00:53:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48424 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229544AbhFWErv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Jun 2021 00:47:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 06DAE61360;
-        Wed, 23 Jun 2021 04:45:33 +0000 (UTC)
+        id S229907AbhFWExk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Jun 2021 00:53:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D1C0E61289;
+        Wed, 23 Jun 2021 04:51:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624423534;
-        bh=BSOVYSLq4aUgjTvXKH67BAZm1HLo0xO/R9AQTWzXeK0=;
+        s=korg; t=1624423883;
+        bh=SRngC5Ax8lEuCsNwblsq0PA17qA3IZ+ib2wejtBUJt0=;
         h=Date:From:To:Subject:From;
-        b=pmnGxy95jVGUkg2E8h8ldtOgixJedF53mgS5EzyTAWoqJgtap6yh8jeTzIKwo5SuB
-         34982W4dz0DvhlQihn7Lin91DSuzfm+bPDn80H9rAnjOWkwtEdOKYcz7jI8LFnxzg/
-         k4LlwTKt093wLFmBOBAXdJT1CjgCtj4AhFh/wPzo=
-Date:   Tue, 22 Jun 2021 21:45:33 -0700
+        b=sdimlH58HZMfydAPInhQJA/qy+GEeQmN9UGeRtlGpYMQd5+7Dk1SVt1FEgOyzrpeZ
+         WGlejiDzDMIGo+zxmA7VyWC8VLgs7bik1Gtgc7Hbj0+fWnfJqpWikQNdYmgiYDxlFo
+         BTiPL61AeEvK9QpBku9xvQHddMO3I8ffYpAoenhY=
+Date:   Tue, 22 Jun 2021 21:51:22 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, jack@suse.cz, jannh@google.com,
-        jhubbard@nvidia.com, kirill@shutemov.name, mhocko@kernel.org,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        willy@infradead.org, youquan.song@intel.com
+To:     cl@linux.com, faiyazm@codeaurora.org, gregkh@linuxfoundation.org,
+        iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, vbabka@suse.cz
 Subject:  +
- hugetlb-address-ref-count-racing-in-prep_compound_gigantic_page.patch added
- to -mm tree
-Message-ID: <20210623044533.LOA76kURG%akpm@linux-foundation.org>
+ mm-slub-move-sysfs-slab-alloc-free-interfaces-to-debugfs-fix.patch added to
+ -mm tree
+Message-ID: <20210623045122.rVTJ56tSt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: address ref count racing in prep_compound_gigantic_page
+     Subject: mm: slub: fix the leak of alloc/free traces debugfs interface
 has been added to the -mm tree.  Its filename is
-     hugetlb-address-ref-count-racing-in-prep_compound_gigantic_page.patch
+     mm-slub-move-sysfs-slab-alloc-free-interfaces-to-debugfs-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-address-ref-count-racing-in-prep_compound_gigantic_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-move-sysfs-slab-alloc-free-interfaces-to-debugfs-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-address-ref-count-racing-in-prep_compound_gigantic_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-move-sysfs-slab-alloc-free-interfaces-to-debugfs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,207 +66,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: address ref count racing in prep_compound_gigantic_page
+From: Faiyaz Mohammed <faiyazm@codeaurora.org>
+Subject: mm: slub: fix the leak of alloc/free traces debugfs interface
 
-In [1], Jann Horn points out a possible race between
-prep_compound_gigantic_page and __page_cache_add_speculative.  The root
-cause of the possible race is prep_compound_gigantic_page uncondittionally
-setting the ref count of pages to zero.  It does this because
-prep_compound_gigantic_page is handed a 'group' of pages from an allocator
-and needs to convert that group of pages to a compound page.  The ref
-count of each page in this 'group' is one as set by the allocator. 
-However, the ref count of compound page tail pages must be zero.
+Fix the leak of alloc/free traces debugfs interface, reported by kmemleak
+like below,
 
-The potential race comes about when ref counted pages are returned from
-the allocator.  When this happens, other mm code could also take a
-reference on the page.  __page_cache_add_speculative is one such example. 
-Therefore, prep_compound_gigantic_page can not just set the ref count of
-pages to zero as it does today.  Doing so would lose the reference taken
-by any other code.  This would lead to BUGs in code checking ref counts
-and could possibly even lead to memory corruption.
+unreferenced object 0xffff00091ae1b540 (size 64):
+  comm "lsbug", pid 1607, jiffies 4294958291 (age 1476.340s)
+  hex dump (first 32 bytes):
+    02 00 00 00 00 00 00 00 6b 6b 6b 6b 6b 6b 6b 6b  ........kkkkkkkk
+    6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b  kkkkkkkkkkkkkkkk
+  backtrace:
+    [<ffff8000106b06b8>] slab_post_alloc_hook+0xa0/0x418
+    [<ffff8000106b5c7c>] kmem_cache_alloc_trace+0x1e4/0x378
+    [<ffff8000106b5e40>] slab_debugfs_start+0x30/0x50
+    slab_debugfs_start at mm/slub.c:5831
+    [<ffff8000107b3dbc>] seq_read_iter+0x214/0xd50
+    [<ffff8000107b4b84>] seq_read+0x28c/0x418
+    [<ffff8000109560b4>] full_proxy_read+0xdc/0x148
+    [<ffff800010738f24>] vfs_read+0x104/0x340
+    [<ffff800010739ee0>] ksys_read+0xf8/0x1e0
+    [<ffff80001073a03c>] __arm64_sys_read+0x74/0xa8
 
-There are two possible ways to address this issue.
-
-1) Make all allocators of gigantic groups of pages be able to return a
-   properly constructed compound page.
-
-2) Make prep_compound_gigantic_page be more careful when constructing a
-   compound page.
-
-This patch takes approach 2.
-
-In prep_compound_gigantic_page, use cmpxchg to only set ref count to zero
-if it is one.  If the cmpxchg fails, call synchronize_rcu() in the hope
-that the extra ref count will be driopped during a rcu grace period.  This
-is not a performance critical code path and the wait should be
-accceptable.  If the ref count is still inflated after the grace period,
-then undo any modifications made and return an error.
-
-Currently prep_compound_gigantic_page is type void and does not return
-errors.  Modify the two callers to check for and handle error returns.  On
-error, the caller must free the 'group' of pages as they can not be used
-to form a gigantic page.  After freeing pages, the runtime caller
-(alloc_fresh_huge_page) will retry the allocation once.  Boot time
-allocations can not be retried.
-
-The routine prep_compound_page also unconditionally sets the ref count of
-compound page tail pages to zero.  However, in this case the buddy
-allocator is constructing a compound page from freshly allocated pages. 
-The ref count on those freshly allocated pages is already zero, so the
-set_page_count(p, 0) is unnecessary and could lead to confusion.  Just
-remove it.
-
-[1] https://lore.kernel.org/linux-mm/CAG48ez23q0Jy9cuVnwAe7t_fdhMk2S7N5Hdi-GLcCeq5bsfLxw@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20210622021423.154662-3-mike.kravetz@oracle.com
-Fixes: 58a84aa92723 ("thp: set compound tail page _count to zero")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: Jann Horn <jannh@google.com>
-Cc: Youquan Song <youquan.song@intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: https://lkml.kernel.org/r/1624248060-30286-1-git-send-email-faiyazm@codeaurora.org
+Fixes: 3589836402ca ("mm: slub: move sysfs slab alloc/free interfaces to debugfs")
+Link: https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/commit/mm/slub.c?h=next-20210617&id=84a2bdb1b458fc968d6d9e07dab388dc679bd747
+Signed-off-by: Faiyaz Mohammed <faiyazm@codeaurora.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c    |   72 ++++++++++++++++++++++++++++++++++++++++------
- mm/page_alloc.c |    1 
- 2 files changed, 64 insertions(+), 9 deletions(-)
+ mm/slub.c |   20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-address-ref-count-racing-in-prep_compound_gigantic_page
-+++ a/mm/hugetlb.c
-@@ -1623,9 +1623,9 @@ static void prep_new_huge_page(struct hs
- 	spin_unlock_irq(&hugetlb_lock);
+--- a/mm/slub.c~mm-slub-move-sysfs-slab-alloc-free-interfaces-to-debugfs-fix
++++ a/mm/slub.c
+@@ -5781,31 +5781,23 @@ static int slab_debugfs_show(struct seq_
+ 
+ static void slab_debugfs_stop(struct seq_file *seq, void *v)
+ {
+-	kfree(v);
  }
  
--static void prep_compound_gigantic_page(struct page *page, unsigned int order)
-+static bool prep_compound_gigantic_page(struct page *page, unsigned int order)
+ static void *slab_debugfs_next(struct seq_file *seq, void *v, loff_t *ppos)
  {
--	int i;
-+	int i, j;
- 	int nr_pages = 1 << order;
- 	struct page *p = page + 1;
+-	loff_t *spos = v;
+ 	struct loc_track *t = seq->private;
  
-@@ -1647,11 +1647,48 @@ static void prep_compound_gigantic_page(
- 		 * after get_user_pages().
- 		 */
- 		__ClearPageReserved(p);
-+		/*
-+		 * Subtle and very unlikely
-+		 *
-+		 * Gigantic 'page allocators' such as memblock or cma will
-+		 * return a set of pages with each page ref counted.  We need
-+		 * to turn this set of pages into a compound page with tail
-+		 * page ref counts set to zero.  Code such as speculative page
-+		 * cache adding could take a ref on a 'to be' tail page.
-+		 * We need to respect any increased ref count, and only set
-+		 * the ref count to zero if count is currently 1.  If count
-+		 * is not 1, we call synchronize_rcu in the hope that a rcu
-+		 * grace period will cause ref count to drop and then retry.
-+		 * If count is still inflated on retry we return an error and
-+		 * must discard the pages.
-+		 */
-+		if (!page_ref_freeze(p, 1)) {
-+			pr_info("HugeTLB unexpected inflated ref count on freshly allocated page\n");
-+			synchronize_rcu();
-+			if (!page_ref_freeze(p, 1))
-+				goto out_error;
-+		}
- 		set_page_count(p, 0);
- 		set_compound_head(p, page);
- 	}
- 	atomic_set(compound_mapcount_ptr(page), -1);
- 	atomic_set(compound_pincount_ptr(page), 0);
-+	return true;
+-	if (*ppos < t->count) {
+-		*ppos = ++*spos;
+-		return spos;
+-	}
+-	*ppos = ++*spos;
++	v = ppos;
++	++*ppos;
++	if (*ppos <= t->count)
++		return v;
 +
-+out_error:
-+	/* undo tail page modifications made above */
-+	p = page + 1;
-+	for (j = 1; j < i; j++, p = mem_map_next(p, page, j)) {
-+		clear_compound_head(p);
-+		set_page_refcounted(p);
-+	}
-+	/* need to clear PG_reserved on remaining tail pages  */
-+	for (; j < nr_pages; j++, p = mem_map_next(p, page, j))
-+		__ClearPageReserved(p);
-+	set_compound_order(page, 0);
-+	page[1].compound_nr = 0;
-+	__ClearPageHead(page);
-+	return false;
+ 	return NULL;
  }
  
- /*
-@@ -1771,7 +1808,9 @@ static struct page *alloc_fresh_huge_pag
- 		nodemask_t *node_alloc_noretry)
+ static void *slab_debugfs_start(struct seq_file *seq, loff_t *ppos)
  {
- 	struct page *page;
-+	bool retry = false;
+-	loff_t *spos = kmalloc(sizeof(loff_t), GFP_KERNEL);
+-
+-	if (!spos)
+-		return NULL;
+-
+-	*spos = *ppos;
+-	return spos;
++	return ppos;
+ }
  
-+retry:
- 	if (hstate_is_gigantic(h))
- 		page = alloc_gigantic_page(h, gfp_mask, nid, nmask);
- 	else
-@@ -1780,8 +1819,21 @@ static struct page *alloc_fresh_huge_pag
- 	if (!page)
- 		return NULL;
- 
--	if (hstate_is_gigantic(h))
--		prep_compound_gigantic_page(page, huge_page_order(h));
-+	if (hstate_is_gigantic(h)) {
-+		if (!prep_compound_gigantic_page(page, huge_page_order(h))) {
-+			/*
-+			 * Rare failure to convert pages to compound page.
-+			 * Free pages and try again - ONCE!
-+			 */
-+			free_gigantic_page(page, huge_page_order(h));
-+			if (!retry) {
-+				retry = true;
-+				goto retry;
-+			}
-+			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
-+			return NULL;
-+		}
-+	}
- 	prep_new_huge_page(h, page, page_to_nid(page));
- 
- 	return page;
-@@ -2771,10 +2823,14 @@ static void __init gather_bootmem_preall
- 
- 		VM_BUG_ON(!hstate_is_gigantic(h));
- 		WARN_ON(page_count(page) != 1);
--		prep_compound_gigantic_page(page, huge_page_order(h));
--		WARN_ON(PageReserved(page));
--		prep_new_huge_page(h, page, page_to_nid(page));
--		put_page(page); /* free it into the hugepage allocator */
-+		if (prep_compound_gigantic_page(page, huge_page_order(h))) {
-+			WARN_ON(PageReserved(page));
-+			prep_new_huge_page(h, page, page_to_nid(page));
-+			put_page(page); /* add to the hugepage allocator */
-+		} else {
-+			free_gigantic_page(page, huge_page_order(h));
-+			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
-+		}
- 
- 		/*
- 		 * We need to restore the 'stolen' pages to totalram_pages
---- a/mm/page_alloc.c~hugetlb-address-ref-count-racing-in-prep_compound_gigantic_page
-+++ a/mm/page_alloc.c
-@@ -754,7 +754,6 @@ void prep_compound_page(struct page *pag
- 	__SetPageHead(page);
- 	for (i = 1; i < nr_pages; i++) {
- 		struct page *p = page + i;
--		set_page_count(p, 0);
- 		p->mapping = TAIL_MAPPING;
- 		set_compound_head(p, page);
- 	}
+ static const struct seq_operations slab_debugfs_sops = {
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from faiyazm@codeaurora.org are
 
-mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page-fix.patch
-hugetlb-remove-prep_compound_huge_page-cleanup.patch
-hugetlb-address-ref-count-racing-in-prep_compound_gigantic_page.patch
+mm-slub-move-sysfs-slab-alloc-free-interfaces-to-debugfs.patch
+mm-slub-move-sysfs-slab-alloc-free-interfaces-to-debugfs-fix.patch
 
