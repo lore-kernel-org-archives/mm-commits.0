@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79CA7C48BE5
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 04:21:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD415C4743C
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 04:24:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 64DB9608FE
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 04:21:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8F7F60BD3
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Jun 2021 04:24:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229930AbhFWEYL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Jun 2021 00:24:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48378 "EHLO mail.kernel.org"
+        id S229665AbhFWE0p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Jun 2021 00:26:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49854 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229665AbhFWEYK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Jun 2021 00:24:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C5CD361360;
-        Wed, 23 Jun 2021 04:21:53 +0000 (UTC)
+        id S229544AbhFWE0p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Jun 2021 00:26:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A8E416052B;
+        Wed, 23 Jun 2021 04:24:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624422114;
-        bh=dNbF6kdeKTsHAjRYAgjKVxayOvG5wWyOxfV1VjBkLKw=;
+        s=korg; t=1624422267;
+        bh=2WBI5oPJ4a5gI9+g3FSE9oId8qRTa/ALqWTFW2jhmao=;
         h=Date:From:To:Subject:From;
-        b=EgZ8jEFPkbOMi9EaW8PUQDyXypVJEckTiGlLNiwCUksrzyLpYZ/scGnT1sc6Mnr02
-         d8GegAizIdUvA+SWXYSaDX9VWz7xXTwxMQi0ggER8uZgS1XnXxjgBeQJWEI4fDmJhf
-         hNrPKoC6nUxmzB2LGoL0arBLK3Q517lKwYOTNAT0=
-Date:   Tue, 22 Jun 2021 21:21:53 -0700
+        b=lDDEVFLKPL3WUQdbe4HagqKo3U5/rUXHbUjNUHDmYT87gwsfL12QEdzNDxI+XVHBe
+         HFwaiC9HXarKwCDpYnCj2JYQtCuX/eHSPGWMviQJCSQO8kEPdl7ivKBj4AE9JnSPvd
+         EloyNRtjAsHKHNmjH1synpo+Fubl8OD3QukRBC6M=
+Date:   Tue, 22 Jun 2021 21:24:27 -0700
 From:   akpm@linux-foundation.org
-To:     alexanderduyck@fb.com, anshuman.khandual@arm.com,
-        catalin.marinas@arm.com, david@redhat.com, gshan@redhat.com,
-        mm-commits@vger.kernel.org, mst@redhat.com, will@kernel.org
-Subject:  +
- virtio_balloon-specify-page-reporting-order-if-needed.patch added to -mm
- tree
-Message-ID: <20210623042153.hzfAfVA83%akpm@linux-foundation.org>
+To:     aquini@redhat.com, mm-commits@vger.kernel.org, npiggin@gmail.com,
+        urezki@gmail.com
+Subject:  + mm-vmalloc-add-cond_resched-in-__vunmap.patch added to
+ -mm tree
+Message-ID: <20210623042427.jlbEfGIS-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: virtio_balloon: specify page reporting order if needed
+     Subject: mm: vmalloc: add cond_resched() in __vunmap()
 has been added to the -mm tree.  Its filename is
-     virtio_balloon-specify-page-reporting-order-if-needed.patch
+     mm-vmalloc-add-cond_resched-in-__vunmap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/virtio_balloon-specify-page-reporting-order-if-needed.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-add-cond_resched-in-__vunmap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/virtio_balloon-specify-page-reporting-order-if-needed.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-add-cond_resched-in-__vunmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,68 +64,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gavin Shan <gshan@redhat.com>
-Subject: virtio_balloon: specify page reporting order if needed
+From: Rafael Aquini <aquini@redhat.com>
+Subject: mm: vmalloc: add cond_resched() in __vunmap()
 
-The page reporting won't be triggered if the freeing page can't come up
-with a free area, whose size is equal or bigger than the threshold (page
-reporting order).  The default page reporting order, equal to
-@pageblock_order, is too huge on some architectures to trigger page
-reporting.  One example is ARM64 when 64KB base page size is used.
+On non-preemptible kernel builds the watchdog can complain about soft
+lockups when vfree() is called against large vmalloc areas:
 
-      PAGE_SIZE:          64KB
-      pageblock_order:    13       (512MB)
-      MAX_ORDER:          14
+[  210.851798] kvmalloc-test: vmalloc(2199023255552) succeeded
+[  238.654842] watchdog: BUG: soft lockup - CPU#181 stuck for 26s! [rmmod:5203]
+[  238.662716] Modules linked in: kvmalloc_test(OE-) ...
+[  238.772671] CPU: 181 PID: 5203 Comm: rmmod Tainted: G S         OE     5.13.0-rc7+ #1
+[  238.781413] Hardware name: Intel Corporation PURLEY/PURLEY, BIOS PLYXCRB1.86B.0553.D01.1809190614 09/19/2018
+[  238.792383] RIP: 0010:free_unref_page+0x52/0x60
+[  238.797447] Code: 48 c1 fd 06 48 89 ee e8 9c d0 ff ff 84 c0 74 19 9c 41 5c fa 48 89 ee 48 89 df e8 b9 ea ff ff 41 f7 c4 00 02 00 00 74 01 fb 5b <5d> 41 5c c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 f0 29 77
+[  238.818406] RSP: 0018:ffffb4d87868fe98 EFLAGS: 00000206
+[  238.824236] RAX: 0000000000000000 RBX: 000000001da0c945 RCX: ffffb4d87868fe40
+[  238.832200] RDX: ffffd79d3beed108 RSI: ffffd7998501dc08 RDI: ffff9c6fbffd7010
+[  238.840166] RBP: 000000000d518cbd R08: ffffd7998501dc08 R09: 0000000000000001
+[  238.848131] R10: 0000000000000000 R11: ffffd79d3beee088 R12: 0000000000000202
+[  238.856095] R13: ffff9e5be3eceec0 R14: 0000000000000000 R15: 0000000000000000
+[  238.864059] FS:  00007fe082c2d740(0000) GS:ffff9f4c69b40000(0000) knlGS:0000000000000000
+[  238.873089] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  238.879503] CR2: 000055a000611128 CR3: 000000f6094f6006 CR4: 00000000007706e0
+[  238.887467] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[  238.895433] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[  238.903397] PKRU: 55555554
+[  238.906417] Call Trace:
+[  238.909149]  __vunmap+0x17c/0x220
+[  238.912851]  __x64_sys_delete_module+0x13a/0x250
+[  238.918008]  ? syscall_trace_enter.isra.20+0x13c/0x1b0
+[  238.923746]  do_syscall_64+0x39/0x80
+[  238.927740]  entry_SYSCALL_64_after_hwframe+0x44/0xae
 
-This specifies the page reporting order to 5 (2MB) for this specific case
-so that page reporting can be triggered.
+Like in other range zapping routines that iterate over a large list, lets
+just add cond_resched() within __vunmap()'s page-releasing loop in order
+to avoid the watchdog splats.
 
-Link: https://lkml.kernel.org/r/20210623023418.350616-5-gshan@redhat.com
-Signed-off-by: Gavin Shan <gshan@redhat.com>
-Reviewed-by: Alexander Duyck <alexanderduyck@fb.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20210622225030.478384-1-aquini@redhat.com
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ mm/vmalloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/drivers/virtio/virtio_balloon.c~virtio_balloon-specify-page-reporting-order-if-needed
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -993,6 +993,23 @@ static int virtballoon_probe(struct virt
- 			goto out_unregister_oom;
- 		}
+--- a/mm/vmalloc.c~mm-vmalloc-add-cond_resched-in-__vunmap
++++ a/mm/vmalloc.c
+@@ -2564,6 +2564,7 @@ static void __vunmap(const void *addr, i
  
-+		/*
-+		 * The default page reporting order is @pageblock_order, which
-+		 * corresponds to 512MB in size on ARM64 when 64KB base page
-+		 * size is used. The page reporting won't be triggered if the
-+		 * freeing page can't come up with a free area like that huge.
-+		 * So we specify the page reporting order to 5, corresponding
-+		 * to 2MB. It helps to avoid THP splitting if 4KB base page
-+		 * size is used by host.
-+		 *
-+		 * Ideally, the page reporting order is selected based on the
-+		 * host's base page size. However, it needs more work to report
-+		 * that value. The hard-coded order would be fine currently.
-+		 */
-+#if defined(CONFIG_ARM64) && defined(CONFIG_ARM64_64K_PAGES)
-+		vb->pr_dev_info.order = 5;
-+#endif
-+
- 		err = page_reporting_register(&vb->pr_dev_info);
- 		if (err)
- 			goto out_unregister_oom;
+ 			BUG_ON(!page);
+ 			__free_pages(page, page_order);
++			cond_resched();
+ 		}
+ 		atomic_long_sub(area->nr_pages, &nr_vmalloc_pages);
+ 
 _
 
-Patches currently in -mm which might be from gshan@redhat.com are
+Patches currently in -mm which might be from aquini@redhat.com are
 
-mm-page_reporting-fix-code-style-in-__page_reporting_request.patch
-mm-page_reporting-export-reporting-order-as-module-parameter.patch
-mm-page_reporting-allow-driver-to-specify-reporting-order.patch
-virtio_balloon-specify-page-reporting-order-if-needed.patch
+mm-vmalloc-add-cond_resched-in-__vunmap.patch
 
