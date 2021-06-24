@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB1B3C49EA5
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:29:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C89D6C49EA5
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:44:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A4F9613BA
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:29:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B1F5C613C2
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:44:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230116AbhFXUbp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 16:31:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54014 "EHLO mail.kernel.org"
+        id S232310AbhFXUrE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 16:47:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60152 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229525AbhFXUbo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 16:31:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1566D61241;
-        Thu, 24 Jun 2021 20:29:25 +0000 (UTC)
+        id S232600AbhFXUrB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 16:47:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B5B1D60FD9;
+        Thu, 24 Jun 2021 20:44:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624566565;
-        bh=8vRScHVJ3D+c1A45XTkF4lA/WI7bqh+5b99zVuTYvzc=;
+        s=korg; t=1624567481;
+        bh=ye3DZTgeJw7shxquQnXU6j6CACeEYxXC/4iDm9tFsmg=;
         h=Date:From:To:Subject:From;
-        b=fsi2X034tlYKraeZuRYSo5jbocf8Vl7YLUgQSEzOQIuBomL30D6R15VCRYLQShtft
-         dYmQ/jHOQUSMjZeebPHDBaH2CL7Zlspnv7RGT3vPdZI4l9M8VILVNJTQSkhAzECtPw
-         BBvddmQyJQaw3P75HdJL1z2MhDFrnJQd5Y6izAsk=
-Date:   Thu, 24 Jun 2021 13:29:24 -0700
+        b=EoUWsmluuawrmnb1rUJzYJWS9faBlGk3AbmgOC/7er2qwTNPjV3QpGtaVEboSrWfs
+         XajIwcwScfPvHOtgd1YKNNsBEybqBfCuH33ANbGN4KOv9h62WEc0jMKBzJuSDNeeok
+         nFukMvmorakDlkGVlaq4jFupABX+M/ZOxVYrFu+k=
+Date:   Thu, 24 Jun 2021 13:44:41 -0700
 From:   akpm@linux-foundation.org
-To:     code@tyhicks.com, hch@lst.de, mm-commits@vger.kernel.org,
-        willy@infradead.org
+To:     colin.king@canonical.com, konishi.ryusuke@gmail.com,
+        mm-commits@vger.kernel.org
 Subject:  +
- mm-require-set_page_dirty-to-be-explicitly-wire-up-fix.patch added to -mm
- tree
-Message-ID: <20210624202924.IGqRE-8KR%akpm@linux-foundation.org>
+ nilfs2-remove-redundant-continue-statement-in-a-while-loop.patch added to
+ -mm tree
+Message-ID: <20210624204441.XutFRXcGB%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ecryptfs: add a ->set_page_dirty cludge
+     Subject: nilfs2: remove redundant continue statement in a while-loop
 has been added to the -mm tree.  Its filename is
-     mm-require-set_page_dirty-to-be-explicitly-wire-up-fix.patch
+     nilfs2-remove-redundant-continue-statement-in-a-while-loop.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-require-set_page_dirty-to-be-explicitly-wire-up-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/nilfs2-remove-redundant-continue-statement-in-a-while-loop.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-require-set_page_dirty-to-be-explicitly-wire-up-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-remove-redundant-continue-statement-in-a-while-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,51 +65,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: ecryptfs: add a ->set_page_dirty cludge
+From: Colin Ian King <colin.king@canonical.com>
+Subject: nilfs2: remove redundant continue statement in a while-loop
 
-"fix" ecryptfs to work the same as before the recent change to the
-behavior without a ->set_page_dirty method.
+The continue statement at the end of the while-loop is redundant,
+remove it.
 
-Link: https://lkml.kernel.org/r/20210624125250.536369-1-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Tyler Hicks <code@tyhicks.com>
+Addresses-Coverity: ("Continue has no effect")
+Link: https://lkml.kernel.org/r/20210621100519.10257-1-colin.king@canonical.com
+Link: https://lkml.kernel.org/r/1624557664-17159-1-git-send-email-konishi.ryusuke@gmail.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/mmap.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ fs/nilfs2/btree.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/fs/ecryptfs/mmap.c~mm-require-set_page_dirty-to-be-explicitly-wire-up-fix
-+++ a/fs/ecryptfs/mmap.c
-@@ -533,7 +533,20 @@ static sector_t ecryptfs_bmap(struct add
- 	return block;
- }
- 
-+#include <linux/buffer_head.h>
-+
- const struct address_space_operations ecryptfs_aops = {
-+	/*
-+	 * XXX: This is pretty broken for multiple reasons: ecryptfs does not
-+	 * actually use buffer_heads, and ecryptfs will crash without
-+	 * CONFIG_BLOCK.  But it matches the behavior before the default for
-+	 * address_space_operations without the ->set_page_dirty method was
-+	 * cleaned up, so this is the best we can do without maintainer
-+	 * feedback.
-+	 */
-+#ifdef CONFIG_BLOCK
-+	.set_page_dirty = __set_page_dirty_buffers,
-+#endif
- 	.writepage = ecryptfs_writepage,
- 	.readpage = ecryptfs_readpage,
- 	.write_begin = ecryptfs_write_begin,
+--- a/fs/nilfs2/btree.c~nilfs2-remove-redundant-continue-statement-in-a-while-loop
++++ a/fs/nilfs2/btree.c
+@@ -738,7 +738,6 @@ static int nilfs_btree_lookup_contig(con
+ 			if (ptr2 != ptr + cnt || ++cnt == maxblocks)
+ 				goto end;
+ 			index++;
+-			continue;
+ 		}
+ 		if (level == maxlevel)
+ 			break;
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
-fs-unexport-__set_page_dirty.patch
-fs-move-ramfs_aops-to-libfs.patch
-mm-require-set_page_dirty-to-be-explicitly-wire-up.patch
-mm-require-set_page_dirty-to-be-explicitly-wire-up-fix.patch
+scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+ocfs2-remove-redundant-assignment-to-pointer-queue.patch
+ocfs2-remove-redundant-initialization-of-variable-ret.patch
+lib-math-rational-add-kunit-test-cases-fix-2.patch
+nilfs2-remove-redundant-continue-statement-in-a-while-loop.patch
 
