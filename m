@@ -7,32 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67FEEC49EA6
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:21:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB1B3C49EA5
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:29:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44DF761248
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:21:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8A4F9613BA
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:29:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232120AbhFXUXe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 16:23:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51042 "EHLO mail.kernel.org"
+        id S230116AbhFXUbp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 16:31:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232475AbhFXUXb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 16:23:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1CC2E61248;
-        Thu, 24 Jun 2021 20:21:12 +0000 (UTC)
+        id S229525AbhFXUbo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 16:31:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1566D61241;
+        Thu, 24 Jun 2021 20:29:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624566072;
-        bh=/5xY7EMiWBGOfJnYhuoEQdWrdCu1BLMipIVuBgSq390=;
+        s=korg; t=1624566565;
+        bh=8vRScHVJ3D+c1A45XTkF4lA/WI7bqh+5b99zVuTYvzc=;
         h=Date:From:To:Subject:From;
-        b=jZSKSMImMPpbBT88n2O5TURGlc1PTpBkjoDeFXBTilJ2Z+WWTFXcdOZ/izvIu0qBD
-         PiKUm6VpiQynsCux9sgi0h4utipybHCiyzkbAasHIkV3wc8zNAreJj0tZRXvKpZGip
-         X1qyFe/ms+YL9U3XBwolkvGFpUOF4U0eZZ51viB0=
-Date:   Thu, 24 Jun 2021 13:21:11 -0700
+        b=fsi2X034tlYKraeZuRYSo5jbocf8Vl7YLUgQSEzOQIuBomL30D6R15VCRYLQShtft
+         dYmQ/jHOQUSMjZeebPHDBaH2CL7Zlspnv7RGT3vPdZI4l9M8VILVNJTQSkhAzECtPw
+         BBvddmQyJQaw3P75HdJL1z2MhDFrnJQd5Y6izAsk=
+Date:   Thu, 24 Jun 2021 13:29:24 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20210624202111.F2rEwiMX3%akpm@linux-foundation.org>
+To:     code@tyhicks.com, hch@lst.de, mm-commits@vger.kernel.org,
+        willy@infradead.org
+Subject:  +
+ mm-require-set_page_dirty-to-be-explicitly-wire-up-fix.patch added to -mm
+ tree
+Message-ID: <20210624202924.IGqRE-8KR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: ecryptfs: add a ->set_page_dirty cludge
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-require-set_page_dirty-to-be-explicitly-wire-up-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-require-set_page_dirty-to-be-explicitly-wire-up-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-require-set_page_dirty-to-be-explicitly-wire-up-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,70 +65,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Christoph Hellwig <hch@lst.de>
+Subject: ecryptfs: add a ->set_page_dirty cludge
 
+"fix" ecryptfs to work the same as before the recent change to the
+behavior without a ->set_page_dirty method.
+
+Link: https://lkml.kernel.org/r/20210624125250.536369-1-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Tyler Hicks <code@tyhicks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/fair.c |    5 -----
- 1 file changed, 5 deletions(-)
+ fs/ecryptfs/mmap.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/kernel/sched/fair.c~linux-next-git-rejects
-+++ a/kernel/sched/fair.c
-@@ -3295,10 +3295,6 @@ static inline bool cfs_rq_is_decayed(str
- 	if (cfs_rq->avg.runnable_sum)
- 		return false;
- 
--<<<<<<< HEAD
--	if (child_cfs_rq_on_list(cfs_rq))
--		return false;
--=======
- 	/*
- 	 * _avg must be null when _sum are null because _avg = _sum / divider
- 	 * Make sure that rounding and/or propagation of PELT values never
-@@ -3307,7 +3303,6 @@ static inline bool cfs_rq_is_decayed(str
- 	SCHED_WARN_ON(cfs_rq->avg.load_avg ||
- 		      cfs_rq->avg.util_avg ||
- 		      cfs_rq->avg.runnable_avg);
-->>>>>>> linux-next/akpm-base
- 
- 	return true;
+--- a/fs/ecryptfs/mmap.c~mm-require-set_page_dirty-to-be-explicitly-wire-up-fix
++++ a/fs/ecryptfs/mmap.c
+@@ -533,7 +533,20 @@ static sector_t ecryptfs_bmap(struct add
+ 	return block;
  }
+ 
++#include <linux/buffer_head.h>
++
+ const struct address_space_operations ecryptfs_aops = {
++	/*
++	 * XXX: This is pretty broken for multiple reasons: ecryptfs does not
++	 * actually use buffer_heads, and ecryptfs will crash without
++	 * CONFIG_BLOCK.  But it matches the behavior before the default for
++	 * address_space_operations without the ->set_page_dirty method was
++	 * cleaned up, so this is the best we can do without maintainer
++	 * feedback.
++	 */
++#ifdef CONFIG_BLOCK
++	.set_page_dirty = __set_page_dirty_buffers,
++#endif
+ 	.writepage = ecryptfs_writepage,
+ 	.readpage = ecryptfs_readpage,
+ 	.write_begin = ecryptfs_write_begin,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-vmalloc-add-vmalloc_no_huge-fix.patch
-mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix.patch
-mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
-mm.patch
-mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
-fs-remove-noop_set_page_dirty-fix.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-mmmemory_hotplug-drop-unneeded-locking-fix.patch
-fs-proc-kcorec-add-mmap-interface-fix.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-lib-math-rational-add-kunit-test-cases-fix.patch
-lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
-ipc-utilc-use-binary-search-for-max_idx-fix.patch
-linux-next-pre.patch
-linux-next-post.patch
-linux-next-rejects.patch
-kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
+fs-unexport-__set_page_dirty.patch
+fs-move-ramfs_aops-to-libfs.patch
+mm-require-set_page_dirty-to-be-explicitly-wire-up.patch
+mm-require-set_page_dirty-to-be-explicitly-wire-up-fix.patch
 
