@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE882C49EA6
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:06:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D5F7C49EA5
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:06:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD152613B3
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:06:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55C79613C2
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:06:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232178AbhFXUIl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 16:08:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44952 "EHLO mail.kernel.org"
+        id S232805AbhFXUJB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 16:09:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232120AbhFXUIl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 16:08:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 801B9613B1;
-        Thu, 24 Jun 2021 20:06:20 +0000 (UTC)
+        id S232120AbhFXUJA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 16:09:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 550AA61220;
+        Thu, 24 Jun 2021 20:06:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624565180;
-        bh=8Kx54VDBHeCB8azQ9iL8m41+Zvs8hbYARcnOn1Lhz/U=;
+        s=korg; t=1624565200;
+        bh=jOoL2Fdm7l1I8HFtOc+xlJLyxhOWUGty2OawK9XX9l8=;
         h=Date:From:To:Subject:From;
-        b=0J4ZaAROdit0bk+2Feq55BNEDoPFh6+tFxK4Xw5z1oybEpHlRbGdhWqpN39nYuaRb
-         UKbRVtpuJILLvQm4QTTkFEbQPYraHN5Q46ZcLY0lU0QpiNK+tKI34jVvzdr8ktMUoF
-         iNoeJOw2zz2OVyOjpIJvSIsJsTbWSUgU7BvoultE=
-Date:   Thu, 24 Jun 2021 13:06:19 -0700
+        b=kR6sYNmgA5GOVZeFjPvdNO5MkuMB72zJWFbWr9SY/e9dvkGiu2tlvl5qItWEOVm6f
+         O8vphHLRpUtpfKyjL3nCNh+cD+Pga0n//h1EAveGHDkezR9hjofWKJjAPOEhBFYy+s
+         54BJvsivKC/Azr2kxRST11iOUci+ozmlhex8cYWM=
+Date:   Thu, 24 Jun 2021 13:06:39 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, alexanderduyck@fb.com,
-        anshuman.khandual@arm.com, catalin.marinas@arm.com,
-        david@redhat.com, gshan@redhat.com, mm-commits@vger.kernel.org,
-        mst@redhat.com, will@kernel.org
-Subject:  [folded-merged]
- mm-page_reporting-export-reporting-order-as-module-parameter-fix.patch
- removed from -mm tree
-Message-ID: <20210624200619.89KtvC3Te%akpm@linux-foundation.org>
+To:     alexanderduyck@fb.com, anshuman.khandual@arm.com,
+        catalin.marinas@arm.com, david@redhat.com, gshan@redhat.com,
+        mm-commits@vger.kernel.org, mst@redhat.com, will@kernel.org
+Subject:  [failures]
+ mm-page_reporting-export-reporting-order-as-module-parameter.patch removed
+ from -mm tree
+Message-ID: <20210624200639.xKH6fDaz2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,34 +45,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_reporting-export-reporting-order-as-module-parameter-fix
+     Subject: mm/page_reporting: export reporting order as module parameter
 has been removed from the -mm tree.  Its filename was
-     mm-page_reporting-export-reporting-order-as-module-parameter-fix.patch
+     mm-page_reporting-export-reporting-order-as-module-parameter.patch
 
-This patch was dropped because it was folded into mm-page_reporting-export-reporting-order-as-module-parameter.patch
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_reporting-export-reporting-order-as-module-parameter-fix
+From: Gavin Shan <gshan@redhat.com>
+Subject: mm/page_reporting: export reporting order as module parameter
 
-mm/page_reporting.c needs module.h
+The macro PAGE_REPORTING_MIN_ORDER is defined as the page reporting
+threshold.  It can't be adjusted at runtime.
 
-Cc: Alexander Duyck <alexanderduyck@fb.com>
+This introduces a variable (@page_reporting_order) to replace the marcro
+(PAGE_REPORTING_MIN_ORDER).  It's also exported so that the page reporting
+order can be adjusted at runtime.
+
+[akpm@linux-foundation.org: mm/page_reporting.c needs module.h]
+Link: https://lkml.kernel.org/r/20210623023418.350616-3-gshan@redhat.com
+Signed-off-by: Gavin Shan <gshan@redhat.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Alexander Duyck <alexanderduyck@fb.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gavin Shan <gshan@redhat.com>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_reporting.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/admin-guide/kernel-parameters.txt |    6 ++++++
+ mm/page_reporting.c                             |    9 +++++++--
+ mm/page_reporting.h                             |    5 ++---
+ 3 files changed, 15 insertions(+), 5 deletions(-)
 
---- a/mm/page_reporting.c~mm-page_reporting-export-reporting-order-as-module-parameter-fix
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-page_reporting-export-reporting-order-as-module-parameter
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -3566,6 +3566,12 @@
+ 			off: turn off poisoning (default)
+ 			on: turn on poisoning
+ 
++	page_reporting.page_reporting_order=
++			[KNL] Minimal page reporting order
++			Format: <integer>
++			Adjust the minimal page reporting order. The page
++			reporting is disabled when it exceeds (MAX_ORDER-1).
++
+ 	panic=		[KNL] Kernel behaviour on panic: delay <timeout>
+ 			timeout > 0: seconds before rebooting
+ 			timeout = 0: wait forever
+--- a/mm/page_reporting.c~mm-page_reporting-export-reporting-order-as-module-parameter
 +++ a/mm/page_reporting.c
-@@ -4,6 +4,7 @@
+@@ -4,12 +4,17 @@
  #include <linux/page_reporting.h>
  #include <linux/gfp.h>
  #include <linux/export.h>
@@ -81,40 +104,62 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  #include <linux/delay.h>
  #include <linux/scatterlist.h>
  
+ #include "page_reporting.h"
+ #include "internal.h"
+ 
++unsigned int page_reporting_order = pageblock_order;
++module_param(page_reporting_order, uint, 0644);
++MODULE_PARM_DESC(page_reporting_order, "Set page reporting order");
++
+ #define PAGE_REPORTING_DELAY	(2 * HZ)
+ static struct page_reporting_dev_info __rcu *pr_dev_info __read_mostly;
+ 
+@@ -229,7 +234,7 @@ page_reporting_process_zone(struct page_
+ 
+ 	/* Generate minimum watermark to be able to guarantee progress */
+ 	watermark = low_wmark_pages(zone) +
+-		    (PAGE_REPORTING_CAPACITY << PAGE_REPORTING_MIN_ORDER);
++		    (PAGE_REPORTING_CAPACITY << page_reporting_order);
+ 
+ 	/*
+ 	 * Cancel request if insufficient free memory or if we failed
+@@ -239,7 +244,7 @@ page_reporting_process_zone(struct page_
+ 		return err;
+ 
+ 	/* Process each free list starting from lowest order/mt */
+-	for (order = PAGE_REPORTING_MIN_ORDER; order < MAX_ORDER; order++) {
++	for (order = page_reporting_order; order < MAX_ORDER; order++) {
+ 		for (mt = 0; mt < MIGRATE_TYPES; mt++) {
+ 			/* We do not pull pages from the isolate free list */
+ 			if (is_migrate_isolate(mt))
+--- a/mm/page_reporting.h~mm-page_reporting-export-reporting-order-as-module-parameter
++++ a/mm/page_reporting.h
+@@ -10,10 +10,9 @@
+ #include <linux/pgtable.h>
+ #include <linux/scatterlist.h>
+ 
+-#define PAGE_REPORTING_MIN_ORDER	pageblock_order
+-
+ #ifdef CONFIG_PAGE_REPORTING
+ DECLARE_STATIC_KEY_FALSE(page_reporting_enabled);
++extern unsigned int page_reporting_order;
+ void __page_reporting_notify(void);
+ 
+ static inline bool page_reported(struct page *page)
+@@ -38,7 +37,7 @@ static inline void page_reporting_notify
+ 		return;
+ 
+ 	/* Determine if we have crossed reporting threshold */
+-	if (order < PAGE_REPORTING_MIN_ORDER)
++	if (order < page_reporting_order)
+ 		return;
+ 
+ 	/* This will add a few cycles, but should be called infrequently */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gshan@redhat.com are
 
-mm-vmalloc-add-vmalloc_no_huge-fix.patch
-mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix.patch
-mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
-mm.patch
-mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
-mm-page_reporting-export-reporting-order-as-module-parameter.patch
-fs-remove-noop_set_page_dirty-fix.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-mmmemory_hotplug-drop-unneeded-locking-fix.patch
-fs-proc-kcorec-add-mmap-interface-fix.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-lib-math-rational-add-kunit-test-cases-fix.patch
-lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
-ipc-utilc-use-binary-search-for-max_idx-fix.patch
-linux-next-pre.patch
-linux-next-post.patch
-linux-next-rejects.patch
-kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-page_reporting-fix-code-style-in-__page_reporting_request.patch
+mm-page_reporting-allow-driver-to-specify-reporting-order.patch
+virtio_balloon-specify-page-reporting-order-if-needed.patch
 
