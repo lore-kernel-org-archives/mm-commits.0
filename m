@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88922C49EA5
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:47:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3882C49EA6
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:52:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7088F613C1
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:47:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E4FD613C7
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:52:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232661AbhFXUts (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 16:49:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33072 "EHLO mail.kernel.org"
+        id S230116AbhFXUyf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 16:54:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34860 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232685AbhFXUto (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 16:49:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C988D613C7;
-        Thu, 24 Jun 2021 20:47:23 +0000 (UTC)
+        id S229525AbhFXUyf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 16:54:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A4D09613C3;
+        Thu, 24 Jun 2021 20:52:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624567644;
-        bh=uEYFcPDs/F6KQXrxehVFNRU3pNOJbp76XcO0zUGd92g=;
+        s=korg; t=1624567934;
+        bh=/vX2FndIec923gOkNhLMNn4aMiJBf6oaceEG4JJLV5o=;
         h=Date:From:To:Subject:From;
-        b=onaNDY4+yMNCBUPfGE8pbKIZGqgV59sxG03OCGLkJ+CEfyAwFjGgc9hwX0Uofxy3E
-         0qfIYOKDquMzPMjBG1Y3jV+bD8wxAMdZvSILnBWL7VRhOkabPJwbSB1TAf0HexDWUm
-         93NueS09sBYaxLKA7RoI2tyDhs/h7C3OFfHJf1SY=
-Date:   Thu, 24 Jun 2021 13:47:23 -0700
+        b=vikM2DgGBbhEEJH9Z0c0cuftZSOowSBBq3HSS15ZIyoQUAjZIjqf35p3lR1btHlra
+         Qqor/ksiAcGE+mLPCkYmXWCDHdcoL4u1NjUvkQdYhTBs/M7TXY1Ai2dhkjDpO0nHmd
+         fllWHc/8RIVOshQNpw7uo7F42RNHpUzOPpCZWc9g=
+Date:   Thu, 24 Jun 2021 13:52:14 -0700
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, ngupta@vflare.org,
-        senozhatsky@chromium.org
-Subject:  +
- mm-zsmallocc-improve-readability-for-async_free_zspage.patch added to -mm
- tree
-Message-ID: <20210624204723.Tt0fIuZqR%akpm@linux-foundation.org>
+To:     hannes@cmpxchg.org, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org
+Subject:  + mm-workingset-define-macro-workingset_shift.patch added
+ to -mm tree
+Message-ID: <20210624205214.fuQf5Lw8E%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc.c: improve readability for async_free_zspage()
+     Subject: mm: workingset: define macro WORKINGSET_SHIFT
 has been added to the -mm tree.  Its filename is
-     mm-zsmallocc-improve-readability-for-async_free_zspage.patch
+     mm-workingset-define-macro-workingset_shift.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-zsmallocc-improve-readability-for-async_free_zspage.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-define-macro-workingset_shift.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmallocc-improve-readability-for-async_free_zspage.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-define-macro-workingset_shift.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,34 +65,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/zsmalloc.c: improve readability for async_free_zspage()
+Subject: mm: workingset: define macro WORKINGSET_SHIFT
 
-The class is extracted from pool->size_class[class_idx] again before
-calling __free_zspage().  It looks like class will change after we fetch
-the class lock.  But this is misleading as class will stay unchanged.
+The magic number 1 is used in several places in workingset.c.  Define a
+macro WORKINGSET_SHIFT for it to improve code readability.
 
-Link: https://lkml.kernel.org/r/20210624123930.1769093-4-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210624122307.1759342-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/workingset.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmallocc-improve-readability-for-async_free_zspage
-+++ a/mm/zsmalloc.c
-@@ -2161,7 +2161,7 @@ static void async_free_zspage(struct wor
- 		VM_BUG_ON(fullness != ZS_EMPTY);
- 		class = pool->size_class[class_idx];
- 		spin_lock(&class->lock);
--		__free_zspage(pool, pool->size_class[class_idx], zspage);
-+		__free_zspage(pool, class, zspage);
- 		spin_unlock(&class->lock);
- 	}
- };
+--- a/mm/workingset.c~mm-workingset-define-macro-workingset_shift
++++ a/mm/workingset.c
+@@ -168,8 +168,10 @@
+  * refault distance will immediately activate the refaulting page.
+  */
+ 
++#define WORKINGSET_SHIFT 1
+ #define EVICTION_SHIFT	((BITS_PER_LONG - BITS_PER_XA_VALUE) +	\
+-			 1 + NODES_SHIFT + MEM_CGROUP_ID_SHIFT)
++			 WORKINGSET_SHIFT + NODES_SHIFT + \
++			 MEM_CGROUP_ID_SHIFT)
+ #define EVICTION_MASK	(~0UL >> EVICTION_SHIFT)
+ 
+ /*
+@@ -189,7 +191,7 @@ static void *pack_shadow(int memcgid, pg
+ 	eviction &= EVICTION_MASK;
+ 	eviction = (eviction << MEM_CGROUP_ID_SHIFT) | memcgid;
+ 	eviction = (eviction << NODES_SHIFT) | pgdat->node_id;
+-	eviction = (eviction << 1) | workingset;
++	eviction = (eviction << WORKINGSET_SHIFT) | workingset;
+ 
+ 	return xa_mk_value(eviction);
+ }
+@@ -201,8 +203,8 @@ static void unpack_shadow(void *shadow,
+ 	int memcgid, nid;
+ 	bool workingset;
+ 
+-	workingset = entry & 1;
+-	entry >>= 1;
++	workingset = entry & ((1UL << WORKINGSET_SHIFT) - 1);
++	entry >>= WORKINGSET_SHIFT;
+ 	nid = entry & ((1UL << NODES_SHIFT) - 1);
+ 	entry >>= NODES_SHIFT;
+ 	memcgid = entry & ((1UL << MEM_CGROUP_ID_SHIFT) - 1);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -114,6 +132,7 @@ mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabl
 mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4.patch
 mm-huge_memoryc-remove-unnecessary-tlb_remove_page_size-for-huge-zero-pmd.patch
 mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
+mm-workingset-define-macro-workingset_shift.patch
 mm-z3fold-define-macro-nchunks-as-total_chunks-zhdr_chunks.patch
 mm-z3fold-avoid-possible-underflow-in-z3fold_alloc.patch
 mm-z3fold-remove-magic-number-in-z3fold_create_pool.patch
