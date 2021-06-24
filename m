@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 389C9C49EA5
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:47:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DB6AC49EA7
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:47:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1EA23613D1
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:47:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 576A6613EA
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 20:47:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232643AbhFXUtk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 16:49:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32980 "EHLO mail.kernel.org"
+        id S232684AbhFXUto (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 16:49:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33008 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232578AbhFXUtj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 16:49:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E660B613C3;
-        Thu, 24 Jun 2021 20:47:19 +0000 (UTC)
+        id S232654AbhFXUtm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 16:49:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C9357613C5;
+        Thu, 24 Jun 2021 20:47:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624567640;
-        bh=E9ynY6RAJgXyLfW01DZ33qEg1SuGADxo4w28LPU35KI=;
+        s=korg; t=1624567642;
+        bh=i7XoLK4xitNwA5aSTzsqcdkZ+JqtzqVm+BhH2Fn4DmI=;
         h=Date:From:To:Subject:From;
-        b=If44+GxUyG7XWt/ipFYqOioyTZf6B6GyU5nEN45dnhmN46TY6K/Sc/FwvWUCBOfJP
-         hYDbIbSUiVDp5go8XXBY5l4Qd0+iMsDQgl+bMgHp6dhH4tChLr28t/v6HH7HXM0P5L
-         axMnc0BiUaRblUoQXCTJ3gaIdlyzizdgKOw6tU3E=
-Date:   Thu, 24 Jun 2021 13:47:19 -0700
+        b=P1xed81PKJuehny0vTE5t/eet4YdqOuoc+nDRCf+57x7aKw6sRLnOm/2M6nHXyfc0
+         1s2Is2+D6S6J5EKTu3eJZS//i7a2go5bXuymdQfmFV78vFHmt8dMBLPAeGpca1W4aY
+         6yObvk0+rvdHRkUUKvv9sDWvM8bG/SylrLCDw8jI=
+Date:   Thu, 24 Jun 2021 13:47:21 -0700
 From:   akpm@linux-foundation.org
 To:     linmiaohe@huawei.com, minchan@kernel.org,
         mm-commits@vger.kernel.org, ngupta@vflare.org,
         senozhatsky@chromium.org
-Subject:  + mm-zsmallocc-remove-confusing-code-in-obj_free.patch
- added to -mm tree
-Message-ID: <20210624204719.nxg9-Ns68%akpm@linux-foundation.org>
+Subject:  +
+ mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch added to
+ -mm tree
+Message-ID: <20210624204721.9-x-zXoRA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc.c: remove confusing code in obj_free()
+     Subject: mm/zsmalloc.c: combine two atomic ops in zs_pool_dec_isolated()
 has been added to the -mm tree.  Its filename is
-     mm-zsmallocc-remove-confusing-code-in-obj_free.patch
+     mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-zsmallocc-remove-confusing-code-in-obj_free.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmallocc-remove-confusing-code-in-obj_free.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,23 +67,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/zsmalloc.c: remove confusing code in obj_free()
+Subject: mm/zsmalloc.c: combine two atomic ops in zs_pool_dec_isolated()
 
-Patch series "Cleanup for zsmalloc".
+atomic_long_dec_and_test() is equivalent to atomic_long_dec() and
+atomic_long_read() == 0.  Use it to make code more succinct.
 
-This series contains cleanups to remove confusing code in obj_free(),
-combine two atomic ops and improve readability for async_free_zspage(). 
-More details can be found in the respective changelogs.
-
-
-This patch (of 3):
-
-OBJ_ALLOCATED_TAG is only set for handle to indicate allocated object. 
-It's irrelevant with obj.  So remove this misleading code to improve
-readability.
-
-Link: https://lkml.kernel.org/r/20210624123930.1769093-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210624123930.1769093-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210624123930.1769093-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
@@ -90,19 +80,26 @@ Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/zsmalloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmallocc-remove-confusing-code-in-obj_free
+--- a/mm/zsmalloc.c~mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated
 +++ a/mm/zsmalloc.c
-@@ -1471,7 +1471,6 @@ static void obj_free(struct size_class *
- 	unsigned int f_objidx;
- 	void *vaddr;
+@@ -1828,13 +1828,12 @@ static void putback_zspage_deferred(stru
+ static inline void zs_pool_dec_isolated(struct zs_pool *pool)
+ {
+ 	VM_BUG_ON(atomic_long_read(&pool->isolated_pages) <= 0);
+-	atomic_long_dec(&pool->isolated_pages);
+ 	/*
+ 	 * There's no possibility of racing, since wait_for_isolated_drain()
+ 	 * checks the isolated count under &class->lock after enqueuing
+ 	 * on migration_wait.
+ 	 */
+-	if (atomic_long_read(&pool->isolated_pages) == 0 && pool->destroying)
++	if (atomic_long_dec_and_test(&pool->isolated_pages) && pool->destroying)
+ 		wake_up_all(&pool->migration_wait);
+ }
  
--	obj &= ~OBJ_ALLOCATED_TAG;
- 	obj_to_location(obj, &f_page, &f_objidx);
- 	f_offset = (class->size * f_objidx) & ~PAGE_MASK;
- 	zspage = get_zspage(f_page);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
