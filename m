@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB6B1C48BC2
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 00:58:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A145C48BC2
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 00:58:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE2EE61358
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 00:58:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F0BEC61358
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Jun 2021 00:58:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229800AbhFXBAW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Jun 2021 21:00:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57196 "EHLO mail.kernel.org"
+        id S229822AbhFXBAY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Jun 2021 21:00:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57254 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229755AbhFXBAW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Jun 2021 21:00:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E769F6135C;
-        Thu, 24 Jun 2021 00:58:02 +0000 (UTC)
+        id S229755AbhFXBAX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Jun 2021 21:00:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C8F8061360;
+        Thu, 24 Jun 2021 00:58:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624496283;
-        bh=7tCtz3x7X0fv1ey6pAVYzWBdeTgIszGPm6JxyW7CXEo=;
+        s=korg; t=1624496284;
+        bh=j0593TBl/DKPZztUtuqF3UF1rdzpUjuskB+drusV1dI=;
         h=Date:From:To:Subject:From;
-        b=r/+lWwOWcgUxlCjxmVbiE64t6Nvb9VjKvtaTXb/I+Q3eICLSAb4M2q+/Q42OsHRFU
-         O5pFO63+UVVdrsBNDeF/R3oYAgK1FIct4yCKmpTqqNxVd0/Sh6SR4aWrp/M+QDY+s2
-         EGpqdJcEeGqSlY0B8KHQQXoPhKgngQ/pF4k/RNmc=
-Date:   Wed, 23 Jun 2021 17:58:02 -0700
+        b=r/kE7C+kog5G0UXOMnH5++txXyIE0y4TOToisjWGshNdr8TO5shl4MYac1MBZXjL+
+         saLlCYM9ABK8d+Vd1cvRghYdR457Qlp9dfb7eAwVUNRRv1WAvRUKF2s8885U10Lou2
+         s5ZHYuxYWe7jEyLpSZb+Y3vzjI4Z6jRYC4iHjnMk=
+Date:   Wed, 23 Jun 2021 17:58:04 -0700
 From:   akpm@linux-foundation.org
 To:     kabel@kernel.org, mm-commits@vger.kernel.org
-Subject:  + maintainers-fix-my-identity-again.patch added to -mm
- tree
-Message-ID: <20210624005802.BWz-_okwo%akpm@linux-foundation.org>
+Subject:  +
+ mailmap-add-my-other-e-mail-address-and-identity-without-diacritics.patch
+ added to -mm tree
+Message-ID: <20210624005804.s7kGbxmRL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -45,16 +46,18 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: fix Marek's identity again
+     Subject: mailmap: add Marek's other e-mail address and identity withou=
+t diacritics
 has been added to the -mm tree.  Its filename is
-     maintainers-fix-my-identity-again.patch
+     mailmap-add-my-other-e-mail-address-and-identity-without-diacritics.pa=
+tch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-fix-my-identity-a=
-gain.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mailmap-add-my-other-e-mail-a=
+ddress-and-identity-without-diacritics.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-fix-my-identity-a=
-gain.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mailmap-add-my-other-e-mail-a=
+ddress-and-identity-without-diacritics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,41 +73,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Marek Beh=C3=BAn <kabel@kernel.org>
-Subject: MAINTAINERS: fix Marek's identity again
+Subject: mailmap: add Marek's other e-mail address and identity without dia=
+critics
 
-Fix my name to use diacritics, since MAINTAINERS supports it.
+Some of my commits were sent with identities
+  Marek Behun <marek.behun@nic.cz>
+  Marek Beh=C3=BAn <marek.behun@nic.cz>
+while the correct one is
+  Marek Beh=C3=BAn <kabel@kernel.org>
 
-Fix my e-mail address in MAINTAINERS' marvell10g PHY driver description,
-I accidentaly put my other e-mail address here.
+Put this into mailmap so that git shortlog prints all my commits under
+one identity.
 
-Link: https://lkml.kernel.org/r/20210616113624.19351-1-kabel@kernel.org
+Link: https://lkml.kernel.org/r/20210616113624.19351-2-kabel@kernel.org
 Signed-off-by: Marek Beh=C3=BAn <kabel@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/MAINTAINERS~maintainers-fix-my-identity-again
-+++ a/MAINTAINERS
-@@ -1816,7 +1816,7 @@ F:	drivers/pinctrl/pinctrl-gemini.c
- F:	drivers/rtc/rtc-ftrtc010.c
-=20
- ARM/CZ.NIC TURRIS SUPPORT
--M:	Marek Behun <kabel@kernel.org>
-+M:	Marek Beh=C3=BAn <kabel@kernel.org>
- S:	Maintained
- W:	https://www.turris.cz/
- F:	Documentation/ABI/testing/debugfs-moxtet
-@@ -10946,7 +10946,7 @@ F:	include/linux/mv643xx.h
-=20
- MARVELL MV88X3310 PHY DRIVER
- M:	Russell King <linux@armlinux.org.uk>
--M:	Marek Behun <marek.behun@nic.cz>
-+M:	Marek Beh=C3=BAn <kabel@kernel.org>
- L:	netdev@vger.kernel.org
- S:	Maintained
- F:	drivers/net/phy/marvell10g.c
+--- a/.mailmap~mailmap-add-my-other-e-mail-address-and-identity-without-dia=
+critics
++++ a/.mailmap
+@@ -212,6 +212,8 @@ Manivannan Sadhasivam <mani@kernel.org>
+ Manivannan Sadhasivam <mani@kernel.org> <manivannan.sadhasivam@linaro.org>
+ Marcin Nowakowski <marcin.nowakowski@mips.com> <marcin.nowakowski@imgtec.c=
+om>
+ Marc Zyngier <maz@kernel.org> <marc.zyngier@arm.com>
++Marek Beh=C3=BAn <kabel@kernel.org> <marek.behun@nic.cz>
++Marek Beh=C3=BAn <kabel@kernel.org> Marek Behun <marek.behun@nic.cz>
+ Mark Brown <broonie@sirena.org.uk>
+ Mark Starovoytov <mstarovo@pm.me> <mstarovoitov@marvell.com>
+ Mark Yao <markyao0591@gmail.com> <mark.yao@rock-chips.com>
 _
 
 Patches currently in -mm which might be from kabel@kernel.org are
