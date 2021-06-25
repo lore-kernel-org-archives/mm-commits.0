@@ -7,38 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C9BAC49EA6
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:40:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9E78C49EA6
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:40:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 347AF613BD
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:40:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4BCD613BA
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:40:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233025AbhFYBmU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 21:42:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33034 "EHLO mail.kernel.org"
+        id S232933AbhFYBmZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 21:42:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33186 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232942AbhFYBmT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 21:42:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0039F61220;
-        Fri, 25 Jun 2021 01:39:58 +0000 (UTC)
+        id S233028AbhFYBmZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 21:42:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2A341613B9;
+        Fri, 25 Jun 2021 01:40:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624585199;
-        bh=8c8w0TGUkRuQHCjjh8touhZDdnrgaWxcNkMAqxZi29I=;
+        s=korg; t=1624585205;
+        bh=fc57rGUi4X2nQ1DLWGi2dQ1r5fKN1CBZVzhE+leYQwQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=QicPOIfMDIlfK8sNkiJ5APQGcnj8Jm1vHuhzIt/1zUka1EieFp7LNvfKPWl9UbIot
-         LJqpMDhjPwFpr2QseeAu+KQ6wFDPc2VaNbcbFm6vWDP6RuLwqdJM8E/9zWd/KQ/b20
-         KQNpd3mJGAEB4i0LrWoHfuPyKcU/nDtjZlgsFtBI=
-Date:   Thu, 24 Jun 2021 18:39:58 -0700
+        b=NVByqePAEyb8OnyNgG2jq0xVIkXqEpx64AmSFJP1dnQ0alFZZvwoPB/BYFGgYcLG9
+         n0EhY6WP4uI0Xlr7vzgyW6++RfbDQ/qRYkqhf594HPVHV1WzCmw1aDWAQ0wW0OF+5o
+         78lgmAdh2DMSQEYmjyYh7P9SQ1dR8h+RK1oDtkIs=
+Date:   Thu, 24 Jun 2021 18:40:04 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bp@alien8.de, bp@suse.de,
-        david@redhat.com, juew@google.com, linux-mm@kvack.org,
-        luto@kernel.org, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, osalvador@suse.de, stable@vger.kernel.org,
-        tony.luck@intel.com, torvalds@linux-foundation.org,
-        yaoaili@kingsoft.com
-Subject:  [patch 19/24] mm,hwpoison: return -EHWPOISON to denote
- that the page has already been poisoned
-Message-ID: <20210625013958.xJoXf1EqN%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        linux@rasmusvillemoes.dk, mgorman@techsingularity.net,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 21/24] mm/page_alloc: __alloc_pages_bulk(): do
+ bounds check before accessing array
+Message-ID: <20210625014004.eP5GNGyvo%akpm@linux-foundation.org>
 In-Reply-To: <20210624183838.ac3161ca4a43989665ac8b2f@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,71 +43,38 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Aili Yao <yaoaili@kingsoft.com>
-Subject: mm,hwpoison: return -EHWPOISON to denote that the page has already been poisoned
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: mm/page_alloc: __alloc_pages_bulk(): do bounds check before accessing array
 
-When memory_failure() is called with MF_ACTION_REQUIRED on the page that
-has already been hwpoisoned, memory_failure() could fail to send SIGBUS to
-the affected process, which results in infinite loop of MCEs.
+In the event that somebody would call this with an already fully populated
+page_array, the last loop iteration would do an access beyond the end of
+page_array.
 
-Currently memory_failure() returns 0 if it's called for already hwpoisoned
-page, then the caller, kill_me_maybe(), could return without sending
-SIGBUS to current process.  An action required MCE is raised when the
-current process accesses to the broken memory, so no SIGBUS means that the
-current process continues to run and access to the error page again soon,
-so running into MCE loop.
+It's of course extremely unlikely that would ever be done, but this
+triggers my internal static analyzer.  Also, if it really is not supposed
+to be invoked this way (i.e., with no NULL entries in page_array), the
+nr_populated<nr_pages check could simply be removed instead.
 
-This issue can arise for example in the following scenarios:
-
-- Two or more threads access to the poisoned page concurrently.  If
-  local MCE is enabled, MCE handler independently handles the MCE events. 
-  So there's a race among MCE events, and the second or latter threads
-  fall into the situation in question.
-
-- If there was a precedent memory error event and memory_failure() for
-  the event failed to unmap the error page for some reason, the subsequent
-  memory access to the error page triggers the MCE loop situation.
-
-To fix the issue, make memory_failure() return an error code when the
-error page has already been hwpoisoned.  This allows memory error handler
-to control how it sends signals to userspace.  And make sure that any
-process touching a hwpoisoned page should get a SIGBUS even in "already
-hwpoisoned" path of memory_failure() as is done in page fault path.
-
-Link: https://lkml.kernel.org/r/20210521030156.2612074-3-nao.horiguchi@gmail.com
-Signed-off-by: Aili Yao <yaoaili@kingsoft.com>
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jue Wang <juew@google.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210507064504.1712559-1-linux@rasmusvillemoes.dk
+Fixes: 0f87d9d30f21 ("mm/page_alloc: add an array-based interface to the bulk page allocator")
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mmhwpoison-return-ehwpoison-to-denote-that-the-page-has-already-been-poisoned
-+++ a/mm/memory-failure.c
-@@ -1253,7 +1253,7 @@ static int memory_failure_hugetlb(unsign
- 	if (TestSetPageHWPoison(head)) {
- 		pr_err("Memory failure: %#lx: already hardware poisoned\n",
- 		       pfn);
--		return 0;
-+		return -EHWPOISON;
- 	}
+--- a/mm/page_alloc.c~mm-page_alloc-__alloc_pages_bulk-do-bounds-check-before-accessing-array
++++ a/mm/page_alloc.c
+@@ -5053,7 +5053,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 	 * Skip populated array elements to determine if any pages need
+ 	 * to be allocated before disabling IRQs.
+ 	 */
+-	while (page_array && page_array[nr_populated] && nr_populated < nr_pages)
++	while (page_array && nr_populated < nr_pages && page_array[nr_populated])
+ 		nr_populated++;
  
- 	num_poisoned_pages_inc();
-@@ -1461,6 +1461,7 @@ try_again:
- 	if (TestSetPageHWPoison(p)) {
- 		pr_err("Memory failure: %#lx: already hardware poisoned\n",
- 			pfn);
-+		res = -EHWPOISON;
- 		goto unlock_mutex;
- 	}
- 
+ 	/* Use the single page allocator for one page. */
 _
