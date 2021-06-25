@@ -4,41 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E8DBC49EA6
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:39:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4274C49EAF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:40:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 69FDB613BD
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:39:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F27C613B9
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:40:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233037AbhFYBmQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 21:42:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32976 "EHLO mail.kernel.org"
+        id S233014AbhFYBmW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 21:42:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33130 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232942AbhFYBmQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 21:42:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C71A9610A7;
-        Fri, 25 Jun 2021 01:39:55 +0000 (UTC)
+        id S232933AbhFYBmW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 21:42:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 24928610A7;
+        Fri, 25 Jun 2021 01:40:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624585196;
-        bh=6fkel34X+r3cYhGIPOjZI7eSlV9X/QHEPVs+9zgJ7VU=;
+        s=korg; t=1624585202;
+        bh=nXqVb0XzfhjU+oyvbBOYczjm7GzgSZMNKuEYBbNNHrY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=rf/ZOKKbewboIpa7i7AcpVMQVbQxWFFOStmsGacUL3KCmlg139h2AqCu8QIppTGlY
-         GXtPJrQWOPYRvo6ogU4wR1IAXezwe+IOVsP2Fig6S147RSoajpWXI8Rfs8ovc9sjX9
-         essyxz9jpSWb/yTE6R1FUYDV8BRjQbpCjYnNMnIs=
-Date:   Thu, 24 Jun 2021 18:39:55 -0700
+        b=cAgwamnp3TTTPFDFQ3paH0uiab7nN18Jw+47VCDZYcaa440cnS1CKqUuPNrQQNpPS
+         0RRle8nUrmNLAZz/FzB2PiTD/PiS++c+EEOOovxLcnKzaOW0uxIm4/auvOX9UTlCKn
+         /jS2wLptJyaR9O7Tyfs8TNTk/61wRzbR85feZUg4=
+Date:   Thu, 24 Jun 2021 18:40:01 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bp@alien8.de, bp@suse.de,
-        david@redhat.com, juew@google.com, linux-mm@kvack.org,
-        luto@kernel.org, mm-commits@vger.kernel.org,
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com,
+        linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org,
         naoya.horiguchi@nec.com, osalvador@suse.de, stable@vger.kernel.org,
-        tony.luck@intel.com, torvalds@linux-foundation.org,
-        yaoaili@kingsoft.com
-Subject:  [patch 18/24] mm/memory-failure: use a mutex to avoid
- memory_failure() races
-Message-ID: <20210625013955.Ag67YQBoO%akpm@linux-foundation.org>
+        tony.luck@intel.com, torvalds@linux-foundation.org
+Subject:  [patch 20/24] mm/hwpoison: do not lock page again when
+ me_huge_page() successfully recovers
+Message-ID: <20210625014001.5BhWymxNg%akpm@linux-foundation.org>
 In-Reply-To: <20210624183838.ac3161ca4a43989665ac8b2f@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,162 +44,182 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Tony Luck <tony.luck@intel.com>
-Subject: mm/memory-failure: use a mutex to avoid memory_failure() races
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm/hwpoison: do not lock page again when me_huge_page() successfully recovers
 
-Patch series "mm,hwpoison: fix sending SIGBUS for Action Required MCE", v5.
+Currently me_huge_page() temporary unlocks page to perform some actions
+then locks it again later.  My testcase (which calls hard-offline on some
+tail page in a hugetlb, then accesses the address of the hugetlb range)
+showed that page allocation code detects this page lock on buddy page and
+printed out "BUG: Bad page state" message.
 
-I wrote this patchset to materialize what I think is the current allowable
-solution mentioned by the previous discussion [1].  I simply borrowed
-Tony's mutex patch and Aili's return code patch, then I queued another one
-to find error virtual address in the best effort manner.  I know that this
-is not a perfect solution, but should work for some typical case.
+check_new_page_bad() does not consider a page with __PG_HWPOISON as bad
+page, so this flag works as kind of filter, but this filtering doesn't
+work in this case because the "bad page" is not the actual hwpoisoned
+page.  So stop locking page again.  Actions to be taken depend on the page
+type of the error, so page unlocking should be done in ->action()
+callbacks.  So let's make it assumed and change all existing callbacks
+that way.
 
-[1]: https://lore.kernel.org/linux-mm/20210331192540.2141052f@alex-virtual-machine/
-
-
-This patch (of 2):
-
-There can be races when multiple CPUs consume poison from the same page. 
-The first into memory_failure() atomically sets the HWPoison page flag and
-begins hunting for tasks that map this page.  Eventually it invalidates
-those mappings and may send a SIGBUS to the affected tasks.
-
-But while all that work is going on, other CPUs see a "success" return
-code from memory_failure() and so they believe the error has been handled
-and continue executing.
-
-Fix by wrapping most of the internal parts of memory_failure() in a mutex.
-
-[akpm@linux-foundation.org: make mf_mutex local to memory_failure()]
-Link: https://lkml.kernel.org/r/20210521030156.2612074-1-nao.horiguchi@gmail.com
-Link: https://lkml.kernel.org/r/20210521030156.2612074-2-nao.horiguchi@gmail.com
-Signed-off-by: Tony Luck <tony.luck@intel.com>
+Link: https://lkml.kernel.org/r/20210609072029.74645-1-nao.horiguchi@gmail.com
+Fixes: commit 78bb920344b8 ("mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error")
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Borislav Petkov <bp@suse.de>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Aili Yao <yaoaili@kingsoft.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jue Wang <juew@google.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   36 +++++++++++++++++++++++-------------
- 1 file changed, 23 insertions(+), 13 deletions(-)
+ mm/memory-failure.c |   44 ++++++++++++++++++++++++++++--------------
+ 1 file changed, 30 insertions(+), 14 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races
+--- a/mm/memory-failure.c~mm-hwpoison-do-not-lock-page-again-when-me_huge_page-successfully-recovers
 +++ a/mm/memory-failure.c
-@@ -1429,9 +1429,10 @@ int memory_failure(unsigned long pfn, in
- 	struct page *hpage;
- 	struct page *orig_head;
- 	struct dev_pagemap *pgmap;
--	int res;
-+	int res = 0;
- 	unsigned long page_flags;
- 	bool retry = true;
-+	static DEFINE_MUTEX(mf_mutex);
+@@ -658,6 +658,7 @@ static int truncate_error_page(struct pa
+  */
+ static int me_kernel(struct page *p, unsigned long pfn)
+ {
++	unlock_page(p);
+ 	return MF_IGNORED;
+ }
  
- 	if (!sysctl_memory_failure_recovery)
- 		panic("Memory failure on page %lx", pfn);
-@@ -1449,13 +1450,18 @@ int memory_failure(unsigned long pfn, in
- 		return -ENXIO;
- 	}
+@@ -667,6 +668,7 @@ static int me_kernel(struct page *p, uns
+ static int me_unknown(struct page *p, unsigned long pfn)
+ {
+ 	pr_err("Memory failure: %#lx: Unknown page state\n", pfn);
++	unlock_page(p);
+ 	return MF_FAILED;
+ }
  
-+	mutex_lock(&mf_mutex);
-+
- try_again:
--	if (PageHuge(p))
--		return memory_failure_hugetlb(pfn, flags);
-+	if (PageHuge(p)) {
-+		res = memory_failure_hugetlb(pfn, flags);
-+		goto unlock_mutex;
+@@ -675,6 +677,7 @@ static int me_unknown(struct page *p, un
+  */
+ static int me_pagecache_clean(struct page *p, unsigned long pfn)
+ {
++	int ret;
+ 	struct address_space *mapping;
+ 
+ 	delete_from_lru_cache(p);
+@@ -683,8 +686,10 @@ static int me_pagecache_clean(struct pag
+ 	 * For anonymous pages we're done the only reference left
+ 	 * should be the one m_f() holds.
+ 	 */
+-	if (PageAnon(p))
+-		return MF_RECOVERED;
++	if (PageAnon(p)) {
++		ret = MF_RECOVERED;
++		goto out;
 +	}
+ 
+ 	/*
+ 	 * Now truncate the page in the page cache. This is really
+@@ -698,7 +703,8 @@ static int me_pagecache_clean(struct pag
+ 		/*
+ 		 * Page has been teared down in the meanwhile
+ 		 */
+-		return MF_FAILED;
++		ret = MF_FAILED;
++		goto out;
+ 	}
+ 
+ 	/*
+@@ -706,7 +712,10 @@ static int me_pagecache_clean(struct pag
+ 	 *
+ 	 * Open: to take i_mutex or not for this? Right now we don't.
+ 	 */
+-	return truncate_error_page(p, pfn, mapping);
++	ret = truncate_error_page(p, pfn, mapping);
++out:
++	unlock_page(p);
++	return ret;
+ }
+ 
+ /*
+@@ -782,24 +791,26 @@ static int me_pagecache_dirty(struct pag
+  */
+ static int me_swapcache_dirty(struct page *p, unsigned long pfn)
+ {
++	int ret;
 +
- 	if (TestSetPageHWPoison(p)) {
- 		pr_err("Memory failure: %#lx: already hardware poisoned\n",
- 			pfn);
--		return 0;
-+		goto unlock_mutex;
- 	}
+ 	ClearPageDirty(p);
+ 	/* Trigger EIO in shmem: */
+ 	ClearPageUptodate(p);
  
- 	orig_head = hpage = compound_head(p);
-@@ -1488,17 +1494,19 @@ try_again:
- 				res = MF_FAILED;
- 			}
- 			action_result(pfn, MF_MSG_BUDDY, res);
--			return res == MF_RECOVERED ? 0 : -EBUSY;
-+			res = res == MF_RECOVERED ? 0 : -EBUSY;
- 		} else {
- 			action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
--			return -EBUSY;
-+			res = -EBUSY;
+-	if (!delete_from_lru_cache(p))
+-		return MF_DELAYED;
+-	else
+-		return MF_FAILED;
++	ret = delete_from_lru_cache(p) ? MF_FAILED : MF_DELAYED;
++	unlock_page(p);
++	return ret;
+ }
+ 
+ static int me_swapcache_clean(struct page *p, unsigned long pfn)
+ {
++	int ret;
++
+ 	delete_from_swap_cache(p);
+ 
+-	if (!delete_from_lru_cache(p))
+-		return MF_RECOVERED;
+-	else
+-		return MF_FAILED;
++	ret = delete_from_lru_cache(p) ? MF_FAILED : MF_RECOVERED;
++	unlock_page(p);
++	return ret;
+ }
+ 
+ /*
+@@ -820,6 +831,7 @@ static int me_huge_page(struct page *p,
+ 	mapping = page_mapping(hpage);
+ 	if (mapping) {
+ 		res = truncate_error_page(hpage, pfn, mapping);
++		unlock_page(hpage);
+ 	} else {
+ 		res = MF_FAILED;
+ 		unlock_page(hpage);
+@@ -834,7 +846,6 @@ static int me_huge_page(struct page *p,
+ 			page_ref_inc(p);
+ 			res = MF_RECOVERED;
  		}
-+		goto unlock_mutex;
+-		lock_page(hpage);
  	}
  
- 	if (PageTransHuge(hpage)) {
- 		if (try_to_split_thp_page(p, "Memory Failure") < 0) {
- 			action_result(pfn, MF_MSG_UNSPLIT_THP, MF_IGNORED);
--			return -EBUSY;
-+			res = -EBUSY;
-+			goto unlock_mutex;
- 		}
- 		VM_BUG_ON_PAGE(!page_count(p), p);
- 	}
-@@ -1522,7 +1530,7 @@ try_again:
- 	if (PageCompound(p) && compound_head(p) != orig_head) {
- 		action_result(pfn, MF_MSG_DIFFERENT_COMPOUND, MF_IGNORED);
- 		res = -EBUSY;
--		goto out;
-+		goto unlock_page;
+ 	return res;
+@@ -866,6 +877,8 @@ static struct page_state {
+ 	unsigned long mask;
+ 	unsigned long res;
+ 	enum mf_action_page_type type;
++
++	/* Callback ->action() has to unlock the relevant page inside it. */
+ 	int (*action)(struct page *p, unsigned long pfn);
+ } error_states[] = {
+ 	{ reserved,	reserved,	MF_MSG_KERNEL,	me_kernel },
+@@ -929,6 +942,7 @@ static int page_action(struct page_state
+ 	int result;
+ 	int count;
+ 
++	/* page p should be unlocked after returning from ps->action().  */
+ 	result = ps->action(p, pfn);
+ 
+ 	count = page_count(p) - 1;
+@@ -1313,7 +1327,7 @@ static int memory_failure_hugetlb(unsign
+ 		goto out;
  	}
  
- 	/*
-@@ -1542,14 +1550,14 @@ try_again:
- 		num_poisoned_pages_dec();
- 		unlock_page(p);
- 		put_page(p);
--		return 0;
-+		goto unlock_mutex;
- 	}
- 	if (hwpoison_filter(p)) {
- 		if (TestClearPageHWPoison(p))
- 			num_poisoned_pages_dec();
- 		unlock_page(p);
- 		put_page(p);
--		return 0;
-+		goto unlock_mutex;
- 	}
- 
- 	/*
-@@ -1573,7 +1581,7 @@ try_again:
- 	if (!hwpoison_user_mappings(p, pfn, flags, &p)) {
- 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 		res = -EBUSY;
--		goto out;
-+		goto unlock_page;
- 	}
- 
- 	/*
-@@ -1582,13 +1590,15 @@ try_again:
- 	if (PageLRU(p) && !PageSwapCache(p) && p->mapping == NULL) {
- 		action_result(pfn, MF_MSG_TRUNCATED_LRU, MF_IGNORED);
- 		res = -EBUSY;
--		goto out;
-+		goto unlock_page;
- 	}
+-	res = identify_page_state(pfn, p, page_flags);
++	return identify_page_state(pfn, p, page_flags);
+ out:
+ 	unlock_page(head);
+ 	return res;
+@@ -1596,6 +1610,8 @@ try_again:
  
  identify_page_state:
  	res = identify_page_state(pfn, p, page_flags);
--out:
-+unlock_page:
- 	unlock_page(p);
-+unlock_mutex:
 +	mutex_unlock(&mf_mutex);
- 	return res;
- }
- EXPORT_SYMBOL_GPL(memory_failure);
++	return res;
+ unlock_page:
+ 	unlock_page(p);
+ unlock_mutex:
 _
