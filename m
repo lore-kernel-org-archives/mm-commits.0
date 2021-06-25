@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADE5CC49EA6
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:31:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79209C49EA5
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:32:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 88673613BD
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:31:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55B7F613C0
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:32:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232933AbhFYBeO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 21:34:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56870 "EHLO mail.kernel.org"
+        id S232917AbhFYBeh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 21:34:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57074 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232917AbhFYBeO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 21:34:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5BBBA613B7;
-        Fri, 25 Jun 2021 01:31:53 +0000 (UTC)
+        id S232873AbhFYBeh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 21:34:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0E5A7613B9;
+        Fri, 25 Jun 2021 01:32:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624584713;
-        bh=84MhsbtmTnxkTjeg9DRn6IcVUGAnOS0mPUEdnpvjcGM=;
+        s=korg; t=1624584737;
+        bh=fubalHI2SJHDTs4hV1ysePjoURfryIy4Bx75RlS5Lao=;
         h=Date:From:To:Subject:From;
-        b=fUdtXylHikuzCLQBZl9YDeHQXeyf6DdwihA+HTrkgeLrEXljhIye4LVT+qPWHJIbC
-         xM6+Vd1sazIQqA7gvROEWOiYi5MOs0IRXAGPjKnM9qZorc0hiud8JSKUyWLQ4hYv4W
-         gHVENqzSLSrEjSCgJltqAj3L7QqdwvP6Mb8eL2rM=
-Date:   Thu, 24 Jun 2021 18:31:53 -0700
+        b=mZ9sFeTWo6pTUGJueRZ3GAkUe4arFCa02E0/UgFnwNYxSSPCtlfSg5DM//SFv4iWT
+         mKV25yd1gGCKtuBVGV3j3HN8GGEhUzG20lc3hPg22aCJui77MO1hOCz5GJe9UBc82x
+         4uMiRGCN73/COdAAKHKo4WD0C/0y8sXNGfFG0Ylw=
+Date:   Thu, 24 Jun 2021 18:32:16 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, dave@stgolabs.net, dvhart@infradead.org,
-        hughd@google.com, kirill.shutemov@linux.intel.com,
-        mgorman@techsingularity.net, mike.kravetz@oracle.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, neelnatu@google.com,
-        peterz@infradead.org, tglx@linutronix.de, wetpzy@gmail.com,
-        willy@infradead.org
+To:     akpm@linux-foundation.org, bp@alien8.de, bp@suse.de,
+        david@redhat.com, juew@google.com, luto@kernel.org,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, tony.luck@intel.com, yaoaili@kingsoft.com
 Subject:  [folded-merged]
- mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix.patch removed from
- -mm tree
-Message-ID: <20210625013153.5Td_MorJS%akpm@linux-foundation.org>
+ mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
+ removed from -mm tree
+Message-ID: <20210625013216.u0BdD3h4f%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,64 +46,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix
+     Subject: mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix
 has been removed from the -mm tree.  Its filename was
-     mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix.patch
+     mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
 
-This patch was dropped because it was folded into mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page.patch
+This patch was dropped because it was folded into mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix
+Subject: mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix
 
-give hugetlb_basepage_index() prototype the correct scope
+make mf_mutex local to memory_failure()
 
-Cc: Darren Hart <dvhart@infradead.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Neel Natu <neelnatu@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Zhang Yi <wetpzy@gmail.com>
+Cc: Aili Yao <yaoaili@kingsoft.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jue Wang <juew@google.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/pagemap.h~mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix
-+++ a/include/linux/pagemap.h
-@@ -535,16 +535,16 @@ static inline pgoff_t page_to_index(stru
- 	return pgoff;
+--- a/mm/memory-failure.c~mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix
++++ a/mm/memory-failure.c
+@@ -1406,8 +1406,6 @@ out:
+ 	return rc;
  }
  
-+extern pgoff_t hugetlb_basepage_index(struct page *page);
-+
- /*
-  * Get the offset in PAGE_SIZE (even for hugetlb pages).
-  * (TODO: hugetlb pages should have ->index in PAGE_SIZE)
-  */
- static inline pgoff_t page_to_pgoff(struct page *page)
- {
--	if (unlikely(PageHuge(page))) {
--		extern pgoff_t hugetlb_basepage_index(struct page *page);
-+	if (unlikely(PageHuge(page)))
- 		return hugetlb_basepage_index(page);
--	}
- 	return page_to_index(page);
- }
+-static DEFINE_MUTEX(mf_mutex);
+-
+ /**
+  * memory_failure - Handle memory failure of a page.
+  * @pfn: Page Number of the corrupted page
+@@ -1434,6 +1432,7 @@ int memory_failure(unsigned long pfn, in
+ 	int res = 0;
+ 	unsigned long page_flags;
+ 	bool retry = true;
++	static DEFINE_MUTEX(mf_mutex);
  
+ 	if (!sysctl_memory_failure_recovery)
+ 		panic("Memory failure on page %lx", pfn);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page.patch
-mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
+mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races.patch
 mm-page_alloc-fix-memory-map-initialization-for-descending-nodes-checkpatch-fixes.patch
 mm.patch
 mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
