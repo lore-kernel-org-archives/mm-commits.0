@@ -7,36 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4274C49EAF
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:40:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C9BAC49EA6
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:40:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8F27C613B9
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:40:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 347AF613BD
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:40:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233014AbhFYBmW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 21:42:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33130 "EHLO mail.kernel.org"
+        id S233025AbhFYBmU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 21:42:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33034 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232933AbhFYBmW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 21:42:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 24928610A7;
-        Fri, 25 Jun 2021 01:40:02 +0000 (UTC)
+        id S232942AbhFYBmT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 21:42:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0039F61220;
+        Fri, 25 Jun 2021 01:39:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624585202;
-        bh=nXqVb0XzfhjU+oyvbBOYczjm7GzgSZMNKuEYBbNNHrY=;
+        s=korg; t=1624585199;
+        bh=8c8w0TGUkRuQHCjjh8touhZDdnrgaWxcNkMAqxZi29I=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=cAgwamnp3TTTPFDFQ3paH0uiab7nN18Jw+47VCDZYcaa440cnS1CKqUuPNrQQNpPS
-         0RRle8nUrmNLAZz/FzB2PiTD/PiS++c+EEOOovxLcnKzaOW0uxIm4/auvOX9UTlCKn
-         /jS2wLptJyaR9O7Tyfs8TNTk/61wRzbR85feZUg4=
-Date:   Thu, 24 Jun 2021 18:40:01 -0700
+        b=QicPOIfMDIlfK8sNkiJ5APQGcnj8Jm1vHuhzIt/1zUka1EieFp7LNvfKPWl9UbIot
+         LJqpMDhjPwFpr2QseeAu+KQ6wFDPc2VaNbcbFm6vWDP6RuLwqdJM8E/9zWd/KQ/b20
+         KQNpd3mJGAEB4i0LrWoHfuPyKcU/nDtjZlgsFtBI=
+Date:   Thu, 24 Jun 2021 18:39:58 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com,
-        linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org,
+To:     akpm@linux-foundation.org, bp@alien8.de, bp@suse.de,
+        david@redhat.com, juew@google.com, linux-mm@kvack.org,
+        luto@kernel.org, mm-commits@vger.kernel.org,
         naoya.horiguchi@nec.com, osalvador@suse.de, stable@vger.kernel.org,
-        tony.luck@intel.com, torvalds@linux-foundation.org
-Subject:  [patch 20/24] mm/hwpoison: do not lock page again when
- me_huge_page() successfully recovers
-Message-ID: <20210625014001.5BhWymxNg%akpm@linux-foundation.org>
+        tony.luck@intel.com, torvalds@linux-foundation.org,
+        yaoaili@kingsoft.com
+Subject:  [patch 19/24] mm,hwpoison: return -EHWPOISON to denote
+ that the page has already been poisoned
+Message-ID: <20210625013958.xJoXf1EqN%akpm@linux-foundation.org>
 In-Reply-To: <20210624183838.ac3161ca4a43989665ac8b2f@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,182 +46,71 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/hwpoison: do not lock page again when me_huge_page() successfully recovers
+From: Aili Yao <yaoaili@kingsoft.com>
+Subject: mm,hwpoison: return -EHWPOISON to denote that the page has already been poisoned
 
-Currently me_huge_page() temporary unlocks page to perform some actions
-then locks it again later.  My testcase (which calls hard-offline on some
-tail page in a hugetlb, then accesses the address of the hugetlb range)
-showed that page allocation code detects this page lock on buddy page and
-printed out "BUG: Bad page state" message.
+When memory_failure() is called with MF_ACTION_REQUIRED on the page that
+has already been hwpoisoned, memory_failure() could fail to send SIGBUS to
+the affected process, which results in infinite loop of MCEs.
 
-check_new_page_bad() does not consider a page with __PG_HWPOISON as bad
-page, so this flag works as kind of filter, but this filtering doesn't
-work in this case because the "bad page" is not the actual hwpoisoned
-page.  So stop locking page again.  Actions to be taken depend on the page
-type of the error, so page unlocking should be done in ->action()
-callbacks.  So let's make it assumed and change all existing callbacks
-that way.
+Currently memory_failure() returns 0 if it's called for already hwpoisoned
+page, then the caller, kill_me_maybe(), could return without sending
+SIGBUS to current process.  An action required MCE is raised when the
+current process accesses to the broken memory, so no SIGBUS means that the
+current process continues to run and access to the error page again soon,
+so running into MCE loop.
 
-Link: https://lkml.kernel.org/r/20210609072029.74645-1-nao.horiguchi@gmail.com
-Fixes: commit 78bb920344b8 ("mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error")
+This issue can arise for example in the following scenarios:
+
+- Two or more threads access to the poisoned page concurrently.  If
+  local MCE is enabled, MCE handler independently handles the MCE events. 
+  So there's a race among MCE events, and the second or latter threads
+  fall into the situation in question.
+
+- If there was a precedent memory error event and memory_failure() for
+  the event failed to unmap the error page for some reason, the subsequent
+  memory access to the error page triggers the MCE loop situation.
+
+To fix the issue, make memory_failure() return an error code when the
+error page has already been hwpoisoned.  This allows memory error handler
+to control how it sends signals to userspace.  And make sure that any
+process touching a hwpoisoned page should get a SIGBUS even in "already
+hwpoisoned" path of memory_failure() as is done in page fault path.
+
+Link: https://lkml.kernel.org/r/20210521030156.2612074-3-nao.horiguchi@gmail.com
+Signed-off-by: Aili Yao <yaoaili@kingsoft.com>
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jue Wang <juew@google.com>
 Cc: Tony Luck <tony.luck@intel.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   44 ++++++++++++++++++++++++++++--------------
- 1 file changed, 30 insertions(+), 14 deletions(-)
+ mm/memory-failure.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-do-not-lock-page-again-when-me_huge_page-successfully-recovers
+--- a/mm/memory-failure.c~mmhwpoison-return-ehwpoison-to-denote-that-the-page-has-already-been-poisoned
 +++ a/mm/memory-failure.c
-@@ -658,6 +658,7 @@ static int truncate_error_page(struct pa
-  */
- static int me_kernel(struct page *p, unsigned long pfn)
- {
-+	unlock_page(p);
- 	return MF_IGNORED;
- }
- 
-@@ -667,6 +668,7 @@ static int me_kernel(struct page *p, uns
- static int me_unknown(struct page *p, unsigned long pfn)
- {
- 	pr_err("Memory failure: %#lx: Unknown page state\n", pfn);
-+	unlock_page(p);
- 	return MF_FAILED;
- }
- 
-@@ -675,6 +677,7 @@ static int me_unknown(struct page *p, un
-  */
- static int me_pagecache_clean(struct page *p, unsigned long pfn)
- {
-+	int ret;
- 	struct address_space *mapping;
- 
- 	delete_from_lru_cache(p);
-@@ -683,8 +686,10 @@ static int me_pagecache_clean(struct pag
- 	 * For anonymous pages we're done the only reference left
- 	 * should be the one m_f() holds.
- 	 */
--	if (PageAnon(p))
--		return MF_RECOVERED;
-+	if (PageAnon(p)) {
-+		ret = MF_RECOVERED;
-+		goto out;
-+	}
- 
- 	/*
- 	 * Now truncate the page in the page cache. This is really
-@@ -698,7 +703,8 @@ static int me_pagecache_clean(struct pag
- 		/*
- 		 * Page has been teared down in the meanwhile
- 		 */
--		return MF_FAILED;
-+		ret = MF_FAILED;
-+		goto out;
+@@ -1253,7 +1253,7 @@ static int memory_failure_hugetlb(unsign
+ 	if (TestSetPageHWPoison(head)) {
+ 		pr_err("Memory failure: %#lx: already hardware poisoned\n",
+ 		       pfn);
+-		return 0;
++		return -EHWPOISON;
  	}
  
- 	/*
-@@ -706,7 +712,10 @@ static int me_pagecache_clean(struct pag
- 	 *
- 	 * Open: to take i_mutex or not for this? Right now we don't.
- 	 */
--	return truncate_error_page(p, pfn, mapping);
-+	ret = truncate_error_page(p, pfn, mapping);
-+out:
-+	unlock_page(p);
-+	return ret;
- }
- 
- /*
-@@ -782,24 +791,26 @@ static int me_pagecache_dirty(struct pag
-  */
- static int me_swapcache_dirty(struct page *p, unsigned long pfn)
- {
-+	int ret;
-+
- 	ClearPageDirty(p);
- 	/* Trigger EIO in shmem: */
- 	ClearPageUptodate(p);
- 
--	if (!delete_from_lru_cache(p))
--		return MF_DELAYED;
--	else
--		return MF_FAILED;
-+	ret = delete_from_lru_cache(p) ? MF_FAILED : MF_DELAYED;
-+	unlock_page(p);
-+	return ret;
- }
- 
- static int me_swapcache_clean(struct page *p, unsigned long pfn)
- {
-+	int ret;
-+
- 	delete_from_swap_cache(p);
- 
--	if (!delete_from_lru_cache(p))
--		return MF_RECOVERED;
--	else
--		return MF_FAILED;
-+	ret = delete_from_lru_cache(p) ? MF_FAILED : MF_RECOVERED;
-+	unlock_page(p);
-+	return ret;
- }
- 
- /*
-@@ -820,6 +831,7 @@ static int me_huge_page(struct page *p,
- 	mapping = page_mapping(hpage);
- 	if (mapping) {
- 		res = truncate_error_page(hpage, pfn, mapping);
-+		unlock_page(hpage);
- 	} else {
- 		res = MF_FAILED;
- 		unlock_page(hpage);
-@@ -834,7 +846,6 @@ static int me_huge_page(struct page *p,
- 			page_ref_inc(p);
- 			res = MF_RECOVERED;
- 		}
--		lock_page(hpage);
+ 	num_poisoned_pages_inc();
+@@ -1461,6 +1461,7 @@ try_again:
+ 	if (TestSetPageHWPoison(p)) {
+ 		pr_err("Memory failure: %#lx: already hardware poisoned\n",
+ 			pfn);
++		res = -EHWPOISON;
+ 		goto unlock_mutex;
  	}
  
- 	return res;
-@@ -866,6 +877,8 @@ static struct page_state {
- 	unsigned long mask;
- 	unsigned long res;
- 	enum mf_action_page_type type;
-+
-+	/* Callback ->action() has to unlock the relevant page inside it. */
- 	int (*action)(struct page *p, unsigned long pfn);
- } error_states[] = {
- 	{ reserved,	reserved,	MF_MSG_KERNEL,	me_kernel },
-@@ -929,6 +942,7 @@ static int page_action(struct page_state
- 	int result;
- 	int count;
- 
-+	/* page p should be unlocked after returning from ps->action().  */
- 	result = ps->action(p, pfn);
- 
- 	count = page_count(p) - 1;
-@@ -1313,7 +1327,7 @@ static int memory_failure_hugetlb(unsign
- 		goto out;
- 	}
- 
--	res = identify_page_state(pfn, p, page_flags);
-+	return identify_page_state(pfn, p, page_flags);
- out:
- 	unlock_page(head);
- 	return res;
-@@ -1596,6 +1610,8 @@ try_again:
- 
- identify_page_state:
- 	res = identify_page_state(pfn, p, page_flags);
-+	mutex_unlock(&mf_mutex);
-+	return res;
- unlock_page:
- 	unlock_page(p);
- unlock_mutex:
 _
