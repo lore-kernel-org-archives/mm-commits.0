@@ -4,38 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ADB9C49EA7
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:39:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86004C49EA6
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:39:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 62185613BA
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:39:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 74FDB6044F
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:39:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233032AbhFYBmD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 21:42:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60948 "EHLO mail.kernel.org"
+        id S232973AbhFYBmH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 21:42:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60996 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232973AbhFYBmC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 21:42:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D0B5A6044F;
-        Fri, 25 Jun 2021 01:39:42 +0000 (UTC)
+        id S232942AbhFYBmH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 21:42:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E69B6610A7;
+        Fri, 25 Jun 2021 01:39:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624585183;
-        bh=O9IPnCMik4BbwEbYe8yqWLQN9u8icGvVJy6v+ilWKpo=;
+        s=korg; t=1624585186;
+        bh=8aA8l0gUvl7gKVc+xnD7wWRrAJB4Gfj9ScpG9tt1Ikk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=oZwIGvtElbf3sQAXb5+KhH8cSQUsn1Qkc6wX+3KbTqbWc/ksLGkE/Usy+9/bhQV5P
-         BVABW5khb1bNQO0ec3XGGMpbS8nwl8QQQOKbtP3uU34lMWeMsstWFstk/zyjpLAZiU
-         7fLZc8OicpCqTEbraytlvG+fGVcapwHzseBEYAb4=
-Date:   Thu, 24 Jun 2021 18:39:42 -0700
+        b=et+frLiJ9+f0WRKF0I6mkc5u6tojPbOzXj6Z7Oy1u3NfZSfGIKTczShOr66XwLUEi
+         XU29UABB99WEWSX7WPhsxnYUic45VjvQAhZGTSDCyEp7cfXbAB/hj+86S4sYnRzo5l
+         SU4MnduFiEmQe73GC+//UQvuOP6jYL1PpDSIml3E=
+Date:   Thu, 24 Jun 2021 18:39:45 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
-        davidgow@google.com, dja@axtens.net, dvyukov@google.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, npiggin@gmail.com,
-        torvalds@linux-foundation.org, urezki@gmail.com
-Subject:  [patch 14/24] mm/vmalloc: unbreak kasan vmalloc support
-Message-ID: <20210625013942.NGXIQD4iY%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, jenhaochen@google.com,
+        linux-mm@kvack.org, liumartin@google.com, minchan@google.com,
+        mm-commits@vger.kernel.org, nathan@kernel.org,
+        ndesaulniers@google.com, oleg@redhat.com, pmladek@suse.com,
+        stable@vger.kernel.org, tj@kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 15/24] kthread_worker: split code for canceling
+ the delayed work timer
+Message-ID: <20210625013945.Wgs7ttT2t%akpm@linux-foundation.org>
 In-Reply-To: <20210624183838.ac3161ca4a43989665ac8b2f@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,113 +46,99 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Daniel Axtens <dja@axtens.net>
-Subject: mm/vmalloc: unbreak kasan vmalloc support
+From: Petr Mladek <pmladek@suse.com>
+Subject: kthread_worker: split code for canceling the delayed work timer
 
-In commit 121e6f3258fe ("mm/vmalloc: hugepage vmalloc mappings"),
-__vmalloc_node_range was changed such that __get_vm_area_node was no
-longer called with the requested/real size of the vmalloc allocation, but
-rather with a rounded-up size.
+Patch series "kthread_worker: Fix race between kthread_mod_delayed_work()
+and kthread_cancel_delayed_work_sync()".
 
-This means that __get_vm_area_node called kasan_unpoision_vmalloc() with a
-rounded up size rather than the real size.  This led to it allowing access
-to too much memory and so missing vmalloc OOBs and failing the kasan kunit
-tests.
+This patchset fixes the race between kthread_mod_delayed_work() and
+kthread_cancel_delayed_work_sync() including proper return value handling.
 
-Pass the real size and the desired shift into __get_vm_area_node.  This
-allows it to round up the size for the underlying allocators while still
-unpoisioning the correct quantity of shadow memory.
 
-Adjust the other call-sites to pass in PAGE_SHIFT for the shift value.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20210617081330.98629-1-dja@axtens.net
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=213335
-Fixes: 121e6f3258fe ("mm/vmalloc: hugepage vmalloc mappings")
-Signed-off-by: Daniel Axtens <dja@axtens.net>
-Tested-by: David Gow <davidgow@google.com>
-Reviewed-by: Nicholas Piggin <npiggin@gmail.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Tested-by: Andrey Konovalov <andreyknvl@gmail.com>
-Acked-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Simple code refactoring as a preparation step for fixing a race between
+kthread_mod_delayed_work() and kthread_cancel_delayed_work_sync().
+
+It does not modify the existing behavior.
+
+Link: https://lkml.kernel.org/r/20210610133051.15337-2-pmladek@suse.com
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Cc: <jenhaochen@google.com>
+Cc: Martin Liu <liumartin@google.com>
+Cc: Minchan Kim <minchan@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ kernel/kthread.c |   46 ++++++++++++++++++++++++++++-----------------
+ 1 file changed, 29 insertions(+), 17 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-unbreak-kasan-vmalloc-support
-+++ a/mm/vmalloc.c
-@@ -2344,15 +2344,16 @@ static void clear_vm_uninitialized_flag(
- }
+--- a/kernel/kthread.c~kthread_worker-split-code-for-canceling-the-delayed-work-timer
++++ a/kernel/kthread.c
+@@ -1093,6 +1093,33 @@ void kthread_flush_work(struct kthread_w
+ EXPORT_SYMBOL_GPL(kthread_flush_work);
  
- static struct vm_struct *__get_vm_area_node(unsigned long size,
--		unsigned long align, unsigned long flags, unsigned long start,
--		unsigned long end, int node, gfp_t gfp_mask, const void *caller)
-+		unsigned long align, unsigned long shift, unsigned long flags,
-+		unsigned long start, unsigned long end, int node,
-+		gfp_t gfp_mask, const void *caller)
+ /*
++ * Make sure that the timer is neither set nor running and could
++ * not manipulate the work list_head any longer.
++ *
++ * The function is called under worker->lock. The lock is temporary
++ * released but the timer can't be set again in the meantime.
++ */
++static void kthread_cancel_delayed_work_timer(struct kthread_work *work,
++					      unsigned long *flags)
++{
++	struct kthread_delayed_work *dwork =
++		container_of(work, struct kthread_delayed_work, work);
++	struct kthread_worker *worker = work->worker;
++
++	/*
++	 * del_timer_sync() must be called to make sure that the timer
++	 * callback is not running. The lock must be temporary released
++	 * to avoid a deadlock with the callback. In the meantime,
++	 * any queuing is blocked by setting the canceling counter.
++	 */
++	work->canceling++;
++	raw_spin_unlock_irqrestore(&worker->lock, *flags);
++	del_timer_sync(&dwork->timer);
++	raw_spin_lock_irqsave(&worker->lock, *flags);
++	work->canceling--;
++}
++
++/*
+  * This function removes the work from the worker queue. Also it makes sure
+  * that it won't get queued later via the delayed work's timer.
+  *
+@@ -1106,23 +1133,8 @@ static bool __kthread_cancel_work(struct
+ 				  unsigned long *flags)
  {
- 	struct vmap_area *va;
- 	struct vm_struct *area;
- 	unsigned long requested_size = size;
+ 	/* Try to cancel the timer if exists. */
+-	if (is_dwork) {
+-		struct kthread_delayed_work *dwork =
+-			container_of(work, struct kthread_delayed_work, work);
+-		struct kthread_worker *worker = work->worker;
+-
+-		/*
+-		 * del_timer_sync() must be called to make sure that the timer
+-		 * callback is not running. The lock must be temporary released
+-		 * to avoid a deadlock with the callback. In the meantime,
+-		 * any queuing is blocked by setting the canceling counter.
+-		 */
+-		work->canceling++;
+-		raw_spin_unlock_irqrestore(&worker->lock, *flags);
+-		del_timer_sync(&dwork->timer);
+-		raw_spin_lock_irqsave(&worker->lock, *flags);
+-		work->canceling--;
+-	}
++	if (is_dwork)
++		kthread_cancel_delayed_work_timer(work, flags);
  
- 	BUG_ON(in_interrupt());
--	size = PAGE_ALIGN(size);
-+	size = ALIGN(size, 1ul << shift);
- 	if (unlikely(!size))
- 		return NULL;
- 
-@@ -2384,8 +2385,8 @@ struct vm_struct *__get_vm_area_caller(u
- 				       unsigned long start, unsigned long end,
- 				       const void *caller)
- {
--	return __get_vm_area_node(size, 1, flags, start, end, NUMA_NO_NODE,
--				  GFP_KERNEL, caller);
-+	return __get_vm_area_node(size, 1, PAGE_SHIFT, flags, start, end,
-+				  NUMA_NO_NODE, GFP_KERNEL, caller);
- }
- 
- /**
-@@ -2401,7 +2402,8 @@ struct vm_struct *__get_vm_area_caller(u
-  */
- struct vm_struct *get_vm_area(unsigned long size, unsigned long flags)
- {
--	return __get_vm_area_node(size, 1, flags, VMALLOC_START, VMALLOC_END,
-+	return __get_vm_area_node(size, 1, PAGE_SHIFT, flags,
-+				  VMALLOC_START, VMALLOC_END,
- 				  NUMA_NO_NODE, GFP_KERNEL,
- 				  __builtin_return_address(0));
- }
-@@ -2409,7 +2411,8 @@ struct vm_struct *get_vm_area(unsigned l
- struct vm_struct *get_vm_area_caller(unsigned long size, unsigned long flags,
- 				const void *caller)
- {
--	return __get_vm_area_node(size, 1, flags, VMALLOC_START, VMALLOC_END,
-+	return __get_vm_area_node(size, 1, PAGE_SHIFT, flags,
-+				  VMALLOC_START, VMALLOC_END,
- 				  NUMA_NO_NODE, GFP_KERNEL, caller);
- }
- 
-@@ -2902,9 +2905,9 @@ void *__vmalloc_node_range(unsigned long
- 	}
- 
- again:
--	size = PAGE_ALIGN(size);
--	area = __get_vm_area_node(size, align, VM_ALLOC | VM_UNINITIALIZED |
--				vm_flags, start, end, node, gfp_mask, caller);
-+	area = __get_vm_area_node(real_size, align, shift, VM_ALLOC |
-+				  VM_UNINITIALIZED | vm_flags, start, end, node,
-+				  gfp_mask, caller);
- 	if (!area) {
- 		warn_alloc(gfp_mask, NULL,
- 			   "vmalloc size %lu allocation failure: "
-@@ -2923,6 +2926,7 @@ again:
- 	 */
- 	clear_vm_uninitialized_flag(area);
- 
-+	size = PAGE_ALIGN(size);
- 	kmemleak_vmalloc(area, size, gfp_mask);
- 
- 	return addr;
+ 	/*
+ 	 * Try to remove the work from a worker list. It might either
 _
