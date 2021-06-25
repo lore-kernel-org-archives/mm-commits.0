@@ -4,41 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FA55C49EA7
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:39:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77F11C49EAB
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:39:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2C2F0610A7
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:39:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 63B25613C1
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:39:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233028AbhFYBlx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 21:41:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60688 "EHLO mail.kernel.org"
+        id S232993AbhFYBlz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 21:41:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60736 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232973AbhFYBlv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 21:41:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 74235610A7;
-        Fri, 25 Jun 2021 01:39:30 +0000 (UTC)
+        id S232973AbhFYBly (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 21:41:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8AE7D6044F;
+        Fri, 25 Jun 2021 01:39:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624585170;
-        bh=/GefFZigdsm2FtIHaSvFs3pKxmOWfTVavc1bwNdWQCE=;
+        s=korg; t=1624585173;
+        bh=Rl3INkCWLXQUZ+pg4mwfU0Rz3o+ozGzkbWJMmLIpk1A=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=j1XKhgy78aHkVkJeNV1zNhB6H7sjECYHuiXakAKeHLSfO32ObeDJxYFLx/AErSsG3
-         WsJz3Xi0oo3SCpVrNz0CpinVe9wGkhw0UTHrtlWf/LjM2o/WiFMR0mI4Cq3FAdng3I
-         rY6GvIZI7LQwcO0mX5hV5c5EKPhF+oaNYdvrwpag=
-Date:   Thu, 24 Jun 2021 18:39:30 -0700
+        b=gJvkjtUf27BQxW50JGOvzv91hHLghsv1nOo6OQxlp5Q4aaNOufZuLa2RjFvrkwihy
+         txV8l7ARgaDLsSMFeMzzGUUrWLqSXkrE+QOHdAXz4lu7zhnSKCeoUJjzoxfZbDyMhh
+         hPcKUB0ctMqurm6OmHyMiwkrRcHr72hJNmhQo26M=
+Date:   Thu, 24 Jun 2021 18:39:33 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, apopple@nvidia.com, hughd@google.com,
-        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, peterx@redhat.com,
-        rcampbell@nvidia.com, shy828301@gmail.com, stable@vger.kernel.org,
-        torvalds@linux-foundation.org, wangyugui@e16-tech.com,
-        will@kernel.org, willy@infradead.org, ziy@nvidia.com
-Subject:  [patch 10/24] mm/thp: another PVMW_SYNC fix in
- page_vma_mapped_walk()
-Message-ID: <20210625013930.b8M_U9WL0%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, konishi.ryusuke@gmail.com,
+        linux-mm@kvack.org, mlsemon35@gmail.com,
+        mm-commits@vger.kernel.org, paskripkin@gmail.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 11/24] nilfs2: fix memory leak in
+ nilfs_sysfs_delete_device_group
+Message-ID: <20210625013933.6EAm6MayP%akpm@linux-foundation.org>
 In-Reply-To: <20210624183838.ac3161ca4a43989665ac8b2f@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,45 +44,51 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/thp: another PVMW_SYNC fix in page_vma_mapped_walk()
+From: Pavel Skripkin <paskripkin@gmail.com>
+Subject: nilfs2: fix memory leak in nilfs_sysfs_delete_device_group
 
-Aha!  Shouldn't that quick scan over pte_none()s make sure that it holds
-ptlock in the PVMW_SYNC case?  That too might have been responsible for
-BUGs or WARNs in split_huge_page_to_list() or its unmap_page(), though
-I've never seen any.
+My local syzbot instance hit memory leak in nilfs2.  The problem was in
+missing kobject_put() in nilfs_sysfs_delete_device_group().
 
-Link: https://lkml.kernel.org/r/1bdf384c-8137-a149-2a1e-475a4791c3c@google.com
-Link: https://lore.kernel.org/linux-mm/20210412180659.B9E3.409509F4@e16-tech.com/
-Fixes: ace71a19cec5 ("mm: introduce page_vma_mapped_walk()")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Tested-by: Wang Yugui <wangyugui@e16-tech.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+kobject_del() does not call kobject_cleanup() for passed kobject and it
+leads to leaking duped kobject name if kobject_put() was not called.
+
+Fail log:
+
+BUG: memory leak
+unreferenced object 0xffff8880596171e0 (size 8):
+  comm "syz-executor379", pid 8381, jiffies 4294980258 (age 21.100s)
+  hex dump (first 8 bytes):
+    6c 6f 6f 70 30 00 00 00                          loop0...
+  backtrace:
+    [<ffffffff81a2c656>] kstrdup+0x36/0x70 mm/util.c:60
+    [<ffffffff81a2c6e3>] kstrdup_const+0x53/0x80 mm/util.c:83
+    [<ffffffff83ccc698>] kvasprintf_const+0x108/0x190 lib/kasprintf.c:48
+    [<ffffffff83e99926>] kobject_set_name_vargs+0x56/0x150 lib/kobject.c:289
+    [<ffffffff83e99fd9>] kobject_add_varg lib/kobject.c:384 [inline]
+    [<ffffffff83e99fd9>] kobject_init_and_add+0xc9/0x160 lib/kobject.c:473
+    [<ffffffff8304e840>] nilfs_sysfs_create_device_group+0x150/0x800 fs/nilfs2/sysfs.c:999
+    [<ffffffff830159f6>] init_nilfs+0xe26/0x12b0 fs/nilfs2/the_nilfs.c:637
+
+Link: https://lkml.kernel.org/r/20210612140559.20022-1-paskripkin@gmail.com
+Fixes: da7141fb78db ("nilfs2: add /sys/fs/nilfs2/<device> group")
+Signed-off-by: Pavel Skripkin <paskripkin@gmail.com>
+Acked-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: Michael L. Semon <mlsemon35@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/nilfs2/sysfs.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/page_vma_mapped.c~mm-thp-another-pvmw_sync-fix-in-page_vma_mapped_walk
-+++ a/mm/page_vma_mapped.c
-@@ -276,6 +276,10 @@ next_pte:
- 				goto restart;
- 			}
- 			pvmw->pte++;
-+			if ((pvmw->flags & PVMW_SYNC) && !pvmw->ptl) {
-+				pvmw->ptl = pte_lockptr(mm, pvmw->pmd);
-+				spin_lock(pvmw->ptl);
-+			}
- 		} while (pte_none(*pvmw->pte));
+--- a/fs/nilfs2/sysfs.c~nilfs2-fix-memory-leak-in-nilfs_sysfs_delete_device_group
++++ a/fs/nilfs2/sysfs.c
+@@ -1053,6 +1053,7 @@ void nilfs_sysfs_delete_device_group(str
+ 	nilfs_sysfs_delete_superblock_group(nilfs);
+ 	nilfs_sysfs_delete_segctor_group(nilfs);
+ 	kobject_del(&nilfs->ns_dev_kobj);
++	kobject_put(&nilfs->ns_dev_kobj);
+ 	kfree(nilfs->ns_dev_subgroups);
+ }
  
- 		if (!pvmw->ptl) {
 _
