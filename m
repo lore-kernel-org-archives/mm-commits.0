@@ -2,129 +2,155 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79209C49EA5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:32:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A1F9C49EA6
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:38:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 55B7F613C0
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:32:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5ECEE613B9
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:38:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232917AbhFYBeh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 21:34:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57074 "EHLO mail.kernel.org"
+        id S232933AbhFYBlA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 21:41:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59760 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232873AbhFYBeh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 21:34:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0E5A7613B9;
-        Fri, 25 Jun 2021 01:32:17 +0000 (UTC)
+        id S232917AbhFYBlA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 21:41:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7EECB61220;
+        Fri, 25 Jun 2021 01:38:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624584737;
-        bh=fubalHI2SJHDTs4hV1ysePjoURfryIy4Bx75RlS5Lao=;
-        h=Date:From:To:Subject:From;
-        b=mZ9sFeTWo6pTUGJueRZ3GAkUe4arFCa02E0/UgFnwNYxSSPCtlfSg5DM//SFv4iWT
-         mKV25yd1gGCKtuBVGV3j3HN8GGEhUzG20lc3hPg22aCJui77MO1hOCz5GJe9UBc82x
-         4uMiRGCN73/COdAAKHKo4WD0C/0y8sXNGfFG0Ylw=
-Date:   Thu, 24 Jun 2021 18:32:16 -0700
-From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, bp@alien8.de, bp@suse.de,
-        david@redhat.com, juew@google.com, luto@kernel.org,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, tony.luck@intel.com, yaoaili@kingsoft.com
-Subject:  [folded-merged]
- mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
- removed from -mm tree
-Message-ID: <20210625013216.u0BdD3h4f%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        s=korg; t=1624585119;
+        bh=fxwcqpwFNTl+xgFqPGvtlKulyFM/aLlc36bzjyNK3mc=;
+        h=Date:From:To:Cc:Subject:From;
+        b=zV88aU1uhcgcS749b2QjnNrUePy1GYWgRzMFPfCddl8WxM0dDYbDaxtODRRW6s6Nr
+         to3o9FhOsQFluQKHUfN+0X7tXi516ncQYthh7Iys33JeP4MKF5sAzkqYeMAjdx6rjj
+         3fArrTPh7GjiCbItLJTHztyc/InwPqe03ETnHVfk=
+Date:   Thu, 24 Jun 2021 18:38:38 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
+Subject: incoming
+Message-Id: <20210624183838.ac3161ca4a43989665ac8b2f@linux-foundation.org>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+24 patches, based on 4a09d388f2ab382f217a764e6a152b3f614246f6.
 
-The patch titled
-     Subject: mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix
-has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
+Subsystems affected by this patch series:
 
-This patch was dropped because it was folded into mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races.patch
+  mm/thp
+  nilfs2
+  mm/vmalloc
+  kthread
+  mm/hugetlb
+  mm/memory-failure
+  mm/pagealloc
+  MAINTAINERS
+  mailmap
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix
+Subsystem: mm/thp
 
-make mf_mutex local to memory_failure()
+    Hugh Dickins <hughd@google.com>:
+    Patch series "mm: page_vma_mapped_walk() cleanup and THP fixes":
+      mm: page_vma_mapped_walk(): use page for pvmw->page
+      mm: page_vma_mapped_walk(): settle PageHuge on entry
+      mm: page_vma_mapped_walk(): use pmde for *pvmw->pmd
+      mm: page_vma_mapped_walk(): prettify PVMW_MIGRATION block
+      mm: page_vma_mapped_walk(): crossing page table boundary
+      mm: page_vma_mapped_walk(): add a level of indentation
+      mm: page_vma_mapped_walk(): use goto instead of while (1)
+      mm: page_vma_mapped_walk(): get vma_address_end() earlier
+      mm/thp: fix page_vma_mapped_walk() if THP mapped by ptes
+      mm/thp: another PVMW_SYNC fix in page_vma_mapped_walk()
 
-Cc: Aili Yao <yaoaili@kingsoft.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jue Wang <juew@google.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Subsystem: nilfs2
 
- mm/memory-failure.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+    Pavel Skripkin <paskripkin@gmail.com>:
+      nilfs2: fix memory leak in nilfs_sysfs_delete_device_group
 
---- a/mm/memory-failure.c~mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix
-+++ a/mm/memory-failure.c
-@@ -1406,8 +1406,6 @@ out:
- 	return rc;
- }
- 
--static DEFINE_MUTEX(mf_mutex);
--
- /**
-  * memory_failure - Handle memory failure of a page.
-  * @pfn: Page Number of the corrupted page
-@@ -1434,6 +1432,7 @@ int memory_failure(unsigned long pfn, in
- 	int res = 0;
- 	unsigned long page_flags;
- 	bool retry = true;
-+	static DEFINE_MUTEX(mf_mutex);
- 
- 	if (!sysctl_memory_failure_recovery)
- 		panic("Memory failure on page %lx", pfn);
-_
+Subsystem: mm/vmalloc
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+    Claudio Imbrenda <imbrenda@linux.ibm.com>:
+    Patch series "mm: add vmalloc_no_huge and use it", v4:
+      mm/vmalloc: add vmalloc_no_huge
+      KVM: s390: prepare for hugepage vmalloc
 
-mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races.patch
-mm-page_alloc-fix-memory-map-initialization-for-descending-nodes-checkpatch-fixes.patch
-mm.patch
-mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
-fs-remove-noop_set_page_dirty-fix.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-mmmemory_hotplug-drop-unneeded-locking-fix.patch
-fs-proc-kcorec-add-mmap-interface-fix.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-lib-math-rational-add-kunit-test-cases-fix.patch
-lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
-ipc-utilc-use-binary-search-for-max_idx-fix.patch
-linux-next-pre.patch
-linux-next-post.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+    Daniel Axtens <dja@axtens.net>:
+      mm/vmalloc: unbreak kasan vmalloc support
+
+Subsystem: kthread
+
+    Petr Mladek <pmladek@suse.com>:
+    Patch series "kthread_worker: Fix race between kthread_mod_delayed_work=
+():
+      kthread_worker: split code for canceling the delayed work timer
+      kthread: prevent deadlock when kthread_mod_delayed_work() races with =
+kthread_cancel_delayed_work_sync()
+
+Subsystem: mm/hugetlb
+
+    Hugh Dickins <hughd@google.com>:
+      mm, futex: fix shared futex pgoff on shmem huge page
+
+Subsystem: mm/memory-failure
+
+    Tony Luck <tony.luck@intel.com>:
+    Patch series "mm,hwpoison: fix sending SIGBUS for Action Required MCE",=
+ v5:
+      mm/memory-failure: use a mutex to avoid memory_failure() races
+
+    Aili Yao <yaoaili@kingsoft.com>:
+      mm,hwpoison: return -EHWPOISON to denote that the page has already be=
+en poisoned
+
+    Naoya Horiguchi <naoya.horiguchi@nec.com>:
+      mm/hwpoison: do not lock page again when me_huge_page() successfully =
+recovers
+
+Subsystem: mm/pagealloc
+
+    Rasmus Villemoes <linux@rasmusvillemoes.dk>:
+      mm/page_alloc: __alloc_pages_bulk(): do bounds check before accessing=
+ array
+
+    Mel Gorman <mgorman@techsingularity.net>:
+      mm/page_alloc: do bulk array bounds check after checking populated el=
+ements
+
+Subsystem: MAINTAINERS
+
+    Marek Beh=FAn <kabel@kernel.org>:
+      MAINTAINERS: fix Marek's identity again
+
+Subsystem: mailmap
+
+    Marek Beh=FAn <kabel@kernel.org>:
+      mailmap: add Marek's other e-mail address and identity without diacri=
+tics
+
+ .mailmap                |    2=20
+ MAINTAINERS             |    4=20
+ arch/s390/kvm/pv.c      |    7 +
+ fs/nilfs2/sysfs.c       |    1=20
+ include/linux/hugetlb.h |   16 ---
+ include/linux/pagemap.h |   13 +-
+ include/linux/vmalloc.h |    1=20
+ kernel/futex.c          |    3=20
+ kernel/kthread.c        |   81 ++++++++++------
+ mm/hugetlb.c            |    5 -
+ mm/memory-failure.c     |   83 +++++++++++------
+ mm/page_alloc.c         |    6 +
+ mm/page_vma_mapped.c    |  233 +++++++++++++++++++++++++++----------------=
+-----
+ mm/vmalloc.c            |   41 ++++++--
+ 14 files changed, 297 insertions(+), 199 deletions(-)
 
