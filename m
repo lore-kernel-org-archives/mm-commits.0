@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CDEEC49EA6
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 00:09:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1E50C49EA6
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 00:11:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 499E26008E
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 00:09:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ACC3A613B9
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 00:11:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232970AbhFYAMJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 20:12:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36932 "EHLO mail.kernel.org"
+        id S232663AbhFYAOB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 20:14:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38902 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233186AbhFYALd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 20:11:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 81FE66008E;
-        Fri, 25 Jun 2021 00:09:11 +0000 (UTC)
+        id S229643AbhFYAOB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 20:14:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 13F0361220;
+        Fri, 25 Jun 2021 00:11:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624579751;
-        bh=wC9nKRkL7ZyDPB6rF+tmbnIBi386vTOtSmAcxoo995w=;
+        s=korg; t=1624579900;
+        bh=3zUOXy/d+/H+H5DRTvoviimVWxXF1YkW9F49LuP+etQ=;
         h=Date:From:To:Subject:From;
-        b=mxu9L3nc+c5aWZ1m/XxtCdMHc/m1XuzPVXjYqhYu5GyRJPjozsLlk/pomm+sO2Mhu
-         frM1DRaZRCAXs4TFvbz2f8i/hTYgvn9NTOc2OLwtvwstuvscx5DLn9dkl0qCERyEYM
-         gR99/h+YBUep8e+JL8aa7s9L1lu0dllFthOiSoAw=
-Date:   Thu, 24 Jun 2021 17:09:11 -0700
+        b=CYm8gUwlIhfIs4yK3UKE/yGewieBYtX0mpa5zoXe52BUlUPbMdweIMbhwjnbzqZyo
+         W7iz3zzuZhxwY9MAusF1/r55CnD9A3zYC7z3t34NsCPn4jANEESGS4MaGIpDdlCBe7
+         DNM7j7VhaoE6RdN7Levhlg0IhNSBEW6nc5o+WXtc=
+Date:   Thu, 24 Jun 2021 17:11:39 -0700
 From:   akpm@linux-foundation.org
 To:     alexanderduyck@fb.com, anshuman.khandual@arm.com,
         catalin.marinas@arm.com, david@redhat.com, gshan@redhat.com,
         mm-commits@vger.kernel.org, mst@redhat.com, will@kernel.org
-Subject:  [to-be-updated]
- mm-page_reporting-fix-code-style-in-__page_reporting_request.patch removed
- from -mm tree
-Message-ID: <20210625000911.seIvbd0VX%akpm@linux-foundation.org>
+Subject:  +
+ mm-page_reporting-fix-code-style-in-__page_reporting_request.patch added to
+ -mm tree
+Message-ID: <20210625001139.a5Qdn6S6Q%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,16 +46,30 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm/page_reporting: fix code style in __page_reporting_request()
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-page_reporting-fix-code-style-in-__page_reporting_request.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_reporting-fix-code-style-in-__page_reporting_request.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_reporting-fix-code-style-in-__page_reporting_request.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Gavin Shan <gshan@redhat.com>
 Subject: mm/page_reporting: fix code style in __page_reporting_request()
 
-Patch series "mm/page_reporting: Make page reporting work on arm64 with 64KB page size", v3.
+Patch series "mm/page_reporting: Make page reporting work on arm64 with 64KB page size", v4.
 
 The page reporting threshold is currently equal to @pageblock_order, which
 is 13 and 512MB on arm64 with 64KB base page size selected.  The page
@@ -81,8 +95,8 @@ This patch (of 4):
 The lines of comments would be starting with one, instead two space.  This
 corrects the style.
 
-Link: https://lkml.kernel.org/r/20210623023418.350616-1-gshan@redhat.com
-Link: https://lkml.kernel.org/r/20210623023418.350616-2-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20210625014710.42954-1-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20210625014710.42954-2-gshan@redhat.com
 Signed-off-by: Gavin Shan <gshan@redhat.com>
 Reviewed-by: Alexander Duyck <alexanderduyck@fb.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -113,4 +127,8 @@ _
 
 Patches currently in -mm which might be from gshan@redhat.com are
 
+mm-page_reporting-fix-code-style-in-__page_reporting_request.patch
+mm-page_reporting-export-reporting-order-as-module-parameter.patch
+mm-page_reporting-allow-driver-to-specify-reporting-order.patch
+virtio_balloon-specify-page-reporting-order-if-needed.patch
 
