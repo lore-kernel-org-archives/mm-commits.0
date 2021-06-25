@@ -7,36 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23D2BC49EAB
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:31:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADE5CC49EA6
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:31:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 08D5A61220
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:31:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 88673613BD
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Jun 2021 01:31:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229712AbhFYBdx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Jun 2021 21:33:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56668 "EHLO mail.kernel.org"
+        id S232933AbhFYBeO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Jun 2021 21:34:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56870 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232917AbhFYBdw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Jun 2021 21:33:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D1958613B7;
-        Fri, 25 Jun 2021 01:31:30 +0000 (UTC)
+        id S232917AbhFYBeO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Jun 2021 21:34:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5BBBA613B7;
+        Fri, 25 Jun 2021 01:31:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624584691;
-        bh=8X1ncahrHLFih02xxZJA5RIXAoA4KpE7/OKB8IHwQrE=;
+        s=korg; t=1624584713;
+        bh=84MhsbtmTnxkTjeg9DRn6IcVUGAnOS0mPUEdnpvjcGM=;
         h=Date:From:To:Subject:From;
-        b=D0hQuwTNGuRriEwxi4YwHV9aHbfr86rnpOxGYs6g1Vs6CvITAOJYD97BM4oZHuYuH
-         23vaovFHJzNCy/inIPH5aWV0uJfssX8g/F5sTaPZNZqCnWX0n/JtSyBZQzaRjV+f9N
-         mkAuRe5aAAwBlILowGnlNwVpA0tBLPI4P8tvqT9M=
-Date:   Thu, 24 Jun 2021 18:31:30 -0700
+        b=fUdtXylHikuzCLQBZl9YDeHQXeyf6DdwihA+HTrkgeLrEXljhIye4LVT+qPWHJIbC
+         xM6+Vd1sazIQqA7gvROEWOiYi5MOs0IRXAGPjKnM9qZorc0hiud8JSKUyWLQ4hYv4W
+         gHVENqzSLSrEjSCgJltqAj3L7QqdwvP6Mb8eL2rM=
+Date:   Thu, 24 Jun 2021 18:31:53 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, catalin.marinas@arm.com,
-        david@redhat.com, hch@infradead.org, imbrenda@linux.ibm.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, npiggin@gmail.com,
-        rientjes@google.com, tglx@linutronix.de, urezki@gmail.com
-Subject:  [folded-merged] mm-vmalloc-add-vmalloc_no_huge-fix.patch
- removed from -mm tree
-Message-ID: <20210625013130.Y07uSTQs2%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dave@stgolabs.net, dvhart@infradead.org,
+        hughd@google.com, kirill.shutemov@linux.intel.com,
+        mgorman@techsingularity.net, mike.kravetz@oracle.com,
+        mingo@redhat.com, mm-commits@vger.kernel.org, neelnatu@google.com,
+        peterz@infradead.org, tglx@linutronix.de, wetpzy@gmail.com,
+        willy@infradead.org
+Subject:  [folded-merged]
+ mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix.patch removed from
+ -mm tree
+Message-ID: <20210625013153.5Td_MorJS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,53 +48,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmalloc-add-vmalloc_no_huge-fix
+     Subject: mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-add-vmalloc_no_huge-fix.patch
+     mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix.patch
 
-This patch was dropped because it was folded into mm-vmalloc-add-vmalloc_no_huge.patch
+This patch was dropped because it was folded into mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmalloc-add-vmalloc_no_huge-fix
+Subject: mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix
 
-whitespace fixes, per Christoph
+give hugetlb_basepage_index() prototype the correct scope
 
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Darren Hart <dvhart@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Neel Natu <neelnatu@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Zhang Yi <wetpzy@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/pagemap.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-add-vmalloc_no_huge-fix
-+++ a/mm/vmalloc.c
-@@ -3009,8 +3009,9 @@ EXPORT_SYMBOL(vmalloc);
-  */
- void *vmalloc_no_huge(unsigned long size)
- {
--	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END, GFP_KERNEL, PAGE_KERNEL,
--				    VM_NO_HUGE_VMAP, NUMA_NO_NODE, __builtin_return_address(0));
-+	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END,
-+				    GFP_KERNEL, PAGE_KERNEL, VM_NO_HUGE_VMAP,
-+				    NUMA_NO_NODE, __builtin_return_address(0));
+--- a/include/linux/pagemap.h~mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix
++++ a/include/linux/pagemap.h
+@@ -535,16 +535,16 @@ static inline pgoff_t page_to_index(stru
+ 	return pgoff;
  }
- EXPORT_SYMBOL(vmalloc_no_huge);
+ 
++extern pgoff_t hugetlb_basepage_index(struct page *page);
++
+ /*
+  * Get the offset in PAGE_SIZE (even for hugetlb pages).
+  * (TODO: hugetlb pages should have ->index in PAGE_SIZE)
+  */
+ static inline pgoff_t page_to_pgoff(struct page *page)
+ {
+-	if (unlikely(PageHuge(page))) {
+-		extern pgoff_t hugetlb_basepage_index(struct page *page);
++	if (unlikely(PageHuge(page)))
+ 		return hugetlb_basepage_index(page);
+-	}
+ 	return page_to_index(page);
+ }
  
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmalloc-add-vmalloc_no_huge.patch
-mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page-fix.patch
+mm-futex-fix-shared-futex-pgoff-on-shmem-huge-page.patch
 mm-memory-failure-use-a-mutex-to-avoid-memory_failure-races-fix.patch
 mm-page_alloc-fix-memory-map-initialization-for-descending-nodes-checkpatch-fixes.patch
 mm.patch
