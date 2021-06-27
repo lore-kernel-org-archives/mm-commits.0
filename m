@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32258C49EBB
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 683FAC48BC2
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1BD2F61C43
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5603161C35
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231848AbhF0V4p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 27 Jun 2021 17:56:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55430 "EHLO mail.kernel.org"
+        id S231849AbhF0V4q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 27 Jun 2021 17:56:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55458 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231694AbhF0V4o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 27 Jun 2021 17:56:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7C91D61C35;
-        Sun, 27 Jun 2021 21:54:19 +0000 (UTC)
+        id S231694AbhF0V4q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 27 Jun 2021 17:56:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 77E3061C34;
+        Sun, 27 Jun 2021 21:54:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624830859;
-        bh=6jV8Sl3/M8GQuZUmtSkRlutd7YtTEGM8AkyJvjW8hNI=;
+        s=korg; t=1624830861;
+        bh=BmPrFhPyr5gpLP5Iy41w66GKUwJinwQjuTFUb3ytHAM=;
         h=Date:From:To:Subject:From;
-        b=aMVNbQJ2X8Ju+lkxoJ5d+6pJ7SQEDSTfMBq4reR6yo4lLR+AKUR6elhv7zTR/jsHA
-         wO2vY1s3WqT86pYpJYCuD04AXnmMf8EtsCdfi/o0thu9Axiscr9kUd/ZJx6hcAqdgI
-         C1247XcuSN09LFYk9h4Y0f6YVNdsAGKJPXlUz8Pc=
-Date:   Sun, 27 Jun 2021 14:54:19 -0700
+        b=EoEIoADpdQ9KQ80+WKrcldHItiGqHa0ANpbeq0nf8mfKB/MzLE1eg+KRqajsakO6T
+         83bQrzYtxue00sEsVPUEJlVD0TPkLyivUS+Ow5TOE86Icl3DeDAAXeD4FyS2sS6ABK
+         ngbrANE1XImXhSdgM27Mp96VH29b81C3sjVHnzz8=
+Date:   Sun, 27 Jun 2021 14:54:21 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, linux@rasmusvillemoes.dk,
-        mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To:     brouer@redhat.com, dan.carpenter@oracle.com,
+        mgorman@techsingularity.net, mgorman@techsinguliarity.net,
+        mm-commits@vger.kernel.org, vbabka@suse.cz
 Subject:  [merged]
- =?US-ASCII?Q?mm-page=5Falloc-=5F=5Falloc=5Fpages=5Fbulk-do-bounds-check-?=
- =?US-ASCII?Q?before-accessing-array.patch?= removed from -mm tree
-Message-ID: <20210627215419.p9lAHHB2c%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-page=5Falloc-do-bulk-array-bounds-check-after-checking-?=
+ =?US-ASCII?Q?populated-elements.patch?= removed from -mm tree
+Message-ID: <20210627215421.hxwfmScvb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -46,49 +47,92 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: __alloc_pages_bulk(): do bounds check before accessing array
+     Subject: mm/page_alloc: do bulk array bounds check after checking populated elements
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-__alloc_pages_bulk-do-bounds-check-before-accessing-array.patch
+     mm-page_alloc-do-bulk-array-bounds-check-after-checking-populated-elements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: mm/page_alloc: __alloc_pages_bulk(): do bounds check before accessing array
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: do bulk array bounds check after checking populated elements
 
-In the event that somebody would call this with an already fully populated
-page_array, the last loop iteration would do an access beyond the end of
-page_array.
+Dan Carpenter reported the following
 
-It's of course extremely unlikely that would ever be done, but this
-triggers my internal static analyzer.  Also, if it really is not supposed
-to be invoked this way (i.e., with no NULL entries in page_array), the
-nr_populated<nr_pages check could simply be removed instead.
+  The patch 0f87d9d30f21: "mm/page_alloc: add an array-based interface
+  to the bulk page allocator" from Apr 29, 2021, leads to the following
+  static checker warning:
 
-Link: https://lkml.kernel.org/r/20210507064504.1712559-1-linux@rasmusvillemoes.dk
+        mm/page_alloc.c:5338 __alloc_pages_bulk()
+        warn: potentially one past the end of array 'page_array[nr_populated]'
+
+The problem can occur if an array is passed in that is fully populated. 
+That potentially ends up allocating a single page and storing it past the
+end of the array.  This patch returns 0 if the array is fully populated.
+
+Link: https://lkml.kernel.org/r/20210618125102.GU30378@techsingularity.net
 Fixes: 0f87d9d30f21 ("mm/page_alloc: add an array-based interface to the bulk page allocator")
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Mel Gorman <mgorman@techsinguliarity.net>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-__alloc_pages_bulk-do-bounds-check-before-accessing-array
+--- a/mm/page_alloc.c~mm-page_alloc-do-bulk-array-bounds-check-after-checking-populated-elements
 +++ a/mm/page_alloc.c
-@@ -5053,7 +5053,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 	 * Skip populated array elements to determine if any pages need
- 	 * to be allocated before disabling IRQs.
- 	 */
--	while (page_array && page_array[nr_populated] && nr_populated < nr_pages)
-+	while (page_array && nr_populated < nr_pages && page_array[nr_populated])
+@@ -5056,6 +5056,10 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 	while (page_array && nr_populated < nr_pages && page_array[nr_populated])
  		nr_populated++;
  
++	/* Already populated array? */
++	if (unlikely(page_array && nr_pages - nr_populated == 0))
++		return 0;
++
  	/* Use the single page allocator for one page. */
+ 	if (nr_pages - nr_populated == 1)
+ 		goto failed;
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
+mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch
+mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch
+mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix-fix.patch
+mm-page_alloc-convert-per-cpu-list-protection-to-local_lock.patch
+mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix.patch
+mm-vmstat-convert-numa-statistics-to-basic-numa-counters.patch
+mm-vmstat-inline-numa-event-counter-updates.patch
+mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator.patch
+mm-page_alloc-reduce-duration-that-irqs-are-disabled-for-vm-counters.patch
+mm-page_alloc-explicitly-acquire-the-zone-lock-in-__free_pages_ok.patch
+mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock.patch
+mm-page_alloc-update-pgfree-outside-the-zone-lock-in-__free_pages_ok.patch
+mm-page_alloc-delete-vmpercpu_pagelist_fraction.patch
+mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch.patch
+mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2.patch
+mm-page_alloc-adjust-pcp-high-after-cpu-hotplug-events.patch
+mm-page_alloc-scale-the-number-of-pages-that-are-batch-freed.patch
+mm-page_alloc-limit-the-number-of-pages-on-pcp-lists-when-reclaim-is-active.patch
+mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction.patch
+mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction-fix.patch
+mm-page_alloc-move-free_the_page.patch
+mm-page_alloc-allow-high-order-pages-to-be-stored-on-the-per-cpu-lists.patch
+mm-page_alloc-split-pcp-high-across-all-online-cpus-for-cpuless-nodes.patch
+mm-vmscan-remove-kerneldoc-like-comment-from-isolate_lru_pages.patch
+mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch
+mm-page_alloc-make-should_fail_alloc_page-a-static-function-should_fail_alloc_page-static.patch
+mm-mapping_dirty_helpers-remove-double-note-in-kerneldoc.patch
+mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection.patch
+mm-memory_hotplug-fix-kerneldoc-comment-for-__try_online_node.patch
+mm-memory_hotplug-fix-kerneldoc-comment-for-__remove_memory.patch
+mm-zbud-add-kerneldoc-fields-for-zbud_pool.patch
+mm-z3fold-add-kerneldoc-fields-for-z3fold_pool.patch
+mm-swap-make-swap_address_space-an-inline-function.patch
+mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
+mm-page_alloc-move-prototype-for-find_suitable_fallback.patch
+mm-swap-make-node_data-an-inline-function-on-config_flatmem.patch
 
