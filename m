@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 683FAC48BC2
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA7A8C49EAF
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5603161C35
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B33DA61C34
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231849AbhF0V4q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 27 Jun 2021 17:56:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55458 "EHLO mail.kernel.org"
+        id S231845AbhF0V4l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 27 Jun 2021 17:56:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55340 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231694AbhF0V4q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 27 Jun 2021 17:56:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 77E3061C34;
-        Sun, 27 Jun 2021 21:54:21 +0000 (UTC)
+        id S231694AbhF0V4l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 27 Jun 2021 17:56:41 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AE62261C31;
+        Sun, 27 Jun 2021 21:54:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624830861;
-        bh=BmPrFhPyr5gpLP5Iy41w66GKUwJinwQjuTFUb3ytHAM=;
+        s=korg; t=1624830856;
+        bh=vFck+MhBGJ25PTdPs/LqMtIrPmEww1AaQzNKm1SVLz0=;
         h=Date:From:To:Subject:From;
-        b=EoEIoADpdQ9KQ80+WKrcldHItiGqHa0ANpbeq0nf8mfKB/MzLE1eg+KRqajsakO6T
-         83bQrzYtxue00sEsVPUEJlVD0TPkLyivUS+Ow5TOE86Icl3DeDAAXeD4FyS2sS6ABK
-         ngbrANE1XImXhSdgM27Mp96VH29b81C3sjVHnzz8=
-Date:   Sun, 27 Jun 2021 14:54:21 -0700
+        b=pfllxv5QSjN35AeszwvrLf2TETo6B3rQBIrhpB/SzPip4wZEapgioQf9NTlpuU0OQ
+         zsXVJbs4LTQfftdZ5ruFUpW0/3G7hVSwFXTD316Vdrk76oECAbzF8llqXBBIpjt4Q9
+         skbWe6eBOMpchg2u00tJmNrBVHjV0oslxzI3w8PQ=
+Date:   Sun, 27 Jun 2021 14:54:15 -0700
 From:   akpm@linux-foundation.org
-To:     brouer@redhat.com, dan.carpenter@oracle.com,
-        mgorman@techsingularity.net, mgorman@techsinguliarity.net,
-        mm-commits@vger.kernel.org, vbabka@suse.cz
+To:     bp@alien8.de, bp@suse.de, david@redhat.com, juew@google.com,
+        luto@kernel.org, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, osalvador@suse.de, stable@vger.kernel.org,
+        tony.luck@intel.com, yaoaili@kingsoft.com
 Subject:  [merged]
- =?US-ASCII?Q?mm-page=5Falloc-do-bulk-array-bounds-check-after-checking-?=
- =?US-ASCII?Q?populated-elements.patch?= removed from -mm tree
-Message-ID: <20210627215421.hxwfmScvb%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mmhwpoison-return-ehwpoison-to-denote-that-the-page-has-alr?=
+ =?US-ASCII?Q?eady-been-poisoned.patch?= removed from -mm tree
+Message-ID: <20210627215415.opi8ksG8r%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -47,92 +48,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: do bulk array bounds check after checking populated elements
+     Subject: mm,hwpoison: return -EHWPOISON to denote that the page has already been poisoned
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-do-bulk-array-bounds-check-after-checking-populated-elements.patch
+     mmhwpoison-return-ehwpoison-to-denote-that-the-page-has-already-been-poisoned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: do bulk array bounds check after checking populated elements
+From: Aili Yao <yaoaili@kingsoft.com>
+Subject: mm,hwpoison: return -EHWPOISON to denote that the page has already been poisoned
 
-Dan Carpenter reported the following
+When memory_failure() is called with MF_ACTION_REQUIRED on the page that
+has already been hwpoisoned, memory_failure() could fail to send SIGBUS to
+the affected process, which results in infinite loop of MCEs.
 
-  The patch 0f87d9d30f21: "mm/page_alloc: add an array-based interface
-  to the bulk page allocator" from Apr 29, 2021, leads to the following
-  static checker warning:
+Currently memory_failure() returns 0 if it's called for already hwpoisoned
+page, then the caller, kill_me_maybe(), could return without sending
+SIGBUS to current process.  An action required MCE is raised when the
+current process accesses to the broken memory, so no SIGBUS means that the
+current process continues to run and access to the error page again soon,
+so running into MCE loop.
 
-        mm/page_alloc.c:5338 __alloc_pages_bulk()
-        warn: potentially one past the end of array 'page_array[nr_populated]'
+This issue can arise for example in the following scenarios:
 
-The problem can occur if an array is passed in that is fully populated. 
-That potentially ends up allocating a single page and storing it past the
-end of the array.  This patch returns 0 if the array is fully populated.
+- Two or more threads access to the poisoned page concurrently.  If
+  local MCE is enabled, MCE handler independently handles the MCE events. 
+  So there's a race among MCE events, and the second or latter threads
+  fall into the situation in question.
 
-Link: https://lkml.kernel.org/r/20210618125102.GU30378@techsingularity.net
-Fixes: 0f87d9d30f21 ("mm/page_alloc: add an array-based interface to the bulk page allocator")
-Signed-off-by: Mel Gorman <mgorman@techsinguliarity.net>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+- If there was a precedent memory error event and memory_failure() for
+  the event failed to unmap the error page for some reason, the subsequent
+  memory access to the error page triggers the MCE loop situation.
+
+To fix the issue, make memory_failure() return an error code when the
+error page has already been hwpoisoned.  This allows memory error handler
+to control how it sends signals to userspace.  And make sure that any
+process touching a hwpoisoned page should get a SIGBUS even in "already
+hwpoisoned" path of memory_failure() as is done in page fault path.
+
+Link: https://lkml.kernel.org/r/20210521030156.2612074-3-nao.horiguchi@gmail.com
+Signed-off-by: Aili Yao <yaoaili@kingsoft.com>
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jue Wang <juew@google.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/memory-failure.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-do-bulk-array-bounds-check-after-checking-populated-elements
-+++ a/mm/page_alloc.c
-@@ -5056,6 +5056,10 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 	while (page_array && nr_populated < nr_pages && page_array[nr_populated])
- 		nr_populated++;
+--- a/mm/memory-failure.c~mmhwpoison-return-ehwpoison-to-denote-that-the-page-has-already-been-poisoned
++++ a/mm/memory-failure.c
+@@ -1253,7 +1253,7 @@ static int memory_failure_hugetlb(unsign
+ 	if (TestSetPageHWPoison(head)) {
+ 		pr_err("Memory failure: %#lx: already hardware poisoned\n",
+ 		       pfn);
+-		return 0;
++		return -EHWPOISON;
+ 	}
  
-+	/* Already populated array? */
-+	if (unlikely(page_array && nr_pages - nr_populated == 0))
-+		return 0;
-+
- 	/* Use the single page allocator for one page. */
- 	if (nr_pages - nr_populated == 1)
- 		goto failed;
+ 	num_poisoned_pages_inc();
+@@ -1461,6 +1461,7 @@ try_again:
+ 	if (TestSetPageHWPoison(p)) {
+ 		pr_err("Memory failure: %#lx: already hardware poisoned\n",
+ 			pfn);
++		res = -EHWPOISON;
+ 		goto unlock_mutex;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from yaoaili@kingsoft.com are
 
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix.patch
-mm-vmstat-convert-numa-statistics-to-basic-numa-counters.patch
-mm-vmstat-inline-numa-event-counter-updates.patch
-mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator.patch
-mm-page_alloc-reduce-duration-that-irqs-are-disabled-for-vm-counters.patch
-mm-page_alloc-explicitly-acquire-the-zone-lock-in-__free_pages_ok.patch
-mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock.patch
-mm-page_alloc-update-pgfree-outside-the-zone-lock-in-__free_pages_ok.patch
-mm-page_alloc-delete-vmpercpu_pagelist_fraction.patch
-mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch.patch
-mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2.patch
-mm-page_alloc-adjust-pcp-high-after-cpu-hotplug-events.patch
-mm-page_alloc-scale-the-number-of-pages-that-are-batch-freed.patch
-mm-page_alloc-limit-the-number-of-pages-on-pcp-lists-when-reclaim-is-active.patch
-mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction.patch
-mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction-fix.patch
-mm-page_alloc-move-free_the_page.patch
-mm-page_alloc-allow-high-order-pages-to-be-stored-on-the-per-cpu-lists.patch
-mm-page_alloc-split-pcp-high-across-all-online-cpus-for-cpuless-nodes.patch
-mm-vmscan-remove-kerneldoc-like-comment-from-isolate_lru_pages.patch
-mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch
-mm-page_alloc-make-should_fail_alloc_page-a-static-function-should_fail_alloc_page-static.patch
-mm-mapping_dirty_helpers-remove-double-note-in-kerneldoc.patch
-mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection.patch
-mm-memory_hotplug-fix-kerneldoc-comment-for-__try_online_node.patch
-mm-memory_hotplug-fix-kerneldoc-comment-for-__remove_memory.patch
-mm-zbud-add-kerneldoc-fields-for-zbud_pool.patch
-mm-z3fold-add-kerneldoc-fields-for-z3fold_pool.patch
-mm-swap-make-swap_address_space-an-inline-function.patch
-mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
-mm-page_alloc-move-prototype-for-find_suitable_fallback.patch
-mm-swap-make-node_data-an-inline-function-on-config_flatmem.patch
 
