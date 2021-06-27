@@ -4,44 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1620EC48BC2
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:45:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7673BC48BC2
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:52:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E82BF61C2E
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:45:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4823C61C35
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:52:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231682AbhF0VsE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 27 Jun 2021 17:48:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50690 "EHLO mail.kernel.org"
+        id S231717AbhF0Vy6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 27 Jun 2021 17:54:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53272 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231676AbhF0VsE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 27 Jun 2021 17:48:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E6B43619BF;
-        Sun, 27 Jun 2021 21:45:39 +0000 (UTC)
+        id S231713AbhF0Vy5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 27 Jun 2021 17:54:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F127561C31;
+        Sun, 27 Jun 2021 21:52:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624830340;
-        bh=eMgqhUkT1HsYoXuRk8gvnhwLZwx9BpdYbEnMyrp6uJc=;
+        s=korg; t=1624830753;
+        bh=3rKQjDi+OoHdyJVHMyiP6aHfOycZNSeRWhEZDQHcK6M=;
         h=Date:From:To:Subject:From;
-        b=d6EqcDDckTE7gCKjLAa1KL1jmbu4plNY0MsIE+WWJyx84cqUSvxagkheOoKGrz5Az
-         v0TqYX7KDJhaZnnclwFNi34phX3bqgNdU2aox0aoh+qhvLxPKDSONTT1EDN03TlnZI
-         tA7gDO5J5be+jOOh8k6WP0Sq9McJ4t7bSjAmjqpo=
-Date:   Sun, 27 Jun 2021 14:45:39 -0700
+        b=CzvKOw130Xonyc9WdCNC8K/xEuLUjOfm78XiJwq+569hyMw3olh1r0OB5Vjoocm2p
+         TPcV4EyuHK0/d/PY2uVPA4dj4KUduXau1D/iaF7j57JTHBd6X1d8SaM0HbTx0Ipop4
+         phNBfKy06GuqqXWMPvGh2aL1gHzi3U1mj2kvMWm0=
+Date:   Sun, 27 Jun 2021 14:52:32 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, chinwen.chang@mediatek.com,
-        dvyukov@google.com, elver@google.com, glider@google.com,
-        gregkh@linuxfoundation.org, Kuan-Ying.Lee@mediatek.com,
-        matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
-        nicholas.tang@mediatek.com, ryabinin.a.a@gmail.com
-Subject:  +
- =?US-ASCII?Q?kasan-add-memory-corruption-identification-support-for-hardw?=
- =?US-ASCII?Q?are-tag-based-mode.patch?= added to -mm tree
-Message-ID: <20210627214539.jPnOe7EK5%akpm@linux-foundation.org>
+To:     mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, songmuchun@bytedance.com,
+        stable@vger.kernel.org, tony.luck@intel.com
+Subject:  [merged]
+ mmhwpoison-fix-race-with-hugetlb-page-allocation.patch removed from -mm
+ tree
+Message-ID: <20210627215232.sY07qmHxs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,83 +46,167 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add memory corruption identification support for hardware tag-based mode
-has been added to the -mm tree.  Its filename is
-     kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode.patch
+     Subject: mm,hwpoison: fix race with hugetlb page allocation
+has been removed from the -mm tree.  Its filename was
+     mmhwpoison-fix-race-with-hugetlb-page-allocation.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Subject: kasan: add memory corruption identification support for hardware tag-based mode
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm,hwpoison: fix race with hugetlb page allocation
 
-Add memory corruption identification support for hardware tag-based mode. 
-We store one old free pointer tag and free backtrace instead of five
-because hardware tag-based kasan only has 16 different tags.
+When hugetlb page fault (under overcommitting situation) and
+memory_failure() race, VM_BUG_ON_PAGE() is triggered by the following
+race:
 
-If we store as many stacks as SW tag-based kasan does(5 stacks), there is
-high probability to find the same tag in the stacks when out-of-bound
-issues happened and we will mistake out-of-bound issue for use-after-free.
+    CPU0:                           CPU1:
 
-Link: https://lkml.kernel.org/r/20210626100931.22794-4-Kuan-Ying.Lee@mediatek.com
-Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Suggested-by: Marco Elver <elver@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Nicholas Tang <nicholas.tang@mediatek.com>
+                                    gather_surplus_pages()
+                                      page = alloc_surplus_huge_page()
+    memory_failure_hugetlb()
+      get_hwpoison_page(page)
+        __get_hwpoison_page(page)
+          get_page_unless_zero(page)
+                                      zero = put_page_testzero(page)
+                                      VM_BUG_ON_PAGE(!zero, page)
+                                      enqueue_huge_page(h, page)
+      put_page(page)
+
+__get_hwpoison_page() only checks the page refcount before taking an
+additional one for memory error handling, which is not enough because
+there's a time window where compound pages have non-zero refcount during
+hugetlb page initialization.
+
+So make __get_hwpoison_page() check page status a bit more for hugetlb
+pages with get_hwpoison_huge_page().  Checking hugetlb-specific flags
+under hugetlb_lock makes sure that the hugetlb page is not transitive. 
+It's notable that another new function, HWPoisonHandlable(), is helpful to
+prevent a race against other transitive page states (like a generic
+compound page just before PageHuge becomes true).
+
+Link: https://lkml.kernel.org/r/20210603233632.2964832-2-nao.horiguchi@gmail.com
+Fixes: ead07f6a867b ("mm/memory-failure: introduce get_hwpoison_page() for consistent refcount handling")
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reported-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: <stable@vger.kernel.org>	[5.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kasan |    2 +-
- mm/kasan/kasan.h  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/hugetlb.h |    6 ++++++
+ mm/hugetlb.c            |   15 +++++++++++++++
+ mm/memory-failure.c     |   29 +++++++++++++++++++++++++++--
+ 3 files changed, 48 insertions(+), 2 deletions(-)
 
---- a/lib/Kconfig.kasan~kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode
-+++ a/lib/Kconfig.kasan
-@@ -169,7 +169,7 @@ config KASAN_STACK
+--- a/include/linux/hugetlb.h~mmhwpoison-fix-race-with-hugetlb-page-allocation
++++ a/include/linux/hugetlb.h
+@@ -149,6 +149,7 @@ bool hugetlb_reserve_pages(struct inode
+ long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
+ 						long freed);
+ bool isolate_huge_page(struct page *page, struct list_head *list);
++int get_hwpoison_huge_page(struct page *page, bool *hugetlb);
+ void putback_active_hugepage(struct page *page);
+ void move_hugetlb_state(struct page *oldpage, struct page *newpage, int reason);
+ void free_huge_page(struct page *page);
+@@ -339,6 +340,11 @@ static inline bool isolate_huge_page(str
+ 	return false;
+ }
  
- config KASAN_TAGS_IDENTIFY
- 	bool "Enable memory corruption identification"
--	depends on KASAN_SW_TAGS
-+	depends on KASAN_SW_TAGS || KASAN_HW_TAGS
- 	help
- 	  This option enables best-effort identification of bug type
- 	  (use-after-free or out-of-bounds) at the cost of increased
---- a/mm/kasan/kasan.h~kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode
-+++ a/mm/kasan/kasan.h
-@@ -153,7 +153,7 @@ struct kasan_track {
- 	depot_stack_handle_t stack;
- };
++static inline int get_hwpoison_huge_page(struct page *page, bool *hugetlb)
++{
++	return 0;
++}
++
+ static inline void putback_active_hugepage(struct page *page)
+ {
+ }
+--- a/mm/hugetlb.c~mmhwpoison-fix-race-with-hugetlb-page-allocation
++++ a/mm/hugetlb.c
+@@ -5857,6 +5857,21 @@ unlock:
+ 	return ret;
+ }
  
--#ifdef CONFIG_KASAN_TAGS_IDENTIFY
-+#if defined(CONFIG_KASAN_TAGS_IDENTIFY) && defined(CONFIG_KASAN_SW_TAGS)
- #define KASAN_NR_FREE_STACKS 5
- #else
- #define KASAN_NR_FREE_STACKS 1
++int get_hwpoison_huge_page(struct page *page, bool *hugetlb)
++{
++	int ret = 0;
++
++	*hugetlb = false;
++	spin_lock_irq(&hugetlb_lock);
++	if (PageHeadHuge(page)) {
++		*hugetlb = true;
++		if (HPageFreed(page) || HPageMigratable(page))
++			ret = get_page_unless_zero(page);
++	}
++	spin_unlock_irq(&hugetlb_lock);
++	return ret;
++}
++
+ void putback_active_hugepage(struct page *page)
+ {
+ 	spin_lock_irq(&hugetlb_lock);
+--- a/mm/memory-failure.c~mmhwpoison-fix-race-with-hugetlb-page-allocation
++++ a/mm/memory-failure.c
+@@ -949,6 +949,17 @@ static int page_action(struct page_state
+ 	return (result == MF_RECOVERED || result == MF_DELAYED) ? 0 : -EBUSY;
+ }
+ 
++/*
++ * Return true if a page type of a given page is supported by hwpoison
++ * mechanism (while handling could fail), otherwise false.  This function
++ * does not return true for hugetlb or device memory pages, so it's assumed
++ * to be called only in the context where we never have such pages.
++ */
++static inline bool HWPoisonHandlable(struct page *page)
++{
++	return PageLRU(page) || __PageMovable(page);
++}
++
+ /**
+  * __get_hwpoison_page() - Get refcount for memory error handling:
+  * @page:	raw error page (hit by memory error)
+@@ -959,8 +970,22 @@ static int page_action(struct page_state
+ static int __get_hwpoison_page(struct page *page)
+ {
+ 	struct page *head = compound_head(page);
++	int ret = 0;
++	bool hugetlb = false;
++
++	ret = get_hwpoison_huge_page(head, &hugetlb);
++	if (hugetlb)
++		return ret;
++
++	/*
++	 * This check prevents from calling get_hwpoison_unless_zero()
++	 * for any unsupported type of page in order to reduce the risk of
++	 * unexpected races caused by taking a page refcount.
++	 */
++	if (!HWPoisonHandlable(head))
++		return 0;
+ 
+-	if (!PageHuge(head) && PageTransHuge(head)) {
++	if (PageTransHuge(head)) {
+ 		/*
+ 		 * Non anonymous thp exists only in allocation/free time. We
+ 		 * can't handle such a case correctly, so let's give it up.
+@@ -1017,7 +1042,7 @@ try_again:
+ 			ret = -EIO;
+ 		}
+ 	} else {
+-		if (PageHuge(p) || PageLRU(p) || __PageMovable(p)) {
++		if (PageHuge(p) || HWPoisonHandlable(p)) {
+ 			ret = 1;
+ 		} else {
+ 			/*
 _
 
-Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-kasan-rename-config_kasan_sw_tags_identify-to-config_kasan_tags_identify.patch
-kasan-integrate-the-common-part-of-two-kasan-tag-based-modes.patch
-kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode.patch
+mmhwpoison-send-sigbus-with-error-virutal-address.patch
+mmhwpoison-send-sigbus-with-error-virutal-address-fix.patch
+mmhwpoison-make-get_hwpoison_page-call-get_any_page.patch
+mm-hwpoison-disable-pcp-for-page_handle_poison.patch
 
