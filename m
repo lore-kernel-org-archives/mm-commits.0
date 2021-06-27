@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38B6FC48BC2
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39C51C49EAB
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2412261C32
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 26E7861C31
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231851AbhF0V4t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 27 Jun 2021 17:56:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55532 "EHLO mail.kernel.org"
+        id S231852AbhF0V4u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 27 Jun 2021 17:56:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55564 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231694AbhF0V4s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 27 Jun 2021 17:56:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7B97461004;
-        Sun, 27 Jun 2021 21:54:23 +0000 (UTC)
+        id S231694AbhF0V4t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 27 Jun 2021 17:56:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 67AEF60FE9;
+        Sun, 27 Jun 2021 21:54:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624830863;
-        bh=Eia84v/JKXTsHnm44h+bhbd1N05DZEWyN3RomVBJttI=;
+        s=korg; t=1624830865;
+        bh=UwIBhXgX69H6sT0vZJIQayr+R2LUo6nY/2RF+BUzPmQ=;
         h=Date:From:To:Subject:From;
-        b=zqgCvp84h0OyIjCJFhgB5N6H/bLmzpuWoJ4ya8c/dbKpegYsO+3UjoRmbbjvIjWZ+
-         Q9eQ2gL39wc5I4f3/dk6j7x6kfwTK3w5+0OtnK4vORQciFasFobieB9qoS425CK6A6
-         yR5b2LmKPeAi8/5BbnHmAZhl9XUeVL6Nk8cQ35t8=
-Date:   Sun, 27 Jun 2021 14:54:23 -0700
+        b=2Cls7Y+dH2ENblRB33puDNjLmZojq3Brzp/+QFy7h+3BhMIFWG5kLUXjzd6Xt+6hq
+         +BeNl1kwm06wENIKsjDpvzKMpdnsmaZXUJiOjBKvq5C2TPw+DLf2OnLPnHXlZoz91l
+         s+ZiWOj0N/qs7xMgpU395roxdFf1/9VPG5lo1TYU=
+Date:   Sun, 27 Jun 2021 14:54:25 -0700
 From:   akpm@linux-foundation.org
 To:     kabel@kernel.org, mm-commits@vger.kernel.org
-Subject:  [merged] maintainers-fix-my-identity-again.patch removed
- from -mm tree
-Message-ID: <20210627215423.ux-tX0M0t%akpm@linux-foundation.org>
+Subject:  [merged]
+ mailmap-add-my-other-e-mail-address-and-identity-without-diacritics.patch
+ removed from -mm tree
+Message-ID: <20210627215425.NyslCHYld%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -45,50 +46,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: fix Marek's identity again
+     Subject: mailmap: add Marek's other e-mail address and identity withou=
+t diacritics
 has been removed from the -mm tree.  Its filename was
-     maintainers-fix-my-identity-again.patch
+     mailmap-add-my-other-e-mail-address-and-identity-without-diacritics.pa=
+tch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: Marek Beh=C3=BAn <kabel@kernel.org>
-Subject: MAINTAINERS: fix Marek's identity again
+Subject: mailmap: add Marek's other e-mail address and identity without dia=
+critics
 
-Fix my name to use diacritics, since MAINTAINERS supports it.
+Some of my commits were sent with identities
+  Marek Behun <marek.behun@nic.cz>
+  Marek Beh=C3=BAn <marek.behun@nic.cz>
+while the correct one is
+  Marek Beh=C3=BAn <kabel@kernel.org>
 
-Fix my e-mail address in MAINTAINERS' marvell10g PHY driver description,
-I accidentally put my other e-mail address here.
+Put this into mailmap so that git shortlog prints all my commits under
+one identity.
 
-Link: https://lkml.kernel.org/r/20210616113624.19351-1-kabel@kernel.org
+Link: https://lkml.kernel.org/r/20210616113624.19351-2-kabel@kernel.org
 Signed-off-by: Marek Beh=C3=BAn <kabel@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/MAINTAINERS~maintainers-fix-my-identity-again
-+++ a/MAINTAINERS
-@@ -1816,7 +1816,7 @@ F:	drivers/pinctrl/pinctrl-gemini.c
- F:	drivers/rtc/rtc-ftrtc010.c
-=20
- ARM/CZ.NIC TURRIS SUPPORT
--M:	Marek Behun <kabel@kernel.org>
-+M:	Marek Beh=C3=BAn <kabel@kernel.org>
- S:	Maintained
- W:	https://www.turris.cz/
- F:	Documentation/ABI/testing/debugfs-moxtet
-@@ -10946,7 +10946,7 @@ F:	include/linux/mv643xx.h
-=20
- MARVELL MV88X3310 PHY DRIVER
- M:	Russell King <linux@armlinux.org.uk>
--M:	Marek Behun <marek.behun@nic.cz>
-+M:	Marek Beh=C3=BAn <kabel@kernel.org>
- L:	netdev@vger.kernel.org
- S:	Maintained
- F:	drivers/net/phy/marvell10g.c
+--- a/.mailmap~mailmap-add-my-other-e-mail-address-and-identity-without-dia=
+critics
++++ a/.mailmap
+@@ -212,6 +212,8 @@ Manivannan Sadhasivam <mani@kernel.org>
+ Manivannan Sadhasivam <mani@kernel.org> <manivannan.sadhasivam@linaro.org>
+ Marcin Nowakowski <marcin.nowakowski@mips.com> <marcin.nowakowski@imgtec.c=
+om>
+ Marc Zyngier <maz@kernel.org> <marc.zyngier@arm.com>
++Marek Beh=C3=BAn <kabel@kernel.org> <marek.behun@nic.cz>
++Marek Beh=C3=BAn <kabel@kernel.org> Marek Behun <marek.behun@nic.cz>
+ Mark Brown <broonie@sirena.org.uk>
+ Mark Starovoytov <mstarovo@pm.me> <mstarovoitov@marvell.com>
+ Mark Yao <markyao0591@gmail.com> <mark.yao@rock-chips.com>
 _
 
 Patches currently in -mm which might be from kabel@kernel.org are
