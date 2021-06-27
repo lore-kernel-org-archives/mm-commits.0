@@ -4,40 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC215C49EAB
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:52:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE074C48BC2
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:52:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C4F7561C3D
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:52:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A71C961C43
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:52:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231734AbhF0VzL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 27 Jun 2021 17:55:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53600 "EHLO mail.kernel.org"
+        id S231736AbhF0VzO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 27 Jun 2021 17:55:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53650 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231707AbhF0VzL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 27 Jun 2021 17:55:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AE44861A1D;
-        Sun, 27 Jun 2021 21:52:46 +0000 (UTC)
+        id S231707AbhF0VzO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 27 Jun 2021 17:55:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B3FD261C34;
+        Sun, 27 Jun 2021 21:52:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624830767;
-        bh=R2RkHDmhBw23YTpOd7VqkR3PZUWziw4SKsahOtJpqdM=;
+        s=korg; t=1624830769;
+        bh=qHxLPdW5RGLu/G41gMWKgYiEL1vdygvom9nn74+qdbs=;
         h=Date:From:To:Subject:From;
-        b=lwGskaHqBJAj3VPk/J6mxmiGK+EVad+rLqxUHmv4Kf7gSK9vmalOfzdrKYBjIBl+D
-         PWb22LoPVxIxU7dAeOHkNxoCvlOrBsCGaLdnSbRT+Vn67PqaJNsHKyBNNeUmMvfnJ7
-         1kGx50HbZfj+ab6YRBA9xzCRVvq8brQ6KybgMRQ8=
-Date:   Sun, 27 Jun 2021 14:52:46 -0700
+        b=h2aaYu69Eb+ioFVKJk9I9f/lubajRSAj1Zw+grg3LY+D/pWEjkC7rTHLmmABqoIng
+         dRFDpf5FLmJ+lT2vwrpgZ9wHxoJIHcaB9gdwpplgUUb1aaDv3oRZe448gcUgkMjBUT
+         B62FUjvb6GLN7FfTqpD4AYGNhe8I9/OyAJKatenQ=
+Date:   Sun, 27 Jun 2021 14:52:49 -0700
 From:   akpm@linux-foundation.org
-To:     almasrymina@google.com, axelrasmussen@google.com, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, peterx@redhat.com,
-        songmuchun@bytedance.com, stable@vger.kernel.org
+To:     jack@suse.cz, mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, tytso@mit.edu, yangerkun@huawei.com,
+        yukuai3@huawei.com
 Subject:  [merged]
- mm-hugetlb-expand-restore_reserve_on_error-functionality.patch removed from
- -mm tree
-Message-ID: <20210627215246.XqMXchgcp%akpm@linux-foundation.org>
+ mm-memory-failure-make-sure-wait-for-page-writeback-in-memory_failure.patch
+ removed from -mm tree
+Message-ID: <20210627215249.7JC6oPzw1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,291 +45,125 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: expand restore_reserve_on_error functionality
+     Subject: mm/memory-failure: make sure wait for page writeback in memory_failure
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-expand-restore_reserve_on_error-functionality.patch
+     mm-memory-failure-make-sure-wait-for-page-writeback-in-memory_failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb: expand restore_reserve_on_error functionality
+From: yangerkun <yangerkun@huawei.com>
+Subject: mm/memory-failure: make sure wait for page writeback in memory_failure
 
-The routine restore_reserve_on_error is called to restore reservation
-information when an error occurs after page allocation.  The routine
-alloc_huge_page modifies the mapping reserve map and potentially the
-reserve count during allocation.  If code calling alloc_huge_page
-encounters an error after allocation and needs to free the page, the
-reservation information needs to be adjusted.
+Our syzkaller trigger the "BUG_ON(!list_empty(&inode->i_wb_list))" in
+clear_inode:
 
-Currently, restore_reserve_on_error only takes action on pages for which
-the reserve count was adjusted(HPageRestoreReserve flag).  There is
-nothing wrong with these adjustments.  However, alloc_huge_page ALWAYS
-modifies the reserve map during allocation even if the reserve count is
-not adjusted.  This can cause issues as observed during development of
-this patch [1].
+[  292.016156] ------------[ cut here ]------------
+[  292.017144] kernel BUG at fs/inode.c:519!
+[  292.017860] Internal error: Oops - BUG: 0 [#1] SMP
+[  292.018741] Dumping ftrace buffer:
+[  292.019577]    (ftrace buffer empty)
+[  292.020430] Modules linked in:
+[  292.021748] Process syz-executor.0 (pid: 249, stack limit =
+0x00000000a12409d7)
+[  292.023719] CPU: 1 PID: 249 Comm: syz-executor.0 Not tainted 4.19.95
+[  292.025206] Hardware name: linux,dummy-virt (DT)
+[  292.026176] pstate: 80000005 (Nzcv daif -PAN -UAO)
+[  292.027244] pc : clear_inode+0x280/0x2a8
+[  292.028045] lr : clear_inode+0x280/0x2a8
+[  292.028877] sp : ffff8003366c7950
+[  292.029582] x29: ffff8003366c7950 x28: 0000000000000000
+[  292.030570] x27: ffff80032b5f4708 x26: ffff80032b5f4678
+[  292.031863] x25: ffff80036ae6b300 x24: ffff8003689254d0
+[  292.032902] x23: ffff80036ae69d80 x22: 0000000000033cc8
+[  292.033928] x21: 0000000000000000 x20: ffff80032b5f47a0
+[  292.034941] x19: ffff80032b5f4678 x18: 0000000000000000
+[  292.035958] x17: 0000000000000000 x16: 0000000000000000
+[  292.037102] x15: 0000000000000000 x14: 0000000000000000
+[  292.038103] x13: 0000000000000004 x12: 0000000000000000
+[  292.039137] x11: 1ffff00066cd8f52 x10: 1ffff00066cd8ec8
+[  292.040216] x9 : dfff200000000000 x8 : ffff10006ac1e86a
+[  292.041432] x7 : dfff200000000000 x6 : ffff100066cd8f1e
+[  292.042516] x5 : dfff200000000000 x4 : ffff80032b5f47a0
+[  292.043525] x3 : ffff200008000000 x2 : ffff200009867000
+[  292.044560] x1 : ffff8003366bb000 x0 : 0000000000000000
+[  292.045569] Call trace:
+[  292.046083]  clear_inode+0x280/0x2a8
+[  292.046828]  ext4_clear_inode+0x38/0xe8
+[  292.047593]  ext4_free_inode+0x130/0xc68
+[  292.048383]  ext4_evict_inode+0xb20/0xcb8
+[  292.049162]  evict+0x1a8/0x3c0
+[  292.049761]  iput+0x344/0x460
+[  292.050350]  do_unlinkat+0x260/0x410
+[  292.051042]  __arm64_sys_unlinkat+0x6c/0xc0
+[  292.051846]  el0_svc_common+0xdc/0x3b0
+[  292.052570]  el0_svc_handler+0xf8/0x160
+[  292.053303]  el0_svc+0x10/0x218
+[  292.053908] Code: 9413f4a9 d503201f f90017b6 97f4d5b1 (d4210000)
+[  292.055471] ---[ end trace 01b339dd07795f8d ]---
+[  292.056443] Kernel panic - not syncing: Fatal exception
+[  292.057488] SMP: stopping secondary CPUs
+[  292.058419] Dumping ftrace buffer:
+[  292.059078]    (ftrace buffer empty)
+[  292.059756] Kernel Offset: disabled
+[  292.060443] CPU features: 0x10,a1006000
+[  292.061195] Memory Limit: none
+[  292.061794] Rebooting in 86400 seconds..
 
-One specific series of operations causing an issue is:
-- Create a shared hugetlb mapping
-  Reservations for all pages created by default
-- Fault in a page in the mapping
-  Reservation exists so reservation count is decremented
-- Punch a hole in the file/mapping at index previously faulted
-  Reservation and any associated pages will be removed
-- Allocate a page to fill the hole
-  No reservation entry, so reserve count unmodified
-  Reservation entry added to map by alloc_huge_page
-- Error after allocation and before instantiating the page
-  Reservation entry remains in map
-- Allocate a page to fill the hole
-  Reservation entry exists, so decrement reservation count
+Crash of this problem show that someone call __munlock_pagevec to clear
+page LRU without lock_page.
 
-This will cause a reservation count underflow as the reservation count was
-decremented twice for the same index.
+ #0 [ffff80035f02f4c0] __switch_to at ffff20000808d020
+ #1 [ffff80035f02f4f0] __schedule at ffff20000985102c
+ #2 [ffff80035f02f5e0] schedule at ffff200009851d1c
+ #3 [ffff80035f02f600] io_schedule at ffff2000098525c0
+ #4 [ffff80035f02f620] __lock_page at ffff20000842d2d4
+ #5 [ffff80035f02f710] __munlock_pagevec at ffff2000084c4600
+ #6 [ffff80035f02f870] munlock_vma_pages_range at ffff2000084c5928
+ #7 [ffff80035f02fa60] do_munmap at ffff2000084cbdf4
+ #8 [ffff80035f02faf0] mmap_region at ffff2000084ce20c
+ #9 [ffff80035f02fb90] do_mmap at ffff2000084cf018
 
-A user would observe a very large number for HugePages_Rsvd in
-/proc/meminfo.  This would also likely cause subsequent allocations of
-hugetlb pages to fail as it would 'appear' that all pages are reserved.
+So memory_failure will call identify_page_state without
+wait_on_page_writeback.  And after truncate_error_page clear the mapping
+of this page.  end_page_writeback won't call sb_clear_inode_writeback to
+clear inode->i_wb_list.  That will trigger BUG_ON in clear_inode!
 
-This sequence of operations is unlikely to happen, however they were
-easily reproduced and observed using hacked up code as described in [1].
+Fix it by checking PageWriteback too to help determine should we skip
+wait_on_page_writeback.
 
-Address the issue by having the routine restore_reserve_on_error take
-action on pages where HPageRestoreReserve is not set.  In this case, we
-need to remove any reserve map entry created by alloc_huge_page.  A new
-helper routine vma_del_reservation assists with this operation.
-
-There are three callers of alloc_huge_page which do not currently call
-restore_reserve_on error before freeing a page on error paths.  Add those
-missing calls.
-
-[1] https://lore.kernel.org/linux-mm/20210528005029.88088-1-almasrymina@google.com/
-Link: https://lkml.kernel.org/r/20210607204510.22617-1-mike.kravetz@oracle.com
-Fixes: 96b96a96ddee ("mm/hugetlb: fix huge page reservation leak in private mapping error paths"
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Mina Almasry <almasrymina@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210604084705.3729204-1-yangerkun@huawei.com
+Fixes: 0bc1f8b0682c ("hwpoison: fix the handling path of the victimized page frame that belong to non-LRU")
+Signed-off-by: yangerkun <yangerkun@huawei.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yu Kuai <yukuai3@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |    1 
- include/linux/hugetlb.h |    2 
- mm/hugetlb.c            |  122 ++++++++++++++++++++++++++++++--------
- 3 files changed, 101 insertions(+), 24 deletions(-)
+ mm/memory-failure.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/fs/hugetlbfs/inode.c~mm-hugetlb-expand-restore_reserve_on_error-functionality
-+++ a/fs/hugetlbfs/inode.c
-@@ -735,6 +735,7 @@ static long hugetlbfs_fallocate(struct f
- 		__SetPageUptodate(page);
- 		error = huge_add_to_page_cache(page, mapping, index);
- 		if (unlikely(error)) {
-+			restore_reserve_on_error(h, &pseudo_vma, addr, page);
- 			put_page(page);
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 			goto out;
---- a/include/linux/hugetlb.h~mm-hugetlb-expand-restore_reserve_on_error-functionality
-+++ a/include/linux/hugetlb.h
-@@ -610,6 +610,8 @@ struct page *alloc_huge_page_vma(struct
- 				unsigned long address);
- int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
- 			pgoff_t idx);
-+void restore_reserve_on_error(struct hstate *h, struct vm_area_struct *vma,
-+				unsigned long address, struct page *page);
- 
- /* arch callback */
- int __init __alloc_bootmem_huge_page(struct hstate *h);
---- a/mm/hugetlb.c~mm-hugetlb-expand-restore_reserve_on_error-functionality
-+++ a/mm/hugetlb.c
-@@ -2121,12 +2121,18 @@ out:
-  * be restored when a newly allocated huge page must be freed.  It is
-  * to be called after calling vma_needs_reservation to determine if a
-  * reservation exists.
-+ *
-+ * vma_del_reservation is used in error paths where an entry in the reserve
-+ * map was created during huge page allocation and must be removed.  It is to
-+ * be called after calling vma_needs_reservation to determine if a reservation
-+ * exists.
-  */
- enum vma_resv_mode {
- 	VMA_NEEDS_RESV,
- 	VMA_COMMIT_RESV,
- 	VMA_END_RESV,
- 	VMA_ADD_RESV,
-+	VMA_DEL_RESV,
- };
- static long __vma_reservation_common(struct hstate *h,
- 				struct vm_area_struct *vma, unsigned long addr,
-@@ -2170,11 +2176,21 @@ static long __vma_reservation_common(str
- 			ret = region_del(resv, idx, idx + 1);
- 		}
- 		break;
-+	case VMA_DEL_RESV:
-+		if (vma->vm_flags & VM_MAYSHARE) {
-+			region_abort(resv, idx, idx + 1, 1);
-+			ret = region_del(resv, idx, idx + 1);
-+		} else {
-+			ret = region_add(resv, idx, idx + 1, 1, NULL, NULL);
-+			/* region_add calls of range 1 should never fail. */
-+			VM_BUG_ON(ret < 0);
-+		}
-+		break;
- 	default:
- 		BUG();
+--- a/mm/memory-failure.c~mm-memory-failure-make-sure-wait-for-page-writeback-in-memory_failure
++++ a/mm/memory-failure.c
+@@ -1552,7 +1552,12 @@ try_again:
+ 		return 0;
  	}
  
--	if (vma->vm_flags & VM_MAYSHARE)
-+	if (vma->vm_flags & VM_MAYSHARE || mode == VMA_DEL_RESV)
- 		return ret;
+-	if (!PageTransTail(p) && !PageLRU(p))
++	/*
++	 * __munlock_pagevec may clear a writeback page's LRU flag without
++	 * page_lock. We need wait writeback completion for this page or it
++	 * may trigger vfs BUG while evict inode.
++	 */
++	if (!PageTransTail(p) && !PageLRU(p) && !PageWriteback(p))
+ 		goto identify_page_state;
+ 
  	/*
- 	 * We know private mapping must have HPAGE_RESV_OWNER set.
-@@ -2222,25 +2238,39 @@ static long vma_add_reservation(struct h
- 	return __vma_reservation_common(h, vma, addr, VMA_ADD_RESV);
- }
- 
-+static long vma_del_reservation(struct hstate *h,
-+			struct vm_area_struct *vma, unsigned long addr)
-+{
-+	return __vma_reservation_common(h, vma, addr, VMA_DEL_RESV);
-+}
-+
- /*
-- * This routine is called to restore a reservation on error paths.  In the
-- * specific error paths, a huge page was allocated (via alloc_huge_page)
-- * and is about to be freed.  If a reservation for the page existed,
-- * alloc_huge_page would have consumed the reservation and set
-- * HPageRestoreReserve in the newly allocated page.  When the page is freed
-- * via free_huge_page, the global reservation count will be incremented if
-- * HPageRestoreReserve is set.  However, free_huge_page can not adjust the
-- * reserve map.  Adjust the reserve map here to be consistent with global
-- * reserve count adjustments to be made by free_huge_page.
-- */
--static void restore_reserve_on_error(struct hstate *h,
--			struct vm_area_struct *vma, unsigned long address,
--			struct page *page)
-+ * This routine is called to restore reservation information on error paths.
-+ * It should ONLY be called for pages allocated via alloc_huge_page(), and
-+ * the hugetlb mutex should remain held when calling this routine.
-+ *
-+ * It handles two specific cases:
-+ * 1) A reservation was in place and the page consumed the reservation.
-+ *    HPageRestoreReserve is set in the page.
-+ * 2) No reservation was in place for the page, so HPageRestoreReserve is
-+ *    not set.  However, alloc_huge_page always updates the reserve map.
-+ *
-+ * In case 1, free_huge_page later in the error path will increment the
-+ * global reserve count.  But, free_huge_page does not have enough context
-+ * to adjust the reservation map.  This case deals primarily with private
-+ * mappings.  Adjust the reserve map here to be consistent with global
-+ * reserve count adjustments to be made by free_huge_page.  Make sure the
-+ * reserve map indicates there is a reservation present.
-+ *
-+ * In case 2, simply undo reserve map modifications done by alloc_huge_page.
-+ */
-+void restore_reserve_on_error(struct hstate *h, struct vm_area_struct *vma,
-+			unsigned long address, struct page *page)
- {
--	if (unlikely(HPageRestoreReserve(page))) {
--		long rc = vma_needs_reservation(h, vma, address);
-+	long rc = vma_needs_reservation(h, vma, address);
- 
--		if (unlikely(rc < 0)) {
-+	if (HPageRestoreReserve(page)) {
-+		if (unlikely(rc < 0))
- 			/*
- 			 * Rare out of memory condition in reserve map
- 			 * manipulation.  Clear HPageRestoreReserve so that
-@@ -2253,16 +2283,57 @@ static void restore_reserve_on_error(str
- 			 * accounting of reserve counts.
- 			 */
- 			ClearHPageRestoreReserve(page);
--		} else if (rc) {
--			rc = vma_add_reservation(h, vma, address);
--			if (unlikely(rc < 0))
-+		else if (rc)
-+			(void)vma_add_reservation(h, vma, address);
-+		else
-+			vma_end_reservation(h, vma, address);
-+	} else {
-+		if (!rc) {
-+			/*
-+			 * This indicates there is an entry in the reserve map
-+			 * added by alloc_huge_page.  We know it was added
-+			 * before the alloc_huge_page call, otherwise
-+			 * HPageRestoreReserve would be set on the page.
-+			 * Remove the entry so that a subsequent allocation
-+			 * does not consume a reservation.
-+			 */
-+			rc = vma_del_reservation(h, vma, address);
-+			if (rc < 0)
- 				/*
--				 * See above comment about rare out of
--				 * memory condition.
-+				 * VERY rare out of memory condition.  Since
-+				 * we can not delete the entry, set
-+				 * HPageRestoreReserve so that the reserve
-+				 * count will be incremented when the page
-+				 * is freed.  This reserve will be consumed
-+				 * on a subsequent allocation.
- 				 */
--				ClearHPageRestoreReserve(page);
-+				SetHPageRestoreReserve(page);
-+		} else if (rc < 0) {
-+			/*
-+			 * Rare out of memory condition from
-+			 * vma_needs_reservation call.  Memory allocation is
-+			 * only attempted if a new entry is needed.  Therefore,
-+			 * this implies there is not an entry in the
-+			 * reserve map.
-+			 *
-+			 * For shared mappings, no entry in the map indicates
-+			 * no reservation.  We are done.
-+			 */
-+			if (!(vma->vm_flags & VM_MAYSHARE))
-+				/*
-+				 * For private mappings, no entry indicates
-+				 * a reservation is present.  Since we can
-+				 * not add an entry, set SetHPageRestoreReserve
-+				 * on the page so reserve count will be
-+				 * incremented when freed.  This reserve will
-+				 * be consumed on a subsequent allocation.
-+				 */
-+				SetHPageRestoreReserve(page);
- 		} else
--			vma_end_reservation(h, vma, address);
-+			/*
-+			 * No reservation present, do nothing
-+			 */
-+			 vma_end_reservation(h, vma, address);
- 	}
- }
- 
-@@ -4037,6 +4108,8 @@ again:
- 				spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
- 				entry = huge_ptep_get(src_pte);
- 				if (!pte_same(src_pte_old, entry)) {
-+					restore_reserve_on_error(h, vma, addr,
-+								new);
- 					put_page(new);
- 					/* dst_entry won't change as in child */
- 					goto again;
-@@ -5006,6 +5079,7 @@ out_release_unlock:
- 	if (vm_shared || is_continue)
- 		unlock_page(page);
- out_release_nounlock:
-+	restore_reserve_on_error(h, dst_vma, dst_addr, page);
- 	put_page(page);
- 	goto out;
- }
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from yangerkun@huawei.com are
 
-mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page-fix.patch
-hugetlb-remove-prep_compound_huge_page-cleanup.patch
-hugetlb-address-ref-count-racing-in-prep_compound_gigantic_page.patch
 
