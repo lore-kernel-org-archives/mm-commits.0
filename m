@@ -4,42 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02ACEC49EA6
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:52:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF0A7C49EB9
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:52:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF2EC61C34
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:52:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CF1A61C35
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:52:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231709AbhF0VzS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 27 Jun 2021 17:55:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53724 "EHLO mail.kernel.org"
+        id S231741AbhF0VzW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 27 Jun 2021 17:55:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53832 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231707AbhF0VzS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 27 Jun 2021 17:55:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B940161A1D;
-        Sun, 27 Jun 2021 21:52:52 +0000 (UTC)
+        id S231707AbhF0VzW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 27 Jun 2021 17:55:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F2C261C32;
+        Sun, 27 Jun 2021 21:52:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624830773;
-        bh=1SV5cEy9xuijtighVey/hFigV31oPBCFfAR4uETCFsA=;
+        s=korg; t=1624830777;
+        bh=g4sT0Imfn3tzP2pc5gadeLLerK7UTPNA6rDFlPUY1CI=;
         h=Date:From:To:Subject:From;
-        b=Z1tM7LT7vPGP9wEWak8AqbPCLVlqHIMzyMDVPJWEReTOoS1rV3NvUegCFgiBDvL0r
-         Ypn6/ijDJ0hlrZvvEL76qskZB98uzAt5lUd+EJ3iO6ZaPDN2ZypuflNBQST779WrGn
-         ee3w5w3iIDy51Iy2Ey4cWPU44iY0R4hSg3IWuPXc=
-Date:   Sun, 27 Jun 2021 14:52:52 -0700
+        b=zGrSFt1mg9+IqfmKD7eel3mzsbmA9Gj6+N6M9xskToHgcvZs7eSaACFPcSlZ2QhhY
+         WxG4tNKRzkxn+Cct7R6nFFsJElXqL9TP2qOQJwuJNMjgUe1e/p0TRggcctjoU3Fa+0
+         6r110gcjbFgRa7AE6eX7Mx3EsrQc3cgQUlmX6JXk=
+Date:   Sun, 27 Jun 2021 14:52:57 -0700
 From:   akpm@linux-foundation.org
-To:     anderson@redhat.com, benh@kernel.crashing.org, bhe@redhat.com,
-        bhupesh.sharma@linaro.org, bp@alien8.de, catalin.marinas@arm.com,
-        dyoung@redhat.com, james.morse@arm.com, k-hagio@ab.jp.nec.com,
-        kernelfans@gmail.com, mark.rutland@arm.com, mingo@kernel.org,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org,
-        stable@vger.kernel.org, tglx@linutronix.de, will@kernel.org
+To:     gavin.dg@linux.alibaba.com, hughd@google.com,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, willy@infradead.org, xuyu@linux.alibaba.com
 Subject:  [merged]
- crash_core-vmcoreinfo-append-section_size_bits-to-vmcoreinfo.patch removed
- from -mm tree
-Message-ID: <20210627215252.wPZH5_Bbv%akpm@linux-foundation.org>
+ mm-thp-use-head-page-in-__migration_entry_wait.patch removed from -mm tree
+Message-ID: <20210627215257.o_BQ0XgCS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,68 +44,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: crash_core, vmcoreinfo: append 'SECTION_SIZE_BITS' to vmcoreinfo
+     Subject: mm, thp: use head page in __migration_entry_wait()
 has been removed from the -mm tree.  Its filename was
-     crash_core-vmcoreinfo-append-section_size_bits-to-vmcoreinfo.patch
+     mm-thp-use-head-page-in-__migration_entry_wait.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pingfan Liu <kernelfans@gmail.com>
-Subject: crash_core, vmcoreinfo: append 'SECTION_SIZE_BITS' to vmcoreinfo
+From: Xu Yu <xuyu@linux.alibaba.com>
+Subject: mm, thp: use head page in __migration_entry_wait()
 
-As mentioned in kernel commit 1d50e5d0c505 ("crash_core, vmcoreinfo:
-Append 'MAX_PHYSMEM_BITS' to vmcoreinfo"), SECTION_SIZE_BITS in the
-formula:
+We notice that hung task happens in a corner but practical scenario when
+CONFIG_PREEMPT_NONE is enabled, as follows.
 
-    #define SECTIONS_SHIFT    (MAX_PHYSMEM_BITS - SECTION_SIZE_BITS)
+Process 0                       Process 1                     Process 2..Inf
+split_huge_page_to_list
+    unmap_page
+        split_huge_pmd_address
+                                __migration_entry_wait(head)
+                                                              __migration_entry_wait(tail)
+    remap_page (roll back)
+        remove_migration_ptes
+            rmap_walk_anon
+                cond_resched
 
-Besides SECTIONS_SHIFT, SECTION_SIZE_BITS is also used to calculate
-PAGES_PER_SECTION in makedumpfile just like kernel.
+Where __migration_entry_wait(tail) is occurred in kernel space, e.g.,
+copy_to_user in fstat, which will immediately fault again without
+rescheduling, and thus occupy the cpu fully.
 
-Unfortunately, this arch-dependent macro SECTION_SIZE_BITS changes, e.g. 
-recently in kernel commit f0b13ee23241 ("arm64/sparsemem: reduce
-SECTION_SIZE_BITS").  But user space wants a stable interface to get this
-info.  Such info is impossible to be deduced from a crashdump vmcore. 
-Hence append SECTION_SIZE_BITS to vmcoreinfo.
+When there are too many processes performing __migration_entry_wait on
+tail page, remap_page will never be done after cond_resched.
 
-Link: https://lkml.kernel.org/r/20210608103359.84907-1-kernelfans@gmail.com
-Link: http://lists.infradead.org/pipermail/kexec/2021-June/022676.html
-Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Bhupesh Sharma <bhupesh.sharma@linaro.org>
-Cc: Kazuhito Hagio <k-hagio@ab.jp.nec.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Boris Petkov <bp@alien8.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: James Morse <james.morse@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dave Anderson <anderson@redhat.com>
+This makes __migration_entry_wait operate on the compound head page, thus
+waits for remap_page to complete, whether the THP is split successfully or
+roll back.
+
+Note that put_and_wait_on_page_locked helps to drop the page reference
+acquired with get_page_unless_zero, as soon as the page is on the wait
+queue, before actually waiting.  So splitting the THP is only prevented
+for a brief interval.
+
+Link: https://lkml.kernel.org/r/b9836c1dd522e903891760af9f0c86a2cce987eb.1623144009.git.xuyu@linux.alibaba.com
+Fixes: ba98828088ad ("thp: add option to setup migration entries during PMD split")
+Suggested-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Gang Deng <gavin.dg@linux.alibaba.com>
+Signed-off-by: Xu Yu <xuyu@linux.alibaba.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c |    1 +
+ mm/migrate.c |    1 +
  1 file changed, 1 insertion(+)
 
---- a/kernel/crash_core.c~crash_core-vmcoreinfo-append-section_size_bits-to-vmcoreinfo
-+++ a/kernel/crash_core.c
-@@ -464,6 +464,7 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_LENGTH(mem_section, NR_SECTION_ROOTS);
- 	VMCOREINFO_STRUCT_SIZE(mem_section);
- 	VMCOREINFO_OFFSET(mem_section, section_mem_map);
-+	VMCOREINFO_NUMBER(SECTION_SIZE_BITS);
- 	VMCOREINFO_NUMBER(MAX_PHYSMEM_BITS);
- #endif
- 	VMCOREINFO_STRUCT_SIZE(page);
+--- a/mm/migrate.c~mm-thp-use-head-page-in-__migration_entry_wait
++++ a/mm/migrate.c
+@@ -295,6 +295,7 @@ void __migration_entry_wait(struct mm_st
+ 		goto out;
+ 
+ 	page = migration_entry_to_page(entry);
++	page = compound_head(page);
+ 
+ 	/*
+ 	 * Once page cache replacement of page migration started, page_count
 _
 
-Patches currently in -mm which might be from kernelfans@gmail.com are
+Patches currently in -mm which might be from xuyu@linux.alibaba.com are
 
 
