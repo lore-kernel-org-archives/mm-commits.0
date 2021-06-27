@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65887C49EB9
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32258C49EBB
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C38461C3D
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1BD2F61C43
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:54:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231847AbhF0V4n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 27 Jun 2021 17:56:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55388 "EHLO mail.kernel.org"
+        id S231848AbhF0V4p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 27 Jun 2021 17:56:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55430 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231694AbhF0V4n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 27 Jun 2021 17:56:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 73F5261C32;
-        Sun, 27 Jun 2021 21:54:18 +0000 (UTC)
+        id S231694AbhF0V4o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 27 Jun 2021 17:56:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7C91D61C35;
+        Sun, 27 Jun 2021 21:54:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624830858;
-        bh=7y0RXlwksgn5VW6tEfi7ykltherNvYeREZ+sVavykkU=;
+        s=korg; t=1624830859;
+        bh=6jV8Sl3/M8GQuZUmtSkRlutd7YtTEGM8AkyJvjW8hNI=;
         h=Date:From:To:Subject:From;
-        b=rPqpaJmXFPaDzbgRh/MDJHFXSA8uRnhoKQ8x+jJ2mo5wBxnu7V7zq/9egoHp8Iqiv
-         tsqVKGww1p2jPdf1/02PRxHa9rqJ6RBJYz+SjYHmPR4a/Tdgw7pRW4JJApW5gyJXCA
-         7oullvhlmPriFUqT2xVhax/rQbIn8JqGuIeQRYqo=
-Date:   Sun, 27 Jun 2021 14:54:18 -0700
+        b=aMVNbQJ2X8Ju+lkxoJ5d+6pJ7SQEDSTfMBq4reR6yo4lLR+AKUR6elhv7zTR/jsHA
+         wO2vY1s3WqT86pYpJYCuD04AXnmMf8EtsCdfi/o0thu9Axiscr9kUd/ZJx6hcAqdgI
+         C1247XcuSN09LFYk9h4Y0f6YVNdsAGKJPXlUz8Pc=
+Date:   Sun, 27 Jun 2021 14:54:19 -0700
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.vnet.ibm.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, stable@vger.kernel.org, tony.luck@intel.com
+To:     akpm@linux-foundation.org, linux@rasmusvillemoes.dk,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org
 Subject:  [merged]
- =?US-ASCII?Q?mm-hwpoison-do-not-lock-page-again-when-me=5Fhuge=5Fpage-suc?=
- =?US-ASCII?Q?cessfully-recovers.patch?= removed from -mm tree
-Message-ID: <20210627215418.SmPeil5yZ%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-page=5Falloc-=5F=5Falloc=5Fpages=5Fbulk-do-bounds-check-?=
+ =?US-ASCII?Q?before-accessing-array.patch?= removed from -mm tree
+Message-ID: <20210627215419.p9lAHHB2c%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -47,197 +46,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: do not lock page again when me_huge_page() successfully recovers
+     Subject: mm/page_alloc: __alloc_pages_bulk(): do bounds check before accessing array
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-do-not-lock-page-again-when-me_huge_page-successfully-recovers.patch
+     mm-page_alloc-__alloc_pages_bulk-do-bounds-check-before-accessing-array.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/hwpoison: do not lock page again when me_huge_page() successfully recovers
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: mm/page_alloc: __alloc_pages_bulk(): do bounds check before accessing array
 
-Currently me_huge_page() temporary unlocks page to perform some actions
-then locks it again later.  My testcase (which calls hard-offline on some
-tail page in a hugetlb, then accesses the address of the hugetlb range)
-showed that page allocation code detects this page lock on buddy page and
-printed out "BUG: Bad page state" message.
+In the event that somebody would call this with an already fully populated
+page_array, the last loop iteration would do an access beyond the end of
+page_array.
 
-check_new_page_bad() does not consider a page with __PG_HWPOISON as bad
-page, so this flag works as kind of filter, but this filtering doesn't
-work in this case because the "bad page" is not the actual hwpoisoned
-page.  So stop locking page again.  Actions to be taken depend on the page
-type of the error, so page unlocking should be done in ->action()
-callbacks.  So let's make it assumed and change all existing callbacks
-that way.
+It's of course extremely unlikely that would ever be done, but this
+triggers my internal static analyzer.  Also, if it really is not supposed
+to be invoked this way (i.e., with no NULL entries in page_array), the
+nr_populated<nr_pages check could simply be removed instead.
 
-Link: https://lkml.kernel.org/r/20210609072029.74645-1-nao.horiguchi@gmail.com
-Fixes: commit 78bb920344b8 ("mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210507064504.1712559-1-linux@rasmusvillemoes.dk
+Fixes: 0f87d9d30f21 ("mm/page_alloc: add an array-based interface to the bulk page allocator")
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   44 ++++++++++++++++++++++++++++--------------
- 1 file changed, 30 insertions(+), 14 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-do-not-lock-page-again-when-me_huge_page-successfully-recovers
-+++ a/mm/memory-failure.c
-@@ -658,6 +658,7 @@ static int truncate_error_page(struct pa
-  */
- static int me_kernel(struct page *p, unsigned long pfn)
- {
-+	unlock_page(p);
- 	return MF_IGNORED;
- }
- 
-@@ -667,6 +668,7 @@ static int me_kernel(struct page *p, uns
- static int me_unknown(struct page *p, unsigned long pfn)
- {
- 	pr_err("Memory failure: %#lx: Unknown page state\n", pfn);
-+	unlock_page(p);
- 	return MF_FAILED;
- }
- 
-@@ -675,6 +677,7 @@ static int me_unknown(struct page *p, un
-  */
- static int me_pagecache_clean(struct page *p, unsigned long pfn)
- {
-+	int ret;
- 	struct address_space *mapping;
- 
- 	delete_from_lru_cache(p);
-@@ -683,8 +686,10 @@ static int me_pagecache_clean(struct pag
- 	 * For anonymous pages we're done the only reference left
- 	 * should be the one m_f() holds.
+--- a/mm/page_alloc.c~mm-page_alloc-__alloc_pages_bulk-do-bounds-check-before-accessing-array
++++ a/mm/page_alloc.c
+@@ -5053,7 +5053,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 	 * Skip populated array elements to determine if any pages need
+ 	 * to be allocated before disabling IRQs.
  	 */
--	if (PageAnon(p))
--		return MF_RECOVERED;
-+	if (PageAnon(p)) {
-+		ret = MF_RECOVERED;
-+		goto out;
-+	}
+-	while (page_array && page_array[nr_populated] && nr_populated < nr_pages)
++	while (page_array && nr_populated < nr_pages && page_array[nr_populated])
+ 		nr_populated++;
  
- 	/*
- 	 * Now truncate the page in the page cache. This is really
-@@ -698,7 +703,8 @@ static int me_pagecache_clean(struct pag
- 		/*
- 		 * Page has been teared down in the meanwhile
- 		 */
--		return MF_FAILED;
-+		ret = MF_FAILED;
-+		goto out;
- 	}
- 
- 	/*
-@@ -706,7 +712,10 @@ static int me_pagecache_clean(struct pag
- 	 *
- 	 * Open: to take i_mutex or not for this? Right now we don't.
- 	 */
--	return truncate_error_page(p, pfn, mapping);
-+	ret = truncate_error_page(p, pfn, mapping);
-+out:
-+	unlock_page(p);
-+	return ret;
- }
- 
- /*
-@@ -782,24 +791,26 @@ static int me_pagecache_dirty(struct pag
-  */
- static int me_swapcache_dirty(struct page *p, unsigned long pfn)
- {
-+	int ret;
-+
- 	ClearPageDirty(p);
- 	/* Trigger EIO in shmem: */
- 	ClearPageUptodate(p);
- 
--	if (!delete_from_lru_cache(p))
--		return MF_DELAYED;
--	else
--		return MF_FAILED;
-+	ret = delete_from_lru_cache(p) ? MF_FAILED : MF_DELAYED;
-+	unlock_page(p);
-+	return ret;
- }
- 
- static int me_swapcache_clean(struct page *p, unsigned long pfn)
- {
-+	int ret;
-+
- 	delete_from_swap_cache(p);
- 
--	if (!delete_from_lru_cache(p))
--		return MF_RECOVERED;
--	else
--		return MF_FAILED;
-+	ret = delete_from_lru_cache(p) ? MF_FAILED : MF_RECOVERED;
-+	unlock_page(p);
-+	return ret;
- }
- 
- /*
-@@ -820,6 +831,7 @@ static int me_huge_page(struct page *p,
- 	mapping = page_mapping(hpage);
- 	if (mapping) {
- 		res = truncate_error_page(hpage, pfn, mapping);
-+		unlock_page(hpage);
- 	} else {
- 		res = MF_FAILED;
- 		unlock_page(hpage);
-@@ -834,7 +846,6 @@ static int me_huge_page(struct page *p,
- 			page_ref_inc(p);
- 			res = MF_RECOVERED;
- 		}
--		lock_page(hpage);
- 	}
- 
- 	return res;
-@@ -866,6 +877,8 @@ static struct page_state {
- 	unsigned long mask;
- 	unsigned long res;
- 	enum mf_action_page_type type;
-+
-+	/* Callback ->action() has to unlock the relevant page inside it. */
- 	int (*action)(struct page *p, unsigned long pfn);
- } error_states[] = {
- 	{ reserved,	reserved,	MF_MSG_KERNEL,	me_kernel },
-@@ -929,6 +942,7 @@ static int page_action(struct page_state
- 	int result;
- 	int count;
- 
-+	/* page p should be unlocked after returning from ps->action().  */
- 	result = ps->action(p, pfn);
- 
- 	count = page_count(p) - 1;
-@@ -1313,7 +1327,7 @@ static int memory_failure_hugetlb(unsign
- 		goto out;
- 	}
- 
--	res = identify_page_state(pfn, p, page_flags);
-+	return identify_page_state(pfn, p, page_flags);
- out:
- 	unlock_page(head);
- 	return res;
-@@ -1596,6 +1610,8 @@ try_again:
- 
- identify_page_state:
- 	res = identify_page_state(pfn, p, page_flags);
-+	mutex_unlock(&mf_mutex);
-+	return res;
- unlock_page:
- 	unlock_page(p);
- unlock_mutex:
+ 	/* Use the single page allocator for one page. */
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-mmhwpoison-send-sigbus-with-error-virutal-address.patch
-mmhwpoison-send-sigbus-with-error-virutal-address-fix.patch
-mmhwpoison-make-get_hwpoison_page-call-get_any_page.patch
-mm-hwpoison-disable-pcp-for-page_handle_poison.patch
 
