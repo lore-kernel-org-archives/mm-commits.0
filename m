@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23416C49EA6
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:45:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1620EC48BC2
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:45:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F10D8619BF
-	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:45:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E82BF61C2E
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Jun 2021 21:45:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231680AbhF0VsB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 27 Jun 2021 17:48:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50650 "EHLO mail.kernel.org"
+        id S231682AbhF0VsE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 27 Jun 2021 17:48:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50690 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231676AbhF0VsB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 27 Jun 2021 17:48:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EAC4161C2E;
-        Sun, 27 Jun 2021 21:45:35 +0000 (UTC)
+        id S231676AbhF0VsE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 27 Jun 2021 17:48:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E6B43619BF;
+        Sun, 27 Jun 2021 21:45:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624830336;
-        bh=/sdNqMuZNaP+h4bE1lgT0Zx+BJOcS5PquOlGXv+K2yU=;
+        s=korg; t=1624830340;
+        bh=eMgqhUkT1HsYoXuRk8gvnhwLZwx9BpdYbEnMyrp6uJc=;
         h=Date:From:To:Subject:From;
-        b=Z4GbDl33LPHbq+D/Nn8uFWSeaB0JHpKzgzkAvKRkH2XrevqbHoR+G0+l8fEsRsddp
-         AIRIEAyRODAb1o8D9jNvMnsetV8QPgwhc/1agF1iXZkevIRPy6zVBlI4whEKvAqWHt
-         UMghF0m/dVWKH87rcsUutwT4mHNS1DapeUDAuc7Y=
-Date:   Sun, 27 Jun 2021 14:45:35 -0700
+        b=d6EqcDDckTE7gCKjLAa1KL1jmbu4plNY0MsIE+WWJyx84cqUSvxagkheOoKGrz5Az
+         v0TqYX7KDJhaZnnclwFNi34phX3bqgNdU2aox0aoh+qhvLxPKDSONTT1EDN03TlnZI
+         tA7gDO5J5be+jOOh8k6WP0Sq9McJ4t7bSjAmjqpo=
+Date:   Sun, 27 Jun 2021 14:45:39 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@gmail.com, chinwen.chang@mediatek.com,
         dvyukov@google.com, elver@google.com, glider@google.com,
@@ -36,10 +36,12 @@ To:     andreyknvl@gmail.com, chinwen.chang@mediatek.com,
         matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
         nicholas.tang@mediatek.com, ryabinin.a.a@gmail.com
 Subject:  +
- kasan-integrate-the-common-part-of-two-kasan-tag-based-modes.patch added to
- -mm tree
-Message-ID: <20210627214535.W1iM6G4Ab%akpm@linux-foundation.org>
+ =?US-ASCII?Q?kasan-add-memory-corruption-identification-support-for-hardw?=
+ =?US-ASCII?Q?are-tag-based-mode.patch?= added to -mm tree
+Message-ID: <20210627214539.jPnOe7EK5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: integrate the common part of two KASAN tag-based modes
+     Subject: kasan: add memory corruption identification support for hardware tag-based mode
 has been added to the -mm tree.  Its filename is
-     kasan-integrate-the-common-part-of-two-kasan-tag-based-modes.patch
+     kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-integrate-the-common-part-of-two-kasan-tag-based-modes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-integrate-the-common-part-of-two-kasan-tag-based-modes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,307 +71,56 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Subject: kasan: integrate the common part of two KASAN tag-based modes
+Subject: kasan: add memory corruption identification support for hardware tag-based mode
 
-1. Move kasan_get_free_track() and kasan_set_free_info() into tags.c
-   and combine these two functions for SW_TAGS and HW_TAGS kasan mode.
+Add memory corruption identification support for hardware tag-based mode. 
+We store one old free pointer tag and free backtrace instead of five
+because hardware tag-based kasan only has 16 different tags.
 
-2. Move kasan_get_bug_type() to report_tags.c and make this function
-   compatible for SW_TAGS and HW_TAGS kasan mode.
+If we store as many stacks as SW tag-based kasan does(5 stacks), there is
+high probability to find the same tag in the stacks when out-of-bound
+issues happened and we will mistake out-of-bound issue for use-after-free.
 
-Link: https://lkml.kernel.org/r/20210626100931.22794-3-Kuan-Ying.Lee@mediatek.com
+Link: https://lkml.kernel.org/r/20210626100931.22794-4-Kuan-Ying.Lee@mediatek.com
 Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
 Suggested-by: Marco Elver <elver@google.com>
-Suggested-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Matthias Brugger <matthias.bgg@gmail.com>
 Cc: Nicholas Tang <nicholas.tang@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/Makefile         |    4 +-
- mm/kasan/hw_tags.c        |   22 -------------
- mm/kasan/report_hw_tags.c |    5 ---
- mm/kasan/report_sw_tags.c |   43 --------------------------
- mm/kasan/report_tags.c    |   51 +++++++++++++++++++++++++++++++
- mm/kasan/sw_tags.c        |   41 -------------------------
- mm/kasan/tags.c           |   59 ++++++++++++++++++++++++++++++++++++
- 7 files changed, 112 insertions(+), 113 deletions(-)
+ lib/Kconfig.kasan |    2 +-
+ mm/kasan/kasan.h  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/kasan/hw_tags.c~kasan-integrate-the-common-part-of-two-kasan-tag-based-modes
-+++ a/mm/kasan/hw_tags.c
-@@ -216,28 +216,6 @@ void __init kasan_init_hw_tags(void)
- 	pr_info("KernelAddressSanitizer initialized\n");
- }
+--- a/lib/Kconfig.kasan~kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode
++++ a/lib/Kconfig.kasan
+@@ -169,7 +169,7 @@ config KASAN_STACK
  
--void kasan_set_free_info(struct kmem_cache *cache,
--				void *object, u8 tag)
--{
--	struct kasan_alloc_meta *alloc_meta;
--
--	alloc_meta = kasan_get_alloc_meta(cache, object);
--	if (alloc_meta)
--		kasan_set_track(&alloc_meta->free_track[0], GFP_NOWAIT);
--}
--
--struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
--				void *object, u8 tag)
--{
--	struct kasan_alloc_meta *alloc_meta;
--
--	alloc_meta = kasan_get_alloc_meta(cache, object);
--	if (!alloc_meta)
--		return NULL;
--
--	return &alloc_meta->free_track[0];
--}
--
- #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ config KASAN_TAGS_IDENTIFY
+ 	bool "Enable memory corruption identification"
+-	depends on KASAN_SW_TAGS
++	depends on KASAN_SW_TAGS || KASAN_HW_TAGS
+ 	help
+ 	  This option enables best-effort identification of bug type
+ 	  (use-after-free or out-of-bounds) at the cost of increased
+--- a/mm/kasan/kasan.h~kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode
++++ a/mm/kasan/kasan.h
+@@ -153,7 +153,7 @@ struct kasan_track {
+ 	depot_stack_handle_t stack;
+ };
  
- void kasan_set_tagging_report_once(bool state)
---- a/mm/kasan/Makefile~kasan-integrate-the-common-part-of-two-kasan-tag-based-modes
-+++ a/mm/kasan/Makefile
-@@ -37,5 +37,5 @@ CFLAGS_sw_tags.o := $(CC_FLAGS_KASAN_RUN
- 
- obj-$(CONFIG_KASAN) := common.o report.o
- obj-$(CONFIG_KASAN_GENERIC) += init.o generic.o report_generic.o shadow.o quarantine.o
--obj-$(CONFIG_KASAN_HW_TAGS) += hw_tags.o report_hw_tags.o
--obj-$(CONFIG_KASAN_SW_TAGS) += init.o report_sw_tags.o shadow.o sw_tags.o
-+obj-$(CONFIG_KASAN_HW_TAGS) += hw_tags.o report_hw_tags.o tags.o report_tags.o
-+obj-$(CONFIG_KASAN_SW_TAGS) += init.o report_sw_tags.o shadow.o sw_tags.o tags.o report_tags.o
---- a/mm/kasan/report_hw_tags.c~kasan-integrate-the-common-part-of-two-kasan-tag-based-modes
-+++ a/mm/kasan/report_hw_tags.c
-@@ -15,11 +15,6 @@
- 
- #include "kasan.h"
- 
--const char *kasan_get_bug_type(struct kasan_access_info *info)
--{
--	return "invalid-access";
--}
--
- void *kasan_find_first_bad_addr(void *addr, size_t size)
- {
- 	return kasan_reset_tag(addr);
---- a/mm/kasan/report_sw_tags.c~kasan-integrate-the-common-part-of-two-kasan-tag-based-modes
-+++ a/mm/kasan/report_sw_tags.c
-@@ -29,49 +29,6 @@
- #include "kasan.h"
- #include "../slab.h"
- 
--const char *kasan_get_bug_type(struct kasan_access_info *info)
--{
 -#ifdef CONFIG_KASAN_TAGS_IDENTIFY
--	struct kasan_alloc_meta *alloc_meta;
--	struct kmem_cache *cache;
--	struct page *page;
--	const void *addr;
--	void *object;
--	u8 tag;
--	int i;
--
--	tag = get_tag(info->access_addr);
--	addr = kasan_reset_tag(info->access_addr);
--	page = kasan_addr_to_page(addr);
--	if (page && PageSlab(page)) {
--		cache = page->slab_cache;
--		object = nearest_obj(cache, page, (void *)addr);
--		alloc_meta = kasan_get_alloc_meta(cache, object);
--
--		if (alloc_meta) {
--			for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
--				if (alloc_meta->free_pointer_tag[i] == tag)
--					return "use-after-free";
--			}
--		}
--		return "out-of-bounds";
--	}
--
--#endif
--	/*
--	 * If access_size is a negative number, then it has reason to be
--	 * defined as out-of-bounds bug type.
--	 *
--	 * Casting negative numbers to size_t would indeed turn up as
--	 * a large size_t and its value will be larger than ULONG_MAX/2,
--	 * so that this can qualify as out-of-bounds.
--	 */
--	if (info->access_addr + info->access_size < info->access_addr)
--		return "out-of-bounds";
--
--	return "invalid-access";
--}
--
- void *kasan_find_first_bad_addr(void *addr, size_t size)
- {
- 	u8 tag = get_tag(addr);
---- /dev/null
-+++ a/mm/kasan/report_tags.c
-@@ -0,0 +1,51 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (c) 2014 Samsung Electronics Co., Ltd.
-+ * Copyright (c) 2020 Google, Inc.
-+ */
-+
-+#include "kasan.h"
-+#include "../slab.h"
-+
-+const char *kasan_get_bug_type(struct kasan_access_info *info)
-+{
-+#ifdef CONFIG_KASAN_TAGS_IDENTIFY
-+	struct kasan_alloc_meta *alloc_meta;
-+	struct kmem_cache *cache;
-+	struct page *page;
-+	const void *addr;
-+	void *object;
-+	u8 tag;
-+	int i;
-+
-+	tag = get_tag(info->access_addr);
-+	addr = kasan_reset_tag(info->access_addr);
-+	page = kasan_addr_to_page(addr);
-+	if (page && PageSlab(page)) {
-+		cache = page->slab_cache;
-+		object = nearest_obj(cache, page, (void *)addr);
-+		alloc_meta = kasan_get_alloc_meta(cache, object);
-+
-+		if (alloc_meta) {
-+			for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
-+				if (alloc_meta->free_pointer_tag[i] == tag)
-+					return "use-after-free";
-+			}
-+		}
-+		return "out-of-bounds";
-+	}
-+#endif
-+
-+	/*
-+	 * If access_size is a negative number, then it has reason to be
-+	 * defined as out-of-bounds bug type.
-+	 *
-+	 * Casting negative numbers to size_t would indeed turn up as
-+	 * a large size_t and its value will be larger than ULONG_MAX/2,
-+	 * so that this can qualify as out-of-bounds.
-+	 */
-+	if (info->access_addr + info->access_size < info->access_addr)
-+		return "out-of-bounds";
-+
-+	return "invalid-access";
-+}
---- a/mm/kasan/sw_tags.c~kasan-integrate-the-common-part-of-two-kasan-tag-based-modes
-+++ a/mm/kasan/sw_tags.c
-@@ -166,44 +166,3 @@ void __hwasan_tag_memory(unsigned long a
- 	kasan_poison((void *)addr, size, tag, false);
- }
- EXPORT_SYMBOL(__hwasan_tag_memory);
--
--void kasan_set_free_info(struct kmem_cache *cache,
--				void *object, u8 tag)
--{
--	struct kasan_alloc_meta *alloc_meta;
--	u8 idx = 0;
--
--	alloc_meta = kasan_get_alloc_meta(cache, object);
--	if (!alloc_meta)
--		return;
--
--#ifdef CONFIG_KASAN_TAGS_IDENTIFY
--	idx = alloc_meta->free_track_idx;
--	alloc_meta->free_pointer_tag[idx] = tag;
--	alloc_meta->free_track_idx = (idx + 1) % KASAN_NR_FREE_STACKS;
--#endif
--
--	kasan_set_track(&alloc_meta->free_track[idx], GFP_NOWAIT);
--}
--
--struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
--				void *object, u8 tag)
--{
--	struct kasan_alloc_meta *alloc_meta;
--	int i = 0;
--
--	alloc_meta = kasan_get_alloc_meta(cache, object);
--	if (!alloc_meta)
--		return NULL;
--
--#ifdef CONFIG_KASAN_TAGS_IDENTIFY
--	for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
--		if (alloc_meta->free_pointer_tag[i] == tag)
--			break;
--	}
--	if (i == KASAN_NR_FREE_STACKS)
--		i = alloc_meta->free_track_idx;
--#endif
--
--	return &alloc_meta->free_track[i];
--}
---- /dev/null
-+++ a/mm/kasan/tags.c
-@@ -0,0 +1,59 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * This file contains common tag-based KASAN code.
-+ *
-+ * Copyright (c) 2018 Google, Inc.
-+ * Copyright (c) 2020 Google, Inc.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/kasan.h>
-+#include <linux/kernel.h>
-+#include <linux/memory.h>
-+#include <linux/mm.h>
-+#include <linux/static_key.h>
-+#include <linux/string.h>
-+#include <linux/types.h>
-+
-+#include "kasan.h"
-+
-+void kasan_set_free_info(struct kmem_cache *cache,
-+				void *object, u8 tag)
-+{
-+	struct kasan_alloc_meta *alloc_meta;
-+	u8 idx = 0;
-+
-+	alloc_meta = kasan_get_alloc_meta(cache, object);
-+	if (!alloc_meta)
-+		return;
-+
-+#ifdef CONFIG_KASAN_TAGS_IDENTIFY
-+	idx = alloc_meta->free_track_idx;
-+	alloc_meta->free_pointer_tag[idx] = tag;
-+	alloc_meta->free_track_idx = (idx + 1) % KASAN_NR_FREE_STACKS;
-+#endif
-+
-+	kasan_set_track(&alloc_meta->free_track[idx], GFP_NOWAIT);
-+}
-+
-+struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
-+				void *object, u8 tag)
-+{
-+	struct kasan_alloc_meta *alloc_meta;
-+	int i = 0;
-+
-+	alloc_meta = kasan_get_alloc_meta(cache, object);
-+	if (!alloc_meta)
-+		return NULL;
-+
-+#ifdef CONFIG_KASAN_TAGS_IDENTIFY
-+	for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
-+		if (alloc_meta->free_pointer_tag[i] == tag)
-+			break;
-+	}
-+	if (i == KASAN_NR_FREE_STACKS)
-+		i = alloc_meta->free_track_idx;
-+#endif
-+
-+	return &alloc_meta->free_track[i];
-+}
++#if defined(CONFIG_KASAN_TAGS_IDENTIFY) && defined(CONFIG_KASAN_SW_TAGS)
+ #define KASAN_NR_FREE_STACKS 5
+ #else
+ #define KASAN_NR_FREE_STACKS 1
 _
 
 Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
