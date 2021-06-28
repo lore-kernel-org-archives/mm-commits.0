@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0315CC11F64
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Jun 2021 20:17:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10795C11F64
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Jun 2021 22:02:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D2CE061CCD
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Jun 2021 20:17:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E024C61D01
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Jun 2021 22:02:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237362AbhF1UUP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 16:20:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32928 "EHLO mail.kernel.org"
+        id S238281AbhF1WEu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 18:04:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50634 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236965AbhF1UUN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 16:20:13 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0EDCB61CCA;
-        Mon, 28 Jun 2021 20:17:47 +0000 (UTC)
+        id S236827AbhF1WD5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 18:03:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B245361CF9;
+        Mon, 28 Jun 2021 22:01:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624911467;
-        bh=AZ92uBPIie2K/in4B4//Dvj65cwq+256/9fjrQB3AAk=;
+        s=korg; t=1624917690;
+        bh=kMIK0j5d8st6yfsst3i3UKSDzDV+0EHkyTjSDvsjO+Y=;
         h=Date:From:To:Subject:From;
-        b=0om2dHAGCcNWLhIjs8SY0Iv9QMXjPVusDuzVHD0npubeckfwVC+MrY8Nxeiko7+1U
-         Kodcv7VuyzzMw9HI0NaHHi0gawYANUUyO1aiGpDa6rPY1Tp4yBxwCBbWOOlsQKj3W2
-         iv53N2hisbdALyS8yEJ1aS0yl6iP3Jg7289KQ/Ik=
-Date:   Mon, 28 Jun 2021 13:17:46 -0700
+        b=N4biExR0fywIG7A3O21uhvxhO3MSgjtGoMEx0CdddAXO9FnEalQV/OT5g9C6Gb10M
+         it0Thx7vzdMEM+oac6M+6WnZKVflk7Bfia5bI8M4bAFK2bMw4y4a8zpVzbImplvTK1
+         ZeCCt/DYu9PBBTXWtRLxJiaE+L30d8ITXbGUsnEI=
+Date:   Mon, 28 Jun 2021 15:01:30 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Message-ID: <20210628201746.N4G9oiZTF%akpm@linux-foundation.org>
+To:     axboe@kernel.dk, cccheng@synology.com,
+        christian.brauner@ubuntu.com, jamorris@linux.microsoft.com,
+        mm-commits@vger.kernel.org, shepjeng@gmail.com, slava@dubeyko.com
+Subject:  + hfsplus-report-create_date-to-kstatbtime.patch added to
+ -mm tree
+Message-ID: <20210628220130.sw3UlSC4N%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,92 +44,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: hfsplus: report create_date to kstat.btime
+has been added to the -mm tree.  Its filename is
+     hfsplus-report-create_date-to-kstatbtime.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/hfsplus-report-create_date-to-kstatbtime.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-report-create_date-to-kstatbtime.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Chung-Chiang Cheng <shepjeng@gmail.com>
+Subject: hfsplus: report create_date to kstat.btime
 
+The create_date field of inode in hfsplus is corresponding to
+kstat.btime and could be reported in statx.
+
+Link: https://lkml.kernel.org/r/20210416172147.8736-1-cccheng@synology.com
+Signed-off-by: Chung-Chiang Cheng <cccheng@synology.com>
+Reviewed-by: Viacheslav Dubeyko <slava@dubeyko.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: James Morris <jamorris@linux.microsoft.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   11 -----------
- 1 file changed, 11 deletions(-)
+ fs/hfsplus/inode.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/kernel/signal.c~linux-next-git-rejects
-+++ a/kernel/signal.c
-@@ -430,10 +430,6 @@ __sigqueue_alloc(int sig, struct task_st
- 		ucounts = get_ucounts(ucounts);
- 	rcu_read_unlock();
+--- a/fs/hfsplus/inode.c~hfsplus-report-create_date-to-kstatbtime
++++ a/fs/hfsplus/inode.c
+@@ -281,6 +281,11 @@ int hfsplus_getattr(struct user_namespac
+ 	struct inode *inode = d_inode(path->dentry);
+ 	struct hfsplus_inode_info *hip = HFSPLUS_I(inode);
  
--<<<<<<< HEAD
--	if (override_rlimit || likely(sigpending <= task_rlimit(t, RLIMIT_SIGPENDING))) {
--		q = kmem_cache_alloc(sigqueue_cachep, gfp_flags);
--=======
- 	if (override_rlimit || (sigpending < LONG_MAX && sigpending <= task_rlimit(t, RLIMIT_SIGPENDING))) {
- 		/*
- 		 * Preallocation does not hold sighand::siglock so it can't
-@@ -451,7 +447,6 @@ __sigqueue_alloc(int sig, struct task_st
- 			q = kmem_cache_alloc(sigqueue_cachep, gfp_flags);
- 		else
- 			WRITE_ONCE(t->sigqueue_cache, NULL);
-->>>>>>> linux-next/akpm-base
- 	} else {
- 		print_dropped_signal(sig);
- 	}
-@@ -471,17 +466,11 @@ static void __sigqueue_free(struct sigqu
- {
- 	if (q->flags & SIGQUEUE_PREALLOC)
- 		return;
--<<<<<<< HEAD
--	if (atomic_dec_and_test(&q->user->sigpending))
--		free_uid(q->user);
--	kmem_cache_free(sigqueue_cachep, q);
--=======
- 	if (q->ucounts && dec_rlimit_ucounts(q->ucounts, UCOUNT_RLIMIT_SIGPENDING, 1)) {
- 		put_ucounts(q->ucounts);
- 		q->ucounts = NULL;
- 	}
- 	sigqueue_cache_or_free(q);
-->>>>>>> linux-next/akpm-base
- }
- 
- void flush_sigqueue(struct sigpending *queue)
++	if (request_mask & STATX_BTIME) {
++		stat->result_mask |= STATX_BTIME;
++		stat->btime = hfsp_mt2ut(hip->create_date);
++	}
++
+ 	if (inode->i_flags & S_APPEND)
+ 		stat->attributes |= STATX_ATTR_APPEND;
+ 	if (inode->i_flags & S_IMMUTABLE)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shepjeng@gmail.com are
 
-mm-page_alloc-fix-memory-map-initialization-for-descending-nodes-checkpatch-fixes.patch
-mm.patch
-mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
-slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
-fs-remove-noop_set_page_dirty-fix.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
-mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-mmmemory_hotplug-drop-unneeded-locking-fix.patch
-fs-proc-kcorec-add-mmap-interface-fix.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-lib-math-rational-add-kunit-test-cases-fix.patch
-lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
-ipc-utilc-use-binary-search-for-max_idx-fix.patch
-linux-next-pre.patch
-linux-next-post.patch
-linux-next-rejects.patch
-kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+hfsplus-report-create_date-to-kstatbtime.patch
 
