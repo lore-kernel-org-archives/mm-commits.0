@@ -7,38 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0E17C11F67
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACC43C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A51661D0C
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94DD661D12
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231768AbhF2Cmw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:42:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35158 "EHLO mail.kernel.org"
+        id S231680AbhF2Cm5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:42:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35206 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230152AbhF2Cmv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:42:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3920061D11;
-        Tue, 29 Jun 2021 02:40:24 +0000 (UTC)
+        id S230152AbhF2Cmz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:42:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 63D2761D12;
+        Tue, 29 Jun 2021 02:40:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934424;
-        bh=syu5K5LPxtj1Z80GiAinCeqLW/tB2nRvNpwLWbAhXso=;
+        s=korg; t=1624934427;
+        bh=ennVxsdrnIN5AcDKUsHs7PKyicT0GbcfzLgIJJ7EsJU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=yGx6S40DMnRF+OKPax3TXXyMkdrSDhuhkw4sAJctSniEyuoVaci3CfUy+wWsM5oxg
-         00ADqSfFm7ylfas/J+MkZV+EQ3297nPANxU5w99QUkzToHIEFMoC7lXKz8iFP15KGc
-         Z1m+KJOwqv4VE+A74XVKCHfujQf4Vu8saQuiSaTs=
-Date:   Mon, 28 Jun 2021 19:40:23 -0700
+        b=bmsOdrKbb9ZpddlIWfRtb3ACsg0r1KcqqFGd21WIYXAJKyUSAe3If8yzvN3Yg7O1h
+         r5eeJ/ADj6M29x4KffvFoT/tIS8VQ4zQ/AwfuQXH1GdEudUIoOQHHMrVaNCg/IwS8E
+         6UdL0TpH2dIYjW+w73VGLbB1GIGoQHplhtjaovK0=
+Date:   Mon, 28 Jun 2021 19:40:27 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hch@lst.de, hdanton@sina.com,
-        linux-mm@kvack.org, mgorman@suse.de, mhocko@suse.com,
-        mm-commits@vger.kernel.org, npiggin@gmail.com,
-        oleksiy.avramchenko@sonymobile.com, rostedt@goodmis.org,
-        torvalds@linux-foundation.org, urezki@gmail.com,
-        willy@infradead.org
-Subject:  [patch 136/192] mm/vmalloc: fallback to a single page
- allocator
-Message-ID: <20210629024023.GZ5eiZ564%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aquini@redhat.com, atomlin@redhat.com,
+        linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org,
+        npiggin@gmail.com, torvalds@linux-foundation.org, urezki@gmail.com
+Subject:  [patch 137/192] mm: vmalloc: add cond_resched() in
+ __vunmap()
+Message-ID: <20210629024027.tmU5aE_Lh%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,139 +43,62 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Uladzislau Rezki <urezki@gmail.com>
-Subject: mm/vmalloc: fallback to a single page allocator
+From: Rafael Aquini <aquini@redhat.com>
+Subject: mm: vmalloc: add cond_resched() in __vunmap()
 
-Currently for order-0 pages we use a bulk-page allocator to get set of
-pages.  From the other hand not allocating all pages is something that
-might occur.  In that case we should fallbak to the single-page allocator
-trying to get missing pages, because it is more permissive(direct reclaim,
-etc).
+On non-preemptible kernel builds the watchdog can complain about soft
+lockups when vfree() is called against large vmalloc areas:
 
-Introduce a vm_area_alloc_pages() function where the described logic is
-implemented.
+[  210.851798] kvmalloc-test: vmalloc(2199023255552) succeeded
+[  238.654842] watchdog: BUG: soft lockup - CPU#181 stuck for 26s! [rmmod:5203]
+[  238.662716] Modules linked in: kvmalloc_test(OE-) ...
+[  238.772671] CPU: 181 PID: 5203 Comm: rmmod Tainted: G S         OE     5.13.0-rc7+ #1
+[  238.781413] Hardware name: Intel Corporation PURLEY/PURLEY, BIOS PLYXCRB1.86B.0553.D01.1809190614 09/19/2018
+[  238.792383] RIP: 0010:free_unref_page+0x52/0x60
+[  238.797447] Code: 48 c1 fd 06 48 89 ee e8 9c d0 ff ff 84 c0 74 19 9c 41 5c fa 48 89 ee 48 89 df e8 b9 ea ff ff 41 f7 c4 00 02 00 00 74 01 fb 5b <5d> 41 5c c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 f0 29 77
+[  238.818406] RSP: 0018:ffffb4d87868fe98 EFLAGS: 00000206
+[  238.824236] RAX: 0000000000000000 RBX: 000000001da0c945 RCX: ffffb4d87868fe40
+[  238.832200] RDX: ffffd79d3beed108 RSI: ffffd7998501dc08 RDI: ffff9c6fbffd7010
+[  238.840166] RBP: 000000000d518cbd R08: ffffd7998501dc08 R09: 0000000000000001
+[  238.848131] R10: 0000000000000000 R11: ffffd79d3beee088 R12: 0000000000000202
+[  238.856095] R13: ffff9e5be3eceec0 R14: 0000000000000000 R15: 0000000000000000
+[  238.864059] FS:  00007fe082c2d740(0000) GS:ffff9f4c69b40000(0000) knlGS:0000000000000000
+[  238.873089] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  238.879503] CR2: 000055a000611128 CR3: 000000f6094f6006 CR4: 00000000007706e0
+[  238.887467] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[  238.895433] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[  238.903397] PKRU: 55555554
+[  238.906417] Call Trace:
+[  238.909149]  __vunmap+0x17c/0x220
+[  238.912851]  __x64_sys_delete_module+0x13a/0x250
+[  238.918008]  ? syscall_trace_enter.isra.20+0x13c/0x1b0
+[  238.923746]  do_syscall_64+0x39/0x80
+[  238.927740]  entry_SYSCALL_64_after_hwframe+0x44/0xae
 
-Link: https://lkml.kernel.org/r/20210521130718.GA17882@pc638.lan
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Like in other range zapping routines that iterate over a large list, lets
+just add cond_resched() within __vunmap()'s page-releasing loop in order
+to avoid the watchdog splats.
+
+Link: https://lkml.kernel.org/r/20210622225030.478384-1-aquini@redhat.com
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Acked-by: Nicholas Piggin <npiggin@gmail.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   81 +++++++++++++++++++++++++++++++------------------
- 1 file changed, 52 insertions(+), 29 deletions(-)
+ mm/vmalloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-fallback-to-a-single-page-allocator
+--- a/mm/vmalloc.c~mm-vmalloc-add-cond_resched-in-__vunmap
 +++ a/mm/vmalloc.c
-@@ -2758,6 +2758,54 @@ void *vmap_pfn(unsigned long *pfns, unsi
- EXPORT_SYMBOL_GPL(vmap_pfn);
- #endif /* CONFIG_VMAP_PFN */
+@@ -2567,6 +2567,7 @@ static void __vunmap(const void *addr, i
  
-+static inline unsigned int
-+vm_area_alloc_pages(gfp_t gfp, int nid,
-+		unsigned int order, unsigned long nr_pages, struct page **pages)
-+{
-+	unsigned int nr_allocated = 0;
-+
-+	/*
-+	 * For order-0 pages we make use of bulk allocator, if
-+	 * the page array is partly or not at all populated due
-+	 * to fails, fallback to a single page allocator that is
-+	 * more permissive.
-+	 */
-+	if (!order)
-+		nr_allocated = alloc_pages_bulk_array_node(
-+			gfp, nid, nr_pages, pages);
-+	else
-+		/*
-+		 * Compound pages required for remap_vmalloc_page if
-+		 * high-order pages.
-+		 */
-+		gfp |= __GFP_COMP;
-+
-+	/* High-order pages or fallback path if "bulk" fails. */
-+	while (nr_allocated < nr_pages) {
-+		struct page *page;
-+		int i;
-+
-+		page = alloc_pages_node(nid, gfp, order);
-+		if (unlikely(!page))
-+			break;
-+
-+		/*
-+		 * Careful, we allocate and map page-order pages, but
-+		 * tracking is done per PAGE_SIZE page so as to keep the
-+		 * vm_struct APIs independent of the physical/mapped size.
-+		 */
-+		for (i = 0; i < (1U << order); i++)
-+			pages[nr_allocated + i] = page + i;
-+
-+		if (gfpflags_allow_blocking(gfp))
+ 			BUG_ON(!page);
+ 			__free_pages(page, page_order);
 +			cond_resched();
-+
-+		nr_allocated += 1U << order;
-+	}
-+
-+	return nr_allocated;
-+}
-+
- static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
- 				 pgprot_t prot, unsigned int page_shift,
- 				 int node)
-@@ -2790,37 +2838,11 @@ static void *__vmalloc_area_node(struct
- 		return NULL;
- 	}
+ 		}
+ 		atomic_long_sub(area->nr_pages, &nr_vmalloc_pages);
  
--	area->nr_pages = 0;
- 	set_vm_area_page_order(area, page_shift - PAGE_SHIFT);
- 	page_order = vm_area_page_order(area);
- 
--	if (!page_order) {
--		area->nr_pages = alloc_pages_bulk_array_node(
--			gfp_mask, node, nr_small_pages, area->pages);
--	} else {
--		/*
--		 * Careful, we allocate and map page_order pages, but tracking is done
--		 * per PAGE_SIZE page so as to keep the vm_struct APIs independent of
--		 * the physical/mapped size.
--		 */
--		while (area->nr_pages < nr_small_pages) {
--			struct page *page;
--			int i;
--
--			/* Compound pages required for remap_vmalloc_page */
--			page = alloc_pages_node(node, gfp_mask | __GFP_COMP, page_order);
--			if (unlikely(!page))
--				break;
--
--			for (i = 0; i < (1U << page_order); i++)
--				area->pages[area->nr_pages + i] = page + i;
--
--			if (gfpflags_allow_blocking(gfp_mask))
--				cond_resched();
--
--			area->nr_pages += 1U << page_order;
--		}
--	}
-+	area->nr_pages = vm_area_alloc_pages(gfp_mask, node,
-+		page_order, nr_small_pages, area->pages);
- 
- 	atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
- 
-@@ -2835,7 +2857,8 @@ static void *__vmalloc_area_node(struct
- 		goto fail;
- 	}
- 
--	if (vmap_pages_range(addr, addr + size, prot, area->pages, page_shift) < 0) {
-+	if (vmap_pages_range(addr, addr + size, prot, area->pages,
-+			page_shift) < 0) {
- 		warn_alloc(gfp_mask, NULL,
- 			"vmalloc error: size %lu, failed to map pages",
- 			area->nr_pages * PAGE_SIZE);
 _
