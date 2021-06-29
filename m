@@ -7,38 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 109B6C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DC08C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED0C861D10
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D51661D0B
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231743AbhF2CnR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:43:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35584 "EHLO mail.kernel.org"
+        id S231864AbhF2CnY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:43:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35686 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231348AbhF2CnR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:43:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AE4EA611AE;
-        Tue, 29 Jun 2021 02:40:49 +0000 (UTC)
+        id S231741AbhF2CnX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:43:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1D30A611AE;
+        Tue, 29 Jun 2021 02:40:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934450;
-        bh=rbv5utnA6+8/OKmYSMFYcR5Pc94aNRyp5bVAOFslMzU=;
+        s=korg; t=1624934456;
+        bh=gIdFzs6xXgs8//ofIx1G6x0fqSa0xCNcrRlheuDAF9k=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=cK5PeEwNjg8RG1iG+gBqH3NRiP0/EoGm5mJuNfiX5lN5RZceef/VnbxvEomI4kMRW
-         ON2pKMNXGJOzJVCCam+eZ0LvIhu2yr3WaIJFmOUqUVwDydWW0AAch3yzwfkiExu0z+
-         UefU4GYGmoKslE0UfU0pY9OsPzdQW230WxP16U1A=
-Date:   Mon, 28 Jun 2021 19:40:49 -0700
+        b=sKZrt3Nie+RsqmuX8W3mYLpiOp5PdUtHMZDZ4tm/O2oKqWvNjV+rxqMJqA5kOzMOb
+         qljkWSrpthCqexMt3fvaP+ZsePXpvlINmg99a8+cjX7wCW2xV55fJwP5aBtCDLIVtX
+         P7FkXJD0ByXws9FvgGs5ZtVwk3KlyO+a8qv94bA4=
+Date:   Mon, 28 Jun 2021 19:40:55 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
-        aneesh.kumar@linux.ibm.com, bsingharora@gmail.com,
-        christophe.leroy@csgroup.eu, dja@axtens.net, dvyukov@google.com,
-        elver@google.com, glider@google.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        chinwen.chang@mediatek.com, dvyukov@google.com, elver@google.com,
+        glider@google.com, gregkh@linuxfoundation.org,
+        Kuan-Ying.Lee@mediatek.com, linux-mm@kvack.org,
+        matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
+        nicholas.tang@mediatek.com, ryabinin.a.a@gmail.com,
         torvalds@linux-foundation.org
-Subject:  [patch 144/192] kasan: use MAX_PTRS_PER_* for early
- shadow tables
-Message-ID: <20210629024049.yTgzcZiOZ%akpm@linux-foundation.org>
+Subject:  [patch 146/192] kasan: integrate the common part of two
+ KASAN tag-based modes
+Message-ID: <20210629024055.h5VGdjFxl%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,76 +47,307 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Daniel Axtens <dja@axtens.net>
-Subject: kasan: use MAX_PTRS_PER_* for early shadow tables
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: kasan: integrate the common part of two KASAN tag-based modes
 
-powerpc has a variable number of PTRS_PER_*, set at runtime based on the
-MMU that the kernel is booted under.
+1. Move kasan_get_free_track() and kasan_set_free_info() into tags.c
+   and combine these two functions for SW_TAGS and HW_TAGS kasan mode.
 
-This means the PTRS_PER_* are no longer constants, and therefore breaks
-the build.  Switch to using MAX_PTRS_PER_*, which are constant.
+2. Move kasan_get_bug_type() to report_tags.c and make this function
+   compatible for SW_TAGS and HW_TAGS kasan mode.
 
-Link: https://lkml.kernel.org/r/20210624034050.511391-5-dja@axtens.net
-Signed-off-by: Daniel Axtens <dja@axtens.net>
-Suggested-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Suggested-by: Balbir Singh <bsingharora@gmail.com>
-Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Reviewed-by: Balbir Singh <bsingharora@gmail.com>
-Reviewed-by: Marco Elver <elver@google.com>
+Link: https://lkml.kernel.org/r/20210626100931.22794-3-Kuan-Ying.Lee@mediatek.com
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Suggested-by: Marco Elver <elver@google.com>
+Suggested-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Nicholas Tang <nicholas.tang@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    6 +++---
- mm/kasan/init.c       |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ mm/kasan/Makefile         |    4 +-
+ mm/kasan/hw_tags.c        |   22 -------------
+ mm/kasan/report_hw_tags.c |    5 ---
+ mm/kasan/report_sw_tags.c |   43 --------------------------
+ mm/kasan/report_tags.c    |   51 +++++++++++++++++++++++++++++++
+ mm/kasan/sw_tags.c        |   41 -------------------------
+ mm/kasan/tags.c           |   59 ++++++++++++++++++++++++++++++++++++
+ 7 files changed, 112 insertions(+), 113 deletions(-)
 
---- a/include/linux/kasan.h~kasan-use-max_ptrs_per_-for-early-shadow-tables
-+++ a/include/linux/kasan.h
-@@ -40,9 +40,9 @@ struct kunit_kasan_expectation {
- #endif
- 
- extern unsigned char kasan_early_shadow_page[PAGE_SIZE];
--extern pte_t kasan_early_shadow_pte[PTRS_PER_PTE + PTE_HWTABLE_PTRS];
--extern pmd_t kasan_early_shadow_pmd[PTRS_PER_PMD];
--extern pud_t kasan_early_shadow_pud[PTRS_PER_PUD];
-+extern pte_t kasan_early_shadow_pte[MAX_PTRS_PER_PTE + PTE_HWTABLE_PTRS];
-+extern pmd_t kasan_early_shadow_pmd[MAX_PTRS_PER_PMD];
-+extern pud_t kasan_early_shadow_pud[MAX_PTRS_PER_PUD];
- extern p4d_t kasan_early_shadow_p4d[MAX_PTRS_PER_P4D];
- 
- int kasan_populate_early_shadow(const void *shadow_start,
---- a/mm/kasan/init.c~kasan-use-max_ptrs_per_-for-early-shadow-tables
-+++ a/mm/kasan/init.c
-@@ -41,7 +41,7 @@ static inline bool kasan_p4d_table(pgd_t
+--- a/mm/kasan/hw_tags.c~kasan-integrate-the-common-part-of-two-kasan-tag-based-modes
++++ a/mm/kasan/hw_tags.c
+@@ -216,28 +216,6 @@ void __init kasan_init_hw_tags(void)
+ 	pr_info("KernelAddressSanitizer initialized\n");
  }
- #endif
- #if CONFIG_PGTABLE_LEVELS > 3
--pud_t kasan_early_shadow_pud[PTRS_PER_PUD] __page_aligned_bss;
-+pud_t kasan_early_shadow_pud[MAX_PTRS_PER_PUD] __page_aligned_bss;
- static inline bool kasan_pud_table(p4d_t p4d)
+ 
+-void kasan_set_free_info(struct kmem_cache *cache,
+-				void *object, u8 tag)
+-{
+-	struct kasan_alloc_meta *alloc_meta;
+-
+-	alloc_meta = kasan_get_alloc_meta(cache, object);
+-	if (alloc_meta)
+-		kasan_set_track(&alloc_meta->free_track[0], GFP_NOWAIT);
+-}
+-
+-struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
+-				void *object, u8 tag)
+-{
+-	struct kasan_alloc_meta *alloc_meta;
+-
+-	alloc_meta = kasan_get_alloc_meta(cache, object);
+-	if (!alloc_meta)
+-		return NULL;
+-
+-	return &alloc_meta->free_track[0];
+-}
+-
+ #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ 
+ void kasan_set_tagging_report_once(bool state)
+--- a/mm/kasan/Makefile~kasan-integrate-the-common-part-of-two-kasan-tag-based-modes
++++ a/mm/kasan/Makefile
+@@ -37,5 +37,5 @@ CFLAGS_sw_tags.o := $(CC_FLAGS_KASAN_RUN
+ 
+ obj-$(CONFIG_KASAN) := common.o report.o
+ obj-$(CONFIG_KASAN_GENERIC) += init.o generic.o report_generic.o shadow.o quarantine.o
+-obj-$(CONFIG_KASAN_HW_TAGS) += hw_tags.o report_hw_tags.o
+-obj-$(CONFIG_KASAN_SW_TAGS) += init.o report_sw_tags.o shadow.o sw_tags.o
++obj-$(CONFIG_KASAN_HW_TAGS) += hw_tags.o report_hw_tags.o tags.o report_tags.o
++obj-$(CONFIG_KASAN_SW_TAGS) += init.o report_sw_tags.o shadow.o sw_tags.o tags.o report_tags.o
+--- a/mm/kasan/report_hw_tags.c~kasan-integrate-the-common-part-of-two-kasan-tag-based-modes
++++ a/mm/kasan/report_hw_tags.c
+@@ -15,11 +15,6 @@
+ 
+ #include "kasan.h"
+ 
+-const char *kasan_get_bug_type(struct kasan_access_info *info)
+-{
+-	return "invalid-access";
+-}
+-
+ void *kasan_find_first_bad_addr(void *addr, size_t size)
  {
- 	return p4d_page(p4d) == virt_to_page(lm_alias(kasan_early_shadow_pud));
-@@ -53,7 +53,7 @@ static inline bool kasan_pud_table(p4d_t
- }
- #endif
- #if CONFIG_PGTABLE_LEVELS > 2
--pmd_t kasan_early_shadow_pmd[PTRS_PER_PMD] __page_aligned_bss;
-+pmd_t kasan_early_shadow_pmd[MAX_PTRS_PER_PMD] __page_aligned_bss;
- static inline bool kasan_pmd_table(pud_t pud)
- {
- 	return pud_page(pud) == virt_to_page(lm_alias(kasan_early_shadow_pmd));
-@@ -64,7 +64,7 @@ static inline bool kasan_pmd_table(pud_t
- 	return false;
- }
- #endif
--pte_t kasan_early_shadow_pte[PTRS_PER_PTE + PTE_HWTABLE_PTRS]
-+pte_t kasan_early_shadow_pte[MAX_PTRS_PER_PTE + PTE_HWTABLE_PTRS]
- 	__page_aligned_bss;
+ 	return kasan_reset_tag(addr);
+--- a/mm/kasan/report_sw_tags.c~kasan-integrate-the-common-part-of-two-kasan-tag-based-modes
++++ a/mm/kasan/report_sw_tags.c
+@@ -29,49 +29,6 @@
+ #include "kasan.h"
+ #include "../slab.h"
  
- static inline bool kasan_pte_table(pmd_t pmd)
+-const char *kasan_get_bug_type(struct kasan_access_info *info)
+-{
+-#ifdef CONFIG_KASAN_TAGS_IDENTIFY
+-	struct kasan_alloc_meta *alloc_meta;
+-	struct kmem_cache *cache;
+-	struct page *page;
+-	const void *addr;
+-	void *object;
+-	u8 tag;
+-	int i;
+-
+-	tag = get_tag(info->access_addr);
+-	addr = kasan_reset_tag(info->access_addr);
+-	page = kasan_addr_to_page(addr);
+-	if (page && PageSlab(page)) {
+-		cache = page->slab_cache;
+-		object = nearest_obj(cache, page, (void *)addr);
+-		alloc_meta = kasan_get_alloc_meta(cache, object);
+-
+-		if (alloc_meta) {
+-			for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
+-				if (alloc_meta->free_pointer_tag[i] == tag)
+-					return "use-after-free";
+-			}
+-		}
+-		return "out-of-bounds";
+-	}
+-
+-#endif
+-	/*
+-	 * If access_size is a negative number, then it has reason to be
+-	 * defined as out-of-bounds bug type.
+-	 *
+-	 * Casting negative numbers to size_t would indeed turn up as
+-	 * a large size_t and its value will be larger than ULONG_MAX/2,
+-	 * so that this can qualify as out-of-bounds.
+-	 */
+-	if (info->access_addr + info->access_size < info->access_addr)
+-		return "out-of-bounds";
+-
+-	return "invalid-access";
+-}
+-
+ void *kasan_find_first_bad_addr(void *addr, size_t size)
+ {
+ 	u8 tag = get_tag(addr);
+--- /dev/null
++++ a/mm/kasan/report_tags.c
+@@ -0,0 +1,51 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (c) 2014 Samsung Electronics Co., Ltd.
++ * Copyright (c) 2020 Google, Inc.
++ */
++
++#include "kasan.h"
++#include "../slab.h"
++
++const char *kasan_get_bug_type(struct kasan_access_info *info)
++{
++#ifdef CONFIG_KASAN_TAGS_IDENTIFY
++	struct kasan_alloc_meta *alloc_meta;
++	struct kmem_cache *cache;
++	struct page *page;
++	const void *addr;
++	void *object;
++	u8 tag;
++	int i;
++
++	tag = get_tag(info->access_addr);
++	addr = kasan_reset_tag(info->access_addr);
++	page = kasan_addr_to_page(addr);
++	if (page && PageSlab(page)) {
++		cache = page->slab_cache;
++		object = nearest_obj(cache, page, (void *)addr);
++		alloc_meta = kasan_get_alloc_meta(cache, object);
++
++		if (alloc_meta) {
++			for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
++				if (alloc_meta->free_pointer_tag[i] == tag)
++					return "use-after-free";
++			}
++		}
++		return "out-of-bounds";
++	}
++#endif
++
++	/*
++	 * If access_size is a negative number, then it has reason to be
++	 * defined as out-of-bounds bug type.
++	 *
++	 * Casting negative numbers to size_t would indeed turn up as
++	 * a large size_t and its value will be larger than ULONG_MAX/2,
++	 * so that this can qualify as out-of-bounds.
++	 */
++	if (info->access_addr + info->access_size < info->access_addr)
++		return "out-of-bounds";
++
++	return "invalid-access";
++}
+--- a/mm/kasan/sw_tags.c~kasan-integrate-the-common-part-of-two-kasan-tag-based-modes
++++ a/mm/kasan/sw_tags.c
+@@ -166,44 +166,3 @@ void __hwasan_tag_memory(unsigned long a
+ 	kasan_poison((void *)addr, size, tag, false);
+ }
+ EXPORT_SYMBOL(__hwasan_tag_memory);
+-
+-void kasan_set_free_info(struct kmem_cache *cache,
+-				void *object, u8 tag)
+-{
+-	struct kasan_alloc_meta *alloc_meta;
+-	u8 idx = 0;
+-
+-	alloc_meta = kasan_get_alloc_meta(cache, object);
+-	if (!alloc_meta)
+-		return;
+-
+-#ifdef CONFIG_KASAN_TAGS_IDENTIFY
+-	idx = alloc_meta->free_track_idx;
+-	alloc_meta->free_pointer_tag[idx] = tag;
+-	alloc_meta->free_track_idx = (idx + 1) % KASAN_NR_FREE_STACKS;
+-#endif
+-
+-	kasan_set_track(&alloc_meta->free_track[idx], GFP_NOWAIT);
+-}
+-
+-struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
+-				void *object, u8 tag)
+-{
+-	struct kasan_alloc_meta *alloc_meta;
+-	int i = 0;
+-
+-	alloc_meta = kasan_get_alloc_meta(cache, object);
+-	if (!alloc_meta)
+-		return NULL;
+-
+-#ifdef CONFIG_KASAN_TAGS_IDENTIFY
+-	for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
+-		if (alloc_meta->free_pointer_tag[i] == tag)
+-			break;
+-	}
+-	if (i == KASAN_NR_FREE_STACKS)
+-		i = alloc_meta->free_track_idx;
+-#endif
+-
+-	return &alloc_meta->free_track[i];
+-}
+--- /dev/null
++++ a/mm/kasan/tags.c
+@@ -0,0 +1,59 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * This file contains common tag-based KASAN code.
++ *
++ * Copyright (c) 2018 Google, Inc.
++ * Copyright (c) 2020 Google, Inc.
++ */
++
++#include <linux/init.h>
++#include <linux/kasan.h>
++#include <linux/kernel.h>
++#include <linux/memory.h>
++#include <linux/mm.h>
++#include <linux/static_key.h>
++#include <linux/string.h>
++#include <linux/types.h>
++
++#include "kasan.h"
++
++void kasan_set_free_info(struct kmem_cache *cache,
++				void *object, u8 tag)
++{
++	struct kasan_alloc_meta *alloc_meta;
++	u8 idx = 0;
++
++	alloc_meta = kasan_get_alloc_meta(cache, object);
++	if (!alloc_meta)
++		return;
++
++#ifdef CONFIG_KASAN_TAGS_IDENTIFY
++	idx = alloc_meta->free_track_idx;
++	alloc_meta->free_pointer_tag[idx] = tag;
++	alloc_meta->free_track_idx = (idx + 1) % KASAN_NR_FREE_STACKS;
++#endif
++
++	kasan_set_track(&alloc_meta->free_track[idx], GFP_NOWAIT);
++}
++
++struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
++				void *object, u8 tag)
++{
++	struct kasan_alloc_meta *alloc_meta;
++	int i = 0;
++
++	alloc_meta = kasan_get_alloc_meta(cache, object);
++	if (!alloc_meta)
++		return NULL;
++
++#ifdef CONFIG_KASAN_TAGS_IDENTIFY
++	for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
++		if (alloc_meta->free_pointer_tag[i] == tag)
++			break;
++	}
++	if (i == KASAN_NR_FREE_STACKS)
++		i = alloc_meta->free_track_idx;
++#endif
++
++	return &alloc_meta->free_track[i];
++}
 _
