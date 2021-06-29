@@ -7,40 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A661C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:32:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15FF1C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:32:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1A3961CDA
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:32:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F18EB61CF9
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:32:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232217AbhF2Ae5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 20:34:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33042 "EHLO mail.kernel.org"
+        id S232231AbhF2AfC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 20:35:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33082 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232060AbhF2Ae5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 20:34:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 57AAC61CEB;
-        Tue, 29 Jun 2021 00:32:30 +0000 (UTC)
+        id S232060AbhF2AfB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 20:35:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C2F9261CDA;
+        Tue, 29 Jun 2021 00:32:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624926750;
-        bh=YOuITS1ehdKC+V6caEEe33+xvx9Es6PUJMsIwHpOeZc=;
+        s=korg; t=1624926753;
+        bh=HL3iedNeTNhDhd/CF9UpCeXqoiR5itiNxXdFXlG0NxU=;
         h=Date:From:To:Subject:From;
-        b=tbptdgbmmyKmmDU6A/d3PIoPspabXSxqOsh6j4Fw+ne8z4qo1NB414rSA6tQUJE+K
-         j5skB68S1Ces2siYNWiJCuG76ZwZaAeeK2hlUzkxnRGaSuHs1TKFRjrB4oGTFckXwg
-         cjg4faryfKdIDdEqxZ4oTNz7CkjGr1MTs/UpZVuA=
-Date:   Mon, 28 Jun 2021 17:32:29 -0700
+        b=y4r26Nm6TFLBieJR9zL2SgEOIjpALWjMMeuuTwqqF8ZvAxhauQoJkbXxC/xBzkyIR
+         RmbWwJAgiPJBYMPlnvDEzzW8TqykcNogtNSCcShuWMOKh2Jfb3ZA9Oy+oY8vfVu79h
+         Fy56K3FgmVSJKulvjbEDSMIiue8CHoiZ9fVg4DmM=
+Date:   Mon, 28 Jun 2021 17:32:33 -0700
 From:   akpm@linux-foundation.org
-To:     acme@redhat.com, andrii.nakryiko@gmail.com, andrii@kernel.org,
-        ast@kernel.org, daniel@iogearbox.net, david@redhat.com,
-        hritikxx8@gmail.com, john.fastabend@gmail.com, jolsa@kernel.org,
-        kafai@fb.com, kpsingh@kernel.org, masahiroy@kernel.org,
-        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        msuchanek@suse.de, songliubraving@fb.com, yhs@fb.com
+To:     akpm@linux-foundation.org, andrii.nakryiko@gmail.com,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix.patch
- removed from -mm tree
-Message-ID: <20210629003229.EXIxnTmH8%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-page=5Falloc-convert-per-cpu-list-protection-to-local?=
+ =?US-ASCII?Q?=5Flock-fix-checkpatch-fixes.patch?= removed from -mm tree
+Message-ID: <20210629003233.SdYYpmDjU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,178 +46,84 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: work around a pahole limitation with zero-sized struct pagesets
+     Subject: mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix.patch
+     mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into mm-page_alloc-convert-per-cpu-list-protection-to-local_lock.patch
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: work around a pahole limitation with zero-sized struct pagesets
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes
 
-Michal Suchanek reported the following problem with linux-next
-
-  [    0.000000] Linux version 5.13.0-rc2-next-20210519-1.g3455ff8-vanilla (geeko@buildhost) (gcc (SUSE Linux) 10.3.0, GNU ld (GNU Binutils; openSUSE Tumbleweed) 2.36.1.20210326-3) #1 SMP Wed May 19 10:05:10 UTC 2021 (3455ff8)
-  [    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-5.13.0-rc2-next-20210519-1.g3455ff8-vanilla root=UUID=ec42c33e-a2c2-4c61-afcc-93e9527 8f687 plymouth.enable=0 resume=/dev/disk/by-uuid/f1fe4560-a801-4faf-a638-834c407027c7 mitigations=auto earlyprintk initcall_debug nomodeset earlycon ignore_loglevel console=ttyS0,115200
-...
-  [   26.093364] calling  tracing_set_default_clock+0x0/0x62 @ 1
-  [   26.098937] initcall tracing_set_default_clock+0x0/0x62 returned 0 after 0 usecs
-  [   26.106330] calling  acpi_gpio_handle_deferred_request_irqs+0x0/0x7c @ 1
-  [   26.113033] initcall acpi_gpio_handle_deferred_request_irqs+0x0/0x7c returned 0 after 3 usecs
-  [   26.121559] calling  clk_disable_unused+0x0/0x102 @ 1
-  [   26.126620] initcall clk_disable_unused+0x0/0x102 returned 0 after 0 usecs
-  [   26.133491] calling  regulator_init_complete+0x0/0x25 @ 1
-  [   26.138890] initcall regulator_init_complete+0x0/0x25 returned 0 after 0 usecs
-  [   26.147816] Freeing unused decrypted memory: 2036K
-  [   26.153682] Freeing unused kernel image (initmem) memory: 2308K
-  [   26.165776] Write protecting the kernel read-only data: 26624k
-  [   26.173067] Freeing unused kernel image (text/rodata gap) memory: 2036K
-  [   26.180416] Freeing unused kernel image (rodata/data gap) memory: 1184K
-  [   26.187031] Run /init as init process
-  [   26.190693]   with arguments:
-  [   26.193661]     /init
-  [   26.195933]   with environment:
-  [   26.199079]     HOME=/
-  [   26.201444]     TERM=linux
-  [   26.204152]     BOOT_IMAGE=/boot/vmlinuz-5.13.0-rc2-next-20210519-1.g3455ff8-vanilla
-  [   26.254154] BPF:      type_id=35503 offset=178440 size=4
-  [   26.259125] BPF:
-  [   26.261054] BPF:Invalid offset
-  [   26.264119] BPF:
-  [   26.264119]
-  [   26.267437] failed to validate module [efivarfs] BTF: -22
-
-Andrii Nakryiko bisected the problem to the commit "mm/page_alloc: convert
-per-cpu list protection to local_lock" currently staged in mmotm.  In his
-own words
-
-  The immediate problem is two different definitions of numa_node per-cpu
-  variable. They both are at the same offset within .data..percpu ELF
-  section, they both have the same name, but one of them is marked as
-  static and another as global. And one is int variable, while another
-  is struct pagesets. I'll look some more tomorrow, but adding Jiri and
-  Arnaldo for visibility.
-
-  [110907] DATASEC '.data..percpu' size=178904 vlen=303
-  ...
-        type_id=27753 offset=163976 size=4 (VAR 'numa_node')
-        type_id=27754 offset=163976 size=4 (VAR 'numa_node')
-
-  [27753] VAR 'numa_node' type_id=27556, linkage=static
-  [27754] VAR 'numa_node' type_id=20, linkage=global
-
-  [20] INT 'int' size=4 bits_offset=0 nr_bits=32 encoding=SIGNED
-
-  [27556] STRUCT 'pagesets' size=0 vlen=1
-        'lock' type_id=507 bits_offset=0
-
-  [506] STRUCT '(anon)' size=0 vlen=0
-  [507] TYPEDEF 'local_lock_t' type_id=506
-
-The patch in question introduces a zero-sized per-cpu struct and while
-this is not wrong, versions of pahole prior to 1.22 (unreleased) get
-confused during BTF generation with two separate variables occupying the
-same address.
-
-This patch checks for older versions of pahole and forces struct pagesets
-to be non-zero sized as a workaround when CONFIG_DEBUG_INFO_BTF is set.  A
-warning is emitted so that distributions can update pahole when 1.22 is
-released.
-
-Link: https://lkml.kernel.org/r/20210526080741.GW30378@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: Michal Suchanek <msuchanek@suse.de>
-Reported-by: Hritik Vijay <hritikxx8@gmail.com>
+WARNING: Non-standard signature: Debugged-by:
+#77: 
 Debugged-by: Andrii Nakryiko <andrii.nakryiko@gmail.com>
-Acked-by: Andrii Nakryiko <andrii@kernel.org>
-Tested-by: Andrii Nakryiko <andrii@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Martin KaFai Lau <kafai@fb.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Yonghong Song <yhs@fb.com>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
+
+WARNING: please, no spaces at the start of a line
+#117: FILE: mm/page_alloc.c:128:
++    !defined(CONFIG_DEBUG_LOCK_ALLOC) &&^I^I\$
+
+WARNING: please, no spaces at the start of a line
+#118: FILE: mm/page_alloc.c:129:
++    !defined(CONFIG_PAHOLE_HAS_ZEROSIZE_PERCPU_SUPPORT)$
+
+total: 0 errors, 3 warnings, 26 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    3 +++
- mm/page_alloc.c   |   11 +++++++++++
- 2 files changed, 14 insertions(+)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/lib/Kconfig.debug~mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix
-+++ a/lib/Kconfig.debug
-@@ -313,6 +313,9 @@ config DEBUG_INFO_BTF
- config PAHOLE_HAS_SPLIT_BTF
- 	def_bool $(success, test `$(PAHOLE) --version | sed -E 's/v([0-9]+)\.([0-9]+)/\1\2/'` -ge "119")
- 
-+config PAHOLE_HAS_ZEROSIZE_PERCPU_SUPPORT
-+	def_bool $(success, test `$(PAHOLE) --version | sed -E 's/v([0-9]+)\.([0-9]+)/\1\2/'` -ge "122")
-+
- config DEBUG_INFO_BTF_MODULES
- 	def_bool y
- 	depends on DEBUG_INFO_BTF && MODULES && PAHOLE_HAS_SPLIT_BTF
---- a/mm/page_alloc.c~mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix
+--- a/mm/page_alloc.c~mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes
 +++ a/mm/page_alloc.c
-@@ -124,6 +124,17 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
+@@ -124,9 +124,9 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
  
  struct pagesets {
  	local_lock_t lock;
-+#if defined(CONFIG_DEBUG_INFO_BTF) &&			\
-+    !defined(CONFIG_DEBUG_LOCK_ALLOC) &&		\
-+    !defined(CONFIG_PAHOLE_HAS_ZEROSIZE_PERCPU_SUPPORT)
-+	/*
-+	 * pahole 1.21 and earlier gets confused by zero-sized per-CPU
-+	 * variables and produces invalid BTF. Ensure that
-+	 * sizeof(struct pagesets) != 0 for older versions of pahole.
-+	 */
-+	char __pahole_hack;
-+	#warning "pahole too old to support zero-sized struct pagesets"
-+#endif
- };
- static DEFINE_PER_CPU(struct pagesets, pagesets) = {
- 	.lock = INIT_LOCAL_LOCK(lock),
+-#if defined(CONFIG_DEBUG_INFO_BTF) &&			\
+-    !defined(CONFIG_DEBUG_LOCK_ALLOC) &&		\
+-    !defined(CONFIG_PAHOLE_HAS_ZEROSIZE_PERCPU_SUPPORT)
++#if defined(CONFIG_DEBUG_INFO_BTF) &&				\
++	!defined(CONFIG_DEBUG_LOCK_ALLOC) &&			\
++	!defined(CONFIG_PAHOLE_HAS_ZEROSIZE_PERCPU_SUPPORT)
+ 	/*
+ 	 * pahole 1.21 and earlier gets confused by zero-sized per-CPU
+ 	 * variables and produces invalid BTF. Ensure that
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-correct-return-value-of-populated-elements-if-bulk-array-is-populated.patch
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch
 mm-page_alloc-convert-per-cpu-list-protection-to-local_lock.patch
-mm-vmstat-convert-numa-statistics-to-basic-numa-counters.patch
-mm-vmstat-inline-numa-event-counter-updates.patch
-mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator.patch
-mm-page_alloc-reduce-duration-that-irqs-are-disabled-for-vm-counters.patch
-mm-page_alloc-explicitly-acquire-the-zone-lock-in-__free_pages_ok.patch
-mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock.patch
-mm-page_alloc-update-pgfree-outside-the-zone-lock-in-__free_pages_ok.patch
-mm-page_alloc-delete-vmpercpu_pagelist_fraction.patch
-mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch.patch
-mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2.patch
-mm-page_alloc-adjust-pcp-high-after-cpu-hotplug-events.patch
-mm-page_alloc-scale-the-number-of-pages-that-are-batch-freed.patch
-mm-page_alloc-limit-the-number-of-pages-on-pcp-lists-when-reclaim-is-active.patch
-mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction.patch
-mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction-fix.patch
-mm-page_alloc-move-free_the_page.patch
-mm-page_alloc-allow-high-order-pages-to-be-stored-on-the-per-cpu-lists.patch
-mm-page_alloc-split-pcp-high-across-all-online-cpus-for-cpuless-nodes.patch
-mm-vmscan-remove-kerneldoc-like-comment-from-isolate_lru_pages.patch
-mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch
-mm-page_alloc-make-should_fail_alloc_page-a-static-function-should_fail_alloc_page-static.patch
-mm-mapping_dirty_helpers-remove-double-note-in-kerneldoc.patch
-mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection.patch
-mm-memory_hotplug-fix-kerneldoc-comment-for-__try_online_node.patch
-mm-memory_hotplug-fix-kerneldoc-comment-for-__remove_memory.patch
-mm-zbud-add-kerneldoc-fields-for-zbud_pool.patch
-mm-z3fold-add-kerneldoc-fields-for-z3fold_pool.patch
-mm-swap-make-swap_address_space-an-inline-function.patch
-mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
-mm-page_alloc-move-prototype-for-find_suitable_fallback.patch
-mm-swap-make-node_data-an-inline-function-on-config_flatmem.patch
+mm.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+mmmemory_hotplug-drop-unneeded-locking-fix.patch
+fs-proc-kcorec-add-mmap-interface-fix.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+lib-math-rational-add-kunit-test-cases-fix.patch
+lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
+ipc-utilc-use-binary-search-for-max_idx-fix.patch
+linux-next-pre.patch
+linux-next-post.patch
+linux-next-rejects.patch
+kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
