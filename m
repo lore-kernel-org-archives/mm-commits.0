@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E153C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:31:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7AE2C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:31:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E456C61CED
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:31:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C378461CF6
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:31:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232124AbhF2Ado (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 20:33:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32854 "EHLO mail.kernel.org"
+        id S232211AbhF2Adr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 20:33:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32880 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232060AbhF2Ado (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 20:33:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 988DF61CEB;
-        Tue, 29 Jun 2021 00:31:17 +0000 (UTC)
+        id S232060AbhF2Adq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 20:33:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B97861CDA;
+        Tue, 29 Jun 2021 00:31:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624926677;
-        bh=k2gJPiNl3GfD4WhXujMp7DJMOzVns3oZsebIr0uV1t4=;
+        s=korg; t=1624926679;
+        bh=yo5fVHTlmjA58031LJCSrsIVrQnUOsYzN1mmbK/DCWE=;
         h=Date:From:To:Subject:From;
-        b=LkEV0VyULJgvxodLabzNBlHm0XnBdRL3FLl0aRUln8oi4VAfdJBSxJscWYivjRIwz
-         WOID1o6433lxXI1f8TMhVT1NAjx0Zx2GaGOfaonqGWZjp7I81WxhUF6T2w2GSI4MHU
-         Y1pSA7Fc2JelnMIRg6OvmZbqxhS7nCz51bAJxHMo=
-Date:   Mon, 28 Jun 2021 17:31:17 -0700
+        b=FdFr4o20L2TO2uIzQjxInIiTXKl3SVNELNYbw86k9vbVxiNI/C7FfbiNd9Bbz1Nb0
+         IJqhX8q9TrexbBy8eBpCEGawNPb39+XuFQUjrDlmR0RnPisydbB4ftj+NLfEKEs/AP
+         4DrsPyjkyiUU8mA7MrSmnSSGE0NQK318pANsNKcs=
+Date:   Mon, 28 Jun 2021 17:31:19 -0700
 From:   akpm@linux-foundation.org
-To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        sfr@canb.auug.org.au
+To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch removed
+ mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix-fix.patch removed
  from -mm tree
-Message-ID: <20210629003117.FzFeJkiIL%akpm@linux-foundation.org>
+Message-ID: <20210629003119.7IKxVyM4f%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,66 +43,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: split per cpu page lists and zone stats -fix
+     Subject: mm/page_alloc: split per cpu page lists and zone stats -fix -fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch
+     mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix-fix.patch
 
 This patch was dropped because it was folded into mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: split per cpu page lists and zone stats -fix
+Subject: mm/page_alloc: split per cpu page lists and zone stats -fix -fix
 
-mm/ is not W=1 clean for allnoconfig but the patch "mm/page_alloc: Split
-per cpu page lists and zone stats" makes it worse with the following
-warning
+mm/ is not W=1 clean for make allnoconfig but this patch accidentally made
+it worse for i386 with the warning
 
-  mm/vmstat.c: In function `zoneinfo_show_print':
-  mm/vmstat.c:1698:28: warning: variable `pzstats' set but not used [-Wunused-but-set-variable]
-     struct per_cpu_zonestat *pzstats;
-                              ^~~~~~~
+  mm/vmstat.c: In function `refresh_cpu_vm_stats':
+  mm/vmstat.c:785:34: warning: unused variable `pcp' [-Wunused-variable]
+     struct per_cpu_pages __percpu *pcp = zone->per_cpu_pageset;
+                                    ^~~
 
-This is a fix to the mmotm patch
+This is a second fix to the mmotm patch
 mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch.
 
-Link: https://lkml.kernel.org/r/20210514144622.GA3735@techsingularity.net
+Link: https://lkml.kernel.org/r/20210516140705.GB3735@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmstat.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/vmstat.c~mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix
+--- a/mm/vmstat.c~mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix-fix
 +++ a/mm/vmstat.c
-@@ -1695,10 +1695,9 @@ static void zoneinfo_show_print(struct s
- 	seq_printf(m, "\n  pagesets");
- 	for_each_online_cpu(i) {
- 		struct per_cpu_pages *pcp;
--		struct per_cpu_zonestat *pzstats;
-+		struct per_cpu_zonestat __maybe_unused *pzstats;
+@@ -782,7 +782,9 @@ static int refresh_cpu_vm_stats(bool do_
  
- 		pcp = per_cpu_ptr(zone->per_cpu_pageset, i);
--		pzstats = per_cpu_ptr(zone->per_cpu_zonestats, i);
- 		seq_printf(m,
- 			   "\n    cpu: %i"
- 			   "\n              count: %i"
-@@ -1709,6 +1708,7 @@ static void zoneinfo_show_print(struct s
- 			   pcp->high,
- 			   pcp->batch);
- #ifdef CONFIG_SMP
-+		pzstats = per_cpu_ptr(zone->per_cpu_zonestats, i);
- 		seq_printf(m, "\n  vm stats threshold: %d",
- 				pzstats->stat_threshold);
- #endif
+ 	for_each_populated_zone(zone) {
+ 		struct per_cpu_zonestat __percpu *pzstats = zone->per_cpu_zonestats;
++#ifdef CONFIG_NUMA
+ 		struct per_cpu_pages __percpu *pcp = zone->per_cpu_pageset;
++#endif
+ 
+ 		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++) {
+ 			int v;
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
 
 mm-page_alloc-correct-return-value-of-populated-elements-if-bulk-array-is-populated.patch
 mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch
-mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix-fix.patch
 mm-page_alloc-convert-per-cpu-list-protection-to-local_lock.patch
 mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix.patch
 mm-vmstat-convert-numa-statistics-to-basic-numa-counters.patch
