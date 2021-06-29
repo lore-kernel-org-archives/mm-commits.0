@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97703C11F67
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:33:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC156C11F65
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:33:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 855BE61D01
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:33:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D413A61D01
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:33:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231719AbhF2CgL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:36:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56930 "EHLO mail.kernel.org"
+        id S231717AbhF2CgJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:36:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56892 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230152AbhF2CgL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:36:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A27D361CEF;
-        Tue, 29 Jun 2021 02:33:44 +0000 (UTC)
+        id S230152AbhF2CgJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:36:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B649E61CEF;
+        Tue, 29 Jun 2021 02:33:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934024;
-        bh=dJke2oc8YhfFa+qQz+tymwjj2+bYKQnSkRXpIsUC1aM=;
+        s=korg; t=1624934022;
+        bh=4w0PMfCAuBNX1DAT9CBXigOYEWhAN0mCuhjFRGiPUsQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=IGkzhgZ73E/UjN/Z6xTQ3XqYWJqymWHVZaXKtyHVbbm+rSi3q4aYRitcfOhmQQ0hn
-         T7WcpRQFhuGEnNF3CYeO4YIjhMINI/0EnwmV5e/P0UfA27GQOn8TH78NDIKCBCqmZN
-         K0j05a20Abdtre0CW49kcLuyveIVCb4/TD3UGOl0=
-Date:   Mon, 28 Jun 2021 19:33:44 -0700
+        b=waRPalmuqN6PImHspR4LX/eQFRYKjR2ofLzgtJKawwDopnWXcndite0cz/UQieA55
+         OVnvhMAddOwWqyrk2oQdMJLyEo4FhRGXak8exDUCGsDxko+OKnkN6d7tVy5PnJVua4
+         NmNaE9LfAzte9EjN8oZoVfWBBU0KPb1L4jmqoIqw=
+Date:   Mon, 28 Jun 2021 19:33:41 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+To:     akpm@linux-foundation.org, arnd@arndb.de, linux-mm@kvack.org,
         masahiroy@kernel.org, mm-commits@vger.kernel.org,
-        rostedt@goodmis.org, torvalds@linux-foundation.org,
-        warthog9@kernel.org
-Subject:  [patch 008/192] streamline_config.pl: make spacing
- consistent
-Message-ID: <20210629023344.BEDKclLbF%akpm@linux-foundation.org>
+        rdunlap@infradead.org, torvalds@linux-foundation.org
+Subject:  [patch 007/192] ia64: mca_drv: fix incorrect array size
+ calculation
+Message-ID: <20210629023341.TtwfmRzoY%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,145 +43,40 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: "Steven Rostedt (VMware)" <rostedt@goodmis.org>
-Subject: streamline_config.pl: make spacing consistent
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: ia64: mca_drv: fix incorrect array size calculation
 
-Patch series "streamline_config.pl: Fix Perl spacing".
+gcc points out a mistake in the mca driver that goes back to before the
+git history:
 
-Talking with John Hawley about how vim and emacs deal with Perl files with
-respect to tabs and spaces, I found that some of my Perl code in the
-kernel had inconsistent spacing.  The way emacs handles Perl by default is
-to use 4 spaces per indent, but make all 8 spaces into a single tab.  Vim
-does not do this by default.  But if you add the vim variable control:
+arch/ia64/kernel/mca_drv.c: In function 'init_record_index_pools':
+arch/ia64/kernel/mca_drv.c:346:54: error: expression does not compute the number of elements in this array; element typ
+e is 'int', not 'size_t' {aka 'long unsigned int'} [-Werror=sizeof-array-div]
+  346 |         for (i = 1; i < sizeof sal_log_sect_min_sizes/sizeof(size_t); i++)
+      |                                                      ^
 
- # vim: softtabstop=4
+This is the same as sizeof(size_t), which is two shorter than the actual
+array.  Use the ARRAY_SIZE() macro to get the correct calculation instead.
 
-to a perl file, it makes vim behave the same way as emacs.
-
-The first patch is to change all 8 spaces into a single tab (mostly from
-people editing the file with vim).  The next patch adds the softtabstop
-variable to make vim act like emacs by default.
-
-
-This patch (of 2):
-
-As Perl code tends to have 4 space indentation, but uses tabs for every 8
-spaces, make that consistent in the streamline_config.pl code.  Replace
-all 8 spaces with a single tab.
-
-Link: https://lkml.kernel.org/r/20210322214032.133596267@goodmis.org
-Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: "John (Warthog9) Hawley" <warthog9@kernel.org>
+Link: https://lkml.kernel.org/r/20210514214123.875971-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/streamline_config.pl |   74 ++++++++++++-------------
- 1 file changed, 37 insertions(+), 37 deletions(-)
+ arch/ia64/kernel/mca_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/kconfig/streamline_config.pl~streamline_configpl-make-spacing-consistent
-+++ a/scripts/kconfig/streamline_config.pl
-@@ -601,12 +601,12 @@ if (defined($ENV{'LMC_KEEP'})) {
- sub in_preserved_kconfigs {
-     my $kconfig = $config2kfile{$_[0]};
-     if (!defined($kconfig)) {
--        return 0;
-+	return 0;
-     }
-     foreach my $excl (@preserved_kconfigs) {
--        if($kconfig =~ /^$excl/) {
--            return 1;
--        }
-+	if($kconfig =~ /^$excl/) {
-+	    return 1;
-+	}
-     }
-     return 0;
- }
-@@ -629,52 +629,52 @@ foreach my $line (@config_file) {
-     }
+--- a/arch/ia64/kernel/mca_drv.c~ia64-mca_drv-fix-incorrect-array-size-calculation
++++ a/arch/ia64/kernel/mca_drv.c
+@@ -343,7 +343,7 @@ init_record_index_pools(void)
  
-     if (/CONFIG_MODULE_SIG_KEY="(.+)"/) {
--        my $orig_cert = $1;
--        my $default_cert = "certs/signing_key.pem";
-+	my $orig_cert = $1;
-+	my $default_cert = "certs/signing_key.pem";
+ 	/* - 2 - */
+ 	sect_min_size = sal_log_sect_min_sizes[0];
+-	for (i = 1; i < sizeof sal_log_sect_min_sizes/sizeof(size_t); i++)
++	for (i = 1; i < ARRAY_SIZE(sal_log_sect_min_sizes); i++)
+ 		if (sect_min_size > sal_log_sect_min_sizes[i])
+ 			sect_min_size = sal_log_sect_min_sizes[i];
  
--        # Check that the logic in this script still matches the one in Kconfig
--        if (!defined($depends{"MODULE_SIG_KEY"}) ||
--            $depends{"MODULE_SIG_KEY"} !~ /"\Q$default_cert\E"/) {
--            print STDERR "WARNING: MODULE_SIG_KEY assertion failure, ",
--                "update needed to ", __FILE__, " line ", __LINE__, "\n";
--            print;
--        } elsif ($orig_cert ne $default_cert && ! -f $orig_cert) {
--            print STDERR "Module signature verification enabled but ",
--                "module signing key \"$orig_cert\" not found. Resetting ",
--                "signing key to default value.\n";
--            print "CONFIG_MODULE_SIG_KEY=\"$default_cert\"\n";
--        } else {
--            print;
--        }
--        next;
-+	# Check that the logic in this script still matches the one in Kconfig
-+	if (!defined($depends{"MODULE_SIG_KEY"}) ||
-+	    $depends{"MODULE_SIG_KEY"} !~ /"\Q$default_cert\E"/) {
-+	    print STDERR "WARNING: MODULE_SIG_KEY assertion failure, ",
-+		"update needed to ", __FILE__, " line ", __LINE__, "\n";
-+	    print;
-+	} elsif ($orig_cert ne $default_cert && ! -f $orig_cert) {
-+	    print STDERR "Module signature verification enabled but ",
-+		"module signing key \"$orig_cert\" not found. Resetting ",
-+		"signing key to default value.\n";
-+	    print "CONFIG_MODULE_SIG_KEY=\"$default_cert\"\n";
-+	} else {
-+	    print;
-+	}
-+	next;
-     }
- 
-     if (/CONFIG_SYSTEM_TRUSTED_KEYS="(.+)"/) {
--        my $orig_keys = $1;
-+	my $orig_keys = $1;
- 
--        if (! -f $orig_keys) {
--            print STDERR "System keyring enabled but keys \"$orig_keys\" ",
--                "not found. Resetting keys to default value.\n";
--            print "CONFIG_SYSTEM_TRUSTED_KEYS=\"\"\n";
--        } else {
--            print;
--        }
--        next;
-+	if (! -f $orig_keys) {
-+	    print STDERR "System keyring enabled but keys \"$orig_keys\" ",
-+		"not found. Resetting keys to default value.\n";
-+	    print "CONFIG_SYSTEM_TRUSTED_KEYS=\"\"\n";
-+	} else {
-+	    print;
-+	}
-+	next;
-     }
- 
-     if (/^(CONFIG.*)=(m|y)/) {
--        if (in_preserved_kconfigs($1)) {
--            dprint "Preserve config $1";
--            print;
--            next;
--        }
-+	if (in_preserved_kconfigs($1)) {
-+	    dprint "Preserve config $1";
-+	    print;
-+	    next;
-+	}
- 	if (defined($configs{$1})) {
- 	    if ($localyesconfig) {
--	        $setconfigs{$1} = 'y';
-+		$setconfigs{$1} = 'y';
- 		print "$1=y\n";
- 		next;
- 	    } else {
--	        $setconfigs{$1} = $2;
-+		$setconfigs{$1} = $2;
- 	    }
- 	} elsif ($2 eq "m") {
- 	    print "# $1 is not set\n";
 _
