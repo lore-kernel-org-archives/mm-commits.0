@@ -4,37 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B73A7C11F67
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 618F4C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A27D361D10
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4BFBD611AE
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231818AbhF2CoA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:44:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36274 "EHLO mail.kernel.org"
+        id S231817AbhF2CoD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:44:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36322 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231706AbhF2Cn7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:43:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4F5EF61D0D;
-        Tue, 29 Jun 2021 02:41:32 +0000 (UTC)
+        id S231799AbhF2CoC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:44:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 35EEF61D0C;
+        Tue, 29 Jun 2021 02:41:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934492;
-        bh=Wo7Z/J6aA4TA2vqeWPyyDIyH4nrXw46aIotdRMevQ5A=;
+        s=korg; t=1624934495;
+        bh=/N6u5bJybcCpXgkdOdLH2P2WlsRZDg7azdf+esj2QXM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=bXKx/6GOAdLhwwWhrwTSRXt7hBy5zHep9yJAnGlrm5wMHcgwm9L5PAqbqDRxe+ySX
-         xHYlfpR4kpvjjSsJG/G0GjHDhDcYdUpyx5nzsA076+Hqo6lMwjqWU+W2LFFa+Ey04S
-         QsV9BzDGqL7SBKZ8jZJUAg9zil4xjMHJoes7Yr1U=
-Date:   Mon, 28 Jun 2021 19:41:31 -0700
+        b=gi8geiCgDzDgvE7BG0uXaIZMChRebKRSeHOjoKs2D44I9ehg3TkHSSD86ONu9sOcS
+         Rd/WKOIRL9ZuHtUzCYty1ecHr/FCIKn3W1QOYwT+rkHy5Af58/oqEOJRAgOcgLJu0U
+         qRz4ZKS33sxcB9fLTLKk+uY7o10IzR9x+fg2coCY=
+Date:   Mon, 28 Jun 2021 19:41:34 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hkallweit1@gmail.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 158/192] mm/page_alloc: switch to pr_debug
-Message-ID: <20210629024131.GaiLz20S_%akpm@linux-foundation.org>
+To:     acme@redhat.com, akpm@linux-foundation.org, andrii@kernel.org,
+        haoluo@google.com, jolsa@kernel.org, linux-mm@kvack.org,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        msuchanek@suse.de, torvalds@linux-foundation.org
+Subject:  [patch 159/192] kbuild: skip per-CPU BTF generation for
+ pahole v1.18-v1.21
+Message-ID: <20210629024134.P29WLt5IS%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,65 +44,46 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: mm/page_alloc: switch to pr_debug
+From: Andrii Nakryiko <andrii@kernel.org>
+Subject: kbuild: skip per-CPU BTF generation for pahole v1.18-v1.21
 
-Having such debug messages in the dmesg log may confuse users.  Therefore
-restrict debug output to cases where DEBUG is defined or dynamic debugging
-is enabled for the respective code piece.
+Commit "mm/page_alloc: convert per-cpu list protection to local_lock" will
+introduce a zero-sized per-CPU variable, which causes pahole to generate
+invalid BTF.  Only pahole versions 1.18 through 1.21 are impacted, as
+before 1.18 pahole doesn't know anything about per-CPU variables, and 1.22
+contains the proper fix for the issue.
 
-Link: https://lkml.kernel.org/r/976adb93-3041-ce63-48fc-55a6096a51c1@gmail.com
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Luckily, pahole 1.18 got --skip_encoding_btf_vars option disabling BTF
+generation for per-CPU variables in anticipation of some unanticipated
+problems.  So use this escape hatch to disable per-CPU var BTF info on
+those problematic pahole versions.  Users relying on availability of
+per-CPU var BTFs would need to upgrade to pahole 1.22+, but everyone won't
+notice any regressions.
+
+Link: https://lkml.kernel.org/r/20210530002536.3193829-1-andrii@kernel.org
+Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
+Cc: Hao Luo <haoluo@google.com>
+Cc: Michal Suchanek <msuchanek@suse.de>
+Cc: Jiri Olsa <jolsa@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ scripts/link-vmlinux.sh |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-switch-to-pr_debug
-+++ a/mm/page_alloc.c
-@@ -6770,9 +6770,8 @@ static __meminit void zone_pcp_init(stru
- 	zone->pageset_batch = BOOT_PAGESET_BATCH;
+--- a/scripts/link-vmlinux.sh~kbuild-skip-per-cpu-btf-generation-for-pahole-v118-v121
++++ a/scripts/link-vmlinux.sh
+@@ -235,6 +235,10 @@ gen_btf()
  
- 	if (populated_zone(zone))
--		printk(KERN_DEBUG "  %s zone: %lu pages, LIFO batch:%u\n",
--			zone->name, zone->present_pages,
--					 zone_batchsize(zone));
-+		pr_debug("  %s zone: %lu pages, LIFO batch:%u\n", zone->name,
-+			 zone->present_pages, zone_batchsize(zone));
- }
+ 	vmlinux_link ${1}
  
- void __meminit init_currently_empty_zone(struct zone *zone,
-@@ -7042,8 +7041,7 @@ static void __init calculate_node_totalp
- 
- 	pgdat->node_spanned_pages = totalpages;
- 	pgdat->node_present_pages = realtotalpages;
--	printk(KERN_DEBUG "On node %d totalpages: %lu\n", pgdat->node_id,
--							realtotalpages);
-+	pr_debug("On node %d totalpages: %lu\n", pgdat->node_id, realtotalpages);
- }
- 
- #ifndef CONFIG_SPARSEMEM
-@@ -7243,9 +7241,8 @@ static void __init free_area_init_core(s
- 			if (freesize >= memmap_pages) {
- 				freesize -= memmap_pages;
- 				if (memmap_pages)
--					printk(KERN_DEBUG
--					       "  %s zone: %lu pages used for memmap\n",
--					       zone_names[j], memmap_pages);
-+					pr_debug("  %s zone: %lu pages used for memmap\n",
-+						 zone_names[j], memmap_pages);
- 			} else
- 				pr_warn("  %s zone: %lu pages exceeds freesize %lu\n",
- 					zone_names[j], memmap_pages, freesize);
-@@ -7254,8 +7251,7 @@ static void __init free_area_init_core(s
- 		/* Account for reserved pages */
- 		if (j == 0 && freesize > dma_reserve) {
- 			freesize -= dma_reserve;
--			printk(KERN_DEBUG "  %s zone: %lu pages reserved\n",
--					zone_names[0], dma_reserve);
-+			pr_debug("  %s zone: %lu pages reserved\n", zone_names[0], dma_reserve);
- 		}
- 
- 		if (!is_highmem_idx(j))
++	if [ "${pahole_ver}" -ge "118" ] && [ "${pahole_ver}" -le "121" ]; then
++		# pahole 1.18 through 1.21 can't handle zero-sized per-CPU vars
++		extra_paholeopt="${extra_paholeopt} --skip_encoding_btf_vars"
++	fi
+ 	if [ "${pahole_ver}" -ge "121" ]; then
+ 		extra_paholeopt="${extra_paholeopt} --btf_gen_floats"
+ 	fi
 _
