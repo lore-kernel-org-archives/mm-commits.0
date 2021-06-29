@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B912C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:14:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12129C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:14:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3C4ED61CD0
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:14:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2D5161CD0
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:14:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231944AbhF2ARK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 20:17:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58320 "EHLO mail.kernel.org"
+        id S231945AbhF2ARN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 20:17:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58360 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229852AbhF2ARK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 20:17:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 230C061C9E;
-        Tue, 29 Jun 2021 00:14:44 +0000 (UTC)
+        id S229852AbhF2ARN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 20:17:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C5E1861CED;
+        Tue, 29 Jun 2021 00:14:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624925684;
-        bh=f8TKWKQaPrq495dO5M+FRAzay7ogsozjTTZgN5bHlQY=;
+        s=korg; t=1624925687;
+        bh=F1rN/zPKC6JmD/hHOswduQoJzgI7Ynbf+biqL+z8ptc=;
         h=Date:From:To:Subject:From;
-        b=WGS+f/9DAJ0Frvz8DTB/jDvc9a3bAZzrhEdWFTBQuvY871gFUzRwxqQOHq0/hWbzy
-         dHsVBSsCb6xaRZDcgZ6y+YOcBYEfSRPWgUlmB1p6IBjR8qEYxLBOZYgFoEwBq+rc58
-         6eWoiELd079B2sB0ZJ9YqVMd5f0sJRGyhNJU03ss=
-Date:   Mon, 28 Jun 2021 17:14:43 -0700
+        b=R6atoWNAyWGVkE/Rv5/AcRTDPIEmrib85fyfah/Cuq2O3zHGaGK3q6w//EBGoiAjr
+         LqvtJEmkj6/jxiz+IQVph4MD+Xu3Cfi7e4/ApWT45A3a8OtPu4A/kWnOthLOHBUecG
+         cfIvFyFypSrUIxAV1ZQ190RuB50EdZqIqCUvbyxk=
+Date:   Mon, 28 Jun 2021 17:14:46 -0700
 From:   akpm@linux-foundation.org
 To:     42.hyeyoo@gmail.com, cl@linux.com, elver@google.com,
         iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
-        penberg@kernel.org, rientjes@google.com, vbabka@suse.cz
+        naresh.kamboju@linaro.org, nathan@kernel.org, penberg@kernel.org,
+        rientjes@google.com, vbabka@suse.cz
 Subject:  [folded-merged]
- =?US-ASCII?Q?mm-slub-change-run-time-assertion-in-kmalloc=5Findex-to-co?=
- =?US-ASCII?Q?mpile-time-fix.patch?= removed from -mm tree
-Message-ID: <20210629001443.CgCeUWIw0%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-slub-change-run-time-assertion-in-kmalloc=5Findex-to-comp?=
+ =?US-ASCII?Q?ile-time-fix-2.patch?= removed from -mm tree
+Message-ID: <20210629001446.mFAE-Rbro%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -47,37 +48,35 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: test: fix for "mm, slub: change run-time assertion in kmalloc_index() to compile-time"
+     Subject: mm, slub: fix support for clang 10
 has been removed from the -mm tree.  Its filename was
-     mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix.patch
+     mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-2.patch
 
 This patch was dropped because it was folded into mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time.patch
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: test: fix for "mm, slub: change run-time assertion in kmalloc_index() to compile-time"
+From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Subject: mm, slub: fix support for clang 10
 
-Enable using kmalloc_index() in allocator test modules again where the
-size may be non-constant, while ensuring normal usage always passes a
-constant size.
+Previously in 'commit ff3daafe3fd3 ("mm, slub: change run-time assertion
+in kmalloc_index() to compile-time")', changed kmalloc_index's run-time
+assertion to compile-time assertion.
 
-Split the definition into __kmalloc_index(size, size_is_constant), and a
-definition of kmalloc_index(s), matching the old kmalloc_index()
-interface, but that still requires size_is_constant==true.  This ensures
-that normal usage of kmalloc_index() always passes a constant size.
+But clang 10 has a bug misevaluating __builtin_constant_p() as true,
+making it unable to compile. This bug was fixed in clang 11.
 
-While the __-prefix should make it clearer that the function is to be used
-with care, also rewrite the "Note" to highlight the restriction (and add a
-hint to kmalloc_slab()).
+To support clang 10, introduce a macro to do run-time assertion if clang
+version is less than 11, even if the size is constant. Might revert this
+commit later if we choose not to support clang 10.
 
-The alternative considered here is to export kmalloc_slab(), but given it
-is internal to mm/ and not in <linux/slab.h>, we should probably avoid
-exporting it.  Allocator test modules will work just fine by using
-__kmalloc_index(s, false).
-
-Link: https://lkml.kernel.org/r/20210512195227.245000695c9014242e9a00e5@linux-foundation.org
-Link: https://lkml.kernel.org/r/YJ0fN5Ul8i9e/3wC@elver.google.com
-Signed-off-by: Marco Elver <elver@google.com>
+Link: https://lkml.kernel.org/r/20210518181247.GA10062@hyeyoo
+Fixes: ff3daafe3fd3 ("mm, slub: change run-time assertion in kmalloc_index() to compile-time")
+Link: https://lore.kernel.org/r/CA+G9fYvYxqVhUTkertjZjcrUq8LWPnO7qC==Wum3gYCwWF9D6Q@mail.gmail.com/
+Link: https://lkml.org/lkml/2021/5/11/872
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Suggested-by: Nathan Chancellor <nathan@kernel.org>
+Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
@@ -87,75 +86,24 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h    |   15 +++++++++++----
- mm/kfence/kfence_test.c |    5 +++--
- 2 files changed, 14 insertions(+), 6 deletions(-)
+ include/linux/slab.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/slab.h~mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix
+--- a/include/linux/slab.h~mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix-2
 +++ a/include/linux/slab.h
-@@ -347,10 +347,13 @@ static __always_inline enum kmalloc_cach
-  * 2 = 129 .. 192 bytes
-  * n = 2^(n-1)+1 .. 2^n
-  *
-- * Note: there's no need to optimize kmalloc_index because it's evaluated
-- * in compile-time.
-+ * Note: __kmalloc_index() is compile-time optimized, and not runtime optimized;
-+ * typical usage is via kmalloc_index() and therefore evaluated at compile-time.
-+ * Callers where !size_is_constant should only be test modules, where runtime
-+ * overheads of __kmalloc_index() can be tolerated.  Also see kmalloc_slab().
-  */
--static __always_inline unsigned int kmalloc_index(size_t size)
-+static __always_inline unsigned int __kmalloc_index(size_t size,
-+						    bool size_is_constant)
- {
- 	if (!size)
- 		return 0;
-@@ -386,11 +389,15 @@ static __always_inline unsigned int kmal
+@@ -389,7 +389,7 @@ static __always_inline unsigned int __km
  	if (size <=  16 * 1024 * 1024) return 24;
  	if (size <=  32 * 1024 * 1024) return 25;
  
--	BUILD_BUG_ON_MSG(1, "unexpected size in kmalloc_index()");
-+	if (size_is_constant)
-+		BUILD_BUG_ON_MSG(1, "unexpected size in kmalloc_index()");
-+	else
-+		BUG();
- 
- 	/* Will never be reached. Needed because the compiler may complain */
- 	return -1;
- }
-+#define kmalloc_index(s) __kmalloc_index(s, true)
- #endif /* !CONFIG_SLOB */
- 
- void *__kmalloc(size_t size, gfp_t flags) __assume_kmalloc_alignment __malloc;
---- a/mm/kfence/kfence_test.c~mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time-fix
-+++ a/mm/kfence/kfence_test.c
-@@ -197,7 +197,7 @@ static void test_cache_destroy(void)
- 
- static inline size_t kmalloc_cache_alignment(size_t size)
- {
--	return kmalloc_caches[kmalloc_type(GFP_KERNEL)][kmalloc_index(size)]->align;
-+	return kmalloc_caches[kmalloc_type(GFP_KERNEL)][__kmalloc_index(size, false)]->align;
- }
- 
- /* Must always inline to match stack trace against caller. */
-@@ -267,7 +267,8 @@ static void *test_alloc(struct kunit *te
- 
- 		if (is_kfence_address(alloc)) {
- 			struct page *page = virt_to_head_page(alloc);
--			struct kmem_cache *s = test_cache ?: kmalloc_caches[kmalloc_type(GFP_KERNEL)][kmalloc_index(size)];
-+			struct kmem_cache *s = test_cache ?:
-+					kmalloc_caches[kmalloc_type(GFP_KERNEL)][__kmalloc_index(size, false)];
- 
- 			/*
- 			 * Verify that various helpers return the right values
+-	if (size_is_constant)
++	if ((IS_ENABLED(CONFIG_CC_IS_GCC) || CONFIG_CLANG_VERSION >= 110000) && size_is_constant)
+ 		BUILD_BUG_ON_MSG(1, "unexpected size in kmalloc_index()");
+ 	else
+ 		BUG();
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
 
 mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time.patch
-printk-introduce-dump_stack_lvl-fix.patch
-kfence-unconditionally-use-unbound-work-queue.patch
-kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
-kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2.patch
-kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v3.patch
+mm-fix-typos-and-grammar-error-in-comments.patch
 
