@@ -4,39 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B7E4C11F67
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:35:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3551AC11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:35:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35B9661CEF
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:35:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F35C61D00
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:35:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231680AbhF2Chm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:37:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58316 "EHLO mail.kernel.org"
+        id S231719AbhF2Cho (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:37:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58360 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230152AbhF2Chl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:37:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DF37561A2B;
-        Tue, 29 Jun 2021 02:35:13 +0000 (UTC)
+        id S231706AbhF2Cho (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:37:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E683A61D03;
+        Tue, 29 Jun 2021 02:35:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934114;
-        bh=PSbjepOTs3jROGKOjM+SiNnzSrEvTC08mSYEBTNPB6k=;
+        s=korg; t=1624934117;
+        bh=uYtXV79J2kFuRqgSLyxbVCWgIdqc54aF/Qmo6ltb55Q=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=tV1hNKxLfKl01944UAa7GaGFfZu5TsNmYhxdueh85UvTAhwpkXF5Qw/EWvhYthyq4
-         x0gB5L9mBRMyOmniONGGMi0Ps+FKjPZkOLWmTQdfQgVkqWMJE+wbFw2/Pf5sSIkT4z
-         1mz/eTgZY5PsfpMJrj5TmpIvNdz1K36Avth7wTv4=
-Date:   Mon, 28 Jun 2021 19:35:13 -0700
+        b=RJwhhJcJg9NQM3e//qEzRjbsYMIp7HUECxa/v+Prda1BW7OIptpla0rMqJ2uwbakT
+         2ysY+spxNc2OBbAqeYJfyTaSKndOpKpAJBBxOHhciufKCnGMCVXPkBUi/cQgpOqrbt
+         l9MKsujaluTEjBWasciJCApcydqnlUld+OuGtFu8=
+Date:   Mon, 28 Jun 2021 19:35:16 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, axelrasmussen@google.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        nsaenzju@redhat.com, rostedt@goodmis.org,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 037/192] mm: mmap_lock: use local locks instead of
- disabling preemption
-Message-ID: <20210629023513.G6ax4BHRk%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alexanderduyck@fb.com,
+        anshuman.khandual@arm.com, catalin.marinas@arm.com,
+        david@redhat.com, gshan@redhat.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, mst@redhat.com,
+        torvalds@linux-foundation.org, will@kernel.org
+Subject:  [patch 038/192] mm/page_reporting: fix code style in
+ __page_reporting_request()
+Message-ID: <20210629023516._t9WIYyOk%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,138 +45,61 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Nicolas Saenz Julienne <nsaenzju@redhat.com>
-Subject: mm: mmap_lock: use local locks instead of disabling preemption
+From: Gavin Shan <gshan@redhat.com>
+Subject: mm/page_reporting: fix code style in __page_reporting_request()
 
-mmap_lock will explicitly disable/enable preemption upon manipulating its
-local CPU variables.  This is to be expected, but in this case, it doesn't
-play well with PREEMPT_RT.  The preemption disabled code section also
-takes a spin-lock.  Spin-locks in RT systems will try to schedule, which
-is exactly what we're trying to avoid.
+Patch series "mm/page_reporting: Make page reporting work on arm64 with 64KB page size", v4.
 
-To mitigate this, convert the explicit preemption handling to local_locks.
-Which are RT aware, and will disable migration instead of preemption when
-PREEMPT_RT=y.
+The page reporting threshold is currently equal to @pageblock_order, which
+is 13 and 512MB on arm64 with 64KB base page size selected.  The page
+reporting won't be triggered if the freeing page can't come up with a free
+area like that huge.  The condition is hard to be met, especially when the
+system memory becomes fragmented.
 
-The faulty call trace looks like the following:
-    __mmap_lock_do_trace_*()
-      preempt_disable()
-      get_mm_memcg_path()
-        cgroup_path()
-          kernfs_path_from_node()
-            spin_lock_irqsave() /* Scheduling while atomic! */
+This series intends to solve the issue by having page reporting threshold
+as 5 (2MB) on arm64 with 64KB base page size.  The patches are organized
+as:
 
-Link: https://lkml.kernel.org/r/20210604163506.2103900-1-nsaenzju@redhat.com
-Fixes: 2b5067a8143e3 ("mm: mmap_lock: add tracepoints around lock acquisition ")
-Signed-off-by: Nicolas Saenz Julienne <nsaenzju@redhat.com>
-Tested-by: Axel Rasmussen <axelrasmussen@google.com>
-Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+   PATCH[1/4] Fix some coding style in __page_reporting_request().
+   PATCH[2/4] Represents page reporting order with variable so that it can
+              be exported as module parameter.
+   PATCH[3/4] Allows the device driver (e.g. virtio_balloon) to specify
+              the page reporting order when the device info is registered.
+   PATCH[4/4] Specifies the page reporting order to 5, corresponding to
+              2MB in size on ARM64 when 64KB base page size is used.
+
+
+This patch (of 4):
+
+The lines of comments would be starting with one, instead two space.  This
+corrects the style.
+
+Link: https://lkml.kernel.org/r/20210625014710.42954-1-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20210625014710.42954-2-gshan@redhat.com
+Signed-off-by: Gavin Shan <gshan@redhat.com>
+Reviewed-by: Alexander Duyck <alexanderduyck@fb.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap_lock.c |   33 ++++++++++++++++++++++-----------
- 1 file changed, 22 insertions(+), 11 deletions(-)
+ mm/page_reporting.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/mmap_lock.c~mm-mmap_lock-use-local-locks-instead-of-disabling-preemption
-+++ a/mm/mmap_lock.c
-@@ -11,6 +11,7 @@
- #include <linux/rcupdate.h>
- #include <linux/smp.h>
- #include <linux/trace_events.h>
-+#include <linux/local_lock.h>
+--- a/mm/page_reporting.c~mm-page_reporting-fix-code-style-in-__page_reporting_request
++++ a/mm/page_reporting.c
+@@ -31,8 +31,8 @@ __page_reporting_request(struct page_rep
+ 		return;
  
- EXPORT_TRACEPOINT_SYMBOL(mmap_lock_start_locking);
- EXPORT_TRACEPOINT_SYMBOL(mmap_lock_acquire_returned);
-@@ -39,21 +40,30 @@ static int reg_refcount; /* Protected by
-  */
- #define CONTEXT_COUNT 4
- 
--static DEFINE_PER_CPU(char __rcu *, memcg_path_buf);
-+struct memcg_path {
-+	local_lock_t lock;
-+	char __rcu *buf;
-+	local_t buf_idx;
-+};
-+static DEFINE_PER_CPU(struct memcg_path, memcg_paths) = {
-+	.lock = INIT_LOCAL_LOCK(lock),
-+	.buf_idx = LOCAL_INIT(0),
-+};
-+
- static char **tmp_bufs;
--static DEFINE_PER_CPU(int, memcg_path_buf_idx);
- 
- /* Called with reg_lock held. */
- static void free_memcg_path_bufs(void)
- {
-+	struct memcg_path *memcg_path;
- 	int cpu;
- 	char **old = tmp_bufs;
- 
- 	for_each_possible_cpu(cpu) {
--		*(old++) = rcu_dereference_protected(
--			per_cpu(memcg_path_buf, cpu),
-+		memcg_path = per_cpu_ptr(&memcg_paths, cpu);
-+		*(old++) = rcu_dereference_protected(memcg_path->buf,
- 			lockdep_is_held(&reg_lock));
--		rcu_assign_pointer(per_cpu(memcg_path_buf, cpu), NULL);
-+		rcu_assign_pointer(memcg_path->buf, NULL);
- 	}
- 
- 	/* Wait for inflight memcg_path_buf users to finish. */
-@@ -88,7 +98,7 @@ int trace_mmap_lock_reg(void)
- 		new = kmalloc(MEMCG_PATH_BUF_SIZE * CONTEXT_COUNT, GFP_KERNEL);
- 		if (new == NULL)
- 			goto out_fail_free;
--		rcu_assign_pointer(per_cpu(memcg_path_buf, cpu), new);
-+		rcu_assign_pointer(per_cpu_ptr(&memcg_paths, cpu)->buf, new);
- 		/* Don't need to wait for inflights, they'd have gotten NULL. */
- 	}
- 
-@@ -122,23 +132,24 @@ out:
- 
- static inline char *get_memcg_path_buf(void)
- {
-+	struct memcg_path *memcg_path = this_cpu_ptr(&memcg_paths);
- 	char *buf;
- 	int idx;
- 
- 	rcu_read_lock();
--	buf = rcu_dereference(*this_cpu_ptr(&memcg_path_buf));
-+	buf = rcu_dereference(memcg_path->buf);
- 	if (buf == NULL) {
- 		rcu_read_unlock();
- 		return NULL;
- 	}
--	idx = this_cpu_add_return(memcg_path_buf_idx, MEMCG_PATH_BUF_SIZE) -
-+	idx = local_add_return(MEMCG_PATH_BUF_SIZE, &memcg_path->buf_idx) -
- 	      MEMCG_PATH_BUF_SIZE;
- 	return &buf[idx];
- }
- 
- static inline void put_memcg_path_buf(void)
- {
--	this_cpu_sub(memcg_path_buf_idx, MEMCG_PATH_BUF_SIZE);
-+	local_sub(MEMCG_PATH_BUF_SIZE, &this_cpu_ptr(&memcg_paths)->buf_idx);
- 	rcu_read_unlock();
- }
- 
-@@ -179,14 +190,14 @@ out:
- #define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
- 	do {                                                                   \
- 		const char *memcg_path;                                        \
--		preempt_disable();                                             \
-+		local_lock(&memcg_paths.lock);				       \
- 		memcg_path = get_mm_memcg_path(mm);                            \
- 		trace_mmap_lock_##type(mm,                                     \
- 				       memcg_path != NULL ? memcg_path : "",   \
- 				       ##__VA_ARGS__);                         \
- 		if (likely(memcg_path != NULL))                                \
- 			put_memcg_path_buf();                                  \
--		preempt_enable();                                              \
-+		local_unlock(&memcg_paths.lock);			       \
- 	} while (0)
- 
- #else /* !CONFIG_MEMCG */
+ 	/*
+-	 *  If reporting is already active there is nothing we need to do.
+-	 *  Test against 0 as that represents PAGE_REPORTING_IDLE.
++	 * If reporting is already active there is nothing we need to do.
++	 * Test against 0 as that represents PAGE_REPORTING_IDLE.
+ 	 */
+ 	state = atomic_xchg(&prdev->state, PAGE_REPORTING_REQUESTED);
+ 	if (state != PAGE_REPORTING_IDLE)
 _
