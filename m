@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F098BC11F65
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EC5EC11F65
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D946561D13
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 36A2061D0F
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231332AbhF2Cm6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:42:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35246 "EHLO mail.kernel.org"
+        id S231719AbhF2CnF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:43:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35366 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230152AbhF2Cm6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:42:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 77FF461D0C;
-        Tue, 29 Jun 2021 02:40:30 +0000 (UTC)
+        id S230152AbhF2CnE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:43:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F418161D14;
+        Tue, 29 Jun 2021 02:40:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934430;
-        bh=my3oSbLjGzoJueqZAXcoiBN1OEWQvjUNyNR4NpH8q7E=;
+        s=korg; t=1624934437;
+        bh=xuij92vfQyvxWA1inwHs8EIMtb2WYYjKIgQhI+qJcRs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Nmd3QUMIHK2wnPDRFvDBOO4G2WdK7RS6FsI7JFMO21lHHoru0wqeePw80/l9Q/pix
-         0y0+J+h6vsfXu300i5OJQNjp9ZaxaRD2hg4X70TNXpjW4Q/Dg7M7tHMS2KCbwOMKB9
-         ydQ/iET3WtZAfbjiDiusSEW3IslBH1oGIjZTW4ns=
-Date:   Mon, 28 Jun 2021 19:40:30 -0700
+        b=X9s2BBMW5S8Bz8RtF45TYJrtYJCvVwh8WQ1mYZU8135pWdvWuU4gYtJnN+Sspk2B+
+         rpU+a1Wpq6BqagKQGn9y95eDT0Y6kc2IKPJN6y+bT6noRP5amb3E2KofqTkXIWhjxO
+         dLqcDTkxCghBbFzXwA39uNPOZ0ReVeNUI/2RO0qM=
+Date:   Mon, 28 Jun 2021 19:40:36 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bo.he@intel.com, dvyukov@google.com,
-        elver@google.com, glider@google.com, linux-mm@kvack.org,
-        mingo@kernel.org, mm-commits@vger.kernel.org, pmladek@suse.com,
-        psodagud@quicinc.com, rostedt@goodmis.org, ryabinin.a.a@gmail.com,
-        senozhatsky@chromium.org, torvalds@linux-foundation.org,
-        yanmin_zhang@linux.intel.com
-Subject:  [patch 138/192] printk: introduce dump_stack_lvl()
-Message-ID: <20210629024030.7_lNcozaJ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
+        brendanhiggins@google.com, corbet@lwn.net, davidgow@google.com,
+        dja@axtens.net, dvyukov@google.com, elver@google.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        ryabinin.a.a@gmail.com, torvalds@linux-foundation.org
+Subject:  [patch 140/192] kasan: test: improve failure message in
+ KUNIT_EXPECT_KASAN_FAIL()
+Message-ID: <20210629024036.NpsxwNLGW%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,114 +45,116 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Alexander Potapenko <glider@google.com>
-Subject: printk: introduce dump_stack_lvl()
+From: David Gow <davidgow@google.com>
+Subject: kasan: test: improve failure message in KUNIT_EXPECT_KASAN_FAIL()
 
-dump_stack() is used for many different cases, which may require a log
-level consistent with other kernel messages surrounding the dump_stack()
-call.  Without that, certain systems that are configured to ignore the
-default level messages will miss stack traces in critical error reports.
+The KUNIT_EXPECT_KASAN_FAIL() macro currently uses KUNIT_EXPECT_EQ() to
+compare fail_data.report_expected and fail_data.report_found.  This always
+gave a somewhat useless error message on failure, but the addition of
+extra compile-time checking with READ_ONCE() has caused it to get much
+longer, and be truncated before anything useful is displayed.
 
-This patch introduces dump_stack_lvl() that behaves similarly to
-dump_stack(), but accepts a custom log level.  The old dump_stack()
-becomes equal to dump_stack_lvl(KERN_DEFAULT).
+Instead, just check fail_data.report_found by hand (we've just set
+report_expected to 'true'), and print a better failure message with
+KUNIT_FAIL().  Because of this, report_expected is no longer used
+anywhere, and can be removed.
 
-A somewhat similar patch has been proposed in 2012:
-https://lore.kernel.org/lkml/1332493269.2359.9.camel@hebo/ , but wasn't
-merged.
+Beforehand, a failure in:
+KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)area)[3100]);
+would have looked like:
+[22:00:34] [FAILED] vmalloc_oob
+[22:00:34]     # vmalloc_oob: EXPECTATION FAILED at lib/test_kasan.c:991
+[22:00:34]     Expected ({ do { extern void __compiletime_assert_705(void) __attribute__((__error__("Unsupported access size for {READ,WRITE}_ONCE()."))); if (!((sizeof(fail_data.report_expected) == sizeof(char) || sizeof(fail_data.repp
+[22:00:34]     not ok 45 - vmalloc_oob
 
-[elver@google.com: add missing dump_stack_lvl() stub if CONFIG_PRINTK=n]
-  Link: https://lkml.kernel.org/r/YJ0KAM0hQev1AmWe@elver.google.com
-Link: https://lkml.kernel.org/r/20210506105405.3535023-1-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
+With this change, it instead looks like:
+[22:04:04] [FAILED] vmalloc_oob
+[22:04:04]     # vmalloc_oob: EXPECTATION FAILED at lib/test_kasan.c:993
+[22:04:04]     KASAN failure expected in "((volatile char *)area)[3100]", but none occurred
+[22:04:04]     not ok 45 - vmalloc_oob
+
+Also update the example failure in the documentation to reflect this.
+
+Link: https://lkml.kernel.org/r/20210606005531.165954-1-davidgow@google.com
+Signed-off-by: David Gow <davidgow@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
 Reviewed-by: Marco Elver <elver@google.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: he, bo <bo.he@intel.com>
-Cc: Yanmin Zhang <yanmin_zhang@linux.intel.com>
-Cc: Prasad Sodagudi <psodagud@quicinc.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Brendan Higgins <brendanhiggins@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Daniel Axtens <dja@axtens.net>
+Cc: David Gow <davidgow@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |    5 +++++
- lib/dump_stack.c       |   20 +++++++++++++-------
- 2 files changed, 18 insertions(+), 7 deletions(-)
+ Documentation/dev-tools/kasan.rst |    9 ++++-----
+ include/linux/kasan.h             |    1 -
+ lib/test_kasan.c                  |   11 +++++------
+ 3 files changed, 9 insertions(+), 12 deletions(-)
 
---- a/include/linux/printk.h~printk-introduce-dump_stack_lvl
-+++ a/include/linux/printk.h
-@@ -206,6 +206,7 @@ void __init setup_log_buf(int early);
- __printf(1, 2) void dump_stack_set_arch_desc(const char *fmt, ...);
- void dump_stack_print_info(const char *log_lvl);
- void show_regs_print_info(const char *log_lvl);
-+extern asmlinkage void dump_stack_lvl(const char *log_lvl) __cold;
- extern asmlinkage void dump_stack(void) __cold;
- extern void printk_safe_flush(void);
- extern void printk_safe_flush_on_panic(void);
-@@ -269,6 +270,10 @@ static inline void show_regs_print_info(
- {
- }
+--- a/Documentation/dev-tools/kasan.rst~kasan-test-improve-failure-message-in-kunit_expect_kasan_fail
++++ a/Documentation/dev-tools/kasan.rst
+@@ -447,11 +447,10 @@ When a test fails due to a failed ``kmal
  
-+static inline void dump_stack_lvl(const char *log_lvl)
-+{
-+}
+ When a test fails due to a missing KASAN report::
+ 
+-        # kmalloc_double_kzfree: EXPECTATION FAILED at lib/test_kasan.c:629
+-        Expected kasan_data->report_expected == kasan_data->report_found, but
+-        kasan_data->report_expected == 1
+-        kasan_data->report_found == 0
+-        not ok 28 - kmalloc_double_kzfree
++        # kmalloc_double_kzfree: EXPECTATION FAILED at lib/test_kasan.c:974
++        KASAN failure expected in "kfree_sensitive(ptr)", but none occurred
++        not ok 44 - kmalloc_double_kzfree
 +
- static inline void dump_stack(void)
- {
- }
---- a/lib/dump_stack.c~printk-introduce-dump_stack_lvl
-+++ a/lib/dump_stack.c
-@@ -73,10 +73,10 @@ void show_regs_print_info(const char *lo
- 	dump_stack_print_info(log_lvl);
- }
  
--static void __dump_stack(void)
-+static void __dump_stack(const char *log_lvl)
- {
--	dump_stack_print_info(KERN_DEFAULT);
--	show_stack(NULL, NULL, KERN_DEFAULT);
-+	dump_stack_print_info(log_lvl);
-+	show_stack(NULL, NULL, log_lvl);
- }
+ At the end the cumulative status of all KASAN tests is printed. On success::
  
- /**
-@@ -87,7 +87,7 @@ static void __dump_stack(void)
- #ifdef CONFIG_SMP
- static atomic_t dump_lock = ATOMIC_INIT(-1);
+--- a/include/linux/kasan.h~kasan-test-improve-failure-message-in-kunit_expect_kasan_fail
++++ a/include/linux/kasan.h
+@@ -17,7 +17,6 @@ struct task_struct;
  
--asmlinkage __visible void dump_stack(void)
-+asmlinkage __visible void dump_stack_lvl(const char *log_lvl)
- {
- 	unsigned long flags;
- 	int was_locked;
-@@ -117,7 +117,7 @@ retry:
- 		goto retry;
- 	}
+ /* kasan_data struct is used in KUnit tests for KASAN expected failures */
+ struct kunit_kasan_expectation {
+-	bool report_expected;
+ 	bool report_found;
+ };
  
--	__dump_stack();
-+	__dump_stack(log_lvl);
+--- a/lib/test_kasan.c~kasan-test-improve-failure-message-in-kunit_expect_kasan_fail
++++ a/lib/test_kasan.c
+@@ -55,7 +55,6 @@ static int kasan_test_init(struct kunit
+ 	multishot = kasan_save_enable_multi_shot();
+ 	kasan_set_tagging_report_once(false);
+ 	fail_data.report_found = false;
+-	fail_data.report_expected = false;
+ 	kunit_add_named_resource(test, NULL, NULL, &resource,
+ 					"kasan_data", &fail_data);
+ 	return 0;
+@@ -94,20 +93,20 @@ static void kasan_test_exit(struct kunit
+ 	    !kasan_async_mode_enabled())				\
+ 		migrate_disable();					\
+ 	KUNIT_EXPECT_FALSE(test, READ_ONCE(fail_data.report_found));	\
+-	WRITE_ONCE(fail_data.report_expected, true);			\
+ 	barrier();							\
+ 	expression;							\
+ 	barrier();							\
+-	KUNIT_EXPECT_EQ(test,						\
+-			READ_ONCE(fail_data.report_expected),		\
+-			READ_ONCE(fail_data.report_found));		\
++	if (!READ_ONCE(fail_data.report_found)) {			\
++		KUNIT_FAIL(test, KUNIT_SUBTEST_INDENT "KASAN failure "	\
++				"expected in \"" #expression		\
++				 "\", but none occurred");		\
++	}								\
+ 	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS)) {				\
+ 		if (READ_ONCE(fail_data.report_found))			\
+ 			kasan_enable_tagging_sync();			\
+ 		migrate_enable();					\
+ 	}								\
+ 	WRITE_ONCE(fail_data.report_found, false);			\
+-	WRITE_ONCE(fail_data.report_expected, false);			\
+ } while (0)
  
- 	if (!was_locked)
- 		atomic_set(&dump_lock, -1);
-@@ -125,9 +125,15 @@ retry:
- 	local_irq_restore(flags);
- }
- #else
--asmlinkage __visible void dump_stack(void)
-+asmlinkage __visible void dump_stack_lvl(const char *log_lvl)
- {
--	__dump_stack();
-+	__dump_stack(log_lvl);
- }
- #endif
-+EXPORT_SYMBOL(dump_stack_lvl);
-+
-+asmlinkage __visible void dump_stack(void)
-+{
-+	dump_stack_lvl(KERN_DEFAULT);
-+}
- EXPORT_SYMBOL(dump_stack);
+ #define KASAN_TEST_NEEDS_CONFIG_ON(test, config) do {			\
 _
