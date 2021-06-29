@@ -7,38 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B58DC11F66
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC040C11F66
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 76DCD61D0E
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F3FC61D0B
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231750AbhF2CnO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:43:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35526 "EHLO mail.kernel.org"
+        id S231806AbhF2CnU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:43:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35636 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231743AbhF2CnO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:43:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 83D8761D0F;
-        Tue, 29 Jun 2021 02:40:46 +0000 (UTC)
+        id S231348AbhF2CnU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:43:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DDE8461D0E;
+        Tue, 29 Jun 2021 02:40:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934446;
-        bh=UwCZjxyfPQN2t06TC9zswTIafkeqgjvMjjCTEn/HF3A=;
+        s=korg; t=1624934453;
+        bh=+aEtiKqdOpBG+NLupsVm6gd+HIwHCWeJj7GiyVxjB24=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=kEq8R4wr29PYNEb/82cezgGLxTF1b6ja2k7YtE+1Fe0B2/EddqNHR+0JL1gR3KiCV
-         7kruimqJakmRm8swcg7qM8HuRZh8nYhUg9FbaZXHDUTZp+0Py2w6hegTpvZ0k2/6oX
-         AIbMi3zv+doDqA19tqY2QX1l0T4uwsFu/9CgcAAk=
-Date:   Mon, 28 Jun 2021 19:40:46 -0700
+        b=1Y3P120rzr8QvndjyMQ0Z0NyAP8LDEw35kwRC1l/5OK1dNKS6zFAyU7JSZL66A3Jb
+         3vDp9DoMS3pFuncJkiLUgwB8gmA1PO/3o+LnmxpaM3eo2h4UfPWvdhWMblkvypCxS2
+         cJInyEKcaU5m1KoDE9ShW+Q2mLYaZk5kFuRHoBFQ=
+Date:   Mon, 28 Jun 2021 19:40:52 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
-        aneesh.kumar@linux.ibm.com, bsingharora@gmail.com,
-        christophe.leroy@csgroup.eu, dja@axtens.net, dvyukov@google.com,
-        elver@google.com, glider@google.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        chinwen.chang@mediatek.com, dvyukov@google.com, elver@google.com,
+        glider@google.com, gregkh@linuxfoundation.org,
+        Kuan-Ying.Lee@mediatek.com, linux-mm@kvack.org,
+        matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
+        nicholas.tang@mediatek.com, ryabinin.a.a@gmail.com,
         torvalds@linux-foundation.org
-Subject:  [patch 143/192] mm: define default MAX_PTRS_PER_* in
- include/pgtable.h
-Message-ID: <20210629024046.WFazjfrQa%akpm@linux-foundation.org>
+Subject:  [patch 145/192] kasan: rename
+ CONFIG_KASAN_SW_TAGS_IDENTIFY to CONFIG_KASAN_TAGS_IDENTIFY
+Message-ID: <20210629024052.wIGPamgwy%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,90 +47,102 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Daniel Axtens <dja@axtens.net>
-Subject: mm: define default MAX_PTRS_PER_* in include/pgtable.h
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: kasan: rename CONFIG_KASAN_SW_TAGS_IDENTIFY to CONFIG_KASAN_TAGS_IDENTIFY
 
-Commit c65e774fb3f6 ("x86/mm: Make PGDIR_SHIFT and PTRS_PER_P4D variable")
-made PTRS_PER_P4D variable on x86 and introduced MAX_PTRS_PER_P4D as a
-constant for cases which need a compile-time constant (e.g.  fixed-size
-arrays).
+Patch series "kasan: add memory corruption identification support for hw tag-based kasan", v4.
 
-powerpc likewise has boot-time selectable MMU features which can cause
-other mm "constants" to vary.  For KASAN, we have some static
-PTE/PMD/PUD/P4D arrays so we need compile-time maximums for all these
-constants.  Extend the MAX_PTRS_PER_ idiom, and place default definitions
-in include/pgtable.h.  These define MAX_PTRS_PER_x to be PTRS_PER_x unless
-an architecture has defined MAX_PTRS_PER_x in its arch headers.
+Add memory corruption identification for hardware tag-based KASAN mode.
 
-Clean up pgtable-nop4d.h and s390's MAX_PTRS_PER_P4D definitions while
-we're at it: both can just pick up the default now.
 
-Link: https://lkml.kernel.org/r/20210624034050.511391-4-dja@axtens.net
-Signed-off-by: Daniel Axtens <dja@axtens.net>
-Acked-by: Andrey Konovalov <andreyknvl@gmail.com>
-Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+This patch (of 3):
+
+Rename CONFIG_KASAN_SW_TAGS_IDENTIFY to CONFIG_KASAN_TAGS_IDENTIFY in
+order to be compatible with hardware tag-based mode.
+
+Link: https://lkml.kernel.org/r/20210626100931.22794-1-Kuan-Ying.Lee@mediatek.com
+Link: https://lkml.kernel.org/r/20210626100931.22794-2-Kuan-Ying.Lee@mediatek.com
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Suggested-by: Marco Elver <elver@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
 Reviewed-by: Marco Elver <elver@google.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Nicholas Tang <nicholas.tang@mediatek.com>
+Cc: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h     |    2 --
- include/asm-generic/pgtable-nop4d.h |    1 -
- include/linux/pgtable.h             |   22 ++++++++++++++++++++++
- 3 files changed, 22 insertions(+), 3 deletions(-)
+ lib/Kconfig.kasan         |    2 +-
+ mm/kasan/kasan.h          |    4 ++--
+ mm/kasan/report_sw_tags.c |    2 +-
+ mm/kasan/sw_tags.c        |    4 ++--
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/arch/s390/include/asm/pgtable.h~mm-define-default-max_ptrs_per_-in-include-pgtableh
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -344,8 +344,6 @@ static inline int is_module_addr(void *a
- #define PTRS_PER_P4D	_CRST_ENTRIES
- #define PTRS_PER_PGD	_CRST_ENTRIES
+--- a/lib/Kconfig.kasan~kasan-rename-config_kasan_sw_tags_identify-to-config_kasan_tags_identify
++++ a/lib/Kconfig.kasan
+@@ -167,7 +167,7 @@ config KASAN_STACK
+ 	  instrumentation is also disabled as it adds inline-style
+ 	  instrumentation that is run unconditionally.
  
--#define MAX_PTRS_PER_P4D	PTRS_PER_P4D
--
- /*
-  * Segment table and region3 table entry encoding
-  * (R = read-only, I = invalid, y = young bit):
---- a/include/asm-generic/pgtable-nop4d.h~mm-define-default-max_ptrs_per_-in-include-pgtableh
-+++ a/include/asm-generic/pgtable-nop4d.h
-@@ -9,7 +9,6 @@
- typedef struct { pgd_t pgd; } p4d_t;
+-config KASAN_SW_TAGS_IDENTIFY
++config KASAN_TAGS_IDENTIFY
+ 	bool "Enable memory corruption identification"
+ 	depends on KASAN_SW_TAGS
+ 	help
+--- a/mm/kasan/kasan.h~kasan-rename-config_kasan_sw_tags_identify-to-config_kasan_tags_identify
++++ a/mm/kasan/kasan.h
+@@ -153,7 +153,7 @@ struct kasan_track {
+ 	depot_stack_handle_t stack;
+ };
  
- #define P4D_SHIFT		PGDIR_SHIFT
--#define MAX_PTRS_PER_P4D	1
- #define PTRS_PER_P4D		1
- #define P4D_SIZE		(1UL << P4D_SHIFT)
- #define P4D_MASK		(~(P4D_SIZE-1))
---- a/include/linux/pgtable.h~mm-define-default-max_ptrs_per_-in-include-pgtableh
-+++ a/include/linux/pgtable.h
-@@ -1592,4 +1592,26 @@ typedef unsigned int pgtbl_mod_mask;
- #define pte_leaf_size(x) PAGE_SIZE
+-#ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
++#ifdef CONFIG_KASAN_TAGS_IDENTIFY
+ #define KASAN_NR_FREE_STACKS 5
+ #else
+ #define KASAN_NR_FREE_STACKS 1
+@@ -170,7 +170,7 @@ struct kasan_alloc_meta {
+ #else
+ 	struct kasan_track free_track[KASAN_NR_FREE_STACKS];
  #endif
+-#ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
++#ifdef CONFIG_KASAN_TAGS_IDENTIFY
+ 	u8 free_pointer_tag[KASAN_NR_FREE_STACKS];
+ 	u8 free_track_idx;
+ #endif
+--- a/mm/kasan/report_sw_tags.c~kasan-rename-config_kasan_sw_tags_identify-to-config_kasan_tags_identify
++++ a/mm/kasan/report_sw_tags.c
+@@ -31,7 +31,7 @@
  
-+/*
-+ * Some architectures have MMUs that are configurable or selectable at boot
-+ * time. These lead to variable PTRS_PER_x. For statically allocated arrays it
-+ * helps to have a static maximum value.
-+ */
-+
-+#ifndef MAX_PTRS_PER_PTE
-+#define MAX_PTRS_PER_PTE PTRS_PER_PTE
-+#endif
-+
-+#ifndef MAX_PTRS_PER_PMD
-+#define MAX_PTRS_PER_PMD PTRS_PER_PMD
-+#endif
-+
-+#ifndef MAX_PTRS_PER_PUD
-+#define MAX_PTRS_PER_PUD PTRS_PER_PUD
-+#endif
-+
-+#ifndef MAX_PTRS_PER_P4D
-+#define MAX_PTRS_PER_P4D PTRS_PER_P4D
-+#endif
-+
- #endif /* _LINUX_PGTABLE_H */
+ const char *kasan_get_bug_type(struct kasan_access_info *info)
+ {
+-#ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
++#ifdef CONFIG_KASAN_TAGS_IDENTIFY
+ 	struct kasan_alloc_meta *alloc_meta;
+ 	struct kmem_cache *cache;
+ 	struct page *page;
+--- a/mm/kasan/sw_tags.c~kasan-rename-config_kasan_sw_tags_identify-to-config_kasan_tags_identify
++++ a/mm/kasan/sw_tags.c
+@@ -177,7 +177,7 @@ void kasan_set_free_info(struct kmem_cac
+ 	if (!alloc_meta)
+ 		return;
+ 
+-#ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
++#ifdef CONFIG_KASAN_TAGS_IDENTIFY
+ 	idx = alloc_meta->free_track_idx;
+ 	alloc_meta->free_pointer_tag[idx] = tag;
+ 	alloc_meta->free_track_idx = (idx + 1) % KASAN_NR_FREE_STACKS;
+@@ -196,7 +196,7 @@ struct kasan_track *kasan_get_free_track
+ 	if (!alloc_meta)
+ 		return NULL;
+ 
+-#ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
++#ifdef CONFIG_KASAN_TAGS_IDENTIFY
+ 	for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
+ 		if (alloc_meta->free_pointer_tag[i] == tag)
+ 			break;
 _
