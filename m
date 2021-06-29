@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D62BC11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:42:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B0F4C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:42:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2C1A561D0D
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:42:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4336561D0C
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:42:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231927AbhF2Cor (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:44:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37012 "EHLO mail.kernel.org"
+        id S231864AbhF2Cot (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:44:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37062 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231864AbhF2Coq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:44:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 26C93611AE;
-        Tue, 29 Jun 2021 02:42:19 +0000 (UTC)
+        id S231931AbhF2Cos (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:44:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2DAC061D0D;
+        Tue, 29 Jun 2021 02:42:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934539;
-        bh=DARc/yGv/6Sre6e5DF6wj46V4atgCBNr2rP5BBydF2M=;
+        s=korg; t=1624934542;
+        bh=3TPyWZOAYQ771nYRTVmpG0s8z6bYcQvnUjgP2fdA94o=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=XUa54tqSHeZpCu3YUY6K78SSRooUxBTjsLn2xlO0V9BSnMrivF0GJNXA/ot4H2OJr
-         MV0NXl2V8hOtwlDjp+MwlZHHYtdZkaQe1rEArefSeV/7s5C5tII/oLfCoeN2lSs0fa
-         EmXHTHhkvjBlvaU1C1PNyqv3fzpcRGPO7M31VaoM=
-Date:   Mon, 28 Jun 2021 19:42:18 -0700
+        b=xsL3IJgbelBIEyUEZ+8o2BfT2qxCKu9VUnpxWjB+y2Z34oKcSgFfWLFg1xr4Z3oof
+         ajQhnRkDY6LHHUz/f2/2wTz5TzrxNyDI//V3qICxpOctaXX2A1JF/cBQg0BU0BBX9U
+         cXqmi7oMJXhmTu3MGJgUe7x+i+VJhVCu898heWbE=
+Date:   Mon, 28 Jun 2021 19:42:21 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, dave.hansen@linux.intel.com,
         hdanton@sina.com, linux-mm@kvack.org, mgorman@techsingularity.net,
         mhocko@kernel.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 173/192] mm/page_alloc: scale the number of pages
- that are batch freed
-Message-ID: <20210629024218.27SMI0erQ%akpm@linux-foundation.org>
+Subject:  [patch 174/192] mm/page_alloc: limit the number of pages
+ on PCP lists when reclaim is active
+Message-ID: <20210629024221.MBFxyK24o%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,131 +45,128 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: scale the number of pages that are batch freed
+Subject: mm/page_alloc: limit the number of pages on PCP lists when reclaim is active
 
-When a task is freeing a large number of order-0 pages, it may acquire the
-zone->lock multiple times freeing pages in batches.  This may
-unnecessarily contend on the zone lock when freeing very large number of
-pages.  This patch adapts the size of the batch based on the recent
-pattern to scale the batch size for subsequent frees.
+When kswapd is active then direct reclaim is potentially active.  In
+either case, it is possible that a zone would be balanced if pages were
+not trapped on PCP lists.  Instead of draining remote pages, simply limit
+the size of the PCP lists while kswapd is active.
 
-As the machines I used were not large enough to test this are not large
-enough to illustrate a problem, a debugging patch shows patterns like the
-following (slightly editted for clarity)
-
-Baseline vanilla kernel
-  time-unmap-14426   [...] free_pcppages_bulk: free   63 count  378 high  378
-  time-unmap-14426   [...] free_pcppages_bulk: free   63 count  378 high  378
-  time-unmap-14426   [...] free_pcppages_bulk: free   63 count  378 high  378
-  time-unmap-14426   [...] free_pcppages_bulk: free   63 count  378 high  378
-  time-unmap-14426   [...] free_pcppages_bulk: free   63 count  378 high  378
-
-With patches
-  time-unmap-7724    [...] free_pcppages_bulk: free  126 count  814 high  814
-  time-unmap-7724    [...] free_pcppages_bulk: free  252 count  814 high  814
-  time-unmap-7724    [...] free_pcppages_bulk: free  504 count  814 high  814
-  time-unmap-7724    [...] free_pcppages_bulk: free  751 count  814 high  814
-  time-unmap-7724    [...] free_pcppages_bulk: free  751 count  814 high  814
-
-Link: https://lkml.kernel.org/r/20210525080119.5455-5-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20210525080119.5455-6-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 +-
- mm/page_alloc.c        |   41 +++++++++++++++++++++++++++++++++++++--
- 2 files changed, 41 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    1 +
+ mm/page_alloc.c        |   19 ++++++++++++++++++-
+ mm/vmscan.c            |   35 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 54 insertions(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-page_alloc-scale-the-number-of-pages-that-are-batch-freed
+--- a/include/linux/mmzone.h~mm-page_alloc-limit-the-number-of-pages-on-pcp-lists-when-reclaim-is-active
 +++ a/include/linux/mmzone.h
-@@ -343,8 +343,9 @@ struct per_cpu_pages {
- 	int count;		/* number of pages in the list */
- 	int high;		/* high watermark, emptying needed */
- 	int batch;		/* chunk size for buddy add/remove */
-+	short free_factor;	/* batch scaling factor during free */
- #ifdef CONFIG_NUMA
--	int expire;		/* When 0, remote pagesets are drained */
-+	short expire;		/* When 0, remote pagesets are drained */
- #endif
+@@ -647,6 +647,7 @@ enum zone_flags {
+ 	ZONE_BOOSTED_WATERMARK,		/* zone recently boosted watermarks.
+ 					 * Cleared when kswapd is woken.
+ 					 */
++	ZONE_RECLAIM_ACTIVE,		/* kswapd may be scanning the zone. */
+ };
  
- 	/* Lists of pages, one per migrate type stored on the pcp-lists */
---- a/mm/page_alloc.c~mm-page_alloc-scale-the-number-of-pages-that-are-batch-freed
+ static inline unsigned long zone_managed_pages(struct zone *zone)
+--- a/mm/page_alloc.c~mm-page_alloc-limit-the-number-of-pages-on-pcp-lists-when-reclaim-is-active
 +++ a/mm/page_alloc.c
-@@ -3278,18 +3278,47 @@ static bool free_unref_page_prepare(stru
- 	return true;
+@@ -3302,6 +3302,23 @@ static int nr_pcp_free(struct per_cpu_pa
+ 	return batch;
  }
  
-+static int nr_pcp_free(struct per_cpu_pages *pcp, int high, int batch)
++static int nr_pcp_high(struct per_cpu_pages *pcp, struct zone *zone)
 +{
-+	int min_nr_free, max_nr_free;
++	int high = READ_ONCE(pcp->high);
 +
-+	/* Check for PCP disabled or boot pageset */
-+	if (unlikely(high < batch))
-+		return 1;
++	if (unlikely(!high))
++		return 0;
 +
-+	/* Leave at least pcp->batch pages on the list */
-+	min_nr_free = batch;
-+	max_nr_free = high - batch;
++	if (!test_bit(ZONE_RECLAIM_ACTIVE, &zone->flags))
++		return high;
 +
 +	/*
-+	 * Double the number of pages freed each time there is subsequent
-+	 * freeing of pages without any allocation.
++	 * If reclaim is active, limit the number of pages that can be
++	 * stored on pcp lists
 +	 */
-+	batch <<= pcp->free_factor;
-+	if (batch < max_nr_free)
-+		pcp->free_factor++;
-+	batch = clamp(batch, min_nr_free, max_nr_free);
-+
-+	return batch;
++	return min(READ_ONCE(pcp->batch) << 2, high);
 +}
 +
  static void free_unref_page_commit(struct page *page, unsigned long pfn,
  				   int migratetype)
  {
- 	struct zone *zone = page_zone(page);
- 	struct per_cpu_pages *pcp;
-+	int high;
- 
- 	__count_vm_event(PGFREE);
+@@ -3313,7 +3330,7 @@ static void free_unref_page_commit(struc
  	pcp = this_cpu_ptr(zone->per_cpu_pageset);
  	list_add(&page->lru, &pcp->lists[migratetype]);
  	pcp->count++;
--	if (pcp->count >= READ_ONCE(pcp->high))
--		free_pcppages_bulk(zone, READ_ONCE(pcp->batch), pcp);
-+	high = READ_ONCE(pcp->high);
-+	if (pcp->count >= high) {
-+		int batch = READ_ONCE(pcp->batch);
+-	high = READ_ONCE(pcp->high);
++	high = nr_pcp_high(pcp, zone);
+ 	if (pcp->count >= high) {
+ 		int batch = READ_ONCE(pcp->batch);
+ 
+--- a/mm/vmscan.c~mm-page_alloc-limit-the-number-of-pages-on-pcp-lists-when-reclaim-is-active
++++ a/mm/vmscan.c
+@@ -3722,6 +3722,38 @@ static bool kswapd_shrink_node(pg_data_t
+ 	return sc->nr_scanned >= sc->nr_to_reclaim;
+ }
+ 
++/* Page allocator PCP high watermark is lowered if reclaim is active. */
++static inline void
++update_reclaim_active(pg_data_t *pgdat, int highest_zoneidx, bool active)
++{
++	int i;
++	struct zone *zone;
 +
-+		free_pcppages_bulk(zone, nr_pcp_free(pcp, high, batch), pcp);
++	for (i = 0; i <= highest_zoneidx; i++) {
++		zone = pgdat->node_zones + i;
++
++		if (!managed_zone(zone))
++			continue;
++
++		if (active)
++			set_bit(ZONE_RECLAIM_ACTIVE, &zone->flags);
++		else
++			clear_bit(ZONE_RECLAIM_ACTIVE, &zone->flags);
 +	}
- }
- 
- /*
-@@ -3541,7 +3570,14 @@ static struct page *rmqueue_pcplist(stru
- 	unsigned long flags;
- 
- 	local_lock_irqsave(&pagesets.lock, flags);
++}
 +
-+	/*
-+	 * On allocation, reduce the number of pages that are batch freed.
-+	 * See nr_pcp_free() where free_factor is increased for subsequent
-+	 * frees.
-+	 */
- 	pcp = this_cpu_ptr(zone->per_cpu_pageset);
-+	pcp->free_factor >>= 1;
- 	list = &pcp->lists[migratetype];
- 	page = __rmqueue_pcplist(zone,  migratetype, alloc_flags, pcp, list);
- 	local_unlock_irqrestore(&pagesets.lock, flags);
-@@ -6737,6 +6773,7 @@ static void per_cpu_pages_init(struct pe
- 	 */
- 	pcp->high = BOOT_PAGESET_HIGH;
- 	pcp->batch = BOOT_PAGESET_BATCH;
-+	pcp->free_factor = 0;
- }
++static inline void
++set_reclaim_active(pg_data_t *pgdat, int highest_zoneidx)
++{
++	update_reclaim_active(pgdat, highest_zoneidx, true);
++}
++
++static inline void
++clear_reclaim_active(pg_data_t *pgdat, int highest_zoneidx)
++{
++	update_reclaim_active(pgdat, highest_zoneidx, false);
++}
++
+ /*
+  * For kswapd, balance_pgdat() will reclaim pages across a node from zones
+  * that are eligible for use by the caller until at least one zone is
+@@ -3774,6 +3806,7 @@ static int balance_pgdat(pg_data_t *pgda
+ 	boosted = nr_boost_reclaim;
  
- static void __zone_set_pageset_high_and_batch(struct zone *zone, unsigned long high,
+ restart:
++	set_reclaim_active(pgdat, highest_zoneidx);
+ 	sc.priority = DEF_PRIORITY;
+ 	do {
+ 		unsigned long nr_reclaimed = sc.nr_reclaimed;
+@@ -3907,6 +3940,8 @@ restart:
+ 		pgdat->kswapd_failures++;
+ 
+ out:
++	clear_reclaim_active(pgdat, highest_zoneidx);
++
+ 	/* If reclaim was boosted, account for the reclaim done in this pass */
+ 	if (boosted) {
+ 		unsigned long flags;
 _
