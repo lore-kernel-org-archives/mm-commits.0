@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B286C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 285EAC11F66
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FB6161D11
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 135B261D10
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231799AbhF2Cm1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:42:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34806 "EHLO mail.kernel.org"
+        id S231750AbhF2Cm3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:42:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34842 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231750AbhF2Cm1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:42:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BA3E561D0B;
-        Tue, 29 Jun 2021 02:39:59 +0000 (UTC)
+        id S231768AbhF2Cm3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:42:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B713661D0C;
+        Tue, 29 Jun 2021 02:40:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934400;
-        bh=JcK5J0ohugo1hHKbFqfwL/WIOI+F2ABAr36f1h6aw8U=;
+        s=korg; t=1624934403;
+        bh=OhbioMAAdauUGjTAPryoLTTLuyBjIwurSWVhx+zWMd8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=RkmtFlfRIktyi0TjQd/Ftz4+4RZQWHIELlROefuBPQp8yWnMtF5zl0cM9+jAvI6Um
-         ifyc3Kqh9FDdGdDukAlU0y3MpB456zljhz2SBGM9/PAuhrb54fwzZD0MLSun8bMp51
-         ceC24upNIvMjQk3erZGciCjLr4gdm7me5g+2L3hw=
-Date:   Mon, 28 Jun 2021 19:39:59 -0700
+        b=PTG3EIFDYCwe26Y+o0b2ZSyzIR1/u4ohUIB8aY1cYjyWfwwJtUU7BB+yJNfOGbVBe
+         xkE+f50pArwFP2aL677ske4Yx7WbBXWOURFnCF0RxnV9PZfSvoEp6Y+yvTakN6OrIn
+         xFjZcFdfkrcHvT+XaGmunQf9PQjs4L3kqGFQF92o=
+Date:   Mon, 28 Jun 2021 19:40:02 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, akpm@linux-foundation.org, eugenis@google.com,
-        kostyak@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        pcc@google.com, peterx@redhat.com, torvalds@linux-foundation.org
-Subject:  [patch 128/192] mm: improve mprotect(R|W) efficiency on
- pages referenced once
-Message-ID: <20210629023959.4ZAFiI8oZ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, jrdr.linux@gmail.com,
+        linux-mm@kvack.org, lkp@intel.com, mm-commits@vger.kernel.org,
+        rppt@linux.ibm.com, torvalds@linux-foundation.org,
+        ysato@users.sourceforge.jp
+Subject:  [patch 129/192] h8300: remove unused variable
+Message-ID: <20210629024002.dSR4vfhfg%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,215 +43,37 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Peter Collingbourne <pcc@google.com>
-Subject: mm: improve mprotect(R|W) efficiency on pages referenced once
+From: Souptick Joarder <jrdr.linux@gmail.com>
+Subject: h8300: remove unused variable
 
-In the Scudo memory allocator [1] we would like to be able to detect
-use-after-free vulnerabilities involving large allocations by issuing
-mprotect(PROT_NONE) on the memory region used for the allocation when it
-is deallocated.  Later on, after the memory region has been "quarantined"
-for a sufficient period of time we would like to be able to use it for
-another allocation by issuing mprotect(PROT_READ|PROT_WRITE).
+Kernel test robot throws below warning ->
 
-Before this patch, after removing the write protection, any writes to the
-memory region would result in page faults and entering the copy-on-write
-code path, even in the usual case where the pages are only referenced by a
-single PTE, harming performance unnecessarily.  Make it so that any pages
-in anonymous mappings that are only referenced by a single PTE are
-immediately made writable during the mprotect so that we can avoid the
-page faults.
+>> arch/h8300/kernel/setup.c:72:26:
+warning: Unused variable: region [unusedVariable]
+    struct memblock_region *region;
 
-This program shows the critical syscall sequence that we intend to use in
-the allocator:
+Fixed it by removing unused variable.
 
-  #include <string.h>
-  #include <sys/mman.h>
-
-  enum { kSize = 131072 };
-
-  int main(int argc, char **argv) {
-    char *addr = (char *)mmap(0, kSize, PROT_READ | PROT_WRITE,
-                              MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-    for (int i = 0; i != 100000; ++i) {
-      memset(addr, i, kSize);
-      mprotect((void *)addr, kSize, PROT_NONE);
-      mprotect((void *)addr, kSize, PROT_READ | PROT_WRITE);
-    }
-  }
-
-The effect of this patch on the above program was measured on a
-DragonBoard 845c by taking the median real time execution time of 10 runs.
-
-Before: 2.94s
-After:  0.66s
-
-The effect was also measured using one of the microbenchmarks that we
-normally use to benchmark the allocator [2], after modifying it to make
-the appropriate mprotect calls [3].  With an allocation size of 131072
-bytes to trigger the allocator's "large allocation" code path the
-per-iteration time was measured as follows:
-
-Before: 27450ns
-After:   6010ns
-
-This patch means that we do more work during the mprotect call itself in
-exchange for less work when the pages are accessed.  In the worst case,
-the pages are not accessed at all.  The effect of this patch in such cases
-was measured using the following program:
-
-  #include <string.h>
-  #include <sys/mman.h>
-
-  enum { kSize = 131072 };
-
-  int main(int argc, char **argv) {
-    char *addr = (char *)mmap(0, kSize, PROT_READ | PROT_WRITE,
-                              MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-    memset(addr, 1, kSize);
-    for (int i = 0; i != 100000; ++i) {
-  #ifdef PAGE_FAULT
-      memset(addr + (i * 4096) % kSize, i, 4096);
-  #endif
-      mprotect((void *)addr, kSize, PROT_NONE);
-      mprotect((void *)addr, kSize, PROT_READ | PROT_WRITE);
-    }
-  }
-
-With PAGE_FAULT undefined (0 pages touched after removing write
-protection) the median real time execution time of 100 runs was measured
-as follows:
-
-Before: 0.330260s
-After:  0.338836s
-
-With PAGE_FAULT defined (1 page touched) the measurements were
-as follows:
-
-Before: 0.438048s
-After:  0.355661s
-
-So it seems that even with a single page fault the new approach is faster.
-
-I saw similar results if I adjusted the programs to use a larger mapping
-size.  With kSize = 1048576 I get these numbers with PAGE_FAULT undefined:
-
-Before: 1.428988s
-After:  1.512016s
-
-i.e. around 5.5%.
-
-And these with PAGE_FAULT defined:
-
-Before: 1.518559s
-After:  1.524417s
-
-i.e. about the same.
-
-What I think we may conclude from these results is that for smaller
-mappings the advantage of the previous approach, although measurable, is
-wiped out by a single page fault.  I think we may expect that there should
-be at least one access resulting in a page fault (under the previous
-approach) after making the pages writable, since the program presumably
-made the pages writable for a reason.
-
-For larger mappings we may guesstimate that the new approach wins if the
-density of future page faults is > 0.4%.  But for the mappings that are
-large enough for density to matter (not just the absolute number of page
-faults) it doesn't seem like the increase in mprotect latency would be
-very large relative to the total mprotect execution time.
-
-[pcc@google.com: add comments, prohibit optimization for NUMA pages]
-  Link: https://lkml.kernel.org/r/20210601185926.2623183-1-pcc@google.com
-Link: https://lkml.kernel.org/r/20210527190453.1259020-1-pcc@google.com
-Link: https://linux-review.googlesource.com/id/I98d75ef90e20330c578871c87494d64b1df3f1b8
-Link: [1] https://source.android.com/devices/tech/debug/scudo
-Link: [2] https://cs.android.com/android/platform/superproject/+/master:bionic/benchmarks/stdlib_benchmark.cpp;l=53;drc=e8693e78711e8f45ccd2b610e4dbe0b94d551cc9
-Link: [3] https://github.com/pcc/llvm-project/commit/scudo-mprotect-secondary2
-Signed-off-by: Peter Collingbourne <pcc@google.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Kostya Kortchinsky <kostyak@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Link: https://lkml.kernel.org/r/20210602185431.11416-1-jrdr.linux@gmail.com
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   52 ++++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 46 insertions(+), 6 deletions(-)
+ arch/h8300/kernel/setup.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/mprotect.c~mm-improve-mprotectrw-efficiency-on-pages-referenced-once
-+++ a/mm/mprotect.c
-@@ -35,6 +35,51 @@
+--- a/arch/h8300/kernel/setup.c~h8300-remove-unused-variable
++++ a/arch/h8300/kernel/setup.c
+@@ -69,8 +69,6 @@ void __init h8300_fdt_init(void *fdt, ch
  
- #include "internal.h"
+ static void __init bootmem_init(void)
+ {
+-	struct memblock_region *region;
+-
+ 	memory_end = memory_start = 0;
  
-+/* Determine whether we can avoid taking write faults for known dirty pages. */
-+static bool may_avoid_write_fault(pte_t pte, struct vm_area_struct *vma,
-+				  unsigned long cp_flags)
-+{
-+	/*
-+	 * The dirty accountable bit indicates that we can always make the page
-+	 * writable regardless of the number of references.
-+	 */
-+	if (!(cp_flags & MM_CP_DIRTY_ACCT)) {
-+		/* Otherwise, we must have exclusive access to the page. */
-+		if (!(vma_is_anonymous(vma) && (vma->vm_flags & VM_WRITE)))
-+			return false;
-+
-+		if (page_count(pte_page(pte)) != 1)
-+			return false;
-+	}
-+
-+	/*
-+	 * Don't do this optimization for clean pages as we need to be notified
-+	 * of the transition from clean to dirty.
-+	 */
-+	if (!pte_dirty(pte))
-+		return false;
-+
-+	/* Same for softdirty. */
-+	if (!pte_soft_dirty(pte) && (vma->vm_flags & VM_SOFTDIRTY))
-+		return false;
-+
-+	/*
-+	 * For userfaultfd the user program needs to monitor write faults so we
-+	 * can't do this optimization.
-+	 */
-+	if (pte_uffd_wp(pte))
-+		return false;
-+
-+	/*
-+	 * It is unclear whether this optimization can be done safely for NUMA
-+	 * pages.
-+	 */
-+	if (cp_flags & MM_CP_PROT_NUMA)
-+		return false;
-+
-+	return true;
-+}
-+
- static unsigned long change_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long addr, unsigned long end, pgprot_t newprot,
- 		unsigned long cp_flags)
-@@ -43,7 +88,6 @@ static unsigned long change_pte_range(st
- 	spinlock_t *ptl;
- 	unsigned long pages = 0;
- 	int target_node = NUMA_NO_NODE;
--	bool dirty_accountable = cp_flags & MM_CP_DIRTY_ACCT;
- 	bool prot_numa = cp_flags & MM_CP_PROT_NUMA;
- 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
- 	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
-@@ -131,12 +175,8 @@ static unsigned long change_pte_range(st
- 				ptent = pte_clear_uffd_wp(ptent);
- 			}
- 
--			/* Avoid taking write faults for known dirty pages */
--			if (dirty_accountable && pte_dirty(ptent) &&
--					(pte_soft_dirty(ptent) ||
--					 !(vma->vm_flags & VM_SOFTDIRTY))) {
-+			if (may_avoid_write_fault(ptent, vma, cp_flags))
- 				ptent = pte_mkwrite(ptent);
--			}
- 			ptep_modify_prot_commit(vma, addr, pte, oldpte, ptent);
- 			pages++;
- 		} else if (is_swap_pte(oldpte)) {
+ 	/* Find main memory where is the kernel */
 _
