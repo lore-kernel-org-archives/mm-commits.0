@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EB65C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:42:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C15AC11F65
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:42:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 46E5561D0D
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:42:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3587161D0E
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:42:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231682AbhF2CpB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:45:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37192 "EHLO mail.kernel.org"
+        id S231219AbhF2CpC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:45:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37230 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231750AbhF2Co6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:44:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2F0A5611AE;
-        Tue, 29 Jun 2021 02:42:31 +0000 (UTC)
+        id S231700AbhF2CpB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:45:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2167F61D0B;
+        Tue, 29 Jun 2021 02:42:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934551;
-        bh=K0TUEyUpM9OYJOvSl725rVPmP48ipCFE6nCKAfGMCT8=;
+        s=korg; t=1624934554;
+        bh=dOCOwUnP+VdvbYSWobaiaUu6UfzoZCaMArOF50FNW+Q=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=zPrfdRr3Is5ZsTTq9h2wql0yqR4KnwQuXvur5oYultPgIlZibIyGs22KDqIzWfR7G
-         JZbXPy5pgK1Deq2Z0mGB+jWqhz36YqMcG4OKSrdRJTH7tns05kEIHIB08TzE8q7BKx
-         KUiupm8xos7xGUb2ceFhq5HGi14hYnwuFlqFd0/g=
-Date:   Mon, 28 Jun 2021 19:42:30 -0700
+        b=Ju4CTL69edC5UEYvPQY3RCWa+agNgsCf0f36wILFBP76uiKbCAI6P7v0dpG4m+fiS
+         +LB9W3kOPG/Azxr7u9hXa/b8t7CUFlEncuL8y8IcDpLe1JhgCEv9uO5uE/qmr6O4u0
+         CNpflWlTfNwK/0/Iy/vExTJdqjNhZix2v0pfhVl0=
+Date:   Mon, 28 Jun 2021 19:42:33 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aisheng.dong@nxp.com, akpm@linux-foundation.org, david@redhat.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 177/192] mm/page_alloc: improve memmap_pages dbg
- msg
-Message-ID: <20210629024230.FI_MlnByL%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bhe@redhat.com, david@redhat.com,
+        linux-mm@kvack.org, liushixin2@huawei.com,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        yangerkun@huawei.com
+Subject:  [patch 178/192] mm/page_alloc: fix counting of
+ managed_pages
+Message-ID: <20210629024233.oOfWWchYA%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,29 +44,48 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Dong Aisheng <aisheng.dong@nxp.com>
-Subject: mm/page_alloc: improve memmap_pages dbg msg
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: mm/page_alloc: fix counting of managed_pages
 
-Make debug message more accurate.
+commit f63661566fad ("mm/page_alloc.c: clear out zone->lowmem_reserve[] if
+the zone is empty") clears out zone->lowmem_reserve[] if zone is empty. 
+But when zone is not empty and sysctl_lowmem_reserve_ratio[i] is set to
+zero, zone_managed_pages(zone) is not counted in the managed_pages either.
+This is inconsistent with the description of lowmem_reserve, so fix it.
 
-Link: https://lkml.kernel.org/r/20210531091908.1738465-6-aisheng.dong@nxp.com
-Signed-off-by: Dong Aisheng <aisheng.dong@nxp.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20210527125707.3760259-1-liushixin2@huawei.com
+Fixes: f63661566fad ("mm/page_alloc.c: clear out zone->lowmem_reserve[] if the zone is empty")
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Reported-by: yangerkun <yangerkun@huawei.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-improve-memmap_pages-dbg-msg
+--- a/mm/page_alloc.c~mm-page_alloc-fix-counting-of-managed_pages
 +++ a/mm/page_alloc.c
-@@ -7383,7 +7383,7 @@ static void __init free_area_init_core(s
- 					pr_debug("  %s zone: %lu pages used for memmap\n",
- 						 zone_names[j], memmap_pages);
- 			} else
--				pr_warn("  %s zone: %lu pages exceeds freesize %lu\n",
-+				pr_warn("  %s zone: %lu memmap pages exceeds freesize %lu\n",
- 					zone_names[j], memmap_pages, freesize);
- 		}
+@@ -8240,14 +8240,14 @@ static void setup_per_zone_lowmem_reserv
+ 			unsigned long managed_pages = 0;
  
+ 			for (j = i + 1; j < MAX_NR_ZONES; j++) {
+-				if (clear) {
+-					zone->lowmem_reserve[j] = 0;
+-				} else {
+-					struct zone *upper_zone = &pgdat->node_zones[j];
++				struct zone *upper_zone = &pgdat->node_zones[j];
++
++				managed_pages += zone_managed_pages(upper_zone);
+ 
+-					managed_pages += zone_managed_pages(upper_zone);
++				if (clear)
++					zone->lowmem_reserve[j] = 0;
++				else
+ 					zone->lowmem_reserve[j] = managed_pages / ratio;
+-				}
+ 			}
+ 		}
+ 	}
 _
