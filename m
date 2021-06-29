@@ -4,39 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26BA4C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD1F1C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1057F61D0B
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C85A361D0F
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231332AbhF2Cnx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:43:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36182 "EHLO mail.kernel.org"
+        id S231700AbhF2Cn7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:43:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36228 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231219AbhF2Cnx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:43:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0BCB261D0C;
-        Tue, 29 Jun 2021 02:41:26 +0000 (UTC)
+        id S231706AbhF2Cn4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:43:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3725D61D0B;
+        Tue, 29 Jun 2021 02:41:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934486;
-        bh=z+oAVVjlGIwkhmpFvRmzGVnC4giyS+xOs219fpV1yvo=;
+        s=korg; t=1624934489;
+        bh=9lquqsQRSlEeY3hxMyxSSnEBIoHNzIXEhnc9q6sYl0U=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Eq5p78vPU9nkaorjIF0eKvRNbUmD96X0xfUVJQgx1BC2s9/+KEFfARaqIespN/R6m
-         DhXpYHkNcdoNB74/ByEjGwHXCdPYGC5V9eq2kz0Wqe7vemSY5K9z6vR42xCUR9/mPV
-         vhsjpuz5P4MLRTwsC6ZrsZFkegQmn98yATP7HmEA=
-Date:   Mon, 28 Jun 2021 19:41:25 -0700
+        b=PlFszdZ7CKtBjhoxl97EobWS1p4AKQcTMHhRnTwmXOiOfmk9Y+LRXuuNZYseKwp1Z
+         r+TMUf0ymMKWVpdtsnOoegdyhZm6PVu7JIqd4jVWnekG4aM52gb3I6rW1wAJ9/tyUF
+         sw9b82JnV1mHndqms/kSNlgtD1dCxYcjWMJQPB4o=
+Date:   Mon, 28 Jun 2021 19:41:28 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, vbabka@suse.cz,
-        william.kucharski@oracle.com, willy@infradead.org
-Subject:  [patch 156/192] mm: constify page_count and
- page_ref_count
-Message-ID: <20210629024125.8tPyrqCyS%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, chris@chris-wilson.co.uk,
+        david@redhat.com, dougg@torque.net, fujita.tomonori@lab.ntt.co.jp,
+        hch@lst.de, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        tj@kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz,
+        willy@infradead.org, ziy@nvidia.com
+Subject:  [patch 157/192] mm: optimise nth_page for contiguous
+ memmap
+Message-ID: <20210629024128.2--ysmMqj%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,37 +46,65 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: constify page_count and page_ref_count
+Subject: mm: optimise nth_page for contiguous memmap
 
-Now that compound_head() accepts a const struct page pointer, these two
-functions can be marked as not modifying the page pointer they are passed.
+If the memmap is virtually contiguous (either because we're using a
+virtually mapped memmap or because we don't support a discontig memmap at
+all), then we can implement nth_page() by simple addition.  Contrary to
+popular belief, the compiler is not able to optimise this itself for a
+vmemmap configuration.  This reduces one example user (sg.c) by four
+instructions:
 
-Link: https://lkml.kernel.org/r/20210416231531.2521383-7-willy@infradead.org
+        struct page *page = nth_page(rsv_schp->pages[k], offset >> PAGE_SHIFT);
+
+before:
+   49 8b 45 70             mov    0x70(%r13),%rax
+   48 63 c9                movslq %ecx,%rcx
+   48 c1 eb 0c             shr    $0xc,%rbx
+   48 8b 04 c8             mov    (%rax,%rcx,8),%rax
+   48 2b 05 00 00 00 00    sub    0x0(%rip),%rax
+           R_X86_64_PC32      vmemmap_base-0x4
+   48 c1 f8 06             sar    $0x6,%rax
+   48 01 d8                add    %rbx,%rax
+   48 c1 e0 06             shl    $0x6,%rax
+   48 03 05 00 00 00 00    add    0x0(%rip),%rax
+           R_X86_64_PC32      vmemmap_base-0x4
+
+after:
+   49 8b 45 70             mov    0x70(%r13),%rax
+   48 63 c9                movslq %ecx,%rcx
+   48 c1 eb 0c             shr    $0xc,%rbx
+   48 c1 e3 06             shl    $0x6,%rbx
+   48 03 1c c8             add    (%rax,%rcx,8),%rbx
+
+Link: https://lkml.kernel.org/r/20210413194625.1472345-1-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Douglas Gilbert <dougg@torque.net>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ref.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/linux/page_ref.h~mm-constify-page_count-and-page_ref_count
-+++ a/include/linux/page_ref.h
-@@ -62,12 +62,12 @@ static inline void __page_ref_unfreeze(s
+--- a/include/linux/mm.h~mm-optimise-nth_page-for-contiguous-memmap
++++ a/include/linux/mm.h
+@@ -234,7 +234,11 @@ int overcommit_policy_handler(struct ctl
+ int __add_to_page_cache_locked(struct page *page, struct address_space *mapping,
+ 		pgoff_t index, gfp_t gfp, void **shadowp);
  
- #endif
++#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
++#else
++#define nth_page(page,n) ((page) + (n))
++#endif
  
--static inline int page_ref_count(struct page *page)
-+static inline int page_ref_count(const struct page *page)
- {
- 	return atomic_read(&page->_refcount);
- }
- 
--static inline int page_count(struct page *page)
-+static inline int page_count(const struct page *page)
- {
- 	return atomic_read(&compound_head(page)->_refcount);
- }
+ /* to align the pointer to the (next) page boundary */
+ #define PAGE_ALIGN(addr) ALIGN(addr, PAGE_SIZE)
 _
