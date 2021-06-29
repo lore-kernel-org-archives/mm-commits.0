@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFF1EC11F65
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:37:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C1E5C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:37:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C98EE61D0B
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:37:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 53A3A61D07
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:37:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231888AbhF2CkT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:40:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32768 "EHLO mail.kernel.org"
+        id S231889AbhF2CkW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:40:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32814 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231857AbhF2CkS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:40:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0DEB061A2B;
-        Tue, 29 Jun 2021 02:37:51 +0000 (UTC)
+        id S231682AbhF2CkV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:40:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 176A261D04;
+        Tue, 29 Jun 2021 02:37:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934271;
-        bh=ESap7zNuUQCqQjXySUlVmt3kNR0N5nNLmN2XZAAxv0E=;
+        s=korg; t=1624934274;
+        bh=xDff09/vw3/iRWaj545B0BKVRgglzeBNPJHJOqo0dDk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=y/HDjMbly7Rrcp4K/lKMudHUqGynIXEi5Cev5awrqBcUWJsU03yHH6jMxFRSw3rKp
-         rnir+YP3eqDrM1psHm4n7LmoMyCSObO1oJBWiMsAQm3qUlOe0bHdd6IW9k5Ti5aNrc
-         sBgEZU6Qi2+OWvCD0xOAidW0JiRiVFbgMpttd9z4=
-Date:   Mon, 28 Jun 2021 19:37:50 -0700
+        b=dgsXo1QpD+Nczt1oG+zNgPjUlxBG9DFhtm0U6qou67i1JuPpOdj2Sa+Tslg21jKeE
+         g08Bu1Q56pUosgaOAWAXcR/R2QPBrjFX3TrIqThWEH/VIGqFRRFKAdOlRxlnQbpG0q
+         C2DlxdVTCLTWj4vtw6QCeXlGZ/MU6QFG6mFJRvL4=
+Date:   Mon, 28 Jun 2021 19:37:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, duanxiongchun@bytedance.com,
         guro@fb.com, hannes@cmpxchg.org, linux-mm@kvack.org,
         mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com,
         songmuchun@bytedance.com, torvalds@linux-foundation.org,
         vdavydov.dev@gmail.com
-Subject:  [patch 086/192] mm: memcontrol: bail out early when !mm
- in get_mem_cgroup_from_mm
-Message-ID: <20210629023750.ujb1MXmvq%akpm@linux-foundation.org>
+Subject:  [patch 087/192] mm: memcontrol: remove the pgdata
+ parameter of mem_cgroup_page_lruvec
+Message-ID: <20210629023753._G1UkR5Ai%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,13 +46,15 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: bail out early when !mm in get_mem_cgroup_from_mm
+Subject: mm: memcontrol: remove the pgdata parameter of mem_cgroup_page_lruvec
 
-When mm is NULL, we do not need to hold rcu lock and call css_tryget for
-the root memcg.  And we also do not need to check !mm in every loop of
-while.  So bail out early when !mm.
+All the callers of mem_cgroup_page_lruvec() just pass page_pgdat(page) as
+the 2nd parameter to it (except isolate_migratepages_block()).  But for
+isolate_migratepages_block(), the page_pgdat(page) is also equal to the
+local variable of @pgdat.  So mem_cgroup_page_lruvec() do not need the
+pgdat parameter.  Just remove it to simplify the code.
 
-Link: https://lkml.kernel.org/r/20210417043538.9793-3-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20210417043538.9793-4-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
@@ -63,44 +65,110 @@ Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ include/linux/memcontrol.h |   10 +++++-----
+ mm/compaction.c            |    2 +-
+ mm/memcontrol.c            |    9 +++------
+ mm/swap.c                  |    2 +-
+ mm/workingset.c            |    2 +-
+ 5 files changed, 11 insertions(+), 14 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-bail-out-early-when-mm-in-get_mem_cgroup_from_mm
-+++ a/mm/memcontrol.c
-@@ -919,20 +919,23 @@ struct mem_cgroup *get_mem_cgroup_from_m
- 	if (mem_cgroup_disabled())
- 		return NULL;
+--- a/include/linux/memcontrol.h~mm-memcontrol-remove-the-pgdata-parameter-of-mem_cgroup_page_lruvec
++++ a/include/linux/memcontrol.h
+@@ -743,13 +743,12 @@ out:
+ /**
+  * mem_cgroup_page_lruvec - return lruvec for isolating/putting an LRU page
+  * @page: the page
+- * @pgdat: pgdat of the page
+  *
+  * This function relies on page->mem_cgroup being stable.
+  */
+-static inline struct lruvec *mem_cgroup_page_lruvec(struct page *page,
+-						struct pglist_data *pgdat)
++static inline struct lruvec *mem_cgroup_page_lruvec(struct page *page)
+ {
++	pg_data_t *pgdat = page_pgdat(page);
+ 	struct mem_cgroup *memcg = page_memcg(page);
  
-+	/*
-+	 * Page cache insertions can happen without an
-+	 * actual mm context, e.g. during disk probing
-+	 * on boot, loopback IO, acct() writes etc.
-+	 *
-+	 * No need to css_get on root memcg as the reference
-+	 * counting is disabled on the root level in the
-+	 * cgroup core. See CSS_NO_REF.
-+	 */
-+	if (unlikely(!mm))
-+		return root_mem_cgroup;
+ 	VM_WARN_ON_ONCE_PAGE(!memcg && !mem_cgroup_disabled(), page);
+@@ -1221,9 +1220,10 @@ static inline struct lruvec *mem_cgroup_
+ 	return &pgdat->__lruvec;
+ }
+ 
+-static inline struct lruvec *mem_cgroup_page_lruvec(struct page *page,
+-						    struct pglist_data *pgdat)
++static inline struct lruvec *mem_cgroup_page_lruvec(struct page *page)
+ {
++	pg_data_t *pgdat = page_pgdat(page);
 +
- 	rcu_read_lock();
- 	do {
--		/*
--		 * Page cache insertions can happen without an
--		 * actual mm context, e.g. during disk probing
--		 * on boot, loopback IO, acct() writes etc.
--		 */
--		if (unlikely(!mm))
-+		memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
-+		if (unlikely(!memcg))
- 			memcg = root_mem_cgroup;
--		else {
--			memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
--			if (unlikely(!memcg))
--				memcg = root_mem_cgroup;
--		}
- 	} while (!css_tryget(&memcg->css));
+ 	return &pgdat->__lruvec;
+ }
+ 
+--- a/mm/compaction.c~mm-memcontrol-remove-the-pgdata-parameter-of-mem_cgroup_page_lruvec
++++ a/mm/compaction.c
+@@ -1028,7 +1028,7 @@ isolate_migratepages_block(struct compac
+ 		if (!TestClearPageLRU(page))
+ 			goto isolate_fail_put;
+ 
+-		lruvec = mem_cgroup_page_lruvec(page, pgdat);
++		lruvec = mem_cgroup_page_lruvec(page);
+ 
+ 		/* If we already hold the lock, we can skip some rechecking */
+ 		if (lruvec != locked) {
+--- a/mm/memcontrol.c~mm-memcontrol-remove-the-pgdata-parameter-of-mem_cgroup_page_lruvec
++++ a/mm/memcontrol.c
+@@ -1199,9 +1199,8 @@ void lruvec_memcg_debug(struct lruvec *l
+ struct lruvec *lock_page_lruvec(struct page *page)
+ {
+ 	struct lruvec *lruvec;
+-	struct pglist_data *pgdat = page_pgdat(page);
+ 
+-	lruvec = mem_cgroup_page_lruvec(page, pgdat);
++	lruvec = mem_cgroup_page_lruvec(page);
+ 	spin_lock(&lruvec->lru_lock);
+ 
+ 	lruvec_memcg_debug(lruvec, page);
+@@ -1212,9 +1211,8 @@ struct lruvec *lock_page_lruvec(struct p
+ struct lruvec *lock_page_lruvec_irq(struct page *page)
+ {
+ 	struct lruvec *lruvec;
+-	struct pglist_data *pgdat = page_pgdat(page);
+ 
+-	lruvec = mem_cgroup_page_lruvec(page, pgdat);
++	lruvec = mem_cgroup_page_lruvec(page);
+ 	spin_lock_irq(&lruvec->lru_lock);
+ 
+ 	lruvec_memcg_debug(lruvec, page);
+@@ -1225,9 +1223,8 @@ struct lruvec *lock_page_lruvec_irq(stru
+ struct lruvec *lock_page_lruvec_irqsave(struct page *page, unsigned long *flags)
+ {
+ 	struct lruvec *lruvec;
+-	struct pglist_data *pgdat = page_pgdat(page);
+ 
+-	lruvec = mem_cgroup_page_lruvec(page, pgdat);
++	lruvec = mem_cgroup_page_lruvec(page);
+ 	spin_lock_irqsave(&lruvec->lru_lock, *flags);
+ 
+ 	lruvec_memcg_debug(lruvec, page);
+--- a/mm/swap.c~mm-memcontrol-remove-the-pgdata-parameter-of-mem_cgroup_page_lruvec
++++ a/mm/swap.c
+@@ -313,7 +313,7 @@ void lru_note_cost(struct lruvec *lruvec
+ 
+ void lru_note_cost_page(struct page *page)
+ {
+-	lru_note_cost(mem_cgroup_page_lruvec(page, page_pgdat(page)),
++	lru_note_cost(mem_cgroup_page_lruvec(page),
+ 		      page_is_file_lru(page), thp_nr_pages(page));
+ }
+ 
+--- a/mm/workingset.c~mm-memcontrol-remove-the-pgdata-parameter-of-mem_cgroup_page_lruvec
++++ a/mm/workingset.c
+@@ -408,7 +408,7 @@ void workingset_activation(struct page *
+ 	memcg = page_memcg_rcu(page);
+ 	if (!mem_cgroup_disabled() && !memcg)
+ 		goto out;
+-	lruvec = mem_cgroup_page_lruvec(page, page_pgdat(page));
++	lruvec = mem_cgroup_page_lruvec(page);
+ 	workingset_age_nonresident(lruvec, thp_nr_pages(page));
+ out:
  	rcu_read_unlock();
- 	return memcg;
 _
