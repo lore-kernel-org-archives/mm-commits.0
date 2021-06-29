@@ -2,111 +2,121 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
-	USER_AGENT_SANE_2 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DEA0C11F66
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 06:29:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E205C11F69
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 17:50:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CD1361DC2
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 06:29:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 548B161DD1
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 17:50:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232000AbhF2GcJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Jun 2021 02:32:09 -0400
-Received: from mailgw01.mediatek.com ([60.244.123.138]:52998 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S231881AbhF2GcJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Jun 2021 02:32:09 -0400
-X-UUID: 91dbe2c430a244bcb4e6813bca0821e3-20210629
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=mediatek.com; s=dk;
-        h=Content-Transfer-Encoding:MIME-Version:Content-Type:References:In-Reply-To:Date:CC:To:From:Subject:Message-ID; bh=AlvawD64FTfj7oAZ2nGaxLppC8wUadk5dY1FAIro6qE=;
-        b=OyN0kn85vxO+ThLPkxjPJ4VeSB1vdQLe9njR4Nf1garfcDVPnBgCRdnmMX8uWq5VtkIXWTu1EYStEuTRm8beavY0wde6fkcm1dFQ7ImS5tdS/Ym5Mvl8rtJdg5LkuELN4WuX8PMsndr++8Y+nGEbQeJvKRq58HNOx0zwKtg27es=;
-X-UUID: 91dbe2c430a244bcb4e6813bca0821e3-20210629
-Received: from mtkcas10.mediatek.inc [(172.21.101.39)] by mailgw01.mediatek.com
-        (envelope-from <yee.lee@mediatek.com>)
-        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
-        with ESMTP id 1059558924; Tue, 29 Jun 2021 14:29:39 +0800
-Received: from MTKCAS06.mediatek.inc (172.21.101.30) by
- mtkmbs07n1.mediatek.inc (172.21.101.16) with Microsoft SMTP Server (TLS) id
- 15.0.1497.2; Tue, 29 Jun 2021 14:29:38 +0800
-Received: from mtksdccf07 (172.21.84.99) by MTKCAS06.mediatek.inc
- (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Tue, 29 Jun 2021 14:29:37 +0800
-Message-ID: <1881e4ca9fda966cc4192f45623f85353bc93463.camel@mediatek.com>
-Subject: Re: +
- kasan-add-memzero-init-for-unaligned-size-under-slub-debug.patch added to
- -mm tree
-From:   Yee Lee <yee.lee@mediatek.com>
-To:     <akpm@linux-foundation.org>
-CC:     <andreyknvl@gmail.com>, <dvyukov@google.com>, <glider@google.com>,
-        <matthias.bgg@gmail.com>, <mm-commits@vger.kernel.org>,
-        <ryabinin.a.a@gmail.com>, <elver@google.com>
-Date:   Tue, 29 Jun 2021 14:29:38 +0800
-In-Reply-To: <20210624205419.S-O4JsHNk%akpm@linux-foundation.org>
-References: <20210624205419.S-O4JsHNk%akpm@linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5-0ubuntu0.18.04.2 
+        id S234328AbhF2RxA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Jun 2021 13:53:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34764 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234228AbhF2Rw7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Jun 2021 13:52:59 -0400
+Received: from mail-lj1-x234.google.com (mail-lj1-x234.google.com [IPv6:2a00:1450:4864:20::234])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4A5EC061760
+        for <mm-commits@vger.kernel.org>; Tue, 29 Jun 2021 10:50:31 -0700 (PDT)
+Received: by mail-lj1-x234.google.com with SMTP id k8so32136259lja.4
+        for <mm-commits@vger.kernel.org>; Tue, 29 Jun 2021 10:50:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=nD2K9Pxsj0l0b+r7ypwFgEO7F+ajCZLB9GSClDHGIeM=;
+        b=Uyx5+j8RItEl6KLB44CZsNqYyz2PhNSsPvCfMzZvprRy/E5nYisXzXC5dvyWNgVW9S
+         ZZQSymVq/fe7l1ouggcOO4WkfRm5fYqi+1doWRfBPEMg8qVg0eBxTJiF67QYJ8F0I2Cp
+         b8H0HqcANjqJrBdKKJ2joAHMLIUnJcu4/rZSI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=nD2K9Pxsj0l0b+r7ypwFgEO7F+ajCZLB9GSClDHGIeM=;
+        b=ZLQEabfUsYZDb58lgC8ESgCPQ+o9j4qoLXWY6TpsZMvyccKG4BRhAao0DDaZ8Mmt4w
+         kcHLZ/3ZHcwTnTWj0rqaq686cUXkd5IZ/yNyC7xwm3VmeP/GH2UCRkg9rCvsWpc8O0ki
+         zHqiPtatOwB/ou1FNLa0h8YIIvG32jVgd8DYY7nRBJZ66a0TNNplE+b1DI+8c1IrLq6g
+         QRjdbWOcv47npaxsoPij55j59TTt/TFzCWWVqBPewgFCQghwaUWq3Amdt0bVYzAmKcx1
+         l9jQB4ygSnuWO7J5HCKlIASZOGO96oewl+Jotb7KkQvGbP4djffsh7uHXFhdF7d4w7LU
+         j8qQ==
+X-Gm-Message-State: AOAM533F7Dz7y9wFtib+AJrDgDMB6W64aExvCCdnEadtnGhEez+jIoD9
+        OZ4awn/qFqvZRi5ysNZDPKz/fWJV5kIGJ7/WIHQ=
+X-Google-Smtp-Source: ABdhPJzCc0h3QjSRMQ7iPOui4BzSGg+WIxAdxU5sS9tJF6XpeVr4id3WZnXduuex/qgDgzmoyuoudQ==
+X-Received: by 2002:a2e:a54d:: with SMTP id e13mr4897693ljn.272.1624989029449;
+        Tue, 29 Jun 2021 10:50:29 -0700 (PDT)
+Received: from mail-lj1-f170.google.com (mail-lj1-f170.google.com. [209.85.208.170])
+        by smtp.gmail.com with ESMTPSA id c7sm1840786lfm.50.2021.06.29.10.50.28
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 29 Jun 2021 10:50:28 -0700 (PDT)
+Received: by mail-lj1-f170.google.com with SMTP id u25so16543726ljj.11
+        for <mm-commits@vger.kernel.org>; Tue, 29 Jun 2021 10:50:28 -0700 (PDT)
+X-Received: by 2002:a2e:a276:: with SMTP id k22mr4682986ljm.465.1624989028284;
+ Tue, 29 Jun 2021 10:50:28 -0700 (PDT)
 MIME-Version: 1.0
-X-MTK:  N
-Content-Transfer-Encoding: base64
+References: <20210628193256.008961950a714730751c1423@linux-foundation.org> <20210629023959.4ZAFiI8oZ%akpm@linux-foundation.org>
+In-Reply-To: <20210629023959.4ZAFiI8oZ%akpm@linux-foundation.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Tue, 29 Jun 2021 10:50:12 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wj4KCujAH_oPh40Bkp48amM4MXr+8AcbZ=qd5LF4Q+TDg@mail.gmail.com>
+Message-ID: <CAHk-=wj4KCujAH_oPh40Bkp48amM4MXr+8AcbZ=qd5LF4Q+TDg@mail.gmail.com>
+Subject: Re: [patch 128/192] mm: improve mprotect(R|W) efficiency on pages
+ referenced once
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Andrea Arcangeli <aarcange@redhat.com>,
+        Evgeniy Stepanov <eugenis@google.com>, kostyak@google.com,
+        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+        Peter Collingbourne <pcc@google.com>,
+        Peter Xu <peterx@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-SGkgQW5kcmV3LCANCg0KVGhhbmtzIGZvciB5b3VyIGhlbHAgdG8gYWRkIHRoaXMgcGF0Y2guDQpV
-bmZvcnVuYXRlbHksIHdlIG5lZWQgYSBsaXR0bGUgY2hhbmdlIG9uIGNvZGVzIGJhc2VkIG9uIEFu
-ZHJleSBhbmQNCk1hcmNvJ3Mgc3VnZ2VzdGlvbi4NCg0KUGxlYXNlIGRyb3AgdGhpcyBvbmUsIGFu
-ZCBJIHdpbGwgc2VuZCBhIG5ldyB2ZXJzaW9uIHNvb24uDQpBcHByZWFjaWF0ZWQgdGhlIHdvcmsh
-DQoNCkJlc3QgcmVnYXJkcywNCg0KWWVlDQoNCk9uIFRodSwgMjAyMS0wNi0yNCBhdCAxMzo1NCAt
-MDcwMCwgYWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZyB3cm90ZToNCj4gVGhlIHBhdGNoIHRpdGxl
-ZA0KPiAgICAgIFN1YmplY3Q6IGthc2FuOiBhZGQgbWVtemVybyBpbml0IGZvciB1bmFsaWduZWQg
-c2l6ZSB1bmRlciBTTFVCDQo+IGRlYnVnDQo+IGhhcyBiZWVuIGFkZGVkIHRvIHRoZSAtbW0gdHJl
-ZS4gIEl0cyBmaWxlbmFtZSBpcw0KPiAgICAgIGthc2FuLWFkZC1tZW16ZXJvLWluaXQtZm9yLXVu
-YWxpZ25lZC1zaXplLXVuZGVyLXNsdWItZGVidWcucGF0Y2gNCj4gDQo+IFRoaXMgcGF0Y2ggc2hv
-dWxkIHNvb24gYXBwZWFyIGF0DQo+ICAgICANCj4gaHR0cHM6Ly9vemxhYnMub3JnL35ha3BtL21t
-b3RzL2Jyb2tlbi1vdXQva2FzYW4tYWRkLW1lbXplcm8taW5pdC1mb3ItdW5hbGlnbmVkLXNpemUt
-dW5kZXItc2x1Yi1kZWJ1Zy5wYXRjaA0KPiBhbmQgbGF0ZXIgYXQNCj4gICAgIA0KPiBodHRwczov
-L296bGFicy5vcmcvfmFrcG0vbW1vdG0vYnJva2VuLW91dC9rYXNhbi1hZGQtbWVtemVyby1pbml0
-LWZvci11bmFsaWduZWQtc2l6ZS11bmRlci1zbHViLWRlYnVnLnBhdGNoDQo+IA0KPiBCZWZvcmUg
-eW91IGp1c3QgZ28gYW5kIGhpdCAicmVwbHkiLCBwbGVhc2U6DQo+ICAgIGEpIENvbnNpZGVyIHdo
-byBlbHNlIHNob3VsZCBiZSBjYydlZA0KPiAgICBiKSBQcmVmZXIgdG8gY2MgYSBzdWl0YWJsZSBt
-YWlsaW5nIGxpc3QgYXMgd2VsbA0KPiAgICBjKSBJZGVhbGx5OiBmaW5kIHRoZSBvcmlnaW5hbCBw
-YXRjaCBvbiB0aGUgbWFpbGluZyBsaXN0IGFuZCBkbyBhDQo+ICAgICAgIHJlcGx5LXRvLWFsbCB0
-byB0aGF0LCBhZGRpbmcgc3VpdGFibGUgYWRkaXRpb25hbCBjYydzDQo+IA0KPiAqKiogUmVtZW1i
-ZXIgdG8gdXNlIERvY3VtZW50YXRpb24vcHJvY2Vzcy9zdWJtaXQtY2hlY2tsaXN0LnJzdCB3aGVu
-DQo+IHRlc3RpbmcgeW91ciBjb2RlICoqKg0KPiANCj4gVGhlIC1tbSB0cmVlIGlzIGluY2x1ZGVk
-IGludG8gbGludXgtbmV4dCBhbmQgaXMgdXBkYXRlZA0KPiB0aGVyZSBldmVyeSAzLTQgd29ya2lu
-ZyBkYXlzDQo+IA0KPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0NCj4gRnJvbTogWWVlIExlZSA8eWVlLmxlZUBtZWRpYXRlay5jb20+DQo+IFN1
-YmplY3Q6IGthc2FuOiBhZGQgbWVtemVybyBpbml0IGZvciB1bmFsaWduZWQgc2l6ZSB1bmRlciBT
-TFVCIGRlYnVnDQo+IA0KPiBJc3N1ZTogd2hlbiBTTFVCIGRlYnVnIGlzIG9uLCBod3RhZyBrYXNh
-bl91bnBvaXNvbigpIHdvdWxkIG92ZXJ3cml0ZQ0KPiB0aGUNCj4gcmVkem9uZSBvZiBvYmplY3Qg
-d2l0aCB1bmFsaWduZWQgc2l6ZS4NCj4gDQo+IEFuIGFkZGl0aW9uYWwgbWVtemVyb19leHBsaWNp
-dCgpIHBhdGggaXMgYWRkZWQgdG8gcmVwbGFjaW5nIGluaXQgYnkNCj4gaHd0YWcNCj4gaW5zdHJ1
-Y3Rpb24gZm9yIHRob3NlIHVuYWxpZ25lZCBzaXplIGF0IFNMVUIgZGVidWcgbW9kZS4NCj4gDQo+
-IExpbms6IA0KPiBodHRwczovL2xrbWwua2VybmVsLm9yZy9yLzIwMjEwNjI0MTEyNjI0LjMxMjE1
-LTIteWVlLmxlZUBtZWRpYXRlay5jb20NCj4gU2lnbmVkLW9mZi1ieTogWWVlIExlZSA8eWVlLmxl
-ZUBtZWRpYXRlay5jb20+DQo+IENjOiBBbmRyZXkgS29ub3ZhbG92IDxhbmRyZXlrbnZsQGdtYWls
-LmNvbT4NCj4gQ2M6IEFuZHJleSBSeWFiaW5pbiA8cnlhYmluaW4uYS5hQGdtYWlsLmNvbT4NCj4g
-Q2M6IEFsZXhhbmRlciBQb3RhcGVua28gPGdsaWRlckBnb29nbGUuY29tPg0KPiBDYzogRG1pdHJ5
-IFZ5dWtvdiA8ZHZ5dWtvdkBnb29nbGUuY29tPg0KPiBDYzogTWF0dGhpYXMgQnJ1Z2dlciA8bWF0
-dGhpYXMuYmdnQGdtYWlsLmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogQW5kcmV3IE1vcnRvbiA8YWtw
-bUBsaW51eC1mb3VuZGF0aW9uLm9yZz4NCj4gLS0tDQo+IA0KPiAgbW0va2FzYW4va2FzYW4uaCB8
-ICAgIDYgKysrKysrDQo+ICAxIGZpbGUgY2hhbmdlZCwgNiBpbnNlcnRpb25zKCspDQo+IA0KPiAt
-LS0gYS9tbS9rYXNhbi9rYXNhbi5ofmthc2FuLWFkZC1tZW16ZXJvLWluaXQtZm9yLXVuYWxpZ25l
-ZC1zaXplLQ0KPiB1bmRlci1zbHViLWRlYnVnDQo+ICsrKyBhL21tL2thc2FuL2thc2FuLmgNCj4g
-QEAgLTM4Nyw2ICszODcsMTIgQEAgc3RhdGljIGlubGluZSB2b2lkIGthc2FuX3VucG9pc29uKGNv
-bnN0DQo+ICANCj4gIAlpZiAoV0FSTl9PTigodW5zaWduZWQgbG9uZylhZGRyICYgS0FTQU5fR1JB
-TlVMRV9NQVNLKSkNCj4gIAkJcmV0dXJuOw0KPiArI2lmIElTX0VOQUJMRUQoQ09ORklHX1NMVUJf
-REVCVUcpDQo+ICsJaWYgKGluaXQgJiYgKCh1bnNpZ25lZCBsb25nKXNpemUgJiBLQVNBTl9HUkFO
-VUxFX01BU0spKSB7DQo+ICsJCWluaXQgPSBmYWxzZTsNCj4gKwkJbWVtemVyb19leHBsaWNpdCgo
-dm9pZCAqKWFkZHIsIHNpemUpOw0KPiArCX0NCj4gKyNlbmRpZg0KPiAgCXNpemUgPSByb3VuZF91
-cChzaXplLCBLQVNBTl9HUkFOVUxFX1NJWkUpOw0KPiAgDQo+ICAJaHdfc2V0X21lbV90YWdfcmFu
-Z2UoKHZvaWQgKilhZGRyLCBzaXplLCB0YWcsIGluaXQpOw0KPiBfDQo+IA0KPiBQYXRjaGVzIGN1
-cnJlbnRseSBpbiAtbW0gd2hpY2ggbWlnaHQgYmUgZnJvbSB5ZWUubGVlQG1lZGlhdGVrLmNvbSBh
-cmUNCj4gDQo+IGthc2FuLWFkZC1tZW16ZXJvLWluaXQtZm9yLXVuYWxpZ25lZC1zaXplLXVuZGVy
-LXNsdWItZGVidWcucGF0Y2gNCj4gDQo=
+On Mon, Jun 28, 2021 at 7:40 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+>
+> -                       /* Avoid taking write faults for known dirty pages */
+> -                       if (dirty_accountable && pte_dirty(ptent) &&
+> -                                       (pte_soft_dirty(ptent) ||
+> -                                        !(vma->vm_flags & VM_SOFTDIRTY))) {
+> +                       if (may_avoid_write_fault(ptent, vma, cp_flags))
+>                                 ptent = pte_mkwrite(ptent);
+> -                       }
 
+Hmm. I don't think this is correct.
+
+As fat as I can tell, may_avoid_write_fault() doesn't even check if
+the vma is writable!
+
+Am I misreading it? Because I think you just made even a shared mmap
+with "mprotect(PROT_READ)" turn the pte's writable.
+
+Which is a "slight" security issue.
+
+Maybe the new code is fine, and I'm missing something. The old code
+looks strange too, which makes me think that the MM_CP_DIRTY_ACCT test
+ends up saving us and depend on VM_WRITE. But it's very much not
+obvious.
+
+And even if I _am_ missing something, I really would like a very
+obvious and direct test for "this vma is writable", ie maybe a
+
+        if (!(vma->vm_flags & VM_WRITE))
+                return false;
+
+at the very top of the function.
+
+And no, "pte_dirty()" is not a reason to make something writable, it
+might have started out as a writable mapping, and we dirtied the page,
+and we made it read-only. The page stays dirty, but it shouldn't
+become writable just because of that.
+
+So please make me get the warm and fuzzies about this code. Because
+as-is, it just looks scary.
+
+              Linus
