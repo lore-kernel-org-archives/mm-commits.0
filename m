@@ -4,39 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A45BAC11F65
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Jun 2021 22:09:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F9ECC11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:13:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B6E761CA1
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Jun 2021 22:09:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 46AD061CD0
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:13:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232692AbhF1WMU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 18:12:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53860 "EHLO mail.kernel.org"
+        id S231931AbhF2APk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 20:15:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58078 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231864AbhF1WMT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 18:12:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BBE0161CA1;
-        Mon, 28 Jun 2021 22:09:51 +0000 (UTC)
+        id S229852AbhF2APk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 20:15:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0273661C72;
+        Tue, 29 Jun 2021 00:13:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624918192;
-        bh=sqh7heyY6fnl5INzEdwF0Ae+AigtE8pVWuCd6K7XiJw=;
+        s=korg; t=1624925593;
+        bh=t6jfBvQwdVkJ4k5/en5Qw3KTn4nWkiSfI2KqJ0Ka1pg=;
         h=Date:From:To:Subject:From;
-        b=fAGeOI7Xz3vtYYhVMFex8kGkDR6W7fDPbK5RQLTYYeaxkrPKuvW/wj/L75ZYKd75r
-         IdOi2loHh2aOE18T4Ucd+SQO495bODok6YApdoZJ+CTLRRjq8bgWy26/S2JV4iUSWV
-         OHqftuFA3hSRu3w1e05T3dY52OOT+YXi4AsZgRMc=
-Date:   Mon, 28 Jun 2021 15:09:51 -0700
+        b=JeyhZujVjGNCi/PxuHahj6aitXT8kSSc7YmoYhpANEUph2GhtTVdRS10OMBqCzmPP
+         9JuQEAtw8f71BDer8kxgF4pZPmmTMG7rU3LyatCmuk1+XprSkx8r4lt+ASJnQF1xFN
+         58grWNqEqqjq3Wm6hJ/lLIVk4m7YslD/1sFRht/4=
+Date:   Mon, 28 Jun 2021 17:13:12 -0700
 From:   akpm@linux-foundation.org
-To:     anton@tuxera.com, desmondcheongzx@gmail.com,
-        gregkh@linuxfoundation.org, mm-commits@vger.kernel.org,
-        skhan@linuxfoundation.org, stable@vger.kernel.org
-Subject:  + ntfs-fix-validity-check-for-file-name-attribute.patch
- added to -mm tree
-Message-ID: <20210628220951.BybJ7-QZl%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        rppt@linux.ibm.com
+Subject:  [folded-merged]
+ =?US-ASCII?Q?mm-page=5Falloc-fix-memory-map-initialization-for-descend?=
+ =?US-ASCII?Q?ing-nodes-checkpatch-fixes.patch?= removed from -mm tree
+Message-ID: <20210629001312.uro0HMM_u%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,74 +46,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ntfs: fix validity check for file name attribute
-has been added to the -mm tree.  Its filename is
-     ntfs-fix-validity-check-for-file-name-attribute.patch
+     Subject: mm-page_alloc-fix-memory-map-initialization-for-descending-nodes-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-fix-memory-map-initialization-for-descending-nodes-checkpatch-fixes.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ntfs-fix-validity-check-for-file-name-attribute.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ntfs-fix-validity-check-for-file-name-attribute.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-page_alloc-fix-memory-map-initialization-for-descending-nodes.patch
 
 ------------------------------------------------------
-From: Desmond Cheong Zhi Xi <desmondcheongzx@gmail.com>
-Subject: ntfs: fix validity check for file name attribute
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_alloc-fix-memory-map-initialization-for-descending-nodes-checkpatch-fixes
 
-When checking the file name attribute, we want to ensure that it fits
-within the bounds of ATTR_RECORD.  To do this, we should check that (attr
-record + file name offset + file name length) < (attr record + attr record
-length).
+WARNING: Possible repeated word: 'is'
+#183: FILE: mm/page_alloc.c:6570:
++	 * for FLATMEM it is is nop anyway
 
-However, the original check did not include the file name offset in the
-calculation.  This means that corrupted on-disk metadata might not caught
-by the incorrect file name check, and lead to an invalid memory access.
-
-An example can be seen in the crash report of a memory corruption error
-found by Syzbot:
-https://syzkaller.appspot.com/bug?id=a1a1e379b225812688566745c3e2f7242bffc246
-
-Adding the file name offset to the validity check fixes this error and
-passes the Syzbot reproducer test.
-
-Link: https://lkml.kernel.org/r/20210614050540.289494-1-desmondcheongzx@gmail.com
-Signed-off-by: Desmond Cheong Zhi Xi <desmondcheongzx@gmail.com>
-Reported-by: syzbot+213ac8bb98f7f4420840@syzkaller.appspotmail.com
-Tested-by: syzbot+213ac8bb98f7f4420840@syzkaller.appspotmail.com
-Acked-by: Anton Altaparmakov <anton@tuxera.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: <stable@vger.kernel.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/inode.c |    2 +-
+ mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ntfs/inode.c~ntfs-fix-validity-check-for-file-name-attribute
-+++ a/fs/ntfs/inode.c
-@@ -477,7 +477,7 @@ err_corrupt_attr:
- 		}
- 		file_name_attr = (FILE_NAME_ATTR*)((u8*)attr +
- 				le16_to_cpu(attr->data.resident.value_offset));
--		p2 = (u8*)attr + le32_to_cpu(attr->data.resident.value_length);
-+		p2 = (u8 *)file_name_attr + le32_to_cpu(attr->data.resident.value_length);
- 		if (p2 < (u8*)attr || p2 > p)
- 			goto err_corrupt_attr;
- 		/* This attribute is ok, but is it in the $Extend directory? */
+--- a/mm/page_alloc.c~mm-page_alloc-fix-memory-map-initialization-for-descending-nodes-checkpatch-fixes
++++ a/mm/page_alloc.c
+@@ -6567,7 +6567,7 @@ static void __init memmap_init(void)
+ 	 * node.
+ 	 * The call to init_unavailable_range() is outside the ifdef to
+ 	 * silence the compiler warining about zone_id set but not used;
+-	 * for FLATMEM it is is nop anyway
++	 * for FLATMEM it is a nop anyway
+ 	 */
+ 	end_pfn = round_up(end_pfn, PAGES_PER_SECTION);
+ 	if (hole_pfn < end_pfn)
 _
 
-Patches currently in -mm which might be from desmondcheongzx@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ntfs-fix-validity-check-for-file-name-attribute.patch
+mm-page_alloc-fix-memory-map-initialization-for-descending-nodes.patch
+mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality-fix-2.patch
+slub-force-on-no_hash_pointers-when-slub_debug-is-enabled-fix.patch
+fs-remove-noop_set_page_dirty-fix.patch
+mm-gup-pack-has_pinned-in-mmf_has_pinned-checkpatch-fixes.patch
+mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
+binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
+mm.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
+nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
+mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
+mmmemory_hotplug-drop-unneeded-locking-fix.patch
+fs-proc-kcorec-add-mmap-interface-fix.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+lib-math-rational-add-kunit-test-cases-fix.patch
+lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
+ipc-utilc-use-binary-search-for-max_idx-fix.patch
+linux-next-pre.patch
+linux-next-post.patch
+linux-next-rejects.patch
+kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
