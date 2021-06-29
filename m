@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99DE0C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:37:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D56A4C11F65
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:37:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8290061D07
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:37:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C224E61D08
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:37:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231398AbhF2Cj2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:39:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60172 "EHLO mail.kernel.org"
+        id S231854AbhF2Cjb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:39:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60214 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231750AbhF2Cj2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:39:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E4A1F61D08;
-        Tue, 29 Jun 2021 02:37:00 +0000 (UTC)
+        id S231848AbhF2Cjb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:39:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CF2C861A2B;
+        Tue, 29 Jun 2021 02:37:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934221;
-        bh=hovObR+c5cuvTwcj0pvJ613x2mzPh2+/nIQPuoBHogs=;
+        s=korg; t=1624934224;
+        bh=fYXO8FGkToigQmg7A0jn12xcM/+xX+7ixgiqzyn9+AI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vxGHACCOhhU9CWMQx7bqRn3jSnrb007/UD25AFQVt/sfzIC9Akv0mPEqaGpty0Fly
-         6x1gdoQd5VsZDS7Nlg2T1kQdmIVOyP9ONy0WBNaHS4+mvqt72EMIRxSmY0vCkmJMxn
-         mmGqdoIFGkV2qKNH712Lqe7cxuUKM7yebLg7Yxrw=
-Date:   Mon, 28 Jun 2021 19:37:00 -0700
+        b=XJR0hjCNpOuQ61SgodXc9Sa/gTTcdfJutqxs9AGH3pwBoJEIVrdgBakU1f6zDbKYz
+         Py1yp7AeXK9Zasebpq0CY8TTVr3+aWfPu2xAZ3MISW2D40KKJsAlc5luKiOAKfPxqL
+         tAHzI3kDALhnDzP2NLZ28wn6vUacfkpCKrvwvb5k=
+Date:   Mon, 28 Jun 2021 19:37:03 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, hughd@google.com, linmiaohe@huawei.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [patch 071/192] mm/swapfile: move get_swap_page_of_type()
- under CONFIG_HIBERNATION
-Message-ID: <20210629023700.-7OvS1acX%akpm@linux-foundation.org>
+Subject:  [patch 072/192] mm/swap: remove unused local variable
+ nr_shadows
+Message-ID: <20210629023703.TzhXnCp2f%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,168 +44,54 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swapfile: move get_swap_page_of_type() under CONFIG_HIBERNATION
+Subject: mm/swap: remove unused local variable nr_shadows
 
-Patch series "Cleanups for swap", v2.
+Since commit 55c653b71e8c ("mm: stop accounting shadow entries"),
+nr_shadows is not used anymore.
 
-This series contains just cleanups to remove some unused variables, delete
-meaningless forward declarations and so on.  More details can be found in
-the respective changelogs.
-
-
-This patch (of 4):
-
-We should move get_swap_page_of_type() under CONFIG_HIBERNATION since the
-only caller of this function is now suspend routine.
-
-[linmiaohe@huawei.com: move scan_swap_map() under CONFIG_HIBERNATION]
-  Link: https://lkml.kernel.org/r/20210521070855.2015094-1-linmiaohe@huawei.com
-[linmiaohe@huawei.com: fold scan_swap_map() into the only caller get_swap_page_of_type()]
-  Link: https://lkml.kernel.org/r/20210527120328.3935132-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210520134022.1370406-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210520134022.1370406-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210520134022.1370406-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   83 +++++++++++++++++-------------------------------
- 1 file changed, 31 insertions(+), 52 deletions(-)
+ mm/swap_state.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfile-move-get_swap_page_of_type-under-config_hibernation
-+++ a/mm/swapfile.c
-@@ -453,10 +453,10 @@ static void swap_cluster_schedule_discar
- 		unsigned int idx)
- {
- 	/*
--	 * If scan_swap_map() can't find a free cluster, it will check
-+	 * If scan_swap_map_slots() can't find a free cluster, it will check
- 	 * si->swap_map directly. To make sure the discarding cluster isn't
--	 * taken by scan_swap_map(), mark the swap entries bad (occupied). It
--	 * will be cleared after discard
-+	 * taken by scan_swap_map_slots(), mark the swap entries bad (occupied).
-+	 * It will be cleared after discard
- 	 */
- 	memset(si->swap_map + idx * SWAPFILE_CLUSTER,
- 			SWAP_MAP_BAD, SWAPFILE_CLUSTER);
-@@ -589,7 +589,7 @@ static void dec_cluster_info_page(struct
- }
+--- a/mm/swap_state.c~mm-swap-remove-unused-local-variable-nr_shadows
++++ a/mm/swap_state.c
+@@ -114,8 +114,6 @@ int add_to_swap_cache(struct page *page,
+ 	SetPageSwapCache(page);
  
- /*
-- * It's possible scan_swap_map() uses a free cluster in the middle of free
-+ * It's possible scan_swap_map_slots() uses a free cluster in the middle of free
-  * cluster list. Avoiding such abuse to avoid list corruption.
-  */
- static bool
-@@ -1037,21 +1037,6 @@ static void swap_free_cluster(struct swa
- 	swap_range_free(si, offset, SWAPFILE_CLUSTER);
- }
+ 	do {
+-		unsigned long nr_shadows = 0;
+-
+ 		xas_lock_irq(&xas);
+ 		xas_create_range(&xas);
+ 		if (xas_error(&xas))
+@@ -124,7 +122,6 @@ int add_to_swap_cache(struct page *page,
+ 			VM_BUG_ON_PAGE(xas.xa_index != idx + i, page);
+ 			old = xas_load(&xas);
+ 			if (xa_is_value(old)) {
+-				nr_shadows++;
+ 				if (shadowp)
+ 					*shadowp = old;
+ 			}
+@@ -260,7 +257,6 @@ void clear_shadow_from_swap_cache(int ty
+ 	void *old;
  
--static unsigned long scan_swap_map(struct swap_info_struct *si,
--				   unsigned char usage)
--{
--	swp_entry_t entry;
--	int n_ret;
--
--	n_ret = scan_swap_map_slots(si, usage, 1, &entry);
--
--	if (n_ret)
--		return swp_offset(entry);
--	else
--		return 0;
--
--}
--
- int get_swap_pages(int n_goal, swp_entry_t swp_entries[], int entry_size)
- {
- 	unsigned long size = swap_entry_size(entry_size);
-@@ -1114,14 +1099,14 @@ start_over:
- nextsi:
- 		/*
- 		 * if we got here, it's likely that si was almost full before,
--		 * and since scan_swap_map() can drop the si->lock, multiple
--		 * callers probably all tried to get a page from the same si
--		 * and it filled up before we could get one; or, the si filled
--		 * up between us dropping swap_avail_lock and taking si->lock.
--		 * Since we dropped the swap_avail_lock, the swap_avail_head
--		 * list may have been modified; so if next is still in the
--		 * swap_avail_head list then try it, otherwise start over
--		 * if we have not gotten any slots.
-+		 * and since scan_swap_map_slots() can drop the si->lock,
-+		 * multiple callers probably all tried to get a page from the
-+		 * same si and it filled up before we could get one; or, the si
-+		 * filled up between us dropping swap_avail_lock and taking
-+		 * si->lock. Since we dropped the swap_avail_lock, the
-+		 * swap_avail_head list may have been modified; so if next is
-+		 * still in the swap_avail_head list then try it, otherwise
-+		 * start over if we have not gotten any slots.
- 		 */
- 		if (plist_node_empty(&next->avail_lists[node]))
- 			goto start_over;
-@@ -1137,30 +1122,6 @@ noswap:
- 	return n_ret;
- }
+ 	for (;;) {
+-		unsigned long nr_shadows = 0;
+ 		swp_entry_t entry = swp_entry(type, curr);
+ 		struct address_space *address_space = swap_address_space(entry);
+ 		XA_STATE(xas, &address_space->i_pages, curr);
+@@ -270,7 +266,6 @@ void clear_shadow_from_swap_cache(int ty
+ 			if (!xa_is_value(old))
+ 				continue;
+ 			xas_store(&xas, NULL);
+-			nr_shadows++;
+ 		}
+ 		xa_unlock_irq(&address_space->i_pages);
  
--/* The only caller of this function is now suspend routine */
--swp_entry_t get_swap_page_of_type(int type)
--{
--	struct swap_info_struct *si = swap_type_to_swap_info(type);
--	pgoff_t offset;
--
--	if (!si)
--		goto fail;
--
--	spin_lock(&si->lock);
--	if (si->flags & SWP_WRITEOK) {
--		/* This is called for allocating swap entry, not cache */
--		offset = scan_swap_map(si, 1);
--		if (offset) {
--			atomic_long_dec(&nr_swap_pages);
--			spin_unlock(&si->lock);
--			return swp_entry(type, offset);
--		}
--	}
--	spin_unlock(&si->lock);
--fail:
--	return (swp_entry_t) {0};
--}
--
- static struct swap_info_struct *__swap_info_get(swp_entry_t entry)
- {
- 	struct swap_info_struct *p;
-@@ -1812,6 +1773,24 @@ int free_swap_and_cache(swp_entry_t entr
- }
- 
- #ifdef CONFIG_HIBERNATION
-+
-+swp_entry_t get_swap_page_of_type(int type)
-+{
-+	struct swap_info_struct *si = swap_type_to_swap_info(type);
-+	swp_entry_t entry = {0};
-+
-+	if (!si)
-+		goto fail;
-+
-+	/* This is called for allocating swap entry, not cache */
-+	spin_lock(&si->lock);
-+	if ((si->flags & SWP_WRITEOK) && scan_swap_map_slots(si, 1, 1, &entry))
-+		atomic_long_dec(&nr_swap_pages);
-+	spin_unlock(&si->lock);
-+fail:
-+	return entry;
-+}
-+
- /*
-  * Find the swap type that corresponds to given device (if any).
-  *
-@@ -2649,7 +2628,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	spin_lock(&p->lock);
- 	drain_mmlist();
- 
--	/* wait for anyone still in scan_swap_map */
-+	/* wait for anyone still in scan_swap_map_slots */
- 	p->highest_bit = 0;		/* cuts scans short */
- 	while (p->flags >= SWP_SCANNING) {
- 		spin_unlock(&p->lock);
 _
