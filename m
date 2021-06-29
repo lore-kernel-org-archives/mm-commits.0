@@ -7,37 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EC5EC11F65
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDEB2C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 36A2061D0F
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA16F61D0F
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231719AbhF2CnF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:43:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35366 "EHLO mail.kernel.org"
+        id S231706AbhF2CnB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:43:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35304 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230152AbhF2CnE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:43:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F418161D14;
-        Tue, 29 Jun 2021 02:40:36 +0000 (UTC)
+        id S230152AbhF2CnB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:43:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B5FE961D12;
+        Tue, 29 Jun 2021 02:40:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934437;
-        bh=xuij92vfQyvxWA1inwHs8EIMtb2WYYjKIgQhI+qJcRs=;
+        s=korg; t=1624934434;
+        bh=OsWbSZgv/qifFtkYiQZGT1qdUlnvRUXlYb2ULuV/kxc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=X9s2BBMW5S8Bz8RtF45TYJrtYJCvVwh8WQ1mYZU8135pWdvWuU4gYtJnN+Sspk2B+
-         rpU+a1Wpq6BqagKQGn9y95eDT0Y6kc2IKPJN6y+bT6noRP5amb3E2KofqTkXIWhjxO
-         dLqcDTkxCghBbFzXwA39uNPOZ0ReVeNUI/2RO0qM=
-Date:   Mon, 28 Jun 2021 19:40:36 -0700
+        b=CskGMS/2xQ6xvGaUKjG3flennR15FkW/1ANOni9Hoov5CaGbfu4+U+dlnCCfkZWkU
+         VIVw0QGxJ1FohwU7yWIgCba05VjdrT6kPLjSvU6+dA8yH0nz3G4FP4MUM0A3v2cT12
+         13EeXB3BtboyWR5PmyS99fOKoicyovsVG9FIsYS4=
+Date:   Mon, 28 Jun 2021 19:40:33 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
-        brendanhiggins@google.com, corbet@lwn.net, davidgow@google.com,
-        dja@axtens.net, dvyukov@google.com, elver@google.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        ryabinin.a.a@gmail.com, torvalds@linux-foundation.org
-Subject:  [patch 140/192] kasan: test: improve failure message in
- KUNIT_EXPECT_KASAN_FAIL()
-Message-ID: <20210629024036.NpsxwNLGW%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bo.he@intel.com, dvyukov@google.com,
+        elver@google.com, glider@google.com, linux-mm@kvack.org,
+        mingo@kernel.org, mm-commits@vger.kernel.org, pmladek@suse.com,
+        psodagud@quicinc.com, rostedt@goodmis.org, ryabinin.a.a@gmail.com,
+        senozhatsky@chromium.org, torvalds@linux-foundation.org,
+        yanmin_zhang@linux.intel.com
+Subject:  [patch 139/192] kasan: use dump_stack_lvl(KERN_ERR) to
+ print stacks
+Message-ID: <20210629024033.a-hnjH4H1%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,116 +46,57 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: David Gow <davidgow@google.com>
-Subject: kasan: test: improve failure message in KUNIT_EXPECT_KASAN_FAIL()
+From: Alexander Potapenko <glider@google.com>
+Subject: kasan: use dump_stack_lvl(KERN_ERR) to print stacks
 
-The KUNIT_EXPECT_KASAN_FAIL() macro currently uses KUNIT_EXPECT_EQ() to
-compare fail_data.report_expected and fail_data.report_found.  This always
-gave a somewhat useless error message on failure, but the addition of
-extra compile-time checking with READ_ONCE() has caused it to get much
-longer, and be truncated before anything useful is displayed.
+Most of the contents of KASAN reports are printed with pr_err(), so use a
+consistent logging level to print the memory access stacks.
 
-Instead, just check fail_data.report_found by hand (we've just set
-report_expected to 'true'), and print a better failure message with
-KUNIT_FAIL().  Because of this, report_expected is no longer used
-anywhere, and can be removed.
-
-Beforehand, a failure in:
-KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)area)[3100]);
-would have looked like:
-[22:00:34] [FAILED] vmalloc_oob
-[22:00:34]     # vmalloc_oob: EXPECTATION FAILED at lib/test_kasan.c:991
-[22:00:34]     Expected ({ do { extern void __compiletime_assert_705(void) __attribute__((__error__("Unsupported access size for {READ,WRITE}_ONCE()."))); if (!((sizeof(fail_data.report_expected) == sizeof(char) || sizeof(fail_data.repp
-[22:00:34]     not ok 45 - vmalloc_oob
-
-With this change, it instead looks like:
-[22:04:04] [FAILED] vmalloc_oob
-[22:04:04]     # vmalloc_oob: EXPECTATION FAILED at lib/test_kasan.c:993
-[22:04:04]     KASAN failure expected in "((volatile char *)area)[3100]", but none occurred
-[22:04:04]     not ok 45 - vmalloc_oob
-
-Also update the example failure in the documentation to reflect this.
-
-Link: https://lkml.kernel.org/r/20210606005531.165954-1-davidgow@google.com
-Signed-off-by: David Gow <davidgow@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Link: https://lkml.kernel.org/r/20210506105405.3535023-2-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
-Acked-by: Brendan Higgins <brendanhiggins@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Prasad Sodagudi <psodagud@quicinc.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Daniel Axtens <dja@axtens.net>
-Cc: David Gow <davidgow@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: he, bo <bo.he@intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Yanmin Zhang <yanmin_zhang@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |    9 ++++-----
- include/linux/kasan.h             |    1 -
- lib/test_kasan.c                  |   11 +++++------
- 3 files changed, 9 insertions(+), 12 deletions(-)
+ mm/kasan/report.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-test-improve-failure-message-in-kunit_expect_kasan_fail
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -447,11 +447,10 @@ When a test fails due to a failed ``kmal
+--- a/mm/kasan/report.c~kasan-use-dump_stack_lvlkern_err-to-print-stacks
++++ a/mm/kasan/report.c
+@@ -230,7 +230,7 @@ static void print_address_description(vo
+ {
+ 	struct page *page = kasan_addr_to_page(addr);
  
- When a test fails due to a missing KASAN report::
+-	dump_stack();
++	dump_stack_lvl(KERN_ERR);
+ 	pr_err("\n");
  
--        # kmalloc_double_kzfree: EXPECTATION FAILED at lib/test_kasan.c:629
--        Expected kasan_data->report_expected == kasan_data->report_found, but
--        kasan_data->report_expected == 1
--        kasan_data->report_found == 0
--        not ok 28 - kmalloc_double_kzfree
-+        # kmalloc_double_kzfree: EXPECTATION FAILED at lib/test_kasan.c:974
-+        KASAN failure expected in "kfree_sensitive(ptr)", but none occurred
-+        not ok 44 - kmalloc_double_kzfree
-+
+ 	if (page && PageSlab(page)) {
+@@ -375,7 +375,7 @@ void kasan_report_async(void)
+ 	pr_err("BUG: KASAN: invalid-access\n");
+ 	pr_err("Asynchronous mode enabled: no access details available\n");
+ 	pr_err("\n");
+-	dump_stack();
++	dump_stack_lvl(KERN_ERR);
+ 	end_report(&flags, 0);
+ }
+ #endif /* CONFIG_KASAN_HW_TAGS */
+@@ -420,7 +420,7 @@ static void __kasan_report(unsigned long
+ 		pr_err("\n");
+ 		print_memory_metadata(info.first_bad_addr);
+ 	} else {
+-		dump_stack();
++		dump_stack_lvl(KERN_ERR);
+ 	}
  
- At the end the cumulative status of all KASAN tests is printed. On success::
- 
---- a/include/linux/kasan.h~kasan-test-improve-failure-message-in-kunit_expect_kasan_fail
-+++ a/include/linux/kasan.h
-@@ -17,7 +17,6 @@ struct task_struct;
- 
- /* kasan_data struct is used in KUnit tests for KASAN expected failures */
- struct kunit_kasan_expectation {
--	bool report_expected;
- 	bool report_found;
- };
- 
---- a/lib/test_kasan.c~kasan-test-improve-failure-message-in-kunit_expect_kasan_fail
-+++ a/lib/test_kasan.c
-@@ -55,7 +55,6 @@ static int kasan_test_init(struct kunit
- 	multishot = kasan_save_enable_multi_shot();
- 	kasan_set_tagging_report_once(false);
- 	fail_data.report_found = false;
--	fail_data.report_expected = false;
- 	kunit_add_named_resource(test, NULL, NULL, &resource,
- 					"kasan_data", &fail_data);
- 	return 0;
-@@ -94,20 +93,20 @@ static void kasan_test_exit(struct kunit
- 	    !kasan_async_mode_enabled())				\
- 		migrate_disable();					\
- 	KUNIT_EXPECT_FALSE(test, READ_ONCE(fail_data.report_found));	\
--	WRITE_ONCE(fail_data.report_expected, true);			\
- 	barrier();							\
- 	expression;							\
- 	barrier();							\
--	KUNIT_EXPECT_EQ(test,						\
--			READ_ONCE(fail_data.report_expected),		\
--			READ_ONCE(fail_data.report_found));		\
-+	if (!READ_ONCE(fail_data.report_found)) {			\
-+		KUNIT_FAIL(test, KUNIT_SUBTEST_INDENT "KASAN failure "	\
-+				"expected in \"" #expression		\
-+				 "\", but none occurred");		\
-+	}								\
- 	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS)) {				\
- 		if (READ_ONCE(fail_data.report_found))			\
- 			kasan_enable_tagging_sync();			\
- 		migrate_enable();					\
- 	}								\
- 	WRITE_ONCE(fail_data.report_found, false);			\
--	WRITE_ONCE(fail_data.report_expected, false);			\
- } while (0)
- 
- #define KASAN_TEST_NEEDS_CONFIG_ON(test, config) do {			\
+ 	end_report(&flags, addr);
 _
