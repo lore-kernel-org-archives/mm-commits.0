@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE859C11F67
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:35:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16C03C11F66
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:35:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A888B61D05
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:35:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F150F61D06
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:35:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231750AbhF2Cht (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:37:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58400 "EHLO mail.kernel.org"
+        id S231848AbhF2Chw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:37:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58442 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231706AbhF2Chr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:37:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F2F4661A1D;
-        Tue, 29 Jun 2021 02:35:19 +0000 (UTC)
+        id S231823AbhF2Chu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:37:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 16AE461D03;
+        Tue, 29 Jun 2021 02:35:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934120;
-        bh=v2Y+uAJO/+kJEO05D8t76GF8CtQKmm08CqYHPAHtG28=;
+        s=korg; t=1624934123;
+        bh=uK0vqUV5XlURDJYnUk/CTr0GZMB10MWdtWUOrju/YxY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=lyS3+C6X291/oImECWJupaYsOgu8NElHDUDKDtqOfVzJN0OhP2zSoMWNqKXreb5tu
-         ubx0TYxgx5n5LlMGisACF5diV0bCq3SPTJg1MNa5ZdlDtqTwdjQy+TVk9SpJPTMT5l
-         GWQIFFHjjMCxA5+xMQxS7QHHg3yIElSqq8I/aVGo=
-Date:   Mon, 28 Jun 2021 19:35:19 -0700
+        b=12ZtBJzadGeDXZjDtK0O/5j17IZ8b1AvJPUyrT5oP2xxWfvtvelc6B1K5eSexCW5g
+         WWp39qRcklgY8kQQEmc87NDMdnCiA3WedTtktRn8Wos5Rj0vwkk3qzyrnpC/L5d6GB
+         35D0BMHvByzVA2YCXK+3HaCd1T3dvnKtH/2dYkc8=
+Date:   Mon, 28 Jun 2021 19:35:22 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, alexanderduyck@fb.com,
         anshuman.khandual@arm.com, catalin.marinas@arm.com,
         david@redhat.com, gshan@redhat.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, mst@redhat.com,
         torvalds@linux-foundation.org, will@kernel.org
-Subject:  [patch 039/192] mm/page_reporting: export reporting order
- as module parameter
-Message-ID: <20210629023519.w_udrp2_Q%akpm@linux-foundation.org>
+Subject:  [patch 040/192] mm/page_reporting: allow driver to
+ specify reporting order
+Message-ID: <20210629023522.OzFzy73av%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,108 +46,71 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Gavin Shan <gshan@redhat.com>
-Subject: mm/page_reporting: export reporting order as module parameter
+Subject: mm/page_reporting: allow driver to specify reporting order
 
-The macro PAGE_REPORTING_MIN_ORDER is defined as the page reporting
-threshold.  It can't be adjusted at runtime.
+The page reporting order (threshold) is sticky to @pageblock_order by
+default.  The page reporting can never be triggered because the freeing
+page can't come up with a free area like that huge.  The situation becomes
+worse when the system memory becomes heavily fragmented.
 
-This introduces a variable (@page_reporting_order) to replace the marcro
-(PAGE_REPORTING_MIN_ORDER).  MAX_ORDER is assigned to it initially,
-meaning the page reporting is disabled.  It will be specified by driver if
-valid one is provided.  Otherwise, it will fall back to @pageblock_order. 
-It's also exported so that the page reporting order can be adjusted at
-runtime.
+For example, the following configurations are used on ARM64 when 64KB base
+page size is enabled.  In this specific case, the page reporting won't be
+triggered until the freeing page comes up with a 512MB free area.  That's
+hard to be met, especially when the system memory becomes heavily
+fragmented.
 
-Link: https://lkml.kernel.org/r/20210625014710.42954-3-gshan@redhat.com
+   PAGE_SIZE:          64KB
+   HPAGE_SIZE:         512MB
+   pageblock_order:    13       (512MB)
+   MAX_ORDER:          14
+
+This allows the drivers to specify the page reporting order when the page
+reporting device is registered.  It falls back to @pageblock_order if it's
+not specified by the driver.  The existing users (hv_balloon and
+virtio_balloon) don't specify it and @pageblock_order is still taken as
+their page reporting order.  So this shouldn't introduce any functional
+changes.
+
+Link: https://lkml.kernel.org/r/20210625014710.42954-4-gshan@redhat.com
 Signed-off-by: Gavin Shan <gshan@redhat.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Alexander Duyck <alexanderduyck@fb.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    6 ++++++
- mm/page_reporting.c                             |    9 +++++++--
- mm/page_reporting.h                             |    5 ++---
- 3 files changed, 15 insertions(+), 5 deletions(-)
+ include/linux/page_reporting.h |    3 +++
+ mm/page_reporting.c            |    6 ++++++
+ 2 files changed, 9 insertions(+)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-page_reporting-export-reporting-order-as-module-parameter
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -3566,6 +3566,12 @@
- 			off: turn off poisoning (default)
- 			on: turn on poisoning
+--- a/include/linux/page_reporting.h~mm-page_reporting-allow-driver-to-specify-reporting-order
++++ a/include/linux/page_reporting.h
+@@ -18,6 +18,9 @@ struct page_reporting_dev_info {
  
-+	page_reporting.page_reporting_order=
-+			[KNL] Minimal page reporting order
-+			Format: <integer>
-+			Adjust the minimal page reporting order. The page
-+			reporting is disabled when it exceeds (MAX_ORDER-1).
+ 	/* Current state of page reporting */
+ 	atomic_t state;
 +
- 	panic=		[KNL] Kernel behaviour on panic: delay <timeout>
- 			timeout > 0: seconds before rebooting
- 			timeout = 0: wait forever
---- a/mm/page_reporting.c~mm-page_reporting-export-reporting-order-as-module-parameter
++	/* Minimal order of page reporting */
++	unsigned int order;
+ };
+ 
+ /* Tear-down and bring-up for page reporting devices */
+--- a/mm/page_reporting.c~mm-page_reporting-allow-driver-to-specify-reporting-order
 +++ a/mm/page_reporting.c
-@@ -4,12 +4,17 @@
- #include <linux/page_reporting.h>
- #include <linux/gfp.h>
- #include <linux/export.h>
-+#include <linux/module.h>
- #include <linux/delay.h>
- #include <linux/scatterlist.h>
+@@ -329,6 +329,12 @@ int page_reporting_register(struct page_
+ 		goto err_out;
+ 	}
  
- #include "page_reporting.h"
- #include "internal.h"
- 
-+unsigned int page_reporting_order = MAX_ORDER;
-+module_param(page_reporting_order, uint, 0644);
-+MODULE_PARM_DESC(page_reporting_order, "Set page reporting order");
++	/*
++	 * Update the page reporting order if it's specified by driver.
++	 * Otherwise, it falls back to @pageblock_order.
++	 */
++	page_reporting_order = prdev->order ? : pageblock_order;
 +
- #define PAGE_REPORTING_DELAY	(2 * HZ)
- static struct page_reporting_dev_info __rcu *pr_dev_info __read_mostly;
- 
-@@ -229,7 +234,7 @@ page_reporting_process_zone(struct page_
- 
- 	/* Generate minimum watermark to be able to guarantee progress */
- 	watermark = low_wmark_pages(zone) +
--		    (PAGE_REPORTING_CAPACITY << PAGE_REPORTING_MIN_ORDER);
-+		    (PAGE_REPORTING_CAPACITY << page_reporting_order);
- 
- 	/*
- 	 * Cancel request if insufficient free memory or if we failed
-@@ -239,7 +244,7 @@ page_reporting_process_zone(struct page_
- 		return err;
- 
- 	/* Process each free list starting from lowest order/mt */
--	for (order = PAGE_REPORTING_MIN_ORDER; order < MAX_ORDER; order++) {
-+	for (order = page_reporting_order; order < MAX_ORDER; order++) {
- 		for (mt = 0; mt < MIGRATE_TYPES; mt++) {
- 			/* We do not pull pages from the isolate free list */
- 			if (is_migrate_isolate(mt))
---- a/mm/page_reporting.h~mm-page_reporting-export-reporting-order-as-module-parameter
-+++ a/mm/page_reporting.h
-@@ -10,10 +10,9 @@
- #include <linux/pgtable.h>
- #include <linux/scatterlist.h>
- 
--#define PAGE_REPORTING_MIN_ORDER	pageblock_order
--
- #ifdef CONFIG_PAGE_REPORTING
- DECLARE_STATIC_KEY_FALSE(page_reporting_enabled);
-+extern unsigned int page_reporting_order;
- void __page_reporting_notify(void);
- 
- static inline bool page_reported(struct page *page)
-@@ -38,7 +37,7 @@ static inline void page_reporting_notify
- 		return;
- 
- 	/* Determine if we have crossed reporting threshold */
--	if (order < PAGE_REPORTING_MIN_ORDER)
-+	if (order < page_reporting_order)
- 		return;
- 
- 	/* This will add a few cycles, but should be called infrequently */
+ 	/* initialize state and work structures */
+ 	atomic_set(&prdev->state, PAGE_REPORTING_IDLE);
+ 	INIT_DELAYED_WORK(&prdev->work, &page_reporting_process);
 _
