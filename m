@@ -7,42 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A27F1C11F65
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:38:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D27FC11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:38:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E07861D0A
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:38:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 496E561D0C
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:38:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231750AbhF2ClD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:41:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33482 "EHLO mail.kernel.org"
+        id S231753AbhF2ClG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:41:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33554 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231219AbhF2ClD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:41:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E8FF361D04;
-        Tue, 29 Jun 2021 02:38:35 +0000 (UTC)
+        id S231219AbhF2ClG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:41:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6500E61D08;
+        Tue, 29 Jun 2021 02:38:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934316;
-        bh=GwsFBymK+bT65avdz8OHiHGt+/NIpj+kFv2j3EeUca8=;
+        s=korg; t=1624934319;
+        bh=ZRSPUSpvjZoajNQYqqfJL617rE2OaZ8w5ZtoKfiJ1Ls=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=OYXxBH5ph/Vz8fraOCrkCgMZf/nxJU8Z4hpIkM+WYxV1Q0aUC5SGNK/V668wkqwy1
-         UGMvDnwgeH0viO5eruyGHCDmFw4Ozzt5ZoHVYes5W9vaDrJsnayiR2GljFjERVNDy3
-         7WDVZ59XYKZF+c4M2ETEKo7BHUo/fQ5nI3aBc83w=
-Date:   Mon, 28 Jun 2021 19:38:35 -0700
+        b=rXXr/Aki1eTBhb002NPXdpakAQ6p2xfuNPNnxpfef+1ZMm7pr78xyatlyR24GrCb6
+         eO5hbs0bkb70I8ECxlqoOdR5yCbAezMgs1pg5i1/6/IXr6kSw70MX0YI7PC0Is1/Ul
+         gcUqORe4p8IS0qivyF4qVs7XMNEMWuUqLMgyscL4=
+Date:   Mon, 28 Jun 2021 19:38:39 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     acme@kernel.org, akpm@linux-foundation.org,
-        alexander.shishkin@linux.intel.com, bp@alien8.de,
-        catalin.marinas@arm.com, david@redhat.com, dzickus@redhat.com,
-        ebiederm@xmission.com, feng.tang@intel.com, gerg@linux-m68k.org,
-        hpa@zytor.com, jolsa@redhat.com, keescook@chromium.org,
-        Kevin.Brodsky@arm.com, linux-mm@kvack.org, mark.rutland@arm.com,
-        mhocko@suse.com, mingo@redhat.com, mm-commits@vger.kernel.org,
-        namhyung@kernel.org, peterz@infradead.org, rppt@kernel.org,
-        tglx@linutronix.de, torvalds@linux-foundation.org,
-        viro@zeniv.linux.org.uk
-Subject:  [patch 100/192] mm: ignore MAP_EXECUTABLE in
- ksys_mmap_pgoff()
-Message-ID: <20210629023835.J9ZYGwB5n%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@redhat.com,
+        gmjuareztello@gmail.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 101/192] mm/mmap.c: logic of find_vma_intersection
+ repeated in __do_munmap
+Message-ID: <20210629023839.aYYiE3f-r%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -50,77 +43,46 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: ignore MAP_EXECUTABLE in ksys_mmap_pgoff()
+From: Gonzalo Matias Juarez Tello <gmjuareztello@gmail.com>
+Subject: mm/mmap.c: logic of find_vma_intersection repeated in __do_munmap
 
-Let's also remove masking off MAP_EXECUTABLE from ksys_mmap_pgoff(): the
-last in-tree occurrence of MAP_EXECUTABLE is now in LEGACY_MAP_MASK, which
-accepts the flag e.g., for MAP_SHARED_VALIDATE; however, the flag is
-ignored throughout the kernel now.
+Logic of find_vma_intersection() is repeated in __do_munmap().
 
-Add a comment to LEGACY_MAP_MASK stating that MAP_EXECUTABLE is ignored.
+Also, prev is assigned a value before checking vma->vm_start >= end which
+might end up on a return statement making that assignment useless.
 
-Link: https://lkml.kernel.org/r/20210421093453.6904-4-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@redhat.com>
-Cc: Kevin Brodsky <Kevin.Brodsky@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Calling find_vma_intersection() checks that condition and returns NULL if
+no vma is found, hence only the !vma check is needed in __do_munmap().
+
+Link: https://lkml.kernel.org/r/20210409162129.18313-1-gmjuareztello@gmail.com
+Signed-off-by: Gonzalo Matias Juarez Tello <gmjuareztello@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mman.h |    2 ++
- mm/mmap.c            |    2 +-
- mm/nommu.c           |    2 +-
- 3 files changed, 4 insertions(+), 2 deletions(-)
+ mm/mmap.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
---- a/include/linux/mman.h~mm-ignore-map_executable-in-ksys_mmap_pgoff
-+++ a/include/linux/mman.h
-@@ -31,6 +31,8 @@
- /*
-  * The historical set of flags that all mmap implementations implicitly
-  * support when a ->mmap_validate() op is not provided in file_operations.
-+ *
-+ * MAP_EXECUTABLE is completely ignored throughout the kernel.
-  */
- #define LEGACY_MAP_MASK (MAP_SHARED \
- 		| MAP_PRIVATE \
---- a/mm/mmap.c~mm-ignore-map_executable-in-ksys_mmap_pgoff
+--- a/mm/mmap.c~mm-mmapc-logic-of-find_vma_intersection-repeated-in-__do_munmap
 +++ a/mm/mmap.c
-@@ -1633,7 +1633,7 @@ unsigned long ksys_mmap_pgoff(unsigned l
- 			return PTR_ERR(file);
- 	}
+@@ -2828,16 +2828,11 @@ int __do_munmap(struct mm_struct *mm, un
+ 	 */
+ 	arch_unmap(mm, start, end);
  
--	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
-+	flags &= ~MAP_DENYWRITE;
+-	/* Find the first overlapping VMA */
+-	vma = find_vma(mm, start);
++	/* Find the first overlapping VMA where start < vma->vm_end */
++	vma = find_vma_intersection(mm, start, end);
+ 	if (!vma)
+ 		return 0;
+ 	prev = vma->vm_prev;
+-	/* we have  start < vma->vm_end  */
+-
+-	/* if it doesn't overlap, we have nothing.. */
+-	if (vma->vm_start >= end)
+-		return 0;
  
- 	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
- out_fput:
---- a/mm/nommu.c~mm-ignore-map_executable-in-ksys_mmap_pgoff
-+++ a/mm/nommu.c
-@@ -1296,7 +1296,7 @@ unsigned long ksys_mmap_pgoff(unsigned l
- 			goto out;
- 	}
- 
--	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
-+	flags &= ~MAP_DENYWRITE;
- 
- 	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
- 
+ 	/*
+ 	 * If we need to split any vma, do it now to save pain later.
 _
