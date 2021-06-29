@@ -4,40 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A22FC11F64
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEEF3C11F69
 	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:35:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 76EF961D04
+	by mail.kernel.org (Postfix) with ESMTP id DAA8C61D02
 	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:35:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231851AbhF2Chz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:37:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58486 "EHLO mail.kernel.org"
+        id S231398AbhF2Ch4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:37:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58572 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231398AbhF2Chx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:37:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3560C61D02;
-        Tue, 29 Jun 2021 02:35:26 +0000 (UTC)
+        id S231854AbhF2Chz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:37:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 331E161D03;
+        Tue, 29 Jun 2021 02:35:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934126;
-        bh=L9t32XMNt47V7wlIrVkPmXkeao2vVq7WlEa/w0wIFyw=;
+        s=korg; t=1624934129;
+        bh=CjJsMJmyWKbWPVqfxomthqRZCco+5XcL5Ma+vk5GrWg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=mEVv8j1gYYyFV+0umGxQK3/+pviO6kIvhqGFaR1RdikcFJ6VCqhtmdXNKjOAfvcuL
-         s+v9RkrsGPvWJ29tExsOHTNx2erj67yFqZpzL+LVm6fUk1ebdlcIHf6LxMLu2RZrX1
-         0ZV1NuVnHbh1NHFoSlHnCrkIwFRMdE6CU9Ea0DSQ=
-Date:   Mon, 28 Jun 2021 19:35:25 -0700
+        b=hP9D5Vskra/Rjz/ErThgLpiXzcsqgLgMsaQBvQH0cYOFiyJPBQiDura5GU8L51Kmr
+         Epk6H/UJVR4XsqqEaN2ornYf7ANz71D6LftMircOlJpMqK4VkDxwbqS3ZIrjmO+WVF
+         l7jrdAll+CJmrGeZswT2Aa9cf2CuH7cb+mhtlXGE=
+Date:   Mon, 28 Jun 2021 19:35:28 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, alexanderduyck@fb.com,
-        anshuman.khandual@arm.com, catalin.marinas@arm.com,
-        david@redhat.com, gshan@redhat.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, mst@redhat.com,
-        torvalds@linux-foundation.org, will@kernel.org
-Subject:  [patch 041/192] virtio_balloon: specify page reporting
- order if needed
-Message-ID: <20210629023525.ututxfVsi%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        wangkefeng.wang@huawei.com
+Subject:  [patch 042/192] mm: page-writeback: kill
+ get_writeback_state() comments
+Message-ID: <20210629023528.YkrpDWSqA%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,60 +43,42 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Gavin Shan <gshan@redhat.com>
-Subject: virtio_balloon: specify page reporting order if needed
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: page-writeback: kill get_writeback_state() comments
 
-The page reporting won't be triggered if the freeing page can't come up
-with a free area, whose size is equal or bigger than the threshold (page
-reporting order).  The default page reporting order, equal to
-@pageblock_order, is too huge on some architectures to trigger page
-reporting.  One example is ARM64 when 64KB base page size is used.
+The get_writeback_state() has gone since 2006, kill related comments.
 
-      PAGE_SIZE:          64KB
-      pageblock_order:    13       (512MB)
-      MAX_ORDER:          14
-
-This specifies the page reporting order to 5 (2MB) for this specific case
-so that page reporting can be triggered.
-
-Link: https://lkml.kernel.org/r/20210625014710.42954-5-gshan@redhat.com
-Signed-off-by: Gavin Shan <gshan@redhat.com>
-Reviewed-by: Alexander Duyck <alexanderduyck@fb.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20210508125026.56600-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ mm/page-writeback.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/drivers/virtio/virtio_balloon.c~virtio_balloon-specify-page-reporting-order-if-needed
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -993,6 +993,23 @@ static int virtballoon_probe(struct virt
- 			goto out_unregister_oom;
- 		}
- 
-+		/*
-+		 * The default page reporting order is @pageblock_order, which
-+		 * corresponds to 512MB in size on ARM64 when 64KB base page
-+		 * size is used. The page reporting won't be triggered if the
-+		 * freeing page can't come up with a free area like that huge.
-+		 * So we specify the page reporting order to 5, corresponding
-+		 * to 2MB. It helps to avoid THP splitting if 4KB base page
-+		 * size is used by host.
-+		 *
-+		 * Ideally, the page reporting order is selected based on the
-+		 * host's base page size. However, it needs more work to report
-+		 * that value. The hard-coded order would be fine currently.
-+		 */
-+#if defined(CONFIG_ARM64) && defined(CONFIG_ARM64_64K_PAGES)
-+		vb->pr_dev_info.order = 5;
-+#endif
-+
- 		err = page_reporting_register(&vb->pr_dev_info);
- 		if (err)
- 			goto out_unregister_oom;
+--- a/mm/page-writeback.c~mm-page-writeback-kill-get_writeback_state-comments
++++ a/mm/page-writeback.c
+@@ -1869,10 +1869,9 @@ DEFINE_PER_CPU(int, dirty_throttle_leaks
+  * which was newly dirtied.  The function will periodically check the system's
+  * dirty state and will initiate writeback if needed.
+  *
+- * On really big machines, get_writeback_state is expensive, so try to avoid
+- * calling it too often (ratelimiting).  But once we're over the dirty memory
+- * limit we decrease the ratelimiting by a lot, to prevent individual processes
+- * from overshooting the limit by (ratelimit_pages) each.
++ * Once we're over the dirty memory limit we decrease the ratelimiting
++ * by a lot, to prevent individual processes from overshooting the limit
++ * by (ratelimit_pages) each.
+  */
+ void balance_dirty_pages_ratelimited(struct address_space *mapping)
+ {
+@@ -2045,8 +2044,6 @@ void laptop_sync_completion(void)
+ /*
+  * If ratelimit_pages is too high then we can get into dirty-data overload
+  * if a large number of processes all perform writes at the same time.
+- * If it is too low then SMP machines will call the (expensive)
+- * get_writeback_state too often.
+  *
+  * Here we set ratelimit_pages to a level which ensures that when all CPUs are
+  * dirtying in parallel, we cannot go more than 3% (1/32) over the dirty memory
 _
