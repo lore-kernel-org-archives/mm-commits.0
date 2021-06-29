@@ -4,45 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89A99C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:22:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DB82C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:22:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 638F161CF9
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:22:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64F8C61CED
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:22:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232057AbhF2AYr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 20:24:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59570 "EHLO mail.kernel.org"
+        id S232066AbhF2AYu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 20:24:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59622 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231996AbhF2AYq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 20:24:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D730261CF4;
-        Tue, 29 Jun 2021 00:22:18 +0000 (UTC)
+        id S231996AbhF2AYs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 20:24:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AFBA961CF9;
+        Tue, 29 Jun 2021 00:22:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624926139;
-        bh=odqT29MD4wbESj3uJEqib4IYLhvV7+MV9YlRYEM9xvA=;
+        s=korg; t=1624926141;
+        bh=ODOQ7fP7MyqAYDZiTi3nM3UntWYgWGur+9k9Z6zCH+k=;
         h=Date:From:To:Subject:From;
-        b=wOmHuHIh4tCKeGMzqIxf1771QsnF/ToWAC5MXjPXH5oqnRbKB9k66peIk73R4PXl5
-         8dV4t/ziM6bRTxoM+6+T7ZR/4VYmAK23PUugvSS2cCTrg0ehByFFr20oGKRKErdF8f
-         +z8Z/5VuaqhyCqxG/mpx32uEx9GnansbRe7v+j7s=
-Date:   Mon, 28 Jun 2021 17:22:18 -0700
+        b=CntKZXW5zxIcvDOfV3XVstiyvFxgm/hIad5i9pcPpPN/mfM3donhrTEh0HAGBZxX9
+         //qMQsO/co+rR1Q87q5AwzUCkBRRkq+erFQcbl+fgFeGFgLxcjm2iRBR4VVYeyPvc9
+         iKItS/zd+bxCHUjpWSbC1POXv2nIPLxux1RPb67U=
+Date:   Mon, 28 Jun 2021 17:22:21 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
-        chris@chrisdown.name, cl@linux.com, guro@fb.com,
-        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, laoar.shao@gmail.com,
-        longman@redhat.com, mhocko@kernel.org, mm-commits@vger.kernel.org,
-        msys.mizuma@gmail.com, penberg@kernel.org,
-        richard.weiyang@gmail.com, rientjes@google.com,
-        shakeelb@google.com, songmuchun@bytedance.com, tj@kernel.org,
-        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
-        zhengjun.xing@linux.intel.com
+To:     hannes@cmpxchg.org, longman@redhat.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        vdavydov.dev@gmail.com
 Subject:  [folded-merged]
- mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
- removed from -mm tree
-Message-ID: <20210629002218.ictI2SyKA%akpm@linux-foundation.org>
+ mm-memcg-optimize-user-context-object-stock-access-fix.patch removed from
+ -mm tree
+Message-ID: <20210629002221.eeawFmQh_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,103 +45,94 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes
+     Subject: mm/memcontrol.c: fix potential uninitialized variable warning
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes.patch
+     mm-memcg-optimize-user-context-object-stock-access-fix.patch
 
 This patch was dropped because it was folded into mm-memcg-optimize-user-context-object-stock-access.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes
+From: Waiman Long <longman@redhat.com>
+Subject: mm/memcontrol.c: fix potential uninitialized variable warning
 
-WARNING: else is not generally useful after a break or return
-#138: FILE: mm/memcontrol.c:2121:
-+		return &stock->task_obj;
-+	} else {
+If the -Wno-maybe-uninitialized gcc option is not specified, compilation
+of memcontrol.c may generate the following warnings:
 
-total: 0 errors, 1 warnings, 193 lines checked
+mm/memcontrol.c: In function `refill_obj_stock':
+./arch/x86/include/asm/irqflags.h:127:17: warning: `flags' may be used uninitialized in this function [-Wmaybe-uninitialized]
+  return !(flags & X86_EFLAGS_IF);
+          ~~~~~~~^~~~~~~~~~~~~~~~
+mm/memcontrol.c:3216:16: note: `flags' was declared here
+  unsigned long flags;
+                ^~~~~
+In file included from mm/memcontrol.c:29:
+mm/memcontrol.c: In function `uncharge_page':
+./include/linux/memcontrol.h:797:2: warning: `objcg' may be used uninitialized in this function [-Wmaybe-uninitialized]
+  percpu_ref_put(&objcg->refcnt);
+  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
+Fix that by properly initializing *pflags in get_obj_stock() and
+introducing a use_objcg bool variable in uncharge_page() to avoid
+potentially accessing the struct page data twice.
 
-./patches/mm-memcg-optimize-user-context-object-stock-access.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
+Link: https://lkml.kernel.org/r/20210526193602.8742-1-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Xing Zhengjun <zhengjun.xing@linux.intel.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-optimize-user-context-object-stock-access-checkpatch-fixes
+--- a/mm/memcontrol.c~mm-memcg-optimize-user-context-object-stock-access-fix
 +++ a/mm/memcontrol.c
-@@ -2118,11 +2118,11 @@ static inline struct obj_stock *get_obj_
+@@ -2115,6 +2115,7 @@ static inline struct obj_stock *get_obj_
+ 	struct memcg_stock_pcp *stock;
+ 
+ 	if (likely(in_task())) {
++		*pflags = 0UL;
  		preempt_disable();
  		stock = this_cpu_ptr(&memcg_stock);
  		return &stock->task_obj;
--	} else {
--		local_irq_save(*pflags);
--		stock = this_cpu_ptr(&memcg_stock);
--		return &stock->irq_obj;
- 	}
-+
-+	local_irq_save(*pflags);
-+	stock = this_cpu_ptr(&memcg_stock);
-+	return &stock->irq_obj;
- }
+@@ -6832,6 +6833,7 @@ static void uncharge_page(struct page *p
+ 	unsigned long nr_pages;
+ 	struct mem_cgroup *memcg;
+ 	struct obj_cgroup *objcg;
++	bool use_objcg = PageMemcgKmem(page);
  
- static inline void put_obj_stock(unsigned long flags)
+ 	VM_BUG_ON_PAGE(PageLRU(page), page);
+ 
+@@ -6840,7 +6842,7 @@ static void uncharge_page(struct page *p
+ 	 * page memcg or objcg at this point, we have fully
+ 	 * exclusive access to the page.
+ 	 */
+-	if (PageMemcgKmem(page)) {
++	if (use_objcg) {
+ 		objcg = __page_objcg(page);
+ 		/*
+ 		 * This get matches the put at the end of the function and
+@@ -6868,7 +6870,7 @@ static void uncharge_page(struct page *p
+ 
+ 	nr_pages = compound_nr(page);
+ 
+-	if (PageMemcgKmem(page)) {
++	if (use_objcg) {
+ 		ug->nr_memory += nr_pages;
+ 		ug->nr_kmem += nr_pages;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from longman@redhat.com are
 
+mm-memcg-move-mod_objcg_state-to-memcontrolc.patch
+mm-memcg-cache-vmstat-data-in-percpu-memcg_stock_pcp.patch
+mm-memcg-improve-refill_obj_stock-performance.patch
 mm-memcg-optimize-user-context-object-stock-access.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5-fix.patch
-binfmt-remove-in-tree-usage-of-map_executable-fix.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
-mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
-mm.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-memory_hotplug-disable-memmap_on_memory-when-hugetlb_free_vmemmap-enabled-fix.patch
-nommu-remove-__gfp_highmem-in-vmalloc-vzalloc-checkpatch-fixes.patch
-mm-madvise-introduce-madv_populate_readwrite-to-prefault-page-tables-checkpatch-fixes.patch
-mmmemory_hotplug-drop-unneeded-locking-fix.patch
-fs-proc-kcorec-add-mmap-interface-fix.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
-lib-math-rational-add-kunit-test-cases-fix.patch
-lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
-ipc-utilc-use-binary-search-for-max_idx-fix.patch
-linux-next-pre.patch
-linux-next-post.patch
-linux-next-rejects.patch
-kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-memcg-slab-properly-set-up-gfp-flags-for-objcg-pointer-array.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches.patch
+mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch
+mm-memcg-slab-disable-cache-merging-for-kmalloc_normal-caches.patch
 
