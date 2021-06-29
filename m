@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33B87C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:34:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 830DBC11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:34:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 164BB61D03
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:34:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 610FA61A2B
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:34:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231753AbhF2ChU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:37:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58020 "EHLO mail.kernel.org"
+        id S231799AbhF2ChY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:37:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58070 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231750AbhF2ChU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:37:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D09D261A2B;
-        Tue, 29 Jun 2021 02:34:52 +0000 (UTC)
+        id S231750AbhF2ChX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:37:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0A56F61D02;
+        Tue, 29 Jun 2021 02:34:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934093;
-        bh=VqQgY4n2gWm6hlmSggaX4/pFgWht4gF6KPNu9KOKny8=;
+        s=korg; t=1624934096;
+        bh=iTdv2g7ENOWPgp3jL+evdi3/6DrJ+ZLb3IT0MWfMvdE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ggl0Qargyaw+2df9eQl0/Ow+NYEFfNKVAf2Uec1psUopuPz7qT3RTYrQ34mxm5VrA
-         ACsoY04U00KakJwgDjyUyKJk/svnT5Di7nacKPQZotVQSj4lPq3uLKtELpJpWlej2J
-         Y621dWgbN0dE1Xk2c8Pq4Tib3Ys6IbSpV+jN9OVY=
-Date:   Mon, 28 Jun 2021 19:34:52 -0700
+        b=Aa5pJDlT/9/RlB/DM2UfPnvsxdx36YMK1fLosCfJLaEcm2hJo+2WOJOZatwxxE2wF
+         UHx+LwV9TMYWav2O4C8tgkfdIlmPiZnd4kus/7AucahcmzF3/8ADksa9EP8T5Jocwt
+         ta4UEovnFJg/y/trBl93hZ3gP0/gLm2spjkFV5ug=
+Date:   Mon, 28 Jun 2021 19:34:55 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
-        joe@perches.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        penberg@kernel.org, pmladek@suse.com, rientjes@google.com,
-        songmuchun@bytedance.com, swboyd@chromium.org,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 030/192] slub: force on no_hash_pointers when
- slub_debug is enabled
-Message-ID: <20210629023452.xXbavb1ls%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cl@linux.com, faiyazm@codeaurora.org,
+        gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 031/192] mm: slub: move sysfs slab alloc/free
+ interfaces to debugfs
+Message-ID: <20210629023455.K7b1VFW4x%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,107 +44,409 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Stephen Boyd <swboyd@chromium.org>
-Subject: slub: force on no_hash_pointers when slub_debug is enabled
+From: Faiyaz Mohammed <faiyazm@codeaurora.org>
+Subject: mm: slub: move sysfs slab alloc/free interfaces to debugfs
 
-Obscuring the pointers that slub shows when debugging makes for some
-confusing slub debug messages:
+alloc_calls and free_calls implementation in sysfs have two issues, one is
+PAGE_SIZE limitation of sysfs and other is it does not adhere to "one
+value per file" rule.
 
- Padding overwritten. 0x0000000079f0674a-0x000000000d4dce17
+To overcome this issues, move the alloc_calls and free_calls
+implementation to debugfs.
 
-Those addresses are hashed for kernel security reasons.  If we're trying
-to be secure with slub_debug on the commandline we have some big problems
-given that we dump whole chunks of kernel memory to the kernel logs. 
-Let's force on the no_hash_pointers commandline flag when slub_debug is on
-the commandline.  This makes slub debug messages more meaningful and if by
-chance a kernel address is in some slub debug object dump we will have a
-better chance of figuring out what went wrong.
+Debugfs cache will be created if SLAB_STORE_USER flag is set.
 
-Note that we don't use %px in the slub code because we want to reduce the
-number of places that %px is used in the kernel.  This also nicely prints
-a big fat warning at kernel boot if slub_debug is on the commandline so
-that we know that this kernel shouldn't be used on production systems.
+Rename the alloc_calls/free_calls to alloc_traces/free_traces, to be
+inline with what it does.
 
-[akpm@linux-foundation.org: fix build with CONFIG_SLUB_DEBUG=n]
-Link: https://lkml.kernel.org/r/20210601182202.3011020-5-swboyd@chromium.org
-Signed-off-by: Stephen Boyd <swboyd@chromium.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Petr Mladek <pmladek@suse.com>
-Cc: Joe Perches <joe@perches.com>
+[faiyazm@codeaurora.org: fix the leak of alloc/free traces debugfs interface]
+  Link: https://lkml.kernel.org/r/1624248060-30286-1-git-send-email-faiyazm@codeaurora.org
+Link: https://lkml.kernel.org/r/1623438200-19361-1-git-send-email-faiyazm@codeaurora.org
+Signed-off-by: Faiyaz Mohammed <faiyazm@codeaurora.org>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    2 ++
- lib/vsprintf.c         |    2 +-
- mm/slub.c              |   20 +++++++++++++++++++-
- 3 files changed, 22 insertions(+), 2 deletions(-)
+ mm/slab.h        |    6 
+ mm/slab_common.c |    2 
+ mm/slub.c        |  274 +++++++++++++++++++++++++++++----------------
+ 3 files changed, 189 insertions(+), 93 deletions(-)
 
---- a/include/linux/kernel.h~slub-force-on-no_hash_pointers-when-slub_debug-is-enabled
-+++ a/include/linux/kernel.h
-@@ -357,6 +357,8 @@ int sscanf(const char *, const char *, .
- extern __scanf(2, 0)
- int vsscanf(const char *, const char *, va_list);
+--- a/mm/slab_common.c~mm-slub-move-sysfs-slab-alloc-free-interfaces-to-debugfs
++++ a/mm/slab_common.c
+@@ -448,6 +448,7 @@ static void slab_caches_to_rcu_destroy_w
+ 	rcu_barrier();
  
-+extern int no_hash_pointers_enable(char *str);
+ 	list_for_each_entry_safe(s, s2, &to_destroy, list) {
++		debugfs_slab_release(s);
+ 		kfence_shutdown_cache(s);
+ #ifdef SLAB_SUPPORTS_SYSFS
+ 		sysfs_slab_release(s);
+@@ -475,6 +476,7 @@ static int shutdown_cache(struct kmem_ca
+ 		schedule_work(&slab_caches_to_rcu_destroy_work);
+ 	} else {
+ 		kfence_shutdown_cache(s);
++		debugfs_slab_release(s);
+ #ifdef SLAB_SUPPORTS_SYSFS
+ 		sysfs_slab_unlink(s);
+ 		sysfs_slab_release(s);
+--- a/mm/slab.h~mm-slub-move-sysfs-slab-alloc-free-interfaces-to-debugfs
++++ a/mm/slab.h
+@@ -631,6 +631,12 @@ static inline bool slab_want_init_on_fre
+ 	return false;
+ }
+ 
++#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_SLUB_DEBUG)
++void debugfs_slab_release(struct kmem_cache *);
++#else
++static inline void debugfs_slab_release(struct kmem_cache *s) { }
++#endif
 +
- extern int get_option(char **str, int *pint);
- extern char *get_options(const char *str, int nints, int *ints);
- extern unsigned long long memparse(const char *ptr, char **retptr);
---- a/lib/vsprintf.c~slub-force-on-no_hash_pointers-when-slub_debug-is-enabled
-+++ a/lib/vsprintf.c
-@@ -2186,7 +2186,7 @@ char *fwnode_string(char *buf, char *end
- bool no_hash_pointers __ro_after_init;
- EXPORT_SYMBOL_GPL(no_hash_pointers);
- 
--static int __init no_hash_pointers_enable(char *str)
-+int __init no_hash_pointers_enable(char *str)
- {
- 	if (no_hash_pointers)
- 		return 0;
---- a/mm/slub.c~slub-force-on-no_hash_pointers-when-slub_debug-is-enabled
+ #ifdef CONFIG_PRINTK
+ #define KS_ADDRS_COUNT 16
+ struct kmem_obj_info {
+--- a/mm/slub.c~mm-slub-move-sysfs-slab-alloc-free-interfaces-to-debugfs
 +++ a/mm/slub.c
-@@ -118,12 +118,26 @@
-  */
+@@ -38,6 +38,7 @@
+ #include <linux/random.h>
+ #include <kunit/test.h>
  
- #ifdef CONFIG_SLUB_DEBUG
-+
- #ifdef CONFIG_SLUB_DEBUG_ON
- DEFINE_STATIC_KEY_TRUE(slub_debug_enabled);
- #else
- DEFINE_STATIC_KEY_FALSE(slub_debug_enabled);
++#include <linux/debugfs.h>
+ #include <trace/events/kmem.h>
+ 
+ #include "internal.h"
+@@ -238,6 +239,12 @@ static inline int sysfs_slab_alias(struc
+ 							{ return 0; }
  #endif
--#endif
-+
-+static inline bool __slub_debug_enabled(void)
-+{
-+	return static_branch_unlikely(&slub_debug_enabled);
-+}
-+
-+#else		/* CONFIG_SLUB_DEBUG */
-+
-+static inline bool __slub_debug_enabled(void)
-+{
-+	return false;
-+}
-+
-+#endif		/* CONFIG_SLUB_DEBUG */
  
- static inline bool kmem_cache_debug(struct kmem_cache *s)
++#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_SLUB_DEBUG)
++static void debugfs_slab_add(struct kmem_cache *);
++#else
++static inline void debugfs_slab_add(struct kmem_cache *s) { }
++#endif
++
+ static inline void stat(const struct kmem_cache *s, enum stat_item si)
  {
-@@ -4487,6 +4501,10 @@ void __init kmem_cache_init(void)
- 	if (debug_guardpage_minorder())
- 		slub_max_order = 0;
+ #ifdef CONFIG_SLUB_STATS
+@@ -4593,6 +4600,9 @@ int __kmem_cache_create(struct kmem_cach
+ 	if (err)
+ 		__kmem_cache_release(s);
  
-+	/* Print slub debugging pointers without hashing */
-+	if (__slub_debug_enabled())
-+		no_hash_pointers_enable(NULL);
++	if (s->flags & SLAB_STORE_USER)
++		debugfs_slab_add(s);
 +
- 	kmem_cache_node = &boot_kmem_cache_node;
- 	kmem_cache = &boot_kmem_cache;
+ 	return err;
+ }
  
+@@ -4739,6 +4749,7 @@ long validate_slab_cache(struct kmem_cac
+ }
+ EXPORT_SYMBOL(validate_slab_cache);
+ 
++#ifdef CONFIG_DEBUG_FS
+ /*
+  * Generate lists of code addresses where slabcache objects are allocated
+  * and freed.
+@@ -4762,6 +4773,8 @@ struct loc_track {
+ 	struct location *loc;
+ };
+ 
++static struct dentry *slab_debugfs_root;
++
+ static void free_loc_track(struct loc_track *t)
+ {
+ 	if (t->max)
+@@ -4878,82 +4891,7 @@ static void process_slab(struct loc_trac
+ 			add_location(t, s, get_track(s, p, alloc));
+ 	put_map(map);
+ }
+-
+-static int list_locations(struct kmem_cache *s, char *buf,
+-			  enum track_item alloc)
+-{
+-	int len = 0;
+-	unsigned long i;
+-	struct loc_track t = { 0, 0, NULL };
+-	int node;
+-	struct kmem_cache_node *n;
+-
+-	if (!alloc_loc_track(&t, PAGE_SIZE / sizeof(struct location),
+-			     GFP_KERNEL)) {
+-		return sysfs_emit(buf, "Out of memory\n");
+-	}
+-	/* Push back cpu slabs */
+-	flush_all(s);
+-
+-	for_each_kmem_cache_node(s, node, n) {
+-		unsigned long flags;
+-		struct page *page;
+-
+-		if (!atomic_long_read(&n->nr_slabs))
+-			continue;
+-
+-		spin_lock_irqsave(&n->list_lock, flags);
+-		list_for_each_entry(page, &n->partial, slab_list)
+-			process_slab(&t, s, page, alloc);
+-		list_for_each_entry(page, &n->full, slab_list)
+-			process_slab(&t, s, page, alloc);
+-		spin_unlock_irqrestore(&n->list_lock, flags);
+-	}
+-
+-	for (i = 0; i < t.count; i++) {
+-		struct location *l = &t.loc[i];
+-
+-		len += sysfs_emit_at(buf, len, "%7ld ", l->count);
+-
+-		if (l->addr)
+-			len += sysfs_emit_at(buf, len, "%pS", (void *)l->addr);
+-		else
+-			len += sysfs_emit_at(buf, len, "<not-available>");
+-
+-		if (l->sum_time != l->min_time)
+-			len += sysfs_emit_at(buf, len, " age=%ld/%ld/%ld",
+-					     l->min_time,
+-					     (long)div_u64(l->sum_time,
+-							   l->count),
+-					     l->max_time);
+-		else
+-			len += sysfs_emit_at(buf, len, " age=%ld", l->min_time);
+-
+-		if (l->min_pid != l->max_pid)
+-			len += sysfs_emit_at(buf, len, " pid=%ld-%ld",
+-					     l->min_pid, l->max_pid);
+-		else
+-			len += sysfs_emit_at(buf, len, " pid=%ld",
+-					     l->min_pid);
+-
+-		if (num_online_cpus() > 1 &&
+-		    !cpumask_empty(to_cpumask(l->cpus)))
+-			len += sysfs_emit_at(buf, len, " cpus=%*pbl",
+-					     cpumask_pr_args(to_cpumask(l->cpus)));
+-
+-		if (nr_online_nodes > 1 && !nodes_empty(l->nodes))
+-			len += sysfs_emit_at(buf, len, " nodes=%*pbl",
+-					     nodemask_pr_args(&l->nodes));
+-
+-		len += sysfs_emit_at(buf, len, "\n");
+-	}
+-
+-	free_loc_track(&t);
+-	if (!t.count)
+-		len += sysfs_emit_at(buf, len, "No data\n");
+-
+-	return len;
+-}
++#endif  /* CONFIG_DEBUG_FS   */
+ #endif	/* CONFIG_SLUB_DEBUG */
+ 
+ #ifdef CONFIG_SYSFS
+@@ -5343,21 +5281,6 @@ static ssize_t validate_store(struct kme
+ }
+ SLAB_ATTR(validate);
+ 
+-static ssize_t alloc_calls_show(struct kmem_cache *s, char *buf)
+-{
+-	if (!(s->flags & SLAB_STORE_USER))
+-		return -ENOSYS;
+-	return list_locations(s, buf, TRACK_ALLOC);
+-}
+-SLAB_ATTR_RO(alloc_calls);
+-
+-static ssize_t free_calls_show(struct kmem_cache *s, char *buf)
+-{
+-	if (!(s->flags & SLAB_STORE_USER))
+-		return -ENOSYS;
+-	return list_locations(s, buf, TRACK_FREE);
+-}
+-SLAB_ATTR_RO(free_calls);
+ #endif /* CONFIG_SLUB_DEBUG */
+ 
+ #ifdef CONFIG_FAILSLAB
+@@ -5521,8 +5444,6 @@ static struct attribute *slab_attrs[] =
+ 	&poison_attr.attr,
+ 	&store_user_attr.attr,
+ 	&validate_attr.attr,
+-	&alloc_calls_attr.attr,
+-	&free_calls_attr.attr,
+ #endif
+ #ifdef CONFIG_ZONE_DMA
+ 	&cache_dma_attr.attr,
+@@ -5810,6 +5731,173 @@ static int __init slab_sysfs_init(void)
+ __initcall(slab_sysfs_init);
+ #endif /* CONFIG_SYSFS */
+ 
++#if defined(CONFIG_SLUB_DEBUG) && defined(CONFIG_DEBUG_FS)
++static int slab_debugfs_show(struct seq_file *seq, void *v)
++{
++
++	struct location *l;
++	unsigned int idx = *(unsigned int *)v;
++	struct loc_track *t = seq->private;
++
++	if (idx < t->count) {
++		l = &t->loc[idx];
++
++		seq_printf(seq, "%7ld ", l->count);
++
++		if (l->addr)
++			seq_printf(seq, "%pS", (void *)l->addr);
++		else
++			seq_puts(seq, "<not-available>");
++
++		if (l->sum_time != l->min_time) {
++			seq_printf(seq, " age=%ld/%llu/%ld",
++				l->min_time, div_u64(l->sum_time, l->count),
++				l->max_time);
++		} else
++			seq_printf(seq, " age=%ld", l->min_time);
++
++		if (l->min_pid != l->max_pid)
++			seq_printf(seq, " pid=%ld-%ld", l->min_pid, l->max_pid);
++		else
++			seq_printf(seq, " pid=%ld",
++				l->min_pid);
++
++		if (num_online_cpus() > 1 && !cpumask_empty(to_cpumask(l->cpus)))
++			seq_printf(seq, " cpus=%*pbl",
++				 cpumask_pr_args(to_cpumask(l->cpus)));
++
++		if (nr_online_nodes > 1 && !nodes_empty(l->nodes))
++			seq_printf(seq, " nodes=%*pbl",
++				 nodemask_pr_args(&l->nodes));
++
++		seq_puts(seq, "\n");
++	}
++
++	if (!idx && !t->count)
++		seq_puts(seq, "No data\n");
++
++	return 0;
++}
++
++static void slab_debugfs_stop(struct seq_file *seq, void *v)
++{
++}
++
++static void *slab_debugfs_next(struct seq_file *seq, void *v, loff_t *ppos)
++{
++	struct loc_track *t = seq->private;
++
++	v = ppos;
++	++*ppos;
++	if (*ppos <= t->count)
++		return v;
++
++	return NULL;
++}
++
++static void *slab_debugfs_start(struct seq_file *seq, loff_t *ppos)
++{
++	return ppos;
++}
++
++static const struct seq_operations slab_debugfs_sops = {
++	.start  = slab_debugfs_start,
++	.next   = slab_debugfs_next,
++	.stop   = slab_debugfs_stop,
++	.show   = slab_debugfs_show,
++};
++
++static int slab_debug_trace_open(struct inode *inode, struct file *filep)
++{
++
++	struct kmem_cache_node *n;
++	enum track_item alloc;
++	int node;
++	struct loc_track *t = __seq_open_private(filep, &slab_debugfs_sops,
++						sizeof(struct loc_track));
++	struct kmem_cache *s = file_inode(filep)->i_private;
++
++	if (strcmp(filep->f_path.dentry->d_name.name, "alloc_traces") == 0)
++		alloc = TRACK_ALLOC;
++	else
++		alloc = TRACK_FREE;
++
++	if (!alloc_loc_track(t, PAGE_SIZE / sizeof(struct location), GFP_KERNEL))
++		return -ENOMEM;
++
++	/* Push back cpu slabs */
++	flush_all(s);
++
++	for_each_kmem_cache_node(s, node, n) {
++		unsigned long flags;
++		struct page *page;
++
++		if (!atomic_long_read(&n->nr_slabs))
++			continue;
++
++		spin_lock_irqsave(&n->list_lock, flags);
++		list_for_each_entry(page, &n->partial, slab_list)
++			process_slab(t, s, page, alloc);
++		list_for_each_entry(page, &n->full, slab_list)
++			process_slab(t, s, page, alloc);
++		spin_unlock_irqrestore(&n->list_lock, flags);
++	}
++
++	return 0;
++}
++
++static int slab_debug_trace_release(struct inode *inode, struct file *file)
++{
++	struct seq_file *seq = file->private_data;
++	struct loc_track *t = seq->private;
++
++	free_loc_track(t);
++	return seq_release_private(inode, file);
++}
++
++static const struct file_operations slab_debugfs_fops = {
++	.open    = slab_debug_trace_open,
++	.read    = seq_read,
++	.llseek  = seq_lseek,
++	.release = slab_debug_trace_release,
++};
++
++static void debugfs_slab_add(struct kmem_cache *s)
++{
++	struct dentry *slab_cache_dir;
++
++	if (unlikely(!slab_debugfs_root))
++		return;
++
++	slab_cache_dir = debugfs_create_dir(s->name, slab_debugfs_root);
++
++	debugfs_create_file("alloc_traces", 0400,
++		slab_cache_dir, s, &slab_debugfs_fops);
++
++	debugfs_create_file("free_traces", 0400,
++		slab_cache_dir, s, &slab_debugfs_fops);
++}
++
++void debugfs_slab_release(struct kmem_cache *s)
++{
++	debugfs_remove_recursive(debugfs_lookup(s->name, slab_debugfs_root));
++}
++
++static int __init slab_debugfs_init(void)
++{
++	struct kmem_cache *s;
++
++	slab_debugfs_root = debugfs_create_dir("slab", NULL);
++
++	list_for_each_entry(s, &slab_caches, list)
++		if (s->flags & SLAB_STORE_USER)
++			debugfs_slab_add(s);
++
++	return 0;
++
++}
++__initcall(slab_debugfs_init);
++#endif
+ /*
+  * The /proc/slabinfo ABI
+  */
 _
