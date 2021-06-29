@@ -7,39 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC040C11F66
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 109B6C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8F3FC61D0B
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED0C861D10
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:40:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231806AbhF2CnU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:43:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35636 "EHLO mail.kernel.org"
+        id S231743AbhF2CnR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:43:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35584 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231348AbhF2CnU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:43:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DDE8461D0E;
-        Tue, 29 Jun 2021 02:40:52 +0000 (UTC)
+        id S231348AbhF2CnR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:43:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AE4EA611AE;
+        Tue, 29 Jun 2021 02:40:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934453;
-        bh=+aEtiKqdOpBG+NLupsVm6gd+HIwHCWeJj7GiyVxjB24=;
+        s=korg; t=1624934450;
+        bh=rbv5utnA6+8/OKmYSMFYcR5Pc94aNRyp5bVAOFslMzU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=1Y3P120rzr8QvndjyMQ0Z0NyAP8LDEw35kwRC1l/5OK1dNKS6zFAyU7JSZL66A3Jb
-         3vDp9DoMS3pFuncJkiLUgwB8gmA1PO/3o+LnmxpaM3eo2h4UfPWvdhWMblkvypCxS2
-         cJInyEKcaU5m1KoDE9ShW+Q2mLYaZk5kFuRHoBFQ=
-Date:   Mon, 28 Jun 2021 19:40:52 -0700
+        b=cK5PeEwNjg8RG1iG+gBqH3NRiP0/EoGm5mJuNfiX5lN5RZceef/VnbxvEomI4kMRW
+         ON2pKMNXGJOzJVCCam+eZ0LvIhu2yr3WaIJFmOUqUVwDydWW0AAch3yzwfkiExu0z+
+         UefU4GYGmoKslE0UfU0pY9OsPzdQW230WxP16U1A=
+Date:   Mon, 28 Jun 2021 19:40:49 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
-        chinwen.chang@mediatek.com, dvyukov@google.com, elver@google.com,
-        glider@google.com, gregkh@linuxfoundation.org,
-        Kuan-Ying.Lee@mediatek.com, linux-mm@kvack.org,
-        matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
-        nicholas.tang@mediatek.com, ryabinin.a.a@gmail.com,
+        aneesh.kumar@linux.ibm.com, bsingharora@gmail.com,
+        christophe.leroy@csgroup.eu, dja@axtens.net, dvyukov@google.com,
+        elver@google.com, glider@google.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
         torvalds@linux-foundation.org
-Subject:  [patch 145/192] kasan: rename
- CONFIG_KASAN_SW_TAGS_IDENTIFY to CONFIG_KASAN_TAGS_IDENTIFY
-Message-ID: <20210629024052.wIGPamgwy%akpm@linux-foundation.org>
+Subject:  [patch 144/192] kasan: use MAX_PTRS_PER_* for early
+ shadow tables
+Message-ID: <20210629024049.yTgzcZiOZ%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,102 +46,76 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Subject: kasan: rename CONFIG_KASAN_SW_TAGS_IDENTIFY to CONFIG_KASAN_TAGS_IDENTIFY
+From: Daniel Axtens <dja@axtens.net>
+Subject: kasan: use MAX_PTRS_PER_* for early shadow tables
 
-Patch series "kasan: add memory corruption identification support for hw tag-based kasan", v4.
+powerpc has a variable number of PTRS_PER_*, set at runtime based on the
+MMU that the kernel is booted under.
 
-Add memory corruption identification for hardware tag-based KASAN mode.
+This means the PTRS_PER_* are no longer constants, and therefore breaks
+the build.  Switch to using MAX_PTRS_PER_*, which are constant.
 
-
-This patch (of 3):
-
-Rename CONFIG_KASAN_SW_TAGS_IDENTIFY to CONFIG_KASAN_TAGS_IDENTIFY in
-order to be compatible with hardware tag-based mode.
-
-Link: https://lkml.kernel.org/r/20210626100931.22794-1-Kuan-Ying.Lee@mediatek.com
-Link: https://lkml.kernel.org/r/20210626100931.22794-2-Kuan-Ying.Lee@mediatek.com
-Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Suggested-by: Marco Elver <elver@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Link: https://lkml.kernel.org/r/20210624034050.511391-5-dja@axtens.net
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Suggested-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Suggested-by: Balbir Singh <bsingharora@gmail.com>
+Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Reviewed-by: Balbir Singh <bsingharora@gmail.com>
 Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Nicholas Tang <nicholas.tang@mediatek.com>
-Cc: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kasan         |    2 +-
- mm/kasan/kasan.h          |    4 ++--
- mm/kasan/report_sw_tags.c |    2 +-
- mm/kasan/sw_tags.c        |    4 ++--
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/kasan.h |    6 +++---
+ mm/kasan/init.c       |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/lib/Kconfig.kasan~kasan-rename-config_kasan_sw_tags_identify-to-config_kasan_tags_identify
-+++ a/lib/Kconfig.kasan
-@@ -167,7 +167,7 @@ config KASAN_STACK
- 	  instrumentation is also disabled as it adds inline-style
- 	  instrumentation that is run unconditionally.
- 
--config KASAN_SW_TAGS_IDENTIFY
-+config KASAN_TAGS_IDENTIFY
- 	bool "Enable memory corruption identification"
- 	depends on KASAN_SW_TAGS
- 	help
---- a/mm/kasan/kasan.h~kasan-rename-config_kasan_sw_tags_identify-to-config_kasan_tags_identify
-+++ a/mm/kasan/kasan.h
-@@ -153,7 +153,7 @@ struct kasan_track {
- 	depot_stack_handle_t stack;
- };
- 
--#ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
-+#ifdef CONFIG_KASAN_TAGS_IDENTIFY
- #define KASAN_NR_FREE_STACKS 5
- #else
- #define KASAN_NR_FREE_STACKS 1
-@@ -170,7 +170,7 @@ struct kasan_alloc_meta {
- #else
- 	struct kasan_track free_track[KASAN_NR_FREE_STACKS];
+--- a/include/linux/kasan.h~kasan-use-max_ptrs_per_-for-early-shadow-tables
++++ a/include/linux/kasan.h
+@@ -40,9 +40,9 @@ struct kunit_kasan_expectation {
  #endif
--#ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
-+#ifdef CONFIG_KASAN_TAGS_IDENTIFY
- 	u8 free_pointer_tag[KASAN_NR_FREE_STACKS];
- 	u8 free_track_idx;
- #endif
---- a/mm/kasan/report_sw_tags.c~kasan-rename-config_kasan_sw_tags_identify-to-config_kasan_tags_identify
-+++ a/mm/kasan/report_sw_tags.c
-@@ -31,7 +31,7 @@
  
- const char *kasan_get_bug_type(struct kasan_access_info *info)
+ extern unsigned char kasan_early_shadow_page[PAGE_SIZE];
+-extern pte_t kasan_early_shadow_pte[PTRS_PER_PTE + PTE_HWTABLE_PTRS];
+-extern pmd_t kasan_early_shadow_pmd[PTRS_PER_PMD];
+-extern pud_t kasan_early_shadow_pud[PTRS_PER_PUD];
++extern pte_t kasan_early_shadow_pte[MAX_PTRS_PER_PTE + PTE_HWTABLE_PTRS];
++extern pmd_t kasan_early_shadow_pmd[MAX_PTRS_PER_PMD];
++extern pud_t kasan_early_shadow_pud[MAX_PTRS_PER_PUD];
+ extern p4d_t kasan_early_shadow_p4d[MAX_PTRS_PER_P4D];
+ 
+ int kasan_populate_early_shadow(const void *shadow_start,
+--- a/mm/kasan/init.c~kasan-use-max_ptrs_per_-for-early-shadow-tables
++++ a/mm/kasan/init.c
+@@ -41,7 +41,7 @@ static inline bool kasan_p4d_table(pgd_t
+ }
+ #endif
+ #if CONFIG_PGTABLE_LEVELS > 3
+-pud_t kasan_early_shadow_pud[PTRS_PER_PUD] __page_aligned_bss;
++pud_t kasan_early_shadow_pud[MAX_PTRS_PER_PUD] __page_aligned_bss;
+ static inline bool kasan_pud_table(p4d_t p4d)
  {
--#ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
-+#ifdef CONFIG_KASAN_TAGS_IDENTIFY
- 	struct kasan_alloc_meta *alloc_meta;
- 	struct kmem_cache *cache;
- 	struct page *page;
---- a/mm/kasan/sw_tags.c~kasan-rename-config_kasan_sw_tags_identify-to-config_kasan_tags_identify
-+++ a/mm/kasan/sw_tags.c
-@@ -177,7 +177,7 @@ void kasan_set_free_info(struct kmem_cac
- 	if (!alloc_meta)
- 		return;
+ 	return p4d_page(p4d) == virt_to_page(lm_alias(kasan_early_shadow_pud));
+@@ -53,7 +53,7 @@ static inline bool kasan_pud_table(p4d_t
+ }
+ #endif
+ #if CONFIG_PGTABLE_LEVELS > 2
+-pmd_t kasan_early_shadow_pmd[PTRS_PER_PMD] __page_aligned_bss;
++pmd_t kasan_early_shadow_pmd[MAX_PTRS_PER_PMD] __page_aligned_bss;
+ static inline bool kasan_pmd_table(pud_t pud)
+ {
+ 	return pud_page(pud) == virt_to_page(lm_alias(kasan_early_shadow_pmd));
+@@ -64,7 +64,7 @@ static inline bool kasan_pmd_table(pud_t
+ 	return false;
+ }
+ #endif
+-pte_t kasan_early_shadow_pte[PTRS_PER_PTE + PTE_HWTABLE_PTRS]
++pte_t kasan_early_shadow_pte[MAX_PTRS_PER_PTE + PTE_HWTABLE_PTRS]
+ 	__page_aligned_bss;
  
--#ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
-+#ifdef CONFIG_KASAN_TAGS_IDENTIFY
- 	idx = alloc_meta->free_track_idx;
- 	alloc_meta->free_pointer_tag[idx] = tag;
- 	alloc_meta->free_track_idx = (idx + 1) % KASAN_NR_FREE_STACKS;
-@@ -196,7 +196,7 @@ struct kasan_track *kasan_get_free_track
- 	if (!alloc_meta)
- 		return NULL;
- 
--#ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
-+#ifdef CONFIG_KASAN_TAGS_IDENTIFY
- 	for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
- 		if (alloc_meta->free_pointer_tag[i] == tag)
- 			break;
+ static inline bool kasan_pte_table(pmd_t pmd)
 _
