@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA168C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DA95C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D60C861D0C
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4489A611AE
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231879AbhF2CoJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:44:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36414 "EHLO mail.kernel.org"
+        id S231682AbhF2CoN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:44:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231849AbhF2CoJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:44:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A72C661D0E;
-        Tue, 29 Jun 2021 02:41:41 +0000 (UTC)
+        id S231881AbhF2CoM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:44:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D376861D0B;
+        Tue, 29 Jun 2021 02:41:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934502;
-        bh=w0YkFP12s8kyGbBD9bYDoZMOLTBTahb7HraAZaiJFZU=;
+        s=korg; t=1624934505;
+        bh=aHNKkXv1zBSjiiYWUsvwfSqmn0knqBi3nOZQ53h5ehc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=BQje0tmsLaFfJhuqIUJUPWC99UMQkJi8yqjEEoV316h9pu6+KovglGepug8obeVzs
-         /5Rhy89zTgdFKbJ7jNVeMoz3+XohC4Mi9/OaQp472NQMehuXV37Ydk4oS7NZdkUa74
-         t4x3ciZ1oF0D8cS+vw4MI50o/GESjrYZjm1bEGfY=
-Date:   Mon, 28 Jun 2021 19:41:41 -0700
+        b=QuBXjredA2Z0Pgx+dZP4Ooa71meRlBGG+PftXKNQxbHARhmzeXz49LUs7bM4f6IYZ
+         fy1+1pPIf1/uCVnwSDPVZEPM7PhbAdenosFVndXiTF1U4ioh1yGTtmGa2DFGi9RRJ1
+         8KiedaxYQTnF1EUNcWaPANgV4bWc04W+CJRvfEsQ=
+Date:   Mon, 28 Jun 2021 19:41:44 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         brouer@redhat.com, chuck.lever@oracle.com, linux-mm@kvack.org,
         mgorman@techsingularity.net, mhocko@kernel.org, mingo@kernel.org,
         mm-commits@vger.kernel.org, peterz@infradead.org,
         tglx@linutronix.de, torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 161/192] mm/page_alloc: convert per-cpu list
- protection to local_lock
-Message-ID: <20210629024141.m4l5-Ltw2%akpm@linux-foundation.org>
+Subject:  [patch 162/192] mm/vmstat: convert NUMA statistics to
+ basic NUMA counters
+Message-ID: <20210629024144.c60TJ01km%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,25 +46,26 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: convert per-cpu list protection to local_lock
+Subject: mm/vmstat: convert NUMA statistics to basic NUMA counters
 
-There is a lack of clarity of what exactly
-local_irq_save/local_irq_restore protects in page_alloc.c .  It conflates
-the protection of per-cpu page allocation structures with per-cpu vmstat
-deltas.
+NUMA statistics are maintained on the zone level for hits, misses, foreign
+etc but nothing relies on them being perfectly accurate for functional
+correctness.  The counters are used by userspace to get a general overview
+of a workloads NUMA behaviour but the page allocator incurs a high cost to
+maintain perfect accuracy similar to what is required for a vmstat like
+NR_FREE_PAGES.  There even is a sysctl vm.numa_stat to allow userspace to
+turn off the collection of NUMA statistics like NUMA_HIT.
 
-This patch protects the PCP structure using local_lock which for most
-configurations is identical to IRQ enabling/disabling.  The scope of the
-lock is still wider than it should be but this is decreased later.
+This patch converts NUMA_HIT and friends to be NUMA events with similar
+accuracy to VM events.  There is a possibility that slight errors will be
+introduced but the overall trend as seen by userspace will be similar. 
+The counters are no longer updated from vmstat_refresh context as it is
+unnecessary overhead for counters that may never be read by userspace. 
+Note that counters could be maintained at the node level to save space but
+it would have a user-visible impact due to /proc/zoneinfo.
 
-It is possible for the local_lock to be embedded safely within struct
-per_cpu_pages but it adds complexity to free_unref_page_list.
-
-[akpm@linux-foundation.org: coding style fixes]
-[mgorman@techsingularity.net: work around a pahole limitation with zero-sized struct pagesets]
-  Link: https://lkml.kernel.org/r/20210526080741.GW30378@techsingularity.net
-[lkp@intel.com: Make pagesets static]
-Link: https://lkml.kernel.org/r/20210512095458.30632-3-mgorman@techsingularity.net
+[lkp@intel.com: Fix misplaced closing brace for !CONFIG_NUMA]
+Link: https://lkml.kernel.org/r/20210512095458.30632-4-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
@@ -77,210 +78,594 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +
- lib/Kconfig.debug      |    3 +
- mm/page_alloc.c        |   61 +++++++++++++++++++++++++++++----------
- 3 files changed, 51 insertions(+), 15 deletions(-)
+ drivers/base/node.c    |   18 ++--
+ include/linux/mmzone.h |   13 ++
+ include/linux/vmstat.h |   43 ++++-----
+ mm/mempolicy.c         |    2 
+ mm/page_alloc.c        |   12 +-
+ mm/vmstat.c            |  175 +++++++++++++++------------------------
+ 6 files changed, 114 insertions(+), 149 deletions(-)
 
---- a/include/linux/mmzone.h~mm-page_alloc-convert-per-cpu-list-protection-to-local_lock
+--- a/drivers/base/node.c~mm-vmstat-convert-numa-statistics-to-basic-numa-counters
++++ a/drivers/base/node.c
+@@ -482,6 +482,7 @@ static DEVICE_ATTR(meminfo, 0444, node_r
+ static ssize_t node_read_numastat(struct device *dev,
+ 				  struct device_attribute *attr, char *buf)
+ {
++	fold_vm_numa_events();
+ 	return sysfs_emit(buf,
+ 			  "numa_hit %lu\n"
+ 			  "numa_miss %lu\n"
+@@ -489,12 +490,12 @@ static ssize_t node_read_numastat(struct
+ 			  "interleave_hit %lu\n"
+ 			  "local_node %lu\n"
+ 			  "other_node %lu\n",
+-			  sum_zone_numa_state(dev->id, NUMA_HIT),
+-			  sum_zone_numa_state(dev->id, NUMA_MISS),
+-			  sum_zone_numa_state(dev->id, NUMA_FOREIGN),
+-			  sum_zone_numa_state(dev->id, NUMA_INTERLEAVE_HIT),
+-			  sum_zone_numa_state(dev->id, NUMA_LOCAL),
+-			  sum_zone_numa_state(dev->id, NUMA_OTHER));
++			  sum_zone_numa_event_state(dev->id, NUMA_HIT),
++			  sum_zone_numa_event_state(dev->id, NUMA_MISS),
++			  sum_zone_numa_event_state(dev->id, NUMA_FOREIGN),
++			  sum_zone_numa_event_state(dev->id, NUMA_INTERLEAVE_HIT),
++			  sum_zone_numa_event_state(dev->id, NUMA_LOCAL),
++			  sum_zone_numa_event_state(dev->id, NUMA_OTHER));
+ }
+ static DEVICE_ATTR(numastat, 0444, node_read_numastat, NULL);
+ 
+@@ -512,10 +513,11 @@ static ssize_t node_read_vmstat(struct d
+ 				     sum_zone_node_page_state(nid, i));
+ 
+ #ifdef CONFIG_NUMA
+-	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
++	fold_vm_numa_events();
++	for (i = 0; i < NR_VM_NUMA_EVENT_ITEMS; i++)
+ 		len += sysfs_emit_at(buf, len, "%s %lu\n",
+ 				     numa_stat_name(i),
+-				     sum_zone_numa_state(nid, i));
++				     sum_zone_numa_event_state(nid, i));
+ 
+ #endif
+ 	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
+--- a/include/linux/mmzone.h~mm-vmstat-convert-numa-statistics-to-basic-numa-counters
 +++ a/include/linux/mmzone.h
-@@ -20,6 +20,7 @@
- #include <linux/atomic.h>
- #include <linux/mm_types.h>
- #include <linux/page-flags.h>
-+#include <linux/local_lock.h>
- #include <asm/page.h>
+@@ -135,10 +135,10 @@ enum numa_stat_item {
+ 	NUMA_INTERLEAVE_HIT,	/* interleaver preferred this zone */
+ 	NUMA_LOCAL,		/* allocation from local node */
+ 	NUMA_OTHER,		/* allocation from other node */
+-	NR_VM_NUMA_STAT_ITEMS
++	NR_VM_NUMA_EVENT_ITEMS
+ };
+ #else
+-#define NR_VM_NUMA_STAT_ITEMS 0
++#define NR_VM_NUMA_EVENT_ITEMS 0
+ #endif
  
- /* Free memory management - zoned buddy allocator.  */
-@@ -337,6 +338,7 @@ enum zone_watermarks {
- #define high_wmark_pages(z) (z->_watermark[WMARK_HIGH] + z->watermark_boost)
- #define wmark_pages(z, i) (z->_watermark[i] + z->watermark_boost)
- 
-+/* Fields and list protected by pagesets local_lock in page_alloc.c */
- struct per_cpu_pages {
- 	int count;		/* number of pages in the list */
- 	int high;		/* high watermark, emptying needed */
---- a/lib/Kconfig.debug~mm-page_alloc-convert-per-cpu-list-protection-to-local_lock
-+++ a/lib/Kconfig.debug
-@@ -313,6 +313,9 @@ config DEBUG_INFO_BTF
- config PAHOLE_HAS_SPLIT_BTF
- 	def_bool $(success, test `$(PAHOLE) --version | sed -E 's/v([0-9]+)\.([0-9]+)/\1\2/'` -ge "119")
- 
-+config PAHOLE_HAS_ZEROSIZE_PERCPU_SUPPORT
-+	def_bool $(success, test `$(PAHOLE) --version | sed -E 's/v([0-9]+)\.([0-9]+)/\1\2/'` -ge "122")
-+
- config DEBUG_INFO_BTF_MODULES
- 	def_bool y
- 	depends on DEBUG_INFO_BTF && MODULES && PAHOLE_HAS_SPLIT_BTF
---- a/mm/page_alloc.c~mm-page_alloc-convert-per-cpu-list-protection-to-local_lock
-+++ a/mm/page_alloc.c
-@@ -122,6 +122,24 @@ typedef int __bitwise fpi_t;
- static DEFINE_MUTEX(pcp_batch_high_lock);
- #define MIN_PERCPU_PAGELIST_FRACTION	(8)
- 
-+struct pagesets {
-+	local_lock_t lock;
-+#if defined(CONFIG_DEBUG_INFO_BTF) &&				\
-+	!defined(CONFIG_DEBUG_LOCK_ALLOC) &&			\
-+	!defined(CONFIG_PAHOLE_HAS_ZEROSIZE_PERCPU_SUPPORT)
+ enum zone_stat_item {
+@@ -357,7 +357,12 @@ struct per_cpu_zonestat {
+ 	s8 stat_threshold;
+ #endif
+ #ifdef CONFIG_NUMA
+-	u16 vm_numa_stat_diff[NR_VM_NUMA_STAT_ITEMS];
 +	/*
-+	 * pahole 1.21 and earlier gets confused by zero-sized per-CPU
-+	 * variables and produces invalid BTF. Ensure that
-+	 * sizeof(struct pagesets) != 0 for older versions of pahole.
++	 * Low priority inaccurate counters that are only folded
++	 * on demand. Use a large type to avoid the overhead of
++	 * folding during refresh_cpu_vm_stats.
 +	 */
-+	char __pahole_hack;
-+	#warning "pahole too old to support zero-sized struct pagesets"
-+#endif
-+};
-+static DEFINE_PER_CPU(struct pagesets, pagesets) = {
-+	.lock = INIT_LOCAL_LOCK(lock),
-+};
-+
- #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
- DEFINE_PER_CPU(int, numa_node);
- EXPORT_PER_CPU_SYMBOL(numa_node);
-@@ -1453,6 +1471,10 @@ static void free_pcppages_bulk(struct zo
- 		} while (--count && --batch_free && !list_empty(list));
++	unsigned long vm_numa_event[NR_VM_NUMA_EVENT_ITEMS];
+ #endif
+ };
+ 
+@@ -623,7 +628,7 @@ struct zone {
+ 	ZONE_PADDING(_pad3_)
+ 	/* Zone statistics */
+ 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
+-	atomic_long_t		vm_numa_stat[NR_VM_NUMA_STAT_ITEMS];
++	atomic_long_t		vm_numa_event[NR_VM_NUMA_EVENT_ITEMS];
+ } ____cacheline_internodealigned_in_smp;
+ 
+ enum pgdat_flags {
+--- a/include/linux/vmstat.h~mm-vmstat-convert-numa-statistics-to-basic-numa-counters
++++ a/include/linux/vmstat.h
+@@ -138,34 +138,27 @@ static inline void vm_events_fold_cpu(in
+  * Zone and node-based page accounting with per cpu differentials.
+  */
+ extern atomic_long_t vm_zone_stat[NR_VM_ZONE_STAT_ITEMS];
+-extern atomic_long_t vm_numa_stat[NR_VM_NUMA_STAT_ITEMS];
+ extern atomic_long_t vm_node_stat[NR_VM_NODE_STAT_ITEMS];
++extern atomic_long_t vm_numa_event[NR_VM_NUMA_EVENT_ITEMS];
+ 
+ #ifdef CONFIG_NUMA
+-static inline void zone_numa_state_add(long x, struct zone *zone,
+-				 enum numa_stat_item item)
++static inline void zone_numa_event_add(long x, struct zone *zone,
++				enum numa_stat_item item)
+ {
+-	atomic_long_add(x, &zone->vm_numa_stat[item]);
+-	atomic_long_add(x, &vm_numa_stat[item]);
++	atomic_long_add(x, &zone->vm_numa_event[item]);
++	atomic_long_add(x, &vm_numa_event[item]);
+ }
+ 
+-static inline unsigned long global_numa_state(enum numa_stat_item item)
++static inline unsigned long zone_numa_event_state(struct zone *zone,
++					enum numa_stat_item item)
+ {
+-	long x = atomic_long_read(&vm_numa_stat[item]);
+-
+-	return x;
++	return atomic_long_read(&zone->vm_numa_event[item]);
+ }
+ 
+-static inline unsigned long zone_numa_state_snapshot(struct zone *zone,
+-					enum numa_stat_item item)
++static inline unsigned long
++global_numa_event_state(enum numa_stat_item item)
+ {
+-	long x = atomic_long_read(&zone->vm_numa_stat[item]);
+-	int cpu;
+-
+-	for_each_online_cpu(cpu)
+-		x += per_cpu_ptr(zone->per_cpu_zonestats, cpu)->vm_numa_stat_diff[item];
+-
+-	return x;
++	return atomic_long_read(&vm_numa_event[item]);
+ }
+ #endif /* CONFIG_NUMA */
+ 
+@@ -245,18 +238,22 @@ static inline unsigned long zone_page_st
+ }
+ 
+ #ifdef CONFIG_NUMA
+-extern void __inc_numa_state(struct zone *zone, enum numa_stat_item item);
++extern void __count_numa_event(struct zone *zone, enum numa_stat_item item);
+ extern unsigned long sum_zone_node_page_state(int node,
+ 					      enum zone_stat_item item);
+-extern unsigned long sum_zone_numa_state(int node, enum numa_stat_item item);
++extern unsigned long sum_zone_numa_event_state(int node, enum numa_stat_item item);
+ extern unsigned long node_page_state(struct pglist_data *pgdat,
+ 						enum node_stat_item item);
+ extern unsigned long node_page_state_pages(struct pglist_data *pgdat,
+ 					   enum node_stat_item item);
++extern void fold_vm_numa_events(void);
+ #else
+ #define sum_zone_node_page_state(node, item) global_zone_page_state(item)
+ #define node_page_state(node, item) global_node_page_state(item)
+ #define node_page_state_pages(node, item) global_node_page_state_pages(item)
++static inline void fold_vm_numa_events(void)
++{
++}
+ #endif /* CONFIG_NUMA */
+ 
+ #ifdef CONFIG_SMP
+@@ -428,7 +425,7 @@ static inline const char *numa_stat_name
+ static inline const char *node_stat_name(enum node_stat_item item)
+ {
+ 	return vmstat_text[NR_VM_ZONE_STAT_ITEMS +
+-			   NR_VM_NUMA_STAT_ITEMS +
++			   NR_VM_NUMA_EVENT_ITEMS +
+ 			   item];
+ }
+ 
+@@ -440,7 +437,7 @@ static inline const char *lru_list_name(
+ static inline const char *writeback_stat_name(enum writeback_stat_item item)
+ {
+ 	return vmstat_text[NR_VM_ZONE_STAT_ITEMS +
+-			   NR_VM_NUMA_STAT_ITEMS +
++			   NR_VM_NUMA_EVENT_ITEMS +
+ 			   NR_VM_NODE_STAT_ITEMS +
+ 			   item];
+ }
+@@ -449,7 +446,7 @@ static inline const char *writeback_stat
+ static inline const char *vm_event_name(enum vm_event_item item)
+ {
+ 	return vmstat_text[NR_VM_ZONE_STAT_ITEMS +
+-			   NR_VM_NUMA_STAT_ITEMS +
++			   NR_VM_NUMA_EVENT_ITEMS +
+ 			   NR_VM_NODE_STAT_ITEMS +
+ 			   NR_VM_WRITEBACK_STAT_ITEMS +
+ 			   item];
+--- a/mm/mempolicy.c~mm-vmstat-convert-numa-statistics-to-basic-numa-counters
++++ a/mm/mempolicy.c
+@@ -2150,7 +2150,7 @@ static struct page *alloc_page_interleav
+ 		return page;
+ 	if (page && page_to_nid(page) == nid) {
+ 		preempt_disable();
+-		__inc_numa_state(page_zone(page), NUMA_INTERLEAVE_HIT);
++		__count_numa_event(page_zone(page), NUMA_INTERLEAVE_HIT);
+ 		preempt_enable();
+ 	}
+ 	return page;
+--- a/mm/page_alloc.c~mm-vmstat-convert-numa-statistics-to-basic-numa-counters
++++ a/mm/page_alloc.c
+@@ -3480,12 +3480,12 @@ static inline void zone_statistics(struc
+ 		local_stat = NUMA_OTHER;
+ 
+ 	if (zone_to_nid(z) == zone_to_nid(preferred_zone))
+-		__inc_numa_state(z, NUMA_HIT);
++		__count_numa_event(z, NUMA_HIT);
+ 	else {
+-		__inc_numa_state(z, NUMA_MISS);
+-		__inc_numa_state(preferred_zone, NUMA_FOREIGN);
++		__count_numa_event(z, NUMA_MISS);
++		__count_numa_event(preferred_zone, NUMA_FOREIGN);
+ 	}
+-	__inc_numa_state(z, local_stat);
++	__count_numa_event(z, local_stat);
+ #endif
+ }
+ 
+@@ -6785,8 +6785,8 @@ void __init setup_per_cpu_pageset(void)
+ 	 */
+ 	for_each_possible_cpu(cpu) {
+ 		struct per_cpu_zonestat *pzstats = &per_cpu(boot_zonestats, cpu);
+-		memset(pzstats->vm_numa_stat_diff, 0,
+-		       sizeof(pzstats->vm_numa_stat_diff));
++		memset(pzstats->vm_numa_event, 0,
++		       sizeof(pzstats->vm_numa_event));
+ 	}
+ #endif
+ 
+--- a/mm/vmstat.c~mm-vmstat-convert-numa-statistics-to-basic-numa-counters
++++ a/mm/vmstat.c
+@@ -31,8 +31,6 @@
+ 
+ #include "internal.h"
+ 
+-#define NUMA_STATS_THRESHOLD (U16_MAX - 2)
+-
+ #ifdef CONFIG_NUMA
+ int sysctl_vm_numa_stat = ENABLE_NUMA_STAT;
+ 
+@@ -41,11 +39,12 @@ static void zero_zone_numa_counters(stru
+ {
+ 	int item, cpu;
+ 
+-	for (item = 0; item < NR_VM_NUMA_STAT_ITEMS; item++) {
+-		atomic_long_set(&zone->vm_numa_stat[item], 0);
+-		for_each_online_cpu(cpu)
+-			per_cpu_ptr(zone->per_cpu_zonestats, cpu)->vm_numa_stat_diff[item]
++	for (item = 0; item < NR_VM_NUMA_EVENT_ITEMS; item++) {
++		atomic_long_set(&zone->vm_numa_event[item], 0);
++		for_each_online_cpu(cpu) {
++			per_cpu_ptr(zone->per_cpu_zonestats, cpu)->vm_numa_event[item]
+ 						= 0;
++		}
+ 	}
+ }
+ 
+@@ -63,8 +62,8 @@ static void zero_global_numa_counters(vo
+ {
+ 	int item;
+ 
+-	for (item = 0; item < NR_VM_NUMA_STAT_ITEMS; item++)
+-		atomic_long_set(&vm_numa_stat[item], 0);
++	for (item = 0; item < NR_VM_NUMA_EVENT_ITEMS; item++)
++		atomic_long_set(&vm_numa_event[item], 0);
+ }
+ 
+ static void invalid_numa_statistics(void)
+@@ -161,10 +160,9 @@ void vm_events_fold_cpu(int cpu)
+  * vm_stat contains the global counters
+  */
+ atomic_long_t vm_zone_stat[NR_VM_ZONE_STAT_ITEMS] __cacheline_aligned_in_smp;
+-atomic_long_t vm_numa_stat[NR_VM_NUMA_STAT_ITEMS] __cacheline_aligned_in_smp;
+ atomic_long_t vm_node_stat[NR_VM_NODE_STAT_ITEMS] __cacheline_aligned_in_smp;
++atomic_long_t vm_numa_event[NR_VM_NUMA_EVENT_ITEMS] __cacheline_aligned_in_smp;
+ EXPORT_SYMBOL(vm_zone_stat);
+-EXPORT_SYMBOL(vm_numa_stat);
+ EXPORT_SYMBOL(vm_node_stat);
+ 
+ #ifdef CONFIG_SMP
+@@ -706,8 +704,7 @@ EXPORT_SYMBOL(dec_node_page_state);
+  * Fold a differential into the global counters.
+  * Returns the number of counters updated.
+  */
+-#ifdef CONFIG_NUMA
+-static int fold_diff(int *zone_diff, int *numa_diff, int *node_diff)
++static int fold_diff(int *zone_diff, int *node_diff)
+ {
+ 	int i;
+ 	int changes = 0;
+@@ -718,12 +715,6 @@ static int fold_diff(int *zone_diff, int
+ 			changes++;
  	}
  
-+	/*
-+	 * local_lock_irq held so equivalent to spin_lock_irqsave for
-+	 * both PREEMPT_RT and non-PREEMPT_RT configurations.
-+	 */
- 	spin_lock(&zone->lock);
- 	isolated_pageblocks = has_isolate_pageblock(zone);
- 
-@@ -1573,6 +1595,11 @@ static void __free_pages_ok(struct page
- 		return;
- 
- 	migratetype = get_pfnblock_migratetype(page, pfn);
+-	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
+-		if (numa_diff[i]) {
+-			atomic_long_add(numa_diff[i], &vm_numa_stat[i]);
+-			changes++;
+-	}
+-
+ 	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+ 		if (node_diff[i]) {
+ 			atomic_long_add(node_diff[i], &vm_node_stat[i]);
+@@ -731,26 +722,34 @@ static int fold_diff(int *zone_diff, int
+ 	}
+ 	return changes;
+ }
+-#else
+-static int fold_diff(int *zone_diff, int *node_diff)
 +
-+	/*
-+	 * TODO FIX: Disable IRQs before acquiring IRQ-safe zone->lock
-+	 * and protect vmstat updates.
-+	 */
- 	local_irq_save(flags);
- 	__count_vm_events(PGFREE, 1 << order);
- 	free_one_page(page_zone(page), page, pfn, order, migratetype,
-@@ -2955,6 +2982,10 @@ static int rmqueue_bulk(struct zone *zon
++#ifdef CONFIG_NUMA
++static void fold_vm_zone_numa_events(struct zone *zone)
  {
- 	int i, allocated = 0;
+-	int i;
+-	int changes = 0;
++	unsigned long zone_numa_events[NR_VM_NUMA_EVENT_ITEMS] = { 0, };
++	int cpu;
++	enum numa_stat_item item;
  
-+	/*
-+	 * local_lock_irq held so equivalent to spin_lock_irqsave for
-+	 * both PREEMPT_RT and non-PREEMPT_RT configurations.
-+	 */
- 	spin_lock(&zone->lock);
- 	for (i = 0; i < count; ++i) {
- 		struct page *page = __rmqueue(zone, order, migratetype,
-@@ -3007,12 +3038,12 @@ void drain_zone_pages(struct zone *zone,
- 	unsigned long flags;
- 	int to_drain, batch;
+-	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
+-		if (zone_diff[i]) {
+-			atomic_long_add(zone_diff[i], &vm_zone_stat[i]);
+-			changes++;
+-	}
++	for_each_online_cpu(cpu) {
++		struct per_cpu_zonestat *pzstats;
  
--	local_irq_save(flags);
-+	local_lock_irqsave(&pagesets.lock, flags);
- 	batch = READ_ONCE(pcp->batch);
- 	to_drain = min(pcp->count, batch);
- 	if (to_drain > 0)
- 		free_pcppages_bulk(zone, to_drain, pcp);
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&pagesets.lock, flags);
+-	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+-		if (node_diff[i]) {
+-			atomic_long_add(node_diff[i], &vm_node_stat[i]);
+-			changes++;
++		pzstats = per_cpu_ptr(zone->per_cpu_zonestats, cpu);
++		for (item = 0; item < NR_VM_NUMA_EVENT_ITEMS; item++)
++			zone_numa_events[item] += xchg(&pzstats->vm_numa_event[item], 0);
+ 	}
+-	return changes;
++
++	for (item = 0; item < NR_VM_NUMA_EVENT_ITEMS; item++)
++		zone_numa_event_add(zone_numa_events[item], zone, item);
+ }
+-#endif /* CONFIG_NUMA */
++
++void fold_vm_numa_events(void)
++{
++	struct zone *zone;
++
++	for_each_populated_zone(zone)
++		fold_vm_zone_numa_events(zone);
++}
++#endif
+ 
+ /*
+  * Update the zone counters for the current cpu.
+@@ -774,9 +773,6 @@ static int refresh_cpu_vm_stats(bool do_
+ 	struct zone *zone;
+ 	int i;
+ 	int global_zone_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
+-#ifdef CONFIG_NUMA
+-	int global_numa_diff[NR_VM_NUMA_STAT_ITEMS] = { 0, };
+-#endif
+ 	int global_node_diff[NR_VM_NODE_STAT_ITEMS] = { 0, };
+ 	int changes = 0;
+ 
+@@ -801,17 +797,6 @@ static int refresh_cpu_vm_stats(bool do_
+ 			}
+ 		}
+ #ifdef CONFIG_NUMA
+-		for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++) {
+-			int v;
+-
+-			v = this_cpu_xchg(pzstats->vm_numa_stat_diff[i], 0);
+-			if (v) {
+-
+-				atomic_long_add(v, &zone->vm_numa_stat[i]);
+-				global_numa_diff[i] += v;
+-				__this_cpu_write(pcp->expire, 3);
+-			}
+-		}
+ 
+ 		if (do_pagesets) {
+ 			cond_resched();
+@@ -859,12 +844,7 @@ static int refresh_cpu_vm_stats(bool do_
+ 		}
+ 	}
+ 
+-#ifdef CONFIG_NUMA
+-	changes += fold_diff(global_zone_diff, global_numa_diff,
+-			     global_node_diff);
+-#else
+ 	changes += fold_diff(global_zone_diff, global_node_diff);
+-#endif
+ 	return changes;
+ }
+ 
+@@ -879,9 +859,6 @@ void cpu_vm_stats_fold(int cpu)
+ 	struct zone *zone;
+ 	int i;
+ 	int global_zone_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
+-#ifdef CONFIG_NUMA
+-	int global_numa_diff[NR_VM_NUMA_STAT_ITEMS] = { 0, };
+-#endif
+ 	int global_node_diff[NR_VM_NODE_STAT_ITEMS] = { 0, };
+ 
+ 	for_each_populated_zone(zone) {
+@@ -889,7 +866,7 @@ void cpu_vm_stats_fold(int cpu)
+ 
+ 		pzstats = per_cpu_ptr(zone->per_cpu_zonestats, cpu);
+ 
+-		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
++		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++) {
+ 			if (pzstats->vm_stat_diff[i]) {
+ 				int v;
+ 
+@@ -898,17 +875,17 @@ void cpu_vm_stats_fold(int cpu)
+ 				atomic_long_add(v, &zone->vm_stat[i]);
+ 				global_zone_diff[i] += v;
+ 			}
+-
++		}
+ #ifdef CONFIG_NUMA
+-		for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
+-			if (pzstats->vm_numa_stat_diff[i]) {
+-				int v;
+-
+-				v = pzstats->vm_numa_stat_diff[i];
+-				pzstats->vm_numa_stat_diff[i] = 0;
+-				atomic_long_add(v, &zone->vm_numa_stat[i]);
+-				global_numa_diff[i] += v;
++		for (i = 0; i < NR_VM_NUMA_EVENT_ITEMS; i++) {
++			if (pzstats->vm_numa_event[i]) {
++				unsigned long v;
++
++				v = pzstats->vm_numa_event[i];
++				pzstats->vm_numa_event[i] = 0;
++				zone_numa_event_add(v, zone, i);
+ 			}
++		}
+ #endif
+ 	}
+ 
+@@ -928,11 +905,7 @@ void cpu_vm_stats_fold(int cpu)
+ 			}
+ 	}
+ 
+-#ifdef CONFIG_NUMA
+-	fold_diff(global_zone_diff, global_numa_diff, global_node_diff);
+-#else
+ 	fold_diff(global_zone_diff, global_node_diff);
+-#endif
+ }
+ 
+ /*
+@@ -941,43 +914,37 @@ void cpu_vm_stats_fold(int cpu)
+  */
+ void drain_zonestat(struct zone *zone, struct per_cpu_zonestat *pzstats)
+ {
++	unsigned long v;
+ 	int i;
+ 
+-	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
++	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++) {
+ 		if (pzstats->vm_stat_diff[i]) {
+-			int v = pzstats->vm_stat_diff[i];
++			v = pzstats->vm_stat_diff[i];
+ 			pzstats->vm_stat_diff[i] = 0;
+-			atomic_long_add(v, &zone->vm_stat[i]);
+-			atomic_long_add(v, &vm_zone_stat[i]);
++			zone_page_state_add(v, zone, i);
+ 		}
++	}
+ 
+ #ifdef CONFIG_NUMA
+-	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
+-		if (pzstats->vm_numa_stat_diff[i]) {
+-			int v = pzstats->vm_numa_stat_diff[i];
+-
+-			pzstats->vm_numa_stat_diff[i] = 0;
+-			atomic_long_add(v, &zone->vm_numa_stat[i]);
+-			atomic_long_add(v, &vm_numa_stat[i]);
++	for (i = 0; i < NR_VM_NUMA_EVENT_ITEMS; i++) {
++		if (pzstats->vm_numa_event[i]) {
++			v = pzstats->vm_numa_event[i];
++			pzstats->vm_numa_event[i] = 0;
++			zone_numa_event_add(v, zone, i);
+ 		}
++	}
+ #endif
  }
  #endif
  
-@@ -3028,13 +3059,13 @@ static void drain_pages_zone(unsigned in
- 	unsigned long flags;
- 	struct per_cpu_pages *pcp;
+ #ifdef CONFIG_NUMA
+-void __inc_numa_state(struct zone *zone,
++/* See __count_vm_event comment on why raw_cpu_inc is used. */
++void __count_numa_event(struct zone *zone,
+ 				 enum numa_stat_item item)
+ {
+ 	struct per_cpu_zonestat __percpu *pzstats = zone->per_cpu_zonestats;
+-	u16 __percpu *p = pzstats->vm_numa_stat_diff + item;
+-	u16 v;
+-
+-	v = __this_cpu_inc_return(*p);
  
--	local_irq_save(flags);
-+	local_lock_irqsave(&pagesets.lock, flags);
- 
- 	pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
- 	if (pcp->count)
- 		free_pcppages_bulk(zone, pcp->count, pcp);
- 
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&pagesets.lock, flags);
+-	if (unlikely(v > NUMA_STATS_THRESHOLD)) {
+-		zone_numa_state_add(v, zone, item);
+-		__this_cpu_write(*p, 0);
+-	}
++	raw_cpu_inc(pzstats->vm_numa_event[item]);
  }
  
  /*
-@@ -3297,9 +3328,9 @@ void free_unref_page(struct page *page)
- 	if (!free_unref_page_prepare(page, pfn))
- 		return;
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&pagesets.lock, flags);
- 	free_unref_page_commit(page, pfn);
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&pagesets.lock, flags);
+@@ -998,19 +965,16 @@ unsigned long sum_zone_node_page_state(i
+ 	return count;
  }
  
- /*
-@@ -3319,7 +3350,7 @@ void free_unref_page_list(struct list_he
- 		set_page_private(page, pfn);
- 	}
+-/*
+- * Determine the per node value of a numa stat item. To avoid deviation,
+- * the per cpu stat number in vm_numa_stat_diff[] is also included.
+- */
+-unsigned long sum_zone_numa_state(int node,
++/* Determine the per node value of a numa stat item. */
++unsigned long sum_zone_numa_event_state(int node,
+ 				 enum numa_stat_item item)
+ {
+ 	struct zone *zones = NODE_DATA(node)->node_zones;
+-	int i;
+ 	unsigned long count = 0;
++	int i;
  
--	local_irq_save(flags);
-+	local_lock_irqsave(&pagesets.lock, flags);
- 	list_for_each_entry_safe(page, next, list, lru) {
- 		unsigned long pfn = page_private(page);
+ 	for (i = 0; i < MAX_NR_ZONES; i++)
+-		count += zone_numa_state_snapshot(zones + i, item);
++		count += zone_numa_event_state(zones + i, item);
  
-@@ -3332,12 +3363,12 @@ void free_unref_page_list(struct list_he
- 		 * a large list of pages to free.
- 		 */
- 		if (++batch_count == SWAP_CLUSTER_MAX) {
--			local_irq_restore(flags);
-+			local_unlock_irqrestore(&pagesets.lock, flags);
- 			batch_count = 0;
--			local_irq_save(flags);
-+			local_lock_irqsave(&pagesets.lock, flags);
- 		}
- 	}
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&pagesets.lock, flags);
+ 	return count;
  }
+@@ -1689,9 +1653,9 @@ static void zoneinfo_show_print(struct s
+ 			   zone_page_state(zone, i));
  
- /*
-@@ -3494,7 +3525,7 @@ static struct page *rmqueue_pcplist(stru
- 	struct page *page;
- 	unsigned long flags;
+ #ifdef CONFIG_NUMA
+-	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
++	for (i = 0; i < NR_VM_NUMA_EVENT_ITEMS; i++)
+ 		seq_printf(m, "\n      %-12s %lu", numa_stat_name(i),
+-			   zone_numa_state_snapshot(zone, i));
++			   zone_numa_event_state(zone, i));
+ #endif
  
--	local_irq_save(flags);
-+	local_lock_irqsave(&pagesets.lock, flags);
- 	pcp = this_cpu_ptr(zone->per_cpu_pageset);
- 	list = &pcp->lists[migratetype];
- 	page = __rmqueue_pcplist(zone,  migratetype, alloc_flags, pcp, list);
-@@ -3502,7 +3533,7 @@ static struct page *rmqueue_pcplist(stru
- 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1);
- 		zone_statistics(preferred_zone, zone);
- 	}
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&pagesets.lock, flags);
- 	return page;
- }
+ 	seq_printf(m, "\n  pagesets");
+@@ -1745,7 +1709,7 @@ static const struct seq_operations zonei
+ };
  
-@@ -5103,7 +5134,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		goto failed;
+ #define NR_VMSTAT_ITEMS (NR_VM_ZONE_STAT_ITEMS + \
+-			 NR_VM_NUMA_STAT_ITEMS + \
++			 NR_VM_NUMA_EVENT_ITEMS + \
+ 			 NR_VM_NODE_STAT_ITEMS + \
+ 			 NR_VM_WRITEBACK_STAT_ITEMS + \
+ 			 (IS_ENABLED(CONFIG_VM_EVENT_COUNTERS) ? \
+@@ -1760,6 +1724,7 @@ static void *vmstat_start(struct seq_fil
+ 		return NULL;
  
- 	/* Attempt the batch allocation */
--	local_irq_save(flags);
-+	local_lock_irqsave(&pagesets.lock, flags);
- 	pcp = this_cpu_ptr(zone->per_cpu_pageset);
- 	pcp_list = &pcp->lists[ac.migratetype];
+ 	BUILD_BUG_ON(ARRAY_SIZE(vmstat_text) < NR_VMSTAT_ITEMS);
++	fold_vm_numa_events();
+ 	v = kmalloc_array(NR_VMSTAT_ITEMS, sizeof(unsigned long), GFP_KERNEL);
+ 	m->private = v;
+ 	if (!v)
+@@ -1769,9 +1734,9 @@ static void *vmstat_start(struct seq_fil
+ 	v += NR_VM_ZONE_STAT_ITEMS;
  
-@@ -5141,12 +5172,12 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		nr_populated++;
- 	}
+ #ifdef CONFIG_NUMA
+-	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
+-		v[i] = global_numa_state(i);
+-	v += NR_VM_NUMA_STAT_ITEMS;
++	for (i = 0; i < NR_VM_NUMA_EVENT_ITEMS; i++)
++		v[i] = global_numa_event_state(i);
++	v += NR_VM_NUMA_EVENT_ITEMS;
+ #endif
  
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&pagesets.lock, flags);
- 
- 	return nr_populated;
- 
- failed_irq:
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&pagesets.lock, flags);
- 
- failed:
- 	page = __alloc_pages(gfp, 0, preferred_nid, nodemask);
+ 	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
+@@ -1941,11 +1906,7 @@ static bool need_update(int cpu)
+ 		if (memchr_inv(pzstats->vm_stat_diff, 0, NR_VM_ZONE_STAT_ITEMS *
+ 			       sizeof(pzstats->vm_stat_diff[0])))
+ 			return true;
+-#ifdef CONFIG_NUMA
+-		if (memchr_inv(pzstats->vm_numa_stat_diff, 0, NR_VM_NUMA_STAT_ITEMS *
+-			       sizeof(pzstats->vm_numa_stat_diff[0])))
+-			return true;
+-#endif
++
+ 		if (last_pgdat == zone->zone_pgdat)
+ 			continue;
+ 		last_pgdat = zone->zone_pgdat;
 _
