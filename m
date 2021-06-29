@@ -7,36 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DB82C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:22:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59E92C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:23:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 64F8C61CED
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:22:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2930B61CF6
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:23:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232066AbhF2AYu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 20:24:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59622 "EHLO mail.kernel.org"
+        id S232051AbhF2AZe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 20:25:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59718 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231996AbhF2AYs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 20:24:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AFBA961CF9;
-        Tue, 29 Jun 2021 00:22:21 +0000 (UTC)
+        id S231996AbhF2AZe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 20:25:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BD5F061CF4;
+        Tue, 29 Jun 2021 00:23:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624926141;
-        bh=ODOQ7fP7MyqAYDZiTi3nM3UntWYgWGur+9k9Z6zCH+k=;
+        s=korg; t=1624926187;
+        bh=nhccjv8AcFInWW9XFD+OAKUB1wRWmtwuc5mleUVCKds=;
         h=Date:From:To:Subject:From;
-        b=CntKZXW5zxIcvDOfV3XVstiyvFxgm/hIad5i9pcPpPN/mfM3donhrTEh0HAGBZxX9
-         //qMQsO/co+rR1Q87q5AwzUCkBRRkq+erFQcbl+fgFeGFgLxcjm2iRBR4VVYeyPvc9
-         iKItS/zd+bxCHUjpWSbC1POXv2nIPLxux1RPb67U=
-Date:   Mon, 28 Jun 2021 17:22:21 -0700
+        b=Er4ccuSMgdUYJUeFwniAfJXWrx8oJnjrVWGzS1mp+VN2gMGgRfM4oUv4rBfP+SNK5
+         HdQN3CQOZWGcmE25JmvH5Z6RTCXrFVSfX06JasaT9e27KplbyF/U50DgcK2Cx/VWzt
+         WHHmUl5YpV5tnYnR6lnwTK+ThdOuUfiG4ObSlN9s=
+Date:   Mon, 28 Jun 2021 17:23:06 -0700
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, longman@redhat.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+To:     cl@linux.com, guro@fb.com, hannes@cmpxchg.org,
+        iamjoonsoo.kim@lge.com, longman@redhat.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, shakeelb@google.com, vbabka@suse.cz,
         vdavydov.dev@gmail.com
 Subject:  [folded-merged]
- mm-memcg-optimize-user-context-object-stock-access-fix.patch removed from
- -mm tree
-Message-ID: <20210629002221.eeawFmQh_%akpm@linux-foundation.org>
+ mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-fix.patch removed
+ from -mm tree
+Message-ID: <20210629002306.RGtbiyj9Y%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,94 +47,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol.c: fix potential uninitialized variable warning
+     Subject: mm: memcg/slab: don't create kmalloc-cg caches with cgroup.memory=nokmem
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-optimize-user-context-object-stock-access-fix.patch
+     mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-fix.patch
 
-This patch was dropped because it was folded into mm-memcg-optimize-user-context-object-stock-access.patch
+This patch was dropped because it was folded into mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches.patch
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/memcontrol.c: fix potential uninitialized variable warning
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: memcg/slab: don't create kmalloc-cg caches with cgroup.memory=nokmem
 
-If the -Wno-maybe-uninitialized gcc option is not specified, compilation
-of memcontrol.c may generate the following warnings:
+The caches should not be created when kmemcg is disabled on boot,
+otherwise they are also filled by kmalloc(__GFP_ACCOUNT) allocations. 
+When booted with cgroup.memory=nokmem, link the
+kmalloc_caches[KMALLOC_CGROUP] entries to KMALLOC_NORMAL entries instead.
 
-mm/memcontrol.c: In function `refill_obj_stock':
-./arch/x86/include/asm/irqflags.h:127:17: warning: `flags' may be used uninitialized in this function [-Wmaybe-uninitialized]
-  return !(flags & X86_EFLAGS_IF);
-          ~~~~~~~^~~~~~~~~~~~~~~~
-mm/memcontrol.c:3216:16: note: `flags' was declared here
-  unsigned long flags;
-                ^~~~~
-In file included from mm/memcontrol.c:29:
-mm/memcontrol.c: In function `uncharge_page':
-./include/linux/memcontrol.h:797:2: warning: `objcg' may be used uninitialized in this function [-Wmaybe-uninitialized]
-  percpu_ref_put(&objcg->refcnt);
-  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Fix that by properly initializing *pflags in get_obj_stock() and
-introducing a use_objcg bool variable in uncharge_page() to avoid
-potentially accessing the struct page data twice.
-
-Link: https://lkml.kernel.org/r/20210526193602.8742-1-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Waiman Long <longman@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/internal.h    |    5 +++++
+ mm/memcontrol.c  |    2 +-
+ mm/slab_common.c |    9 +++++++--
+ 3 files changed, 13 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-optimize-user-context-object-stock-access-fix
+--- a/mm/internal.h~mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-fix
++++ a/mm/internal.h
+@@ -116,6 +116,11 @@ extern void putback_lru_page(struct page
+ extern pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address);
+ 
+ /*
++ * in mm/memcontrol.c:
++ */
++extern bool cgroup_memory_nokmem;
++
++/*
+  * in mm/page_alloc.c
+  */
+ 
+--- a/mm/memcontrol.c~mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-fix
 +++ a/mm/memcontrol.c
-@@ -2115,6 +2115,7 @@ static inline struct obj_stock *get_obj_
- 	struct memcg_stock_pcp *stock;
+@@ -83,7 +83,7 @@ DEFINE_PER_CPU(struct mem_cgroup *, int_
+ static bool cgroup_memory_nosocket;
  
- 	if (likely(in_task())) {
-+		*pflags = 0UL;
- 		preempt_disable();
- 		stock = this_cpu_ptr(&memcg_stock);
- 		return &stock->task_obj;
-@@ -6832,6 +6833,7 @@ static void uncharge_page(struct page *p
- 	unsigned long nr_pages;
- 	struct mem_cgroup *memcg;
- 	struct obj_cgroup *objcg;
-+	bool use_objcg = PageMemcgKmem(page);
+ /* Kernel memory accounting disabled? */
+-static bool cgroup_memory_nokmem;
++bool cgroup_memory_nokmem;
  
- 	VM_BUG_ON_PAGE(PageLRU(page), page);
+ /* Whether the swap controller is active */
+ #ifdef CONFIG_MEMCG_SWAP
+--- a/mm/slab_common.c~mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-fix
++++ a/mm/slab_common.c
+@@ -842,10 +842,15 @@ void __init setup_kmalloc_cache_index_ta
+ static void __init
+ new_kmalloc_cache(int idx, enum kmalloc_cache_type type, slab_flags_t flags)
+ {
+-	if (type == KMALLOC_RECLAIM)
++	if (type == KMALLOC_RECLAIM) {
+ 		flags |= SLAB_RECLAIM_ACCOUNT;
+-	else if (IS_ENABLED(CONFIG_MEMCG_KMEM) && (type == KMALLOC_CGROUP))
++	} else if (IS_ENABLED(CONFIG_MEMCG_KMEM) && (type == KMALLOC_CGROUP)) {
++		if (cgroup_memory_nokmem) {
++			kmalloc_caches[type][idx] = kmalloc_caches[KMALLOC_NORMAL][idx];
++			return;
++		}
+ 		flags |= SLAB_ACCOUNT;
++	}
  
-@@ -6840,7 +6842,7 @@ static void uncharge_page(struct page *p
- 	 * page memcg or objcg at this point, we have fully
- 	 * exclusive access to the page.
- 	 */
--	if (PageMemcgKmem(page)) {
-+	if (use_objcg) {
- 		objcg = __page_objcg(page);
- 		/*
- 		 * This get matches the put at the end of the function and
-@@ -6868,7 +6870,7 @@ static void uncharge_page(struct page *p
- 
- 	nr_pages = compound_nr(page);
- 
--	if (PageMemcgKmem(page)) {
-+	if (use_objcg) {
- 		ug->nr_memory += nr_pages;
- 		ug->nr_kmem += nr_pages;
- 
+ 	kmalloc_caches[type][idx] = create_kmalloc_cache(
+ 					kmalloc_info[idx].name[type],
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-memcg-move-mod_objcg_state-to-memcontrolc.patch
-mm-memcg-cache-vmstat-data-in-percpu-memcg_stock_pcp.patch
-mm-memcg-improve-refill_obj_stock-performance.patch
-mm-memcg-optimize-user-context-object-stock-access.patch
-mm-memcg-slab-properly-set-up-gfp-flags-for-objcg-pointer-array.patch
+kunit-make-test-lock-irq-safe.patch
 mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches.patch
-mm-memcg-slab-create-a-new-set-of-kmalloc-cg-n-caches-v5.patch
-mm-memcg-slab-disable-cache-merging-for-kmalloc_normal-caches.patch
+mm-slub-use-stackdepot-to-save-stack-trace-in-objects-fix-2.patch
 
