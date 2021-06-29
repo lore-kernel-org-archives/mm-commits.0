@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD1F1C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B73A7C11F67
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C85A361D0F
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A27D361D10
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:41:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231700AbhF2Cn7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:43:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36228 "EHLO mail.kernel.org"
+        id S231818AbhF2CoA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:44:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36274 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231706AbhF2Cn4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:43:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3725D61D0B;
-        Tue, 29 Jun 2021 02:41:29 +0000 (UTC)
+        id S231706AbhF2Cn7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:43:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4F5EF61D0D;
+        Tue, 29 Jun 2021 02:41:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934489;
-        bh=9lquqsQRSlEeY3hxMyxSSnEBIoHNzIXEhnc9q6sYl0U=;
+        s=korg; t=1624934492;
+        bh=Wo7Z/J6aA4TA2vqeWPyyDIyH4nrXw46aIotdRMevQ5A=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=PlFszdZ7CKtBjhoxl97EobWS1p4AKQcTMHhRnTwmXOiOfmk9Y+LRXuuNZYseKwp1Z
-         r+TMUf0ymMKWVpdtsnOoegdyhZm6PVu7JIqd4jVWnekG4aM52gb3I6rW1wAJ9/tyUF
-         sw9b82JnV1mHndqms/kSNlgtD1dCxYcjWMJQPB4o=
-Date:   Mon, 28 Jun 2021 19:41:28 -0700
+        b=bXKx/6GOAdLhwwWhrwTSRXt7hBy5zHep9yJAnGlrm5wMHcgwm9L5PAqbqDRxe+ySX
+         xHYlfpR4kpvjjSsJG/G0GjHDhDcYdUpyx5nzsA076+Hqo6lMwjqWU+W2LFFa+Ey04S
+         QsV9BzDGqL7SBKZ8jZJUAg9zil4xjMHJoes7Yr1U=
+Date:   Mon, 28 Jun 2021 19:41:31 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, chris@chris-wilson.co.uk,
-        david@redhat.com, dougg@torque.net, fujita.tomonori@lab.ntt.co.jp,
-        hch@lst.de, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        tj@kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz,
-        willy@infradead.org, ziy@nvidia.com
-Subject:  [patch 157/192] mm: optimise nth_page for contiguous
- memmap
-Message-ID: <20210629024128.2--ysmMqj%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hkallweit1@gmail.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 158/192] mm/page_alloc: switch to pr_debug
+Message-ID: <20210629024131.GaiLz20S_%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,66 +42,65 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: optimise nth_page for contiguous memmap
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: mm/page_alloc: switch to pr_debug
 
-If the memmap is virtually contiguous (either because we're using a
-virtually mapped memmap or because we don't support a discontig memmap at
-all), then we can implement nth_page() by simple addition.  Contrary to
-popular belief, the compiler is not able to optimise this itself for a
-vmemmap configuration.  This reduces one example user (sg.c) by four
-instructions:
+Having such debug messages in the dmesg log may confuse users.  Therefore
+restrict debug output to cases where DEBUG is defined or dynamic debugging
+is enabled for the respective code piece.
 
-        struct page *page = nth_page(rsv_schp->pages[k], offset >> PAGE_SHIFT);
-
-before:
-   49 8b 45 70             mov    0x70(%r13),%rax
-   48 63 c9                movslq %ecx,%rcx
-   48 c1 eb 0c             shr    $0xc,%rbx
-   48 8b 04 c8             mov    (%rax,%rcx,8),%rax
-   48 2b 05 00 00 00 00    sub    0x0(%rip),%rax
-           R_X86_64_PC32      vmemmap_base-0x4
-   48 c1 f8 06             sar    $0x6,%rax
-   48 01 d8                add    %rbx,%rax
-   48 c1 e0 06             shl    $0x6,%rax
-   48 03 05 00 00 00 00    add    0x0(%rip),%rax
-           R_X86_64_PC32      vmemmap_base-0x4
-
-after:
-   49 8b 45 70             mov    0x70(%r13),%rax
-   48 63 c9                movslq %ecx,%rcx
-   48 c1 eb 0c             shr    $0xc,%rbx
-   48 c1 e3 06             shl    $0x6,%rbx
-   48 03 1c c8             add    (%rax,%rcx,8),%rbx
-
-Link: https://lkml.kernel.org/r/20210413194625.1472345-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Douglas Gilbert <dougg@torque.net>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Link: https://lkml.kernel.org/r/976adb93-3041-ce63-48fc-55a6096a51c1@gmail.com
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/page_alloc.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
---- a/include/linux/mm.h~mm-optimise-nth_page-for-contiguous-memmap
-+++ a/include/linux/mm.h
-@@ -234,7 +234,11 @@ int overcommit_policy_handler(struct ctl
- int __add_to_page_cache_locked(struct page *page, struct address_space *mapping,
- 		pgoff_t index, gfp_t gfp, void **shadowp);
+--- a/mm/page_alloc.c~mm-page_alloc-switch-to-pr_debug
++++ a/mm/page_alloc.c
+@@ -6770,9 +6770,8 @@ static __meminit void zone_pcp_init(stru
+ 	zone->pageset_batch = BOOT_PAGESET_BATCH;
  
-+#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
-+#else
-+#define nth_page(page,n) ((page) + (n))
-+#endif
+ 	if (populated_zone(zone))
+-		printk(KERN_DEBUG "  %s zone: %lu pages, LIFO batch:%u\n",
+-			zone->name, zone->present_pages,
+-					 zone_batchsize(zone));
++		pr_debug("  %s zone: %lu pages, LIFO batch:%u\n", zone->name,
++			 zone->present_pages, zone_batchsize(zone));
+ }
  
- /* to align the pointer to the (next) page boundary */
- #define PAGE_ALIGN(addr) ALIGN(addr, PAGE_SIZE)
+ void __meminit init_currently_empty_zone(struct zone *zone,
+@@ -7042,8 +7041,7 @@ static void __init calculate_node_totalp
+ 
+ 	pgdat->node_spanned_pages = totalpages;
+ 	pgdat->node_present_pages = realtotalpages;
+-	printk(KERN_DEBUG "On node %d totalpages: %lu\n", pgdat->node_id,
+-							realtotalpages);
++	pr_debug("On node %d totalpages: %lu\n", pgdat->node_id, realtotalpages);
+ }
+ 
+ #ifndef CONFIG_SPARSEMEM
+@@ -7243,9 +7241,8 @@ static void __init free_area_init_core(s
+ 			if (freesize >= memmap_pages) {
+ 				freesize -= memmap_pages;
+ 				if (memmap_pages)
+-					printk(KERN_DEBUG
+-					       "  %s zone: %lu pages used for memmap\n",
+-					       zone_names[j], memmap_pages);
++					pr_debug("  %s zone: %lu pages used for memmap\n",
++						 zone_names[j], memmap_pages);
+ 			} else
+ 				pr_warn("  %s zone: %lu pages exceeds freesize %lu\n",
+ 					zone_names[j], memmap_pages, freesize);
+@@ -7254,8 +7251,7 @@ static void __init free_area_init_core(s
+ 		/* Account for reserved pages */
+ 		if (j == 0 && freesize > dma_reserve) {
+ 			freesize -= dma_reserve;
+-			printk(KERN_DEBUG "  %s zone: %lu pages reserved\n",
+-					zone_names[0], dma_reserve);
++			pr_debug("  %s zone: %lu pages reserved\n", zone_names[0], dma_reserve);
+ 		}
+ 
+ 		if (!is_highmem_idx(j))
 _
