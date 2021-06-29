@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AAF7C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:30:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E153C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:31:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 395FA61CF6
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:30:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E456C61CED
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:31:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232170AbhF2AdB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 20:33:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32824 "EHLO mail.kernel.org"
+        id S232124AbhF2Ado (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 20:33:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32854 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232060AbhF2Ac7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 20:32:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0CD2D61CDA;
-        Tue, 29 Jun 2021 00:30:33 +0000 (UTC)
+        id S232060AbhF2Ado (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 20:33:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 988DF61CEB;
+        Tue, 29 Jun 2021 00:31:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624926633;
-        bh=MkjN4j9uJo6HwVlUvw5RvUCU86EYouP3C/JjFFlYg5Q=;
+        s=korg; t=1624926677;
+        bh=k2gJPiNl3GfD4WhXujMp7DJMOzVns3oZsebIr0uV1t4=;
         h=Date:From:To:Subject:From;
-        b=uu2LA29+GLrM2eoweEl+6VANIrA+UQ+GZHahzQGVkrQ3dC8y7/T36eKhHigPzZgMA
-         lcEcG0+NmHRPuv3TZFZD9FTz8F2Pe6DTiVXODz3aM+d3GEVkOIAoRpOKRp/UyEhw6Z
-         aoC0P6zeV5nQXblD4x/IANcnuDvAgRivEA3jO6HI=
-Date:   Mon, 28 Jun 2021 17:30:32 -0700
+        b=LkEV0VyULJgvxodLabzNBlHm0XnBdRL3FLl0aRUln8oi4VAfdJBSxJscWYivjRIwz
+         WOID1o6433lxXI1f8TMhVT1NAjx0Zx2GaGOfaonqGWZjp7I81WxhUF6T2w2GSI4MHU
+         Y1pSA7Fc2JelnMIRg6OvmZbqxhS7nCz51bAJxHMo=
+Date:   Mon, 28 Jun 2021 17:31:17 -0700
 From:   akpm@linux-foundation.org
-To:     elver@google.com, glider@google.com, lkp@intel.com,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-Subject:  [folded-merged] printk-introduce-dump_stack_lvl-fix.patch
- removed from -mm tree
-Message-ID: <20210629003032.yBwY2eCIH%akpm@linux-foundation.org>
+To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        sfr@canb.auug.org.au
+Subject:  [folded-merged]
+ mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch removed
+ from -mm tree
+Message-ID: <20210629003117.FzFeJkiIL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,49 +44,97 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fix for "printk: introduce dump_stack_lvl()"
+     Subject: mm/page_alloc: split per cpu page lists and zone stats -fix
 has been removed from the -mm tree.  Its filename was
-     printk-introduce-dump_stack_lvl-fix.patch
+     mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix.patch
 
-This patch was dropped because it was folded into printk-introduce-dump_stack_lvl.patch
+This patch was dropped because it was folded into mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: fix for "printk: introduce dump_stack_lvl()"
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: split per cpu page lists and zone stats -fix
 
-Add missing dump_stack_lvl() stub if CONFIG_PRINTK=n.
+mm/ is not W=1 clean for allnoconfig but the patch "mm/page_alloc: Split
+per cpu page lists and zone stats" makes it worse with the following
+warning
 
-Link: https://lkml.kernel.org/r/YJ0KAM0hQev1AmWe@elver.google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+  mm/vmstat.c: In function `zoneinfo_show_print':
+  mm/vmstat.c:1698:28: warning: variable `pzstats' set but not used [-Wunused-but-set-variable]
+     struct per_cpu_zonestat *pzstats;
+                              ^~~~~~~
+
+This is a fix to the mmotm patch
+mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch.
+
+Link: https://lkml.kernel.org/r/20210514144622.GA3735@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/vmstat.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/printk.h~printk-introduce-dump_stack_lvl-fix
-+++ a/include/linux/printk.h
-@@ -270,6 +270,10 @@ static inline void show_regs_print_info(
- {
- }
+--- a/mm/vmstat.c~mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix
++++ a/mm/vmstat.c
+@@ -1695,10 +1695,9 @@ static void zoneinfo_show_print(struct s
+ 	seq_printf(m, "\n  pagesets");
+ 	for_each_online_cpu(i) {
+ 		struct per_cpu_pages *pcp;
+-		struct per_cpu_zonestat *pzstats;
++		struct per_cpu_zonestat __maybe_unused *pzstats;
  
-+static inline void dump_stack_lvl(const char *log_lvl)
-+{
-+}
-+
- static inline void dump_stack(void)
- {
- }
+ 		pcp = per_cpu_ptr(zone->per_cpu_pageset, i);
+-		pzstats = per_cpu_ptr(zone->per_cpu_zonestats, i);
+ 		seq_printf(m,
+ 			   "\n    cpu: %i"
+ 			   "\n              count: %i"
+@@ -1709,6 +1708,7 @@ static void zoneinfo_show_print(struct s
+ 			   pcp->high,
+ 			   pcp->batch);
+ #ifdef CONFIG_SMP
++		pzstats = per_cpu_ptr(zone->per_cpu_zonestats, i);
+ 		seq_printf(m, "\n  vm stats threshold: %d",
+ 				pzstats->stat_threshold);
+ #endif
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-printk-introduce-dump_stack_lvl.patch
-kfence-unconditionally-use-unbound-work-queue.patch
-kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures.patch
-kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v2.patch
-kcov-add-__no_sanitize_coverage-to-fix-noinstr-for-all-architectures-v3.patch
+mm-page_alloc-correct-return-value-of-populated-elements-if-bulk-array-is-populated.patch
+mm-page_alloc-split-per-cpu-page-lists-and-zone-stats.patch
+mm-page_alloc-split-per-cpu-page-lists-and-zone-stats-fix-fix.patch
+mm-page_alloc-convert-per-cpu-list-protection-to-local_lock.patch
+mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix.patch
+mm-vmstat-convert-numa-statistics-to-basic-numa-counters.patch
+mm-vmstat-inline-numa-event-counter-updates.patch
+mm-page_alloc-batch-the-accounting-updates-in-the-bulk-allocator.patch
+mm-page_alloc-reduce-duration-that-irqs-are-disabled-for-vm-counters.patch
+mm-page_alloc-explicitly-acquire-the-zone-lock-in-__free_pages_ok.patch
+mm-page_alloc-avoid-conflating-irqs-disabled-with-zone-lock.patch
+mm-page_alloc-update-pgfree-outside-the-zone-lock-in-__free_pages_ok.patch
+mm-page_alloc-delete-vmpercpu_pagelist_fraction.patch
+mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch.patch
+mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2.patch
+mm-page_alloc-adjust-pcp-high-after-cpu-hotplug-events.patch
+mm-page_alloc-scale-the-number-of-pages-that-are-batch-freed.patch
+mm-page_alloc-limit-the-number-of-pages-on-pcp-lists-when-reclaim-is-active.patch
+mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction.patch
+mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction-fix.patch
+mm-page_alloc-move-free_the_page.patch
+mm-page_alloc-allow-high-order-pages-to-be-stored-on-the-per-cpu-lists.patch
+mm-page_alloc-split-pcp-high-across-all-online-cpus-for-cpuless-nodes.patch
+mm-vmscan-remove-kerneldoc-like-comment-from-isolate_lru_pages.patch
+mm-vmalloc-include-header-for-prototype-of-set_iounmap_nonlazy.patch
+mm-page_alloc-make-should_fail_alloc_page-a-static-function-should_fail_alloc_page-static.patch
+mm-mapping_dirty_helpers-remove-double-note-in-kerneldoc.patch
+mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection.patch
+mm-memory_hotplug-fix-kerneldoc-comment-for-__try_online_node.patch
+mm-memory_hotplug-fix-kerneldoc-comment-for-__remove_memory.patch
+mm-zbud-add-kerneldoc-fields-for-zbud_pool.patch
+mm-z3fold-add-kerneldoc-fields-for-z3fold_pool.patch
+mm-swap-make-swap_address_space-an-inline-function.patch
+mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
+mm-page_alloc-move-prototype-for-find_suitable_fallback.patch
+mm-swap-make-node_data-an-inline-function-on-config_flatmem.patch
 
