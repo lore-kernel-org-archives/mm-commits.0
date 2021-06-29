@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BC0EC11F65
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:20:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14F9AC11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:21:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB0AF61CF4
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:20:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E644961CF6
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:21:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232014AbhF2AXE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 20:23:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59244 "EHLO mail.kernel.org"
+        id S232041AbhF2AX4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 20:23:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59436 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231996AbhF2AXC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 20:23:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 99BB161CF4;
-        Tue, 29 Jun 2021 00:20:36 +0000 (UTC)
+        id S231996AbhF2AXz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 20:23:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 936C961CED;
+        Tue, 29 Jun 2021 00:21:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624926036;
-        bh=h8RSGeskF9ACqjgVe/kCz4tMELVPAt2+UOy8XYkL4wY=;
+        s=korg; t=1624926088;
+        bh=mVRT/5UhDKldwvCLFB7TU7YaqT9UqgElAadelHdv+Zc=;
         h=Date:From:To:Subject:From;
-        b=yd6AYMZyNlPk/mYrhKB58/xmOgQG3lHyVhutl9YnAEGQlq4PCFJRytElNA/MvFWhr
-         LmRduD74dhEU3TBvnlSR/mRh7SGxVkWureSdO5nzPSL7J2yViOxV6eBLq5M3rKsY/B
-         OHyIAh8xCu7OX5xQ+W7v6YsxoynZINyRaOIfLkJg=
-Date:   Mon, 28 Jun 2021 17:20:36 -0700
+        b=koqJuT2H0nxyg8tT2NF3GJt6mdOYaYRYlJKmybdKasMzhAMuKe4XHkR+Ii+Xst8xK
+         iwAy5hVUxZ4/aronkv2biG94y7o5Xf/CD436ycUWLLQ8iSznITs5KD8r/+76JICdh1
+         OC2hKxlOqxRCPCXq7r8s753/RiBkpI5U957MRXwQ=
+Date:   Mon, 28 Jun 2021 17:21:28 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, peterx@redhat.com
+To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- mm-gup-pack-has_pinned-in-mmf_has_pinned-fix.patch removed from -mm tree
-Message-ID: <20210629002036.TrCR-MdfM%akpm@linux-foundation.org>
+ mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix.patch
+ removed from -mm tree
+Message-ID: <20210629002128.YcGQmsbBQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,80 +43,107 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fixup! mm: gup: pack has_pinned in MMF_HAS_PINNED
+     Subject: mm/swapfile: move scan_swap_map() under CONFIG_HIBERNATION
 has been removed from the -mm tree.  Its filename was
-     mm-gup-pack-has_pinned-in-mmf_has_pinned-fix.patch
+     mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix.patch
 
-This patch was dropped because it was folded into mm-gup-pack-has_pinned-in-mmf_has_pinned.patch
+This patch was dropped because it was folded into mm-swapfile-move-get_swap_page_of_type-under-config_hibernation.patch
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: fixup! mm: gup: pack has_pinned in MMF_HAS_PINNED
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/swapfile: move scan_swap_map() under CONFIG_HIBERNATION
 
-This fixes build issue with !CONFIG_MMU.
+We should move scan_swap_map() under CONFIG_HIBERNATION since the only
+caller of this function is get_swap_page_of_type() which is also under
+CONFIG_HIBERNATION.  And this fixes the unused-function warning of
+scan_swap_map().
 
-Link: https://lkml.kernel.org/r/YJqWESqyxa8OZA+2@t490s
-Signed-off-by: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20210521070855.2015094-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ mm/swapfile.c |   30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
---- a/mm/gup.c~mm-gup-pack-has_pinned-in-mmf_has_pinned-fix
-+++ a/mm/gup.c
-@@ -420,6 +420,17 @@ void unpin_user_pages(struct page **page
+--- a/mm/swapfile.c~mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix
++++ a/mm/swapfile.c
+@@ -1037,21 +1037,6 @@ static void swap_free_cluster(struct swa
+ 	swap_range_free(si, offset, SWAPFILE_CLUSTER);
  }
- EXPORT_SYMBOL(unpin_user_pages);
  
-+/*
-+ * Set the MMF_HAS_PINNED if not set yet; after set it'll be there for the mm's
-+ * lifecycle.  Avoid setting the bit unless necessary, or it might cause write
-+ * cache bouncing on large SMP machines for concurrent pinned gups.
-+ */
-+static inline void mm_set_has_pinned_flag(unsigned long *mm_flags)
-+{
-+	if (!test_bit(MMF_HAS_PINNED, mm_flags))
-+		set_bit(MMF_HAS_PINNED, mm_flags);
-+}
-+
- #ifdef CONFIG_MMU
- static struct page *no_page_table(struct vm_area_struct *vma,
- 		unsigned int flags)
-@@ -1299,17 +1310,6 @@ retry:
- EXPORT_SYMBOL_GPL(fixup_user_fault);
- 
- /*
-- * Set the MMF_HAS_PINNED if not set yet; after set it'll be there for the mm's
-- * lifecycle.  Avoid setting the bit unless necessary, or it might cause write
-- * cache bouncing on large SMP machines for concurrent pinned gups.
-- */
--static inline void mm_set_has_pinned_flag(unsigned long *mm_flags)
+-static unsigned long scan_swap_map(struct swap_info_struct *si,
+-				   unsigned char usage)
 -{
--	if (!test_bit(MMF_HAS_PINNED, mm_flags))
--		set_bit(MMF_HAS_PINNED, mm_flags);
+-	swp_entry_t entry;
+-	int n_ret;
+-
+-	n_ret = scan_swap_map_slots(si, usage, 1, &entry);
+-
+-	if (n_ret)
+-		return swp_offset(entry);
+-	else
+-		return 0;
+-
 -}
 -
--/*
-  * Please note that this function, unlike __get_user_pages will not
-  * return 0 for nr_pages > 0 without FOLL_NOWAIT
-  */
+ int get_swap_pages(int n_goal, swp_entry_t swp_entries[], int entry_size)
+ {
+ 	unsigned long size = swap_entry_size(entry_size);
+@@ -1789,6 +1774,21 @@ int free_swap_and_cache(swp_entry_t entr
+ 
+ #ifdef CONFIG_HIBERNATION
+ 
++static unsigned long scan_swap_map(struct swap_info_struct *si,
++				   unsigned char usage)
++{
++	swp_entry_t entry;
++	int n_ret;
++
++	n_ret = scan_swap_map_slots(si, usage, 1, &entry);
++
++	if (n_ret)
++		return swp_offset(entry);
++	else
++		return 0;
++
++}
++
+ swp_entry_t get_swap_page_of_type(int type)
+ {
+ 	struct swap_info_struct *si = swap_type_to_swap_info(type);
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-gup_benchmark-support-threading.patch
-mm-gup-pack-has_pinned-in-mmf_has_pinned.patch
-userfaultfd-selftests-use-user-mode-only.patch
-userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch
-userfaultfd-selftests-dropping-verify-check-in-locking_thread.patch
-userfaultfd-selftests-only-dump-counts-if-mode-enabled.patch
-userfaultfd-selftests-unify-error-handling.patch
-mm-thp-simplify-copying-of-huge-zero-page-pmd-when-fork.patch
-mm-userfaultfd-fix-uffd-wp-special-cases-for-fork.patch
-mm-userfaultfd-fix-a-few-thp-pmd-missing-uffd-wp-bit.patch
-mm-userfaultfd-fail-uffd-wp-registeration-if-not-supported.patch
-mm-pagemap-export-uffd-wp-protection-information.patch
-userfaultfd-selftests-add-pagemap-uffd-wp-test.patch
-userfaultfd-selftests-reinitialize-test-context-in-each-test-fix.patch
+mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
+swap-fix-do_swap_page-race-with-swapoff.patch
+mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
+mm-shmem-fix-shmem_swapin-race-with-swapoff.patch
+mm-swapfile-move-get_swap_page_of_type-under-config_hibernation.patch
+mm-swapfile-move-get_swap_page_of_type-under-config_hibernation-fix-2.patch
+mm-swap-remove-unused-local-variable-nr_shadows.patch
+mm-swap_slotsc-delete-meaningless-forward-declarations.patch
+mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
+mm-huge_memoryc-use-page-deferred_list.patch
+mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled.patch
+mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled-v4.patch
+mm-huge_memoryc-remove-unnecessary-tlb_remove_page_size-for-huge-zero-pmd.patch
+mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
+mm-workingset-define-macro-workingset_shift.patch
+mm-z3fold-define-macro-nchunks-as-total_chunks-zhdr_chunks.patch
+mm-z3fold-avoid-possible-underflow-in-z3fold_alloc.patch
+mm-z3fold-remove-magic-number-in-z3fold_create_pool.patch
+mm-z3fold-remove-unused-function-handle_to_z3fold_header.patch
+mm-z3fold-fix-potential-memory-leak-in-z3fold_destroy_pool.patch
+mm-z3fold-use-release_z3fold_page_locked-to-release-locked-z3fold-page.patch
+mm-zbud-reuse-unbuddied-as-buddied-in-zbud_pool.patch
+mm-zbud-dont-export-any-zbud-api.patch
+mm-zbud-dont-export-any-zbud-api-fix.patch
+mm-zswapc-remove-unused-function-zswap_debugfs_exit.patch
+mm-zswapc-avoid-unnecessary-copy-in-at-map-time.patch
+mm-zswapc-fix-two-bugs-in-zswap_writeback_entry.patch
+mm-zsmallocc-remove-confusing-code-in-obj_free.patch
+mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
+mm-zsmallocc-improve-readability-for-async_free_zspage.patch
 
