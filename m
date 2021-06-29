@@ -7,39 +7,42 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A525BC11F65
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:37:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE391C11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:37:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 943C061D09
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:37:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A834461D08
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 02:37:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231802AbhF2Cjo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 22:39:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60396 "EHLO mail.kernel.org"
+        id S231918AbhF2Cjs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 22:39:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231724AbhF2Cjn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 22:39:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8546561A2B;
-        Tue, 29 Jun 2021 02:37:16 +0000 (UTC)
+        id S231724AbhF2Cjs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 22:39:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2A86A61D06;
+        Tue, 29 Jun 2021 02:37:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624934237;
-        bh=/POV9UGgpCHcoyUw9DZKte6UudXS13gszgGH8144giU=;
+        s=korg; t=1624934240;
+        bh=lIMAgnmlbeqCLxbZmMiM86PoeQAtiPk6yDK2QLUWEgI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=CmS0oOhG48lqbOPvD/NEuM13vA1tX3zwNxnskNUUnIqa77f6AT3GpJd2f9lzrqHUp
-         8TTA196QrsXcNajdICYXaaKxe1JUaOboR4po4pQVHqb7OVgVhBkuzr8PIcMzgJ4k7h
-         BjDpYnj3lJi1CdcH2ZRmwoeEgeOLLdlz02DL0Z3U=
-Date:   Mon, 28 Jun 2021 19:37:16 -0700
+        b=Hhf0oUvSj65tFwQif4ZbDlquvqSEKqK9G9QxYVJ383N91CHTMlNcqlv23nnyZgQw1
+         WV/3JCYxgV/QZ1/lQ4oXego+G30HvrGMTgcxsS5SenwWWEyOcEqJBsjreTv/+LUgoj
+         vJivJThnZlwJupWbhZHq1kTsREZTXinmuOAXRXdU=
+Date:   Mon, 28 Jun 2021 19:37:19 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
-        hannes@cmpxchg.org, hch@lst.de, hughd@google.com,
-        iamjoonsoo.kim@lge.com, idryomov@gmail.com, linmiaohe@huawei.com,
-        linux-mm@kvack.org, mgorman@techsingularity.net, mhocko@kernel.org,
-        minchan@kernel.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, vbabka@suse.cz, willy@infradead.org,
-        ying.huang@intel.com
-Subject:  [patch 076/192] swap: check mapping_empty() for swap
- cache before being freed
-Message-ID: <20210629023716.zBdJg2iAG%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
+        chris@chrisdown.name, cl@linux.com, guro@fb.com,
+        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, laoar.shao@gmail.com,
+        linux-mm@kvack.org, longman@redhat.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, msys.mizuma@gmail.com,
+        penberg@kernel.org, richard.weiyang@gmail.com, rientjes@google.com,
+        shakeelb@google.com, songmuchun@bytedance.com, tj@kernel.org,
+        torvalds@linux-foundation.org, vbabka@suse.cz,
+        vdavydov.dev@gmail.com, willy@infradead.org,
+        zhengjun.xing@linux.intel.com
+Subject:  [patch 077/192] mm/memcg: move mod_objcg_state() to
+ memcontrol.c
+Message-ID: <20210629023719.RgwmfFpGm%akpm@linux-foundation.org>
 In-Reply-To: <20210628193256.008961950a714730751c1423@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,46 +50,200 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Huang Ying <ying.huang@intel.com>
-Subject: swap: check mapping_empty() for swap cache before being freed
+From: Waiman Long <longman@redhat.com>
+Subject: mm/memcg: move mod_objcg_state() to memcontrol.c
 
-To check whether all pages and shadow entries in swap cache has been
-removed before swap cache is freed.
+Patch series "mm/memcg: Reduce kmemcache memory accounting overhead", v6.
 
-Link: https://lkml.kernel.org/r/20210608005121.511140-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
+With the recent introduction of the new slab memory controller, we
+eliminate the need for having separate kmemcaches for each memory cgroup
+and reduce overall kernel memory usage.  However, we also add additional
+memory accounting overhead to each call of kmem_cache_alloc() and
+kmem_cache_free().
+
+For workloads that require a lot of kmemcache allocations and
+de-allocations, they may experience performance regression as illustrated
+in [1] and [2].
+
+A simple kernel module that performs repeated loop of 100,000,000
+kmem_cache_alloc() and kmem_cache_free() of either a small 32-byte object
+or a big 4k object at module init time with a batch size of 4 (4 kmalloc's
+followed by 4 kfree's) is used for benchmarking.  The benchmarking tool
+was run on a kernel based on linux-next-20210419.  The test was run on a
+CascadeLake server with turbo-boosting disable to reduce run-to-run
+variation.
+
+The small object test exercises mainly the object stock charging and
+vmstat update code paths.  The large object test also exercises the
+refill_obj_stock() and __memcg_kmem_charge()/__memcg_kmem_uncharge() code
+paths.
+
+With memory accounting disabled, the run time was 3.130s with both small
+object big object tests.
+
+With memory accounting enabled, both cgroup v1 and v2 showed similar
+results in the small object test.  The performance results of the large
+object test, however, differed between cgroup v1 and v2.
+
+The execution times with the application of various patches in the
+patchset were:
+
+  Applied patches   Run time   Accounting overhead   %age 1   %age 2
+  ---------------   --------   -------------------   ------   ------
+
+  Small 32-byte object:
+       None          11.634s         8.504s          100.0%   271.7%
+        1-2           9.425s         6.295s           74.0%   201.1%
+        1-3           9.708s         6.578s           77.4%   210.2%
+        1-4           8.062s         4.932s           58.0%   157.6%
+
+  Large 4k object (v2):
+       None          22.107s        18.977s          100.0%   606.3%
+        1-2          20.960s        17.830s           94.0%   569.6%
+        1-3          14.238s        11.108s           58.5%   354.9%
+        1-4          11.329s         8.199s           43.2%   261.9%
+
+  Large 4k object (v1):
+       None          36.807s        33.677s          100.0%  1075.9%
+        1-2          36.648s        33.518s           99.5%  1070.9%
+        1-3          22.345s        19.215s           57.1%   613.9%
+        1-4          18.662s        15.532s           46.1%   496.2%
+
+  N.B. %age 1 = overhead/unpatched overhead
+       %age 2 = overhead/accounting disabled time
+
+Patch 2 (vmstat data stock caching) helps in both the small object test
+and the large v2 object test. It doesn't help much in v1 big object test.
+
+Patch 3 (refill_obj_stock improvement) does help the small object test
+but offer significant performance improvement for the large object test
+(both v1 and v2).
+
+Patch 4 (eliminating irq disable/enable) helps in all test cases.
+
+To test for the extreme case, a multi-threaded kmalloc/kfree
+microbenchmark was run on the 2-socket 48-core 96-thread system with
+96 testing threads in the same memcg doing kmalloc+kfree of a 4k object
+with accounting enabled for 10s. The total number of kmalloc+kfree done
+in kilo operations per second (kops/s) were as follows:
+
+  Applied patches   v1 kops/s   v1 change   v2 kops/s   v2 change
+  ---------------   ---------   ---------   ---------   ---------
+       None           3,520        1.00X      6,242        1.00X
+        1-2           4,304        1.22X      8,478        1.36X
+        1-3           4,731        1.34X    418,142       66.99X
+        1-4           4,587        1.30X    438,838       70.30X
+
+With memory accounting disabled, the kmalloc/kfree rate was 1,481,291
+kop/s. This test shows how significant the memory accouting overhead
+can be in some extreme situations.
+
+For this multithreaded test, the improvement from patch 2 mainly
+comes from the conditional atomic xchg of objcg->nr_charged_bytes in
+mod_objcg_state(). By using an unconditional xchg, the operation rates
+were similar to the unpatched kernel.
+
+Patch 3 elminates the single highly contended cacheline of
+objcg->nr_charged_bytes for cgroup v2 leading to a huge performance
+improvement. Cgroup v1, however, still has another highly contended
+cacheline in the shared page counter &memcg->kmem. So the improvement
+is only modest.
+
+Patch 4 helps in cgroup v2, but performs worse in cgroup v1 as
+eliminating the irq_disable/irq_enable overhead seems to aggravate the
+cacheline contention.
+
+[1] https://lore.kernel.org/linux-mm/20210408193948.vfktg3azh2wrt56t@gabell/T/#u
+[2] https://lore.kernel.org/lkml/20210114025151.GA22932@xsang-OptiPlex-9020/
+
+
+This patch (of 4):
+
+mod_objcg_state() is moved from mm/slab.h to mm/memcontrol.c so that
+further optimization can be done to it in later patches without exposing
+unnecessary details to other mm components.
+
+Link: https://lkml.kernel.org/r/20210506150007.16288-1-longman@redhat.com
+Link: https://lkml.kernel.org/r/20210506150007.16288-2-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Xing Zhengjun <zhengjun.xing@linux.intel.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   13 +++++++++++++
+ mm/slab.h       |   16 ++--------------
+ 2 files changed, 15 insertions(+), 14 deletions(-)
 
---- a/mm/swap_state.c~swap-check-mapping_empty-for-swap-cache-before-being-freed
-+++ a/mm/swap_state.c
-@@ -693,7 +693,12 @@ int init_swap_address_space(unsigned int
- 
- void exit_swap_address_space(unsigned int type)
- {
--	kvfree(swapper_spaces[type]);
-+	int i;
-+	struct address_space *spaces = swapper_spaces[type];
-+
-+	for (i = 0; i < nr_swapper_spaces[type]; i++)
-+		VM_WARN_ON_ONCE(!mapping_empty(&spaces[i]));
-+	kvfree(spaces);
- 	nr_swapper_spaces[type] = 0;
- 	swapper_spaces[type] = NULL;
+--- a/mm/memcontrol.c~mm-memcg-move-mod_objcg_state-to-memcontrolc
++++ a/mm/memcontrol.c
+@@ -782,6 +782,19 @@ void __mod_lruvec_kmem_state(void *p, en
+ 	rcu_read_unlock();
  }
+ 
++void mod_objcg_state(struct obj_cgroup *objcg, struct pglist_data *pgdat,
++		     enum node_stat_item idx, int nr)
++{
++	struct mem_cgroup *memcg;
++	struct lruvec *lruvec;
++
++	rcu_read_lock();
++	memcg = obj_cgroup_memcg(objcg);
++	lruvec = mem_cgroup_lruvec(memcg, pgdat);
++	mod_memcg_lruvec_state(lruvec, idx, nr);
++	rcu_read_unlock();
++}
++
+ /**
+  * __count_memcg_events - account VM events in a cgroup
+  * @memcg: the memory cgroup
+--- a/mm/slab.h~mm-memcg-move-mod_objcg_state-to-memcontrolc
++++ a/mm/slab.h
+@@ -240,6 +240,8 @@ static inline bool kmem_cache_debug_flag
+ #ifdef CONFIG_MEMCG_KMEM
+ int memcg_alloc_page_obj_cgroups(struct page *page, struct kmem_cache *s,
+ 				 gfp_t gfp, bool new_page);
++void mod_objcg_state(struct obj_cgroup *objcg, struct pglist_data *pgdat,
++		     enum node_stat_item idx, int nr);
+ 
+ static inline void memcg_free_page_obj_cgroups(struct page *page)
+ {
+@@ -284,20 +286,6 @@ static inline bool memcg_slab_pre_alloc_
+ 	return true;
+ }
+ 
+-static inline void mod_objcg_state(struct obj_cgroup *objcg,
+-				   struct pglist_data *pgdat,
+-				   enum node_stat_item idx, int nr)
+-{
+-	struct mem_cgroup *memcg;
+-	struct lruvec *lruvec;
+-
+-	rcu_read_lock();
+-	memcg = obj_cgroup_memcg(objcg);
+-	lruvec = mem_cgroup_lruvec(memcg, pgdat);
+-	mod_memcg_lruvec_state(lruvec, idx, nr);
+-	rcu_read_unlock();
+-}
+-
+ static inline void memcg_slab_post_alloc_hook(struct kmem_cache *s,
+ 					      struct obj_cgroup *objcg,
+ 					      gfp_t flags, size_t size,
 _
