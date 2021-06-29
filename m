@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E9CEC11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:33:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 457CFC11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:34:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 80ED161CDA
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:33:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FCDE61CE7
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:34:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232142AbhF2Afw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 20:35:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33168 "EHLO mail.kernel.org"
+        id S232161AbhF2AhG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 20:37:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33348 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232060AbhF2Afv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 20:35:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6E02F61CEB;
-        Tue, 29 Jun 2021 00:33:24 +0000 (UTC)
+        id S232060AbhF2AhG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 20:37:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CBA5C61CDC;
+        Tue, 29 Jun 2021 00:34:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624926804;
-        bh=TOe+FQRhgAtVR9L77Of7dNwEUhPQC5Be24WuiH03lZg=;
+        s=korg; t=1624926880;
+        bh=Ux97QL0Jffk6fBp6AGRGOnIo8TkVsKexVyKBi8bgSCs=;
         h=Date:From:To:Subject:From;
-        b=DFCWgI4uLzE99fmyDzQn3gBF7aKtwkt/CI10SL2gfEAGsQDBk4CKCqbKFdvJgzHzm
-         zXtmZyAKKKJTeHcH1m6jJRzb2S61U9x+UaToMjhg4ppviDw1q2q8hBz0BncY9gM3q6
-         IeAX4A3XO1wat8+RosG8kl2nDdNQxQpZ1GqVPIh8=
-Date:   Mon, 28 Jun 2021 17:33:24 -0700
+        b=aYFiOxn+W5DjChxUV96J5nRegm67tF5l4hECHOiyGof7s6CwjiKS7DYFwM1zPjzEW
+         GtCXJGWu3jnWBFE+WGDYlOSVMaYS+V4TD65TxCXB1oBmGuGRIZbzpt3JLVOOZyDRg0
+         FlQeleXAr0DlStMVSfW88rRakOHn68S9I4bWSftk=
+Date:   Mon, 28 Jun 2021 17:34:39 -0700
 From:   akpm@linux-foundation.org
-To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        vbabka@suse.cz
+To:     dave.hansen@linux.intel.com, hdanton@sina.com,
+        mgorman@techsingularity.net, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, vbabka@suse.cz
 Subject:  [folded-merged]
- mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2.patch removed
+ mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction-fix.patch removed
  from -mm tree
-Message-ID: <20210629003324.xM29ols5e%akpm@linux-foundation.org>
+Message-ID: <20210629003439.Vw7qNIV-B%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,110 +45,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: disassociate the pcp->high from pcp->batch -fix
+     Subject: mm/page_alloc: introduce vm.percpu_pagelist_high_fraction -fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2.patch
+     mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction-fix.patch
 
-This patch was dropped because it was folded into mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch.patch
+This patch was dropped because it was folded into mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction.patch
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: disassociate the pcp->high from pcp->batch -fix
+Subject: mm/page_alloc: introduce vm.percpu_pagelist_high_fraction -fix
 
-Vlastimil Babka noted that __setup_per_zone_wmarks updating pcp->high did
-not protect watermark-related sysctl handlers from a parallel memory
-hotplug operations.  This patch moves the PCP update to
-setup_per_zone_wmarks and updates the PCP high value while protected by
-the pcp_batch_high_lock mutex.  As a side-effect, the zone_pcp_update
-calls during memory hotplug operations becomes redundant and can be
-removed.
+Vlastimil Babka pointed out that the documentation for
+vm.percpu_pagelist_high_fraction is potentially misleading so fix it.
 
 This is a fix to the mmotm patch
-mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch.patch.  It'll cause
-a conflict with
-mm-page_alloc-adjust-pcp-high-after-cpu-hotplug-events.patch but the
-resolution is simple as the zone_pcp_update callers in
-setup_per_zone_wmarks no longer exist.
+mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction.patch
 
-Link: https://lkml.kernel.org/r/20210528105925.GN30378@techsingularity.net
+Link: https://lkml.kernel.org/r/20210528151010.GQ30378@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    6 +++---
- mm/page_alloc.c     |   14 ++++++++------
- 2 files changed, 11 insertions(+), 9 deletions(-)
+ Documentation/admin-guide/sysctl/vm.rst |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2
-+++ a/mm/memory_hotplug.c
-@@ -961,7 +961,6 @@ int __ref online_pages(unsigned long pfn
- 	node_states_set_node(nid, &arg);
- 	if (need_zonelists_rebuild)
- 		build_all_zonelists(NULL);
--	zone_pcp_update(zone);
+--- a/Documentation/admin-guide/sysctl/vm.rst~mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction-fix
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -793,15 +793,16 @@ why oom happens. You can get snapshot.
+ percpu_pagelist_high_fraction
+ =============================
  
- 	/* Basic onlining is complete, allow allocation of onlined pages. */
- 	undo_isolate_page_range(pfn, pfn + nr_pages, MIGRATE_MOVABLE);
-@@ -974,6 +973,7 @@ int __ref online_pages(unsigned long pfn
- 	 */
- 	shuffle_zone(zone);
+-This is the fraction of pages in each zone that are allocated for each
+-per cpu page list.  The min value for this is 8.  It means that we do
+-not allow more than 1/8th of pages in each zone to be allocated in any
+-single per_cpu_pagelist.  This entry only changes the value of hot per
+-cpu pagelists. User can specify a number like 100 to allocate 1/100th
+-of each zone to each per cpu page list.
++This is the fraction of pages in each zone that are can be stored to
++per-cpu page lists. It is an upper boundary that is divided depending
++on the number of online CPUs. The min value for this is 8 which means
++that we do not allow more than 1/8th of pages in each zone to be stored
++on per-cpu page lists. This entry only changes the value of hot per-cpu
++page lists. A user can specify a number like 100 to allocate 1/100th of
++each zone between per-cpu lists.
  
-+	/* reinitialise watermarks and update pcp limits */
- 	init_per_zone_wmark_min();
+-The batch value of each per cpu pagelist remains the same regardless of the
+-value of the high fraction so allocation latencies are unaffected.
++The batch value of each per-cpu page list remains the same regardless of
++the value of the high fraction so allocation latencies are unaffected.
  
- 	kswapd_run(nid);
-@@ -1829,13 +1829,13 @@ int __ref offline_pages(unsigned long st
- 	adjust_managed_page_count(pfn_to_page(start_pfn), -nr_pages);
- 	adjust_present_page_count(zone, -nr_pages);
- 
-+	/* reinitialise watermarks and update pcp limits */
- 	init_per_zone_wmark_min();
- 
- 	if (!populated_zone(zone)) {
- 		zone_pcp_reset(zone);
- 		build_all_zonelists(NULL);
--	} else
--		zone_pcp_update(zone);
-+	}
- 
- 	node_states_clear_node(node, &arg);
- 	if (arg.status_change_nid >= 0) {
---- a/mm/page_alloc.c~mm-page_alloc-disassociate-the-pcp-high-from-pcp-batch-fix-2
-+++ a/mm/page_alloc.c
-@@ -8224,12 +8224,6 @@ static void __setup_per_zone_wmarks(void
- 		zone->_watermark[WMARK_LOW]  = min_wmark_pages(zone) + tmp;
- 		zone->_watermark[WMARK_HIGH] = min_wmark_pages(zone) + tmp * 2;
- 
--		/*
--		 * The watermark size have changed so update the pcpu batch
--		 * and high limits or the limits may be inappropriate.
--		 */
--		zone_set_pageset_high_and_batch(zone);
--
- 		spin_unlock_irqrestore(&zone->lock, flags);
- 	}
- 
-@@ -8246,11 +8240,19 @@ static void __setup_per_zone_wmarks(void
-  */
- void setup_per_zone_wmarks(void)
- {
-+	struct zone *zone;
- 	static DEFINE_SPINLOCK(lock);
- 
- 	spin_lock(&lock);
- 	__setup_per_zone_wmarks();
- 	spin_unlock(&lock);
-+
-+	/*
-+	 * The watermark size have changed so update the pcpu batch
-+	 * and high limits or the limits may be inappropriate.
-+	 */
-+	for_each_zone(zone)
-+		zone_pcp_update(zone);
- }
- 
- /*
+ The initial value is zero. Kernel uses this value to set the high pcp->high
+ mark based on the low watermark for the zone and the number of local
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
@@ -168,7 +120,6 @@ mm-page_alloc-adjust-pcp-high-after-cpu-hotplug-events.patch
 mm-page_alloc-scale-the-number-of-pages-that-are-batch-freed.patch
 mm-page_alloc-limit-the-number-of-pages-on-pcp-lists-when-reclaim-is-active.patch
 mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction.patch
-mm-page_alloc-introduce-vmpercpu_pagelist_high_fraction-fix.patch
 mm-page_alloc-move-free_the_page.patch
 mm-page_alloc-allow-high-order-pages-to-be-stored-on-the-per-cpu-lists.patch
 mm-page_alloc-split-pcp-high-across-all-online-cpus-for-cpuless-nodes.patch
