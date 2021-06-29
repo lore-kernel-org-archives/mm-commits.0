@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0789C11F64
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:29:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AB7EC11F64
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:29:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A165361CED
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:29:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F8E7611F1
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Jun 2021 00:29:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231946AbhF2Ab3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Jun 2021 20:31:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60672 "EHLO mail.kernel.org"
+        id S232173AbhF2Abs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Jun 2021 20:31:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232170AbhF2AbZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Jun 2021 20:31:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A8C461CED;
-        Tue, 29 Jun 2021 00:28:58 +0000 (UTC)
+        id S232170AbhF2Abr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Jun 2021 20:31:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A6D661CE5;
+        Tue, 29 Jun 2021 00:29:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1624926538;
-        bh=0rx3zOgSYXfBURJDmx+yWB90H1FGCjaGzVdb4GgoKHE=;
+        s=korg; t=1624926561;
+        bh=nmpM2SbWS6winCOuu2arZVd6h+b9RczVi/FAdh+TfW8=;
         h=Date:From:To:Subject:From;
-        b=V+TAWYHK/sU/5gt3mjCSqPuBZ6rE1CH7cCzjLYCZZ9cB0dWAjad7Wol4qPrszQPZ+
-         9ZdNX4AKx7LdtdEmlm55JhweFJZ0MFF8/qlGBLWOY8zMmaq/QQR/RDzWRanpvQbXUT
-         +SipGnQpUrSbnjXSIKmbDiCsZ7Kw4l1L6TE6JjE4=
-Date:   Mon, 28 Jun 2021 17:28:58 -0700
+        b=xYpTjvvQxq8Brnynyy8mpxtwtC5UyaoHMrZSm6pmAdE0pE6MaKcH/rapMOw/urinF
+         xMJMrfbn1DypYhGx8Bwy9Hcg9R8uKQO8HTnduLvbNIamp0jVtZKEe/OcSot6ZIo0ln
+         pQEWB2lmIbIdiByd9q5MggIc2z3hL8zgXqEK6xGE=
+Date:   Mon, 28 Jun 2021 17:29:21 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, david@redhat.com,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To:     akpm@linux-foundation.org, liam.howlett@oracle.com,
+        mm-commits@vger.kernel.org, willy@infradead.org
 Subject:  [folded-merged]
- binfmt-remove-in-tree-usage-of-map_executable-fix.patch removed from -mm
+ mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch removed from -mm
  tree
-Message-ID: <20210629002858.VW_KZLlt5%akpm@linux-foundation.org>
+Message-ID: <20210629002921.TCr6iuRPl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,52 +44,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: binfmt-remove-in-tree-usage-of-map_executable-fix
+     Subject: mm-mmap-introduce-unlock_range-for-code-cleanup-fix
 has been removed from the -mm tree.  Its filename was
-     binfmt-remove-in-tree-usage-of-map_executable-fix.patch
+     mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
 
-This patch was dropped because it was folded into binfmt-remove-in-tree-usage-of-map_executable.patch
+This patch was dropped because it was folded into mm-mmap-introduce-unlock_range-for-code-cleanup.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: binfmt-remove-in-tree-usage-of-map_executable-fix
+Subject: mm-mmap-introduce-unlock_range-for-code-cleanup-fix
 
-fix blooper in fs/binfmt_aout.c. per David
+tweak code layout
 
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_aout.c |    4 ++--
+ mm/mmap.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/binfmt_aout.c~binfmt-remove-in-tree-usage-of-map_executable-fix
-+++ a/fs/binfmt_aout.c
-@@ -222,7 +222,7 @@ static int load_aout_binary(struct linux
+--- a/mm/mmap.c~mm-mmap-introduce-unlock_range-for-code-cleanup-fix
++++ a/mm/mmap.c
+@@ -2802,8 +2802,8 @@ int split_vma(struct mm_struct *mm, stru
+ 	return __split_vma(mm, vma, addr, new_below);
+ }
  
- 		error = vm_mmap(bprm->file, N_TXTADDR(ex), ex.a_text,
- 			PROT_READ | PROT_EXEC,
--			MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE;
-+			MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE,
- 			fd_offset);
- 
- 		if (error != N_TXTADDR(ex))
-@@ -230,7 +230,7 @@ static int load_aout_binary(struct linux
- 
- 		error = vm_mmap(bprm->file, N_DATADDR(ex), ex.a_data,
- 				PROT_READ | PROT_WRITE | PROT_EXEC,
--				MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE;
-+				MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE,
- 				fd_offset + ex.a_text);
- 		if (error != N_DATADDR(ex))
- 			return error;
+-static inline
+-void unlock_range(struct vm_area_struct *start, unsigned long limit)
++static inline void
++unlock_range(struct vm_area_struct *start, unsigned long limit)
+ {
+ 	struct mm_struct *mm = start->vm_mm;
+ 	struct vm_area_struct *tmp = start;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-binfmt-remove-in-tree-usage-of-map_executable.patch
-mm-mmap-introduce-unlock_range-for-code-cleanup-fix.patch
+mm-mmap-introduce-unlock_range-for-code-cleanup.patch
 mm-page_alloc-convert-per-cpu-list-protection-to-local_lock-fix-checkpatch-fixes.patch
 mm.patch
 lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
