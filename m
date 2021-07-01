@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 064B4C11F6A
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01740C11F68
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E202B61468
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D82DF6105A
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238500AbhGABzb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:55:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45144 "EHLO mail.kernel.org"
+        id S238502AbhGABze (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:55:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45218 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238499AbhGABzb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:55:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D79926105A;
-        Thu,  1 Jul 2021 01:53:01 +0000 (UTC)
+        id S238501AbhGABze (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:55:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D442B61468;
+        Thu,  1 Jul 2021 01:53:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104382;
-        bh=M43RQCLRu9wA7tddapQP5/1Byd2HZw83UfDEII0Ul6A=;
+        s=korg; t=1625104385;
+        bh=eYEx21DF4KneT+T4IkxLcj2uBlslKKRnWzc2TU2u6Z8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Sxeb7AJjQLm5yRyJX2qlJnorgGzclyuvHaDFYhsSfbV0Avgiq0De9MR20W33VjXpq
-         1/W9NU++xxqjPIkWicTUmqlIcPO5ix9CMo8e9MdmCc61F8TjnsmaHY3un5qPD6AXx+
-         pDD3rqDDo2s5bAT5FDvw2AcOOIEvLOZPGuOIyWRM=
-Date:   Wed, 30 Jun 2021 18:53:01 -0700
+        b=Ggxm7ZGcS5lGzcj4UWczdGAAqwlVxz3UKhYvbG/oKlyioorewaV0lMXS446j+wgeM
+         vzHm21xIF5jKXDKR234z8HRe2u6K2M8t4WfDC8QNvAZ7y/p1Q7gCY/TFAwQP9hTuSF
+         oI47TlC/6aHYzfqKGyyjQtb9FRSEML8dgRLf+58g=
+Date:   Wed, 30 Jun 2021 18:53:04 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
         linux-mm@kvack.org, minchan@kernel.org, mm-commits@vger.kernel.org,
         ngupta@vflare.org, senozhatsky@chromium.org,
         torvalds@linux-foundation.org
-Subject:  [patch 109/192] mm/zsmalloc.c: remove confusing code in
- obj_free()
-Message-ID: <20210701015301.tcFA0cOau%akpm@linux-foundation.org>
+Subject:  [patch 110/192] mm/zsmalloc.c: improve readability for
+ async_free_zspage()
+Message-ID: <20210701015304.6sZ8amjNt%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,23 +45,13 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/zsmalloc.c: remove confusing code in obj_free()
+Subject: mm/zsmalloc.c: improve readability for async_free_zspage()
 
-Patch series "Cleanup for zsmalloc".
+The class is extracted from pool->size_class[class_idx] again before
+calling __free_zspage().  It looks like class will change after we fetch
+the class lock.  But this is misleading as class will stay unchanged.
 
-This series contains cleanups to remove confusing code in obj_free(),
-combine two atomic ops and improve readability for async_free_zspage(). 
-More details can be found in the respective changelogs.
-
-
-This patch (of 2):
-
-OBJ_ALLOCATED_TAG is only set for handle to indicate allocated object. 
-It's irrelevant with obj.  So remove this misleading code to improve
-readability.
-
-Link: https://lkml.kernel.org/r/20210624123930.1769093-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210624123930.1769093-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210624123930.1769093-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
@@ -69,17 +59,18 @@ Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/zsmalloc.c~mm-zsmallocc-remove-confusing-code-in-obj_free
+--- a/mm/zsmalloc.c~mm-zsmallocc-improve-readability-for-async_free_zspage
 +++ a/mm/zsmalloc.c
-@@ -1471,7 +1471,6 @@ static void obj_free(struct size_class *
- 	unsigned int f_objidx;
- 	void *vaddr;
- 
--	obj &= ~OBJ_ALLOCATED_TAG;
- 	obj_to_location(obj, &f_page, &f_objidx);
- 	f_offset = (class->size * f_objidx) & ~PAGE_MASK;
- 	zspage = get_zspage(f_page);
+@@ -2162,7 +2162,7 @@ static void async_free_zspage(struct wor
+ 		VM_BUG_ON(fullness != ZS_EMPTY);
+ 		class = pool->size_class[class_idx];
+ 		spin_lock(&class->lock);
+-		__free_zspage(pool, pool->size_class[class_idx], zspage);
++		__free_zspage(pool, class, zspage);
+ 		spin_unlock(&class->lock);
+ 	}
+ };
 _
