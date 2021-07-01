@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCB5BC11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:47:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 339C6C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:47:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A0EC361474
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:47:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1AD1D61477
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:47:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237232AbhGABtw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:49:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39148 "EHLO mail.kernel.org"
+        id S237174AbhGABt6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:49:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39214 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237149AbhGABtw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:49:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DD8156146B;
-        Thu,  1 Jul 2021 01:47:21 +0000 (UTC)
+        id S237149AbhGABt5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:49:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C86A261469;
+        Thu,  1 Jul 2021 01:47:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104042;
-        bh=KnkQ08jqNgDkCd9Ck0dB0l+hnzKq6rBz45+4feK2hiw=;
+        s=korg; t=1625104046;
+        bh=B/reZ1mSXT6NQEJmPCJE7MgtkRFoE/6D/4fnvFnQRoo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=lbIOUY8aGoiQNQWWIfTLeF4BeoI5wIrBiLDW6cjUr6ygjcXjA2q9jpW6TBmrCloUZ
-         m918f3J41xfSYX/RvyOMeg/fqh25ShyfxRjM8r2co1wRSKPIh/OLf5+TAIb4xV/cUG
-         4rjCKd5py+dRoAdnTV352ZQX7FTpmBgmUOTm1Krc=
-Date:   Wed, 30 Jun 2021 18:47:21 -0700
+        b=ktPjlGk8/Fo52jZ2zj6ErwyzCNpkW14fGRaEqrhGAXdvrDCLRZbnM0F7J7EwYFnS5
+         pV1DLJVoW3fjTP+rSznYH1pvgqxYUgHEjifzkYYaa1H++RQFRZfolJjacPtjGFW9Uh
+         X/ZL3s6H2NL7RNEid/LJKI+6RTCk5NFtuJY0fobw=
+Date:   Wed, 30 Jun 2021 18:47:25 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, almasrymina@google.com,
         anshuman.khandual@arm.com, bodeddub@amazon.com, bp@alien8.de,
@@ -45,9 +45,9 @@ To:     akpm@linux-foundation.org, almasrymina@google.com,
         song.bao.hua@hisilicon.com, songmuchun@bytedance.com,
         tglx@linutronix.de, torvalds@linux-foundation.org,
         viro@zeniv.linux.org.uk, willy@infradead.org
-Subject:  [patch 006/192] mm: hugetlb: alloc the vmemmap pages
- associated with each HugeTLB page
-Message-ID: <20210701014721.djRZcYPba%akpm@linux-foundation.org>
+Subject:  [patch 007/192] mm: hugetlb: add a kernel parameter
+ hugetlb_free_vmemmap
+Message-ID: <20210701014725.0NAzb7_it%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -56,69 +56,28 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb: alloc the vmemmap pages associated with each HugeTLB page
+Subject: mm: hugetlb: add a kernel parameter hugetlb_free_vmemmap
 
-When we free a HugeTLB page to the buddy allocator, we need to allocate
-the vmemmap pages associated with it.  However, we may not be able to
-allocate the vmemmap pages when the system is under memory pressure.  In
-this case, we just refuse to free the HugeTLB page.  This changes behavior
-in some corner cases as listed below:
+Add a kernel parameter hugetlb_free_vmemmap to enable the feature of
+freeing unused vmemmap pages associated with each hugetlb page on boot.
 
- 1) Failing to free a huge page triggered by the user (decrease nr_pages).
+We disable PMD mapping of vmemmap pages for x86-64 arch when this feature
+is enabled.  Because vmemmap_remap_free() depends on vmemmap being base
+page mapped.
 
-    User needs to try again later.
-
- 2) Failing to free a surplus huge page when freed by the application.
-
-    Try again later when freeing a huge page next time.
-
- 3) Failing to dissolve a free huge page on ZONE_MOVABLE via
-    offline_pages().
-
-    This can happen when we have plenty of ZONE_MOVABLE memory, but
-    not enough kernel memory to allocate vmemmmap pages.  We may even
-    be able to migrate huge page contents, but will not be able to
-    dissolve the source huge page.  This will prevent an offline
-    operation and is unfortunate as memory offlining is expected to
-    succeed on movable zones.  Users that depend on memory hotplug
-    to succeed for movable zones should carefully consider whether the
-    memory savings gained from this feature are worth the risk of
-    possibly not being able to offline memory in certain situations.
-
- 4) Failing to dissolve a huge page on CMA/ZONE_MOVABLE via
-    alloc_contig_range() - once we have that handling in place. Mainly
-    affects CMA and virtio-mem.
-
-    Similar to 3). virito-mem will handle migration errors gracefully.
-    CMA might be able to fallback on other free areas within the CMA
-    region.
-
-Vmemmap pages are allocated from the page freeing context.  In order for
-those allocations to be not disruptive (e.g.  trigger oom killer)
-__GFP_NORETRY is used.  hugetlb_lock is dropped for the allocation because
-a non sleeping allocation would be too fragile and it could fail too
-easily under memory pressure.  GFP_ATOMIC or other modes to access memory
-reserves is not used because we want to prevent consuming reserves under
-heavy hugetlb freeing.
-
-[mike.kravetz@oracle.com: fix dissolve_free_huge_page use of tail/head page]
-  Link: https://lkml.kernel.org/r/20210527231225.226987-1-mike.kravetz@oracle.com
-[willy@infradead.org: fix alloc_vmemmap_page_list documentation warning]
-  Link: https://lkml.kernel.org/r/20210615200242.1716568-6-willy@infradead.org
-Link: https://lkml.kernel.org/r/20210510030027.56044-7-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20210510030027.56044-8-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Barry Song <song.bao.hua@hisilicon.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Tested-by: Chen Huang <chenhuang5@huawei.com>
+Tested-by: Bodeddula Balasubramaniam <bodeddub@amazon.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Barry Song <song.bao.hua@hisilicon.com>
-Cc: Bodeddula Balasubramaniam <bodeddub@amazon.com>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Chen Huang <chenhuang5@huawei.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -129,7 +88,6 @@ Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Joerg Roedel <jroedel@suse.de>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mina Almasry <almasrymina@google.com>
 Cc: Oliver Neukum <oneukum@suse.com>
@@ -142,410 +100,162 @@ Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/hugetlbpage.rst    |    8 +
- Documentation/admin-guide/mm/memory-hotplug.rst |   13 +
- include/linux/hugetlb.h                         |    3 
- include/linux/mm.h                              |    2 
- mm/hugetlb.c                                    |   98 +++++++++++---
- mm/hugetlb_vmemmap.c                            |   34 ++++
- mm/hugetlb_vmemmap.h                            |    6 
- mm/migrate.c                                    |    5 
- mm/sparse-vmemmap.c                             |   75 ++++++++++
- 9 files changed, 227 insertions(+), 17 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |   17 +++++++++
+ Documentation/admin-guide/mm/hugetlbpage.rst    |    3 +
+ arch/x86/mm/init_64.c                           |    8 +++-
+ include/linux/hugetlb.h                         |   19 +++++++++++
+ mm/hugetlb_vmemmap.c                            |   24 ++++++++++++++
+ 5 files changed, 69 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/mm/hugetlbpage.rst~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
-+++ a/Documentation/admin-guide/mm/hugetlbpage.rst
-@@ -60,6 +60,10 @@ HugePages_Surp
-         the pool above the value in ``/proc/sys/vm/nr_hugepages``. The
-         maximum number of surplus huge pages is controlled by
-         ``/proc/sys/vm/nr_overcommit_hugepages``.
-+	Note: When the feature of freeing unused vmemmap pages associated
-+	with each hugetlb page is enabled, the number of surplus huge pages
-+	may be temporarily larger than the maximum number of surplus huge
-+	pages when the system is under memory pressure.
- Hugepagesize
- 	is the default hugepage size (in Kb).
- Hugetlb
-@@ -80,6 +84,10 @@ returned to the huge page pool when free
- privileges can dynamically allocate more or free some persistent huge pages
- by increasing or decreasing the value of ``nr_hugepages``.
+--- a/arch/x86/mm/init_64.c~mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap
++++ a/arch/x86/mm/init_64.c
+@@ -34,6 +34,7 @@
+ #include <linux/gfp.h>
+ #include <linux/kcore.h>
+ #include <linux/bootmem_info.h>
++#include <linux/hugetlb.h>
  
-+Note: When the feature of freeing unused vmemmap pages associated with each
-+hugetlb page is enabled, we can fail to free the huge pages triggered by
-+the user when ths system is under memory pressure.  Please try again later.
-+
- Pages that are used as huge pages are reserved inside the kernel and cannot
- be used for other purposes.  Huge pages cannot be swapped out under
- memory pressure.
---- a/Documentation/admin-guide/mm/memory-hotplug.rst~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
-+++ a/Documentation/admin-guide/mm/memory-hotplug.rst
-@@ -357,6 +357,19 @@ creates ZONE_MOVABLE as following.
-    Unfortunately, there is no information to show which memory block belongs
-    to ZONE_MOVABLE. This is TBD.
+ #include <asm/processor.h>
+ #include <asm/bios_ebda.h>
+@@ -1609,7 +1610,8 @@ int __meminit vmemmap_populate(unsigned
+ 	VM_BUG_ON(!IS_ALIGNED(start, PAGE_SIZE));
+ 	VM_BUG_ON(!IS_ALIGNED(end, PAGE_SIZE));
  
-+   Memory offlining can fail when dissolving a free huge page on ZONE_MOVABLE
-+   and the feature of freeing unused vmemmap pages associated with each hugetlb
-+   page is enabled.
-+
-+   This can happen when we have plenty of ZONE_MOVABLE memory, but not enough
-+   kernel memory to allocate vmemmmap pages.  We may even be able to migrate
-+   huge page contents, but will not be able to dissolve the source huge page.
-+   This will prevent an offline operation and is unfortunate as memory offlining
-+   is expected to succeed on movable zones.  Users that depend on memory hotplug
-+   to succeed for movable zones should carefully consider whether the memory
-+   savings gained from this feature are worth the risk of possibly not being
-+   able to offline memory in certain situations.
-+
- .. note::
-    Techniques that rely on long-term pinnings of memory (especially, RDMA and
-    vfio) are fundamentally problematic with ZONE_MOVABLE and, therefore, memory
---- a/include/linux/hugetlb.h~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
-+++ a/include/linux/hugetlb.h
-@@ -532,12 +532,14 @@ unsigned long hugetlb_get_unmapped_area(
-  *	modifications require hugetlb_lock.
-  * HPG_freed - Set when page is on the free lists.
-  *	Synchronization: hugetlb_lock held for examination and modification.
-+ * HPG_vmemmap_optimized - Set when the vmemmap pages of the page are freed.
-  */
- enum hugetlb_page_flags {
- 	HPG_restore_reserve = 0,
- 	HPG_migratable,
- 	HPG_temporary,
- 	HPG_freed,
-+	HPG_vmemmap_optimized,
- 	__NR_HPAGEFLAGS,
- };
+-	if (end - start < PAGES_PER_SECTION * sizeof(struct page))
++	if ((is_hugetlb_free_vmemmap_enabled()  && !altmap) ||
++	    end - start < PAGES_PER_SECTION * sizeof(struct page))
+ 		err = vmemmap_populate_basepages(start, end, node, NULL);
+ 	else if (boot_cpu_has(X86_FEATURE_PSE))
+ 		err = vmemmap_populate_hugepages(start, end, node, altmap);
+@@ -1637,6 +1639,8 @@ void register_page_bootmem_memmap(unsign
+ 	pmd_t *pmd;
+ 	unsigned int nr_pmd_pages;
+ 	struct page *page;
++	bool base_mapping = !boot_cpu_has(X86_FEATURE_PSE) ||
++			    is_hugetlb_free_vmemmap_enabled();
  
-@@ -583,6 +585,7 @@ HPAGEFLAG(RestoreReserve, restore_reserv
- HPAGEFLAG(Migratable, migratable)
- HPAGEFLAG(Temporary, temporary)
- HPAGEFLAG(Freed, freed)
-+HPAGEFLAG(VmemmapOptimized, vmemmap_optimized)
- 
- #ifdef CONFIG_HUGETLB_PAGE
- 
---- a/include/linux/mm.h~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
-+++ a/include/linux/mm.h
-@@ -3078,6 +3078,8 @@ static inline void print_vma_addr(char *
- 
- void vmemmap_remap_free(unsigned long start, unsigned long end,
- 			unsigned long reuse);
-+int vmemmap_remap_alloc(unsigned long start, unsigned long end,
-+			unsigned long reuse, gfp_t gfp_mask);
- 
- void *sparse_buffer_alloc(unsigned long size);
- struct page * __populate_section_memmap(unsigned long pfn,
---- a/mm/hugetlb.c~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
-+++ a/mm/hugetlb.c
-@@ -1376,6 +1376,39 @@ static void remove_hugetlb_page(struct h
- 	h->nr_huge_pages_node[nid]--;
- }
- 
-+static void add_hugetlb_page(struct hstate *h, struct page *page,
-+			     bool adjust_surplus)
-+{
-+	int zeroed;
-+	int nid = page_to_nid(page);
-+
-+	VM_BUG_ON_PAGE(!HPageVmemmapOptimized(page), page);
-+
-+	lockdep_assert_held(&hugetlb_lock);
-+
-+	INIT_LIST_HEAD(&page->lru);
-+	h->nr_huge_pages++;
-+	h->nr_huge_pages_node[nid]++;
-+
-+	if (adjust_surplus) {
-+		h->surplus_huge_pages++;
-+		h->surplus_huge_pages_node[nid]++;
-+	}
-+
-+	set_compound_page_dtor(page, HUGETLB_PAGE_DTOR);
-+	set_page_private(page, 0);
-+	SetHPageVmemmapOptimized(page);
-+
-+	/*
-+	 * This page is now managed by the hugetlb allocator and has
-+	 * no users -- drop the last reference.
-+	 */
-+	zeroed = put_page_testzero(page);
-+	VM_BUG_ON_PAGE(!zeroed, page);
-+	arch_clear_hugepage_flags(page);
-+	enqueue_huge_page(h, page);
-+}
-+
- static void __update_and_free_page(struct hstate *h, struct page *page)
- {
- 	int i;
-@@ -1384,6 +1417,18 @@ static void __update_and_free_page(struc
- 	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
- 		return;
- 
-+	if (alloc_huge_page_vmemmap(h, page)) {
-+		spin_lock_irq(&hugetlb_lock);
-+		/*
-+		 * If we cannot allocate vmemmap pages, just refuse to free the
-+		 * page and put the page back on the hugetlb free list and treat
-+		 * as a surplus page.
-+		 */
-+		add_hugetlb_page(h, page, true);
-+		spin_unlock_irq(&hugetlb_lock);
-+		return;
-+	}
-+
- 	for (i = 0; i < pages_per_huge_page(h);
- 	     i++, subpage = mem_map_next(subpage, page, i)) {
- 		subpage->flags &= ~(1 << PG_locked | 1 << PG_error |
-@@ -1450,7 +1495,7 @@ static inline void flush_free_hpage_work
- static void update_and_free_page(struct hstate *h, struct page *page,
- 				 bool atomic)
- {
--	if (!free_vmemmap_pages_per_hpage(h) || !atomic) {
-+	if (!HPageVmemmapOptimized(page) || !atomic) {
- 		__update_and_free_page(h, page);
- 		return;
- 	}
-@@ -1806,10 +1851,14 @@ static struct page *remove_pool_huge_pag
-  * nothing for in-use hugepages and non-hugepages.
-  * This function returns values like below:
-  *
-- *  -EBUSY: failed to dissolved free hugepages or the hugepage is in-use
-- *          (allocated or reserved.)
-- *       0: successfully dissolved free hugepages or the page is not a
-- *          hugepage (considered as already dissolved)
-+ *  -ENOMEM: failed to allocate vmemmap pages to free the freed hugepages
-+ *           when the system is under memory pressure and the feature of
-+ *           freeing unused vmemmap pages associated with each hugetlb page
-+ *           is enabled.
-+ *  -EBUSY:  failed to dissolved free hugepages or the hugepage is in-use
-+ *           (allocated or reserved.)
-+ *       0:  successfully dissolved free hugepages or the page is not a
-+ *           hugepage (considered as already dissolved)
-  */
- int dissolve_free_huge_page(struct page *page)
- {
-@@ -1851,19 +1900,38 @@ retry:
- 			goto retry;
+ 	for (; addr < end; addr = next) {
+ 		pte_t *pte = NULL;
+@@ -1662,7 +1666,7 @@ void register_page_bootmem_memmap(unsign
  		}
+ 		get_page_bootmem(section_nr, pud_page(*pud), MIX_SECTION_INFO);
  
--		/*
--		 * Move PageHWPoison flag from head page to the raw error page,
--		 * which makes any subpages rather than the error page reusable.
--		 */
--		if (PageHWPoison(head) && page != head) {
--			SetPageHWPoison(page);
--			ClearPageHWPoison(head);
--		}
- 		remove_hugetlb_page(h, head, false);
- 		h->max_huge_pages--;
- 		spin_unlock_irq(&hugetlb_lock);
--		update_and_free_page(h, head, false);
--		return 0;
+-		if (!boot_cpu_has(X86_FEATURE_PSE)) {
++		if (base_mapping) {
+ 			next = (addr + PAGE_SIZE) & PAGE_MASK;
+ 			pmd = pmd_offset(pud, addr);
+ 			if (pmd_none(*pmd))
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1567,6 +1567,23 @@
+ 			Documentation/admin-guide/mm/hugetlbpage.rst.
+ 			Format: size[KMG]
+ 
++	hugetlb_free_vmemmap=
++			[KNL] Reguires CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
++			enabled.
++			Allows heavy hugetlb users to free up some more
++			memory (6 * PAGE_SIZE for each 2MB hugetlb page).
++			This feauture is not free though. Large page
++			tables are not used to back vmemmap pages which
++			can lead to a performance degradation for some
++			workloads. Also there will be memory allocation
++			required when hugetlb pages are freed from the
++			pool which can lead to corner cases under heavy
++			memory pressure.
++			Format: { on | off (default) }
 +
-+		/*
-+		 * Normally update_and_free_page will allocate required vmemmmap
-+		 * before freeing the page.  update_and_free_page will fail to
-+		 * free the page if it can not allocate required vmemmap.  We
-+		 * need to adjust max_huge_pages if the page is not freed.
-+		 * Attempt to allocate vmemmmap here so that we can take
-+		 * appropriate action on failure.
-+		 */
-+		rc = alloc_huge_page_vmemmap(h, head);
-+		if (!rc) {
-+			/*
-+			 * Move PageHWPoison flag from head page to the raw
-+			 * error page, which makes any subpages rather than
-+			 * the error page reusable.
-+			 */
-+			if (PageHWPoison(head) && page != head) {
-+				SetPageHWPoison(page);
-+				ClearPageHWPoison(head);
-+			}
-+			update_and_free_page(h, head, false);
-+		} else {
-+			spin_lock_irq(&hugetlb_lock);
-+			add_hugetlb_page(h, head, false);
-+			h->max_huge_pages++;
-+			spin_unlock_irq(&hugetlb_lock);
-+		}
++			on:  enable the feature
++			off: disable the feature
 +
-+		return rc;
- 	}
- out:
- 	spin_unlock_irq(&hugetlb_lock);
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
-+++ a/mm/hugetlb_vmemmap.c
-@@ -185,6 +185,38 @@ static inline unsigned long free_vmemmap
- 	return (unsigned long)free_vmemmap_pages_per_hpage(h) << PAGE_SHIFT;
+ 	hung_task_panic=
+ 			[KNL] Should the hung task detector generate panics.
+ 			Format: 0 | 1
+--- a/Documentation/admin-guide/mm/hugetlbpage.rst~mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap
++++ a/Documentation/admin-guide/mm/hugetlbpage.rst
+@@ -153,6 +153,9 @@ default_hugepagesz
+ 
+ 	will all result in 256 2M huge pages being allocated.  Valid default
+ 	huge page size is architecture dependent.
++hugetlb_free_vmemmap
++	When CONFIG_HUGETLB_PAGE_FREE_VMEMMAP is set, this enables freeing
++	unused vmemmap pages associated with each HugeTLB page.
+ 
+ When multiple huge page sizes are supported, ``/proc/sys/vm/nr_hugepages``
+ indicates the current number of pre-allocated huge pages of the default size.
+--- a/include/linux/hugetlb.h~mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap
++++ a/include/linux/hugetlb.h
+@@ -892,6 +892,20 @@ static inline void huge_ptep_modify_prot
  }
+ #endif
  
-+/*
-+ * Previously discarded vmemmap pages will be allocated and remapping
-+ * after this function returns zero.
-+ */
-+int alloc_huge_page_vmemmap(struct hstate *h, struct page *head)
++#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
++extern bool hugetlb_free_vmemmap_enabled;
++
++static inline bool is_hugetlb_free_vmemmap_enabled(void)
 +{
-+	int ret;
-+	unsigned long vmemmap_addr = (unsigned long)head;
-+	unsigned long vmemmap_end, vmemmap_reuse;
-+
-+	if (!HPageVmemmapOptimized(head))
-+		return 0;
-+
-+	vmemmap_addr += RESERVE_VMEMMAP_SIZE;
-+	vmemmap_end = vmemmap_addr + free_vmemmap_pages_size_per_hpage(h);
-+	vmemmap_reuse = vmemmap_addr - PAGE_SIZE;
-+	/*
-+	 * The pages which the vmemmap virtual address range [@vmemmap_addr,
-+	 * @vmemmap_end) are mapped to are freed to the buddy allocator, and
-+	 * the range is mapped to the page which @vmemmap_reuse is mapped to.
-+	 * When a HugeTLB page is freed to the buddy allocator, previously
-+	 * discarded vmemmap pages must be allocated and remapping.
-+	 */
-+	ret = vmemmap_remap_alloc(vmemmap_addr, vmemmap_end, vmemmap_reuse,
-+				  GFP_KERNEL | __GFP_NORETRY | __GFP_THISNODE);
-+
-+	if (!ret)
-+		ClearHPageVmemmapOptimized(head);
-+
-+	return ret;
++	return hugetlb_free_vmemmap_enabled;
 +}
++#else
++static inline bool is_hugetlb_free_vmemmap_enabled(void)
++{
++	return false;
++}
++#endif
 +
- void free_huge_page_vmemmap(struct hstate *h, struct page *head)
- {
- 	unsigned long vmemmap_addr = (unsigned long)head;
-@@ -203,4 +235,6 @@ void free_huge_page_vmemmap(struct hstat
- 	 * which the range [@vmemmap_addr, @vmemmap_end] is mapped to.
- 	 */
- 	vmemmap_remap_free(vmemmap_addr, vmemmap_end, vmemmap_reuse);
-+
-+	SetHPageVmemmapOptimized(head);
- }
---- a/mm/hugetlb_vmemmap.h~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
-+++ a/mm/hugetlb_vmemmap.h
-@@ -11,6 +11,7 @@
- #include <linux/hugetlb.h>
+ #else	/* CONFIG_HUGETLB_PAGE */
+ struct hstate {};
  
- #ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
-+int alloc_huge_page_vmemmap(struct hstate *h, struct page *head);
- void free_huge_page_vmemmap(struct hstate *h, struct page *head);
+@@ -1046,6 +1060,11 @@ static inline void set_huge_swap_pte_at(
+ 					pte_t *ptep, pte_t pte, unsigned long sz)
+ {
+ }
++
++static inline bool is_hugetlb_free_vmemmap_enabled(void)
++{
++	return false;
++}
+ #endif	/* CONFIG_HUGETLB_PAGE */
+ 
+ static inline spinlock_t *huge_pte_lock(struct hstate *h,
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb-add-a-kernel-parameter-hugetlb_free_vmemmap
++++ a/mm/hugetlb_vmemmap.c
+@@ -168,6 +168,8 @@
+  * (last) level. So this type of HugeTLB page can be optimized only when its
+  * size of the struct page structs is greater than 2 pages.
+  */
++#define pr_fmt(fmt)	"HugeTLB: " fmt
++
+ #include "hugetlb_vmemmap.h"
  
  /*
-@@ -25,6 +26,11 @@ static inline unsigned int free_vmemmap_
- 	return 0;
- }
- #else
-+static inline int alloc_huge_page_vmemmap(struct hstate *h, struct page *head)
-+{
-+	return 0;
-+}
-+
- static inline void free_huge_page_vmemmap(struct hstate *h, struct page *head)
- {
- }
---- a/mm/migrate.c~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
-+++ a/mm/migrate.c
-@@ -626,7 +626,10 @@ void migrate_page_states(struct page *ne
- 	if (PageSwapCache(page))
- 		ClearPageSwapCache(page);
- 	ClearPagePrivate(page);
--	set_page_private(page, 0);
-+
-+	/* page->private contains hugetlb specific flags */
-+	if (!PageHuge(page))
-+		set_page_private(page, 0);
+@@ -180,6 +182,28 @@
+ #define RESERVE_VMEMMAP_NR		2U
+ #define RESERVE_VMEMMAP_SIZE		(RESERVE_VMEMMAP_NR << PAGE_SHIFT)
  
- 	/*
- 	 * If any waiters have accumulated on the new page then
---- a/mm/sparse-vmemmap.c~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page
-+++ a/mm/sparse-vmemmap.c
-@@ -40,7 +40,8 @@
-  * @remap_pte:		called for each lowest-level entry (PTE).
-  * @reuse_page:		the page which is reused for the tail vmemmap pages.
-  * @reuse_addr:		the virtual address of the @reuse_page page.
-- * @vmemmap_pages:	the list head of the vmemmap pages that can be freed.
-+ * @vmemmap_pages:	the list head of the vmemmap pages that can be freed
-+ *			or is mapped from.
-  */
- struct vmemmap_remap_walk {
- 	void (*remap_pte)(pte_t *pte, unsigned long addr,
-@@ -224,6 +225,78 @@ void vmemmap_remap_free(unsigned long st
- 	free_vmemmap_page_list(&vmemmap_pages);
- }
- 
-+static void vmemmap_restore_pte(pte_t *pte, unsigned long addr,
-+				struct vmemmap_remap_walk *walk)
++bool hugetlb_free_vmemmap_enabled;
++
++static int __init early_hugetlb_free_vmemmap_param(char *buf)
 +{
-+	pgprot_t pgprot = PAGE_KERNEL;
-+	struct page *page;
-+	void *to;
-+
-+	BUG_ON(pte_page(*pte) != walk->reuse_page);
-+
-+	page = list_first_entry(walk->vmemmap_pages, struct page, lru);
-+	list_del(&page->lru);
-+	to = page_to_virt(page);
-+	copy_page(to, (void *)walk->reuse_addr);
-+
-+	set_pte_at(&init_mm, addr, pte, mk_pte(page, pgprot));
-+}
-+
-+static int alloc_vmemmap_page_list(unsigned long start, unsigned long end,
-+				   gfp_t gfp_mask, struct list_head *list)
-+{
-+	unsigned long nr_pages = (end - start) >> PAGE_SHIFT;
-+	int nid = page_to_nid((struct page *)start);
-+	struct page *page, *next;
-+
-+	while (nr_pages--) {
-+		page = alloc_pages_node(nid, gfp_mask, 0);
-+		if (!page)
-+			goto out;
-+		list_add_tail(&page->lru, list);
++	/* We cannot optimize if a "struct page" crosses page boundaries. */
++	if ((!is_power_of_2(sizeof(struct page)))) {
++		pr_warn("cannot free vmemmap pages because \"struct page\" crosses page boundaries\n");
++		return 0;
 +	}
 +
-+	return 0;
-+out:
-+	list_for_each_entry_safe(page, next, list, lru)
-+		__free_pages(page, 0);
-+	return -ENOMEM;
-+}
++	if (!buf)
++		return -EINVAL;
 +
-+/**
-+ * vmemmap_remap_alloc - remap the vmemmap virtual address range [@start, end)
-+ *			 to the page which is from the @vmemmap_pages
-+ *			 respectively.
-+ * @start:	start address of the vmemmap virtual address range that we want
-+ *		to remap.
-+ * @end:	end address of the vmemmap virtual address range that we want to
-+ *		remap.
-+ * @reuse:	reuse address.
-+ * @gfp_mask:	GFP flag for allocating vmemmap pages.
-+ */
-+int vmemmap_remap_alloc(unsigned long start, unsigned long end,
-+			unsigned long reuse, gfp_t gfp_mask)
-+{
-+	LIST_HEAD(vmemmap_pages);
-+	struct vmemmap_remap_walk walk = {
-+		.remap_pte	= vmemmap_restore_pte,
-+		.reuse_addr	= reuse,
-+		.vmemmap_pages	= &vmemmap_pages,
-+	};
-+
-+	/* See the comment in the vmemmap_remap_free(). */
-+	BUG_ON(start - reuse != PAGE_SIZE);
-+
-+	might_sleep_if(gfpflags_allow_blocking(gfp_mask));
-+
-+	if (alloc_vmemmap_page_list(start, end, gfp_mask, &vmemmap_pages))
-+		return -ENOMEM;
-+
-+	vmemmap_remap_range(reuse, end, &walk);
++	if (!strcmp(buf, "on"))
++		hugetlb_free_vmemmap_enabled = true;
++	else if (strcmp(buf, "off"))
++		return -EINVAL;
 +
 +	return 0;
 +}
++early_param("hugetlb_free_vmemmap", early_hugetlb_free_vmemmap_param);
 +
- /*
-  * Allocate a block of memory to be used to back the virtual memory map
-  * or to back the page tables that are used to create the mapping.
+ static inline unsigned long free_vmemmap_pages_size_per_hpage(struct hstate *h)
+ {
+ 	return (unsigned long)free_vmemmap_pages_per_hpage(h) << PAGE_SHIFT;
 _
