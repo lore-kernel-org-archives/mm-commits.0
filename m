@@ -5,37 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACC3FC11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ED73C11F68
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 94D0561477
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 005F661481
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238675AbhGAB7R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:59:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49010 "EHLO mail.kernel.org"
+        id S238566AbhGAB7S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:59:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238463AbhGAB7F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:59:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ED7C26147D;
-        Thu,  1 Jul 2021 01:56:34 +0000 (UTC)
+        id S238606AbhGAB7L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:59:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BC94361469;
+        Thu,  1 Jul 2021 01:56:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104595;
-        bh=t4fUpIseMo9kGaMebfPbXWFx074uUhQC5SxSfDL5mz4=;
+        s=korg; t=1625104601;
+        bh=0AhemfqD8GVqBCuMQ5lCqSm+IlfuRkwZDWpdpQtehws=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=olspHHV5YGIn1SOEi0AxNYmBqAZewivSKpH5LS1XfMh2IAaz+hNWVF+uvdNrNA5ji
-         RidZdrE7QzQbeb7dREfPmD/lVP6/Hkx3j6GlCyUx9sr7sLqUE0A9Vmk3jlx0OzaHR/
-         kQRg+7veXhxkk7oxYpERmghj4UrTH7/C3JKSyqgY=
-Date:   Wed, 30 Jun 2021 18:56:34 -0700
+        b=u9+0w7cvSAdHpkR1JfrVE9fEZLYRh3Y1lfN91Oam9jqeXskFbBMozpw4NdEVS24Us
+         s6Vie9SuZ9xuQurbrbDTawsqV5sswjsBPPpQoIDiLP3KvczFbiszu0xXaOejYteEtX
+         M7Tx9kxC6ig+VYv7J2qE/NH60XHDXnDW5I/HCuLc=
+Date:   Wed, 30 Jun 2021 18:56:40 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, colin.king@canonical.com,
-        konishi.ryusuke@gmail.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 178/192] nilfs2: remove redundant continue
- statement in a while-loop
-Message-ID: <20210701015634.WGEgit9PU%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, axboe@kernel.dk, cccheng@synology.com,
+        christian.brauner@ubuntu.com, jamorris@linux.microsoft.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, shepjeng@gmail.com,
+        slava@dubeyko.com, torvalds@linux-foundation.org
+Subject:  [patch 180/192] hfsplus: report create_date to
+ kstat.btime
+Message-ID: <20210701015640.stiIQSnDi%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,31 +44,36 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
-Subject: nilfs2: remove redundant continue statement in a while-loop
+From: Chung-Chiang Cheng <shepjeng@gmail.com>
+Subject: hfsplus: report create_date to kstat.btime
 
-The continue statement at the end of the while-loop is redundant,
-remove it.
+The create_date field of inode in hfsplus is corresponding to
+kstat.btime and could be reported in statx.
 
-Addresses-Coverity: ("Continue has no effect")
-Link: https://lkml.kernel.org/r/20210621100519.10257-1-colin.king@canonical.com
-Link: https://lkml.kernel.org/r/1624557664-17159-1-git-send-email-konishi.ryusuke@gmail.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Link: https://lkml.kernel.org/r/20210416172147.8736-1-cccheng@synology.com
+Signed-off-by: Chung-Chiang Cheng <cccheng@synology.com>
+Reviewed-by: Viacheslav Dubeyko <slava@dubeyko.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: James Morris <jamorris@linux.microsoft.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btree.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/hfsplus/inode.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/fs/nilfs2/btree.c~nilfs2-remove-redundant-continue-statement-in-a-while-loop
-+++ a/fs/nilfs2/btree.c
-@@ -738,7 +738,6 @@ static int nilfs_btree_lookup_contig(con
- 			if (ptr2 != ptr + cnt || ++cnt == maxblocks)
- 				goto end;
- 			index++;
--			continue;
- 		}
- 		if (level == maxlevel)
- 			break;
+--- a/fs/hfsplus/inode.c~hfsplus-report-create_date-to-kstatbtime
++++ a/fs/hfsplus/inode.c
+@@ -281,6 +281,11 @@ int hfsplus_getattr(struct user_namespac
+ 	struct inode *inode = d_inode(path->dentry);
+ 	struct hfsplus_inode_info *hip = HFSPLUS_I(inode);
+ 
++	if (request_mask & STATX_BTIME) {
++		stat->result_mask |= STATX_BTIME;
++		stat->btime = hfsp_mt2ut(hip->create_date);
++	}
++
+ 	if (inode->i_flags & S_APPEND)
+ 		stat->attributes |= STATX_ATTR_APPEND;
+ 	if (inode->i_flags & S_IMMUTABLE)
 _
