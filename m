@@ -7,35 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72225C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:47:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3BA5C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:47:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 56C046146D
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:47:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB39B61469
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:47:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237870AbhGABuL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:50:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39490 "EHLO mail.kernel.org"
+        id S238344AbhGABuO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:50:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39528 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237149AbhGABuL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:50:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7204D61468;
-        Thu,  1 Jul 2021 01:47:40 +0000 (UTC)
+        id S237149AbhGABuO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:50:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 82C2A6146D;
+        Thu,  1 Jul 2021 01:47:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104060;
-        bh=dNuUdCiICTfvtbB62jPvf/7gBHZvB+HwEYMvaen2rEk=;
+        s=korg; t=1625104064;
+        bh=NGvdmXgGOwZKRPlNpAaYgirBshPSUNJ54JosTn6l5RA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=y61KpBO41cxFhIPQGvy/ouH7DIoGCrWDMm4j+FgQvREK0yQZam0CqLJliVFIm368N
-         u/RSxriYNpwhk7eUxwrRd3ZEszg74dhJhhUqlX0WhCE+zGV1Vv4oLp7luK0Nf8u+1F
-         9knbC7xCuObqT9xh3rvhegpHlTrh81DNFgPme+wo=
-Date:   Wed, 30 Jun 2021 18:47:40 -0700
+        b=vaGM7L1oGOJE6HO2/onIxlgBpoVd8Lrb/S8nlKqFiKUHgfyMcsBAp1CCLP0RAtMqk
+         CCvSWKJmbv0bWa21+wMbWfqk2KsbZ8N0pZI8oiCfPokBG+m3e0SjDyRrB0DCPhQZZ1
+         AIFS75PS2DaWbsX8YvzArP8920X5+8kw4a79NJOU=
+Date:   Wed, 30 Jun 2021 18:47:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
-        linux-mm@kvack.org, liushixin2@huawei.com,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 011/192] mm/debug_vm_pgtable: remove redundant
- pfn_{pmd/pte}() and fix one comment mistake
-Message-ID: <20210701014740.19O6xELEh%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, akpm@linux-foundation.org,
+        aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com,
+        david@redhat.com, hannes@cmpxchg.org, hughd@google.com,
+        kirill.shutemov@linux.intel.com, linmiaohe@huawei.com,
+        linux-mm@kvack.org, mike.kravetz@oracle.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, rcampbell@nvidia.com, riel@surriel.com,
+        shy828301@gmail.com, songliubraving@fb.com,
+        torvalds@linux-foundation.org, william.kucharski@oracle.com,
+        willy@infradead.org, ziy@nvidia.com
+Subject:  [patch 012/192] mm/huge_memory.c: remove dedicated macro
+ HPAGE_CACHE_INDEX_MASK
+Message-ID: <20210701014743.FQGc4cdmS%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,49 +49,66 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Shixin Liu <liushixin2@huawei.com>
-Subject: mm/debug_vm_pgtable: remove redundant pfn_{pmd/pte}() and fix one comment mistake
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/huge_memory.c: remove dedicated macro HPAGE_CACHE_INDEX_MASK
 
-Remove redundant pfn_{pmd/pte}() in {pmd/pte}_advanced_tests() and adjust
-pfn_pud() in pud_advanced_tests() to make it similar with other two
-functions.
+Patch series "Cleanup and fixup for huge_memory:, v3.
 
-In addition, the branch condition should be CONFIG_TRANSPARENT_HUGEPAGE
-instead of CONFIG_ARCH_HAS_PTE_DEVMAP.
+This series contains cleanups to remove dedicated macro and remove
+unnecessary tlb_remove_page_size() for huge zero pmd.  Also this adds
+missing read-only THP checking for transparent_hugepage_enabled() and
+avoids discarding hugepage if other processes are mapping it.  More
+details can be found in the respective changelogs.
 
-Link: https://lkml.kernel.org/r/20210419071820.750217-2-liushixin2@huawei.com
-Signed-off-by: Shixin Liu <liushixin2@huawei.com>
+
+Thi patch (of 5):
+
+Rewrite the pgoff checking logic to remove macro HPAGE_CACHE_INDEX_MASK
+which is only used here to simplify the code.
+
+Link: https://lkml.kernel.org/r/20210511134857.1581273-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210511134857.1581273-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/huge_mm.h |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-remove-redundant-pfn_pmd-pte-and-fix-one-comment-mistake
-+++ a/mm/debug_vm_pgtable.c
-@@ -91,7 +91,7 @@ static void __init pte_advanced_tests(st
- 				      unsigned long pfn, unsigned long vaddr,
- 				      pgprot_t prot)
- {
--	pte_t pte = pfn_pte(pfn, prot);
-+	pte_t pte;
+--- a/include/linux/huge_mm.h~mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask
++++ a/include/linux/huge_mm.h
+@@ -152,15 +152,13 @@ static inline bool __transparent_hugepag
  
- 	/*
- 	 * Architectures optimize set_pte_at by avoiding TLB flush.
-@@ -778,12 +778,12 @@ static void __init pmd_swap_soft_dirty_t
- 	WARN_ON(!pmd_swp_soft_dirty(pmd_swp_mksoft_dirty(pmd)));
- 	WARN_ON(pmd_swp_soft_dirty(pmd_swp_clear_soft_dirty(pmd)));
- }
--#else  /* !CONFIG_ARCH_HAS_PTE_DEVMAP */
-+#else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
- static void __init pmd_soft_dirty_tests(unsigned long pfn, pgprot_t prot) { }
- static void __init pmd_swap_soft_dirty_tests(unsigned long pfn, pgprot_t prot)
- {
- }
--#endif /* CONFIG_ARCH_HAS_PTE_DEVMAP */
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ bool transparent_hugepage_enabled(struct vm_area_struct *vma);
  
- static void __init pte_swap_tests(unsigned long pfn, pgprot_t prot)
+-#define HPAGE_CACHE_INDEX_MASK (HPAGE_PMD_NR - 1)
+-
+ static inline bool transhuge_vma_suitable(struct vm_area_struct *vma,
+ 		unsigned long haddr)
  {
+ 	/* Don't have to check pgoff for anonymous vma */
+ 	if (!vma_is_anonymous(vma)) {
+-		if (((vma->vm_start >> PAGE_SHIFT) & HPAGE_CACHE_INDEX_MASK) !=
+-			(vma->vm_pgoff & HPAGE_CACHE_INDEX_MASK))
++		if (!IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
++				HPAGE_PMD_NR))
+ 			return false;
+ 	}
+ 
 _
