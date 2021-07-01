@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 154F1C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:52:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5AC7C11F68
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:52:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0097361474
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:52:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B745C61476
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:52:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238427AbhGAByd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:54:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44050 "EHLO mail.kernel.org"
+        id S238483AbhGAByf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:54:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44096 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238418AbhGAByc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:54:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9E4FB6146D;
-        Thu,  1 Jul 2021 01:52:01 +0000 (UTC)
+        id S238418AbhGAByf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:54:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1F6AC61474;
+        Thu,  1 Jul 2021 01:52:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104322;
-        bh=sSdelPm01ave48Y2ecTahcYVqBfBy+Uk6DbljjcyDcg=;
+        s=korg; t=1625104325;
+        bh=YB2daD+Wi9X9GUd02UzY33OL+VvqiKaf8fIYoCEIhWI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=QMfJ/jrhIbIGgcwM6Jt5ykMi7HeLBOyFxXMwWjlDWn5NgrfMENHji5/Zd8/kWHyWn
-         vmkca7UsJVbr+axUI75Y0yialawADmoC1oOcjzI1v621UQBPxck7NmKKJ3UbBNHVRC
-         sUkb+q7aOc5DKea8o8r8ILMzJhkkfiwsHhSla3KQ=
-Date:   Wed, 30 Jun 2021 18:52:01 -0700
+        b=XQjRMY9NR1mTaY75pRRee5NtCerDPlMRm5CeNigaZsL6V6o7/3Nw6gtgqAHtaB/Gy
+         BBxpPXQW6Ymk0Q4MMBo09JbOx+5J8T/5hgT+Vf5wTnS9vg1DellVu6cqMaqVfmnib6
+         Mi8+9Z7Mb55Suwh5zPgs3pa2scO8kHWkWmUS4ANw=
+Date:   Wed, 30 Jun 2021 18:52:04 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, apopple@nvidia.com, hughd@google.com,
         jack@suse.cz, juew@google.com, kirill.shutemov@linux.intel.com,
@@ -38,9 +38,9 @@ To:     akpm@linux-foundation.org, apopple@nvidia.com, hughd@google.com,
         shakeelb@google.com, shy828301@gmail.com,
         torvalds@linux-foundation.org, wangyugui@e16-tech.com,
         willy@infradead.org, ziy@nvidia.com
-Subject:  [patch 091/192] mm: rmap: make try_to_unmap() void
- function
-Message-ID: <20210701015201.N4tR2xm1a%akpm@linux-foundation.org>
+Subject:  [patch 092/192] mm/thp: remap_page() is only needed on
+ anonymous THP
+Message-ID: <20210701015204.PUckIgqJ6%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,149 +48,57 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: rmap: make try_to_unmap() void function
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/thp: remap_page() is only needed on anonymous THP
 
-Currently try_to_unmap() return bool value by checking page_mapcount(),
-however this may return false positive since page_mapcount() doesn't check
-all subpages of compound page.  The total_mapcount() could be used
-instead, but its cost is higher since it traverses all subpages.
+THP splitting's unmap_page() only sets TTU_SPLIT_FREEZE when PageAnon, and
+migration entries are only inserted when TTU_MIGRATION (unused here) or
+TTU_SPLIT_FREEZE is set: so it's just a waste of time for remap_page() to
+search for migration entries to remove when !PageAnon.
 
-Actually the most callers of try_to_unmap() don't care about the return
-value at all.  So just need check if page is still mapped by page_mapped()
-when necessary.  And page_mapped() does bail out early when it finds
-mapped subpage.
-
-Link: https://lkml.kernel.org/r/bb27e3fe-6036-b637-5086-272befbfe3da@google.com
-Suggested-by: Hugh Dickins <hughd@google.com>
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Link: https://lkml.kernel.org/r/f987bc44-f28e-688d-2424-b4722153ed8@google.com
+Fixes: baa355fd3314 ("thp: file pages support for split_huge_page()")
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jue Wang <juew@google.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Wang Yugui <wangyugui@e16-tech.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    2 +-
- mm/memory-failure.c  |   15 +++++++--------
- mm/rmap.c            |   15 ++++-----------
- mm/vmscan.c          |    3 ++-
- 4 files changed, 14 insertions(+), 21 deletions(-)
+ mm/huge_memory.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/include/linux/rmap.h~mm-rmap-make-try_to_unmap-void-function
-+++ a/include/linux/rmap.h
-@@ -195,7 +195,7 @@ static inline void page_dup_rmap(struct
- int page_referenced(struct page *, int is_locked,
- 			struct mem_cgroup *memcg, unsigned long *vm_flags);
+--- a/mm/huge_memory.c~mm-thp-remap_page-is-only-needed-on-anonymous-thp
++++ a/mm/huge_memory.c
+@@ -2307,6 +2307,7 @@ static void unmap_page(struct page *page
  
--bool try_to_unmap(struct page *, enum ttu_flags flags);
-+void try_to_unmap(struct page *, enum ttu_flags flags);
+ 	VM_BUG_ON_PAGE(!PageHead(page), page);
  
- /* Avoid racy checks */
- #define PVMW_SYNC		(1 << 0)
---- a/mm/memory-failure.c~mm-rmap-make-try_to_unmap-void-function
-+++ a/mm/memory-failure.c
-@@ -1269,7 +1269,7 @@ static bool hwpoison_user_mappings(struc
- 	enum ttu_flags ttu = TTU_IGNORE_MLOCK;
- 	struct address_space *mapping;
- 	LIST_HEAD(tokill);
--	bool unmap_success = true;
-+	bool unmap_success;
- 	int kill = 1, forcekill;
- 	struct page *hpage = *hpagep;
- 	bool mlocked = PageMlocked(hpage);
-@@ -1332,7 +1332,7 @@ static bool hwpoison_user_mappings(struc
- 		collect_procs(hpage, &tokill, flags & MF_ACTION_REQUIRED);
++	/* If TTU_SPLIT_FREEZE is ever extended to file, update remap_page() */
+ 	if (PageAnon(page))
+ 		ttu_flags |= TTU_SPLIT_FREEZE;
  
- 	if (!PageHuge(hpage)) {
--		unmap_success = try_to_unmap(hpage, ttu);
-+		try_to_unmap(hpage, ttu);
- 	} else {
- 		if (!PageAnon(hpage)) {
- 			/*
-@@ -1344,17 +1344,16 @@ static bool hwpoison_user_mappings(struc
- 			 */
- 			mapping = hugetlb_page_mapping_lock_write(hpage);
- 			if (mapping) {
--				unmap_success = try_to_unmap(hpage,
--						     ttu|TTU_RMAP_LOCKED);
-+				try_to_unmap(hpage, ttu|TTU_RMAP_LOCKED);
- 				i_mmap_unlock_write(mapping);
--			} else {
-+			} else
- 				pr_info("Memory failure: %#lx: could not lock mapping for mapped huge page\n", pfn);
--				unmap_success = false;
--			}
- 		} else {
--			unmap_success = try_to_unmap(hpage, ttu);
-+			try_to_unmap(hpage, ttu);
- 		}
- 	}
-+
-+	unmap_success = !page_mapped(hpage);
- 	if (!unmap_success)
- 		pr_err("Memory failure: %#lx: failed to unmap page (mapcount=%d)\n",
- 		       pfn, page_mapcount(hpage));
---- a/mm/rmap.c~mm-rmap-make-try_to_unmap-void-function
-+++ a/mm/rmap.c
-@@ -1405,7 +1405,7 @@ static bool try_to_unmap_one(struct page
- 	/*
- 	 * When racing against e.g. zap_pte_range() on another cpu,
- 	 * in between its ptep_get_and_clear_full() and page_remove_rmap(),
--	 * try_to_unmap() may return false when it is about to become true,
-+	 * try_to_unmap() may return before page_mapped() has become false,
- 	 * if page table locking is skipped: use TTU_SYNC to wait for that.
- 	 */
- 	if (flags & TTU_SYNC)
-@@ -1756,9 +1756,10 @@ static int page_not_mapped(struct page *
-  * Tries to remove all the page table entries which are mapping this
-  * page, used in the pageout path.  Caller must hold the page lock.
-  *
-- * If unmap is successful, return true. Otherwise, false.
-+ * It is the caller's responsibility to check if the page is still
-+ * mapped when needed (use TTU_SYNC to prevent accounting races).
-  */
--bool try_to_unmap(struct page *page, enum ttu_flags flags)
-+void try_to_unmap(struct page *page, enum ttu_flags flags)
+@@ -2318,6 +2319,10 @@ static void unmap_page(struct page *page
+ static void remap_page(struct page *page, unsigned int nr)
  {
- 	struct rmap_walk_control rwc = {
- 		.rmap_one = try_to_unmap_one,
-@@ -1783,14 +1784,6 @@ bool try_to_unmap(struct page *page, enu
- 		rmap_walk_locked(page, &rwc);
- 	else
- 		rmap_walk(page, &rwc);
--
--	/*
--	 * When racing against e.g. zap_pte_range() on another cpu,
--	 * in between its ptep_get_and_clear_full() and page_remove_rmap(),
--	 * try_to_unmap() may return false when it is about to become true,
--	 * if page table locking is skipped: use TTU_SYNC to wait for that.
--	 */
--	return !page_mapcount(page);
- }
- 
- /**
---- a/mm/vmscan.c~mm-rmap-make-try_to_unmap-void-function
-+++ a/mm/vmscan.c
-@@ -1499,7 +1499,8 @@ static unsigned int shrink_page_list(str
- 			if (unlikely(PageTransHuge(page)))
- 				flags |= TTU_SPLIT_HUGE_PMD;
- 
--			if (!try_to_unmap(page, flags)) {
-+			try_to_unmap(page, flags);
-+			if (page_mapped(page)) {
- 				stat->nr_unmap_fail += nr_pages;
- 				if (!was_swapbacked && PageSwapBacked(page))
- 					stat->nr_lazyfree_fail += nr_pages;
+ 	int i;
++
++	/* If TTU_SPLIT_FREEZE is ever extended to file, remove this check */
++	if (!PageAnon(page))
++		return;
+ 	if (PageTransHuge(page)) {
+ 		remove_migration_ptes(page, page, true);
+ 	} else {
 _
