@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_RED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 600E6C11F69
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:57:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F670C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:58:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4CC5C6147E
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:57:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A5D16141A
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:58:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238577AbhGAB7u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:59:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49764 "EHLO mail.kernel.org"
+        id S237933AbhGACAv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 22:00:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49138 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237933AbhGAB7s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:59:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2743C61483;
-        Thu,  1 Jul 2021 01:57:19 +0000 (UTC)
+        id S238638AbhGAB7O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:59:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C0B0061477;
+        Thu,  1 Jul 2021 01:56:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104639;
-        bh=38fiufiaI4VV8d67qzuB5qatPPBfMY/7Tvd0MK24Tac=;
+        s=korg; t=1625104604;
+        bh=ZcPVPi6wM0ULgNDWaOEOdswcX9YivQvbpxGN7AHIwvg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ADVUHgp2A7P+2CDoykIjkDvvuNw7cGR5QDFtCyugTcuzDZArBRZBcUTdt4hFMS6Xh
-         lCwQob9rjWevjGjHjs+l+gPAzWrtQDJBBAwtcsVD6LmjPYyWeZ5wyLILJczSpgmUM3
-         O1GmCFy+rW81zTgJX4OyUrhd0OgbAgb3S20Gm4CQ=
-Date:   Wed, 30 Jun 2021 18:57:18 -0700
+        b=AIUEFoC70D+0oBvVHOl3qknDkLXmxIJcZYY6UANsjEw+Rk3GMEL9iWIgXDCLabP5X
+         ARasylhJKMOiXyAQqDIvz1DADHZuOh9juvVDllMGPNLbGM/3WPIkFC9ytZwAixpDTB
+         60Tnj1XQnGT+Hp3ex1S4oFDanF3sVyvU056noWtc=
+Date:   Wed, 30 Jun 2021 18:56:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     1vier1@web.de, akpm@linux-foundation.org, dbueso@suse.de,
-        linux-mm@kvack.org, manfred@colorfullife.com,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 192/192] ipc/util.c: use binary search for max_idx
-Message-ID: <20210701015718.0DUvPUD_l%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, natechancellor@gmail.com,
+        ndesaulniers@google.com, oleg@redhat.com,
+        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+Subject:  [patch 181/192] x86: signal: don't do sas_ss_reset()
+ until we are certain that sigframe won't be abandoned
+Message-ID: <20210701015643.SBUjrzC2l%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,120 +44,93 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/util.c: use binary search for max_idx
+From: Al Viro <viro@zeniv.linux.org.uk>
+Subject: x86: signal: don't do sas_ss_reset() until we are certain that sigframe won't be abandoned
 
-If semctl(), msgctl() and shmctl() are called with IPC_INFO, SEM_INFO,
-MSG_INFO or SHM_INFO, then the return value is the index of the highest
-used index in the kernel's internal array recording information about all
-SysV objects of the requested type for the current namespace.  (This
-information can be used with repeated ..._STAT or ..._STAT_ANY operations
-to obtain information about all SysV objects on the system.)
+Currently we handle SS_AUTODISARM as soon as we have stored the altstack
+settings into sigframe - that's the point when we have set the things up
+for eventual sigreturn to restore the old settings.  And if we manage to
+set the sigframe up (we are not done with that yet), everything's fine. 
+However, in case of failure we end up with sigframe-to-be abandoned and
+SIGSEGV force-delivered.  And in that case we end up with inconsistent
+rules - late failures have altstack reset, early ones do not.
 
-There is a cache for this value.  But when the cache needs up be updated,
-then the highest used index is determined by looping over all possible
-values.  With the introduction of IPCMNI_EXTEND_SHIFT, this could be a
-loop over 16 million entries.  And due to /proc/sys/kernel/*next_id, the
-index values do not need to be consecutive.
+It's trivial to get consistent behaviour - just handle SS_AUTODISARM once
+we have set the sigframe up and are committed to entering the handler,
+i.e.  in signal_delivered().
 
-With <write 16000000 to msg_next_id>, msgget(), msgctl(,IPC_RMID) in a
-loop, I have observed a performance increase of around factor 13000.
-
-As there is no get_last() function for idr structures: Implement a
-"get_last()" using a binary search.
-
-As far as I see, ipc is the only user that needs get_last(), thus
-implement it in ipc/util.c and not in a central location.
-
-[akpm@linux-foundation.org: tweak comment, fix typo]
-Link: https://lkml.kernel.org/r/20210425075208.11777-2-manfred@colorfullife.com
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Acked-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: <1vier1@web.de>
+Link: https://lore.kernel.org/lkml/20200404170604.GN23230@ZenIV.linux.org.uk/
+Link: https://github.com/ClangBuiltLinux/linux/issues/876
+Link: https://lkml.kernel.org/r/20210422230846.1756380-1-ndesaulniers@google.com
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Tested-by: Nathan Chancellor <natechancellor@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   44 +++++++++++++++++++++++++++++++++++++++-----
- ipc/util.h |    3 +++
- 2 files changed, 42 insertions(+), 5 deletions(-)
+ include/linux/compat.h |    2 --
+ include/linux/signal.h |    2 --
+ kernel/signal.c        |   14 ++++----------
+ 3 files changed, 4 insertions(+), 14 deletions(-)
 
---- a/ipc/util.c~ipc-utilc-use-binary-search-for-max_idx
-+++ a/ipc/util.c
-@@ -64,6 +64,7 @@
- #include <linux/memory.h>
- #include <linux/ipc_namespace.h>
- #include <linux/rhashtable.h>
-+#include <linux/log2.h>
+--- a/include/linux/compat.h~x86-signal-dont-do-sas_ss_reset-until-we-are-certain-that-sigframe-wont-be-abandoned
++++ a/include/linux/compat.h
+@@ -532,8 +532,6 @@ int __compat_save_altstack(compat_stack_
+ 			&__uss->ss_sp, label); \
+ 	unsafe_put_user(t->sas_ss_flags, &__uss->ss_flags, label); \
+ 	unsafe_put_user(t->sas_ss_size, &__uss->ss_size, label); \
+-	if (t->sas_ss_flags & SS_AUTODISARM) \
+-		sas_ss_reset(t); \
+ } while (0);
  
- #include <asm/unistd.h>
+ /*
+--- a/include/linux/signal.h~x86-signal-dont-do-sas_ss_reset-until-we-are-certain-that-sigframe-wont-be-abandoned
++++ a/include/linux/signal.h
+@@ -462,8 +462,6 @@ int __save_altstack(stack_t __user *, un
+ 	unsafe_put_user((void __user *)t->sas_ss_sp, &__uss->ss_sp, label); \
+ 	unsafe_put_user(t->sas_ss_flags, &__uss->ss_flags, label); \
+ 	unsafe_put_user(t->sas_ss_size, &__uss->ss_size, label); \
+-	if (t->sas_ss_flags & SS_AUTODISARM) \
+-		sas_ss_reset(t); \
+ } while (0);
  
-@@ -451,6 +452,41 @@ static void ipc_kht_remove(struct ipc_id
+ #ifdef CONFIG_PROC_FS
+--- a/kernel/signal.c~x86-signal-dont-do-sas_ss_reset-until-we-are-certain-that-sigframe-wont-be-abandoned
++++ a/kernel/signal.c
+@@ -2829,6 +2829,8 @@ static void signal_delivered(struct ksig
+ 	if (!(ksig->ka.sa.sa_flags & SA_NODEFER))
+ 		sigaddset(&blocked, ksig->sig);
+ 	set_current_blocked(&blocked);
++	if (current->sas_ss_flags & SS_AUTODISARM)
++		sas_ss_reset(current);
+ 	tracehook_signal_handler(stepping);
  }
  
- /**
-+ * ipc_search_maxidx - search for the highest assigned index
-+ * @ids: ipc identifier set
-+ * @limit: known upper limit for highest assigned index
-+ *
-+ * The function determines the highest assigned index in @ids. It is intended
-+ * to be called when ids->max_idx needs to be updated.
-+ * Updating ids->max_idx is necessary when the current highest index ipc
-+ * object is deleted.
-+ * If no ipc object is allocated, then -1 is returned.
-+ *
-+ * ipc_ids.rwsem needs to be held by the caller.
-+ */
-+static int ipc_search_maxidx(struct ipc_ids *ids, int limit)
-+{
-+	int tmpidx;
-+	int i;
-+	int retval;
-+
-+	i = ilog2(limit+1);
-+
-+	retval = 0;
-+	for (; i >= 0; i--) {
-+		tmpidx = retval | (1<<i);
-+		/*
-+		 * "0" is a possible index value, thus search using
-+		 * e.g. 15,7,3,1,0 instead of 16,8,4,2,1.
-+		 */
-+		tmpidx = tmpidx-1;
-+		if (idr_get_next(&ids->ipcs_idr, &tmpidx))
-+			retval |= (1<<i);
-+	}
-+	return retval - 1;
-+}
-+
-+/**
-  * ipc_rmid - remove an ipc identifier
-  * @ids: ipc identifier set
-  * @ipcp: ipc perm structure containing the identifier to remove
-@@ -468,11 +504,9 @@ void ipc_rmid(struct ipc_ids *ids, struc
- 	ipcp->deleted = true;
- 
- 	if (unlikely(idx == ids->max_idx)) {
--		do {
--			idx--;
--			if (idx == -1)
--				break;
--		} while (!idr_find(&ids->ipcs_idr, idx));
-+		idx = ids->max_idx-1;
-+		if (idx >= 0)
-+			idx = ipc_search_maxidx(ids, idx);
- 		ids->max_idx = idx;
- 	}
+@@ -4147,11 +4149,7 @@ int __save_altstack(stack_t __user *uss,
+ 	int err = __put_user((void __user *)t->sas_ss_sp, &uss->ss_sp) |
+ 		__put_user(t->sas_ss_flags, &uss->ss_flags) |
+ 		__put_user(t->sas_ss_size, &uss->ss_size);
+-	if (err)
+-		return err;
+-	if (t->sas_ss_flags & SS_AUTODISARM)
+-		sas_ss_reset(t);
+-	return 0;
++	return err;
  }
---- a/ipc/util.h~ipc-utilc-use-binary-search-for-max_idx
-+++ a/ipc/util.h
-@@ -145,6 +145,9 @@ int ipcperms(struct ipc_namespace *ns, s
-  * ipc_get_maxidx - get the highest assigned index
-  * @ids: ipc identifier set
-  *
-+ * The function returns the highest assigned index for @ids. The function
-+ * doesn't scan the idr tree, it uses a cached value.
-+ *
-  * Called with ipc_ids.rwsem held for reading.
-  */
- static inline int ipc_get_maxidx(struct ipc_ids *ids)
+ 
+ #ifdef CONFIG_COMPAT
+@@ -4206,11 +4204,7 @@ int __compat_save_altstack(compat_stack_
+ 			 &uss->ss_sp) |
+ 		__put_user(t->sas_ss_flags, &uss->ss_flags) |
+ 		__put_user(t->sas_ss_size, &uss->ss_size);
+-	if (err)
+-		return err;
+-	if (t->sas_ss_flags & SS_AUTODISARM)
+-		sas_ss_reset(t);
+-	return 0;
++	return err;
+ }
+ #endif
+ 
 _
