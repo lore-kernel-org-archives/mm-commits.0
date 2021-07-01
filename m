@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 838ADC11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 514A3C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E8BF61474
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3008161476
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238523AbhGAB4Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:56:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46200 "EHLO mail.kernel.org"
+        id S238524AbhGAB41 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:56:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46260 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238429AbhGAB4Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:56:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BCC0261241;
-        Thu,  1 Jul 2021 01:53:53 +0000 (UTC)
+        id S238429AbhGAB40 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:56:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C0FEF61469;
+        Thu,  1 Jul 2021 01:53:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104434;
-        bh=yr/BES2r1OLP3gTpr5e8JAFHenZo65BslROVqtKgAIo=;
+        s=korg; t=1625104437;
+        bh=Pbko7oyjPaPRNbxQeB+l3Mi8dtWEQl4zEHPaJst9M70=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=MqrjW8MocjoeMMezmi1b08j7SUYL0QICceE5ifjlTitE6h+wY1eCTTayCo324WfZi
-         j9I5LNx8eRfXw1Z7+qhap03gx9ehYJXeqjjO/Ww719e3WHSz+4NPgdxhwWXfvdUCnK
-         +KW0jjc8hMbaonW3wu5AiyLHqXtn2bQ+mjQdHptM=
-Date:   Wed, 30 Jun 2021 18:53:53 -0700
+        b=0H3C1x8URxWWPjeLbiYwn5GzOP+tD743k0zCLuWS7eELMduHv9FAQ7a0FY5fjtRnY
+         GOwO1w51HfxoA3yqrzaLpDeB7gINk2pcXcxkAKCr6JsSKeuodnQC2utKeR0KlB0yPu
+         +71hR5A8UuMOxXdZVyafIxidMpD+9m09xP8JYnNg=
+Date:   Wed, 30 Jun 2021 18:53:56 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, david@redhat.com, ddstreet@ieee.org,
         linux-mm@kvack.org, mgorman@techsingularity.net, mhocko@kernel.org,
         mm-commits@vger.kernel.org, shy828301@gmail.com,
         torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 126/192] mm/page_alloc: move prototype for
- find_suitable_fallback
-Message-ID: <20210701015353.P4XRjHhzz%akpm@linux-foundation.org>
+Subject:  [patch 127/192] mm/swap: make NODE_DATA an inline
+ function on CONFIG_FLATMEM
+Message-ID: <20210701015356.i3nr-saLs%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,21 +45,20 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: move prototype for find_suitable_fallback
+Subject: mm/swap: make NODE_DATA an inline function on CONFIG_FLATMEM
 
-make W=1 generates the following warning in mmap_lock.c for allnoconfig
+make W=1 generates the following warning in mm/workingset.c for allnoconfig
 
-  mm/page_alloc.c:2670:5: warning: no previous prototype for `find_suitable_fallback' [-Wmissing-prototypes]
-   int find_suitable_fallback(struct free_area *area, unsigned int order,
-       ^~~~~~~~~~~~~~~~~~~~~~
+  mm/workingset.c: In function `unpack_shadow':
+  mm/workingset.c:201:15: warning: variable `nid' set but not used [-Wunused-but-set-variable]
+    int memcgid, nid;
+                 ^~~
 
-find_suitable_fallback is only shared outside of page_alloc.c for
-CONFIG_COMPACTION but to suppress the warning, move the protype outside of
-CONFIG_COMPACTION.  It is not worth the effort at this time to find a
-clever way of allowing compaction.c to share the code or avoid the use
-entirely as the function is called on relatively slow paths.
+On FLATMEM, NODE_DATA returns a global pglist_data without dereferencing
+nid.  Make the helper an inline function to suppress the warning, add type
+checking and to apply any side-effects in the parameter list.
 
-Link: https://lkml.kernel.org/r/20210520084809.8576-14-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20210520084809.8576-15-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -69,22 +68,21 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/mmzone.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/internal.h~mm-page_alloc-move-prototype-for-find_suitable_fallback
-+++ a/mm/internal.h
-@@ -274,11 +274,10 @@ isolate_freepages_range(struct compact_c
- int
- isolate_migratepages_range(struct compact_control *cc,
- 			   unsigned long low_pfn, unsigned long end_pfn);
-+#endif
- int find_suitable_fallback(struct free_area *area, unsigned int order,
- 			int migratetype, bool only_stealable, bool *can_steal);
+--- a/include/linux/mmzone.h~mm-swap-make-node_data-an-inline-function-on-config_flatmem
++++ a/include/linux/mmzone.h
+@@ -1064,7 +1064,10 @@ extern char numa_zonelist_order[];
+ #ifndef CONFIG_NUMA
  
--#endif
--
- /*
-  * This function returns the order of a free page in the buddy system. In
-  * general, page_zone(page)->lock must be held by the caller to prevent the
+ extern struct pglist_data contig_page_data;
+-#define NODE_DATA(nid)		(&contig_page_data)
++static inline struct pglist_data *NODE_DATA(int nid)
++{
++	return &contig_page_data;
++}
+ #define NODE_MEM_MAP(nid)	mem_map
+ 
+ #else /* CONFIG_NUMA */
 _
