@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8240AC11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:05:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22838C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:05:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6B44D61005
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:05:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 070CB61469
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:05:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238281AbhGABHp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:07:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59996 "EHLO mail.kernel.org"
+        id S238295AbhGABIL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:08:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238272AbhGABHo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:07:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 279E961424;
-        Thu,  1 Jul 2021 01:05:14 +0000 (UTC)
+        id S238272AbhGABIL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:08:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EC72761424;
+        Thu,  1 Jul 2021 01:05:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625101514;
-        bh=4pCJ2wesVDTntKDakjXF9rDj56pGeo8q1qLqlLsH4SM=;
+        s=korg; t=1625101541;
+        bh=Wikd86VfV+BTBClbbIdOigAnaH6OR4Usz1D18dyMgxg=;
         h=Date:From:To:Subject:From;
-        b=krYbZLlIy/dqe9fpMBu6k7E1c3Vk3xRKhBgtdNSmOkmEV0nqlAdxh6/NOnMn6CH9y
-         0GkeyvFPpmMPgAFwM8B/POgY6YfGibzkv/kms1vANV+dGeEEpE23N7qwlKIkyQtJsF
-         Odj0NhqRRJNlDS8UN7EWvh9C+zAiweHt93iKI/ZQ=
-Date:   Wed, 30 Jun 2021 18:05:13 -0700
+        b=cpT82A3b4dMoeq3oIgnJs2Efgljf0IXNhNR2rj3CO/3f6aGOhuGq5ZV1yj8vk5dBb
+         rYY0w75EGsRV9WFxc2SzUUGNiJlck6I1Lox6HyjxyLItQu0yY0qgBXkMrXbu5MncTB
+         Ib9fnP/KnX1eu+FCGzuIK+JUqIPn5BDHVAAwhIVA=
+Date:   Wed, 30 Jun 2021 18:05:40 -0700
 From:   akpm@linux-foundation.org
-To:     1vier1@web.de, dbueso@suse.de, manfred@colorfullife.com,
-        mm-commits@vger.kernel.org, paulmck@kernel.org
+To:     1vier1@web.de, akpm@linux-foundation.org, dbueso@suse.de,
+        manfred@colorfullife.com, mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- ipc-semc-use-read_once-write_once-for-use_global_lock-update.patch removed
- from -mm tree
-Message-ID: <20210701010513.TztST_-y5%akpm@linux-foundation.org>
+ ipc-utilc-use-binary-search-for-max_idx-fix.patch removed from -mm tree
+Message-ID: <20210701010540.BR23cOaV-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,43 +43,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/sem.c: use READ_ONCE()/WRITE_ONCE() for use_global_lock
+     Subject: ipc-utilc-use-binary-search-for-max_idx-fix
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-use-read_once-write_once-for-use_global_lock-update.patch
+     ipc-utilc-use-binary-search-for-max_idx-fix.patch
 
-This patch was dropped because it was folded into ipc-semc-use-read_once-write_once-for-use_global_lock.patch
+This patch was dropped because it was folded into ipc-utilc-use-binary-search-for-max_idx.patch
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: use READ_ONCE()/WRITE_ONCE() for use_global_lock
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipc-utilc-use-binary-search-for-max_idx-fix
 
-Link: https://lkml.kernel.org/r/20210627161919.3196-3-manfred@colorfullife.com
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
-Cc: Davidlohr Bueso <dbueso@suse.de>
+tweak comment, fix typo
+
 Cc: <1vier1@web.de>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ ipc/util.c |    4 ++--
+ ipc/util.h |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/ipc/sem.c~ipc-semc-use-read_once-write_once-for-use_global_lock-update
-+++ a/ipc/sem.c
-@@ -2439,7 +2439,8 @@ static int sysvipc_sem_proc_show(struct
+--- a/ipc/util.c~ipc-utilc-use-binary-search-for-max_idx-fix
++++ a/ipc/util.c
+@@ -452,7 +452,7 @@ static void ipc_kht_remove(struct ipc_id
+ }
  
- 	/*
- 	 * The proc interface isn't aware of sem_lock(), it calls
--	 * ipc_lock_object() directly (in sysvipc_find_ipc).
-+	 * ipc_lock_object(), i.e. spin_lock(&sma->sem_perm.lock).
-+	 * (in sysvipc_find_ipc)
- 	 * In order to stay compatible with sem_lock(), we must
- 	 * enter / leave complex_mode.
- 	 */
+ /**
+- * ipc_search_maxidx - search the highest assigned index
++ * ipc_search_maxidx - search for the highest assigned index
+  * @ids: ipc identifier set
+  * @limit: known upper limit for highest assigned index
+  *
+@@ -462,7 +462,7 @@ static void ipc_kht_remove(struct ipc_id
+  * object is deleted.
+  * If no ipc object is allocated, then -1 is returned.
+  *
+- * ipc_ids.rwsem needs to be owned by the caller.
++ * ipc_ids.rwsem needs to be held by the caller.
+  */
+ static int ipc_search_maxidx(struct ipc_ids *ids, int limit)
+ {
+--- a/ipc/util.h~ipc-utilc-use-binary-search-for-max_idx-fix
++++ a/ipc/util.h
+@@ -145,7 +145,7 @@ int ipcperms(struct ipc_namespace *ns, s
+  * ipc_get_maxidx - get the highest assigned index
+  * @ids: ipc identifier set
+  *
+- * The function returns the highest assinged index for @ids. The function
++ * The function returns the highest assigned index for @ids. The function
+  * doesn't scan the idr tree, it uses a cached value.
+  *
+  * Called with ipc_ids.rwsem held for reading.
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ipc-semc-use-read_once-write_once-for-use_global_lock.patch
 ipc-utilc-use-binary-search-for-max_idx.patch
+mm.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+linux-next-pre.patch
+linux-next-post.patch
+linux-next-rejects.patch
+kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
