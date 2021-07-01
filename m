@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F432C11F7A
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:01:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E43CFC11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:01:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1044061469
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:01:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB3EB61425
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:01:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232066AbhGABDj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:03:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58780 "EHLO mail.kernel.org"
+        id S238432AbhGABDy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:03:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59162 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238345AbhGABDb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:03:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 25B64610A1;
-        Thu,  1 Jul 2021 01:01:01 +0000 (UTC)
+        id S238423AbhGABDx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:03:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CA65361424;
+        Thu,  1 Jul 2021 01:01:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625101261;
-        bh=p/2KVwpopqvOAUXeQWTcL7QnplQg1tOdaO8FkqLLx1Q=;
+        s=korg; t=1625101283;
+        bh=9yUIh7Zbg8aEFpci0d1ftG0gPvbEDxEaog7/VR82akc=;
         h=Date:From:To:Subject:From;
-        b=WQy61OBsLDfuV/HAITcH5oI1DfOhOgoFDnhISRWdfO47CvdgB5bLil24IhmVTpxFo
-         UgI0oeShTsK1vIVYLyrcRMC5PhiR0TQ8QL5mKawR0z1nKnoONCqreJJ/5XZ/SN3Z0X
-         Xpr/KT6TTZj+KQrA8CaEjGGn2IatpZ3crs3GSvg4=
-Date:   Wed, 30 Jun 2021 18:01:00 -0700
+        b=uVtbyIahnTuT+ybwYjseZz6Wv7IUmM8BYQ2FjxDUtl8i4zMGZyqGFpwgPW1LoTTzI
+         CSIjVaY0SmFr8rDZ0mW2d/JkjCKb6/CBswXFKvXqty9ylcb4paNezAxKlKg5zbvldH
+         WPMzb7OxrkjYIXGIb16G0zw9vRXj4zJFpo1oLh60=
+Date:   Wed, 30 Jun 2021 18:01:23 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, akpm@linux-foundation.org,
-        chenying.kernel@bytedance.com, mm-commits@vger.kernel.org,
-        rppt@kernel.org, songmuchun@bytedance.com,
-        zhouchengming@bytedance.com, zhoufeng.zf@bytedance.com
+To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
+        mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- fs-proc-kcorec-add-mmap-interface-fix.patch removed from -mm tree
-Message-ID: <20210701010100.DkjgJNZLU%akpm@linux-foundation.org>
+ kernelh-split-out-panic-and-oops-helpers-fix.patch removed from -mm tree
+Message-ID: <20210701010123.LiCviCVfx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,47 +43,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-proc-kcorec-add-mmap-interface-fix
+     Subject: kernelh-split-out-panic-and-oops-helpers-fix
 has been removed from the -mm tree.  Its filename was
-     fs-proc-kcorec-add-mmap-interface-fix.patch
+     kernelh-split-out-panic-and-oops-helpers-fix.patch
 
-This patch was dropped because it was folded into fs-proc-kcorec-add-mmap-interface.patch
+This patch was dropped because it was folded into kernelh-split-out-panic-and-oops-helpers.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-proc-kcorec-add-mmap-interface-fix
+Subject: kernelh-split-out-panic-and-oops-helpers-fix
 
-KCORE_REMAP is no more
+thread_info.h needs limits.h
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Chengming Zhou <zhouchengming@bytedance.com>
-Cc: CHENYING <chenying.kernel@bytedance.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: ZHOUFENG <zhoufeng.zf@bytedance.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/thread_info.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/proc/kcore.c~fs-proc-kcorec-add-mmap-interface-fix
-+++ a/fs/proc/kcore.c
-@@ -660,7 +660,7 @@ static int mmap_kcore(struct file *file,
- 	vma->vm_ops = &kcore_mmap_ops;
+--- a/include/linux/thread_info.h~kernelh-split-out-panic-and-oops-helpers-fix
++++ a/include/linux/thread_info.h
+@@ -9,6 +9,7 @@
+ #define _LINUX_THREAD_INFO_H
  
- 	if (kern_addr_valid(start)) {
--		if (m->type == KCORE_RAM || m->type == KCORE_REMAP)
-+		if (m->type == KCORE_RAM)
- 			pfn = __pa(start) >> PAGE_SHIFT;
- 		else if (m->type == KCORE_TEXT)
- 			pfn = __pa_symbol(start) >> PAGE_SHIFT;
+ #include <linux/types.h>
++#include <linux/limits.h>
+ #include <linux/bug.h>
+ #include <linux/restart_block.h>
+ #include <linux/errno.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-proc-kcorec-add-mmap-interface.patch
-kernelh-split-out-panic-and-oops-helpers-fix.patch
+kernelh-split-out-panic-and-oops-helpers.patch
 lib-math-rational-add-kunit-test-cases-fix.patch
 lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
 ipc-utilc-use-binary-search-for-max_idx-fix.patch
