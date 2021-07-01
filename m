@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4758C11F68
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB671C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 86D0C61476
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF54B6105A
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238460AbhGAB4C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:56:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45768 "EHLO mail.kernel.org"
+        id S238426AbhGAB4F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:56:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45826 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238426AbhGAB4C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:56:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6DA646105A;
-        Thu,  1 Jul 2021 01:53:32 +0000 (UTC)
+        id S238429AbhGAB4F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:56:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A4B66146D;
+        Thu,  1 Jul 2021 01:53:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104412;
-        bh=fuMkmBU7yPyKzy8r5TqtczMmTrAuGmdg+ZdJKBaeL9k=;
+        s=korg; t=1625104415;
+        bh=EpZ92Ktg0wuV7IHC93KuUtlQENqr3fTNHuENEJu4dIA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=kvwO2WjwX4rRYPUkahrJXxx80rd2ZTrw2D5iIOIRUw63ZEyey6ReEy7nLZUoEMd7W
-         M1wTBroDVmNun+cQf/yrIPvZ1ycivmV0j1vrBRK3fIIxM5pv0hgqjbdW4nlQF41mZB
-         o+duBxWVQKlCdqaf1xpJ2NAUYJDPvM+2CNUPiPg0=
-Date:   Wed, 30 Jun 2021 18:53:32 -0700
+        b=IGlh+Cbp0lIVr27Aqdqag3YqXI4cAxHKatvKUx5FuKy8YOJ/mveAM8G7QZkFmoMYj
+         esVFqPJQARFGGQSnuvcKyfDFDB1CljOGawC/rx2PtEBY1doPZomjgPaxN93J+GgATq
+         ShN+H8WJwgx6RA7n/7ouOIABBDhpNoUnaMrwm96E=
+Date:   Wed, 30 Jun 2021 18:53:35 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, chris@chrisdown.name, david@redhat.com,
-        ddstreet@ieee.org, linux-mm@kvack.org, mgorman@techsingularity.net,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, shy828301@gmail.com,
+To:     akpm@linux-foundation.org, david@redhat.com, ddstreet@ieee.org,
+        linux-mm@kvack.org, mgorman@techsingularity.net, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, shy828301@gmail.com,
         torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 119/192] mm/memcontrol.c: fix kerneldoc comment
- for mem_cgroup_calculate_protection
-Message-ID: <20210701015332.GbAUI-EaM%akpm@linux-foundation.org>
+Subject:  [patch 120/192] mm/memory_hotplug: fix kerneldoc comment
+ for __try_online_node
+Message-ID: <20210701015335.Zrg-ltgp7%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,40 +45,45 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/memcontrol.c: fix kerneldoc comment for mem_cgroup_calculate_protection
+Subject: mm/memory_hotplug: fix kerneldoc comment for __try_online_node
 
-make W=1 generates the following warning for mem_cgroup_calculate_protection
+make W=1 generates the following warning for try_online_node
 
-  mm/memcontrol.c:6468: warning: expecting prototype for mem_cgroup_protected(). Prototype was for mem_cgroup_calculate_protection() instead
+mm/memory_hotplug.c:1087: warning: expecting prototype for try_online_node(). Prototype was for __try_online_node() instead
 
-Commit 45c7f7e1ef17 ("mm, memcg: decouple e{low,min} state mutations from
-protection checks") changed the function definition but not the associated
-kerneldoc comment.
+Commit b9ff036082cd ("mm/memory_hotplug.c: make add_memory_resource use
+__try_online_node") renamed the function but did not update the associated
+kerneldoc.  The function is static and somewhat specialised in nature so
+it's not clear it warrants being a kerneldoc by moving the comment to
+try_online_node.  Hence, leave the comment of the internal helper in place
+but leave it out of kerneldoc and correct the function name in the
+comment.
 
-Link: https://lkml.kernel.org/r/20210520084809.8576-7-mgorman@techsingularity.net
-Fixes: 45c7f7e1ef17 ("mm, memcg: decouple e{low,min} state mutations from protection checks")
+Link: https://lkml.kernel.org/r/20210520084809.8576-8-mgorman@techsingularity.net
+Fixes: Commit b9ff036082cd ("mm/memory_hotplug.c: make add_memory_resource use __try_online_node")
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Chris Down <chris@chrisdown.name>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory_hotplug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection
-+++ a/mm/memcontrol.c
-@@ -6639,7 +6639,7 @@ static unsigned long effective_protectio
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-kerneldoc-comment-for-__try_online_node
++++ a/mm/memory_hotplug.c
+@@ -942,8 +942,8 @@ static void rollback_node_hotadd(int nid
  }
  
- /**
-- * mem_cgroup_protected - check if memory consumption is in the normal range
-+ * mem_cgroup_calculate_protection - check if memory consumption is in the normal range
-  * @root: the top ancestor of the sub-tree being checked
-  * @memcg: the memory cgroup to check
-  *
+ 
+-/**
+- * try_online_node - online a node if offlined
++/*
++ * __try_online_node - online a node if offlined
+  * @nid: the node ID
+  * @set_node_online: Whether we want to online the node
+  * called by cpu_up() to online a node without onlined memory.
 _
