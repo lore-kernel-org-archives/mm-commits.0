@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7685BC11F69
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 064B4C11F6A
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6287A61468
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E202B61468
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:53:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238498AbhGABz3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:55:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45108 "EHLO mail.kernel.org"
+        id S238500AbhGABzb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:55:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45144 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238416AbhGABz3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:55:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EC51161241;
-        Thu,  1 Jul 2021 01:52:58 +0000 (UTC)
+        id S238499AbhGABzb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:55:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D79926105A;
+        Thu,  1 Jul 2021 01:53:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104379;
-        bh=3mmcgWfzdxHM+eG6w1Er59n7ndos17yQennCj2C0N1s=;
+        s=korg; t=1625104382;
+        bh=M43RQCLRu9wA7tddapQP5/1Byd2HZw83UfDEII0Ul6A=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=zyZStW2v4TgpiRsaqRlyCmfeuxnVtbMLGjMDMNj9w3aljI3q97jEc82/fXWb0eN9D
-         85MPGqp0Mh9VpOTVvGAImoZi8hPduDA/Adce95vfui7LQ9gfXkUsP4XjwzFNJPRCae
-         iMHlMhK9siJaA4hMbG+74/HU88N+KI1qUvqg9dFo=
-Date:   Wed, 30 Jun 2021 18:52:58 -0700
+        b=Sxeb7AJjQLm5yRyJX2qlJnorgGzclyuvHaDFYhsSfbV0Avgiq0De9MR20W33VjXpq
+         1/W9NU++xxqjPIkWicTUmqlIcPO5ix9CMo8e9MdmCc61F8TjnsmaHY3un5qPD6AXx+
+         pDD3rqDDo2s5bAT5FDvw2AcOOIEvLOZPGuOIyWRM=
+Date:   Wed, 30 Jun 2021 18:53:01 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org, minchan@kernel.org,
-        mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        torvalds@linux-foundation.org, zhaoyang.huang@unisoc.com
-Subject:  [patch 108/192] mm: zram: amend SLAB_RECLAIM_ACCOUNT on
- zspage_cachep
-Message-ID: <20210701015258.BrxjIzdE1%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+        linux-mm@kvack.org, minchan@kernel.org, mm-commits@vger.kernel.org,
+        ngupta@vflare.org, senozhatsky@chromium.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 109/192] mm/zsmalloc.c: remove confusing code in
+ obj_free()
+Message-ID: <20210701015301.tcFA0cOau%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,35 +44,42 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Subject: mm: zram: amend SLAB_RECLAIM_ACCOUNT on zspage_cachep
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/zsmalloc.c: remove confusing code in obj_free()
 
-Zspage_cachep is found be merged with other kmem cache during test, which
-is not good for debug things (zs_pool->zspage_cachep present to be another
-kmem cache in memory dumpfile).  It is also neccessary to do so as
-shrinker has been registered for zspage.
+Patch series "Cleanup for zsmalloc".
 
-Amending this flag can help kernel to calculate SLAB_RECLAIMBLE correctly.
+This series contains cleanups to remove confusing code in obj_free(),
+combine two atomic ops and improve readability for async_free_zspage(). 
+More details can be found in the respective changelogs.
 
-Link: https://lkml.kernel.org/r/1623137297-29685-1-git-send-email-huangzhaoyang@gmail.com
-Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+
+This patch (of 2):
+
+OBJ_ALLOCATED_TAG is only set for handle to indicate allocated object. 
+It's irrelevant with obj.  So remove this misleading code to improve
+readability.
+
+Link: https://lkml.kernel.org/r/20210624123930.1769093-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210624123930.1769093-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zsmalloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/zsmalloc.c~mm-zram-amend-slab_reclaim_account-on-zspage_cachep
+--- a/mm/zsmalloc.c~mm-zsmallocc-remove-confusing-code-in-obj_free
 +++ a/mm/zsmalloc.c
-@@ -328,7 +328,7 @@ static int create_cache(struct zs_pool *
- 		return 1;
+@@ -1471,7 +1471,6 @@ static void obj_free(struct size_class *
+ 	unsigned int f_objidx;
+ 	void *vaddr;
  
- 	pool->zspage_cachep = kmem_cache_create("zspage", sizeof(struct zspage),
--					0, 0, NULL);
-+					0, SLAB_RECLAIM_ACCOUNT, NULL);
- 	if (!pool->zspage_cachep) {
- 		kmem_cache_destroy(pool->handle_cachep);
- 		pool->handle_cachep = NULL;
+-	obj &= ~OBJ_ALLOCATED_TAG;
+ 	obj_to_location(obj, &f_page, &f_objidx);
+ 	f_offset = (class->size * f_objidx) & ~PAGE_MASK;
+ 	zspage = get_zspage(f_page);
 _
