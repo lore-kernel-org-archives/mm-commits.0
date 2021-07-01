@@ -4,38 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89794C11F66
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Jun 2021 23:05:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95C12C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:46:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 642FD61454
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Jun 2021 23:05:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E4DF6146B
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:46:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229548AbhF3XI1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 19:08:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34838 "EHLO mail.kernel.org"
+        id S238153AbhGAAtP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 20:49:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57054 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229540AbhF3XI1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 19:08:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 86E0D61452;
-        Wed, 30 Jun 2021 23:05:56 +0000 (UTC)
+        id S238229AbhGAAtO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 20:49:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 341DA61424;
+        Thu,  1 Jul 2021 00:46:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625094356;
-        bh=dsyYSwRVMiXz5Xk3/iuELmDL4Oy3IQN0Ze9Ij0Q0rwQ=;
+        s=korg; t=1625100405;
+        bh=1vSmwny9MmQtEnCufg3LIajwvaILc/wHdIgGtpGg3Jw=;
         h=Date:From:To:Subject:From;
-        b=VBHkyDYMRj6a2UAQVoPinKCobqbQO04AKoCpNFiMPMsF4y3eu9I1C5CrFl7LNFDrI
-         A9nmp2CB7pDk3Kp0qdPRJranrNpnIjMVnFjOyLNAPhkTETuI12wRLXC2SQW+vT0fUi
-         VeJ2cgp0yX0Aur5xulhh2XVMmb9i2tgou1nS16/Q=
-Date:   Wed, 30 Jun 2021 16:05:56 -0700
+        b=I078yaZIb98hMOo6xO34tGiuXsuoLLo80+7vftC05IF3vyKmiqYdw/t44tAvBijeG
+         RLmt461FpPKXM8fA8mJeOtXXi8eRaphfEkbkNqyX53KAXW75VXc5A4HjdkyJJMbOmA
+         cegffNCZ+ROUUB+Cqlo0L7NfHNaXVJwqJY2eyUYE=
+Date:   Wed, 30 Jun 2021 17:46:44 -0700
 From:   akpm@linux-foundation.org
-To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        vbabka@suse.cz, vvghjk1234@gmail.com
-Subject:  + mm-compaction-fix-limit-in-fast_isolate_freepages.patch
- added to -mm tree
-Message-ID: <20210630230556.mLqgKh0Nj%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        willy@infradead.org
+Subject:  [folded-merged]
+ =?US-ASCII?Q?mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hu?=
+ =?US-ASCII?Q?getlb-page-fix.patch?= removed from -mm tree
+Message-ID: <20210701004644.BDhN4M_iL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,99 +46,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: fix 'limit' in fast_isolate_freepages
-has been added to the -mm tree.  Its filename is
-     mm-compaction-fix-limit-in-fast_isolate_freepages.patch
+     Subject: mm/sparse-vmemmap: fix documentation warning
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-fix-limit-in-fast_isolate_freepages.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-fix-limit-in-fast_isolate_freepages.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
 
 ------------------------------------------------------
-From: Wonhyuk Yang <vvghjk1234@gmail.com>
-Subject: mm/compaction: fix 'limit' in fast_isolate_freepages
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/sparse-vmemmap: fix documentation warning
 
-Because of 'min(1, ...)', fast_isolate_freepages set 'limit' to 0 or 1. 
-This takes away the opportunities of find candinate pages.  So, by making
-enough scans available, increases the probability of finding the
-appropriate freepage.
+vmemmap_remap_walk is a struct, not a function, and needs to be marked
+accordingly.
 
-Tested it on the thpscale and the results are as follows.
-
-                                        5.12.0                 5.12.0
-                                      valnilla                patched
-Amean     fault-both-1       598.15 (   0.00%)      592.56 (   0.93%)
-Amean     fault-both-3      1494.47 (   0.00%)     1514.35 (  -1.33%)
-Amean     fault-both-5      2519.48 (   0.00%)     2471.76 (   1.89%)
-Amean     fault-both-7      3173.85 (   0.00%)     3079.19 (   2.98%)
-Amean     fault-both-12     8063.83 (   0.00%)     7858.29 (   2.55%)
-Amean     fault-both-18     8781.20 (   0.00%)     7827.70 *  10.86%*
-Amean     fault-both-24    12576.44 (   0.00%)    12250.20 (   2.59%)
-Amean     fault-both-30    18503.27 (   0.00%)    17528.11 *   5.27%*
-Amean     fault-both-32    16133.69 (   0.00%)    13874.24 *  14.00%*
-
-                                           5.12.0         5.12.0
-                                          vanilla        patched
-Ops Compaction migrate scanned         6547133.00     5963901.00
-Ops Compaction free scanned           32452453.00    26609101.00
-
-                        5.12        5.12
-                     vanilla     patched
-Duration User          27.99       28.84
-Duration System       244.08      236.76
-Duration Elapsed       78.27       78.38
-
-Link: https://lkml.kernel.org/r/20210626082443.22547-1-vvghjk1234@gmail.com
-Fixes: 5a811889de10f ("mm, compaction: use free lists to quickly locate a migration target")
-Signed-off-by: Wonhyuk Yang <vvghjk1234@gmail.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20210615200242.1716568-5-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/sparse-vmemmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/compaction.c~mm-compaction-fix-limit-in-fast_isolate_freepages
-+++ a/mm/compaction.c
-@@ -1378,7 +1378,7 @@ static int next_search_order(struct comp
- static unsigned long
- fast_isolate_freepages(struct compact_control *cc)
- {
--	unsigned int limit = min(1U, freelist_scan_limit(cc) >> 1);
-+	unsigned int limit = max(1U, freelist_scan_limit(cc) >> 1);
- 	unsigned int nr_scanned = 0;
- 	unsigned long low_pfn, min_pfn, highest = 0;
- 	unsigned long nr_isolated = 0;
-@@ -1490,11 +1490,11 @@ fast_isolate_freepages(struct compact_co
- 		spin_unlock_irqrestore(&cc->zone->lock, flags);
+--- a/mm/sparse-vmemmap.c~mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page-fix
++++ a/mm/sparse-vmemmap.c
+@@ -35,7 +35,7 @@
+ #include <asm/tlbflush.h>
  
- 		/*
--		 * Smaller scan on next order so the total scan ig related
-+		 * Smaller scan on next order so the total scan is related
- 		 * to freelist_scan_limit.
- 		 */
- 		if (order_scanned >= limit)
--			limit = min(1U, limit >> 1);
-+			limit = max(1U, limit >> 1);
- 	}
- 
- 	if (!page) {
+ /**
+- * vmemmap_remap_walk - walk vmemmap page table
++ * struct vmemmap_remap_walk - walk vmemmap page table
+  *
+  * @remap_pte:		called for each lowest-level entry (PTE).
+  * @reuse_page:		the page which is reused for the tail vmemmap pages.
 _
 
-Patches currently in -mm which might be from vvghjk1234@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-compaction-fix-limit-in-fast_isolate_freepages.patch
+mm-writeback-move-__set_page_dirty-to-core-mm.patch
+mm-writeback-use-__set_page_dirty-in-__set_page_dirty_nobuffers.patch
+iomap-use-__set_page_dirty_nobuffers.patch
+fs-remove-anon_set_page_dirty.patch
+fs-remove-noop_set_page_dirty.patch
+mm-move-page-dirtying-prototypes-from-mmh.patch
+mm-make-__dump_page-static.patch
+mm-debug-factor-pagepoisoned-out-of-__dump_page.patch
+mm-page_owner-constify-dump_page_owner.patch
+mm-make-compound_head-const-preserving.patch
+mm-constify-get_pfnblock_flags_mask-and-get_pfnblock_migratetype.patch
+mm-constify-page_count-and-page_ref_count.patch
+mm-optimise-nth_page-for-contiguous-memmap.patch
+mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
+mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page-fix-2.patch
+mm-thp-fix-strncpy-warning.patch
+mm-mark-idle-page-tracking-as-broken.patch
 
