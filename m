@@ -7,38 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25534C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:51:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D4DFC11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:51:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 09BBF61469
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:51:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 77DE56146D
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:51:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238466AbhGAByD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:54:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43564 "EHLO mail.kernel.org"
+        id S238480AbhGAByH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:54:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43608 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238427AbhGAByD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:54:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C291461468;
-        Thu,  1 Jul 2021 01:51:32 +0000 (UTC)
+        id S238481AbhGAByG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:54:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 381C261469;
+        Thu,  1 Jul 2021 01:51:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104293;
-        bh=8YUHM8dYnPIYa+Nhy8nNmU9CFXOEVM0BzMzTrZBtiNI=;
+        s=korg; t=1625104296;
+        bh=Rt/oHMa1L1El/BUpRprYlUKkViEDfGzSGjXG32ptjhI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=SMqC7uwcVHXzOhWO5b/8wBuYcVb3cABrPc6fWf14F1fVwyEJCbDupwgKmKEZu1kV5
-         MdzZhOQFQbFLiHAsks7aCxAmgoAGOpsqiR9lhVDrZ7OA40iNjhXUj4KALIJee8IFwr
-         CSn05pIPmnWDcxaM/OSWC6ThN24I0MCZFD1iSDgQ=
-Date:   Wed, 30 Jun 2021 18:51:32 -0700
+        b=pTSpvGPFgNwrm1JULidu+oDI1efQVCCuqs7QAplNzOgY2+f++fPOGDCUb1mV4cbj1
+         ZXhMxD5XBqh8DuZCQh6l5sJ4G7dBKRjbF9mDHAGBtNr3fGgRjVlsSnuh9GdVkv5/a3
+         mzTXzS8NQc8h3SGCy+qrkwfjEWemgTIPNoHxCLqA=
+Date:   Wed, 30 Jun 2021 18:51:35 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cfijalkovich@google.com,
-        hridya@google.com, hughd@google.com, kaleshsingh@google.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, song@kernel.org,
-        surenb@google.com, timmurray@google.com,
-        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk,
-        william.kucharski@oracle.com, willy@infradead.org
-Subject:  [patch 082/192] mm, thp: relax the VM_DENYWRITE
- constraint on file-backed THPs
-Message-ID: <20210701015132.RLAMMMWAa%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, borntraeger@de.ibm.com,
+        gerald.schaefer@linux.ibm.com, gor@linux.ibm.com,
+        hca@linux.ibm.com, hughd@google.com,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org,
+        shy828301@gmail.com, torvalds@linux-foundation.org,
+        ying.huang@intel.com, ziy@nvidia.com
+Subject:  [patch 083/192] mm: memory: add orig_pmd to struct
+ vm_fault
+Message-ID: <20210701015135.V8qrg8rwW%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,139 +47,316 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Collin Fijalkovich <cfijalkovich@google.com>
-Subject: mm, thp: relax the VM_DENYWRITE constraint on file-backed THPs
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: memory: add orig_pmd to struct vm_fault
 
-Transparent huge pages are supported for read-only non-shmem files, but
-are only used for vmas with VM_DENYWRITE.  This condition ensures that
-file THPs are protected from writes while an application is running
-(ETXTBSY).  Any existing file THPs are then dropped from the page cache
-when a file is opened for write in do_dentry_open().  Since sys_mmap
-ignores MAP_DENYWRITE, this constrains the use of file THPs to vmas
-produced by execve().
+Pach series "mm: thp: use generic THP migration for NUMA hinting fault", v3.
 
-Systems that make heavy use of shared libraries (e.g.  Android) are unable
-to apply VM_DENYWRITE through the dynamic linker, preventing them from
-benefiting from the resultant reduced contention on the TLB.
+When the THP NUMA fault support was added THP migration was not supported
+yet.  So the ad hoc THP migration was implemented in NUMA fault handling. 
+Since v4.14 THP migration has been supported so it doesn't make too much
+sense to still keep another THP migration implementation rather than using
+the generic migration code.  It is definitely a maintenance burden to keep
+two THP migration implementation for different code paths and it is more
+error prone.  Using the generic THP migration implementation allows us
+remove the duplicate code and some hacks needed by the old ad hoc
+implementation.
 
-This patch reduces the constraint on file THPs allowing use with any
-executable mapping from a file not opened for write (see
-inode_is_open_for_write()).  It also introduces additional conditions to
-ensure that files opened for write will never be backed by file THPs.
+A quick grep shows x86_64, PowerPC (book3s), ARM64 ans S390 support both
+THP and NUMA balancing.  The most of them support THP migration except for
+S390.  Zi Yan tried to add THP migration support for S390 before but it
+was not accepted due to the design of S390 PMD.  For the discussion,
+please see: https://lkml.org/lkml/2018/4/27/953.
 
-Restricting the use of THPs to executable mappings eliminates the risk
-that a read-only file later opened for write would encounter significant
-latencies due to page cache truncation.
+Per the discussion with Gerald Schaefer in v1 it is acceptible to skip
+huge PMD for S390 for now.
 
-The ld linker flag '-z max-page-size=(hugepage size)' can be used to
-produce executables with the necessary layout.  The dynamic linker must
-map these file's segments at a hugepage size aligned vma for the mapping
-to be backed with THPs.
+I saw there were some hacks about gup from git history, but I didn't
+figure out if they have been removed or not since I just found FOLL_NUMA
+code in the current gup implementation and they seems useful.
 
-Comparison of the performance characteristics of 4KB and 2MB-backed
-libraries follows; the Android dex2oat tool was used to AOT compile an
-example application on a single ARM core.
+Patch #1 ~ #2 are preparation patches.
+Patch #3 is the real meat.
+Patch #4 ~ #6 keep consistent counters and behaviors with before.
+Patch #7 skips change huge PMD to prot_none if thp migration is not supported.
 
-4KB Pages:
-==========
 
-count              event_name            # count / runtime
-598,995,035,942    cpu-cycles            # 1.800861 GHz
- 81,195,620,851    raw-stall-frontend    # 244.112 M/sec
-347,754,466,597    iTLB-loads            # 1.046 G/sec
-  2,970,248,900    iTLB-load-misses      # 0.854122% miss rate
+Test
+----
+Did some tests to measure the latency of do_huge_pmd_numa_page.  The test
+VM has 80 vcpus and 64G memory.  The test would create 2 processes to
+consume 128G memory together which would incur memory pressure to cause
+THP splits.  And it also creates 80 processes to hog cpu, and the memory
+consumer processes are bound to different nodes periodically in order to
+increase NUMA faults.
 
-Total test time: 332.854998 seconds.
+The below test script is used:
 
-2MB Pages:
-==========
+echo 3 > /proc/sys/vm/drop_caches
 
-count              event_name            # count / runtime
-592,872,663,047    cpu-cycles            # 1.800358 GHz
- 76,485,624,143    raw-stall-frontend    # 232.261 M/sec
-350,478,413,710    iTLB-loads            # 1.064 G/sec
-    803,233,322    iTLB-load-misses      # 0.229182% miss rate
+# Run stress-ng for 24 hours
+./stress-ng/stress-ng --vm 2 --vm-bytes 64G --timeout 24h &
+PID=$!
 
-Total test time: 329.826087 seconds
+./stress-ng/stress-ng --cpu $NR_CPUS --timeout 24h &
 
-A check of /proc/$(pidof dex2oat64)/smaps shows THPs in use:
+# Wait for vm stressors forked
+sleep 5
 
-/apex/com.android.art/lib64/libart.so
-FilePmdMapped:      4096 kB
+PID_1=`pgrep -P $PID | awk 'NR == 1'`
+PID_2=`pgrep -P $PID | awk 'NR == 2'`
 
-/apex/com.android.art/lib64/libart-compiler.so
-FilePmdMapped:      2048 kB
+JOB1=`pgrep -P $PID_1`
+JOB2=`pgrep -P $PID_2`
 
-Link: https://lkml.kernel.org/r/20210406000930.3455850-1-cfijalkovich@google.com
-Signed-off-by: Collin Fijalkovich <cfijalkovich@google.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Acked-by: Song Liu <song@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Hridya Valsaraju <hridya@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Tim Murray <timmurray@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+# Bind load jobs to different nodes periodically to force generate
+# cross node memory access
+while [ -d "/proc/$PID" ]
+do
+        taskset -apc 8 $JOB1
+        taskset -apc 8 $JOB2
+        sleep 300
+        taskset -apc 58 $JOB1
+        taskset -apc 58 $JOB2
+        sleep 300
+done
+
+With the above test the histogram of latency of do_huge_pmd_numa_page is
+as shown below.  Since the number of do_huge_pmd_numa_page varies
+drastically for each run (should be due to scheduler), so I converted the
+raw number to percentage.
+
+                             patched               base
+@us[stress-ng]:
+[0]                          3.57%                 0.16%
+[1]                          55.68%                18.36%
+[2, 4)                       10.46%                40.44%
+[4, 8)                       7.26%                 17.82%
+[8, 16)                      21.12%                13.41%
+[16, 32)                     1.06%                 4.27%
+[32, 64)                     0.56%                 4.07%
+[64, 128)                    0.16%                 0.35%
+[128, 256)                   < 0.1%                < 0.1%
+[256, 512)                   < 0.1%                < 0.1%
+[512, 1K)                    < 0.1%                < 0.1%
+[1K, 2K)                     < 0.1%                < 0.1%
+[2K, 4K)                     < 0.1%                < 0.1%
+[4K, 8K)                     < 0.1%                < 0.1%
+[8K, 16K)                    < 0.1%                < 0.1%
+[16K, 32K)                   < 0.1%                < 0.1%
+[32K, 64K)                   < 0.1%                < 0.1%
+
+Per the result, patched kernel is even slightly better than the base
+kernel.  I think this is because the lock contention against THP split is
+less than base kernel due to the refactor.
+
+To exclude the affect from THP split, I also did test w/o memory pressure.
+No obvious regression is spotted.  The below is the test result *w/o*
+memory pressure.
+
+                           patched                  base
+@us[stress-ng]:
+[0]                        7.97%                   18.4%
+[1]                        69.63%                  58.24%
+[2, 4)                     4.18%                   2.63%
+[4, 8)                     0.22%                   0.17%
+[8, 16)                    1.03%                   0.92%
+[16, 32)                   0.14%                   < 0.1%
+[32, 64)                   < 0.1%                  < 0.1%
+[64, 128)                  < 0.1%                  < 0.1%
+[128, 256)                 < 0.1%                  < 0.1%
+[256, 512)                 0.45%                   1.19%
+[512, 1K)                  15.45%                  17.27%
+[1K, 2K)                   < 0.1%                  < 0.1%
+[2K, 4K)                   < 0.1%                  < 0.1%
+[4K, 8K)                   < 0.1%                  < 0.1%
+[8K, 16K)                  0.86%                   0.88%
+[16K, 32K)                 < 0.1%                  0.15%
+[32K, 64K)                 < 0.1%                  < 0.1%
+[64K, 128K)                < 0.1%                  < 0.1%
+[128K, 256K)               < 0.1%                  < 0.1%
+
+The series also survived a series of tests that exercise NUMA balancing
+migrations by Mel.
+
+
+This patch (of 7):
+
+Add orig_pmd to struct vm_fault so the "orig_pmd" parameter used by huge
+page fault could be removed, just like its PTE counterpart does.
+
+Link: https://lkml.kernel.org/r/20210518200801.7413-1-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20210518200801.7413-2-shy828301@gmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c       |   13 +++++++++++--
- mm/khugepaged.c |   16 +++++++++++++++-
- 2 files changed, 26 insertions(+), 3 deletions(-)
+ include/linux/huge_mm.h |    9 ++++-----
+ include/linux/mm.h      |    7 ++++++-
+ mm/huge_memory.c        |    9 ++++++---
+ mm/memory.c             |   26 +++++++++++++-------------
+ 4 files changed, 29 insertions(+), 22 deletions(-)
 
---- a/fs/open.c~mm-thp-relax-the-vm_denywrite-constraint-on-file-backed-thps
-+++ a/fs/open.c
-@@ -852,8 +852,17 @@ static int do_dentry_open(struct file *f
- 	 * XXX: Huge page cache doesn't support writing yet. Drop all page
- 	 * cache for this file before processing writes.
- 	 */
--	if ((f->f_mode & FMODE_WRITE) && filemap_nr_thps(inode->i_mapping))
--		truncate_pagecache(inode, 0);
-+	if (f->f_mode & FMODE_WRITE) {
-+		/*
-+		 * Paired with smp_mb() in collapse_file() to ensure nr_thps
-+		 * is up to date and the update to i_writecount by
-+		 * get_write_access() is visible. Ensures subsequent insertion
-+		 * of THPs into the page cache will fail.
-+		 */
-+		smp_mb();
-+		if (filemap_nr_thps(inode->i_mapping))
-+			truncate_pagecache(inode, 0);
-+	}
+--- a/include/linux/huge_mm.h~mm-memory-add-orig_pmd-to-struct-vm_fault
++++ a/include/linux/huge_mm.h
+@@ -11,7 +11,7 @@ vm_fault_t do_huge_pmd_anonymous_page(st
+ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 		  pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
+ 		  struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma);
+-void huge_pmd_set_accessed(struct vm_fault *vmf, pmd_t orig_pmd);
++void huge_pmd_set_accessed(struct vm_fault *vmf);
+ int copy_huge_pud(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 		  pud_t *dst_pud, pud_t *src_pud, unsigned long addr,
+ 		  struct vm_area_struct *vma);
+@@ -24,7 +24,7 @@ static inline void huge_pud_set_accessed
+ }
+ #endif
  
+-vm_fault_t do_huge_pmd_wp_page(struct vm_fault *vmf, pmd_t orig_pmd);
++vm_fault_t do_huge_pmd_wp_page(struct vm_fault *vmf);
+ struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
+ 				   unsigned long addr, pmd_t *pmd,
+ 				   unsigned int flags);
+@@ -288,7 +288,7 @@ struct page *follow_devmap_pmd(struct vm
+ struct page *follow_devmap_pud(struct vm_area_struct *vma, unsigned long addr,
+ 		pud_t *pud, int flags, struct dev_pagemap **pgmap);
+ 
+-vm_fault_t do_huge_pmd_numa_page(struct vm_fault *vmf, pmd_t orig_pmd);
++vm_fault_t do_huge_pmd_numa_page(struct vm_fault *vmf);
+ 
+ extern struct page *huge_zero_page;
+ extern unsigned long huge_zero_pfn;
+@@ -441,8 +441,7 @@ static inline spinlock_t *pud_trans_huge
+ 	return NULL;
+ }
+ 
+-static inline vm_fault_t do_huge_pmd_numa_page(struct vm_fault *vmf,
+-		pmd_t orig_pmd)
++static inline vm_fault_t do_huge_pmd_numa_page(struct vm_fault *vmf)
+ {
  	return 0;
+ }
+--- a/include/linux/mm.h~mm-memory-add-orig_pmd-to-struct-vm_fault
++++ a/include/linux/mm.h
+@@ -550,7 +550,12 @@ struct vm_fault {
+ 	pud_t *pud;			/* Pointer to pud entry matching
+ 					 * the 'address'
+ 					 */
+-	pte_t orig_pte;			/* Value of PTE at the time of fault */
++	union {
++		pte_t orig_pte;		/* Value of PTE at the time of fault */
++		pmd_t orig_pmd;		/* Value of PMD at the time of fault,
++					 * used by PMD fault only.
++					 */
++	};
  
---- a/mm/khugepaged.c~mm-thp-relax-the-vm_denywrite-constraint-on-file-backed-thps
-+++ a/mm/khugepaged.c
-@@ -457,7 +457,8 @@ static bool hugepage_vma_check(struct vm
+ 	struct page *cow_page;		/* Page handler may use for COW fault */
+ 	struct page *page;		/* ->fault handlers should return a
+--- a/mm/huge_memory.c~mm-memory-add-orig_pmd-to-struct-vm_fault
++++ a/mm/huge_memory.c
+@@ -1257,11 +1257,12 @@ unlock:
+ }
+ #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
  
- 	/* Read-only file mappings need to be aligned for THP to work. */
- 	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && vma->vm_file &&
--	    (vm_flags & VM_DENYWRITE)) {
-+	    !inode_is_open_for_write(vma->vm_file->f_inode) &&
-+	    (vm_flags & VM_EXEC)) {
- 		return IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
- 				HPAGE_PMD_NR);
+-void huge_pmd_set_accessed(struct vm_fault *vmf, pmd_t orig_pmd)
++void huge_pmd_set_accessed(struct vm_fault *vmf)
+ {
+ 	pmd_t entry;
+ 	unsigned long haddr;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
++	pmd_t orig_pmd = vmf->orig_pmd;
+ 
+ 	vmf->ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
+ 	if (unlikely(!pmd_same(*vmf->pmd, orig_pmd)))
+@@ -1278,11 +1279,12 @@ unlock:
+ 	spin_unlock(vmf->ptl);
+ }
+ 
+-vm_fault_t do_huge_pmd_wp_page(struct vm_fault *vmf, pmd_t orig_pmd)
++vm_fault_t do_huge_pmd_wp_page(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct page *page;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
++	pmd_t orig_pmd = vmf->orig_pmd;
+ 
+ 	vmf->ptl = pmd_lockptr(vma->vm_mm, vmf->pmd);
+ 	VM_BUG_ON_VMA(!vma->anon_vma, vma);
+@@ -1418,9 +1420,10 @@ out:
+ }
+ 
+ /* NUMA hinting page fault entry point for trans huge pmds */
+-vm_fault_t do_huge_pmd_numa_page(struct vm_fault *vmf, pmd_t pmd)
++vm_fault_t do_huge_pmd_numa_page(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
++	pmd_t pmd = vmf->orig_pmd;
+ 	struct anon_vma *anon_vma = NULL;
+ 	struct page *page;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
+--- a/mm/memory.c~mm-memory-add-orig_pmd-to-struct-vm_fault
++++ a/mm/memory.c
+@@ -4298,12 +4298,12 @@ static inline vm_fault_t create_huge_pmd
+ }
+ 
+ /* `inline' is required to avoid gcc 4.1.2 build error */
+-static inline vm_fault_t wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
++static inline vm_fault_t wp_huge_pmd(struct vm_fault *vmf)
+ {
+ 	if (vma_is_anonymous(vmf->vma)) {
+-		if (userfaultfd_huge_pmd_wp(vmf->vma, orig_pmd))
++		if (userfaultfd_huge_pmd_wp(vmf->vma, vmf->orig_pmd))
+ 			return handle_userfault(vmf, VM_UFFD_WP);
+-		return do_huge_pmd_wp_page(vmf, orig_pmd);
++		return do_huge_pmd_wp_page(vmf);
  	}
-@@ -1862,6 +1863,19 @@ out_unlock:
- 	else {
- 		__mod_lruvec_page_state(new_page, NR_FILE_THPS, nr);
- 		filemap_nr_thps_inc(mapping);
-+		/*
-+		 * Paired with smp_mb() in do_dentry_open() to ensure
-+		 * i_writecount is up to date and the update to nr_thps is
-+		 * visible. Ensures the page cache will be truncated if the
-+		 * file is opened writable.
-+		 */
-+		smp_mb();
-+		if (inode_is_open_for_write(mapping->host)) {
-+			result = SCAN_FAIL;
-+			__mod_lruvec_page_state(new_page, NR_FILE_THPS, -nr);
-+			filemap_nr_thps_dec(mapping);
-+			goto xa_locked;
-+		}
- 	}
+ 	if (vmf->vma->vm_ops->huge_fault) {
+ 		vm_fault_t ret = vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PMD);
+@@ -4530,26 +4530,26 @@ retry_pud:
+ 		if (!(ret & VM_FAULT_FALLBACK))
+ 			return ret;
+ 	} else {
+-		pmd_t orig_pmd = *vmf.pmd;
++		vmf.orig_pmd = *vmf.pmd;
  
- 	if (nr_none) {
+ 		barrier();
+-		if (unlikely(is_swap_pmd(orig_pmd))) {
++		if (unlikely(is_swap_pmd(vmf.orig_pmd))) {
+ 			VM_BUG_ON(thp_migration_supported() &&
+-					  !is_pmd_migration_entry(orig_pmd));
+-			if (is_pmd_migration_entry(orig_pmd))
++					  !is_pmd_migration_entry(vmf.orig_pmd));
++			if (is_pmd_migration_entry(vmf.orig_pmd))
+ 				pmd_migration_entry_wait(mm, vmf.pmd);
+ 			return 0;
+ 		}
+-		if (pmd_trans_huge(orig_pmd) || pmd_devmap(orig_pmd)) {
+-			if (pmd_protnone(orig_pmd) && vma_is_accessible(vma))
+-				return do_huge_pmd_numa_page(&vmf, orig_pmd);
++		if (pmd_trans_huge(vmf.orig_pmd) || pmd_devmap(vmf.orig_pmd)) {
++			if (pmd_protnone(vmf.orig_pmd) && vma_is_accessible(vma))
++				return do_huge_pmd_numa_page(&vmf);
+ 
+-			if (dirty && !pmd_write(orig_pmd)) {
+-				ret = wp_huge_pmd(&vmf, orig_pmd);
++			if (dirty && !pmd_write(vmf.orig_pmd)) {
++				ret = wp_huge_pmd(&vmf);
+ 				if (!(ret & VM_FAULT_FALLBACK))
+ 					return ret;
+ 			} else {
+-				huge_pmd_set_accessed(&vmf, orig_pmd);
++				huge_pmd_set_accessed(&vmf);
+ 				return 0;
+ 			}
+ 		}
 _
