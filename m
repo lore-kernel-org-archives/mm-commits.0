@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCF11C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:53:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B783C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:54:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ABC7961476
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:53:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D51361463
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:54:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235571AbhGAA4J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 20:56:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57912 "EHLO mail.kernel.org"
+        id S238258AbhGAA4x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 20:56:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58040 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232066AbhGAA4I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 20:56:08 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 369B36146D;
-        Thu,  1 Jul 2021 00:53:38 +0000 (UTC)
+        id S238255AbhGAA4w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 20:56:52 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D995610A7;
+        Thu,  1 Jul 2021 00:54:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625100818;
-        bh=NGv0XxZFfZcZMPgteDbg+sgiTsu5nKusqH/tNydC8JE=;
+        s=korg; t=1625100863;
+        bh=PORe3/X3iMmKxQ9EYEweeIcATUZQjuoJAqggYx3DgfI=;
         h=Date:From:To:Subject:From;
-        b=YSJ6maNUj8VkAOqMzihzh4BSq0aobzdKXwkBOPuPk3CU0DSRS2me3COBXuCPUedIB
-         xZaeltjIc6t1BcaK4EYANFuv+hF8x/n4+XmmDSJ63He+tWKZrpaIAEzpd7b9+l8m1G
-         PBVb1gWJj5dzhhy7KgEuwY/JcLxP6MouJlZ21uTE=
-Date:   Wed, 30 Jun 2021 17:53:37 -0700
+        b=zzGnvJZ5Cg2xMcijlsI7a6VSYfqSikxlIxR8JwqEpdIISXDse4+j+jJYN0gOQI3Jl
+         c5j6kFXImu3Itvx2C53fHpB0YBtkuY9yI+a3TFfiwm7PPpWioZLv9ICXeeyroNolTS
+         gISXJGjTGqbf+1kO0DcCcOykY50boGRO8EGevGNQ=
+Date:   Wed, 30 Jun 2021 17:54:22 -0700
 From:   akpm@linux-foundation.org
-To:     axelrasmussen@google.com, mm-commits@vger.kernel.org,
-        peterx@redhat.com
+To:     ddstreet@ieee.org, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org, nathan@kernel.org, sjenning@redhat.com
 Subject:  [folded-merged]
- userfaultfd-selftests-reinitialize-test-context-in-each-test-fix.patch
- removed from -mm tree
-Message-ID: <20210701005337.T6SeY55UM%akpm@linux-foundation.org>
+ mm-zbud-dont-export-any-zbud-api-fix.patch removed from -mm tree
+Message-ID: <20210701005422.mqSDmGZEC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,70 +43,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd-selftests-reinitialize-test-context-in-each-test-fix
+     Subject: mm/zbud: fix unused function warnings when CONFIG_ZPOOL is disabled
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftests-reinitialize-test-context-in-each-test-fix.patch
+     mm-zbud-dont-export-any-zbud-api-fix.patch
 
-This patch was dropped because it was folded into userfaultfd-selftests-reinitialize-test-context-in-each-test.patch
+This patch was dropped because it was folded into mm-zbud-dont-export-any-zbud-api.patch
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: userfaultfd-selftests-reinitialize-test-context-in-each-test-fix
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/zbud: fix unused function warnings when CONFIG_ZPOOL is disabled
 
-fix conflict between this patch and the uffd pagemap series
+There are several -Wunused-function warnings when CONFIG_ZPOOL is
+disabled.  As zbud won't do anything when CONFIG_ZPOOL is disabled, we can
+make zbud depends on ZPOOL and eliminate the CONFIG_ZPOOL macro in zbud.c
+to fix these warnings.
 
-Link: https://lkml.kernel.org/r/YKQqKrl+/cQ1utrb@t490s
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
+Link: https://lkml.kernel.org/r/20210619025508.1239386-1-linmiaohe@huawei.com
+Fixes: 962b7e9ad124 ("mm/zbud: don't export any zbud API")
+Reported-by: Nathan Chancellor <nathan@kernel.org>
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Seth Jennings <sjenning@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ mm/Kconfig |    1 +
+ mm/zbud.c  |   10 ----------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-reinitialize-test-context-in-each-test-fix
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -1326,7 +1326,7 @@ static void userfaultfd_pagemap_test(uns
- 	/* Flush so it doesn't flush twice in parent/child later */
- 	fflush(stdout);
+--- a/mm/Kconfig~mm-zbud-dont-export-any-zbud-api-fix
++++ a/mm/Kconfig
+@@ -674,6 +674,7 @@ config ZPOOL
  
--	uffd_test_ops->release_pages(area_dst);
-+	uffd_test_ctx_init(0);
+ config ZBUD
+ 	tristate "Low (Up to 2x) density storage for compressed pages"
++	depends on ZPOOL
+ 	help
+ 	  A special purpose allocator for storing compressed pages.
+ 	  It is designed to store up to two compressed pages per physical
+--- a/mm/zbud.c~mm-zbud-dont-export-any-zbud-api-fix
++++ a/mm/zbud.c
+@@ -109,10 +109,8 @@ struct zbud_pool {
+ 	struct list_head lru;
+ 	u64 pages_nr;
+ 	const struct zbud_ops *ops;
+-#ifdef CONFIG_ZPOOL
+ 	struct zpool *zpool;
+ 	const struct zpool_ops *zpool_ops;
+-#endif
+ };
  
- 	if (test_pgsize > page_size) {
- 		/* This is a thp test */
-@@ -1338,9 +1338,6 @@ static void userfaultfd_pagemap_test(uns
- 			err("madvise(MADV_NOHUGEPAGE) failed");
- 	}
+ /*
+@@ -524,8 +522,6 @@ static u64 zbud_get_pool_size(struct zbu
+  * zpool
+  ****************/
  
--	if (userfaultfd_open(0))
--		err("userfaultfd_open");
+-#ifdef CONFIG_ZPOOL
 -
- 	uffdio_register.range.start = (unsigned long) area_dst;
- 	uffdio_register.range.len = nr_pages * page_size;
- 	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
-@@ -1383,7 +1380,6 @@ static void userfaultfd_pagemap_test(uns
- 	pagemap_check_wp(value, false);
+ static int zbud_zpool_evict(struct zbud_pool *pool, unsigned long handle)
+ {
+ 	if (pool->zpool && pool->zpool_ops && pool->zpool_ops->evict)
+@@ -616,7 +612,6 @@ static struct zpool_driver zbud_zpool_dr
+ };
  
- 	close(pagemap_fd);
--	close(uffd);
- 	printf("done\n");
+ MODULE_ALIAS("zpool-zbud");
+-#endif /* CONFIG_ZPOOL */
+ 
+ static int __init init_zbud(void)
+ {
+@@ -624,19 +619,14 @@ static int __init init_zbud(void)
+ 	BUILD_BUG_ON(sizeof(struct zbud_header) > ZHDR_SIZE_ALIGNED);
+ 	pr_info("loaded\n");
+ 
+-#ifdef CONFIG_ZPOOL
+ 	zpool_register_driver(&zbud_zpool_driver);
+-#endif
+ 
+ 	return 0;
+ }
+ 
+ static void __exit exit_zbud(void)
+ {
+-#ifdef CONFIG_ZPOOL
+ 	zpool_unregister_driver(&zbud_zpool_driver);
+-#endif
+-
+ 	pr_info("unloaded\n");
  }
  
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-gup_benchmark-support-threading.patch
-userfaultfd-selftests-use-user-mode-only.patch
-userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch
-userfaultfd-selftests-dropping-verify-check-in-locking_thread.patch
-userfaultfd-selftests-only-dump-counts-if-mode-enabled.patch
-userfaultfd-selftests-unify-error-handling.patch
-mm-thp-simplify-copying-of-huge-zero-page-pmd-when-fork.patch
-mm-userfaultfd-fix-uffd-wp-special-cases-for-fork.patch
-mm-userfaultfd-fail-uffd-wp-registeration-if-not-supported.patch
-mm-pagemap-export-uffd-wp-protection-information.patch
-userfaultfd-selftests-add-pagemap-uffd-wp-test.patch
-userfaultfd-selftests-reinitialize-test-context-in-each-test.patch
+mm-swapfile-use-percpu_ref-to-serialize-against-concurrent-swapoff.patch
+swap-fix-do_swap_page-race-with-swapoff.patch
+mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
+mm-shmem-fix-shmem_swapin-race-with-swapoff.patch
+mm-swapfile-move-get_swap_page_of_type-under-config_hibernation.patch
+mm-swap-remove-unused-local-variable-nr_shadows.patch
+mm-swap_slotsc-delete-meaningless-forward-declarations.patch
+mm-huge_memoryc-remove-dedicated-macro-hpage_cache_index_mask.patch
+mm-huge_memoryc-use-page-deferred_list.patch
+mm-huge_memoryc-add-missing-read-only-thp-checking-in-transparent_hugepage_enabled.patch
+mm-huge_memoryc-remove-unnecessary-tlb_remove_page_size-for-huge-zero-pmd.patch
+mm-huge_memoryc-dont-discard-hugepage-if-other-processes-are-mapping-it.patch
+mm-workingset-define-macro-workingset_shift.patch
+mm-z3fold-define-macro-nchunks-as-total_chunks-zhdr_chunks.patch
+mm-z3fold-avoid-possible-underflow-in-z3fold_alloc.patch
+mm-z3fold-remove-magic-number-in-z3fold_create_pool.patch
+mm-z3fold-remove-unused-function-handle_to_z3fold_header.patch
+mm-z3fold-fix-potential-memory-leak-in-z3fold_destroy_pool.patch
+mm-z3fold-use-release_z3fold_page_locked-to-release-locked-z3fold-page.patch
+mm-zbud-reuse-unbuddied-as-buddied-in-zbud_pool.patch
+mm-zbud-dont-export-any-zbud-api.patch
+mm-zswapc-remove-unused-function-zswap_debugfs_exit.patch
+mm-zswapc-avoid-unnecessary-copy-in-at-map-time.patch
+mm-zswapc-fix-two-bugs-in-zswap_writeback_entry.patch
+mm-zsmallocc-remove-confusing-code-in-obj_free.patch
+mm-zsmallocc-improve-readability-for-async_free_zspage.patch
+mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
