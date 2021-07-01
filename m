@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92E87C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:49:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DF0DC11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:50:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6A5AA61469
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:49:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2ABAE6124B
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:50:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234014AbhGAAwT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 20:52:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57430 "EHLO mail.kernel.org"
+        id S234790AbhGAAw6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 20:52:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57476 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232066AbhGAAwS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 20:52:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 35FF361425;
-        Thu,  1 Jul 2021 00:49:49 +0000 (UTC)
+        id S232066AbhGAAw5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 20:52:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ECEC961424;
+        Thu,  1 Jul 2021 00:50:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625100589;
-        bh=7AzoyJo6lg0PdbESKn4DkpUB4alQT043ikXfOs7MZ3k=;
+        s=korg; t=1625100627;
+        bh=BMEi7p8xJs26l0Sj9EWab6A6fl2beCw2pdkSowRfQLQ=;
         h=Date:From:To:Subject:From;
-        b=2urRPnuUKaL6SNrWBv0A/shPigEF7H2bB60BEI96JyYwbUVUqukZ1dVYJp6jWmgGY
-         hEB9n7uwFcv3I1ZGJWQ4dlIIfB5pLhbJ1tVhZVzTgIjKjcCrpvbzM0tjmhErQqInWX
-         F2ehJ43fZm6rjvpHT7JHYBS5fcaAiT6SZUzu//3Q=
-Date:   Wed, 30 Jun 2021 17:49:48 -0700
+        b=u7pmfq+Gewmro8FAvSY3Iybg7k71dl3ksodWg7aT0u60PTMW9mucY8IQ9Y5kc5C3a
+         IVfzbM119871f+NLXjKq6LyypHZ8f5mF1n4rEZLP6IvdfPpRFEkMep1wapSWxc+vBM
+         knE3fOJKdFcSi0RSLN+B/IF5VGqaICkEWlqcrtrY=
+Date:   Wed, 30 Jun 2021 17:50:26 -0700
 From:   akpm@linux-foundation.org
-To:     christophe.leroy@csgroup.eu, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org
+To:     christophe.leroy@csgroup.eu, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
+        npiggin@gmail.com, rppt@kernel.org
 Subject:  [folded-merged]
- mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix-2.patch removed from
+ arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch removed from
  -mm tree
-Message-ID: <20210701004948.ZRyO8HndE%akpm@linux-foundation.org>
+Message-ID: <20210701005026.9k94Pkqh5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,92 +45,81 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: define only {pud/pmd}_{set/clear}_huge when useful
+     Subject: arm64: define only {pud/pmd}_{set/clear}_huge when useful
 has been removed from the -mm tree.  Its filename was
-     mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix-2.patch
+     arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch
 
 This patch was dropped because it was folded into mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
 
 ------------------------------------------------------
 From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: x86: define only {pud/pmd}_{set/clear}_huge when useful
+Subject: arm64: define only {pud/pmd}_{set/clear}_huge when useful
 
-When PUD and/or PMD are folded, those functions are useless and we have a
-stub in linux/pgtable.h
+When PUD and/or PMD are folded, those functions are useless
+and we now have a stub in linux/pgtable.h
 
-Link: https://lkml.kernel.org/r/7fbf1b6bc3e15c07c24fa45278d57064f14c896b.1620930415.git.christophe.leroy@csgroup.eu
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/73ec95f40cafbbb69bdfb43a7f53876fd845b0ce.1620990479.git.christophe.leroy@csgroup.eu
 Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pgtable.c |   34 +++++++++++++++++++---------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
+ arch/arm64/mm/mmu.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
---- a/arch/x86/mm/pgtable.c~mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge-fix-2
-+++ a/arch/x86/mm/pgtable.c
-@@ -682,6 +682,7 @@ int p4d_clear_huge(p4d_t *p4d)
+--- a/arch/arm64/mm/mmu.c~arm64-define-only-pud-pmd_set-clear_huge-when-usefull
++++ a/arch/arm64/mm/mmu.c
+@@ -1338,6 +1338,7 @@ void *__init fixmap_remap_fdt(phys_addr_
+ 	return dt_virt;
  }
- #endif
  
 +#if CONFIG_PGTABLE_LEVELS > 3
- /**
-  * pud_set_huge - setup kernel PUD mapping
-  *
-@@ -721,6 +722,23 @@ int pud_set_huge(pud_t *pud, phys_addr_t
+ int pud_set_huge(pud_t *pudp, phys_addr_t phys, pgprot_t prot)
+ {
+ 	pud_t new_pud = pfn_pud(__phys_to_pfn(phys), mk_pud_sect_prot(prot));
+@@ -1352,6 +1353,16 @@ int pud_set_huge(pud_t *pudp, phys_addr_
+ 	return 1;
  }
  
- /**
-+ * pud_clear_huge - clear kernel PUD mapping when it is set
-+ *
-+ * Returns 1 on success and 0 on failure (no PUD map is found).
-+ */
-+int pud_clear_huge(pud_t *pud)
++int pud_clear_huge(pud_t *pudp)
 +{
-+	if (pud_large(*pud)) {
-+		pud_clear(pud);
-+		return 1;
-+	}
-+
-+	return 0;
++	if (!pud_sect(READ_ONCE(*pudp)))
++		return 0;
++	pud_clear(pudp);
++	return 1;
 +}
 +#endif
 +
 +#if CONFIG_PGTABLE_LEVELS > 2
-+/**
-  * pmd_set_huge - setup kernel PMD mapping
-  *
-  * See text over pud_set_huge() above.
-@@ -751,21 +769,6 @@ int pmd_set_huge(pmd_t *pmd, phys_addr_t
+ int pmd_set_huge(pmd_t *pmdp, phys_addr_t phys, pgprot_t prot)
+ {
+ 	pmd_t new_pmd = pfn_pmd(__phys_to_pfn(phys), mk_pmd_sect_prot(prot));
+@@ -1366,14 +1377,6 @@ int pmd_set_huge(pmd_t *pmdp, phys_addr_
+ 	return 1;
  }
  
- /**
-- * pud_clear_huge - clear kernel PUD mapping when it is set
-- *
-- * Returns 1 on success and 0 on failure (no PUD map is found).
-- */
--int pud_clear_huge(pud_t *pud)
+-int pud_clear_huge(pud_t *pudp)
 -{
--	if (pud_large(*pud)) {
--		pud_clear(pud);
--		return 1;
--	}
--
--	return 0;
+-	if (!pud_sect(READ_ONCE(*pudp)))
+-		return 0;
+-	pud_clear(pudp);
+-	return 1;
 -}
 -
--/**
-  * pmd_clear_huge - clear kernel PMD mapping when it is set
-  *
-  * Returns 1 on success and 0 on failure (no PMD map is found).
-@@ -779,6 +782,7 @@ int pmd_clear_huge(pmd_t *pmd)
- 
- 	return 0;
+ int pmd_clear_huge(pmd_t *pmdp)
+ {
+ 	if (!pmd_sect(READ_ONCE(*pmdp)))
+@@ -1381,6 +1384,7 @@ int pmd_clear_huge(pmd_t *pmdp)
+ 	pmd_clear(pmdp);
+ 	return 1;
  }
 +#endif
  
- #ifdef CONFIG_X86_64
- /**
+ int pmd_free_pte_page(pmd_t *pmdp, unsigned long addr)
+ {
 _
 
 Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
@@ -137,7 +127,6 @@ Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
 mm-pagewalk-fix-walk-for-hugepage-tables.patch
 mm-hugetlb-change-parameters-of-arch_make_huge_pte.patch
 mm-pgtable-add-stubs-for-pmd-pub_set-clear_huge.patch
-arm64-define-only-pud-pmd_set-clear_huge-when-usefull.patch
 mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmap.patch
 mm-vmalloc-enable-mapping-of-huge-pages-at-pte-level-in-vmalloc.patch
 powerpc-8xx-add-support-for-huge-pages-on-vmap-and-vmalloc.patch
