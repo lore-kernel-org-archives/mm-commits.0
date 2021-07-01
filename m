@@ -5,36 +5,41 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7949BC11F69
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF6A0C11F6A
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 63A6561483
+	by mail.kernel.org (Postfix) with ESMTP id 9CE2B61493
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238564AbhGAB7D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S238565AbhGAB7D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 30 Jun 2021 21:59:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48894 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48948 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238565AbhGAB66 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:58:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A1F126146D;
-        Thu,  1 Jul 2021 01:56:28 +0000 (UTC)
+        id S238566AbhGAB7C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:59:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B422A6141A;
+        Thu,  1 Jul 2021 01:56:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104588;
-        bh=/ls2NnoC8Zx5fW4dsg+rZbYGyeQEYYiYj9cexnSdSKc=;
+        s=korg; t=1625104592;
+        bh=401q/z+V0pDuTxo9El745SlNiAqNW+WdwxGt9/qV6P4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ZNBeHY1LKTJJYLJy5zKt5765d2VZdCG2u01LZep8P9e/GVBWTKYlnQOGFuDdn2DiN
-         m2MZtnMrEIFC+33rlOMka5C8pDJk77fO4r5WbnR+cSs+3HKP6nBxW5i+C9XsbKfPJT
-         Vd5i1o6E4OxZh+8f9hLYm3kALgV+tjrs+5XJwEik=
-Date:   Wed, 30 Jun 2021 18:56:28 -0700
+        b=PYeKkW5kD0qcTQmMSduw5ZoDxury8ffej4N+GCoZlHJdmo8l5fQiYe7IAx679SsAn
+         szVb6rlwi/dqgbofSdS4AyF+Go3Jew1ipTQSlTGUFebT1lcH76hPDA4N+bvwY+fnXx
+         +z0cQno/hK84Zz5H1erKAYYzDhLlzA03PL0Q2kqA=
+Date:   Wed, 30 Jun 2021 18:56:31 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     ahalaney@redhat.com, akpm@linux-foundation.org, bp@suse.de,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        rostedt@goodmis.org, torvalds@linux-foundation.org
-Subject:  [patch 176/192] init: print out unknown kernel parameters
-Message-ID: <20210701015628.vk9Y1Fqho%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, anil.s.keshavamurthy@intel.com,
+        borntraeger@de.ibm.com, bp@alien8.de, davem@davemloft.net,
+        gor@linux.ibm.com, hca@linux.ibm.com, hch@lst.de, hpa@zytor.com,
+        linux-mm@kvack.org, liuqi115@huawei.com, mhiramat@kernel.org,
+        mingo@redhat.com, mm-commits@vger.kernel.org,
+        naveen.n.rao@linux.ibm.com, song.bao.hua@hisilicon.com,
+        tglx@linutronix.de, torvalds@linux-foundation.org
+Subject:  [patch 177/192] kprobes: remove duplicated strong
+ free_insn_page in x86 and s390
+Message-ID: <20210701015631.VKMj8Ffy0%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,100 +47,88 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrew Halaney <ahalaney@redhat.com>
-Subject: init: print out unknown kernel parameters
+From: Barry Song <song.bao.hua@hisilicon.com>
+Subject: kprobes: remove duplicated strong free_insn_page in x86 and s390
 
-It is easy to foobar setting a kernel parameter on the command line
-without realizing it, there's not much output that you can use to assess
-what the kernel did with that parameter by default.
+free_insn_page() in x86 and s390 is same with the common weak function in
+kernel/kprobes.c.  Plus, the comment "Recover page to RW mode before
+releasing it" in x86 seems insensible to be there since resetting mapping
+is done by common code in vfree() of module_memfree().  So drop these two
+duplicated strong functions and related comment, then mark the common one
+in kernel/kprobes.c strong.
 
-Make it a little more explicit which parameters on the command line
-_looked_ like a valid parameter for the kernel, but did not match anything
-and ultimately got tossed to init.  This is very similar to the unknown
-parameter message received when loading a module.
-
-This assumes the parameters are processed in a normal fashion, some
-parameters (dyndbg= for example) don't register their parameter with the
-rest of the kernel's parameters, and therefore always show up in this list
-(and are also given to init - like the rest of this list).
-
-Another example is BOOT_IMAGE= is highlighted as an offender, which it
-technically is, but is passed by LILO and GRUB so most systems will see
-that complaint.
-
-An example output where "foobared" and "unrecognized" are intentionally
-invalid parameters:
-
-  Kernel command line: BOOT_IMAGE=/boot/vmlinuz-5.12-dirty debug log_buf_len=4M foobared unrecognized=foo
-  Unknown command line parameters: foobared BOOT_IMAGE=/boot/vmlinuz-5.12-dirty unrecognized=foo
-
-Link: https://lkml.kernel.org/r/20210511211009.42259-1-ahalaney@redhat.com
-Signed-off-by: Andrew Halaney <ahalaney@redhat.com>
-Suggested-by: Steven Rostedt <rostedt@goodmis.org>
-Suggested-by: Borislav Petkov <bp@suse.de>
-Acked-by: Borislav Petkov <bp@suse.de>
+Link: https://lkml.kernel.org/r/20210608065736.32656-1-song.bao.hua@hisilicon.com
+Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
+Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
+Acked-by: Heiko Carstens <hca@linux.ibm.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Qi Liu <liuqi115@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |   42 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ arch/s390/kernel/kprobes.c     |    5 -----
+ arch/x86/kernel/kprobes/core.c |    6 ------
+ include/linux/kprobes.h        |    1 -
+ kernel/kprobes.c               |    2 +-
+ 4 files changed, 1 insertion(+), 13 deletions(-)
 
---- a/init/main.c~init-print-out-unknown-kernel-parameters
-+++ a/init/main.c
-@@ -872,6 +872,47 @@ void __init __weak arch_call_rest_init(v
- 	rest_init();
+--- a/arch/s390/kernel/kprobes.c~kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390
++++ a/arch/s390/kernel/kprobes.c
+@@ -44,11 +44,6 @@ void *alloc_insn_page(void)
+ 	return page;
  }
  
-+static void __init print_unknown_bootoptions(void)
-+{
-+	char *unknown_options;
-+	char *end;
-+	const char *const *p;
-+	size_t len;
-+
-+	if (panic_later || (!argv_init[1] && !envp_init[2]))
-+		return;
-+
-+	/*
-+	 * Determine how many options we have to print out, plus a space
-+	 * before each
-+	 */
-+	len = 1; /* null terminator */
-+	for (p = &argv_init[1]; *p; p++) {
-+		len++;
-+		len += strlen(*p);
-+	}
-+	for (p = &envp_init[2]; *p; p++) {
-+		len++;
-+		len += strlen(*p);
-+	}
-+
-+	unknown_options = memblock_alloc(len, SMP_CACHE_BYTES);
-+	if (!unknown_options) {
-+		pr_err("%s: Failed to allocate %zu bytes\n",
-+			__func__, len);
-+		return;
-+	}
-+	end = unknown_options;
-+
-+	for (p = &argv_init[1]; *p; p++)
-+		end += sprintf(end, " %s", *p);
-+	for (p = &envp_init[2]; *p; p++)
-+		end += sprintf(end, " %s", *p);
-+
-+	pr_notice("Unknown command line parameters:%s\n", unknown_options);
-+	memblock_free(__pa(unknown_options), len);
-+}
-+
- asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
+-void free_insn_page(void *page)
+-{
+-	module_memfree(page);
+-}
+-
+ static void *alloc_s390_insn_page(void)
  {
- 	char *command_line;
-@@ -913,6 +954,7 @@ asmlinkage __visible void __init __no_sa
- 				  static_command_line, __start___param,
- 				  __stop___param - __start___param,
- 				  -1, -1, NULL, &unknown_bootoption);
-+	print_unknown_bootoptions();
- 	if (!IS_ERR_OR_NULL(after_dashes))
- 		parse_args("Setting init args", after_dashes, NULL, 0, -1, -1,
- 			   NULL, set_init_arg);
+ 	if (xchg(&insn_page_in_use, 1) == 1)
+--- a/arch/x86/kernel/kprobes/core.c~kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390
++++ a/arch/x86/kernel/kprobes/core.c
+@@ -422,12 +422,6 @@ void *alloc_insn_page(void)
+ 	return page;
+ }
+ 
+-/* Recover page to RW mode before releasing it */
+-void free_insn_page(void *page)
+-{
+-	module_memfree(page);
+-}
+-
+ /* Kprobe x86 instruction emulation - only regs->ip or IF flag modifiers */
+ 
+ static void kprobe_emulate_ifmodifiers(struct kprobe *p, struct pt_regs *regs)
+--- a/include/linux/kprobes.h~kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390
++++ a/include/linux/kprobes.h
+@@ -407,7 +407,6 @@ int enable_kprobe(struct kprobe *kp);
+ void dump_kprobe(struct kprobe *kp);
+ 
+ void *alloc_insn_page(void);
+-void free_insn_page(void *page);
+ 
+ int kprobe_get_kallsym(unsigned int symnum, unsigned long *value, char *type,
+ 		       char *sym);
+--- a/kernel/kprobes.c~kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390
++++ a/kernel/kprobes.c
+@@ -106,7 +106,7 @@ void __weak *alloc_insn_page(void)
+ 	return module_alloc(PAGE_SIZE);
+ }
+ 
+-void __weak free_insn_page(void *page)
++static void free_insn_page(void *page)
+ {
+ 	module_memfree(page);
+ }
 _
