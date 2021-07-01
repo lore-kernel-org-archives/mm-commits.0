@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 874F3C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8721CC11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7331061469
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 729B06105A
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238455AbhGABxV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:53:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42856 "EHLO mail.kernel.org"
+        id S238456AbhGABxY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:53:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42898 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238452AbhGABxV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:53:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5AD246105A;
-        Thu,  1 Jul 2021 01:50:51 +0000 (UTC)
+        id S238452AbhGABxY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:53:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5023561469;
+        Thu,  1 Jul 2021 01:50:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104251;
-        bh=sW2YVX7JTuv9Ix1neyEH1wc4ioUwYFcLg/KnAEK56IU=;
+        s=korg; t=1625104254;
+        bh=UJtTJYrCRsLD4FfW1JymU0J77+YJVyR9MC3Xyr/ThOU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=R0ZKT8tfejr1U1nVw8VVLIoGqnl24//nDqcbxAZx1i/pRcjCADRXy5shOap6GCoR6
-         /6hD70M/Hc1CdonIjnrbWGXfIHGCdQ0zZMyOMEQvTDcUHpit0nIjqrRszxcXQZXoEd
-         yglUG2zjulto5GFvHHwvE6eFb7KYShC0NvDUEQMs=
-Date:   Wed, 30 Jun 2021 18:50:51 -0700
+        b=zyGW2MG7Gxv8myiLus7P1ylSM8SY8pB2aSaQRrZ3qBYI5lor+/ufGPGDYafbg3Bnm
+         yP9ae6/gzkqSUTVWAAd1EFRTke+RJ9EMUm4i5cUG0BODpdqhOKnw1RlXGS6rnptKGf
+         ntbw+eWnRuIQ+yHRhIM/1nFHUWr2qPIHZqEXFC3U=
+Date:   Wed, 30 Jun 2021 18:50:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
-        liu.xiang@zlingsmart.com, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 069/192] mm: compaction: remove duplicate
- !list_empty(&sublist) check
-Message-ID: <20210701015051.qyVr1V2h4%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, vbabka@suse.cz, vvghjk1234@gmail.com
+Subject:  [patch 070/192] mm/compaction: fix 'limit' in
+ fast_isolate_freepages
+Message-ID: <20210701015053.dU5ZOGwUJ%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,41 +43,73 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Liu Xiang <liu.xiang@zlingsmart.com>
-Subject: mm: compaction: remove duplicate !list_empty(&sublist) check
+From: Wonhyuk Yang <vvghjk1234@gmail.com>
+Subject: mm/compaction: fix 'limit' in fast_isolate_freepages
 
-The list_splice_tail(&sublist, freelist) also do !list_empty(&sublist)
-check, so remove the duplicate call.
+Because of 'min(1, ...)', fast_isolate_freepages set 'limit' to 0 or 1. 
+This takes away the opportunities of find candinate pages.  So, by making
+enough scans available, increases the probability of finding the
+appropriate freepage.
 
-Link: https://lkml.kernel.org/r/20210609095409.19920-1-liu.xiang@zlingsmart.com
-Signed-off-by: Liu Xiang <liu.xiang@zlingsmart.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Tested it on the thpscale and the results are as follows.
+
+                                        5.12.0                 5.12.0
+                                      valnilla                patched
+Amean     fault-both-1       598.15 (   0.00%)      592.56 (   0.93%)
+Amean     fault-both-3      1494.47 (   0.00%)     1514.35 (  -1.33%)
+Amean     fault-both-5      2519.48 (   0.00%)     2471.76 (   1.89%)
+Amean     fault-both-7      3173.85 (   0.00%)     3079.19 (   2.98%)
+Amean     fault-both-12     8063.83 (   0.00%)     7858.29 (   2.55%)
+Amean     fault-both-18     8781.20 (   0.00%)     7827.70 *  10.86%*
+Amean     fault-both-24    12576.44 (   0.00%)    12250.20 (   2.59%)
+Amean     fault-both-30    18503.27 (   0.00%)    17528.11 *   5.27%*
+Amean     fault-both-32    16133.69 (   0.00%)    13874.24 *  14.00%*
+
+                                           5.12.0         5.12.0
+                                          vanilla        patched
+Ops Compaction migrate scanned         6547133.00     5963901.00
+Ops Compaction free scanned           32452453.00    26609101.00
+
+                        5.12        5.12
+                     vanilla     patched
+Duration User          27.99       28.84
+Duration System       244.08      236.76
+Duration Elapsed       78.27       78.38
+
+Link: https://lkml.kernel.org/r/20210626082443.22547-1-vvghjk1234@gmail.com
+Fixes: 5a811889de10f ("mm, compaction: use free lists to quickly locate a migration target")
+Signed-off-by: Wonhyuk Yang <vvghjk1234@gmail.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/compaction.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-remove-duplicate-list_emptysublist-check
+--- a/mm/compaction.c~mm-compaction-fix-limit-in-fast_isolate_freepages
 +++ a/mm/compaction.c
-@@ -1297,8 +1297,7 @@ move_freelist_head(struct list_head *fre
+@@ -1378,7 +1378,7 @@ static int next_search_order(struct comp
+ static unsigned long
+ fast_isolate_freepages(struct compact_control *cc)
+ {
+-	unsigned int limit = min(1U, freelist_scan_limit(cc) >> 1);
++	unsigned int limit = max(1U, freelist_scan_limit(cc) >> 1);
+ 	unsigned int nr_scanned = 0;
+ 	unsigned long low_pfn, min_pfn, highest = 0;
+ 	unsigned long nr_isolated = 0;
+@@ -1490,11 +1490,11 @@ fast_isolate_freepages(struct compact_co
+ 		spin_unlock_irqrestore(&cc->zone->lock, flags);
  
- 	if (!list_is_last(freelist, &freepage->lru)) {
- 		list_cut_before(&sublist, freelist, &freepage->lru);
--		if (!list_empty(&sublist))
--			list_splice_tail(&sublist, freelist);
-+		list_splice_tail(&sublist, freelist);
+ 		/*
+-		 * Smaller scan on next order so the total scan ig related
++		 * Smaller scan on next order so the total scan is related
+ 		 * to freelist_scan_limit.
+ 		 */
+ 		if (order_scanned >= limit)
+-			limit = min(1U, limit >> 1);
++			limit = max(1U, limit >> 1);
  	}
- }
  
-@@ -1315,8 +1314,7 @@ move_freelist_tail(struct list_head *fre
- 
- 	if (!list_is_first(freelist, &freepage->lru)) {
- 		list_cut_position(&sublist, freelist, &freepage->lru);
--		if (!list_empty(&sublist))
--			list_splice_tail(&sublist, freelist);
-+		list_splice_tail(&sublist, freelist);
- 	}
- }
- 
+ 	if (!page) {
 _
