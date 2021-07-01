@@ -2,138 +2,133 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_RED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_RED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F32C7C11F67
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 03:33:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DF02C11F64
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 03:46:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D8FD6610E5
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 03:33:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 417726144D
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 03:46:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232220AbhGADff (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 23:35:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58052 "EHLO
+        id S233294AbhGADtT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 23:49:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229622AbhGADff (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jun 2021 23:35:35 -0400
-Received: from mail-lj1-x231.google.com (mail-lj1-x231.google.com [IPv6:2a00:1450:4864:20::231])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5291BC061756
-        for <mm-commits@vger.kernel.org>; Wed, 30 Jun 2021 20:33:04 -0700 (PDT)
-Received: by mail-lj1-x231.google.com with SMTP id x20so6374550ljc.5
-        for <mm-commits@vger.kernel.org>; Wed, 30 Jun 2021 20:33:04 -0700 (PDT)
+        with ESMTP id S229622AbhGADtT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jun 2021 23:49:19 -0400
+Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65155C061756
+        for <mm-commits@vger.kernel.org>; Wed, 30 Jun 2021 20:46:48 -0700 (PDT)
+Received: by mail-ed1-x52a.google.com with SMTP id i5so6307400eds.1
+        for <mm-commits@vger.kernel.org>; Wed, 30 Jun 2021 20:46:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linux-foundation.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=4NA9zaSPl39QWKkH0SVypcQLeEvnyIgsesumJ5nuFfg=;
-        b=gOnY+vSX/LpwlpQfUXSi2tjk/3lMLVyLpz5na6UtYMWo7Yu1XjW9LZVuLlw8OpKMT/
-         K4bBgRF0/fVRnClTkDLINLF1m6J+LO5PlAk/+IPJx0mmmwuHXcrgAn/GKI+qnuBBwBuO
-         Avm9q0GjZb+7pnvYvKdkiQr7GBMsiAuJre8mA=
+        bh=AQMzHfxy7j73eeBAznsJUCDuAy6t9VofCTaFX648xqA=;
+        b=TfqMEHCarXH6/wt58F4195JwJqCI6EI44GHoRr9aNxZI/TKJP7i9XSJjdrPX/bvj4H
+         RUFal4pHdwsCScLgWwosxUl/2T+Gbq5kFP7SJ7AcO+kEVK1UqsCYtjrYnvC65I8cikZ4
+         yp8PKay777CVomTxeSZuYuFvtIyPVCbPt6SKI=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=4NA9zaSPl39QWKkH0SVypcQLeEvnyIgsesumJ5nuFfg=;
-        b=sQ87D5GVRFbM02kbchDnr+DkG6lX2/I2R9/zRxicQhZySsZDB2AXmVf8R6ibjXskGz
-         Im5yzVAEWow5pKUhP8+R/3HbGdjviZhtcI/qU8L6ChEb+gOa2gug7h15T/rsc9budZsX
-         PBItmZFQoWOPePU0ksLtdm4/SIBdWRwSZ/JyzTRHAZwmIc7ja43GvKxqa/wuBGwW4dw7
-         6xBBwUOgwWKbD6llx5LQkZtD9ahGNYBn/UhLUexzxXqZM6QiaPLAu3i0C0bLr8NsEQXS
-         SXh3qP5JhmaHXIoreJGs7/CAXDMz4ah4SasrZA7YhgGIWd3hbbXzrmfHOZ/U4huLFcDw
-         a6YQ==
-X-Gm-Message-State: AOAM532oOou92p7rxBk71BydnWcqtbwvlwx69T6aSL1jj5egiCU+tN0h
-        VWYNqvJiCVooQBJH888sZ0b3eycWj3qDEm6x
-X-Google-Smtp-Source: ABdhPJyRGmN4jxK+kO4k2xywWqCLCoIf32c3aQDwpLM5nBPT3xstkHCxNAnvZDB5R+C10fcDAgnWZw==
-X-Received: by 2002:a05:651c:10a8:: with SMTP id k8mr10212850ljn.99.1625110382112;
-        Wed, 30 Jun 2021 20:33:02 -0700 (PDT)
-Received: from mail-lf1-f48.google.com (mail-lf1-f48.google.com. [209.85.167.48])
-        by smtp.gmail.com with ESMTPSA id o14sm203509lfr.296.2021.06.30.20.33.01
+        bh=AQMzHfxy7j73eeBAznsJUCDuAy6t9VofCTaFX648xqA=;
+        b=TROt7qvNWSxz5yV3dv5SPH7Fh/M7sxnVtnNpPTq94klQ33s0b3pMjqkbnzWuu8QiEr
+         4MKXtP5QUgREmQ6sgR7vTNLX3saSP9mf+duMwncnkL2DkltnW8HBFSpAeBrDk3KcDZ7F
+         Ic4YKdguexCQvNOlSgHlEWBe30XaTStJ9L5ko7POtR9MFhHJLTXo6PP2O6iD/zB8mCxJ
+         MZFjBHpCCPQ+O7eYtEIvxX3J+InvUMVVdwsl/ODi6B/lLJRqtCELgmpZkKYCtygI618c
+         DyOr93tyWcqtp6tDXst1NWDijGUg62LLQD3VLWAE0GWFm1Kj+YN5Wjwm6l+9/67grvPt
+         MYOg==
+X-Gm-Message-State: AOAM532wzIHGDXq42v78OvGcxTEeDadnQKZlYxE8TlytAOl5ugjqW+iU
+        1xqCpPUowPSO1TtK0hzhiaT0Z7aXBrj6sldUxQ4=
+X-Google-Smtp-Source: ABdhPJy9FdNKsZCHvMRo7mRSgsk/qoY1wzM3ceQwtqcFUZUUcbJmylQk430ZsUli4MD4D8u+sxJmSQ==
+X-Received: by 2002:a05:6402:706:: with SMTP id w6mr50377862edx.176.1625111206919;
+        Wed, 30 Jun 2021 20:46:46 -0700 (PDT)
+Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com. [209.85.218.52])
+        by smtp.gmail.com with ESMTPSA id de33sm10257744ejc.38.2021.06.30.20.46.46
         for <mm-commits@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 30 Jun 2021 20:33:01 -0700 (PDT)
-Received: by mail-lf1-f48.google.com with SMTP id a18so9095236lfs.10
-        for <mm-commits@vger.kernel.org>; Wed, 30 Jun 2021 20:33:01 -0700 (PDT)
-X-Received: by 2002:ac2:4da3:: with SMTP id h3mr1773803lfe.487.1625110380767;
- Wed, 30 Jun 2021 20:33:00 -0700 (PDT)
+        Wed, 30 Jun 2021 20:46:46 -0700 (PDT)
+Received: by mail-ej1-f52.google.com with SMTP id o5so7993641ejy.7
+        for <mm-commits@vger.kernel.org>; Wed, 30 Jun 2021 20:46:46 -0700 (PDT)
+X-Received: by 2002:a05:6512:15a2:: with SMTP id bp34mr28560422lfb.40.1625111195625;
+ Wed, 30 Jun 2021 20:46:35 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org> <20210701015441.snfkDnNcO%akpm@linux-foundation.org>
-In-Reply-To: <20210701015441.snfkDnNcO%akpm@linux-foundation.org>
+References: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org> <20210701014713.b42x8Nm1B%akpm@linux-foundation.org>
+In-Reply-To: <20210701014713.b42x8Nm1B%akpm@linux-foundation.org>
 From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Wed, 30 Jun 2021 20:32:44 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wh8=sukFB3J-4BbBYZPLYoFgkzAjCxU95LKJ831g8SRVA@mail.gmail.com>
-Message-ID: <CAHk-=wh8=sukFB3J-4BbBYZPLYoFgkzAjCxU95LKJ831g8SRVA@mail.gmail.com>
-Subject: Re: [patch 141/192] fs/proc/kcore.c: add mmap interface
+Date:   Wed, 30 Jun 2021 20:46:19 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wjDoH4S56eeJBD3L0PptvmbaUrE9eFFxswTPxyO-nKNiw@mail.gmail.com>
+Message-ID: <CAHk-=wjDoH4S56eeJBD3L0PptvmbaUrE9eFFxswTPxyO-nKNiw@mail.gmail.com>
+Subject: Re: [patch 004/192] mm: hugetlb: free the vmemmap pages associated
+ with each HugeTLB page
 To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Alexey Dobriyan <adobriyan@gmail.com>,
-        chenying.kernel@bytedance.com, Linux-MM <linux-mm@kvack.org>,
-        mm-commits@vger.kernel.org, Mike Rapoport <rppt@kernel.org>,
-        Muchun Song <songmuchun@bytedance.com>,
-        zhouchengming@bytedance.com, zhoufeng.zf@bytedance.com
+Cc:     Mina Almasry <almasrymina@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        bodeddub@amazon.com, Borislav Petkov <bp@alien8.de>,
+        bsingharora@gmail.com, chenhuang5@huawei.com,
+        Jonathan Corbet <corbet@lwn.net>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        David Hildenbrand <david@redhat.com>,
+        duanxiongchun@bytedance.com, Peter Anvin <hpa@zytor.com>,
+        joao.m.martins@oracle.com, Joerg Roedel <jroedel@suse.de>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Linux-MM <linux-mm@kvack.org>,
+        Andrew Lutomirski <luto@kernel.org>,
+        Michal Hocko <mhocko@suse.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Ingo Molnar <mingo@redhat.com>, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, oneukum@suse.com,
+        Oscar Salvador <osalvador@suse.de>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Pawan Gupta <pawan.kumar.gupta@linux.intel.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        David Rientjes <rientjes@google.com>,
+        song.bao.hua@hisilicon.com, Muchun Song <songmuchun@bytedance.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Matthew Wilcox <willy@infradead.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, Jun 30, 2021 at 6:54 PM Andrew Morton <akpm@linux-foundation.org> wrote:
-> When we do the kernel monitor, use the DRGN
-> (https://github.com/osandov/drgn) access to kernel data structures, found
-> that the system calls a lot.  DRGN is implemented by reading /proc/kcore.
-> After looking at the kcore code, it is found that kcore does not implement
-> mmap, resulting in frequent context switching triggered by read.
-> Therefore, we want to add mmap interface to optimize performance.
+On Wed, Jun 30, 2021 at 6:47 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> From: Muchun Song <songmuchun@bytedance.com>
+> Subject: mm: hugetlb: free the vmemmap pages associated with each HugeTLB page
+>
+> Every HugeTLB has more than one struct page structure.  We __know__ that
+> we only use the first 4 (__NR_USED_SUBPAGE) struct page structures to
+> store metadata associated with each HugeTLB.
+>
+> There are a lot of struct page structures associated with each HugeTLB
+> page.  For tail pages, the value of compound_head is the same.  So we can
+> reuse first page of tail page structures.   [..]
 
-Ok, this is funky, but I'm going to drop this patch because I think
-it's buggy as is.
+I think this means to say that we can reuse the _second_ page of the
+tail page structures, since the first page is special and also
+contains the first (non-tail) 'struct page'.
 
- Since
+Or maybe the intent is to say that that second page is the "first page
+of purely tail page structures"?
 
-> +static int mmap_kcore(struct file *file, struct vm_area_struct *vma)
-> +{
-> +       size_t size = vma->vm_end - vma->vm_start;
+Anyway, this HugeTLB 'struct page' vmemmap patch-series doesn't look
+_wrong_ to me, but it does look like it is a nightmare to debug if
+something ever goes wrong. And it looks like a lot of things _could_
+go wrong. It all looks very subtle.
 
-Ok.
+Put another way: I'm not objecting to this series, but it does make me
+nervous, and I just want to give a heads-up that if we start seeing
+problems with this, I think people need to be ready to very
+aggressively revert it unless the fixes are obvious.
 
-But then:
+How much testing has this series gotten on loads that are heavy users
+of hugetlb?
 
-> +       start = kc_offset_to_vaddr(((u64)vma->vm_pgoff << PAGE_SHIFT) -
-> +               ((data_offset >> PAGE_SHIFT) << PAGE_SHIFT));
-
-Not only is that
-
-        ((data_offset >> PAGE_SHIFT) << PAGE_SHIFT)
-
-a very strange calculation (did you mean "data_offset & PAGE_MASK"?),
-but I don't see anything that protects against underflow in that
-calculation. pg_off can easily be arbitrarily small (eg zero), so that
-subtraction can underflow afaik.
-
-So that needs a test, and return -EINVAL or whatever.
-
-But even if that is fixed, this test is entirely broken:
-
-> +       list_for_each_entry(m, &kclist_head, list) {
-> +               if (start >= m->addr && size <= m->size)
-> +                       break;
-> +       }
-
-No, that's wrong.
-
-You allow 'size' to be as big as 'm->size', but you do that even if
-'start' isn't 'm->start'.
-
-The proper check would be something like
-
-       u64 end = start + size;
-
-        if (start >= m->addr && end <= m->addr+m->size) ..
-
-or similar (and that should check that "start+size" hasn't overflowed).
-
-So I see what appears to be multiple problems, and while I hand-waved
-some fixes for them, those are very much "maybe something like this",
-and I'm going to drop this patch. Not for 5.14.
-
-           Linus
+                Linus
