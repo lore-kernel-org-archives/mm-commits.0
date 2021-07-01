@@ -7,47 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF913C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:47:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B37D8C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:47:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D98DC61468
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:47:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9DBC261468
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:47:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237836AbhGABuE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:50:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39374 "EHLO mail.kernel.org"
+        id S237864AbhGABuH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:50:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237149AbhGABuE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:50:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EEA7261474;
-        Thu,  1 Jul 2021 01:47:33 +0000 (UTC)
+        id S237149AbhGABuH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:50:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A98361469;
+        Thu,  1 Jul 2021 01:47:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104055;
-        bh=zcSzV+ro5reUHy0+ya+gJAmzSOTcyMWx+9b576OxDMw=;
+        s=korg; t=1625104057;
+        bh=uHOr+PUatPdOBSNIiNb9bk8ywjouWaNlAxsMmCzmGDY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=XJMduY1zEj0VN4OxfH7d8CyVd1NBKFKZWdJ/sI2MKBSqeIV6a9ET5CGndNpQaUj3+
-         h7fMnXRFBvsC+CisS5JWs2PNPgzHcBgLlthS8KHnEu70MEMbRiEMuFa8gxlELnIyT5
-         IZ+i5R9z1YOB7fyWQ+CA21cMtwMTo+njSJDcvfDI=
-Date:   Wed, 30 Jun 2021 18:47:33 -0700
+        b=WqA/E5hbXxB/NKP787lWYg67I+4ftUo4rt67TcMgqWLBfZZL11KoDMI1Lt5mHEMhQ
+         A9FFh92qbQQj3BVnBe+TrmGR321p7YY5s9GSOzIl2QqkSePdjAwwTbaV1uayK+vVfj
+         Fw4tHLCYWk8N3SB1S4beQtfA21yK1U1k4WqozeNc=
+Date:   Wed, 30 Jun 2021 18:47:37 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, almasrymina@google.com,
-        anshuman.khandual@arm.com, bodeddub@amazon.com, bp@alien8.de,
-        bsingharora@gmail.com, chenhuang5@huawei.com, corbet@lwn.net,
-        dave.hansen@linux.intel.com, david@redhat.com,
-        duanxiongchun@bytedance.com, hpa@zytor.com,
-        joao.m.martins@oracle.com, jroedel@suse.de, linmiaohe@huawei.com,
-        linux-mm@kvack.org, luto@kernel.org, mhocko@suse.com,
-        mike.kravetz@oracle.com, mingo@redhat.com,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        oneukum@suse.com, osalvador@suse.de, paulmck@kernel.org,
-        pawan.kumar.gupta@linux.intel.com, peterz@infradead.org,
-        rdunlap@infradead.org, rientjes@google.com,
-        song.bao.hua@hisilicon.com, songmuchun@bytedance.com,
-        tglx@linutronix.de, torvalds@linux-foundation.org,
-        viro@zeniv.linux.org.uk, willy@infradead.org
-Subject:  [patch 009/192] mm: hugetlb: introduce
- nr_free_vmemmap_pages in the struct hstate
-Message-ID: <20210701014733.WWeLqTvdY%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
+        linux-mm@kvack.org, liushixin2@huawei.com,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 010/192] mm/debug_vm_pgtable: move
+ {pmd/pud}_huge_tests out of CONFIG_TRANSPARENT_HUGEPAGE
+Message-ID: <20210701014737.aHHVw2mHf%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,152 +43,147 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb: introduce nr_free_vmemmap_pages in the struct hstate
+From: Shixin Liu <liushixin2@huawei.com>
+Subject: mm/debug_vm_pgtable: move {pmd/pud}_huge_tests out of CONFIG_TRANSPARENT_HUGEPAGE
 
-All the infrastructure is ready, so we introduce nr_free_vmemmap_pages
-field in the hstate to indicate how many vmemmap pages associated with a
-HugeTLB page that can be freed to buddy allocator.  And initialize it in
-the hugetlb_vmemmap_init().  This patch is actual enablement of the
-feature.
+The functions {pmd/pud}_set_huge and {pmd/pud}_clear_huge are not
+dependent on THP.  Hence move {pmd/pud}_huge_tests out of
+CONFIG_TRANSPARENT_HUGEPAGE.
 
-There are only (RESERVE_VMEMMAP_SIZE / sizeof(struct page)) struct page
-structs that can be used when CONFIG_HUGETLB_PAGE_FREE_VMEMMAP, so add a
-BUILD_BUG_ON to catch invalid usage of the tail struct page.
-
-Link: https://lkml.kernel.org/r/20210510030027.56044-10-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Tested-by: Chen Huang <chenhuang5@huawei.com>
-Tested-by: Bodeddula Balasubramaniam <bodeddub@amazon.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Barry Song <song.bao.hua@hisilicon.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: HORIGUCHI NAOYA <naoya.horiguchi@nec.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Joerg Roedel <jroedel@suse.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Oliver Neukum <oneukum@suse.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20210419071820.750217-1-liushixin2@huawei.com
+Signed-off-by: Shixin Liu <liushixin2@huawei.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    3 +++
- mm/hugetlb.c            |    1 +
- mm/hugetlb_vmemmap.c    |   33 +++++++++++++++++++++++++++++++++
- mm/hugetlb_vmemmap.h    |   10 ++++++----
- 4 files changed, 43 insertions(+), 4 deletions(-)
+ mm/debug_vm_pgtable.c |   91 +++++++++++++++++-----------------------
+ 1 file changed, 39 insertions(+), 52 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-introduce-nr_free_vmemmap_pages-in-the-struct-hstate
-+++ a/include/linux/hugetlb.h
-@@ -608,6 +608,9 @@ struct hstate {
- 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
- 	unsigned int free_huge_pages_node[MAX_NUMNODES];
- 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
-+#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
-+	unsigned int nr_free_vmemmap_pages;
-+#endif
- #ifdef CONFIG_CGROUP_HUGETLB
- 	/* cgroup control files */
- 	struct cftype cgroup_files_dfl[7];
---- a/mm/hugetlb.c~mm-hugetlb-introduce-nr_free_vmemmap_pages-in-the-struct-hstate
-+++ a/mm/hugetlb.c
-@@ -3585,6 +3585,7 @@ void __init hugetlb_add_hstate(unsigned
- 	h->next_nid_to_free = first_memory_node;
- 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
- 					huge_page_size(h)/1024);
-+	hugetlb_vmemmap_init(h);
- 
- 	parsed_hstate = h;
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-move-pmd-pud_huge_tests-out-of-config_transparent_hugepage
++++ a/mm/debug_vm_pgtable.c
+@@ -248,29 +248,6 @@ static void __init pmd_leaf_tests(unsign
+ 	WARN_ON(!pmd_leaf(pmd));
  }
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb-introduce-nr_free_vmemmap_pages-in-the-struct-hstate
-+++ a/mm/hugetlb_vmemmap.c
-@@ -262,3 +262,36 @@ void free_huge_page_vmemmap(struct hstat
  
- 	SetHPageVmemmapOptimized(head);
+-#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+-static void __init pmd_huge_tests(pmd_t *pmdp, unsigned long pfn, pgprot_t prot)
+-{
+-	pmd_t pmd;
+-
+-	if (!arch_vmap_pmd_supported(prot))
+-		return;
+-
+-	pr_debug("Validating PMD huge\n");
+-	/*
+-	 * X86 defined pmd_set_huge() verifies that the given
+-	 * PMD is not a populated non-leaf entry.
+-	 */
+-	WRITE_ONCE(*pmdp, __pmd(0));
+-	WARN_ON(!pmd_set_huge(pmdp, __pfn_to_phys(pfn), prot));
+-	WARN_ON(!pmd_clear_huge(pmdp));
+-	pmd = READ_ONCE(*pmdp);
+-	WARN_ON(!pmd_none(pmd));
+-}
+-#else /* CONFIG_HAVE_ARCH_HUGE_VMAP */
+-static void __init pmd_huge_tests(pmd_t *pmdp, unsigned long pfn, pgprot_t prot) { }
+-#endif /* CONFIG_HAVE_ARCH_HUGE_VMAP */
+-
+ static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot)
+ {
+ 	pmd_t pmd;
+@@ -395,30 +372,6 @@ static void __init pud_leaf_tests(unsign
+ 	pud = pud_mkhuge(pud);
+ 	WARN_ON(!pud_leaf(pud));
  }
+-
+-#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+-static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot)
+-{
+-	pud_t pud;
+-
+-	if (!arch_vmap_pud_supported(prot))
+-		return;
+-
+-	pr_debug("Validating PUD huge\n");
+-	/*
+-	 * X86 defined pud_set_huge() verifies that the given
+-	 * PUD is not a populated non-leaf entry.
+-	 */
+-	WRITE_ONCE(*pudp, __pud(0));
+-	WARN_ON(!pud_set_huge(pudp, __pfn_to_phys(pfn), prot));
+-	WARN_ON(!pud_clear_huge(pudp));
+-	pud = READ_ONCE(*pudp);
+-	WARN_ON(!pud_none(pud));
+-}
+-#else /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
+-static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot) { }
+-#endif /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
+-
+ #else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ static void __init pud_basic_tests(struct mm_struct *mm, unsigned long pfn, int idx) { }
+ static void __init pud_advanced_tests(struct mm_struct *mm,
+@@ -428,9 +381,6 @@ static void __init pud_advanced_tests(st
+ {
+ }
+ static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot) { }
+-static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot)
+-{
+-}
+ #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ #else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
+ static void __init pmd_basic_tests(unsigned long pfn, int idx) { }
+@@ -449,14 +399,51 @@ static void __init pud_advanced_tests(st
+ }
+ static void __init pmd_leaf_tests(unsigned long pfn, pgprot_t prot) { }
+ static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot) { }
++static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot) { }
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 +
-+void __init hugetlb_vmemmap_init(struct hstate *h)
-+{
-+	unsigned int nr_pages = pages_per_huge_page(h);
-+	unsigned int vmemmap_pages;
++#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+ static void __init pmd_huge_tests(pmd_t *pmdp, unsigned long pfn, pgprot_t prot)
+ {
++	pmd_t pmd;
 +
-+	/*
-+	 * There are only (RESERVE_VMEMMAP_SIZE / sizeof(struct page)) struct
-+	 * page structs that can be used when CONFIG_HUGETLB_PAGE_FREE_VMEMMAP,
-+	 * so add a BUILD_BUG_ON to catch invalid usage of the tail struct page.
-+	 */
-+	BUILD_BUG_ON(__NR_USED_SUBPAGE >=
-+		     RESERVE_VMEMMAP_SIZE / sizeof(struct page));
-+
-+	if (!hugetlb_free_vmemmap_enabled)
++	if (!arch_vmap_pmd_supported(prot))
 +		return;
 +
-+	vmemmap_pages = (nr_pages * sizeof(struct page)) >> PAGE_SHIFT;
++	pr_debug("Validating PMD huge\n");
 +	/*
-+	 * The head page and the first tail page are not to be freed to buddy
-+	 * allocator, the other pages will map to the first tail page, so they
-+	 * can be freed.
-+	 *
-+	 * Could RESERVE_VMEMMAP_NR be greater than @vmemmap_pages? It is true
-+	 * on some architectures (e.g. aarch64). See Documentation/arm64/
-+	 * hugetlbpage.rst for more details.
++	 * X86 defined pmd_set_huge() verifies that the given
++	 * PMD is not a populated non-leaf entry.
 +	 */
-+	if (likely(vmemmap_pages > RESERVE_VMEMMAP_NR))
-+		h->nr_free_vmemmap_pages = vmemmap_pages - RESERVE_VMEMMAP_NR;
-+
-+	pr_info("can free %d vmemmap pages for %s\n", h->nr_free_vmemmap_pages,
-+		h->name);
-+}
---- a/mm/hugetlb_vmemmap.h~mm-hugetlb-introduce-nr_free_vmemmap_pages-in-the-struct-hstate
-+++ a/mm/hugetlb_vmemmap.h
-@@ -13,17 +13,15 @@
- #ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
- int alloc_huge_page_vmemmap(struct hstate *h, struct page *head);
- void free_huge_page_vmemmap(struct hstate *h, struct page *head);
-+void hugetlb_vmemmap_init(struct hstate *h);
- 
- /*
-  * How many vmemmap pages associated with a HugeTLB page that can be freed
-  * to the buddy allocator.
-- *
-- * Todo: Returns zero for now, which means the feature is disabled. We will
-- * enable it once all the infrastructure is there.
-  */
- static inline unsigned int free_vmemmap_pages_per_hpage(struct hstate *h)
- {
--	return 0;
-+	return h->nr_free_vmemmap_pages;
++	WRITE_ONCE(*pmdp, __pmd(0));
++	WARN_ON(!pmd_set_huge(pmdp, __pfn_to_phys(pfn), prot));
++	WARN_ON(!pmd_clear_huge(pmdp));
++	pmd = READ_ONCE(*pmdp);
++	WARN_ON(!pmd_none(pmd));
  }
- #else
- static inline int alloc_huge_page_vmemmap(struct hstate *h, struct page *head)
-@@ -35,6 +33,10 @@ static inline void free_huge_page_vmemma
- {
- }
- 
-+static inline void hugetlb_vmemmap_init(struct hstate *h)
-+{
-+}
 +
- static inline unsigned int free_vmemmap_pages_per_hpage(struct hstate *h)
+ static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot)
  {
- 	return 0;
++	pud_t pud;
++
++	if (!arch_vmap_pud_supported(prot))
++		return;
++
++	pr_debug("Validating PUD huge\n");
++	/*
++	 * X86 defined pud_set_huge() verifies that the given
++	 * PUD is not a populated non-leaf entry.
++	 */
++	WRITE_ONCE(*pudp, __pud(0));
++	WARN_ON(!pud_set_huge(pudp, __pfn_to_phys(pfn), prot));
++	WARN_ON(!pud_clear_huge(pudp));
++	pud = READ_ONCE(*pudp);
++	WARN_ON(!pud_none(pud));
+ }
+-static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot) { }
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++#else /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
++static void __init pmd_huge_tests(pmd_t *pmdp, unsigned long pfn, pgprot_t prot) { }
++static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot) { }
++#endif /* CONFIG_HAVE_ARCH_HUGE_VMAP */
+ 
+ static void __init p4d_basic_tests(unsigned long pfn, pgprot_t prot)
+ {
 _
