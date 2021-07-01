@@ -7,37 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDA59C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:48:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79492C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:48:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C733661469
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:48:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6189361090
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:48:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238391AbhGABvJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:51:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40474 "EHLO mail.kernel.org"
+        id S238392AbhGABvM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:51:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40524 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238384AbhGABvJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:51:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6AB3B6120C;
-        Thu,  1 Jul 2021 01:48:38 +0000 (UTC)
+        id S238384AbhGABvL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:51:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9E89A61468;
+        Thu,  1 Jul 2021 01:48:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104118;
-        bh=nQ0gbeppwSM962tSymacgiCh73iB7vJGWKuZvbkVpjM=;
+        s=korg; t=1625104122;
+        bh=T//CElXVE7xBFxBiOkfV6NqZ/Uq66JZRJynSpcZPrWg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=apJgT3a1t2kdPZxfua7IXAUpj0yqiIxcuTcHrxH4avYdsBuCOVlgEkmuwDDXV7apg
-         jiCvdjRSxAW8vXNT7HTzICGSOzdsBEPQAWg1swCsSDTUab6GFgalnJK1VdFwk3L+/f
-         9rJf2FiZYg1CpmNtvQSqXQx1pHGxdA2w9j+0KoqI=
-Date:   Wed, 30 Jun 2021 18:48:38 -0700
+        b=GRh3Y7umnWDBY8ssFfANHqhlKyzcH6/pIH7N8Nhl2nQL+o/xDHXAJscWv05yP6zIP
+         NF1vQxhMuaRNVXgcaEU6J/3z4YrgJhciEyxIhzT633cFvcCrUno9neLxObVgKa8VG5
+         Wltlqbe0cusl1dhMxKcBxsjq8yp2jP20p+sA+HOw=
+Date:   Wed, 30 Jun 2021 18:48:41 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
-        mgorman@techsingularity.net, mhocko@suse.com,
+To:     aarcange@redhat.com, akpm@linux-foundation.org,
+        almasrymina@google.com, axelrasmussen@google.com,
+        bgeffon@google.com, dgilbert@redhat.com, hughd@google.com,
+        jglisse@redhat.com, joe@perches.com, kirill@shutemov.name,
+        linux-mm@kvack.org, lokeshgidra@google.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, osalvador@suse.de,
-        torvalds@linux-foundation.org
-Subject:  [patch 029/192] mm/hwpoison: disable pcp for
- page_handle_poison()
-Message-ID: <20210701014838.TSZ9CNH3C%akpm@linux-foundation.org>
+        oupton@google.com, peterx@redhat.com, rppt@linux.vnet.ibm.com,
+        sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
+        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk,
+        wangqing@vivo.com
+Subject:  [patch 030/192] userfaultfd/selftests: use user mode only
+Message-ID: <20210701014841.w-4MhufHn%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,86 +49,62 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/hwpoison: disable pcp for page_handle_poison()
+From: Peter Xu <peterx@redhat.com>
+Subject: userfaultfd/selftests: use user mode only
 
-Recent changes by patch "mm/page_alloc: allow high-order pages to be
-stored on the per-cpu lists" makes kernels determine whether to use pcp by
-pcp_allowed_order(), which breaks soft-offline for hugetlb pages.
+Patch series "userfaultfd/selftests: A few cleanups", v2.
 
-Soft-offline dissolves a migration source page, then removes it from buddy
-free list, so it's assumed that any subpage of the soft-offlined hugepage
-are recognized as a buddy page just after returning from
-dissolve_free_huge_page().  pcp_allowed_order() returns true for hugetlb,
-so this assumption is no longer true.
+I wanted to cleanup userfaultfd.c fault handling for a long time.  If it's
+not cleaned, when the new code grows the file it'll also grow the size
+that needs to be cleaned...  This is my attempt to cleanup the userfaultfd
+selftest on fault handling, to use an err() macro instead of either
+fprintf() or perror() then another exit() call.
 
-So disable pcp during dissolve_free_huge_page() and take_page_off_buddy()
-to prevent soft-offlined hugepages from linking to pcp lists. 
-Soft-offline should not be common events so the impact on performance
-should be minimal.  And I think that the optimization of Mel's patch could
-benefit to hugetlb so zone_pcp_disable() is called only in hwpoison
-context.
+The huge cleanup is done in the last patch.  The first 4 patches are some
+other standalone cleanups for the same file, so I put them together.
 
-Link: https://lkml.kernel.org/r/20210617092626.291006-1-nao.horiguchi@gmail.com
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+
+This patch (of 5):
+
+Userfaultfd selftest does not need to handle kernel initiated fault.  Set
+user mode so it can be run even if unprivileged_userfaultfd=0 (which is
+the default).
+
+Link: https://lkml.kernel.org/r/20210412232753.1012412-2-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Oliver Upton <oupton@google.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-disable-pcp-for-page_handle_poison
-+++ a/mm/memory-failure.c
-@@ -66,6 +66,19 @@ int sysctl_memory_failure_recovery __rea
- 
- atomic_long_t num_poisoned_pages __read_mostly = ATOMIC_LONG_INIT(0);
- 
-+static bool __page_handle_poison(struct page *page)
-+{
-+	bool ret;
-+
-+	zone_pcp_disable(page_zone(page));
-+	ret = dissolve_free_huge_page(page);
-+	if (!ret)
-+		ret = take_page_off_buddy(page);
-+	zone_pcp_enable(page_zone(page));
-+
-+	return ret;
-+}
-+
- static bool page_handle_poison(struct page *page, bool hugepage_or_freepage, bool release)
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-use-user-mode-only
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -831,7 +831,7 @@ static int userfaultfd_open_ext(uint64_t
  {
- 	if (hugepage_or_freepage) {
-@@ -73,7 +86,7 @@ static bool page_handle_poison(struct pa
- 		 * Doing this check for free pages is also fine since dissolve_free_huge_page
- 		 * returns 0 for non-hugetlb pages as well.
- 		 */
--		if (dissolve_free_huge_page(page) || !take_page_off_buddy(page))
-+		if (!__page_handle_poison(page))
- 			/*
- 			 * We could fail to take off the target page from buddy
- 			 * for example due to racy page allocation, but that's
-@@ -985,7 +998,7 @@ static int me_huge_page(struct page *p,
- 		 */
- 		if (PageAnon(hpage))
- 			put_page(hpage);
--		if (!dissolve_free_huge_page(p) && take_page_off_buddy(p)) {
-+		if (__page_handle_poison(p)) {
- 			page_ref_inc(p);
- 			res = MF_RECOVERED;
- 		}
-@@ -1446,7 +1459,7 @@ static int memory_failure_hugetlb(unsign
- 			}
- 			unlock_page(head);
- 			res = MF_FAILED;
--			if (!dissolve_free_huge_page(p) && take_page_off_buddy(p)) {
-+			if (__page_handle_poison(p)) {
- 				page_ref_inc(p);
- 				res = MF_RECOVERED;
- 			}
+ 	struct uffdio_api uffdio_api;
+ 
+-	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
++	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY);
+ 	if (uffd < 0) {
+ 		fprintf(stderr,
+ 			"userfaultfd syscall not available in this kernel\n");
 _
