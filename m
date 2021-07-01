@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51192C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F9B1C11F69
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3AEA461468
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6997D61474
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238442AbhGABw6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:52:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42488 "EHLO mail.kernel.org"
+        id S238446AbhGABxC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:53:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42540 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238384AbhGABw6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:52:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 36C3F6105A;
-        Thu,  1 Jul 2021 01:50:28 +0000 (UTC)
+        id S238384AbhGABxB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:53:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 140BA61468;
+        Thu,  1 Jul 2021 01:50:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104228;
-        bh=pUNghmS3UghhRIbrzL3KTLY8WvTwvWERnFSE/dvBWbY=;
+        s=korg; t=1625104231;
+        bh=bMZghlfwKOQnCH7xwNfRdzA6t6/oFT5kgSFzQsMvzLU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=lvTlrjZlu83aCpxLHWiVTgvMRILS6sdL4YojRZ86xdZjZuFyMtlB3fuDRWAafLjfW
-         BiseYcKapK3HCC8i6jGRILaPBz2JuX1jeXFDqqy3XxTDB5/npS7yaQEu4GnuzDqwV5
-         dJhmh2u1qhGVoiXTAP2WrneBAcLmoXvAA5OIfa9U=
-Date:   Wed, 30 Jun 2021 18:50:27 -0700
+        b=h70G1lb7JeJ6TBPZyfMTFkVEsiQ5fC8NEni3BBtOjpm+A7KMHmmPnPWSDJqXEg7wf
+         IpFWWcDSqUD+NdSq5+bW2HyztgBYAKisFbfTk8LCq4OPar7lV7wEm9TRlIX66APfu2
+         Xhyfmb7EBkctktQyyplQblvNp/Sg6IJVQ0zpVrRo=
+Date:   Wed, 30 Jun 2021 18:50:30 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, hdanton@sina.com, linmiaohe@huawei.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, vitaly.wool@konsulko.com
-Subject:  [patch 061/192] mm/z3fold: avoid possible underflow in
- z3fold_alloc()
-Message-ID: <20210701015027.60S0CzrHj%akpm@linux-foundation.org>
+Subject:  [patch 062/192] mm/z3fold: remove magic number in
+ z3fold_create_pool()
+Message-ID: <20210701015030.igMLYc0-G%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,38 +44,34 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/z3fold: avoid possible underflow in z3fold_alloc()
+Subject: mm/z3fold: remove magic number in z3fold_create_pool()
 
-It is not enough to just make sure the z3fold header is not larger than
-the page size.  When z3fold header is equal to PAGE_SIZE, we would
-underflow when check alloc size against PAGE_SIZE - ZHDR_SIZE_ALIGNED -
-CHUNK_SIZE in z3fold_alloc().  Make sure there has remaining spaces for
-its buddy to fix this theoretical issue.
+It's meaningless to pass a magic number 2 to __alloc_percpu() as there is
+a minimum alignment size of PCPU_MIN_ALLOC_SIZE (> 2) in it.  Also there
+is no special alignment requirement for unbuddied.  So we could replace
+this magic number with nature alignment, i.e.  __alignof__(struct
+list_head), to improve readability.
 
-Link: https://lkml.kernel.org/r/20210619093151.1492174-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210619093151.1492174-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
 Cc: Hillf Danton <hdanton@sina.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/z3fold.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/z3fold.c~mm-z3fold-avoid-possible-underflow-in-z3fold_alloc
+--- a/mm/z3fold.c~mm-z3fold-remove-magic-number-in-z3fold_create_pool
 +++ a/mm/z3fold.c
-@@ -1803,8 +1803,11 @@ static int __init init_z3fold(void)
- {
- 	int ret;
- 
--	/* Make sure the z3fold header is not larger than the page size */
--	BUILD_BUG_ON(ZHDR_SIZE_ALIGNED > PAGE_SIZE);
-+	/*
-+	 * Make sure the z3fold header is not larger than the page size and
-+	 * there has remaining spaces for its buddy.
-+	 */
-+	BUILD_BUG_ON(ZHDR_SIZE_ALIGNED > PAGE_SIZE - CHUNK_SIZE);
- 	ret = z3fold_mount();
- 	if (ret)
- 		return ret;
+@@ -998,7 +998,8 @@ static struct z3fold_pool *z3fold_create
+ 		goto out_c;
+ 	spin_lock_init(&pool->lock);
+ 	spin_lock_init(&pool->stale_lock);
+-	pool->unbuddied = __alloc_percpu(sizeof(struct list_head)*NCHUNKS, 2);
++	pool->unbuddied = __alloc_percpu(sizeof(struct list_head) * NCHUNKS,
++					 __alignof__(struct list_head));
+ 	if (!pool->unbuddied)
+ 		goto out_pool;
+ 	for_each_possible_cpu(cpu) {
 _
