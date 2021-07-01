@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D49A5C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:48:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC190C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:48:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B772861469
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:48:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D6F6D61468
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:48:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238381AbhGABuq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:50:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40136 "EHLO mail.kernel.org"
+        id S238383AbhGABut (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:50:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40178 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237149AbhGABuq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:50:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6D1EE61090;
-        Thu,  1 Jul 2021 01:48:16 +0000 (UTC)
+        id S237149AbhGABut (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:50:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7CAA261466;
+        Thu,  1 Jul 2021 01:48:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104096;
-        bh=8lusK2P5LmnMksZCoFyiQWTexn57PKUElwekH74Hi+s=;
+        s=korg; t=1625104099;
+        bh=m6Locb0iCyr9Wynhmp1bB56/oBZ9LXuJ/1Sl8nbRdjI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=c7iipkKW2ylRcoflYEWZxpgTYZ3WkZWEtQsbV0ImgTBFmuIb1z7XudeC2axcc2xgh
-         wv7ZRmbgjgCp1zuPihqLlke1GQQXW8AGLtsnUEKLd7glsE/7iYtmxISkatZpkZVP9H
-         ip9IWpptoj0cxCHfRgI71EgTDJ48q2/ektW8DKHo=
-Date:   Wed, 30 Jun 2021 18:48:16 -0700
+        b=yGidbD0Ub/VqMWvfP4welJWOh0CTGrv+70K+o7ZevIgUrGKjFPGFo4SL25S0tDAYD
+         /DTckn1gZB/vSmX98Yjmx/BnuAUc2aClUbxtOIr1a6Ehn3S8YgjUArDPFAX1neWbmT
+         ruCUNejXBjT6lidoHfoVoRfa839dYEG6q0NENM5M=
+Date:   Wed, 30 Jun 2021 18:48:19 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, kirill.shutemov@linux.intel.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, shuah@kernel.org,
-        sunnanyong@huawei.com, torvalds@linux-foundation.org,
-        wangkefeng.wang@huawei.com, yang.shi@linux.alibaba.com,
-        ziy@nvidia.com
-Subject:  [patch 022/192] khugepaged: selftests: remove debug_cow
-Message-ID: <20210701014816.GLW58rvLa%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, almasrymina@google.com,
+        axelrasmussen@google.com, linux-mm@kvack.org,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        peterx@redhat.com, torvalds@linux-foundation.org,
+        yuehaibing@huawei.com
+Subject:  [patch 023/192] mm, hugetlb: fix racy resv_huge_pages
+ underflow on UFFDIO_COPY
+Message-ID: <20210701014819.Vm-gaPGHW%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,59 +45,234 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Nanyong Sun <sunnanyong@huawei.com>
-Subject: khugepaged: selftests: remove debug_cow
+From: Mina Almasry <almasrymina@google.com>
+Subject: mm, hugetlb: fix racy resv_huge_pages underflow on UFFDIO_COPY
 
-The debug_cow attribute had been removed since commit 4958e4d86ecb01 ("mm:
-thp: remove debug_cow switch"), so remove it in selftest code too,
-otherwise the khugepaged test will fail.
+On UFFDIO_COPY, if we fail to copy the page contents while holding the
+hugetlb_fault_mutex, we will drop the mutex and return to the caller after
+allocating a page that consumed a reservation.  In this case there may be
+a fault that double consumes the reservation.  To handle this, we free the
+allocated page, fix the reservations, and allocate a temporary hugetlb
+page and return that to the caller.  When the caller does the copy outside
+of the lock, we again check the cache, and allocate a page consuming the
+reservation, and copy over the contents.
 
-Link: https://lkml.kernel.org/r/20210430051117.400189-1-sunnanyong@huawei.com
-Fixes: 4958e4d86ecb01 ("mm: thp: remove debug_cow switch")
-Signed-off-by: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Test:
+Hacked the code locally such that resv_huge_pages underflows produce
+a warning and the copy_huge_page_from_user() always fails, then:
+
+./tools/testing/selftests/vm/userfaultfd hugetlb_shared 10
+        2 /tmp/kokonut_test/huge/userfaultfd_test && echo test success
+./tools/testing/selftests/vm/userfaultfd hugetlb 10
+	2 /tmp/kokonut_test/huge/userfaultfd_test && echo test success
+
+Both tests succeed and produce no warnings. After the
+test runs number of free/resv hugepages is correct.
+
+[yuehaibing@huawei.com: remove set but not used variable 'vm_alloc_shared']
+  Link: https://lkml.kernel.org/r/20210601141610.28332-1-yuehaibing@huawei.com
+[almasrymina@google.com: fix allocation error check and copy func name]
+  Link: https://lkml.kernel.org/r/20210605010626.1459873-1-almasrymina@google.com
+Link: https://lkml.kernel.org/r/20210528005029.88088-1-almasrymina@google.com
+Signed-off-by: Mina Almasry <almasrymina@google.com>
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/khugepaged.c |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/migrate.h |    4 +++
+ mm/hugetlb.c            |   48 +++++++++++++++++++++++++++++-------
+ mm/migrate.c            |    2 -
+ mm/userfaultfd.c        |   50 --------------------------------------
+ 4 files changed, 45 insertions(+), 59 deletions(-)
 
---- a/tools/testing/selftests/vm/khugepaged.c~khugepaged-selftests-remove-debug_cow
-+++ a/tools/testing/selftests/vm/khugepaged.c
-@@ -86,7 +86,6 @@ struct settings {
- 	enum thp_enabled thp_enabled;
- 	enum thp_defrag thp_defrag;
- 	enum shmem_enabled shmem_enabled;
--	bool debug_cow;
- 	bool use_zero_page;
- 	struct khugepaged_settings khugepaged;
- };
-@@ -95,7 +94,6 @@ static struct settings default_settings
- 	.thp_enabled = THP_MADVISE,
- 	.thp_defrag = THP_DEFRAG_ALWAYS,
- 	.shmem_enabled = SHMEM_NEVER,
--	.debug_cow = 0,
- 	.use_zero_page = 0,
- 	.khugepaged = {
- 		.defrag = 1,
-@@ -268,7 +266,6 @@ static void write_settings(struct settin
- 	write_string("defrag", thp_defrag_strings[settings->thp_defrag]);
- 	write_string("shmem_enabled",
- 			shmem_enabled_strings[settings->shmem_enabled]);
--	write_num("debug_cow", settings->debug_cow);
- 	write_num("use_zero_page", settings->use_zero_page);
+--- a/include/linux/migrate.h~mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy
++++ a/include/linux/migrate.h
+@@ -51,6 +51,7 @@ extern int migrate_huge_page_move_mappin
+ 				  struct page *newpage, struct page *page);
+ extern int migrate_page_move_mapping(struct address_space *mapping,
+ 		struct page *newpage, struct page *page, int extra_count);
++extern void copy_huge_page(struct page *dst, struct page *src);
+ #else
  
- 	write_num("khugepaged/defrag", khugepaged->defrag);
-@@ -304,7 +301,6 @@ static void save_settings(void)
- 		.thp_defrag = read_string("defrag", thp_defrag_strings),
- 		.shmem_enabled =
- 			read_string("shmem_enabled", shmem_enabled_strings),
--		.debug_cow = read_num("debug_cow"),
- 		.use_zero_page = read_num("use_zero_page"),
- 	};
- 	saved_settings.khugepaged = (struct khugepaged_settings) {
+ static inline void putback_movable_pages(struct list_head *l) {}
+@@ -77,6 +78,9 @@ static inline int migrate_huge_page_move
+ 	return -ENOSYS;
+ }
+ 
++static inline void copy_huge_page(struct page *dst, struct page *src)
++{
++}
+ #endif /* CONFIG_MIGRATION */
+ 
+ #ifdef CONFIG_COMPACTION
+--- a/mm/hugetlb.c~mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy
++++ a/mm/hugetlb.c
+@@ -30,6 +30,7 @@
+ #include <linux/numa.h>
+ #include <linux/llist.h>
+ #include <linux/cma.h>
++#include <linux/migrate.h>
+ 
+ #include <asm/page.h>
+ #include <asm/pgalloc.h>
+@@ -5076,20 +5077,17 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 			    struct page **pagep)
+ {
+ 	bool is_continue = (mode == MCOPY_ATOMIC_CONTINUE);
+-	struct address_space *mapping;
+-	pgoff_t idx;
++	struct hstate *h = hstate_vma(dst_vma);
++	struct address_space *mapping = dst_vma->vm_file->f_mapping;
++	pgoff_t idx = vma_hugecache_offset(h, dst_vma, dst_addr);
+ 	unsigned long size;
+ 	int vm_shared = dst_vma->vm_flags & VM_SHARED;
+-	struct hstate *h = hstate_vma(dst_vma);
+ 	pte_t _dst_pte;
+ 	spinlock_t *ptl;
+-	int ret;
++	int ret = -ENOMEM;
+ 	struct page *page;
+ 	int writable;
+ 
+-	mapping = dst_vma->vm_file->f_mapping;
+-	idx = vma_hugecache_offset(h, dst_vma, dst_addr);
+-
+ 	if (is_continue) {
+ 		ret = -EFAULT;
+ 		page = find_lock_page(mapping, idx);
+@@ -5118,12 +5116,44 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 		/* fallback to copy_from_user outside mmap_lock */
+ 		if (unlikely(ret)) {
+ 			ret = -ENOENT;
++			/* Free the allocated page which may have
++			 * consumed a reservation.
++			 */
++			restore_reserve_on_error(h, dst_vma, dst_addr, page);
++			put_page(page);
++
++			/* Allocate a temporary page to hold the copied
++			 * contents.
++			 */
++			page = alloc_huge_page_vma(h, dst_vma, dst_addr);
++			if (!page) {
++				ret = -ENOMEM;
++				goto out;
++			}
+ 			*pagep = page;
+-			/* don't free the page */
++			/* Set the outparam pagep and return to the caller to
++			 * copy the contents outside the lock. Don't free the
++			 * page.
++			 */
+ 			goto out;
+ 		}
+ 	} else {
+-		page = *pagep;
++		if (vm_shared &&
++		    hugetlbfs_pagecache_present(h, dst_vma, dst_addr)) {
++			put_page(*pagep);
++			ret = -EEXIST;
++			*pagep = NULL;
++			goto out;
++		}
++
++		page = alloc_huge_page(dst_vma, dst_addr, 0);
++		if (IS_ERR(page)) {
++			ret = -ENOMEM;
++			*pagep = NULL;
++			goto out;
++		}
++		copy_huge_page(page, *pagep);
++		put_page(*pagep);
+ 		*pagep = NULL;
+ 	}
+ 
+--- a/mm/migrate.c~mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy
++++ a/mm/migrate.c
+@@ -553,7 +553,7 @@ static void __copy_gigantic_page(struct
+ 	}
+ }
+ 
+-static void copy_huge_page(struct page *dst, struct page *src)
++void copy_huge_page(struct page *dst, struct page *src)
+ {
+ 	int i;
+ 	int nr_pages;
+--- a/mm/userfaultfd.c~mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy
++++ a/mm/userfaultfd.c
+@@ -209,7 +209,6 @@ static __always_inline ssize_t __mcopy_a
+ 					      unsigned long len,
+ 					      enum mcopy_atomic_mode mode)
+ {
+-	int vm_alloc_shared = dst_vma->vm_flags & VM_SHARED;
+ 	int vm_shared = dst_vma->vm_flags & VM_SHARED;
+ 	ssize_t err;
+ 	pte_t *dst_pte;
+@@ -308,7 +307,6 @@ retry:
+ 
+ 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 		i_mmap_unlock_read(mapping);
+-		vm_alloc_shared = vm_shared;
+ 
+ 		cond_resched();
+ 
+@@ -346,54 +344,8 @@ retry:
+ out_unlock:
+ 	mmap_read_unlock(dst_mm);
+ out:
+-	if (page) {
+-		/*
+-		 * We encountered an error and are about to free a newly
+-		 * allocated huge page.
+-		 *
+-		 * Reservation handling is very subtle, and is different for
+-		 * private and shared mappings.  See the routine
+-		 * restore_reserve_on_error for details.  Unfortunately, we
+-		 * can not call restore_reserve_on_error now as it would
+-		 * require holding mmap_lock.
+-		 *
+-		 * If a reservation for the page existed in the reservation
+-		 * map of a private mapping, the map was modified to indicate
+-		 * the reservation was consumed when the page was allocated.
+-		 * We clear the HPageRestoreReserve flag now so that the global
+-		 * reserve count will not be incremented in free_huge_page.
+-		 * The reservation map will still indicate the reservation
+-		 * was consumed and possibly prevent later page allocation.
+-		 * This is better than leaking a global reservation.  If no
+-		 * reservation existed, it is still safe to clear
+-		 * HPageRestoreReserve as no adjustments to reservation counts
+-		 * were made during allocation.
+-		 *
+-		 * The reservation map for shared mappings indicates which
+-		 * pages have reservations.  When a huge page is allocated
+-		 * for an address with a reservation, no change is made to
+-		 * the reserve map.  In this case HPageRestoreReserve will be
+-		 * set to indicate that the global reservation count should be
+-		 * incremented when the page is freed.  This is the desired
+-		 * behavior.  However, when a huge page is allocated for an
+-		 * address without a reservation a reservation entry is added
+-		 * to the reservation map, and HPageRestoreReserve will not be
+-		 * set. When the page is freed, the global reserve count will
+-		 * NOT be incremented and it will appear as though we have
+-		 * leaked reserved page.  In this case, set HPageRestoreReserve
+-		 * so that the global reserve count will be incremented to
+-		 * match the reservation map entry which was created.
+-		 *
+-		 * Note that vm_alloc_shared is based on the flags of the vma
+-		 * for which the page was originally allocated.  dst_vma could
+-		 * be different or NULL on error.
+-		 */
+-		if (vm_alloc_shared)
+-			SetHPageRestoreReserve(page);
+-		else
+-			ClearHPageRestoreReserve(page);
++	if (page)
+ 		put_page(page);
+-	}
+ 	BUG_ON(copied < 0);
+ 	BUG_ON(err > 0);
+ 	BUG_ON(!copied && !err);
 _
