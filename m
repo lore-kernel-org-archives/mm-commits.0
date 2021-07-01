@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE359C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:49:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B715C11F68
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:49:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7AFB61260
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:49:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE07161466
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:49:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238411AbhGABwG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:52:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41492 "EHLO mail.kernel.org"
+        id S238412AbhGABwK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:52:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41552 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238384AbhGABwG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:52:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2C76461467;
-        Thu,  1 Jul 2021 01:49:35 +0000 (UTC)
+        id S238384AbhGABwJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:52:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 920F56105A;
+        Thu,  1 Jul 2021 01:49:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104175;
-        bh=aEErmlUA/YhJIlCXvj9fzODhqv6FtEJErjkFemSYRzI=;
+        s=korg; t=1625104179;
+        bh=8KNx8WWwsmy+fp9z4NZNRRslQL5pls+oaMECB9+Zhck=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=jAAE8IYPS2CL7KCXpxbqH4jGp/Geyhi1NKcbey9Ixi7A4Bxof2ExvBbp6CNdMDum/
-         ZkXypVnSGBjNFrdN9mNeYuhm8ZiKFI00o34fGzcMxJktiwdXikn3m/iL3/+cDaVu+0
-         lnUAKmMOrGoMm6fKamNIA0+rld7MkhyeQlsTN11w=
-Date:   Wed, 30 Jun 2021 18:49:34 -0700
+        b=JxmEYO5JkJ+cIjVXjKqqA3wk011M9JxTemfdg7Gsg2YLoANskoZYzc748HEDLBpIm
+         MPAp0649Ea/hbcYplM8UoHGMScQhNkFK4tXugpXSMRRYphxAZRw1dRWA0pY8/hvTVu
+         Bdf/5pxjn7q+veK3uJexUt7VlqEWWJ0IymkYYztY=
+Date:   Wed, 30 Jun 2021 18:49:38 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aarcange@redhat.com, akpm@linux-foundation.org,
         almasrymina@google.com, axelrasmussen@google.com,
@@ -40,9 +40,9 @@ To:     aarcange@redhat.com, akpm@linux-foundation.org,
         sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
         torvalds@linux-foundation.org, viro@zeniv.linux.org.uk,
         wangqing@vivo.com
-Subject:  [patch 045/192] userfaultfd/selftests: use memfd_create
- for shmem test type
-Message-ID: <20210701014934.ysD_Zomj8%akpm@linux-foundation.org>
+Subject:  [patch 046/192] userfaultfd/selftests: create alias
+ mappings in the shmem test
+Message-ID: <20210701014938.PK7FRdk21%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -51,28 +51,18 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/selftests: use memfd_create for shmem test type
+Subject: userfaultfd/selftests: create alias mappings in the shmem test
 
-This is a preparatory commit.  In the future, we want to be able to setup
-alias mappings for area_src and area_dst in the shmem test, like we do in
-the hugetlb_shared test.  With a VMA obtained via mmap(MAP_ANONYMOUS |
-MAP_SHARED), it isn't clear how to do this.
+Previously, we just allocated two shm areas: area_src and area_dst.  With
+this commit, change this so we also allocate area_src_alias, and
+area_dst_alias.
 
-So, mmap() with an fd, so we can create alias mappings.  Use memfd_create
-instead of actually passing in a tmpfs path like hugetlb does, since it's
-more convenient / simpler to run, and works just as well.
+area_*_alias and area_* (respectively) point to the same underlying
+physical pages, but are different VMAs.  In a future commit in this
+series, we'll leverage this setup to exercise minor fault handling support
+for shmem, just like we do in the hugetlb_shared test.
 
-Future commits will:
-
-1. Setup the alias mappings.
-2. Extend our tests to actually take advantage of this, to test new
-   userfaultfd behavior being introduced in this series.
-
-Also, a small fix in the area we're changing: when the hugetlb setup fails
-in main(), pass in the right argv[] so we actually print out the hugetlb
-file path.
-
-Link: https://lkml.kernel.org/r/20210503180737.2487560-8-axelrasmussen@google.com
+Link: https://lkml.kernel.org/r/20210503180737.2487560-9-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
 Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -95,47 +85,50 @@ Cc: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ tools/testing/selftests/vm/userfaultfd.c |   22 ++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-use-memfd_create-for-shmem-test-type
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-create-alias-mappings-in-the-shmem-test
 +++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -85,6 +85,7 @@ static bool test_uffdio_wp = false;
- static bool test_uffdio_minor = false;
- 
- static bool map_shared;
-+static int shm_fd;
- static int huge_fd;
- static char *huge_fd_off0;
- static unsigned long long *count_verify;
-@@ -277,8 +278,11 @@ static void shmem_release_pages(char *re
+@@ -278,13 +278,29 @@ static void shmem_release_pages(char *re
  
  static void shmem_allocate_area(void **alloc_area)
  {
-+	unsigned long offset =
-+		alloc_area == (void **)&area_src ? 0 : nr_pages * page_size;
-+
+-	unsigned long offset =
+-		alloc_area == (void **)&area_src ? 0 : nr_pages * page_size;
++	void *area_alias = NULL;
++	bool is_src = alloc_area == (void **)&area_src;
++	unsigned long offset = is_src ? 0 : nr_pages * page_size;
+ 
  	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
--			   MAP_ANONYMOUS | MAP_SHARED, -1, 0);
-+			   MAP_SHARED, shm_fd, offset);
+ 			   MAP_SHARED, shm_fd, offset);
  	if (*alloc_area == MAP_FAILED)
  		err("mmap of memfd failed");
++
++	area_alias = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
++			  MAP_SHARED, shm_fd, offset);
++	if (area_alias == MAP_FAILED)
++		err("mmap of memfd alias failed");
++
++	if (is_src)
++		area_src_alias = area_alias;
++	else
++		area_dst_alias = area_alias;
++}
++
++static void shmem_alias_mapping(__u64 *start, size_t len, unsigned long offset)
++{
++	*start = (unsigned long)area_dst_alias + offset;
  }
-@@ -1602,6 +1606,16 @@ int main(int argc, char **argv)
- 			err("Open of %s failed", argv[4]);
- 		if (ftruncate(huge_fd, 0))
- 			err("ftruncate %s to size 0 failed", argv[4]);
-+	} else if (test_type == TEST_SHMEM) {
-+		shm_fd = memfd_create(argv[0], 0);
-+		if (shm_fd < 0)
-+			err("memfd_create");
-+		if (ftruncate(shm_fd, nr_pages * page_size * 2))
-+			err("ftruncate");
-+		if (fallocate(shm_fd,
-+			      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 0,
-+			      nr_pages * page_size * 2))
-+			err("fallocate");
- 	}
- 	printf("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
- 	       nr_pages, nr_pages_per_cpu);
+ 
+ struct uffd_test_ops {
+@@ -314,7 +330,7 @@ static struct uffd_test_ops shmem_uffd_t
+ 	.expected_ioctls = SHMEM_EXPECTED_IOCTLS,
+ 	.allocate_area	= shmem_allocate_area,
+ 	.release_pages	= shmem_release_pages,
+-	.alias_mapping = noop_alias_mapping,
++	.alias_mapping = shmem_alias_mapping,
+ };
+ 
+ static struct uffd_test_ops hugetlb_uffd_test_ops = {
 _
