@@ -7,42 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 003CBC11F6A
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:49:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADE51C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:49:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DFAC66105A
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:49:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 952EF61467
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:49:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238419AbhGABwQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:52:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41684 "EHLO mail.kernel.org"
+        id S238422AbhGABwW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:52:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238384AbhGABwP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:52:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B2A9A61260;
-        Thu,  1 Jul 2021 01:49:45 +0000 (UTC)
+        id S238384AbhGABwW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:52:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CEB7561466;
+        Thu,  1 Jul 2021 01:49:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104186;
-        bh=wUf9Ta9PDoGCvEfqnRV7KLRjUO9QmL155mmeq3yioL8=;
+        s=korg; t=1625104192;
+        bh=UaiPca7gs407bkmCVK4bU9Y93+uF2oRhgy/5oNT0hcI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=zxDNvTl39/o6vFd8lO/lP9KyK4VHxVh3HdDwfTHclqM5g/fgl817s0+kCygXRh1+W
-         Nh7ob97jK63oGEEKL5qt8dlp2VXsPq8W+MFjDvi+x5CsoRuSB+O/a4L6Sks5YtqXjv
-         yNvbtjKqNVXjmmV/fLnkQoomPVog5dmfWeFKge4A=
-Date:   Wed, 30 Jun 2021 18:49:45 -0700
+        b=Rn3JLFPAmIikthGgjrQQpdkqhrsICZYskSpyop+a97rJ2ygqFeFsFNBKYVQsXvadB
+         vpy1qknnNy2PnE6ipBKLuskEeLLJ73SJxl5rAXrBRybnBciFEjQ5DbxBfrFv8iG5IE
+         49eA+bLKOSRqNpMoP6pVnMtRR+asXeCMzeW94mwQ=
+Date:   Wed, 30 Jun 2021 18:49:51 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, akpm@linux-foundation.org,
-        almasrymina@google.com, axelrasmussen@google.com,
-        bgeffon@google.com, dgilbert@redhat.com, hughd@google.com,
-        jglisse@redhat.com, joe@perches.com, kirill@shutemov.name,
-        linux-mm@kvack.org, lokeshgidra@google.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        oupton@google.com, peterx@redhat.com, rppt@linux.vnet.ibm.com,
-        sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
-        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk,
-        wangqing@vivo.com
-Subject:  [patch 048/192] userfaultfd/selftests: exercise minor
- fault handling shmem support
-Message-ID: <20210701014945.rz3pIQwZx%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hannes@cmpxchg.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        yuzhao@google.com
+Subject:  [patch 050/192] include/trace/events/vmscan.h: remove
+ mm_vmscan_inactive_list_is_low
+Message-ID: <20210701014951.I2J96pCkx%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -50,102 +43,71 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/selftests: exercise minor fault handling shmem support
+From: Yu Zhao <yuzhao@google.com>
+Subject: include/trace/events/vmscan.h: remove mm_vmscan_inactive_list_is_low
 
-Enable test_uffdio_minor for test_type == TEST_SHMEM, and modify the test
-slightly to pass in / check for the right feature flags.
+mm_vmscan_inactive_list_is_low has no users after commit b91ac374346b
+("mm: vmscan: enforce inactive:active ratio at the reclaim root").
 
-Link: https://lkml.kernel.org/r/20210503180737.2487560-11-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Oliver Upton <oupton@google.com>
-Cc: Shaohua Li <shli@fb.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Wang Qing <wangqing@vivo.com>
+Remove it.
+
+Link: https://lkml.kernel.org/r/20210614194554.2683395-1-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   29 ++++++++++++++++++---
- 1 file changed, 25 insertions(+), 4 deletions(-)
+ include/trace/events/vmscan.h |   41 --------------------------------
+ 1 file changed, 41 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-exercise-minor-fault-handling-shmem-support
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -474,6 +474,7 @@ static void wp_range(int ufd, __u64 star
- static void continue_range(int ufd, __u64 start, __u64 len)
- {
- 	struct uffdio_continue req;
-+	int ret;
+--- a/include/trace/events/vmscan.h~include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low
++++ a/include/trace/events/vmscan.h
+@@ -423,47 +423,6 @@ TRACE_EVENT(mm_vmscan_lru_shrink_active,
+ 		show_reclaim_flags(__entry->reclaim_flags))
+ );
  
- 	req.range.start = start;
- 	req.range.len = len;
-@@ -482,6 +483,17 @@ static void continue_range(int ufd, __u6
- 	if (ioctl(ufd, UFFDIO_CONTINUE, &req))
- 		err("UFFDIO_CONTINUE failed for address 0x%" PRIx64,
- 		    (uint64_t)start);
-+
-+	/*
-+	 * Error handling within the kernel for continue is subtly different
-+	 * from copy or zeropage, so it may be a source of bugs. Trigger an
-+	 * error (-EEXIST) on purpose, to verify doing so doesn't cause a BUG.
-+	 */
-+	req.mapped = 0;
-+	ret = ioctl(ufd, UFFDIO_CONTINUE, &req);
-+	if (ret >= 0 || req.mapped != -EEXIST)
-+		err("failed to exercise UFFDIO_CONTINUE error handling, ret=%d, mapped=%" PRId64,
-+		    ret, (int64_t) req.mapped);
- }
+-TRACE_EVENT(mm_vmscan_inactive_list_is_low,
+-
+-	TP_PROTO(int nid, int reclaim_idx,
+-		unsigned long total_inactive, unsigned long inactive,
+-		unsigned long total_active, unsigned long active,
+-		unsigned long ratio, int file),
+-
+-	TP_ARGS(nid, reclaim_idx, total_inactive, inactive, total_active, active, ratio, file),
+-
+-	TP_STRUCT__entry(
+-		__field(int, nid)
+-		__field(int, reclaim_idx)
+-		__field(unsigned long, total_inactive)
+-		__field(unsigned long, inactive)
+-		__field(unsigned long, total_active)
+-		__field(unsigned long, active)
+-		__field(unsigned long, ratio)
+-		__field(int, reclaim_flags)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid = nid;
+-		__entry->reclaim_idx = reclaim_idx;
+-		__entry->total_inactive = total_inactive;
+-		__entry->inactive = inactive;
+-		__entry->total_active = total_active;
+-		__entry->active = active;
+-		__entry->ratio = ratio;
+-		__entry->reclaim_flags = trace_reclaim_flags(file) &
+-					 RECLAIM_WB_LRU;
+-	),
+-
+-	TP_printk("nid=%d reclaim_idx=%d total_inactive=%ld inactive=%ld total_active=%ld active=%ld ratio=%ld flags=%s",
+-		__entry->nid,
+-		__entry->reclaim_idx,
+-		__entry->total_inactive, __entry->inactive,
+-		__entry->total_active, __entry->active,
+-		__entry->ratio,
+-		show_reclaim_flags(__entry->reclaim_flags))
+-);
+-
+ TRACE_EVENT(mm_vmscan_node_reclaim_begin,
  
- static void *locking_thread(void *arg)
-@@ -1182,7 +1194,7 @@ static int userfaultfd_minor_test(void)
- 	void *expected_page;
- 	char c;
- 	struct uffd_stats stats = { 0 };
--	uint64_t features = UFFD_FEATURE_MINOR_HUGETLBFS;
-+	uint64_t req_features, features_out;
- 
- 	if (!test_uffdio_minor)
- 		return 0;
-@@ -1190,9 +1202,17 @@ static int userfaultfd_minor_test(void)
- 	printf("testing minor faults: ");
- 	fflush(stdout);
- 
--	uffd_test_ctx_init_ext(&features);
--	/* If kernel reports the feature isn't supported, skip the test. */
--	if (!(features & UFFD_FEATURE_MINOR_HUGETLBFS)) {
-+	if (test_type == TEST_HUGETLB)
-+		req_features = UFFD_FEATURE_MINOR_HUGETLBFS;
-+	else if (test_type == TEST_SHMEM)
-+		req_features = UFFD_FEATURE_MINOR_SHMEM;
-+	else
-+		return 1;
-+
-+	features_out = req_features;
-+	uffd_test_ctx_init_ext(&features_out);
-+	/* If kernel reports required features aren't supported, skip test. */
-+	if ((features_out & req_features) != req_features) {
- 		printf("skipping test due to lack of feature support\n");
- 		fflush(stdout);
- 		return 0;
-@@ -1575,6 +1595,7 @@ static void set_test_type(const char *ty
- 		map_shared = true;
- 		test_type = TEST_SHMEM;
- 		uffd_test_ops = &shmem_uffd_test_ops;
-+		test_uffdio_minor = true;
- 	} else {
- 		err("Unknown test type: %s", type);
- 	}
+ 	TP_PROTO(int nid, int order, gfp_t gfp_flags),
 _
