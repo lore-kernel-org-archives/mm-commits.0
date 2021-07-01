@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ABCFC11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:55:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4CE4C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:55:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3659C61469
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:55:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA52861469
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:55:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238544AbhGAB5j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:57:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47528 "EHLO mail.kernel.org"
+        id S238545AbhGAB5m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:57:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47582 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238543AbhGAB5i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:57:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B1C1E61477;
-        Thu,  1 Jul 2021 01:55:08 +0000 (UTC)
+        id S238543AbhGAB5m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:57:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A827161468;
+        Thu,  1 Jul 2021 01:55:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104509;
-        bh=u9LQ6uoTdjrj7hrwsKvaUjKS8Fqfglmv5172vJHajKM=;
+        s=korg; t=1625104512;
+        bh=4Mpa2rwdbCPvVFcSJxxOL9nBYSlpttWLrsHinkDW53g=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vkEP6o7XpS2rwBBE52u1qQvZ98KzggQP6hm3JNlVI/8rZgFF7rv+rn95oD2W9pDaw
-         2mrcs+4VSucujhB7ixfA6ndcnO7fqZ6DdyI4VnbCbG0qbZrFItL4yiaf4mqTU+HAhy
-         dslwVzqinL3vZuPZEbyWZoQ3ZgYcTkzsRhd/HGCs=
-Date:   Wed, 30 Jun 2021 18:55:08 -0700
+        b=NUjnVtaNlp8LJUGPeCs9AYMLZayDhZfDLSQVWiBs8BGKLoepO4gzbChIIh/m+/arv
+         sUCfTvJbiNP+n6ucbpNqIPzuhoUrm4/N38gwWIiMDBB4Skc07LfC+Ph5TVIyX5M4Ei
+         TBX4C4+KPlIfBJmP8NJGGdAfS9gZgkwn2sDmcLzM=
+Date:   Wed, 30 Jun 2021 18:55:11 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
         bfields@fieldses.org, chuck.lever@oracle.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         viro@zeniv.linux.org.uk
-Subject:  [patch 149/192] lib/string_helpers: move ESCAPE_NP check
- inside 'else' branch in a loop
-Message-ID: <20210701015508.STQE9tMFn%akpm@linux-foundation.org>
+Subject:  [patch 150/192] lib/string_helpers: drop indentation
+ level in string_escape_mem()
+Message-ID: <20210701015511.sGCCmfpPg%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,14 +45,12 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/string_helpers: move ESCAPE_NP check inside 'else' branch in a loop
+Subject: lib/string_helpers: drop indentation level in string_escape_mem()
 
-Refactor code to have better readability by moving ESCAPE_NP handling
-inside 'else' branch in the loop.
+The only one conditional is left on the upper level, move the rest to the
+same level and drop indentation level.  No functional changes.
 
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/20210504180819.73127-3-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20210504180819.73127-4-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Chuck Lever <chuck.lever@oracle.com>
@@ -60,50 +58,62 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string_helpers.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ lib/string_helpers.c |   46 ++++++++++++++++++++---------------------
+ 1 file changed, 23 insertions(+), 23 deletions(-)
 
---- a/lib/string_helpers.c~lib-string_helpers-move-escape_np-check-inside-else-branch-in-a-loop
+--- a/lib/string_helpers.c~lib-string_helpers-drop-indentation-level-in-string_escape_mem
 +++ a/lib/string_helpers.c
-@@ -452,10 +452,10 @@ static bool escape_hex(unsigned char c,
-  * The process of escaping byte buffer includes several parts. They are applied
-  * in the following sequence.
-  *
-- *	1. The character is matched to the printable class, if asked, and in
-- *	   case of match it passes through to the output.
-- *	2. The character is not matched to the one from @only string and thus
-+ *	1. The character is not matched to the one from @only string and thus
-  *	   must go as-is to the output.
-+ *	2. The character is matched to the printable class, if asked, and in
-+ *	   case of match it passes through to the output.
-  *	3. The character is checked if it falls into the class given by @flags.
-  *	   %ESCAPE_OCTAL and %ESCAPE_HEX are going last since they cover any
-  *	   character. Note that they actually can't go together, otherwise
-@@ -506,19 +506,22 @@ int string_escape_mem(const char *src, s
- 
- 		/*
- 		 * Apply rules in the following sequence:
--		 *	- the character is printable, when @flags has
--		 *	  %ESCAPE_NP bit set
- 		 *	- the @only string is supplied and does not contain a
- 		 *	  character under question
-+		 *	- the character is printable, when @flags has
-+		 *	  %ESCAPE_NP bit set
- 		 *	- the character doesn't fall into a class of symbols
- 		 *	  defined by given @flags
+@@ -515,29 +515,29 @@ int string_escape_mem(const char *src, s
  		 * In these cases we just pass through a character to the
  		 * output buffer.
  		 */
--		if ((flags & ESCAPE_NP && isprint(c)) ||
--		    (is_dict && !strchr(only, c))) {
-+		if (is_dict && !strchr(only, c)) {
- 			/* do nothing */
- 		} else {
-+			if (isprint(c) &&
-+			    flags & ESCAPE_NP && escape_passthrough(c, &p, end))
-+				continue;
+-		if (is_dict && !strchr(only, c)) {
+-			/* do nothing */
+-		} else {
+-			if (isprint(c) &&
+-			    flags & ESCAPE_NP && escape_passthrough(c, &p, end))
+-				continue;
+-
+-			if (flags & ESCAPE_SPACE && escape_space(c, &p, end))
+-				continue;
+-
+-			if (flags & ESCAPE_SPECIAL && escape_special(c, &p, end))
+-				continue;
+-
+-			if (flags & ESCAPE_NULL && escape_null(c, &p, end))
+-				continue;
+-
+-			/* ESCAPE_OCTAL and ESCAPE_HEX always go last */
+-			if (flags & ESCAPE_OCTAL && escape_octal(c, &p, end))
+-				continue;
+-
+-			if (flags & ESCAPE_HEX && escape_hex(c, &p, end))
+-				continue;
+-		}
++		if (is_dict && !strchr(only, c) &&
++					  escape_passthrough(c, &p, end))
++			continue;
 +
- 			if (flags & ESCAPE_SPACE && escape_space(c, &p, end))
- 				continue;
++		if (isprint(c) &&
++		    flags & ESCAPE_NP && escape_passthrough(c, &p, end))
++			continue;
++
++		if (flags & ESCAPE_SPACE && escape_space(c, &p, end))
++			continue;
++
++		if (flags & ESCAPE_SPECIAL && escape_special(c, &p, end))
++			continue;
++
++		if (flags & ESCAPE_NULL && escape_null(c, &p, end))
++			continue;
++
++		/* ESCAPE_OCTAL and ESCAPE_HEX always go last */
++		if (flags & ESCAPE_OCTAL && escape_octal(c, &p, end))
++			continue;
++
++		if (flags & ESCAPE_HEX && escape_hex(c, &p, end))
++			continue;
  
+ 		escape_passthrough(c, &p, end);
+ 	}
 _
