@@ -7,35 +7,44 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDA61C11F68
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:52:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 079AFC11F6A
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:52:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D262261480
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:52:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E5F406147E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:52:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238492AbhGABzN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:55:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44820 "EHLO mail.kernel.org"
+        id S238491AbhGABzL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:55:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44738 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238416AbhGABzN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:55:13 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C06CD61241;
-        Thu,  1 Jul 2021 01:52:43 +0000 (UTC)
+        id S238416AbhGABzK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:55:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3C6C061474;
+        Thu,  1 Jul 2021 01:52:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104364;
-        bh=TFh44qdMZt9Vja3LMR2t+j58k4ehpx3rEYrJZb1pg1M=;
+        s=korg; t=1625104361;
+        bh=c/Y1mJ1bDy9XB7FRR3tGdy+svrQVGzmuLOwn5i6wdLk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=WW78ydZWlDXTQkA2PKxV4ffAyp3EMMsB3nX2jtYQjtzlaTqSfvolprwjmftNFIiHu
-         PLuT6nkdDjhpNfybLT5GyP9xcBJ/5N8SBV3gY36CrLfpGhnou1BYvzHUVPlc2onqu8
-         qugndc9nJOHwgcNc9C6U6HdNW8E0o/QpgEBadVmY=
-Date:   Wed, 30 Jun 2021 18:52:43 -0700
+        b=TrLWobpCT9DcY4rI8C6q5R6kDM1aN1WDE+RSwp3xcfacatuBKd3bIFNV6h5cAxz4o
+         wt4sUZVgFAbQ1zWDph3SYRZf83tWPsdAYGquBODGTir2GExTogjBqRD04pml2Dh/Fm
+         KuQ8cpS/Jo0h/tOcvD22ec0Y7uvOeiI3Q5g+a1s8=
+Date:   Wed, 30 Jun 2021 18:52:39 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com,
-        georgi.djakov@linaro.org, linux-mm@kvack.org, lmark@codeaurora.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 103/192] mm/memory_hotplug: rate limit page
- migration warnings
-Message-ID: <20210701015243.6hfM4X7tH%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org, arnd@arndb.de,
+        chris@zankel.net, dave.hansen@intel.com, david@redhat.com,
+        deller@gmx.de, eike-kernel@sf-tec.de, hughd@google.com,
+        ink@jurassic.park.msu.ru, James.Bottomley@HansenPartnership.com,
+        jannh@google.com, jcmvbkbc@gmail.com, jgg@ziepe.ca,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        linuxram@us.ibm.com, mattst88@gmail.com, mhocko@suse.com,
+        mike.kravetz@oracle.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, mst@redhat.com, osalvador@suse.de,
+        peterx@redhat.com, riel@surriel.com, rth@twiddle.net,
+        shuah@kernel.org, torvalds@linux-foundation.org,
+        tsbogend@alpha.franken.de, vbabka@suse.cz, willy@infradead.org
+Subject:  [patch 102/192] selftests/vm: add test for
+ MADV_POPULATE_(READ|WRITE)
+Message-ID: <20210701015239.xq-bk-BfO%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,63 +52,438 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Liam Mark <lmark@codeaurora.org>
-Subject: mm/memory_hotplug: rate limit page migration warnings
+From: David Hildenbrand <david@redhat.com>
+Subject: selftests/vm: add test for MADV_POPULATE_(READ|WRITE)
 
-When offlining memory the system can attempt to migrate a lot of pages, if
-there are problems with migration this can flood the logs.  Printing all
-the data hogs the CPU and cause some RT threads to run for a long time,
-which may have some bad consequences.
+Let's add a simple test for MADV_POPULATE_READ and MADV_POPULATE_WRITE,
+verifying some error handling, that population works, and that softdirty
+tracking works as expected.  For now, limit the test to private anonymous
+memory.
 
-Rate limit the page migration warnings in order to avoid this.
-
-Link: https://lkml.kernel.org/r/20210505140542.24935-1-georgi.djakov@linaro.org
-Signed-off-by: Liam Mark <lmark@codeaurora.org>
-Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20210419135443.12822-6-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ tools/testing/selftests/vm/.gitignore      |    1 
+ tools/testing/selftests/vm/Makefile        |    1 
+ tools/testing/selftests/vm/madv_populate.c |  342 +++++++++++++++++++
+ tools/testing/selftests/vm/run_vmtests.sh  |   16 
+ 4 files changed, 360 insertions(+)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-rate-limit-page-migration-warnings
-+++ a/mm/memory_hotplug.c
-@@ -1406,6 +1406,8 @@ do_migrate_range(unsigned long start_pfn
- 	struct page *page, *head;
- 	int ret = 0;
- 	LIST_HEAD(source);
-+	static DEFINE_RATELIMIT_STATE(migrate_rs, DEFAULT_RATELIMIT_INTERVAL,
-+				      DEFAULT_RATELIMIT_BURST);
+--- a/tools/testing/selftests/vm/.gitignore~selftests-vm-add-test-for-madv_populate_readwrite
++++ a/tools/testing/selftests/vm/.gitignore
+@@ -14,6 +14,7 @@ transhuge-stress
+ protection_keys
+ protection_keys_32
+ protection_keys_64
++madv_populate
+ userfaultfd
+ mlock-intersect-test
+ mlock-random-test
+--- /dev/null
++++ a/tools/testing/selftests/vm/madv_populate.c
+@@ -0,0 +1,342 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
++ *
++ * Copyright 2021, Red Hat, Inc.
++ *
++ * Author(s): David Hildenbrand <david@redhat.com>
++ */
++#define _GNU_SOURCE
++#include <stdlib.h>
++#include <string.h>
++#include <stdbool.h>
++#include <stdint.h>
++#include <unistd.h>
++#include <errno.h>
++#include <fcntl.h>
++#include <sys/mman.h>
++
++#include "../kselftest.h"
++
++#if defined(MADV_POPULATE_READ) && defined(MADV_POPULATE_WRITE)
++
++/*
++ * For now, we're using 2 MiB of private anonymous memory for all tests.
++ */
++#define SIZE (2 * 1024 * 1024)
++
++static size_t pagesize;
++
++static uint64_t pagemap_get_entry(int fd, char *start)
++{
++	const unsigned long pfn = (unsigned long)start / pagesize;
++	uint64_t entry;
++	int ret;
++
++	ret = pread(fd, &entry, sizeof(entry), pfn * sizeof(entry));
++	if (ret != sizeof(entry))
++		ksft_exit_fail_msg("reading pagemap failed\n");
++	return entry;
++}
++
++static bool pagemap_is_populated(int fd, char *start)
++{
++	uint64_t entry = pagemap_get_entry(fd, start);
++
++	/* Present or swapped. */
++	return entry & 0xc000000000000000ull;
++}
++
++static bool pagemap_is_softdirty(int fd, char *start)
++{
++	uint64_t entry = pagemap_get_entry(fd, start);
++
++	return entry & 0x0080000000000000ull;
++}
++
++static void sense_support(void)
++{
++	char *addr;
++	int ret;
++
++	addr = mmap(0, pagesize, PROT_READ | PROT_WRITE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (!addr)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	ret = madvise(addr, pagesize, MADV_POPULATE_READ);
++	if (ret)
++		ksft_exit_skip("MADV_POPULATE_READ is not available\n");
++
++	ret = madvise(addr, pagesize, MADV_POPULATE_WRITE);
++	if (ret)
++		ksft_exit_skip("MADV_POPULATE_WRITE is not available\n");
++
++	munmap(addr, pagesize);
++}
++
++static void test_prot_read(void)
++{
++	char *addr;
++	int ret;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	addr = mmap(0, SIZE, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (addr == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	ret = madvise(addr, SIZE, MADV_POPULATE_READ);
++	ksft_test_result(!ret, "MADV_POPULATE_READ with PROT_READ\n");
++
++	ret = madvise(addr, SIZE, MADV_POPULATE_WRITE);
++	ksft_test_result(ret == -1 && errno == EINVAL,
++			 "MADV_POPULATE_WRITE with PROT_READ\n");
++
++	munmap(addr, SIZE);
++}
++
++static void test_prot_write(void)
++{
++	char *addr;
++	int ret;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	addr = mmap(0, SIZE, PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (addr == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	ret = madvise(addr, SIZE, MADV_POPULATE_READ);
++	ksft_test_result(ret == -1 && errno == EINVAL,
++			 "MADV_POPULATE_READ with PROT_WRITE\n");
++
++	ret = madvise(addr, SIZE, MADV_POPULATE_WRITE);
++	ksft_test_result(!ret, "MADV_POPULATE_WRITE with PROT_WRITE\n");
++
++	munmap(addr, SIZE);
++}
++
++static void test_holes(void)
++{
++	char *addr;
++	int ret;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	addr = mmap(0, SIZE, PROT_READ | PROT_WRITE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (addr == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed\n");
++	ret = munmap(addr + pagesize, pagesize);
++	if (ret)
++		ksft_exit_fail_msg("munmap failed\n");
++
++	/* Hole in the middle */
++	ret = madvise(addr, SIZE, MADV_POPULATE_READ);
++	ksft_test_result(ret == -1 && errno == ENOMEM,
++			 "MADV_POPULATE_READ with holes in the middle\n");
++	ret = madvise(addr, SIZE, MADV_POPULATE_WRITE);
++	ksft_test_result(ret == -1 && errno == ENOMEM,
++			 "MADV_POPULATE_WRITE with holes in the middle\n");
++
++	/* Hole at end */
++	ret = madvise(addr, 2 * pagesize, MADV_POPULATE_READ);
++	ksft_test_result(ret == -1 && errno == ENOMEM,
++			 "MADV_POPULATE_READ with holes at the end\n");
++	ret = madvise(addr, 2 * pagesize, MADV_POPULATE_WRITE);
++	ksft_test_result(ret == -1 && errno == ENOMEM,
++			 "MADV_POPULATE_WRITE with holes at the end\n");
++
++	/* Hole at beginning */
++	ret = madvise(addr + pagesize, pagesize, MADV_POPULATE_READ);
++	ksft_test_result(ret == -1 && errno == ENOMEM,
++			 "MADV_POPULATE_READ with holes at the beginning\n");
++	ret = madvise(addr + pagesize, pagesize, MADV_POPULATE_WRITE);
++	ksft_test_result(ret == -1 && errno == ENOMEM,
++			 "MADV_POPULATE_WRITE with holes at the beginning\n");
++
++	munmap(addr, SIZE);
++}
++
++static bool range_is_populated(char *start, ssize_t size)
++{
++	int fd = open("/proc/self/pagemap", O_RDONLY);
++	bool ret = true;
++
++	if (fd < 0)
++		ksft_exit_fail_msg("opening pagemap failed\n");
++	for (; size > 0 && ret; size -= pagesize, start += pagesize)
++		if (!pagemap_is_populated(fd, start))
++			ret = false;
++	close(fd);
++	return ret;
++}
++
++static bool range_is_not_populated(char *start, ssize_t size)
++{
++	int fd = open("/proc/self/pagemap", O_RDONLY);
++	bool ret = true;
++
++	if (fd < 0)
++		ksft_exit_fail_msg("opening pagemap failed\n");
++	for (; size > 0 && ret; size -= pagesize, start += pagesize)
++		if (pagemap_is_populated(fd, start))
++			ret = false;
++	close(fd);
++	return ret;
++}
++
++static void test_populate_read(void)
++{
++	char *addr;
++	int ret;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	addr = mmap(0, SIZE, PROT_READ | PROT_WRITE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (addr == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed\n");
++	ksft_test_result(range_is_not_populated(addr, SIZE),
++			 "range initially not populated\n");
++
++	ret = madvise(addr, SIZE, MADV_POPULATE_READ);
++	ksft_test_result(!ret, "MADV_POPULATE_READ\n");
++	ksft_test_result(range_is_populated(addr, SIZE),
++			 "range is populated\n");
++
++	munmap(addr, SIZE);
++}
++
++static void test_populate_write(void)
++{
++	char *addr;
++	int ret;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	addr = mmap(0, SIZE, PROT_READ | PROT_WRITE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (addr == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed\n");
++	ksft_test_result(range_is_not_populated(addr, SIZE),
++			 "range initially not populated\n");
++
++	ret = madvise(addr, SIZE, MADV_POPULATE_WRITE);
++	ksft_test_result(!ret, "MADV_POPULATE_WRITE\n");
++	ksft_test_result(range_is_populated(addr, SIZE),
++			 "range is populated\n");
++
++	munmap(addr, SIZE);
++}
++
++static bool range_is_softdirty(char *start, ssize_t size)
++{
++	int fd = open("/proc/self/pagemap", O_RDONLY);
++	bool ret = true;
++
++	if (fd < 0)
++		ksft_exit_fail_msg("opening pagemap failed\n");
++	for (; size > 0 && ret; size -= pagesize, start += pagesize)
++		if (!pagemap_is_softdirty(fd, start))
++			ret = false;
++	close(fd);
++	return ret;
++}
++
++static bool range_is_not_softdirty(char *start, ssize_t size)
++{
++	int fd = open("/proc/self/pagemap", O_RDONLY);
++	bool ret = true;
++
++	if (fd < 0)
++		ksft_exit_fail_msg("opening pagemap failed\n");
++	for (; size > 0 && ret; size -= pagesize, start += pagesize)
++		if (pagemap_is_softdirty(fd, start))
++			ret = false;
++	close(fd);
++	return ret;
++}
++
++static void clear_softdirty(void)
++{
++	int fd = open("/proc/self/clear_refs", O_WRONLY);
++	const char *ctrl = "4";
++	int ret;
++
++	if (fd < 0)
++		ksft_exit_fail_msg("opening clear_refs failed\n");
++	ret = write(fd, ctrl, strlen(ctrl));
++	if (ret != strlen(ctrl))
++		ksft_exit_fail_msg("writing clear_refs failed\n");
++	close(fd);
++}
++
++static void test_softdirty(void)
++{
++	char *addr;
++	int ret;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	addr = mmap(0, SIZE, PROT_READ | PROT_WRITE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (addr == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	/* Clear any softdirty bits. */
++	clear_softdirty();
++	ksft_test_result(range_is_not_softdirty(addr, SIZE),
++			 "range is not softdirty\n");
++
++	/* Populating READ should set softdirty. */
++	ret = madvise(addr, SIZE, MADV_POPULATE_READ);
++	ksft_test_result(!ret, "MADV_POPULATE_READ\n");
++	ksft_test_result(range_is_not_softdirty(addr, SIZE),
++			 "range is not softdirty\n");
++
++	/* Populating WRITE should set softdirty. */
++	ret = madvise(addr, SIZE, MADV_POPULATE_WRITE);
++	ksft_test_result(!ret, "MADV_POPULATE_WRITE\n");
++	ksft_test_result(range_is_softdirty(addr, SIZE),
++			 "range is softdirty\n");
++
++	munmap(addr, SIZE);
++}
++
++int main(int argc, char **argv)
++{
++	int err;
++
++	pagesize = getpagesize();
++
++	ksft_print_header();
++	ksft_set_plan(21);
++
++	sense_support();
++	test_prot_read();
++	test_prot_write();
++	test_holes();
++	test_populate_read();
++	test_populate_write();
++	test_softdirty();
++
++	err = ksft_get_fail_cnt();
++	if (err)
++		ksft_exit_fail_msg("%d out of %d tests failed\n",
++				   err, ksft_test_num());
++	return ksft_exit_pass();
++}
++
++#else /* defined(MADV_POPULATE_READ) && defined(MADV_POPULATE_WRITE) */
++
++#warning "missing MADV_POPULATE_READ or MADV_POPULATE_WRITE definition"
++
++int main(int argc, char **argv)
++{
++	ksft_print_header();
++	ksft_exit_skip("MADV_POPULATE_READ or MADV_POPULATE_WRITE not defined\n");
++}
++
++#endif /* defined(MADV_POPULATE_READ) && defined(MADV_POPULATE_WRITE) */
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-test-for-madv_populate_readwrite
++++ a/tools/testing/selftests/vm/Makefile
+@@ -31,6 +31,7 @@ TEST_GEN_FILES += hmm-tests
+ TEST_GEN_FILES += hugepage-mmap
+ TEST_GEN_FILES += hugepage-shm
+ TEST_GEN_FILES += khugepaged
++TEST_GEN_FILES += madv_populate
+ TEST_GEN_FILES += map_fixed_noreplace
+ TEST_GEN_FILES += map_hugetlb
+ TEST_GEN_FILES += map_populate
+--- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-add-test-for-madv_populate_readwrite
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -346,4 +346,20 @@ else
+ 	exitcode=1
+ fi
  
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
- 		if (!pfn_valid(pfn))
-@@ -1452,8 +1454,10 @@ do_migrate_range(unsigned long start_pfn
- 						    page_is_file_lru(page));
- 
- 		} else {
--			pr_warn("failed to isolate pfn %lx\n", pfn);
--			dump_page(page, "isolation failed");
-+			if (__ratelimit(&migrate_rs)) {
-+				pr_warn("failed to isolate pfn %lx\n", pfn);
-+				dump_page(page, "isolation failed");
-+			}
- 		}
- 		put_page(page);
- 	}
-@@ -1482,9 +1486,11 @@ do_migrate_range(unsigned long start_pfn
- 			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_HOTPLUG);
- 		if (ret) {
- 			list_for_each_entry(page, &source, lru) {
--				pr_warn("migrating pfn %lx failed ret:%d ",
--				       page_to_pfn(page), ret);
--				dump_page(page, "migration failure");
-+				if (__ratelimit(&migrate_rs)) {
-+					pr_warn("migrating pfn %lx failed ret:%d\n",
-+						page_to_pfn(page), ret);
-+					dump_page(page, "migration failure");
-+				}
- 			}
- 			putback_movable_pages(&source);
- 		}
++echo "--------------------------------------------------------"
++echo "running MADV_POPULATE_READ and MADV_POPULATE_WRITE tests"
++echo "--------------------------------------------------------"
++./madv_populate
++ret_val=$?
++
++if [ $ret_val -eq 0 ]; then
++	echo "[PASS]"
++elif [ $ret_val -eq $ksft_skip ]; then
++	echo "[SKIP]"
++	exitcode=$ksft_skip
++else
++	echo "[FAIL]"
++	exitcode=1
++fi
++
+ exit $exitcode
 _
