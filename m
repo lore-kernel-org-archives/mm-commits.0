@@ -7,41 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75636C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ED57C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6115461469
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37A8E6146D
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238438AbhGABwx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:52:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42378 "EHLO mail.kernel.org"
+        id S238441AbhGABwz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:52:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42450 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238384AbhGABwx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:52:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EA0AE61468;
-        Thu,  1 Jul 2021 01:50:21 +0000 (UTC)
+        id S238384AbhGABwz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:52:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 539BE61241;
+        Thu,  1 Jul 2021 01:50:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104222;
-        bh=1at29HZqa4xcbE0QkL8RimpRBMUAwriLfuBiCNL1g4M=;
+        s=korg; t=1625104225;
+        bh=f+6Qn2B22xd5M7NPCeDNlxnSj2n14tkoCR1HN9n0za8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Ny7HHTjs78yCRkIbWdb56tiilMMclpPAsiw9Pz3tLqdf95ZiLU/3dhYmJp5txR0lm
-         yXu0aoF5RlNGL1Lrinzk4vQ8ngnAmmHzgXFP1F1H2nI3tBVZb2zFMmD1fLl4YZzxSu
-         GL0xsrId7IhUnAaTFLVWrmEevTHIZSTGcd3/pIDY=
-Date:   Wed, 30 Jun 2021 18:50:21 -0700
+        b=e13PMWw4TLg7xS/nuJ6/O1nMtRt2MItASwTkLS1S4LwQxMqQJX3/fO/wpyW3tYgCT
+         xBThqp+mzD7Mu1ecRxHqerbEZBKeksYH85LWqgCUOJ4w3uYV6dKRXqcbH6Y6jZcEx6
+         uaxq2yw3AU17D3EQgtIQawHTJeAOiY83/ont+roo=
+Date:   Wed, 30 Jun 2021 18:50:24 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     adobriyan@gmail.com, akpm@linux-foundation.org,
-        alex.shi@linux.alibaba.com, david@redhat.com, guro@fb.com,
-        haiyangz@microsoft.com, jasowang@redhat.com, jbohac@suse.cz,
-        kys@microsoft.com, linux-mm@kvack.org, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        mst@redhat.com, naoya.horiguchi@nec.com, osalvador@suse.de,
-        rppt@linux.ibm.com, steven.price@arm.com, sthemmin@microsoft.com,
-        torvalds@linux-foundation.org, wei.liu@kernel.org,
-        willy@infradead.org, yaoaili@kingsoft.com
-Subject:  [patch 059/192] fs/proc/kcore: use
- page_offline_(freeze|thaw)
-Message-ID: <20210701015021.y4sXmyoGE%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hdanton@sina.com, linmiaohe@huawei.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, vitaly.wool@konsulko.com
+Subject:  [patch 060/192] mm/z3fold: define macro NCHUNKS as
+ TOTAL_CHUNKS - ZHDR_CHUNKS
+Message-ID: <20210701015024.4W8zL1V8o%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -49,80 +43,42 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: David Hildenbrand <david@redhat.com>
-Subject: fs/proc/kcore: use page_offline_(freeze|thaw)
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/z3fold: define macro NCHUNKS as TOTAL_CHUNKS - ZHDR_CHUNKS
 
-Let's properly synchronize with drivers that set PageOffline(). 
-Unfreeze/thaw every now and then, so drivers that want to set
-PageOffline() can make progress.
+Patch series "Cleanup and fixup for z3fold".
 
-Link: https://lkml.kernel.org/r/20210526093041.8800-7-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Aili Yao <yaoaili@kingsoft.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Wei Liu <wei.liu@kernel.org>
+This series contains cleanups to remove unused function, redefine macro to
+improve readability and so on.  Also this fixes several bugs in z3fold,
+such as memory leak in z3fold_destroy_pool().  More details can be found
+in the respective changelogs.
+
+
+This patch (of 6):
+
+To improve code readability, we could define macro NCHUNKS as TOTAL_CHUNKS
+- ZHDR_CHUNKS.  No functional change intended.
+
+Link: https://lkml.kernel.org/r/20210619093151.1492174-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210619093151.1492174-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Hillf Danton <hdanton@sina.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/z3fold.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/proc/kcore.c~fs-proc-kcore-use-page_offline_freezethaw
-+++ a/fs/proc/kcore.c
-@@ -313,6 +313,7 @@ read_kcore(struct file *file, char __use
- {
- 	char *buf = file->private_data;
- 	size_t phdrs_offset, notes_offset, data_offset;
-+	size_t page_offline_frozen = 1;
- 	size_t phdrs_len, notes_len;
- 	struct kcore_list *m;
- 	size_t tsz;
-@@ -322,6 +323,11 @@ read_kcore(struct file *file, char __use
- 	int ret = 0;
+--- a/mm/z3fold.c~mm-z3fold-define-macro-nchunks-as-total_chunks-zhdr_chunks
++++ a/mm/z3fold.c
+@@ -62,7 +62,7 @@
+ #define ZHDR_SIZE_ALIGNED round_up(sizeof(struct z3fold_header), CHUNK_SIZE)
+ #define ZHDR_CHUNKS	(ZHDR_SIZE_ALIGNED >> CHUNK_SHIFT)
+ #define TOTAL_CHUNKS	(PAGE_SIZE >> CHUNK_SHIFT)
+-#define NCHUNKS		((PAGE_SIZE - ZHDR_SIZE_ALIGNED) >> CHUNK_SHIFT)
++#define NCHUNKS		(TOTAL_CHUNKS - ZHDR_CHUNKS)
  
- 	down_read(&kclist_lock);
-+	/*
-+	 * Don't race against drivers that set PageOffline() and expect no
-+	 * further page access.
-+	 */
-+	page_offline_freeze();
- 
- 	get_kcore_size(&nphdr, &phdrs_len, &notes_len, &data_offset);
- 	phdrs_offset = sizeof(struct elfhdr);
-@@ -480,6 +486,12 @@ read_kcore(struct file *file, char __use
- 			}
- 		}
- 
-+		if (page_offline_frozen++ % MAX_ORDER_NR_PAGES == 0) {
-+			page_offline_thaw();
-+			cond_resched();
-+			page_offline_freeze();
-+		}
-+
- 		if (&m->list == &kclist_head) {
- 			if (clear_user(buffer, tsz)) {
- 				ret = -EFAULT;
-@@ -565,6 +577,7 @@ skip:
- 	}
- 
- out:
-+	page_offline_thaw();
- 	up_read(&kclist_lock);
- 	if (ret)
- 		return ret;
+ #define BUDDY_MASK	(0x3)
+ #define BUDDY_SHIFT	2
 _
