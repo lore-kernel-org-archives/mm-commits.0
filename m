@@ -5,41 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF6A0C11F6A
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACC3FC11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CE2B61493
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94D0561477
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238565AbhGAB7D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:59:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48948 "EHLO mail.kernel.org"
+        id S238675AbhGAB7R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:59:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49010 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238566AbhGAB7C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:59:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B422A6141A;
-        Thu,  1 Jul 2021 01:56:31 +0000 (UTC)
+        id S238463AbhGAB7F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:59:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ED7C26147D;
+        Thu,  1 Jul 2021 01:56:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104592;
-        bh=401q/z+V0pDuTxo9El745SlNiAqNW+WdwxGt9/qV6P4=;
+        s=korg; t=1625104595;
+        bh=t4fUpIseMo9kGaMebfPbXWFx074uUhQC5SxSfDL5mz4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=PYeKkW5kD0qcTQmMSduw5ZoDxury8ffej4N+GCoZlHJdmo8l5fQiYe7IAx679SsAn
-         szVb6rlwi/dqgbofSdS4AyF+Go3Jew1ipTQSlTGUFebT1lcH76hPDA4N+bvwY+fnXx
-         +z0cQno/hK84Zz5H1erKAYYzDhLlzA03PL0Q2kqA=
-Date:   Wed, 30 Jun 2021 18:56:31 -0700
+        b=olspHHV5YGIn1SOEi0AxNYmBqAZewivSKpH5LS1XfMh2IAaz+hNWVF+uvdNrNA5ji
+         RidZdrE7QzQbeb7dREfPmD/lVP6/Hkx3j6GlCyUx9sr7sLqUE0A9Vmk3jlx0OzaHR/
+         kQRg+7veXhxkk7oxYpERmghj4UrTH7/C3JKSyqgY=
+Date:   Wed, 30 Jun 2021 18:56:34 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anil.s.keshavamurthy@intel.com,
-        borntraeger@de.ibm.com, bp@alien8.de, davem@davemloft.net,
-        gor@linux.ibm.com, hca@linux.ibm.com, hch@lst.de, hpa@zytor.com,
-        linux-mm@kvack.org, liuqi115@huawei.com, mhiramat@kernel.org,
-        mingo@redhat.com, mm-commits@vger.kernel.org,
-        naveen.n.rao@linux.ibm.com, song.bao.hua@hisilicon.com,
-        tglx@linutronix.de, torvalds@linux-foundation.org
-Subject:  [patch 177/192] kprobes: remove duplicated strong
- free_insn_page in x86 and s390
-Message-ID: <20210701015631.VKMj8Ffy0%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, colin.king@canonical.com,
+        konishi.ryusuke@gmail.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 178/192] nilfs2: remove redundant continue
+ statement in a while-loop
+Message-ID: <20210701015634.WGEgit9PU%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,88 +43,31 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Barry Song <song.bao.hua@hisilicon.com>
-Subject: kprobes: remove duplicated strong free_insn_page in x86 and s390
+From: Colin Ian King <colin.king@canonical.com>
+Subject: nilfs2: remove redundant continue statement in a while-loop
 
-free_insn_page() in x86 and s390 is same with the common weak function in
-kernel/kprobes.c.  Plus, the comment "Recover page to RW mode before
-releasing it" in x86 seems insensible to be there since resetting mapping
-is done by common code in vfree() of module_memfree().  So drop these two
-duplicated strong functions and related comment, then mark the common one
-in kernel/kprobes.c strong.
+The continue statement at the end of the while-loop is redundant,
+remove it.
 
-Link: https://lkml.kernel.org/r/20210608065736.32656-1-song.bao.hua@hisilicon.com
-Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
-Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
-Acked-by: Heiko Carstens <hca@linux.ibm.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Qi Liu <liuqi115@huawei.com>
+Addresses-Coverity: ("Continue has no effect")
+Link: https://lkml.kernel.org/r/20210621100519.10257-1-colin.king@canonical.com
+Link: https://lkml.kernel.org/r/1624557664-17159-1-git-send-email-konishi.ryusuke@gmail.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/kprobes.c     |    5 -----
- arch/x86/kernel/kprobes/core.c |    6 ------
- include/linux/kprobes.h        |    1 -
- kernel/kprobes.c               |    2 +-
- 4 files changed, 1 insertion(+), 13 deletions(-)
+ fs/nilfs2/btree.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/arch/s390/kernel/kprobes.c~kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390
-+++ a/arch/s390/kernel/kprobes.c
-@@ -44,11 +44,6 @@ void *alloc_insn_page(void)
- 	return page;
- }
- 
--void free_insn_page(void *page)
--{
--	module_memfree(page);
--}
--
- static void *alloc_s390_insn_page(void)
- {
- 	if (xchg(&insn_page_in_use, 1) == 1)
---- a/arch/x86/kernel/kprobes/core.c~kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390
-+++ a/arch/x86/kernel/kprobes/core.c
-@@ -422,12 +422,6 @@ void *alloc_insn_page(void)
- 	return page;
- }
- 
--/* Recover page to RW mode before releasing it */
--void free_insn_page(void *page)
--{
--	module_memfree(page);
--}
--
- /* Kprobe x86 instruction emulation - only regs->ip or IF flag modifiers */
- 
- static void kprobe_emulate_ifmodifiers(struct kprobe *p, struct pt_regs *regs)
---- a/include/linux/kprobes.h~kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390
-+++ a/include/linux/kprobes.h
-@@ -407,7 +407,6 @@ int enable_kprobe(struct kprobe *kp);
- void dump_kprobe(struct kprobe *kp);
- 
- void *alloc_insn_page(void);
--void free_insn_page(void *page);
- 
- int kprobe_get_kallsym(unsigned int symnum, unsigned long *value, char *type,
- 		       char *sym);
---- a/kernel/kprobes.c~kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390
-+++ a/kernel/kprobes.c
-@@ -106,7 +106,7 @@ void __weak *alloc_insn_page(void)
- 	return module_alloc(PAGE_SIZE);
- }
- 
--void __weak free_insn_page(void *page)
-+static void free_insn_page(void *page)
- {
- 	module_memfree(page);
- }
+--- a/fs/nilfs2/btree.c~nilfs2-remove-redundant-continue-statement-in-a-while-loop
++++ a/fs/nilfs2/btree.c
+@@ -738,7 +738,6 @@ static int nilfs_btree_lookup_contig(con
+ 			if (ptr2 != ptr + cnt || ++cnt == maxblocks)
+ 				goto end;
+ 			index++;
+-			continue;
+ 		}
+ 		if (level == maxlevel)
+ 			break;
 _
