@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 835FFC11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:00:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F432C11F7A
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:01:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 60AD0610A1
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:00:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1044061469
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:01:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238191AbhGABCy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:02:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58612 "EHLO mail.kernel.org"
+        id S232066AbhGABDj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:03:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58780 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232066AbhGABCx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:02:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 486FA61424;
-        Thu,  1 Jul 2021 01:00:22 +0000 (UTC)
+        id S238345AbhGABDb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:03:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 25B64610A1;
+        Thu,  1 Jul 2021 01:01:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625101222;
-        bh=jowYQ4h6k/zY9Te7pXeStjFfPjQpTcfi36Q7U3DJzyU=;
+        s=korg; t=1625101261;
+        bh=p/2KVwpopqvOAUXeQWTcL7QnplQg1tOdaO8FkqLLx1Q=;
         h=Date:From:To:Subject:From;
-        b=q4M4ANkNfE5mp3nMKf7nJus3yH1Z0eyik/IqCBDQp49a6qIj6PyuX4xDGYYs7vf8p
-         WyUN8WFFMhpVyZMa/tVbw2rnW/ID28pEyjsi7l8tNsi2NO1MWJG+D0P+8KvRPF1fpe
-         Ri4WGQCtrhlNxYNB+bQiSfuW4lVg3YqBFXUjhGP4=
-Date:   Wed, 30 Jun 2021 18:00:21 -0700
+        b=WQy61OBsLDfuV/HAITcH5oI1DfOhOgoFDnhISRWdfO47CvdgB5bLil24IhmVTpxFo
+         UgI0oeShTsK1vIVYLyrcRMC5PhiR0TQ8QL5mKawR0z1nKnoONCqreJJ/5XZ/SN3Z0X
+         Xpr/KT6TTZj+KQrA8CaEjGGn2IatpZ3crs3GSvg4=
+Date:   Wed, 30 Jun 2021 18:01:00 -0700
 From:   akpm@linux-foundation.org
-To:     apopple@nvidia.com, dan.carpenter@oracle.com,
-        mm-commits@vger.kernel.org, peterx@redhat.com
+To:     adobriyan@gmail.com, akpm@linux-foundation.org,
+        chenying.kernel@bytedance.com, mm-commits@vger.kernel.org,
+        rppt@kernel.org, songmuchun@bytedance.com,
+        zhouchengming@bytedance.com, zhoufeng.zf@bytedance.com
 Subject:  [folded-merged]
- mm-device-exclusive-memory-access-fix.patch removed from -mm tree
-Message-ID: <20210701010021.l7zAJUxpp%akpm@linux-foundation.org>
+ fs-proc-kcorec-add-mmap-interface-fix.patch removed from -mm tree
+Message-ID: <20210701010100.DkjgJNZLU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,58 +45,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: fix signedness bug in make_device_exclusive_range()
+     Subject: fs-proc-kcorec-add-mmap-interface-fix
 has been removed from the -mm tree.  Its filename was
-     mm-device-exclusive-memory-access-fix.patch
+     fs-proc-kcorec-add-mmap-interface-fix.patch
 
-This patch was dropped because it was folded into mm-device-exclusive-memory-access.patch
+This patch was dropped because it was folded into fs-proc-kcorec-add-mmap-interface.patch
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: mm/rmap: fix signedness bug in make_device_exclusive_range()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-proc-kcorec-add-mmap-interface-fix
 
-The get_user_pages_remote() function returns a long type, but we are using
-"unsigned long i;" as the list iterator.  If "npages" is -ENOMEM, the
-comparison "i < npages" is type promoted and "npages" becomes a very high
-positive value.  The loop will then iterate until the kernel crashes.
+KCORE_REMAP is no more
 
-There are two ways to fix this.  Declare "i" as a long type or add an
-explicit check for get_user_pages_remote() error returns.  Either approach
-will work so let's do both.
-
-Link: https://lkml.kernel.org/r/YNIz5NVnZ5GiZ3u1@mwanda
-Fixes: fa1e686e5f53 ("mm: device exclusive memory access")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: CHENYING <chenying.kernel@bytedance.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: ZHOUFENG <zhoufeng.zf@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/proc/kcore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/rmap.c~mm-device-exclusive-memory-access-fix
-+++ a/mm/rmap.c
-@@ -2187,11 +2187,14 @@ int make_device_exclusive_range(struct m
- 				void *owner)
- {
- 	long npages = (end - start) >> PAGE_SHIFT;
--	unsigned long i;
-+	long i;
+--- a/fs/proc/kcore.c~fs-proc-kcorec-add-mmap-interface-fix
++++ a/fs/proc/kcore.c
+@@ -660,7 +660,7 @@ static int mmap_kcore(struct file *file,
+ 	vma->vm_ops = &kcore_mmap_ops;
  
- 	npages = get_user_pages_remote(mm, start, npages,
- 				       FOLL_GET | FOLL_WRITE | FOLL_SPLIT_PMD,
- 				       pages, NULL, NULL);
-+	if (npages < 0)
-+		return npages;
-+
- 	for (i = 0; i < npages; i++, start += PAGE_SIZE) {
- 		if (!trylock_page(pages[i])) {
- 			put_page(pages[i]);
+ 	if (kern_addr_valid(start)) {
+-		if (m->type == KCORE_RAM || m->type == KCORE_REMAP)
++		if (m->type == KCORE_RAM)
+ 			pfn = __pa(start) >> PAGE_SHIFT;
+ 		else if (m->type == KCORE_TEXT)
+ 			pfn = __pa_symbol(start) >> PAGE_SHIFT;
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-fix-snprintf-checking.patch
-mm-device-exclusive-memory-access.patch
+fs-proc-kcorec-add-mmap-interface.patch
+kernelh-split-out-panic-and-oops-helpers-fix.patch
+lib-math-rational-add-kunit-test-cases-fix.patch
+lib-decompressors-remove-set-but-not-used-variabled-level-fix.patch
+ipc-utilc-use-binary-search-for-max_idx-fix.patch
+mm.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+linux-next-pre.patch
+linux-next-post.patch
+linux-next-rejects.patch
+kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
