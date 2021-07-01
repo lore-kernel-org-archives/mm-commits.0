@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC977C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:51:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BBAAC11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:51:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B5416124B
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:51:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7420361474
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:51:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236306AbhGAAyB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 20:54:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57620 "EHLO mail.kernel.org"
+        id S236325AbhGAAyE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 20:54:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57650 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236299AbhGAAyB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 20:54:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 81E066146B;
-        Thu,  1 Jul 2021 00:51:31 +0000 (UTC)
+        id S236309AbhGAAyD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 20:54:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ADF4A6124B;
+        Thu,  1 Jul 2021 00:51:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625100691;
-        bh=LXRq5emsfdgVBKHvI6Ba7cZP+8nfLg8cYAltMrpkf5k=;
+        s=korg; t=1625100693;
+        bh=hvd3X0SMWebvSI87cBblvqddm0HNPRQlUZl3/Zw5VK4=;
         h=Date:From:To:Subject:From;
-        b=TdBf6jaHSM8sQUw4KcluVjSpjXCKMfyy/dlV9gto188G2H9JomHm2HJdLtGPvH/ci
-         J4ZBZPLGBbVaApGKWC5HQXBxgMlk462u85jc06g3406dzWP8zh5u3E3x+IRPWQ8j46
-         7/ijtavKPnZAw+sxmqddhHMTLA1I/yjmn3AFX180=
-Date:   Wed, 30 Jun 2021 17:51:31 -0700
+        b=qKqEbxmcQN2hV4wgzS++ko2n4ZPKMRGSaRZvLLMeLGpE0tl6BKUoHourGcx2DgGLP
+         n4QByRjma3Mtxwtbn6NA/mcOU7ycti4L4rMj2I0GwlbL0JXq2FrR+h72QIw7690nij
+         V1/3ONWysIYP1cq+0wq/1zy96p+gH37si9ZQ2pWY=
+Date:   Wed, 30 Jun 2021 17:51:33 -0700
 From:   akpm@linux-foundation.org
-To:     almasrymina@google.com, axelrasmussen@google.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        peterx@redhat.com, yuehaibing@huawei.com
+To:     almasrymina@google.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, songmuchun@bytedance.com
 Subject:  [folded-merged]
- mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix.patch
+ mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix-2.patch
  removed from -mm tree
-Message-ID: <20210701005131.ex7f4M5Te%akpm@linux-foundation.org>
+Message-ID: <20210701005133.gN_D4BYqe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,59 +44,101 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: remove set but not used variable 'vm_alloc_shared'
+     Subject: mm, hugetlb: fix allocation error check and copy func name
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix.patch
+     mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix-2.patch
 
 This patch was dropped because it was folded into mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy.patch
 
 ------------------------------------------------------
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: userfaultfd: remove set but not used variable 'vm_alloc_shared'
+From: Mina Almasry <almasrymina@google.com>
+Subject: mm, hugetlb: fix allocation error check and copy func name
 
-mm/userfaultfd.c: In function `__mcopy_atomic_hugetlb':
-mm/userfaultfd.c:284:6: warning: variable `vm_alloc_shared' set but not used [-Wunused-but-set-variable]
-  int vm_alloc_shared = dst_vma->vm_flags & VM_SHARED;
-      ^~~~~~~~~~~~~~~
+The alloc_huge_page_vma() doesn't return error pointers, it returns NULL.
 
-commit 1786d0012620 ("mm, hugetlb: fix racy resv_huge_pages underflow on UFFDIO_COPY")
-left behind this.
+There is an existing migrate_page_copy() which not only copies the page
+contents, but also page state/metadata.  People could get confused that
+'migrate_page_copy' and 'migrate_copy_huge_page' do not have the same
+functionality.  Rename to 'copy_huge_page()' to make it less likely folks
+get confused.
 
-Link: https://lkml.kernel.org/r/20210601141610.28332-1-yuehaibing@huawei.com
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/20210605010626.1459873-1-almasrymina@google.com
+Fixes: 6a0badc266df ("mm, hugetlb: fix racy resv_huge_pages underflow on
+UFFDIO_COPY")
+Signed-off-by: Mina Almasry <almasrymina@google.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/migrate.h |    4 ++--
+ mm/hugetlb.c            |    4 ++--
+ mm/migrate.c            |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/userfaultfd.c~mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix
-+++ a/mm/userfaultfd.c
-@@ -209,7 +209,6 @@ static __always_inline ssize_t __mcopy_a
- 					      unsigned long len,
- 					      enum mcopy_atomic_mode mode)
+--- a/include/linux/migrate.h~mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix-2
++++ a/include/linux/migrate.h
+@@ -51,7 +51,7 @@ extern int migrate_huge_page_move_mappin
+ 				  struct page *newpage, struct page *page);
+ extern int migrate_page_move_mapping(struct address_space *mapping,
+ 		struct page *newpage, struct page *page, int extra_count);
+-extern void migrate_copy_huge_page(struct page *dst, struct page *src);
++extern void copy_huge_page(struct page *dst, struct page *src);
+ #else
+ 
+ static inline void putback_movable_pages(struct list_head *l) {}
+@@ -78,7 +78,7 @@ static inline int migrate_huge_page_move
+ 	return -ENOSYS;
+ }
+ 
+-static inline void migrate_copy_huge_page(struct page *dst, struct page *src)
++static inline void copy_huge_page(struct page *dst, struct page *src)
  {
--	int vm_alloc_shared = dst_vma->vm_flags & VM_SHARED;
- 	int vm_shared = dst_vma->vm_flags & VM_SHARED;
- 	ssize_t err;
- 	pte_t *dst_pte;
-@@ -308,7 +307,6 @@ retry:
+ }
+ #endif /* CONFIG_MIGRATION */
+--- a/mm/hugetlb.c~mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix-2
++++ a/mm/hugetlb.c
+@@ -5126,7 +5126,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 			 * contents.
+ 			 */
+ 			page = alloc_huge_page_vma(h, dst_vma, dst_addr);
+-			if (IS_ERR(page)) {
++			if (!page) {
+ 				ret = -ENOMEM;
+ 				goto out;
+ 			}
+@@ -5152,7 +5152,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 			*pagep = NULL;
+ 			goto out;
+ 		}
+-		migrate_copy_huge_page(page, *pagep);
++		copy_huge_page(page, *pagep);
+ 		put_page(*pagep);
+ 		*pagep = NULL;
+ 	}
+--- a/mm/migrate.c~mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy-fix-2
++++ a/mm/migrate.c
+@@ -553,7 +553,7 @@ static void __copy_gigantic_page(struct
+ 	}
+ }
  
- 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 		i_mmap_unlock_read(mapping);
--		vm_alloc_shared = vm_shared;
- 
- 		cond_resched();
+-void migrate_copy_huge_page(struct page *dst, struct page *src)
++void copy_huge_page(struct page *dst, struct page *src)
+ {
+ 	int i;
+ 	int nr_pages;
+@@ -658,7 +658,7 @@ EXPORT_SYMBOL(migrate_page_states);
+ void migrate_page_copy(struct page *newpage, struct page *page)
+ {
+ 	if (PageHuge(page) || PageTransHuge(page))
+-		migrate_copy_huge_page(newpage, page);
++		copy_huge_page(newpage, page);
+ 	else
+ 		copy_highpage(newpage, page);
  
 _
 
-Patches currently in -mm which might be from yuehaibing@huawei.com are
+Patches currently in -mm which might be from almasrymina@google.com are
 
-mm-dmapool-use-device_attr_ro-macro.patch
 mm-hugetlb-fix-racy-resv_huge_pages-underflow-on-uffdio_copy.patch
-mm-compaction-use-device_attr_wo-macro.patch
 
