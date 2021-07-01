@@ -7,36 +7,44 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E859C11F6C
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:52:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ED8AC11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:52:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8537861474
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:52:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0BFAF61241
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:52:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238487AbhGAByo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:54:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44274 "EHLO mail.kernel.org"
+        id S238447AbhGAByz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:54:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44404 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238486AbhGAByo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:54:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 80F0A61469;
-        Thu,  1 Jul 2021 01:52:14 +0000 (UTC)
+        id S238416AbhGAByy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:54:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2B6C86105A;
+        Thu,  1 Jul 2021 01:52:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104334;
-        bh=TZ02/5BRV3MVGz6H7yhrD7JgNllspAGhg7ulbsDIIws=;
+        s=korg; t=1625104345;
+        bh=srZOmjHweQG1tAHO8xMW9Tn8yCWrDqidrbxEW2al5Hc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=PchLKqP2i/PEF2rI96lR7wqUsu8+5uR7IJpmpfbGKZkZB1j51N8WANRroi+Yq4v3p
-         9B8pCP7QxtZ3ay+XpPEkLki+n8+mdgkn3nf3z0RVNukGpoJBgU5J0oEG5/s7BQhDYU
-         85ybDdPgJwQwRKqoR9VzTmZVxN2oBW7f4CwgQJSc=
-Date:   Wed, 30 Jun 2021 18:52:14 -0700
+        b=YT05pTQyIPQC7TRfrkLLJjD9qn9ZLWo6UiG3fyDYgF0xCmltWBn5KilJW6P4RO2Y6
+         46tiX3DWUvmadt3EBQ3w81VuXvx971AnVHsRHQRjW0zX41g/TVFlJYhKLQULjmQHbk
+         wmSTfduU6y7qXNvtVI3KgRABi0n4nb8FdkfuwOZE=
+Date:   Wed, 30 Jun 2021 18:52:23 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, chenli@uniontech.com, david@redhat.com,
-        geert@linux-m68k.org, gerg@linux-m68k.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        willy@infradead.org
-Subject:  [patch 095/192] nommu: remove __GFP_HIGHMEM in
- vmalloc/vzalloc
-Message-ID: <20210701015214.X6biaOQaV%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org, arnd@arndb.de,
+        chris@zankel.net, dave.hansen@intel.com, david@redhat.com,
+        deller@gmx.de, eike-kernel@sf-tec.de, hughd@google.com,
+        ink@jurassic.park.msu.ru, James.Bottomley@HansenPartnership.com,
+        jannh@google.com, jcmvbkbc@gmail.com, jgg@ziepe.ca,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        linuxram@us.ibm.com, mattst88@gmail.com, mhocko@suse.com,
+        mike.kravetz@oracle.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, mst@redhat.com, osalvador@suse.de,
+        peterx@redhat.com, riel@surriel.com, rth@twiddle.net,
+        shuah@kernel.org, torvalds@linux-foundation.org,
+        tsbogend@alpha.franken.de, vbabka@suse.cz, willy@infradead.org
+Subject:  [patch 098/192] mm: make variable names for
+ populate_vma_page_range() consistent
+Message-ID: <20210701015223.QTgRbro8j%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,54 +52,64 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Chen Li <chenli@uniontech.com>
-Subject: nommu: remove __GFP_HIGHMEM in vmalloc/vzalloc
+From: David Hildenbrand <david@redhat.com>
+Subject: mm: make variable names for populate_vma_page_range() consistent
 
-mm/nommu.c:
-void *__vmalloc(unsigned long size, gfp_t gfp_mask)
-{
-	/*
-	 *  You can't specify __GFP_HIGHMEM with kmalloc() since kmalloc()
-	 * returns only a logical address.
-	 */
-	return kmalloc(size, (gfp_mask | __GFP_COMP) & ~__GFP_HIGHMEM);
-}
+Patch series "mm/madvise: introduce MADV_POPULATE_(READ|WRITE) to prefault page tables", v2.
 
-nommu's __vmalloc just uses kmalloc internally and elimitates
-__GFP_HIGHMEM, so it makes no sense to add __GFP_HIGHMEM for nommu's
-vmalloc/vzalloc.
+Excessive details on MADV_POPULATE_(READ|WRITE) can be found in patch #2.
 
-[akpm@linux-foundation.org: coding style fixes]
-Link: https://lkml.kernel.org/r/875z00rnp8.wl-chenli@uniontech.com
-Signed-off-by: Chen Li <chenli@uniontech.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+
+This patch (of 5):
+
+Let's make the variable names in the function declaration match the
+variable names used in the definition.
+
+Link: https://lkml.kernel.org/r/20210419135443.12822-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20210419135443.12822-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Ram Pai <linuxram@us.ibm.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/nommu.c~nommu-remove-__gfp_highmem-in-vmalloc-vzalloc
-+++ a/mm/nommu.c
-@@ -223,7 +223,7 @@ long vread(char *buf, char *addr, unsign
-  */
- void *vmalloc(unsigned long size)
- {
--       return __vmalloc(size, GFP_KERNEL | __GFP_HIGHMEM);
-+	return __vmalloc(size, GFP_KERNEL);
- }
- EXPORT_SYMBOL(vmalloc);
+--- a/mm/internal.h~mm-make-variable-names-for-populate_vma_page_range-consistent
++++ a/mm/internal.h
+@@ -344,7 +344,7 @@ void __vma_unlink_list(struct mm_struct
  
-@@ -241,7 +241,7 @@ EXPORT_SYMBOL(vmalloc);
-  */
- void *vzalloc(unsigned long size)
- {
--	return __vmalloc(size, GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO);
-+	return __vmalloc(size, GFP_KERNEL | __GFP_ZERO);
- }
- EXPORT_SYMBOL(vzalloc);
- 
+ #ifdef CONFIG_MMU
+ extern long populate_vma_page_range(struct vm_area_struct *vma,
+-		unsigned long start, unsigned long end, int *nonblocking);
++		unsigned long start, unsigned long end, int *locked);
+ extern void munlock_vma_pages_range(struct vm_area_struct *vma,
+ 			unsigned long start, unsigned long end);
+ static inline void munlock_vma_pages_all(struct vm_area_struct *vma)
 _
