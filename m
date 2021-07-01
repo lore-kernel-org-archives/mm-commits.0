@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0886EC11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:59:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 835FFC11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:00:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD271613CD
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:59:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60AD0610A1
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:00:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236734AbhGABCL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:02:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58522 "EHLO mail.kernel.org"
+        id S238191AbhGABCy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:02:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58612 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232066AbhGABCL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:02:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 64C9C610A1;
-        Thu,  1 Jul 2021 00:59:41 +0000 (UTC)
+        id S232066AbhGABCx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:02:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 486FA61424;
+        Thu,  1 Jul 2021 01:00:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625101181;
-        bh=K+qH3AUtSL3sHXduEszYBPDqAFylG1yBrwzbF+Se/NU=;
+        s=korg; t=1625101222;
+        bh=jowYQ4h6k/zY9Te7pXeStjFfPjQpTcfi36Q7U3DJzyU=;
         h=Date:From:To:Subject:From;
-        b=TfDy6aDzFiyV+MkUT1uStkIn4DqCKgzCTIeSKbY9RSFWP0JZKJ0XMcVbdUIbdLy9u
-         Z//LjCEWPLDF9crqWEw99c7KokKnK9jyaMSYogws0X5Rq5r/87bNQIAPJC1cSaRVlE
-         Vbn0FjQ+ohY4zaVYgzAw6SzlXXyitepgXTP7sMeU=
-Date:   Wed, 30 Jun 2021 17:59:41 -0700
+        b=q4M4ANkNfE5mp3nMKf7nJus3yH1Z0eyik/IqCBDQp49a6qIj6PyuX4xDGYYs7vf8p
+         WyUN8WFFMhpVyZMa/tVbw2rnW/ID28pEyjsi7l8tNsi2NO1MWJG+D0P+8KvRPF1fpe
+         Ri4WGQCtrhlNxYNB+bQiSfuW4lVg3YqBFXUjhGP4=
+Date:   Wed, 30 Jun 2021 18:00:21 -0700
 From:   akpm@linux-foundation.org
-To:     cuibixuan@huawei.com, david@redhat.com, ddstreet@ieee.org,
-        mgorman@techsingularity.net, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, shy828301@gmail.com, vbabka@suse.cz,
-        willy@infradead.org
+To:     apopple@nvidia.com, dan.carpenter@oracle.com,
+        mm-commits@vger.kernel.org, peterx@redhat.com
 Subject:  [folded-merged]
- mm-mmap_lock-remove-dead-code-for-config_tracing-configurations-fix.patch
- removed from -mm tree
-Message-ID: <20210701005941.4Z6Rg995M%akpm@linux-foundation.org>
+ mm-device-exclusive-memory-access-fix.patch removed from -mm tree
+Message-ID: <20210701010021.l7zAJUxpp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,119 +43,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap_lock: fix warning when CONFIG_TRACING is not defined
+     Subject: mm/rmap: fix signedness bug in make_device_exclusive_range()
 has been removed from the -mm tree.  Its filename was
-     mm-mmap_lock-remove-dead-code-for-config_tracing-configurations-fix.patch
+     mm-device-exclusive-memory-access-fix.patch
 
-This patch was dropped because it was folded into mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
+This patch was dropped because it was folded into mm-device-exclusive-memory-access.patch
 
 ------------------------------------------------------
-From: Bixuan Cui <cuibixuan@huawei.com>
-Subject: mm/mmap_lock: fix warning when CONFIG_TRACING is not defined
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: mm/rmap: fix signedness bug in make_device_exclusive_range()
 
-Fix the warning: [-Wunused-function]
-mm/mmap_lock.c:157:20: warning: `get_mm_memcg_path' defined but not used
- static const char *get_mm_memcg_path(struct mm_struct *mm)
-                    ^~~~~~~~~~~~~~~~~
+The get_user_pages_remote() function returns a long type, but we are using
+"unsigned long i;" as the list iterator.  If "npages" is -ENOMEM, the
+comparison "i < npages" is type promoted and "npages" becomes a very high
+positive value.  The loop will then iterate until the kernel crashes.
 
-Move get_mm_memcg_path() into #ifdef CONFIG_TRACING.
+There are two ways to fix this.  Declare "i" as a long type or add an
+explicit check for get_user_pages_remote() error returns.  Either approach
+will work so let's do both.
 
-Link: https://lkml.kernel.org/r/20210531033426.74031-1-cuibixuan@huawei.com
-Signed-off-by: Bixuan Cui <cuibixuan@huawei.com>
-Acked-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: https://lkml.kernel.org/r/YNIz5NVnZ5GiZ3u1@mwanda
+Fixes: fa1e686e5f53 ("mm: device exclusive memory access")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap_lock.c |   59 ++++++++++++++++++++++++-----------------------
- 1 file changed, 31 insertions(+), 28 deletions(-)
+ mm/rmap.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/mmap_lock.c~mm-mmap_lock-remove-dead-code-for-config_tracing-configurations-fix
-+++ a/mm/mmap_lock.c
-@@ -153,6 +153,37 @@ static inline void put_memcg_path_buf(vo
- 	rcu_read_unlock();
- }
+--- a/mm/rmap.c~mm-device-exclusive-memory-access-fix
++++ a/mm/rmap.c
+@@ -2187,11 +2187,14 @@ int make_device_exclusive_range(struct m
+ 				void *owner)
+ {
+ 	long npages = (end - start) >> PAGE_SHIFT;
+-	unsigned long i;
++	long i;
  
-+#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
-+	do {                                                                   \
-+		const char *memcg_path;                                        \
-+		preempt_disable();                                             \
-+		memcg_path = get_mm_memcg_path(mm);                            \
-+		trace_mmap_lock_##type(mm,                                     \
-+				       memcg_path != NULL ? memcg_path : "",   \
-+				       ##__VA_ARGS__);                         \
-+		if (likely(memcg_path != NULL))                                \
-+			put_memcg_path_buf();                                  \
-+		preempt_enable();                                              \
-+	} while (0)
+ 	npages = get_user_pages_remote(mm, start, npages,
+ 				       FOLL_GET | FOLL_WRITE | FOLL_SPLIT_PMD,
+ 				       pages, NULL, NULL);
++	if (npages < 0)
++		return npages;
 +
-+#else /* !CONFIG_MEMCG */
-+
-+int trace_mmap_lock_reg(void)
-+{
-+	return 0;
-+}
-+
-+void trace_mmap_lock_unreg(void)
-+{
-+}
-+
-+#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
-+	trace_mmap_lock_##type(mm, "", ##__VA_ARGS__)
-+
-+#endif /* CONFIG_MEMCG */
-+
-+#ifdef CONFIG_TRACING
-+#ifdef CONFIG_MEMCG
- /*
-  * Write the given mm_struct's memcg path to a percpu buffer, and return a
-  * pointer to it. If the path cannot be determined, or no buffer was available
-@@ -187,36 +218,8 @@ out:
- 	return buf;
- }
- 
--#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
--	do {                                                                   \
--		const char *memcg_path;                                        \
--		local_lock(&memcg_paths.lock);				       \
--		memcg_path = get_mm_memcg_path(mm);                            \
--		trace_mmap_lock_##type(mm,                                     \
--				       memcg_path != NULL ? memcg_path : "",   \
--				       ##__VA_ARGS__);                         \
--		if (likely(memcg_path != NULL))                                \
--			put_memcg_path_buf();                                  \
--		local_unlock(&memcg_paths.lock);			       \
--	} while (0)
--
--#else /* !CONFIG_MEMCG */
--
--int trace_mmap_lock_reg(void)
--{
--	return 0;
--}
--
--void trace_mmap_lock_unreg(void)
--{
--}
--
--#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
--	trace_mmap_lock_##type(mm, "", ##__VA_ARGS__)
--
- #endif /* CONFIG_MEMCG */
- 
--#ifdef CONFIG_TRACING
- /*
-  * Trace calls must be in a separate file, as otherwise there's a circular
-  * dependency between linux/mmap_lock.h and trace/events/mmap_lock.h.
+ 	for (i = 0; i < npages; i++, start += PAGE_SIZE) {
+ 		if (!trylock_page(pages[i])) {
+ 			put_page(pages[i]);
 _
 
-Patches currently in -mm which might be from cuibixuan@huawei.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix-fix.patch
+ocfs2-fix-snprintf-checking.patch
+mm-device-exclusive-memory-access.patch
 
