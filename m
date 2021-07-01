@@ -5,37 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F9B1C11F69
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DE9FC11F69
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6997D61474
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 833D261469
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:50:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238446AbhGABxC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:53:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42540 "EHLO mail.kernel.org"
+        id S238449AbhGABxF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:53:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42592 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238384AbhGABxB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:53:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 140BA61468;
-        Thu,  1 Jul 2021 01:50:31 +0000 (UTC)
+        id S238443AbhGABxE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:53:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F23B86105A;
+        Thu,  1 Jul 2021 01:50:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104231;
-        bh=bMZghlfwKOQnCH7xwNfRdzA6t6/oFT5kgSFzQsMvzLU=;
+        s=korg; t=1625104234;
+        bh=J4cFi94OqIwcIG1fLpadUmpda5w2L840R4tDI0HI/z4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=h70G1lb7JeJ6TBPZyfMTFkVEsiQ5fC8NEni3BBtOjpm+A7KMHmmPnPWSDJqXEg7wf
-         IpFWWcDSqUD+NdSq5+bW2HyztgBYAKisFbfTk8LCq4OPar7lV7wEm9TRlIX66APfu2
-         Xhyfmb7EBkctktQyyplQblvNp/Sg6IJVQ0zpVrRo=
-Date:   Wed, 30 Jun 2021 18:50:30 -0700
+        b=K16hYQdLNhx72fLwE0EOAjGQxV83DZDpQASaLVA8aY0mFC4dq4MK4A0tg5MDWW6Sy
+         Nz3o9V+DaLqrsZe5QLtERqQVBkn1gJUSlb3CT0Z6/DFelPY2vg8fRSdu8iO+rSxvRO
+         usw348gLwyqCUAXjBxg82YR0fqE6KAgwvbh0BWwI=
+Date:   Wed, 30 Jun 2021 18:50:33 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, hdanton@sina.com, linmiaohe@huawei.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, vitaly.wool@konsulko.com
-Subject:  [patch 062/192] mm/z3fold: remove magic number in
- z3fold_create_pool()
-Message-ID: <20210701015030.igMLYc0-G%akpm@linux-foundation.org>
+Subject:  [patch 063/192] mm/z3fold: remove unused function
+ handle_to_z3fold_header()
+Message-ID: <20210701015033.bZHcaN-yR%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,34 +44,71 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/z3fold: remove magic number in z3fold_create_pool()
+Subject: mm/z3fold: remove unused function handle_to_z3fold_header()
 
-It's meaningless to pass a magic number 2 to __alloc_percpu() as there is
-a minimum alignment size of PCPU_MIN_ALLOC_SIZE (> 2) in it.  Also there
-is no special alignment requirement for unbuddied.  So we could replace
-this magic number with nature alignment, i.e.  __alignof__(struct
-list_head), to improve readability.
+handle_to_z3fold_header() is unused now.  So we can remove it.  As a
+result, get_z3fold_header() becomes the only caller of
+__get_z3fold_header() and the argument lock is always true.  Therefore we
+could further fold the __get_z3fold_header() into get_z3fold_header() with
+lock = true.
 
-Link: https://lkml.kernel.org/r/20210619093151.1492174-4-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210619093151.1492174-5-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
 Cc: Hillf Danton <hdanton@sina.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/z3fold.c |   22 ++++------------------
+ 1 file changed, 4 insertions(+), 18 deletions(-)
 
---- a/mm/z3fold.c~mm-z3fold-remove-magic-number-in-z3fold_create_pool
+--- a/mm/z3fold.c~mm-z3fold-remove-unused-function-handle_to_z3fold_header
 +++ a/mm/z3fold.c
-@@ -998,7 +998,8 @@ static struct z3fold_pool *z3fold_create
- 		goto out_c;
- 	spin_lock_init(&pool->lock);
- 	spin_lock_init(&pool->stale_lock);
--	pool->unbuddied = __alloc_percpu(sizeof(struct list_head)*NCHUNKS, 2);
-+	pool->unbuddied = __alloc_percpu(sizeof(struct list_head) * NCHUNKS,
-+					 __alignof__(struct list_head));
- 	if (!pool->unbuddied)
- 		goto out_pool;
- 	for_each_possible_cpu(cpu) {
+@@ -253,9 +253,8 @@ static inline void z3fold_page_unlock(st
+ 	spin_unlock(&zhdr->page_lock);
+ }
+ 
+-
+-static inline struct z3fold_header *__get_z3fold_header(unsigned long handle,
+-							bool lock)
++/* return locked z3fold page if it's not headless */
++static inline struct z3fold_header *get_z3fold_header(unsigned long handle)
+ {
+ 	struct z3fold_buddy_slots *slots;
+ 	struct z3fold_header *zhdr;
+@@ -269,13 +268,12 @@ static inline struct z3fold_header *__ge
+ 			read_lock(&slots->lock);
+ 			addr = *(unsigned long *)handle;
+ 			zhdr = (struct z3fold_header *)(addr & PAGE_MASK);
+-			if (lock)
+-				locked = z3fold_page_trylock(zhdr);
++			locked = z3fold_page_trylock(zhdr);
+ 			read_unlock(&slots->lock);
+ 			if (locked)
+ 				break;
+ 			cpu_relax();
+-		} while (lock);
++		} while (true);
+ 	} else {
+ 		zhdr = (struct z3fold_header *)(handle & PAGE_MASK);
+ 	}
+@@ -283,18 +281,6 @@ static inline struct z3fold_header *__ge
+ 	return zhdr;
+ }
+ 
+-/* Returns the z3fold page where a given handle is stored */
+-static inline struct z3fold_header *handle_to_z3fold_header(unsigned long h)
+-{
+-	return __get_z3fold_header(h, false);
+-}
+-
+-/* return locked z3fold page if it's not headless */
+-static inline struct z3fold_header *get_z3fold_header(unsigned long h)
+-{
+-	return __get_z3fold_header(h, true);
+-}
+-
+ static inline void put_z3fold_header(struct z3fold_header *zhdr)
+ {
+ 	struct page *page = virt_to_page(zhdr);
 _
