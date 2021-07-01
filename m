@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12A74C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:48:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EC34C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:48:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC79961468
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:48:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 77ECB61468
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:48:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238393AbhGABvP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:51:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40584 "EHLO mail.kernel.org"
+        id S238394AbhGABvU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:51:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40636 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238384AbhGABvP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:51:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3F58A6120C;
-        Thu,  1 Jul 2021 01:48:45 +0000 (UTC)
+        id S238384AbhGABvU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:51:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CA17F61466;
+        Thu,  1 Jul 2021 01:48:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104125;
-        bh=YOOzhUTqf7KWYxyFvUMrP7gImFxTqWLWGXQUYUpxmeA=;
+        s=korg; t=1625104129;
+        bh=N1LQqUiDSomKhABEtMR/OUZHtMe9w8viZXVhfQJPVQE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=EJHnh/B3d/0pOYMZqS6aopctm3R0gDAN9d5JEQoG3t9Z5lb5svMvm/qPEaqLoPqf9
-         HhYpYuXNcBvhLgwWl1HDPUBg/MWQM6FRBq8ftpB2V+mMSriNq0bpm7LHG4gLG8X+qm
-         Kz+fEWYL71ZAlLuiXM98ZfQTdNyvt6ZJiMZLZxpY=
-Date:   Wed, 30 Jun 2021 18:48:44 -0700
+        b=YAvyqLJnC/cTWxtwxWig2iDPEvC1JrEZAqvKkEvChT006g6EAm9phO+Q0eHkldYUY
+         blrUqV9sohddGRIzw3cPUzB/AKbii9DiXl5m2RgF+SFUqCkyM50sBXDFm5Is72FnYE
+         TaH+n1QDuc2qWTRyr1jnlJ1uCyxUwWQXGs+7GJtw=
+Date:   Wed, 30 Jun 2021 18:48:48 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aarcange@redhat.com, akpm@linux-foundation.org,
         almasrymina@google.com, axelrasmussen@google.com,
@@ -40,9 +40,9 @@ To:     aarcange@redhat.com, akpm@linux-foundation.org,
         sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
         torvalds@linux-foundation.org, viro@zeniv.linux.org.uk,
         wangqing@vivo.com
-Subject:  [patch 031/192] userfaultfd/selftests: remove the time()
- check on delayed uffd
-Message-ID: <20210701014844.ASqKQfeHh%akpm@linux-foundation.org>
+Subject:  [patch 032/192] userfaultfd/selftests: dropping VERIFY
+ check in locking_thread
+Message-ID: <20210701014848.i6f-Ezd9w%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -51,18 +51,17 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Peter Xu <peterx@redhat.com>
-Subject: userfaultfd/selftests: remove the time() check on delayed uffd
+Subject: userfaultfd/selftests: dropping VERIFY check in locking_thread
 
-There seems to have no guarantee that time() will return the same for the
-two calls even if there's no delay, e.g.  when a fault is accidentally
-crossing the changing of a second.  Meanwhile, this message is also not
-helping that much since delay could happen with a lot of reasons, e.g.,
-schedule latency of resolving thread.  It may not mean an issue with uffd.
+It tries to check against all zeros and looped for quite a few times. 
+However after that we'll verify the same page with count_verify, while
+count_verify can never be zero.  So it means if it's a zero page we'll
+detect it anyways with below code.
 
-Neither do I saw this error triggered either in the past runs.  Even if it
-triggers, it'll be drown in all the rest of test logs.  Remove it.
+There's yet another place we conditionally check the fault flag - just do
+it unconditionally.
 
-Link: https://lkml.kernel.org/r/20210412232753.1012412-3-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20210412232753.1012412-4-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -85,38 +84,78 @@ Cc: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |    8 --------
- 1 file changed, 8 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   55 ---------------------
+ 1 file changed, 1 insertion(+), 54 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-remove-the-time-check-on-delayed-uffd
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-dropping-verify-check-in-locking_thread
 +++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -395,7 +395,6 @@ static void *locking_thread(void *arg)
- 	unsigned long long count;
- 	char randstate[64];
- 	unsigned int seed;
--	time_t start;
- 
- 	if (bounces & BOUNCE_RANDOM) {
- 		seed = (unsigned int) time(NULL) - bounces;
-@@ -432,7 +431,6 @@ static void *locking_thread(void *arg)
+@@ -430,58 +430,6 @@ static void *locking_thread(void *arg)
+ 		} else
  			page_nr += 1;
  		page_nr %= nr_pages;
- 
--		start = time(NULL);
- 		if (bounces & BOUNCE_VERIFY) {
- 			count = *area_count(area_dst, page_nr);
- 			if (!count) {
-@@ -495,12 +493,6 @@ static void *locking_thread(void *arg)
- 		count++;
- 		*area_count(area_dst, page_nr) = count_verify[page_nr] = count;
- 		pthread_mutex_unlock(area_mutex(area_dst, page_nr));
 -
--		if (time(NULL) - start > 1)
--			fprintf(stderr,
--				"userfault too slow %ld "
--				"possible false positive with overcommit\n",
--				time(NULL) - start);
- 	}
- 
- 	return NULL;
+-		if (bounces & BOUNCE_VERIFY) {
+-			count = *area_count(area_dst, page_nr);
+-			if (!count) {
+-				fprintf(stderr,
+-					"page_nr %lu wrong count %Lu %Lu\n",
+-					page_nr, count,
+-					count_verify[page_nr]);
+-				exit(1);
+-			}
+-
+-
+-			/*
+-			 * We can't use bcmp (or memcmp) because that
+-			 * returns 0 erroneously if the memory is
+-			 * changing under it (even if the end of the
+-			 * page is never changing and always
+-			 * different).
+-			 */
+-#if 1
+-			if (!my_bcmp(area_dst + page_nr * page_size, zeropage,
+-				     page_size)) {
+-				fprintf(stderr,
+-					"my_bcmp page_nr %lu wrong count %Lu %Lu\n",
+-					page_nr, count, count_verify[page_nr]);
+-				exit(1);
+-			}
+-#else
+-			unsigned long loops;
+-
+-			loops = 0;
+-			/* uncomment the below line to test with mutex */
+-			/* pthread_mutex_lock(area_mutex(area_dst, page_nr)); */
+-			while (!bcmp(area_dst + page_nr * page_size, zeropage,
+-				     page_size)) {
+-				loops += 1;
+-				if (loops > 10)
+-					break;
+-			}
+-			/* uncomment below line to test with mutex */
+-			/* pthread_mutex_unlock(area_mutex(area_dst, page_nr)); */
+-			if (loops) {
+-				fprintf(stderr,
+-					"page_nr %lu all zero thread %lu %p %lu\n",
+-					page_nr, cpu, area_dst + page_nr * page_size,
+-					loops);
+-				if (loops > 10)
+-					exit(1);
+-			}
+-#endif
+-		}
+-
+ 		pthread_mutex_lock(area_mutex(area_dst, page_nr));
+ 		count = *area_count(area_dst, page_nr);
+ 		if (count != count_verify[page_nr]) {
+@@ -613,8 +561,7 @@ static void uffd_handle_page_fault(struc
+ 		stats->minor_faults++;
+ 	} else {
+ 		/* Missing page faults */
+-		if (bounces & BOUNCE_VERIFY &&
+-		    msg->arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE) {
++		if (msg->arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE) {
+ 			fprintf(stderr, "unexpected write fault\n");
+ 			exit(1);
+ 		}
 _
