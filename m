@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95C12C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:46:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D00FAC11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:47:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E4DF6146B
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:46:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B492861424
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 00:47:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238153AbhGAAtP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 20:49:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57054 "EHLO mail.kernel.org"
+        id S238229AbhGAAt7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 20:49:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57108 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238229AbhGAAtO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 20:49:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 341DA61424;
-        Thu,  1 Jul 2021 00:46:45 +0000 (UTC)
+        id S236734AbhGAAt7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 20:49:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C4E5061090;
+        Thu,  1 Jul 2021 00:47:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625100405;
-        bh=1vSmwny9MmQtEnCufg3LIajwvaILc/wHdIgGtpGg3Jw=;
+        s=korg; t=1625100449;
+        bh=kGjfleYph/1fTh4NkWoPoqXYHSpk2XGDpYsGwm5jORM=;
         h=Date:From:To:Subject:From;
-        b=I078yaZIb98hMOo6xO34tGiuXsuoLLo80+7vftC05IF3vyKmiqYdw/t44tAvBijeG
-         RLmt461FpPKXM8fA8mJeOtXXi8eRaphfEkbkNqyX53KAXW75VXc5A4HjdkyJJMbOmA
-         cegffNCZ+ROUUB+Cqlo0L7NfHNaXVJwqJY2eyUYE=
-Date:   Wed, 30 Jun 2021 17:46:44 -0700
+        b=JzoN9+7hdICU5YRgDmA0gNkCM907Y8SfifhdTzZPCHfqBFt9DjgsVvNLeSjB3u1p7
+         9P9jZc1sK4K2Et1+QlBb6/oIRk/Ia3C7DDu5ye0CDha+rddIZOF869RfsdulwI0Ry7
+         BFudHNu+KJx8av4w0rkFOYYutfW8BjkzOGdyMYjU=
+Date:   Wed, 30 Jun 2021 17:47:28 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        willy@infradead.org
+To:     david@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, songmuchun@bytedance.com
 Subject:  [folded-merged]
- =?US-ASCII?Q?mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hu?=
+ =?US-ASCII?Q?mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hu?=
  =?US-ASCII?Q?getlb-page-fix.patch?= removed from -mm tree
-Message-ID: <20210701004644.BDhN4M_iL%akpm@linux-foundation.org>
+Message-ID: <20210701004728.6D6C3zDaY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -46,58 +47,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/sparse-vmemmap: fix documentation warning
+     Subject: mm: hugetlb: fix dissolve_free_huge_page use of tail/head page
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page-fix.patch
+     mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
+This patch was dropped because it was folded into mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/sparse-vmemmap: fix documentation warning
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm: hugetlb: fix dissolve_free_huge_page use of tail/head page
 
-vmemmap_remap_walk is a struct, not a function, and needs to be marked
-accordingly.
+The routine dissolve_free_huge_page can be passed the tail page of a
+hugetlb page.  The tail page is incorrectly passed on to the routines
+alloc_huge_page_vmemmap and add_hugetlb_page which expect a hugetlb head
+page.
 
-Link: https://lkml.kernel.org/r/20210615200242.1716568-5-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Operating on a tail page instead of head page could result in addressing
+exceptions or vmemmap corruption.
+
+Link: https://lkml.kernel.org/r/20210527231225.226987-1-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse-vmemmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/sparse-vmemmap.c~mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page-fix
-+++ a/mm/sparse-vmemmap.c
-@@ -35,7 +35,7 @@
- #include <asm/tlbflush.h>
- 
- /**
-- * vmemmap_remap_walk - walk vmemmap page table
-+ * struct vmemmap_remap_walk - walk vmemmap page table
-  *
-  * @remap_pte:		called for each lowest-level entry (PTE).
-  * @reuse_page:		the page which is reused for the tail vmemmap pages.
+--- a/mm/hugetlb.c~mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page-fix
++++ a/mm/hugetlb.c
+@@ -1912,7 +1912,7 @@ retry:
+ 		 * Attempt to allocate vmemmmap here so that we can take
+ 		 * appropriate action on failure.
+ 		 */
+-		rc = alloc_huge_page_vmemmap(h, page);
++		rc = alloc_huge_page_vmemmap(h, head);
+ 		if (!rc) {
+ 			/*
+ 			 * Move PageHWPoison flag from head page to the raw
+@@ -1926,7 +1926,7 @@ retry:
+ 			update_and_free_page(h, head, false);
+ 		} else {
+ 			spin_lock_irq(&hugetlb_lock);
+-			add_hugetlb_page(h, page, false);
++			add_hugetlb_page(h, head, false);
+ 			h->max_huge_pages++;
+ 			spin_unlock_irq(&hugetlb_lock);
+ 		}
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-writeback-move-__set_page_dirty-to-core-mm.patch
-mm-writeback-use-__set_page_dirty-in-__set_page_dirty_nobuffers.patch
-iomap-use-__set_page_dirty_nobuffers.patch
-fs-remove-anon_set_page_dirty.patch
-fs-remove-noop_set_page_dirty.patch
-mm-move-page-dirtying-prototypes-from-mmh.patch
-mm-make-__dump_page-static.patch
-mm-debug-factor-pagepoisoned-out-of-__dump_page.patch
-mm-page_owner-constify-dump_page_owner.patch
-mm-make-compound_head-const-preserving.patch
-mm-constify-get_pfnblock_flags_mask-and-get_pfnblock_migratetype.patch
-mm-constify-page_count-and-page_ref_count.patch
-mm-optimise-nth_page-for-contiguous-memmap.patch
-mm-hugetlb-free-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
-mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page-fix-2.patch
-mm-thp-fix-strncpy-warning.patch
-mm-mark-idle-page-tracking-as-broken.patch
+mm-hugetlb-alloc-the-vmemmap-pages-associated-with-each-hugetlb-page.patch
+hugetlb-remove-prep_compound_huge_page-cleanup.patch
+hugetlb-address-ref-count-racing-in-prep_compound_gigantic_page.patch
 
