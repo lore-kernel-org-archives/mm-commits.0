@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFCBEC11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BDC5C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9878361477
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F311E6146D
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:56:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238572AbhGAB7Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:59:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49304 "EHLO mail.kernel.org"
+        id S238573AbhGAB71 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:59:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49362 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238569AbhGAB7Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:59:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5D45461469;
-        Thu,  1 Jul 2021 01:56:53 +0000 (UTC)
+        id S238569AbhGAB70 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:59:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B6FD661469;
+        Thu,  1 Jul 2021 01:56:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104613;
-        bh=cqxbYiErgZtVYUSkM4VYkRzC/jz12CYWhGmhSkVIzSg=;
+        s=korg; t=1625104617;
+        bh=tBU1UmFCF+nvvGh9zqvUY0uSqlTwG6FcC0wPmXxNgJM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=lPuzgU2YzhOouFB+dD0aFuxEjfM03CATIhbqLkDqk+/+sk0xYHsZvSL/dRoox/WQN
-         MehTT2Wmo+SsHeTEAxAoZwAmaDhr2BL9JpMSoR9i/qFFGpQb/Pfk038/W9TjG0KH+g
-         hrFX1+4JcsAARp0n2cDxvOPRSgLGM3FQILXkg4QQ=
-Date:   Wed, 30 Jun 2021 18:56:53 -0700
+        b=tGoiRx1rmhdgClcaMbADGP0IHyziBJrwcjJ2mia7LY1sCL4Yt/Twj7jdvdMGHyjgA
+         kT0GsXnabU5Jcf2YKCdsPCw8yiOaSHQ83nJMp8PqoXyZPgx+JMn8aIe/ecv4Yp91zE
+         7Yfe8eRjG0QI5sg29XRIHhfO3oSZalqmdpDVWQko=
+Date:   Wed, 30 Jun 2021 18:56:56 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
         bauerman@linux.ibm.com, dave.hansen@linux.intel.com,
@@ -37,9 +37,9 @@ To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
         mm-commits@vger.kernel.org, mpe@ellerman.id.au, msuchanek@suse.de,
         sandipan@linux.ibm.com, shuah@kernel.org, tglx@linutronix.de,
         torvalds@linux-foundation.org
-Subject:  [patch 184/192] selftests/vm/pkeys: fix
- alloc_random_pkey() to make it really, really random
-Message-ID: <20210701015653.jvoI9mpfP%akpm@linux-foundation.org>
+Subject:  [patch 185/192] selftests/vm/pkeys: handle negative
+ sys_pkey_alloc() return code
+Message-ID: <20210701015656.FzKVF4eCF%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,59 +48,22 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: selftests/vm/pkeys: fix alloc_random_pkey() to make it really, really random
+Subject: selftests/vm/pkeys: handle negative sys_pkey_alloc() return code
 
-Patch series "selftests/vm/pkeys: Bug fixes and a new test".
+The alloc_pkey() sefltest function wraps the sys_pkey_alloc() system call.
+On success, it updates its "shadow" register value because
+sys_pkey_alloc() updates the real register.
 
-There has been a lot of activity on the x86 front around the XSAVE
-architecture which is used to context-switch processor state (among other
-things).  In addition, AMD has recently joined the protection keys club by
-adding processor support for PKU.
+But, the success check is wrong.  pkey_alloc() considers any non-zero
+return code to indicate success where the pkey register will be modified. 
+This fails to take negative return codes into account.
 
-The AMD implementation helped uncover a kernel bug around the PKRU "init
-state", which actually applied to Intel's implementation but was just
-harder to hit.  This series adds a test which is expected to help find
-this class of bug both on AMD and Intel.  All the work around pkeys on x86
-also uncovered a few bugs in the selftest.
+Consider only a positive return value as a successful call.
 
-
-This patch (of 4):
-
-The "random" pkey allocation code currently does the good old:
-
-	srand((unsigned int)time(NULL));
-
-*But*, it unfortunately does this on every random pkey allocation.
-
-There may be thousands of these a second.  time() has a one second
-resolution.  So, each time alloc_random_pkey() is called, the PRNG is
-*RESET* to time().  This is nasty.  Normally, if you do:
-
-	srand(<ANYTHING>);
-	foo = rand();
-	bar = rand();
-
-You'll be quite guaranteed that 'foo' and 'bar' are different.  But, if
-you do:
-
-	srand(1);
-	foo = rand();
-	srand(1);
-	bar = rand();
-
-You are quite guaranteed that 'foo' and 'bar' are the *SAME*.  The recent
-"fix" effectively forced the test case to use the same "random" pkey for
-the whole test, unless the test run crossed a second boundary.
-
-Only run srand() once at program startup.
-
-This explains some very odd and persistent test failures I've been seeing.
-
-Link: https://lkml.kernel.org/r/20210611164153.91B76FB8@viggo.jf.intel.com
-Link: https://lkml.kernel.org/r/20210611164155.192D00FF@viggo.jf.intel.com
-Fixes: 6e373263ce07 ("selftests/vm/pkeys: fix alloc_random_pkey() to make it really random")
+Link: https://lkml.kernel.org/r/20210611164157.87AB4246@viggo.jf.intel.com
+Fixes: 5f23f6d082a9 ("x86/pkeys: Add self-tests")
+Reported-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Ram Pai <linuxram@us.ibm.com>
 Cc: Sandipan Das <sandipan@linux.ibm.com>
@@ -115,26 +78,18 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/protection_keys.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ tools/testing/selftests/vm/protection_keys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-fix-alloc_random_pkey-to-make-it-really-really-random
+--- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-handle-negative-sys_pkey_alloc-return-code
 +++ a/tools/testing/selftests/vm/protection_keys.c
-@@ -561,7 +561,6 @@ int alloc_random_pkey(void)
- 	int nr_alloced = 0;
- 	int random_index;
- 	memset(alloced_pkeys, 0, sizeof(alloced_pkeys));
--	srand((unsigned int)time(NULL));
- 
- 	/* allocate every possible key and make a note of which ones we got */
- 	max_nr_pkey_allocs = NR_PKEYS;
-@@ -1552,6 +1551,8 @@ int main(void)
- 	int nr_iterations = 22;
- 	int pkeys_supported = is_pkeys_supported();
- 
-+	srand((unsigned int)time(NULL));
-+
- 	setup_handlers();
- 
- 	printf("has pkeys: %d\n", pkeys_supported);
+@@ -510,7 +510,7 @@ int alloc_pkey(void)
+ 			" shadow: 0x%016llx\n",
+ 			__func__, __LINE__, ret, __read_pkey_reg(),
+ 			shadow_pkey_reg);
+-	if (ret) {
++	if (ret > 0) {
+ 		/* clear both the bits: */
+ 		shadow_pkey_reg = set_pkey_bits(shadow_pkey_reg, ret,
+ 						~PKEY_MASK);
 _
