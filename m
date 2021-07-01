@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48083C11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:02:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FC05C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:03:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3066861424
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:02:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7F6A961469
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:03:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238320AbhGABEz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:04:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59428 "EHLO mail.kernel.org"
+        id S238296AbhGABFi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:05:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59564 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238280AbhGABEz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:04:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B24861425;
-        Thu,  1 Jul 2021 01:02:24 +0000 (UTC)
+        id S238280AbhGABFh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:05:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 52ABB61424;
+        Thu,  1 Jul 2021 01:03:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625101344;
-        bh=0OMKGSu3Yh6UvNKZeRudzb1I+5kBpxzKJVlpkqt5HLs=;
+        s=korg; t=1625101387;
+        bh=GypuV+ddpj4E9mAp7/L9Yk8asFXrNRvhFlgd9rweh3w=;
         h=Date:From:To:Subject:From;
-        b=tT2Wabz8pQJnjD1W+U2QmCixxghBOCqx9NRfJjC3mbwvK3gn0IrHF4VhSgfHiZdPG
-         VnCx3ftvVdbFwNB1chcjvoZIFzxtS9MUvSTVaJIyhzUKEI74Kerl11qZoIygGkn29b
-         qwuyrR7qVwe6T34uADsibALRSBBQQPMEuC/Jm7QE=
-Date:   Wed, 30 Jun 2021 18:02:24 -0700
+        b=YRRSjOlS9dv20qadQ0oycv51NBa1/MrcIIYtejFQDxkw/V+b3r4FXVsBe3n2YnJim
+         /vbClhNMeRHrmS41IydUv2WXNZk9wFrw+OQ1UttAGOHjIOVGPqHxApBY4l8y6eZzDs
+         dhyVdWjxn9ABPAx30ejoDEpWzDNR17lis1gkYv1U=
+Date:   Wed, 30 Jun 2021 18:03:06 -0700
 From:   akpm@linux-foundation.org
-To:     colin.king@canonical.com, mm-commits@vger.kernel.org,
-        tpiepho@gmail.com
+To:     andy.shevchenko@gmail.com, mm-commits@vger.kernel.org,
+        sfr@canb.auug.org.au
 Subject:  [folded-merged]
- lib-math-rational-add-kunit-test-cases-fix-2.patch removed from -mm tree
-Message-ID: <20210701010224.0EBC4qHXp%akpm@linux-foundation.org>
+ kernelh-split-out-kstrtox-and-simple_strtox-to-a-separate-header-fix.patch
+ removed from -mm tree
+Message-ID: <20210701010306.CqiZbRUaX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,45 +44,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/math/rational: fix spelling mistake "demominator" -> "denominator"
+     Subject: kstrtox: fix documentation references
 has been removed from the -mm tree.  Its filename was
-     lib-math-rational-add-kunit-test-cases-fix-2.patch
+     kernelh-split-out-kstrtox-and-simple_strtox-to-a-separate-header-fix.patch
 
-This patch was dropped because it was folded into lib-math-rational-add-kunit-test-cases.patch
+This patch was dropped because it was folded into kernelh-split-out-kstrtox-and-simple_strtox-to-a-separate-header.patch
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: lib/math/rational: fix spelling mistake "demominator" -> "denominator"
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: kstrtox: fix documentation references
 
-There is a spelling mistake in a literal string. Fix it.
+After moving declarations of kstrto*() to a separate header, update the doc.
 
-Link: https://lkml.kernel.org/r/20210526085049.6393-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Cc: Trent Piepho <tpiepho@gmail.com>
+Link: https://lkml.kernel.org/r/20210615220003.377901-1-andy.shevchenko@gmail.com
+Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/math/rational-test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/core-api/kernel-api.rst |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/lib/math/rational-test.c~lib-math-rational-add-kunit-test-cases-fix-2
-+++ a/lib/math/rational-test.c
-@@ -20,7 +20,7 @@ static const struct rational_test_param
- 	{ 27,32,	16, 16,		11, 13,    "Use convergent" },
- 	{ 1155, 7735,	255, 255,	33, 221,   "Exact answer" },
- 	{ 87, 32,	70, 32,		68, 25,    "Semiconvergent, numerator limit" },
--	{ 14533, 4626,	15000, 2400,	7433, 2366, "Semiconvergent, demominator limit" },
-+	{ 14533, 4626,	15000, 2400,	7433, 2366, "Semiconvergent, denominator limit" },
- };
+--- a/Documentation/core-api/kernel-api.rst~kernelh-split-out-kstrtox-and-simple_strtox-to-a-separate-header-fix
++++ a/Documentation/core-api/kernel-api.rst
+@@ -24,11 +24,8 @@ String Conversions
+ .. kernel-doc:: lib/vsprintf.c
+    :export:
  
- static void get_desc(const struct rational_test_param *param, char *desc)
+-.. kernel-doc:: include/linux/kernel.h
+-   :functions: kstrtol
+-
+-.. kernel-doc:: include/linux/kernel.h
+-   :functions: kstrtoul
++.. kernel-doc:: include/linux/kstrtox.h
++   :functions: kstrtol kstrtoul
+ 
+ .. kernel-doc:: lib/kstrtox.c
+    :export:
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from andy.shevchenko@gmail.com are
 
-scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
-ocfs2-remove-redundant-assignment-to-pointer-queue.patch
-ocfs2-remove-redundant-initialization-of-variable-ret.patch
-lib-math-rational-add-kunit-test-cases.patch
-nilfs2-remove-redundant-continue-statement-in-a-while-loop.patch
+kernelh-split-out-kstrtox-and-simple_strtox-to-a-separate-header.patch
 
