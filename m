@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9C08C11F6B
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:51:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CBD7C11F69
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:52:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9AC1561474
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:51:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00F7661476
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jul 2021 01:51:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238481AbhGAByZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Jun 2021 21:54:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43936 "EHLO mail.kernel.org"
+        id S238482AbhGABy2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Jun 2021 21:54:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43986 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238427AbhGAByZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Jun 2021 21:54:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6802C6146D;
-        Thu,  1 Jul 2021 01:51:55 +0000 (UTC)
+        id S238427AbhGABy2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Jun 2021 21:54:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8B4BF61474;
+        Thu,  1 Jul 2021 01:51:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625104315;
-        bh=uANmw+e78nTpk2QCb7SCehF0iEDyB5ErkP6kLyFncNc=;
+        s=korg; t=1625104318;
+        bh=XFuB63iS5k2hf2niZ9v7nEmLoo5ci92rgzRtof4P49s=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=CIx1tKBzGtNTzULqGpeMh/fc9oAN6u8a9mlSlvjux/QODdy+exnsPo30KCeQ7PzIy
-         MJxVwx542wawMebhkHYU/MjDJCdD892Oua2HQn+G7g+mb8VswMU354uXJBcjtRkgMY
-         sWyz3vVlQZ09SIxHNrF+KT92lffKPHi8uxEJpkYw=
-Date:   Wed, 30 Jun 2021 18:51:55 -0700
+        b=yOisVyqCISVNYNSaG3GxOxYSMeUEZ8eQLd9KGGtdT+pXe2SOlL0VynqF4o1YTpp3y
+         QY5WatAd7WuLx2iZvfQfjuW9VccOqC5HO8yQ2rq2P0qh8POYLnIjLP8EHU4RMMDMEm
+         uk1Ek+31SV4i+Sow9IOk+7DfYcPwSzFDluMN+O5Y=
+Date:   Wed, 30 Jun 2021 18:51:58 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, borntraeger@de.ibm.com,
+To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
         gerald.schaefer@linux.ibm.com, gor@linux.ibm.com,
-        hca@linux.ibm.com, hughd@google.com,
-        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
-        mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org,
-        shy828301@gmail.com, torvalds@linux-foundation.org,
-        ying.huang@intel.com, ziy@nvidia.com
-Subject:  [patch 089/192] mm: thp: skip make PMD PROT_NONE if THP
- migration is not supported
-Message-ID: <20210701015155.l-dNiqU7C%akpm@linux-foundation.org>
+        hca@linux.ibm.com, linux-mm@kvack.org, mingo@redhat.com,
+        mm-commits@vger.kernel.org, tglx@linutronix.de,
+        torvalds@linux-foundation.org
+Subject:  [patch 090/192] mm/thp: make ARCH_ENABLE_SPLIT_PMD_PTLOCK
+ dependent on PGTABLE_LEVELS > 2
+Message-ID: <20210701015158.X1cghgNmq%akpm@linux-foundation.org>
 In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,52 +45,49 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: thp: skip make PMD PROT_NONE if THP migration is not supported
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/thp: make ARCH_ENABLE_SPLIT_PMD_PTLOCK dependent on PGTABLE_LEVELS > 2
 
-A quick grep shows x86_64, PowerPC (book3s), ARM64 and S390 support both
-NUMA balancing and THP.  But S390 doesn't support THP migration so NUMA
-balancing actually can't migrate any misplaced pages.
+ARCH_ENABLE_SPLIT_PMD_PTLOCK is irrelevant unless there are more than two
+page table levels including PMD (also per
+Documentation/vm/split_page_table_lock.rst).  Make this dependency
+explicit on remaining platforms i.e x86 and s390 where
+ARCH_ENABLE_SPLIT_PMD_PTLOCK is subscribed.
 
-Skip make PMD PROT_NONE for such case otherwise CPU cycles may be wasted
-by pointless NUMA hinting faults on S390.
-
-Link: https://lkml.kernel.org/r/20210518200801.7413-8-shy828301@gmail.com
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Link: https://lkml.kernel.org/r/1622013501-20409-1-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com> # s390
 Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/s390/Kconfig |    2 +-
+ arch/x86/Kconfig  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-skip-make-pmd-prot_none-if-thp-migration-is-not-supported
-+++ a/mm/huge_memory.c
-@@ -1742,6 +1742,7 @@ bool move_huge_pmd(struct vm_area_struct
-  * Returns
-  *  - 0 if PMD could not be locked
-  *  - 1 if PMD was locked but protections unchanged and TLB flush unnecessary
-+ *      or if prot_numa but THP migration is not supported
-  *  - HPAGE_PMD_NR if protections changed and TLB flush necessary
-  */
- int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
-@@ -1756,6 +1757,9 @@ int change_huge_pmd(struct vm_area_struc
- 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
- 	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
- 
-+	if (prot_numa && !thp_migration_supported())
-+		return 1;
-+
- 	ptl = __pmd_trans_huge_lock(pmd, vma);
- 	if (!ptl)
- 		return 0;
+--- a/arch/s390/Kconfig~mm-thp-make-arch_enable_split_pmd_ptlock-dependent-on-pgtable_levels-2
++++ a/arch/s390/Kconfig
+@@ -62,7 +62,7 @@ config S390
+ 	select ARCH_BINFMT_ELF_STATE
+ 	select ARCH_ENABLE_MEMORY_HOTPLUG if SPARSEMEM
+ 	select ARCH_ENABLE_MEMORY_HOTREMOVE
+-	select ARCH_ENABLE_SPLIT_PMD_PTLOCK
++	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if PGTABLE_LEVELS > 2
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE
+ 	select ARCH_HAS_DEBUG_WX
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+--- a/arch/x86/Kconfig~mm-thp-make-arch_enable_split_pmd_ptlock-dependent-on-pgtable_levels-2
++++ a/arch/x86/Kconfig
+@@ -63,7 +63,7 @@ config X86
+ 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if X86_64 && HUGETLB_PAGE && MIGRATION
+ 	select ARCH_ENABLE_MEMORY_HOTPLUG if X86_64 || (X86_32 && HIGHMEM)
+ 	select ARCH_ENABLE_MEMORY_HOTREMOVE if MEMORY_HOTPLUG
+-	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if X86_64 || X86_PAE
++	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if (PGTABLE_LEVELS > 2) && (X86_64 || X86_PAE)
+ 	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
+ 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
+ 	select ARCH_HAS_CACHE_LINE_SIZE
 _
