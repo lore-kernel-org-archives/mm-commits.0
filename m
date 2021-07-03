@@ -4,113 +4,93 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_RED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C93BEC07E95
-	for <mm-commits@archiver.kernel.org>; Sat,  3 Jul 2021 00:16:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19FCAC07E96
+	for <mm-commits@archiver.kernel.org>; Sat,  3 Jul 2021 00:28:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A4A606142B
-	for <mm-commits@archiver.kernel.org>; Sat,  3 Jul 2021 00:16:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECFE961427
+	for <mm-commits@archiver.kernel.org>; Sat,  3 Jul 2021 00:28:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230037AbhGCASq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Jul 2021 20:18:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58398 "EHLO
+        id S230037AbhGCAbH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Jul 2021 20:31:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230017AbhGCASq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2021 20:18:46 -0400
-Received: from mail-lf1-x12a.google.com (mail-lf1-x12a.google.com [IPv6:2a00:1450:4864:20::12a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54BA4C061762
-        for <mm-commits@vger.kernel.org>; Fri,  2 Jul 2021 17:16:12 -0700 (PDT)
-Received: by mail-lf1-x12a.google.com with SMTP id bu19so21087631lfb.9
-        for <mm-commits@vger.kernel.org>; Fri, 02 Jul 2021 17:16:12 -0700 (PDT)
+        with ESMTP id S230017AbhGCAbH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2021 20:31:07 -0400
+Received: from mail-lj1-x22a.google.com (mail-lj1-x22a.google.com [IPv6:2a00:1450:4864:20::22a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB736C061762
+        for <mm-commits@vger.kernel.org>; Fri,  2 Jul 2021 17:28:33 -0700 (PDT)
+Received: by mail-lj1-x22a.google.com with SMTP id e3so7196418ljo.6
+        for <mm-commits@vger.kernel.org>; Fri, 02 Jul 2021 17:28:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linux-foundation.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=ypia1paC7/e079c6nL0ylVkOMwmDg83pa8q/R7dq2Ew=;
-        b=cVhJPMc73/8yFbDGuuTQughSRD0S1HGVxBPmDEIVv7fIg06KE6tum4Ml2e6bomB9lf
-         TorRWlavkLnFE1uBLDpbK3Wl33hb+h3w2ZK7exoAUXWmZCILXtNzl+yV4u2R6fSFZX4q
-         z+iwi+/UsfnCHdwCxNcKE+1A4JO8kPUQGRoMc=
+        bh=eZi2fG4xvxGM+PF+5YbM/QZZR4RGtZj2SWD8vT7jnr8=;
+        b=MebRkDZnkxhGjqV5tKbt949YMnofF0K9+ewpJE8FnCtsmuqMXDm6whUd5+FbpXmbt5
+         CYK/wQsWlpf8bgNXzMbiK8s5hyvaE2Ilrz5GSrcscZrjMwRXDQNllCYygxEgL30lr3Cm
+         55wHw7Dz6R6+ELQJZ1Wq3WEqw/n3lxMT3dCkM=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=ypia1paC7/e079c6nL0ylVkOMwmDg83pa8q/R7dq2Ew=;
-        b=p9kRTwfoNVcfhNt3rK3j8WVbGYGws2IxvWvLW07esLoihdLiarXRl59kpPgmHU25Hw
-         Mb+WpnmgJDV1LU1pryyRWY8UtSJ8A12KBI7vMc5z6eWIYVnw2GjPzkzCRgK74/2OkQSp
-         QLDQVO9ABwMEhPZWlU/b6jJmwO6EFe8+0BvYdYrIDqo7oVDZgxmcxVjMBJw0SGE7KOKR
-         cZx+NdTiVyw8re5GhO+C62kMmZWHipjS6kUTopo9t2BT/EwIF3ZmLK0FY0mt3QGxsb8n
-         mTJ8fMdgwWTApKYgmVMUOGHEThQN8hjpO/ZxG5looZzSMaeM08oPoouVzIEv42WhMf68
-         3Wrw==
-X-Gm-Message-State: AOAM530SmjpQsHpc9aTcGNg5RrEoIHaq9ATwOoChYsca4s59ymdeLLGF
-        wdTdyW/lrxbWpjfQ80brwV7Ed+l1tfClBMnvTl8=
-X-Google-Smtp-Source: ABdhPJyt+oKnid/xCef6jawVFFIou3KgXWPBiqbdCy/+sRR9gLWoeBMEtqt1F4oUt2CLJ2/XEAGNpQ==
-X-Received: by 2002:a19:484b:: with SMTP id v72mr290843lfa.118.1625271369861;
-        Fri, 02 Jul 2021 17:16:09 -0700 (PDT)
-Received: from mail-lj1-f173.google.com (mail-lj1-f173.google.com. [209.85.208.173])
-        by smtp.gmail.com with ESMTPSA id d5sm404994lfl.8.2021.07.02.17.16.09
+        bh=eZi2fG4xvxGM+PF+5YbM/QZZR4RGtZj2SWD8vT7jnr8=;
+        b=izEPDo7tfelwRHy3DCNu6A3lwYF3wOsVMMs8hYHkncg1vrjInhi1nLme6Rt1RLAX4V
+         sX1YvchnvX3QdhzqvJ31/8YHGY8V9NOzpFCO9d1wT9Xq2qPgNPmhMR30+6VH8U4GjJ2r
+         v+6pkIwhdxcdE0Lf/UX1BT7u53EH6z6xc4XZzmRt49SMk3/ETXUwS3eDc588gXsp0DXL
+         6UjBc3HHvKvv28zy4eONAoWfVXKNo2YLHW8xUNY+Va/edDPwn/K/d5U1zUXGYvaaDmIb
+         1elsBnEADu1FdGf7LcMNXupuyvHmIVCBq1Hrsu8zK4SiQ1dzUyfGxoVVay8fwJEwO1GC
+         /1/w==
+X-Gm-Message-State: AOAM531KjMrsncIIiQ7ipnDs3id18UAxtI2Z1KhezwNn5icxdHgQMgah
+        5yDtzdP0ljVZSjB2LvcTNhHgHsSQIG8pTR8XwBQ=
+X-Google-Smtp-Source: ABdhPJzJa2vB8Rb8bywgpFtguGPrVSSvACUMeQ6X4Jgsp51+UoQ26o2/te2M5gfLq81NzxwcXl3nqg==
+X-Received: by 2002:a2e:7412:: with SMTP id p18mr1568431ljc.428.1625272111845;
+        Fri, 02 Jul 2021 17:28:31 -0700 (PDT)
+Received: from mail-lf1-f53.google.com (mail-lf1-f53.google.com. [209.85.167.53])
+        by smtp.gmail.com with ESMTPSA id z21sm518240ljm.52.2021.07.02.17.28.31
         for <mm-commits@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 02 Jul 2021 17:16:09 -0700 (PDT)
-Received: by mail-lj1-f173.google.com with SMTP id e3so7165276ljo.6
-        for <mm-commits@vger.kernel.org>; Fri, 02 Jul 2021 17:16:09 -0700 (PDT)
-X-Received: by 2002:a19:7d04:: with SMTP id y4mr1557652lfc.201.1625271358691;
- Fri, 02 Jul 2021 17:15:58 -0700 (PDT)
+        Fri, 02 Jul 2021 17:28:31 -0700 (PDT)
+Received: by mail-lf1-f53.google.com with SMTP id a18so21101834lfs.10
+        for <mm-commits@vger.kernel.org>; Fri, 02 Jul 2021 17:28:31 -0700 (PDT)
+X-Received: by 2002:a05:6512:3585:: with SMTP id m5mr920647lfr.253.1625272111199;
+ Fri, 02 Jul 2021 17:28:31 -0700 (PDT)
 MIME-Version: 1.0
 References: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
- <20210701015444.ZOZaFPX0b%akpm@linux-foundation.org> <202107021047.CC57ED634@keescook>
- <CAHk-=wiGcrds=Q7+utqPE7irvcsGfEY_qvp1+T7x67xdHbuSEA@mail.gmail.com>
- <87pmw0ih4e.fsf@disp2133> <202107021626.913478E@keescook>
-In-Reply-To: <202107021626.913478E@keescook>
+In-Reply-To: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
 From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Fri, 2 Jul 2021 17:15:42 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wi+-7LiS_seHErerr-J_MmTv6uY07kOoYkgHwGnPNdbqQ@mail.gmail.com>
-Message-ID: <CAHk-=wi+-7LiS_seHErerr-J_MmTv6uY07kOoYkgHwGnPNdbqQ@mail.gmail.com>
-Subject: Re: [patch 142/192] procfs: allow reading fdinfo with PTRACE_MODE_READ
-To:     Kees Cook <keescook@chromium.org>
-Cc:     "Eric W. Biederman" <ebiederm@xmission.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Andrei Vagin <avagin@gmail.com>,
-        Bernd Edlinger <bernd.edlinger@hotmail.de>,
-        Christian Brauner <christian.brauner@ubuntu.com>,
-        Christian Koenig <christian.koenig@amd.com>,
-        Jonathan Corbet <corbet@lwn.net>, Helge Deller <deller@gmx.de>,
-        Alexey Gladkov <gladkov.alexey@gmail.com>,
-        Hridya Valsaraju <hridya@google.com>,
-        jamorris@linux.microsoft.com, Jann Horn <jannh@google.com>,
-        Jeff Vander Stoep <jeffv@google.com>,
-        Kalesh Singh <kaleshsingh@google.com>,
-        Linux-MM <linux-mm@kvack.org>,
-        Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Minchan Kim <minchan@kernel.org>, mm-commits@vger.kernel.org,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Szabolcs Nagy <szabolcs.nagy@arm.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Michel Lespinasse <walken@google.com>,
-        Matthew Wilcox <willy@infradead.org>
+Date:   Fri, 2 Jul 2021 17:28:15 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wjrb-3drQQYYGxUxzbJhWog2JA9JZuYMXW=rhe-DY9rxA@mail.gmail.com>
+Message-ID: <CAHk-=wjrb-3drQQYYGxUxzbJhWog2JA9JZuYMXW=rhe-DY9rxA@mail.gmail.com>
+Subject: Re: incoming
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Jul 2, 2021 at 4:31 PM Kees Cook <keescook@chromium.org> wrote:
+On Wed, Jun 30, 2021 at 6:46 PM Andrew Morton <akpm@linux-foundation.org> wrote:
 >
-> Right -- the info leak would be snooping on what a privileged process
-> was doing with a given fd? Similar stuff has been used to do typing
-> pattern analysis with login passwords, but that's a stretch here, I
-> think. Hmm.
+> This is the rest of the -mm tree, less 66 patches which are dependent on
+> things which are (or were recently) in linux-next.  I'll trickle that
+> material over next week.
 
-So I think you'd see the directory list, but generally that's just the
-file descriptor numbers.
+I haven't bisected this yet, but with the current -git I'm getting
 
-Which is information you shouldn't have access to, but it's probably
-not very *interesting* information.
+   watchdog: BUG: soft lockup - CPU#41 stuck for 49s!
 
-I think it would be worth fixing but possibly not a very high priority.
+and the common call chain seems to be in flush_tlb_mm_range ->
+on_each_cpu_cond_mask.
 
-             Linus
+Commit e058a84bfddc42ba356a2316f2cf1141974625c9 is good, and looking
+at the pulls and merges I've done since, this -mm series looks like
+the obvious culprit.
+
+I'll go start bisection, but I thought I'd give a heads-up in case
+somebody else has seen TLB-flush-related lockups and already figured
+out the guilty party..
+
+                 Linus
