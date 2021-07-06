@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CFFEC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E6BBC07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 25D2961C87
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 29B2561C97
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231784AbhGFTUt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:20:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54604 "EHLO mail.kernel.org"
+        id S231794AbhGFTUv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:20:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54648 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231727AbhGFTUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:20:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D2D1F61C7A;
-        Tue,  6 Jul 2021 19:18:08 +0000 (UTC)
+        id S231727AbhGFTUu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:20:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C32C61C91;
+        Tue,  6 Jul 2021 19:18:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599089;
-        bh=5wQ8jC+/A17eyjfM6dkgaR3h+M2ilBdvRc+mRuQcH1o=;
+        s=korg; t=1625599091;
+        bh=H9nAkC0uEGsqgsmY2KCO/TSg8Z+21BGLopdAnRyv91c=;
         h=Date:From:To:Subject:From;
-        b=nw2vTen/ZtL0sTaoMGB82wpyds5o+DYUtMiTjdYGN2Lw7OQg0KOfTngf9o/HPGGGS
-         Fs8KG8bpOKunuv2I/IJon3Ua8a4SnJ81BIIi2DPJWhxpovt6AC93x50ObLXb+lMAIw
-         M6y0SLE1+L5P8CcG/xc1YVeOh76l9EZM/GvqwpNE=
-Date:   Tue, 06 Jul 2021 12:18:08 -0700
+        b=sD5BLgt6U1T/iD85xtHDoDdH6CQhOqFD/eyax5kqoVV78zHZeq0K80QIq0tbouIGS
+         cffO9YO1oR1u8qMCTV/INBC06lrXTgH9Vyo6oq1cNL1QaTa6Q1/D6JHH8vYKR89KH8
+         xbtYc3hC7TnEJa954wAPZRTjQhWjuiG9v0aCrTsw=
+Date:   Tue, 06 Jul 2021 12:18:10 -0700
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, almasrymina@google.com,
         axelrasmussen@google.com, bgeffon@google.com, dgilbert@redhat.com,
@@ -39,9 +39,9 @@ To:     aarcange@redhat.com, almasrymina@google.com,
         sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
         viro@zeniv.linux.org.uk, wangqing@vivo.com
 Subject:  [merged]
- userfaultfd-selftests-reinitialize-test-context-in-each-test.patch removed
- from -mm tree
-Message-ID: <20210706191808.Eg5C8Y0Yf%akpm@linux-foundation.org>
+ userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
+ removed from -mm tree
+Message-ID: <20210706191810.zEYU60tRz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,38 +50,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/selftests: reinitialize test context in each test
+     Subject: userfaultfd/selftests: exercise minor fault handling shmem support
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftests-reinitialize-test-context-in-each-test.patch
+     userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/selftests: reinitialize test context in each test
+Subject: userfaultfd/selftests: exercise minor fault handling shmem support
 
-Currently, the context (fds, mmap-ed areas, etc.) are global.  Each test
-mutates this state in some way, in some cases really "clobbering it"
-(e.g., the events test mremap-ing area_dst over the top of area_src, or
-the minor faults tests overwriting the count_verify values in the test
-areas).  We run the tests in a particular order, each test is careful to
-make the right assumptions about its starting state, etc.
+Enable test_uffdio_minor for test_type == TEST_SHMEM, and modify the test
+slightly to pass in / check for the right feature flags.
 
-But, this is fragile.  It's better for a test's success or failure to not
-depend on what some other prior test case did to the global state.
-
-To that end, clear and reinitialize the test context at the start of each
-test case, so whatever prior test cases did doesn't affect future tests.
-
-This is particularly relevant to this series because the events test's
-mremap of area_dst screws up assumptions the minor fault test was relying
-on.  This wasn't a problem for hugetlb, as we don't mremap in that case.
-
-[peterx@redhat.com: fix conflict between this patch and the uffd pagemap series]
-  Link: https://lkml.kernel.org/r/YKQqKrl+/cQ1utrb@t490s
-Link: https://lkml.kernel.org/r/20210503180737.2487560-10-axelrasmussen@google.com
+Link: https://lkml.kernel.org/r/20210503180737.2487560-11-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -103,358 +86,75 @@ Cc: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |  222 +++++++++++----------
- 1 file changed, 117 insertions(+), 105 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   29 ++++++++++++++++++---
+ 1 file changed, 25 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-reinitialize-test-context-in-each-test
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-exercise-minor-fault-handling-shmem-support
 +++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -89,7 +89,8 @@ static int shm_fd;
- static int huge_fd;
- static char *huge_fd_off0;
- static unsigned long long *count_verify;
--static int uffd, uffd_flags, finished, *pipefd;
-+static int uffd = -1;
-+static int uffd_flags, finished, *pipefd;
- static char *area_src, *area_src_alias, *area_dst, *area_dst_alias;
- static char *zeropage;
- pthread_attr_t attr;
-@@ -342,6 +343,111 @@ static struct uffd_test_ops hugetlb_uffd
- 
- static struct uffd_test_ops *uffd_test_ops;
- 
-+static void userfaultfd_open(uint64_t *features)
-+{
-+	struct uffdio_api uffdio_api;
-+
-+	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY);
-+	if (uffd < 0)
-+		err("userfaultfd syscall not available in this kernel");
-+	uffd_flags = fcntl(uffd, F_GETFD, NULL);
-+
-+	uffdio_api.api = UFFD_API;
-+	uffdio_api.features = *features;
-+	if (ioctl(uffd, UFFDIO_API, &uffdio_api))
-+		err("UFFDIO_API failed.\nPlease make sure to "
-+		    "run with either root or ptrace capability.");
-+	if (uffdio_api.api != UFFD_API)
-+		err("UFFDIO_API error: %" PRIu64, (uint64_t)uffdio_api.api);
-+
-+	*features = uffdio_api.features;
-+}
-+
-+static inline void munmap_area(void **area)
-+{
-+	if (*area)
-+		if (munmap(*area, nr_pages * page_size))
-+			err("munmap");
-+
-+	*area = NULL;
-+}
-+
-+static void uffd_test_ctx_clear(void)
-+{
-+	size_t i;
-+
-+	if (pipefd) {
-+		for (i = 0; i < nr_cpus * 2; ++i) {
-+			if (close(pipefd[i]))
-+				err("close pipefd");
-+		}
-+		free(pipefd);
-+		pipefd = NULL;
-+	}
-+
-+	if (count_verify) {
-+		free(count_verify);
-+		count_verify = NULL;
-+	}
-+
-+	if (uffd != -1) {
-+		if (close(uffd))
-+			err("close uffd");
-+		uffd = -1;
-+	}
-+
-+	huge_fd_off0 = NULL;
-+	munmap_area((void **)&area_src);
-+	munmap_area((void **)&area_src_alias);
-+	munmap_area((void **)&area_dst);
-+	munmap_area((void **)&area_dst_alias);
-+}
-+
-+static void uffd_test_ctx_init_ext(uint64_t *features)
-+{
-+	unsigned long nr, cpu;
-+
-+	uffd_test_ctx_clear();
-+
-+	uffd_test_ops->allocate_area((void **)&area_src);
-+	uffd_test_ops->allocate_area((void **)&area_dst);
-+
-+	uffd_test_ops->release_pages(area_src);
-+	uffd_test_ops->release_pages(area_dst);
-+
-+	userfaultfd_open(features);
-+
-+	count_verify = malloc(nr_pages * sizeof(unsigned long long));
-+	if (!count_verify)
-+		err("count_verify");
-+
-+	for (nr = 0; nr < nr_pages; nr++) {
-+		*area_mutex(area_src, nr) =
-+			(pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
-+		count_verify[nr] = *area_count(area_src, nr) = 1;
-+		/*
-+		 * In the transition between 255 to 256, powerpc will
-+		 * read out of order in my_bcmp and see both bytes as
-+		 * zero, so leave a placeholder below always non-zero
-+		 * after the count, to avoid my_bcmp to trigger false
-+		 * positives.
-+		 */
-+		*(area_count(area_src, nr) + 1) = 1;
-+	}
-+
-+	pipefd = malloc(sizeof(int) * nr_cpus * 2);
-+	if (!pipefd)
-+		err("pipefd");
-+	for (cpu = 0; cpu < nr_cpus; cpu++)
-+		if (pipe2(&pipefd[cpu * 2], O_CLOEXEC | O_NONBLOCK))
-+			err("pipe");
-+}
-+
-+static inline void uffd_test_ctx_init(uint64_t features)
-+{
-+	uffd_test_ctx_init_ext(&features);
-+}
-+
- static int my_bcmp(char *str1, char *str2, size_t n)
+@@ -474,6 +474,7 @@ static void wp_range(int ufd, __u64 star
+ static void continue_range(int ufd, __u64 start, __u64 len)
  {
- 	unsigned long i;
-@@ -726,40 +832,6 @@ static int stress(struct uffd_stats *uff
- 	return 0;
- }
+ 	struct uffdio_continue req;
++	int ret;
  
--static int userfaultfd_open_ext(uint64_t *features)
--{
--	struct uffdio_api uffdio_api;
--
--	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY);
--	if (uffd < 0) {
--		fprintf(stderr,
--			"userfaultfd syscall not available in this kernel\n");
--		return 1;
--	}
--	uffd_flags = fcntl(uffd, F_GETFD, NULL);
--
--	uffdio_api.api = UFFD_API;
--	uffdio_api.features = *features;
--	if (ioctl(uffd, UFFDIO_API, &uffdio_api)) {
--		fprintf(stderr, "UFFDIO_API failed.\nPlease make sure to "
--			"run with either root or ptrace capability.\n");
--		return 1;
--	}
--	if (uffdio_api.api != UFFD_API) {
--		fprintf(stderr, "UFFDIO_API error: %" PRIu64 "\n",
--			(uint64_t)uffdio_api.api);
--		return 1;
--	}
--
--	*features = uffdio_api.features;
--	return 0;
--}
--
--static int userfaultfd_open(uint64_t features)
--{
--	return userfaultfd_open_ext(&features);
--}
--
- sigjmp_buf jbuf, *sigbuf;
- 
- static void sighndl(int sig, siginfo_t *siginfo, void *ptr)
-@@ -868,6 +940,8 @@ static int faulting_process(int signal_t
- 			  MREMAP_MAYMOVE | MREMAP_FIXED, area_src);
- 	if (area_dst == MAP_FAILED)
- 		err("mremap");
-+	/* Reset area_src since we just clobbered it */
-+	area_src = NULL;
- 
- 	for (; nr < nr_pages; nr++) {
- 		count = *area_count(area_dst, nr);
-@@ -961,10 +1035,8 @@ static int userfaultfd_zeropage_test(voi
- 	printf("testing UFFDIO_ZEROPAGE: ");
- 	fflush(stdout);
- 
--	uffd_test_ops->release_pages(area_dst);
-+	uffd_test_ctx_init(0);
- 
--	if (userfaultfd_open(0))
--		return 1;
- 	uffdio_register.range.start = (unsigned long) area_dst;
- 	uffdio_register.range.len = nr_pages * page_size;
- 	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-@@ -981,7 +1053,6 @@ static int userfaultfd_zeropage_test(voi
- 		if (my_bcmp(area_dst, zeropage, page_size))
- 			err("zeropage is not zero");
- 
--	close(uffd);
- 	printf("done.\n");
- 	return 0;
- }
-@@ -999,12 +1070,10 @@ static int userfaultfd_events_test(void)
- 	printf("testing events (fork, remap, remove): ");
- 	fflush(stdout);
- 
--	uffd_test_ops->release_pages(area_dst);
--
- 	features = UFFD_FEATURE_EVENT_FORK | UFFD_FEATURE_EVENT_REMAP |
- 		UFFD_FEATURE_EVENT_REMOVE;
--	if (userfaultfd_open(features))
--		return 1;
-+	uffd_test_ctx_init(features);
+ 	req.range.start = start;
+ 	req.range.len = len;
+@@ -482,6 +483,17 @@ static void continue_range(int ufd, __u6
+ 	if (ioctl(ufd, UFFDIO_CONTINUE, &req))
+ 		err("UFFDIO_CONTINUE failed for address 0x%" PRIx64,
+ 		    (uint64_t)start);
 +
- 	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
- 
- 	uffdio_register.range.start = (unsigned long) area_dst;
-@@ -1037,8 +1106,6 @@ static int userfaultfd_events_test(void)
- 	if (pthread_join(uffd_mon, NULL))
- 		return 1;
- 
--	close(uffd);
--
- 	uffd_stats_report(&stats, 1);
- 
- 	return stats.missing_faults != nr_pages;
-@@ -1058,11 +1125,9 @@ static int userfaultfd_sig_test(void)
- 	printf("testing signal delivery: ");
- 	fflush(stdout);
- 
--	uffd_test_ops->release_pages(area_dst);
--
- 	features = UFFD_FEATURE_EVENT_FORK|UFFD_FEATURE_SIGBUS;
--	if (userfaultfd_open(features))
--		return 1;
-+	uffd_test_ctx_init(features);
-+
- 	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
- 
- 	uffdio_register.range.start = (unsigned long) area_dst;
-@@ -1103,7 +1168,6 @@ static int userfaultfd_sig_test(void)
- 	printf("done.\n");
- 	if (userfaults)
- 		err("Signal test failed, userfaults: %ld", userfaults);
--	close(uffd);
- 
- 	return userfaults != 0;
++	/*
++	 * Error handling within the kernel for continue is subtly different
++	 * from copy or zeropage, so it may be a source of bugs. Trigger an
++	 * error (-EEXIST) on purpose, to verify doing so doesn't cause a BUG.
++	 */
++	req.mapped = 0;
++	ret = ioctl(ufd, UFFDIO_CONTINUE, &req);
++	if (ret >= 0 || req.mapped != -EEXIST)
++		err("failed to exercise UFFDIO_CONTINUE error handling, ret=%d, mapped=%" PRId64,
++		    ret, (int64_t) req.mapped);
  }
-@@ -1126,10 +1190,7 @@ static int userfaultfd_minor_test(void)
+ 
+ static void *locking_thread(void *arg)
+@@ -1182,7 +1194,7 @@ static int userfaultfd_minor_test(void)
+ 	void *expected_page;
+ 	char c;
+ 	struct uffd_stats stats = { 0 };
+-	uint64_t features = UFFD_FEATURE_MINOR_HUGETLBFS;
++	uint64_t req_features, features_out;
+ 
+ 	if (!test_uffdio_minor)
+ 		return 0;
+@@ -1190,9 +1202,17 @@ static int userfaultfd_minor_test(void)
  	printf("testing minor faults: ");
  	fflush(stdout);
  
--	uffd_test_ops->release_pages(area_dst);
--
--	if (userfaultfd_open_ext(&features))
--		return 1;
-+	uffd_test_ctx_init_ext(&features);
- 	/* If kernel reports the feature isn't supported, skip the test. */
- 	if (!(features & UFFD_FEATURE_MINOR_HUGETLBFS)) {
+-	uffd_test_ctx_init_ext(&features);
+-	/* If kernel reports the feature isn't supported, skip the test. */
+-	if (!(features & UFFD_FEATURE_MINOR_HUGETLBFS)) {
++	if (test_type == TEST_HUGETLB)
++		req_features = UFFD_FEATURE_MINOR_HUGETLBFS;
++	else if (test_type == TEST_SHMEM)
++		req_features = UFFD_FEATURE_MINOR_SHMEM;
++	else
++		return 1;
++
++	features_out = req_features;
++	uffd_test_ctx_init_ext(&features_out);
++	/* If kernel reports required features aren't supported, skip test. */
++	if ((features_out & req_features) != req_features) {
  		printf("skipping test due to lack of feature support\n");
-@@ -1183,8 +1244,6 @@ static int userfaultfd_minor_test(void)
- 	if (pthread_join(uffd_mon, NULL))
- 		return 1;
- 
--	close(uffd);
--
- 	uffd_stats_report(&stats, 1);
- 
- 	return stats.missing_faults != 0 || stats.minor_faults != nr_pages;
-@@ -1267,7 +1326,7 @@ static void userfaultfd_pagemap_test(uns
- 	/* Flush so it doesn't flush twice in parent/child later */
- 	fflush(stdout);
- 
--	uffd_test_ops->release_pages(area_dst);
-+	uffd_test_ctx_init(0);
- 
- 	if (test_pgsize > page_size) {
- 		/* This is a thp test */
-@@ -1279,9 +1338,6 @@ static void userfaultfd_pagemap_test(uns
- 			err("madvise(MADV_NOHUGEPAGE) failed");
+ 		fflush(stdout);
+ 		return 0;
+@@ -1575,6 +1595,7 @@ static void set_test_type(const char *ty
+ 		map_shared = true;
+ 		test_type = TEST_SHMEM;
+ 		uffd_test_ops = &shmem_uffd_test_ops;
++		test_uffdio_minor = true;
+ 	} else {
+ 		err("Unknown test type: %s", type);
  	}
- 
--	if (userfaultfd_open(0))
--		err("userfaultfd_open");
--
- 	uffdio_register.range.start = (unsigned long) area_dst;
- 	uffdio_register.range.len = nr_pages * page_size;
- 	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
-@@ -1324,7 +1380,6 @@ static void userfaultfd_pagemap_test(uns
- 	pagemap_check_wp(value, false);
- 
- 	close(pagemap_fd);
--	close(uffd);
- 	printf("done\n");
- }
- 
-@@ -1334,50 +1389,9 @@ static int userfaultfd_stress(void)
- 	char *tmp_area;
- 	unsigned long nr;
- 	struct uffdio_register uffdio_register;
--	unsigned long cpu;
- 	struct uffd_stats uffd_stats[nr_cpus];
- 
--	uffd_test_ops->allocate_area((void **)&area_src);
--	if (!area_src)
--		return 1;
--	uffd_test_ops->allocate_area((void **)&area_dst);
--	if (!area_dst)
--		return 1;
--
--	if (userfaultfd_open(0))
--		return 1;
--
--	count_verify = malloc(nr_pages * sizeof(unsigned long long));
--	if (!count_verify) {
--		perror("count_verify");
--		return 1;
--	}
--
--	for (nr = 0; nr < nr_pages; nr++) {
--		*area_mutex(area_src, nr) = (pthread_mutex_t)
--			PTHREAD_MUTEX_INITIALIZER;
--		count_verify[nr] = *area_count(area_src, nr) = 1;
--		/*
--		 * In the transition between 255 to 256, powerpc will
--		 * read out of order in my_bcmp and see both bytes as
--		 * zero, so leave a placeholder below always non-zero
--		 * after the count, to avoid my_bcmp to trigger false
--		 * positives.
--		 */
--		*(area_count(area_src, nr) + 1) = 1;
--	}
--
--	pipefd = malloc(sizeof(int) * nr_cpus * 2);
--	if (!pipefd) {
--		perror("pipefd");
--		return 1;
--	}
--	for (cpu = 0; cpu < nr_cpus; cpu++) {
--		if (pipe2(&pipefd[cpu*2], O_CLOEXEC | O_NONBLOCK)) {
--			perror("pipe");
--			return 1;
--		}
--	}
-+	uffd_test_ctx_init(0);
- 
- 	if (posix_memalign(&area, page_size, page_size))
- 		err("out of memory");
-@@ -1498,8 +1512,6 @@ static int userfaultfd_stress(void)
- 		uffd_stats_report(uffd_stats, nr_cpus);
- 	}
- 
--	close(uffd);
--
- 	if (test_type == TEST_ANON) {
- 		/*
- 		 * shmem/hugetlb won't be able to run since they have different
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
