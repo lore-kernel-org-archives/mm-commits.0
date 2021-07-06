@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A3BFC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E0A5C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 348E860FE3
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E635461C72
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231693AbhGFTOa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:14:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48784 "EHLO mail.kernel.org"
+        id S231749AbhGFTOc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:14:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48816 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230031AbhGFTOa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:14:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7553961C72;
-        Tue,  6 Jul 2021 19:11:50 +0000 (UTC)
+        id S231725AbhGFTOc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:14:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6D25C61C6C;
+        Tue,  6 Jul 2021 19:11:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598710;
-        bh=VsrNOCGSaq6KzawRzOC5E3uwwGb6cxWpwgO4NGaJnT0=;
+        s=korg; t=1625598712;
+        bh=J6E3N96jhLhc6EY71b2dryB1eoHmT5Twwgs3TH+GNbU=;
         h=Date:From:To:Subject:From;
-        b=ntxwK1JIBK70rWleyrAzSymmtJHStEeYsj/I/uVMqYAasEeFjg/1h8CH8g5bWlJ8n
-         f+u97Ws9rHNWdsx7mZYCPT512YuyUlntX3cNHlTrSB7BEs8UJkNBX7Ifeevzbsbn/I
-         Rekwg+QO0p2n2JOSHv/Y+QOplBpLwPfpKFiei1wM=
-Date:   Tue, 06 Jul 2021 12:11:50 -0700
+        b=zF7d5rB1ChAyf9fptpzUmevK/jUqHkn+M4KYWaX5BbYfn2jNDOYkv+JMp091zNfL1
+         vpO6ewxwlW5QNTN6IdfCGqOaFIAxqnhHYTNMc785/KwF8LiNvH+OolDNKQ8F2fHF7l
+         Vq0mqyX5ugG1RxNMau4A+p9gPpCGCdohvnX7HSr8=
+Date:   Tue, 06 Jul 2021 12:11:52 -0700
 From:   akpm@linux-foundation.org
 To:     duanxiongchun@bytedance.com, guro@fb.com, hannes@cmpxchg.org,
         mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com,
         songmuchun@bytedance.com, vdavydov.dev@gmail.com
-Subject:  [merged]
- mm-memcontrol-move-obj_cgroup_uncharge_pages-out-of-css_set_lock.patch
+Subject:  [merged] mm-vmscan-remove-noinline_for_stack.patch
  removed from -mm tree
-Message-ID: <20210706191150.HHp3ZGTb1%akpm@linux-foundation.org>
+Message-ID: <20210706191152.0sOuWDA_N%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,48 +44,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: move obj_cgroup_uncharge_pages() out of css_set_lock
+     Subject: mm: vmscan: remove noinline_for_stack
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-move-obj_cgroup_uncharge_pages-out-of-css_set_lock.patch
+     mm-vmscan-remove-noinline_for_stack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: move obj_cgroup_uncharge_pages() out of css_set_lock
+Subject: mm: vmscan: remove noinline_for_stack
 
-The css_set_lock is used to guard the list of inherited objcgs.  So there
-is no need to uncharge kernel memory under css_set_lock.  Just move it out
-of the lock.
+The noinline_for_stack is introduced by commit 666356297ec4 ("vmscan: set
+up pagevec as late as possible in shrink_inactive_list()"), its purpose is
+to delay the allocation of pagevec as late as possible to save stack
+memory.  But the commit 2bcf88796381 ("mm: take pagevecs off reclaim
+stack") replace pagevecs by lists of pages_to_free.  So we do not need
+noinline_for_stack, just remove it (let the compiler decide whether to
+inline).
 
-Link: https://lkml.kernel.org/r/20210417043538.9793-8-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20210417043538.9793-9-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <guro@fb.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-move-obj_cgroup_uncharge_pages-out-of-css_set_lock
-+++ a/mm/memcontrol.c
-@@ -289,9 +289,10 @@ static void obj_cgroup_release(struct pe
- 	WARN_ON_ONCE(nr_bytes & (PAGE_SIZE - 1));
- 	nr_pages = nr_bytes >> PAGE_SHIFT;
- 
--	spin_lock_irqsave(&css_set_lock, flags);
- 	if (nr_pages)
- 		obj_cgroup_uncharge_pages(objcg, nr_pages);
-+
-+	spin_lock_irqsave(&css_set_lock, flags);
- 	list_del(&objcg->list);
- 	spin_unlock_irqrestore(&css_set_lock, flags);
- 
+--- a/mm/vmscan.c~mm-vmscan-remove-noinline_for_stack
++++ a/mm/vmscan.c
+@@ -2015,8 +2015,8 @@ static int too_many_isolated(struct pgli
+  *
+  * Returns the number of pages moved to the given lruvec.
+  */
+-static unsigned noinline_for_stack move_pages_to_lru(struct lruvec *lruvec,
+-						     struct list_head *list)
++static unsigned int move_pages_to_lru(struct lruvec *lruvec,
++				      struct list_head *list)
+ {
+ 	int nr_pages, nr_moved = 0;
+ 	LIST_HEAD(pages_to_free);
+@@ -2096,7 +2096,7 @@ static int current_may_throttle(void)
+  * shrink_inactive_list() is a helper for shrink_node().  It returns the number
+  * of reclaimed pages
+  */
+-static noinline_for_stack unsigned long
++static unsigned long
+ shrink_inactive_list(unsigned long nr_to_scan, struct lruvec *lruvec,
+ 		     struct scan_control *sc, enum lru_list lru)
+ {
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
