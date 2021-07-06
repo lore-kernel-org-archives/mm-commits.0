@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71FC6C07E9C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE0FAC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C2EB60C3D
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8AE860FEE
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231815AbhGFTQn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:16:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50874 "EHLO mail.kernel.org"
+        id S231833AbhGFTQp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:16:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50900 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231809AbhGFTQn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:16:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 90DAE60FE3;
-        Tue,  6 Jul 2021 19:14:04 +0000 (UTC)
+        id S231819AbhGFTQp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:16:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 75AFF60C3D;
+        Tue,  6 Jul 2021 19:14:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598844;
-        bh=Cz+PBpHJJ6+Gr3HZ6xcbFGIlj/Jn8U8duLcTmNSXzm8=;
+        s=korg; t=1625598846;
+        bh=kanr9EFMmf3ylP29F4upi1rngnY4EcqYbiu1QvCRlWs=;
         h=Date:From:To:Subject:From;
-        b=VIYEVgIR+FUQTNU5FtAO1+h3N7T114Mnj+2HDvrog2Dm9F+sh61UvI4aZIcn2/DOQ
-         5EX0xDagYqFKEbcRvYwlDXZyvx6O7SdED4qYbOBrXkK73b+jO+SUQhUitkkm1n2Piq
-         QGVWHf/YD14QHYJo47ke56QeiOj2A2jiigow/fl4=
-Date:   Tue, 06 Jul 2021 12:14:04 -0700
+        b=kPD48AVKOq/o8D9z0NKgGeP6FicQaIeQFx+/m1dzVFRvm8wrjNjzNvRYqXsathUwE
+         w0UjXN8LUCMKsyXKGpltptsE4O5TBA8ZNs2AeikMhzr9ZT9QespqATnm2Oj2JLh8SD
+         q5U1c1yvblEODTs25Rt0PIIRaPAecOgGGI7nIiRE=
+Date:   Tue, 06 Jul 2021 12:14:06 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, mm-commits@vger.kernel.org,
-        vbabka@suse.cz, william.kucharski@oracle.com, willy@infradead.org
-Subject:  [merged] mm-make-__dump_page-static.patch removed from
- -mm tree
-Message-ID: <20210706191404.nrO95QsXX%akpm@linux-foundation.org>
+To:     atomlin@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        vbabka@suse.cz, willy@infradead.org
+Subject:  [merged]
+ =?US-ASCII?Q?mm-page=5Falloc-bail-out-on-fatal-signal-during-reclaim-co?=
+ =?US-ASCII?Q?mpaction-retry-attempt.patch?= removed from -mm tree
+Message-ID: <20210706191406.caxr300U7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,84 +46,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make __dump_page static
+     Subject: mm/page_alloc: bail out on fatal signal during reclaim/compaction retry attempt
 has been removed from the -mm tree.  Its filename was
-     mm-make-__dump_page-static.patch
+     mm-page_alloc-bail-out-on-fatal-signal-during-reclaim-compaction-retry-attempt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: make __dump_page static
+From: Aaron Tomlin <atomlin@redhat.com>
+Subject: mm/page_alloc: bail out on fatal signal during reclaim/compaction retry attempt
 
-Patch series "Constify struct page arguments".
+A customer experienced a low-memory situation and decided to issue a
+SIGKILL (i.e.  a fatal signal).  Instead of promptly terminating as one
+would expect, the aforementioned task remained unresponsive.
 
-While working on various solutions to the 32-bit struct page size
-regression, one of the problems I found was the networking stack expects
-to be able to pass const struct page pointers around, and the mm doesn't
-provide a lot of const-friendly functions to call.  The root tangle of
-problems is that a lot of functions call VM_BUG_ON_PAGE(), which calls
-dump_page(), which calls a lot of functions which don't take a const
-struct page (but could be const).
+Further investigation indicated that the task was "stuck" in the
+reclaim/compaction retry loop.  Now, it does not make sense to retry
+compaction when a fatal signal is pending.
 
+In the context of try_to_compact_pages(), indeed COMPACT_SKIPPED can be
+returned; albeit, not every zone, on the zone list, would be considered in
+the case a fatal signal is found to be pending.  Yet, in
+should_compact_retry(), given the last known compaction result, each zone,
+on the zone list, can be considered/or checked (see
+compaction_zonelist_suitable()).  For example, if a zone was found to
+succeed, then reclaim/compaction would be tried again (notwithstanding the
+above).
 
-This patch (of 6):
+This patch ensures that compaction is not needlessly retried irrespective
+of the last known compaction result e.g.  if it was skipped, in the
+unlikely case a fatal signal is found pending.  So, OOM is at least
+attempted.
 
-The only caller of __dump_page() now opencodes dump_page(), so remove it
-as an externally visible symbol.
-
-Link: https://lkml.kernel.org/r/20210416231531.2521383-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20210416231531.2521383-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20210520142901.3371299-1-atomlin@redhat.com
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmdebug.h |    3 +--
- mm/debug.c              |    2 +-
- mm/page_alloc.c         |    3 +--
- 3 files changed, 3 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/mmdebug.h~mm-make-__dump_page-static
-+++ a/include/linux/mmdebug.h
-@@ -9,8 +9,7 @@ struct page;
- struct vm_area_struct;
- struct mm_struct;
- 
--extern void dump_page(struct page *page, const char *reason);
--extern void __dump_page(struct page *page, const char *reason);
-+void dump_page(struct page *page, const char *reason);
- void dump_vma(const struct vm_area_struct *vma);
- void dump_mm(const struct mm_struct *mm);
- 
---- a/mm/debug.c~mm-make-__dump_page-static
-+++ a/mm/debug.c
-@@ -42,7 +42,7 @@ const struct trace_print_flags vmaflag_n
- 	{0, NULL}
- };
- 
--void __dump_page(struct page *page, const char *reason)
-+static void __dump_page(struct page *page, const char *reason)
- {
- 	struct page *head = compound_head(page);
- 	struct address_space *mapping;
---- a/mm/page_alloc.c~mm-make-__dump_page-static
+--- a/mm/page_alloc.c~mm-page_alloc-bail-out-on-fatal-signal-during-reclaim-compaction-retry-attempt
 +++ a/mm/page_alloc.c
-@@ -658,8 +658,7 @@ static void bad_page(struct page *page,
+@@ -4251,6 +4251,9 @@ should_compact_retry(struct alloc_contex
+ 	if (!order)
+ 		return false;
  
- 	pr_alert("BUG: Bad page state in process %s  pfn:%05lx\n",
- 		current->comm, page_to_pfn(page));
--	__dump_page(page, reason);
--	dump_page_owner(page);
-+	dump_page(page, reason);
++	if (fatal_signal_pending(current))
++		return false;
++
+ 	if (compaction_made_progress(compact_result))
+ 		(*compaction_retries)++;
  
- 	print_modules();
- 	dump_stack();
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from atomlin@redhat.com are
 
-mm-mark-idle-page-tracking-as-broken.patch
 
