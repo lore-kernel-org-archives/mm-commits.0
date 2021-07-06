@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F9A5C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C202DC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 09FF661C72
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A941361C75
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231815AbhGFTK6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:10:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45770 "EHLO mail.kernel.org"
+        id S231802AbhGFTLB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:11:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45826 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231778AbhGFTKz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:10:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8718061C6F;
-        Tue,  6 Jul 2021 19:08:16 +0000 (UTC)
+        id S231778AbhGFTK7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:10:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 64A6761C6C;
+        Tue,  6 Jul 2021 19:08:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598496;
-        bh=V++KrYPpQOT9cTU0uDQg5hFa3Al9TDRTNmdL89IU4sM=;
+        s=korg; t=1625598500;
+        bh=zwcN+ZiDRZjxW2dxagVI2XiA8APqZhapms236l1IBx8=;
         h=Date:From:To:Subject:From;
-        b=WbvZP8fRis4BEDyP2bCxsT1s3AQsIrkE46HY1n8g8uI3x3TRUw8GNtw8uhqTDwbCq
-         n+9iQkETtGWPJOnXPtcQfpfC65slmOwsoLgzRhSIswKZwwijKI0wowwIveMHnzEppn
-         kHUp49LKLnkeBgEliLr7m7WR0XpCCBil/h0YYHXY=
-Date:   Tue, 06 Jul 2021 12:08:16 -0700
+        b=ak4uwQsyij3cmwNYYpq+AaMnFaj9OJ3i7tBkWKRQ7uvWtzmPmc1WrXvzsxET2Hwu2
+         +DZ21W748BQppsYdlxQIq7ZEprhm/olpD/3YSs+iY+Qt1PeoC5HjW7A8VSkwilptP3
+         vTWni/6BCj9zXFBvT4Og8K54JeBwhR+jCfMl+66s=
+Date:   Tue, 06 Jul 2021 12:08:20 -0700
 From:   akpm@linux-foundation.org
-To:     masahiroy@kernel.org, mm-commits@vger.kernel.org,
-        rostedt@goodmis.org, warthog9@kernel.org
+To:     colin.king@canonical.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- streamline_configpl-make-spacing-consistent.patch removed from -mm tree
-Message-ID: <20210706190816.eqRzc1oHl%akpm@linux-foundation.org>
+ scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch removed from
+ -mm tree
+Message-ID: <20210706190820.FrH4-Y68y%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,156 +43,142 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: streamline_config.pl: make spacing consistent
+     Subject: scripts/spelling.txt: add more spellings to spelling.txt
 has been removed from the -mm tree.  Its filename was
-     streamline_configpl-make-spacing-consistent.patch
+     scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Steven Rostedt (VMware)" <rostedt@goodmis.org>
-Subject: streamline_config.pl: make spacing consistent
+From: Colin Ian King <colin.king@canonical.com>
+Subject: scripts/spelling.txt: add more spellings to spelling.txt
 
-Patch series "streamline_config.pl: Fix Perl spacing".
+Here are some of the more common spelling mistakes and typos that I've
+found while fixing up spelling mistakes in the kernel in the past few
+months.
 
-Talking with John Hawley about how vim and emacs deal with Perl files with
-respect to tabs and spaces, I found that some of my Perl code in the
-kernel had inconsistent spacing.  The way emacs handles Perl by default is
-to use 4 spaces per indent, but make all 8 spaces into a single tab.  Vim
-does not do this by default.  But if you add the vim variable control:
-
- # vim: softtabstop=4
-
-to a perl file, it makes vim behave the same way as emacs.
-
-The first patch is to change all 8 spaces into a single tab (mostly from
-people editing the file with vim).  The next patch adds the softtabstop
-variable to make vim act like emacs by default.
-
-
-This patch (of 2):
-
-As Perl code tends to have 4 space indentation, but uses tabs for every 8
-spaces, make that consistent in the streamline_config.pl code.  Replace
-all 8 spaces with a single tab.
-
-Link: https://lkml.kernel.org/r/20210322214032.133596267@goodmis.org
-Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: "John (Warthog9) Hawley" <warthog9@kernel.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
+Link: https://lkml.kernel.org/r/20210514093655.8829-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/streamline_config.pl |   74 ++++++++++++-------------
- 1 file changed, 37 insertions(+), 37 deletions(-)
+ scripts/spelling.txt |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
---- a/scripts/kconfig/streamline_config.pl~streamline_configpl-make-spacing-consistent
-+++ a/scripts/kconfig/streamline_config.pl
-@@ -601,12 +601,12 @@ if (defined($ENV{'LMC_KEEP'})) {
- sub in_preserved_kconfigs {
-     my $kconfig = $config2kfile{$_[0]};
-     if (!defined($kconfig)) {
--        return 0;
-+	return 0;
-     }
-     foreach my $excl (@preserved_kconfigs) {
--        if($kconfig =~ /^$excl/) {
--            return 1;
--        }
-+	if($kconfig =~ /^$excl/) {
-+	    return 1;
-+	}
-     }
-     return 0;
- }
-@@ -629,52 +629,52 @@ foreach my $line (@config_file) {
-     }
- 
-     if (/CONFIG_MODULE_SIG_KEY="(.+)"/) {
--        my $orig_cert = $1;
--        my $default_cert = "certs/signing_key.pem";
-+	my $orig_cert = $1;
-+	my $default_cert = "certs/signing_key.pem";
- 
--        # Check that the logic in this script still matches the one in Kconfig
--        if (!defined($depends{"MODULE_SIG_KEY"}) ||
--            $depends{"MODULE_SIG_KEY"} !~ /"\Q$default_cert\E"/) {
--            print STDERR "WARNING: MODULE_SIG_KEY assertion failure, ",
--                "update needed to ", __FILE__, " line ", __LINE__, "\n";
--            print;
--        } elsif ($orig_cert ne $default_cert && ! -f $orig_cert) {
--            print STDERR "Module signature verification enabled but ",
--                "module signing key \"$orig_cert\" not found. Resetting ",
--                "signing key to default value.\n";
--            print "CONFIG_MODULE_SIG_KEY=\"$default_cert\"\n";
--        } else {
--            print;
--        }
--        next;
-+	# Check that the logic in this script still matches the one in Kconfig
-+	if (!defined($depends{"MODULE_SIG_KEY"}) ||
-+	    $depends{"MODULE_SIG_KEY"} !~ /"\Q$default_cert\E"/) {
-+	    print STDERR "WARNING: MODULE_SIG_KEY assertion failure, ",
-+		"update needed to ", __FILE__, " line ", __LINE__, "\n";
-+	    print;
-+	} elsif ($orig_cert ne $default_cert && ! -f $orig_cert) {
-+	    print STDERR "Module signature verification enabled but ",
-+		"module signing key \"$orig_cert\" not found. Resetting ",
-+		"signing key to default value.\n";
-+	    print "CONFIG_MODULE_SIG_KEY=\"$default_cert\"\n";
-+	} else {
-+	    print;
-+	}
-+	next;
-     }
- 
-     if (/CONFIG_SYSTEM_TRUSTED_KEYS="(.+)"/) {
--        my $orig_keys = $1;
-+	my $orig_keys = $1;
- 
--        if (! -f $orig_keys) {
--            print STDERR "System keyring enabled but keys \"$orig_keys\" ",
--                "not found. Resetting keys to default value.\n";
--            print "CONFIG_SYSTEM_TRUSTED_KEYS=\"\"\n";
--        } else {
--            print;
--        }
--        next;
-+	if (! -f $orig_keys) {
-+	    print STDERR "System keyring enabled but keys \"$orig_keys\" ",
-+		"not found. Resetting keys to default value.\n";
-+	    print "CONFIG_SYSTEM_TRUSTED_KEYS=\"\"\n";
-+	} else {
-+	    print;
-+	}
-+	next;
-     }
- 
-     if (/^(CONFIG.*)=(m|y)/) {
--        if (in_preserved_kconfigs($1)) {
--            dprint "Preserve config $1";
--            print;
--            next;
--        }
-+	if (in_preserved_kconfigs($1)) {
-+	    dprint "Preserve config $1";
-+	    print;
-+	    next;
-+	}
- 	if (defined($configs{$1})) {
- 	    if ($localyesconfig) {
--	        $setconfigs{$1} = 'y';
-+		$setconfigs{$1} = 'y';
- 		print "$1=y\n";
- 		next;
- 	    } else {
--	        $setconfigs{$1} = $2;
-+		$setconfigs{$1} = $2;
- 	    }
- 	} elsif ($2 eq "m") {
- 	    print "# $1 is not set\n";
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-more-spellings-to-spellingtxt
++++ a/scripts/spelling.txt
+@@ -22,6 +22,7 @@ absolut||absolute
+ absoulte||absolute
+ acccess||access
+ acceess||access
++accelaration||acceleration
+ acceleratoin||acceleration
+ accelleration||acceleration
+ accesing||accessing
+@@ -264,6 +265,7 @@ calucate||calculate
+ calulate||calculate
+ cancelation||cancellation
+ cancle||cancel
++canot||cannot
+ capabilites||capabilities
+ capabilties||capabilities
+ capabilty||capability
+@@ -494,7 +496,10 @@ digial||digital
+ dimention||dimension
+ dimesions||dimensions
+ diconnected||disconnected
++disabed||disabled
++disble||disable
+ disgest||digest
++disired||desired
+ dispalying||displaying
+ diplay||display
+ directon||direction
+@@ -710,6 +715,7 @@ havind||having
+ heirarchically||hierarchically
+ heirarchy||hierarchy
+ helpfull||helpful
++hearbeat||heartbeat
+ heterogenous||heterogeneous
+ hexdecimal||hexadecimal
+ hybernate||hibernate
+@@ -989,6 +995,7 @@ notications||notifications
+ notifcations||notifications
+ notifed||notified
+ notity||notify
++nubmer||number
+ numebr||number
+ numner||number
+ obtaion||obtain
+@@ -1014,8 +1021,10 @@ ommiting||omitting
+ ommitted||omitted
+ onself||oneself
+ ony||only
++openning||opening
+ operatione||operation
+ opertaions||operations
++opportunies||opportunities
+ optionnal||optional
+ optmizations||optimizations
+ orientatied||orientated
+@@ -1111,6 +1120,7 @@ prefitler||prefilter
+ preform||perform
+ premption||preemption
+ prepaired||prepared
++prepate||prepare
+ preperation||preparation
+ preprare||prepare
+ pressre||pressure
+@@ -1123,6 +1133,7 @@ privilaged||privileged
+ privilage||privilege
+ priviledge||privilege
+ priviledges||privileges
++privleges||privileges
+ probaly||probably
+ procceed||proceed
+ proccesors||processors
+@@ -1167,6 +1178,7 @@ promixity||proximity
+ psudo||pseudo
+ psuedo||pseudo
+ psychadelic||psychedelic
++purgable||purgeable
+ pwoer||power
+ queing||queuing
+ quering||querying
+@@ -1180,6 +1192,7 @@ receieve||receive
+ recepient||recipient
+ recevied||received
+ receving||receiving
++recievd||received
+ recieved||received
+ recieve||receive
+ reciever||receiver
+@@ -1228,6 +1241,7 @@ reponse||response
+ representaion||representation
+ reqeust||request
+ reqister||register
++requed||requeued
+ requestied||requested
+ requiere||require
+ requirment||requirement
+@@ -1332,6 +1346,7 @@ singal||signal
+ singed||signed
+ sleeped||slept
+ sliped||slipped
++softwade||software
+ softwares||software
+ soley||solely
+ souce||source
+@@ -1510,6 +1525,7 @@ unintialized||uninitialized
+ unitialized||uninitialized
+ unkmown||unknown
+ unknonw||unknown
++unknouwn||unknown
+ unknow||unknown
+ unkown||unknown
+ unamed||unnamed
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
 
