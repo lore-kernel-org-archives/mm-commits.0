@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82116C07E9C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D8F8C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 68C1361C89
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5547C61C88
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231725AbhGFTLt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:11:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46480 "EHLO mail.kernel.org"
+        id S231838AbhGFTLv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:11:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46524 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231702AbhGFTLt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:11:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 92C3A61C84;
-        Tue,  6 Jul 2021 19:09:09 +0000 (UTC)
+        id S231702AbhGFTLv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:11:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7C19461C83;
+        Tue,  6 Jul 2021 19:09:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598549;
-        bh=aQT4vMC12IZWFCPjGSRAljzxsPFqZwSAdp4g4vUdn+A=;
+        s=korg; t=1625598551;
+        bh=OdXei+9L6qlgce3Wc2b29LvHys60wJDUjGg0kqHeoyE=;
         h=Date:From:To:Subject:From;
-        b=tETd3OtcH6aldWV7/C2Zhlipidmt83AsmZqHqd0csnEWwCbXkdlbdQ4AGoZrRsFhR
-         /iKq8Ole3CNttoTr5d8jNgorfSdRf4Mus1KVBjhQ3ebzSdZdFzoFRvoGI3eDb0yuwE
-         jx2aNEH7M55zmQ94i5RAuEZMqOtS10D5UfcndWRo=
-Date:   Tue, 06 Jul 2021 12:09:09 -0700
+        b=nA7jVl6MEvMFUwzdu0DI8pTSzSVZ4ryWIu7qa/F7h4Ma1cw7DDUKe8UqEju/A/ZXI
+         q++tdP+BehMvpJaDHOi0gAHxWNvojKjjbTGzVv9PnB+Y+IahgBoWrVBtTqRz4vILEE
+         ZqUQLD7C+l0D/8oNHvPxPI4tbF/+KtX4dmQcSyyI=
+Date:   Tue, 06 Jul 2021 12:09:11 -0700
 From:   akpm@linux-foundation.org
 To:     cl@linux.com, iamjoonsoo.kim@lge.com, joe@perches.com,
         mm-commits@vger.kernel.org, penberg@kernel.org, pmladek@suse.com,
         rientjes@google.com, songmuchun@bytedance.com, swboyd@chromium.org,
         vbabka@suse.cz
-Subject:  [merged] slub-actually-use-message-in-restore_bytes.patch
+Subject:  [merged] slub-indicate-slab_fix-uses-printf-formats.patch
  removed from -mm tree
-Message-ID: <20210706190909.T6UZDzTz8%akpm@linux-foundation.org>
+Message-ID: <20210706190911.NTsjgvhzr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,63 +45,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: actually use 'message' in restore_bytes()
+     Subject: slub: indicate slab_fix() uses printf formats
 has been removed from the -mm tree.  Its filename was
-     slub-actually-use-message-in-restore_bytes.patch
+     slub-indicate-slab_fix-uses-printf-formats.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stephen Boyd <swboyd@chromium.org>
-Subject: slub: actually use 'message' in restore_bytes()
+From: Joe Perches <joe@perches.com>
+Subject: slub: indicate slab_fix() uses printf formats
 
-The message argument isn't used here.  Let's pass the string to the printk
-message so that the developer can figure out what's happening, instead of
-guessing that a redzone is being restored, etc.
+Ideally, slab_fix() would be marked with __printf and the format here
+would not use \n as that's emitted by the slab_fix().  Make these changes.
 
-Link: https://lkml.kernel.org/r/20210601182202.3011020-3-swboyd@chromium.org
+Link: https://lkml.kernel.org/r/20210601182202.3011020-4-swboyd@chromium.org
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Stephen Boyd <swboyd@chromium.org>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Joe Perches <joe@perches.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/slub.c~slub-actually-use-message-in-restore_bytes
+--- a/mm/slub.c~slub-indicate-slab_fix-uses-printf-formats
 +++ a/mm/slub.c
-@@ -806,7 +806,7 @@ static void init_object(struct kmem_cach
+@@ -692,6 +692,7 @@ static void slab_bug(struct kmem_cache *
+ 	va_end(args);
+ }
+ 
++__printf(2, 3)
+ static void slab_fix(struct kmem_cache *s, char *fmt, ...)
+ {
+ 	struct va_format vaf;
+@@ -806,7 +807,7 @@ static void init_object(struct kmem_cach
  static void restore_bytes(struct kmem_cache *s, char *message, u8 data,
  						void *from, void *to)
  {
--	slab_fix(s, "Restoring 0x%p-0x%p=0x%x\n", from, to - 1, data);
-+	slab_fix(s, "Restoring %s 0x%p-0x%p=0x%x\n", message, from, to - 1, data);
+-	slab_fix(s, "Restoring %s 0x%p-0x%p=0x%x\n", message, from, to - 1, data);
++	slab_fix(s, "Restoring %s 0x%p-0x%p=0x%x", message, from, to - 1, data);
  	memset(from, data, to - from);
  }
  
+@@ -1059,13 +1060,13 @@ static int on_freelist(struct kmem_cache
+ 		slab_err(s, page, "Wrong number of objects. Found %d but should be %d",
+ 			 page->objects, max_objects);
+ 		page->objects = max_objects;
+-		slab_fix(s, "Number of objects adjusted.");
++		slab_fix(s, "Number of objects adjusted");
+ 	}
+ 	if (page->inuse != page->objects - nr) {
+ 		slab_err(s, page, "Wrong object count. Counter is %d but counted were %d",
+ 			 page->inuse, page->objects - nr);
+ 		page->inuse = page->objects - nr;
+-		slab_fix(s, "Object count adjusted.");
++		slab_fix(s, "Object count adjusted");
+ 	}
+ 	return search == NULL;
+ }
 _
 
-Patches currently in -mm which might be from swboyd@chromium.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-buildid-only-consider-gnu-notes-for-build-id-parsing.patch
-buildid-add-api-to-parse-build-id-out-of-buffer.patch
-buildid-stash-away-kernels-build-id-on-init.patch
-buildid-stash-away-kernels-build-id-on-init-fix.patch
-dump_stack-add-vmlinux-build-id-to-stack-traces.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces.patch
-arm64-stacktrace-use-%psb-for-backtrace-printing.patch
-x86-dumpstack-use-%psb-%pbb-for-backtrace-printing.patch
-scripts-decode_stacktracesh-support-debuginfod.patch
-scripts-decode_stacktracesh-silence-stderr-messages-from-addr2line-nm.patch
-scripts-decode_stacktracesh-indicate-auto-can-be-used-for-base-path.patch
-buildid-mark-some-arguments-const.patch
-buildid-fix-kernel-doc-notation.patch
-kdump-use-vmlinux_build_id-to-simplify.patch
 
