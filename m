@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA000C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C308C07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B5EF461C91
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE91B61C7A
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231748AbhGFTU6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:20:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54762 "EHLO mail.kernel.org"
+        id S231792AbhGFTVA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:21:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54786 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229925AbhGFTU5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:20:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8231261C87;
-        Tue,  6 Jul 2021 19:18:18 +0000 (UTC)
+        id S231766AbhGFTU7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:20:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7334361C7C;
+        Tue,  6 Jul 2021 19:18:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599098;
-        bh=M9LU6mMCNfhlKGJUoP7zh4bLcIaiWFLb/Dq4o/QKE78=;
+        s=korg; t=1625599100;
+        bh=uAI6HobWoC3y63R9CcYM+aNA+l1Xq7JAQ7FA3RC/C+4=;
         h=Date:From:To:Subject:From;
-        b=A+9u+Px8otsr+CQKoCWjaqhGMSV5cVASgGPM0rUpLO7oYpJPg254Xg1OMBl2PUdv7
-         Lv7NuIvxzGFJGKo9R+xg5IaeEH5rJ07K+lvH6pxqyj3gA1ciydIDRS+KY+wW+GKuev
-         jkg/n0zPg0B/7mEifkZDmaf2ljheuTJLaGIH9dqs=
-Date:   Tue, 06 Jul 2021 12:18:18 -0700
+        b=nP8zVUEkf6THXJrUVMHVispnFBJCp7gPqjKQ8RboAAiakCdXGZr4Xz1yQxDRpVfWs
+         P2DeNlbHL/hmFRFxi3PoVrTUvJHp29GZ5ug7h1imlFHSZsRGpurUaZzcgOV3dS+p2F
+         4vO3oR5xuUMgaqOe3pl9JVqaMNUqDeFqH9D1IGws=
+Date:   Tue, 06 Jul 2021 12:18:20 -0700
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, mm-commits@vger.kernel.org,
-        tsbogend@alpha.franken.de, wangkefeng.wang@huawei.com,
-        will@kernel.org
-Subject:  [merged] mm-move-holes_in_zone-into-mm.patch removed from
- -mm tree
-Message-ID: <20210706191818.WvXbMhsQ3%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, corbet@lwn.net, eric.dumazet@gmail.com,
+        mhocko@suse.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        vbabka@suse.cz, willy@infradead.org
+Subject:  [merged]
+ docs-procrst-meminfo-briefly-describe-gaps-in-memory-accounting.patch
+ removed from -mm tree
+Message-ID: <20210706191820.RyMvH6Udy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,110 +45,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kconfig: move HOLES_IN_ZONE into mm
+     Subject: docs: proc.rst: meminfo: briefly describe gaps in memory accounting
 has been removed from the -mm tree.  Its filename was
-     mm-move-holes_in_zone-into-mm.patch
+     docs-procrst-meminfo-briefly-describe-gaps-in-memory-accounting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm/kconfig: move HOLES_IN_ZONE into mm
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: docs: proc.rst: meminfo: briefly describe gaps in memory accounting
 
-commit a55749639dc1 ("ia64: drop marked broken DISCONTIGMEM and
-VIRTUAL_MEM_MAP") drop VIRTUAL_MEM_MAP, so there is no need HOLES_IN_ZONE
-on ia64.
+Add a paragraph that explains that it may happen that the counters in
+/proc/meminfo do not add up to the overall memory usage.
 
-Also move HOLES_IN_ZONE into mm/Kconfig, select it if architecture needs
-this feature.
-
-Link: https://lkml.kernel.org/r/20210417075946.181402-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
-Cc: Will Deacon <will@kernel.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Link: https://lkml.kernel.org/r/20210421061127.1182723-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    4 +---
- arch/ia64/Kconfig  |    3 ---
- arch/mips/Kconfig  |    3 ---
- mm/Kconfig         |    3 +++
- 4 files changed, 4 insertions(+), 9 deletions(-)
+ Documentation/filesystems/proc.rst |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/Kconfig~mm-move-holes_in_zone-into-mm
-+++ a/arch/arm64/Kconfig
-@@ -201,6 +201,7 @@ config ARM64
- 	select HAVE_KPROBES
- 	select HAVE_KRETPROBES
- 	select HAVE_GENERIC_VDSO
-+	select HOLES_IN_ZONE
- 	select IOMMU_DMA if IOMMU_SUPPORT
- 	select IRQ_DOMAIN
- 	select IRQ_FORCED_THREADING
-@@ -1052,9 +1053,6 @@ config NEED_PER_CPU_EMBED_FIRST_CHUNK
- 	def_bool y
- 	depends on NUMA
+--- a/Documentation/filesystems/proc.rst~docs-procrst-meminfo-briefly-describe-gaps-in-memory-accounting
++++ a/Documentation/filesystems/proc.rst
+@@ -933,8 +933,15 @@ meminfo
+ ~~~~~~~
  
--config HOLES_IN_ZONE
--	def_bool y
--
- source "kernel/Kconfig.hz"
- 
- config ARCH_SPARSEMEM_ENABLE
---- a/arch/ia64/Kconfig~mm-move-holes_in_zone-into-mm
-+++ a/arch/ia64/Kconfig
-@@ -308,9 +308,6 @@ config NODES_SHIFT
- 	  MAX_NUMNODES will be 2^(This value).
- 	  If in doubt, use the default.
- 
--config HOLES_IN_ZONE
--	bool
--
- config HAVE_ARCH_NODEDATA_EXTENSION
- 	def_bool y
- 	depends on NUMA
---- a/arch/mips/Kconfig~mm-move-holes_in_zone-into-mm
-+++ a/arch/mips/Kconfig
-@@ -1233,9 +1233,6 @@ config HAVE_PLAT_MEMCPY
- config ISA_DMA_API
- 	bool
- 
--config HOLES_IN_ZONE
--	bool
--
- config SYS_SUPPORTS_RELOCATABLE
- 	bool
- 	help
---- a/mm/Kconfig~mm-move-holes_in_zone-into-mm
-+++ a/mm/Kconfig
-@@ -96,6 +96,9 @@ config HAVE_FAST_GUP
- 	depends on MMU
- 	bool
- 
-+config HOLES_IN_ZONE
-+	bool
+ Provides information about distribution and utilization of memory.  This
+-varies by architecture and compile options.  The following is from a
+-16GB PIII, which has highmem enabled.  You may not have all of these fields.
++varies by architecture and compile options.  Some of the counters reported
++here overlap.  The memory reported by the non overlapping counters may not
++add up to the overall memory usage and the difference for some workloads
++can be substantial.  In many cases there are other means to find out
++additional memory using subsystem specific interfaces, for instance
++/proc/net/sockstat for TCP memory allocations.
 +
- # Don't discard allocated memory used to track "memory" and "reserved" memblocks
- # after early boot, so it can still be used to test for validity of memory.
- # Also, memblocks are updated with memory hot(un)plug.
++The following is from a 16GB PIII, which has highmem enabled.
++You may not have all of these fields.
+ 
+ ::
+ 
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-add-setup_initial_init_mm-helper.patch
-arc-convert-to-setup_initial_init_mm.patch
-arm-convert-to-setup_initial_init_mm.patch
-arm64-convert-to-setup_initial_init_mm.patch
-csky-convert-to-setup_initial_init_mm.patch
-h8300-convert-to-setup_initial_init_mm.patch
-m68k-convert-to-setup_initial_init_mm.patch
-nds32-convert-to-setup_initial_init_mm.patch
-nios2-convert-to-setup_initial_init_mm.patch
-openrisc-convert-to-setup_initial_init_mm.patch
-powerpc-convert-to-setup_initial_init_mm.patch
-riscv-convert-to-setup_initial_init_mm.patch
-s390-convert-to-setup_initial_init_mm.patch
-sh-convert-to-setup_initial_init_mm.patch
-x86-convert-to-setup_initial_init_mm.patch
+mmap-make-mlock_future_check-global.patch
+riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
