@@ -7,34 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92CD4C07E9C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C054C11F68
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7A83961CAB
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48A6B61CAB
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229876AbhGFTZm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:25:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58864 "EHLO mail.kernel.org"
+        id S229971AbhGFTZo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:25:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58898 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229999AbhGFTZm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:25:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8793061CA3;
-        Tue,  6 Jul 2021 19:23:02 +0000 (UTC)
+        id S230033AbhGFTZo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:25:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 79F6861CAA;
+        Tue,  6 Jul 2021 19:23:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599382;
-        bh=5h2ao04QRQJ4A3IZeXHVRCTGugnb6WIHRnT8h+G00IE=;
+        s=korg; t=1625599385;
+        bh=Av+8KeY6rkQKF+VEvbf+RJljTqdNTkurjm3MUFJMJIQ=;
         h=Date:From:To:Subject:From;
-        b=MkkgBEjqs/BFOc0VdwwlTv9AdtRto10TirBkdYdDDxsNuwtOvdN54G6xMvV4vunRn
-         i3/0NJs8xo5xfr7vBG5WAhvLhf069R/JoLIl8ctk+zf+I4R4VB+mplKe7VUye9kSm/
-         yQq3m4GusbmL6CkzckWKNQQj8E8NpSSnCtyDXDYQ=
-Date:   Tue, 06 Jul 2021 12:23:02 -0700
+        b=ABV2ZW0VoK0OXXVM0HY40VXbEIdtFVnMrHBSX+x4ojIXZYFVU24tTBr+fpsXqaMDV
+         TE49rKkdjJm7OkiWpFHzv3BGSB5EllxUh0kHKwvfdnkjBe06OG8jV8PxhGPl9BVP3E
+         z/7swzJO7R6taY2XE9yCquTseooE1kk4jC8lIOSs=
+Date:   Tue, 06 Jul 2021 12:23:04 -0700
 From:   akpm@linux-foundation.org
-To:     ahalaney@redhat.com, bp@suse.de, mm-commits@vger.kernel.org,
-        rostedt@goodmis.org
-Subject:  [merged] init-print-out-unknown-kernel-parameters.patch
+To:     anil.s.keshavamurthy@intel.com, borntraeger@de.ibm.com,
+        bp@alien8.de, davem@davemloft.net, gor@linux.ibm.com,
+        hca@linux.ibm.com, hch@lst.de, hpa@zytor.com, liuqi115@huawei.com,
+        mhiramat@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
+        naveen.n.rao@linux.ibm.com, song.bao.hua@hisilicon.com,
+        tglx@linutronix.de
+Subject:  [merged]
+ kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390.patch
  removed from -mm tree
-Message-ID: <20210706192302.sZ9xOM4cU%akpm@linux-foundation.org>
+Message-ID: <20210706192304.Y8j8d6jOj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,112 +48,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init: print out unknown kernel parameters
+     Subject: kprobes: remove duplicated strong free_insn_page in x86 and s390
 has been removed from the -mm tree.  Its filename was
-     init-print-out-unknown-kernel-parameters.patch
+     kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Halaney <ahalaney@redhat.com>
-Subject: init: print out unknown kernel parameters
+From: Barry Song <song.bao.hua@hisilicon.com>
+Subject: kprobes: remove duplicated strong free_insn_page in x86 and s390
 
-It is easy to foobar setting a kernel parameter on the command line
-without realizing it, there's not much output that you can use to assess
-what the kernel did with that parameter by default.
+free_insn_page() in x86 and s390 is same with the common weak function in
+kernel/kprobes.c.  Plus, the comment "Recover page to RW mode before
+releasing it" in x86 seems insensible to be there since resetting mapping
+is done by common code in vfree() of module_memfree().  So drop these two
+duplicated strong functions and related comment, then mark the common one
+in kernel/kprobes.c strong.
 
-Make it a little more explicit which parameters on the command line
-_looked_ like a valid parameter for the kernel, but did not match anything
-and ultimately got tossed to init.  This is very similar to the unknown
-parameter message received when loading a module.
-
-This assumes the parameters are processed in a normal fashion, some
-parameters (dyndbg= for example) don't register their parameter with the
-rest of the kernel's parameters, and therefore always show up in this list
-(and are also given to init - like the rest of this list).
-
-Another example is BOOT_IMAGE= is highlighted as an offender, which it
-technically is, but is passed by LILO and GRUB so most systems will see
-that complaint.
-
-An example output where "foobared" and "unrecognized" are intentionally
-invalid parameters:
-
-  Kernel command line: BOOT_IMAGE=/boot/vmlinuz-5.12-dirty debug log_buf_len=4M foobared unrecognized=foo
-  Unknown command line parameters: foobared BOOT_IMAGE=/boot/vmlinuz-5.12-dirty unrecognized=foo
-
-Link: https://lkml.kernel.org/r/20210511211009.42259-1-ahalaney@redhat.com
-Signed-off-by: Andrew Halaney <ahalaney@redhat.com>
-Suggested-by: Steven Rostedt <rostedt@goodmis.org>
-Suggested-by: Borislav Petkov <bp@suse.de>
-Acked-by: Borislav Petkov <bp@suse.de>
+Link: https://lkml.kernel.org/r/20210608065736.32656-1-song.bao.hua@hisilicon.com
+Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
+Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
+Acked-by: Heiko Carstens <hca@linux.ibm.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Qi Liu <liuqi115@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |   42 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ arch/s390/kernel/kprobes.c     |    5 -----
+ arch/x86/kernel/kprobes/core.c |    6 ------
+ include/linux/kprobes.h        |    1 -
+ kernel/kprobes.c               |    2 +-
+ 4 files changed, 1 insertion(+), 13 deletions(-)
 
---- a/init/main.c~init-print-out-unknown-kernel-parameters
-+++ a/init/main.c
-@@ -872,6 +872,47 @@ void __init __weak arch_call_rest_init(v
- 	rest_init();
+--- a/arch/s390/kernel/kprobes.c~kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390
++++ a/arch/s390/kernel/kprobes.c
+@@ -44,11 +44,6 @@ void *alloc_insn_page(void)
+ 	return page;
  }
  
-+static void __init print_unknown_bootoptions(void)
-+{
-+	char *unknown_options;
-+	char *end;
-+	const char *const *p;
-+	size_t len;
-+
-+	if (panic_later || (!argv_init[1] && !envp_init[2]))
-+		return;
-+
-+	/*
-+	 * Determine how many options we have to print out, plus a space
-+	 * before each
-+	 */
-+	len = 1; /* null terminator */
-+	for (p = &argv_init[1]; *p; p++) {
-+		len++;
-+		len += strlen(*p);
-+	}
-+	for (p = &envp_init[2]; *p; p++) {
-+		len++;
-+		len += strlen(*p);
-+	}
-+
-+	unknown_options = memblock_alloc(len, SMP_CACHE_BYTES);
-+	if (!unknown_options) {
-+		pr_err("%s: Failed to allocate %zu bytes\n",
-+			__func__, len);
-+		return;
-+	}
-+	end = unknown_options;
-+
-+	for (p = &argv_init[1]; *p; p++)
-+		end += sprintf(end, " %s", *p);
-+	for (p = &envp_init[2]; *p; p++)
-+		end += sprintf(end, " %s", *p);
-+
-+	pr_notice("Unknown command line parameters:%s\n", unknown_options);
-+	memblock_free(__pa(unknown_options), len);
-+}
-+
- asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
+-void free_insn_page(void *page)
+-{
+-	module_memfree(page);
+-}
+-
+ static void *alloc_s390_insn_page(void)
  {
- 	char *command_line;
-@@ -913,6 +954,7 @@ asmlinkage __visible void __init __no_sa
- 				  static_command_line, __start___param,
- 				  __stop___param - __start___param,
- 				  -1, -1, NULL, &unknown_bootoption);
-+	print_unknown_bootoptions();
- 	if (!IS_ERR_OR_NULL(after_dashes))
- 		parse_args("Setting init args", after_dashes, NULL, 0, -1, -1,
- 			   NULL, set_init_arg);
+ 	if (xchg(&insn_page_in_use, 1) == 1)
+--- a/arch/x86/kernel/kprobes/core.c~kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390
++++ a/arch/x86/kernel/kprobes/core.c
+@@ -422,12 +422,6 @@ void *alloc_insn_page(void)
+ 	return page;
+ }
+ 
+-/* Recover page to RW mode before releasing it */
+-void free_insn_page(void *page)
+-{
+-	module_memfree(page);
+-}
+-
+ /* Kprobe x86 instruction emulation - only regs->ip or IF flag modifiers */
+ 
+ static void kprobe_emulate_ifmodifiers(struct kprobe *p, struct pt_regs *regs)
+--- a/include/linux/kprobes.h~kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390
++++ a/include/linux/kprobes.h
+@@ -407,7 +407,6 @@ int enable_kprobe(struct kprobe *kp);
+ void dump_kprobe(struct kprobe *kp);
+ 
+ void *alloc_insn_page(void);
+-void free_insn_page(void *page);
+ 
+ int kprobe_get_kallsym(unsigned int symnum, unsigned long *value, char *type,
+ 		       char *sym);
+--- a/kernel/kprobes.c~kprobes-remove-duplicated-strong-free_insn_page-in-x86-and-s390
++++ a/kernel/kprobes.c
+@@ -106,7 +106,7 @@ void __weak *alloc_insn_page(void)
+ 	return module_alloc(PAGE_SIZE);
+ }
+ 
+-void __weak free_insn_page(void *page)
++static void free_insn_page(void *page)
+ {
+ 	module_memfree(page);
+ }
 _
 
-Patches currently in -mm which might be from ahalaney@redhat.com are
+Patches currently in -mm which might be from song.bao.hua@hisilicon.com are
 
-init-mainc-silence-some-wunused-parameter-warnings.patch
 
