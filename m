@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE15CC07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:21:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C5CAC11F66
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:21:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D3C7F61CA2
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:21:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 863B161CA0
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:21:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229925AbhGFTYL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:24:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57672 "EHLO mail.kernel.org"
+        id S230112AbhGFTYN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:24:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57714 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229811AbhGFTYJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:24:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A906261C9A;
-        Tue,  6 Jul 2021 19:21:29 +0000 (UTC)
+        id S231438AbhGFTYM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:24:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A9DA161C9C;
+        Tue,  6 Jul 2021 19:21:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599290;
-        bh=GnhGPnoWEmtUFQXy/fvBuc/yAWikyzlRpu+PMNQFTLQ=;
+        s=korg; t=1625599294;
+        bh=njTjnez5ICZtwHCgiSGvdH5SsWi+bPidJ46YemRv6GE=;
         h=Date:From:To:Subject:From;
-        b=Ka5vfnq++JbfzLsUBmqIgD+Y53XZK1vj1p+yQILelyUq05s95yF+r0tZPaSX4+qB0
-         /ZVx+HOi6M0tasqb3ybztd9+iQdADwecjKJxhN2HJjC8Wdn7EtvDP3XY5dSAKhqEC0
-         H+1y4EG1KhvE6BKGYVOTgTR0VMgyII4aT2wFvxp4=
-Date:   Tue, 06 Jul 2021 12:21:29 -0700
+        b=lHw4mCHgQfiF7MNy63JeZqW/YIsCYqmO7MZHX9PgUZrWLRqCtPqEkLYC41eNbyUrl
+         NWPUin3mqVKE7EXN5lhxWl+eGZZS4xrBdIrpP0FQyrjcbEHhdzfrs5LZ1qfFM58qnA
+         S1qmd86ZjwWoEnJLYF0QCrhskZnybPDrehuXlgMQ=
+Date:   Tue, 06 Jul 2021 12:21:33 -0700
 From:   akpm@linux-foundation.org
 To:     apopple@nvidia.com, bskeggs@redhat.com, hch@lst.de,
         hughd@google.com, jgg@nvidia.com, jhubbard@nvidia.com,
         mm-commits@vger.kernel.org, peterx@redhat.com,
         rcampbell@nvidia.com, shakeelb@google.com, willy@infradead.org
 Subject:  [merged]
- mm-rmap-split-migration-into-its-own-function.patch removed from -mm tree
-Message-ID: <20210706192129.Os_TOWR4L%akpm@linux-foundation.org>
+ mm-memoryc-allow-different-return-codes-for-copy_nonpresent_pte.patch
+ removed from -mm tree
+Message-ID: <20210706192133.CI5I5OJOz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,570 +46,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: split migration into its own function
+     Subject: mm/memory.c: allow different return codes for copy_nonpresent_pte()
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-split-migration-into-its-own-function.patch
+     mm-memoryc-allow-different-return-codes-for-copy_nonpresent_pte.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/rmap: split migration into its own function
+Subject: mm/memory.c: allow different return codes for copy_nonpresent_pte()
 
-Migration is currently implemented as a mode of operation for
-try_to_unmap_one() generally specified by passing the TTU_MIGRATION flag
-or in the case of splitting a huge anonymous page TTU_SPLIT_FREEZE.
+Currently if copy_nonpresent_pte() returns a non-zero value it is assumed
+to be a swap entry which requires further processing outside the loop in
+copy_pte_range() after dropping locks.  This prevents other values being
+returned to signal conditions such as failure which a subsequent change
+requires.
 
-However it does not have much in common with the rest of the unmap
-functionality of try_to_unmap_one() and thus splitting it into a separate
-function reduces the complexity of try_to_unmap_one() making it more
-readable.
+Instead make copy_nonpresent_pte() return an error code if further
+processing is required and read the value for the swap entry in the main
+loop under the ptl.
 
-Several simplifications can also be made in try_to_migrate_one() based on
-the following observations:
-
- - All users of TTU_MIGRATION also set TTU_IGNORE_MLOCK.
- - No users of TTU_MIGRATION ever set TTU_IGNORE_HWPOISON.
- - No users of TTU_MIGRATION ever set TTU_BATCH_FLUSH.
-
-TTU_SPLIT_FREEZE is a special case of migration used when splitting an
-anonymous page.  This is most easily dealt with by calling the correct
-function from unmap_page() in mm/huge_memory.c - either try_to_migrate()
-for PageAnon or try_to_unmap().
-
-Link: https://lkml.kernel.org/r/20210616105937.23201-5-apopple@nvidia.com
+Link: https://lkml.kernel.org/r/20210616105937.23201-7-apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
 Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    4 
- mm/huge_memory.c     |   16 +
- mm/migrate.c         |    9 -
- mm/rmap.c            |  367 ++++++++++++++++++++++++++++++-----------
- 4 files changed, 289 insertions(+), 107 deletions(-)
+ mm/memory.c |   28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-split-migration-into-its-own-function
-+++ a/include/linux/rmap.h
-@@ -86,8 +86,6 @@ struct anon_vma_chain {
- };
+--- a/mm/memory.c~mm-memoryc-allow-different-return-codes-for-copy_nonpresent_pte
++++ a/mm/memory.c
+@@ -717,7 +717,7 @@ copy_nonpresent_pte(struct mm_struct *ds
  
- enum ttu_flags {
--	TTU_MIGRATION		= 0x1,	/* migration mode */
--
- 	TTU_SPLIT_HUGE_PMD	= 0x4,	/* split huge PMD if any */
- 	TTU_IGNORE_MLOCK	= 0x8,	/* ignore mlock */
- 	TTU_SYNC		= 0x10,	/* avoid racy checks with PVMW_SYNC */
-@@ -97,7 +95,6 @@ enum ttu_flags {
- 					 * do a final flush if necessary */
- 	TTU_RMAP_LOCKED		= 0x80,	/* do not grab rmap lock:
- 					 * caller holds it */
--	TTU_SPLIT_FREEZE	= 0x100,		/* freeze pte under splitting thp */
- };
+ 	if (likely(!non_swap_entry(entry))) {
+ 		if (swap_duplicate(entry) < 0)
+-			return entry.val;
++			return -EIO;
  
- #ifdef CONFIG_MMU
-@@ -194,6 +191,7 @@ static inline void page_dup_rmap(struct
- int page_referenced(struct page *, int is_locked,
- 			struct mem_cgroup *memcg, unsigned long *vm_flags);
- 
-+void try_to_migrate(struct page *page, enum ttu_flags flags);
- void try_to_unmap(struct page *, enum ttu_flags flags);
- 
- /* Avoid racy checks */
---- a/mm/huge_memory.c~mm-rmap-split-migration-into-its-own-function
-+++ a/mm/huge_memory.c
-@@ -2309,16 +2309,20 @@ void vma_adjust_trans_huge(struct vm_are
- 
- static void unmap_page(struct page *page)
- {
--	enum ttu_flags ttu_flags = TTU_IGNORE_MLOCK | TTU_SYNC |
--		TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD;
-+	enum ttu_flags ttu_flags = TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD |
-+		TTU_SYNC;
- 
- 	VM_BUG_ON_PAGE(!PageHead(page), page);
- 
--	/* If TTU_SPLIT_FREEZE is ever extended to file, update remap_page() */
-+	/*
-+	 * Anon pages need migration entries to preserve them, but file
-+	 * pages can simply be left unmapped, then faulted back on demand.
-+	 * If that is ever changed (perhaps for mlock), update remap_page().
-+	 */
- 	if (PageAnon(page))
--		ttu_flags |= TTU_SPLIT_FREEZE;
--
--	try_to_unmap(page, ttu_flags);
-+		try_to_migrate(page, ttu_flags);
-+	else
-+		try_to_unmap(page, ttu_flags | TTU_IGNORE_MLOCK);
- 
- 	VM_WARN_ON_ONCE_PAGE(page_mapped(page), page);
- }
---- a/mm/migrate.c~mm-rmap-split-migration-into-its-own-function
-+++ a/mm/migrate.c
-@@ -1109,7 +1109,7 @@ static int __unmap_and_move(struct page
- 		/* Establish migration ptes */
- 		VM_BUG_ON_PAGE(PageAnon(page) && !PageKsm(page) && !anon_vma,
- 				page);
--		try_to_unmap(page, TTU_MIGRATION|TTU_IGNORE_MLOCK);
-+		try_to_migrate(page, 0);
- 		page_was_mapped = 1;
- 	}
- 
-@@ -1311,7 +1311,7 @@ static int unmap_and_move_huge_page(new_
- 
- 	if (page_mapped(hpage)) {
- 		bool mapping_locked = false;
--		enum ttu_flags ttu = TTU_MIGRATION|TTU_IGNORE_MLOCK;
-+		enum ttu_flags ttu = 0;
- 
- 		if (!PageAnon(hpage)) {
- 			/*
-@@ -1328,7 +1328,7 @@ static int unmap_and_move_huge_page(new_
- 			ttu |= TTU_RMAP_LOCKED;
- 		}
- 
--		try_to_unmap(hpage, ttu);
-+		try_to_migrate(hpage, ttu);
- 		page_was_mapped = 1;
- 
- 		if (mapping_locked)
-@@ -2602,7 +2602,6 @@ static void migrate_vma_prepare(struct m
-  */
- static void migrate_vma_unmap(struct migrate_vma *migrate)
- {
--	int flags = TTU_MIGRATION | TTU_IGNORE_MLOCK;
- 	const unsigned long npages = migrate->npages;
- 	const unsigned long start = migrate->start;
- 	unsigned long addr, i, restore = 0;
-@@ -2614,7 +2613,7 @@ static void migrate_vma_unmap(struct mig
+ 		/* make sure dst_mm is on swapoff's mmlist. */
+ 		if (unlikely(list_empty(&dst_mm->mmlist))) {
+@@ -973,12 +973,14 @@ again:
  			continue;
- 
- 		if (page_mapped(page)) {
--			try_to_unmap(page, flags);
-+			try_to_migrate(page, 0);
- 			if (page_mapped(page))
- 				goto restore;
  		}
---- a/mm/rmap.c~mm-rmap-split-migration-into-its-own-function
-+++ a/mm/rmap.c
-@@ -1411,14 +1411,8 @@ static bool try_to_unmap_one(struct page
- 	if (flags & TTU_SYNC)
- 		pvmw.flags = PVMW_SYNC;
- 
--	if (IS_ENABLED(CONFIG_MIGRATION) && (flags & TTU_MIGRATION) &&
--	    is_zone_device_page(page) && !is_device_private_page(page))
--		return true;
--
--	if (flags & TTU_SPLIT_HUGE_PMD) {
--		split_huge_pmd_address(vma, address,
--				flags & TTU_SPLIT_FREEZE, page);
--	}
-+	if (flags & TTU_SPLIT_HUGE_PMD)
-+		split_huge_pmd_address(vma, address, false, page);
- 
- 	/*
- 	 * For THP, we have to assume the worse case ie pmd for invalidation.
-@@ -1443,16 +1437,6 @@ static bool try_to_unmap_one(struct page
- 	mmu_notifier_invalidate_range_start(&range);
- 
- 	while (page_vma_mapped_walk(&pvmw)) {
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
--		/* PMD-mapped THP migration entry */
--		if (!pvmw.pte && (flags & TTU_MIGRATION)) {
--			VM_BUG_ON_PAGE(PageHuge(page) || !PageTransCompound(page), page);
--
--			set_pmd_migration_entry(&pvmw, page);
--			continue;
--		}
--#endif
--
- 		/*
- 		 * If the page is mlock()d, we cannot swap it out.
- 		 * If it's recently referenced (perhaps page_referenced
-@@ -1514,46 +1498,6 @@ static bool try_to_unmap_one(struct page
- 			}
+ 		if (unlikely(!pte_present(*src_pte))) {
+-			entry.val = copy_nonpresent_pte(dst_mm, src_mm,
+-							dst_pte, src_pte,
+-							dst_vma, src_vma,
+-							addr, rss);
+-			if (entry.val)
++			ret = copy_nonpresent_pte(dst_mm, src_mm,
++						  dst_pte, src_pte,
++						  dst_vma, src_vma,
++						  addr, rss);
++			if (ret == -EIO) {
++				entry = pte_to_swp_entry(*src_pte);
+ 				break;
++			}
+ 			progress += 8;
+ 			continue;
  		}
+@@ -1011,20 +1013,24 @@ again:
+ 	pte_unmap_unlock(orig_dst_pte, dst_ptl);
+ 	cond_resched();
  
--		if (IS_ENABLED(CONFIG_MIGRATION) &&
--		    (flags & TTU_MIGRATION) &&
--		    is_zone_device_page(page)) {
--			swp_entry_t entry;
--			pte_t swp_pte;
--
--			pteval = ptep_get_and_clear(mm, pvmw.address, pvmw.pte);
--
--			/*
--			 * Store the pfn of the page in a special migration
--			 * pte. do_swap_page() will wait until the migration
--			 * pte is removed and then restart fault handling.
--			 */
--			entry = make_readable_migration_entry(page_to_pfn(page));
--			swp_pte = swp_entry_to_pte(entry);
--
--			/*
--			 * pteval maps a zone device page and is therefore
--			 * a swap pte.
--			 */
--			if (pte_swp_soft_dirty(pteval))
--				swp_pte = pte_swp_mksoft_dirty(swp_pte);
--			if (pte_swp_uffd_wp(pteval))
--				swp_pte = pte_swp_mkuffd_wp(swp_pte);
--			set_pte_at(mm, pvmw.address, pvmw.pte, swp_pte);
--			/*
--			 * No need to invalidate here it will synchronize on
--			 * against the special swap migration pte.
--			 *
--			 * The assignment to subpage above was computed from a
--			 * swap PTE which results in an invalid pointer.
--			 * Since only PAGE_SIZE pages can currently be
--			 * migrated, just set it to page. This will need to be
--			 * changed when hugepage migrations to device private
--			 * memory are supported.
--			 */
--			subpage = page;
--			goto discard;
--		}
--
- 		/* Nuke the page table entry. */
- 		flush_cache_page(vma, address, pte_pfn(*pvmw.pte));
- 		if (should_defer_flush(mm, flags)) {
-@@ -1606,39 +1550,6 @@ static bool try_to_unmap_one(struct page
- 			/* We have to invalidate as we cleared the pte */
- 			mmu_notifier_invalidate_range(mm, address,
- 						      address + PAGE_SIZE);
--		} else if (IS_ENABLED(CONFIG_MIGRATION) &&
--				(flags & (TTU_MIGRATION|TTU_SPLIT_FREEZE))) {
--			swp_entry_t entry;
--			pte_t swp_pte;
--
--			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
--				set_pte_at(mm, address, pvmw.pte, pteval);
--				ret = false;
--				page_vma_mapped_walk_done(&pvmw);
--				break;
--			}
--
--			/*
--			 * Store the pfn of the page in a special migration
--			 * pte. do_swap_page() will wait until the migration
--			 * pte is removed and then restart fault handling.
--			 */
--			if (pte_write(pteval))
--				entry = make_writable_migration_entry(
--							page_to_pfn(subpage));
--			else
--				entry = make_readable_migration_entry(
--							page_to_pfn(subpage));
--			swp_pte = swp_entry_to_pte(entry);
--			if (pte_soft_dirty(pteval))
--				swp_pte = pte_swp_mksoft_dirty(swp_pte);
--			if (pte_uffd_wp(pteval))
--				swp_pte = pte_swp_mkuffd_wp(swp_pte);
--			set_pte_at(mm, address, pvmw.pte, swp_pte);
--			/*
--			 * No need to invalidate here it will synchronize on
--			 * against the special swap migration pte.
--			 */
- 		} else if (PageAnon(page)) {
- 			swp_entry_t entry = { .val = page_private(subpage) };
- 			pte_t swp_pte;
-@@ -1766,6 +1677,277 @@ void try_to_unmap(struct page *page, enu
- 		.anon_lock = page_lock_anon_vma_read,
- 	};
- 
-+	if (flags & TTU_RMAP_LOCKED)
-+		rmap_walk_locked(page, &rwc);
-+	else
-+		rmap_walk(page, &rwc);
-+}
+-	if (entry.val) {
++	if (ret == -EIO) {
++		VM_WARN_ON_ONCE(!entry.val);
+ 		if (add_swap_count_continuation(entry, GFP_KERNEL) < 0) {
+ 			ret = -ENOMEM;
+ 			goto out;
+ 		}
+ 		entry.val = 0;
+-	} else if (ret) {
+-		WARN_ON_ONCE(ret != -EAGAIN);
++	} else if (ret ==  -EAGAIN) {
+ 		prealloc = page_copy_prealloc(src_mm, src_vma, addr);
+ 		if (!prealloc)
+ 			return -ENOMEM;
+-		/* We've captured and resolved the error. Reset, try again. */
+-		ret = 0;
++	} else if (ret) {
++		VM_WARN_ON_ONCE(1);
+ 	}
 +
-+/*
-+ * @arg: enum ttu_flags will be passed to this argument.
-+ *
-+ * If TTU_SPLIT_HUGE_PMD is specified any PMD mappings will be split into PTEs
-+ * containing migration entries. This and TTU_RMAP_LOCKED are the only supported
-+ * flags.
-+ */
-+static bool try_to_migrate_one(struct page *page, struct vm_area_struct *vma,
-+		     unsigned long address, void *arg)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+	struct page_vma_mapped_walk pvmw = {
-+		.page = page,
-+		.vma = vma,
-+		.address = address,
-+	};
-+	pte_t pteval;
-+	struct page *subpage;
-+	bool ret = true;
-+	struct mmu_notifier_range range;
-+	enum ttu_flags flags = (enum ttu_flags)(long)arg;
++	/* We've captured and resolved the error. Reset, try again. */
++	ret = 0;
 +
-+	if (is_zone_device_page(page) && !is_device_private_page(page))
-+		return true;
-+
-+	/*
-+	 * When racing against e.g. zap_pte_range() on another cpu,
-+	 * in between its ptep_get_and_clear_full() and page_remove_rmap(),
-+	 * try_to_migrate() may return before page_mapped() has become false,
-+	 * if page table locking is skipped: use TTU_SYNC to wait for that.
-+	 */
-+	if (flags & TTU_SYNC)
-+		pvmw.flags = PVMW_SYNC;
-+
-+	/*
-+	 * unmap_page() in mm/huge_memory.c is the only user of migration with
-+	 * TTU_SPLIT_HUGE_PMD and it wants to freeze.
-+	 */
-+	if (flags & TTU_SPLIT_HUGE_PMD)
-+		split_huge_pmd_address(vma, address, true, page);
-+
-+	/*
-+	 * For THP, we have to assume the worse case ie pmd for invalidation.
-+	 * For hugetlb, it could be much worse if we need to do pud
-+	 * invalidation in the case of pmd sharing.
-+	 *
-+	 * Note that the page can not be free in this function as call of
-+	 * try_to_unmap() must hold a reference on the page.
-+	 */
-+	range.end = PageKsm(page) ?
-+			address + PAGE_SIZE : vma_address_end(page, vma);
-+	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
-+				address, range.end);
-+	if (PageHuge(page)) {
-+		/*
-+		 * If sharing is possible, start and end will be adjusted
-+		 * accordingly.
-+		 */
-+		adjust_range_if_pmd_sharing_possible(vma, &range.start,
-+						     &range.end);
-+	}
-+	mmu_notifier_invalidate_range_start(&range);
-+
-+	while (page_vma_mapped_walk(&pvmw)) {
-+#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+		/* PMD-mapped THP migration entry */
-+		if (!pvmw.pte) {
-+			VM_BUG_ON_PAGE(PageHuge(page) ||
-+				       !PageTransCompound(page), page);
-+
-+			set_pmd_migration_entry(&pvmw, page);
-+			continue;
-+		}
-+#endif
-+
-+		/* Unexpected PMD-mapped THP? */
-+		VM_BUG_ON_PAGE(!pvmw.pte, page);
-+
-+		subpage = page - page_to_pfn(page) + pte_pfn(*pvmw.pte);
-+		address = pvmw.address;
-+
-+		if (PageHuge(page) && !PageAnon(page)) {
-+			/*
-+			 * To call huge_pmd_unshare, i_mmap_rwsem must be
-+			 * held in write mode.  Caller needs to explicitly
-+			 * do this outside rmap routines.
-+			 */
-+			VM_BUG_ON(!(flags & TTU_RMAP_LOCKED));
-+			if (huge_pmd_unshare(mm, vma, &address, pvmw.pte)) {
-+				/*
-+				 * huge_pmd_unshare unmapped an entire PMD
-+				 * page.  There is no way of knowing exactly
-+				 * which PMDs may be cached for this mm, so
-+				 * we must flush them all.  start/end were
-+				 * already adjusted above to cover this range.
-+				 */
-+				flush_cache_range(vma, range.start, range.end);
-+				flush_tlb_range(vma, range.start, range.end);
-+				mmu_notifier_invalidate_range(mm, range.start,
-+							      range.end);
-+
-+				/*
-+				 * The ref count of the PMD page was dropped
-+				 * which is part of the way map counting
-+				 * is done for shared PMDs.  Return 'true'
-+				 * here.  When there is no other sharing,
-+				 * huge_pmd_unshare returns false and we will
-+				 * unmap the actual page and drop map count
-+				 * to zero.
-+				 */
-+				page_vma_mapped_walk_done(&pvmw);
-+				break;
-+			}
-+		}
-+
-+		/* Nuke the page table entry. */
-+		flush_cache_page(vma, address, pte_pfn(*pvmw.pte));
-+		pteval = ptep_clear_flush(vma, address, pvmw.pte);
-+
-+		/* Move the dirty bit to the page. Now the pte is gone. */
-+		if (pte_dirty(pteval))
-+			set_page_dirty(page);
-+
-+		/* Update high watermark before we lower rss */
-+		update_hiwater_rss(mm);
-+
-+		if (is_zone_device_page(page)) {
-+			swp_entry_t entry;
-+			pte_t swp_pte;
-+
-+			/*
-+			 * Store the pfn of the page in a special migration
-+			 * pte. do_swap_page() will wait until the migration
-+			 * pte is removed and then restart fault handling.
-+			 */
-+			entry = make_readable_migration_entry(
-+							page_to_pfn(page));
-+			swp_pte = swp_entry_to_pte(entry);
-+
-+			/*
-+			 * pteval maps a zone device page and is therefore
-+			 * a swap pte.
-+			 */
-+			if (pte_swp_soft_dirty(pteval))
-+				swp_pte = pte_swp_mksoft_dirty(swp_pte);
-+			if (pte_swp_uffd_wp(pteval))
-+				swp_pte = pte_swp_mkuffd_wp(swp_pte);
-+			set_pte_at(mm, pvmw.address, pvmw.pte, swp_pte);
-+			/*
-+			 * No need to invalidate here it will synchronize on
-+			 * against the special swap migration pte.
-+			 *
-+			 * The assignment to subpage above was computed from a
-+			 * swap PTE which results in an invalid pointer.
-+			 * Since only PAGE_SIZE pages can currently be
-+			 * migrated, just set it to page. This will need to be
-+			 * changed when hugepage migrations to device private
-+			 * memory are supported.
-+			 */
-+			subpage = page;
-+		} else if (PageHWPoison(page)) {
-+			pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
-+			if (PageHuge(page)) {
-+				hugetlb_count_sub(compound_nr(page), mm);
-+				set_huge_swap_pte_at(mm, address,
-+						     pvmw.pte, pteval,
-+						     vma_mmu_pagesize(vma));
-+			} else {
-+				dec_mm_counter(mm, mm_counter(page));
-+				set_pte_at(mm, address, pvmw.pte, pteval);
-+			}
-+
-+		} else if (pte_unused(pteval) && !userfaultfd_armed(vma)) {
-+			/*
-+			 * The guest indicated that the page content is of no
-+			 * interest anymore. Simply discard the pte, vmscan
-+			 * will take care of the rest.
-+			 * A future reference will then fault in a new zero
-+			 * page. When userfaultfd is active, we must not drop
-+			 * this page though, as its main user (postcopy
-+			 * migration) will not expect userfaults on already
-+			 * copied pages.
-+			 */
-+			dec_mm_counter(mm, mm_counter(page));
-+			/* We have to invalidate as we cleared the pte */
-+			mmu_notifier_invalidate_range(mm, address,
-+						      address + PAGE_SIZE);
-+		} else {
-+			swp_entry_t entry;
-+			pte_t swp_pte;
-+
-+			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
-+				set_pte_at(mm, address, pvmw.pte, pteval);
-+				ret = false;
-+				page_vma_mapped_walk_done(&pvmw);
-+				break;
-+			}
-+
-+			/*
-+			 * Store the pfn of the page in a special migration
-+			 * pte. do_swap_page() will wait until the migration
-+			 * pte is removed and then restart fault handling.
-+			 */
-+			if (pte_write(pteval))
-+				entry = make_writable_migration_entry(
-+							page_to_pfn(subpage));
-+			else
-+				entry = make_readable_migration_entry(
-+							page_to_pfn(subpage));
-+
-+			swp_pte = swp_entry_to_pte(entry);
-+			if (pte_soft_dirty(pteval))
-+				swp_pte = pte_swp_mksoft_dirty(swp_pte);
-+			if (pte_uffd_wp(pteval))
-+				swp_pte = pte_swp_mkuffd_wp(swp_pte);
-+			set_pte_at(mm, address, pvmw.pte, swp_pte);
-+			/*
-+			 * No need to invalidate here it will synchronize on
-+			 * against the special swap migration pte.
-+			 */
-+		}
-+
-+		/*
-+		 * No need to call mmu_notifier_invalidate_range() it has be
-+		 * done above for all cases requiring it to happen under page
-+		 * table lock before mmu_notifier_invalidate_range_end()
-+		 *
-+		 * See Documentation/vm/mmu_notifier.rst
-+		 */
-+		page_remove_rmap(subpage, PageHuge(page));
-+		put_page(page);
-+	}
-+
-+	mmu_notifier_invalidate_range_end(&range);
-+
-+	return ret;
-+}
-+
-+/**
-+ * try_to_migrate - try to replace all page table mappings with swap entries
-+ * @page: the page to replace page table entries for
-+ * @flags: action and flags
-+ *
-+ * Tries to remove all the page table entries which are mapping this page and
-+ * replace them with special swap entries. Caller must hold the page lock.
-+ *
-+ * If is successful, return true. Otherwise, false.
-+ */
-+void try_to_migrate(struct page *page, enum ttu_flags flags)
-+{
-+	struct rmap_walk_control rwc = {
-+		.rmap_one = try_to_migrate_one,
-+		.arg = (void *)flags,
-+		.done = page_not_mapped,
-+		.anon_lock = page_lock_anon_vma_read,
-+	};
-+
-+	/*
-+	 * Migration always ignores mlock and only supports TTU_RMAP_LOCKED and
-+	 * TTU_SPLIT_HUGE_PMD and TTU_SYNC flags.
-+	 */
-+	if (WARN_ON_ONCE(flags & ~(TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD |
-+					TTU_SYNC)))
-+		return;
-+
- 	/*
- 	 * During exec, a temporary VMA is setup and later moved.
- 	 * The VMA is moved under the anon_vma lock but not the
-@@ -1774,8 +1956,7 @@ void try_to_unmap(struct page *page, enu
- 	 * locking requirements of exec(), migration skips
- 	 * temporary VMAs until after exec() completes.
- 	 */
--	if ((flags & (TTU_MIGRATION|TTU_SPLIT_FREEZE))
--	    && !PageKsm(page) && PageAnon(page))
-+	if (!PageKsm(page) && PageAnon(page))
- 		rwc.invalid_vma = invalid_migration_vma;
- 
- 	if (flags & TTU_RMAP_LOCKED)
+ 	if (addr != end)
+ 		goto again;
+ out:
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
