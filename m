@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F29A4C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4982EC07E9C
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB0AE61C6F
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3285861C6D
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231794AbhGFTKx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:10:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45720 "EHLO mail.kernel.org"
+        id S231795AbhGFTKy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:10:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45740 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231778AbhGFTKw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:10:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6F23961C23;
-        Tue,  6 Jul 2021 19:08:12 +0000 (UTC)
+        id S231802AbhGFTKy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:10:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 69AF561C56;
+        Tue,  6 Jul 2021 19:08:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598492;
-        bh=W09liCDV+VTAA1r6BnWx4UxpIbyVnsjywQwWS3pnRjw=;
+        s=korg; t=1625598494;
+        bh=C1JzRli58DjFFAXJ2XbcKR76qEGq0Yea9+UpOLuE76A=;
         h=Date:From:To:Subject:From;
-        b=YyFdsDgNBmYbIgL33IQxWKlel8RkSo4X+OaJIrIUKVRvwcSmXhPJU90HbSJYamXGA
-         z7EvsDo7tXLZz1wpbAizbS6XPaFOmTKJpfxvMtbsQOr/PDTB3hiKDR3l7dUbJ3lZxB
-         AbI+l7r3lyb0Fczl++GH1xa+JolgBqu+0iiRbqcw=
-Date:   Tue, 06 Jul 2021 12:08:12 -0700
+        b=uXrFNAguloayBAYpSs0IW+gehF/m6W/Cp3wRtnNBwZmOPSvYX/nVf7Yt1j5fSb208
+         osWqyRauSSX9n42E1mv3U963Y1c/luTK7dCah2asFhjUvUN0UTw+8RwhadZgaQBuUa
+         yoi5PhzGp3z8xdp2mCfel2Ht6CHENb2Xt9kBQLm8=
+Date:   Tue, 06 Jul 2021 12:08:14 -0700
 From:   akpm@linux-foundation.org
-To:     fenghua.yu@intel.com, mm-commits@vger.kernel.org,
+To:     arnd@arndb.de, masahiroy@kernel.org, mm-commits@vger.kernel.org,
         rdunlap@infradead.org
-Subject:  [merged] ia64-headers-drop-duplicated-words.patch removed
- from -mm tree
-Message-ID: <20210706190812.BR-sH4fX3%akpm@linux-foundation.org>
+Subject:  [merged]
+ ia64-mca_drv-fix-incorrect-array-size-calculation.patch removed from -mm
+ tree
+Message-ID: <20210706190814.JW_YK4-AH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,66 +44,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: headers: drop duplicated words
+     Subject: ia64: mca_drv: fix incorrect array size calculation
 has been removed from the -mm tree.  Its filename was
-     ia64-headers-drop-duplicated-words.patch
+     ia64-mca_drv-fix-incorrect-array-size-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: ia64: headers: drop duplicated words
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: ia64: mca_drv: fix incorrect array size calculation
 
-Delete the repeated words "to" and "the".
+gcc points out a mistake in the mca driver that goes back to before the
+git history:
 
-Link: https://lkml.kernel.org/r/20210507184837.10754-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+arch/ia64/kernel/mca_drv.c: In function 'init_record_index_pools':
+arch/ia64/kernel/mca_drv.c:346:54: error: expression does not compute the number of elements in this array; element typ
+e is 'int', not 'size_t' {aka 'long unsigned int'} [-Werror=sizeof-array-div]
+  346 |         for (i = 1; i < sizeof sal_log_sect_min_sizes/sizeof(size_t); i++)
+      |                                                      ^
+
+This is the same as sizeof(size_t), which is two shorter than the actual
+array.  Use the ARRAY_SIZE() macro to get the correct calculation instead.
+
+Link: https://lkml.kernel.org/r/20210514214123.875971-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/pal.h       |    2 +-
- arch/ia64/include/asm/spinlock.h  |    2 +-
- arch/ia64/include/asm/uv/uv_hub.h |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ arch/ia64/kernel/mca_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/ia64/include/asm/pal.h~ia64-headers-drop-duplicated-words
-+++ a/arch/ia64/include/asm/pal.h
-@@ -1086,7 +1086,7 @@ static inline long ia64_pal_freq_base(un
+--- a/arch/ia64/kernel/mca_drv.c~ia64-mca_drv-fix-incorrect-array-size-calculation
++++ a/arch/ia64/kernel/mca_drv.c
+@@ -343,7 +343,7 @@ init_record_index_pools(void)
  
- /*
-  * Get the ratios for processor frequency, bus frequency and interval timer to
-- * to base frequency of the platform
-+ * the base frequency of the platform
-  */
- static inline s64
- ia64_pal_freq_ratios (struct pal_freq_ratio *proc_ratio, struct pal_freq_ratio *bus_ratio,
---- a/arch/ia64/include/asm/spinlock.h~ia64-headers-drop-duplicated-words
-+++ a/arch/ia64/include/asm/spinlock.h
-@@ -26,7 +26,7 @@
-  * the queue, and the other indicating the current tail. The lock is acquired
-  * by atomically noting the tail and incrementing it by one (thus adding
-  * ourself to the queue and noting our position), then waiting until the head
-- * becomes equal to the the initial value of the tail.
-+ * becomes equal to the initial value of the tail.
-  * The pad bits in the middle are used to prevent the next_ticket number
-  * overflowing into the now_serving number.
-  *
---- a/arch/ia64/include/asm/uv/uv_hub.h~ia64-headers-drop-duplicated-words
-+++ a/arch/ia64/include/asm/uv/uv_hub.h
-@@ -257,7 +257,7 @@ static inline int uv_numa_blade_id(void)
- 	return 0;
- }
+ 	/* - 2 - */
+ 	sect_min_size = sal_log_sect_min_sizes[0];
+-	for (i = 1; i < sizeof sal_log_sect_min_sizes/sizeof(size_t); i++)
++	for (i = 1; i < ARRAY_SIZE(sal_log_sect_min_sizes); i++)
+ 		if (sect_min_size > sal_log_sect_min_sizes[i])
+ 			sect_min_size = sal_log_sect_min_sizes[i];
  
--/* Convert a cpu number to the the UV blade number */
-+/* Convert a cpu number to the UV blade number */
- static inline int uv_cpu_to_blade_id(int cpu)
- {
- 	return 0;
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-slub-use-stackdepot-to-save-stack-trace-in-objects-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-2.patch
 
