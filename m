@@ -5,36 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C202DC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00DE0C07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A941361C75
+	by mail.kernel.org (Postfix) with ESMTP id DA02361C6C
 	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231802AbhGFTLB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231784AbhGFTLB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 6 Jul 2021 15:11:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45826 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45840 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231778AbhGFTK7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:10:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 64A6761C6C;
-        Tue,  6 Jul 2021 19:08:20 +0000 (UTC)
+        id S231816AbhGFTLB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:11:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A92061C71;
+        Tue,  6 Jul 2021 19:08:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598500;
-        bh=zwcN+ZiDRZjxW2dxagVI2XiA8APqZhapms236l1IBx8=;
+        s=korg; t=1625598501;
+        bh=jDH5ah95jA79q06d2O4ZNsGIRhLPvY2LZ3RexsoGiUA=;
         h=Date:From:To:Subject:From;
-        b=ak4uwQsyij3cmwNYYpq+AaMnFaj9OJ3i7tBkWKRQ7uvWtzmPmc1WrXvzsxET2Hwu2
-         +DZ21W748BQppsYdlxQIq7ZEprhm/olpD/3YSs+iY+Qt1PeoC5HjW7A8VSkwilptP3
-         vTWni/6BCj9zXFBvT4Og8K54JeBwhR+jCfMl+66s=
-Date:   Tue, 06 Jul 2021 12:08:20 -0700
+        b=eW1RSirb4P3b5C+9uGX46Dz181elOB0i9h+uPnz7daWQQz2Es2/+GUfVSPzrwlt/u
+         lrb6DMLacUqBb/DyHdDltcLhrbALF0KdXyV0VGKQ386wOWTEniqZHN3DTYLSRjF3K6
+         K42ai2ObwAWjq+/IZyAxJp5kK/jDi2UMl2b7ha0Y=
+Date:   Tue, 06 Jul 2021 12:08:21 -0700
 From:   akpm@linux-foundation.org
-To:     colin.king@canonical.com, mm-commits@vger.kernel.org
+To:     anton@tuxera.com, desmondcheongzx@gmail.com,
+        gregkh@linuxfoundation.org, mm-commits@vger.kernel.org,
+        skhan@linuxfoundation.org, stable@vger.kernel.org
 Subject:  [merged]
- scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch removed from
- -mm tree
-Message-ID: <20210706190820.FrH4-Y68y%akpm@linux-foundation.org>
+ ntfs-fix-validity-check-for-file-name-attribute.patch removed from -mm tree
+Message-ID: <20210706190821.patdINuRO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,142 +44,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add more spellings to spelling.txt
+     Subject: ntfs: fix validity check for file name attribute
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+     ntfs-fix-validity-check-for-file-name-attribute.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: scripts/spelling.txt: add more spellings to spelling.txt
+From: Desmond Cheong Zhi Xi <desmondcheongzx@gmail.com>
+Subject: ntfs: fix validity check for file name attribute
 
-Here are some of the more common spelling mistakes and typos that I've
-found while fixing up spelling mistakes in the kernel in the past few
-months.
+When checking the file name attribute, we want to ensure that it fits
+within the bounds of ATTR_RECORD.  To do this, we should check that (attr
+record + file name offset + file name length) < (attr record + attr record
+length).
 
-Link: https://lkml.kernel.org/r/20210514093655.8829-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+However, the original check did not include the file name offset in the
+calculation.  This means that corrupted on-disk metadata might not caught
+by the incorrect file name check, and lead to an invalid memory access.
+
+An example can be seen in the crash report of a memory corruption error
+found by Syzbot:
+https://syzkaller.appspot.com/bug?id=a1a1e379b225812688566745c3e2f7242bffc246
+
+Adding the file name offset to the validity check fixes this error and
+passes the Syzbot reproducer test.
+
+Link: https://lkml.kernel.org/r/20210614050540.289494-1-desmondcheongzx@gmail.com
+Signed-off-by: Desmond Cheong Zhi Xi <desmondcheongzx@gmail.com>
+Reported-by: syzbot+213ac8bb98f7f4420840@syzkaller.appspotmail.com
+Tested-by: syzbot+213ac8bb98f7f4420840@syzkaller.appspotmail.com
+Acked-by: Anton Altaparmakov <anton@tuxera.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ fs/ntfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/spelling.txt~scripts-spellingtxt-add-more-spellings-to-spellingtxt
-+++ a/scripts/spelling.txt
-@@ -22,6 +22,7 @@ absolut||absolute
- absoulte||absolute
- acccess||access
- acceess||access
-+accelaration||acceleration
- acceleratoin||acceleration
- accelleration||acceleration
- accesing||accessing
-@@ -264,6 +265,7 @@ calucate||calculate
- calulate||calculate
- cancelation||cancellation
- cancle||cancel
-+canot||cannot
- capabilites||capabilities
- capabilties||capabilities
- capabilty||capability
-@@ -494,7 +496,10 @@ digial||digital
- dimention||dimension
- dimesions||dimensions
- diconnected||disconnected
-+disabed||disabled
-+disble||disable
- disgest||digest
-+disired||desired
- dispalying||displaying
- diplay||display
- directon||direction
-@@ -710,6 +715,7 @@ havind||having
- heirarchically||hierarchically
- heirarchy||hierarchy
- helpfull||helpful
-+hearbeat||heartbeat
- heterogenous||heterogeneous
- hexdecimal||hexadecimal
- hybernate||hibernate
-@@ -989,6 +995,7 @@ notications||notifications
- notifcations||notifications
- notifed||notified
- notity||notify
-+nubmer||number
- numebr||number
- numner||number
- obtaion||obtain
-@@ -1014,8 +1021,10 @@ ommiting||omitting
- ommitted||omitted
- onself||oneself
- ony||only
-+openning||opening
- operatione||operation
- opertaions||operations
-+opportunies||opportunities
- optionnal||optional
- optmizations||optimizations
- orientatied||orientated
-@@ -1111,6 +1120,7 @@ prefitler||prefilter
- preform||perform
- premption||preemption
- prepaired||prepared
-+prepate||prepare
- preperation||preparation
- preprare||prepare
- pressre||pressure
-@@ -1123,6 +1133,7 @@ privilaged||privileged
- privilage||privilege
- priviledge||privilege
- priviledges||privileges
-+privleges||privileges
- probaly||probably
- procceed||proceed
- proccesors||processors
-@@ -1167,6 +1178,7 @@ promixity||proximity
- psudo||pseudo
- psuedo||pseudo
- psychadelic||psychedelic
-+purgable||purgeable
- pwoer||power
- queing||queuing
- quering||querying
-@@ -1180,6 +1192,7 @@ receieve||receive
- recepient||recipient
- recevied||received
- receving||receiving
-+recievd||received
- recieved||received
- recieve||receive
- reciever||receiver
-@@ -1228,6 +1241,7 @@ reponse||response
- representaion||representation
- reqeust||request
- reqister||register
-+requed||requeued
- requestied||requested
- requiere||require
- requirment||requirement
-@@ -1332,6 +1346,7 @@ singal||signal
- singed||signed
- sleeped||slept
- sliped||slipped
-+softwade||software
- softwares||software
- soley||solely
- souce||source
-@@ -1510,6 +1525,7 @@ unintialized||uninitialized
- unitialized||uninitialized
- unkmown||unknown
- unknonw||unknown
-+unknouwn||unknown
- unknow||unknown
- unkown||unknown
- unamed||unnamed
+--- a/fs/ntfs/inode.c~ntfs-fix-validity-check-for-file-name-attribute
++++ a/fs/ntfs/inode.c
+@@ -477,7 +477,7 @@ err_corrupt_attr:
+ 		}
+ 		file_name_attr = (FILE_NAME_ATTR*)((u8*)attr +
+ 				le16_to_cpu(attr->data.resident.value_offset));
+-		p2 = (u8*)attr + le32_to_cpu(attr->data.resident.value_length);
++		p2 = (u8 *)file_name_attr + le32_to_cpu(attr->data.resident.value_length);
+ 		if (p2 < (u8*)attr || p2 > p)
+ 			goto err_corrupt_attr;
+ 		/* This attribute is ok, but is it in the $Extend directory? */
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from desmondcheongzx@gmail.com are
 
 
