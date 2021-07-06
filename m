@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EB57C07E9C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38341C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E7B361C9A
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20BCC61C9E
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231718AbhGFTXK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:23:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56798 "EHLO mail.kernel.org"
+        id S231742AbhGFTXO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:23:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56836 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231698AbhGFTXJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:23:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 85E5961C9D;
-        Tue,  6 Jul 2021 19:20:30 +0000 (UTC)
+        id S231740AbhGFTXL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:23:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7164B61C9A;
+        Tue,  6 Jul 2021 19:20:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599230;
-        bh=KKgxMox7y8PZLAKRExFM1zV8piezOFqy03muB+99ITs=;
+        s=korg; t=1625599232;
+        bh=+Jcxgwosb4bBKo4M7EFwWecEwYRaFSyQv49K1PB9hiE=;
         h=Date:From:To:Subject:From;
-        b=1X+kMCtTj2O8Usou3xzhxlP5b0Ac2Fvox5V8ruvbbZC9NuELdCQtxkIVapA/rmaG3
-         c021Nd2mTv8ypes6kMCXN1UYp/LufGnFqQC2ZX46d+Jhc04ptI2uI99OYj8rCMRvgX
-         fo0PplDriaEvoQkN2XdhxuBJ79VuW8KAvp4rJcRI=
-Date:   Tue, 06 Jul 2021 12:20:30 -0700
+        b=bSfVVbDA9TjzTCRCA7gOIWru3XRawB7aq1vMR1xZsSMNim50hD5OIiQoHGwshs5EV
+         M2zGssD41yvV/lT8L61inLQjvSuyJyxJa8rRk5U+60uEdxE9i7Sytr/vh52MhnsMTK
+         OXhd0qJdh0yvQQvNRy/n2iPBn0iZ23lgjfQQsU7w=
+Date:   Tue, 06 Jul 2021 12:20:32 -0700
 From:   akpm@linux-foundation.org
 To:     bigeasy@linutronix.de, colin.king@canonical.com, ddstreet@ieee.org,
         linmiaohe@huawei.com, mm-commits@vger.kernel.org,
         nathan@kernel.org, sjenning@redhat.com, tiantao6@hisilicon.com,
         vitaly.wool@konsulko.com
 Subject:  [merged]
- mm-zswapc-remove-unused-function-zswap_debugfs_exit.patch removed from -mm
- tree
-Message-ID: <20210706192030.goPo71ty-%akpm@linux-foundation.org>
+ mm-zswapc-avoid-unnecessary-copy-in-at-map-time.patch removed from -mm tree
+Message-ID: <20210706192032.NvT8zLXxJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,65 +45,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zswap.c: remove unused function zswap_debugfs_exit()
+     Subject: mm/zswap.c: avoid unnecessary copy-in at map time
 has been removed from the -mm tree.  Its filename was
-     mm-zswapc-remove-unused-function-zswap_debugfs_exit.patch
+     mm-zswapc-avoid-unnecessary-copy-in-at-map-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/zswap.c: remove unused function zswap_debugfs_exit()
+Subject: mm/zswap.c: avoid unnecessary copy-in at map time
 
-Patch series "Cleanup and fixup for zswap".
+The buf mapped via zpool_map_handle() is only used to store compressed
+page buffer and there is no information to extract from it. So we could
+use ZPOOL_MM_WO instead to avoid unnecessary copy-in at map time.
 
-This series contains cleanups to remove unused function and avoid
-unnecessary copy-in at map time.  Also this fixes two bugs in the function
-zswap_writeback_entry().  More details can be found in the respective
-changelogs.
-
-
-This patch (of 3):
-
-zswap_debugfs_exit() is unused, remove it.
-
-Link: https://lkml.kernel.org/r/20210522092242.3233191-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210522092242.3233191-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210522092242.3233191-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Colin Ian King <colin.king@canonical.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Seth Jennings <sjenning@redhat.com>
 Cc: Tian Tao <tiantao6@hisilicon.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    7 -------
- 1 file changed, 7 deletions(-)
+ mm/zswap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/zswap.c~mm-zswapc-remove-unused-function-zswap_debugfs_exit
+--- a/mm/zswap.c~mm-zswapc-avoid-unnecessary-copy-in-at-map-time
 +++ a/mm/zswap.c
-@@ -1427,18 +1427,11 @@ static int __init zswap_debugfs_init(voi
- 
- 	return 0;
- }
--
--static void __exit zswap_debugfs_exit(void)
--{
--	debugfs_remove_recursive(zswap_debugfs_root);
--}
- #else
- static int __init zswap_debugfs_init(void)
- {
- 	return 0;
- }
--
--static void __exit zswap_debugfs_exit(void) { }
- #endif
- 
- /*********************************
+@@ -1203,7 +1203,7 @@ static int zswap_frontswap_store(unsigne
+ 		zswap_reject_alloc_fail++;
+ 		goto put_dstmem;
+ 	}
+-	buf = zpool_map_handle(entry->pool->zpool, handle, ZPOOL_MM_RW);
++	buf = zpool_map_handle(entry->pool->zpool, handle, ZPOOL_MM_WO);
+ 	memcpy(buf, &zhdr, hlen);
+ 	memcpy(buf + hlen, dst, dlen);
+ 	zpool_unmap_handle(entry->pool->zpool, handle);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
