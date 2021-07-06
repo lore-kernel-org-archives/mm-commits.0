@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 960A3C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC642C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 807DF61CA8
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9175761CA9
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229793AbhGFTZP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:25:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58524 "EHLO mail.kernel.org"
+        id S229971AbhGFTZR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:25:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58552 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229811AbhGFTZP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:25:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7193861C9E;
-        Tue,  6 Jul 2021 19:22:35 +0000 (UTC)
+        id S229811AbhGFTZR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:25:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 825D961CA3;
+        Tue,  6 Jul 2021 19:22:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599355;
-        bh=NoT3IZRaolcBItoEc9+UfgxyBPouzn0B0QbDGgo6V1Q=;
+        s=korg; t=1625599357;
+        bh=7diE05//ojgdnQu+eXUkf/eYbpZNaC9qI8B618we6XA=;
         h=Date:From:To:Subject:From;
-        b=gwQ6OMcoCO3+v4GjCRi6ygraRcAlyAmIBR9rg3jWF0IkDunC6Sof0tGGXaez/TzCZ
-         5O8gLWKri0+CfxqzVPTXoXumzwiE5RhfRHjnsIK7Y1h7QwgtlLlXhKjqvrFRibb2B+
-         75jTv5g/lJlbp72ig2sGqc3luHHWAFHybOGJnWfU=
-Date:   Tue, 06 Jul 2021 12:22:35 -0700
+        b=ZIvWwESFvNcSABk/UJ9id4LBHtzyYrUoxLt21RMUND5tslC+37GIlhlNWcRNZaL+G
+         SQkyhgHi6Wq/DFqYB/kiFNN3/1yHO0XPqB1FSju4eA/mTrLVWSt8IB6BdzWubXGO1f
+         AsSrTBDRlWl2tuleaQ3R/Embh95OJIlTH8eS50/o=
+Date:   Tue, 06 Jul 2021 12:22:37 -0700
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, colin.king@canonical.com,
-        dlatypov@google.com, mm-commits@vger.kernel.org, oskar@scara.com,
-        tpiepho@gmail.com, yguoaz@gmail.com
-Subject:  [merged] lib-math-rational-add-kunit-test-cases.patch
+To:     jkosina@suse.cz, mm-commits@vger.kernel.org,
+        thunder.leizhen@huawei.com, tsbogend@alpha.franken.de
+Subject:  [merged] lib-decompressors-fix-spelling-mistakes.patch
  removed from -mm tree
-Message-ID: <20210706192235.-7N4EBK_C%akpm@linux-foundation.org>
+Message-ID: <20210706192237.e1UYtE9iH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,125 +43,164 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/math/rational: add Kunit test cases
+     Subject: lib/decompressors: fix spelling mistakes
 has been removed from the -mm tree.  Its filename was
-     lib-math-rational-add-kunit-test-cases.patch
+     lib-decompressors-fix-spelling-mistakes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Trent Piepho <tpiepho@gmail.com>
-Subject: lib/math/rational: add Kunit test cases
+From: Zhen Lei <thunder.leizhen@huawei.com>
+Subject: lib/decompressors: fix spelling mistakes
 
-Adds a number of test cases that cover a range of possible code paths.
+Fix some spelling mistakes in comments:
+sentinal ==> sentinel
+compresed ==> compressed
+dependeny ==> dependency
+immediatelly ==> immediately
+dervied ==> derived
+splitted ==> split
+nore ==> not
+independed ==> independent
+asumed ==> assumed
 
-[akpm@linux-foundation.org: remove non-ascii characters, fix whitespace]
-[colin.king@canonical.com: fix spelling mistake "demominator" -> "denominator"]
-  Link: https://lkml.kernel.org/r/20210526085049.6393-1-colin.king@canonical.com
-Link: https://lkml.kernel.org/r/20210525144250.214670-2-tpiepho@gmail.com
-Signed-off-by: Trent Piepho <tpiepho@gmail.com>
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Daniel Latypov <dlatypov@google.com>
-Cc: Oskar Schirmer <oskar@scara.com>
-Cc: Yiyuan Guo <yguoaz@gmail.com>
+Link: https://lkml.kernel.org/r/20210604085656.12257-1-thunder.leizhen@huawei.com
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug        |   12 +++++++
- lib/math/Makefile        |    1 
- lib/math/rational-test.c |   56 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 69 insertions(+)
+ lib/decompress_bunzip2.c   |    4 ++--
+ lib/decompress_unxz.c      |    2 +-
+ lib/decompress_unzstd.c    |    4 ++--
+ lib/xz/xz_dec_bcj.c        |    2 +-
+ lib/xz/xz_dec_lzma2.c      |    8 ++++----
+ lib/zlib_inflate/inffast.c |    2 +-
+ lib/zstd/huf.h             |    2 +-
+ 7 files changed, 12 insertions(+), 12 deletions(-)
 
---- a/lib/Kconfig.debug~lib-math-rational-add-kunit-test-cases
-+++ a/lib/Kconfig.debug
-@@ -2444,6 +2444,18 @@ config SLUB_KUNIT_TEST
+--- a/lib/decompress_bunzip2.c~lib-decompressors-fix-spelling-mistakes
++++ a/lib/decompress_bunzip2.c
+@@ -80,7 +80,7 @@
  
- 	  If unsure, say N.
+ /* This is what we know about each Huffman coding group */
+ struct group_data {
+-	/* We have an extra slot at the end of limit[] for a sentinal value. */
++	/* We have an extra slot at the end of limit[] for a sentinel value. */
+ 	int limit[MAX_HUFCODE_BITS+1];
+ 	int base[MAX_HUFCODE_BITS];
+ 	int permute[MAX_SYMBOLS];
+@@ -337,7 +337,7 @@ static int INIT get_next_block(struct bu
+ 			pp <<= 1;
+ 			base[i+1] = pp-(t += temp[i]);
+ 		}
+-		limit[maxLen+1] = INT_MAX; /* Sentinal value for
++		limit[maxLen+1] = INT_MAX; /* Sentinel value for
+ 					    * reading next sym. */
+ 		limit[maxLen] = pp+temp[maxLen]-1;
+ 		base[minLen] = 0;
+--- a/lib/decompress_unxz.c~lib-decompressors-fix-spelling-mistakes
++++ a/lib/decompress_unxz.c
+@@ -23,7 +23,7 @@
+  * uncompressible. Thus, we must look for worst-case expansion when the
+  * compressor is encoding uncompressible data.
+  *
+- * The structure of the .xz file in case of a compresed kernel is as follows.
++ * The structure of the .xz file in case of a compressed kernel is as follows.
+  * Sizes (as bytes) of the fields are in parenthesis.
+  *
+  *    Stream Header (12)
+--- a/lib/decompress_unzstd.c~lib-decompressors-fix-spelling-mistakes
++++ a/lib/decompress_unzstd.c
+@@ -16,7 +16,7 @@
+  * uncompressible. Thus, we must look for worst-case expansion when the
+  * compressor is encoding uncompressible data.
+  *
+- * The structure of the .zst file in case of a compresed kernel is as follows.
++ * The structure of the .zst file in case of a compressed kernel is as follows.
+  * Maximum sizes (as bytes) of the fields are in parenthesis.
+  *
+  *    Frame Header: (18)
+@@ -56,7 +56,7 @@
+ /*
+  * Preboot environments #include "path/to/decompress_unzstd.c".
+  * All of the source files we depend on must be #included.
+- * zstd's only source dependeny is xxhash, which has no source
++ * zstd's only source dependency is xxhash, which has no source
+  * dependencies.
+  *
+  * When UNZSTD_PREBOOT is defined we declare __decompress(), which is
+--- a/lib/xz/xz_dec_bcj.c~lib-decompressors-fix-spelling-mistakes
++++ a/lib/xz/xz_dec_bcj.c
+@@ -422,7 +422,7 @@ XZ_EXTERN enum xz_ret xz_dec_bcj_run(str
  
-+config RATIONAL_KUNIT_TEST
-+	tristate "KUnit test for rational.c" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
-+	select RATIONAL
-+	default KUNIT_ALL_TESTS
-+	help
-+	  This builds the rational math unit test.
-+	  For more information on KUnit and unit tests in general please refer
-+	  to the KUnit documentation in Documentation/dev-tools/kunit/.
-+
-+	  If unsure, say N.
-+
- config TEST_UDELAY
- 	tristate "udelay test driver"
- 	help
---- a/lib/math/Makefile~lib-math-rational-add-kunit-test-cases
-+++ a/lib/math/Makefile
-@@ -6,3 +6,4 @@ obj-$(CONFIG_PRIME_NUMBERS)	+= prime_num
- obj-$(CONFIG_RATIONAL)		+= rational.o
+ 	/*
+ 	 * Flush pending already filtered data to the output buffer. Return
+-	 * immediatelly if we couldn't flush everything, or if the next
++	 * immediately if we couldn't flush everything, or if the next
+ 	 * filter in the chain had already returned XZ_STREAM_END.
+ 	 */
+ 	if (s->temp.filtered > 0) {
+--- a/lib/xz/xz_dec_lzma2.c~lib-decompressors-fix-spelling-mistakes
++++ a/lib/xz/xz_dec_lzma2.c
+@@ -147,8 +147,8 @@ struct lzma_dec {
  
- obj-$(CONFIG_TEST_DIV64)	+= test_div64.o
-+obj-$(CONFIG_RATIONAL_KUNIT_TEST) += rational-test.o
---- /dev/null
-+++ a/lib/math/rational-test.c
-@@ -0,0 +1,56 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <kunit/test.h>
-+
-+#include <linux/rational.h>
-+
-+struct rational_test_param {
-+	unsigned long num, den;
-+	unsigned long max_num, max_den;
-+	unsigned long exp_num, exp_den;
-+
-+	const char *name;
-+};
-+
-+static const struct rational_test_param test_parameters[] = {
-+	{ 1230,	10,	100, 20,	100, 1,    "Exceeds bounds, semi-convergent term > 1/2 last term" },
-+	{ 34567,100, 	120, 20,	120, 1,    "Exceeds bounds, semi-convergent term < 1/2 last term" },
-+	{ 1, 30,	100, 10,	0, 1,	   "Closest to zero" },
-+	{ 1, 19,	100, 10,	1, 10,     "Closest to smallest non-zero" },
-+	{ 27,32,	16, 16,		11, 13,    "Use convergent" },
-+	{ 1155, 7735,	255, 255,	33, 221,   "Exact answer" },
-+	{ 87, 32,	70, 32,		68, 25,    "Semiconvergent, numerator limit" },
-+	{ 14533, 4626,	15000, 2400,	7433, 2366, "Semiconvergent, denominator limit" },
-+};
-+
-+static void get_desc(const struct rational_test_param *param, char *desc)
-+{
-+	strscpy(desc, param->name, KUNIT_PARAM_DESC_SIZE);
-+}
-+
-+/* Creates function rational_gen_params */
-+KUNIT_ARRAY_PARAM(rational, test_parameters, get_desc);
-+
-+static void rational_test(struct kunit *test)
-+{
-+	const struct rational_test_param *param = (const struct rational_test_param *)test->param_value;
-+	unsigned long n = 0, d = 0;
-+
-+	rational_best_approximation(param->num, param->den, param->max_num, param->max_den, &n, &d);
-+	KUNIT_EXPECT_EQ(test, n, param->exp_num);
-+	KUNIT_EXPECT_EQ(test, d, param->exp_den);
-+}
-+
-+static struct kunit_case rational_test_cases[] = {
-+	KUNIT_CASE_PARAM(rational_test, rational_gen_params),
-+	{}
-+};
-+
-+static struct kunit_suite rational_test_suite = {
-+	.name = "rational",
-+	.test_cases = rational_test_cases,
-+};
-+
-+kunit_test_suites(&rational_test_suite);
-+
-+MODULE_LICENSE("GPL v2");
+ 	/*
+ 	 * LZMA properties or related bit masks (number of literal
+-	 * context bits, a mask dervied from the number of literal
+-	 * position bits, and a mask dervied from the number
++	 * context bits, a mask derived from the number of literal
++	 * position bits, and a mask derived from the number
+ 	 * position bits)
+ 	 */
+ 	uint32_t lc;
+@@ -484,7 +484,7 @@ static __always_inline void rc_normalize
+ }
+ 
+ /*
+- * Decode one bit. In some versions, this function has been splitted in three
++ * Decode one bit. In some versions, this function has been split in three
+  * functions so that the compiler is supposed to be able to more easily avoid
+  * an extra branch. In this particular version of the LZMA decoder, this
+  * doesn't seem to be a good idea (tested with GCC 3.3.6, 3.4.6, and 4.3.3
+@@ -761,7 +761,7 @@ static bool lzma_main(struct xz_dec_lzma
+ }
+ 
+ /*
+- * Reset the LZMA decoder and range decoder state. Dictionary is nore reset
++ * Reset the LZMA decoder and range decoder state. Dictionary is not reset
+  * here, because LZMA state may be reset without resetting the dictionary.
+  */
+ static void lzma_reset(struct xz_dec_lzma2 *s)
+--- a/lib/zlib_inflate/inffast.c~lib-decompressors-fix-spelling-mistakes
++++ a/lib/zlib_inflate/inffast.c
+@@ -15,7 +15,7 @@ union uu {
+ 	unsigned char b[2];
+ };
+ 
+-/* Endian independed version */
++/* Endian independent version */
+ static inline unsigned short
+ get_unaligned16(const unsigned short *p)
+ {
+--- a/lib/zstd/huf.h~lib-decompressors-fix-spelling-mistakes
++++ a/lib/zstd/huf.h
+@@ -134,7 +134,7 @@ typedef enum {
+ 	HUF_repeat_none,  /**< Cannot use the previous table */
+ 	HUF_repeat_check, /**< Can use the previous table but it must be checked. Note : The previous table must have been constructed by HUF_compress{1,
+ 			     4}X_repeat */
+-	HUF_repeat_valid  /**< Can use the previous table and it is asumed to be valid */
++	HUF_repeat_valid  /**< Can use the previous table and it is assumed to be valid */
+ } HUF_repeat;
+ /** HUF_compress4X_repeat() :
+ *   Same as HUF_compress4X_wksp(), but considers using hufTable if *repeat != HUF_repeat_none.
 _
 
-Patches currently in -mm which might be from tpiepho@gmail.com are
+Patches currently in -mm which might be from thunder.leizhen@huawei.com are
 
+lib-test-fix-spelling-mistakes.patch
+lib-fix-spelling-mistakes.patch
+lib-fix-spelling-mistakes-in-header-files.patch
+mm-fix-spelling-mistakes-in-header-files.patch
 
