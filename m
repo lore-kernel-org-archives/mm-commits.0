@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA7FBC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BECC7C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA5CF6023F
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A16C86023F
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230052AbhGFTQy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:16:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50994 "EHLO mail.kernel.org"
+        id S231684AbhGFTQ6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:16:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51024 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231727AbhGFTQy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:16:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6FC0360FE3;
-        Tue,  6 Jul 2021 19:14:15 +0000 (UTC)
+        id S231367AbhGFTQ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:16:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8EBC660C3D;
+        Tue,  6 Jul 2021 19:14:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598855;
-        bh=ixMd718AeNW1v8TY/vKDxOI355HGHrrOuJJd003IOEY=;
+        s=korg; t=1625598857;
+        bh=saOoNMYQN+GIzd7s0q+bF57MFmI+RDBhdZkUKeAis6U=;
         h=Date:From:To:Subject:From;
-        b=EKGtQ5lI4EmfYemYPeuO4Gvw/tlDFsbX6HMt7LG01jHwGHx9HMiTDhkFwTB2x1h/I
-         ZFcwh6nfE6arIzhJeaQxPKZ1/IXvteyNGQzC8jn7zObqqoljICz0MIB/q2oLotcDVT
-         rx+LdfPZ2xg6rkEFONWjJ05fWAA2K36eUeqHF7bU=
-Date:   Tue, 06 Jul 2021 12:14:15 -0700
+        b=nznlOMsop9KgJfXWjWoM7APiGFYWljqdDiv88DV0o6q/R8Chta8Zyqzhqk5uWgCbS
+         jyRei+ParOw33S2b8D5HcQNEBJdU+ybykZjkyoFAB2i2dzorRq1Tu2SgfDsXWoNAqZ
+         Pdt5dcvlbO33Gxf0BMEeZZFFYEA1nw+8klRFS5DU=
+Date:   Tue, 06 Jul 2021 12:14:17 -0700
 From:   akpm@linux-foundation.org
 To:     anshuman.khandual@arm.com, mm-commits@vger.kernel.org,
         vbabka@suse.cz, william.kucharski@oracle.com, willy@infradead.org
-Subject:  [merged]
- mm-constify-get_pfnblock_flags_mask-and-get_pfnblock_migratetype.patch
+Subject:  [merged] mm-constify-page_count-and-page_ref_count.patch
  removed from -mm tree
-Message-ID: <20210706191415.Cpg3vF010%akpm@linux-foundation.org>
+Message-ID: <20210706191417.M7WCy6CpC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,20 +43,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: constify get_pfnblock_flags_mask and get_pfnblock_migratetype
+     Subject: mm: constify page_count and page_ref_count
 has been removed from the -mm tree.  Its filename was
-     mm-constify-get_pfnblock_flags_mask-and-get_pfnblock_migratetype.patch
+     mm-constify-page_count-and-page_ref_count.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: constify get_pfnblock_flags_mask and get_pfnblock_migratetype
+Subject: mm: constify page_count and page_ref_count
 
-The struct page is not modified by these routines, so it can be marked
-const.
+Now that compound_head() accepts a const struct page pointer, these two
+functions can be marked as not modifying the page pointer they are passed.
 
-Link: https://lkml.kernel.org/r/20210416231531.2521383-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210416231531.2521383-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -65,67 +64,25 @@ Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pageblock-flags.h |    2 +-
- mm/page_alloc.c                 |   13 +++++++------
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ include/linux/page_ref.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/pageblock-flags.h~mm-constify-get_pfnblock_flags_mask-and-get_pfnblock_migratetype
-+++ a/include/linux/pageblock-flags.h
-@@ -54,7 +54,7 @@ extern unsigned int pageblock_order;
- /* Forward declaration */
- struct page;
+--- a/include/linux/page_ref.h~mm-constify-page_count-and-page_ref_count
++++ a/include/linux/page_ref.h
+@@ -62,12 +62,12 @@ static inline void __page_ref_unfreeze(s
  
--unsigned long get_pfnblock_flags_mask(struct page *page,
-+unsigned long get_pfnblock_flags_mask(const struct page *page,
- 				unsigned long pfn,
- 				unsigned long mask);
- 
---- a/mm/page_alloc.c~mm-constify-get_pfnblock_flags_mask-and-get_pfnblock_migratetype
-+++ a/mm/page_alloc.c
-@@ -474,7 +474,7 @@ static inline bool defer_init(int nid, u
  #endif
  
- /* Return a pointer to the bitmap storing bits affecting a block of pages */
--static inline unsigned long *get_pageblock_bitmap(struct page *page,
-+static inline unsigned long *get_pageblock_bitmap(const struct page *page,
- 							unsigned long pfn)
+-static inline int page_ref_count(struct page *page)
++static inline int page_ref_count(const struct page *page)
  {
- #ifdef CONFIG_SPARSEMEM
-@@ -484,7 +484,7 @@ static inline unsigned long *get_pageblo
- #endif /* CONFIG_SPARSEMEM */
+ 	return atomic_read(&page->_refcount);
  }
  
--static inline int pfn_to_bitidx(struct page *page, unsigned long pfn)
-+static inline int pfn_to_bitidx(const struct page *page, unsigned long pfn)
+-static inline int page_count(struct page *page)
++static inline int page_count(const struct page *page)
  {
- #ifdef CONFIG_SPARSEMEM
- 	pfn &= (PAGES_PER_SECTION-1);
-@@ -495,7 +495,7 @@ static inline int pfn_to_bitidx(struct p
- }
- 
- static __always_inline
--unsigned long __get_pfnblock_flags_mask(struct page *page,
-+unsigned long __get_pfnblock_flags_mask(const struct page *page,
- 					unsigned long pfn,
- 					unsigned long mask)
- {
-@@ -520,13 +520,14 @@ unsigned long __get_pfnblock_flags_mask(
-  *
-  * Return: pageblock_bits flags
-  */
--unsigned long get_pfnblock_flags_mask(struct page *page, unsigned long pfn,
--					unsigned long mask)
-+unsigned long get_pfnblock_flags_mask(const struct page *page,
-+					unsigned long pfn, unsigned long mask)
- {
- 	return __get_pfnblock_flags_mask(page, pfn, mask);
- }
- 
--static __always_inline int get_pfnblock_migratetype(struct page *page, unsigned long pfn)
-+static __always_inline int get_pfnblock_migratetype(const struct page *page,
-+					unsigned long pfn)
- {
- 	return __get_pfnblock_flags_mask(page, pfn, MIGRATETYPE_MASK);
+ 	return atomic_read(&compound_head(page)->_refcount);
  }
 _
 
