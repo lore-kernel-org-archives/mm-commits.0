@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B9FAC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71FC6C07E9C
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 842C061057
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C2EB60C3D
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231808AbhGFTQm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:16:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50848 "EHLO mail.kernel.org"
+        id S231815AbhGFTQn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:16:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50874 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231800AbhGFTQm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:16:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8783A60C3D;
-        Tue,  6 Jul 2021 19:14:02 +0000 (UTC)
+        id S231809AbhGFTQn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:16:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 90DAE60FE3;
+        Tue,  6 Jul 2021 19:14:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598842;
-        bh=9nWvGYstLNO+orEzy/MX13k2kXApGmJF97IcXcaM64c=;
+        s=korg; t=1625598844;
+        bh=Cz+PBpHJJ6+Gr3HZ6xcbFGIlj/Jn8U8duLcTmNSXzm8=;
         h=Date:From:To:Subject:From;
-        b=HQiY37H19DOhfSrMdYZ+sf9H3jKnU+bJH9p//NYQPUEdwZiThIP0uUbo5KSdPpMEN
-         DfYxi9vYDcmC17IZPUE2pc75RGmTu/QdRWbQ3BEGKFxaqkMUi97ArLtVvo/U8GGBlc
-         ducf+7uHEgZYWj1HDzE2gRnSZDqEyw/OmB+bdiKQ=
-Date:   Tue, 06 Jul 2021 12:14:02 -0700
+        b=VIYEVgIR+FUQTNU5FtAO1+h3N7T114Mnj+2HDvrog2Dm9F+sh61UvI4aZIcn2/DOQ
+         5EX0xDagYqFKEbcRvYwlDXZyvx6O7SdED4qYbOBrXkK73b+jO+SUQhUitkkm1n2Piq
+         QGVWHf/YD14QHYJo47ke56QeiOj2A2jiigow/fl4=
+Date:   Tue, 06 Jul 2021 12:14:04 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, corbet@lwn.net,
-        mm-commits@vger.kernel.org, rppt@linux.ibm.com, willy@infradead.org
-Subject:  [merged] mm-mmzoneh-simplify-is_highmem_idx.patch removed
- from -mm tree
-Message-ID: <20210706191402.q-OBWvPoK%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, mm-commits@vger.kernel.org,
+        vbabka@suse.cz, william.kucharski@oracle.com, willy@infradead.org
+Subject:  [merged] mm-make-__dump_page-static.patch removed from
+ -mm tree
+Message-ID: <20210706191404.nrO95QsXX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,87 +43,84 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmzone.h: simplify is_highmem_idx()
+     Subject: mm: make __dump_page static
 has been removed from the -mm tree.  Its filename was
-     mm-mmzoneh-simplify-is_highmem_idx.patch
+     mm-make-__dump_page-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm/mmzone.h: simplify is_highmem_idx()
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: make __dump_page static
 
-There is a lot of historical ifdefery in is_highmem_idx() and its helper
-zone_movable_is_highmem() that was required because of two different paths
-for nodes and zones initialization that were selected at compile time.
+Patch series "Constify struct page arguments".
 
-Until commit 3f08a302f533 ("mm: remove CONFIG_HAVE_MEMBLOCK_NODE_MAP
-option") the movable_zone variable was only available for configurations
-that had CONFIG_HAVE_MEMBLOCK_NODE_MAP enabled so the test in
-zone_movable_is_highmem() used that variable only for such configurations.
-For other configurations the test checked if the index of ZONE_MOVABLE
-was greater by 1 than the index of ZONE_HIGMEM and then movable zone was
-considered a highmem zone.  Needless to say, ZONE_MOVABLE - 1 equals
-ZONE_HIGHMEM by definition when CONFIG_HIGHMEM=y.
+While working on various solutions to the 32-bit struct page size
+regression, one of the problems I found was the networking stack expects
+to be able to pass const struct page pointers around, and the mm doesn't
+provide a lot of const-friendly functions to call.  The root tangle of
+problems is that a lot of functions call VM_BUG_ON_PAGE(), which calls
+dump_page(), which calls a lot of functions which don't take a const
+struct page (but could be const).
 
-Commit 3f08a302f533 ("mm: remove CONFIG_HAVE_MEMBLOCK_NODE_MAP option")
-made movable_zone variable always available.  Since this variable is set
-to ZONE_HIGHMEM if CONFIG_HIGHMEM is enabled and highmem zone is
-populated, it is enough to check whether
 
-	zone_idx == ZONE_MOVABLE && movable_zone == ZONE_HIGMEM
+This patch (of 6):
 
-to test if zone index points to a highmem zone.
+The only caller of __dump_page() now opencodes dump_page(), so remove it
+as an externally visible symbol.
 
-Remove zone_movable_is_highmem() that is not used anywhere except
-is_highmem_idx() and use the test above in is_highmem_idx() instead.
-
-Link: https://lkml.kernel.org/r/20210426141927.1314326-3-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20210416231531.2521383-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210416231531.2521383-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ include/linux/mmdebug.h |    3 +--
+ mm/debug.c              |    2 +-
+ mm/page_alloc.c         |    3 +--
+ 3 files changed, 3 insertions(+), 5 deletions(-)
 
---- a/include/linux/mmzone.h~mm-mmzoneh-simplify-is_highmem_idx
-+++ a/include/linux/mmzone.h
-@@ -982,22 +982,11 @@ static inline void zone_set_nid(struct z
+--- a/include/linux/mmdebug.h~mm-make-__dump_page-static
++++ a/include/linux/mmdebug.h
+@@ -9,8 +9,7 @@ struct page;
+ struct vm_area_struct;
+ struct mm_struct;
  
- extern int movable_zone;
+-extern void dump_page(struct page *page, const char *reason);
+-extern void __dump_page(struct page *page, const char *reason);
++void dump_page(struct page *page, const char *reason);
+ void dump_vma(const struct vm_area_struct *vma);
+ void dump_mm(const struct mm_struct *mm);
  
--#ifdef CONFIG_HIGHMEM
--static inline int zone_movable_is_highmem(void)
--{
--#ifdef CONFIG_NEED_MULTIPLE_NODES
--	return movable_zone == ZONE_HIGHMEM;
--#else
--	return (ZONE_MOVABLE - 1) == ZONE_HIGHMEM;
--#endif
--}
--#endif
--
- static inline int is_highmem_idx(enum zone_type idx)
+--- a/mm/debug.c~mm-make-__dump_page-static
++++ a/mm/debug.c
+@@ -42,7 +42,7 @@ const struct trace_print_flags vmaflag_n
+ 	{0, NULL}
+ };
+ 
+-void __dump_page(struct page *page, const char *reason)
++static void __dump_page(struct page *page, const char *reason)
  {
- #ifdef CONFIG_HIGHMEM
- 	return (idx == ZONE_HIGHMEM ||
--		(idx == ZONE_MOVABLE && zone_movable_is_highmem()));
-+		(idx == ZONE_MOVABLE && movable_zone == ZONE_HIGHMEM));
- #else
- 	return 0;
- #endif
+ 	struct page *head = compound_head(page);
+ 	struct address_space *mapping;
+--- a/mm/page_alloc.c~mm-make-__dump_page-static
++++ a/mm/page_alloc.c
+@@ -658,8 +658,7 @@ static void bad_page(struct page *page,
+ 
+ 	pr_alert("BUG: Bad page state in process %s  pfn:%05lx\n",
+ 		current->comm, page_to_pfn(page));
+-	__dump_page(page, reason);
+-	dump_page_owner(page);
++	dump_page(page, reason);
+ 
+ 	print_modules();
+ 	dump_stack();
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mmap-make-mlock_future_check-global.patch
-riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
-set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
-pm-hibernate-disable-when-there-are-active-secretmem-users.patch
-arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
-secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+mm-mark-idle-page-tracking-as-broken.patch
 
