@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F833C07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72F9EC07E9E
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 475F16117A
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 585ED61261
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231749AbhGFTML (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:12:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46882 "EHLO mail.kernel.org"
+        id S231858AbhGFTMN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:12:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46906 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231700AbhGFTMK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:12:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 98B4060FEE;
-        Tue,  6 Jul 2021 19:09:31 +0000 (UTC)
+        id S231700AbhGFTMN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:12:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 716B461107;
+        Tue,  6 Jul 2021 19:09:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598571;
-        bh=eqkuFeBDsECL6BfzsApG+fdP+dXyqabg3E2PLST02IQ=;
+        s=korg; t=1625598573;
+        bh=eiWYOihXb829HI2Cvk0qEBe5c9VCN+teqyP7EzBAGnY=;
         h=Date:From:To:Subject:From;
-        b=HLhMsk0ufMTWlLj/8S0z5IERjfwk9eyHeiEg/lkY2v25dDXuYXS4/DbZQSZgyUtng
-         Yxuh5n8k5vql7xeIjYBlGHiF1JhYvDjpRbDJLokVaKorgvaciFoTNcN9VI9boyrdI+
-         M/+ER0zQO5n3cL3IduHszhcdrREh+DHukc3Fyz2I=
-Date:   Tue, 06 Jul 2021 12:09:31 -0700
+        b=OKpyXzjNLbTxsB9/OOjiQN1K05B0zfZBx8eARtOSd2hARKt+fCBipaRAc+P1bmf0C
+         90BkDg8JOL8RB2dSxaaLRgq1ijx2JrR5GAgd63yOBwKHpNYdVEOQRMKDJPospZgmnm
+         j88UX4kx9jRUpViPXuDLnZZJitc1DzNVFo0BLVig=
+Date:   Tue, 06 Jul 2021 12:09:33 -0700
 From:   akpm@linux-foundation.org
 To:     alexanderduyck@fb.com, anshuman.khandual@arm.com,
         catalin.marinas@arm.com, david@redhat.com, gshan@redhat.com,
         mm-commits@vger.kernel.org, mst@redhat.com, will@kernel.org
 Subject:  [merged]
- mm-page_reporting-fix-code-style-in-__page_reporting_request.patch removed
+ mm-page_reporting-export-reporting-order-as-module-parameter.patch removed
  from -mm tree
-Message-ID: <20210706190931.mildZ7Rcd%akpm@linux-foundation.org>
+Message-ID: <20210706190933.Qhb30zagJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,70 +45,118 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_reporting: fix code style in __page_reporting_request()
+     Subject: mm/page_reporting: export reporting order as module parameter
 has been removed from the -mm tree.  Its filename was
-     mm-page_reporting-fix-code-style-in-__page_reporting_request.patch
+     mm-page_reporting-export-reporting-order-as-module-parameter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Gavin Shan <gshan@redhat.com>
-Subject: mm/page_reporting: fix code style in __page_reporting_request()
+Subject: mm/page_reporting: export reporting order as module parameter
 
-Patch series "mm/page_reporting: Make page reporting work on arm64 with 64KB page size", v4.
+The macro PAGE_REPORTING_MIN_ORDER is defined as the page reporting
+threshold.  It can't be adjusted at runtime.
 
-The page reporting threshold is currently equal to @pageblock_order, which
-is 13 and 512MB on arm64 with 64KB base page size selected.  The page
-reporting won't be triggered if the freeing page can't come up with a free
-area like that huge.  The condition is hard to be met, especially when the
-system memory becomes fragmented.
+This introduces a variable (@page_reporting_order) to replace the marcro
+(PAGE_REPORTING_MIN_ORDER).  MAX_ORDER is assigned to it initially,
+meaning the page reporting is disabled.  It will be specified by driver if
+valid one is provided.  Otherwise, it will fall back to @pageblock_order. 
+It's also exported so that the page reporting order can be adjusted at
+runtime.
 
-This series intends to solve the issue by having page reporting threshold
-as 5 (2MB) on arm64 with 64KB base page size.  The patches are organized
-as:
-
-   PATCH[1/4] Fix some coding style in __page_reporting_request().
-   PATCH[2/4] Represents page reporting order with variable so that it can
-              be exported as module parameter.
-   PATCH[3/4] Allows the device driver (e.g. virtio_balloon) to specify
-              the page reporting order when the device info is registered.
-   PATCH[4/4] Specifies the page reporting order to 5, corresponding to
-              2MB in size on ARM64 when 64KB base page size is used.
-
-
-This patch (of 4):
-
-The lines of comments would be starting with one, instead two space.  This
-corrects the style.
-
-Link: https://lkml.kernel.org/r/20210625014710.42954-1-gshan@redhat.com
-Link: https://lkml.kernel.org/r/20210625014710.42954-2-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20210625014710.42954-3-gshan@redhat.com
 Signed-off-by: Gavin Shan <gshan@redhat.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Alexander Duyck <alexanderduyck@fb.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_reporting.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    6 ++++++
+ mm/page_reporting.c                             |    9 +++++++--
+ mm/page_reporting.h                             |    5 ++---
+ 3 files changed, 15 insertions(+), 5 deletions(-)
 
---- a/mm/page_reporting.c~mm-page_reporting-fix-code-style-in-__page_reporting_request
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-page_reporting-export-reporting-order-as-module-parameter
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -3566,6 +3566,12 @@
+ 			off: turn off poisoning (default)
+ 			on: turn on poisoning
+ 
++	page_reporting.page_reporting_order=
++			[KNL] Minimal page reporting order
++			Format: <integer>
++			Adjust the minimal page reporting order. The page
++			reporting is disabled when it exceeds (MAX_ORDER-1).
++
+ 	panic=		[KNL] Kernel behaviour on panic: delay <timeout>
+ 			timeout > 0: seconds before rebooting
+ 			timeout = 0: wait forever
+--- a/mm/page_reporting.c~mm-page_reporting-export-reporting-order-as-module-parameter
 +++ a/mm/page_reporting.c
-@@ -31,8 +31,8 @@ __page_reporting_request(struct page_rep
- 		return;
+@@ -4,12 +4,17 @@
+ #include <linux/page_reporting.h>
+ #include <linux/gfp.h>
+ #include <linux/export.h>
++#include <linux/module.h>
+ #include <linux/delay.h>
+ #include <linux/scatterlist.h>
+ 
+ #include "page_reporting.h"
+ #include "internal.h"
+ 
++unsigned int page_reporting_order = MAX_ORDER;
++module_param(page_reporting_order, uint, 0644);
++MODULE_PARM_DESC(page_reporting_order, "Set page reporting order");
++
+ #define PAGE_REPORTING_DELAY	(2 * HZ)
+ static struct page_reporting_dev_info __rcu *pr_dev_info __read_mostly;
+ 
+@@ -229,7 +234,7 @@ page_reporting_process_zone(struct page_
+ 
+ 	/* Generate minimum watermark to be able to guarantee progress */
+ 	watermark = low_wmark_pages(zone) +
+-		    (PAGE_REPORTING_CAPACITY << PAGE_REPORTING_MIN_ORDER);
++		    (PAGE_REPORTING_CAPACITY << page_reporting_order);
  
  	/*
--	 *  If reporting is already active there is nothing we need to do.
--	 *  Test against 0 as that represents PAGE_REPORTING_IDLE.
-+	 * If reporting is already active there is nothing we need to do.
-+	 * Test against 0 as that represents PAGE_REPORTING_IDLE.
- 	 */
- 	state = atomic_xchg(&prdev->state, PAGE_REPORTING_REQUESTED);
- 	if (state != PAGE_REPORTING_IDLE)
+ 	 * Cancel request if insufficient free memory or if we failed
+@@ -239,7 +244,7 @@ page_reporting_process_zone(struct page_
+ 		return err;
+ 
+ 	/* Process each free list starting from lowest order/mt */
+-	for (order = PAGE_REPORTING_MIN_ORDER; order < MAX_ORDER; order++) {
++	for (order = page_reporting_order; order < MAX_ORDER; order++) {
+ 		for (mt = 0; mt < MIGRATE_TYPES; mt++) {
+ 			/* We do not pull pages from the isolate free list */
+ 			if (is_migrate_isolate(mt))
+--- a/mm/page_reporting.h~mm-page_reporting-export-reporting-order-as-module-parameter
++++ a/mm/page_reporting.h
+@@ -10,10 +10,9 @@
+ #include <linux/pgtable.h>
+ #include <linux/scatterlist.h>
+ 
+-#define PAGE_REPORTING_MIN_ORDER	pageblock_order
+-
+ #ifdef CONFIG_PAGE_REPORTING
+ DECLARE_STATIC_KEY_FALSE(page_reporting_enabled);
++extern unsigned int page_reporting_order;
+ void __page_reporting_notify(void);
+ 
+ static inline bool page_reported(struct page *page)
+@@ -38,7 +37,7 @@ static inline void page_reporting_notify
+ 		return;
+ 
+ 	/* Determine if we have crossed reporting threshold */
+-	if (order < PAGE_REPORTING_MIN_ORDER)
++	if (order < page_reporting_order)
+ 		return;
+ 
+ 	/* This will add a few cycles, but should be called infrequently */
 _
 
 Patches currently in -mm which might be from gshan@redhat.com are
