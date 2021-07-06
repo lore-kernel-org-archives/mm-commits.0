@@ -7,33 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52BB4C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAA23C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3467861CA3
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4C3761CA8
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229950AbhGFTZ0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:25:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58634 "EHLO mail.kernel.org"
+        id S229730AbhGFTZ3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:25:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58656 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229787AbhGFTZ0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:25:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A36F61C9E;
-        Tue,  6 Jul 2021 19:22:46 +0000 (UTC)
+        id S229787AbhGFTZ2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:25:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9E59461CA3;
+        Tue,  6 Jul 2021 19:22:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599366;
-        bh=f64YRjJg9bWko5NofhxguMFezU3BiX9yVgtE9Q9r2Pc=;
+        s=korg; t=1625599369;
+        bh=YMYJ4XlehWqwl2HbQyQzGt5Fgru0dxGWoXVJthwU0YA=;
         h=Date:From:To:Subject:From;
-        b=HVQYqbBJF/FRPAwRwriOTk3JLXKt97lUj8Ip1gfhv912KGVwYpyis2FIOnBi3YNdA
-         PCmuvMps5dcbI81skewyE3dMi0HoyqzF7c3/RKGBn3KTtASH/NlEYdjkfrKaV5FEcd
-         5i3go4thZ4gvYduLFkquc2FqjwN3sB4X8nXn6Crk=
-Date:   Tue, 06 Jul 2021 12:22:46 -0700
+        b=UppuLXjv3d9uOicCDu2m0yPa00KC5pAZX61SgNCViEk5tBVj6/beiLXUb3hgegO2h
+         G/UuUISSXohobWA4REzF5fYWDrUtcgKM66mIZqOI4YA+8OCb12SS8r9WdnrwlZLkOd
+         yiCumKBzZtavPD84Oxmds/HPzgIjE2qzHQkMJZd4=
+Date:   Tue, 06 Jul 2021 12:22:48 -0700
 From:   akpm@linux-foundation.org
-To:     mcroce@microsoft.com, mm-commits@vger.kernel.org
-Subject:  [merged] lib-test_stringc-allow-mode-removal.patch
+To:     andriy.shevchenko@linux.intel.com, anna.schumaker@netapp.com,
+        bfields@fieldses.org, chuck.lever@oracle.com,
+        Jonathan.Cameron@huawei.com, kerneldev@karsmulder.nl,
+        laniel_francis@privacyrequired.com, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, trond.myklebust@hammerspace.com
+Subject:  [merged]
+ kernelh-split-out-kstrtox-and-simple_strtox-to-a-separate-header.patch
  removed from -mm tree
-Message-ID: <20210706192246.gm8uVsocU%akpm@linux-foundation.org>
+Message-ID: <20210706192248._Z7ZFP5Mv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,49 +47,443 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_string.c: allow module removal
+     Subject: kernel.h: split out kstrtox() and simple_strtox() to a separate header
 has been removed from the -mm tree.  Its filename was
-     lib-test_stringc-allow-mode-removal.patch
+     kernelh-split-out-kstrtox-and-simple_strtox-to-a-separate-header.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matteo Croce <mcroce@microsoft.com>
-Subject: lib/test_string.c: allow module removal
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: kernel.h: split out kstrtox() and simple_strtox() to a separate header
 
-The test_string module can't be removed because it lacks an exit hook. 
-Since there is no reason for it to be permanent, add an empty one to allow
-module removal.
+kernel.h is being used as a dump for all kinds of stuff for a long time. 
+Here is the attempt to start cleaning it up by splitting out kstrtox() and
+simple_strtox() helpers.
 
-Link: https://lkml.kernel.org/r/20210616234503.28678-1-mcroce@linux.microsoft.com
-Signed-off-by: Matteo Croce <mcroce@microsoft.com>
+At the same time convert users in header and lib folders to use new
+header.  Though for time being include new header back to kernel.h to
+avoid twisted indirected includes for existing users.
+
+[andy.shevchenko@gmail.com: fix documentation references]
+  Link: https://lkml.kernel.org/r/20210615220003.377901-1-andy.shevchenko@gmail.com
+Link: https://lkml.kernel.org/r/20210611185815.44103-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Francis Laniel <laniel_francis@privacyrequired.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Kars Mulder <kerneldev@karsmulder.nl>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Anna Schumaker <anna.schumaker@netapp.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Chuck Lever <chuck.lever@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_string.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/core-api/kernel-api.rst |    7 -
+ include/linux/kernel.h                |  143 ----------------------
+ include/linux/kstrtox.h               |  155 ++++++++++++++++++++++++
+ include/linux/string.h                |    7 -
+ include/linux/sunrpc/cache.h          |    1 
+ lib/kstrtox.c                         |    5 
+ lib/parser.c                          |    1 
+ 7 files changed, 163 insertions(+), 156 deletions(-)
 
---- a/lib/test_string.c~lib-test_stringc-allow-mode-removal
-+++ a/lib/test_string.c
-@@ -179,6 +179,10 @@ static __init int strnchr_selftest(void)
- 	return 0;
- }
+--- a/Documentation/core-api/kernel-api.rst~kernelh-split-out-kstrtox-and-simple_strtox-to-a-separate-header
++++ a/Documentation/core-api/kernel-api.rst
+@@ -24,11 +24,8 @@ String Conversions
+ .. kernel-doc:: lib/vsprintf.c
+    :export:
  
-+static __exit void string_selftest_remove(void)
+-.. kernel-doc:: include/linux/kernel.h
+-   :functions: kstrtol
+-
+-.. kernel-doc:: include/linux/kernel.h
+-   :functions: kstrtoul
++.. kernel-doc:: include/linux/kstrtox.h
++   :functions: kstrtol kstrtoul
+ 
+ .. kernel-doc:: lib/kstrtox.c
+    :export:
+--- a/include/linux/kernel.h~kernelh-split-out-kstrtox-and-simple_strtox-to-a-separate-header
++++ a/include/linux/kernel.h
+@@ -10,6 +10,7 @@
+ #include <linux/types.h>
+ #include <linux/compiler.h>
+ #include <linux/bitops.h>
++#include <linux/kstrtox.h>
+ #include <linux/log2.h>
+ #include <linux/math.h>
+ #include <linux/minmax.h>
+@@ -180,148 +181,6 @@ static inline void might_fault(void) { }
+ void do_exit(long error_code) __noreturn;
+ void complete_and_exit(struct completion *, long) __noreturn;
+ 
+-/* Internal, do not use. */
+-int __must_check _kstrtoul(const char *s, unsigned int base, unsigned long *res);
+-int __must_check _kstrtol(const char *s, unsigned int base, long *res);
+-
+-int __must_check kstrtoull(const char *s, unsigned int base, unsigned long long *res);
+-int __must_check kstrtoll(const char *s, unsigned int base, long long *res);
+-
+-/**
+- * kstrtoul - convert a string to an unsigned long
+- * @s: The start of the string. The string must be null-terminated, and may also
+- *  include a single newline before its terminating null. The first character
+- *  may also be a plus sign, but not a minus sign.
+- * @base: The number base to use. The maximum supported base is 16. If base is
+- *  given as 0, then the base of the string is automatically detected with the
+- *  conventional semantics - If it begins with 0x the number will be parsed as a
+- *  hexadecimal (case insensitive), if it otherwise begins with 0, it will be
+- *  parsed as an octal number. Otherwise it will be parsed as a decimal.
+- * @res: Where to write the result of the conversion on success.
+- *
+- * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
+- * Preferred over simple_strtoul(). Return code must be checked.
+-*/
+-static inline int __must_check kstrtoul(const char *s, unsigned int base, unsigned long *res)
+-{
+-	/*
+-	 * We want to shortcut function call, but
+-	 * __builtin_types_compatible_p(unsigned long, unsigned long long) = 0.
+-	 */
+-	if (sizeof(unsigned long) == sizeof(unsigned long long) &&
+-	    __alignof__(unsigned long) == __alignof__(unsigned long long))
+-		return kstrtoull(s, base, (unsigned long long *)res);
+-	else
+-		return _kstrtoul(s, base, res);
+-}
+-
+-/**
+- * kstrtol - convert a string to a long
+- * @s: The start of the string. The string must be null-terminated, and may also
+- *  include a single newline before its terminating null. The first character
+- *  may also be a plus sign or a minus sign.
+- * @base: The number base to use. The maximum supported base is 16. If base is
+- *  given as 0, then the base of the string is automatically detected with the
+- *  conventional semantics - If it begins with 0x the number will be parsed as a
+- *  hexadecimal (case insensitive), if it otherwise begins with 0, it will be
+- *  parsed as an octal number. Otherwise it will be parsed as a decimal.
+- * @res: Where to write the result of the conversion on success.
+- *
+- * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
+- * Preferred over simple_strtol(). Return code must be checked.
+- */
+-static inline int __must_check kstrtol(const char *s, unsigned int base, long *res)
+-{
+-	/*
+-	 * We want to shortcut function call, but
+-	 * __builtin_types_compatible_p(long, long long) = 0.
+-	 */
+-	if (sizeof(long) == sizeof(long long) &&
+-	    __alignof__(long) == __alignof__(long long))
+-		return kstrtoll(s, base, (long long *)res);
+-	else
+-		return _kstrtol(s, base, res);
+-}
+-
+-int __must_check kstrtouint(const char *s, unsigned int base, unsigned int *res);
+-int __must_check kstrtoint(const char *s, unsigned int base, int *res);
+-
+-static inline int __must_check kstrtou64(const char *s, unsigned int base, u64 *res)
+-{
+-	return kstrtoull(s, base, res);
+-}
+-
+-static inline int __must_check kstrtos64(const char *s, unsigned int base, s64 *res)
+-{
+-	return kstrtoll(s, base, res);
+-}
+-
+-static inline int __must_check kstrtou32(const char *s, unsigned int base, u32 *res)
+-{
+-	return kstrtouint(s, base, res);
+-}
+-
+-static inline int __must_check kstrtos32(const char *s, unsigned int base, s32 *res)
+-{
+-	return kstrtoint(s, base, res);
+-}
+-
+-int __must_check kstrtou16(const char *s, unsigned int base, u16 *res);
+-int __must_check kstrtos16(const char *s, unsigned int base, s16 *res);
+-int __must_check kstrtou8(const char *s, unsigned int base, u8 *res);
+-int __must_check kstrtos8(const char *s, unsigned int base, s8 *res);
+-int __must_check kstrtobool(const char *s, bool *res);
+-
+-int __must_check kstrtoull_from_user(const char __user *s, size_t count, unsigned int base, unsigned long long *res);
+-int __must_check kstrtoll_from_user(const char __user *s, size_t count, unsigned int base, long long *res);
+-int __must_check kstrtoul_from_user(const char __user *s, size_t count, unsigned int base, unsigned long *res);
+-int __must_check kstrtol_from_user(const char __user *s, size_t count, unsigned int base, long *res);
+-int __must_check kstrtouint_from_user(const char __user *s, size_t count, unsigned int base, unsigned int *res);
+-int __must_check kstrtoint_from_user(const char __user *s, size_t count, unsigned int base, int *res);
+-int __must_check kstrtou16_from_user(const char __user *s, size_t count, unsigned int base, u16 *res);
+-int __must_check kstrtos16_from_user(const char __user *s, size_t count, unsigned int base, s16 *res);
+-int __must_check kstrtou8_from_user(const char __user *s, size_t count, unsigned int base, u8 *res);
+-int __must_check kstrtos8_from_user(const char __user *s, size_t count, unsigned int base, s8 *res);
+-int __must_check kstrtobool_from_user(const char __user *s, size_t count, bool *res);
+-
+-static inline int __must_check kstrtou64_from_user(const char __user *s, size_t count, unsigned int base, u64 *res)
+-{
+-	return kstrtoull_from_user(s, count, base, res);
+-}
+-
+-static inline int __must_check kstrtos64_from_user(const char __user *s, size_t count, unsigned int base, s64 *res)
+-{
+-	return kstrtoll_from_user(s, count, base, res);
+-}
+-
+-static inline int __must_check kstrtou32_from_user(const char __user *s, size_t count, unsigned int base, u32 *res)
+-{
+-	return kstrtouint_from_user(s, count, base, res);
+-}
+-
+-static inline int __must_check kstrtos32_from_user(const char __user *s, size_t count, unsigned int base, s32 *res)
+-{
+-	return kstrtoint_from_user(s, count, base, res);
+-}
+-
+-/*
+- * Use kstrto<foo> instead.
+- *
+- * NOTE: simple_strto<foo> does not check for the range overflow and,
+- *	 depending on the input, may give interesting results.
+- *
+- * Use these functions if and only if you cannot use kstrto<foo>, because
+- * the conversion ends on the first non-digit character, which may be far
+- * beyond the supported range. It might be useful to parse the strings like
+- * 10x50 or 12:21 without altering original string or temporary buffer in use.
+- * Keep in mind above caveat.
+- */
+-
+-extern unsigned long simple_strtoul(const char *,char **,unsigned int);
+-extern long simple_strtol(const char *,char **,unsigned int);
+-extern unsigned long long simple_strtoull(const char *,char **,unsigned int);
+-extern long long simple_strtoll(const char *,char **,unsigned int);
+-
+ extern int num_to_str(char *buf, int size,
+ 		      unsigned long long num, unsigned int width);
+ 
+--- /dev/null
++++ a/include/linux/kstrtox.h
+@@ -0,0 +1,155 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_KSTRTOX_H
++#define _LINUX_KSTRTOX_H
++
++#include <linux/compiler.h>
++#include <linux/types.h>
++
++/* Internal, do not use. */
++int __must_check _kstrtoul(const char *s, unsigned int base, unsigned long *res);
++int __must_check _kstrtol(const char *s, unsigned int base, long *res);
++
++int __must_check kstrtoull(const char *s, unsigned int base, unsigned long long *res);
++int __must_check kstrtoll(const char *s, unsigned int base, long long *res);
++
++/**
++ * kstrtoul - convert a string to an unsigned long
++ * @s: The start of the string. The string must be null-terminated, and may also
++ *  include a single newline before its terminating null. The first character
++ *  may also be a plus sign, but not a minus sign.
++ * @base: The number base to use. The maximum supported base is 16. If base is
++ *  given as 0, then the base of the string is automatically detected with the
++ *  conventional semantics - If it begins with 0x the number will be parsed as a
++ *  hexadecimal (case insensitive), if it otherwise begins with 0, it will be
++ *  parsed as an octal number. Otherwise it will be parsed as a decimal.
++ * @res: Where to write the result of the conversion on success.
++ *
++ * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
++ * Preferred over simple_strtoul(). Return code must be checked.
++*/
++static inline int __must_check kstrtoul(const char *s, unsigned int base, unsigned long *res)
 +{
++	/*
++	 * We want to shortcut function call, but
++	 * __builtin_types_compatible_p(unsigned long, unsigned long long) = 0.
++	 */
++	if (sizeof(unsigned long) == sizeof(unsigned long long) &&
++	    __alignof__(unsigned long) == __alignof__(unsigned long long))
++		return kstrtoull(s, base, (unsigned long long *)res);
++	else
++		return _kstrtoul(s, base, res);
 +}
 +
- static __init int string_selftest_init(void)
- {
- 	int test, subtest;
-@@ -216,4 +220,5 @@ fail:
- }
++/**
++ * kstrtol - convert a string to a long
++ * @s: The start of the string. The string must be null-terminated, and may also
++ *  include a single newline before its terminating null. The first character
++ *  may also be a plus sign or a minus sign.
++ * @base: The number base to use. The maximum supported base is 16. If base is
++ *  given as 0, then the base of the string is automatically detected with the
++ *  conventional semantics - If it begins with 0x the number will be parsed as a
++ *  hexadecimal (case insensitive), if it otherwise begins with 0, it will be
++ *  parsed as an octal number. Otherwise it will be parsed as a decimal.
++ * @res: Where to write the result of the conversion on success.
++ *
++ * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
++ * Preferred over simple_strtol(). Return code must be checked.
++ */
++static inline int __must_check kstrtol(const char *s, unsigned int base, long *res)
++{
++	/*
++	 * We want to shortcut function call, but
++	 * __builtin_types_compatible_p(long, long long) = 0.
++	 */
++	if (sizeof(long) == sizeof(long long) &&
++	    __alignof__(long) == __alignof__(long long))
++		return kstrtoll(s, base, (long long *)res);
++	else
++		return _kstrtol(s, base, res);
++}
++
++int __must_check kstrtouint(const char *s, unsigned int base, unsigned int *res);
++int __must_check kstrtoint(const char *s, unsigned int base, int *res);
++
++static inline int __must_check kstrtou64(const char *s, unsigned int base, u64 *res)
++{
++	return kstrtoull(s, base, res);
++}
++
++static inline int __must_check kstrtos64(const char *s, unsigned int base, s64 *res)
++{
++	return kstrtoll(s, base, res);
++}
++
++static inline int __must_check kstrtou32(const char *s, unsigned int base, u32 *res)
++{
++	return kstrtouint(s, base, res);
++}
++
++static inline int __must_check kstrtos32(const char *s, unsigned int base, s32 *res)
++{
++	return kstrtoint(s, base, res);
++}
++
++int __must_check kstrtou16(const char *s, unsigned int base, u16 *res);
++int __must_check kstrtos16(const char *s, unsigned int base, s16 *res);
++int __must_check kstrtou8(const char *s, unsigned int base, u8 *res);
++int __must_check kstrtos8(const char *s, unsigned int base, s8 *res);
++int __must_check kstrtobool(const char *s, bool *res);
++
++int __must_check kstrtoull_from_user(const char __user *s, size_t count, unsigned int base, unsigned long long *res);
++int __must_check kstrtoll_from_user(const char __user *s, size_t count, unsigned int base, long long *res);
++int __must_check kstrtoul_from_user(const char __user *s, size_t count, unsigned int base, unsigned long *res);
++int __must_check kstrtol_from_user(const char __user *s, size_t count, unsigned int base, long *res);
++int __must_check kstrtouint_from_user(const char __user *s, size_t count, unsigned int base, unsigned int *res);
++int __must_check kstrtoint_from_user(const char __user *s, size_t count, unsigned int base, int *res);
++int __must_check kstrtou16_from_user(const char __user *s, size_t count, unsigned int base, u16 *res);
++int __must_check kstrtos16_from_user(const char __user *s, size_t count, unsigned int base, s16 *res);
++int __must_check kstrtou8_from_user(const char __user *s, size_t count, unsigned int base, u8 *res);
++int __must_check kstrtos8_from_user(const char __user *s, size_t count, unsigned int base, s8 *res);
++int __must_check kstrtobool_from_user(const char __user *s, size_t count, bool *res);
++
++static inline int __must_check kstrtou64_from_user(const char __user *s, size_t count, unsigned int base, u64 *res)
++{
++	return kstrtoull_from_user(s, count, base, res);
++}
++
++static inline int __must_check kstrtos64_from_user(const char __user *s, size_t count, unsigned int base, s64 *res)
++{
++	return kstrtoll_from_user(s, count, base, res);
++}
++
++static inline int __must_check kstrtou32_from_user(const char __user *s, size_t count, unsigned int base, u32 *res)
++{
++	return kstrtouint_from_user(s, count, base, res);
++}
++
++static inline int __must_check kstrtos32_from_user(const char __user *s, size_t count, unsigned int base, s32 *res)
++{
++	return kstrtoint_from_user(s, count, base, res);
++}
++
++/*
++ * Use kstrto<foo> instead.
++ *
++ * NOTE: simple_strto<foo> does not check for the range overflow and,
++ *	 depending on the input, may give interesting results.
++ *
++ * Use these functions if and only if you cannot use kstrto<foo>, because
++ * the conversion ends on the first non-digit character, which may be far
++ * beyond the supported range. It might be useful to parse the strings like
++ * 10x50 or 12:21 without altering original string or temporary buffer in use.
++ * Keep in mind above caveat.
++ */
++
++extern unsigned long simple_strtoul(const char *,char **,unsigned int);
++extern long simple_strtol(const char *,char **,unsigned int);
++extern unsigned long long simple_strtoull(const char *,char **,unsigned int);
++extern long long simple_strtoll(const char *,char **,unsigned int);
++
++static inline int strtobool(const char *s, bool *res)
++{
++	return kstrtobool(s, res);
++}
++
++#endif	/* _LINUX_KSTRTOX_H */
+--- a/include/linux/string.h~kernelh-split-out-kstrtox-and-simple_strtox-to-a-separate-header
++++ a/include/linux/string.h
+@@ -2,7 +2,6 @@
+ #ifndef _LINUX_STRING_H_
+ #define _LINUX_STRING_H_
  
- module_init(string_selftest_init);
-+module_exit(string_selftest_remove);
- MODULE_LICENSE("GPL v2");
+-
+ #include <linux/compiler.h>	/* for inline */
+ #include <linux/types.h>	/* for size_t */
+ #include <linux/stddef.h>	/* for NULL */
+@@ -184,12 +183,6 @@ extern char **argv_split(gfp_t gfp, cons
+ extern void argv_free(char **argv);
+ 
+ extern bool sysfs_streq(const char *s1, const char *s2);
+-extern int kstrtobool(const char *s, bool *res);
+-static inline int strtobool(const char *s, bool *res)
+-{
+-	return kstrtobool(s, res);
+-}
+-
+ int match_string(const char * const *array, size_t n, const char *string);
+ int __sysfs_match_string(const char * const *array, size_t n, const char *s);
+ 
+--- a/include/linux/sunrpc/cache.h~kernelh-split-out-kstrtox-and-simple_strtox-to-a-separate-header
++++ a/include/linux/sunrpc/cache.h
+@@ -14,6 +14,7 @@
+ #include <linux/kref.h>
+ #include <linux/slab.h>
+ #include <linux/atomic.h>
++#include <linux/kstrtox.h>
+ #include <linux/proc_fs.h>
+ 
+ /*
+--- a/lib/kstrtox.c~kernelh-split-out-kstrtox-and-simple_strtox-to-a-separate-header
++++ a/lib/kstrtox.c
+@@ -14,11 +14,12 @@
+  */
+ #include <linux/ctype.h>
+ #include <linux/errno.h>
+-#include <linux/kernel.h>
+-#include <linux/math64.h>
+ #include <linux/export.h>
++#include <linux/kstrtox.h>
++#include <linux/math64.h>
+ #include <linux/types.h>
+ #include <linux/uaccess.h>
++
+ #include "kstrtox.h"
+ 
+ const char *_parse_integer_fixup_radix(const char *s, unsigned int *base)
+--- a/lib/parser.c~kernelh-split-out-kstrtox-and-simple_strtox-to-a-separate-header
++++ a/lib/parser.c
+@@ -6,6 +6,7 @@
+ #include <linux/ctype.h>
+ #include <linux/types.h>
+ #include <linux/export.h>
++#include <linux/kstrtox.h>
+ #include <linux/parser.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
 _
 
-Patches currently in -mm which might be from mcroce@microsoft.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 
