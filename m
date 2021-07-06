@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A51EAC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F38ECC07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E86261C74
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DBACE61C78
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231736AbhGFTNp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:13:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48002 "EHLO mail.kernel.org"
+        id S231839AbhGFTNr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:13:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48042 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231829AbhGFTNo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:13:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8582961C6D;
-        Tue,  6 Jul 2021 19:11:04 +0000 (UTC)
+        id S231702AbhGFTNr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:13:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B80BB61C74;
+        Tue,  6 Jul 2021 19:11:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598665;
-        bh=lK4lMqQNSNcQKTUSsIiCbXkY+6mBZ8hJ9MkjVUyk47o=;
+        s=korg; t=1625598668;
+        bh=mI6fCaQUCjsAouRW/y6Z5Tg+NbSY7EgtJBJdyFYwwbI=;
         h=Date:From:To:Subject:From;
-        b=wQK9/wCHQl9kvSch7rgppFfCSNVk5uZg5DtNzx/6t50yamaOMZHjARJEBosLjL9xL
-         2fn3nuYhHSdE1ITbmgRptCoABKC4y3nb5QEOAeZLbJpwhMNia51xo1kN0W/9x7WDLU
-         zCT0dwgYb0ekj3chv/WfFTwfoweRcvCZhoFlIBBQ=
-Date:   Tue, 06 Jul 2021 12:11:04 -0700
+        b=OJhD5i/4HrMHX7A6OPXsygqhgMAjob3sNHzWqriEF/oJE+koBDKA0cXwgrGAiurSl
+         HDKvRGxxc9Ydd4gVZ0EC8+C7czEutzbnpXWLiXOrtFq4gT7py5vmfNDYqRKU5dwKUf
+         E8W4M8zQ+NUvlT64F86/t3FRg45Ez00pWnDcNm3Y=
+Date:   Tue, 06 Jul 2021 12:11:07 -0700
 From:   akpm@linux-foundation.org
-To:     ak@linux.intel.com, andrea.parri@amarulasolutions.com,
-        dan.carpenter@oracle.com, daniel.m.jordan@oracle.com,
-        dave.hansen@linux.intel.com, hughd@google.com,
-        linmiaohe@huawei.com, mm-commits@vger.kernel.org, osandov@fb.com,
-        paulmck@kernel.org, peterz@infradead.org, tj@kernel.org,
-        will.deacon@arm.com, ying.huang@intel.com
-Subject:  [merged]
- mm-swap-remove-unnecessary-smp_rmb-in-swap_type_to_swap_info.patch removed
- from -mm tree
-Message-ID: <20210706191104.BudYVPqBV%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, dave.hansen@intel.com, hannes@cmpxchg.org,
+        hughd@google.com, mgorman@suse.de, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, peterx@redhat.com, riel@surriel.com,
+        tim.c.chen@intel.com, torvalds@linux-foundation.org,
+        willy@infradead.org, ying.huang@intel.com
+Subject:  [merged] mm-free-idle-swap-cache-page-after-cow.patch
+ removed from -mm tree
+Message-ID: <20210706191107.sv_6xVYCC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,124 +46,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, swap: remove unnecessary smp_rmb() in swap_type_to_swap_info()
+     Subject: mm: free idle swap cache page after COW
 has been removed from the -mm tree.  Its filename was
-     mm-swap-remove-unnecessary-smp_rmb-in-swap_type_to_swap_info.patch
+     mm-free-idle-swap-cache-page-after-cow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm, swap: remove unnecessary smp_rmb() in swap_type_to_swap_info()
+Subject: mm: free idle swap cache page after COW
 
-Before commit c10d38cc8d3e ("mm, swap: bounds check swap_info array
-accesses to avoid NULL derefs"), the typical code to reference the
-swap_info[] is as follows,
+With commit 09854ba94c6a ("mm: do_wp_page() simplification"), after COW,
+the idle swap cache page (neither the page nor the corresponding swap
+entry is mapped by any process) will be left in the LRU list, even if it's
+in the active list or the head of the inactive list.  So, the page
+reclaimer may take quite some overhead to reclaim these actually unused
+pages.
 
-  type = swp_type(swp_entry);
-  if (type >= nr_swapfiles)
-          /* handle invalid swp_entry */;
-  p = swap_info[type];
-  /* access fields of *p.  OOPS! p may be NULL! */
+To help the page reclaiming, in this patch, after COW, the idle swap cache
+page will be tried to be freed.  To avoid to introduce much overhead to
+the hot COW code path,
 
-Because the ordering isn't guaranteed, it's possible that swap_info[type]
-is read before "nr_swapfiles".  And that may result in NULL pointer
-dereference.
+a) there's almost zero overhead for non-swap case via checking
+   PageSwapCache() firstly.
 
-So after commit c10d38cc8d3e, the code becomes,
+b) the page lock is acquired via trylock only.
 
-  struct swap_info_struct *swap_type_to_swap_info(int type)
-  {
-	  if (type >= READ_ONCE(nr_swapfiles))
-		  return NULL;
-	  smp_rmb();
-	  return READ_ONCE(swap_info[type]);
-  }
+To test the patch, we used pmbench memory accessing benchmark with
+working-set larger than available memory on a 2-socket Intel server with a
+NVMe SSD as swap device.  Test results shows that the pmbench score
+increases up to 23.8% with the decreased size of swap cache and swapin
+throughput.
 
-  /* users */
-  type = swp_type(swp_entry);
-  p = swap_type_to_swap_info(type);
-  if (!p)
-	  /* handle invalid swp_entry */;
-  /* dereference p */
-
-Where the value of swap_info[type] (that is, "p") is checked to be
-non-zero before being dereferenced.  So, the NULL deferencing becomes
-impossible even if "nr_swapfiles" is read after swap_info[type]. 
-Therefore, the "smp_rmb()" becomes unnecessary.
-
-And, we don't even need to read "nr_swapfiles" here.  Because the non-zero
-checking for "p" is sufficient.  We just need to make sure we will not
-access out of the boundary of the array.  With the change, nr_swapfiles
-will only be accessed with swap_lock held, except in
-swapcache_free_entries().  Where the absolute correctness of the value
-isn't needed, as described in the comments.
-
-We still need to guarantee swap_info[type] is read before being
-dereferenced.  That can be satisfied via the data dependency ordering
-enforced by READ_ONCE(swap_info[type]).  This needs to be paired with
-proper write barriers.  So smp_store_release() is used in
-alloc_swap_info() to guarantee the fields of *swap_info[type] is
-initialized before swap_info[type] itself being written.  Note that the
-fields of *swap_info[type] is initialized to be 0 via kvzalloc() firstly. 
-The assignment and deferencing of swap_info[type] is like
-rcu_assign_pointer() and rcu_dereference().
-
-Link: https://lkml.kernel.org/r/20210520073301.1676294-1-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20210601053143.1380078-1-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Andrea Parri <andrea.parri@amarulasolutions.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Omar Sandoval <osandov@fb.com>
-Cc: Paul McKenney <paulmck@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>	[use free_swap_cache()]
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Tim Chen <tim.c.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ include/linux/swap.h |    5 +++++
+ mm/memory.c          |    2 ++
+ mm/swap_state.c      |    2 +-
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swap-remove-unnecessary-smp_rmb-in-swap_type_to_swap_info
-+++ a/mm/swapfile.c
-@@ -100,11 +100,10 @@ atomic_t nr_rotate_swap = ATOMIC_INIT(0)
+--- a/include/linux/swap.h~mm-free-idle-swap-cache-page-after-cow
++++ a/include/linux/swap.h
+@@ -446,6 +446,7 @@ extern void __delete_from_swap_cache(str
+ extern void delete_from_swap_cache(struct page *);
+ extern void clear_shadow_from_swap_cache(int type, unsigned long begin,
+ 				unsigned long end);
++extern void free_swap_cache(struct page *);
+ extern void free_page_and_swap_cache(struct page *);
+ extern void free_pages_and_swap_cache(struct page **, int);
+ extern struct page *lookup_swap_cache(swp_entry_t entry,
+@@ -551,6 +552,10 @@ static inline void put_swap_device(struc
+ #define free_pages_and_swap_cache(pages, nr) \
+ 	release_pages((pages), (nr));
  
- static struct swap_info_struct *swap_type_to_swap_info(int type)
++static inline void free_swap_cache(struct page *page)
++{
++}
++
+ static inline void show_swap_cache_info(void)
  {
--	if (type >= READ_ONCE(nr_swapfiles))
-+	if (type >= MAX_SWAPFILES)
- 		return NULL;
- 
--	smp_rmb();	/* Pairs with smp_wmb in alloc_swap_info. */
--	return READ_ONCE(swap_info[type]);
-+	return READ_ONCE(swap_info[type]); /* rcu_dereference() */
  }
- 
- static inline unsigned char swap_count(unsigned char ent)
-@@ -2863,14 +2862,12 @@ static struct swap_info_struct *alloc_sw
+--- a/mm/memory.c~mm-free-idle-swap-cache-page-after-cow
++++ a/mm/memory.c
+@@ -3023,6 +3023,8 @@ static vm_fault_t wp_page_copy(struct vm
+ 				munlock_vma_page(old_page);
+ 			unlock_page(old_page);
+ 		}
++		if (page_copied)
++			free_swap_cache(old_page);
+ 		put_page(old_page);
  	}
- 	if (type >= nr_swapfiles) {
- 		p->type = type;
--		WRITE_ONCE(swap_info[type], p);
- 		/*
--		 * Write swap_info[type] before nr_swapfiles, in case a
--		 * racing procfs swap_start() or swap_next() is reading them.
--		 * (We never shrink nr_swapfiles, we never free this entry.)
-+		 * Publish the swap_info_struct after initializing it.
-+		 * Note that kvzalloc() above zeroes all its fields.
- 		 */
--		smp_wmb();
--		WRITE_ONCE(nr_swapfiles, nr_swapfiles + 1);
-+		smp_store_release(&swap_info[type], p); /* rcu_assign_pointer() */
-+		nr_swapfiles++;
- 	} else {
- 		defer = p;
- 		p = swap_info[type];
+ 	return page_copied ? VM_FAULT_WRITE : 0;
+--- a/mm/swap_state.c~mm-free-idle-swap-cache-page-after-cow
++++ a/mm/swap_state.c
+@@ -286,7 +286,7 @@ void clear_shadow_from_swap_cache(int ty
+  * try_to_free_swap() _with_ the lock.
+  * 					- Marcelo
+  */
+-static inline void free_swap_cache(struct page *page)
++void free_swap_cache(struct page *page)
+ {
+ 	if (PageSwapCache(page) && !page_mapped(page) && trylock_page(page)) {
+ 		try_to_free_swap(page);
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
