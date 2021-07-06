@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A877DC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB01CC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 928DE61C81
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2ED161C88
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231727AbhGFTLf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:11:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46262 "EHLO mail.kernel.org"
+        id S231752AbhGFTLi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:11:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46292 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231700AbhGFTLe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:11:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 97B3E61C85;
-        Tue,  6 Jul 2021 19:08:55 +0000 (UTC)
+        id S231590AbhGFTLh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:11:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A5C9561C82;
+        Tue,  6 Jul 2021 19:08:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598535;
-        bh=Yl4sjQ2hmkXPDI46LsFGVBUqaVpPq2R4JqiCeEruhT0=;
+        s=korg; t=1625598539;
+        bh=3oU4qRgQn0pVL1Sj42+VVaCO0hL2z9M0jAEKX/QWFrc=;
         h=Date:From:To:Subject:From;
-        b=S2V8f9svTsZUReZaJz1I86N4yIn99kAsIFV9c+m3NvUO3Qo9vugiezRYe+GB1WaT7
-         OpMbbmGu3Vb12gX1bYhSVBKLC58bZhY6hi667IzSN3ehes7pSJ5pzmoU54rS4FsH+J
-         skZM4V3hrzeNJsbDPKmNFK1ASgIciqSUL8pldGLw=
-Date:   Tue, 06 Jul 2021 12:08:55 -0700
+        b=zGVrVvUf53c0L/O3uWdSxc6ZmhZvdcvZhZNwH3jQNDW9Cnjc/itc6Xn/jj1OI3vgR
+         gSnGKKde+S39zUGL5R8ubFZtLjjz2E/+msB4u5ZJCu+0xf5U0LUZU2g7Vua+zOvsut
+         80I33gZWVQbYdTqKUW8WN9MF8AkeLpHjeQxIKoQw=
+Date:   Tue, 06 Jul 2021 12:08:58 -0700
 From:   akpm@linux-foundation.org
 To:     brendanhiggins@google.com, cl@linux.com, dlatypov@google.com,
         elver@google.com, glittao@gmail.com, iamjoonsoo.kim@lge.com,
         mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, vbabka@suse.cz
-Subject:  [merged] kunit-make-test-lock-irq-safe.patch removed from
- -mm tree
-Message-ID: <20210706190855.t9u8ugDAv%akpm@linux-foundation.org>
+Subject:  [merged]
+ mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality.patch
+ removed from -mm tree
+Message-ID: <20210706190858.qLYAA6g1u%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,131 +46,408 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kunit: make test->lock irq safe
+     Subject: mm/slub, kunit: add a KUnit test for SLUB debugging functionality
 has been removed from the -mm tree.  Its filename was
-     kunit-make-test-lock-irq-safe.patch
+     mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: kunit: make test->lock irq safe
+From: Oliver Glitta <glittao@gmail.com>
+Subject: mm/slub, kunit: add a KUnit test for SLUB debugging functionality
 
-The upcoming SLUB kunit test will be calling kunit_find_named_resource()
-from a context with disabled interrupts.  That means kunit's test->lock
-needs to be IRQ safe to avoid potential deadlocks and lockdep splats.
+SLUB has resiliency_test() function which is hidden behind #ifdef
+SLUB_RESILIENCY_TEST that is not part of Kconfig, so nobody runs it. 
+KUnit should be a proper replacement for it.
 
-This patch therefore changes the test->lock usage to spin_lock_irqsave()
-and spin_unlock_irqrestore().
+Try changing byte in redzone after allocation and changing pointer to next
+free node, first byte, 50th byte and redzone byte.  Check if validation
+finds errors.
 
-Link: https://lkml.kernel.org/r/20210511150734.3492-1-glittao@gmail.com
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+There are several differences from the original resiliency test: Tests
+create own caches with known state instead of corrupting shared kmalloc
+caches.
+
+The corruption of freepointer uses correct offset, the original resiliency
+test got broken with freepointer changes.
+
+Scratch changing random byte test, because it does not have meaning in
+this form where we need deterministic results.
+
+Add new option CONFIG_SLUB_KUNIT_TEST in Kconfig.  Tests next_pointer,
+first_word and clobber_50th_byte do not run with KASAN option on.  Because
+the test deliberately modifies non-allocated objects.
+
+Use kunit_resource to count errors in cache and silence bug reports. 
+Count error whenever slab_bug() or slab_fix() is called or when the count
+of pages is wrong.
+
+[glittao@gmail.com: remove unused function test_exit(), from SLUB KUnit test]
+  Link: https://lkml.kernel.org/r/20210512140656.12083-1-glittao@gmail.com
+[akpm@linux-foundation.org: export kasan_enable/disable_current to modules]
+Link: https://lkml.kernel.org/r/20210511150734.3492-2-glittao@gmail.com
 Signed-off-by: Oliver Glitta <glittao@gmail.com>
-Reviewed-by: Brendan Higgins <brendanhiggins@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Daniel Latypov <dlatypov@google.com>
+Acked-by: Marco Elver <elver@google.com>
+Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Daniel Latypov <dlatypov@google.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/kunit/test.h |    5 +++--
- lib/kunit/test.c     |   18 +++++++++++-------
- 2 files changed, 14 insertions(+), 9 deletions(-)
+ lib/Kconfig.debug |   12 +++
+ lib/Makefile      |    1 
+ lib/slub_kunit.c  |  152 ++++++++++++++++++++++++++++++++++++++++++++
+ mm/kasan/common.c |    3 
+ mm/slab.h         |    1 
+ mm/slub.c         |   46 ++++++++++++-
+ 6 files changed, 212 insertions(+), 3 deletions(-)
 
---- a/include/kunit/test.h~kunit-make-test-lock-irq-safe
-+++ a/include/kunit/test.h
-@@ -515,8 +515,9 @@ kunit_find_resource(struct kunit *test,
- 		    void *match_data)
- {
- 	struct kunit_resource *res, *found = NULL;
-+	unsigned long flags;
+--- a/lib/Kconfig.debug~mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality
++++ a/lib/Kconfig.debug
+@@ -2429,6 +2429,18 @@ config BITS_TEST
  
--	spin_lock(&test->lock);
-+	spin_lock_irqsave(&test->lock, flags);
+ 	  If unsure, say N.
  
- 	list_for_each_entry_reverse(res, &test->resources, node) {
- 		if (match(test, res, (void *)match_data)) {
-@@ -526,7 +527,7 @@ kunit_find_resource(struct kunit *test,
- 		}
- 	}
- 
--	spin_unlock(&test->lock);
-+	spin_unlock_irqrestore(&test->lock, flags);
- 
- 	return found;
- }
---- a/lib/kunit/test.c~kunit-make-test-lock-irq-safe
-+++ a/lib/kunit/test.c
-@@ -475,6 +475,7 @@ int kunit_add_resource(struct kunit *tes
- 		       void *data)
- {
- 	int ret = 0;
-+	unsigned long flags;
- 
- 	res->free = free;
- 	kref_init(&res->refcount);
-@@ -487,10 +488,10 @@ int kunit_add_resource(struct kunit *tes
- 		res->data = data;
- 	}
- 
--	spin_lock(&test->lock);
-+	spin_lock_irqsave(&test->lock, flags);
- 	list_add_tail(&res->node, &test->resources);
- 	/* refcount for list is established by kref_init() */
--	spin_unlock(&test->lock);
-+	spin_unlock_irqrestore(&test->lock, flags);
- 
- 	return ret;
- }
-@@ -548,9 +549,11 @@ EXPORT_SYMBOL_GPL(kunit_alloc_and_get_re
- 
- void kunit_remove_resource(struct kunit *test, struct kunit_resource *res)
- {
--	spin_lock(&test->lock);
-+	unsigned long flags;
++config SLUB_KUNIT_TEST
++	tristate "KUnit test for SLUB cache error detection" if !KUNIT_ALL_TESTS
++	depends on SLUB_DEBUG && KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  This builds SLUB allocator unit test.
++	  Tests SLUB cache debugging functionality.
++	  For more information on KUnit and unit tests in general please refer
++	  to the KUnit documentation in Documentation/dev-tools/kunit/.
 +
-+	spin_lock_irqsave(&test->lock, flags);
- 	list_del(&res->node);
--	spin_unlock(&test->lock);
-+	spin_unlock_irqrestore(&test->lock, flags);
- 	kunit_put_resource(res);
- }
- EXPORT_SYMBOL_GPL(kunit_remove_resource);
-@@ -630,6 +633,7 @@ EXPORT_SYMBOL_GPL(kunit_kfree);
- void kunit_cleanup(struct kunit *test)
- {
- 	struct kunit_resource *res;
-+	unsigned long flags;
++	  If unsure, say N.
++
+ config TEST_UDELAY
+ 	tristate "udelay test driver"
+ 	help
+--- a/lib/Makefile~mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality
++++ a/lib/Makefile
+@@ -354,5 +354,6 @@ obj-$(CONFIG_LIST_KUNIT_TEST) += list-te
+ obj-$(CONFIG_LINEAR_RANGES_TEST) += test_linear_ranges.o
+ obj-$(CONFIG_BITS_TEST) += test_bits.o
+ obj-$(CONFIG_CMDLINE_KUNIT_TEST) += cmdline_kunit.o
++obj-$(CONFIG_SLUB_KUNIT_TEST) += slub_kunit.o
  
- 	/*
- 	 * test->resources is a stack - each allocation must be freed in the
-@@ -641,9 +645,9 @@ void kunit_cleanup(struct kunit *test)
- 	 * protect against the current node being deleted, not the next.
- 	 */
- 	while (true) {
--		spin_lock(&test->lock);
-+		spin_lock_irqsave(&test->lock, flags);
- 		if (list_empty(&test->resources)) {
--			spin_unlock(&test->lock);
-+			spin_unlock_irqrestore(&test->lock, flags);
- 			break;
- 		}
- 		res = list_last_entry(&test->resources,
-@@ -654,7 +658,7 @@ void kunit_cleanup(struct kunit *test)
- 		 * resource, and this can't happen if the test->lock
- 		 * is held.
- 		 */
--		spin_unlock(&test->lock);
-+		spin_unlock_irqrestore(&test->lock, flags);
- 		kunit_remove_resource(test, res);
+ obj-$(CONFIG_GENERIC_LIB_DEVMEM_IS_ALLOWED) += devmem_is_allowed.o
+--- /dev/null
++++ a/lib/slub_kunit.c
+@@ -0,0 +1,152 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <kunit/test.h>
++#include <linux/mm.h>
++#include <linux/slab.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include "../mm/slab.h"
++
++static struct kunit_resource resource;
++static int slab_errors;
++
++static void test_clobber_zone(struct kunit *test)
++{
++	struct kmem_cache *s = kmem_cache_create("TestSlub_RZ_alloc", 64, 0,
++				SLAB_RED_ZONE, NULL);
++	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
++
++	kasan_disable_current();
++	p[64] = 0x12;
++
++	validate_slab_cache(s);
++	KUNIT_EXPECT_EQ(test, 2, slab_errors);
++
++	kasan_enable_current();
++	kmem_cache_free(s, p);
++	kmem_cache_destroy(s);
++}
++
++#ifndef CONFIG_KASAN
++static void test_next_pointer(struct kunit *test)
++{
++	struct kmem_cache *s = kmem_cache_create("TestSlub_next_ptr_free", 64, 0,
++				SLAB_POISON, NULL);
++	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
++	unsigned long tmp;
++	unsigned long *ptr_addr;
++
++	kmem_cache_free(s, p);
++
++	ptr_addr = (unsigned long *)(p + s->offset);
++	tmp = *ptr_addr;
++	p[s->offset] = 0x12;
++
++	/*
++	 * Expecting three errors.
++	 * One for the corrupted freechain and the other one for the wrong
++	 * count of objects in use. The third error is fixing broken cache.
++	 */
++	validate_slab_cache(s);
++	KUNIT_EXPECT_EQ(test, 3, slab_errors);
++
++	/*
++	 * Try to repair corrupted freepointer.
++	 * Still expecting two errors. The first for the wrong count
++	 * of objects in use.
++	 * The second error is for fixing broken cache.
++	 */
++	*ptr_addr = tmp;
++	slab_errors = 0;
++
++	validate_slab_cache(s);
++	KUNIT_EXPECT_EQ(test, 2, slab_errors);
++
++	/*
++	 * Previous validation repaired the count of objects in use.
++	 * Now expecting no error.
++	 */
++	slab_errors = 0;
++	validate_slab_cache(s);
++	KUNIT_EXPECT_EQ(test, 0, slab_errors);
++
++	kmem_cache_destroy(s);
++}
++
++static void test_first_word(struct kunit *test)
++{
++	struct kmem_cache *s = kmem_cache_create("TestSlub_1th_word_free", 64, 0,
++				SLAB_POISON, NULL);
++	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
++
++	kmem_cache_free(s, p);
++	*p = 0x78;
++
++	validate_slab_cache(s);
++	KUNIT_EXPECT_EQ(test, 2, slab_errors);
++
++	kmem_cache_destroy(s);
++}
++
++static void test_clobber_50th_byte(struct kunit *test)
++{
++	struct kmem_cache *s = kmem_cache_create("TestSlub_50th_word_free", 64, 0,
++				SLAB_POISON, NULL);
++	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
++
++	kmem_cache_free(s, p);
++	p[50] = 0x9a;
++
++	validate_slab_cache(s);
++	KUNIT_EXPECT_EQ(test, 2, slab_errors);
++
++	kmem_cache_destroy(s);
++}
++#endif
++
++static void test_clobber_redzone_free(struct kunit *test)
++{
++	struct kmem_cache *s = kmem_cache_create("TestSlub_RZ_free", 64, 0,
++				SLAB_RED_ZONE, NULL);
++	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
++
++	kasan_disable_current();
++	kmem_cache_free(s, p);
++	p[64] = 0xab;
++
++	validate_slab_cache(s);
++	KUNIT_EXPECT_EQ(test, 2, slab_errors);
++
++	kasan_enable_current();
++	kmem_cache_destroy(s);
++}
++
++static int test_init(struct kunit *test)
++{
++	slab_errors = 0;
++
++	kunit_add_named_resource(test, NULL, NULL, &resource,
++					"slab_errors", &slab_errors);
++	return 0;
++}
++
++static struct kunit_case test_cases[] = {
++	KUNIT_CASE(test_clobber_zone),
++
++#ifndef CONFIG_KASAN
++	KUNIT_CASE(test_next_pointer),
++	KUNIT_CASE(test_first_word),
++	KUNIT_CASE(test_clobber_50th_byte),
++#endif
++
++	KUNIT_CASE(test_clobber_redzone_free),
++	{}
++};
++
++static struct kunit_suite test_suite = {
++	.name = "slub_test",
++	.init = test_init,
++	.test_cases = test_cases,
++};
++kunit_test_suite(test_suite);
++
++MODULE_LICENSE("GPL");
+--- a/mm/kasan/common.c~mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality
++++ a/mm/kasan/common.c
+@@ -51,11 +51,14 @@ void kasan_enable_current(void)
+ {
+ 	current->kasan_depth++;
+ }
++EXPORT_SYMBOL(kasan_enable_current);
+ 
+ void kasan_disable_current(void)
+ {
+ 	current->kasan_depth--;
+ }
++EXPORT_SYMBOL(kasan_disable_current);
++
+ #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
+ 
+ void __kasan_unpoison_range(const void *address, size_t size)
+--- a/mm/slab.h~mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality
++++ a/mm/slab.h
+@@ -215,6 +215,7 @@ DECLARE_STATIC_KEY_TRUE(slub_debug_enabl
+ DECLARE_STATIC_KEY_FALSE(slub_debug_enabled);
+ #endif
+ extern void print_tracking(struct kmem_cache *s, void *object);
++long validate_slab_cache(struct kmem_cache *s);
+ #else
+ static inline void print_tracking(struct kmem_cache *s, void *object)
+ {
+--- a/mm/slub.c~mm-slub-kunit-add-a-kunit-test-for-slub-debugging-functionality
++++ a/mm/slub.c
+@@ -36,6 +36,7 @@
+ #include <linux/prefetch.h>
+ #include <linux/memcontrol.h>
+ #include <linux/random.h>
++#include <kunit/test.h>
+ 
+ #include <trace/events/kmem.h>
+ 
+@@ -449,6 +450,26 @@ static inline bool cmpxchg_double_slab(s
+ static unsigned long object_map[BITS_TO_LONGS(MAX_OBJS_PER_PAGE)];
+ static DEFINE_SPINLOCK(object_map_lock);
+ 
++#if IS_ENABLED(CONFIG_KUNIT)
++static bool slab_add_kunit_errors(void)
++{
++	struct kunit_resource *resource;
++
++	if (likely(!current->kunit_test))
++		return false;
++
++	resource = kunit_find_named_resource(current->kunit_test, "slab_errors");
++	if (!resource)
++		return false;
++
++	(*(int *)resource->data)++;
++	kunit_put_resource(resource);
++	return true;
++}
++#else
++static inline bool slab_add_kunit_errors(void) { return false; }
++#endif
++
+ /*
+  * Determine a map of object in use on a page.
+  *
+@@ -679,6 +700,9 @@ static void slab_fix(struct kmem_cache *
+ 	struct va_format vaf;
+ 	va_list args;
+ 
++	if (slab_add_kunit_errors())
++		return;
++
+ 	va_start(args, fmt);
+ 	vaf.fmt = fmt;
+ 	vaf.va = &args;
+@@ -742,6 +766,9 @@ static void print_trailer(struct kmem_ca
+ void object_err(struct kmem_cache *s, struct page *page,
+ 			u8 *object, char *reason)
+ {
++	if (slab_add_kunit_errors())
++		return;
++
+ 	slab_bug(s, "%s", reason);
+ 	print_trailer(s, page, object);
+ }
+@@ -752,6 +779,9 @@ static __printf(3, 4) void slab_err(stru
+ 	va_list args;
+ 	char buf[100];
+ 
++	if (slab_add_kunit_errors())
++		return;
++
+ 	va_start(args, fmt);
+ 	vsnprintf(buf, sizeof(buf), fmt, args);
+ 	va_end(args);
+@@ -801,12 +831,16 @@ static int check_bytes_and_report(struct
+ 	while (end > fault && end[-1] == value)
+ 		end--;
+ 
++	if (slab_add_kunit_errors())
++		goto skip_bug_print;
++
+ 	slab_bug(s, "%s overwritten", what);
+ 	pr_err("0x%p-0x%p @offset=%tu. First byte 0x%x instead of 0x%x\n",
+ 					fault, end - 1, fault - addr,
+ 					fault[0], value);
+ 	print_trailer(s, page, object);
+ 
++skip_bug_print:
+ 	restore_bytes(s, what, value, fault, end);
+ 	return 0;
+ }
+@@ -4649,9 +4683,11 @@ static int validate_slab_node(struct kme
+ 		validate_slab(s, page);
+ 		count++;
  	}
- 	current->kunit_test = NULL;
+-	if (count != n->nr_partial)
++	if (count != n->nr_partial) {
+ 		pr_err("SLUB %s: %ld partial slabs counted but counter=%ld\n",
+ 		       s->name, count, n->nr_partial);
++		slab_add_kunit_errors();
++	}
+ 
+ 	if (!(s->flags & SLAB_STORE_USER))
+ 		goto out;
+@@ -4660,16 +4696,18 @@ static int validate_slab_node(struct kme
+ 		validate_slab(s, page);
+ 		count++;
+ 	}
+-	if (count != atomic_long_read(&n->nr_slabs))
++	if (count != atomic_long_read(&n->nr_slabs)) {
+ 		pr_err("SLUB: %s %ld slabs counted but counter=%ld\n",
+ 		       s->name, count, atomic_long_read(&n->nr_slabs));
++		slab_add_kunit_errors();
++	}
+ 
+ out:
+ 	spin_unlock_irqrestore(&n->list_lock, flags);
+ 	return count;
+ }
+ 
+-static long validate_slab_cache(struct kmem_cache *s)
++long validate_slab_cache(struct kmem_cache *s)
+ {
+ 	int node;
+ 	unsigned long count = 0;
+@@ -4681,6 +4719,8 @@ static long validate_slab_cache(struct k
+ 
+ 	return count;
+ }
++EXPORT_SYMBOL(validate_slab_cache);
++
+ /*
+  * Generate lists of code addresses where slabcache objects are allocated
+  * and freed.
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from glittao@gmail.com are
 
-mm-slub-use-stackdepot-to-save-stack-trace-in-objects-fix-2.patch
+mm-slub-use-stackdepot-to-save-stack-trace-in-objects.patch
 
