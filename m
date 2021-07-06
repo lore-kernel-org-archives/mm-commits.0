@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5976FC07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB4A4C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41D5561CA3
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CE7A61C9D
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229807AbhGFTZX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:25:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58614 "EHLO mail.kernel.org"
+        id S229935AbhGFTZT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:25:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58576 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229787AbhGFTZX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:25:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C884161CA3;
-        Tue,  6 Jul 2021 19:22:43 +0000 (UTC)
+        id S229811AbhGFTZT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:25:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7DC2C61C9E;
+        Tue,  6 Jul 2021 19:22:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599363;
-        bh=Ri6+nuPugLafbn1e5lATB3xlJUVQJunQ9HRNpzNMrAg=;
+        s=korg; t=1625599359;
+        bh=HcGpIrxDYuWjCavG6swG438ovaoA5MZXMPj/55UckcU=;
         h=Date:From:To:Subject:From;
-        b=GRmLWlzxktPCHdp4zK3O2JqLiMyfaFAkBBZvZjF639113P9gQkESXPgobvyqi3DVB
-         JnmHmJ6iO9kE1hq4QIIGLPXQ6Ab6mLpzlOEUgo/19U9D0j5hpI3T5Exolw2luO0AOk
-         zznDuC6KcOww8wUJkOAH1Hm5xZWWUOy7+q7l3qmw=
-Date:   Tue, 06 Jul 2021 12:22:43 -0700
+        b=Xln8pMFtVlHFmTyCqnlVpe9uGIG9hCaukbQqUdTtd4V7ora8rq5m4C91JSjnxa4UR
+         LS1PFVZH5kZsEZ/lHym7XW+tnFseh5TIyh+Hw5huNrtOTowGPX1fwQKGIAfPboLt8Y
+         LlHRRs/E+Ybh92kCPRLHDKDQW/j6WuFbFkO/yK6g=
+Date:   Tue, 06 Jul 2021 12:22:39 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, mm-commits@vger.kernel.org
-Subject:  [merged] lib-uninline-simple_strtoull.patch removed from
+To:     herbert@gondor.apana.org.au, mm-commits@vger.kernel.org,
+        thunder.leizhen@huawei.com
+Subject:  [merged] lib-mpi-fix-spelling-mistakes.patch removed from
  -mm tree
-Message-ID: <20210706192243.4gZtf1pZF%akpm@linux-foundation.org>
+Message-ID: <20210706192239.OrdymPcS4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,59 +43,103 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: uninline simple_strtoull()
+     Subject: lib/mpi: fix spelling mistakes
 has been removed from the -mm tree.  Its filename was
-     lib-uninline-simple_strtoull.patch
+     lib-mpi-fix-spelling-mistakes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: lib: uninline simple_strtoull()
+From: Zhen Lei <thunder.leizhen@huawei.com>
+Subject: lib/mpi: fix spelling mistakes
 
-Gcc inlines simple_strtoull() too agressively.
+Fix some spelling mistakes in comments:
+flaged ==> flagged
+bufer ==> buffer
+multipler ==> multiplier
+MULTIPLER ==> MULTIPLIER
+leaset ==> least
+chnage ==> change
 
-Given that all 4 signatures match, everything very efficiently calls or
-tailcalls into simple_strtoull():
-
-	ffffffff81da0240 <simple_strtoll>:
-	ffffffff81da0240:       80 3f 2d                cmp    BYTE PTR [rdi],0x2d
-	ffffffff81da0243:       74 05                   je     ffffffff81da024a <simple_strtoll+0xa>
-	ffffffff81da0245:       e9 76 ff ff ff          jmp    simple_strtoull
-	ffffffff81da024a:       48 83 c7 01             add    rdi,0x1
-	ffffffff81da024e:       e8 6d ff ff ff          call   simple_strtoull
-	ffffffff81da0253:       48 f7 d8                neg    rax
-	ffffffff81da0256:       c3                      ret
-
-Space savings (on F34-ish .config)
-
-	add/remove: 0/0 grow/shrink: 1/3 up/down: 52/-313 (-261)
-	Function                                     old     new   delta
-	vsscanf                                     2167    2219     +52
-	simple_strtoul                                72       2     -70
-	simple_strtoll                               143      23    -120
-	simple_strtol                                143      20    -123
-
-Link: https://lkml.kernel.org/r/YMO2zoOQk2eF34tn@localhost.localdomain
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: https://lkml.kernel.org/r/20210604074401.12198-1-thunder.leizhen@huawei.com
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mpi.h |    4 ++--
+ lib/mpi/longlong.h  |    4 ++--
+ lib/mpi/mpicoder.c  |    6 +++---
+ lib/mpi/mpiutil.c   |    2 +-
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
---- a/lib/vsprintf.c~lib-uninline-simple_strtoull
-+++ a/lib/vsprintf.c
-@@ -61,6 +61,7 @@
+--- a/include/linux/mpi.h~lib-mpi-fix-spelling-mistakes
++++ a/include/linux/mpi.h
+@@ -200,7 +200,7 @@ struct mpi_ec_ctx {
+ 	unsigned int nbits;            /* Number of bits.  */
+ 
+ 	/* Domain parameters.  Note that they may not all be set and if set
+-	 * the MPIs may be flaged as constant.
++	 * the MPIs may be flagged as constant.
+ 	 */
+ 	MPI p;         /* Prime specifying the field GF(p).  */
+ 	MPI a;         /* First coefficient of the Weierstrass equation.  */
+@@ -267,7 +267,7 @@ int mpi_ec_curve_point(MPI_POINT point,
+ /**
+  * mpi_get_size() - returns max size required to store the number
   *
-  * This function has caveats. Please use kstrtoull instead.
+- * @a:	A multi precision integer for which we want to allocate a bufer
++ * @a:	A multi precision integer for which we want to allocate a buffer
+  *
+  * Return: size required to store the number
   */
-+noinline
- unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base)
- {
- 	unsigned long long result;
+--- a/lib/mpi/longlong.h~lib-mpi-fix-spelling-mistakes
++++ a/lib/mpi/longlong.h
+@@ -48,8 +48,8 @@
+ 
+ /* Define auxiliary asm macros.
+  *
+- * 1) umul_ppmm(high_prod, low_prod, multipler, multiplicand) multiplies two
+- * UWtype integers MULTIPLER and MULTIPLICAND, and generates a two UWtype
++ * 1) umul_ppmm(high_prod, low_prod, multiplier, multiplicand) multiplies two
++ * UWtype integers MULTIPLIER and MULTIPLICAND, and generates a two UWtype
+  * word product in HIGH_PROD and LOW_PROD.
+  *
+  * 2) __umulsidi3(a,b) multiplies two UWtype integers A and B, and returns a
+--- a/lib/mpi/mpicoder.c~lib-mpi-fix-spelling-mistakes
++++ a/lib/mpi/mpicoder.c
+@@ -234,11 +234,11 @@ static int count_lzeros(MPI a)
+ }
+ 
+ /**
+- * mpi_read_buffer() - read MPI to a bufer provided by user (msb first)
++ * mpi_read_buffer() - read MPI to a buffer provided by user (msb first)
+  *
+  * @a:		a multi precision integer
+- * @buf:	bufer to which the output will be written to. Needs to be at
+- *		leaset mpi_get_size(a) long.
++ * @buf:	buffer to which the output will be written to. Needs to be at
++ *		least mpi_get_size(a) long.
+  * @buf_len:	size of the buf.
+  * @nbytes:	receives the actual length of the data written on success and
+  *		the data to-be-written on -EOVERFLOW in case buf_len was too
+--- a/lib/mpi/mpiutil.c~lib-mpi-fix-spelling-mistakes
++++ a/lib/mpi/mpiutil.c
+@@ -80,7 +80,7 @@ EXPORT_SYMBOL_GPL(mpi_const);
+ /****************
+  * Note:  It was a bad idea to use the number of limbs to allocate
+  *	  because on a alpha the limbs are large but we normally need
+- *	  integers of n bits - So we should chnage this to bits (or bytes).
++ *	  integers of n bits - So we should change this to bits (or bytes).
+  *
+  *	  But mpi_alloc is used in a lot of places :-)
+  */
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from thunder.leizhen@huawei.com are
 
+lib-test-fix-spelling-mistakes.patch
+lib-fix-spelling-mistakes.patch
+lib-fix-spelling-mistakes-in-header-files.patch
+mm-fix-spelling-mistakes-in-header-files.patch
 
