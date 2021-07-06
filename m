@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2943CC07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E31BC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 144CB6117A
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1A5CA6023F
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231795AbhGFTM2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:12:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47088 "EHLO mail.kernel.org"
+        id S231700AbhGFTMb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:12:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47122 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231376AbhGFTM1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:12:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A71F260FE3;
-        Tue,  6 Jul 2021 19:09:47 +0000 (UTC)
+        id S231794AbhGFTM3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:12:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 97EB361057;
+        Tue,  6 Jul 2021 19:09:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598588;
-        bh=sx8AcmaNqrmVcjOfflonavfaI464OOPOXgpC5m6yU2Y=;
+        s=korg; t=1625598590;
+        bh=bRLP47zafO49rR+QJ+KL2vqUPlI7pRz4X1LtgYoyTWg=;
         h=Date:From:To:Subject:From;
-        b=Aw2uOgzIC+enqCNAO2YfrMmPin7AgLuQ/96OC9Foe9VZCdhJPbfZWfAiaAbwa29rz
-         Ap9egALduzwD3KK2KlMciGcfjy4NwgESB8XoUFnUqXe2EsS3QvADPMDXAduwM/4XWi
-         E7/LLrrHVLMwWyOTIxOci8ryhvfbNBE3xGsB+1LE=
-Date:   Tue, 06 Jul 2021 12:09:47 -0700
+        b=r3FtxUOTCx3F5VXAkHYRcfNUpwvhql6Cg2ellVEPYMV7XObFXEgF5LJuYDpBIzey/
+         aPUib4wr5X0QFPEg68S9JE8wZknpb36p9fnI+O0y+KmRFxFwkMu1kSqi8qHUazf+hM
+         BBlwMMEi85660s8d3DTnVVR6WkpkulGwi2YbKv6o=
+Date:   Tue, 06 Jul 2021 12:09:50 -0700
 From:   akpm@linux-foundation.org
 To:     axboe@kernel.dk, dchinner@redhat.com, dennis@kernel.org,
         guro@fb.com, jack@suse.com, jack@suse.cz,
         mm-commits@vger.kernel.org, tj@kernel.org, viro@zeniv.linux.org.uk
 Subject:  [merged]
- writeback-cgroup-do-not-switch-inodes-with-i_will_free-flag.patch removed
- from -mm tree
-Message-ID: <20210706190947.NI_teIdGS%akpm@linux-foundation.org>
+ writeback-cgroup-add-smp_mb-to-cgroup_writeback_umount.patch removed from
+ -mm tree
+Message-ID: <20210706190950.3Mp0Lo8cd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,102 +45,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: writeback, cgroup: do not switch inodes with I_WILL_FREE flag
+     Subject: writeback, cgroup: add smp_mb() to cgroup_writeback_umount()
 has been removed from the -mm tree.  Its filename was
-     writeback-cgroup-do-not-switch-inodes-with-i_will_free-flag.patch
+     writeback-cgroup-add-smp_mb-to-cgroup_writeback_umount.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Roman Gushchin <guro@fb.com>
-Subject: writeback, cgroup: do not switch inodes with I_WILL_FREE flag
+Subject: writeback, cgroup: add smp_mb() to cgroup_writeback_umount()
 
-Patch series "cgroup, blkcg: prevent dirty inodes to pin dying memory cgroups", v9.
+A full memory barrier is required between clearing SB_ACTIVE flag in
+generic_shutdown_super() and checking isw_nr_in_flight in
+cgroup_writeback_umount(), otherwise a new switch operation might be
+scheduled after atomic_read(&isw_nr_in_flight) returned 0.  This would
+result in a non-flushed isw_wq, and a potential crash.
 
-When an inode is getting dirty for the first time it's associated with a
-wb structure (see __inode_attach_wb()).  It can later be switched to
-another wb (if e.g.  some other cgroup is writing a lot of data to the
-same inode), but otherwise stays attached to the original wb until being
-reclaimed.
+The problem hasn't yet been seen in the real life and was discovered by
+Jan Kara by looking into the code.
 
-The problem is that the wb structure holds a reference to the original
-memory and blkcg cgroups.  So if an inode has been dirty once and later is
-actively used in read-only mode, it has a good chance to pin down the
-original memory and blkcg cgroups forever.  This is often the case with
-services bringing data for other services, e.g.  updating some rpm
-packages.
-
-In the real life it becomes a problem due to a large size of the memcg
-structure, which can easily be 1000x larger than an inode.  Also a really
-large number of dying cgroups can raise different scalability issues, e.g.
-making the memory reclaim costly and less effective.
-
-To solve the problem inodes should be eventually detached from the
-corresponding writeback structure.  It's inefficient to do it after every
-writeback completion.  Instead it can be done whenever the original memory
-cgroup is offlined and writeback structure is getting killed.  Scanning
-over a (potentially long) list of inodes and detach them from the
-writeback structure can take quite some time.  To avoid scanning all
-inodes, attached inodes are kept on a new list (b_attached).  To make it
-less noticeable to a user, the scanning and switching is performed from a
-work context.
-
-Big thanks to Jan Kara, Dennis Zhou, Hillf Danton and Tejun Heo for their
-ideas and contribution to this patchset.
-
-
-This patch (of 8):
-
-If an inode's state has I_WILL_FREE flag set, the inode will be freed
-soon, so there is no point in trying to switch the inode to a different
-cgwb.
-
-I_WILL_FREE was ignored since the introduction of the inode switching, so
-it looks like it doesn't lead to any noticeable issues for a user.  This
-is why the patch is not intended for a stable backport.
-
-Link: https://lkml.kernel.org/r/20210608230225.2078447-1-guro@fb.com
-Link: https://lkml.kernel.org/r/20210608230225.2078447-2-guro@fb.com
+Link: https://lkml.kernel.org/r/20210608230225.2078447-3-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
 Suggested-by: Jan Kara <jack@suse.cz>
-Acked-by: Tejun Heo <tj@kernel.org>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Dennis Zhou <dennis@kernel.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Jan Kara <jack@suse.com>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/fs-writeback.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/fs/fs-writeback.c~writeback-cgroup-do-not-switch-inodes-with-i_will_free-flag
+--- a/fs/fs-writeback.c~writeback-cgroup-add-smp_mb-to-cgroup_writeback_umount
 +++ a/fs/fs-writeback.c
-@@ -389,10 +389,10 @@ static void inode_switch_wbs_work_fn(str
- 	xa_lock_irq(&mapping->i_pages);
- 
- 	/*
--	 * Once I_FREEING is visible under i_lock, the eviction path owns
--	 * the inode and we shouldn't modify ->i_io_list.
-+	 * Once I_FREEING or I_WILL_FREE are visible under i_lock, the eviction
-+	 * path owns the inode and we shouldn't modify ->i_io_list.
- 	 */
--	if (unlikely(inode->i_state & I_FREEING))
-+	if (unlikely(inode->i_state & (I_FREEING | I_WILL_FREE)))
- 		goto skip_switch;
- 
- 	trace_inode_switch_wbs(inode, old_wb, new_wb);
-@@ -517,7 +517,7 @@ static void inode_switch_wbs(struct inod
- 	/* while holding I_WB_SWITCH, no one else can update the association */
- 	spin_lock(&inode->i_lock);
- 	if (!(inode->i_sb->s_flags & SB_ACTIVE) ||
--	    inode->i_state & (I_WB_SWITCH | I_FREEING) ||
-+	    inode->i_state & (I_WB_SWITCH | I_FREEING | I_WILL_FREE) ||
- 	    inode_to_wb(inode) == isw->new_wb) {
- 		spin_unlock(&inode->i_lock);
- 		goto out_free;
+@@ -1000,6 +1000,12 @@ out_bdi_put:
+  */
+ void cgroup_writeback_umount(void)
+ {
++	/*
++	 * SB_ACTIVE should be reliably cleared before checking
++	 * isw_nr_in_flight, see generic_shutdown_super().
++	 */
++	smp_mb();
++
+ 	if (atomic_read(&isw_nr_in_flight)) {
+ 		/*
+ 		 * Use rcu_barrier() to wait for all pending callbacks to
 _
 
 Patches currently in -mm which might be from guro@fb.com are
