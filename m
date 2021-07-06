@@ -7,35 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E0A5C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF567C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E635461C72
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B371661206
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231749AbhGFTOc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:14:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48816 "EHLO mail.kernel.org"
+        id S231752AbhGFTOe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:14:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48844 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231725AbhGFTOc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:14:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6D25C61C6C;
-        Tue,  6 Jul 2021 19:11:52 +0000 (UTC)
+        id S231721AbhGFTOe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:14:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6D9E761C72;
+        Tue,  6 Jul 2021 19:11:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598712;
-        bh=J6E3N96jhLhc6EY71b2dryB1eoHmT5Twwgs3TH+GNbU=;
+        s=korg; t=1625598714;
+        bh=ORjXiidq2JB3CUKVfSf9sp3vqdbRuIQdI8RYZ5qdLEo=;
         h=Date:From:To:Subject:From;
-        b=zF7d5rB1ChAyf9fptpzUmevK/jUqHkn+M4KYWaX5BbYfn2jNDOYkv+JMp091zNfL1
-         vpO6ewxwlW5QNTN6IdfCGqOaFIAxqnhHYTNMc785/KwF8LiNvH+OolDNKQ8F2fHF7l
-         Vq0mqyX5ugG1RxNMau4A+p9gPpCGCdohvnX7HSr8=
-Date:   Tue, 06 Jul 2021 12:11:52 -0700
+        b=ze5kQVGzoKCeoapVbN86R5P7FemuqE2vhEFT4JSIywBW0mQa3DyUZMMx6R/xd/rfd
+         7Jne/IlPMyX1fbqSw+j1cjABnb1xQgQesaR/da+L53xn1GqWbjKqrkCwOSXBmEZX3c
+         ItyecUc8/HEf2A/OO8u1feO2Gy64n/ovqxyAktw8=
+Date:   Tue, 06 Jul 2021 12:11:54 -0700
 From:   akpm@linux-foundation.org
-To:     duanxiongchun@bytedance.com, guro@fb.com, hannes@cmpxchg.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com,
-        songmuchun@bytedance.com, vdavydov.dev@gmail.com
-Subject:  [merged] mm-vmscan-remove-noinline_for_stack.patch
+To:     alexander.h.duyck@linux.intel.com, alexs@kernel.org, guro@fb.com,
+        hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org,
+        richard.weiyang@gmail.com, shakeelb@google.com,
+        shy828301@gmail.com, songmuchun@bytedance.com,
+        wenhui@gwmail.gwu.edu
+Subject:  [merged] memcontrol-use-flexible-array-member.patch
  removed from -mm tree
-Message-ID: <20210706191152.0sOuWDA_N%akpm@linux-foundation.org>
+Message-ID: <20210706191154.puDrlh5iB%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,62 +46,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: remove noinline_for_stack
+     Subject: memcontrol: use flexible-array member
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-remove-noinline_for_stack.patch
+     memcontrol-use-flexible-array-member.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: vmscan: remove noinline_for_stack
+From: wenhuizhang <wenhui@gwmail.gwu.edu>
+Subject: memcontrol: use flexible-array member
 
-The noinline_for_stack is introduced by commit 666356297ec4 ("vmscan: set
-up pagevec as late as possible in shrink_inactive_list()"), its purpose is
-to delay the allocation of pagevec as late as possible to save stack
-memory.  But the commit 2bcf88796381 ("mm: take pagevecs off reclaim
-stack") replace pagevecs by lists of pages_to_free.  So we do not need
-noinline_for_stack, just remove it (let the compiler decide whether to
-inline).
+Change deprecated zero-length-and-one-element-arrays into flexible array
+member.Zero-length and one-element arrays detected by Lukas's CodeChecker.
+Zero/one element arrays cause undefined behaviours if sizeof() used.
 
-Link: https://lkml.kernel.org/r/20210417043538.9793-9-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20210518200910.29912-1-wenhui@gwmail.gwu.edu
+Signed-off-by: wenhuizhang <wenhui@gwmail.gwu.edu>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/memcontrol.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-remove-noinline_for_stack
-+++ a/mm/vmscan.c
-@@ -2015,8 +2015,8 @@ static int too_many_isolated(struct pgli
-  *
-  * Returns the number of pages moved to the given lruvec.
-  */
--static unsigned noinline_for_stack move_pages_to_lru(struct lruvec *lruvec,
--						     struct list_head *list)
-+static unsigned int move_pages_to_lru(struct lruvec *lruvec,
-+				      struct list_head *list)
- {
- 	int nr_pages, nr_moved = 0;
- 	LIST_HEAD(pages_to_free);
-@@ -2096,7 +2096,7 @@ static int current_may_throttle(void)
-  * shrink_inactive_list() is a helper for shrink_node().  It returns the number
-  * of reclaimed pages
-  */
--static noinline_for_stack unsigned long
-+static unsigned long
- shrink_inactive_list(unsigned long nr_to_scan, struct lruvec *lruvec,
- 		     struct scan_control *sc, enum lru_list lru)
- {
+--- a/include/linux/memcontrol.h~memcontrol-use-flexible-array-member
++++ a/include/linux/memcontrol.h
+@@ -349,8 +349,7 @@ struct mem_cgroup {
+ 	struct deferred_split deferred_split_queue;
+ #endif
+ 
+-	struct mem_cgroup_per_node *nodeinfo[0];
+-	/* WARNING: nodeinfo must be the last member here */
++	struct mem_cgroup_per_node *nodeinfo[];
+ };
+ 
+ /*
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from wenhui@gwmail.gwu.edu are
 
 
