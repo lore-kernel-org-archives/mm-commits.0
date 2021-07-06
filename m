@@ -7,40 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23023C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09ABFC07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0DB6760FEE
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E70A461206
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231838AbhGFTOw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:14:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49126 "EHLO mail.kernel.org"
+        id S231845AbhGFTOy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:14:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49176 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231795AbhGFTOw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:14:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7E64261057;
-        Tue,  6 Jul 2021 19:12:11 +0000 (UTC)
+        id S231795AbhGFTOy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:14:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6C2AB6117A;
+        Tue,  6 Jul 2021 19:12:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598732;
-        bh=NxbUcrXJeZTUuuQtDY276yU0hxCUKln+BYJD4eOkhDA=;
+        s=korg; t=1625598734;
+        bh=0e7+bARF3Gy+b+EyC0bPix8EVNq2+X2NcbLuuSyfxu8=;
         h=Date:From:To:Subject:From;
-        b=yBpQidr6l9W7T/dcBvhT4FXcs5Mk2aAk64mfGQTvk7bRjeDoFJRfV1I4l7HpO624M
-         qpqzXJCD4JGhBuHAVpkjVBYc9XRT0wM9qSqVRf3zi2oD29G0bFr3dh2FwXA35knbLO
-         rcjhq/AvffQbaHeZQDZ0xUE8KzdAFYW96KXvw804=
-Date:   Tue, 06 Jul 2021 12:12:11 -0700
+        b=LkU2uIqIUIV1/On73E7Ag7Cb46KwkhUzLvEO9KUxvcX7BarQ/oUA7Vq8U3+h5OqfD
+         AP6CiT0I+j4zMevuqeaGxKNqXxN3XSnK3/2BjUI/qc7ilp+aVlbAICXBeZ1jBok9PJ
+         PXo4HHUrW+LzcK7trxSPVLzvKPrgArvBjnHqluDg=
+Date:   Tue, 06 Jul 2021 12:12:14 -0700
 From:   akpm@linux-foundation.org
-To:     acme@kernel.org, alexander.shishkin@linux.intel.com, bp@alien8.de,
-        catalin.marinas@arm.com, david@redhat.com, dzickus@redhat.com,
-        ebiederm@xmission.com, feng.tang@intel.com, gerg@linux-m68k.org,
-        hpa@zytor.com, jolsa@redhat.com, keescook@chromium.org,
-        Kevin.Brodsky@arm.com, mark.rutland@arm.com, mhocko@suse.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, namhyung@kernel.org,
-        peterz@infradead.org, rppt@kernel.org, tglx@linutronix.de,
-        viro@zeniv.linux.org.uk
+To:     akpm@linux-foundation.org, david@redhat.com,
+        gmjuareztello@gmail.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-ignore-map_executable-in-ksys_mmap_pgoff.patch removed from -mm tree
-Message-ID: <20210706191211.w9HfzAEBF%akpm@linux-foundation.org>
+ mm-mmapc-logic-of-find_vma_intersection-repeated-in-__do_munmap.patch
+ removed from -mm tree
+Message-ID: <20210706191214.jANL4gsN9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,89 +44,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: ignore MAP_EXECUTABLE in ksys_mmap_pgoff()
+     Subject: mm/mmap.c: logic of find_vma_intersection repeated in __do_munmap
 has been removed from the -mm tree.  Its filename was
-     mm-ignore-map_executable-in-ksys_mmap_pgoff.patch
+     mm-mmapc-logic-of-find_vma_intersection-repeated-in-__do_munmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: ignore MAP_EXECUTABLE in ksys_mmap_pgoff()
+From: Gonzalo Matias Juarez Tello <gmjuareztello@gmail.com>
+Subject: mm/mmap.c: logic of find_vma_intersection repeated in __do_munmap
 
-Let's also remove masking off MAP_EXECUTABLE from ksys_mmap_pgoff(): the
-last in-tree occurrence of MAP_EXECUTABLE is now in LEGACY_MAP_MASK, which
-accepts the flag e.g., for MAP_SHARED_VALIDATE; however, the flag is
-ignored throughout the kernel now.
+Logic of find_vma_intersection() is repeated in __do_munmap().
 
-Add a comment to LEGACY_MAP_MASK stating that MAP_EXECUTABLE is ignored.
+Also, prev is assigned a value before checking vma->vm_start >= end which
+might end up on a return statement making that assignment useless.
 
-Link: https://lkml.kernel.org/r/20210421093453.6904-4-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@redhat.com>
-Cc: Kevin Brodsky <Kevin.Brodsky@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Calling find_vma_intersection() checks that condition and returns NULL if
+no vma is found, hence only the !vma check is needed in __do_munmap().
+
+Link: https://lkml.kernel.org/r/20210409162129.18313-1-gmjuareztello@gmail.com
+Signed-off-by: Gonzalo Matias Juarez Tello <gmjuareztello@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mman.h |    2 ++
- mm/mmap.c            |    2 +-
- mm/nommu.c           |    2 +-
- 3 files changed, 4 insertions(+), 2 deletions(-)
+ mm/mmap.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
---- a/include/linux/mman.h~mm-ignore-map_executable-in-ksys_mmap_pgoff
-+++ a/include/linux/mman.h
-@@ -31,6 +31,8 @@
- /*
-  * The historical set of flags that all mmap implementations implicitly
-  * support when a ->mmap_validate() op is not provided in file_operations.
-+ *
-+ * MAP_EXECUTABLE is completely ignored throughout the kernel.
-  */
- #define LEGACY_MAP_MASK (MAP_SHARED \
- 		| MAP_PRIVATE \
---- a/mm/mmap.c~mm-ignore-map_executable-in-ksys_mmap_pgoff
+--- a/mm/mmap.c~mm-mmapc-logic-of-find_vma_intersection-repeated-in-__do_munmap
 +++ a/mm/mmap.c
-@@ -1633,7 +1633,7 @@ unsigned long ksys_mmap_pgoff(unsigned l
- 			return PTR_ERR(file);
- 	}
+@@ -2828,16 +2828,11 @@ int __do_munmap(struct mm_struct *mm, un
+ 	 */
+ 	arch_unmap(mm, start, end);
  
--	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
-+	flags &= ~MAP_DENYWRITE;
+-	/* Find the first overlapping VMA */
+-	vma = find_vma(mm, start);
++	/* Find the first overlapping VMA where start < vma->vm_end */
++	vma = find_vma_intersection(mm, start, end);
+ 	if (!vma)
+ 		return 0;
+ 	prev = vma->vm_prev;
+-	/* we have  start < vma->vm_end  */
+-
+-	/* if it doesn't overlap, we have nothing.. */
+-	if (vma->vm_start >= end)
+-		return 0;
  
- 	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
- out_fput:
---- a/mm/nommu.c~mm-ignore-map_executable-in-ksys_mmap_pgoff
-+++ a/mm/nommu.c
-@@ -1296,7 +1296,7 @@ unsigned long ksys_mmap_pgoff(unsigned l
- 			goto out;
- 	}
- 
--	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
-+	flags &= ~MAP_DENYWRITE;
- 
- 	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
- 
+ 	/*
+ 	 * If we need to split any vma, do it now to save pain later.
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from gmjuareztello@gmail.com are
 
-memory-hotplugrst-complete-admin-guide-overhaul.patch
 
