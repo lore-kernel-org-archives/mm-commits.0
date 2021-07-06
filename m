@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46364C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2943CC07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 319DE6023F
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 144CB6117A
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231873AbhGFTMZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:12:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47060 "EHLO mail.kernel.org"
+        id S231795AbhGFTM2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:12:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231737AbhGFTMZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:12:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8BDBB60FE3;
-        Tue,  6 Jul 2021 19:09:45 +0000 (UTC)
+        id S231376AbhGFTM1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:12:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A71F260FE3;
+        Tue,  6 Jul 2021 19:09:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598585;
-        bh=0mdZ+m/waD0V+49g+7Y495eK3q7kTIbOd18ObcvnwVQ=;
+        s=korg; t=1625598588;
+        bh=sx8AcmaNqrmVcjOfflonavfaI464OOPOXgpC5m6yU2Y=;
         h=Date:From:To:Subject:From;
-        b=aDrXKDzjmGGsQLbvoS15u2RacLhEUhWnaArPy4f9UDjHwr7foCSeGl2CBAeOPAfu1
-         evBCZOIwq5pJ3JuiROQ6Lm1+FvL+UC5moEAjYt+5jXAiBDHFXtwULlmVqIcQ6b0pTx
-         Ko+QA+JchM3Hr9jRJUEqvnZvsA2r7LOTrZ1hRRB0=
-Date:   Tue, 06 Jul 2021 12:09:45 -0700
+        b=Aw2uOgzIC+enqCNAO2YfrMmPin7AgLuQ/96OC9Foe9VZCdhJPbfZWfAiaAbwa29rz
+         Ap9egALduzwD3KK2KlMciGcfjy4NwgESB8XoUFnUqXe2EsS3QvADPMDXAduwM/4XWi
+         E7/LLrrHVLMwWyOTIxOci8ryhvfbNBE3xGsB+1LE=
+Date:   Tue, 06 Jul 2021 12:09:47 -0700
 From:   akpm@linux-foundation.org
-To:     hcochran@kernelspring.com, jack@suse.cz,
-        mm-commits@vger.kernel.org, mszeredi@redhat.com,
-        sedat.dilek@gmail.com, tj@kernel.org, wuchi.zero@gmail.com
+To:     axboe@kernel.dk, dchinner@redhat.com, dennis@kernel.org,
+        guro@fb.com, jack@suse.com, jack@suse.cz,
+        mm-commits@vger.kernel.org, tj@kernel.org, viro@zeniv.linux.org.uk
 Subject:  [merged]
- mm-page-writeback-use-__this_cpu_inc-in-account_page_dirtied.patch removed
+ writeback-cgroup-do-not-switch-inodes-with-i_will_free-flag.patch removed
  from -mm tree
-Message-ID: <20210706190945.CUmx13XrH%akpm@linux-foundation.org>
+Message-ID: <20210706190947.NI_teIdGS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,45 +45,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page-writeback: use __this_cpu_inc() in account_page_dirtied()
+     Subject: writeback, cgroup: do not switch inodes with I_WILL_FREE flag
 has been removed from the -mm tree.  Its filename was
-     mm-page-writeback-use-__this_cpu_inc-in-account_page_dirtied.patch
+     writeback-cgroup-do-not-switch-inodes-with-i_will_free-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chi Wu <wuchi.zero@gmail.com>
-Subject: mm/page-writeback: use __this_cpu_inc() in account_page_dirtied()
+From: Roman Gushchin <guro@fb.com>
+Subject: writeback, cgroup: do not switch inodes with I_WILL_FREE flag
 
-As account_page_dirtied() was always protected by xa_lock_irqsave(), so
-using __this_cpu_inc() is better.
+Patch series "cgroup, blkcg: prevent dirty inodes to pin dying memory cgroups", v9.
 
-Link: https://lkml.kernel.org/r/20210512144742.4764-1-wuchi.zero@gmail.com
-Signed-off-by: Chi Wu <wuchi.zero@gmail.com>
+When an inode is getting dirty for the first time it's associated with a
+wb structure (see __inode_attach_wb()).  It can later be switched to
+another wb (if e.g.  some other cgroup is writing a lot of data to the
+same inode), but otherwise stays attached to the original wb until being
+reclaimed.
+
+The problem is that the wb structure holds a reference to the original
+memory and blkcg cgroups.  So if an inode has been dirty once and later is
+actively used in read-only mode, it has a good chance to pin down the
+original memory and blkcg cgroups forever.  This is often the case with
+services bringing data for other services, e.g.  updating some rpm
+packages.
+
+In the real life it becomes a problem due to a large size of the memcg
+structure, which can easily be 1000x larger than an inode.  Also a really
+large number of dying cgroups can raise different scalability issues, e.g.
+making the memory reclaim costly and less effective.
+
+To solve the problem inodes should be eventually detached from the
+corresponding writeback structure.  It's inefficient to do it after every
+writeback completion.  Instead it can be done whenever the original memory
+cgroup is offlined and writeback structure is getting killed.  Scanning
+over a (potentially long) list of inodes and detach them from the
+writeback structure can take quite some time.  To avoid scanning all
+inodes, attached inodes are kept on a new list (b_attached).  To make it
+less noticeable to a user, the scanning and switching is performed from a
+work context.
+
+Big thanks to Jan Kara, Dennis Zhou, Hillf Danton and Tejun Heo for their
+ideas and contribution to this patchset.
+
+
+This patch (of 8):
+
+If an inode's state has I_WILL_FREE flag set, the inode will be freed
+soon, so there is no point in trying to switch the inode to a different
+cgwb.
+
+I_WILL_FREE was ignored since the introduction of the inode switching, so
+it looks like it doesn't lead to any noticeable issues for a user.  This
+is why the patch is not intended for a stable backport.
+
+Link: https://lkml.kernel.org/r/20210608230225.2078447-1-guro@fb.com
+Link: https://lkml.kernel.org/r/20210608230225.2078447-2-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Suggested-by: Jan Kara <jack@suse.cz>
+Acked-by: Tejun Heo <tj@kernel.org>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Howard Cochran <hcochran@kernelspring.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
-Cc: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
+Acked-by: Dennis Zhou <dennis@kernel.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fs-writeback.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/page-writeback.c~mm-page-writeback-use-__this_cpu_inc-in-account_page_dirtied
-+++ a/mm/page-writeback.c
-@@ -2445,7 +2445,7 @@ void account_page_dirtied(struct page *p
- 		inc_wb_stat(wb, WB_DIRTIED);
- 		task_io_account_write(PAGE_SIZE);
- 		current->nr_dirtied++;
--		this_cpu_inc(bdp_ratelimits);
-+		__this_cpu_inc(bdp_ratelimits);
+--- a/fs/fs-writeback.c~writeback-cgroup-do-not-switch-inodes-with-i_will_free-flag
++++ a/fs/fs-writeback.c
+@@ -389,10 +389,10 @@ static void inode_switch_wbs_work_fn(str
+ 	xa_lock_irq(&mapping->i_pages);
  
- 		mem_cgroup_track_foreign_dirty(page, wb);
- 	}
+ 	/*
+-	 * Once I_FREEING is visible under i_lock, the eviction path owns
+-	 * the inode and we shouldn't modify ->i_io_list.
++	 * Once I_FREEING or I_WILL_FREE are visible under i_lock, the eviction
++	 * path owns the inode and we shouldn't modify ->i_io_list.
+ 	 */
+-	if (unlikely(inode->i_state & I_FREEING))
++	if (unlikely(inode->i_state & (I_FREEING | I_WILL_FREE)))
+ 		goto skip_switch;
+ 
+ 	trace_inode_switch_wbs(inode, old_wb, new_wb);
+@@ -517,7 +517,7 @@ static void inode_switch_wbs(struct inod
+ 	/* while holding I_WB_SWITCH, no one else can update the association */
+ 	spin_lock(&inode->i_lock);
+ 	if (!(inode->i_sb->s_flags & SB_ACTIVE) ||
+-	    inode->i_state & (I_WB_SWITCH | I_FREEING) ||
++	    inode->i_state & (I_WB_SWITCH | I_FREEING | I_WILL_FREE) ||
+ 	    inode_to_wb(inode) == isw->new_wb) {
+ 		spin_unlock(&inode->i_lock);
+ 		goto out_free;
 _
 
-Patches currently in -mm which might be from wuchi.zero@gmail.com are
+Patches currently in -mm which might be from guro@fb.com are
 
 
