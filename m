@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8960CC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:19:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C41C9C07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:19:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E52A61C7A
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:19:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB38C61C97
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:19:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231905AbhGFTV7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:21:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55710 "EHLO mail.kernel.org"
+        id S231784AbhGFTWC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:22:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55742 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231794AbhGFTV7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:21:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1251F61C91;
-        Tue,  6 Jul 2021 19:19:20 +0000 (UTC)
+        id S231909AbhGFTWB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:22:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A41861C7A;
+        Tue,  6 Jul 2021 19:19:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599160;
-        bh=OiHbj5NhzTKZZ3BAhzY9vGbMol6P9sW3r14vYQ2caF0=;
+        s=korg; t=1625599162;
+        bh=g++46CcAyPhJ6bMk8AmEd1t74sqg314zvYPg+az1VG0=;
         h=Date:From:To:Subject:From;
-        b=U4hHG57TdeGn9WtMSUbNWeLLjljfT5HloAc+XMwwmsV7EB78Vv3ZOMoEkEZ6k3SaP
-         rrFbwpHJsYqsEqggYULvB1/tPBctPKEW/rv4yYxAaI0Bwi6W7OHho1P8EL6pTKGNqY
-         s0wIZ1rx0FPqkzKemiapcQqDTe6mjHf6xZyg5H04=
-Date:   Tue, 06 Jul 2021 12:19:19 -0700
+        b=XMJ0bO/qhvTHtotJkiE5E4lfdWlAIh0wObGSPgTHgGh+2Q7VVIzi3j8gfWrtvbv0I
+         2VjJBdBI3czRtwYACKM7UgMqQjQVMiJDeGLnWRc/Teu1xakIDpjcnR3TDfpMPJEhX2
+         YvmyYtJdvGqgG/bti146VnkuA2wofns5URO46i+4=
+Date:   Tue, 06 Jul 2021 12:19:22 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, ardb@kernel.org,
-        catalin.marinas@arm.com, david@redhat.com, mark.rutland@arm.com,
-        maz@kernel.org, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        wangkefeng.wang@huawei.com, will@kernel.org
-Subject:  [merged]
- arm64-drop-pfn_valid_within-and-simplify-pfn_valid.patch removed from -mm
- tree
-Message-ID: <20210706191919.002eyRzL7%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, catalin.marinas@arm.com,
+        david@redhat.com, mm-commits@vger.kernel.org, rppt@kernel.org,
+        rppt@linux.ibm.com, will@kernel.org
+Subject:  [merged] arm64-mm-drop-have_arch_pfn_valid.patch removed
+ from -mm tree
+Message-ID: <20210706191922.tOIuCD3FY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,89 +44,126 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: drop pfn_valid_within() and simplify pfn_valid()
+     Subject: arm64/mm: drop HAVE_ARCH_PFN_VALID
 has been removed from the -mm tree.  Its filename was
-     arm64-drop-pfn_valid_within-and-simplify-pfn_valid.patch
+     arm64-mm-drop-have_arch_pfn_valid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: arm64: drop pfn_valid_within() and simplify pfn_valid()
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: arm64/mm: drop HAVE_ARCH_PFN_VALID
 
-The arm64's version of pfn_valid() differs from the generic because of two
-reasons:
+CONFIG_SPARSEMEM_VMEMMAP is now the only available memory model on arm64
+platforms and free_unused_memmap() would just return without creating any
+holes in the memmap mapping.  There is no need for any special handling in
+pfn_valid() and HAVE_ARCH_PFN_VALID can just be dropped.  This also moves
+the pfn upper bits sanity check into generic pfn_valid().
 
-* Parts of the memory map are freed during boot. This makes it necessary to
-  verify that there is actual physical memory that corresponds to a pfn
-  which is done by querying memblock.
-
-* There are NOMAP memory regions. These regions are not mapped in the
-  linear map and until the previous commit the struct pages representing
-  these areas had default values.
-
-As the consequence of absence of the special treatment of NOMAP regions in
-the memory map it was necessary to use memblock_is_map_memory() in
-pfn_valid() and to have pfn_valid_within() aliased to pfn_valid() so that
-generic mm functionality would not treat a NOMAP page as a normal page.
-
-Since the NOMAP regions are now marked as PageReserved(), pfn walkers and
-the rest of core mm will treat them as unusable memory and thus
-pfn_valid_within() is no longer required at all and can be disabled on
-arm64.
-
-pfn_valid() can be slightly simplified by replacing
-memblock_is_map_memory() with memblock_is_memory().
-
-[rppt@kernel.org: fix merge fix]
-  Link: https://lkml.kernel.org/r/YJtoQhidtIJOhYsV@kernel.org
-Link: https://lkml.kernel.org/r/20210511100550.28178-5-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Link: https://lkml.kernel.org/r/1621947349-25421-1-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Ard Biesheuvel <ardb@kernel.org>
-Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Will Deacon <will@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig   |    1 -
- arch/arm64/mm/init.c |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ arch/arm64/Kconfig            |    1 
+ arch/arm64/include/asm/page.h |    1 
+ arch/arm64/mm/init.c          |   37 --------------------------------
+ include/linux/mmzone.h        |    9 +++++++
+ 4 files changed, 9 insertions(+), 39 deletions(-)
 
---- a/arch/arm64/Kconfig~arm64-drop-pfn_valid_within-and-simplify-pfn_valid
+--- a/arch/arm64/include/asm/page.h~arm64-mm-drop-have_arch_pfn_valid
++++ a/arch/arm64/include/asm/page.h
+@@ -37,7 +37,6 @@ void copy_highpage(struct page *to, stru
+ 
+ typedef struct page *pgtable_t;
+ 
+-int pfn_valid(unsigned long pfn);
+ int pfn_is_map_memory(unsigned long pfn);
+ 
+ #include <asm/memory.h>
+--- a/arch/arm64/Kconfig~arm64-mm-drop-have_arch_pfn_valid
 +++ a/arch/arm64/Kconfig
-@@ -201,7 +201,6 @@ config ARM64
- 	select HAVE_KPROBES
- 	select HAVE_KRETPROBES
- 	select HAVE_GENERIC_VDSO
--	select HOLES_IN_ZONE
- 	select IOMMU_DMA if IOMMU_SUPPORT
- 	select IRQ_DOMAIN
- 	select IRQ_FORCED_THREADING
---- a/arch/arm64/mm/init.c~arm64-drop-pfn_valid_within-and-simplify-pfn_valid
+@@ -154,7 +154,6 @@ config ARM64
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_MMAP_RND_BITS
+ 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
+-	select HAVE_ARCH_PFN_VALID
+ 	select HAVE_ARCH_PREL32_RELOCATIONS
+ 	select HAVE_ARCH_RANDOMIZE_KSTACK_OFFSET
+ 	select HAVE_ARCH_SECCOMP_FILTER
+--- a/arch/arm64/mm/init.c~arm64-mm-drop-have_arch_pfn_valid
 +++ a/arch/arm64/mm/init.c
-@@ -252,7 +252,7 @@ int pfn_valid(unsigned long pfn)
- 	if (!early_section(ms))
- 		return pfn_section_valid(ms, pfn);
- 
--	return memblock_is_map_memory(addr);
-+	return memblock_is_memory(addr);
+@@ -219,43 +219,6 @@ static void __init zone_sizes_init(unsig
+ 	free_area_init(max_zone_pfns);
  }
- EXPORT_SYMBOL(pfn_valid);
  
+-int pfn_valid(unsigned long pfn)
+-{
+-	phys_addr_t addr = PFN_PHYS(pfn);
+-	struct mem_section *ms;
+-
+-	/*
+-	 * Ensure the upper PAGE_SHIFT bits are clear in the
+-	 * pfn. Else it might lead to false positives when
+-	 * some of the upper bits are set, but the lower bits
+-	 * match a valid pfn.
+-	 */
+-	if (PHYS_PFN(addr) != pfn)
+-		return 0;
+-
+-	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
+-		return 0;
+-
+-	ms = __pfn_to_section(pfn);
+-	if (!valid_section(ms))
+-		return 0;
+-
+-	/*
+-	 * ZONE_DEVICE memory does not have the memblock entries.
+-	 * memblock_is_map_memory() check for ZONE_DEVICE based
+-	 * addresses will always fail. Even the normal hotplugged
+-	 * memory will never have MEMBLOCK_NOMAP flag set in their
+-	 * memblock entries. Skip memblock search for all non early
+-	 * memory sections covering all of hotplug memory including
+-	 * both normal and ZONE_DEVICE based.
+-	 */
+-	if (!early_section(ms))
+-		return pfn_section_valid(ms, pfn);
+-
+-	return memblock_is_memory(addr);
+-}
+-EXPORT_SYMBOL(pfn_valid);
+-
+ int pfn_is_map_memory(unsigned long pfn)
+ {
+ 	phys_addr_t addr = PFN_PHYS(pfn);
+--- a/include/linux/mmzone.h~arm64-mm-drop-have_arch_pfn_valid
++++ a/include/linux/mmzone.h
+@@ -1460,6 +1460,15 @@ static inline int pfn_valid(unsigned lon
+ {
+ 	struct mem_section *ms;
+ 
++	/*
++	 * Ensure the upper PAGE_SHIFT bits are clear in the
++	 * pfn. Else it might lead to false positives when
++	 * some of the upper bits are set, but the lower bits
++	 * match a valid pfn.
++	 */
++	if (PHYS_PFN(PFN_PHYS(pfn)) != pfn)
++		return 0;
++
+ 	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
+ 		return 0;
+ 	ms = __nr_to_section(pfn_to_section_nr(pfn));
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mmap-make-mlock_future_check-global.patch
-riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
-set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
-pm-hibernate-disable-when-there-are-active-secretmem-users.patch
-arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
-secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks.patch
 
