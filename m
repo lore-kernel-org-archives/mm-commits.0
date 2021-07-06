@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC9B4C07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8226CC07E9C
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:21:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 962A561CA2
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D81361CA0
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:21:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231792AbhGFTXh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:23:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57260 "EHLO mail.kernel.org"
+        id S231794AbhGFTXk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:23:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57290 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231696AbhGFTXh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:23:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 97DA961C9A;
-        Tue,  6 Jul 2021 19:20:58 +0000 (UTC)
+        id S231696AbhGFTXk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:23:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9493B61C9C;
+        Tue,  6 Jul 2021 19:21:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599258;
-        bh=lKyd8YpAi8azvXROkrCf9CQ+JEsFyG8E8c44o42187M=;
+        s=korg; t=1625599261;
+        bh=+18gzVDQQJ+V6qXPZVHSptSXPY3Q9hcUArf7mLd8eq8=;
         h=Date:From:To:Subject:From;
-        b=WAeVzNiAcBq+1PnJB+tHxJaOhkJs0sz5HL6vXCdquULMbB+av8XnffaNqy5hhWo31
-         pl7y78BeOV0nZLz5ityUk5fxMHbyODWoytNLuWib0Gy5mG06bhYREADtVuujANhBVI
-         VmCOjDlL0EC2wqaLoee3irWUGOl51sG4o1P5ekm8=
-Date:   Tue, 06 Jul 2021 12:20:58 -0700
+        b=x/1FyIKWl5Hupyr+cGg9ByiuP8X9AcaFGAF+22Zs15ojPeR1wpDxaBNrk/jH3H5J2
+         xcVt+CSebzNTts+JdKWf8kvLovqL+zxqmDBudPe+UJ/HIYCoLptub0VyylBwwSPXoT
+         jowPFfzmEHwK8xvyT957rgnIlshvBj84vskEKasM=
+Date:   Tue, 06 Jul 2021 12:21:01 -0700
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, david@redhat.com, ddstreet@ieee.org,
-        mgorman@techsingularity.net, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, shy828301@gmail.com, vbabka@suse.cz
+To:     david@redhat.com, ddstreet@ieee.org, mgorman@techsingularity.net,
+        mhocko@kernel.org, mm-commits@vger.kernel.org, shy828301@gmail.com,
+        vbabka@suse.cz
 Subject:  [merged]
- =?US-ASCII?Q?mm-memcontrolc-fix-kerneldoc-comment-for-mem=5Fcgroup=5Fca?=
- =?US-ASCII?Q?lculate=5Fprotection.patch?= removed from -mm tree
-Message-ID: <20210706192058.NfOrPiCyN%akpm@linux-foundation.org>
+ mm-memory_hotplug-fix-kerneldoc-comment-for-__try_online_node.patch removed
+ from -mm tree
+Message-ID: <20210706192101.BXIxnhet_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,50 +45,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol.c: fix kerneldoc comment for mem_cgroup_calculate_protection
+     Subject: mm/memory_hotplug: fix kerneldoc comment for __try_online_node
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection.patch
+     mm-memory_hotplug-fix-kerneldoc-comment-for-__try_online_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/memcontrol.c: fix kerneldoc comment for mem_cgroup_calculate_protection
+Subject: mm/memory_hotplug: fix kerneldoc comment for __try_online_node
 
-make W=1 generates the following warning for mem_cgroup_calculate_protection
+make W=1 generates the following warning for try_online_node
 
-  mm/memcontrol.c:6468: warning: expecting prototype for mem_cgroup_protected(). Prototype was for mem_cgroup_calculate_protection() instead
+mm/memory_hotplug.c:1087: warning: expecting prototype for try_online_node(). Prototype was for __try_online_node() instead
 
-Commit 45c7f7e1ef17 ("mm, memcg: decouple e{low,min} state mutations from
-protection checks") changed the function definition but not the associated
-kerneldoc comment.
+Commit b9ff036082cd ("mm/memory_hotplug.c: make add_memory_resource use
+__try_online_node") renamed the function but did not update the associated
+kerneldoc.  The function is static and somewhat specialised in nature so
+it's not clear it warrants being a kerneldoc by moving the comment to
+try_online_node.  Hence, leave the comment of the internal helper in place
+but leave it out of kerneldoc and correct the function name in the
+comment.
 
-Link: https://lkml.kernel.org/r/20210520084809.8576-7-mgorman@techsingularity.net
-Fixes: 45c7f7e1ef17 ("mm, memcg: decouple e{low,min} state mutations from protection checks")
+Link: https://lkml.kernel.org/r/20210520084809.8576-8-mgorman@techsingularity.net
+Fixes: Commit b9ff036082cd ("mm/memory_hotplug.c: make add_memory_resource use __try_online_node")
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Chris Down <chris@chrisdown.name>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory_hotplug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrolc-fix-kerneldoc-comment-for-mem_cgroup_calculate_protection
-+++ a/mm/memcontrol.c
-@@ -6639,7 +6639,7 @@ static unsigned long effective_protectio
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-kerneldoc-comment-for-__try_online_node
++++ a/mm/memory_hotplug.c
+@@ -942,8 +942,8 @@ static void rollback_node_hotadd(int nid
  }
  
- /**
-- * mem_cgroup_protected - check if memory consumption is in the normal range
-+ * mem_cgroup_calculate_protection - check if memory consumption is in the normal range
-  * @root: the top ancestor of the sub-tree being checked
-  * @memcg: the memory cgroup to check
-  *
+ 
+-/**
+- * try_online_node - online a node if offlined
++/*
++ * __try_online_node - online a node if offlined
+  * @nid: the node ID
+  * @set_node_online: Whether we want to online the node
+  * called by cpu_up() to online a node without onlined memory.
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
