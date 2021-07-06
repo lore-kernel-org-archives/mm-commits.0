@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9DDAC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:15:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56B2BC07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:15:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D073560FE3
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:15:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3AD8D6103E
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:15:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231438AbhGFTRx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:17:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51932 "EHLO mail.kernel.org"
+        id S231727AbhGFTRy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:17:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51960 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231749AbhGFTRw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:17:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A277760C3D;
-        Tue,  6 Jul 2021 19:15:12 +0000 (UTC)
+        id S231693AbhGFTRy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:17:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7F2BE60FE3;
+        Tue,  6 Jul 2021 19:15:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598912;
-        bh=3yK1/rNmmKRthICpRxh6yjYCUjDvnTmijf7eEaACe5w=;
+        s=korg; t=1625598915;
+        bh=defpRVyJ5m9e4WsSnASKWK5psFLTIlhQNtL2yqCbZnM=;
         h=Date:From:To:Subject:From;
-        b=SCGdwHGA8l/RupNA/1g8FzgkVCfM694clo7RqitksgpsxQoPPLCI1Zhf/F41GMlWi
-         pkSQB+X4z0RdI/Wwa+nJR8Zw9dmlo/Gt1Hvhc7ZgmTHq1fE4aCmsXKYsly2Axk4w1Y
-         43Kwwl96a1WfWR9ZPwsj4D5H4uPwT4XDnNkD23Tk=
-Date:   Tue, 06 Jul 2021 12:15:12 -0700
+        b=yFQEpPm9Aum28+ZxXmiqLKpUFIHufgc0fSmmms76sEFgg/BthSv7iS07/4rFI18J1
+         qSluhukC3vgXTrALEf36FBD8LMF/WC8xQTQqhPbEvK02atu269JbpOQke/2DYXPvTV
+         pBxhfmZf9kh8BcXnHCfto7Sjaty79/5n375hqorQ=
+Date:   Tue, 06 Jul 2021 12:15:15 -0700
 From:   akpm@linux-foundation.org
-To:     aisheng.dong@nxp.com, andreyknvl@gmail.com,
-        catalin.marinas@arm.com, keescook@chromium.org,
-        mm-commits@vger.kernel.org, yuzhao@google.com
-Subject:  [merged] mm-drop-section_shift-in-code-comments.patch
+To:     aisheng.dong@nxp.com, david@redhat.com, mm-commits@vger.kernel.org
+Subject:  [merged] mm-page_alloc-improve-memmap_pages-dbg-msg.patch
  removed from -mm tree
-Message-ID: <20210706191512.zre7v7vXe%akpm@linux-foundation.org>
+Message-ID: <20210706191515.2Wb2iJSBR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,51 +42,38 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: drop SECTION_SHIFT in code comments
+     Subject: mm/page_alloc: improve memmap_pages dbg msg
 has been removed from the -mm tree.  Its filename was
-     mm-drop-section_shift-in-code-comments.patch
+     mm-page_alloc-improve-memmap_pages-dbg-msg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dong Aisheng <aisheng.dong@nxp.com>
-Subject: mm: drop SECTION_SHIFT in code comments
+Subject: mm/page_alloc: improve memmap_pages dbg msg
 
-Actually SECTIONS_SHIFT is used in the kernel code, so the code comments
-is strictly incorrect.  And since commit bbeae5b05ef6 ("mm: move page
-flags layout to separate header"), SECTIONS_SHIFT definition has been
-moved to include/linux/page-flags-layout.h, since code itself looks quite
-straighforward, instead of moving the code comment into the new place as
-well, we just simply remove it.
+Make debug message more accurate.
 
-This also fixed a checkpatch complain derived from the original code:
-WARNING: please, no space before tabs
-+ * SECTIONS_SHIFT    ^I^I#bits space required to store a section #$
-
-Link: https://lkml.kernel.org/r/20210531091908.1738465-2-aisheng.dong@nxp.com
+Link: https://lkml.kernel.org/r/20210531091908.1738465-6-aisheng.dong@nxp.com
 Signed-off-by: Dong Aisheng <aisheng.dong@nxp.com>
-Suggested-by: Yu Zhao <yuzhao@google.com>
-Reviewed-by: Yu Zhao <yuzhao@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Kees Cook <keescook@chromium.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 --
- 1 file changed, 2 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-drop-section_shift-in-code-comments
-+++ a/include/linux/mmzone.h
-@@ -1200,8 +1200,6 @@ static inline struct zoneref *first_zone
- #ifdef CONFIG_SPARSEMEM
+--- a/mm/page_alloc.c~mm-page_alloc-improve-memmap_pages-dbg-msg
++++ a/mm/page_alloc.c
+@@ -7383,7 +7383,7 @@ static void __init free_area_init_core(s
+ 					pr_debug("  %s zone: %lu pages used for memmap\n",
+ 						 zone_names[j], memmap_pages);
+ 			} else
+-				pr_warn("  %s zone: %lu pages exceeds freesize %lu\n",
++				pr_warn("  %s zone: %lu memmap pages exceeds freesize %lu\n",
+ 					zone_names[j], memmap_pages, freesize);
+ 		}
  
- /*
-- * SECTION_SHIFT    		#bits space required to store a section #
-- *
-  * PA_SECTION_SHIFT		physical address to/from section number
-  * PFN_SECTION_SHIFT		pfn to/from section number
-  */
 _
 
 Patches currently in -mm which might be from aisheng.dong@nxp.com are
