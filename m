@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8FBFC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09458C07E9C
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B23F761CA0
+	by mail.kernel.org (Postfix) with ESMTP id E7E8861CA0
 	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231784AbhGFTXI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231764AbhGFTXI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 6 Jul 2021 15:23:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56742 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231764AbhGFTXF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:23:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6709C61C9A;
-        Tue,  6 Jul 2021 19:20:26 +0000 (UTC)
+        id S231779AbhGFTXI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:23:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 78A0B61C9A;
+        Tue,  6 Jul 2021 19:20:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599226;
-        bh=DE6UY5LxoE10cDeqc7yPcpDqgwHOfdkGqKi1nb7ZN4c=;
+        s=korg; t=1625599228;
+        bh=BaBa9eKcVztgiS7nzzaUPf/kXmcf5yCNnlZlc0qkBMM=;
         h=Date:From:To:Subject:From;
-        b=UiVEUm5KWa32HfJOLsqHogxmhb6l3amyoN6n7E6uxMbw7O6z1fqcJajKJGwWf8qBu
-         DZYpRFn8LP7S9lqEE2Bw7kh8ya9eNweoYxnwyDeW+j33C1maTK9WOavaC/+Zow97uK
-         Vzc+uURDY+uDtUqbm5QfQeIWm4KqxI/lt8DAP51c=
-Date:   Tue, 06 Jul 2021 12:20:26 -0700
+        b=nlB1jpWjQSXrKmuCAmUsYjbJUOhziZesL8PSO80ZYPLJVP4qQIAEFt9XyTt80nkDa
+         w5AopY7Oi+TNiz4neK2LUy8b5AeHGhzUhXfpket9mOhEdS/1ABhHzE8/m4VzTVltpO
+         2gh462lL9lkq5bSGMLU/iCrxDAPXoUs0sjP9Z3jo=
+Date:   Tue, 06 Jul 2021 12:20:28 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, georgi.djakov@linaro.org, lmark@codeaurora.org,
-        mm-commits@vger.kernel.org
-Subject:  [merged]
- mm-memory_hotplug-rate-limit-page-migration-warnings.patch removed from -mm
- tree
-Message-ID: <20210706192026.fsknvtRNv%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, david@redhat.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, osalvador@suse.de,
+        pasha.tatashin@soleen.com, vbabka@suse.cz
+Subject:  [merged] mmmemory_hotplug-drop-unneeded-locking.patch
+ removed from -mm tree
+Message-ID: <20210706192028.86vOGFng5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,74 +44,114 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: rate limit page migration warnings
+     Subject: mm,memory_hotplug: drop unneeded locking
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-rate-limit-page-migration-warnings.patch
+     mmmemory_hotplug-drop-unneeded-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Liam Mark <lmark@codeaurora.org>
-Subject: mm/memory_hotplug: rate limit page migration warnings
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,memory_hotplug: drop unneeded locking
 
-When offlining memory the system can attempt to migrate a lot of pages, if
-there are problems with migration this can flood the logs.  Printing all
-the data hogs the CPU and cause some RT threads to run for a long time,
-which may have some bad consequences.
+Currently, memory-hotplug code takes zone's span_writelock and pgdat's
+resize_lock when resizing the node/zone's spanned pages via
+{move_pfn_range_to_zone(),remove_pfn_range_from_zone()} and when resizing
+node and zone's present pages via adjust_present_page_count().
 
-Rate limit the page migration warnings in order to avoid this.
+These locks are also taken during the initialization of the system at boot
+time, where it protects parallel struct page initialization, but they
+should not really be needed in memory-hotplug where all operations are a)
+synchronized on device level and b) serialized by the mem_hotplug_lock
+lock.
 
-Link: https://lkml.kernel.org/r/20210505140542.24935-1-georgi.djakov@linaro.org
-Signed-off-by: Liam Mark <lmark@codeaurora.org>
-Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
-Cc: David Hildenbrand <david@redhat.com>
+[akpm@linux-foundation.org: remove now-unused locals]
+Link: https://lkml.kernel.org/r/20210531093958.15021-1-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ mm/memory_hotplug.c |   16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-rate-limit-page-migration-warnings
+--- a/mm/memory_hotplug.c~mmmemory_hotplug-drop-unneeded-locking
 +++ a/mm/memory_hotplug.c
-@@ -1406,6 +1406,8 @@ do_migrate_range(unsigned long start_pfn
- 	struct page *page, *head;
- 	int ret = 0;
- 	LIST_HEAD(source);
-+	static DEFINE_RATELIMIT_STATE(migrate_rs, DEFAULT_RATELIMIT_INTERVAL,
-+				      DEFAULT_RATELIMIT_BURST);
+@@ -329,7 +329,6 @@ static void shrink_zone_span(struct zone
+ 	unsigned long pfn;
+ 	int nid = zone_to_nid(zone);
  
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
- 		if (!pfn_valid(pfn))
-@@ -1452,8 +1454,10 @@ do_migrate_range(unsigned long start_pfn
- 						    page_is_file_lru(page));
- 
- 		} else {
--			pr_warn("failed to isolate pfn %lx\n", pfn);
--			dump_page(page, "isolation failed");
-+			if (__ratelimit(&migrate_rs)) {
-+				pr_warn("failed to isolate pfn %lx\n", pfn);
-+				dump_page(page, "isolation failed");
-+			}
+-	zone_span_writelock(zone);
+ 	if (zone->zone_start_pfn == start_pfn) {
+ 		/*
+ 		 * If the section is smallest section in the zone, it need
+@@ -362,7 +361,6 @@ static void shrink_zone_span(struct zone
+ 			zone->spanned_pages = 0;
  		}
- 		put_page(page);
  	}
-@@ -1482,9 +1486,11 @@ do_migrate_range(unsigned long start_pfn
- 			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_HOTPLUG);
- 		if (ret) {
- 			list_for_each_entry(page, &source, lru) {
--				pr_warn("migrating pfn %lx failed ret:%d ",
--				       page_to_pfn(page), ret);
--				dump_page(page, "migration failure");
-+				if (__ratelimit(&migrate_rs)) {
-+					pr_warn("migrating pfn %lx failed ret:%d\n",
-+						page_to_pfn(page), ret);
-+					dump_page(page, "migration failure");
-+				}
- 			}
- 			putback_movable_pages(&source);
- 		}
+-	zone_span_writeunlock(zone);
+ }
+ 
+ static void update_pgdat_span(struct pglist_data *pgdat)
+@@ -399,7 +397,7 @@ void __ref remove_pfn_range_from_zone(st
+ {
+ 	const unsigned long end_pfn = start_pfn + nr_pages;
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+-	unsigned long pfn, cur_nr_pages, flags;
++	unsigned long pfn, cur_nr_pages;
+ 
+ 	/* Poison struct pages because they are now uninitialized again. */
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += cur_nr_pages) {
+@@ -424,10 +422,8 @@ void __ref remove_pfn_range_from_zone(st
+ 
+ 	clear_zone_contiguous(zone);
+ 
+-	pgdat_resize_lock(zone->zone_pgdat, &flags);
+ 	shrink_zone_span(zone, start_pfn, start_pfn + nr_pages);
+ 	update_pgdat_span(pgdat);
+-	pgdat_resize_unlock(zone->zone_pgdat, &flags);
+ 
+ 	set_zone_contiguous(zone);
+ }
+@@ -634,19 +630,13 @@ void __ref move_pfn_range_to_zone(struct
+ {
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+ 	int nid = pgdat->node_id;
+-	unsigned long flags;
+ 
+ 	clear_zone_contiguous(zone);
+ 
+-	/* TODO Huh pgdat is irqsave while zone is not. It used to be like that before */
+-	pgdat_resize_lock(pgdat, &flags);
+-	zone_span_writelock(zone);
+ 	if (zone_is_empty(zone))
+ 		init_currently_empty_zone(zone, start_pfn, nr_pages);
+ 	resize_zone_range(zone, start_pfn, nr_pages);
+-	zone_span_writeunlock(zone);
+ 	resize_pgdat_range(pgdat, start_pfn, nr_pages);
+-	pgdat_resize_unlock(pgdat, &flags);
+ 
+ 	/*
+ 	 * Subsection population requires care in pfn_to_online_page().
+@@ -736,12 +726,8 @@ struct zone *zone_for_pfn_range(int onli
+  */
+ void adjust_present_page_count(struct zone *zone, long nr_pages)
+ {
+-	unsigned long flags;
+-
+ 	zone->present_pages += nr_pages;
+-	pgdat_resize_lock(zone->zone_pgdat, &flags);
+ 	zone->zone_pgdat->node_present_pages += nr_pages;
+-	pgdat_resize_unlock(zone->zone_pgdat, &flags);
+ }
+ 
+ int mhp_init_memmap_on_memory(unsigned long pfn, unsigned long nr_pages,
 _
 
-Patches currently in -mm which might be from lmark@codeaurora.org are
+Patches currently in -mm which might be from osalvador@suse.de are
 
 
