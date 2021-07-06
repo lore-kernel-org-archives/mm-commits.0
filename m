@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7449C07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FD85C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BFD7B61CAA
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61B5961CAC
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229807AbhGFT0D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:26:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59226 "EHLO mail.kernel.org"
+        id S229787AbhGFT0G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:26:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59264 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229793AbhGFT0C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:26:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 76D7761C9E;
-        Tue,  6 Jul 2021 19:23:23 +0000 (UTC)
+        id S229793AbhGFT0G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:26:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B7DE161CA8;
+        Tue,  6 Jul 2021 19:23:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599403;
-        bh=PqXCit0sFI64tRF/siY4jAYAOEksnV/MnAiRvm0XUVs=;
+        s=korg; t=1625599407;
+        bh=G1TMYSIj1DhHNPNLc4sWg/n9041+l5mGWkaj8o2KnTk=;
         h=Date:From:To:Subject:From;
-        b=dWOjWYd8Ry76q7J/M4S72VkBeh2hQ0vgtIt8LhEGxxdl5LRxBx5jW9rjXcg3xvD2S
-         tpfJON0BOAsigVOKv37rjV8x2wpTiVQx+NyAdd8dlsEhMEz1G4tM1gT2nwFlXz3CAC
-         kYP+XQFtyduo6vpD9gRNGh7dvdUCHoA/p5X7M/io=
-Date:   Tue, 06 Jul 2021 12:23:23 -0700
+        b=v4e5FeiLv+15F2YsgFV9xvdL5auK2uzcIDsBu9SjE3mJUdLbzzz5emQIa47yV9siX
+         pAI2NbFGx5u+iM8MItwsB8wb57Es9WS6ANNoVy9XX5ciAx/w/msUbXaqptUU3aWcb0
+         73lVKGJs/KimBA9MPeeHxWnLLyjFxHNmyPSkhTfs=
+Date:   Tue, 06 Jul 2021 12:23:26 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, bauerman@linux.ibm.com,
         dave.hansen@linux.intel.com, desnesn@linux.vnet.ibm.com,
@@ -37,9 +37,9 @@ To:     aneesh.kumar@linux.ibm.com, bauerman@linux.ibm.com,
         msuchanek@suse.de, sandipan@linux.ibm.com, shuah@kernel.org,
         tglx@linutronix.de
 Subject:  [merged]
- selftests-vm-pkeys-handle-negative-sys_pkey_alloc-return-code.patch removed
- from -mm tree
-Message-ID: <20210706192323.tUobW_3b6%akpm@linux-foundation.org>
+ selftests-vm-pkeys-refill-shadow-register-after-implicit-kernel-write.patch
+ removed from -mm tree
+Message-ID: <20210706192326.RavU28qfK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,30 +48,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm/pkeys: handle negative sys_pkey_alloc() return code
+     Subject: selftests/vm/pkeys: refill shadow register after implicit kernel write
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-pkeys-handle-negative-sys_pkey_alloc-return-code.patch
+     selftests-vm-pkeys-refill-shadow-register-after-implicit-kernel-write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: selftests/vm/pkeys: handle negative sys_pkey_alloc() return code
+Subject: selftests/vm/pkeys: refill shadow register after implicit kernel write
 
-The alloc_pkey() sefltest function wraps the sys_pkey_alloc() system call.
-On success, it updates its "shadow" register value because
-sys_pkey_alloc() updates the real register.
+The pkey test code keeps a "shadow" of the pkey register around.  This
+ensures that any bugs which might write to the register can be caught more
+quickly.
 
-But, the success check is wrong.  pkey_alloc() considers any non-zero
-return code to indicate success where the pkey register will be modified. 
-This fails to take negative return codes into account.
+Generally, userspace has a good idea when the kernel is going to write to
+the register.  For instance, alloc_pkey() is passed a permission mask. 
+The caller of alloc_pkey() can update the shadow based on the return value
+and the mask.
 
-Consider only a positive return value as a successful call.
+But, the kernel can also modify the pkey register in a more sneaky way. 
+For mprotect(PROT_EXEC) mappings, the kernel will allocate a pkey and
+write the pkey register to create an execute-only mapping.  The kernel
+never tells userspace what key it uses for this.
 
-Link: https://lkml.kernel.org/r/20210611164157.87AB4246@viggo.jf.intel.com
-Fixes: 5f23f6d082a9 ("x86/pkeys: Add self-tests")
-Reported-by: Thomas Gleixner <tglx@linutronix.de>
+This can cause the test to fail with messages like:
+
+	protection_keys_64.2: pkey-helpers.h:132: _read_pkey_reg: Assertion `pkey_reg == shadow_pkey_reg' failed.
+
+because the shadow was not updated with the new kernel-set value.
+
+Forcibly update the shadow value immediately after an mprotect().
+
+Link: https://lkml.kernel.org/r/20210611164200.EF76AB73@viggo.jf.intel.com
+Fixes: 6af17cf89e99 ("x86/pkeys/selftests: Add PROT_EXEC test")
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Ram Pai <linuxram@us.ibm.com>
 Cc: Sandipan Das <sandipan@linux.ibm.com>
@@ -86,20 +98,25 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/protection_keys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vm/protection_keys.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-handle-negative-sys_pkey_alloc-return-code
+--- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-refill-shadow-register-after-implicit-kernel-write
 +++ a/tools/testing/selftests/vm/protection_keys.c
-@@ -510,7 +510,7 @@ int alloc_pkey(void)
- 			" shadow: 0x%016llx\n",
- 			__func__, __LINE__, ret, __read_pkey_reg(),
- 			shadow_pkey_reg);
--	if (ret) {
-+	if (ret > 0) {
- 		/* clear both the bits: */
- 		shadow_pkey_reg = set_pkey_bits(shadow_pkey_reg, ret,
- 						~PKEY_MASK);
+@@ -1448,6 +1448,13 @@ void test_implicit_mprotect_exec_only_me
+ 	ret = mprotect(p1, PAGE_SIZE, PROT_EXEC);
+ 	pkey_assert(!ret);
+ 
++	/*
++	 * Reset the shadow, assuming that the above mprotect()
++	 * correctly changed PKRU, but to an unknown value since
++	 * the actual alllocated pkey is unknown.
++	 */
++	shadow_pkey_reg = __read_pkey_reg();
++
+ 	dprintf2("pkey_reg: %016llx\n", read_pkey_reg());
+ 
+ 	/* Make sure this is an *instruction* fault */
 _
 
 Patches currently in -mm which might be from dave.hansen@linux.intel.com are
