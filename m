@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A853C07E9B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 692FBC07E9C
 	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 22F8D61C97
+	by mail.kernel.org (Postfix) with ESMTP id 5625C61C7C
 	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231770AbhGFTUq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231698AbhGFTUq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 6 Jul 2021 15:20:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54514 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54560 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231698AbhGFTUp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:20:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C189361C7A;
-        Tue,  6 Jul 2021 19:18:04 +0000 (UTC)
+        id S231727AbhGFTUq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:20:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 82C8E61C87;
+        Tue,  6 Jul 2021 19:18:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599085;
-        bh=R4Y21oSzM2lRuDepAZzvwxwGY4f+MMmeKZsBIF9MRVk=;
+        s=korg; t=1625599087;
+        bh=yJ0DFu4rde/pD3dFX4mYc+t9M2qD+87l5K30Ms/t3Nc=;
         h=Date:From:To:Subject:From;
-        b=M2eeVCL3oiKBpYLahSAZ1PFBDMAy+VzadbJOnkIQKly3u3Tk9JASvTQWw3WGL28jC
-         pdnvJaYFZ8JY5dJWvlm8+W6uRKd0XWCKM2ydfUa6BjVy9i5GXvDCC2IqBeuZSztOkR
-         0TqenX9ggrTvT4mODI6AlLlENHKl8i9B3jI+ndjw=
-Date:   Tue, 06 Jul 2021 12:18:04 -0700
+        b=15HS+KFpWsxFqhsEyAxlX5+9/V3HMhhq7M9gcCYmy0RHFrakjhCXqcjdt00NyHHBW
+         YsGUfiCK7Z2VgQKq4j02Ak/RRNFzio6hb7zCcMyHC1yk+dpkFYBvhEJrCv8wQWz4B8
+         q19+VhLcjoQdLE7e1q/BLTR/P4nzcvQVK48jCbr4=
+Date:   Tue, 06 Jul 2021 12:18:06 -0700
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, almasrymina@google.com,
         axelrasmussen@google.com, bgeffon@google.com, dgilbert@redhat.com,
@@ -39,9 +39,9 @@ To:     aarcange@redhat.com, almasrymina@google.com,
         sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
         viro@zeniv.linux.org.uk, wangqing@vivo.com
 Subject:  [merged]
- userfaultfd-selftests-use-memfd_create-for-shmem-test-type.patch removed
+ userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch removed
  from -mm tree
-Message-ID: <20210706191804.-K4eKR8SS%akpm@linux-foundation.org>
+Message-ID: <20210706191806.ETGhA7hc8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,36 +50,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/selftests: use memfd_create for shmem test type
+     Subject: userfaultfd/selftests: create alias mappings in the shmem test
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftests-use-memfd_create-for-shmem-test-type.patch
+     userfaultfd-selftests-create-alias-mappings-in-the-shmem-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/selftests: use memfd_create for shmem test type
+Subject: userfaultfd/selftests: create alias mappings in the shmem test
 
-This is a preparatory commit.  In the future, we want to be able to setup
-alias mappings for area_src and area_dst in the shmem test, like we do in
-the hugetlb_shared test.  With a VMA obtained via mmap(MAP_ANONYMOUS |
-MAP_SHARED), it isn't clear how to do this.
+Previously, we just allocated two shm areas: area_src and area_dst.  With
+this commit, change this so we also allocate area_src_alias, and
+area_dst_alias.
 
-So, mmap() with an fd, so we can create alias mappings.  Use memfd_create
-instead of actually passing in a tmpfs path like hugetlb does, since it's
-more convenient / simpler to run, and works just as well.
+area_*_alias and area_* (respectively) point to the same underlying
+physical pages, but are different VMAs.  In a future commit in this
+series, we'll leverage this setup to exercise minor fault handling support
+for shmem, just like we do in the hugetlb_shared test.
 
-Future commits will:
-
-1. Setup the alias mappings.
-2. Extend our tests to actually take advantage of this, to test new
-   userfaultfd behavior being introduced in this series.
-
-Also, a small fix in the area we're changing: when the hugetlb setup fails
-in main(), pass in the right argv[] so we actually print out the hugetlb
-file path.
-
-Link: https://lkml.kernel.org/r/20210503180737.2487560-8-axelrasmussen@google.com
+Link: https://lkml.kernel.org/r/20210503180737.2487560-9-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
 Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -102,49 +92,52 @@ Cc: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ tools/testing/selftests/vm/userfaultfd.c |   22 ++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-use-memfd_create-for-shmem-test-type
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-create-alias-mappings-in-the-shmem-test
 +++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -85,6 +85,7 @@ static bool test_uffdio_wp = false;
- static bool test_uffdio_minor = false;
- 
- static bool map_shared;
-+static int shm_fd;
- static int huge_fd;
- static char *huge_fd_off0;
- static unsigned long long *count_verify;
-@@ -277,8 +278,11 @@ static void shmem_release_pages(char *re
+@@ -278,13 +278,29 @@ static void shmem_release_pages(char *re
  
  static void shmem_allocate_area(void **alloc_area)
  {
-+	unsigned long offset =
-+		alloc_area == (void **)&area_src ? 0 : nr_pages * page_size;
-+
+-	unsigned long offset =
+-		alloc_area == (void **)&area_src ? 0 : nr_pages * page_size;
++	void *area_alias = NULL;
++	bool is_src = alloc_area == (void **)&area_src;
++	unsigned long offset = is_src ? 0 : nr_pages * page_size;
+ 
  	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
--			   MAP_ANONYMOUS | MAP_SHARED, -1, 0);
-+			   MAP_SHARED, shm_fd, offset);
+ 			   MAP_SHARED, shm_fd, offset);
  	if (*alloc_area == MAP_FAILED)
  		err("mmap of memfd failed");
++
++	area_alias = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
++			  MAP_SHARED, shm_fd, offset);
++	if (area_alias == MAP_FAILED)
++		err("mmap of memfd alias failed");
++
++	if (is_src)
++		area_src_alias = area_alias;
++	else
++		area_dst_alias = area_alias;
++}
++
++static void shmem_alias_mapping(__u64 *start, size_t len, unsigned long offset)
++{
++	*start = (unsigned long)area_dst_alias + offset;
  }
-@@ -1602,6 +1606,16 @@ int main(int argc, char **argv)
- 			err("Open of %s failed", argv[4]);
- 		if (ftruncate(huge_fd, 0))
- 			err("ftruncate %s to size 0 failed", argv[4]);
-+	} else if (test_type == TEST_SHMEM) {
-+		shm_fd = memfd_create(argv[0], 0);
-+		if (shm_fd < 0)
-+			err("memfd_create");
-+		if (ftruncate(shm_fd, nr_pages * page_size * 2))
-+			err("ftruncate");
-+		if (fallocate(shm_fd,
-+			      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 0,
-+			      nr_pages * page_size * 2))
-+			err("fallocate");
- 	}
- 	printf("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
- 	       nr_pages, nr_pages_per_cpu);
+ 
+ struct uffd_test_ops {
+@@ -314,7 +330,7 @@ static struct uffd_test_ops shmem_uffd_t
+ 	.expected_ioctls = SHMEM_EXPECTED_IOCTLS,
+ 	.allocate_area	= shmem_allocate_area,
+ 	.release_pages	= shmem_release_pages,
+-	.alias_mapping = noop_alias_mapping,
++	.alias_mapping = shmem_alias_mapping,
+ };
+ 
+ static struct uffd_test_ops hugetlb_uffd_test_ops = {
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
