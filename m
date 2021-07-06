@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D4C0C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:10:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85841C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:10:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35C9661C91
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:10:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B63461C85
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:10:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231737AbhGFTNB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:13:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47456 "EHLO mail.kernel.org"
+        id S231773AbhGFTNE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:13:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47484 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231773AbhGFTNB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:13:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8FD7B613C9;
-        Tue,  6 Jul 2021 19:10:21 +0000 (UTC)
+        id S231784AbhGFTNE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:13:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 898B661C91;
+        Tue,  6 Jul 2021 19:10:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598621;
-        bh=bcfQQYp7dsFjzgGIgL6QeOZ0gam9mlaX7i71fJd6Rgo=;
+        s=korg; t=1625598624;
+        bh=oHa6CISeCmlO4/DFi8jlo24FpFrmxjO1J27lg8zFyD8=;
         h=Date:From:To:Subject:From;
-        b=RMeTy7GavapvvhBBu6Xi5OPTgjDwTBxTyKiGPlbACtpH4Vs918ERkzzuYrzPithH4
-         AASfXaJG9mskYAUmrEMh3CzdhVLAXnh0WXpHHf4oi7FEmdl3zgeI+P4cCLZ+QAPQKU
-         PwfLU+RxP4Uc+XnaXCICW4vGnjCfLVNcGVg3i33A=
-Date:   Tue, 06 Jul 2021 12:10:21 -0700
+        b=oMovO50/6ld2wxQ2uWOTWQyBXpPWXIJwvX7E9KdEdFt3+gBgHOouGObnaJ3+iALFF
+         p6XCqwX86jBS7TDSkNxUveFhUHdCzZ5VqR+vIr4ValnbBPyfPlI/KfyNJ2jZOgPDrn
+         DbF8yqQd0brag9rZSGJcDRPS7jXcqVHPNYczecR0=
+Date:   Tue, 06 Jul 2021 12:10:24 -0700
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, gregkh@linuxfoundation.org, hch@lst.de,
         jack@suse.cz, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         willy@infradead.org
-Subject:  [merged]
- mm-writeback-use-__set_page_dirty-in-__set_page_dirty_nobuffers.patch
+Subject:  [merged] iomap-use-__set_page_dirty_nobuffers.patch
  removed from -mm tree
-Message-ID: <20210706191021.OXZxksFph%akpm@linux-foundation.org>
+Message-ID: <20210706191024.STiBDJdHH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,56 +44,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/writeback: use __set_page_dirty in __set_page_dirty_nobuffers
+     Subject: iomap: use __set_page_dirty_nobuffers
 has been removed from the -mm tree.  Its filename was
-     mm-writeback-use-__set_page_dirty-in-__set_page_dirty_nobuffers.patch
+     iomap-use-__set_page_dirty_nobuffers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/writeback: use __set_page_dirty in __set_page_dirty_nobuffers
+Subject: iomap: use __set_page_dirty_nobuffers
 
-This is fundamentally the same code, so just call it instead of
-duplicating it.
+The only difference between iomap_set_page_dirty() and
+__set_page_dirty_nobuffers() is that the latter includes a debugging check
+that a !Uptodate page has private data.
 
-Link: https://lkml.kernel.org/r/20210615162342.1669332-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210615162342.1669332-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ fs/gfs2/aops.c         |    2 +-
+ fs/iomap/buffered-io.c |   27 +--------------------------
+ fs/xfs/xfs_aops.c      |    2 +-
+ fs/zonefs/super.c      |    2 +-
+ include/linux/iomap.h  |    1 -
+ 5 files changed, 4 insertions(+), 30 deletions(-)
 
---- a/mm/page-writeback.c~mm-writeback-use-__set_page_dirty-in-__set_page_dirty_nobuffers
-+++ a/mm/page-writeback.c
-@@ -2508,20 +2508,12 @@ int __set_page_dirty_nobuffers(struct pa
- 	lock_page_memcg(page);
- 	if (!TestSetPageDirty(page)) {
- 		struct address_space *mapping = page_mapping(page);
--		unsigned long flags;
+--- a/fs/gfs2/aops.c~iomap-use-__set_page_dirty_nobuffers
++++ a/fs/gfs2/aops.c
+@@ -784,7 +784,7 @@ static const struct address_space_operat
+ 	.writepages = gfs2_writepages,
+ 	.readpage = gfs2_readpage,
+ 	.readahead = gfs2_readahead,
+-	.set_page_dirty = iomap_set_page_dirty,
++	.set_page_dirty = __set_page_dirty_nobuffers,
+ 	.releasepage = iomap_releasepage,
+ 	.invalidatepage = iomap_invalidatepage,
+ 	.bmap = gfs2_bmap,
+--- a/fs/iomap/buffered-io.c~iomap-use-__set_page_dirty_nobuffers
++++ a/fs/iomap/buffered-io.c
+@@ -640,31 +640,6 @@ out_no_page:
+ 	return status;
+ }
  
- 		if (!mapping) {
- 			unlock_page_memcg(page);
- 			return 1;
- 		}
+-int
+-iomap_set_page_dirty(struct page *page)
+-{
+-	struct address_space *mapping = page_mapping(page);
+-	int newly_dirty;
 -
--		xa_lock_irqsave(&mapping->i_pages, flags);
--		BUG_ON(page_mapping(page) != mapping);
--		WARN_ON_ONCE(!PagePrivate(page) && !PageUptodate(page));
--		account_page_dirtied(page, mapping);
--		__xa_set_mark(&mapping->i_pages, page_index(page),
--				   PAGECACHE_TAG_DIRTY);
--		xa_unlock_irqrestore(&mapping->i_pages, flags);
-+		__set_page_dirty(page, mapping, !PagePrivate(page));
- 		unlock_page_memcg(page);
+-	if (unlikely(!mapping))
+-		return !TestSetPageDirty(page);
+-
+-	/*
+-	 * Lock out page's memcg migration to keep PageDirty
+-	 * synchronized with per-memcg dirty page counters.
+-	 */
+-	lock_page_memcg(page);
+-	newly_dirty = !TestSetPageDirty(page);
+-	if (newly_dirty)
+-		__set_page_dirty(page, mapping, 0);
+-	unlock_page_memcg(page);
+-
+-	if (newly_dirty)
+-		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+-	return newly_dirty;
+-}
+-EXPORT_SYMBOL_GPL(iomap_set_page_dirty);
+-
+ static size_t __iomap_write_end(struct inode *inode, loff_t pos, size_t len,
+ 		size_t copied, struct page *page)
+ {
+@@ -684,7 +659,7 @@ static size_t __iomap_write_end(struct i
+ 	if (unlikely(copied < len && !PageUptodate(page)))
+ 		return 0;
+ 	iomap_set_range_uptodate(page, offset_in_page(pos), len);
+-	iomap_set_page_dirty(page);
++	__set_page_dirty_nobuffers(page);
+ 	return copied;
+ }
  
- 		if (mapping->host) {
+--- a/fs/xfs/xfs_aops.c~iomap-use-__set_page_dirty_nobuffers
++++ a/fs/xfs/xfs_aops.c
+@@ -561,7 +561,7 @@ const struct address_space_operations xf
+ 	.readahead		= xfs_vm_readahead,
+ 	.writepage		= xfs_vm_writepage,
+ 	.writepages		= xfs_vm_writepages,
+-	.set_page_dirty		= iomap_set_page_dirty,
++	.set_page_dirty		= __set_page_dirty_nobuffers,
+ 	.releasepage		= iomap_releasepage,
+ 	.invalidatepage		= iomap_invalidatepage,
+ 	.bmap			= xfs_vm_bmap,
+--- a/fs/zonefs/super.c~iomap-use-__set_page_dirty_nobuffers
++++ a/fs/zonefs/super.c
+@@ -185,7 +185,7 @@ static const struct address_space_operat
+ 	.readahead		= zonefs_readahead,
+ 	.writepage		= zonefs_writepage,
+ 	.writepages		= zonefs_writepages,
+-	.set_page_dirty		= iomap_set_page_dirty,
++	.set_page_dirty		= __set_page_dirty_nobuffers,
+ 	.releasepage		= iomap_releasepage,
+ 	.invalidatepage		= iomap_invalidatepage,
+ 	.migratepage		= iomap_migrate_page,
+--- a/include/linux/iomap.h~iomap-use-__set_page_dirty_nobuffers
++++ a/include/linux/iomap.h
+@@ -159,7 +159,6 @@ ssize_t iomap_file_buffered_write(struct
+ 		const struct iomap_ops *ops);
+ int iomap_readpage(struct page *page, const struct iomap_ops *ops);
+ void iomap_readahead(struct readahead_control *, const struct iomap_ops *ops);
+-int iomap_set_page_dirty(struct page *page);
+ int iomap_is_partially_uptodate(struct page *page, unsigned long from,
+ 		unsigned long count);
+ int iomap_releasepage(struct page *page, gfp_t gfp_mask);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
