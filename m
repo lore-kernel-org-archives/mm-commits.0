@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72C40C07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C0E5C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5417061CAB
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F82361CA9
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229925AbhGFTZg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:25:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58790 "EHLO mail.kernel.org"
+        id S229991AbhGFTZi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:25:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58822 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229879AbhGFTZg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:25:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 904C061C9E;
-        Tue,  6 Jul 2021 19:22:56 +0000 (UTC)
+        id S229879AbhGFTZi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:25:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8DE2461CA8;
+        Tue,  6 Jul 2021 19:22:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599376;
-        bh=kiPQn2jkHIQ9qayhRMqbCsuKCOYAdbkke01Rh+FZ0Mw=;
+        s=korg; t=1625599378;
+        bh=prnWirJCdOIZN5ftI0QNNX7XtV095pdr8dQCckbmfLc=;
         h=Date:From:To:Subject:From;
-        b=BBpHarA6w/Kwc/9LxWLSC4II1LPZkf/RTVC0tsS4+8iSY75Ua1L7IUkh9vYhd+eC5
-         TwnEj3XGaaPUz37HD+nBjdzThJmCvqKOB/04Y4t5EZV5dwluQu2ByedjBnzAoF5nkS
-         4WRlOK0p8ABkzDyJ8MtgeCjasdghv6rO9zp1z/n0=
-Date:   Tue, 06 Jul 2021 12:22:56 -0700
+        b=j1FdDowOBBvabM81jpkNWLgfC1e2pnZUlXN5n4KF/NVjw4f3lnm2MbAYZrf2UWrOB
+         wCPT5wHtKPhZlDV2dCTlo9f+CLLBAAZB9JnGDNEMCKuOGleV1TxcQ/bHWcpG0FAi/X
+         BVVQvOnESNQ+KMh0y8hsHp4Z9GQ5AE3VygzEFuUM=
+Date:   Tue, 06 Jul 2021 12:22:58 -0700
 From:   akpm@linux-foundation.org
-To:     bert@biot.com, dwaipayanray1@gmail.com, joe@perches.com,
-        linux@roeck-us.net, lukas.bulwahn@gmail.com,
-        mm-commits@vger.kernel.org
-Subject:  [merged]
- checkpatch-scripts-spdxcheckpy-now-requires-python3.patch removed from -mm
- tree
-Message-ID: <20210706192256.dMh5usemP%akpm@linux-foundation.org>
+To:     elder@ieee.org, gregkh@linuxfoundation.org, joe@perches.com,
+        manikishanghantasala@gmail.com, mm-commits@vger.kernel.org
+Subject:  [merged] checkpatch-improve-the-indented-label-test.patch
+ removed from -mm tree
+Message-ID: <20210706192258.j_Pc0cjHv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,61 +43,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: scripts/spdxcheck.py now requires python3
+     Subject: checkpatch: improve the indented label test
 has been removed from the -mm tree.  Its filename was
-     checkpatch-scripts-spdxcheckpy-now-requires-python3.patch
+     checkpatch-improve-the-indented-label-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: checkpatch: scripts/spdxcheck.py now requires python3
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve the indented label test
 
-Since commit d0259c42abff ("spdxcheck.py: Use Python 3"), spdxcheck.py
-explicitly expects to run as python3 script.  If "python" still points to
-python v2.7 and the script is executed with "python scripts/spdxcheck.py",
-the following error may be seen even if git-python is installed for
-python3.
+checkpatch identifies a label only when a terminating colon
+immediately follows an identifier.
 
-Traceback (most recent call last):
-  File "scripts/spdxcheck.py", line 10, in <module>
-    import git
-ImportError: No module named git
+Bitfield definitions can appear to be labels so ignore any
+spaces between the identifier terminating colon and any digit
+that may be used to define a bitfield length.
 
-To fix the problem, check for the existence of python3, check if
-the script is executable and not just for its existence, and execute
-it directly.
+Miscellanea:
 
-Link: https://lkml.kernel.org/r/20210505211720.447111-1-linux@roeck-us.net
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Joe Perches <joe@perches.com>
-Cc: Bert Vermeulen <bert@biot.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Bert Vermeulen <bert@biot.com>
+o Improve the initial checkpatch comment
+o Use the more typical '&&' instead of 'and'
+o Require the initial label character to be a non-digit
+  (Can't use $Ident here because $Ident allows ## concatenation)
+o Use $sline instead of $line to ignore comments
+o Use '$sline !~ /.../' instead of '!($line =~ /.../)'
+
+Link: https://lkml.kernel.org/r/b54d673e7cde7de5de0c9ba4dd57dd0858580ca4.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Manikishan Ghantasala <manikishanghantasala@gmail.com>
+Cc: Alex Elder <elder@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-scripts-spdxcheckpy-now-requires-python3
+--- a/scripts/checkpatch.pl~checkpatch-improve-the-indented-label-test
 +++ a/scripts/checkpatch.pl
-@@ -1084,10 +1084,10 @@ sub is_maintained_obsolete {
- sub is_SPDX_License_valid {
- 	my ($license) = @_;
+@@ -5361,9 +5361,13 @@ sub process {
+ 			}
+ 		}
  
--	return 1 if (!$tree || which("python") eq "" || !(-e "$root/scripts/spdxcheck.py") || !(-e "$gitroot"));
-+	return 1 if (!$tree || which("python3") eq "" || !(-x "$root/scripts/spdxcheck.py") || !(-e "$gitroot"));
- 
- 	my $root_path = abs_path($root);
--	my $status = `cd "$root_path"; echo "$license" | python scripts/spdxcheck.py -`;
-+	my $status = `cd "$root_path"; echo "$license" | scripts/spdxcheck.py -`;
- 	return 0 if ($status ne "");
- 	return 1;
- }
+-#goto labels aren't indented, allow a single space however
+-		if ($line=~/^.\s+[A-Za-z\d_]+:(?![0-9]+)/ and
+-		   !($line=~/^. [A-Za-z\d_]+:/) and !($line=~/^.\s+default:/)) {
++# check that goto labels aren't indented (allow a single space indentation)
++# and ignore bitfield definitions like foo:1
++# Strictly, labels can have whitespace after the identifier and before the :
++# but this is not allowed here as many ?: uses would appear to be labels
++		if ($sline =~ /^.\s+[A-Za-z_][A-Za-z\d_]*:(?!\s*\d+)/ &&
++		    $sline !~ /^. [A-Za-z\d_][A-Za-z\d_]*:/ &&
++		    $sline !~ /^.\s+default:/) {
+ 			if (WARN("INDENTED_LABEL",
+ 				 "labels should not be indented\n" . $herecurr) &&
+ 			    $fix) {
 _
 
-Patches currently in -mm which might be from linux@roeck-us.net are
+Patches currently in -mm which might be from joe@perches.com are
 
 
