@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24E62C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 431A5C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FB9D61C85
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 270F561C91
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231753AbhGFTU2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:20:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54306 "EHLO mail.kernel.org"
+        id S231736AbhGFTUb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:20:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54346 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231727AbhGFTU2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:20:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D14C161C7A;
-        Tue,  6 Jul 2021 19:17:48 +0000 (UTC)
+        id S231766AbhGFTUb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:20:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C294F61C7C;
+        Tue,  6 Jul 2021 19:17:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599069;
-        bh=pp5bLmUAH04Kk3vIwrIZq3IJmerNcd6Grw+AZWuFHiA=;
+        s=korg; t=1625599072;
+        bh=Qm3bIebqmL/qwx0TiFdYS2Myv7omUQ6njbNuk6EqNPQ=;
         h=Date:From:To:Subject:From;
-        b=bHowkT/0oEP0PKFXzl3JA6+TQ9dj6IpAPcX9dErvDIsqhajbLl1rYHSUN1zzNCpLM
-         GzlVyhwoeNp7qjTNp+sTs+NukZZG8PZfzLZ8NqnzUSrdpoJt8kVRj/+cfAdxcQa4g8
-         EfF8Q3HSR8dSLOcuYGdJzgg0U0InweyCtMw+A958=
-Date:   Tue, 06 Jul 2021 12:17:48 -0700
+        b=oi5NusTDRvjzLAhZXgkjF52fZSXHe/+4u5kiLAiREj1ius2muddXuFUGCEI71uUbA
+         RjGEg9Hn3PF1w1vurLQm2kmFayzBFpMf+etnUq6ALM8c8hEh9riWjeGs8/zOPBfdAu
+         1wD9Q6492C8b188pQqs2WQj4M45Uo5dWLHsGuBhA=
+Date:   Tue, 06 Jul 2021 12:17:51 -0700
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, almasrymina@google.com,
         axelrasmussen@google.com, bgeffon@google.com, dgilbert@redhat.com,
@@ -39,9 +39,9 @@ To:     aarcange@redhat.com, almasrymina@google.com,
         sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
         viro@zeniv.linux.org.uk, wangqing@vivo.com
 Subject:  [merged]
- userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte.patch
- removed from -mm tree
-Message-ID: <20210706191748.eWYbR0aKQ%akpm@linux-foundation.org>
+ userfaultfd-shmem-support-minor-fault-registration-for-shmem.patch removed
+ from -mm tree
+Message-ID: <20210706191751.BXKBM9fLS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,80 +50,31 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/shmem: combine shmem_{mcopy_atomic,mfill_zeropage}_pte
+     Subject: userfaultfd/shmem: support minor fault registration for shmem
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte.patch
+     userfaultfd-shmem-support-minor-fault-registration-for-shmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/shmem: combine shmem_{mcopy_atomic,mfill_zeropage}_pte
+Subject: userfaultfd/shmem: support minor fault registration for shmem
 
-Patch series "userfaultfd: add minor fault handling for shmem", v6.
+This patch allows shmem-backed VMAs to be registered for minor faults. 
+Minor faults are appropriately relayed to userspace in the fault path, for
+VMAs with the relevant flag.
 
-Overview
-========
+This commit doesn't hook up the UFFDIO_CONTINUE ioctl for shmem-backed
+minor faults, though, so userspace doesn't yet have a way to resolve such
+faults.
 
-See the series which added minor faults for hugetlbfs [3] for a detailed
-overview of minor fault handling in general.  This series adds the same
-support for shmem-backed areas.
+Because of this, we also don't yet advertise this as a supported feature. 
+That will be done in a separate commit when the feature is fully
+implemented.
 
-This series is structured as follows:
-
-- Commits 1 and 2 are cleanups.
-- Commits 3 and 4 implement the new feature (minor fault handling for shmem).
-- Commit 5 advertises that the feature is now available since at this point it's
-  fully implemented.
-- Commit 6 is a final cleanup, modifying an existing code path to re-use a new
-  helper we've introduced.
-- Commits 7, 8, 9, 10 update the userfaultfd selftest to exercise the feature.
-
-Use Case
-========
-
-In some cases it is useful to have VM memory backed by tmpfs instead of
-hugetlbfs.  So, this feature will be used to support the same VM live
-migration use case described in my original series.
-
-Additionally, Android folks (Lokesh Gidra <lokeshgidra@google.com>) hope
-to optimize the Android Runtime garbage collector using this feature:
-
-"The plan is to use userfaultfd for concurrently compacting the heap. 
-With this feature, the heap can be shared-mapped at another location where
-the GC-thread(s) could continue the compaction operation without the need
-to invoke userfault ioctl(UFFDIO_COPY) each time.  OTOH, if and when Java
-threads get faults on the heap, UFFDIO_CONTINUE can be used to resume
-execution.  Furthermore, this feature enables updating references in the
-'non-moving' portion of the heap efficiently.  Without this feature,
-uneccessary page copying (ioctl(UFFDIO_COPY)) would be required."
-
-[1] https://lore.kernel.org/patchwork/cover/1388144/
-[2] https://lore.kernel.org/patchwork/patch/1408161/
-[3] https://lore.kernel.org/linux-fsdevel/20210301222728.176417-1-axelrasmussen@google.com/T/#t
-
-
-This patch (of 9):
-
-Previously, we did a dance where we had one calling path in userfaultfd.c
-(mfill_atomic_pte), but then we split it into two in shmem_fs.h
-(shmem_{mcopy_atomic,mfill_zeropage}_pte), and then rejoined into a single
-shared function in shmem.c (shmem_mfill_atomic_pte).
-
-This is all a bit overly complex.  Just call the single combined shmem
-function directly, allowing us to clean up various branches, boilerplate,
-etc.
-
-While we're touching this function, two other small cleanup changes:
-- offset is equivalent to pgoff, so we can get rid of offset entirely.
-- Split two VM_BUG_ON cases into two statements. This means the line
-  number reported when the BUG is hit specifies exactly which condition
-  was true.
-
-Link: https://lkml.kernel.org/r/20210503180737.2487560-1-axelrasmussen@google.com
-Link: https://lkml.kernel.org/r/20210503180737.2487560-3-axelrasmussen@google.com
+Link: https://lkml.kernel.org/r/20210503180737.2487560-4-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
+Acked-by: Peter Xu <peterx@redhat.com>
 Acked-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -144,171 +95,68 @@ Cc: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |   19 +++++--------
- mm/shmem.c               |   52 +++++++++++--------------------------
- mm/userfaultfd.c         |   10 ++-----
- 3 files changed, 27 insertions(+), 54 deletions(-)
+ fs/userfaultfd.c |    3 +--
+ mm/memory.c      |    8 +++++---
+ mm/shmem.c       |   12 +++++++++++-
+ 3 files changed, 17 insertions(+), 6 deletions(-)
 
---- a/include/linux/shmem_fs.h~userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte
-+++ a/include/linux/shmem_fs.h
-@@ -122,21 +122,18 @@ static inline bool shmem_file(struct fil
- extern bool shmem_charge(struct inode *inode, long pages);
- extern void shmem_uncharge(struct inode *inode, long pages);
+--- a/fs/userfaultfd.c~userfaultfd-shmem-support-minor-fault-registration-for-shmem
++++ a/fs/userfaultfd.c
+@@ -1267,8 +1267,7 @@ static inline bool vma_can_userfault(str
+ 	}
  
-+#ifdef CONFIG_USERFAULTFD
- #ifdef CONFIG_SHMEM
--extern int shmem_mcopy_atomic_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
-+extern int shmem_mfill_atomic_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
- 				  struct vm_area_struct *dst_vma,
- 				  unsigned long dst_addr,
- 				  unsigned long src_addr,
-+				  bool zeropage,
- 				  struct page **pagep);
--extern int shmem_mfill_zeropage_pte(struct mm_struct *dst_mm,
--				    pmd_t *dst_pmd,
--				    struct vm_area_struct *dst_vma,
--				    unsigned long dst_addr);
--#else
--#define shmem_mcopy_atomic_pte(dst_mm, dst_pte, dst_vma, dst_addr, \
--			       src_addr, pagep)        ({ BUG(); 0; })
--#define shmem_mfill_zeropage_pte(dst_mm, dst_pmd, dst_vma, \
--				 dst_addr)      ({ BUG(); 0; })
--#endif
-+#else /* !CONFIG_SHMEM */
-+#define shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma, dst_addr, \
-+			       src_addr, zeropage, pagep)       ({ BUG(); 0; })
-+#endif /* CONFIG_SHMEM */
-+#endif /* CONFIG_USERFAULTFD */
+ 	if (vm_flags & VM_UFFD_MINOR) {
+-		/* FIXME: Add minor fault interception for shmem. */
+-		if (!is_vm_hugetlb_page(vma))
++		if (!(is_vm_hugetlb_page(vma) || vma_is_shmem(vma)))
+ 			return false;
+ 	}
  
- #endif
---- a/mm/shmem.c~userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte
+--- a/mm/memory.c~userfaultfd-shmem-support-minor-fault-registration-for-shmem
++++ a/mm/memory.c
+@@ -4026,9 +4026,11 @@ static vm_fault_t do_read_fault(struct v
+ 	 * something).
+ 	 */
+ 	if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT > 1) {
+-		ret = do_fault_around(vmf);
+-		if (ret)
+-			return ret;
++		if (likely(!userfaultfd_minor(vmf->vma))) {
++			ret = do_fault_around(vmf);
++			if (ret)
++				return ret;
++		}
+ 	}
+ 
+ 	ret = __do_fault(vmf);
+--- a/mm/shmem.c~userfaultfd-shmem-support-minor-fault-registration-for-shmem
 +++ a/mm/shmem.c
-@@ -2352,13 +2352,14 @@ static struct inode *shmem_get_inode(str
- 	return inode;
- }
+@@ -1797,7 +1797,7 @@ unlock:
+  * vm. If we swap it in we mark it dirty since we also free the swap
+  * entry since a page cannot live in both the swap and page cache.
+  *
+- * vmf and fault_type are only supplied by shmem_fault:
++ * vma, vmf, and fault_type are only supplied by shmem_fault:
+  * otherwise they are NULL.
+  */
+ static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
+@@ -1832,6 +1832,16 @@ repeat:
  
--static int shmem_mfill_atomic_pte(struct mm_struct *dst_mm,
--				  pmd_t *dst_pmd,
--				  struct vm_area_struct *dst_vma,
--				  unsigned long dst_addr,
--				  unsigned long src_addr,
--				  bool zeropage,
--				  struct page **pagep)
-+#ifdef CONFIG_USERFAULTFD
-+int shmem_mfill_atomic_pte(struct mm_struct *dst_mm,
-+			   pmd_t *dst_pmd,
-+			   struct vm_area_struct *dst_vma,
-+			   unsigned long dst_addr,
-+			   unsigned long src_addr,
-+			   bool zeropage,
-+			   struct page **pagep)
- {
- 	struct inode *inode = file_inode(dst_vma->vm_file);
- 	struct shmem_inode_info *info = SHMEM_I(inode);
-@@ -2370,7 +2371,7 @@ static int shmem_mfill_atomic_pte(struct
- 	struct page *page;
- 	pte_t _dst_pte, *dst_pte;
- 	int ret;
--	pgoff_t offset, max_off;
-+	pgoff_t max_off;
- 
- 	ret = -ENOMEM;
- 	if (!shmem_inode_acct_block(inode, 1)) {
-@@ -2391,7 +2392,7 @@ static int shmem_mfill_atomic_pte(struct
- 		if (!page)
- 			goto out_unacct_blocks;
- 
--		if (!zeropage) {	/* mcopy_atomic */
-+		if (!zeropage) {	/* COPY */
- 			page_kaddr = kmap_atomic(page);
- 			ret = copy_from_user(page_kaddr,
- 					     (const void __user *)src_addr,
-@@ -2405,7 +2406,7 @@ static int shmem_mfill_atomic_pte(struct
- 				/* don't free the page */
- 				return -ENOENT;
- 			}
--		} else {		/* mfill_zeropage_atomic */
-+		} else {		/* ZEROPAGE */
- 			clear_highpage(page);
- 		}
- 	} else {
-@@ -2413,15 +2414,15 @@ static int shmem_mfill_atomic_pte(struct
- 		*pagep = NULL;
- 	}
- 
--	VM_BUG_ON(PageLocked(page) || PageSwapBacked(page));
-+	VM_BUG_ON(PageLocked(page));
-+	VM_BUG_ON(PageSwapBacked(page));
- 	__SetPageLocked(page);
- 	__SetPageSwapBacked(page);
- 	__SetPageUptodate(page);
- 
- 	ret = -EFAULT;
--	offset = linear_page_index(dst_vma, dst_addr);
- 	max_off = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
--	if (unlikely(offset >= max_off))
-+	if (unlikely(pgoff >= max_off))
- 		goto out_release;
- 
- 	ret = shmem_add_to_page_cache(page, mapping, pgoff, NULL,
-@@ -2447,7 +2448,7 @@ static int shmem_mfill_atomic_pte(struct
- 
- 	ret = -EFAULT;
- 	max_off = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
--	if (unlikely(offset >= max_off))
-+	if (unlikely(pgoff >= max_off))
- 		goto out_release_unlock;
- 
- 	ret = -EEXIST;
-@@ -2484,28 +2485,7 @@ out_unacct_blocks:
- 	shmem_inode_unacct_blocks(inode, 1);
- 	goto out;
- }
--
--int shmem_mcopy_atomic_pte(struct mm_struct *dst_mm,
--			   pmd_t *dst_pmd,
--			   struct vm_area_struct *dst_vma,
--			   unsigned long dst_addr,
--			   unsigned long src_addr,
--			   struct page **pagep)
--{
--	return shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
--				      dst_addr, src_addr, false, pagep);
--}
--
--int shmem_mfill_zeropage_pte(struct mm_struct *dst_mm,
--			     pmd_t *dst_pmd,
--			     struct vm_area_struct *dst_vma,
--			     unsigned long dst_addr)
--{
--	struct page *page = NULL;
--
--	return shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
--				      dst_addr, 0, true, &page);
--}
-+#endif /* CONFIG_USERFAULTFD */
- 
- #ifdef CONFIG_TMPFS
- static const struct inode_operations shmem_symlink_inode_operations;
---- a/mm/userfaultfd.c~userfaultfd-shmem-combine-shmem_mcopy_atomicmfill_zeropage_pte
-+++ a/mm/userfaultfd.c
-@@ -392,13 +392,9 @@ static __always_inline ssize_t mfill_ato
- 						 dst_vma, dst_addr);
- 	} else {
- 		VM_WARN_ON_ONCE(wp_copy);
--		if (!zeropage)
--			err = shmem_mcopy_atomic_pte(dst_mm, dst_pmd,
--						     dst_vma, dst_addr,
--						     src_addr, page);
--		else
--			err = shmem_mfill_zeropage_pte(dst_mm, dst_pmd,
--						       dst_vma, dst_addr);
-+		err = shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
-+					     dst_addr, src_addr, zeropage,
-+					     page);
- 	}
- 
- 	return err;
+ 	page = pagecache_get_page(mapping, index,
+ 					FGP_ENTRY | FGP_HEAD | FGP_LOCK, 0);
++
++	if (page && vma && userfaultfd_minor(vma)) {
++		if (!xa_is_value(page)) {
++			unlock_page(page);
++			put_page(page);
++		}
++		*fault_type = handle_userfault(vmf, VM_UFFD_MINOR);
++		return 0;
++	}
++
+ 	if (xa_is_value(page)) {
+ 		error = shmem_swapin_page(inode, index, &page,
+ 					  sgp, gfp, vma, fault_type);
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
