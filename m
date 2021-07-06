@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93F04C07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:10:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB82BC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:10:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7DC0B61C78
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:10:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F5D561C72
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:10:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231802AbhGFTN3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:13:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47808 "EHLO mail.kernel.org"
+        id S231740AbhGFTNd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:13:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231766AbhGFTN3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:13:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BAE3D61C72;
-        Tue,  6 Jul 2021 19:10:49 +0000 (UTC)
+        id S231684AbhGFTNc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:13:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AF46861C74;
+        Tue,  6 Jul 2021 19:10:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598650;
-        bh=+Zcho/wxJK0mvs1KR4X7iTVQx3hOScYKiQ+vhyzYD1U=;
+        s=korg; t=1625598653;
+        bh=QcpLNN9WA/8GQUXjMN+AObX2ULtOGjYDjSazRKrTnAQ=;
         h=Date:From:To:Subject:From;
-        b=Mtil5Y0KmTTOwaWC4OTXu6VfCyH8hDv4Y08Ak5Oj3Ml07cCr97HiiCKApid0aXV7h
-         YzzFMCQRGyWv80eY8Zo2ZhX+fe3xKmb8zRzLI0W0M7DvkoBvckaqi4lnrT2OhixqBK
-         fU8Xv6uJ1E7zAjzT+lDZe6XnYj4rAPfJWUemEWog=
-Date:   Tue, 06 Jul 2021 12:10:49 -0700
+        b=wRvI0UxsZd1gGZzyzqRLafZwvmX1R4YcHpzK0UvAa8IeRYLp+fvP3G00dubZkF3Fr
+         ZXWVFa93+lznFD5YOz8XE+48ZFfo1OgJM9pmlwWhvHsmlxKuZLMb0ENJkIse516ity
+         sg+jIjcpo3ZAns8piL/+b+EcagAZngX6Fv15nBNI=
+Date:   Tue, 06 Jul 2021 12:10:52 -0700
 From:   akpm@linux-foundation.org
 To:     alexs@kernel.org, david@redhat.com, dennis@kernel.org,
         hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com,
@@ -36,9 +36,10 @@ To:     alexs@kernel.org, david@redhat.com, dennis@kernel.org,
         mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
         shy828301@gmail.com, tim.c.chen@linux.intel.com,
         willy@infradead.org, ying.huang@intel.com, yuzhao@google.com
-Subject:  [merged] swap-fix-do_swap_page-race-with-swapoff.patch
+Subject:  [merged]
+ mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
  removed from -mm tree
-Message-ID: <20210706191049.hCn7r-_mA%akpm@linux-foundation.org>
+Message-ID: <20210706191052.79z7mPQZ_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,42 +48,32 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swap: fix do_swap_page() race with swapoff
+     Subject: mm/swap: remove confusing checking for non_swap_entry() in swap_ra_info()
 has been removed from the -mm tree.  Its filename was
-     swap-fix-do_swap_page-race-with-swapoff.patch
+     mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: swap: fix do_swap_page() race with swapoff
+Subject: mm/swap: remove confusing checking for non_swap_entry() in swap_ra_info()
 
-When I was investigating the swap code, I found the below possible race
-window:
+The non_swap_entry() was used for working with VMA based swap readahead
+via commit ec560175c0b6 ("mm, swap: VMA based swap readahead").  At that
+time, the non_swap_entry() checking is necessary because the function is
+called before checking that in do_swap_page().  Then it's moved to
+swap_ra_info() since commit eaf649ebc3ac ("mm: swap: clean up swap
+readahead").  After that, the non_swap_entry() checking is unnecessary,
+because swap_ra_info() is called after non_swap_entry() has been checked
+already.  The resulting code is confusing as the non_swap_entry() check
+looks racy now because while we released the pte lock, somebody else might
+have faulted in this pte.  So we should check whether it's swap pte first
+to guard against such race or swap_type will be unexpected.  But the race
+isn't important because it will not cause problem.  We would have enough
+checking when we really operate the PTE entries later.  So we remove the
+non_swap_entry() check here to avoid confusion.
 
-CPU 1                                   	CPU 2
------                                   	-----
-do_swap_page
-  if (data_race(si->flags & SWP_SYNCHRONOUS_IO)
-  swap_readpage
-    if (data_race(sis->flags & SWP_FS_OPS)) {
-                                        	swapoff
-					  	  ..
-					  	  p->swap_file = NULL;
-					  	  ..
-    struct file *swap_file = sis->swap_file;
-    struct address_space *mapping = swap_file->f_mapping;[oops!]
-
-Note that for the pages that are swapped in through swap cache, this isn't
-an issue. Because the page is locked, and the swap entry will be marked
-with SWAP_HAS_CACHE, so swapoff() can not proceed until the page has been
-unlocked.
-
-Fix this race by using get/put_swap_device() to guard against concurrent
-swapoff.
-
-Link: https://lkml.kernel.org/r/20210426123316.806267-3-linmiaohe@huawei.com
-Fixes: 0bcac06f27d7 ("mm,swap: skip swapcache for swapin of synchronous device")
+Link: https://lkml.kernel.org/r/20210426123316.806267-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Alex Shi <alexs@kernel.org>
@@ -101,75 +92,31 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    9 +++++++++
- mm/memory.c          |   11 +++++++++--
- 2 files changed, 18 insertions(+), 2 deletions(-)
+ mm/swap_state.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/include/linux/swap.h~swap-fix-do_swap_page-race-with-swapoff
-+++ a/include/linux/swap.h
-@@ -527,6 +527,15 @@ static inline struct swap_info_struct *s
- 	return NULL;
- }
- 
-+static inline struct swap_info_struct *get_swap_device(swp_entry_t entry)
-+{
-+	return NULL;
-+}
-+
-+static inline void put_swap_device(struct swap_info_struct *si)
-+{
-+}
-+
- #define swap_address_space(entry)		(NULL)
- #define get_nr_swap_pages()			0L
- #define total_swap_pages			0L
---- a/mm/memory.c~swap-fix-do_swap_page-race-with-swapoff
-+++ a/mm/memory.c
-@@ -3353,6 +3353,7 @@ vm_fault_t do_swap_page(struct vm_fault
+--- a/mm/swap_state.c~mm-swap-remove-confusing-checking-for-non_swap_entry-in-swap_ra_info
++++ a/mm/swap_state.c
+@@ -721,7 +721,6 @@ static void swap_ra_info(struct vm_fault
  {
  	struct vm_area_struct *vma = vmf->vma;
- 	struct page *page = NULL, *swapcache;
-+	struct swap_info_struct *si = NULL;
- 	swp_entry_t entry;
- 	pte_t pte;
- 	int locked;
-@@ -3380,14 +3381,16 @@ vm_fault_t do_swap_page(struct vm_fault
- 		goto out;
- 	}
+ 	unsigned long ra_val;
+-	swp_entry_t entry;
+ 	unsigned long faddr, pfn, fpfn;
+ 	unsigned long start, end;
+ 	pte_t *pte, *orig_pte;
+@@ -739,11 +738,6 @@ static void swap_ra_info(struct vm_fault
  
-+	/* Prevent swapoff from happening to us. */
-+	si = get_swap_device(entry);
-+	if (unlikely(!si))
-+		goto out;
+ 	faddr = vmf->address;
+ 	orig_pte = pte = pte_offset_map(vmf->pmd, faddr);
+-	entry = pte_to_swp_entry(*pte);
+-	if ((unlikely(non_swap_entry(entry)))) {
+-		pte_unmap(orig_pte);
+-		return;
+-	}
  
- 	delayacct_set_flag(current, DELAYACCT_PF_SWAPIN);
- 	page = lookup_swap_cache(entry, vma, vmf->address);
- 	swapcache = page;
- 
- 	if (!page) {
--		struct swap_info_struct *si = swp_swap_info(entry);
--
- 		if (data_race(si->flags & SWP_SYNCHRONOUS_IO) &&
- 		    __swap_count(entry) == 1) {
- 			/* skip swapcache */
-@@ -3556,6 +3559,8 @@ vm_fault_t do_swap_page(struct vm_fault
- unlock:
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
- out:
-+	if (si)
-+		put_swap_device(si);
- 	return ret;
- out_nomap:
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
-@@ -3567,6 +3572,8 @@ out_release:
- 		unlock_page(swapcache);
- 		put_page(swapcache);
- 	}
-+	if (si)
-+		put_swap_device(si);
- 	return ret;
- }
- 
+ 	fpfn = PFN_DOWN(faddr);
+ 	ra_val = GET_SWAP_RA_VAL(vma);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
