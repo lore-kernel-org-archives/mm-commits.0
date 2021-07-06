@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2385C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A119BC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 974CA61C84
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D62861C82
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231766AbhGFTLl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:11:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46320 "EHLO mail.kernel.org"
+        id S231833AbhGFTLn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:11:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46348 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231590AbhGFTLk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:11:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9799961C85;
-        Tue,  6 Jul 2021 19:09:01 +0000 (UTC)
+        id S231831AbhGFTLn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:11:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AAFD261C87;
+        Tue,  6 Jul 2021 19:09:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598541;
-        bh=keouKWTbFGlRzVLoxo69LmkRfJvcVoqLp731Vimyft0=;
+        s=korg; t=1625598544;
+        bh=h1JGXbzSvWdIgwM3wrnTPPu8QGo4aT+dQly/fuY+Usc=;
         h=Date:From:To:Subject:From;
-        b=bkssJwyHNu2nHpX4LErQkBYURgAME+pqO8d2nprIZV+75td+6Z0aRc6RK9R3EpJ7B
-         KJKr1RGf/YFzd/7icEZlSR/raioJWJzbgWBa/IV+ARCCwsWZ7C0OF/QhxYUEut7s4T
-         ByFr5hVEjeIOQTkeXga3uQ/hWwRa/cX0hKdiYgIQ=
-Date:   Tue, 06 Jul 2021 12:09:01 -0700
+        b=KirjdZ48bbG+d7+ftI44pfgLGr9izotAhZEXBhLHpGpws+3G+VoSSUvkAD48eNCkt
+         aMHh+H0DLvJCNcIU+n93P1TTjLnkfVOECq6/bF3705+JK5JiMB6tcaojQgu5zfFBDS
+         8AN95p8P5laB3Ndwe+sj216YbJ59jYEKXKQKGIgA=
+Date:   Tue, 06 Jul 2021 12:09:03 -0700
 From:   akpm@linux-foundation.org
-To:     brendanhiggins@google.com, cl@linux.com, dlatypov@google.com,
-        elver@google.com, glittao@gmail.com, iamjoonsoo.kim@lge.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz
-Subject:  [merged] slub-remove-resiliency_test-function.patch
+To:     42.hyeyoo@gmail.com, cl@linux.com, elver@google.com,
+        iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, vbabka@suse.cz
+Subject:  [merged]
+ mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time.patch
  removed from -mm tree
-Message-ID: <20210706190901.2UwvWxY3O%akpm@linux-foundation.org>
+Message-ID: <20210706190903.Fh8lHQsEa%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,129 +45,131 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: remove resiliency_test() function
+     Subject: mm, slub: change run-time assertion in kmalloc_index() to compile-time
 has been removed from the -mm tree.  Its filename was
-     slub-remove-resiliency_test-function.patch
+     mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oliver Glitta <glittao@gmail.com>
-Subject: slub: remove resiliency_test() function
+From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Subject: mm, slub: change run-time assertion in kmalloc_index() to compile-time
 
-Function resiliency_test() is hidden behind #ifdef SLUB_RESILIENCY_TEST
-that is not part of Kconfig, so nobody runs it.
+Currently when size is not supported by kmalloc_index, compiler will
+generate a run-time BUG() while compile-time error is also possible, and
+better.  So change BUG to BUILD_BUG_ON_MSG to make compile-time check
+possible.
 
-This function is replaced with KUnit test for SLUB added by the previous
-patch "selftests: add a KUnit test for SLUB debugging functionality".
+Also remove code that allocates more than 32MB because current
+implementation supports only up to 32MB.
 
-Link: https://lkml.kernel.org/r/20210511150734.3492-3-glittao@gmail.com
-Signed-off-by: Oliver Glitta <glittao@gmail.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
+[42.hyeyoo@gmail.com: fix support for clang 10]
+  Link: https://lkml.kernel.org/r/20210518181247.GA10062@hyeyoo
+[vbabka@suse.cz: fix false-positive assert in kernel/bpf/local_storage.c]
+  Link: https://lkml.kernel.org/r/bea97388-01df-8eac-091b-a3c89b4a4a09@suse.czLink: https://lkml.kernel.org/r/20210511173448.GA54466@hyeyoo
+[elver@google.com: kfence fix]
+  Link: https://lkml.kernel.org/r/20210512195227.245000695c9014242e9a00e5@linux-foundation.org
+Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Marco Elver <elver@google.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Oliver Glitta <glittao@gmail.com>
-Cc: Brendan Higgins <brendanhiggins@google.com>
-Cc: Daniel Latypov <dlatypov@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   64 ----------------------------------------------------
- 1 file changed, 64 deletions(-)
+ include/linux/slab.h    |   17 ++++++++++++++---
+ mm/kfence/kfence_test.c |    5 +++--
+ mm/slab_common.c        |    7 +++----
+ 3 files changed, 20 insertions(+), 9 deletions(-)
 
---- a/mm/slub.c~slub-remove-resiliency_test-function
-+++ a/mm/slub.c
-@@ -155,9 +155,6 @@ static inline bool kmem_cache_has_cpu_pa
-  * - Variable sizing of the per node arrays
+--- a/include/linux/slab.h~mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time
++++ a/include/linux/slab.h
+@@ -346,8 +346,14 @@ static __always_inline enum kmalloc_cach
+  * 1 =  65 .. 96 bytes
+  * 2 = 129 .. 192 bytes
+  * n = 2^(n-1)+1 .. 2^n
++ *
++ * Note: __kmalloc_index() is compile-time optimized, and not runtime optimized;
++ * typical usage is via kmalloc_index() and therefore evaluated at compile-time.
++ * Callers where !size_is_constant should only be test modules, where runtime
++ * overheads of __kmalloc_index() can be tolerated.  Also see kmalloc_slab().
   */
+-static __always_inline unsigned int kmalloc_index(size_t size)
++static __always_inline unsigned int __kmalloc_index(size_t size,
++						    bool size_is_constant)
+ {
+ 	if (!size)
+ 		return 0;
+@@ -382,12 +388,17 @@ static __always_inline unsigned int kmal
+ 	if (size <=  8 * 1024 * 1024) return 23;
+ 	if (size <=  16 * 1024 * 1024) return 24;
+ 	if (size <=  32 * 1024 * 1024) return 25;
+-	if (size <=  64 * 1024 * 1024) return 26;
+-	BUG();
++
++	if ((IS_ENABLED(CONFIG_CC_IS_GCC) || CONFIG_CLANG_VERSION >= 110000)
++	    && !IS_ENABLED(CONFIG_PROFILE_ALL_BRANCHES) && size_is_constant)
++		BUILD_BUG_ON_MSG(1, "unexpected size in kmalloc_index()");
++	else
++		BUG();
  
--/* Enable to test recovery from slab corruption on boot */
--#undef SLUB_RESILIENCY_TEST
--
- /* Enable to log cmpxchg failures */
- #undef SLUB_DEBUG_CMPXCHG
- 
-@@ -4938,66 +4935,6 @@ static int list_locations(struct kmem_ca
+ 	/* Will never be reached. Needed because the compiler may complain */
+ 	return -1;
  }
- #endif	/* CONFIG_SLUB_DEBUG */
++#define kmalloc_index(s) __kmalloc_index(s, true)
+ #endif /* !CONFIG_SLOB */
  
--#ifdef SLUB_RESILIENCY_TEST
--static void __init resiliency_test(void)
--{
--	u8 *p;
--	int type = KMALLOC_NORMAL;
--
--	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 16 || KMALLOC_SHIFT_HIGH < 10);
--
--	pr_err("SLUB resiliency testing\n");
--	pr_err("-----------------------\n");
--	pr_err("A. Corruption after allocation\n");
--
--	p = kzalloc(16, GFP_KERNEL);
--	p[16] = 0x12;
--	pr_err("\n1. kmalloc-16: Clobber Redzone/next pointer 0x12->0x%p\n\n",
--	       p + 16);
--
--	validate_slab_cache(kmalloc_caches[type][4]);
--
--	/* Hmmm... The next two are dangerous */
--	p = kzalloc(32, GFP_KERNEL);
--	p[32 + sizeof(void *)] = 0x34;
--	pr_err("\n2. kmalloc-32: Clobber next pointer/next slab 0x34 -> -0x%p\n",
--	       p);
--	pr_err("If allocated object is overwritten then not detectable\n\n");
--
--	validate_slab_cache(kmalloc_caches[type][5]);
--	p = kzalloc(64, GFP_KERNEL);
--	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
--	*p = 0x56;
--	pr_err("\n3. kmalloc-64: corrupting random byte 0x56->0x%p\n",
--	       p);
--	pr_err("If allocated object is overwritten then not detectable\n\n");
--	validate_slab_cache(kmalloc_caches[type][6]);
--
--	pr_err("\nB. Corruption after free\n");
--	p = kzalloc(128, GFP_KERNEL);
--	kfree(p);
--	*p = 0x78;
--	pr_err("1. kmalloc-128: Clobber first word 0x78->0x%p\n\n", p);
--	validate_slab_cache(kmalloc_caches[type][7]);
--
--	p = kzalloc(256, GFP_KERNEL);
--	kfree(p);
--	p[50] = 0x9a;
--	pr_err("\n2. kmalloc-256: Clobber 50th byte 0x9a->0x%p\n\n", p);
--	validate_slab_cache(kmalloc_caches[type][8]);
--
--	p = kzalloc(512, GFP_KERNEL);
--	kfree(p);
--	p[512] = 0xab;
--	pr_err("\n3. kmalloc-512: Clobber redzone 0xab->0x%p\n\n", p);
--	validate_slab_cache(kmalloc_caches[type][9]);
--}
--#else
--#ifdef CONFIG_SYSFS
--static void resiliency_test(void) {};
--#endif
--#endif	/* SLUB_RESILIENCY_TEST */
--
- #ifdef CONFIG_SYSFS
- enum slab_stat_type {
- 	SL_ALL,			/* All slabs */
-@@ -5846,7 +5783,6 @@ static int __init slab_sysfs_init(void)
- 	}
+ void *__kmalloc(size_t size, gfp_t flags) __assume_kmalloc_alignment __malloc;
+--- a/mm/kfence/kfence_test.c~mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time
++++ a/mm/kfence/kfence_test.c
+@@ -197,7 +197,7 @@ static void test_cache_destroy(void)
  
- 	mutex_unlock(&slab_mutex);
--	resiliency_test();
- 	return 0;
+ static inline size_t kmalloc_cache_alignment(size_t size)
+ {
+-	return kmalloc_caches[kmalloc_type(GFP_KERNEL)][kmalloc_index(size)]->align;
++	return kmalloc_caches[kmalloc_type(GFP_KERNEL)][__kmalloc_index(size, false)]->align;
  }
  
+ /* Must always inline to match stack trace against caller. */
+@@ -267,7 +267,8 @@ static void *test_alloc(struct kunit *te
+ 
+ 		if (is_kfence_address(alloc)) {
+ 			struct page *page = virt_to_head_page(alloc);
+-			struct kmem_cache *s = test_cache ?: kmalloc_caches[kmalloc_type(GFP_KERNEL)][kmalloc_index(size)];
++			struct kmem_cache *s = test_cache ?:
++					kmalloc_caches[kmalloc_type(GFP_KERNEL)][__kmalloc_index(size, false)];
+ 
+ 			/*
+ 			 * Verify that various helpers return the right values
+--- a/mm/slab_common.c~mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time
++++ a/mm/slab_common.c
+@@ -754,8 +754,8 @@ struct kmem_cache *kmalloc_slab(size_t s
+ 
+ /*
+  * kmalloc_info[] is to make slub_debug=,kmalloc-xx option work at boot time.
+- * kmalloc_index() supports up to 2^26=64MB, so the final entry of the table is
+- * kmalloc-67108864.
++ * kmalloc_index() supports up to 2^25=32MB, so the final entry of the table is
++ * kmalloc-32M.
+  */
+ const struct kmalloc_info_struct kmalloc_info[] __initconst = {
+ 	INIT_KMALLOC_INFO(0, 0),
+@@ -783,8 +783,7 @@ const struct kmalloc_info_struct kmalloc
+ 	INIT_KMALLOC_INFO(4194304, 4M),
+ 	INIT_KMALLOC_INFO(8388608, 8M),
+ 	INIT_KMALLOC_INFO(16777216, 16M),
+-	INIT_KMALLOC_INFO(33554432, 32M),
+-	INIT_KMALLOC_INFO(67108864, 64M)
++	INIT_KMALLOC_INFO(33554432, 32M)
+ };
+ 
+ /*
 _
 
-Patches currently in -mm which might be from glittao@gmail.com are
+Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
 
-mm-slub-use-stackdepot-to-save-stack-trace-in-objects.patch
 
