@@ -7,39 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 150BDC07E96
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65A71C07E9C
 	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F356961C7F
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 50A9C61C87
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231833AbhGFTVN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231863AbhGFTVN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 6 Jul 2021 15:21:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55054 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55100 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231819AbhGFTVM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:21:12 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BC22761C7A;
-        Tue,  6 Jul 2021 19:18:32 +0000 (UTC)
+        id S231848AbhGFTVN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:21:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 711F861C7C;
+        Tue,  6 Jul 2021 19:18:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599113;
-        bh=sYrPU0W4JOPXRbAASOHcyo+/oR5lKReem9IjTOrT9Eg=;
+        s=korg; t=1625599114;
+        bh=etdHzkJWmuUrWc37YM+77c4KLag8S+iynNk/82j+Fog=;
         h=Date:From:To:Subject:From;
-        b=bzlgItAxWYkeQy1koVlpa6NPL6mDWp9wVcdXhxuRyRlJjE5ysWTgc8vvHW40Zyzyy
-         +V1wubXTPsiUv2Q74nA112E3prSJbozOMd/93QEcfe7+EBkepyjAqKDGlK43gdL816
-         sKkzm3fNJpM/aLnVOY7WV2rQsBSa9eqqlRXr0YpU=
-Date:   Tue, 06 Jul 2021 12:18:32 -0700
+        b=ctqDBEYuBHnSszW5X2RxJ/939Tv07+U9TjROl27nOpX9idJK3aAcNIulzlJ9ajkqz
+         kQcNpe/wvgsfKnURQ+pS0667N7gC8acY1yG0NOW8E2Sp5r8EHKORjBTpNlVnqKEVZ3
+         hTWuWZHrt/eG7RWD9GXjzu8IK+yh48gfd0qYOwFY=
+Date:   Tue, 06 Jul 2021 12:18:34 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, alex.shi@linux.alibaba.com, david@redhat.com,
-        guro@fb.com, haiyangz@microsoft.com, jasowang@redhat.com,
-        jbohac@suse.cz, kys@microsoft.com, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        mst@redhat.com, naoya.horiguchi@nec.com, osalvador@suse.de,
-        rppt@linux.ibm.com, steven.price@arm.com, sthemmin@microsoft.com,
-        wei.liu@kernel.org, willy@infradead.org, yaoaili@kingsoft.com
-Subject:  [merged] fs-proc-kcore-use-page_offline_freezethaw.patch
- removed from -mm tree
-Message-ID: <20210706191832.UKBdh9vv2%akpm@linux-foundation.org>
+To:     hdanton@sina.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org,
+        vitaly.wool@konsulko.com
+Subject:  [merged]
+ mm-z3fold-define-macro-nchunks-as-total_chunks-zhdr_chunks.patch removed
+ from -mm tree
+Message-ID: <20210706191834.cwOEKPxp1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,92 +44,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/kcore: use page_offline_(freeze|thaw)
+     Subject: mm/z3fold: define macro NCHUNKS as TOTAL_CHUNKS - ZHDR_CHUNKS
 has been removed from the -mm tree.  Its filename was
-     fs-proc-kcore-use-page_offline_freezethaw.patch
+     mm-z3fold-define-macro-nchunks-as-total_chunks-zhdr_chunks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: fs/proc/kcore: use page_offline_(freeze|thaw)
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/z3fold: define macro NCHUNKS as TOTAL_CHUNKS - ZHDR_CHUNKS
 
-Let's properly synchronize with drivers that set PageOffline(). 
-Unfreeze/thaw every now and then, so drivers that want to set
-PageOffline() can make progress.
+Patch series "Cleanup and fixup for z3fold".
 
-Link: https://lkml.kernel.org/r/20210526093041.8800-7-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Aili Yao <yaoaili@kingsoft.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Wei Liu <wei.liu@kernel.org>
+This series contains cleanups to remove unused function, redefine macro to
+improve readability and so on.  Also this fixes several bugs in z3fold,
+such as memory leak in z3fold_destroy_pool().  More details can be found
+in the respective changelogs.
+
+
+This patch (of 6):
+
+To improve code readability, we could define macro NCHUNKS as TOTAL_CHUNKS
+- ZHDR_CHUNKS.  No functional change intended.
+
+Link: https://lkml.kernel.org/r/20210619093151.1492174-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210619093151.1492174-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Hillf Danton <hdanton@sina.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/z3fold.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/proc/kcore.c~fs-proc-kcore-use-page_offline_freezethaw
-+++ a/fs/proc/kcore.c
-@@ -313,6 +313,7 @@ read_kcore(struct file *file, char __use
- {
- 	char *buf = file->private_data;
- 	size_t phdrs_offset, notes_offset, data_offset;
-+	size_t page_offline_frozen = 1;
- 	size_t phdrs_len, notes_len;
- 	struct kcore_list *m;
- 	size_t tsz;
-@@ -322,6 +323,11 @@ read_kcore(struct file *file, char __use
- 	int ret = 0;
+--- a/mm/z3fold.c~mm-z3fold-define-macro-nchunks-as-total_chunks-zhdr_chunks
++++ a/mm/z3fold.c
+@@ -62,7 +62,7 @@
+ #define ZHDR_SIZE_ALIGNED round_up(sizeof(struct z3fold_header), CHUNK_SIZE)
+ #define ZHDR_CHUNKS	(ZHDR_SIZE_ALIGNED >> CHUNK_SHIFT)
+ #define TOTAL_CHUNKS	(PAGE_SIZE >> CHUNK_SHIFT)
+-#define NCHUNKS		((PAGE_SIZE - ZHDR_SIZE_ALIGNED) >> CHUNK_SHIFT)
++#define NCHUNKS		(TOTAL_CHUNKS - ZHDR_CHUNKS)
  
- 	down_read(&kclist_lock);
-+	/*
-+	 * Don't race against drivers that set PageOffline() and expect no
-+	 * further page access.
-+	 */
-+	page_offline_freeze();
- 
- 	get_kcore_size(&nphdr, &phdrs_len, &notes_len, &data_offset);
- 	phdrs_offset = sizeof(struct elfhdr);
-@@ -480,6 +486,12 @@ read_kcore(struct file *file, char __use
- 			}
- 		}
- 
-+		if (page_offline_frozen++ % MAX_ORDER_NR_PAGES == 0) {
-+			page_offline_thaw();
-+			cond_resched();
-+			page_offline_freeze();
-+		}
-+
- 		if (&m->list == &kclist_head) {
- 			if (clear_user(buffer, tsz)) {
- 				ret = -EFAULT;
-@@ -565,6 +577,7 @@ skip:
- 	}
- 
- out:
-+	page_offline_thaw();
- 	up_read(&kclist_lock);
- 	if (ret)
- 		return ret;
+ #define BUDDY_MASK	(0x3)
+ #define BUDDY_SHIFT	2
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-memory-hotplugrst-complete-admin-guide-overhaul.patch
+mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
