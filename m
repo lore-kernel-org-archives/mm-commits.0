@@ -7,41 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E6BBC07E9B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86D98C07E96
 	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 29B2561C97
+	by mail.kernel.org (Postfix) with ESMTP id 6E51E61C98
 	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231794AbhGFTUv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231727AbhGFTUv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 6 Jul 2021 15:20:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54648 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54682 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231727AbhGFTUu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:20:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C32C61C91;
-        Tue,  6 Jul 2021 19:18:10 +0000 (UTC)
+        id S231785AbhGFTUv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:20:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 74D3861C96;
+        Tue,  6 Jul 2021 19:18:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599091;
-        bh=H9nAkC0uEGsqgsmY2KCO/TSg8Z+21BGLopdAnRyv91c=;
+        s=korg; t=1625599092;
+        bh=ip4+PZ/4GBlI2BSrFt+Ag7Bq3Pd5AfLPjRUBFpORQyY=;
         h=Date:From:To:Subject:From;
-        b=sD5BLgt6U1T/iD85xtHDoDdH6CQhOqFD/eyax5kqoVV78zHZeq0K80QIq0tbouIGS
-         cffO9YO1oR1u8qMCTV/INBC06lrXTgH9Vyo6oq1cNL1QaTa6Q1/D6JHH8vYKR89KH8
-         xbtYc3hC7TnEJa954wAPZRTjQhWjuiG9v0aCrTsw=
-Date:   Tue, 06 Jul 2021 12:18:10 -0700
+        b=K6Kqqa4XYdVwlv/CHs3vDR4Rfl1GCQ6AHQT0bUxdLsPnNdH+9Pfdy17pOZQ0XoTJb
+         YYlpvtsoyMCs5416UK3FeayHx7TMyni+lW96XPQAGBXtWf80kKLIY4//uA7P4V0cFy
+         jCwe2E54Saw0IL47Ptfw7dpV6T8l6XBYD0KD2wkg=
+Date:   Tue, 06 Jul 2021 12:18:12 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, almasrymina@google.com,
-        axelrasmussen@google.com, bgeffon@google.com, dgilbert@redhat.com,
-        hughd@google.com, jglisse@redhat.com, joe@perches.com,
-        kirill@shutemov.name, lokeshgidra@google.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        oupton@google.com, peterx@redhat.com, rppt@linux.vnet.ibm.com,
-        sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
-        viro@zeniv.linux.org.uk, wangqing@vivo.com
+To:     minchan@kernel.org, mm-commits@vger.kernel.org, yuzhao@google.com
 Subject:  [merged]
- userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
- removed from -mm tree
-Message-ID: <20210706191810.zEYU60tRz%akpm@linux-foundation.org>
+ mm-vmscanc-fix-potential-deadlock-in-reclaim_pages.patch removed from -mm
+ tree
+Message-ID: <20210706191812.iRcGi1I-7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,113 +43,94 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/selftests: exercise minor fault handling shmem support
+     Subject: mm/vmscan.c: fix potential deadlock in reclaim_pages()
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftests-exercise-minor-fault-handling-shmem-support.patch
+     mm-vmscanc-fix-potential-deadlock-in-reclaim_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/selftests: exercise minor fault handling shmem support
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/vmscan.c: fix potential deadlock in reclaim_pages()
 
-Enable test_uffdio_minor for test_type == TEST_SHMEM, and modify the test
-slightly to pass in / check for the right feature flags.
+Theoretically without the protect from memalloc_noreclaim_save() and
+memalloc_noreclaim_restore(), reclaim_pages() can go into the block
+I/O layer recursively and deadlock.
 
-Link: https://lkml.kernel.org/r/20210503180737.2487560-11-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Oliver Upton <oupton@google.com>
-Cc: Shaohua Li <shli@fb.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Wang Qing <wangqing@vivo.com>
+Querying 'reclaim_pages' in our kernel crash databases didn't yield
+any results. So the deadlock seems unlikely to happen. A possible
+explanation is that the only user of reclaim_pages(), i.e.,
+MADV_PAGEOUT, is usually called before memory pressure builds up,
+e.g., on Android and Chrome OS. Under such a condition, allocations in
+the block I/O layer can be fulfilled without diverting to direct
+reclaim and therefore the recursion is avoided.
+
+Link: https://lkml.kernel.org/r/20210622074642.785473-1-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20210614194727.2684053-1-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   29 ++++++++++++++++++---
- 1 file changed, 25 insertions(+), 4 deletions(-)
+ mm/vmscan.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-exercise-minor-fault-handling-shmem-support
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -474,6 +474,7 @@ static void wp_range(int ufd, __u64 star
- static void continue_range(int ufd, __u64 start, __u64 len)
- {
- 	struct uffdio_continue req;
-+	int ret;
+--- a/mm/vmscan.c~mm-vmscanc-fix-potential-deadlock-in-reclaim_pages
++++ a/mm/vmscan.c
+@@ -1701,6 +1701,7 @@ unsigned int reclaim_clean_pages_from_li
+ 	unsigned int nr_reclaimed;
+ 	struct page *page, *next;
+ 	LIST_HEAD(clean_pages);
++	unsigned int noreclaim_flag;
  
- 	req.range.start = start;
- 	req.range.len = len;
-@@ -482,6 +483,17 @@ static void continue_range(int ufd, __u6
- 	if (ioctl(ufd, UFFDIO_CONTINUE, &req))
- 		err("UFFDIO_CONTINUE failed for address 0x%" PRIx64,
- 		    (uint64_t)start);
-+
+ 	list_for_each_entry_safe(page, next, page_list, lru) {
+ 		if (!PageHuge(page) && page_is_file_lru(page) &&
+@@ -1711,8 +1712,17 @@ unsigned int reclaim_clean_pages_from_li
+ 		}
+ 	}
+ 
 +	/*
-+	 * Error handling within the kernel for continue is subtly different
-+	 * from copy or zeropage, so it may be a source of bugs. Trigger an
-+	 * error (-EEXIST) on purpose, to verify doing so doesn't cause a BUG.
++	 * We should be safe here since we are only dealing with file pages and
++	 * we are not kswapd and therefore cannot write dirty file pages. But
++	 * call memalloc_noreclaim_save() anyway, just in case these conditions
++	 * change in the future.
 +	 */
-+	req.mapped = 0;
-+	ret = ioctl(ufd, UFFDIO_CONTINUE, &req);
-+	if (ret >= 0 || req.mapped != -EEXIST)
-+		err("failed to exercise UFFDIO_CONTINUE error handling, ret=%d, mapped=%" PRId64,
-+		    ret, (int64_t) req.mapped);
++	noreclaim_flag = memalloc_noreclaim_save();
+ 	nr_reclaimed = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
+ 					&stat, true);
++	memalloc_noreclaim_restore(noreclaim_flag);
++
+ 	list_splice(&clean_pages, page_list);
+ 	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE,
+ 			    -(long)nr_reclaimed);
+@@ -2306,6 +2316,7 @@ unsigned long reclaim_pages(struct list_
+ 	LIST_HEAD(node_page_list);
+ 	struct reclaim_stat dummy_stat;
+ 	struct page *page;
++	unsigned int noreclaim_flag;
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+ 		.priority = DEF_PRIORITY,
+@@ -2314,6 +2325,8 @@ unsigned long reclaim_pages(struct list_
+ 		.may_swap = 1,
+ 	};
+ 
++	noreclaim_flag = memalloc_noreclaim_save();
++
+ 	while (!list_empty(page_list)) {
+ 		page = lru_to_page(page_list);
+ 		if (nid == NUMA_NO_NODE) {
+@@ -2350,6 +2363,8 @@ unsigned long reclaim_pages(struct list_
+ 		}
+ 	}
+ 
++	memalloc_noreclaim_restore(noreclaim_flag);
++
+ 	return nr_reclaimed;
  }
  
- static void *locking_thread(void *arg)
-@@ -1182,7 +1194,7 @@ static int userfaultfd_minor_test(void)
- 	void *expected_page;
- 	char c;
- 	struct uffd_stats stats = { 0 };
--	uint64_t features = UFFD_FEATURE_MINOR_HUGETLBFS;
-+	uint64_t req_features, features_out;
- 
- 	if (!test_uffdio_minor)
- 		return 0;
-@@ -1190,9 +1202,17 @@ static int userfaultfd_minor_test(void)
- 	printf("testing minor faults: ");
- 	fflush(stdout);
- 
--	uffd_test_ctx_init_ext(&features);
--	/* If kernel reports the feature isn't supported, skip the test. */
--	if (!(features & UFFD_FEATURE_MINOR_HUGETLBFS)) {
-+	if (test_type == TEST_HUGETLB)
-+		req_features = UFFD_FEATURE_MINOR_HUGETLBFS;
-+	else if (test_type == TEST_SHMEM)
-+		req_features = UFFD_FEATURE_MINOR_SHMEM;
-+	else
-+		return 1;
-+
-+	features_out = req_features;
-+	uffd_test_ctx_init_ext(&features_out);
-+	/* If kernel reports required features aren't supported, skip test. */
-+	if ((features_out & req_features) != req_features) {
- 		printf("skipping test due to lack of feature support\n");
- 		fflush(stdout);
- 		return 0;
-@@ -1575,6 +1595,7 @@ static void set_test_type(const char *ty
- 		map_shared = true;
- 		test_type = TEST_SHMEM;
- 		uffd_test_ops = &shmem_uffd_test_ops;
-+		test_uffdio_minor = true;
- 	} else {
- 		err("Unknown test type: %s", type);
- 	}
 _
 
-Patches currently in -mm which might be from axelrasmussen@google.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
 
