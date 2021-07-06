@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7D66C07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FF02C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD29361C9E
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45B9361CA8
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229811AbhGFT0R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:26:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59410 "EHLO mail.kernel.org"
+        id S229873AbhGFT0T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:26:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59446 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229793AbhGFT0Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:26:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A131261CA8;
-        Tue,  6 Jul 2021 19:23:37 +0000 (UTC)
+        id S229793AbhGFT0T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:26:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6AD2661CA3;
+        Tue,  6 Jul 2021 19:23:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599418;
-        bh=7bhn4oOmlvnNJz6WnnT8gzIK1E8c95i8RskD+MtlExM=;
+        s=korg; t=1625599420;
+        bh=RJMl5OL/4UfRMsWXueHyqHUWXH/0qODYivFirZz9x2g=;
         h=Date:From:To:Subject:From;
-        b=ww/etFxPzJ/AOTUKQSmDQU0IdSPA2hoH73ao4x458kKGiNIrcHKCCbAuRaZ8Nvhkr
-         Kifg9M9tvWWAizqDLNQqskRkd4qn2t68bnWMjmzKlYeqqzs2DDQ50YLZg2fYxncYrp
-         XxSRUzNQhb8BVFb2qyDgxafCgGo4XxAT5vVLNOdE=
-Date:   Tue, 06 Jul 2021 12:23:37 -0700
+        b=cz6sNo9C6odLQc+H7BKi35pQAuXva2NXxFuZKbTOYxHW+U0HO33PdkrjB8IKeWKeA
+         uzC6A+QO0eWhQsyyWxz+ocjmtkb1NTbiW6mHMOipLZwh7Ir19btTh54+yP8jrVvA5K
+         GuLI7icIjcO4/1tzfOiwOIjbP4rd23w2KYGzGv9M=
+Date:   Tue, 06 Jul 2021 12:23:40 -0700
 From:   akpm@linux-foundation.org
-To:     0x7f454c46@gmail.com, adobriyan@gmail.com, dave@stgolabs.net,
-        guro@fb.com, hannes@cmpxchg.org, manfred@colorfullife.com,
-        mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com,
-        vdavydov.dev@gmail.com, vvs@virtuozzo.com
+To:     1vier1@web.de, dbueso@suse.de, manfred@colorfullife.com,
+        mm-commits@vger.kernel.org, paulmck@kernel.org
 Subject:  [merged]
- ipc-use-kmalloc-for-msg_queue-and-shmid_kernel.patch removed from -mm tree
-Message-ID: <20210706192337.2ibajw1mX%akpm@linux-foundation.org>
+ ipc-semc-use-read_once-write_once-for-use_global_lock.patch removed from
+ -mm tree
+Message-ID: <20210706192340.5XGzSddNk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,102 +44,101 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: use kmalloc for msg_queue and shmid_kernel
+     Subject: ipc/sem.c: use READ_ONCE()/WRITE_ONCE() for use_global_lock
 has been removed from the -mm tree.  Its filename was
-     ipc-use-kmalloc-for-msg_queue-and-shmid_kernel.patch
+     ipc-semc-use-read_once-write_once-for-use_global_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: ipc: use kmalloc for msg_queue and shmid_kernel
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: use READ_ONCE()/WRITE_ONCE() for use_global_lock
 
-msg_queue and shmid_kernel are quite small objects, no need to use
-kvmalloc for them.  mhocko@: "Both of them are 256B on most 64b systems."
+The patch solves three weaknesses in ipc/sem.c:
 
-Previously these objects was allocated via ipc_alloc/ipc_rcu_alloc(),
-common function for several ipc objects.  It had kvmalloc call inside(). 
-Later, this function went away and was finally replaced by direct kvmalloc
-call, and now we can use more suitable kmalloc/kfree for them.
+1) The initial read of use_global_lock in sem_lock() is an intentional
+   race.  KCSAN detects these accesses and prints a warning.
 
-Link: https://lkml.kernel.org/r/0d0b6c9b-8af3-29d8-34e2-a565c53780f3@virtuozzo.com
-Reported-by: Alexey Dobriyan <adobriyan@gmail.com>
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+2) The code assumes that plain C read/writes are not mangled by the CPU
+   or the compiler.
+
+3) The comment it sysvipc_sem_proc_show() was hard to understand: The
+   rest of the comments in ipc/sem.c speaks about sem_perm.lock, and
+   suddenly this function speaks about ipc_lock_object().
+
+To solve 1) and 2), use READ_ONCE()/WRITE_ONCE().  Plain C reads are used
+in code that owns sma->sem_perm.lock.
+
+The comment is updated to solve 3)
+
+[manfred@colorfullife.com: use READ_ONCE()/WRITE_ONCE() for use_global_lock]
+  Link: https://lkml.kernel.org/r/20210627161919.3196-3-manfred@colorfullife.com
+Link: https://lkml.kernel.org/r/20210514175319.12195-1-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
+Reviewed-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: <1vier1@web.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    6 +++---
- ipc/shm.c |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ ipc/sem.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/ipc/msg.c~ipc-use-kmalloc-for-msg_queue-and-shmid_kernel
-+++ a/ipc/msg.c
-@@ -130,7 +130,7 @@ static void msg_rcu_free(struct rcu_head
- 	struct msg_queue *msq = container_of(p, struct msg_queue, q_perm);
+--- a/ipc/sem.c~ipc-semc-use-read_once-write_once-for-use_global_lock
++++ a/ipc/sem.c
+@@ -217,6 +217,8 @@ static int sysvipc_sem_proc_show(struct
+  * this smp_load_acquire(), this is guaranteed because the smp_load_acquire()
+  * is inside a spin_lock() and after a write from 0 to non-zero a
+  * spin_lock()+spin_unlock() is done.
++ * To prevent the compiler/cpu temporarily writing 0 to use_global_lock,
++ * READ_ONCE()/WRITE_ONCE() is used.
+  *
+  * 2) queue.status: (SEM_BARRIER_2)
+  * Initialization is done while holding sem_lock(), so no further barrier is
+@@ -342,10 +344,10 @@ static void complexmode_enter(struct sem
+ 		 * Nothing to do, just reset the
+ 		 * counter until we return to simple mode.
+ 		 */
+-		sma->use_global_lock = USE_GLOBAL_LOCK_HYSTERESIS;
++		WRITE_ONCE(sma->use_global_lock, USE_GLOBAL_LOCK_HYSTERESIS);
+ 		return;
+ 	}
+-	sma->use_global_lock = USE_GLOBAL_LOCK_HYSTERESIS;
++	WRITE_ONCE(sma->use_global_lock, USE_GLOBAL_LOCK_HYSTERESIS);
  
- 	security_msg_queue_free(&msq->q_perm);
--	kvfree(msq);
-+	kfree(msq);
+ 	for (i = 0; i < sma->sem_nsems; i++) {
+ 		sem = &sma->sems[i];
+@@ -371,7 +373,8 @@ static void complexmode_tryleave(struct
+ 		/* See SEM_BARRIER_1 for purpose/pairing */
+ 		smp_store_release(&sma->use_global_lock, 0);
+ 	} else {
+-		sma->use_global_lock--;
++		WRITE_ONCE(sma->use_global_lock,
++				sma->use_global_lock-1);
+ 	}
  }
  
- /**
-@@ -147,7 +147,7 @@ static int newque(struct ipc_namespace *
- 	key_t key = params->key;
- 	int msgflg = params->flg;
+@@ -412,7 +415,7 @@ static inline int sem_lock(struct sem_ar
+ 	 * Initial check for use_global_lock. Just an optimization,
+ 	 * no locking, no memory barrier.
+ 	 */
+-	if (!sma->use_global_lock) {
++	if (!READ_ONCE(sma->use_global_lock)) {
+ 		/*
+ 		 * It appears that no complex operation is around.
+ 		 * Acquire the per-semaphore lock.
+@@ -2436,7 +2439,8 @@ static int sysvipc_sem_proc_show(struct
  
--	msq = kvmalloc(sizeof(*msq), GFP_KERNEL);
-+	msq = kmalloc(sizeof(*msq), GFP_KERNEL);
- 	if (unlikely(!msq))
- 		return -ENOMEM;
- 
-@@ -157,7 +157,7 @@ static int newque(struct ipc_namespace *
- 	msq->q_perm.security = NULL;
- 	retval = security_msg_queue_alloc(&msq->q_perm);
- 	if (retval) {
--		kvfree(msq);
-+		kfree(msq);
- 		return retval;
- 	}
- 
---- a/ipc/shm.c~ipc-use-kmalloc-for-msg_queue-and-shmid_kernel
-+++ a/ipc/shm.c
-@@ -222,7 +222,7 @@ static void shm_rcu_free(struct rcu_head
- 	struct shmid_kernel *shp = container_of(ptr, struct shmid_kernel,
- 							shm_perm);
- 	security_shm_free(&shp->shm_perm);
--	kvfree(shp);
-+	kfree(shp);
- }
- 
- static inline void shm_rmid(struct ipc_namespace *ns, struct shmid_kernel *s)
-@@ -619,7 +619,7 @@ static int newseg(struct ipc_namespace *
- 			ns->shm_tot + numpages > ns->shm_ctlall)
- 		return -ENOSPC;
- 
--	shp = kvmalloc(sizeof(*shp), GFP_KERNEL);
-+	shp = kmalloc(sizeof(*shp), GFP_KERNEL);
- 	if (unlikely(!shp))
- 		return -ENOMEM;
- 
-@@ -630,7 +630,7 @@ static int newseg(struct ipc_namespace *
- 	shp->shm_perm.security = NULL;
- 	error = security_shm_alloc(&shp->shm_perm);
- 	if (error) {
--		kvfree(shp);
-+		kfree(shp);
- 		return error;
- 	}
- 
+ 	/*
+ 	 * The proc interface isn't aware of sem_lock(), it calls
+-	 * ipc_lock_object() directly (in sysvipc_find_ipc).
++	 * ipc_lock_object(), i.e. spin_lock(&sma->sem_perm.lock).
++	 * (in sysvipc_find_ipc)
+ 	 * In order to stay compatible with sem_lock(), we must
+ 	 * enter / leave complex_mode.
+ 	 */
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
 
