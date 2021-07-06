@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3EECC07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:10:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8DA8C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:10:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AFA5761C78
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:10:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A0C8561C6D
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:10:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231876AbhGFTNR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:13:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47620 "EHLO mail.kernel.org"
+        id S231895AbhGFTNU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:13:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47698 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231802AbhGFTNR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:13:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B1BD561C72;
-        Tue,  6 Jul 2021 19:10:37 +0000 (UTC)
+        id S231879AbhGFTNU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:13:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AC3EB61C6C;
+        Tue,  6 Jul 2021 19:10:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598638;
-        bh=4b9aUvJAaFZKVNShKzLxBwYpisLT5kl8YcvfJQfWip4=;
+        s=korg; t=1625598641;
+        bh=Tf/5ppnE++Hkbzy/qPDzDTRTcNXCZm0g/s9H1aGNR/E=;
         h=Date:From:To:Subject:From;
-        b=nSQwIrUXCiSG8Suwv4ZzXCvHppPil6WJ8nYiueHCg0/jaJxmyhYJmVx26avwV1HXf
-         2Inpope8WwMmFcE/8b3Cst0BclzsN3XrR1mQlCm9tXu/9LlIcqk1Sz4Vtg7FIfkMsL
-         lE8RnHWUXgvLbFr/Rb979s8TigKjUjdR3AKHpD9M=
-Date:   Tue, 06 Jul 2021 12:10:37 -0700
+        b=DpeBJhGdCK6qDx149md0lfeD+Xys7rIEWDPZSNpXpqqanv0Yr28TeFlwmz5579qxf
+         75Cew5pHMRKXGRz6wUqHdOcQ9uOfRtimhOZIqVSUNyocg0pp8Olw0Z6E0C7pzuMgh4
+         nHLqYHuXzADIBKMPsd4CYS+Cm2CFCNxZb4yaVuCU=
+Date:   Tue, 06 Jul 2021 12:10:40 -0700
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, hughd@google.com, jack@suse.cz,
         jannh@google.com, jgg@nvidia.com, jhubbard@nvidia.com,
         kirill@shutemov.name, ktkhai@virtuozzo.com, mhocko@suse.com,
         mm-commits@vger.kernel.org, oleg@redhat.com, peterx@redhat.com,
         willy@infradead.org
-Subject:  [merged] mm-gup-allow-foll_pin-to-scale-in-smp.patch
+Subject:  [merged] mm-gup-pack-has_pinned-in-mmf_has_pinned.patch
  removed from -mm tree
-Message-ID: <20210706191037.llOPKHNL9%akpm@linux-foundation.org>
+Message-ID: <20210706191040.yfrTD6rUJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,38 +46,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: gup: allow FOLL_PIN to scale in SMP
+     Subject: mm: gup: pack has_pinned in MMF_HAS_PINNED
 has been removed from the -mm tree.  Its filename was
-     mm-gup-allow-foll_pin-to-scale-in-smp.patch
+     mm-gup-pack-has_pinned-in-mmf_has_pinned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: gup: allow FOLL_PIN to scale in SMP
+Subject: mm: gup: pack has_pinned in MMF_HAS_PINNED
 
-has_pinned cannot be written by each pin-fast or it won't scale in SMP. 
-This isn't "false sharing" strictly speaking (it's more like "true
-non-sharing"), but it creates the same SMP scalability bottleneck of
-"false sharing".
+has_pinned 32bit can be packed in the MMF_HAS_PINNED bit as a noop
+cleanup.
 
-To verify the improvement, below test is done on 40 cpus host with
-Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz (must be with
-CONFIG_GUP_TEST=y):
+Any atomic_inc/dec to the mm cacheline shared by all threads in pin-fast
+would reintroduce a loss of SMP scalability to pin-fast, so there's no
+future potential usefulness to keep an atomic in the mm for this.
 
-  $ sudo chrt -f 1 ./gup_test -a  -m 512 -j 40
+set_bit(MMF_HAS_PINNED) will be theoretically a bit slower than WRITE_ONCE
+(atomic_set is equivalent to WRITE_ONCE), but the set_bit (just like
+atomic_set after this commit) has to be still issued only once per "mm",
+so the difference between the two will be lost in the noise.
 
-Where we can get (average value for 40 threads):
+will-it-scale "mmap2" shows no change in performance with enterprise
+config as expected.
 
-  Old kernel: 477729.97 (+- 3.79%)
-  New kernel:  89144.65 (+-11.76%)
+will-it-scale "pin_fast" retains the > 4000% SMP scalability performance
+improvement against upstream as expected.
 
-On a similar condition with 256 cpus, this commits increases the SMP
-scalability of pin_user_pages_fast() executed by different threads of the
-same process by more than 4000%.
+This is a noop as far as overall performance and SMP scalability are
+concerned.
 
-[peterx@redhat.com: rewrite commit message, add parentheses against "(A & B)"]
-Link: https://lkml.kernel.org/r/20210507150553.208763-3-peterx@redhat.com
+[peterx@redhat.com: pack has_pinned in MMF_HAS_PINNED]
+  Link: https://lkml.kernel.org/r/YJqWESqyxa8OZA+2@t490s
+[akpm@linux-foundation.org: coding style fixes]
+[peterx@redhat.com: fix build for task_mmu.c, introduce mm_set_has_pinned_flag, fix comments]
+Link: https://lkml.kernel.org/r/20210507150553.208763-4-peterx@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
@@ -93,29 +97,124 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/task_mmu.c             |    2 +-
+ include/linux/mm.h             |    2 +-
+ include/linux/mm_types.h       |   10 ----------
+ include/linux/sched/coredump.h |    8 ++++++++
+ kernel/fork.c                  |    1 -
+ mm/gup.c                       |   19 +++++++++++++++----
+ 6 files changed, 25 insertions(+), 17 deletions(-)
 
---- a/mm/gup.c~mm-gup-allow-foll_pin-to-scale-in-smp
+--- a/fs/proc/task_mmu.c~mm-gup-pack-has_pinned-in-mmf_has_pinned
++++ a/fs/proc/task_mmu.c
+@@ -1047,7 +1047,7 @@ static inline bool pte_is_pinned(struct
+ 		return false;
+ 	if (!is_cow_mapping(vma->vm_flags))
+ 		return false;
+-	if (likely(!atomic_read(&vma->vm_mm->has_pinned)))
++	if (likely(!test_bit(MMF_HAS_PINNED, &vma->vm_mm->flags)))
+ 		return false;
+ 	page = vm_normal_page(vma, addr, pte);
+ 	if (!page)
+--- a/include/linux/mm.h~mm-gup-pack-has_pinned-in-mmf_has_pinned
++++ a/include/linux/mm.h
+@@ -1341,7 +1341,7 @@ static inline bool page_needs_cow_for_dm
+ 	if (!is_cow_mapping(vma->vm_flags))
+ 		return false;
+ 
+-	if (!atomic_read(&vma->vm_mm->has_pinned))
++	if (!test_bit(MMF_HAS_PINNED, &vma->vm_mm->flags))
+ 		return false;
+ 
+ 	return page_maybe_dma_pinned(page);
+--- a/include/linux/mm_types.h~mm-gup-pack-has_pinned-in-mmf_has_pinned
++++ a/include/linux/mm_types.h
+@@ -435,16 +435,6 @@ struct mm_struct {
+ 		 */
+ 		atomic_t mm_count;
+ 
+-		/**
+-		 * @has_pinned: Whether this mm has pinned any pages.  This can
+-		 * be either replaced in the future by @pinned_vm when it
+-		 * becomes stable, or grow into a counter on its own. We're
+-		 * aggresive on this bit now - even if the pinned pages were
+-		 * unpinned later on, we'll still keep this bit set for the
+-		 * lifecycle of this mm just for simplicity.
+-		 */
+-		atomic_t has_pinned;
+-
+ #ifdef CONFIG_MMU
+ 		atomic_long_t pgtables_bytes;	/* PTE page table pages */
+ #endif
+--- a/include/linux/sched/coredump.h~mm-gup-pack-has_pinned-in-mmf_has_pinned
++++ a/include/linux/sched/coredump.h
+@@ -73,6 +73,14 @@ static inline int get_dumpable(struct mm
+ #define MMF_OOM_VICTIM		25	/* mm is the oom victim */
+ #define MMF_OOM_REAP_QUEUED	26	/* mm was queued for oom_reaper */
+ #define MMF_MULTIPROCESS	27	/* mm is shared between processes */
++/*
++ * MMF_HAS_PINNED: Whether this mm has pinned any pages.  This can be either
++ * replaced in the future by mm.pinned_vm when it becomes stable, or grow into
++ * a counter on its own. We're aggresive on this bit for now: even if the
++ * pinned pages were unpinned later on, we'll still keep this bit set for the
++ * lifecycle of this mm, just for simplicity.
++ */
++#define MMF_HAS_PINNED		28	/* FOLL_PIN has run, never cleared */
+ #define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
+ 
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+--- a/kernel/fork.c~mm-gup-pack-has_pinned-in-mmf_has_pinned
++++ a/kernel/fork.c
+@@ -1029,7 +1029,6 @@ static struct mm_struct *mm_init(struct
+ 	mm_pgtables_bytes_init(mm);
+ 	mm->map_count = 0;
+ 	mm->locked_vm = 0;
+-	atomic_set(&mm->has_pinned, 0);
+ 	atomic64_set(&mm->pinned_vm, 0);
+ 	memset(&mm->rss_stat, 0, sizeof(mm->rss_stat));
+ 	spin_lock_init(&mm->page_table_lock);
+--- a/mm/gup.c~mm-gup-pack-has_pinned-in-mmf_has_pinned
 +++ a/mm/gup.c
-@@ -1320,7 +1320,7 @@ static __always_inline long __get_user_p
+@@ -420,6 +420,17 @@ void unpin_user_pages(struct page **page
+ }
+ EXPORT_SYMBOL(unpin_user_pages);
+ 
++/*
++ * Set the MMF_HAS_PINNED if not set yet; after set it'll be there for the mm's
++ * lifecycle.  Avoid setting the bit unless necessary, or it might cause write
++ * cache bouncing on large SMP machines for concurrent pinned gups.
++ */
++static inline void mm_set_has_pinned_flag(unsigned long *mm_flags)
++{
++	if (!test_bit(MMF_HAS_PINNED, mm_flags))
++		set_bit(MMF_HAS_PINNED, mm_flags);
++}
++
+ #ifdef CONFIG_MMU
+ static struct page *no_page_table(struct vm_area_struct *vma,
+ 		unsigned int flags)
+@@ -1320,8 +1331,8 @@ static __always_inline long __get_user_p
  		BUG_ON(*locked != 1);
  	}
  
--	if (flags & FOLL_PIN)
-+	if ((flags & FOLL_PIN) && !atomic_read(&mm->has_pinned))
- 		atomic_set(&mm->has_pinned, 1);
+-	if ((flags & FOLL_PIN) && !atomic_read(&mm->has_pinned))
+-		atomic_set(&mm->has_pinned, 1);
++	if (flags & FOLL_PIN)
++		mm_set_has_pinned_flag(&mm->flags);
  
  	/*
-@@ -2641,7 +2641,7 @@ static int internal_get_user_pages_fast(
+ 	 * FOLL_PIN and FOLL_GET are mutually exclusive. Traditional behavior
+@@ -2641,8 +2652,8 @@ static int internal_get_user_pages_fast(
  				       FOLL_FAST_ONLY)))
  		return -EINVAL;
  
--	if (gup_flags & FOLL_PIN)
-+	if ((gup_flags & FOLL_PIN) && !atomic_read(&current->mm->has_pinned))
- 		atomic_set(&current->mm->has_pinned, 1);
+-	if ((gup_flags & FOLL_PIN) && !atomic_read(&current->mm->has_pinned))
+-		atomic_set(&current->mm->has_pinned, 1);
++	if (gup_flags & FOLL_PIN)
++		mm_set_has_pinned_flag(&current->mm->flags);
  
  	if (!(gup_flags & FOLL_FAST_ONLY))
+ 		might_lock_read(&current->mm->mmap_lock);
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
