@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31BADC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5292EC07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1DED061C7F
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B81661C7C
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:18:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231795AbhGFTUy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:20:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54706 "EHLO mail.kernel.org"
+        id S231718AbhGFTU4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:20:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231748AbhGFTUy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:20:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 65E8E61C7C;
-        Tue,  6 Jul 2021 19:18:14 +0000 (UTC)
+        id S229925AbhGFTUz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:20:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7D52B61C7F;
+        Tue,  6 Jul 2021 19:18:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599094;
-        bh=SSOpqhocZE7NBH80k/WHAv9h9h7Se1FfuCvttf/3iIY=;
+        s=korg; t=1625599096;
+        bh=ClHZR2yJhKfAPcPMpYtxzvdJztYC5tE6/KLERSMBkw0=;
         h=Date:From:To:Subject:From;
-        b=okR/iygyemdf6/mU/MXBkal9H60Bj5QmDz8XpZx4wdz2oytArKEOKe1uXMn9HVzHz
-         BqmSvnCgQVEI/DQ+M4tW1MHtKvswQ71VuuwFqU+1QdLILcv+dZ1v3dptQr9O2f+oC/
-         SdK06XToycm1H0aPOL+JTFs1dq4AHabR5n3Em6ww=
-Date:   Tue, 06 Jul 2021 12:18:14 -0700
+        b=DggqgFTJKva6x5UqZaDE83pvAMZ315EavVRPSg6njPsfIj+GcvIYpiF2oOVMm/tqj
+         fTdklEh5awNc5hVgLr6RwWqNpQbuACVMQFwid4pNXBpXNhTdwsGTCm9tMrxKAiw8OZ
+         66Ew5wcOxCNJv+jgH7Oq0q7wX7o/pYhZaQj+2ldM=
+Date:   Tue, 06 Jul 2021 12:18:16 -0700
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org, yuzhao@google.com
+To:     hannes@cmpxchg.org, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low.patch
- removed from -mm tree
-Message-ID: <20210706191814.H3onNfbMi%akpm@linux-foundation.org>
+ mm-workingset-define-macro-workingset_shift.patch removed from -mm tree
+Message-ID: <20210706191816.2FZWAr3eN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,82 +43,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/trace/events/vmscan.h: remove mm_vmscan_inactive_list_is_low
+     Subject: mm: workingset: define macro WORKINGSET_SHIFT
 has been removed from the -mm tree.  Its filename was
-     include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low.patch
+     mm-workingset-define-macro-workingset_shift.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: include/trace/events/vmscan.h: remove mm_vmscan_inactive_list_is_low
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm: workingset: define macro WORKINGSET_SHIFT
 
-mm_vmscan_inactive_list_is_low has no users after commit b91ac374346b
-("mm: vmscan: enforce inactive:active ratio at the reclaim root").
+The magic number 1 is used in several places in workingset.c.  Define a
+macro WORKINGSET_SHIFT for it to improve code readability.
 
-Remove it.
-
-Link: https://lkml.kernel.org/r/20210614194554.2683395-1-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20210624122307.1759342-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   41 --------------------------------
- 1 file changed, 41 deletions(-)
+ mm/workingset.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/include/trace/events/vmscan.h~include-trace-events-vmscanh-remove-mm_vmscan_inactive_list_is_low
-+++ a/include/trace/events/vmscan.h
-@@ -423,47 +423,6 @@ TRACE_EVENT(mm_vmscan_lru_shrink_active,
- 		show_reclaim_flags(__entry->reclaim_flags))
- );
+--- a/mm/workingset.c~mm-workingset-define-macro-workingset_shift
++++ a/mm/workingset.c
+@@ -168,8 +168,10 @@
+  * refault distance will immediately activate the refaulting page.
+  */
  
--TRACE_EVENT(mm_vmscan_inactive_list_is_low,
--
--	TP_PROTO(int nid, int reclaim_idx,
--		unsigned long total_inactive, unsigned long inactive,
--		unsigned long total_active, unsigned long active,
--		unsigned long ratio, int file),
--
--	TP_ARGS(nid, reclaim_idx, total_inactive, inactive, total_active, active, ratio, file),
--
--	TP_STRUCT__entry(
--		__field(int, nid)
--		__field(int, reclaim_idx)
--		__field(unsigned long, total_inactive)
--		__field(unsigned long, inactive)
--		__field(unsigned long, total_active)
--		__field(unsigned long, active)
--		__field(unsigned long, ratio)
--		__field(int, reclaim_flags)
--	),
--
--	TP_fast_assign(
--		__entry->nid = nid;
--		__entry->reclaim_idx = reclaim_idx;
--		__entry->total_inactive = total_inactive;
--		__entry->inactive = inactive;
--		__entry->total_active = total_active;
--		__entry->active = active;
--		__entry->ratio = ratio;
--		__entry->reclaim_flags = trace_reclaim_flags(file) &
--					 RECLAIM_WB_LRU;
--	),
--
--	TP_printk("nid=%d reclaim_idx=%d total_inactive=%ld inactive=%ld total_active=%ld active=%ld ratio=%ld flags=%s",
--		__entry->nid,
--		__entry->reclaim_idx,
--		__entry->total_inactive, __entry->inactive,
--		__entry->total_active, __entry->active,
--		__entry->ratio,
--		show_reclaim_flags(__entry->reclaim_flags))
--);
--
- TRACE_EVENT(mm_vmscan_node_reclaim_begin,
++#define WORKINGSET_SHIFT 1
+ #define EVICTION_SHIFT	((BITS_PER_LONG - BITS_PER_XA_VALUE) +	\
+-			 1 + NODES_SHIFT + MEM_CGROUP_ID_SHIFT)
++			 WORKINGSET_SHIFT + NODES_SHIFT + \
++			 MEM_CGROUP_ID_SHIFT)
+ #define EVICTION_MASK	(~0UL >> EVICTION_SHIFT)
  
- 	TP_PROTO(int nid, int order, gfp_t gfp_flags),
+ /*
+@@ -189,7 +191,7 @@ static void *pack_shadow(int memcgid, pg
+ 	eviction &= EVICTION_MASK;
+ 	eviction = (eviction << MEM_CGROUP_ID_SHIFT) | memcgid;
+ 	eviction = (eviction << NODES_SHIFT) | pgdat->node_id;
+-	eviction = (eviction << 1) | workingset;
++	eviction = (eviction << WORKINGSET_SHIFT) | workingset;
+ 
+ 	return xa_mk_value(eviction);
+ }
+@@ -201,8 +203,8 @@ static void unpack_shadow(void *shadow,
+ 	int memcgid, nid;
+ 	bool workingset;
+ 
+-	workingset = entry & 1;
+-	entry >>= 1;
++	workingset = entry & ((1UL << WORKINGSET_SHIFT) - 1);
++	entry >>= WORKINGSET_SHIFT;
+ 	nid = entry & ((1UL << NODES_SHIFT) - 1);
+ 	entry >>= NODES_SHIFT;
+ 	memcgid = entry & ((1UL << MEM_CGROUP_ID_SHIFT) - 1);
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
