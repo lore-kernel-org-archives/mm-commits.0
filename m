@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A07AC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E5EDC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 78B2860FEE
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4611360C3D
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231912AbhGFTPR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:15:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49692 "EHLO mail.kernel.org"
+        id S231913AbhGFTPU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:15:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49722 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231803AbhGFTPR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:15:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E7E660FE3;
-        Tue,  6 Jul 2021 19:12:38 +0000 (UTC)
+        id S231757AbhGFTPU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:15:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 846E060FEE;
+        Tue,  6 Jul 2021 19:12:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598758;
-        bh=xP8Xj1oKci7nOpXXjZZCivd6eVDGsCPllqD91n5nrNI=;
+        s=korg; t=1625598760;
+        bh=pMtucLHjfgBfng7pTUi/ZmFZpFoYpuqbAZ75wUFiPQc=;
         h=Date:From:To:Subject:From;
-        b=o1l8oSYwS84j+AFL91ruZeyBvJnjAVPgUKwbe91fnC9Tn+w33+2xL7VGq6K6F9EFs
-         HPraI+OoBP/wf4cJiQCkzMhNDF33jqo+9IKZo1FqL3l3XdEonw9SZlfxvGq7gRE/2u
-         yeqcPQGnlLOxK/F9a+82KScUxYG9bvKoGLU4LlyQ=
-Date:   Tue, 06 Jul 2021 12:12:38 -0700
+        b=KYKw/UXCtx99o/W4/JH7wcxowczONp1j/0ZwW+6mC+cpPASKrnoZi7G0WMaIJ2Xwp
+         1WPneRe0L9C6pzYpcSSTVMgcuCSKRNaMrDoAZSIeiytJY1i1s0OGvJp7FSdDiHQWnH
+         1qmAYRwDim8hOJF34+w7EZ+LcU4TVnkeqLoglQAs=
+Date:   Tue, 06 Jul 2021 12:12:40 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, dbueso@suse.de, geert@linux-m68k.org,
         ldufour@linux.ibm.com, Liam.Howlett@Oracle.com,
         mm-commits@vger.kernel.org
-Subject:  [merged] x86-sgx-use-vma_lookup-in-sgx_encl_find.patch
- removed from -mm tree
-Message-ID: <20210706191238.cds_4nwri%akpm@linux-foundation.org>
+Subject:  [merged]
+ virt-kvm-use-vma_lookup-instead-of-find_vma_intersection.patch removed from
+ -mm tree
+Message-ID: <20210706191240.2QmqIw78I%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,21 +45,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/sgx: use vma_lookup() in sgx_encl_find()
+     Subject: virt/kvm: use vma_lookup() instead of find_vma_intersection()
 has been removed from the -mm tree.  Its filename was
-     x86-sgx-use-vma_lookup-in-sgx_encl_find.patch
+     virt-kvm-use-vma_lookup-instead-of-find_vma_intersection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: x86/sgx: use vma_lookup() in sgx_encl_find()
+Subject: virt/kvm: use vma_lookup() instead of find_vma_intersection()
 
-Use vma_lookup() to find the VMA at a specific address.  As vma_lookup()
-will return NULL if the address is not within any VMA, the start address
-no longer needs to be validated.
+vma_lookup() finds the vma of a specific address with a cleaner interface
+and is more readable.
 
-Link: https://lkml.kernel.org/r/20210521174745.2219620-10-Liam.Howlett@Oracle.com
+Link: https://lkml.kernel.org/r/20210521174745.2219620-11-Liam.Howlett@Oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -67,22 +67,20 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/sgx/encl.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ virt/kvm/kvm_main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/kernel/cpu/sgx/encl.h~x86-sgx-use-vma_lookup-in-sgx_encl_find
-+++ a/arch/x86/kernel/cpu/sgx/encl.h
-@@ -91,8 +91,8 @@ static inline int sgx_encl_find(struct m
- {
- 	struct vm_area_struct *result;
+--- a/virt/kvm/kvm_main.c~virt-kvm-use-vma_lookup-instead-of-find_vma_intersection
++++ a/virt/kvm/kvm_main.c
+@@ -2170,7 +2170,7 @@ static kvm_pfn_t hva_to_pfn(unsigned lon
+ 	}
  
--	result = find_vma(mm, addr);
--	if (!result || result->vm_ops != &sgx_vm_ops || addr < result->vm_start)
-+	result = vma_lookup(mm, addr);
-+	if (!result || result->vm_ops != &sgx_vm_ops)
- 		return -EINVAL;
+ retry:
+-	vma = find_vma_intersection(current->mm, addr, addr + 1);
++	vma = vma_lookup(current->mm, addr);
  
- 	*vma = result;
+ 	if (vma == NULL)
+ 		pfn = KVM_PFN_ERR_FAULT;
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
