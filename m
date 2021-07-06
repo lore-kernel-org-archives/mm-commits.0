@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77C8FC07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17112C11F66
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5FD5661CA3
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F265061CA8
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230463AbhGFTZB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:25:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58348 "EHLO mail.kernel.org"
+        id S230382AbhGFTYw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:24:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58248 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230012AbhGFTZA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:25:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 69A2E61C9D;
-        Tue,  6 Jul 2021 19:22:20 +0000 (UTC)
+        id S230012AbhGFTYv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:24:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6A6F661CA9;
+        Tue,  6 Jul 2021 19:22:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599340;
-        bh=T9PMwGPq9cI8qJB8PvHzRS0t+gvCE7ZcTlex4PV+QZ8=;
+        s=korg; t=1625599332;
+        bh=wJHEpksPIwSQEHjOJlK36KUJsleMHt4LTO/sxqWhEEQ=;
         h=Date:From:To:Subject:From;
-        b=lqT0ZsQ+JmWLkmo9Os/++Ynmf9rj8nhK1wg0ryrDT96IH+MKGisZjJr9yIBfFUFwF
-         Nl6YRNnxW178hHUjQqzUSjvlt0qEK5pwgMM56YjY/lc/TCtbHTS4s8Qt2qmDX2f0NK
-         LhaFbMma18xpQj8BppdEnjOWiMf1+vfe9STdr0Uo=
-Date:   Tue, 06 Jul 2021 12:22:20 -0700
+        b=FxewMasySobLQd3rcxshHPtDn7eq3kxGR8nAMhZqm6ECVJem+CyGarzf+m5byB4o1
+         HTarMBR1fbsSXkUpmlJdpU3HxNsfzZ8Vb3EIyEFamAo17ZD4gMoZnrAJEjak2cPVGh
+         ojyQpjI/X+T7glrPoVP1A639M3nXUDYssxTRS1Ps=
+Date:   Tue, 06 Jul 2021 12:22:12 -0700
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, bfields@fieldses.org,
         chuck.lever@oracle.com, mm-commits@vger.kernel.org,
         viro@zeniv.linux.org.uk
 Subject:  [merged]
- =?US-ASCII?Q?maintainers-add-myself-as-designated-reviewer-for-generic-?=
- =?US-ASCII?Q?string-library.patch?= removed from -mm tree
-Message-ID: <20210706192220.3zJF0hAku%akpm@linux-foundation.org>
+ =?US-ASCII?Q?lib-string=5Fhelpers-allow-to-append-additional-characters?=
+ =?US-ASCII?Q?-to-be-escaped.patch?= removed from -mm tree
+Message-ID: <20210706192212.NHIip-Upt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -47,19 +47,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add myself as designated reviewer for generic string library
+     Subject: lib/string_helpers: allow to append additional characters to be escaped
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-myself-as-designated-reviewer-for-generic-string-library.patch
+     lib-string_helpers-allow-to-append-additional-characters-to-be-escaped.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: MAINTAINERS: add myself as designated reviewer for generic string library
+Subject: lib/string_helpers: allow to append additional characters to be escaped
 
-Add myself as designated reviewer for generic string library.
+Introduce a new flag to append additional characters, passed in 'only'
+parameter, to be escaped if they fall in the corresponding class.
 
-Link: https://lkml.kernel.org/r/20210504180819.73127-11-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20210504180819.73127-7-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Chuck Lever <chuck.lever@oracle.com>
@@ -67,26 +68,75 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/string_helpers.h |    1 +
+ lib/string_helpers.c           |   19 +++++++++++++++----
+ 2 files changed, 16 insertions(+), 4 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-myself-as-designated-reviewer-for-generic-string-library
-+++ a/MAINTAINERS
-@@ -7648,6 +7648,14 @@ L:	linux-input@vger.kernel.org
- S:	Maintained
- F:	drivers/input/touchscreen/resistive-adc-touch.c
+--- a/include/linux/string_helpers.h~lib-string_helpers-allow-to-append-additional-characters-to-be-escaped
++++ a/include/linux/string_helpers.h
+@@ -54,6 +54,7 @@ static inline int string_unescape_any_in
+ #define ESCAPE_HEX		BIT(5)
+ #define ESCAPE_NA		BIT(6)
+ #define ESCAPE_NAP		BIT(7)
++#define ESCAPE_APPEND		BIT(8)
  
-+GENERIC STRING LIBRARY
-+R:	Andy Shevchenko <andy@kernel.org>
-+S:	Maintained
-+F:	lib/string.c
-+F:	lib/string_helpers.c
-+F:	lib/test_string.c
-+F:	lib/test-string_helpers.c
-+
- GENERIC UIO DRIVER FOR PCI DEVICES
- M:	"Michael S. Tsirkin" <mst@redhat.com>
- L:	kvm@vger.kernel.org
+ int string_escape_mem(const char *src, size_t isz, char *dst, size_t osz,
+ 		unsigned int flags, const char *only);
+--- a/lib/string_helpers.c~lib-string_helpers-allow-to-append-additional-characters-to-be-escaped
++++ a/lib/string_helpers.c
+@@ -493,6 +493,11 @@ static bool escape_hex(unsigned char c,
+  *		escape only non-ascii characters, checked by isascii()
+  *	%ESCAPE_NAP:
+  *		escape only non-printable or non-ascii characters
++ *	%ESCAPE_APPEND:
++ *		append characters from @only to be escaped by the given classes
++ *
++ * %ESCAPE_APPEND would help to pass additional characters to the escaped, when
++ * one of %ESCAPE_NP, %ESCAPE_NA, or %ESCAPE_NAP is provided.
+  *
+  * One notable caveat, the %ESCAPE_NAP, %ESCAPE_NP and %ESCAPE_NA have the
+  * higher priority than the rest of the flags (%ESCAPE_NAP is the highest).
+@@ -513,9 +518,11 @@ int string_escape_mem(const char *src, s
+ 	char *p = dst;
+ 	char *end = p + osz;
+ 	bool is_dict = only && *only;
++	bool is_append = flags & ESCAPE_APPEND;
+ 
+ 	while (isz--) {
+ 		unsigned char c = *src++;
++		bool in_dict = is_dict && strchr(only, c);
+ 
+ 		/*
+ 		 * Apply rules in the following sequence:
+@@ -531,20 +538,24 @@ int string_escape_mem(const char *src, s
+ 		 *	  defined by given @flags
+ 		 * In these cases we just pass through a character to the
+ 		 * output buffer.
++		 *
++		 * When %ESCAPE_APPEND is passed, the characters from @only
++		 * have been excluded from the %ESCAPE_NAP, %ESCAPE_NP, and
++		 * %ESCAPE_NA cases.
+ 		 */
+-		if (is_dict && !strchr(only, c) &&
++		if (!(is_append || in_dict) && is_dict &&
+ 					  escape_passthrough(c, &p, end))
+ 			continue;
+ 
+-		if (isascii(c) && isprint(c) &&
++		if (!(is_append && in_dict) && isascii(c) && isprint(c) &&
+ 		    flags & ESCAPE_NAP && escape_passthrough(c, &p, end))
+ 			continue;
+ 
+-		if (isprint(c) &&
++		if (!(is_append && in_dict) && isprint(c) &&
+ 		    flags & ESCAPE_NP && escape_passthrough(c, &p, end))
+ 			continue;
+ 
+-		if (isascii(c) &&
++		if (!(is_append && in_dict) && isascii(c) &&
+ 		    flags & ESCAPE_NA && escape_passthrough(c, &p, end))
+ 			continue;
+ 
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
