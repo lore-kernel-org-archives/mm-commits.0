@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1782C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:13:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81518C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:13:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 961636128D
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:13:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64CBB613C9
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:13:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231795AbhGFTQT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:16:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50640 "EHLO mail.kernel.org"
+        id S231742AbhGFTQW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:16:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50674 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231727AbhGFTQS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:16:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A244F61206;
-        Tue,  6 Jul 2021 19:13:39 +0000 (UTC)
+        id S231727AbhGFTQW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:16:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B0346128D;
+        Tue,  6 Jul 2021 19:13:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598820;
-        bh=xlNWpC0bnt9mDyIdfnwDLuQ3H5v0FzUbT+yfnoEktx8=;
+        s=korg; t=1625598823;
+        bh=GBgBRh10JlfUSnuELSs7R+ZttTs1hsem20Uz47YN89s=;
         h=Date:From:To:Subject:From;
-        b=cfCakyxtFDEqX60x+6At3QoPDtDsorTX3q5i+zVmsQsbdg0ghotrgOtOY+pjR6qS9
-         qZk5TvcpGAoM9L1tNeth9kWGi6bfUR/UX2K2yCXAFMnKTGE4Ecyom8jP8kh3FZ4esn
-         4P0n0peVCwneCkmYLhq4MAMbp2ogx1z5l1NSQdLM=
-Date:   Tue, 06 Jul 2021 12:13:39 -0700
+        b=m7SwY14OrXiNIj7SXUGtIG+IXFTRG1Cy8DtBFo7v6uwjdzdtGk5BHgywl3JI99I3z
+         eUHsbNi/XoTtT9/2n98UMuTyh43A/sTBJsI5rtqCSbbag27lrEfrT3IFC7/A4sIacj
+         DnmkMVIvTdxp8kHk6GYgFwFr7kd/VQvR4ULXQsIc=
+Date:   Tue, 06 Jul 2021 12:13:42 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@gmail.com, aneesh.kumar@linux.ibm.com,
         bsingharora@gmail.com, christophe.leroy@csgroup.eu, dja@axtens.net,
         dvyukov@google.com, elver@google.com, glider@google.com,
         mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com
 Subject:  [merged]
- kasan-allow-an-architecture-to-disable-inline-instrumentation.patch removed
- from -mm tree
-Message-ID: <20210706191339.6bgFwTFj0%akpm@linux-foundation.org>
+ kasan-allow-architectures-to-provide-an-outline-readiness-check.patch
+ removed from -mm tree
+Message-ID: <20210706191342.SjU3Eoen1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,108 +46,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: allow an architecture to disable inline instrumentation
+     Subject: kasan: allow architectures to provide an outline readiness check
 has been removed from the -mm tree.  Its filename was
-     kasan-allow-an-architecture-to-disable-inline-instrumentation.patch
+     kasan-allow-architectures-to-provide-an-outline-readiness-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Daniel Axtens <dja@axtens.net>
-Subject: kasan: allow an architecture to disable inline instrumentation
+Subject: kasan: allow architectures to provide an outline readiness check
 
-Patch series "KASAN core changes for ppc64 radix KASAN", v16.
+Allow architectures to define a kasan_arch_is_ready() hook that bails out
+of any function that's about to touch the shadow unless the arch says that
+it is ready for the memory to be accessed.  This is fairly uninvasive and
+should have a negligible performance penalty.
 
-Building on the work of Christophe, Aneesh and Balbir, I've ported KASAN
-to 64-bit Book3S kernels running on the Radix MMU.  I've been trying this
-for a while, but we keep having collisions between the kasan code in the
-mm tree and the code I want to put in to the ppc tree.
+This will only work in outline mode, so an arch must specify
+ARCH_DISABLE_KASAN_INLINE if it requires this.
 
-This series just contains the kasan core changes that we need.  There
-should be no noticeable changes to other platforms.
-
-
-This patch (of 4):
-
-For annoying architectural reasons, it's very difficult to support inline
-instrumentation on powerpc64.*
-
-Add a Kconfig flag to allow an arch to disable inline.  (It's a bit
-annoying to be 'backwards', but I'm not aware of any way to have an arch
-force a symbol to be 'n', rather than 'y'.)
-
-We also disable stack instrumentation in this case as it does things that
-are functionally equivalent to inline instrumentation, namely adding code
-that touches the shadow directly without going through a C helper.
-
-* on ppc64 atm, the shadow lives in virtual memory and isn't accessible in
-real mode.  However, before we turn on virtual memory, we parse the device
-tree to determine which platform and MMU we're running under.  That calls
-generic DT code, which is instrumented.  Inline instrumentation in DT
-would unconditionally attempt to touch the shadow region, which we won't
-have set up yet, and would crash.  We can make outline mode wait for the
-arch to be ready, but we can't change what the compiler inserts for inline
-mode.
-
-Link: https://lkml.kernel.org/r/20210624034050.511391-1-dja@axtens.net
-Link: https://lkml.kernel.org/r/20210624034050.511391-2-dja@axtens.net
+Link: https://lkml.kernel.org/r/20210624034050.511391-3-dja@axtens.net
 Signed-off-by: Daniel Axtens <dja@axtens.net>
 Reviewed-by: Marco Elver <elver@google.com>
+Suggested-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kasan |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/kasan/common.c  |    3 +++
+ mm/kasan/generic.c |    3 +++
+ mm/kasan/kasan.h   |    6 ++++++
+ mm/kasan/shadow.c  |    6 ++++++
+ 4 files changed, 18 insertions(+)
 
---- a/lib/Kconfig.kasan~kasan-allow-an-architecture-to-disable-inline-instrumentation
-+++ a/lib/Kconfig.kasan
-@@ -12,6 +12,13 @@ config HAVE_ARCH_KASAN_HW_TAGS
- config HAVE_ARCH_KASAN_VMALLOC
- 	bool
+--- a/mm/kasan/common.c~kasan-allow-architectures-to-provide-an-outline-readiness-check
++++ a/mm/kasan/common.c
+@@ -331,6 +331,9 @@ static inline bool ____kasan_slab_free(s
+ 	u8 tag;
+ 	void *tagged_object;
  
-+config ARCH_DISABLE_KASAN_INLINE
-+	bool
-+	help
-+	  An architecture might not support inline instrumentation.
-+	  When this option is selected, inline and stack instrumentation are
-+	  disabled.
++	if (!kasan_arch_is_ready())
++		return false;
 +
- config CC_HAS_KASAN_GENERIC
- 	def_bool $(cc-option, -fsanitize=kernel-address)
+ 	tag = get_tag(object);
+ 	tagged_object = object;
+ 	object = kasan_reset_tag(object);
+--- a/mm/kasan/generic.c~kasan-allow-architectures-to-provide-an-outline-readiness-check
++++ a/mm/kasan/generic.c
+@@ -163,6 +163,9 @@ static __always_inline bool check_region
+ 						size_t size, bool write,
+ 						unsigned long ret_ip)
+ {
++	if (!kasan_arch_is_ready())
++		return true;
++
+ 	if (unlikely(size == 0))
+ 		return true;
  
-@@ -130,6 +137,7 @@ config KASAN_OUTLINE
+--- a/mm/kasan/kasan.h~kasan-allow-architectures-to-provide-an-outline-readiness-check
++++ a/mm/kasan/kasan.h
+@@ -449,6 +449,12 @@ static inline void kasan_poison_last_gra
  
- config KASAN_INLINE
- 	bool "Inline instrumentation"
-+	depends on !ARCH_DISABLE_KASAN_INLINE
- 	help
- 	  Compiler directly inserts code checking shadow memory before
- 	  memory accesses. This is faster than outline (in some workloads
-@@ -141,6 +149,7 @@ endchoice
- config KASAN_STACK
- 	bool "Enable stack instrumentation (unsafe)" if CC_IS_CLANG && !COMPILE_TEST
- 	depends on KASAN_GENERIC || KASAN_SW_TAGS
-+	depends on !ARCH_DISABLE_KASAN_INLINE
- 	default y if CC_IS_GCC
- 	help
- 	  The LLVM stack address sanitizer has a know problem that
-@@ -154,6 +163,9 @@ config KASAN_STACK
- 	  but clang users can still enable it for builds without
- 	  CONFIG_COMPILE_TEST.	On gcc it is assumed to always be safe
- 	  to use and enabled by default.
-+	  If the architecture disables inline instrumentation, stack
-+	  instrumentation is also disabled as it adds inline-style
-+	  instrumentation that is run unconditionally.
+ #endif /* CONFIG_KASAN_GENERIC */
  
- config KASAN_SW_TAGS_IDENTIFY
- 	bool "Enable memory corruption identification"
++#ifndef kasan_arch_is_ready
++static inline bool kasan_arch_is_ready(void)	{ return true; }
++#elif !defined(CONFIG_KASAN_GENERIC) || !defined(CONFIG_KASAN_OUTLINE)
++#error kasan_arch_is_ready only works in KASAN generic outline mode!
++#endif
++
+ /*
+  * Exported functions for interfaces called from assembly or from generated
+  * code. Declarations here to avoid warning about missing declarations.
+--- a/mm/kasan/shadow.c~kasan-allow-architectures-to-provide-an-outline-readiness-check
++++ a/mm/kasan/shadow.c
+@@ -73,6 +73,9 @@ void kasan_poison(const void *addr, size
+ {
+ 	void *shadow_start, *shadow_end;
+ 
++	if (!kasan_arch_is_ready())
++		return;
++
+ 	/*
+ 	 * Perform shadow offset calculation based on untagged address, as
+ 	 * some of the callers (e.g. kasan_poison_object_data) pass tagged
+@@ -99,6 +102,9 @@ EXPORT_SYMBOL(kasan_poison);
+ #ifdef CONFIG_KASAN_GENERIC
+ void kasan_poison_last_granule(const void *addr, size_t size)
+ {
++	if (!kasan_arch_is_ready())
++		return;
++
+ 	if (size & KASAN_GRANULE_MASK) {
+ 		u8 *shadow = (u8 *)kasan_mem_to_shadow(addr + size);
+ 		*shadow = size & KASAN_GRANULE_MASK;
 _
 
 Patches currently in -mm which might be from dja@axtens.net are
