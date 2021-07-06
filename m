@@ -7,41 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DD90C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:13:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CA93C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E3EBC60FEE
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:13:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F76560FEE
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:14:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231753AbhGFTQh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:16:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50806 "EHLO mail.kernel.org"
+        id S231716AbhGFTQk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:16:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50828 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231748AbhGFTQg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:16:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A09856023F;
-        Tue,  6 Jul 2021 19:13:57 +0000 (UTC)
+        id S231800AbhGFTQk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:16:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8092F60FE3;
+        Tue,  6 Jul 2021 19:14:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598838;
-        bh=FXbLeIyyaVK73XjGss2UR8pO6RIyyPBhpxG2us90msg=;
+        s=korg; t=1625598840;
+        bh=VNxYUol21lzUL2UEkm83PAtlem57744aQZI7uKzPqzg=;
         h=Date:From:To:Subject:From;
-        b=SXGSswFe1CuMwDVz855VUFVK58bNuSUt03JOa4XySD++qxgNoGAY7U/bdGWcrsO1E
-         uQDyFYEt4n4LYl/6CeBPpFg3yX/gMLEdZ6PBAv27xmgwpbW76UChVzT/33bufXnPg0
-         Izk2Mghw4sDuejPqfsebaUWizym2J19ROgJ500eI=
-Date:   Tue, 06 Jul 2021 12:13:57 -0700
+        b=Gj+9BcaHQ8YcJtrlLF3pw/LiV7K4LSS8kgB2YaET4F6mp4+0pV3iMY2eJLZWUqJwa
+         BPNexJHBcLh9yY7+IwggnUTOZ1MHYXwZEC2WVOtefJn9RSWmswVoRY6+I5VDVyii52
+         fIaAqYWQWbFQjN60181DESRy4FgEsVMzE20SAITQ=
+Date:   Tue, 06 Jul 2021 12:14:00 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, chinwen.chang@mediatek.com,
-        dvyukov@google.com, elver@google.com, glider@google.com,
-        gregkh@linuxfoundation.org, Kuan-Ying.Lee@mediatek.com,
-        matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
-        nicholas.tang@mediatek.com, ryabinin.a.a@gmail.com
+To:     akpm@linux-foundation.org, js07.lee@samsung.com,
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- =?US-ASCII?Q?kasan-add-memory-corruption-identification-support-for-hardw?=
- =?US-ASCII?Q?are-tag-based-mode.patch?= removed from -mm tree
-Message-ID: <20210706191357.f5fMaZs_t%akpm@linux-foundation.org>
+ mm-report-which-part-of-mem-is-being-freed-on-initmem-case.patch removed
+ from -mm tree
+Message-ID: <20210706191400.2FPKemosI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,67 +44,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add memory corruption identification support for hardware tag-based mode
+     Subject: mm: report which part of mem is being freed on initmem case
 has been removed from the -mm tree.  Its filename was
-     kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode.patch
+     mm-report-which-part-of-mem-is-being-freed-on-initmem-case.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Subject: kasan: add memory corruption identification support for hardware tag-based mode
+From: Jungseung Lee <js07.lee@samsung.com>
+Subject: mm: report which part of mem is being freed on initmem case
 
-Add memory corruption identification support for hardware tag-based mode. 
-We store one old free pointer tag and free backtrace instead of five
-because hardware tag-based kasan only has 16 different tags.
+Add the details for figuring out which parts of the kernel image is being
+freed on initmem case.
 
-If we store as many stacks as SW tag-based kasan does(5 stacks), there is
-high probability to find the same tag in the stacks when out-of-bound
-issues happened and we will mistake out-of-bound issue for use-after-free.
+Before:
+   Freeing unused kernel memory: 1024K
 
-Link: https://lkml.kernel.org/r/20210626100931.22794-4-Kuan-Ying.Lee@mediatek.com
-Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Suggested-by: Marco Elver <elver@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Nicholas Tang <nicholas.tang@mediatek.com>
+After:
+   Freeing unused kernel image (initmem) memory: 1024K
+
+Link: https://lkml.kernel.org/r/1622706274-4533-1-git-send-email-js07.lee@samsung.com
+Signed-off-by: Jungseung Lee <js07.lee@samsung.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kasan |    2 +-
- mm/kasan/kasan.h  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/Kconfig.kasan~kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode
-+++ a/lib/Kconfig.kasan
-@@ -169,7 +169,7 @@ config KASAN_STACK
+--- a/include/linux/mm.h~mm-report-which-part-of-mem-is-being-freed-on-initmem-case
++++ a/include/linux/mm.h
+@@ -2416,7 +2416,7 @@ static inline unsigned long free_initmem
+ 	extern char __init_begin[], __init_end[];
  
- config KASAN_TAGS_IDENTIFY
- 	bool "Enable memory corruption identification"
--	depends on KASAN_SW_TAGS
-+	depends on KASAN_SW_TAGS || KASAN_HW_TAGS
- 	help
- 	  This option enables best-effort identification of bug type
- 	  (use-after-free or out-of-bounds) at the cost of increased
---- a/mm/kasan/kasan.h~kasan-add-memory-corruption-identification-support-for-hardware-tag-based-mode
-+++ a/mm/kasan/kasan.h
-@@ -153,7 +153,7 @@ struct kasan_track {
- 	depot_stack_handle_t stack;
- };
+ 	return free_reserved_area(&__init_begin, &__init_end,
+-				  poison, "unused kernel");
++				  poison, "unused kernel image (initmem)");
+ }
  
--#ifdef CONFIG_KASAN_TAGS_IDENTIFY
-+#if defined(CONFIG_KASAN_TAGS_IDENTIFY) && defined(CONFIG_KASAN_SW_TAGS)
- #define KASAN_NR_FREE_STACKS 5
- #else
- #define KASAN_NR_FREE_STACKS 1
+ static inline unsigned long get_num_physpages(void)
 _
 
-Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
+Patches currently in -mm which might be from js07.lee@samsung.com are
 
 
