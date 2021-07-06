@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB4A4C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52BB4C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CE7A61C9D
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3467861CA3
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229935AbhGFTZT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:25:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58576 "EHLO mail.kernel.org"
+        id S229950AbhGFTZ0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:25:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58634 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229811AbhGFTZT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:25:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7DC2C61C9E;
-        Tue,  6 Jul 2021 19:22:39 +0000 (UTC)
+        id S229787AbhGFTZ0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:25:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A36F61C9E;
+        Tue,  6 Jul 2021 19:22:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599359;
-        bh=HcGpIrxDYuWjCavG6swG438ovaoA5MZXMPj/55UckcU=;
+        s=korg; t=1625599366;
+        bh=f64YRjJg9bWko5NofhxguMFezU3BiX9yVgtE9Q9r2Pc=;
         h=Date:From:To:Subject:From;
-        b=Xln8pMFtVlHFmTyCqnlVpe9uGIG9hCaukbQqUdTtd4V7ora8rq5m4C91JSjnxa4UR
-         LS1PFVZH5kZsEZ/lHym7XW+tnFseh5TIyh+Hw5huNrtOTowGPX1fwQKGIAfPboLt8Y
-         LlHRRs/E+Ybh92kCPRLHDKDQW/j6WuFbFkO/yK6g=
-Date:   Tue, 06 Jul 2021 12:22:39 -0700
+        b=HVQYqbBJF/FRPAwRwriOTk3JLXKt97lUj8Ip1gfhv912KGVwYpyis2FIOnBi3YNdA
+         PCmuvMps5dcbI81skewyE3dMi0HoyqzF7c3/RKGBn3KTtASH/NlEYdjkfrKaV5FEcd
+         5i3go4thZ4gvYduLFkquc2FqjwN3sB4X8nXn6Crk=
+Date:   Tue, 06 Jul 2021 12:22:46 -0700
 From:   akpm@linux-foundation.org
-To:     herbert@gondor.apana.org.au, mm-commits@vger.kernel.org,
-        thunder.leizhen@huawei.com
-Subject:  [merged] lib-mpi-fix-spelling-mistakes.patch removed from
- -mm tree
-Message-ID: <20210706192239.OrdymPcS4%akpm@linux-foundation.org>
+To:     mcroce@microsoft.com, mm-commits@vger.kernel.org
+Subject:  [merged] lib-test_stringc-allow-mode-removal.patch
+ removed from -mm tree
+Message-ID: <20210706192246.gm8uVsocU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,103 +42,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/mpi: fix spelling mistakes
+     Subject: lib/test_string.c: allow module removal
 has been removed from the -mm tree.  Its filename was
-     lib-mpi-fix-spelling-mistakes.patch
+     lib-test_stringc-allow-mode-removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: lib/mpi: fix spelling mistakes
+From: Matteo Croce <mcroce@microsoft.com>
+Subject: lib/test_string.c: allow module removal
 
-Fix some spelling mistakes in comments:
-flaged ==> flagged
-bufer ==> buffer
-multipler ==> multiplier
-MULTIPLER ==> MULTIPLIER
-leaset ==> least
-chnage ==> change
+The test_string module can't be removed because it lacks an exit hook. 
+Since there is no reason for it to be permanent, add an empty one to allow
+module removal.
 
-Link: https://lkml.kernel.org/r/20210604074401.12198-1-thunder.leizhen@huawei.com
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Link: https://lkml.kernel.org/r/20210616234503.28678-1-mcroce@linux.microsoft.com
+Signed-off-by: Matteo Croce <mcroce@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mpi.h |    4 ++--
- lib/mpi/longlong.h  |    4 ++--
- lib/mpi/mpicoder.c  |    6 +++---
- lib/mpi/mpiutil.c   |    2 +-
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ lib/test_string.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/include/linux/mpi.h~lib-mpi-fix-spelling-mistakes
-+++ a/include/linux/mpi.h
-@@ -200,7 +200,7 @@ struct mpi_ec_ctx {
- 	unsigned int nbits;            /* Number of bits.  */
- 
- 	/* Domain parameters.  Note that they may not all be set and if set
--	 * the MPIs may be flaged as constant.
-+	 * the MPIs may be flagged as constant.
- 	 */
- 	MPI p;         /* Prime specifying the field GF(p).  */
- 	MPI a;         /* First coefficient of the Weierstrass equation.  */
-@@ -267,7 +267,7 @@ int mpi_ec_curve_point(MPI_POINT point,
- /**
-  * mpi_get_size() - returns max size required to store the number
-  *
-- * @a:	A multi precision integer for which we want to allocate a bufer
-+ * @a:	A multi precision integer for which we want to allocate a buffer
-  *
-  * Return: size required to store the number
-  */
---- a/lib/mpi/longlong.h~lib-mpi-fix-spelling-mistakes
-+++ a/lib/mpi/longlong.h
-@@ -48,8 +48,8 @@
- 
- /* Define auxiliary asm macros.
-  *
-- * 1) umul_ppmm(high_prod, low_prod, multipler, multiplicand) multiplies two
-- * UWtype integers MULTIPLER and MULTIPLICAND, and generates a two UWtype
-+ * 1) umul_ppmm(high_prod, low_prod, multiplier, multiplicand) multiplies two
-+ * UWtype integers MULTIPLIER and MULTIPLICAND, and generates a two UWtype
-  * word product in HIGH_PROD and LOW_PROD.
-  *
-  * 2) __umulsidi3(a,b) multiplies two UWtype integers A and B, and returns a
---- a/lib/mpi/mpicoder.c~lib-mpi-fix-spelling-mistakes
-+++ a/lib/mpi/mpicoder.c
-@@ -234,11 +234,11 @@ static int count_lzeros(MPI a)
+--- a/lib/test_string.c~lib-test_stringc-allow-mode-removal
++++ a/lib/test_string.c
+@@ -179,6 +179,10 @@ static __init int strnchr_selftest(void)
+ 	return 0;
  }
  
- /**
-- * mpi_read_buffer() - read MPI to a bufer provided by user (msb first)
-+ * mpi_read_buffer() - read MPI to a buffer provided by user (msb first)
-  *
-  * @a:		a multi precision integer
-- * @buf:	bufer to which the output will be written to. Needs to be at
-- *		leaset mpi_get_size(a) long.
-+ * @buf:	buffer to which the output will be written to. Needs to be at
-+ *		least mpi_get_size(a) long.
-  * @buf_len:	size of the buf.
-  * @nbytes:	receives the actual length of the data written on success and
-  *		the data to-be-written on -EOVERFLOW in case buf_len was too
---- a/lib/mpi/mpiutil.c~lib-mpi-fix-spelling-mistakes
-+++ a/lib/mpi/mpiutil.c
-@@ -80,7 +80,7 @@ EXPORT_SYMBOL_GPL(mpi_const);
- /****************
-  * Note:  It was a bad idea to use the number of limbs to allocate
-  *	  because on a alpha the limbs are large but we normally need
-- *	  integers of n bits - So we should chnage this to bits (or bytes).
-+ *	  integers of n bits - So we should change this to bits (or bytes).
-  *
-  *	  But mpi_alloc is used in a lot of places :-)
-  */
++static __exit void string_selftest_remove(void)
++{
++}
++
+ static __init int string_selftest_init(void)
+ {
+ 	int test, subtest;
+@@ -216,4 +220,5 @@ fail:
+ }
+ 
+ module_init(string_selftest_init);
++module_exit(string_selftest_remove);
+ MODULE_LICENSE("GPL v2");
 _
 
-Patches currently in -mm which might be from thunder.leizhen@huawei.com are
+Patches currently in -mm which might be from mcroce@microsoft.com are
 
-lib-test-fix-spelling-mistakes.patch
-lib-fix-spelling-mistakes.patch
-lib-fix-spelling-mistakes-in-header-files.patch
-mm-fix-spelling-mistakes-in-header-files.patch
 
