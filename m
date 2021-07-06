@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6A9EC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:15:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9274C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:15:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F4756194E
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:15:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90C5461955
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:15:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231863AbhGFTSI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:18:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52102 "EHLO mail.kernel.org"
+        id S231856AbhGFTSL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:18:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52140 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231831AbhGFTSH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:18:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C6C360FE3;
-        Tue,  6 Jul 2021 19:15:28 +0000 (UTC)
+        id S231831AbhGFTSK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:18:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9594A61206;
+        Tue,  6 Jul 2021 19:15:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598929;
-        bh=bvOvp7xm6uQtdAiqAnUX4VAvBk1wvWbDO42aN72mH9s=;
+        s=korg; t=1625598931;
+        bh=OG4pTXDtD1wMlcn11GUmPiha3lTlMx/RKS8auZtDtFE=;
         h=Date:From:To:Subject:From;
-        b=oRYLwb0H1jLdnnZQXSdyY/V5QdXrfcs7lvfumkTYQcUgstvL2Qr4A0J7IM0etADz0
-         KSQcXV+NRyQwdrGT57AmiI9YJClHUPxIBIIZyyPVL5LJzbuqedmuMqR83pys+f3oSv
-         /0N31KjuiPAioiEbo6XQQSAwZX8QBr4/YcOp4MdA=
-Date:   Tue, 06 Jul 2021 12:15:28 -0700
+        b=UxVCXWSPT3QFuIqnNMYN32K7diGT/Vp1gIbJsrSvbyE/9BDmXXkLa2J/trNnaXEIH
+         nXxskwKDfMtvE2dE9N42S4AsZOttfOdvEo3eklQZjl7ZcDkYaJVZDdlEPCih7IvJb/
+         Yc/tyE14hKIKBIFZok000X1SVFLxbC2dDPOKDNFI=
+Date:   Tue, 06 Jul 2021 12:15:31 -0700
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, corbet@lwn.net, david@redhat.com,
-        geert@linux-m68k.org, ink@jurassic.park.msu.ru, mattst88@gmail.com,
+To:     arnd@arndb.de, corbet@lwn.net, geert@linux-m68k.org,
+        ink@jurassic.park.msu.ru, mattst88@gmail.com,
         mm-commits@vger.kernel.org, rppt@linux.ibm.com, rth@twiddle.net,
         vgupta@synopsys.com
-Subject:  [merged] arc-remove-support-for-discontigmem.patch
+Subject:  [merged] m68k-remove-support-for-discontigmem.patch
  removed from -mm tree
-Message-ID: <20210706191528.sAy51MHGi%akpm@linux-foundation.org>
+Message-ID: <20210706191531.BxJYdHE2g%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,135 +45,179 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arc: remove support for DISCONTIGMEM
+     Subject: m68k: remove support for DISCONTIGMEM
 has been removed from the -mm tree.  Its filename was
-     arc-remove-support-for-discontigmem.patch
+     m68k-remove-support-for-discontigmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: arc: remove support for DISCONTIGMEM
+Subject: m68k: remove support for DISCONTIGMEM
 
 DISCONTIGMEM was replaced by FLATMEM with freeing of the unused memory map
 in v5.11.
 
 Remove the support for DISCONTIGMEM entirely.
 
-Link: https://lkml.kernel.org/r/20210608091316.3622-4-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210608091316.3622-5-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Vineet Gupta <vgupta@synopsys.com>
+Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matt Turner <mattst88@gmail.com>
 Cc: Richard Henderson <rth@twiddle.net>
+Cc: Vineet Gupta <vgupta@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/Kconfig              |   13 ----------
- arch/arc/include/asm/mmzone.h |   40 --------------------------------
- arch/arc/mm/init.c            |    8 ------
- 3 files changed, 61 deletions(-)
+ arch/m68k/Kconfig.cpu           |   10 --------
+ arch/m68k/include/asm/mmzone.h  |   10 --------
+ arch/m68k/include/asm/page.h    |    2 -
+ arch/m68k/include/asm/page_mm.h |   35 ------------------------------
+ arch/m68k/mm/init.c             |   20 -----------------
+ 5 files changed, 1 insertion(+), 76 deletions(-)
 
---- a/arch/arc/include/asm/mmzone.h
+--- a/arch/m68k/include/asm/mmzone.h
 +++ /dev/null
-@@ -1,40 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- * Copyright (C) 2016 Synopsys, Inc. (www.synopsys.com)
-- */
+@@ -1,10 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef _ASM_M68K_MMZONE_H_
+-#define _ASM_M68K_MMZONE_H_
 -
--#ifndef _ASM_ARC_MMZONE_H
--#define _ASM_ARC_MMZONE_H
+-extern pg_data_t pg_data_map[];
 -
--#ifdef CONFIG_DISCONTIGMEM
+-#define NODE_DATA(nid)		(&pg_data_map[nid])
+-#define NODE_MEM_MAP(nid)	(NODE_DATA(nid)->node_mem_map)
 -
--extern struct pglist_data node_data[];
--#define NODE_DATA(nid) (&node_data[nid])
--
--static inline int pfn_to_nid(unsigned long pfn)
--{
--	int is_end_low = 1;
--
--	if (IS_ENABLED(CONFIG_ARC_HAS_PAE40))
--		is_end_low = pfn <= virt_to_pfn(0xFFFFFFFFUL);
--
--	/*
--	 * node 0: lowmem:             0x8000_0000   to 0xFFFF_FFFF
--	 * node 1: HIGHMEM w/o  PAE40: 0x0           to 0x7FFF_FFFF
--	 *         HIGHMEM with PAE40: 0x1_0000_0000 to ...
--	 */
--	if (pfn >= ARCH_PFN_OFFSET && is_end_low)
--		return 0;
--
--	return 1;
--}
--
--static inline int pfn_valid(unsigned long pfn)
--{
--	int nid = pfn_to_nid(pfn);
--
--	return (pfn <= node_end_pfn(nid));
--}
--#endif /* CONFIG_DISCONTIGMEM  */
--
--#endif
---- a/arch/arc/Kconfig~arc-remove-support-for-discontigmem
-+++ a/arch/arc/Kconfig
-@@ -62,10 +62,6 @@ config SCHED_OMIT_FRAME_POINTER
- config GENERIC_CSUM
- 	def_bool y
- 
--config ARCH_DISCONTIGMEM_ENABLE
--	def_bool n
--	depends on BROKEN
--
- config ARCH_FLATMEM_ENABLE
- 	def_bool y
- 
-@@ -344,15 +340,6 @@ config ARC_HUGEPAGE_16M
- 
- endchoice
- 
--config NODES_SHIFT
--	int "Maximum NUMA Nodes (as a power of 2)"
--	default "0" if !DISCONTIGMEM
--	default "1" if DISCONTIGMEM
--	depends on NEED_MULTIPLE_NODES
--	help
--	  Accessing memory beyond 1GB (with or w/o PAE) requires 2 memory
--	  zones.
--
- config ARC_COMPACT_IRQ_LEVELS
- 	depends on ISA_ARCOMPACT
- 	bool "Setup Timer IRQ as high Priority"
---- a/arch/arc/mm/init.c~arc-remove-support-for-discontigmem
-+++ a/arch/arc/mm/init.c
-@@ -32,11 +32,6 @@ unsigned long arch_pfn_offset;
- EXPORT_SYMBOL(arch_pfn_offset);
+-#endif /* _ASM_M68K_MMZONE_H_ */
+--- a/arch/m68k/include/asm/page.h~m68k-remove-support-for-discontigmem
++++ a/arch/m68k/include/asm/page.h
+@@ -62,7 +62,7 @@ extern unsigned long _ramend;
+ #include <asm/page_no.h>
  #endif
  
--#ifdef CONFIG_DISCONTIGMEM
--struct pglist_data node_data[MAX_NUMNODES] __read_mostly;
--EXPORT_SYMBOL(node_data);
+-#if !defined(CONFIG_MMU) || defined(CONFIG_DISCONTIGMEM)
++#ifndef CONFIG_MMU
+ #define __phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
+ #define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+ #endif
+--- a/arch/m68k/include/asm/page_mm.h~m68k-remove-support-for-discontigmem
++++ a/arch/m68k/include/asm/page_mm.h
+@@ -126,26 +126,6 @@ static inline void *__va(unsigned long x
+ 
+ extern int m68k_virt_to_node_shift;
+ 
+-#ifndef CONFIG_DISCONTIGMEM
+-#define __virt_to_node(addr)	(&pg_data_map[0])
+-#else
+-extern struct pglist_data *pg_data_table[];
+-
+-static inline __attribute_const__ int __virt_to_node_shift(void)
+-{
+-	int shift;
+-
+-	asm (
+-		"1:	moveq	#0,%0\n"
+-		m68k_fixup(%c1, 1b)
+-		: "=d" (shift)
+-		: "i" (m68k_fixup_vnode_shift));
+-	return shift;
+-}
+-
+-#define __virt_to_node(addr)	(pg_data_table[(unsigned long)(addr) >> __virt_to_node_shift()])
 -#endif
 -
- long __init arc_get_mem_sz(void)
- {
- 	return low_mem_sz;
-@@ -147,9 +142,6 @@ void __init setup_arch_memory(void)
- 	 * to the hole is freed and ARC specific version of pfn_valid()
- 	 * handles the hole in the memory map.
- 	 */
+ #define virt_to_page(addr) ({						\
+ 	pfn_to_page(virt_to_pfn(addr));					\
+ })
+@@ -153,23 +133,8 @@ static inline __attribute_const__ int __
+ 	pfn_to_virt(page_to_pfn(page));					\
+ })
+ 
 -#ifdef CONFIG_DISCONTIGMEM
--	node_set_online(1);
+-#define pfn_to_page(pfn) ({						\
+-	unsigned long __pfn = (pfn);					\
+-	struct pglist_data *pgdat;					\
+-	pgdat = __virt_to_node((unsigned long)pfn_to_virt(__pfn));	\
+-	pgdat->node_mem_map + (__pfn - pgdat->node_start_pfn);		\
+-})
+-#define page_to_pfn(_page) ({						\
+-	const struct page *__p = (_page);				\
+-	struct pglist_data *pgdat;					\
+-	pgdat = &pg_data_map[page_to_nid(__p)];				\
+-	((__p) - pgdat->node_mem_map) + pgdat->node_start_pfn;		\
+-})
+-#else
+ #define ARCH_PFN_OFFSET (m68k_memory[0].addr >> PAGE_SHIFT)
+ #include <asm-generic/memory_model.h>
 -#endif
  
- 	min_high_pfn = PFN_DOWN(high_mem_start);
- 	max_high_pfn = PFN_DOWN(high_mem_start + high_mem_sz);
+ #define virt_addr_valid(kaddr)	((unsigned long)(kaddr) >= PAGE_OFFSET && (unsigned long)(kaddr) < (unsigned long)high_memory)
+ #define pfn_valid(pfn)		virt_addr_valid(pfn_to_virt(pfn))
+--- a/arch/m68k/Kconfig.cpu~m68k-remove-support-for-discontigmem
++++ a/arch/m68k/Kconfig.cpu
+@@ -408,10 +408,6 @@ config SINGLE_MEMORY_CHUNK
+ 	  order" to save memory that could be wasted for unused memory map.
+ 	  Say N if not sure.
+ 
+-config ARCH_DISCONTIGMEM_ENABLE
+-	depends on BROKEN
+-	def_bool MMU && !SINGLE_MEMORY_CHUNK
+-
+ config FORCE_MAX_ZONEORDER
+ 	int "Maximum zone order" if ADVANCED
+ 	depends on !SINGLE_MEMORY_CHUNK
+@@ -451,11 +447,6 @@ config M68K_L2_CACHE
+ 	depends on MAC
+ 	default y
+ 
+-config NODES_SHIFT
+-	int
+-	default "3"
+-	depends on DISCONTIGMEM
+-
+ config CPU_HAS_NO_BITFIELDS
+ 	bool
+ 
+@@ -553,4 +544,3 @@ config CACHE_COPYBACK
+ 	  The ColdFire CPU cache is set into Copy-back mode.
+ endchoice
+ endif
+-
+--- a/arch/m68k/mm/init.c~m68k-remove-support-for-discontigmem
++++ a/arch/m68k/mm/init.c
+@@ -44,28 +44,8 @@ EXPORT_SYMBOL(empty_zero_page);
+ 
+ int m68k_virt_to_node_shift;
+ 
+-#ifdef CONFIG_DISCONTIGMEM
+-pg_data_t pg_data_map[MAX_NUMNODES];
+-EXPORT_SYMBOL(pg_data_map);
+-
+-pg_data_t *pg_data_table[65];
+-EXPORT_SYMBOL(pg_data_table);
+-#endif
+-
+ void __init m68k_setup_node(int node)
+ {
+-#ifdef CONFIG_DISCONTIGMEM
+-	struct m68k_mem_info *info = m68k_memory + node;
+-	int i, end;
+-
+-	i = (unsigned long)phys_to_virt(info->addr) >> __virt_to_node_shift();
+-	end = (unsigned long)phys_to_virt(info->addr + info->size - 1) >> __virt_to_node_shift();
+-	for (; i <= end; i++) {
+-		if (pg_data_table[i])
+-			pr_warn("overlap at %u for chunk %u\n", i, node);
+-		pg_data_table[i] = pg_data_map + node;
+-	}
+-#endif
+ 	node_set_online(node);
+ }
+ 
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
