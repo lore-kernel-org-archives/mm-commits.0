@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC23FC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 960A3C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B640C61CA3
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 807DF61CA8
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229876AbhGFTZO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:25:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58500 "EHLO mail.kernel.org"
+        id S229793AbhGFTZP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:25:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58524 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229811AbhGFTZN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:25:13 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9180761CA8;
-        Tue,  6 Jul 2021 19:22:33 +0000 (UTC)
+        id S229811AbhGFTZP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:25:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7193861C9E;
+        Tue,  6 Jul 2021 19:22:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599353;
-        bh=YK4cpX7+5uz3jY/Xwb6LESTv4/QcrLrFViSSYOpopdI=;
+        s=korg; t=1625599355;
+        bh=NoT3IZRaolcBItoEc9+UfgxyBPouzn0B0QbDGgo6V1Q=;
         h=Date:From:To:Subject:From;
-        b=U4kLhrWQ6A3WgSmIBbXIlZDMZomb4e+1pExl+2HDiPP5xSIzdI0/SYgGiGwuZTgk4
-         ASIudSm4b8Y2xty07YUA7jYoYsVuOLuLrcX6XoTcBEn6XtfQ3BGJShkjO2I9b9zM7P
-         rXQUqx3/HgSr+ydhQuKKng03AlVnPgq0JiHtr4Lo=
-Date:   Tue, 06 Jul 2021 12:22:33 -0700
+        b=gwQ6OMcoCO3+v4GjCRi6ygraRcAlyAmIBR9rg3jWF0IkDunC6Sof0tGGXaez/TzCZ
+         5O8gLWKri0+CfxqzVPTXoXumzwiE5RhfRHjnsIK7Y1h7QwgtlLlXhKjqvrFRibb2B+
+         75jTv5g/lJlbp72ig2sGqc3luHHWAFHybOGJnWfU=
+Date:   Tue, 06 Jul 2021 12:22:35 -0700
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, dlatypov@google.com,
-        mm-commits@vger.kernel.org, oskar@scara.com, tpiepho@gmail.com,
-        yguoaz@gmail.com
-Subject:  [merged] lib-math-rationalc-fix-divide-by-zero.patch
+To:     andriy.shevchenko@linux.intel.com, colin.king@canonical.com,
+        dlatypov@google.com, mm-commits@vger.kernel.org, oskar@scara.com,
+        tpiepho@gmail.com, yguoaz@gmail.com
+Subject:  [merged] lib-math-rational-add-kunit-test-cases.patch
  removed from -mm tree
-Message-ID: <20210706192233.yxtxvnML2%akpm@linux-foundation.org>
+Message-ID: <20210706192235.-7N4EBK_C%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,79 +44,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/math/rational.c: fix divide by zero
+     Subject: lib/math/rational: add Kunit test cases
 has been removed from the -mm tree.  Its filename was
-     lib-math-rationalc-fix-divide-by-zero.patch
+     lib-math-rational-add-kunit-test-cases.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Trent Piepho <tpiepho@gmail.com>
-Subject: lib/math/rational.c: fix divide by zero
+Subject: lib/math/rational: add Kunit test cases
 
-If the input is out of the range of the allowed values, either larger than
-the largest value or closer to zero than the smallest non-zero allowed
-value, then a division by zero would occur.
+Adds a number of test cases that cover a range of possible code paths.
 
-In the case of input too large, the division by zero will occur on the
-first iteration.  The best result (largest allowed value) will be found by
-always choosing the semi-convergent and excluding the denominator based
-limit when finding it.
-
-In the case of the input too small, the division by zero will occur on the
-second iteration.  The numerator based semi-convergent should not be
-calculated to avoid the division by zero.  But the semi-convergent vs
-previous convergent test is still needed, which effectively chooses
-between 0 (the previous convergent) vs the smallest allowed fraction (best
-semi-convergent) as the result.
-
-Link: https://lkml.kernel.org/r/20210525144250.214670-1-tpiepho@gmail.com
-Fixes: 323dd2c3ed0 ("lib/math/rational.c: fix possible incorrect result from rational fractions helper")
+[akpm@linux-foundation.org: remove non-ascii characters, fix whitespace]
+[colin.king@canonical.com: fix spelling mistake "demominator" -> "denominator"]
+  Link: https://lkml.kernel.org/r/20210526085049.6393-1-colin.king@canonical.com
+Link: https://lkml.kernel.org/r/20210525144250.214670-2-tpiepho@gmail.com
 Signed-off-by: Trent Piepho <tpiepho@gmail.com>
-Reported-by: Yiyuan Guo <yguoaz@gmail.com>
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Oskar Schirmer <oskar@scara.com>
 Cc: Daniel Latypov <dlatypov@google.com>
+Cc: Oskar Schirmer <oskar@scara.com>
+Cc: Yiyuan Guo <yguoaz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/math/rational.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ lib/Kconfig.debug        |   12 +++++++
+ lib/math/Makefile        |    1 
+ lib/math/rational-test.c |   56 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 69 insertions(+)
 
---- a/lib/math/rational.c~lib-math-rationalc-fix-divide-by-zero
-+++ a/lib/math/rational.c
-@@ -12,6 +12,7 @@
- #include <linux/compiler.h>
- #include <linux/export.h>
- #include <linux/minmax.h>
-+#include <linux/limits.h>
+--- a/lib/Kconfig.debug~lib-math-rational-add-kunit-test-cases
++++ a/lib/Kconfig.debug
+@@ -2444,6 +2444,18 @@ config SLUB_KUNIT_TEST
  
- /*
-  * calculate best rational approximation for a given fraction
-@@ -78,13 +79,18 @@ void rational_best_approximation(
- 		 * found below as 't'.
- 		 */
- 		if ((n2 > max_numerator) || (d2 > max_denominator)) {
--			unsigned long t = min((max_numerator - n0) / n1,
--					      (max_denominator - d0) / d1);
-+			unsigned long t = ULONG_MAX;
+ 	  If unsure, say N.
  
--			/* This tests if the semi-convergent is closer
--			 * than the previous convergent.
-+			if (d1)
-+				t = (max_denominator - d0) / d1;
-+			if (n1)
-+				t = min(t, (max_numerator - n0) / n1);
++config RATIONAL_KUNIT_TEST
++	tristate "KUnit test for rational.c" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	select RATIONAL
++	default KUNIT_ALL_TESTS
++	help
++	  This builds the rational math unit test.
++	  For more information on KUnit and unit tests in general please refer
++	  to the KUnit documentation in Documentation/dev-tools/kunit/.
 +
-+			/* This tests if the semi-convergent is closer than the previous
-+			 * convergent.  If d1 is zero there is no previous convergent as this
-+			 * is the 1st iteration, so always choose the semi-convergent.
- 			 */
--			if (2u * t > a || (2u * t == a && d0 * dp > d1 * d)) {
-+			if (!d1 || 2u * t > a || (2u * t == a && d0 * dp > d1 * d)) {
- 				n1 = n0 + t * n1;
- 				d1 = d0 + t * d1;
- 			}
++	  If unsure, say N.
++
+ config TEST_UDELAY
+ 	tristate "udelay test driver"
+ 	help
+--- a/lib/math/Makefile~lib-math-rational-add-kunit-test-cases
++++ a/lib/math/Makefile
+@@ -6,3 +6,4 @@ obj-$(CONFIG_PRIME_NUMBERS)	+= prime_num
+ obj-$(CONFIG_RATIONAL)		+= rational.o
+ 
+ obj-$(CONFIG_TEST_DIV64)	+= test_div64.o
++obj-$(CONFIG_RATIONAL_KUNIT_TEST) += rational-test.o
+--- /dev/null
++++ a/lib/math/rational-test.c
+@@ -0,0 +1,56 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <kunit/test.h>
++
++#include <linux/rational.h>
++
++struct rational_test_param {
++	unsigned long num, den;
++	unsigned long max_num, max_den;
++	unsigned long exp_num, exp_den;
++
++	const char *name;
++};
++
++static const struct rational_test_param test_parameters[] = {
++	{ 1230,	10,	100, 20,	100, 1,    "Exceeds bounds, semi-convergent term > 1/2 last term" },
++	{ 34567,100, 	120, 20,	120, 1,    "Exceeds bounds, semi-convergent term < 1/2 last term" },
++	{ 1, 30,	100, 10,	0, 1,	   "Closest to zero" },
++	{ 1, 19,	100, 10,	1, 10,     "Closest to smallest non-zero" },
++	{ 27,32,	16, 16,		11, 13,    "Use convergent" },
++	{ 1155, 7735,	255, 255,	33, 221,   "Exact answer" },
++	{ 87, 32,	70, 32,		68, 25,    "Semiconvergent, numerator limit" },
++	{ 14533, 4626,	15000, 2400,	7433, 2366, "Semiconvergent, denominator limit" },
++};
++
++static void get_desc(const struct rational_test_param *param, char *desc)
++{
++	strscpy(desc, param->name, KUNIT_PARAM_DESC_SIZE);
++}
++
++/* Creates function rational_gen_params */
++KUNIT_ARRAY_PARAM(rational, test_parameters, get_desc);
++
++static void rational_test(struct kunit *test)
++{
++	const struct rational_test_param *param = (const struct rational_test_param *)test->param_value;
++	unsigned long n = 0, d = 0;
++
++	rational_best_approximation(param->num, param->den, param->max_num, param->max_den, &n, &d);
++	KUNIT_EXPECT_EQ(test, n, param->exp_num);
++	KUNIT_EXPECT_EQ(test, d, param->exp_den);
++}
++
++static struct kunit_case rational_test_cases[] = {
++	KUNIT_CASE_PARAM(rational_test, rational_gen_params),
++	{}
++};
++
++static struct kunit_suite rational_test_suite = {
++	.name = "rational",
++	.test_cases = rational_test_cases,
++};
++
++kunit_test_suites(&rational_test_suite);
++
++MODULE_LICENSE("GPL v2");
 _
 
 Patches currently in -mm which might be from tpiepho@gmail.com are
