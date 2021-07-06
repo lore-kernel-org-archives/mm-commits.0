@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E42DC07E96
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3927C07E9E
 	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC16461CA8
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D1FE861C9D
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:22:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230003AbhGFTZH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:25:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58420 "EHLO mail.kernel.org"
+        id S229956AbhGFTZK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:25:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58440 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230098AbhGFTZH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:25:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 67EF461CA3;
-        Tue,  6 Jul 2021 19:22:27 +0000 (UTC)
+        id S230098AbhGFTZI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:25:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6B8F461C9E;
+        Tue,  6 Jul 2021 19:22:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599347;
-        bh=COsIp9dCvg5VQrCxrUEObsdQjGxngu6Lqy9AgVSeYuI=;
+        s=korg; t=1625599349;
+        bh=lJC9qAF2AByMdNZWcBIOMkmb5bd29Eo8h5DJYffuDBM=;
         h=Date:From:To:Subject:From;
-        b=PKMZFi/b/Jf++dXXWsKzlo8xwyEqJtLZJ+INaks8Eei9iPbkkVewlAjHmWuFDdgxj
-         YS7xxLgdARSdzbaJcBAurIM0/QXqyQ+JC6JQ9G2oMuHW57ZsnyuzzM8fc9nJR/t+dd
-         mLhu/9/g6UA8P57fuTNRnRCQ1aHtvxaK/Z9Y8ZxI=
-Date:   Tue, 06 Jul 2021 12:22:27 -0700
+        b=qMDvPR119vlyNN89YNhC8exNMK1rHAbM3LbONFfLRKD3FUp+q3dtBOxYX4JqZlHoV
+         nFomhqHko9tqBhF3GMi8oHAUsvoBwQf+OnjbmMJ/4JopNe/Ms9RbS+LUQA9p4Zusoe
+         EncJdyxLwWddnyahuNXSDpLrBbwc9mFAZAmQprvs=
+Date:   Tue, 06 Jul 2021 12:22:29 -0700
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, bfields@fieldses.org,
         chuck.lever@oracle.com, mm-commits@vger.kernel.org,
         viro@zeniv.linux.org.uk
 Subject:  [merged]
- seq_file-convert-seq_escape-to-use-seq_escape_str.patch removed from -mm
- tree
-Message-ID: <20210706192227.tm4-MzfUN%akpm@linux-foundation.org>
+ nfsd-avoid-non-flexible-api-in-seq_quote_mem.patch removed from -mm tree
+Message-ID: <20210706192229.uQ7U0bSgO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,22 +44,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: seq_file: convert seq_escape() to use seq_escape_str()
+     Subject: nfsd: avoid non-flexible API in seq_quote_mem()
 has been removed from the -mm tree.  Its filename was
-     seq_file-convert-seq_escape-to-use-seq_escape_str.patch
+     nfsd-avoid-non-flexible-api-in-seq_quote_mem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: seq_file: convert seq_escape() to use seq_escape_str()
+Subject: nfsd: avoid non-flexible API in seq_quote_mem()
 
-Convert seq_escape() to use seq_escape_str() rather than open coding it.
+The seq_escape_mem_ascii() is completely non-flexible and shouldn't be
+used.  Replace it with properly called seq_escape_mem().
 
-Note, for now we leave it as an exported symbol due to some old code that
-can't tolerate ctype.h being (indirectly) included.
-
-Link: https://lkml.kernel.org/r/20210504180819.73127-14-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20210504180819.73127-15-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Chuck Lever <chuck.lever@oracle.com>
@@ -68,24 +65,19 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ fs/nfsd/nfs4state.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/seq_file.c~seq_file-convert-seq_escape-to-use-seq_escape_str
-+++ a/fs/seq_file.c
-@@ -392,12 +392,7 @@ EXPORT_SYMBOL(seq_escape_mem);
-  */
- void seq_escape(struct seq_file *m, const char *s, const char *esc)
+--- a/fs/nfsd/nfs4state.c~nfsd-avoid-non-flexible-api-in-seq_quote_mem
++++ a/fs/nfsd/nfs4state.c
+@@ -2351,7 +2351,7 @@ static struct nfs4_client *get_nfsdfs_cl
+ static void seq_quote_mem(struct seq_file *m, char *data, int len)
  {
--	char *buf;
--	size_t size = seq_get_buf(m, &buf);
--	int ret;
--
--	ret = string_escape_str(s, buf, size, ESCAPE_OCTAL, esc);
--	seq_commit(m, ret < size ? ret : -1);
-+	seq_escape_str(m, s, ESCAPE_OCTAL, esc);
+ 	seq_printf(m, "\"");
+-	seq_escape_mem_ascii(m, data, len);
++	seq_escape_mem(m, data, len, ESCAPE_HEX | ESCAPE_NAP | ESCAPE_APPEND, "\"\\");
+ 	seq_printf(m, "\"");
  }
- EXPORT_SYMBOL(seq_escape);
  
 _
 
