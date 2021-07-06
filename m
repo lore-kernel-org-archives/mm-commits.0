@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F4C3C07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E5DBC07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3324D60FE3
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37FFD61107
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231893AbhGFTPG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:15:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49372 "EHLO mail.kernel.org"
+        id S231902AbhGFTPI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:15:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49406 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231376AbhGFTPG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:15:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6D91E6023F;
-        Tue,  6 Jul 2021 19:12:26 +0000 (UTC)
+        id S231376AbhGFTPI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:15:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6C31160FE3;
+        Tue,  6 Jul 2021 19:12:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598746;
-        bh=KaJHKviWmJomsFPwIVdWgErWFsxk6jwHBdLHriTMQhg=;
+        s=korg; t=1625598748;
+        bh=YcSJkL5rTmyUGy7LNtu8PGsWkz7Xk4Sl6QqzlJf7x+U=;
         h=Date:From:To:Subject:From;
-        b=PjaKKACNGEkBNzVjZeM4P5ITKbqdIL5n620Vwu4F1EdUE94UhA8n/diTwjkUyrxG2
-         rMBNOyeRBykYye/tUNQScnuiiVzvFdG2Q7iMZpowR0tV4mjfU9aRBxW/HVuc9vd+OM
-         fjv15VyisroJEGHHjKABMuV2d/HIlspv5S4eBhvA=
-Date:   Tue, 06 Jul 2021 12:12:26 -0700
+        b=qlEnGkRlj7abUH7FkOux53b3fi9q3IpTlECpCtzqOQkAu7HkjfRguUaVhZIzXctOg
+         OnpW3fDENRI7FZlGe7aA2TKWBg1YuErOXHjtVA5Vb7b493R8GCCZ3+tjSeyx9U9J69
+         oeVe71bPPOg4f9ZOsVjmWpKPx1kUNIuqm9/lyWqc=
+Date:   Tue, 06 Jul 2021 12:12:28 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, dbueso@suse.de, geert@linux-m68k.org,
         ldufour@linux.ibm.com, Liam.Howlett@Oracle.com,
         mm-commits@vger.kernel.org
 Subject:  [merged]
- arch-arc-kernel-troubleshoot-use-vma_lookup-instead-of-find_vma.patch
+ arch-arm64-kvm-use-vma_lookup-instead-of-find_vma_intersection.patch
  removed from -mm tree
-Message-ID: <20210706191226.7x5X_WgXC%akpm@linux-foundation.org>
+Message-ID: <20210706191228.ovSXz6p-D%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,21 +45,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/arc/kernel/troubleshoot: use vma_lookup() instead of find_vma()
+     Subject: arch/arm64/kvm: use vma_lookup() instead of find_vma_intersection()
 has been removed from the -mm tree.  Its filename was
-     arch-arc-kernel-troubleshoot-use-vma_lookup-instead-of-find_vma.patch
+     arch-arm64-kvm-use-vma_lookup-instead-of-find_vma_intersection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: arch/arc/kernel/troubleshoot: use vma_lookup() instead of find_vma()
+Subject: arch/arm64/kvm: use vma_lookup() instead of find_vma_intersection()
 
-Use vma_lookup() to find the VMA at a specific address.  As vma_lookup()
-will return NULL if the address is not within any VMA, the start address
-no longer needs to be validated.
+vma_lookup() finds the vma of a specific address with a cleaner interface
+and is more readable.
 
-Link: https://lkml.kernel.org/r/20210521174745.2219620-4-Liam.Howlett@Oracle.com
+Link: https://lkml.kernel.org/r/20210521174745.2219620-5-Liam.Howlett@Oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -68,28 +67,20 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/kernel/troubleshoot.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm64/kvm/mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arc/kernel/troubleshoot.c~arch-arc-kernel-troubleshoot-use-vma_lookup-instead-of-find_vma
-+++ a/arch/arc/kernel/troubleshoot.c
-@@ -83,12 +83,12 @@ static void show_faulting_vma(unsigned l
- 	 * non-inclusive vma
- 	 */
- 	mmap_read_lock(active_mm);
--	vma = find_vma(active_mm, address);
-+	vma = vma_lookup(active_mm, address);
+--- a/arch/arm64/kvm/mmu.c~arch-arm64-kvm-use-vma_lookup-instead-of-find_vma_intersection
++++ a/arch/arm64/kvm/mmu.c
+@@ -855,7 +855,7 @@ static int user_mem_abort(struct kvm_vcp
  
--	/* check against the find_vma( ) behaviour which returns the next VMA
--	 * if the container VMA is not found
-+	/* Lookup the vma at the address and report if the container VMA is not
-+	 * found
- 	 */
--	if (vma && (vma->vm_start <= address)) {
-+	if (vma) {
- 		char buf[ARC_PATH_MAX];
- 		char *nm = "?";
- 
+ 	/* Let's check if we will get back a huge page backed by hugetlbfs */
+ 	mmap_read_lock(current->mm);
+-	vma = find_vma_intersection(current->mm, hva, hva + 1);
++	vma = vma_lookup(current->mm, hva);
+ 	if (unlikely(!vma)) {
+ 		kvm_err("Failed to find VMA for hva 0x%lx\n", hva);
+ 		mmap_read_unlock(current->mm);
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
