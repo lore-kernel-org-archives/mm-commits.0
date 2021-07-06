@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 255E8C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF365C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0F4E561CA0
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7DE661C9D
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231752AbhGFTXU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:23:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57008 "EHLO mail.kernel.org"
+        id S231757AbhGFTXW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:23:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57034 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231749AbhGFTXU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:23:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6B8B761C9C;
-        Tue,  6 Jul 2021 19:20:40 +0000 (UTC)
+        id S231749AbhGFTXW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:23:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B52EF61C9E;
+        Tue,  6 Jul 2021 19:20:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599240;
-        bh=hL17nY0IaTsV54+5wPHMCm98DgiNr2I3+aHXXrDl7jM=;
+        s=korg; t=1625599242;
+        bh=TQ3uPeg1EuJrzntoZ2lkm4+yXerRYbRzT/i6/t9+4pw=;
         h=Date:From:To:Subject:From;
-        b=vHxasVg2TePbXji59nEpwD++65VlbY1JoHoemqv8xkUPDadSXW4B4Kx1qfEpOpWzT
-         wX8hGg9DU13AqtCmabbBBMegySPjLhIRCKsnpQRxtYy104dg37VlmsTlWAbs5PguA0
-         xT2hM96jILr0eBNl2eoO/vAVm9KpuqFZtYlJSFJY=
-Date:   Tue, 06 Jul 2021 12:20:40 -0700
+        b=A1ANK/xWy3UYlrctc3mGaX8AAN/BzwDA+uXTdKAF/kBSA7fj+TwJ471wFZEThmVzl
+         0+89ryuddp0J0s2wht50LhJheGgdKIU1e1OVHXL3Ic4mOF5iFIygMEGLxOF4AfAUz1
+         YhC4VVRyyEwR4LKN4TBUMpo3L7q06h4OsbAx8+Zk=
+Date:   Tue, 06 Jul 2021 12:20:42 -0700
 From:   akpm@linux-foundation.org
-To:     huyue2@yulong.com, minchan@kernel.org, mm-commits@vger.kernel.org,
-        senozhatsky@chromium.org, sergey.senozhatsky@gmail.com
-Subject:  [merged]
- zram-move-backing_dev-under-macro-config_zram_writeback.patch removed from
- -mm tree
-Message-ID: <20210706192040.bXA7XTz1Z%akpm@linux-foundation.org>
+To:     42.hyeyoo@gmail.com, mm-commits@vger.kernel.org
+Subject:  [merged] mm-fix-typos-and-grammar-error-in-comments.patch
+ removed from -mm tree
+Message-ID: <20210706192042.RNDzYgqto%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,45 +42,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: move backing_dev under macro CONFIG_ZRAM_WRITEBACK
+     Subject: mm: fix typos and grammar error in comments
 has been removed from the -mm tree.  Its filename was
-     zram-move-backing_dev-under-macro-config_zram_writeback.patch
+     mm-fix-typos-and-grammar-error-in-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yue Hu <huyue2@yulong.com>
-Subject: zram: move backing_dev under macro CONFIG_ZRAM_WRITEBACK
+From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Subject: mm: fix typos and grammar error in comments
 
-backing_dev is never used when not enable CONFIG_ZRAM_WRITEBACK and it's
-introduced from writeback feature.  So it's needless also affect
-readability in that case.
+We moves tha -> We move that in mm/swap.c
+statments -> statements in include/linux/mm.h
 
-Link: https://lkml.kernel.org/r/20210521060544.2385-1-zbestahu@gmail.com
-Signed-off-by: Yue Hu <huyue2@yulong.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Link: https://lkml.kernel.org/r/20210509063444.GA24745@hyeyoo
+Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h |    2 +-
+ mm/swap.c          |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/block/zram/zram_drv.h~zram-move-backing_dev-under-macro-config_zram_writeback
-+++ a/drivers/block/zram/zram_drv.h
-@@ -113,8 +113,8 @@ struct zram {
- 	 * zram is claimed so open request will be failed
- 	 */
- 	bool claim; /* Protected by bdev->bd_mutex */
--	struct file *backing_dev;
- #ifdef CONFIG_ZRAM_WRITEBACK
-+	struct file *backing_dev;
- 	spinlock_t wb_limit_lock;
- 	bool wb_limit_enable;
- 	u64 bd_wb_limit;
+--- a/include/linux/mm.h~mm-fix-typos-and-grammar-error-in-comments
++++ a/include/linux/mm.h
+@@ -155,7 +155,7 @@ extern int mmap_rnd_compat_bits __read_m
+ /* This function must be updated when the size of struct page grows above 80
+  * or reduces below 56. The idea that compiler optimizes out switch()
+  * statement, and only leaves move/store instructions. Also the compiler can
+- * combine write statments if they are both assignments and can be reordered,
++ * combine write statements if they are both assignments and can be reordered,
+  * this can result in several of the writes here being dropped.
+  */
+ #define	mm_zero_struct_page(pp) __mm_zero_struct_page(pp)
+--- a/mm/swap.c~mm-fix-typos-and-grammar-error-in-comments
++++ a/mm/swap.c
+@@ -554,7 +554,7 @@ static void lru_deactivate_file_fn(struc
+ 	} else {
+ 		/*
+ 		 * The page's writeback ends up during pagevec
+-		 * We moves tha page into tail of inactive.
++		 * We move that page into tail of inactive.
+ 		 */
+ 		add_page_to_lru_list_tail(page, lruvec);
+ 		__count_vm_events(PGROTATED, nr_pages);
 _
 
-Patches currently in -mm which might be from huyue2@yulong.com are
+Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
 
 
